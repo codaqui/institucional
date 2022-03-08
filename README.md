@@ -1,5 +1,7 @@
 # CODAQUI (Docs)
 
+Para acessar o conteúdo desse site acesse [https://docs.codaqui.dev](https://docs.codaqui.dev), ou navegue pelos documentos na pasta `docs`.
+
 ## Development
 
 ```bash
