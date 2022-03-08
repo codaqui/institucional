@@ -1,17 +1,25 @@
-# Welcome to MkDocs
+# Página Inicial
 
-For full documentation visit [mkdocs.org](https://www.mkdocs.org).
+## Objetivo
 
-## Commands
+Queremos democratizar o aprendizado tecnológico, e aproximar novas gerações do conteúdo tecnico.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
 
-## Project layout
+## Nossa solução
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+### 01. Autonomia no aprendizado
+Os alunos percorrem de forma autônoma algumas trilhas de aprendizado criadas com a ajuda de especialistas voluntários e semanalmente encontram um mentor para atividades práticas.
+
+### 02. Resolução de problemas reais
+Além dos projetos pessoais desenvolvido ao longo do curso, os alunos podem participar de projetos reais, de desenvolvimento de serviços e produtos para outras organizações sem fins lucrativos, podendo receber uma bolsa financeira.
+
+### 03. Acesso a computador e internet
+Incentivamos nossos alunos a ocupar espaços públicos, estabelecendo parcerias para que todos tenham acesso a computador, internet e uma estação de estudo.
+
+## Trilhas de Aprendizado
+
+<falar sobre as trilhas do github aqui>
+
+## Parceiros
+
