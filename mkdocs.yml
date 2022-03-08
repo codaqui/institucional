@@ -1,0 +1,6 @@
+site_name: CODAQUI (Docs)
+site_url: https://docs.codaqui.dev/
+nav:
+    - Home: index.md
+    - About: about.md
+theme: readthedocs
