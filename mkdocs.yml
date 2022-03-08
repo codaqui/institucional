@@ -1,19 +1,23 @@
 site_name: CODAQUI.dev
+site_author: codaqui // endersonmenezes
 site_url: https://codaqui.dev/
 site_description: "Queremos democratizar o aprendizado tecnológico, e aproximar novas gerações do conteúdo tecnico."
-copyright: Codaqui © Copyright - 2022 - Todos os direitos reservados - CNPJ 44.593.429/0001-05
+copyright: Codaqui &copy; Copyright - 2022 - Todos os direitos reservados - CNPJ 44.593.429/0001-05
 repo_url: https://github.com/codaqui
 
 nav:
     - Inicio: index.md
     - Sobre: about.md
     - Projetos: projetos.md
+    - Pais e Responsáveis: pais_responsaveis.md
     - Quero: #
       - Estudar: quero/estudar.md
       - Apoiar: quero/apoiar.md
       - Patrocinar: quero/patrocinar.md
+    - Blog: blog.md
     - Contato: contact.md
     - Código de Conduta: conduta.md
+
 theme:
   name: material
   custom_dir: overrides
@@ -21,3 +25,6 @@ theme:
   logo: assets/logo_blk.png
   palette:
     primary: black
+
+plugins:
+  - search
