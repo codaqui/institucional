@@ -1,7 +1,7 @@
 site_name: CODAQUI.dev
 site_url: https://docs.codaqui.dev/
 site_description: "Queremos democratizar o aprendizado tecnológico, e aproximar novas gerações do conteúdo tecnico."
-copyright: Codaqui ® Todos os direitos reservados.
+copyright: Codaqui © Copyright - 2022 - Todos os direitos reservados - CNPJ 44.593.429/0001-05
 
 nav:
     - Inicio: index.md
