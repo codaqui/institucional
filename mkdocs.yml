@@ -28,3 +28,14 @@ theme:
 
 plugins:
   - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/codaqui
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/codaquidev
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/codaqui
+    - icon: fontawesome/brands/instagram
+      link: https://instagram.com/codaqui.dev
