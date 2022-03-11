@@ -3,5 +3,5 @@
 ## CloudBot
 
 - Aluno: [Pedro Varanda](https://github.com/pedrocvaranda)
-- Descrição: Um bot não-profissional (bem parecido com a Lorrita) do meu servidor do discord.
+- Descrição: Um bot amigável para divertir seu servidor!
 - GitHub: [Clique aqui](https://github.com/pedrocvaranda/CloudBot)
