@@ -10,7 +10,7 @@ nav:
     - Inicio: index.md
     - Sobre: about.md
     - Projetos: #
-      - Codaqui: projetos/codaqui.md
+      - Encontros: projetos/codaqui.md
       - Alunos: projetos/alunos.md
     - Pais e Responsáveis: pais_responsaveis.md
     - Quero: #
