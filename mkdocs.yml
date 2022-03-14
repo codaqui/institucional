@@ -17,6 +17,8 @@ nav:
       - Estudar: quero/estudar.md
       - Apoiar: quero/apoiar.md
       - Patrocinar: quero/patrocinar.md
+    - Trilhas: #
+      - Python: trilhas/python.md
     - Blog: blog.md
     - Contato: contact.md
     - Código de Conduta: conduta.md
