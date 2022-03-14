@@ -19,6 +19,8 @@ nav:
       - Patrocinar: quero/patrocinar.md
     - Trilhas: #
       - Python: trilhas/python.md
+    - Transparência: #
+      - Associação: ong.md
     - Blog: blog.md
     - Contato: contact.md
     - Código de Conduta: conduta.md
