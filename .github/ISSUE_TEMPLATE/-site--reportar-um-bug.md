@@ -1,6 +1,7 @@
 ---
 name: "[SITE] Reportar um bug"
-about: Create a report to help us improve
+about: Acredito ter encontrado um problema que pode estar afetando mais usuários do
+  site.
 title: "[SITE]"
 labels: bug, site
 assignees: ''

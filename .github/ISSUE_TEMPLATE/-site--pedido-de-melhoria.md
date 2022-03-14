@@ -1,6 +1,6 @@
 ---
 name: "[SITE] Pedido de melhoria"
-about: Suggest an idea for this project
+about: Gostaria de sugerir uma melhoria para esse site.
 title: "[SITE]"
 labels: bug, site
 assignees: ''
