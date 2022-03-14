@@ -19,7 +19,10 @@ Incentivamos nossos alunos a ocupar espaços públicos, estabelecendo parcerias 
 
 ## Trilhas de Aprendizado
 
-<falar sobre as trilhas do github aqui>
+A Codaqui se propõe a ser uma Escola GitBased, o que isso signifca? Todos os nossos conteúdos estão disponíveis no GitHub, em todas as nossas páginas você verá um ícone que te leva a edição dessa página, dessa forma queremos crescer juntos e as próprias crianças e jovens que participam do nosso programa corrigem e atualizam todas as trilhas, juntamente com uma equipe de Mentores. Começamos a fazer esse trabalho em um [repositório atualmente arquivado](https://github.com/codaqui/institucional-trilhas-estudos).
+
+Trilhas Disponíveis:
+ - [Python](trilhas/python.md)
 
 ## Parceiros
 
