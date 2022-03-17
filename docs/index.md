@@ -26,14 +26,7 @@ Trilhas Disponíveis:
 
 ## Parceiros
 
-![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="75" }
-![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="75" }
+![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="125" }
 
-<figure markdown>
-  ![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="75" }
-  <figcaption>DevParaná</figcaption>
-</figure>
-<figure markdown>
-  ![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="75" }
-  <figcaption>GitHub Education</figcaption>
-</figure>
+![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="125px", margin-left="10px" }
+
