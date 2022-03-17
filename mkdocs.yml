@@ -31,9 +31,10 @@ theme:
   logo: assets/logo_blk.png
   palette:
     primary: black
-  markdown_extensions:
-    - attr_list
-    - md_in_html
+    
+markdown_extensions:
+  - attr_list
+  - md_in_html
 
 plugins:
   - search
