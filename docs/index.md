@@ -26,3 +26,9 @@ Trilhas Disponíveis:
 
 ## Parceiros
 
+<a href="https://www.devparana.org/">
+ <img src="https://www.devparana.org/img/logo.svg" height="75">
+</a>
+<a href="https://education.github.com/" style="margin-left: 10px;">
+<img src="https://education.github.com/external-assets/github-global-campus/img/github-logo.ea5086f.svg" height="75">
+</a>
