@@ -32,5 +32,5 @@ Trilhas Disponíveis:
 </figure>
 <figure markdown>
   ![Logo do GitHub Education](https://education.github.com/external-assets/github-global-campus/img/github-logo.ea5086f.svg){ width="75" }
-  <figcaption>DevParaná</figcaption>
+  <figcaption>GitHub Education</figcaption>
 </figure>
