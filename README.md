@@ -1,6 +1,6 @@
 # CODAQUI (Docs)
 
-Para acessar o conteúdo desse site acesse [https://codaqui.dev](https://docs.codaqui.dev), ou navegue pelos documentos na pasta `docs`.
+Para acessar o conteúdo desse site acesse [https://codaqui.dev](https://codaqui.dev), ou navegue pelos documentos na pasta `docs`.
 
 ## Development
 
