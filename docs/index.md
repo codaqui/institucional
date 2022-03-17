@@ -26,6 +26,11 @@ Trilhas Disponíveis:
 
 ## Parceiros
 
+<figure markdown>
+  ![Image title](https://dummyimage.com/600x400/){ width="300" }
+  <figcaption>Image caption</figcaption>
+</figure>
+
 <a href="https://www.devparana.org/">
  <img src="https://www.devparana.org/img/logo.svg" height="75">
 </a>
