@@ -7,7 +7,7 @@ Discussão:
 
 ## Certificação Codaqui
 
-Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Confira o modelo [clicando aqui.](https://github.com/codaqui/cert-trilha-python-modelo)
+Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Confira o modelo [clicando aqui.](https://github.com/codaqui/certificado-python)
 
 ---
 
