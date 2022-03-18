@@ -18,6 +18,7 @@ nav:
       - Apoiar: quero/apoiar.md
       - Patrocinar: quero/patrocinar.md
     - Trilhas: #
+      - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
     - Associação: ong.md
     - Blog: blog.md
