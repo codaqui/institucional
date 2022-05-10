@@ -16,7 +16,7 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 - [ ] Novas Turmas
 - [ ] Apoio do Setor Empresarial
 
-<small> Isso é apenas um guia, entre em contato para ver como você pode nos auxiliar </small>
+<small> Isso é apenas um guia, entre em contato para ver como você pode nos auxiliar.</small>
 
 ## Nossa solução
 
