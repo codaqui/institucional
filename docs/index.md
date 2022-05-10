@@ -8,7 +8,7 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 
 - [X] Trilha de Estudos em Python
 - [X] Turma Inicial de Alunos Embaixadores
-- [ ] Estrutura de E-mail para os Alunos <> GitHub
+- [X] Estrutura de E-mail para os Alunos <> GitHub
 - [ ] Sistema de Certificação Interno
 
 ## Nossa solução
