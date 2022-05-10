@@ -6,6 +6,11 @@ Queremos democratizar o aprendizado tecnológico, e aproximar novas gerações d
 
 Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
 
+- [X] Trilha de Estudos em Python
+- [X] Turma Inicial de Alunos Embaixadores
+- [ ] Estrutura de E-mail para os Alunos <> GitHub
+- [ ] Sistema de Certificação Interno
+
 ## Nossa solução
 
 ### 01. Autonomia no aprendizado
