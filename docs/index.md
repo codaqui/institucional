@@ -33,7 +33,9 @@ Trilhas Disponíveis:
 
 ## Parceiros
 
-![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="125" }
+<div class="grid cards" markdown>
 
-![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="125px" }
+- ![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="125" }
+- ![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="125px" }
 
+</div>
