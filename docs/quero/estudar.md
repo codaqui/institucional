@@ -11,4 +11,6 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 ## Como Se Inscrever
 
+Entre no Discord, leia as #regras de nosso servidor! Se você concordar com tudo, com certeza poderá ser um membro da Codaqui. (Mas primeiro você será um Candidato, participe, aprenda, e compartilhe mais conhecimento para se tornar um membro da Codaqui.
+
 <iframe src="https://discordapp.com/widget?id=829882821559451659&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
