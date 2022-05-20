@@ -14,7 +14,6 @@ nav:
     - Quero: #
       - Estudar: quero/estudar.md
       - Apoiar: quero/apoiar.md
-      - Patrocinar: quero/patrocinar.md
     - Trilhas: #
       - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
