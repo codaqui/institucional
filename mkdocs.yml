@@ -9,9 +9,7 @@ edit_uri: 'https://github.com/codaqui/institucional/tree/main/docs'
 nav:
     - Inicio: index.md
     - Sobre: about.md
-    - Projetos: #
-      - Encontros: projetos/codaqui.md
-      - Alunos: projetos/alunos.md
+    - Projetos: projetos.md
     - Pais e Responsáveis: pais_responsaveis.md
     - Quero: #
       - Estudar: quero/estudar.md
