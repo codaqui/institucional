@@ -40,42 +40,6 @@ Trilhas Disponíveis:
 
 ## Parceiros
 
-<div class="grid cards" markdown>
+![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="125" }
 
--   :material-clock-fast:{ .lg .middle } __Set up in 5 minutes__
-
-    ---
-
-    Install [`mkdocs-material`](#) with [`pip`](#) and get up
-    and running in minutes
-
-    [:octicons-arrow-right-24: Getting started](#)
-
--   :fontawesome-brands-markdown:{ .lg .middle } __It's just Markdown__
-
-    ---
-
-    Focus on your content and generate a responsive and searchable static site
-
-    [:octicons-arrow-right-24: Reference](#)
-
--   :material-format-font:{ .lg .middle } __Made to measure__
-
-    ---
-
-    Change the colors, fonts, language, icons, logo and more with a few lines
-
-    [:octicons-arrow-right-24: Customization](#)
-
--   :material-scale-balance:{ .lg .middle } __Open Source, MIT__
-
-    ---
-
-    Material for MkDocs is licensed under MIT and available on [GitHub]
-
-    [:octicons-arrow-right-24: License](#)
-
-</div>
-
-- ![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png){ width="125" }
-- ![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="125px" }
+![Logo do DevParaná](https://www.devparana.org/img/logo.svg){ width="125px" }
