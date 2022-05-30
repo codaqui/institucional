@@ -98,6 +98,4 @@ VYGOTSKY, L. S. Pensamento e Linguagem. São Paulo: Martins Fontes, 1998
 
 ## Plataformas citadas
 
-- Github
-- Discord - https://medium.com/tech-based-teaching/channeling-learning-using-discord-for-education-6581ba8c11a2
-- Google Classroom
+[Github](https://education.github.com/) | [Discord](https://discord.com/safety/360044149331-O-que-e-o-Discord) | [Google Classroom](https://edu.google.com/intl/ALL_br/workspace-for-education/classroom/)
