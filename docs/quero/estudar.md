@@ -15,4 +15,8 @@ Entre no Discord, leia as #regras de nosso servidor! Se você concordar com tudo
 
 <small>Mas primeiro você será um Candidato. Participe, aprenda, e compartilhe mais conhecimento para se tornar um membro oficial da Codaqui.</small>
 
+Código do Servidor: **xuTtxqCPpz**
+
+Utilize esse código se estiver com dificuldades para ver o _Widget_ abaixo.
+
 <iframe src="https://discordapp.com/widget?id=829882821559451659&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
