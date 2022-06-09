@@ -17,7 +17,9 @@ Os links abaixo direciona você a uma breve apresentação sobre a linguagem de 
 
 Links:
 - [Introdução a Programação Python - Prof. MARCO VAZ](https://www.codingame.com/playgrounds/34774/introducao-a-programacao-python---prof--marco-vaz/apresentacao)
+
 - [WikiPython Brasil - Apresentação](https://wiki.python.org.br/PythonApresentacao)
+
 - [Apresentando a Linguagem de Programação Python](https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python)
 
 ## 2 - Preparando o ambiente
@@ -25,9 +27,13 @@ Aqui é fornecido guias para a instalação de compiladores de Python.
 
 Links:
 - [Configurando um ambiente de desenvolvimento Django](https://developer.mozilla.org/pt-BR/docs/Learn/Server-side/Django/development_environment)
+
 - [Guia passo a passo de como preparar o ambiente Python utilizando Django](https://digitalinnovation.one/artigos/guia-de-passo-a-passo-de-como-preparar-o-ambiente-python-utilizando-django)
+
 - [Guia definitivo para organizar meu ambiente Python](https://medium.com/welcome-to-the-django/guia-definitivo-para-organizar-meu-ambiente-python-a16e2479b753)
+
 - [Flask no Replit](https://replit.com/talk/learn/Flask-Tutorial-Part-1-the-basics/26272)
+
 - [WSL no Windows](https://docs.microsoft.com/pt-br/windows/wsl/install)
 
 ## 3 - Introdução à linguagem Python
