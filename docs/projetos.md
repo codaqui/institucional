@@ -10,6 +10,6 @@
 ## Calculadora
 
 - Alunos: [Nome do Aluno](#)
-- Descrição: Calculadora criada para trabalhar conceito de modulos e pacotes, feita com diversos alunos.
+- Descrição: Calculadora criada para trabalhar conceito de módulos e pacotes, feita com diversos alunos.
 - GitHub: [Clique aqui](https://github.com/codaqui/calculadora_codaqui)
 - Link: [Clique aqui](https://pypi.org/project/calculadora-codaqui/)
