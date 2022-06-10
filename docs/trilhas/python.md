@@ -16,6 +16,7 @@ Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Py
 Os links abaixo direciona você a uma breve apresentação sobre a linguagem de programação Python.
 
 Links:
+
 - [Introdução a Programação Python - Prof. MARCO VAZ](https://www.codingame.com/playgrounds/34774/introducao-a-programacao-python---prof--marco-vaz/apresentacao)
 
 - [WikiPython Brasil - Apresentação](https://wiki.python.org.br/PythonApresentacao)
@@ -26,6 +27,7 @@ Links:
 Aqui é fornecido guias para a instalação de compiladores de Python.
 
 Links:
+
 - [Configurando um ambiente de desenvolvimento Django](https://developer.mozilla.org/pt-BR/docs/Learn/Server-side/Django/development_environment)
 
 - [Guia passo a passo de como preparar o ambiente Python utilizando Django](https://digitalinnovation.one/artigos/guia-de-passo-a-passo-de-como-preparar-o-ambiente-python-utilizando-django)
@@ -40,30 +42,40 @@ Links:
 Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
 
 Links:
+
 - [Introdução - Python BR](https://python.org.br/introducao/)
+
 - [MeetUp Introdução ao Python - DevMedia](https://www.devmedia.com.br/meetup-introducao-ao-python/40245)
 
 ## 4 - Variáveis e Tipos de Dados em Python
 Introduzimos a linguagem de programação Python com explicações do que é variáveis e seus tipos. Pode se entender a variável como um valor que se altera.
 
 Links:
+
 - [Tipos de Dados - Algoritimos em Python](https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/)
+
 - [Variaveis, Operadores e Tipos de Dados - Cadernoscicomp](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/python-variaveis-operadores-e-tipos-de-dados/)
+
 - [Variaveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
 
 ## 5 - Estruturas Lógicas e Condicionais em Python
 Nessa explicação será abordado o que são as estruturas condicionais no Python e como utilizar. Entende-se estruturas condicionais como ações a serem executadas.
 
 Links:
+
 - [Estruturas e Condicionais - #Treinamentos](https://www.hashtagtreinamentos.com/estruturas-condicionais-no-python)
+
 - [Operadores Lógicos - Caravela](https://pense-python.caravela.club/05-condicionais-e-recursividade/00-condicionais-e-recursividade.html)
 
 ## 6 - Estruturas de Repetição em Python
 Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.
 
 Links:
+
 - [Estruturas de Repetição - DevMedia](https://www.devmedia.com.br/estruturas-de-repeticao-em-python/41551)
+
 - [Estruturas de Repetição e Condicionais - TreinaWeb](https://www.treinaweb.com.br/blog/estruturas-condicionais-e-de-repeticao-no-python)
+
 - [Estruturas de Repetição - #Treinamentos](https://www.hashtagtreinamentos.com/estruturas-de-repeticao-python)
 
 ## 7 - Coleções Python
@@ -81,8 +93,11 @@ Vídeo Complementar rápido:
 Após passarmos pela Seção 7, vamos comentar sobre as Funções em Python. São blocos de códigos que só são executados quando chamados, podemos passar dados (os famosos parâmetros), e depois retornar alguma resposta.
 
 Links:
+
 - [Funções](https://algoritmosempython.com.br/cursos/programacao-python/funcoes/)
+
 - [Funções 2](https://panda.ime.usp.br/pensepy/static/pensepy/05-Funcoes/funcoes.html)
+
 - [Funções 3](https://www.dcc.ufrj.br/~fabiom/mab225/07func.pdf)
 
 Video Complementar:
@@ -94,7 +109,9 @@ Video Complementar:
 Lorem Ipsum
 
 Links:
+
 - [Comprehensions no Pyhton](https://pythonacademy.com.br/blog/list-comprehensions-no-python)
+
 - [Comprehension](https://pythonhelp.wordpress.com/2011/03/01/list-comprehension/)
 
 ## 10 - Expressões Lambdas e Funções Integradas
@@ -102,17 +119,24 @@ Links:
 Uma expressão lambda permite escrever funções anônimas/sem nome usando apenas uma linha de código. As funções integradas são funções que permitem obter alguma informação a respeito de uma variável de tipo padrão ou transformar o tipo de uma variável. Neste tópico, podemos aprender mais profundamente sobre ambas.
 
 Links:
+
 - [Função Lambda](https://www.codingame.com/playgrounds/52499/programacao-python-intermediario---prof--marco-vaz/funcao-lambda)
+
 - [Funções Lambda em Python](https://www.hashtagtreinamentos.com/funcoes-lambda-python)
+
 - [Lambda](https://pythonhelp.wordpress.com/tag/lambda/)
+ 
 - [Guru99 - Lambda Functions Examples](https://www.guru99.com/python-lambda-function.html)
 
 ## 11 - Debugando e Tratando erros
 Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver como tratar erros e exceções.
 
 Links:
+
 - [Erros de sintaxe (Syntax errors)](https://panda.ime.usp.br/panda/static/pensepy/Appendices/app_a.html)
+
 - [Entendendo melhor as mensagens de erro](https://pythonhelp.wordpress.com/2012/12/31/deu-erro-e-agora-o-que-eu-faco/)
+
 - [Tratamento de erros e exceções](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/tratamento-de-erros-e-excecoes/)
 
 ## 12 - Trabalhando com Módulos Python
@@ -124,8 +148,11 @@ Conforme a introdução do segundo _link_ de estudo, a importação de módulos 
 Leia mais a respeito de **módulos** nos _links_ de estudo abaixo.
 
 Links:
+
 - [Como criar um módulo](https://www.pythonprogressivo.net/2018/07/import-Como-Criar-Importar-Usar-Modulo-Python-Curso.html)
+
 - [Importando módulos](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/modulos/)
+
 - [Módulos-Executando módulos como scripts](https://docs.python.org/pt-br/3/tutorial/modules.html)
 
 ## 13 - Leitura e Escrita em Arquivos
@@ -133,7 +160,9 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Abrindo, fechando e lendo arquivos (Com exercícios)](https://panda.ime.usp.br/pensepy/static/pensepy/10-Arquivos/files.html)
+
 - [Como escrever e salvar arquivos JSON em Python](https://academiahopper.com.br/trabalhando-com-arquivos-em-python/)
 
 ## 14 - Iteradores e Geradores Python
@@ -141,8 +170,11 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Iterators e Generators em Python - Python Academy]( https://pythonacademy.com.br/blog/iterators-e-generators-em-python)
+
 - [Iteradores, iteráveis e geradores - ICHI.PRO]( https://ichi.pro/pt/iteradores-iteraveis-e-geradores-132206850510725)
+
 - [Diferença entre iteradores e geradores do Python - QA Stack]( https://qastack.com.br/programming/2776829/difference-between-pythons-generators-and-iterators)
 
 
@@ -151,8 +183,11 @@ Links:
 Saindo dos iteradores e geradores, seguiremos com decoradores em python. Para simplificarmos sua ideia, podemos dizer que eles são funções que modificam a funcionalidade de uma outra função.
 
 Links:
+
 - [Decoradores por Python Iluminado](https://pythoniluminado.netlify.app/decoradores)
+
 - [Decoradores por Python WIKI](https://wiki.python.org.br/Decoradores_Python_(Python_Decorators))
+
 - [Como funcionam os decoradores em Python?](https://pt.stackoverflow.com/questions/23628/como-funcionam-decoradores-em-python)
 
 ## 16 - Orientação a Objetos com Python
@@ -160,32 +195,43 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Classes](https://panda.ime.usp.br/pensepy/static/pensepy/13-Classes/classesintro.html)
+
 - [Python Orientado a Objetos com Framework CherryPy](https://www.devmedia.com.br/python-orientado-a-objetos-com-o-framework-cherrypy/33489)
+
 - [Programação Orientada a Objetos com Python](https://wiki.python.org.br/ProgramacaoOrientadaObjetoPython)
 
 ## 17 - Herança e Polimorfismo
 
 Links:
+
 - [Polimorfismo - O que é e como usar?](https://www.pythonprogressivo.net/2018/11/Polimorfismo-O-que-Como-Usar-Como-fazer.html)
+
 - [Entendendo o Super() do Python](https://medium.com/code-rocket-blog/entendendo-o-super-do-python-da17ee8d26ca)
+
 - [Conceitos de Polimorfismo em POO](https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701)
 
 ## 18 - Manipulando Arquivos CSV e JSON
 
 Links:
+
 - [importando dados com Python](https://imasters.com.br/back-end/data-science-importando-dados-com-python)
 
 ## 19 - Trabalhando com Data e Hora em Python
 
 Links:
+
 - [Como trabalhar com data hora Python](https://vaiprogramar.com/como-trabalhar-com-data-hora-python-datetime/)
+
 - [Tipos básicos de data e hora](https://docs.python.org/pt-br/3/library/datetime.html)
+
 - [Trabalhando com datas e horas em Python](https://pythonhelp.wordpress.com/2012/07/10/trabalhando-com-datas-e-horas-em-python-datetime/)
 
 ## 20 - Testes com Python
 
 Links:
+
 - [Testes em Python parte I](https://dev.to/womakerscode/testes-em-python-parte-1-introducao-43ei)
 
 ## 21 - Encerramento
@@ -193,7 +239,9 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Finalizando um script Python - QA Stack]( https://qastack.com.br/programming/73663/how-to-terminate-a-python-script)
+
 - [Parar/terminar um script Python - ti-exame.com]( https://www.ti-enxame.com/pt/python/como-pararterminar-um-script-python-de-execucao/1043433651/)
 
 
@@ -202,7 +250,9 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Memória em Python - Agatetepê]( https://www.agatetepe.com.br/gerenciamento-de-memoria-python/)
+
 - [Gerenciamento de memória Python – Weekly-Geekly ES]( https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html)
 
 
@@ -212,7 +262,9 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Checando os tipos de variáveis em Python 3 - Hora de Codar]( https://www.horadecodar.com.br/2021/03/30/como-checar-o-tipo-de-uma-variavel-em-python-3/)
+
 - [Checagem de tipos no Python - gutierri]( https://medium.com/gutierri/checagem-de-tipos-no-python-1533fe1e786f)
 
 
@@ -223,8 +275,11 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [Python 3.8 lançado com expressões de atribuição e mais](https://www.edivaldobrito.com.br/python-3-8-lancado-com-expressoes-de-atribuicao-e-mais/)
+
 - [O que há de novo no Python 3.8](https://docs.python.org/pt-br/3/whatsnew/3.8.html)
+
 - [What's new in Python 3.8?](https://deepsource.io/blog/python-3-8-whats-new/)
 
 ### Novidades do Python 3.9
@@ -232,8 +287,11 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [O que há de novo no Python 3.9](https://docs.python.org/pt-br/3/whatsnew/index.html)
+
 - [Atualizações do Python 3.9 explicadas com exemplos práticos de código](https://cibersistemas.pt/tecnologia/atualizacoes-do-python-3-9-explicadas-com-exemplos-praticos-de-codigo/)
+
 - [Python 3.9 lançado com melhorias em multiprocessamento e novo analisador](https://www.edivaldobrito.com.br/python-3-9-lancado-com-melhorias-em-multiprocessamento-e-novo-analisador/)
 
 
@@ -242,8 +300,11 @@ Links:
 Lorem Ipsum
 
 Links:
+
 - [O que há de novo no Python 3.10](https://docs.python.org/pt-br/3.10/whatsnew/index.html)
+
 - [What’s New in Python 3.10?](https://towardsdatascience.com/whats-new-in-python-3-10-a757c6c69342)
+
 - [What’s new in Python 3.10](https://www.infoworld.com/article/3617460/whats-new-in-python-310.html)
 
 
