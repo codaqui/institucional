@@ -1,6 +1,6 @@
 # Contato
 
-[Entre em contato por e-mail  :fontawesome-brands-email:](mailto:contato@codaqui.dev){ .md-button }
+[Entre em contato por e-mail  :material-gmail:](mailto:contato@codaqui.dev){ .md-button }
 
 [Entre em contato pelo instagram  :fontawesome-brands-instagram:](https://www.instagram.com/codaqui.dev/){ .md-button}
 
