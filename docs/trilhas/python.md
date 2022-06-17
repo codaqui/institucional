@@ -106,9 +106,9 @@ Video Complementar:
 
 - [Um Programador Pleno já deveria saber usar esse Design Pattern (tutorial linha a linha)](https://youtu.be/arAz2Ff8s88?t=111)
 
-## 9 - Comprehensions em Python
+## 9 - Compreensões em Python
 
-Lorem Ipsum
+As compreensões em Python serve para escrever uma nova lista baseada em outra lista exixtente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.
 
 Links:
 
