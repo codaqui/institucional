@@ -29,6 +29,7 @@ theme:
   logo: assets/logo_blk.png
   palette:
     primary: black
+  favicon: assets/favicon.png
     
 markdown_extensions:
   - attr_list
