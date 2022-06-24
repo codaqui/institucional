@@ -8,7 +8,7 @@ Discussão:
 
 ## Certificação Codaqui
 
-Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.]([https://github.com/codaqui/certificado-python](https://classroom.github.com/a/NxcWpy-1))
+Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
 
 <small> TODO Video Explicativo do Certificado </small>
 
