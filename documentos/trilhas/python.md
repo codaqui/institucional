@@ -169,7 +169,8 @@ Links:
 
 ## 14 - Iteradores e Geradores Python
 
-Lorem Ipsum
+Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos. 
+Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.
 
 Links:
 
