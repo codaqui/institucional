@@ -219,6 +219,8 @@ Links:
 
 ## 18 - Manipulando Arquivos CSV e JSON
 
+O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida. 
+
 Links:
 
 - [importando dados com Python](https://imasters.com.br/back-end/data-science-importando-dados-com-python)
