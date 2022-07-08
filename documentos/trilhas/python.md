@@ -207,6 +207,8 @@ Links:
 
 ## 17 - Herança e Polimorfismo
 
+Herança é um mecanismo importante quando um grupo de classes apresenta a mesma interface, mas a implementação interna dos métodos é diferente. Polimorfismo é a capacidade que uma subclasse tem de ter métodos com o mesmo nome de sua superclasse, e o programa saber qual método deve ser invocado, especificamente.
+
 Links:
 
 - [Polimorfismo - O que é e como usar?](https://www.pythonprogressivo.net/2018/11/Polimorfismo-O-que-Como-Usar-Como-fazer.html)
