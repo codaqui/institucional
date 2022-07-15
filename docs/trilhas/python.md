@@ -110,7 +110,7 @@ Video Complementar:
 
 ## 9 - Comprehensions em Python
 
-Lorem Ipsum
+As Comprehensions em Python serve para escrever uma nova lista baseada em outra lista exixtente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.
 
 Links:
 
@@ -171,7 +171,8 @@ Links:
 
 ## 14 - Iteradores e Geradores Python
 
-Lorem Ipsum
+Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos. 
+Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.
 
 Links:
 
@@ -196,7 +197,7 @@ Links:
 
 ## 16 - Orientação a Objetos com Python
 
-Lorem Ipsum
+Programação orientada a objetos (POO) é um paradigma de programação baseado no conceito de "objetos", que podem conter dados na forma de campos, também conhecidos como atributos, e códigos, na forma de procedimentos, também conhecidos como métodos.
 
 Links:
 
@@ -208,6 +209,8 @@ Links:
 
 ## 17 - Herança e Polimorfismo
 
+Herança é um mecanismo importante quando um grupo de classes apresenta a mesma interface, mas a implementação interna dos métodos é diferente. Polimorfismo é a capacidade que uma subclasse tem de ter métodos com o mesmo nome de sua superclasse, e o programa saber qual método deve ser invocado, especificamente.
+
 Links:
 
 - [Polimorfismo - O que é e como usar?](https://www.pythonprogressivo.net/2018/11/Polimorfismo-O-que-Como-Usar-Como-fazer.html)
@@ -217,6 +220,8 @@ Links:
 - [Conceitos de Polimorfismo em POO](https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701)
 
 ## 18 - Manipulando Arquivos CSV e JSON
+
+O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida. 
 
 Links:
 
@@ -319,6 +324,6 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 - [@pedrocvaranda](https://github.com/pedrocvaranda) organizou os tópicos "Introdução à linguagem Python", "Variáveis e Tipos de Dados em Python", "Estruturas Lógicas e Condicionais em Python", "Estruturas de Repetição em Python" e uma parte da "Bibliografia".
 - [@melissarr](https://github.com/melissarr) organizou os tópicos: "Debugando e Tratando erros", "Trabalhando com Módulos Python" e "Leitura e Escrita em Arquivos". 
 - [@kamisinha](https://github.com/kamisinha) organizou os tópicos: "Novidades do Python 3.8", "Novidades do Python 3.9" e "Novidades do Python 3.10". 
-- [@LuizFernado-TC](https://github.com/LuizFernando-TC) organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". 
+- [@LuizFernado-TC](https://github.com/LuizFernando-TC) organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". Ajudou a criar resumos de diversas categiruas,
 - [@isiezz](https://github.com/isiezz) organizou os tópicos: "Manipulando Arquivos CSV e JSON", "Trabalhando com Data e Hora em Python" e "Testes com Python". 
 - [@caiodocoduiguin](https://github.com/caiodocoduiguin) organizou os tópicos: "Coleções Python", "Funções em Python", "Comprehensions em Python" e "Expressões Lambdas e Funções Integradas".
