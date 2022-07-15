@@ -17,6 +17,7 @@ nav:
     - Trilhas: #
       - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
+      - Javascript: trilhas/javascript.md
     - Associação: ong.md
     - Social: social.md
     - Contato: contact.md
