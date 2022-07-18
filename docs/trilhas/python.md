@@ -15,7 +15,8 @@ Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Py
 ---
 
 ## 1 - Apresentação
-Os links abaixo direciona você a uma breve apresentação sobre a linguagem de programação Python.
+Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais. 
+Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 
 Links:
 
