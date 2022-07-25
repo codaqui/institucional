@@ -1,0 +1,1439 @@
+
+<!doctype html>
+<html lang="pt" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Queremos democratizar o aprendizado tecnológico, e aproximar novas gerações do conteúdo tecnico.">
+      
+      
+        <meta name="author" content="codaqui // endersonmenezes">
+      
+      
+        <link rel="canonical" href="https://codaqui.dev/trilhas/python/">
+      
+      <link rel="icon" href="../../assets/favicon.png">
+      <meta name="generator" content="mkdocs-1.3.1, mkdocs-material-8.3.9">
+    
+    
+      
+        <title>Python - CODAQUI.dev</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.1d29e8d0.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.cbb835fc.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#000000">
+        
+      
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="black" data-md-color-accent="">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#trilha-de-aprendizado-de-programacao-com-python" class="md-skip">
+          Ir para o conteúdo
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Cabeçalho">
+    <a href="../.." title="CODAQUI.dev" class="md-header__button md-logo" aria-label="CODAQUI.dev" data-md-component="logo">
+      
+  <img src="../../assets/logo_blk.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            CODAQUI.dev
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Python
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Buscar" placeholder="Buscar" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Pesquisar">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Limpar" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Inicializando a pesquisa
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/codaqui" title="Ir ao repositório" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navegação" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="CODAQUI.dev" class="md-nav__button md-logo" aria-label="CODAQUI.dev" data-md-component="logo">
+      
+  <img src="../../assets/logo_blk.png" alt="logo">
+
+    </a>
+    CODAQUI.dev
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/codaqui" title="Ir ao repositório" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        Inicio
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../about/" class="md-nav__link">
+        Sobre
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../projetos/" class="md-nav__link">
+        Projetos
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pais_responsaveis/" class="md-nav__link">
+        Pais e Responsáveis
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_5" type="checkbox" id="__nav_5" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_5">
+          Quero
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Quero" data-md-level="1">
+        <label class="md-nav__title" for="__nav_5">
+          <span class="md-nav__icon md-icon"></span>
+          Quero
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quero/estudar/" class="md-nav__link">
+        Estudar
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quero/apoiar/" class="md-nav__link">
+        Apoiar
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_6" type="checkbox" id="__nav_6" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_6">
+          Trilhas
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Trilhas" data-md-level="1">
+        <label class="md-nav__title" for="__nav_6">
+          <span class="md-nav__icon md-icon"></span>
+          Trilhas
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../github-starter/" class="md-nav__link">
+        GitHub Start
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Python
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Python
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#certificacao-codaqui" class="md-nav__link">
+    Certificação Codaqui
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-apresentacao" class="md-nav__link">
+    1 - Apresentação
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-preparando-o-ambiente" class="md-nav__link">
+    2 - Preparando o ambiente
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-introducao-a-linguagem-python" class="md-nav__link">
+    3 - Introdução à linguagem Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-variaveis-e-tipos-de-dados-em-python" class="md-nav__link">
+    4 - Variáveis e Tipos de Dados em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-estruturas-logicas-e-condicionais-em-python" class="md-nav__link">
+    5 - Estruturas Lógicas e Condicionais em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-estruturas-de-repeticao-em-python" class="md-nav__link">
+    6 - Estruturas de Repetição em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-colecoes-python" class="md-nav__link">
+    7 - Coleções Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-funcoes-em-python" class="md-nav__link">
+    8 - Funções em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-comprehensions-em-python" class="md-nav__link">
+    9 - Comprehensions em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-expressoes-lambdas-e-funcoes-integradas" class="md-nav__link">
+    10 - Expressões Lambdas e Funções Integradas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-debugando-e-tratando-erros" class="md-nav__link">
+    11 - Debugando e Tratando erros
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-trabalhando-com-modulos-python" class="md-nav__link">
+    12 - Trabalhando com Módulos Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-leitura-e-escrita-em-arquivos" class="md-nav__link">
+    13 - Leitura e Escrita em Arquivos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-iteradores-e-geradores-python" class="md-nav__link">
+    14 - Iteradores e Geradores Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-decoradores-em-python" class="md-nav__link">
+    15 - Decoradores em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-orientacao-a-objetos-com-python" class="md-nav__link">
+    16 - Orientação a Objetos com Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-heranca-e-polimorfismo" class="md-nav__link">
+    17 - Herança e Polimorfismo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-manipulando-arquivos-csv-e-json" class="md-nav__link">
+    18 - Manipulando Arquivos CSV e JSON
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-trabalhando-com-data-e-hora-em-python" class="md-nav__link">
+    19 - Trabalhando com Data e Hora em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-testes-com-python" class="md-nav__link">
+    20 - Testes com Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-encerramento" class="md-nav__link">
+    21 - Encerramento
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-gerenciamento-de-memoria-em-python" class="md-nav__link">
+    22 - Gerenciamento de Memória em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23-checagem-de-tipos-em-python" class="md-nav__link">
+    23 - Checagem de Tipos em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#24-novidades" class="md-nav__link">
+    24 - Novidades
+  </a>
+  
+    <nav class="md-nav" aria-label="24 - Novidades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-38" class="md-nav__link">
+    Novidades do Python 3.8
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-39" class="md-nav__link">
+    Novidades do Python 3.9
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-310" class="md-nav__link">
+    Novidades do Python 3.10
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../javascript/" class="md-nav__link">
+        Javascript
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ong/" class="md-nav__link">
+        Associação
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../blog/" class="md-nav__link">
+        Social
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contact/" class="md-nav__link">
+        Contato
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conduta/" class="md-nav__link">
+        Código de Conduta
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Índice">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Índice
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#certificacao-codaqui" class="md-nav__link">
+    Certificação Codaqui
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-apresentacao" class="md-nav__link">
+    1 - Apresentação
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-preparando-o-ambiente" class="md-nav__link">
+    2 - Preparando o ambiente
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-introducao-a-linguagem-python" class="md-nav__link">
+    3 - Introdução à linguagem Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-variaveis-e-tipos-de-dados-em-python" class="md-nav__link">
+    4 - Variáveis e Tipos de Dados em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-estruturas-logicas-e-condicionais-em-python" class="md-nav__link">
+    5 - Estruturas Lógicas e Condicionais em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-estruturas-de-repeticao-em-python" class="md-nav__link">
+    6 - Estruturas de Repetição em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-colecoes-python" class="md-nav__link">
+    7 - Coleções Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-funcoes-em-python" class="md-nav__link">
+    8 - Funções em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-comprehensions-em-python" class="md-nav__link">
+    9 - Comprehensions em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-expressoes-lambdas-e-funcoes-integradas" class="md-nav__link">
+    10 - Expressões Lambdas e Funções Integradas
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-debugando-e-tratando-erros" class="md-nav__link">
+    11 - Debugando e Tratando erros
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-trabalhando-com-modulos-python" class="md-nav__link">
+    12 - Trabalhando com Módulos Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-leitura-e-escrita-em-arquivos" class="md-nav__link">
+    13 - Leitura e Escrita em Arquivos
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-iteradores-e-geradores-python" class="md-nav__link">
+    14 - Iteradores e Geradores Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-decoradores-em-python" class="md-nav__link">
+    15 - Decoradores em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-orientacao-a-objetos-com-python" class="md-nav__link">
+    16 - Orientação a Objetos com Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-heranca-e-polimorfismo" class="md-nav__link">
+    17 - Herança e Polimorfismo
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-manipulando-arquivos-csv-e-json" class="md-nav__link">
+    18 - Manipulando Arquivos CSV e JSON
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-trabalhando-com-data-e-hora-em-python" class="md-nav__link">
+    19 - Trabalhando com Data e Hora em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-testes-com-python" class="md-nav__link">
+    20 - Testes com Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-encerramento" class="md-nav__link">
+    21 - Encerramento
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-gerenciamento-de-memoria-em-python" class="md-nav__link">
+    22 - Gerenciamento de Memória em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23-checagem-de-tipos-em-python" class="md-nav__link">
+    23 - Checagem de Tipos em Python
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#24-novidades" class="md-nav__link">
+    24 - Novidades
+  </a>
+  
+    <nav class="md-nav" aria-label="24 - Novidades">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-38" class="md-nav__link">
+    Novidades do Python 3.8
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-39" class="md-nav__link">
+    Novidades do Python 3.9
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#novidades-do-python-310" class="md-nav__link">
+    Novidades do Python 3.10
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+  <a href="https://github.com/codaqui/institucional/tree/main/docs/trilhas/python.md" title="Editar esta página" class="md-content__button md-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+
+<h1 id="trilha-de-aprendizado-de-programacao-com-python">Trilha de Aprendizado de Programação com Python</h1>
+<p>Discussão:</p>
+<ul>
+<li><a href="https://github.com/codaqui/institucional-trilhas-estudos/pull/6">Atualização 1 - PR#6</a></li>
+<li><a href="https://github.com/codaqui/institucional-trilhas-estudos/pull/7">Atualização 2 - PR#7</a></li>
+</ul>
+<h2 id="certificacao-codaqui">Certificação Codaqui</h2>
+<p>Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se <a href="https://classroom.github.com/a/NxcWpy-1">clicando aqui.</a></p>
+<p><small> TODO Video Explicativo do Certificado </small></p>
+<hr />
+<h2 id="1-apresentacao">1 - Apresentação</h2>
+<p>Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais. 
+Essa linguagem de programação foi lançada por Guido van Rossum em 1991.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.codingame.com/playgrounds/34774/introducao-a-programacao-python---prof--marco-vaz/apresentacao">Introdução a Programação Python - Prof. MARCO VAZ</a></p>
+</li>
+<li>
+<p><a href="https://wiki.python.org.br/PythonApresentacao">WikiPython Brasil - Apresentação</a></p>
+</li>
+<li>
+<p><a href="https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python">Apresentando a Linguagem de Programação Python</a></p>
+</li>
+</ul>
+<h2 id="2-preparando-o-ambiente">2 - Preparando o ambiente</h2>
+<p>Aqui é fornecido guias para a instalação de compiladores de Python.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://developer.mozilla.org/pt-BR/docs/Learn/Server-side/Django/development_environment">Configurando um ambiente de desenvolvimento Django</a></p>
+</li>
+<li>
+<p><a href="https://tutorial.djangogirls.org/pt/django_installation/">Instalação do Django</a></p>
+</li>
+<li>
+<p><a href="https://medium.com/welcome-to-the-django/guia-definitivo-para-organizar-meu-ambiente-python-a16e2479b753">Guia definitivo para organizar meu ambiente Python</a></p>
+</li>
+<li>
+<p><a href="https://replit.com/talk/learn/Flask-Tutorial-Part-1-the-basics/26272">Flask no Replit</a></p>
+</li>
+<li>
+<p><a href="https://docs.microsoft.com/pt-br/windows/wsl/install">WSL no Windows</a></p>
+</li>
+</ul>
+<h2 id="3-introducao-a-linguagem-python">3 - Introdução à linguagem Python</h2>
+<p>Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://python.org.br/introducao/">Introdução - Python BR</a></p>
+</li>
+<li>
+<p><a href="https://www.devmedia.com.br/meetup-introducao-ao-python/40245">MeetUp Introdução ao Python - DevMedia</a></p>
+</li>
+</ul>
+<h2 id="4-variaveis-e-tipos-de-dados-em-python">4 - Variáveis e Tipos de Dados em Python</h2>
+<p>Introduzimos a linguagem de programação Python com explicações do que é variáveis e seus tipos. Pode se entender a variável como um valor que se altera.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/">Tipos de Dados - Algoritimos em Python</a></p>
+</li>
+<li>
+<p><a href="https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/python-variaveis-operadores-e-tipos-de-dados/">Variaveis, Operadores e Tipos de Dados - Cadernoscicomp</a></p>
+</li>
+<li>
+<p><a href="https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html">Variaveis - USP</a></p>
+</li>
+</ul>
+<h2 id="5-estruturas-logicas-e-condicionais-em-python">5 - Estruturas Lógicas e Condicionais em Python</h2>
+<p>Nessa explicação será abordado o que são as estruturas condicionais no Python e como utilizar. Entende-se estruturas condicionais como ações a serem executadas.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.hashtagtreinamentos.com/estruturas-condicionais-no-python">Estruturas e Condicionais - #Treinamentos</a></p>
+</li>
+<li>
+<p><a href="https://pense-python.caravela.club/05-condicionais-e-recursividade/00-condicionais-e-recursividade.html">Operadores Lógicos - Caravela</a></p>
+</li>
+</ul>
+<h2 id="6-estruturas-de-repeticao-em-python">6 - Estruturas de Repetição em Python</h2>
+<p>Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.devmedia.com.br/estruturas-de-repeticao-em-python/41551">Estruturas de Repetição - DevMedia</a></p>
+</li>
+<li>
+<p><a href="https://www.treinaweb.com.br/blog/estruturas-condicionais-e-de-repeticao-no-python">Estruturas de Repetição e Condicionais - TreinaWeb</a></p>
+</li>
+<li>
+<p><a href="https://www.hashtagtreinamentos.com/estruturas-de-repeticao-python">Estruturas de Repetição - #Treinamentos</a></p>
+</li>
+</ul>
+<h2 id="7-colecoes-python">7 - Coleções Python</h2>
+<p>As coleções permitem armazenar múltiplos itens dentro de uma única unidade, que funciona como um container. Neste tópico iremos ver quais são e como usa-las.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.devmedia.com.br/colecoes-no-python-listas-tuplas-e-dicionarios/40678">Coleções no Python</a></p>
+</li>
+<li>
+<p><a href="https://www.phylos.net/2021-03-08/python-sequencias-e-colecoes/">Python sequências e coleções</a></p>
+</li>
+</ul>
+<p>Vídeo Complementar rápido:</p>
+<ul>
+<li><a href="https://youtu.be/2Q4GkMQ-vzQ">Coleções em python - Aprenda dicionário resumidamente)</a></li>
+</ul>
+<h2 id="8-funcoes-em-python">8 - Funções em Python</h2>
+<p>Após passarmos pela Seção 7, vamos comentar sobre as Funções em Python. São blocos de códigos que só são executados quando chamados, podemos passar dados (os famosos parâmetros), e depois retornar alguma resposta.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://algoritmosempython.com.br/cursos/programacao-python/funcoes/">Funções</a></p>
+</li>
+<li>
+<p><a href="https://panda.ime.usp.br/pensepy/static/pensepy/05-Funcoes/funcoes.html">Funções 2</a></p>
+</li>
+<li>
+<p><a href="https://www.dcc.ufrj.br/~fabiom/mab225/07func.pdf">Funções 3</a></p>
+</li>
+</ul>
+<p>Video Complementar:</p>
+<ul>
+<li><a href="https://youtu.be/arAz2Ff8s88?t=111">Um Programador Pleno já deveria saber usar esse Design Pattern (tutorial linha a linha)</a></li>
+</ul>
+<h2 id="9-comprehensions-em-python">9 - Comprehensions em Python</h2>
+<p>As Comprehensions em Python serve para escrever uma nova lista baseada em outra lista exixtente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://pythonacademy.com.br/blog/list-comprehensions-no-python">Comprehensions no Pyhton</a></p>
+</li>
+<li>
+<p><a href="https://pythonhelp.wordpress.com/2011/03/01/list-comprehension/">Comprehension</a></p>
+</li>
+</ul>
+<h2 id="10-expressoes-lambdas-e-funcoes-integradas">10 - Expressões Lambdas e Funções Integradas</h2>
+<p>Uma expressão lambda permite escrever funções anônimas/sem nome usando apenas uma linha de código. As funções integradas são funções que permitem obter alguma informação a respeito de uma variável de tipo padrão ou transformar o tipo de uma variável. Neste tópico, podemos aprender mais profundamente sobre ambas.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.codingame.com/playgrounds/52499/programacao-python-intermediario---prof--marco-vaz/funcao-lambda">Função Lambda</a></p>
+</li>
+<li>
+<p><a href="https://www.hashtagtreinamentos.com/funcoes-lambda-python">Funções Lambda em Python</a></p>
+</li>
+<li>
+<p><a href="https://pythonhelp.wordpress.com/tag/lambda/">Lambda</a></p>
+</li>
+<li>
+<p><a href="https://www.guru99.com/python-lambda-function.html">Guru99 - Lambda Functions Examples</a></p>
+</li>
+</ul>
+<h2 id="11-debugando-e-tratando-erros">11 - Debugando e Tratando erros</h2>
+<p>Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver como tratar erros e exceções.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://panda.ime.usp.br/panda/static/pensepy/Appendices/app_a.html">Erros de sintaxe (Syntax errors)</a></p>
+</li>
+<li>
+<p><a href="https://pythonhelp.wordpress.com/2012/12/31/deu-erro-e-agora-o-que-eu-faco/">Entendendo melhor as mensagens de erro</a></p>
+</li>
+<li>
+<p><a href="https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/tratamento-de-erros-e-excecoes/">Tratamento de erros e exceções</a></p>
+</li>
+</ul>
+<h2 id="12-trabalhando-com-modulos-python">12 - Trabalhando com Módulos Python</h2>
+<p>Módulos em Python são arquivos contendo definições e comandos a serem utilizados em outros programas na mesma linguagem, utilizando a <code>keyword import</code>. </p>
+<p>Conforme a introdução do segundo <em>link</em> de estudo, a importação de módulos só é possível enquanto dentro do mesmo diretório, ou se estiver em uma lista de diretórios dadas pela variável <code>sys.path</code>, começada no diretório atual e procurada na variável <code>PYTHONPATH</code> do <strong>Shell</strong>, por fim no diretório padrão que depende da instalação. </p>
+<p>Leia mais a respeito de <strong>módulos</strong> nos <em>links</em> de estudo abaixo.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.pythonprogressivo.net/2018/07/import-Como-Criar-Importar-Usar-Modulo-Python-Curso.html">Como criar um módulo</a></p>
+</li>
+<li>
+<p><a href="https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/modulos/">Importando módulos</a></p>
+</li>
+<li>
+<p><a href="https://docs.python.org/pt-br/3/tutorial/modules.html">Módulos-Executando módulos como scripts</a></p>
+</li>
+</ul>
+<h2 id="13-leitura-e-escrita-em-arquivos">13 - Leitura e Escrita em Arquivos</h2>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://panda.ime.usp.br/pensepy/static/pensepy/10-Arquivos/files.html">Abrindo, fechando e lendo arquivos (Com exercícios)</a></p>
+</li>
+<li>
+<p><a href="https://academiahopper.com.br/trabalhando-com-arquivos-em-python/">Como escrever e salvar arquivos JSON em Python</a></p>
+</li>
+</ul>
+<h2 id="14-iteradores-e-geradores-python">14 - Iteradores e Geradores Python</h2>
+<p>Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos. 
+Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://pythonacademy.com.br/blog/iterators-e-generators-em-python">Iterators e Generators em Python - Python Academy</a></p>
+</li>
+<li>
+<p><a href="https://ichi.pro/pt/iteradores-iteraveis-e-geradores-132206850510725">Iteradores, iteráveis e geradores - ICHI.PRO</a></p>
+</li>
+<li>
+<p><a href="https://qastack.com.br/programming/2776829/difference-between-pythons-generators-and-iterators">Diferença entre iteradores e geradores do Python - QA Stack</a></p>
+</li>
+</ul>
+<h2 id="15-decoradores-em-python">15 - Decoradores em Python</h2>
+<p>Saindo dos iteradores e geradores, seguiremos com decoradores em python. Para simplificarmos sua ideia, podemos dizer que eles são funções que modificam a funcionalidade de uma outra função.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://pythoniluminado.netlify.app/decoradores">Decoradores por Python Iluminado</a></p>
+</li>
+<li>
+<p><a href="https://wiki.python.org.br/Decoradores_Python_(Python_Decorators)">Decoradores por Python WIKI</a></p>
+</li>
+<li>
+<p><a href="https://pt.stackoverflow.com/questions/23628/como-funcionam-decoradores-em-python">Como funcionam os decoradores em Python?</a></p>
+</li>
+</ul>
+<h2 id="16-orientacao-a-objetos-com-python">16 - Orientação a Objetos com Python</h2>
+<p>Programação orientada a objetos (POO) é um paradigma de programação baseado no conceito de "objetos", que podem conter dados na forma de campos, também conhecidos como atributos, e códigos, na forma de procedimentos, também conhecidos como métodos.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://panda.ime.usp.br/pensepy/static/pensepy/13-Classes/classesintro.html">Classes</a></p>
+</li>
+<li>
+<p><a href="https://www.devmedia.com.br/python-orientado-a-objetos-com-o-framework-cherrypy/33489">Python Orientado a Objetos com Framework CherryPy</a></p>
+</li>
+<li>
+<p><a href="https://wiki.python.org.br/ProgramacaoOrientadaObjetoPython">Programação Orientada a Objetos com Python</a></p>
+</li>
+</ul>
+<h2 id="17-heranca-e-polimorfismo">17 - Herança e Polimorfismo</h2>
+<p>Herança é um mecanismo importante quando um grupo de classes apresenta a mesma interface, mas a implementação interna dos métodos é diferente. Polimorfismo é a capacidade que uma subclasse tem de ter métodos com o mesmo nome de sua superclasse, e o programa saber qual método deve ser invocado, especificamente.</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.pythonprogressivo.net/2018/11/Polimorfismo-O-que-Como-Usar-Como-fazer.html">Polimorfismo - O que é e como usar?</a></p>
+</li>
+<li>
+<p><a href="https://medium.com/code-rocket-blog/entendendo-o-super-do-python-da17ee8d26ca">Entendendo o Super() do Python</a></p>
+</li>
+<li>
+<p><a href="https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701">Conceitos de Polimorfismo em POO</a></p>
+</li>
+</ul>
+<h2 id="18-manipulando-arquivos-csv-e-json">18 - Manipulando Arquivos CSV e JSON</h2>
+<p>O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida. </p>
+<p>Links:</p>
+<ul>
+<li><a href="https://imasters.com.br/back-end/data-science-importando-dados-com-python">importando dados com Python</a></li>
+</ul>
+<h2 id="19-trabalhando-com-data-e-hora-em-python">19 - Trabalhando com Data e Hora em Python</h2>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://vaiprogramar.com/como-trabalhar-com-data-hora-python-datetime/">Como trabalhar com data hora Python</a></p>
+</li>
+<li>
+<p><a href="https://docs.python.org/pt-br/3/library/datetime.html">Tipos básicos de data e hora</a></p>
+</li>
+<li>
+<p><a href="https://pythonhelp.wordpress.com/2012/07/10/trabalhando-com-datas-e-horas-em-python-datetime/">Trabalhando com datas e horas em Python</a></p>
+</li>
+</ul>
+<h2 id="20-testes-com-python">20 - Testes com Python</h2>
+<p>Links:</p>
+<ul>
+<li><a href="https://dev.to/womakerscode/testes-em-python-parte-1-introducao-43ei">Testes em Python parte I</a></li>
+</ul>
+<h2 id="21-encerramento">21 - Encerramento</h2>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://qastack.com.br/programming/73663/how-to-terminate-a-python-script">Finalizando um script Python - QA Stack</a></p>
+</li>
+<li>
+<p><a href="https://www.ti-enxame.com/pt/python/como-pararterminar-um-script-python-de-execucao/1043433651/">Parar/terminar um script Python - ti-exame.com</a></p>
+</li>
+</ul>
+<h2 id="22-gerenciamento-de-memoria-em-python">22 - Gerenciamento de Memória em Python</h2>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.agatetepe.com.br/gerenciamento-de-memoria-python/">Memória em Python - Agatetepê</a></p>
+</li>
+<li>
+<p><a href="https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html">Gerenciamento de memória Python – Weekly-Geekly ES</a></p>
+</li>
+</ul>
+<h2 id="23-checagem-de-tipos-em-python">23 - Checagem de Tipos em Python</h2>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.horadecodar.com.br/2021/03/30/como-checar-o-tipo-de-uma-variavel-em-python-3/">Checando os tipos de variáveis em Python 3 - Hora de Codar</a></p>
+</li>
+<li>
+<p><a href="https://medium.com/gutierri/checagem-de-tipos-no-python-1533fe1e786f">Checagem de tipos no Python - gutierri</a></p>
+</li>
+</ul>
+<h2 id="24-novidades">24 - Novidades</h2>
+<h3 id="novidades-do-python-38">Novidades do Python 3.8</h3>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://www.edivaldobrito.com.br/python-3-8-lancado-com-expressoes-de-atribuicao-e-mais/">Python 3.8 lançado com expressões de atribuição e mais</a></p>
+</li>
+<li>
+<p><a href="https://docs.python.org/pt-br/3/whatsnew/3.8.html">O que há de novo no Python 3.8</a></p>
+</li>
+<li>
+<p><a href="https://deepsource.io/blog/python-3-8-whats-new/">What's new in Python 3.8?</a></p>
+</li>
+</ul>
+<h3 id="novidades-do-python-39">Novidades do Python 3.9</h3>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://docs.python.org/pt-br/3/whatsnew/index.html">O que há de novo no Python 3.9</a></p>
+</li>
+<li>
+<p><a href="https://cibersistemas.pt/tecnologia/atualizacoes-do-python-3-9-explicadas-com-exemplos-praticos-de-codigo/">Atualizações do Python 3.9 explicadas com exemplos práticos de código</a></p>
+</li>
+<li>
+<p><a href="https://www.edivaldobrito.com.br/python-3-9-lancado-com-melhorias-em-multiprocessamento-e-novo-analisador/">Python 3.9 lançado com melhorias em multiprocessamento e novo analisador</a></p>
+</li>
+</ul>
+<h3 id="novidades-do-python-310">Novidades do Python 3.10</h3>
+<p>Lorem Ipsum</p>
+<p>Links:</p>
+<ul>
+<li>
+<p><a href="https://docs.python.org/pt-br/3.10/whatsnew/index.html">O que há de novo no Python 3.10</a></p>
+</li>
+<li>
+<p><a href="https://towardsdatascience.com/whats-new-in-python-3-10-a757c6c69342">What’s New in Python 3.10?</a></p>
+</li>
+<li>
+<p><a href="https://www.infoworld.com/article/3617460/whats-new-in-python-310.html">What’s new in Python 3.10</a></p>
+</li>
+</ul>
+<h1 id="bibliografia">Bibliografia</h1>
+<p>Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e posteriormente a <a href="https://github.com/melissarr">@melissarr</a> fez um trabalho de agrupamento e pesquisa dessa trilha em diversos portais. A partir desse trabalho de agrupamento e pesquisa da <a href="https://github.com/melissarr">@melissarr</a>: </p>
+<ul>
+<li><a href="https://github.com/pedrocvaranda">@pedrocvaranda</a> organizou os tópicos "Introdução à linguagem Python", "Variáveis e Tipos de Dados em Python", "Estruturas Lógicas e Condicionais em Python", "Estruturas de Repetição em Python" e uma parte da "Bibliografia".</li>
+<li><a href="https://github.com/melissarr">@melissarr</a> organizou os tópicos: "Debugando e Tratando erros", "Trabalhando com Módulos Python" e "Leitura e Escrita em Arquivos". </li>
+<li><a href="https://github.com/kamisinha">@kamisinha</a> organizou os tópicos: "Novidades do Python 3.8", "Novidades do Python 3.9" e "Novidades do Python 3.10". </li>
+<li><a href="https://github.com/LuizFernando-TC">@LuizFernado-TC</a> organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". Ajudou a criar resumos de diversas categiruas,</li>
+<li><a href="https://github.com/isiezz">@isiezz</a> organizou os tópicos: "Manipulando Arquivos CSV e JSON", "Trabalhando com Data e Hora em Python" e "Testes com Python". </li>
+<li><a href="https://github.com/caiodocoduiguin">@caiodocoduiguin</a> organizou os tópicos: "Coleções Python", "Funções em Python", "Comprehensions em Python" e "Expressões Lambdas e Funções Integradas".</li>
+</ul>
+
+              
+            </article>
+            
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Rodapé" >
+      
+        
+        <a href="../github-starter/" class="md-footer__link md-footer__link--prev" aria-label="Anterior: GitHub Start" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Anterior
+              </span>
+              GitHub Start
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../javascript/" class="md-footer__link md-footer__link--next" aria-label="Próximo: Javascript" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Próximo
+              </span>
+              Javascript
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Codaqui &copy; Copyright - 2022 - Todos os direitos reservados - CNPJ 44.593.429/0001-05
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+      
+      
+    
+    <a href="https://github.com/codaqui" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://twitter.com/codaquidev" target="_blank" rel="noopener" title="twitter.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://www.linkedin.com/company/codaqui" target="_blank" rel="noopener" title="www.linkedin.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://instagram.com/codaqui.dev" target="_blank" rel="noopener" title="instagram.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z"/></svg>
+    </a>
+  
+    
+    
+      
+      
+    
+    <a href="https://www.youtube.com/channel/UCUySP8FaPF_IkM48zmwJr0A" target="_blank" rel="noopener" title="www.youtube.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b97dbffb.min.js", "translations": {"clipboard.copied": "Copiado para \u00e1rea de transfer\u00eancia", "clipboard.copy": "Copiar para \u00e1rea de transfer\u00eancia", "search.config.lang": "pt", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Buscar", "search.result.more.one": "Mais 1 nesta p\u00e1gina", "search.result.more.other": "Mais # nesta p\u00e1gina", "search.result.none": "Nenhum resultado encontrado", "search.result.one": "1 resultado encontrado", "search.result.other": "# resultados encontrados", "search.result.placeholder": "Digite para iniciar a busca", "search.result.term.missing": "Ausente", "select.version.title": "Selecione a vers\u00e3o"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.6c7ad80a.min.js"></script>
+      
+    
+  </body>
+</html>
