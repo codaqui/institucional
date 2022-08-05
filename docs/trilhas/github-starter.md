@@ -105,3 +105,7 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 * [Laboratório de aprendizagem do GitHub](https://lab.github.com/)
 * [Fórum da comunidade educacional](https://education.github.community/)
 * [Fórum da comunidade do GitHub](https://github.community/)
+
+## Referência
+
+Esse material foi copiado do [GitHub Starter](https://github.com/education/github-starter-course) e traduzido pelo [LuizFernando-TC](https://github.com/LuizFernando-TC) com o auxilio de ferramentas de tradução e conhecimentos do mesmo.
