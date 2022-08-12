@@ -77,6 +77,7 @@ Aprenda como usar Kaboom.js para criar seus próprios jogos.
 # Bibliografia 
 
 A trilha inicialmente foi feita com base nos seguintes sites:
+
 - [Curso da Alura](https://www.alura.com.br/cursos-online-front-end/javascript)
 - [Build a VideoGame with Kaboom by Replit](https://replit.com/curriculum/Build-a-Video-Game-with-Kaboom)
 - [Javascript by Freecodecamp](https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures/)
