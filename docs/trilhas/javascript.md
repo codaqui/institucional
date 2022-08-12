@@ -40,7 +40,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 ### 2.1 - Variáveis de Tipos de Dados
 ### 2.2 - Estruturas Lógicas (Condicionais e de Repetição)
-### 2.3 - Expressões e operadores
+### 2.3 - Expressões e Operadores
 ### 2.4 - Orientação a Objetos
 ### 2.5 - Debuggando Erros
 
