@@ -41,6 +41,21 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 ### 2.1 - Variáveis de Tipos de Dados
 ### 2.2 - Estruturas Lógicas (Condicionais e de Repetição)
 ### 2.3 - Expressões e Operadores
+
+Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expressão lógica nada mais é que uma expressão algébrica e, pode ser chamada também de proposição. Operadores em Javascript são símbolos especiais que envolvem um ou mais operandos com a finalidade de produzir um determinado resultado. Esse conjunto é usado para tomar decisões em códigos.
+
+`Materiais de Referência`:
+
+- [Expressões e operadores - Mozilla](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Expressions_and_operators)
+- [Operadores Javascript: O que são, quais são e para que servem - Kenzie](https://kenzie.com.br/blog/operadores-javascript/)
+- [Operadores Lógicos Javascript - Ricardo Reis](https://ricardo-reis.medium.com/operadores-l%C3%B3gicos-logical-operators-b0687819d1a5)
+- [Operadores e expressões - UFRJ](http://www.nce.ufrj.br/ginape/js/conteudo/variaveis/operadores.htm)
+
+`Video Complementar`:
+
+- [Operadores e Operações no JavaScript](https://www.youtube.com/watch?v=6d6IV3SQnIM)
+
+
 ### 2.4 - Orientação a Objetos
 ### 2.5 - Debuggando Erros
 
