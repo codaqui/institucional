@@ -27,6 +27,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 - [JavaScript – 20 anos de história e construção da web](https://imasters.com.br/front-end/javascript-20-anos-de-historia-e-construcao-da-web)
 
 `Video Complementar`:
+
 - [O que é JAVASCRIPT e para que serve, história e origem da linguagem](https://www.youtube.com/watch?v=pWseQJRL_2k)
 
 ### 1.2 - Ambiente de Desenvolvimento
@@ -57,7 +58,15 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 ### 4.3 - Hello Worlds com ReactJS
 ### 4.4 - Hello Worlds com ExpressJS
 
-## 5 - Indicação de Livros
+## Projetos Práticos
+
+### - Build a Video Game with Kaboom!
+
+Aprenda como usar Kaboom.js para criar seus próprios jogos.
+
+[Clique aqui](https://replit.com/curriculum/Build-a-Video-Game-with-Kaboom)
+
+## 6 - Indicação de Livros
 
 - [Lógica de Programação e Algoritmos com JavaScript: uma Introdução à Programação de Computadores com Exemplos e Exercícios Para Iniciantes](https://www.amazon.com.br/L%C3%B3gica-Programa%C3%A7%C3%A3o-Algoritmos-com-JavaScript/dp/6586057906/)
 - [Estruturas de Dados e Algoritmos com JavaScript: Escreva um Código JavaScript Complexo e Eficaz Usando a Mais Recente ECMAScript](https://www.amazon.com.br/Estruturas-Dados-Algoritmos-Com-Javascript/dp/8575226932/)
