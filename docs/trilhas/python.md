@@ -230,6 +230,8 @@ Links:
 
 ## 19 - Trabalhando com Data e Hora em Python
 
+Registrar um momento qualquer no tempo é um requisito comum em todo sistema usual. Esse registro pode ser em data e hora. É commum fazer operações com esses dados, portanto, sua precisão é muito importante.
+
 Links:
 
 - [Como trabalhar com data hora Python](https://vaiprogramar.com/como-trabalhar-com-data-hora-python-datetime/)
