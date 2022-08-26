@@ -28,9 +28,29 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 `Video Complementar`:
 
+
 - [O que é JAVASCRIPT e para que serve, história e origem da linguagem](https://www.youtube.com/watch?v=pWseQJRL_2k)
 
 ### 1.2 - Ambiente de Desenvolvimento
+
+Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possui explicações como diferenças entre IDE e editores de código, também demostra como usar JavaScript no Console do navegador.
+
+`Materiais de Referência`:
+
+
+- [Ambiente Javascript: Dicas, VSCode e terminal](https://blog.rocketseat.com.br/ambiente-desenvolvimento-javascript/)
+- [Ambiente de Desenvolvimento - JavaScript (S01E02)](https://devheroes.io/ambiente-de-desenvolvimento-javascript-s01e02/)
+- [7 IDEs de Javascript para usar em 2022: vantagens e desvantagens](https://blog.geekhunter.com.br/ide-javascript/)
+- [Configurando o ambiente de desenvolvimento fullstack JavaScript](https://woliveiras.com.br/posts/configurando-o-ambiente-de-desenvolvimento-fullstack-javascript/)
+- [Execute o JavaScript no Console](https://docs.microsoft.com/pt-br/microsoft-edge/devtools-guide-chromium/console/console-javascript)
+
+`Video Complementar`:
+
+
+- [Configurando Ambiente de Desenvolvimento | Curso de Javascript](https://www.youtube.com/watch?v=KwBiErhj3Qw)
+- [Como configurar seu ambiente de desenvolvimento Javascript para usar Docker](https://www.youtube.com/watch?v=Bp2bU6fQcSo)
+- [Configurando VSCode para Node.js, ReactJS e React Native | Diego Fernandes](https://www.youtube.com/watch?v=c7P03kkrEG8)
+
 ### 1.3 - Conceito da linguagem script
 ### 1.4 - Vantagens e desvantagens da linguagem script
 ### 1.5 - Estrutura básica da linguagem JavaScript
