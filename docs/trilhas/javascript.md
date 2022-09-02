@@ -81,8 +81,8 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 
 `Materiais de Referência`:
 
-- [Introdução a objetos em Javascript](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects)
-- [Orientacao a Objetos Com Javascript](https://blog.matheuscastiglioni.com.br/orientacao-a-objetos-com-javascript/)
+- [Introdução a objetos em JavaScript](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects)
+- [Orientacao a Objetos Com JavaScript](https://blog.matheuscastiglioni.com.br/orientacao-a-objetos-com-javascript/)
 - [Programação orientada a objetos em JavaScript – explicada com exemplos](https://www.freecodecamp.org/portuguese/news/programacao-orientada-a-objetos-em-javascript-explicada-com-exemplos/)
 - [POO: Trabalhando com classes e objetos em JavaScript](https://www.devmedia.com.br/poo-trabalhando-com-classes-e-objetos-em-javascript/28434)
 
@@ -91,11 +91,11 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 
 `Curiosidade`:
 
-- [É possível criar uma 'classe abstrata' em Javascript?](https://pt.stackoverflow.com/questions/1920/%C3%89-poss%C3%ADvel-criar-uma-classe-abstrata-em-javascript)
+- [É possível criar uma 'classe abstrata' em JavaScript?](https://pt.stackoverflow.com/questions/1920/%C3%89-poss%C3%ADvel-criar-uma-classe-abstrata-em-javascript)
 
 `Video Complementar`:
-- [Javascript Aula 05 Objetos (Conceitos Básicos)](https://www.youtube.com/watch?v=sKgw7TCNqg4)
-- [[JavaScript] 10.6 Polimorfismo / Polymorphism](https://www.youtube.com/watch?v=PwjHpwfKdP4)
+- [JavaScript - Aula 05 Objetos - Conceitos Básicos](https://www.youtube.com/watch?v=sKgw7TCNqg4)
+- [JavaScript - 10.6 Polimorfismo / Polymorphism](https://www.youtube.com/watch?v=PwjHpwfKdP4)
 
 ### 2.5 - Debuggando Erros
 
