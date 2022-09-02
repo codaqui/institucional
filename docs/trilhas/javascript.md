@@ -75,8 +75,28 @@ Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expre
 
 - [Operadores e Operações no JavaScript](https://www.youtube.com/watch?v=6d6IV3SQnIM)
 
-
 ### 2.4 - Orientação a Objetos
+
+Os materiais de referência abaixo mostra como tratar uma orientação a objetos em javascript, herança e polimorfismo. Também a algumas questões interessantes de se ver como *"**classes abstratas em java?**".*
+
+`Materiais de Referência`:
+
+- [Introdução a objetos em JavaScript](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects)
+- [Orientacao a Objetos Com JavaScript](https://blog.matheuscastiglioni.com.br/orientacao-a-objetos-com-javascript/)
+- [Programação orientada a objetos em JavaScript – explicada com exemplos](https://www.freecodecamp.org/portuguese/news/programacao-orientada-a-objetos-em-javascript-explicada-com-exemplos/)
+- [POO: Trabalhando com classes e objetos em JavaScript](https://www.devmedia.com.br/poo-trabalhando-com-classes-e-objetos-em-javascript/28434)
+
+- [Conceitos e Exemplos – Polimorfismo: Programação Orientada a Objetos](https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701#:~:text=Definimos%20Polimorfismo%20como%20um%20princ%C3%ADpio,cada%20uma%20das%20classes%20derivadas.)
+- [Conceitos e Exemplos – Herança: Programação Orientada a Objetos – Parte 1](https://www.devmedia.com.br/conceitos-e-exemplos-heranca-programacao-orientada-a-objetos-parte-1/18579)
+
+`Curiosidade`:
+
+- [É possível criar uma 'classe abstrata' em JavaScript?](https://pt.stackoverflow.com/questions/1920/%C3%89-poss%C3%ADvel-criar-uma-classe-abstrata-em-javascript)
+
+`Video Complementar`:
+- [JavaScript - Aula 05 Objetos - Conceitos Básicos](https://www.youtube.com/watch?v=sKgw7TCNqg4)
+- [JavaScript - 10.6 Polimorfismo / Polymorphism](https://www.youtube.com/watch?v=PwjHpwfKdP4)
+
 ### 2.5 - Debuggando Erros
 
 ## 3 - Complemento para a Linguagem Javascript
