@@ -106,6 +106,23 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 ### 3.3 - Básico de HTML e CSS
 ### 3.4 - Internet e API
 ### 3.5 - ECMAScript 5 e ECMAScript 6
+
+ECMAScript é uma linguagem de programação, baseada em scripts, padronizada pela Ecma International (Associação Europeia dos Fabricantes de Computadores) na especificação ECMA-262 e ISO/IEC 16262. Esta linguagem é usada em tecnologias para Internet para a criação de scripts executados no cliente e no servidor (Node.JS), sendo inspirada na linguagem de programação JavaScript, além permitir outras implementações independentes. Os materiais abaixo esclarece sobre o assunto.
+
+`Materiais de Referência`:
+
+- [Missão ECMA - ECMA Internacional](https://www.ecma-international.org/mission/)
+- [ECMA International - Wikipédia](https://pt.wikipedia.org/wiki/Ecma_International)
+- [ES6 (ES2015) - Medium (Carlos Roberto Gomes Junior)](https://medium.com/iclinic/es6-es2015-o-que-mudou-c22d9308f52d)
+- [ECMA-262, Edição 13 - ECMA Internacional](https://www.ecma-international.org/publications-and-standards/standards/ecma-262/)
+- [ECMA-262, Edição 12 - ECMA Internacional](https://262.ecma-international.org/12.0/#sec-intro)
+- [Comparação entre ECMAScript 5 e ECMAScript 6 - C# Corner](https://www.c-sharpcorner.com/article/comparison-between-ecmascript-5-and-ecmascript-6-versions-of-javascript/)
+- [Diferença entre ES5 e ES6 - GeeksforGeeks](https://www.geeksforgeeks.org/difference-between-es5-and-es6/)
+
+`Video Complementar`:
+
+- [O Que é ECMAScript? - TipsCode](https://www.youtube.com/watch?v=PlFlKxZbVqs)
+ 
 ### 3.6 - TypeScript
 ## 4 - Bibliotecas e Frameworks
 ### 4.1 - Utilizando Bibliotecas e Framworks
