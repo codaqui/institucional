@@ -13,7 +13,7 @@ Em desenvolvimento.
 
 ---
 
-## Principios do Javascript
+## 1 - Principios do Javascript
 
 ### Apresentação
 
@@ -31,7 +31,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 - [O que é JAVASCRIPT e para que serve, história e origem da linguagem](https://www.youtube.com/watch?v=pWseQJRL_2k)
 
-### Ambiente de Desenvolvimento
+### 1.1 - Ambiente de Desenvolvimento
 
 Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possui explicações como diferenças entre IDE e editores de código, também demostra como usar JavaScript no Console do navegador.
 
