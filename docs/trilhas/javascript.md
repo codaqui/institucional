@@ -103,6 +103,22 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 
 ### 3.1 - Funções Async
 ### 3.2 - Conhecendo o Browser e Manipulando o DOM
+
+Os materiais abaixo demostra a manipulação ao DOM(Document Object Model), como é representado no seu navegador e uma breve descrição sobre tipos de dados fundamentais.
+
+`Materiais de Referência`:
+
+- [Introdução ao DOM](https://developer.mozilla.org/pt-BR/docs/Web/API/Document_Object_Model/Introduction#important_data_types)
+- [Entendendo o DOM](https://tableless.com.br/entendendo-o-dom-document-object-model/)
+- [Manipulando o DOM](http://devfuria.com.br/javascript/dom-manipulando-o-dom/)
+- [Modelo de Objeto de Documento](https://developer.mozilla.org/pt-BR/docs/Web/API/Document_Object_Model#interfaces_dom_obsoletas)
+
+`Video Complementar`:
+- [Manipulando Elementos do DOM](https://www.youtube.com/watch?v=yDWLxaRQl5Q)
+- [Exemplos de manipulação do DOM](https://www.youtube.com/watch?v=qaFU9burX3o)
+- [DOM Manipular HTML com o JavaScript](https://www.youtube.com/watch?v=0dBY09OJm04)
+
+
 ### 3.3 - Básico de HTML e CSS
 ### 3.4 - Internet e API
 ### 3.5 - ECMAScript 5 e ECMAScript 6
