@@ -15,3 +15,7 @@ Você pode usar o seguinte comando abaixo para enviar localmente sua versão de 
 ```
 mkdocs gh-deploy
 ```
+
+## Contributing
+
+Leia o documento [Disponível Aqui](https://www.codaqui.dev/quero/apoiar/) =]
