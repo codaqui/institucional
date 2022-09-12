@@ -18,4 +18,4 @@ mkdocs gh-deploy
 
 ## Contributing
 
-Leia o documento [Disponível Aqui](https://www.codaqui.dev/quero/apoiar/) =]
+Leia o documento [clicando aqui.](https://www.codaqui.dev/quero/apoiar/) =]
