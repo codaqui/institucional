@@ -66,12 +66,14 @@ Assim, semelhante a um roteiro de cinema, um script de computador nada mais é q
 
 ### 1.4 - Vantagens e desvantagens de uma Linguagem Script [Aula 2]
 
-As vantagens de usar as linguagens scripts são variadas e podem ser usadas de maneiras diferentes: 
+As vantagens de usar as linguagens scripts são variadas e podem ser usadas de maneiras diferentes:
+
 - fácil de aprender e usar; 
 - código aberto e gratuito, portátil e multiplataforma;
 - permite uso em qualquer sistema operacional com seu devido interpretador.
 
 `Materiais de Referência`:
+
  - [JavaScript básico](https://developer.mozilla.org/pt-BR/docs/Learn/Getting_started_with_the_web/JavaScript_basics)
  - [Kenzie - Script](https://kenzie.com.br/blog/script/)
 
