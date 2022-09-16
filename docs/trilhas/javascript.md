@@ -193,3 +193,4 @@ Mais informações e referências de todos os materiais podem ser encontradas [a
 # Contribuidores
 
 - [Luiz Fernando](https://github.com/LuizFernando-TC)
+- [Sophia Quaresma](https://github.com/SOPHI-A9)
