@@ -15,8 +15,8 @@ Em desenvolvimento.
 
 ## 1 - Principios do Javascript
 
-### Apresentação
-
+### 1.0 Apresentação [Aula 1]
+ 
 Os materiais abaixo servem para apresentar um pouco da linguagem, além de complementar o conteúdo técnico com história e curiosidades.
 
 `Materiais de Referência`:
@@ -28,15 +28,13 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 `Video Complementar`:
 
-
 - [O que é JAVASCRIPT e para que serve, história e origem da linguagem](https://www.youtube.com/watch?v=pWseQJRL_2k)
 
-### 1.1 - Ambiente de Desenvolvimento
+### 1.1 - Ambiente de Desenvolvimento [Aula 1]
 
 Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possui explicações como diferenças entre IDE e editores de código, também demostra como usar JavaScript no Console do navegador.
 
 `Materiais de Referência`:
-
 
 - [Ambiente Javascript: Dicas, VSCode e terminal](https://blog.rocketseat.com.br/ambiente-desenvolvimento-javascript/)
 - [Ambiente de Desenvolvimento - JavaScript (S01E02)](https://devheroes.io/ambiente-de-desenvolvimento-javascript-s01e02/)
@@ -46,14 +44,13 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 
 `Video Complementar`:
 
-
 - [Configurando Ambiente de Desenvolvimento | Curso de Javascript](https://www.youtube.com/watch?v=KwBiErhj3Qw)
 - [Como configurar seu ambiente de desenvolvimento Javascript para usar Docker](https://www.youtube.com/watch?v=Bp2bU6fQcSo)
 - [Configurando VSCode para Node.js, ReactJS e React Native | Diego Fernandes](https://www.youtube.com/watch?v=c7P03kkrEG8)
 
-### 1.3 - Conceito da linguagem script
-### 1.4 - Vantagens e desvantagens da linguagem script
-### 1.5 - Estrutura básica da linguagem JavaScript
+### 1.3 - Conceito da linguagem script [Aula 2]
+### 1.4 - Vantagens e desvantagens da linguagem script [Aula 2]
+### 1.5 - Estrutura básica da linguagem JavaScript [Aula 2]
 ### 1.6 - Relação entre objetos e métodos JavaScript
 ### 1.7 - Adição de comentários
 ## 2 - Principios da Programação com Javascript
