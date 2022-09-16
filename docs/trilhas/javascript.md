@@ -15,7 +15,7 @@ Em desenvolvimento.
 
 ## 1 - Principios do Javascript
 
-### 1.0 Apresentação [Aula 1]
+### 1.0 - Apresentação [Aula 1]
  
 Os materiais abaixo servem para apresentar um pouco da linguagem, além de complementar o conteúdo técnico com história e curiosidades.
 
