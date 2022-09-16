@@ -48,7 +48,7 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 - [Como configurar seu ambiente de desenvolvimento Javascript para usar Docker](https://www.youtube.com/watch?v=Bp2bU6fQcSo)
 - [Configurando VSCode para Node.js, ReactJS e React Native | Diego Fernandes](https://www.youtube.com/watch?v=c7P03kkrEG8)
 
-### 1.3 - Conceito da linguagem script [Aula 2]
+### 1.3 - Conceitos de Script e Paradigmas de Programação [Aula 2]
 
 Assim, semelhante a um roteiro de cinema, um script de computador nada mais é que uma sequência de comandos que, ao serem processados, executam uma ação. Apesar da definição ser parecida com a de um algoritmo, existem diferenças. Enquanto o algoritmo é a ordem lógica de operações de um código, o script refere-se a ordem de instruções desse algoritmo de acordo com a linguagem de scripting utilizada. 
 
@@ -57,12 +57,14 @@ Assim, semelhante a um roteiro de cinema, um script de computador nada mais é q
 - [Scripting](https://pt.wikipedia.org/wiki/Linguagem_de_script)
 - [Programming is Hard, Let's Go Scripting...](https://www.perl.com/pub/2007/12/06/soto-11.html/)
 - [Script: o que é e as 15 melhores linguagens de scripting!](https://blog.betrybe.com/tecnologia/tudo-sobre-script/)
+- [Programação Orientada a Objetos e Programação Estruturada](https://www.devmedia.com.br/programacao-orientada-a-objetos-e-programacao-estruturada/32813)
+- [Paradigmas de Programação](https://www.digitalhouse.com/br/blog/paradigmas-de-programacao/)
 
 `Video Complementar`:
 
 - [Linguagem Compilada vs Interpretada | Qual é melhor?](https://www.youtube.com/watch?v=SNyh-cubxaU)
 
-### 1.4 - Vantagens e desvantagens da linguagem script [Aula 2]
+### 1.4 - Vantagens e desvantagens de uma Linguagem Script [Aula 2]
 
 As vantagens de usar as linguagens scripts são variadas e podem ser usadas de maneiras diferentes: 
 - fácil de aprender e usar; 
