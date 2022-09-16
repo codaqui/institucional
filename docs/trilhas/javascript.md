@@ -84,6 +84,7 @@ A linguagem JS pode ser usadas de diversas maneiras, seu básico seria que nela 
 A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser um objeto, é quando uma propriedade armazena um valor se passa a ser chamado de método. Propriedades são valores e cada objeto é um valor, fazendo os dois se relacionarem.
 
 `Materiais de Referência`:
+
  - [Definições de Método](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Functions/Method_definitions)
  - [Trabalhando com objetos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Working_with_Objects)
 
