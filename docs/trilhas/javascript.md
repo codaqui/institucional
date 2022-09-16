@@ -50,7 +50,14 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 
 ### 1.3 - Conceito da linguagem script [Aula 2]
 
+`Materiais de Referência`:
 
+- [Scripting](https://pt.wikipedia.org/wiki/Linguagem_de_script)
+- [Programming is Hard, Let's Go Scripting...](https://www.perl.com/pub/2007/12/06/soto-11.html/)
+
+`Video Complementar`:
+
+- [Linguagem Compilada vs Interpretada | Qual é melhor?](https://www.youtube.com/watch?v=SNyh-cubxaU)
 
 ### 1.4 - Vantagens e desvantagens da linguagem script [Aula 2]
 
