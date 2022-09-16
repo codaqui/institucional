@@ -50,10 +50,13 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 
 ### 1.3 - Conceito da linguagem script [Aula 2]
 
+Assim, semelhante a um roteiro de cinema, um script de computador nada mais é que uma sequência de comandos que, ao serem processados, executam uma ação. Apesar da definição ser parecida com a de um algoritmo, existem diferenças. Enquanto o algoritmo é a ordem lógica de operações de um código, o script refere-se a ordem de instruções desse algoritmo de acordo com a linguagem de scripting utilizada. 
+
 `Materiais de Referência`:
 
 - [Scripting](https://pt.wikipedia.org/wiki/Linguagem_de_script)
 - [Programming is Hard, Let's Go Scripting...](https://www.perl.com/pub/2007/12/06/soto-11.html/)
+- [Script: o que é e as 15 melhores linguagens de scripting!](https://blog.betrybe.com/tecnologia/tudo-sobre-script/)
 
 `Video Complementar`:
 
@@ -61,19 +64,25 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 
 ### 1.4 - Vantagens e desvantagens da linguagem script [Aula 2]
 
-As vantagens de usar as linguagens scripts são variadas e podem ser usadas de maneiras diferentes: fácil de aprender e usar, código aberto e gratuito, portátil e multiplataforma, Permite uso em qualquer sistema operacional, Melhor desempenho no desenvolvimento de aplicações, e etc.
+As vantagens de usar as linguagens scripts são variadas e podem ser usadas de maneiras diferentes: 
+- fácil de aprender e usar; 
+- código aberto e gratuito, portátil e multiplataforma;
+- permite uso em qualquer sistema operacional com seu devido interpretador.
+
+`Materiais de Referência`:
+ - [JavaScript básico](https://developer.mozilla.org/pt-BR/docs/Learn/Getting_started_with_the_web/JavaScript_basics)
+ - [Kenzie - Script](https://kenzie.com.br/blog/script/)
+
+### 1.5 - Estrutura básica da linguagem JavaScript [Aula 2]
 
 A linguagem JS pode ser usadas de diversas maneiras, seu básico seria que nela podemos criar jogos e sites de diversas formas diferentes e do jeito que queremos. Nela podemos usar códigos da maneira certa para criarmos nossos jogos e sites, mas apenas um erro pode acabar com o código.
 
 A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser um objeto, é quando uma propriedade armazena um valor se passa a ser chamado de método. Propriedades são valores e cada objeto é um valor, fazendo os dois se relacionarem.
 
 `Materiais de Referência`:
- - [JavaScript básico](https://developer.mozilla.org/pt-BR/docs/Learn/Getting_started_with_the_web/JavaScript_basics)
- - [Kenzie - Script](https://kenzie.com.br/blog/script/)
  - [Definições de Método](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Functions/Method_definitions)
  - [Trabalhando com objetos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Working_with_Objects)
 
-### 1.5 - Estrutura básica da linguagem JavaScript [Aula 2]
 ### 1.6 - Relação entre objetos e métodos JavaScript
 ### 1.7 - Adição de comentários
 ## 2 - Principios da Programação com Javascript
