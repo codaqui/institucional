@@ -90,6 +90,22 @@ A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser
  - [Classes](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Classes)
 
 ### 1.6 - Relação entre objetos e métodos JavaScript
+
+Os materiais abaixo demonstra como usar métodos de objetos no JavaScript, sintaxe fundamental de objetos e coleção de propriedades, entre outros.
+
+`Materiais de Referência:`
+
+- https://www.luis.blog.br/orientacao-a-objetos-classe-e-objeto-propriedades-e-metodos.html
+- https://www.digitalocean.com/community/tutorials/how-to-use-object-methods-in-javascript-pt
+- https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Working_with_Objects
+- https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects/Basics
+
+`Vídeo Complementar:`
+
+- https://www.youtube.com/watch?v=6d4mrARIIDg
+- https://www.youtube.com/watch?v=n5uiJr-v0KQ
+
+
 ### 1.7 - Adição de comentários
 ## 2 - Principios da Programação com Javascript
 
