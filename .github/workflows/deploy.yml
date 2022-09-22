@@ -19,7 +19,7 @@ jobs:
         with:
           repository: squidfunk/mkdocs-material-insiders
           token: ${{ secrets.GH_TOKEN_MKDOCS }}
-          path: mkdocs-material
+          path: mkdocs-material-insider
         
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -33,6 +33,7 @@ jobs:
           ls
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
+          python3 -m pip install -e mkdocs-material-insider
 
 
       - name: Deploy 🚀
