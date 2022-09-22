@@ -1,2 +1,4 @@
 mkdocs
-mkdocs-material
+mkdocs-rss-plugin
+pillow
+cairosvg
