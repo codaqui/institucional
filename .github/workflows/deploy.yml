@@ -34,7 +34,7 @@ jobs:
 
       - name: Install requirements
         run: |
-          sudo -y apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
+          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
           python3 -m pip install -e mkdocs-material-insider
