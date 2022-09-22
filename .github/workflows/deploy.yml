@@ -13,6 +13,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      
+      - name: Checkout private tools
+        uses: actions/checkout@v2
+        with:
+          repository: squidfunk/mkdocs-material-insiders
+          token: ${{ secrets.GH_TOKEN_MKDOCS }}
+          path: mkdocs-material
+        
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -22,9 +30,9 @@ jobs:
 
       - name: Install requirements
         run: |
+          ls
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
-          python3 -m pip install git+https://${GH_TOKEN_MKDOCS}@github.com/squidfunk/mkdocs-material-insiders.git
 
 
       - name: Deploy 🚀
