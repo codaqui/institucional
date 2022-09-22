@@ -17,7 +17,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: squidfunk/mkdocs-material-insiders
-          token: ${{ secrets.GH_TOKEN_MKDOCS }}
           path: mkdocs-material
 
       - name: Set up Python ${{ matrix.python-version }}
