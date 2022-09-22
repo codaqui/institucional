@@ -24,8 +24,7 @@ jobs:
         run: |
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
-          git clone https://${GH_TOKEN_MKDOCS}@github.com/squidfunk/mkdocs-material-insiders.git mkdocs_material
-          python3 -m pip install git+file://$(pwd)/mkdocs_material
+          pip install git+https://${GH_TOKEN_MKDOCS}@github.com/squidfunk/mkdocs-material-insiders.git
 
       - name: Deploy 🚀
         run: python3 -m mkdocs gh-deploy --force
