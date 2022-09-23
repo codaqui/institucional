@@ -92,7 +92,7 @@ A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser
  - [Entendendo Objetos](https://www.digitalocean.com/community/tutorials/understanding-objects-in-javascript)
 
 
-### 1.6 - Adição de comentários
+### 1.6 - Adição de comentários [Aula 3]
 
 (Aberto)
 
