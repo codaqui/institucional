@@ -9,7 +9,7 @@ edit_uri: 'https://github.com/codaqui/institucional/tree/main/docs'
 nav:
     - Inicio: index.md
     - Sobre:
-      - Sobre: about.md
+      - Equipe: team.md
       - Associação: ong.md
       - Código de Conduta: conduta.md
       - Pais e Responsáveis: pais_responsaveis.md
