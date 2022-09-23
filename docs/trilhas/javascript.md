@@ -94,7 +94,16 @@ A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser
 
 ### 1.6 - Adição de comentários [Aula 3]
 
-(Aberto)
+Os materiais abaixo demonstra como deixar comentários no seus códigos, também contem o tratamento básico de sintaxe e declarações em JavaScript.
+
+`Materiais de Referência:`
+
+- [JavaScript - Inserindo comentários](https://www.linhadecomando.com/javascript/javascript-inserindo-comentarios)
+- [JavaScript - Sintaxe e tipos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Grammar_and_types#declara%C3%A7%C3%B5es)
+
+`Vídeo Complementar:`
+
+- [Como fazer comentários](https://www.youtube.com/watch?v=uXXLRqa3EUs)
 
 ### 1.7 - Relação entre objetos e métodos JavaScript [Aula 3]
 
