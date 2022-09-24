@@ -1,4 +1,8 @@
-# CODAQUI (Docs)
+# CODAQUI
+
+![Imagem do Header](images/header.png)
+
+Seja bem vindo!
 
 Para acessar o conteúdo desse site acesse [https://codaqui.dev](https://codaqui.dev), ou navegue pelos documentos na pasta `docs`.
 
