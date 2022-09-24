@@ -1,0 +1,45 @@
+name: "[CERTIFICADO] - Solicitação de Exercicio"
+description: Desejo criar uma solicitação sobre um certificado existente.
+body:
+  
+  - type: checkboxes
+    attributes:
+      label: Código de Conduta
+      description: Por favor leia o Código de Conduta e confirme que você concorda com ele.
+      options:
+        - label: Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele.
+          required: true
+  
+  - type: dropdown
+    attributes:
+      label: Eu desejo solicitar...
+      description: Selecione o tipo de solicitação que você deseja fazer.
+      options:
+        - ... uma correção em um certificado existente.
+        - ... um novo exercício para um certificado existente.
+
+  - type: textarea
+    attributes:
+      label: Descrição
+      description: Forneça uma descrição detalhada do que você deseja.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Exercicio
+      description: Forneça o exercício que você deseja propor/corrigir.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Resposta
+      description: Forneça a resposta que você deseja propor/corrigir.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Obrigado por nos ajudar a melhorar a Codaqui!
