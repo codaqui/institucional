@@ -7,7 +7,9 @@ repo_url: https://github.com/codaqui
 edit_uri: 'https://github.com/codaqui/institucional/tree/main/docs'
 
 nav:
-    - Inicio: index.md
+    - Inicio:
+      - Página Inicial: index.md
+      - Roadmap: inicio/todo.md
     - Sobre:
       - Equipe: team.md
       - Associação: ong.md
@@ -18,9 +20,9 @@ nav:
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
     - Trilhas: #
-      - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
       - Javascript: trilhas/javascript.md
+      - GitHub Start: trilhas/github-starter.md
     - Blog: blog/index.md
     - Contato: contact.md
 
@@ -34,6 +36,11 @@ theme:
   favicon: assets/favicon.png
   features:
     - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+    - navigation.top
+    - content.code.annotate
+    # - announce.dismiss
     
 markdown_extensions:
   - attr_list
@@ -44,6 +51,11 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
 
 
 plugins:
@@ -51,6 +63,7 @@ plugins:
   - meta
   - tags
   - social
+  # - privacy
   # - git-authors
   - blog:
       post_url_date_format: YYYY/MM/dd
@@ -68,6 +81,7 @@ plugins:
       repository: codaqui/institucional
       token: !ENV GH_TOKEN
       branch: main
+
 extra:
   social:
     - icon: fontawesome/brands/github-alt
