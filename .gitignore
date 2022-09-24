@@ -5,7 +5,7 @@ site/*
 mkdocs-material/*
 
 # Environtment
-
+.env
 venv/*
 
 # Cache
