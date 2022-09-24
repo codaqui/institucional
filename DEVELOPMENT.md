@@ -3,6 +3,9 @@
 ## Setup
 
 ```bash
+## Export GH_TOKEN
+export GH_TOKEN=<INSERT_YOUR_TOKEN_HERE>
+
 ## Basic Requirements
 pip install -r requirements.txt
 
