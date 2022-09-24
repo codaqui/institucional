@@ -23,7 +23,8 @@ nav:
       - Python: trilhas/python.md
       - Javascript: trilhas/javascript.md
       - GitHub Start: trilhas/github-starter.md
-    - Blog: blog/index.md
+    - Blog:
+      - blog/index.md
     - Contato: contact.md
 
 theme:
