@@ -1,5 +1,7 @@
 name: "[CERTIFICADO] Exercício"
 description: Desejo criar uma solicitação sobre um certificado existente.
+assignees:
+  - endersonmenezes
 body:
   
   - type: checkboxes
