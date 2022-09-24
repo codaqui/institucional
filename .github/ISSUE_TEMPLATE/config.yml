@@ -22,6 +22,12 @@
 
 blank_issues_enabled: false
 contact_links:
+
+  - name: "[CERTIFICADO] Exercício"
+    url: https://github.com/codaqui/institucional/issues/new?template=certificado-exercicio.yml&title=%5BCERTIFICADO%5D+%5BEXERCíCIO%5D%3A+
+    about: "Desejo criar uma solicitação sobre um certificado existente."
+
+
   - name: "[CERTIFICADO] Discussões"
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
