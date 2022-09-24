@@ -1,4 +1,6 @@
 mkdocs
 mkdocs-rss-plugin
+mkdocs-git-authors-plugin
+mkdocs-git-committers-plugin-2
 pillow
 cairosvg

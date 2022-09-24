@@ -51,6 +51,7 @@ plugins:
   - meta
   - tags
   - social
+  # - git-authors
   - blog:
       post_url_date_format: YYYY/MM/dd
       post_slugify: !!python/name:pymdownx.slugs.uslugify
@@ -63,7 +64,10 @@ plugins:
       categories:
         - categories
         - tags
-
+  - git-committers:
+      repository: codaqui/institucional
+      token: !ENV GH_TOKEN
+      branch: main
 extra:
   social:
     - icon: fontawesome/brands/github-alt
