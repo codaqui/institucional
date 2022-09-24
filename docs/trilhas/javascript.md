@@ -86,11 +86,40 @@ A relação entre métodos e objetos no JS é que qualquer tipo de dado pode ser
 `Materiais de Referência`:
 
  - [Definições de Método](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Functions/Method_definitions)
+ - [O básico sobre objetos JavaScript](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects/Basics)
  - [Trabalhando com objetos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Working_with_Objects)
  - [Classes](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Classes)
+ - [Entendendo Objetos](https://www.digitalocean.com/community/tutorials/understanding-objects-in-javascript)
 
-### 1.6 - Relação entre objetos e métodos JavaScript
-### 1.7 - Adição de comentários
+
+### 1.6 - Adição de comentários [Aula 3]
+
+Os materiais abaixo demonstra como deixar comentários no seus códigos, também contem o tratamento básico de sintaxe e declarações em JavaScript.
+
+`Materiais de Referência:`
+
+- [JavaScript - Inserindo comentários](https://www.linhadecomando.com/javascript/javascript-inserindo-comentarios)
+- [JavaScript - Sintaxe e tipos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Grammar_and_types#declara%C3%A7%C3%B5es)
+
+`Vídeo Complementar:`
+
+- [Como fazer comentários](https://www.youtube.com/watch?v=uXXLRqa3EUs)
+
+### 1.7 - Relação entre objetos e métodos JavaScript [Aula 3]
+
+Os materiais abaixo demonstram como usar métodos de objetos no JavaScript, sintaxe fundamental de objetos e coleção de propriedades, entre outros.
+
+`Materiais de Referência:`
+
+- [Orientação a Objetos por Luis.blog.br](https://www.luis.blog.br/orientacao-a-objetos-classe-e-objeto-propriedades-e-metodos.html)
+- [Como usar métodos Object no JavaScript](https://www.digitalocean.com/community/tutorials/how-to-use-object-methods-in-javascript-pt)
+- [Trabalhando com objetos](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Working_with_Objects)
+
+`Vídeo Complementar:`
+
+- [Curso de JS Aula 45 JS OO Métodos e método construtor](https://www.youtube.com/watch?v=6d4mrARIIDg)
+- [Tudo é Objeto em JavaScript - Dica para iniciantes](https://www.youtube.com/watch?v=n5uiJr-v0KQ)
+
 ## 2 - Principios da Programação com Javascript
 
 ### 2.1 - Variáveis de Tipos de Dados
