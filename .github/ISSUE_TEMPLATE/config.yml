@@ -20,6 +20,6 @@
 
 blank_issues_enabled: false
 contact_links:
-  - name: "[Certificados] Discussões"
+  - name: "[CERTIFICADO] Inicie a proposta de um novo certificado."
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie novas discussões sobre Certificados aqui."
