@@ -25,3 +25,7 @@ contact_links:
   - name: "[CERTIFICADO] Discussões"
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
+
+  - name: "[TRILHA] Discussões"
+    url: https://github.com/codaqui/institucional/discussions/categories/trilhas-de-ensino
+    about: "Inicie a proposta de uma nova trilha, ou uma discussão sobre uma existente."
