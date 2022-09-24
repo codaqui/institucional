@@ -23,20 +23,11 @@
 blank_issues_enabled: false
 contact_links:
 
-  - name: "[CERTIFICADO] Exercício"
-    url: https://github.com/codaqui/institucional/issues/new?template=certificado-exercicio.yml&title=%5BCERTIFICADO%5D+%5BEXERCíCIO%5D%3A+
-    about: "Desejo criar uma solicitação sobre um certificado existente."
-
-
-  - name: "[CERTIFICADO] Discussões"
+  - name: "[DISCUSSÕES] Certificado"
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
 
-  - name: "[TRILHA] Sugestão"
-    url: https://github.com/codaqui/institucional/issues/new?template=trilha-topico.yml&title=[TRILHA]%20[SUGEST%C3%83O]
-    about: Desejo criar uma sugestão para uma trilha já existente.
-
-  - name: "[TRILHA] Discussões"
+  - name: "[DISCUSSÕES] Trilha"
     url: https://github.com/codaqui/institucional/discussions/categories/trilhas-de-ensino
     about: "Inicie a proposta de uma nova trilha, ou uma discussão sobre uma existente."
 
