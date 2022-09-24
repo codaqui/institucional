@@ -26,6 +26,10 @@ contact_links:
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
 
+  - name: "[TRILHA] Sugestão"
+    url: https://github.com/codaqui/institucional/issues/new?template=trilha-topico.yml&title=[TRILHA]%20[SUGEST%C3%83O]
+    about: Desejo criar uma sugestão para uma trilha já existente.
+
   - name: "[TRILHA] Discussões"
     url: https://github.com/codaqui/institucional/discussions/categories/trilhas-de-ensino
     about: "Inicie a proposta de uma nova trilha, ou uma discussão sobre uma existente."
