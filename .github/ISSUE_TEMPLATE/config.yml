@@ -18,8 +18,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository#configuring-the-template-chooser
+
 blank_issues_enabled: false
 contact_links:
-  - name: "[CERTIFICADO] Inicie a proposta de um novo certificado."
+  - name: "[CERTIFICADO] Discussões"
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
-    about: "Inicie novas discussões sobre Certificados aqui."
+    about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
