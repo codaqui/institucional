@@ -16,10 +16,9 @@ Leia nosso documento completo sobre como apoiar a comunidade [clicando aqui.](ht
 
 Espaço de centralização das discussões e documentações: [Site](https://codaqui.dev) e [Discussões no GitHub](https://github.com/codaqui/institucional/discussions)
 
-Espaço destinado a alunos: [Grupo do Whatsapp](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV) - [Discord](https://discord.gg/xuTtxqCPpz
-)
+Espaço destinado a alunos: [Grupo do Whatsapp](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV) - [Discord](https://discord.gg/xuTtxqCPpz) - [Manual do Aluno](https://www.codaqui.dev/quero/estudar/)
 
-Espaço destinado a voluntários: [Grupo do Whatsapp](https://chat.whatsapp.com/FHFUdKkEUHQ5jEHgRh5ATr)
+Espaço destinado a voluntários: [Grupo do Whatsapp](https://chat.whatsapp.com/FHFUdKkEUHQ5jEHgRh5ATr) - [Manual do Voluntário](https://www.codaqui.dev/quero/apoiar/)
 
 ## Desenvolvimento
 
