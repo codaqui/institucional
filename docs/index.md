@@ -89,4 +89,10 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
     [![Logo do DevParaná](https://www.devparana.org/img/logo.svg)](https://www.devparana.org)
 
 
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
+
+    ---
+
+    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://workadventu.re/)
+
 </div>
