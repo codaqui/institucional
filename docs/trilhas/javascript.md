@@ -1,5 +1,5 @@
 
-# Trilha de Aprendizado de Programação com Javscript
+# Trilha de Aprendizado de Programação com Javascript
 
 Discussão:
 
@@ -32,7 +32,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 ### 1.1 - Ambiente de Desenvolvimento [Aula 1]
 
-Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possui explicações como diferenças entre IDE e editores de código, também demostra como usar JavaScript no Console do navegador.
+Os materiais abaixo servem para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possuem explicações como diferenças entre IDE e editores de código, também demostram como usar JavaScript no Console do navegador.
 
 `Materiais de Referência`:
 
@@ -50,7 +50,7 @@ Os materiais abaixo serve para demonstar alguns dos vários ambiente de desenvol
 
 ### 1.3 - Conceitos de Script e Paradigmas de Programação [Aula 2]
 
-Assim, semelhante a um roteiro de cinema, um script de computador nada mais é que uma sequência de comandos que, ao serem processados, executam uma ação. Apesar da definição ser parecida com a de um algoritmo, existem diferenças. Enquanto o algoritmo é a ordem lógica de operações de um código, o script refere-se a ordem de instruções desse algoritmo de acordo com a linguagem de scripting utilizada. 
+Assim, semelhante a um roteiro de cinema, um script de computador nada mais é que uma sequência de comandos que, ao serem processados, executam uma ação. Apesar da definição ser parecida com a de um algoritmo, existem diferenças. Enquanto o algoritmo é a ordem lógica de operações de um código, o script refere-se à ordem de instruções desse algoritmo de acordo com a linguagem de scripting utilizada. 
 
 `Materiais de Referência`:
 
