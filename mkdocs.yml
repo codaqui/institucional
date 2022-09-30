@@ -13,9 +13,10 @@ nav:
     - Sobre:
       - Equipe: team.md
       - Associação: ong.md
-      - Código de Conduta: conduta.md
+      - Linha do Tempo: timeline.md
       - Pais e Responsáveis: pais_responsaveis.md
       - Projetos: projetos.md
+      - Código de Conduta: conduta.md
     - Participe: #
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
