@@ -162,7 +162,7 @@ Links:
 
 ## 13 - Leitura e Escrita em Arquivos
 
-Lorem Ipsum
+Os computadores utilizam os arquivos como estruturas de dados, por exemplo, vídeos, imagens e planilhas. Nesta aula, vamos aprender como os programas em Python criam, recuperam, atualizam e processam arquivos de dados, ou seja, manipulam arquivos.
 
 Links:
 
@@ -242,13 +242,15 @@ Links:
 
 ## 20 - Testes com Python
 
+Os testes servem para antecipar e corrigir falhas e bugs que apareceriam para o usuário final. Neste tópico iremos apresentar como fazer testes em um programa.
+
 Links:
 
 - [Testes em Python parte I](https://dev.to/womakerscode/testes-em-python-parte-1-introducao-43ei)
 
 ## 21 - Encerramento
 
-Lorem Ipsum
+Neste tópico iremos abordar comandos que podem ser usados para fechar um programa escrito na linguagem Python.
 
 Links:
 
@@ -259,7 +261,7 @@ Links:
 
 ## 22 - Gerenciamento de Memória em Python
 
-Lorem Ipsum
+Quando criamos uma variável em Python, essa variável é armazenada na memória do computador. A alocação de memória pode ser definida como a alocação de um bloco de espaço na memória do computador para um programa. Nesta aula iremos entender como funciona o gerenciamento de memória do computador.
 
 Links:
 
@@ -268,10 +270,9 @@ Links:
 - [Gerenciamento de memória Python – Weekly-Geekly ES]( https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html)
 
 
-
 ## 23 - Checagem de Tipos em Python
 
-Lorem Ipsum
+Neste tópico você vai aprender a como checar o tipo de uma variável em Python, ou seja, saber qual o tipo de dado uma variável contém.
 
 Links:
 
@@ -284,7 +285,7 @@ Links:
 
 ### Novidades do Python 3.8
 
-Lorem Ipsum
+Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais. 
 
 Links:
 
@@ -296,7 +297,7 @@ Links:
 
 ### Novidades do Python 3.9
 
-Lorem Ipsum
+Vamos conhecer a versão 3.9 no Python. A nova versão apresnta novas funcionalidades, entre elas estão os operadores de mesclagem & atualização de dicionário e novos métodos de strings para remover prefixos e sufixos.
 
 Links:
 
@@ -309,7 +310,7 @@ Links:
 
 ### Novidades do Python 3.10
 
-Lorem Ipsum
+Vamos conhecer a versão 3.10 no Python. A nova versão apresnta novas funcionalidades, entre elas estão a correspondência de padrões estruturais e gerenciadores de contexto entre parênteses.
 
 Links:
 
