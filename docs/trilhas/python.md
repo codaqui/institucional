@@ -42,6 +42,7 @@ Links:
 - [WSL no Windows](https://docs.microsoft.com/pt-br/windows/wsl/install)
 
 ## 3 - Introdução à linguagem Python
+
 Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
 
 Links:
@@ -51,7 +52,8 @@ Links:
 - [MeetUp Introdução ao Python - DevMedia](https://www.devmedia.com.br/meetup-introducao-ao-python/40245)
 
 ## 4 - Variáveis e Tipos de Dados em Python
-Introduzimos a linguagem de programação Python com explicações do que é variáveis e seus tipos. Pode se entender a variável como um valor que se altera.
+
+Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
 Links:
 
@@ -62,7 +64,7 @@ Links:
 - [Variaveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
 
 ## 5 - Estruturas Lógicas e Condicionais em Python
-Nessa explicação será abordado o que são as estruturas condicionais no Python e como utilizar. Entende-se estruturas condicionais como ações a serem executadas.
+As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
 
 Links:
 
@@ -71,6 +73,7 @@ Links:
 - [Operadores Lógicos - Caravela](https://pense-python.caravela.club/05-condicionais-e-recursividade/00-condicionais-e-recursividade.html)
 
 ## 6 - Estruturas de Repetição em Python
+
 Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.
 
 Links:
