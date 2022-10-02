@@ -123,14 +123,44 @@ Os materiais abaixo demonstram como usar métodos de objetos no JavaScript, sint
 ## 2 - Principios da Programação com Javascript
 
 ### 2.1 - Variáveis de Tipos de Dados
+Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
+
+`Materiais de Referência`:
+
+- [Sintaxe e tipos - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Grammar_and_types)
+- [Tipos de dados e variáveis em Javascript - Todo Espaço Online](https://www.todoespacoonline.com/w/2014/04/variaveis-em-javascript/)
+- [Data Types — Tipos de dados JavaScript - Ricardo Reis](https://ricardo-reis.medium.com/tipos-de-dados-javascript-a1f6f498a7d4)
+- [JavaScript Data Types - W3Schools](https://www.w3schools.com/js/js_datatypes.asp)
+- [JavaScript: Variáveis e constantes - DevMedia](https://www.devmedia.com.br/javascript-variaveis-e-constantes/41012)
+
+`Video Complementar`:
+
+-[Tipos de dados - Node Studio Treinamentos](https://www.youtube.com/watch?v=upTl-6W9PcU)
+
 ### 2.2 - Estruturas Lógicas (Condicionais e de Repetição)
+
+Uma estrutura de repetição permite executar mais de uma vez o mesmo comando ou conjunto de comandos. As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
+
+`Materiais de Referência`:
+
+- [Estruturas condicionais e estruturas de repetição em JavaScript - TreinaWeb](https://www.treinaweb.com.br/blog/estruturas-condicionais-e-estruturas-de-repeticao-em-javascript)
+- [Condicionais - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Building_blocks/conditionals)
+- [Código em loop - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Building_blocks/Looping_code)
+- [Laços e iterações - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Loops_and_iteration)
+- [Estruturas condicionais Javascript - Todo Espaço Online](https://www.todoespacoonline.com/w/2014/04/estruturas-condicionais-javascript/)
+
+`Video Complementar`:
+
+- [Condicionais (If, Else, ElseIF, Switch) - Node Studio Treinamentos](https://www.youtube.com/watch?v=T8lD3lh-u4A)
+- [Loops (For e While) - Node Studio Treinamentos](https://www.youtube.com/watch?v=0Jr3kmCILIg)
+
 ### 2.3 - Expressões e Operadores
 
 Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expressão lógica nada mais é que uma expressão algébrica e, pode ser chamada também de proposição. Operadores em Javascript são símbolos especiais que envolvem um ou mais operandos com a finalidade de produzir um determinado resultado. Esse conjunto é usado para tomar decisões em códigos.
 
 `Materiais de Referência`:
 
-- [Expressões e operadores - Mozilla](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Expressions_and_operators)
+- [Expressões e operadores - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Expressions_and_operators)
 - [Operadores Javascript: O que são, quais são e para que servem - Kenzie](https://kenzie.com.br/blog/operadores-javascript/)
 - [Operadores Lógicos Javascript - Ricardo Reis](https://ricardo-reis.medium.com/operadores-l%C3%B3gicos-logical-operators-b0687819d1a5)
 - [Operadores e expressões - UFRJ](http://www.nce.ufrj.br/ginape/js/conteudo/variaveis/operadores.htm)
@@ -161,7 +191,22 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 - [JavaScript - Aula 05 Objetos - Conceitos Básicos](https://www.youtube.com/watch?v=sKgw7TCNqg4)
 - [JavaScript - 10.6 Polimorfismo / Polymorphism](https://www.youtube.com/watch?v=PwjHpwfKdP4)
 
-### 2.5 - Debuggando Erros
+### 2.5 - Debugando e Tratando Erros
+
+Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver como tratar erros e exceções.
+
+`Materiais de Referência`:
+
+- [Controle de Fluxo e Manipulação de Erro - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Guide/Control_flow_and_error_handling)
+- [Debugando (depurando) scripts em JavaScript - Dev Furia](http://devfuria.com.br/javascript/debugando/)
+- [Bugs e manipulação de erros - BrazilJS](https://github.com/braziljs/eloquente-javascript/blob/master/chapters/08-erros-e-manipulacao-de-erros.md)
+- [Depurando JavaScript com Google Chrome - DevMedia](https://www.devmedia.com.br/depurando-javascript-com-google-chrome/28367)
+-[Tratamento de erros e exceções em JavaScript - Daniel Castro](https://danieldcs.com/tratamento-de-erros-e-excecoes-em-javascript/)
+
+`Video Complementar`:
+
+- [Debug de aplicações Node.js com VSCode - Rocketseat](https://www.youtube.com/watch?v=bVAhNaxBEjM)
+- [Debugando seu Javascript além do console.log - Guilherme Toti](https://www.youtube.com/watch?v=49pOWtjSfLs)
 
 ## 3 - Complemento para a Linguagem Javascript
 
