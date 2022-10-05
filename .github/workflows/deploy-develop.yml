@@ -1,5 +1,3 @@
-name: mkdocs
-
 name: "Deploy Development Environment"
 
 on:
