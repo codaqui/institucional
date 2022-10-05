@@ -40,4 +40,4 @@ jobs:
           python3 -m pip install -e mkdocs-material-insider
 
       - name: Deploy 🚀
-        run: python3 -m mkdocs gh-deploy --force --remote_branch gh-pages-develop
+        run: python3 -m mkdocs gh-deploy --force --remote-branch gh-pages-develop
