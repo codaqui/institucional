@@ -4,7 +4,7 @@
 
 ## Bem vindo 🫶
 
-Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev).
+Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), se você deseja ver o site gerado pela branch develop [acesse aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
 
 ## Contribuições
 
