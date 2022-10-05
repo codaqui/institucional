@@ -11,7 +11,6 @@ authors:
   - thaifurforo
 readtime: 5
 comments: true
-draft: true
 ---
 
 # Hello world!
