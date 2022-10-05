@@ -36,3 +36,7 @@ Você pode usar o seguinte comando abaixo para enviar localmente sua versão de 
 ```
 mkdocs gh-deploy
 ```
+
+## Development Environment
+
+A Branch `develop` é a branch de desenvolvimento, onde todas as features são testadas e desenvolvidas. O Workflow dela cria a branch `gh-pages-develop` e você é capaz de visualizar o status dela [clicando aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
