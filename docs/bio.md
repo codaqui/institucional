@@ -18,4 +18,13 @@
 
     [:octicons-arrow-right-24: Discussões](https://github.com/codaqui/institucional/discussions/43)
 
+-   :octicons-feed-discussion-16:{ .lg .middle } __Codaquiverso__
+
+    ---
+
+    Acesse nosso ambiente virtual de eventos.
+    <small>Limitado a 50 usuários simultaneamente.</small>
+
+    [:octicons-arrow-right-24: Acesse](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+
 </div>
