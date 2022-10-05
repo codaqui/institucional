@@ -1,5 +1,7 @@
 name: mkdocs
 
+name: "Deploy Development Environment"
+
 on:
   push:
     branches: [ develop ]
