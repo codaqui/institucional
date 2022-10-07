@@ -122,7 +122,7 @@ Os materiais abaixo demonstram como usar métodos de objetos no JavaScript, sint
 
 ## 2 - Principios da Programação com Javascript
 
-### 2.1 - Variáveis de Tipos de Dados
+### 2.1 - Variáveis de Tipos de Dados [Aula 4]
 Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
 `Materiais de Referência`:
