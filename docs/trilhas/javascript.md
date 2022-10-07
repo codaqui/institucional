@@ -135,7 +135,7 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 
 `Video Complementar`:
 
--[Tipos de dados - Node Studio Treinamentos](https://www.youtube.com/watch?v=upTl-6W9PcU)
+- [Tipos de dados - Node Studio Treinamentos](https://www.youtube.com/watch?v=upTl-6W9PcU)
 
 ### 2.2 - Estruturas Lógicas (Condicionais e de Repetição)
 
