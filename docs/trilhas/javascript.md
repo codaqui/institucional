@@ -257,7 +257,7 @@ TypeScript é um superconjunto de JavaScript, ou seja, um conjunto de ferramenta
 
 `Video Complementar`:
 - [TypeScript - O que é e quais os seus benefícios? - Rocketseat](https://www.youtube.com/watch?v=kg2-SMolAV0)
-- 
+
 ## 4 - Bibliotecas e Frameworks
 ### 4.1 - Utilizando Bibliotecas e Framworks
 ### 4.2 - Hello Worlds com NodeJS
