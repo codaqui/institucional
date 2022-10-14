@@ -22,7 +22,7 @@ Queremos levar o ensino tecnológico para onde ainda existem barreiras.
 A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens que desejam aprender a desenvolver produtos tecnológicos mas não possuem acesso a uma educação tecnológica por outros meios.
 
 <!-- more -->
-Para iniciar nossos trabalhos, depois de dois anos *tentando* nos organizar, gostaríamos de convidar toda comunidade para participar do Hacktoberfest com a Codaqui.
+Para iniciar nossos trabalhos publicamente, depois de _quase 2 anos_ nos organizando, gostaríamos de convidar toda comunidade para participar do Hacktoberfest com a Codaqui.
 
 O Hacktoberfest é um evento anual que encoraja as pessoas a contribuir com projetos open source ao longo do mês de outubro. 
 
