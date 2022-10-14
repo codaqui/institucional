@@ -114,3 +114,6 @@ extra:
       Usamos cookies para reconhecer suas visitas e preferências repetidas, bem como
       para medir a eficácia de nossa documentação e se os usuários encontrarem o que eles estão procurando. Com o seu consentimento, você está nos ajudando a
       tornar nossa documentação melhor.
+  analytics:
+    provider: google
+    property: G-CL043JTTND
