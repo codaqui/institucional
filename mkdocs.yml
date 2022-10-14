@@ -42,9 +42,13 @@ theme:
     - navigation.indexes
     - navigation.top
     - content.code.annotate
+    - content.tabs.link
     # - announce.dismiss
+  icon:
+    repo: fontawesome/brands/github
     
 markdown_extensions:
+  - admonition
   - attr_list
   - md_in_html
   - def_list
@@ -58,6 +62,9 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true 
 
 
 plugins:
@@ -69,7 +76,9 @@ plugins:
   # - git-authors
   - blog:
       post_url_date_format: YYYY/MM/dd
-      post_slugify: !!python/name:pymdownx.slugs.uslugify
+      post_slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
       archive_name: Arquivo
       categories_name: Categorias
   - rss:
@@ -83,6 +92,9 @@ plugins:
       repository: codaqui/institucional
       token: !ENV GH_TOKEN
       branch: main
+  # - git-revision-date-localized:
+  #     enabled: !ENV [GIT_REVISION_DATE_LOCALIZED, false]
+  #     enable_creation_date: true
 
 extra:
   social:

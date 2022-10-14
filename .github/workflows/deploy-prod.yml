@@ -1,0 +1,43 @@
+name: "Deploy Production Environment"
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.8 ]
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Checkout private tools
+        uses: actions/checkout@v2
+        with:
+          repository: squidfunk/mkdocs-material-insiders
+          token: ${{ secrets.GH_TOKEN_MKDOCS }}
+          path: mkdocs-material-insider
+        
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64 
+
+      - uses: actions/cache@v2
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+
+      - name: Install requirements
+        run: |
+          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
+          python3 -m pip install -U pip
+          python3 -m pip install -r requirements.txt
+          python3 -m pip install -e mkdocs-material-insider
+
+      - name: Deploy 🚀
+        run: python3 -m mkdocs gh-deploy --force

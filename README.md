@@ -4,7 +4,7 @@
 
 ## Bem vindo 🫶
 
-Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev).
+Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), se você deseja ver o site gerado pela branch develop [acesse aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
 
 ## Contribuições
 
@@ -23,3 +23,15 @@ Espaço destinado a voluntários: [Grupo do Whatsapp](https://chat.whatsapp.com/
 ## Desenvolvimento
 
 O desenvolvimento do site é mantido por voluntários e alunos, assim como todos os materiais, se você quiser colaborar com o desenvolvimento, leia o documento do desenvolvimento [clicando aqui.](DEVELOPMENT.md) =] 
+
+```mermaid
+graph TD
+    A[Quero contribuir] --> B(Abra uma discussão)
+    B --> C{Uma discussão <br> será transformada em Issue}
+    C --> D(Uma Issue recebe ajustes técnicos)
+    D --> E(O autor da Discussão, abre uma solicitação PR)
+    E -->|Melhoria| F[Cria uma Branch feat]
+    E -->|Correção| G[Cria uma Branch fix]
+    F --> H[Solicitação PR para Develop]
+    G --> H
+```

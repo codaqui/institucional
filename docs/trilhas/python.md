@@ -42,6 +42,7 @@ Links:
 - [WSL no Windows](https://docs.microsoft.com/pt-br/windows/wsl/install)
 
 ## 3 - Introdução à linguagem Python
+
 Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
 
 Links:
@@ -51,7 +52,8 @@ Links:
 - [MeetUp Introdução ao Python - DevMedia](https://www.devmedia.com.br/meetup-introducao-ao-python/40245)
 
 ## 4 - Variáveis e Tipos de Dados em Python
-Introduzimos a linguagem de programação Python com explicações do que é variáveis e seus tipos. Pode se entender a variável como um valor que se altera.
+
+Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
 Links:
 
@@ -62,7 +64,7 @@ Links:
 - [Variaveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
 
 ## 5 - Estruturas Lógicas e Condicionais em Python
-Nessa explicação será abordado o que são as estruturas condicionais no Python e como utilizar. Entende-se estruturas condicionais como ações a serem executadas.
+As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
 
 Links:
 
@@ -71,6 +73,7 @@ Links:
 - [Operadores Lógicos - Caravela](https://pense-python.caravela.club/05-condicionais-e-recursividade/00-condicionais-e-recursividade.html)
 
 ## 6 - Estruturas de Repetição em Python
+
 Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.
 
 Links:
@@ -162,7 +165,7 @@ Links:
 
 ## 13 - Leitura e Escrita em Arquivos
 
-Lorem Ipsum
+Os computadores utilizam os arquivos como estruturas de dados, por exemplo, vídeos, imagens e planilhas. Nesta aula, vamos aprender como os programas em Python criam, recuperam, atualizam e processam arquivos de dados, ou seja, manipulam arquivos.
 
 Links:
 
@@ -242,13 +245,15 @@ Links:
 
 ## 20 - Testes com Python
 
+Os testes servem para antecipar e corrigir falhas e bugs que apareceriam para o usuário final. Neste tópico iremos apresentar como fazer testes em um programa.
+
 Links:
 
 - [Testes em Python parte I](https://dev.to/womakerscode/testes-em-python-parte-1-introducao-43ei)
 
 ## 21 - Encerramento
 
-Lorem Ipsum
+Neste tópico iremos abordar comandos que podem ser usados para fechar um programa escrito na linguagem Python.
 
 Links:
 
@@ -259,7 +264,7 @@ Links:
 
 ## 22 - Gerenciamento de Memória em Python
 
-Lorem Ipsum
+Quando criamos uma variável em Python, essa variável é armazenada na memória do computador. A alocação de memória pode ser definida como a alocação de um bloco de espaço na memória do computador para um programa. Nesta aula iremos entender como funciona o gerenciamento de memória do computador.
 
 Links:
 
@@ -268,10 +273,9 @@ Links:
 - [Gerenciamento de memória Python – Weekly-Geekly ES]( https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html)
 
 
-
 ## 23 - Checagem de Tipos em Python
 
-Lorem Ipsum
+Neste tópico você vai aprender a como checar o tipo de uma variável em Python, ou seja, saber qual o tipo de dado uma variável contém.
 
 Links:
 
@@ -284,7 +288,7 @@ Links:
 
 ### Novidades do Python 3.8
 
-Lorem Ipsum
+Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais. 
 
 Links:
 
@@ -296,7 +300,7 @@ Links:
 
 ### Novidades do Python 3.9
 
-Lorem Ipsum
+Vamos conhecer a versão 3.9 no Python. A nova versão apresnta novas funcionalidades, entre elas estão os operadores de mesclagem & atualização de dicionário e novos métodos de strings para remover prefixos e sufixos.
 
 Links:
 
@@ -309,7 +313,7 @@ Links:
 
 ### Novidades do Python 3.10
 
-Lorem Ipsum
+Vamos conhecer a versão 3.10 no Python. A nova versão apresnta novas funcionalidades, entre elas estão a correspondência de padrões estruturais e gerenciadores de contexto entre parênteses.
 
 Links:
 

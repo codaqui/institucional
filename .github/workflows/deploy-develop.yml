@@ -1,8 +1,8 @@
-name: mkdocs
+name: "Deploy Development Environment"
 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
 
 jobs:
   build:
@@ -40,4 +40,4 @@ jobs:
           python3 -m pip install -e mkdocs-material-insider
 
       - name: Deploy 🚀
-        run: python3 -m mkdocs gh-deploy --force
+        run: python3 -m mkdocs gh-deploy --force --remote-branch gh-pages-develop
