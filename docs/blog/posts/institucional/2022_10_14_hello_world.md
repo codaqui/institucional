@@ -11,7 +11,7 @@ tags:
 authors:
   - endersonmenezes
   - thaifurforo
-readtime: 5
+# readtime: 10
 comments: true
 ---
 
