@@ -44,6 +44,8 @@ theme:
     - content.code.annotate
     - content.tabs.link
     # - announce.dismiss
+  icon:
+    repo: fontawesome/brands/github
     
 markdown_extensions:
   - admonition
@@ -90,6 +92,9 @@ plugins:
       repository: codaqui/institucional
       token: !ENV GH_TOKEN
       branch: main
+  # - git-revision-date-localized:
+  #     enabled: !ENV [GIT_REVISION_DATE_LOCALIZED, false]
+  #     enable_creation_date: true
 
 extra:
   social:
