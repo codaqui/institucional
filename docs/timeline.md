@@ -29,6 +29,7 @@
 
 * Iniciamos nossa expansão conseguindo mais voluntários na área Jurídica e Contábil.
 * Atingimos 22 alunos no grupo do Whatsapp;
+* Atingimos 32 participantes do Discord;
 * Implementamos o Google Education, membro do programa Google AdGrants;
 * Implementamos o GitHub Education, graças a parceria com GitHub Campus;
 * Começamos a expandir nossas trilhas e iniciar fluxos de colaboração pelo GitHub;
