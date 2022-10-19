@@ -15,7 +15,7 @@ Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Py
 ---
 
 ## 1 - Apresentação
-Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais. 
+Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais.
 Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 
 Links:
@@ -133,7 +133,7 @@ Links:
 - [Funções Lambda em Python](https://www.hashtagtreinamentos.com/funcoes-lambda-python)
 
 - [Lambda](https://pythonhelp.wordpress.com/tag/lambda/)
- 
+
 - [Guru99 - Lambda Functions Examples](https://www.guru99.com/python-lambda-function.html)
 
 ## 11 - Debugando e Tratando erros
@@ -149,9 +149,9 @@ Links:
 
 ## 12 - Trabalhando com Módulos Python
 
-Módulos em Python são arquivos contendo definições e comandos a serem utilizados em outros programas na mesma linguagem, utilizando a `keyword import`. 
+Módulos em Python são arquivos contendo definições e comandos a serem utilizados em outros programas na mesma linguagem, utilizando a `keyword import`.
 
-Conforme a introdução do segundo _link_ de estudo, a importação de módulos só é possível enquanto dentro do mesmo diretório, ou se estiver em uma lista de diretórios dadas pela variável `sys.path`, começada no diretório atual e procurada na variável `PYTHONPATH` do **Shell**, por fim no diretório padrão que depende da instalação. 
+Conforme a introdução do segundo _link_ de estudo, a importação de módulos só é possível enquanto dentro do mesmo diretório, ou se estiver em uma lista de diretórios dadas pela variável `sys.path`, começada no diretório atual e procurada na variável `PYTHONPATH` do **Shell**, por fim no diretório padrão que depende da instalação.
 
 Leia mais a respeito de **módulos** nos _links_ de estudo abaixo.
 
@@ -175,7 +175,7 @@ Links:
 
 ## 14 - Iteradores e Geradores Python
 
-Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos. 
+Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos.
 Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.
 
 Links:
@@ -225,7 +225,7 @@ Links:
 
 ## 18 - Manipulando Arquivos CSV e JSON
 
-O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida. 
+O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida.
 
 Links:
 
@@ -284,11 +284,34 @@ Links:
 - [Checagem de tipos no Python - gutierri]( https://medium.com/gutierri/checagem-de-tipos-no-python-1533fe1e786f)
 
 
-## 24 - Novidades
+## 24 - Interagindo com o sistema operacional
+
+Há momentos no desenvolvimento de uma aplicação que precisamos interagir com o sistema operacional para acessar diretórios, criar arquivos, executar comandos entre outras ações, e para isso contamos com algumas bibliotecas nativas do Python, como [os](https://docs.python.org/pt-br/3/library/os.html) e [subprocess](https://docs.python.org/pt-br/3/library/subprocess.html), que nos auxiliam nesses processos.
+
+Links:
+
+- [Manipulando arquivos - FreeCodeCamp](https://www.freecodecamp.org/portuguese/news/como-escrever-em-um-arquivo-em-python-open-read-append-e-outras-funcoes-de-manipulacao-explicadas/)
+- [Executando comandos Shell - TechExpert Tips](https://techexpert.tips/pt-br/python-pt-br/python-executando-comandos-shell/)
+- [Interagindo com o sistema operacional - TecnoGuia](https://tecnoguia.istocks.club/o-que-e-o-modulo-os-do-python-e-como-usa-lo/2021-03-15/)
+
+
+## 25 - Consumindo dados de fontes externas
+
+Neste tópico será abordado formas de trabalhar com dados provenientes de fontes externas, como um site ou outra aplicação.
+
+O Python disponibiliza nativamente a biblioteca [urllib](https://docs.python.org/pt-br/3/library/urllib.html) para efetuar requisições a sites, APIs, entre outras, mas existe uma outra biblioteca, de terceiros, chamada [requests](https://requests.readthedocs.io/) que é bem mais simples que pode ser utilizada para fazer realizar esse tipo de tarefa.
+
+Links:
+
+- [Como usar Urllib - Ciksiti](https://ciksiti.com/pt/chapters/5031-how-to-use-urllib-in-python--linux-hint)
+- [Consumindo a API do Github - Alura](https://www.alura.com.br/artigos/consumindo-a-api-do-github-em-python)
+
+
+## 26 - Novidades
 
 ### Novidades do Python 3.8
 
-Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais. 
+Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais.
 
 Links:
 
@@ -324,13 +347,13 @@ Links:
 - [What’s new in Python 3.10](https://www.infoworld.com/article/3617460/whats-new-in-python-310.html)
 
 
-# Bibliografia 
+# Bibliografia
 
-Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e posteriormente a [@melissarr](https://github.com/melissarr) fez um trabalho de agrupamento e pesquisa dessa trilha em diversos portais. A partir desse trabalho de agrupamento e pesquisa da [@melissarr](https://github.com/melissarr): 
+Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e posteriormente a [@melissarr](https://github.com/melissarr) fez um trabalho de agrupamento e pesquisa dessa trilha em diversos portais. A partir desse trabalho de agrupamento e pesquisa da [@melissarr](https://github.com/melissarr):
 
 - [@pedrocvaranda](https://github.com/pedrocvaranda) organizou os tópicos "Introdução à linguagem Python", "Variáveis e Tipos de Dados em Python", "Estruturas Lógicas e Condicionais em Python", "Estruturas de Repetição em Python" e uma parte da "Bibliografia".
-- [@melissarr](https://github.com/melissarr) organizou os tópicos: "Debugando e Tratando erros", "Trabalhando com Módulos Python" e "Leitura e Escrita em Arquivos". 
-- [@kamisinha](https://github.com/kamisinha) organizou os tópicos: "Novidades do Python 3.8", "Novidades do Python 3.9" e "Novidades do Python 3.10". 
+- [@melissarr](https://github.com/melissarr) organizou os tópicos: "Debugando e Tratando erros", "Trabalhando com Módulos Python" e "Leitura e Escrita em Arquivos".
+- [@kamisinha](https://github.com/kamisinha) organizou os tópicos: "Novidades do Python 3.8", "Novidades do Python 3.9" e "Novidades do Python 3.10".
 - [@LuizFernado-TC](https://github.com/LuizFernando-TC) organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". Ajudou a criar resumos de diversas categiruas,
-- [@isiezz](https://github.com/isiezz) organizou os tópicos: "Manipulando Arquivos CSV e JSON", "Trabalhando com Data e Hora em Python" e "Testes com Python". 
+- [@isiezz](https://github.com/isiezz) organizou os tópicos: "Manipulando Arquivos CSV e JSON", "Trabalhando com Data e Hora em Python" e "Testes com Python".
 - [@caiodocoduiguin](https://github.com/caiodocoduiguin) organizou os tópicos: "Coleções Python", "Funções em Python", "Comprehensions em Python" e "Expressões Lambdas e Funções Integradas".
