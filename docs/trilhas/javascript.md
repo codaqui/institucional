@@ -211,6 +211,19 @@ Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver c
 ## 3 - Complemento para a Linguagem Javascript
 
 ### 3.1 - Funções Async
+
+Async/await são a forma de escrever promises que nos permitam escrever código assíncrono que parece síncrono. Promises é um objeto em JavaScript que permite a execução de processamentos de forma assíncrona dentro do seu código.
+
+`Materiais de Referência`:
+
+- [Funções assíncronas - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Web/JavaScript/Reference/Statements/async_function)
+- [Async/await no JavaScript: o que é e quando usar a programação assíncrona? - Alura](https://www.alura.com.br/artigos/async-await-no-javascript-o-que-e-e-quando-usar)
+- [Tutorial de async e await em JavaScript – como aguardar que uma função se encerre em JS - freeCodeCamp](https://www.freecodecamp.org/portuguese/news/tutorial-de-async-e-await-em-javascript-como-aguardar-que-uma-funcao-se-encerre-em-js/)
+
+`Video Complementar`:
+
+- [Como usar Async/Await? Promises no JavaScript? - Mario Souto - Dev Soutinho](https://www.youtube.com/watch?v=q28lfkBd9F4)
+
 ### 3.2 - Conhecendo o Browser e Manipulando o DOM
 
 Os materiais abaixo demostra a manipulação ao DOM(Document Object Model), como é representado no seu navegador e uma breve descrição sobre tipos de dados fundamentais.
@@ -229,7 +242,35 @@ Os materiais abaixo demostra a manipulação ao DOM(Document Object Model), como
 
 
 ### 3.3 - Básico de HTML e CSS
+
+HTML significa HiperText Markup Language (Linguagem de Marcação de Hipertexto) e serve para dar significado e organizar as informações de uma página na web. CSS significa Cascading Style Sheet (Folha de Estilo em Cascatas) e sua aplicação é utilizada na estilização de componentes escritos em linguagens de marcação.
+
+`Materiais de Referência`:
+
+- [Unidade: Introdução a HTML/CSS: criação de páginas Web - Khan Academy](https://pt.khanacademy.org/computing/computer-programming/html-css)
+- [HTML Tutorial - W3Schools](https://www.w3schools.com/html/)
+- [CSS Tutorial - W3Schools](https://www.w3schools.com/css/default.asp)
+
+`Video Complementar`:
+
+- [HTML e CSS para iniciantes - RBtech](https://www.youtube.com/watch?v=iZ1ucWosOww)
+
 ### 3.4 - Internet e API
+
+A internet é uma rede de conexões globais que permite o compartilhamento instantâneo de dados entre dispositivos. API significa Application Programming Interface (Interface de Programação de Aplicação). As APIs são um conjunto de padrões que fazem parte de uma interface e que permitem a criação de plataformas de maneira mais simples e prática para desenvolvedores.
+
+`Materiais de Referência`:
+
+- [Internet - Khan Academy](https://www.khanacademy.org/computing/computers-and-internet/xcae6f4a7ff015e7d:the-internet)
+- [O que é API? Entenda de uma maneira simples - Vertigo](https://vertigo.com.br/o-que-e-api-entenda-de-uma-maneira-simples/)
+- [Internet - Wikipédia](https://pt.wikipedia.org/wiki/Internet)
+- [Por que as API's estão no centro de internet of things - Mundo API](https://mundoapi.com.br/materias/por-que-as-apis-estao-no-centro-de-internet-of-things/)
+
+`Video Complementar`:
+
+- [Como Dados viram Ondas? - Fabio Akita](https://www.youtube.com/watch?v=0TndL-Nh6Ok)
+- [Como sua Internet Funciona - Fabio Akita](https://www.youtube.com/watch?v=gcv5hXyTcIo)
+
 ### 3.5 - ECMAScript 5 e ECMAScript 6
 
 ECMAScript é uma linguagem de programação, baseada em scripts, padronizada pela Ecma International (Associação Europeia dos Fabricantes de Computadores) na especificação ECMA-262 e ISO/IEC 16262. Esta linguagem é usada em tecnologias para Internet para a criação de scripts executados no cliente e no servidor (Node.JS), sendo inspirada na linguagem de programação JavaScript, além permitir outras implementações independentes. Os materiais abaixo esclarece sobre o assunto.
@@ -249,6 +290,19 @@ ECMAScript é uma linguagem de programação, baseada em scripts, padronizada pe
 - [O Que é ECMAScript? - TipsCode](https://www.youtube.com/watch?v=PlFlKxZbVqs)
  
 ### 3.6 - TypeScript
+
+TypeScript é um superconjunto de JavaScript, ou seja, um conjunto de ferramentas e formas mais eficientes de escrever código JavaScript, adicionando recursos que não estão presentes de maneira nativa na linguagem.
+
+`Materiais de Referência`:
+
+- [O que é TypeScript? - TypeScript](https://www.typescriptlang.org/)
+- [Documentação TypeScript - TypeScript](https://www.typescriptlang.org/docs/)
+- [TypeScript - Wikipédia](https://pt.wikipedia.org/wiki/TypeScript)
+- [Introdução a Typescript: o que é e como começar? - GeekHunter](https://blog.geekhunter.com.br/introducao-a-typescript/)
+
+`Video Complementar`:
+- [TypeScript - O que é e quais os seus benefícios? - Rocketseat](https://www.youtube.com/watch?v=kg2-SMolAV0)
+
 ## 4 - Bibliotecas e Frameworks
 ### 4.1 - Utilizando Bibliotecas e Framworks
 ### 4.2 - Hello Worlds com NodeJS
