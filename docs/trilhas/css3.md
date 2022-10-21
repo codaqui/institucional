@@ -52,3 +52,10 @@ Os materiais abaixo servem para apresentar um pouco da linguagem de marcação, 
 ### 2.5 - Animações
 
 ### 2.6 - Seletores
+
+## 3 - Documentos (Guias)
+
+- [Mozilla Developer](https://developer.mozilla.org/en-US/docs/Web/CSS)
+- [Roadmap.sh](https://roadmap.sh/frontend)
+- [W3Schools](https://www.w3schools.com/css/)
+- [CSS Guidelines](https://cssguidelin.es/)
