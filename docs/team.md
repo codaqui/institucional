@@ -60,7 +60,7 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     <!-- :fontawesome-brands-linkedin-in: :simple-github: -->
 
--   __Karen Sobrenome__
+-   __Karen Kvam__
 
     ---
 
