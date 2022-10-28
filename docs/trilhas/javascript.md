@@ -137,7 +137,7 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 
 - [Tipos de dados - Node Studio Treinamentos](https://www.youtube.com/watch?v=upTl-6W9PcU)
 
-### 2.2 - Estruturas Lógicas (Condicionais e de Repetição)
+### 2.2 - Estruturas Lógicas (Condicionais e de Repetição) [Aula 5 e Aula 6]
 
 Uma estrutura de repetição permite executar mais de uma vez o mesmo comando ou conjunto de comandos. As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
 

@@ -62,13 +62,13 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
 
     [:octicons-arrow-right-24: Começar](trilhas/github-starter.md)
 
--   :fontawesome-brands-discord:{ .lg .middle } __Discord__
+-   :fontawesome-brands-css3:{ .lg .middle } __CSS3__
 
     ---
 
-    Acesse nosso discord e interaja com outros alunos e mentores.
+    Estamos construindo uma trilha de CSS3, e você pode conferir ela por aqui!
 
-    [:octicons-arrow-right-24: Entrar](https://discord.gg/xuTtxqCPpz)
+    [:octicons-arrow-right-24: Começar](trilhas/css3)
 
 </div>
 

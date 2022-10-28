@@ -2,7 +2,7 @@
 
 ## Resumo
 
-A Codaqui é uma comunidade dedicada a oferecer um ambiente livre de assédio para todos, independentemente do sexo, identidade de gênero e expressão, idade, orientação sexual, deficiência, aparência física, tamanho corporal, cor de pele, etnia, religião (ou falta dela), tamanho do corpo, nacionalidade, ideologia política, experiência em computação e suas tecnologias (ou a falta dela).
+A Codaqui é uma comunidade dedicada a oferecer um ambiente livre de assédio para todos, independentemente do sexo, identidade de gênero e expressão, idade, orientação sexual, deficiência, aparência física, tamanho corporal, cor de pele, etnia, religião (ou falta dela), nacionalidade, ideologia política, experiência em computação e suas tecnologias (ou a falta dela).
 
 Nós não toleramos o assédio aos participantes da comunidade, sob qualquer forma.
 

@@ -24,6 +24,7 @@ nav:
       - Python: trilhas/python.md
       - Javascript: trilhas/javascript.md
       - GitHub Start: trilhas/github-starter.md
+      - CSS3: trilhas/css3.md
     - Blog:
       - blog/index.md
     - Contato: contact.md
@@ -107,7 +108,7 @@ extra:
     - icon: fontawesome/brands/instagram
       link: https://instagram.com/codaqui.dev
     - icon: fontawesome/brands/youtube
-      link: https://www.youtube.com/channel/UCUySP8FaPF_IkM48zmwJr0A
+      link: https://youtube.com/@codaqui
   consent:
     title: LGPD Cookies
     description: >- 

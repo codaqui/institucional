@@ -5,6 +5,7 @@ Discussão:
 
 - [Atualização 1 - PR#6](https://github.com/codaqui/institucional-trilhas-estudos/pull/6)
 - [Atualização 2 - PR#7](https://github.com/codaqui/institucional-trilhas-estudos/pull/7)
+- [Atualização 3 - PR#78](https://github.com/codaqui/institucional/pull/78)
 
 ## Certificação Codaqui
 
