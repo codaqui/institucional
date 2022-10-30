@@ -2,7 +2,7 @@
 
 ## :heavy_check_mark: Objetivo
 
-Queremos democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo tecnico.
+Queremos democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo técnico.
 
 Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
 
@@ -20,7 +20,7 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 
     ---
 
-    Além dos projetos pessoais desenvolvido ao longo do curso, os alunos podem participar de projetos reais, de desenvolvimento de serviços e produtos para outras organizações sem fins lucrativos, podendo receber uma bolsa financeira.
+    Além dos projetos pessoais desenvolvidos ao longo do curso, os alunos podem participar de projetos reais de desenvolvimento de serviços e produtos para outras organizações sem fins lucrativos, podendo receber uma bolsa financeira.
 
 
 -   :material-tally-mark-3:{ .lg .middle } __Acesso a computador e internet__
