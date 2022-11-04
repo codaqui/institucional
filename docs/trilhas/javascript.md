@@ -154,7 +154,7 @@ Uma estrutura de repetição permite executar mais de uma vez o mesmo comando ou
 - [Condicionais (If, Else, ElseIF, Switch) - Node Studio Treinamentos](https://www.youtube.com/watch?v=T8lD3lh-u4A)
 - [Loops (For e While) - Node Studio Treinamentos](https://www.youtube.com/watch?v=0Jr3kmCILIg)
 
-### 2.3 - Expressões e Operadores
+### 2.3 - Expressões e Operadores [Aula 6]
 
 Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expressão lógica nada mais é que uma expressão algébrica e, pode ser chamada também de proposição. Operadores em Javascript são símbolos especiais que envolvem um ou mais operandos com a finalidade de produzir um determinado resultado. Esse conjunto é usado para tomar decisões em códigos.
 
@@ -169,7 +169,7 @@ Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expre
 
 - [Operadores e Operações no JavaScript](https://www.youtube.com/watch?v=6d6IV3SQnIM)
 
-### 2.4 - Orientação a Objetos
+### 2.4 - Orientação a Objetos [Aula 6]
 
 Os materiais de referência abaixo mostra como tratar uma orientação a objetos em javascript, herança e polimorfismo. Também a algumas questões interessantes de se ver como *"**classes abstratas em java?**".*
 
