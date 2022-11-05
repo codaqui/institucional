@@ -14,7 +14,14 @@ Em desenvolvimento.
 
 ## 1 - Principios do do HTML5
 
-### 1.1 - Apresentação 
+### 1.1 - Apresentação
+
+`Materiais de Referência`:
+
+- [O que é o HTML5 - DevMedia](https://www.devmedia.com.br/o-que-e-o-html5/25820)
+- [HTML5 - Wikipédia](https://pt.wikipedia.org/wiki/HTML5)
+
+`Video Complementar`:
 
 ### 1.2 - Ambiente de Desenvolvimento 
 
