@@ -25,9 +25,21 @@ Em desenvolvimento.
 
 ### 1.2 - Ambiente de Desenvolvimento 
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 1.3 - Vantagens e desvantagens de uma Linguagem Script 
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 1.4 - Elementos básicos do HTML5
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 
 ## 2 - Principios da Programação com Javascript
