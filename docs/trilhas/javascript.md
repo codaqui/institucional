@@ -180,9 +180,6 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 - [Programação orientada a objetos em JavaScript – explicada com exemplos](https://www.freecodecamp.org/portuguese/news/programacao-orientada-a-objetos-em-javascript-explicada-com-exemplos/)
 - [POO: Trabalhando com classes e objetos em JavaScript](https://www.devmedia.com.br/poo-trabalhando-com-classes-e-objetos-em-javascript/28434)
 
-- [Conceitos e Exemplos – Polimorfismo: Programação Orientada a Objetos](https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701#:~:text=Definimos%20Polimorfismo%20como%20um%20princ%C3%ADpio,cada%20uma%20das%20classes%20derivadas.)
-- [Conceitos e Exemplos – Herança: Programação Orientada a Objetos – Parte 1](https://www.devmedia.com.br/conceitos-e-exemplos-heranca-programacao-orientada-a-objetos-parte-1/18579)
-
 `Curiosidade`:
 
 - [É possível criar uma 'classe abstrata' em JavaScript?](https://pt.stackoverflow.com/questions/1920/%C3%89-poss%C3%ADvel-criar-uma-classe-abstrata-em-javascript)
