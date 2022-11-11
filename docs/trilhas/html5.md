@@ -42,6 +42,10 @@ Em desenvolvimento.
 
 ### 2.5 - Imagem, vídeo e áudio
 
+#### 2.5.1 - Imagem
+#### 2.5.2 - Vídeo
+#### 2.5.3 - Áudio
+
 ### 2.6 - Listas
 
 ### 2.7 - Links
