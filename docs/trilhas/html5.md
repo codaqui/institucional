@@ -38,6 +38,8 @@ Em desenvolvimento.
 
 `Materiais de Referência`:
 
+- [O Que é HTML5 e Quais Vantagens ele Traz para seu Site - Hostinger Tutoriais](https://www.hostinger.com.br/tutoriais/diferenca-entre-html-e-html5)
+
 `Video Complementar`:
 
 ### 1.4 - Elementos básicos do HTML5
