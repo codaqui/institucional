@@ -20,6 +20,7 @@ Em desenvolvimento.
 
 - [O que é o HTML5 - DevMedia](https://www.devmedia.com.br/o-que-e-o-html5/25820)
 - [HTML5 - Wikipédia](https://pt.wikipedia.org/wiki/HTML5)
+- [Iniciando com HTML - Mozilla Developer](https://developer.mozilla.org/pt-BR/docs/Learn/HTML/Introduction_to_HTML/Getting_started)
 
 `Video Complementar`:
 
@@ -27,7 +28,11 @@ Em desenvolvimento.
 
 `Materiais de Referência`:
 
+- []()
+
 `Video Complementar`:
+
+- []()
 
 ### 1.3 - Vantagens e desvantagens de uma Linguagem Script 
 
