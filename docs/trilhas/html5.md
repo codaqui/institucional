@@ -119,6 +119,7 @@ Lorem Ipsum
 
 - [Listas com HTML5 - LRodrigo - Web Site](https://lrodrigo.sgs.lncc.br/wp/programacao/curso-de-html5-e-css3-5a-aula-listas/)
 - [Trabalhando com listas no HTML - DevMedia](https://www.devmedia.com.br/trabalhando-com-listas-ordenadas-no-html/21739)
+- [](http://www.clem.ufba.br/tuts/html/c10.htm)
 
 `Video Complementar`:
 
