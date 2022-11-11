@@ -173,6 +173,7 @@ Links:
 - [Abrindo, fechando e lendo arquivos (Com exercícios)](https://panda.ime.usp.br/pensepy/static/pensepy/10-Arquivos/files.html)
 
 - [Como escrever e salvar arquivos JSON em Python](https://academiahopper.com.br/trabalhando-com-arquivos-em-python/)
+- [Manipulando arquivos - FreeCodeCamp](https://www.freecodecamp.org/portuguese/news/como-escrever-em-um-arquivo-em-python-open-read-append-e-outras-funcoes-de-manipulacao-explicadas/)
 
 ## 14 - Iteradores e Geradores Python
 
@@ -291,7 +292,6 @@ Há momentos no desenvolvimento de uma aplicação que precisamos interagir com 
 
 Links:
 
-- [Manipulando arquivos - FreeCodeCamp](https://www.freecodecamp.org/portuguese/news/como-escrever-em-um-arquivo-em-python-open-read-append-e-outras-funcoes-de-manipulacao-explicadas/)
 - [Executando comandos Shell - TechExpert Tips](https://techexpert.tips/pt-br/python-pt-br/python-executando-comandos-shell/)
 - [Interagindo com o sistema operacional - TecnoGuia](https://tecnoguia.istocks.club/o-que-e-o-modulo-os-do-python-e-como-usa-lo/2021-03-15/)
 
