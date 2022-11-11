@@ -169,7 +169,7 @@ Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expre
 
 - [Operadores e Operações no JavaScript](https://www.youtube.com/watch?v=6d6IV3SQnIM)
 
-### 2.4 - Orientação a Objetos [Aula 6]
+### 2.4 - Orientação a Objetos [Aula 7]
 
 Os materiais de referência abaixo mostra como tratar uma orientação a objetos em javascript, herança e polimorfismo. Também a algumas questões interessantes de se ver como *"**classes abstratas em java?**".*
 
