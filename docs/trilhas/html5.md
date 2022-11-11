@@ -34,27 +34,95 @@ Em desenvolvimento.
 
 ### 2.1 - Parágrafos e quebras de linha
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 2.2 - Estilos de texto
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 ### 2.3 - Semântica e Hierarquia
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 2.4 - Símbolo, emoji e favicon
+
+Lorem Ipsum
+
+#### 2.4.1 - Símbolo
+
+`Materiais de Referência`:
+
+`Video Complementar`:
+
+#### 2.4.2 - Emoji
+
+`Materiais de Referência`:
+
+`Video Complementar`:
+
+#### 2.4.3 - Favicon
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 ### 2.5 - Imagem, vídeo e áudio
 
+Lorem Ipsum
+
 #### 2.5.1 - Imagem
+
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 #### 2.5.2 - Vídeo
+
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 #### 2.5.3 - Áudio
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 ### 2.6 - Listas
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 2.7 - Links
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 ### 2.8 - Tabelas
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 2.9 - Formulário
 
+`Materiais de Referência`:
+
+`Video Complementar`:
+
 ### 2.10 - Frame
+
+`Materiais de Referência`:
+
+`Video Complementar`:
 
 ## 3 - Documentos (Guias)
 
