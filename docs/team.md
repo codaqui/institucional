@@ -40,16 +40,6 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/lucia-sendim-5385755/)
 
--   __Luísa Lopes__
-
-    ---
-
-    <img src="/assets/no-profile.png" alt="Foto de Luísa Lopes" width="150" height="150"/>
-
-    <small>Diretora Institucional</small>
-
-    <!-- :fontawesome-brands-linkedin-in: :simple-github: -->
-
 -   __Mell Steissy__
 
     ---
