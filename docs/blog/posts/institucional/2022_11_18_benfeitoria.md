@@ -5,7 +5,10 @@ categories:
   - Institucional
 tags:
   - financiamento coletivo
-  - queroajudar
+  - quero ajudar
+  - doação
+  - ajuda
+  - financeira
 authors:
   - thaifurforo
   - endersonmenezes
