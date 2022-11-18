@@ -185,10 +185,11 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 - [É possível criar uma 'classe abstrata' em JavaScript?](https://pt.stackoverflow.com/questions/1920/%C3%89-poss%C3%ADvel-criar-uma-classe-abstrata-em-javascript)
 
 `Video Complementar`:
+
 - [JavaScript - Aula 05 Objetos - Conceitos Básicos](https://www.youtube.com/watch?v=sKgw7TCNqg4)
 - [JavaScript - 10.6 Polimorfismo / Polymorphism](https://www.youtube.com/watch?v=PwjHpwfKdP4)
 
-### 2.5 - Debugando e Tratando Erros
+### 2.5 - Debugando e Tratando Erros [Aula 8]
 
 Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver como tratar erros e exceções.
 
@@ -198,7 +199,7 @@ Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver c
 - [Debugando (depurando) scripts em JavaScript - Dev Furia](http://devfuria.com.br/javascript/debugando/)
 - [Bugs e manipulação de erros - BrazilJS](https://github.com/braziljs/eloquente-javascript/blob/master/chapters/08-erros-e-manipulacao-de-erros.md)
 - [Depurando JavaScript com Google Chrome - DevMedia](https://www.devmedia.com.br/depurando-javascript-com-google-chrome/28367)
--[Tratamento de erros e exceções em JavaScript - Daniel Castro](https://danieldcs.com/tratamento-de-erros-e-excecoes-em-javascript/)
+- [Tratamento de erros e exceções em JavaScript - Daniel Castro](https://danieldcs.com/tratamento-de-erros-e-excecoes-em-javascript/)
 
 `Video Complementar`:
 
