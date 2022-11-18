@@ -26,5 +26,13 @@
     <small>Limitado a 50 usuários simultaneamente.</small>
 
     [:octicons-arrow-right-24: Acesse](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+    
+-   :material-finance:{ .lg .middle } __Benfeitoria__
+
+    ---
+
+    Colabore financeiramente com a Codaqui e nos ajude a crescer em 2023.
+
+    [:octicons-arrow-right-24: Acesse](https://benfeitoria.com/codaqui)
 
 </div>
