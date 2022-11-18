@@ -27,7 +27,7 @@ Baseados em Maria Montessori, adotamos um elemento importante de valorização d
 
 Entenda nossas metas para 2023:
 
-`imagem metas`
+![Hacktoberfest](img/2022_11_18_benfeitoria/metas.png)
 
 Contamos com o seu apoio para conseguir alcançar as metas e impactar ainda mais jovens e adolescentes com nosso projeto, visando reduzir uma desigualdade social que só cresce, através da educação e do ensino de tecnologia, já que o mundo do trabalho se torna cada vez mais tecnológico, sem que as oportunidades de emprego e renda cheguem até a população de maior vulnerabilidade social.
 
