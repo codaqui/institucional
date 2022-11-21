@@ -16,7 +16,7 @@
 
     Colabore com a Codaqui, venha ajudar a tecnologia a chegar mais longe =]
 
-    [:octicons-arrow-right-24: Discussões](https://github.com/codaqui/institucional/discussions/43)
+    [:octicons-arrow-right-24: Discussões](https://github.com/orgs/codaqui/discussions/43)
 
 -   :octicons-feed-discussion-16:{ .lg .middle } __Codaquiverso__
 
