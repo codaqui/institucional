@@ -82,13 +82,13 @@ plugins:
           case: lower
       archive_name: Arquivo
       categories_name: Categorias
-  - rss:
-      match_path: blog/posts/.* 
-      date_from_meta:
-        as_creation: date
-      categories:
-        - categories
-        - tags
+  # - rss:
+  #     match_path: blog/posts/.* 
+  #     date_from_meta:
+  #       as_creation: date
+  #     categories:
+  #       - categories
+  #       - tags
   - git-committers:
       repository: codaqui/institucional
       token: !ENV GH_TOKEN
@@ -118,3 +118,17 @@ extra:
   analytics:
     provider: google
     property: G-CL043JTTND
+    feedback:
+      title: Esta página foi útil?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: Esta página foi útil
+          data: 1
+          note: >-
+            Obrigado pelo seu feedback!
+        - icon: material/thumb-down-outline
+          name: Esta página pode ser melhorada
+          data: 0
+          note: >- 
+            Obrigado pelo seu feedback! Nos ajude a melhorar essa página,
+            relate o que gostaria que fosse melhorado em <a href="https://github.com/codaqui/institucional/discussions" target="_blank" rel="noopener">nosso ambiente de discussão!</a>.
