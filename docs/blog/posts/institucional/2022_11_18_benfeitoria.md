@@ -22,11 +22,17 @@ Com o objetivo de escalar o número de alunos e mentores envolvidos no projeto, 
 
 <!-- more -->
 
+[![Clique para doar](img/2022_11_18_benfeitoria/doar.png)](https://benfeitoria.com/pagamento/codaqui/contribuicao/valor?ctx=FixedContributeButton)
+
+## Resumo
+
 A Codaqui é uma escola de tecnologia sem fins lucrativos, que visa alcançar jovens e adolescentes de forma acessível, com aulas e atividades completamente digitais, que podem ser acompanhadas através de computador, tablet ou aparelho celular. Desta forma, conseguimos atingir alunos de todos os lugares do Brasil e de maior vulnerabilidade social.
 
 Os alunos percorrem o conteúdo de forma autônoma, e recebem mentoria semanal, aplicando o conteúdo aprendido. Dessa forma, atuamos para desenvolver competências de autonomia, organização e aprendizado de conteúdo prático de desenvolvimento de software.
 
 Baseados em Maria Montessori, adotamos um elemento importante de valorização dos alunos através de uma bolsa de estudos. Esta bolsa é uma contrapartida por 100% de presença nos encontros e aulas ou, se houver falta, esta deve ser justificada pelo responsável. A adoção desse conceito reforça nossos valores de responsabilidade, autonomia e comprometimento do aluno, além do vínculo com sua família.
+
+## Metas
 
 Entenda nossas metas para 2023:
 
@@ -48,6 +54,7 @@ Confira as contribuições e recompensas disponíveis na campanha:
 | Company                   | R$ 1.000,00 + frete   | Anteriores + Bate papo com a equipe para se envolver e ajudar de forma ativa no projeto                                                                                          |
 | Gr3eat Place to Work      | R$ 5.000,00 + frete   | Anteriores + Possibilidade de acordo com autorização dos responsáveis de realizar uma entrevista com os participantes ao fim do projeto com foco em jovem aprendiz e estagiários |
 
+## Como apoiar?
 
 Para apoiar nossa campanha e receber suas recompensas, acesse: [https://benfeitoria.com/projeto/codaqui](https://benfeitoria.com/projeto/codaqui).
 
