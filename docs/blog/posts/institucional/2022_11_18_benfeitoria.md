@@ -59,7 +59,7 @@ Confira as contribuições e recompensas disponíveis na campanha:
 Para apoiar nossa campanha e receber suas recompensas, acesse: [https://benfeitoria.com/projeto/codaqui](https://benfeitoria.com/projeto/codaqui).
 
 !!! question Você sabia?
-    Você sabia que se cada pessoa que visitou esse site doasse R$10,00, nós já teriamos mudado a vida de muitas jovens?
+    Você sabia que se cada pessoa que visitou esse site doasse R$10,00, nós já teriamos mudado a vida de muitos jovens?
     **Qualquer doação ajuda! COLABORE!**
 
 ==Aproveite essa oportunidade de apoiar um projeto que muda vidas, e ainda receber mimos!==
