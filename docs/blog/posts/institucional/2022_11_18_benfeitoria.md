@@ -45,10 +45,10 @@ Confira as contribuições e recompensas disponíveis na campanha:
 
 | Categoria                 | Valor da contribuição | Recompensas                                                                                                                                                                      |
 |---------------------------|-----------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Trainee                   | R$ 10,00              | E-mail de Agradecimento                                                                                                                                                          |
-| Júnior                    | R$ 50,00              | Anteriores + Agradecimento no site                                                                                                                                               |
-| Pleno                     | R$ 100,00             | Anteriores + Poster Virtual                                                                                                                                                      |
-| Sênior                    | R$ 150,00 + frete     | Anteriores + Adesivo                                                                                                                                                             |
+| Trainee                   | R$ 10,00              | E-mail de agradecimento + Inserção no site                                                                                                                                                          |
+| Júnior                    | R$ 50,00 + frete             | Anteriores + Adesivo                                                                                                                                               |
+| Pleno                     | R$ 100,00 + frete             | Anteriores + Bloco de notas + Pôster virtual                                                                                                                                                      |
+| Sênior                    | R$ 150,00 + frete     | Anteriores + Cordão para crachá personalizado da Codaqui                                                                                                                                                             |
 | Sênior + Pair Programming | R$ 250,00 + frete     | Anteriores + Camiseta                                                                                                                                                            |
 | Tech Lead                 | R$ 500,00 + frete     | Anteriores + 1 Camiseta + Adote um aluno e acompanhe seus rendimentos, além de poder, sob mediação da equipe pedagógica, fornecer mentoria e acompanhamento durante o projeto    |
 | Company                   | R$ 1.000,00 + frete   | Anteriores + Bate papo com a equipe para se envolver e ajudar de forma ativa no projeto                                                                                          |
@@ -58,4 +58,9 @@ Confira as contribuições e recompensas disponíveis na campanha:
 
 Para apoiar nossa campanha e receber suas recompensas, acesse: [https://benfeitoria.com/projeto/codaqui](https://benfeitoria.com/projeto/codaqui).
 
-Aproveite essa oportunidade de apoiar um projeto que muda vidas, e anida receber mimos! Mas corra, porque é por tempo limitado!
+!!! question Você sabia?
+    Você sabia que se cada pessoa que visitou esse site doasse R$10,00, nós já teriamos mudado a vida de muitos jovens?
+    **Qualquer doação ajuda! COLABORE!**
+
+==Aproveite essa oportunidade de apoiar um projeto que muda vidas, e ainda receber mimos!==
+==Mas corra: é só até o dia 17/01/2023.==

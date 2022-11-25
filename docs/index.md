@@ -68,7 +68,7 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
 
     Estamos construindo uma trilha de CSS3, e você pode conferir ela por aqui!
 
-    [:octicons-arrow-right-24: Começar](trilhas/css3)
+    [:octicons-arrow-right-24: Começar](trilhas/css3.md)
 
 </div>
 
