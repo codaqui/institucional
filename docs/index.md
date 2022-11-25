@@ -74,6 +74,8 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
 
 ## Comunidade
 
+Entre para a comunidade da Codaqui e comece a estudar!
+
 <div class="grid cards" markdown>
 
 -   :fontawesome-brands-github:{ .lg .middle } __WhatsApp__
