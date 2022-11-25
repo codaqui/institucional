@@ -78,11 +78,11 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
 <div class="grid cards" markdown>
 
--   :fontawesome-brands-github:{ .lg .middle } __WhatsApp__
+-   { .lg .middle } __WhatsApp__
 
     ---
 
-    [![Logo do WhatsApp](https://static.whatsapp.net/rsrc.php/v3/yO/r/FsWUqRoOsPu.png)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
+    [![Logo do WhatsApp](https://static.whatsapp.net/rsrc.php/v3/yP/r/rYZqPCBaG70.png)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
 
 -   { .lg .middle } __Discord__
 
