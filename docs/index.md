@@ -72,6 +72,34 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
 
 </div>
 
+## Comunidade
+
+Entre para a comunidade da Codaqui e comece a estudar!
+
+<div class="grid cards" markdown>
+
+-   { .lg .middle } __WhatsApp__
+
+    ---
+
+    [![Logo do WhatsApp](https://static.whatsapp.net/rsrc.php/v3/yP/r/rYZqPCBaG70.png)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
+
+-   { .lg .middle } __Discord__
+
+    ---
+
+    [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
+
+
+-   { .lg .middle } __WorkAdventure__
+
+    ---
+
+    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+
+</div>
+
+
 ## :material-family-tree: Parceiros
 
 <div class="grid cards" markdown>
