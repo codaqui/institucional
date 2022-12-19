@@ -13,3 +13,10 @@
 - Descrição: Calculadora criada para trabalhar conceito de módulos e pacotes, feita com diversos alunos.
 - GitHub: [Clique aqui](https://github.com/codaqui/calculadora_codaqui)
 - Link: [Clique aqui](https://pypi.org/project/calculadora-codaqui/)
+
+## Boletim de Segurança
+
+- Alunos: [Elias Miranda](https://github.com/ArtumosGOC)
+- Descrição: Todos os dias, as 10h da manhã, um bot solta um boletim com notícias sobre segurança da informação. 
+- GitHub: [Clique aqui](https://github.com/codaqui/boletim-diario-seguranca/issues) 
+- Para Receber Boletins No E-mail Diariamente, Siga os Passos [Clicando aqui](https://github.com/codaqui/boletim-diario-seguranca/blob/main/README.md)!
