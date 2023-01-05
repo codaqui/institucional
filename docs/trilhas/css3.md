@@ -27,17 +27,18 @@ Os materiais abaixo servem para apresentar um pouco da linguagem de marcação, 
 
 `Video Complementar`:
 
--
+-[Aprenda CSS](https://www.youtube.com/watch?v=0aO1hctvhEs)
 
 ### 1.1 - Ambiente de Desenvolvimento
 
 `Materiais de Referência`:
 
--
+- [ferramentas de front-end](https://rockcontent.com/br/talent-blog/ferramentas-de-front-end/)
+- [ferramentas essenciais - desenvolvedor web](https://blog.umbler.com/br/ferramentas-para-desenvolvedores-da-web/)
 
 `Video Complementar`:
 
--
+- [Editores Incríveis para Programar](https://www.youtube.com/watch?v=40QyA5f3Qo0)
 
 ## 2 - Principios da Programação com CSS3
 
