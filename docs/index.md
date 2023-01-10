@@ -72,26 +72,26 @@ A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os no
 
 </div>
 
-## Comunidade
+## :material-google-circles-communities: Comunidade
 
 Entre para a comunidade da Codaqui e comece a estudar!
 
 <div class="grid cards" markdown>
 
--   { .lg .middle } __WhatsApp__
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WhatsApp__
 
     ---
 
-    [![Logo do WhatsApp](https://static.whatsapp.net/rsrc.php/v3/yP/r/rYZqPCBaG70.png)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
+    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
 
--   { .lg .middle } __Discord__
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Discord__
 
     ---
 
     [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
 
 
--   { .lg .middle } __WorkAdventure__
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
 
     ---
 
@@ -110,7 +110,7 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
     [![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png)](https://education.github.com/schools)
 
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __DevParaná__
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __DevParaná__
 
     ---
 
@@ -121,6 +121,12 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
     ---
 
-    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://workadventu.re/)
+    [![Logo do WorkAdventure](https://repository-images.githubusercontent.com/252724819/0ef45d33-47b8-4207-805a-053f6aed7ee3){height="50"}](https://workadventu.re/)
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Holopin__
+
+    ---
+
+    [![Logo da Holopin](https://www.holopin.io/images/logo.png)](https://www.holopin.io/)
 
 </div>
