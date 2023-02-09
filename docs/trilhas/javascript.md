@@ -1,6 +1,10 @@
 
 # Trilha de Aprendizado de Programação com Javascript
 
+!!! info "Comunicado"
+
+    Está trilha encontra-se e desenvolvimento e você pode apoiar isso pelas discussões realizadas no GitHub. Caso tenha dúvidas envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev)
+
 Discussão:
 
 - [#6 - Organização da Trilha](https://github.com/codaqui/institucional/issues/6)

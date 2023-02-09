@@ -49,10 +49,29 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 </div>
 
-## Plataforma Digital (Discord)
+## Plataformas Digital
 
-Entre no Discord, leia as #regras de nosso servidor! Se você concordar com tudo, com certeza poderá ser um membro da Codaqui. 
+Acesse nossa comunidade do Whatsapp para interagir, utilize o Discord ou o Workadventure para encontrar seus colegas e estudarem em comunidade.
 
-Código do Servidor: **xuTtxqCPpz**
+<div class="grid cards" markdown>
 
-<iframe src="https://discordapp.com/widget?id=829882821559451659&theme=dark" width="350" height="500" allowtransparency="true" frameborder="0" sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"></iframe>
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WhatsApp__
+
+    ---
+
+    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up)
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Discord__
+
+    ---
+
+    [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
+
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
+
+    ---
+
+    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+
+</div>
