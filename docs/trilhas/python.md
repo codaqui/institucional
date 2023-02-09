@@ -9,9 +9,11 @@ Discussão:
 
 ## Certificação Codaqui
 
+![Imagem do Certificado da Codaqui](https://www.holopin.io/_next/image?url=https%3A%2F%2Fassets.holopin.io%2FeyJidWNrZXQiOiJob2xvcGluLWFzc2V0cyIsImtleSI6ImFzc2V0cy9jbGN0ZDdjZmYyMjEzMDhtc21iZDUwY2NvIiwiZWRpdHMiOnsicm90YXRlIjpudWxsfX0%3D&w=1920&q=75)
+
 Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
 
-<small> TODO Video Explicativo do Certificado </small>
+<small> Recomendamos que estude antes de se inscrever, e caso tenha qualquer dúvida entre em contato por e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev) </small>
 
 ---
 
