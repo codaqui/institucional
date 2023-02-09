@@ -82,7 +82,7 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
     ---
 
-    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/FzzievCNiFL1TZrbknUQyV)
+    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up)
 
 -   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Discord__
 
