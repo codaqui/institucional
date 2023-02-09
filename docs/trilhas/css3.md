@@ -1,5 +1,9 @@
 # Trilha de Aprendizado de Programação com CSS3
 
+!!! info "Comunicado"
+
+    Está trilha encontra-se e desenvolvimento e você pode apoiar isso pelas discussões realizadas no GitHub. Caso tenha dúvidas envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev)
+
 Discussão:
 
 - [#24 - Organização da Trilha](https://github.com/codaqui/institucional/issues/24)
