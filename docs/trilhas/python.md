@@ -1,12 +1,6 @@
 
 # Trilha de Aprendizado de Programação com Python
 
-Discussão:
-
-- [Atualização 1 - PR#6](https://github.com/codaqui/institucional-trilhas-estudos/pull/6)
-- [Atualização 2 - PR#7](https://github.com/codaqui/institucional-trilhas-estudos/pull/7)
-- [Atualização 3 - PR#78](https://github.com/codaqui/institucional/pull/78)
-
 ## Certificação Codaqui
 
 ![Imagem do Certificado da Codaqui](https://www.holopin.io/_next/image?url=https%3A%2F%2Fassets.holopin.io%2FeyJidWNrZXQiOiJob2xvcGluLWFzc2V0cyIsImtleSI6ImFzc2V0cy9jbGN0ZDdjZmYyMjEzMDhtc21iZDUwY2NvIiwiZWRpdHMiOnsicm90YXRlIjpudWxsfX0%3D&w=1920&q=75)
@@ -349,6 +343,11 @@ Vamos conhecer a versão 3.10 no Python. A nova versão apresnta novas funcional
 
 - [What’s new in Python 3.10](https://www.infoworld.com/article/3617460/whats-new-in-python-310.html)
 
+# Discussões
+
+- [Atualização 1 - PR#6](https://github.com/codaqui/institucional-trilhas-estudos/pull/6)
+- [Atualização 2 - PR#7](https://github.com/codaqui/institucional-trilhas-estudos/pull/7)
+- [Atualização 3 - PR#78](https://github.com/codaqui/institucional/pull/78)
 
 # Bibliografia
 
