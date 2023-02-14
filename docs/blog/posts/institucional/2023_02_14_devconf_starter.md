@@ -16,7 +16,7 @@ comments: true
 
 # DevPR Starters - Codaqui
 
-Filho de peixe peixinho é! A Codaqui e a DevParaná anuncia o **DevPR Starters** – uma programação incrível exclusiva para dependentes, filhos, filhas, irmãos e irmãs, de 6 a 16 anos, dos participantes da Conferência DevPR 2023.
+Filho de peixe peixinho é! A Codaqui e a DevParaná anunciam o **DevPR Starters** – uma programação incrível exclusiva para dependentes, filhos, filhas, irmãos e irmãs, de 6 a 16 anos, dos participantes da Conferência DevPR 2023.
 
 <!-- more -->
 
@@ -26,11 +26,12 @@ Temos uma equipe preparada e dedicada para atender as crianças e adolescentes e
 
 ## Como vai funcionar?
 
-Para inscrição do seu ou sua dependente, acesse o portal do Sympla, ou seja, você que está participando do evento no Auditório, poderá levar um dependente e ele terá gratuitamente um evento e uma equipe disponível para ele.
+Você que está participando do DevPR 2023 no Auditório poderá levar um dependente, e ele terá gratuitamente um evento e uma equipe disponível para ele.
+Para inscrição do seu ou sua dependente, acesse o [portal do Sympla](https://www.sympla.com.br/evento/devparana-conference-2023/1810983) e inclua no carrinho o ingresso Starter (tipo A para 6 a 12 anos, ou tipo B para 13 a 16 anos).
 
 ## Programação
 
-O Espaço Starter será divido em 4 ambiantes, e você pode conferir todas as informações sobre palestrantes e atividades no site [oficial do evento](https://devpr.org).
+O Espaço Starter será divido em 4 ambientes, e você pode conferir todas as informações sobre palestrantes e atividades no [site oficial do evento](https://devpr.org).
 
 ### Palco Inspira
 
