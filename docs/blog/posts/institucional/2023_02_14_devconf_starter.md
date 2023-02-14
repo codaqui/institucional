@@ -30,7 +30,7 @@ Para inscrição do seu ou sua dependente, acesse o portal do Sympla, ou seja, v
 
 ## Programação
 
-O Espaço Starter será divido em 4 ambiantes.
+O Espaço Starter será divido em 4 ambiantes, e você pode conferir todas as informações sobre palestrantes e atividades no site [oficial do evento](https://devpr.org).
 
 ### Palco Inspira
 
@@ -50,7 +50,7 @@ Será exclusivo para jovens de **13 a 16 anos**.
 
 ## Dúvidas?
 
-Entre em contato por [comunidade@devpr.org](mailto:contato@codaqui.dev) ou [contato@codaqui.dev](mailto:contato@codaqui.dev)
+Entre em contato por [comunidade@devpr.org](mailto:contato@codaqui.dev) ou [contato@codaqui.dev](mailto:contato@codaqui.dev) acesse o [site oficial do evento.](https://devpr.org)
 
 
 
