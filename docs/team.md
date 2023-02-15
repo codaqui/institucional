@@ -69,5 +69,15 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
     <small>Voluntária</small>
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/thainarafurforo/) [:simple-github:](https://github.com/thaifurforo)
+    
+-   __Nati Reinoso__
+
+    ---
+
+    <img src="https://avatars.githubusercontent.com/u/92865769?v=4" alt="Foto de Nati" width="150" height="150"/>
+
+    <small>Voluntária</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/nreinoso/)
 
 </div>
