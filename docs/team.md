@@ -79,5 +79,15 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
     <small>Voluntária</small>
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/nreinoso/)
+    
+ -   __Ana Elisa Turbino__
+
+    ---
+
+    <img src="https://user-images.githubusercontent.com/11020807/219363118-65346663-22b6-47fb-b622-1c98787b5e8f.jpg" alt="Foto de Ana" width="150" height="150"/>
+
+    <small>Voluntária</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/ana-elisa-tubino/)
 
 </div>
