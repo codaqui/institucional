@@ -110,6 +110,9 @@ plugins:
   #     enabled: !ENV [GIT_REVISION_DATE_LOCALIZED, false]
   #     enable_creation_date: true
 
+extra_css:
+  - stylesheets/extra.css
+
 extra:
   social:
     - icon: fontawesome/brands/github-alt
