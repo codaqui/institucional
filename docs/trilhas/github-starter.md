@@ -1,10 +1,10 @@
-# :wave: O Básico do GitHub
+# O Básico do GitHub
 
 ## 🤓 Visão geral do curso e resultados de aprendizado
 
 O objetivo deste curso é fornecer uma breve introdução ao GitHub. Também forneceremos materiais para aprendizado adicional e algumas ideias para você começar em nossa plataforma. 🚀
 
-## :octocat: Git e GitHub
+## :fontawesome-brands-github-alt: Git e GitHub
 
 O Git é um **Sistema de Controle de Versão (VCS) distribuído**, o que significa que é uma ferramenta útil para rastrear facilmente alterações em seu código, colaborar e compartilhar. Com o Git, você pode rastrear as alterações feitas em seu projeto para que sempre tenha um registro do que trabalhou e possa reverter facilmente para uma versão mais antiga, se necessário. Também facilita o trabalho com outras pessoas - grupos de pessoas podem trabalhar juntos no mesmo projeto e mesclar suas alterações em uma fonte final!
 
@@ -12,7 +12,7 @@ O GitHub é uma maneira de usar o mesmo poder do Git online com uma interface f�
 
 O GitHub é o lar de algumas das tecnologias mais avançadas do mundo. Esteja você visualizando dados ou criando um novo jogo, há toda uma comunidade e um conjunto de ferramentas no GitHub que podem levar você ao próximo passo. Este curso começa com o básico do GitHub, mas vamos nos aprofundar no resto mais tarde.
 
-## :octocat: Entendendo o fluxo do GitHub 
+## Entendendo o fluxo do GitHub 
 
 O fluxo do GitHub é um fluxo de trabalho leve que permite que você experimente e colabore em seus projetos com facilidade, sem o risco de perder seu trabalho anterior.
 
@@ -88,8 +88,9 @@ O GitHub Explore é um ótimo lugar para fazer exatamente isso... explorar :smil
 
 Você pode conferir o site do GitHub Explore [em github.com/explore](https://github.com/explore). Quanto mais você interagir com o GitHub, mais personalizada será sua visualização do Explore. 
 
-## 📝 Próximos passos opcionais 
+## 📝 Tarefas para Realizar
 
+* Crie um novo repositório em sua conta pessoal no GitHub, mantenha o repositório público.
 * Abra um pull request e informe ao seu professor que você concluiu este curso.
 * Crie um novo arquivo markdown no seu repositório. Conte o que você aprendeu com este curso, e também sobre as dúvidas que ainda ficaram. Experimente com estilos diferentes!
 * Crie seu perfil README. Deixe o mundo saber um pouco mais sobre você! O que você tem interesse em aprender? Em que você está trabalhando? Qual é o seu passatempo favorito? Saiba mais sobre como criar seu perfil README no documento, ["Gerenciando seu perfil README"](https://docs.github.com/en/github/setting-up-and-managing-your-github-profile/managing-your-profile-readme).

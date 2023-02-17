@@ -1,3 +1,7 @@
+---
+hide:
+  - toc
+---
 # Quero Apoiar!
 
 ## Como funciona?
@@ -35,7 +39,7 @@ Se você é novo no GitHub, com certeza nossa trilha inicial de Git irá te ajud
 
 Enquanto isso, você pode enviar uma solicitação de ajuda para [contato@codaqui.dev](mailto:contato@codaqui.dev), iremos transpor as suas ajudas e te ajudar a contribuir.
 
-## Comunidade
+## Links Úteis
 
 <div class="grid cards" markdown>
 

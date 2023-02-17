@@ -7,9 +7,7 @@ repo_url: https://github.com/codaqui
 edit_uri: 'https://github.com/codaqui/institucional/tree/main/docs'
 
 nav:
-    - Inicio:
-      - Página Inicial: index.md
-      - Roadmap: inicio/todo.md
+    - Inicio: index.md
     - Sobre:
       - Equipe: team.md
       - Associação: ong.md
@@ -21,9 +19,9 @@ nav:
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
     - Trilhas: #
+      - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
       - Javascript: trilhas/javascript.md
-      - GitHub Start: trilhas/github-starter.md
       - CSS3: trilhas/css3.md
     - Blog:
       - blog/index.md
@@ -110,6 +108,9 @@ plugins:
   #     enabled: !ENV [GIT_REVISION_DATE_LOCALIZED, false]
   #     enable_creation_date: true
 
+extra_css:
+  - stylesheets/extra.css
+
 extra:
   social:
     - icon: fontawesome/brands/github-alt
@@ -144,4 +145,4 @@ extra:
           data: 0
           note: >- 
             Obrigado pelo seu feedback! Nos ajude a melhorar essa página,
-            relate o que gostaria que fosse melhorado em <a href="https://github.com/codaqui/institucional/discussions" target="_blank" rel="noopener">nosso ambiente de discussão!</a>.
+            relate o que gostaria que fosse melhorado em <a href="https://github.com/codaqui/institucional/discussions" target="_blank" rel="noopener">nosso ambiente de discussão!</a>

@@ -20,7 +20,7 @@ O trabalho em grupo, sintonizado e equilibrado com o trabalho individual para re
 Nossa proposta pedagógica contempla a formação de grupos heterogêneos, para que um aluno com mais conhecimento e tempo de casa - o embaixador - possa ser motriz para conduzir projetos e pequenas atividades junto a outros alunos que ainda estão no início de seu desenvolvimento. Desta forma, a cada ano podemos aumentar o alcance dessa rede de alunos embaixadores, integrando-os aos novos alunos e elevando a interação.
 
 
-#### Algumas referências
+### Algumas referências
 
 ÁLVAREZ MENDÉZ, J. M. Avaliar para conhecer, examinar para excluir. trad.  Magda Schwartzhaupt Chaves, Porto Alegre: Artmed Editora, 2002
 
