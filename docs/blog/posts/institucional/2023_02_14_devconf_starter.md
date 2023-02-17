@@ -14,11 +14,11 @@ authors:
 comments: true
 ---
 
-# DevPR Starters - Codaqui
+# DevPR Starter - Codaqui
 
 ![Imagem de Divulgação do Evento](https://user-images.githubusercontent.com/11020807/218813559-d83a7928-94e3-4361-b0c2-3a1924b0a9c1.jpg)
 
-Filho de peixe peixinho é! A Codaqui e a DevParaná anunciam o **DevPR Starters** – uma programação incrível exclusiva para dependentes, filhos, filhas, irmãos e irmãs, de 6 a 16 anos, dos participantes da Conferência DevPR 2023.
+Filho de peixe peixinho é! A Codaqui e a DevParaná anunciam o **DevPR Starter** – uma programação incrível exclusiva para dependentes, filhos, filhas, irmãos e irmãs, de 6 a 16 anos, dos participantes da Conferência DevPR 2023.
 
 <!-- more -->
 
