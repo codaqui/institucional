@@ -34,3 +34,15 @@ Se ainda lhe restou alguma dúvida, você pode criar uma Discussão na categoria
 Se você é novo no GitHub, com certeza nossa trilha inicial de Git irá te ajudar, [clique aqui](https://www.codaqui.dev/trilhas/github-starter/) e comece a estudar.
 
 Enquanto isso, você pode enviar uma solicitação de ajuda para [contato@codaqui.dev](mailto:contato@codaqui.dev), iremos transpor as suas ajudas e te ajudar a contribuir.
+
+## Comunidade
+
+<div class="grid cards" markdown>
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WhatsApp__
+
+    ---
+
+    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up)
+
+</div>
