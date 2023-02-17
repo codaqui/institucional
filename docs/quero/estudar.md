@@ -1,3 +1,7 @@
+---
+hide:
+  - toc
+---
 # Quero Estudar!
 ## Público Alvo
 

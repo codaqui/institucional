@@ -1,3 +1,7 @@
+---
+hide:
+  - toc
+---
 # Quem somos
 
 ## Nossa missão

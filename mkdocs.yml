@@ -7,9 +7,7 @@ repo_url: https://github.com/codaqui
 edit_uri: 'https://github.com/codaqui/institucional/tree/main/docs'
 
 nav:
-    - Inicio:
-      - Página Inicial: index.md
-      - Roadmap: inicio/todo.md
+    - Inicio: index.md
     - Sobre:
       - Equipe: team.md
       - Associação: ong.md
@@ -21,9 +19,9 @@ nav:
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
     - Trilhas: #
+      - GitHub Start: trilhas/github-starter.md
       - Python: trilhas/python.md
       - Javascript: trilhas/javascript.md
-      - GitHub Start: trilhas/github-starter.md
       - CSS3: trilhas/css3.md
     - Blog:
       - blog/index.md

@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Página Inicial
 
 ## :heavy_check_mark: Objetivo
