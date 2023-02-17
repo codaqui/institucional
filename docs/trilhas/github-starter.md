@@ -1,4 +1,4 @@
-# :wave: O Básico do GitHub
+# O Básico do GitHub
 
 ## 🤓 Visão geral do curso e resultados de aprendizado
 
