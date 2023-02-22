@@ -66,6 +66,7 @@ Gostaria de já fazer um agradecimento pela ajuda do Fundador da Codaqui, Enders
              
              ![step5](https://user-images.githubusercontent.com/63540372/220696236-9cc17481-ea8b-4f3b-9710-df73612b1bad.gif)
              
+             altere:
              ```yml
              on: 
                  schedule:
@@ -78,7 +79,7 @@ Gostaria de já fazer um agradecimento pela ajuda do Fundador da Codaqui, Enders
              on: push
              
              ```
-             
+             E também altere:
              ```bash
              chmod +X ./number.sh
              bash ./number.sh
