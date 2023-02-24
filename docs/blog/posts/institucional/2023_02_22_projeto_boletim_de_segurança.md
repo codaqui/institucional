@@ -1,14 +1,13 @@
 ---
 draft: false 
-date: 2023-02-22
+date: 2023-03-01
 categories:
-  - Institucional
+  - Projetos
 tags:
-  - hello
-  - world
+  - github
+  - actions
   - queroajudar
 authors:
-  - endersonmenezes
   - artumosgoc
 # readtime: 10
 comments: true
