@@ -61,9 +61,9 @@ Gostaria de já fazer um agradecimento pela ajuda do Fundador da Codaqui, Enders
 
         OBS: Tudo já está normal, mas e necessário editar algumas parte do `boletim-diario.yml`.
   
-        1. Procure por essas partes do códigos e faça oque é pedido abaixo!
+        - Procure por essas partes do códigos e faça oque é pedido abaixo!
           
-          1°, altere isso:
+          1° altere isso:
           ```yml
           on: 
               schedule:
@@ -200,8 +200,9 @@ xmllint --html --xpath "/html/body/div[1]/main/section[2]/div/div/div/div/div/di
 
 - Quais quer problemas futuros com o sistema criado podem ser variados, devem ser analisados.
 - Possiveis casos previstos:
-1. JasonEtco/create-an-issue@v2 atualiza a maneira de gerenciar o aquivo `.md` na pasta `.github`.
-2. A parte do bash realiza a tarefa sem atualizar o arquivo gerado no processo criando um erro, nesse caso você só da um `push` mostrado no ultimo passo mostrado acima.
+
+ 1. JasonEtco/create-an-issue@v2 atualiza a maneira de gerenciar o aquivo `.md` na pasta `.github`.
+ 2. A parte do bash realiza a tarefa sem atualizar o arquivo gerado no processo criando um erro, nesse caso você só da um `push` mostrado no ultimo passo mostrado acima.
 
 #### 4º Observação
 
