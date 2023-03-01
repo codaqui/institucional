@@ -61,9 +61,9 @@ Gostaria de já fazer um agradecimento pela ajuda do Fundador da Codaqui, Enders
 
         OBS: Tudo já está normal, mas e necessário editar algumas parte do `boletim-diario.yml`.
   
-        1. Procure por essas partes do códigos e faça oque é pedido abaixo!
+        - Procure por essas partes do códigos e faça oque é pedido abaixo!
           
-          1°, altere isso:
+          1° altere isso:
           ```yml
           on: 
               schedule:
