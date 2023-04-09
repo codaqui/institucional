@@ -2,7 +2,7 @@ name: "Deploy Development Environment"
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, main ]
 
 jobs:
   build:
@@ -13,6 +13,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - name: Some check on branch
+        id: branch_check
+        run: |
+          echo "Running on branch ${{ github.ref }}"
+          if [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            echo "::set-output name=env_name::gh-pages"
+          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
+            echo "::set-output name=env_name::gh-pages-develop"
+          else
+            echo "::set-output name=env_name::gh-pages-feature"
+          fi         
         
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -33,4 +45,4 @@ jobs:
           python3 -m pip install git+https://${GH_TOKEN_MKDOCS}@github.com/squidfunk/mkdocs-material-insiders.git
 
       - name: Deploy 🚀
-        run: python3 -m mkdocs gh-deploy --force --remote-branch gh-pages-develop
+        run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
