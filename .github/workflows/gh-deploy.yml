@@ -19,11 +19,11 @@ jobs:
         run: |
           echo "Running on branch ${{ github.ref }}"
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "::set-output name=env_name::gh-pages"
+            echo "env_name=gh-pages" >> $GITHUB_OUTPUT
           elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            echo "::set-output name=env_name::gh-pages-develop"
+            echo "env_name=gh-pages-develop" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=env_name::gh-pages-feature"
+            echo "env_name=gh-pages-feature" >> $GITHUB_OUTPUT
           fi         
         
       - name: Set up Python ${{ matrix.python-version }}
