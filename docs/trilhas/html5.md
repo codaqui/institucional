@@ -16,7 +16,7 @@ Em desenvolvimento.
 
 ---
 
-## 1 - Principios do do HTML5
+## 1 - Princípios do do HTML5
 
 ### 1.1 - Apresentação
 
@@ -53,7 +53,7 @@ Em desenvolvimento.
 `Video Complementar`:
 
 
-## 2 - Principios da Programação com Javascript
+## 2 - Princípios da Programação com Javascript
 
 ### 2.1 - Parágrafos e quebras de linha
 

@@ -16,7 +16,7 @@ Em desenvolvimento.
 
 ---
 
-## 1 - Principios do CSS3
+## 1 - Princípios do CSS3
 
 ### 1.0 - Apresentação
 
@@ -44,7 +44,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem de marcação, 
 
 - [Editores Incríveis para Programar](https://www.youtube.com/watch?v=40QyA5f3Qo0)
 
-## 2 - Principios da Programação com CSS3
+## 2 - Princípios da Programação com CSS3
 
 ### 2.1 - Fontes
 

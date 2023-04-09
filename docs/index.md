@@ -7,7 +7,7 @@ hide:
 
 ## :heavy_check_mark: Objetivo
 
-Queremos democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo tecnico.
+Queremos democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo técnico.
 
 Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
 
@@ -39,7 +39,7 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 
 ## :material-map: Trilhas de Aprendizado
 
-A Codaqui se propõe a ser uma Escola GitBased. O que isso signifca? Todos os nossos conteúdos estão disponíveis no GitHub. Em todas as nossas páginas, você verá um ícone que te leva à edição dessa página. Dessa forma queremos crescer juntos, e as próprias crianças e jovens que participam do nosso programa corrigem e atualizam todas as trilhas, juntamente com uma equipe de Mentores. Começamos a fazer esse trabalho em um [repositório atualmente arquivado](https://github.com/codaqui/institucional-trilhas-estudos).
+A Codaqui se propõe a ser uma Escola GitBased. O que isso significa? Todos os nossos conteúdos estão disponíveis no GitHub. Em todas as nossas páginas, você verá um ícone que te leva à edição dessa página. Dessa forma queremos crescer juntos, e as próprias crianças e jovens que participam do nosso programa corrigem e atualizam todas as trilhas, juntamente com uma equipe de Mentores. Começamos a fazer esse trabalho em um [repositório atualmente arquivado](https://github.com/codaqui/institucional-trilhas-estudos).
 
 <div class="grid cards" markdown>
 

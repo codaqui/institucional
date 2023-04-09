@@ -21,7 +21,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 - [ ] Veja nossa [trilha de GitHub](/trilhas/github-starter/)
   - [ ] Crie sua conta no GitHub
   - [ ] Realize atividades básicas
-- [ ] Acompanhe nossas [Discussoes](https://github.com/orgs/codaqui/discussions)
+- [ ] Acompanhe nossas [Discussões](https://github.com/orgs/codaqui/discussions)
 - [ ] Assista as aulas e tire dúvidas no Discord
 - [X] Continue sempre estudando!
 
