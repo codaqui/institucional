@@ -1,5 +1,5 @@
 
-# Trilha de Aprendizado de Programação com Python
+# :simple-python: Aprendendo Python
 
 
 !!! codaqui-icon "Certificado Codaqui"

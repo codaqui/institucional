@@ -1,5 +1,5 @@
 
-# Trilha de Aprendizado de Programação com Javascript
+# Aprendendo JavaScript
 
 !!! info "Comunicado"
 

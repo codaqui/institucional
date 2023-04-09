@@ -1,4 +1,4 @@
-# Trilha de Aprendizado de Programação com CSS3
+# Aprendendo CSS3
 
 !!! info "Comunicado"
 

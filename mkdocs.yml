@@ -19,10 +19,14 @@ nav:
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
     - Trilhas: #
-      - GitHub Start: trilhas/github-starter.md
-      - Python: trilhas/python.md
-      - Javascript: trilhas/javascript.md
-      - CSS3: trilhas/css3.md
+      - "- Trilhas de Conhecimento -":
+        - GitHub Start: trilhas/github-starter.md
+        - Python: trilhas/python.md
+      - "- Trilhas em Desenvolvimento -":
+        - Javascript: trilhas/javascript.md
+        - CSS3: trilhas/css3.md
+        - HTML5: trilhas/html5.md
+        - "Produtos Digitais": trilhas/produtos-digitais.md
     - Blog:
       - blog/index.md
     - Contato: contact.md
@@ -40,6 +44,8 @@ theme:
     - navigation.tabs.sticky
     - navigation.indexes
     - navigation.top
+    - navigation.sections
+    - navigation.path
     - content.code.annotate
     - content.tabs.link
     # - announce.dismiss
