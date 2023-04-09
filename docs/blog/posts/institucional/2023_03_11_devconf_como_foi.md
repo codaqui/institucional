@@ -15,7 +15,7 @@ comments: true
 
 # Sucesso na inovação do DevPR 2023
 
-![image](https://user-images.githubusercontent.com/11020807/230798337-a0dd2a79-9d41-468f-a903-3df27fc9d50a.jpeg)
+![image](https://user-images.githubusercontent.com/11020807/230798337-a0dd2a79-9d41-468f-a903-3df27fc9d50a.jpeg){ width="300" }
 
 O inédito Espaço Starter cumpriu a missão de introduzir o universo da programação para crianças e adolescentes.
 
