@@ -8,7 +8,7 @@ tags:
   - comunidade
   - devparaná
 authors:
-  - anaelisalace
+  - amandatambara
 # readtime: 10
 comments: true
 ---
