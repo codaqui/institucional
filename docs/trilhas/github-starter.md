@@ -1,4 +1,4 @@
-# O Básico do GitHub
+# :octicons-logo-github-16: Aprendendo GitHub
 
 ## 🤓 Visão geral do curso e resultados de aprendizado
 
@@ -12,7 +12,7 @@ O GitHub é uma maneira de usar o mesmo poder do Git online com uma interface f�
 
 O GitHub é o lar de algumas das tecnologias mais avançadas do mundo. Esteja você visualizando dados ou criando um novo jogo, há toda uma comunidade e um conjunto de ferramentas no GitHub que podem levar você ao próximo passo. Este curso começa com o básico do GitHub, mas vamos nos aprofundar no resto mais tarde.
 
-## Entendendo o fluxo do GitHub 
+## :fontawesome-solid-diagram-project: Entendendo o fluxo do GitHub 
 
 O fluxo do GitHub é um fluxo de trabalho leve que permite que você experimente e colabore em seus projetos com facilidade, sem o risco de perder seu trabalho anterior.
 

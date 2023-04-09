@@ -15,7 +15,17 @@ Os encontros de mentoria acontecem de forma virtual, e nos demais dias os alunos
 
 Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord, que reúne toda a comunidade de alunos, mentores e colaboradores da Codaqui.
 
-## Como Funciona
+## Como funciona?
+
+- [x] Voce está a frente de muitos, e chegou até aqui! Possui muita vontade de estudar :)
+- [ ] Veja nossa [trilha de GitHub](/trilhas/github-starter/)
+  - [ ] Crie sua conta no GitHub
+  - [ ] Realize atividades básicas
+- [ ] Acompanhe nossas [Discussões](https://github.com/orgs/codaqui/discussions)
+- [ ] Assista as aulas e tire dúvidas no Discord
+- [X] Continue sempre estudando!
+
+## O que poderei aprender?
 
 <div class="grid cards" markdown>
 

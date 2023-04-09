@@ -1,5 +1,5 @@
 
-# Trilha de Aprendizado de Programação com Python
+# :simple-python: Aprendendo Python
 
 
 !!! codaqui-icon "Certificado Codaqui"
@@ -55,11 +55,11 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 
 `Materiais de Referência`:
 
-- [Tipos de Dados - Algoritimos em Python](https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/)
+- [Tipos de Dados - Algorítimos em Python](https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/)
 
-- [Variaveis, Operadores e Tipos de Dados - Cadernoscicomp](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/python-variaveis-operadores-e-tipos-de-dados/)
+- [Variáveis, Operadores e Tipos de Dados - Cadernoscicomp](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/python-variaveis-operadores-e-tipos-de-dados/)
 
-- [Variaveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
+- [Variáveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
 
 ### 5 - Estruturas Lógicas e Condicionais em Python
 As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
@@ -112,11 +112,11 @@ Após passarmos pela Seção 7, vamos comentar sobre as Funções em Python. Sã
 
 ### 9 - Comprehensions em Python
 
-As Comprehensions em Python serve para escrever uma nova lista baseada em outra lista exixtente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.
+As Comprehensions em Python serve para escrever uma nova lista baseada em outra lista existente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.
 
 `Materiais de Referência`:
 
-- [Comprehensions no Pyhton](https://pythonacademy.com.br/blog/list-comprehensions-no-python)
+- [Comprehensions no Python](https://pythonacademy.com.br/blog/list-comprehensions-no-python)
 
 - [Comprehension](https://pythonhelp.wordpress.com/2011/03/01/list-comprehension/)
 
@@ -174,7 +174,7 @@ Os computadores utilizam os arquivos como estruturas de dados, por exemplo, víd
 
 ### 14 - Iteradores e Geradores Python
 
-Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dictes e conjuntos.
+Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dicts e conjuntos.
 Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.
 
 `Materiais de Referência`:
@@ -232,7 +232,7 @@ O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com forma
 
 ### 19 - Trabalhando com Data e Hora em Python
 
-Registrar um momento qualquer no tempo é um requisito comum em todo sistema usual. Esse registro pode ser em data e hora. É commum fazer operações com esses dados, portanto, sua precisão é muito importante.
+Registrar um momento qualquer no tempo é um requisito comum em todo sistema usual. Esse registro pode ser em data e hora. É comum fazer operações com esses dados, portanto, sua precisão é muito importante.
 
 `Materiais de Referência`:
 
@@ -309,7 +309,7 @@ O Python disponibiliza nativamente a biblioteca [urllib](https://docs.python.org
 
 ### Novidades do Python 3.8
 
-Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais.
+Vamos conhecer a versão 3.8 no Python. A nova versão apresenta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais.
 
 `Materiais de Referência`:
 
@@ -321,7 +321,7 @@ Vamos conhecer a versão 3.8 no Python. A nova versão apresnta novas funcionali
 
 ### Novidades do Python 3.9
 
-Vamos conhecer a versão 3.9 no Python. A nova versão apresnta novas funcionalidades, entre elas estão os operadores de mesclagem & atualização de dicionário e novos métodos de strings para remover prefixos e sufixos.
+Vamos conhecer a versão 3.9 no Python. A nova versão apresenta novas funcionalidades, entre elas estão os operadores de mesclagem & atualização de dicionário e novos métodos de strings para remover prefixos e sufixos.
 
 `Materiais de Referência`:
 
@@ -334,7 +334,7 @@ Vamos conhecer a versão 3.9 no Python. A nova versão apresnta novas funcionali
 
 ### Novidades do Python 3.10
 
-Vamos conhecer a versão 3.10 no Python. A nova versão apresnta novas funcionalidades, entre elas estão a correspondência de padrões estruturais e gerenciadores de contexto entre parênteses.
+Vamos conhecer a versão 3.10 no Python. A nova versão apresenta novas funcionalidades, entre elas estão a correspondência de padrões estruturais e gerenciadores de contexto entre parênteses.
 
 `Materiais de Referência`:
 
@@ -357,6 +357,6 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 - [@pedrocvaranda](https://github.com/pedrocvaranda) organizou os tópicos "Introdução à linguagem Python", "Variáveis e Tipos de Dados em Python", "Estruturas Lógicas e Condicionais em Python", "Estruturas de Repetição em Python" e uma parte da "Bibliografia".
 - [@melissarr](https://github.com/melissarr) organizou os tópicos: "Debugando e Tratando erros", "Trabalhando com Módulos Python" e "Leitura e Escrita em Arquivos".
 - [@kamisinha](https://github.com/kamisinha) organizou os tópicos: "Novidades do Python 3.8", "Novidades do Python 3.9" e "Novidades do Python 3.10".
-- [@LuizFernado-TC](https://github.com/LuizFernando-TC) organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". Ajudou a criar resumos de diversas categiruas,
+- [@LuizFernando-TC](https://github.com/LuizFernando-TC) organizou os tópicos: "Iteradores e Geradores Python", "Encerramento", "Gerenciamento de Memória em Python" e "Checagem de Tipos em Python". Ajudou a criar resumos de diversas categorias,
 - [@isiezz](https://github.com/isiezz) organizou os tópicos: "Manipulando Arquivos CSV e JSON", "Trabalhando com Data e Hora em Python" e "Testes com Python".
 - [@caiodocoduiguin](https://github.com/caiodocoduiguin) organizou os tópicos: "Coleções Python", "Funções em Python", "Comprehensions em Python" e "Expressões Lambdas e Funções Integradas".

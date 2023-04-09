@@ -1,5 +1,5 @@
 
-# Trilha de Aprendizado de Programação com Javascript
+# Aprendendo JavaScript
 
 !!! info "Comunicado"
 
@@ -17,7 +17,7 @@ Em desenvolvimento.
 
 ---
 
-## 1 - Principios do Javascript
+## 1 - Princípios do Javascript
 
 ### 1.0 - Apresentação [Aula 1]
  
@@ -36,7 +36,7 @@ Os materiais abaixo servem para apresentar um pouco da linguagem, além de compl
 
 ### 1.1 - Ambiente de Desenvolvimento [Aula 1]
 
-Os materiais abaixo servem para demonstar alguns dos vários ambiente de desenvolvimento em JavaScript, possuem explicações como diferenças entre IDE e editores de código, também demostram como usar JavaScript no Console do navegador.
+Os materiais abaixo servem para demonstrar alguns dos vários ambiente de desenvolvimento em JavaScript, possuem explicações como diferenças entre IDE e editores de código, também demostram como usar JavaScript no Console do navegador.
 
 `Materiais de Referência`:
 
@@ -124,7 +124,7 @@ Os materiais abaixo demonstram como usar métodos de objetos no JavaScript, sint
 - [Curso de JS Aula 45 JS OO Métodos e método construtor](https://www.youtube.com/watch?v=6d4mrARIIDg)
 - [Tudo é Objeto em JavaScript - Dica para iniciantes](https://www.youtube.com/watch?v=n5uiJr-v0KQ)
 
-## 2 - Principios da Programação com Javascript
+## 2 - Princípios da Programação com Javascript
 
 ### 2.1 - Variáveis de Tipos de Dados [Aula 4]
 Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
@@ -160,7 +160,7 @@ Uma estrutura de repetição permite executar mais de uma vez o mesmo comando ou
 
 ### 2.3 - Expressões e Operadores [Aula 6]
 
-Os materiais abaixo apresenta as expressôes e os operadores lógicos. Uma expressão lógica nada mais é que uma expressão algébrica e, pode ser chamada também de proposição. Operadores em Javascript são símbolos especiais que envolvem um ou mais operandos com a finalidade de produzir um determinado resultado. Esse conjunto é usado para tomar decisões em códigos.
+Os materiais abaixo apresenta as expressões e os operadores lógicos. Uma expressão lógica nada mais é que uma expressão algébrica e, pode ser chamada também de proposição. Operadores em Javascript são símbolos especiais que envolvem um ou mais operandos com a finalidade de produzir um determinado resultado. Esse conjunto é usado para tomar decisões em códigos.
 
 `Materiais de Referência`:
 
@@ -180,7 +180,7 @@ Os materiais de referência abaixo mostra como tratar uma orientação a objetos
 `Materiais de Referência`:
 
 - [Introdução a objetos em JavaScript](https://developer.mozilla.org/pt-BR/docs/Learn/JavaScript/Objects)
-- [Orientacao a Objetos Com JavaScript](https://blog.matheuscastiglioni.com.br/orientacao-a-objetos-com-javascript/)
+- [Orientação a Objetos Com JavaScript](https://blog.matheuscastiglioni.com.br/orientacao-a-objetos-com-javascript/)
 - [Programação orientada a objetos em JavaScript – explicada com exemplos](https://www.freecodecamp.org/portuguese/news/programacao-orientada-a-objetos-em-javascript-explicada-com-exemplos/)
 - [POO: Trabalhando com classes e objetos em JavaScript](https://www.devmedia.com.br/poo-trabalhando-com-classes-e-objetos-em-javascript/28434)
 
@@ -306,7 +306,7 @@ TypeScript é um superconjunto de JavaScript, ou seja, um conjunto de ferramenta
 - [TypeScript - O que é e quais os seus benefícios? - Rocketseat](https://www.youtube.com/watch?v=kg2-SMolAV0)
 
 ## 4 - Bibliotecas e Frameworks
-### 4.1 - Utilizando Bibliotecas e Framworks
+### 4.1 - Utilizando Bibliotecas e Frameworks
 ### 4.2 - Hello Worlds com NodeJS
 ### 4.3 - Hello Worlds com ReactJS
 ### 4.4 - Hello Worlds com ExpressJS
