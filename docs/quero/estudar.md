@@ -5,7 +5,7 @@ hide:
 # Quero Estudar!
 ## Público Alvo
 
-Jovens de 12 a 18 anos que desejam aprender programação para desenvolver produtos tecnológicos, jogos, aplicativos, sites e possivelmente trilhar um caminho empreendedor.
+Pessoas que desejam aprender programação para desenvolver produtos tecnológicos, jogos, aplicativos, sites e possivelmente trilhar um caminho empreendedor.
 
 ## O Que Esperar
 
