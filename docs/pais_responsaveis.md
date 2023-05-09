@@ -1,7 +1,7 @@
 # CODAQUI - Escola de Tecnologia
 ## Nossa metodologia
 
-A base pedagógica das aulas foi desenvolvida para atender seu público-alvo, composto por adolescentes e jovens de 12 a 18 anos que desejam aprender programação e possivelmente trilhar um caminho empreendedor.
+A base pedagógica das aulas foi desenvolvida para atender seu público-alvo, pessoas com pouco ou nenhum conhecimento na área, que desejam aprender programação e possivelmente trilhar um caminho empreendedor.
 
 ### Aprendizagem ativa
 
