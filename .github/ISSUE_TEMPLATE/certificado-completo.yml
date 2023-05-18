@@ -12,15 +12,6 @@ body:
       options:
         - label: Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele.
           required: true
-  
-  - type: dropdown
-    attributes:
-      label: Eu desejo solicitar...
-      description: Selecione o tipo de solicitação que você deseja fazer.
-      options:
-        - ... uma correção em um certificado existente.
-        - ... um novo exercício para um certificado existente.
-
   - type: textarea
     attributes:
       label: Comentários
