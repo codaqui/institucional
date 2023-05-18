@@ -1,0 +1,34 @@
+name: "[CERTIFICADO] Solicitação de Certificado"
+title: "[CERTIFICADO] <Digite seu nome completo> "
+description: Acabei de terminar uma prova e desejo a correção do meu certificado.
+assignees:
+  - endersonmenezes
+body:
+  
+  - type: checkboxes
+    attributes:
+      label: Código de Conduta
+      description: Por favor leia o Código de Conduta e confirme que você concorda com ele.
+      options:
+        - label: Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele.
+          required: true
+  
+  - type: dropdown
+    attributes:
+      label: Eu desejo solicitar...
+      description: Selecione o tipo de solicitação que você deseja fazer.
+      options:
+        - ... uma correção em um certificado existente.
+        - ... um novo exercício para um certificado existente.
+
+  - type: textarea
+    attributes:
+      label: Comentários
+      description: Forneça comentários se desejar.
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ## Obrigado por nos ajudar a melhorar a Codaqui!
