@@ -35,7 +35,7 @@ theme:
   name: material
   custom_dir: overrides
   language: pt
-  logo: docs/assets/logo_blk.png
+  logo: assets/logo_blk.png
   palette:
     primary: black
   favicon: assets/favicon.png
