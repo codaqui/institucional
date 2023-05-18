@@ -12,6 +12,7 @@ body:
       options:
         - label: Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele.
           required: true
+
   - type: textarea
     attributes:
       label: Comentários
