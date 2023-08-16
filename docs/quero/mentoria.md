@@ -13,10 +13,6 @@ O Projeto Quero Mentoria é uma iniciativa da Codaqui que envolve o projeto [#Qu
 
 As mentorias e aulas particulares serão realizadas online, através de ferramentas como Discord e WorkAdventure.
 
-## Como ajudar?
-
-Clique no botão abaixo para se inscrever como mentor.
-
 ## Quero uma mentoria!
 
 | Turma | Mentor | Foco | Disponibilidade |
