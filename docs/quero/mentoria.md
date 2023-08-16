@@ -17,7 +17,7 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 
 | Turma | Mentor | Foco | Disponibilidade |
 | ----- | ------ | ---- | --------------- |
-| Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicar e atividades para iniciantes, recomendamos um acompanhamento semanal. | Segunda a Sexta das 14h às 18h |
+| Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicas e atividades para iniciantes, recomendamos um acompanhamento semanal. | Segunda a Sexta das 14h às 18h |
 
 ## Agende sua mentoria
 
