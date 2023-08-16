@@ -15,9 +15,11 @@ nav:
       - Pais e Responsáveis: pais_responsaveis.md
       - Projetos: projetos.md
       - Código de Conduta: conduta.md
+    - Mentorias: quero/mentoria.md
     - Participe: #
       - "#QueroEstudar": quero/estudar.md
       - "#QueroApoiar": quero/apoiar.md
+      - "#QueroMentoria": quero/mentoria.md
     - Trilhas: #
       - "- Trilhas de Conhecimento -":
         - GitHub Start: trilhas/github-starter.md
