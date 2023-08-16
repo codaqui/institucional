@@ -19,9 +19,9 @@ Clique no botão abaixo para se inscrever como mentor.
 
 ## Quero uma mentoria!
 
-| Turma | Mentor | Foco |
-| ----- | ------ | ---- |
-| Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicar e atividades para iniciantes, recomendamos um acompanhamento semanal. |
+| Turma | Mentor | Foco | Disponibilidade |
+| ----- | ------ | ---- | --------------- |
+| Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicar e atividades para iniciantes, recomendamos um acompanhamento semanal. | Segunda a Sexta das 14h às 18h |
 
 <!-- Google Calendar Appointment Scheduling begin -->
 <iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0jqMfp9cFe-PIXG10mQ1TNhvvBV55JgcfgPL4XUInpyvokelemz39nw0QIB5riKPGkTRIkaxW9?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe>
