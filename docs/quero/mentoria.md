@@ -7,7 +7,7 @@ hide:
 
 ## Público Alvo
 
-O Projeto Quero Mentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](#) e [#QueroApoiar](#) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
+O Projeto Quero Mentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](estudar.md) e [#QueroApoiar](apoiar.md) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
 
 ## Onde?
 
