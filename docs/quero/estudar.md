@@ -18,7 +18,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 ## Como funciona?
 
 - [x] Voce está a frente de muitos, e chegou até aqui! Possui muita vontade de estudar :)
-- [ ] Veja nossa [trilha de GitHub](/trilhas/github-starter/)
+- [ ] Veja nossa [trilha de GitHub](../trilhas/github-starter.md)
   - [ ] Crie sua conta no GitHub
   - [ ] Realize atividades básicas
 - [ ] Acompanhe nossas [Discussões](https://github.com/orgs/codaqui/discussions)
@@ -35,7 +35,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Estude `Python` de forma autônoma e acesse nosso discord caso precise de ajuda!
 
-    [:octicons-arrow-right-24: Começar](/trilhas/python)
+    [:octicons-arrow-right-24: Começar](../trilhas/python.md)
 
 -   :fontawesome-brands-js:{ .lg .middle } __Javascript__
 
@@ -43,7 +43,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     O mesmo com `Javascript`, estamos te aguardando para nosso certificado!
 
-    [:octicons-arrow-right-24: Começar](/trilhas/javascript)
+    [:octicons-arrow-right-24: Começar](../trilhas/javascript.md)
 
 -   :fontawesome-brands-github:{ .lg .middle } __GitHub__
 
@@ -51,7 +51,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Se possui dúvidas, pode começar com a Trilha de `GitHub` e depois veja as outras.
 
-    [:octicons-arrow-right-24: Começar](/trilhas/github-starter)
+    [:octicons-arrow-right-24: Começar](../trilhas/github-starter.md)
 
 -   :fontawesome-brands-css3:{ .lg .middle } __CSS3__
 
@@ -59,7 +59,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Estamos construindo uma trilha de CSS3, e você pode conferir ela por aqui!
 
-    [:octicons-arrow-right-24: Começar](/trilhas/css3)
+    [:octicons-arrow-right-24: Começar](../trilhas/css3.md)
 
 </div>
 

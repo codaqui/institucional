@@ -21,7 +21,7 @@ Para criar solicitações ou discussões você pode [acessar aqui](https://githu
 
 3. Um problema ganha uma solução com um PullRequest, é quando o voluntário ou um grupo de voluntários faz uma solicitação na alteração de nossos códigos. Seja a base `institucional` ou outros repositórios em propriedade da Codaqui.
 
-4. Todo esse processo está pautado em nosso código que conduta, que pode ser lido [clicando aqui](/conduta)
+4. Todo esse processo está pautado em nosso código que conduta, que pode ser lido [clicando aqui](../conduta.md)
 
 ### Com o que posso ajudar?
 Nas discussões você pode:
