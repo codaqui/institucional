@@ -18,9 +18,22 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 | Turma | Mentor | Foco | Disponibilidade |
 | ----- | ------ | ---- | --------------- |
 | Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicas e atividades para iniciantes, recomendamos um acompanhamento semanal. | Segunda a Sexta das 14h às 18h |
-
-## Agende sua mentoria
+| DevOps | Enderson Menezes | Conversar sobre carreira em DevOps, dia a dia, ferramentas, dicas e atividades de projetos para acompanhamento. | Quarta das 19h às 21h |
 
 <!-- Google Calendar Appointment Scheduling begin -->
-<iframe src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ0jqMfp9cFe-PIXG10mQ1TNhvvBV55JgcfgPL4XUInpyvokelemz39nw0QIB5riKPGkTRIkaxW9?gv=true" style="border: 0" width="100%" height="600" frameborder="0"></iframe>
+<link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet">
+<script src="https://calendar.google.com/calendar/scheduling-button-script.js" async></script>
+<script>
+(function() {
+  var target = document.currentScript;
+  window.addEventListener('load', function() {
+    calendar.schedulingButton.load({
+      url: 'https://calendar.google.com/calendar/appointments/AcZssZ3ofYNXgj7RZo-JvhnBpBxo5kryoqul_raZzhg=?gv=true',
+      color: '#039BE5',
+      label: "Agendar uma mentoria",
+      target,
+    });
+  });
+})();
+</script>
 <!-- end Google Calendar Appointment Scheduling -->

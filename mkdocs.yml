@@ -95,12 +95,16 @@ plugins:
   # - privacy
   # - git-authors
   - blog:
+      blog_dir: blog
+      posts_dir: "{blog}/posts"
       post_url_date_format: YYYY/MM/dd
       post_slugify: !!python/object/apply:pymdownx.slugs.slugify
         kwds:
           case: lower
-      archive_name: Arquivo
-      categories_name: Categorias
+      archive_name: "Arquivo"
+      categories_name: "Categorias"
+      authors: true
+      authors_file: "{blog}/.authors.yml"
   # - rss:
   #     match_path: blog/posts/.* 
   #     date_from_meta:
