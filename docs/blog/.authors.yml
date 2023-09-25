@@ -1,24 +1,25 @@
-endersonmenezes:
-  name: Enderson Menezes
-  description: Founder
-  avatar: https://avatars.githubusercontent.com/u/11020807?v=4
+authors:
+  endersonmenezes:
+    name: Enderson Menezes
+    description: Founder
+    avatar: https://avatars.githubusercontent.com/u/11020807?v=4
 
-thaifurforo:
-  name: Thainara Furforo
-  description: Volunteer
-  avatar: https://avatars.githubusercontent.com/u/92865769?v=4
+  thaifurforo:
+    name: Thainara Furforo
+    description: Volunteer
+    avatar: https://avatars.githubusercontent.com/u/92865769?v=4
 
-anaelisalace:
-  name: Ana Elisa
-  description: Volunteer
-  avatar: https://avatars.githubusercontent.com/u/92278335?v=4
+  anaelisalace:
+    name: Ana Elisa
+    description: Volunteer
+    avatar: https://avatars.githubusercontent.com/u/92278335?v=4
 
-artumosgoc:
-  name: Elias Miranda
-  description: Student
-  avatar: https://avatars.githubusercontent.com/u/63540372
+  artumosgoc:
+    name: Elias Miranda
+    description: Student
+    avatar: https://avatars.githubusercontent.com/u/63540372
 
-amandatambara:
-  name: Amanda Tambara
-  description: Volunteer
-  avatar: https://amandatambara.com/wp-content/uploads/2023/04/cropped-cropped-foto-amanda-tambara-22.png
+  amandatambara:
+    name: Amanda Tambara
+    description: Volunteer
+    avatar: https://amandatambara.com/wp-content/uploads/2023/04/cropped-cropped-foto-amanda-tambara-22.png
