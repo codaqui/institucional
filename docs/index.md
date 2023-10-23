@@ -95,13 +95,6 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
     [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
 
-
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
-
-    ---
-
-    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
-
 </div>
 
 
@@ -113,25 +106,24 @@ Entre para a comunidade da Codaqui e comece a estudar!
 
     ---
 
-    [![Logo do GitHub Education](https://education.github.com/assets/campus_program-9372374f8cd435dafb8e725cb67ee73b587af7a9b2f176dfec968afe3b05338c.png)](https://education.github.com/schools)
+    [![Logo do GitHub Education](https://github.githubassets.com/images/modules/logos_page/GitHub-Logo.png){ width="100" }](https://education.github.com)
 
 -   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __DevParaná__
 
     ---
 
-    [![Logo do DevParaná](https://www.devparana.org/img/logo.svg)](https://www.devparana.org)
-
+    [![Logo do DevParaná](https://avatars.githubusercontent.com/u/15199454?s=200&v=4){ width="100" }](https://github.com/DeveloperParana)
 
 -   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
 
     ---
 
-    [![Logo do WorkAdventure](https://repository-images.githubusercontent.com/252724819/0ef45d33-47b8-4207-805a-053f6aed7ee3){height="50"}](https://workadventu.re/)
+    [![Logo do WorkAdventure](https://workadventu.re/wp-content/themes/wokadventure/assets/img/logos/logo-dark-full.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
 
 -   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Holopin__
 
     ---
 
-    [![Logo da Holopin](https://www.holopin.io/images/logo.png)](https://www.holopin.io/)
+    [![Logo da Holopin](https://www.holopin.io/images/Long.svg)](https://www.holopin.io/)
 
 </div>

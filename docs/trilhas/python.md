@@ -4,7 +4,7 @@
 
 !!! codaqui-icon "Certificado Codaqui"
 
-    ![Imagem do Certificado da Codaqui](https://www.holopin.io/_next/image?url=https%3A%2F%2Fassets.holopin.io%2FeyJidWNrZXQiOiJob2xvcGluLWFzc2V0cyIsImtleSI6ImFzc2V0cy9jbGN0ZDdjZmYyMjEzMDhtc21iZDUwY2NvIiwiZWRpdHMiOnsicm90YXRlIjpudWxsfX0%3D&w=1920&q=75){ width="300" }
+    ![Imagem do Certificado da Codaqui](https://assets.holopin.io/eyJidWNrZXQiOiJob2xvcGluLWFzc2V0cyIsImtleSI6ImFzc2V0cy9jbGN0ZDdjZmYyMjEzMDhtc21iZDUwY2NvIiwiZWRpdHMiOnsicm90YXRlIjpudWxsfX0=){ width="300" }
 
     Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
 
@@ -57,8 +57,6 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 
 - [Tipos de Dados - Algorítimos em Python](https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/)
 
-- [Variáveis, Operadores e Tipos de Dados - Cadernoscicomp](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/python-variaveis-operadores-e-tipos-de-dados/)
-
 - [Variáveis - USP](https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html)
 
 ### 5 - Estruturas Lógicas e Condicionais em Python
@@ -77,8 +75,6 @@ Estruturas de repetição é uma estrutura lógica que permite executar mais de 
 `Materiais de Referência`:
 
 - [Estruturas de Repetição - DevMedia](https://www.devmedia.com.br/estruturas-de-repeticao-em-python/41551)
-
-- [Estruturas de Repetição e Condicionais - TreinaWeb](https://www.treinaweb.com.br/blog/estruturas-condicionais-e-de-repeticao-no-python)
 
 - [Estruturas de Repetição - #Treinamentos](https://www.hashtagtreinamentos.com/estruturas-de-repeticao-python)
 
@@ -143,8 +139,6 @@ Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver c
 
 - [Entendendo melhor as mensagens de erro](https://pythonhelp.wordpress.com/2012/12/31/deu-erro-e-agora-o-que-eu-faco/)
 
-- [Tratamento de erros e exceções](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/tratamento-de-erros-e-excecoes/)
-
 ### 12 - Trabalhando com Módulos Python
 
 Módulos em Python são arquivos contendo definições e comandos a serem utilizados em outros programas na mesma linguagem, utilizando a `keyword import`.
@@ -156,8 +150,6 @@ Leia mais a respeito de **módulos** nos _links_ de estudo abaixo.
 `Materiais de Referência`:
 
 - [Como criar um módulo](https://www.pythonprogressivo.net/2018/07/import-Como-Criar-Importar-Usar-Modulo-Python-Curso.html)
-
-- [Importando módulos](https://cadernoscicomp.com.br/tutorial/introducao-a-programacao-em-python-3/modulos/)
 
 - [Módulos-Executando módulos como scripts](https://docs.python.org/pt-br/3/tutorial/modules.html)
 
@@ -258,16 +250,12 @@ Neste tópico iremos abordar comandos que podem ser usados para fechar um progra
 
 - [Finalizando um script Python - QA Stack]( https://qastack.com.br/programming/73663/how-to-terminate-a-python-script)
 
-- [Parar/terminar um script Python - ti-exame.com]( https://www.ti-enxame.com/pt/python/como-pararterminar-um-script-python-de-execucao/1043433651/)
-
 
 ### 22 - Gerenciamento de Memória em Python
 
 Quando criamos uma variável em Python, essa variável é armazenada na memória do computador. A alocação de memória pode ser definida como a alocação de um bloco de espaço na memória do computador para um programa. Nesta aula iremos entender como funciona o gerenciamento de memória do computador.
 
 `Materiais de Referência`:
-
-- [Memória em Python - Agatetepê]( https://www.agatetepe.com.br/gerenciamento-de-memoria-python/)
 
 - [Gerenciamento de memória Python – Weekly-Geekly ES]( https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html)
 
@@ -316,8 +304,6 @@ Vamos conhecer a versão 3.8 no Python. A nova versão apresenta novas funcional
 - [Python 3.8 lançado com expressões de atribuição e mais](https://www.edivaldobrito.com.br/python-3-8-lancado-com-expressoes-de-atribuicao-e-mais/)
 
 - [O que há de novo no Python 3.8](https://docs.python.org/pt-br/3/whatsnew/3.8.html)
-
-- [What's new in Python 3.8?](https://deepsource.io/blog/python-3-8-whats-new/)
 
 ### Novidades do Python 3.9
 
