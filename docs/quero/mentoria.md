@@ -17,8 +17,7 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 
 | Turma | Mentor | Foco | Disponibilidade |
 | ----- | ------ | ---- | --------------- |
-| Iniciante | Gabriel Andrade | Conversar sobre tecnologia, receber dicas e atividades para iniciantes, recomendamos um acompanhamento semanal. | Segunda a Sexta das 14h às 18h |
-| DevOps | Enderson Menezes | Conversar sobre carreira em DevOps, dia a dia, ferramentas, dicas e atividades de projetos para acompanhamento. | Quarta das 19h às 21h |
+| DevOps e Iniciantes | Enderson Menezes | Conversar sobre carreira em tecnologia, dia a dia, ferramentas, dicas e atividades de projetos para acompanhamento. | Quarta das 19h às 21h |
 
 <!-- Google Calendar Appointment Scheduling begin -->
 <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet">
