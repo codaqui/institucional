@@ -2,29 +2,24 @@
 
 <div class="grid cards" markdown>
 
--   :material-form-select:{ .lg .middle } __Formulário de Interesse 2023__
+-   :material-form-select:{ .lg .middle } __Formulário de Interesse 2024__
 
     ---
 
     Vamos entrar em contato com todos os interessados, e, caso existam mais interessados do que vagas, vamos definir um critério de seleção e comunicar a todos.
 
-    [:octicons-arrow-right-24: Formulário](https://forms.gle/WtKuBPHebHhqCHG77)
+    [:octicons-arrow-right-24: Formulário](https://forms.gle/ysgjtHR1KifGdHfLA)
 
--   :octicons-comment-discussion-24:{ .lg .middle } __Discussões__
-
-    ---
-
-    Colabore com a Codaqui, venha ajudar a tecnologia a chegar mais longe =]
-
-    [:octicons-arrow-right-24: Discussões](https://github.com/orgs/codaqui/discussions/43)
-
--   :octicons-feed-discussion-16:{ .lg .middle } __Codaquiverso__
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WhatsApp__
 
     ---
 
-    Acesse nosso ambiente virtual de eventos.
-    <small>Limitado a 50 usuários simultaneamente.</small>
+    [![Logo do WhatsApp](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&usqp=CAU)](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up)
 
-    [:octicons-arrow-right-24: Acesse](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Discord__
+
+    ---
+
+    [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
 
 </div>
