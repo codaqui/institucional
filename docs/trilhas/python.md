@@ -18,7 +18,7 @@ Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 
 `Materiais de Referência`:
 
-- [Introdução a Programação Python - IFSP]([https://www.codingame.com/playgrounds/34774/introducao-a-programacao-python---prof--marco-vaz/apresentacao](http://antigo.scl.ifsp.edu.br/portal/arquivos/2016.05.04_Apostila_Python_-_PET_ADS_S%C3%A3o_Carlos.pdf))
+- [Introdução a Programação Python - IFSP](http://antigo.scl.ifsp.edu.br/portal/arquivos/2016.05.04_Apostila_Python_-_PET_ADS_S%C3%A3o_Carlos.pdf)
 
 - [WikiPython Brasil - Apresentação](https://wiki.python.org.br/PythonApresentacao)
 
@@ -281,7 +281,7 @@ O Python disponibiliza nativamente a biblioteca [urllib](https://docs.python.org
 - [Como usar Urllib - Ciksiti](https://ciksiti.com/pt/chapters/5031-how-to-use-urllib-in-python--linux-hint)
 - [Consumindo a API do Github - Alura](https://www.alura.com.br/artigos/consumindo-a-api-do-github-em-python)
 
-## 25 - Compiladores
+## 25 - Ambiente de Desenvolvimento Local
 
 Aqui é fornecido guias para a instalação de compiladores de Python.
 
@@ -333,6 +333,14 @@ Vamos conhecer a versão 3.10 no Python. A nova versão apresenta novas funciona
 - [What’s New in Python 3.10?](https://towardsdatascience.com/whats-new-in-python-3-10-a757c6c69342)
 
 - [What’s new in Python 3.10](https://www.infoworld.com/article/3617460/whats-new-in-python-310.html)
+
+### Novidades do Python 3.11
+
+[Em Desenvolvimento]
+
+### Novidades do Python 3.12
+
+[Em Desenvolvimento]
 
 # Discussões
 
