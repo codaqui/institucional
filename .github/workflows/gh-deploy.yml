@@ -81,5 +81,8 @@ jobs:
           echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
 
           # Git add folder google-colab excluding .md files
+          git config --global user.name 'Codaqui Bot'
+          git config --global user.email 'contato@codaqui.dev'
           git add google-colab -f --all -- ':!*.md'
           git commit -m "Update google-colab paths"
+          git push
