@@ -71,6 +71,6 @@ jobs:
           done
           cd ..
           # See actual branch
-          git branch
+          echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
           # git add google-colab
           # git commit -m "Update google-colab paths"
