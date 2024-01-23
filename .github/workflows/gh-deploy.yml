@@ -85,4 +85,4 @@ jobs:
           git config --global user.email 'contato@codaqui.dev'
           git add google-colab -f --all -- ':!*.md'
           git commit -m "Update google-colab paths"
-          git push
+          git push --set-upstream origin ${{ steps.branch_check.outputs.env_name }}
