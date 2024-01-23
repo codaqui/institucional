@@ -53,3 +53,24 @@ jobs:
 
       - name: Deploy 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
+
+      - name: Deploy Colabs from google-colab directory 🚀
+        run: |
+          # Access google-colab folder
+          # Install go
+          # Install go install github.com/googlecodelabs/tools/claat@latest
+          # List all .md files in a variable
+          # Execute claat export for all .md files
+          # Checkout branch ${{ steps.branch_check.outputs.env_name }}
+          # Commit google-colab folder
+          cd google-colab
+          go get github.com/googlecodelabs/tools/claat@latest
+          files=$(find . -name "*.md")
+          for file in $files; do
+            claat export $file
+          done
+          cd ..
+          # See actual branch
+          git branch
+          # git add google-colab
+          # git commit -m "Update google-colab paths"
