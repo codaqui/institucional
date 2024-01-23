@@ -70,6 +70,8 @@ jobs:
             claat export $file
           done
           cd ..
+          # Checkout on branch gh-pages-* depending on branch
+          git checkout ${{ steps.branch_check.outputs.env_name }}
           # See actual branch
           echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
           # git add google-colab
