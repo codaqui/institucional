@@ -51,7 +51,7 @@ jobs:
           python3 -m pip install -r requirements.txt
           python3 -m pip install -e mkdocs-material-insider
 
-      - name: Deploy 🚀
+      - name: Deploy mkdocs 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
 
       - name: Set up Go
@@ -61,15 +61,10 @@ jobs:
 
       - name: Deploy Colabs from google-colab directory 🚀
         run: |
-          # Access google-colab folder
-          # Install go
-          # Install go install github.com/googlecodelabs/tools/claat@latest
-          # List all .md files in a variable
-          # Execute claat export for all .md files
-          # Checkout branch ${{ steps.branch_check.outputs.env_name }}
-          # Commit google-colab folder
           cd google-colab
-          go get github.com/googlecodelabs/tools/claat@latest
+          go install github.com/googlecodelabs/tools/claat@latest
+          export GOPATH="$HOME/go"
+          PATH="$GOPATH/bin:$PATH"
           files=$(find . -name "*.md")
           for file in $files; do
             claat export $file
