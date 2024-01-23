@@ -54,6 +54,11 @@ jobs:
       - name: Deploy 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
 
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.18.0'
+
       - name: Deploy Colabs from google-colab directory 🚀
         run: |
           # Access google-colab folder
