@@ -51,5 +51,38 @@ jobs:
           python3 -m pip install -r requirements.txt
           python3 -m pip install -e mkdocs-material-insider
 
-      - name: Deploy 🚀
+      - name: Deploy mkdocs 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '>=1.18.0'
+
+      - name: Deploy Colabs from google-colab directory 🚀
+        run: |
+          # Go to google-colab directory and install claat
+          cd google-colab
+          go install github.com/googlecodelabs/tools/claat@latest
+          export GOPATH="$HOME/go"
+          PATH="$GOPATH/bin:$PATH"
+
+          # For each .md file, export it to html
+          files=$(find . -name "*.md")
+          for file in $files; do
+            claat export $file
+          done
+          cd ..
+
+          # Checkout on branch gh-pages-* depending on branch
+          git checkout ${{ steps.branch_check.outputs.env_name }}
+
+          # See actual branch
+          echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
+
+          # Git add folder google-colab excluding .md files
+          git config --global user.name 'Codaqui Bot'
+          git config --global user.email 'contato@codaqui.dev'
+          git add google-colab -f --all -- ':!*.md'
+          git commit -m "Update google-colab paths"
+          git push --set-upstream origin ${{ steps.branch_check.outputs.env_name }}
