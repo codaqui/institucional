@@ -29,13 +29,32 @@ brew install cairo freetype libffi libjpeg libpng zlib
 mkdocs serve
 ```
 
-## Deploy Locale
+## Deploy Locally
 
 Você pode usar o seguinte comando abaixo para enviar localmente sua versão de emergência, porém recomendamos utilizar o fluxo de git-flow.
 
 ```
 mkdocs gh-deploy
 ```
+
+## Deploy Path's Locally
+
+```bash
+# Install GO
+sudo apt-get install golang-go
+export GOPATH="$HOME/go"
+PATH="$GOPATH/bin:$PATH"
+
+# Install Claat
+go install github.com/googlecodelabs/tools/claat@latest
+
+# Export Codelabs
+path="python-101.md"
+claat export $path
+
+# Open the index.html generated and do not commit that file
+```
+
 
 ## Development Environment
 
