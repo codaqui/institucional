@@ -74,6 +74,12 @@ jobs:
           done
           cd ..
 
+          # Adjust index.html files
+          files=$(find google-colab -name "index.html")
+          for file in $files; do
+            ./scripts/adjust-index.sh $file
+          done
+
           # Checkout on branch gh-pages-* depending on branch
           git checkout ${{ steps.branch_check.outputs.env_name }}
 
