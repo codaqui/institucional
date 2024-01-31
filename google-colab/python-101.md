@@ -6,7 +6,7 @@ categories: python, 101-category
 environments: Web
 status: Published
 feedback link: https://github.com/orgs/codaqui/discussions/new/choose
-analytics_ga4_account: G-CL043JTTND
+analytics_ga4_account: G-HT7G6WDWHT
 # Python 101 - Aprendendo Python
 
 ## Apresentação
