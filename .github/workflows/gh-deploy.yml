@@ -77,7 +77,7 @@ jobs:
           # Adjust index.html files
           files=$(find google-colab -name "index.html")
           for file in $files; do
-            ./scripts/adjust-index.sh $file
+            bash ./scripts/adjust-index.sh $file
           done
 
           # Checkout on branch gh-pages-* depending on branch
