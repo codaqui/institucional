@@ -37,46 +37,6 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 
 </div>
 
-## :material-map: Trilhas de Aprendizado
-
-A Codaqui se propõe a ser uma Escola GitBased. O que isso significa? Todos os nossos conteúdos estão disponíveis no GitHub. Em todas as nossas páginas, você verá um ícone que te leva à edição dessa página. Dessa forma queremos crescer juntos, e as próprias crianças e jovens que participam do nosso programa corrigem e atualizam todas as trilhas, juntamente com uma equipe de Mentores. Começamos a fazer esse trabalho em um [repositório atualmente arquivado](https://github.com/codaqui/institucional-trilhas-estudos).
-
-<div class="grid cards" markdown>
-
--   :fontawesome-brands-python:{ .lg .middle } __Python__
-
-    ---
-
-    Estude `Python` de forma autônoma e acesse nosso discord caso precise de ajuda!
-
-    [:octicons-arrow-right-24: Começar](trilhas/python.md)
-
--   :fontawesome-brands-js:{ .lg .middle } __Javascript__
-
-    ---
-
-    O mesmo com `Javascript`, estamos te aguardando para nosso certificado!
-
-    [:octicons-arrow-right-24: Começar](trilhas/javascript.md)
-
--   :fontawesome-brands-github:{ .lg .middle } __GitHub__
-
-    ---
-
-    Se possui dúvidas, pode começar com a Trilha de `GitHub` e depois veja as outras.
-
-    [:octicons-arrow-right-24: Começar](trilhas/github-starter.md)
-
--   :fontawesome-brands-css3:{ .lg .middle } __CSS3__
-
-    ---
-
-    Estamos construindo uma trilha de CSS3, e você pode conferir ela por aqui!
-
-    [:octicons-arrow-right-24: Começar](trilhas/css3.md)
-
-</div>
-
 ## :material-google-circles-communities: Comunidade
 
 Entre para a comunidade da Codaqui e comece a estudar!
