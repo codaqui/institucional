@@ -333,9 +333,13 @@ Vamos conhecer a versão 3.10 no Python. A nova versão apresenta novas funciona
 
 ## Discussões
 
+As discussões para atualizações e sugestões aprovadas foram realizadas aqui:
+
 - [Atualização 1 - PR#6](https://github.com/codaqui/institucional-trilhas-estudos/pull/6)
 - [Atualização 2 - PR#7](https://github.com/codaqui/institucional-trilhas-estudos/pull/7)
 - [Atualização 3 - PR#78](https://github.com/codaqui/institucional/pull/78)
+
+Se você deseja alterar algo, inicie uma nova discussão [clicando aqui.](https://github.com/orgs/codaqui/discussions/new/choose)
 
 ## Bibliografia
 
@@ -351,8 +355,6 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 ## Certificação Codaqui
 
 <img src="./img/certificado-python.png">
-
-<video id="DchYaYXwhTk"></video>
 
 > aside positive
 > Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
