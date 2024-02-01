@@ -3,7 +3,7 @@ summary: Página modelo sobre o novo modelo de Codelabs.
 id: codelab-101
 categories: codelab, 101-category
 environments: Web
-status: Published
+status: Draft
 feedback link: https://github.com/orgs/codaqui/discussions/new/choose
 analytics_ga4_account: G-HT7G6WDWHT
 

@@ -4,7 +4,7 @@ id: codelab-102
 tags:
 categories: Solace, Codelabs
 environments: Web
-status: Published
+status: Draft
 feedback link: https://github.com/SolaceDev/solace-dev-codelabs/tree/master/markdown/codelab-4-codelab
 analytics_ga4_account: G-HT7G6WDWHT
 
