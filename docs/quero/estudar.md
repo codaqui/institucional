@@ -3,6 +3,7 @@ hide:
   - toc
 ---
 # Quero Estudar!
+
 ## Público Alvo
 
 Pessoas que desejam aprender programação para desenvolver produtos tecnológicos, jogos, aplicativos, sites e possivelmente trilhar um caminho empreendedor.
@@ -17,13 +18,10 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 ## Como funciona?
 
-- [x] Voce está a frente de muitos, e chegou até aqui! Possui muita vontade de estudar :)
-- [ ] Veja nossa [trilha de GitHub](../trilhas/github-starter.md)
-  - [ ] Crie sua conta no GitHub
-  - [ ] Realize atividades básicas
-- [ ] Acompanhe nossas [Discussões](https://github.com/orgs/codaqui/discussions)
-- [ ] Assista as aulas e tire dúvidas no Discord
-- [X] Continue sempre estudando!
+| Modalidade | Horário | Instrutor | Plataforma/Local |
+| ---------- | ------- | --------- | ---------------- |
+| Remoto     | Segundas-feiras às 19:30 | Enderson Menezes | Discord |
+| Presencial | Terças-feiras às 15:00   | Gustavo De Mendonça | Laboratório de Informática 4° CPM | 
 
 ## O que poderei aprender?
 
@@ -35,15 +33,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Estude `Python` de forma autônoma e acesse nosso discord caso precise de ajuda!
 
-    [:octicons-arrow-right-24: Começar](../trilhas/python.md)
-
--   :fontawesome-brands-js:{ .lg .middle } __Javascript__
-
-    ---
-
-    O mesmo com `Javascript`, estamos te aguardando para nosso certificado!
-
-    [:octicons-arrow-right-24: Começar](../trilhas/javascript.md)
+    [:octicons-arrow-right-24: Começar](../trilhas/)
 
 -   :fontawesome-brands-github:{ .lg .middle } __GitHub__
 
@@ -51,15 +41,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Se possui dúvidas, pode começar com a Trilha de `GitHub` e depois veja as outras.
 
-    [:octicons-arrow-right-24: Começar](../trilhas/github-starter.md)
-
--   :fontawesome-brands-css3:{ .lg .middle } __CSS3__
-
-    ---
-
-    Estamos construindo uma trilha de CSS3, e você pode conferir ela por aqui!
-
-    [:octicons-arrow-right-24: Começar](../trilhas/css3.md)
+    [:octicons-arrow-right-24: Começar](../trilhas/)
 
 </div>
 
@@ -86,6 +68,6 @@ Acesse nossa comunidade do Whatsapp para interagir, utilize o Discord ou o Worka
 
     ---
 
-    [![Logo do WorkAdventure](https://workadventu.re/images/general/logo.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
+    [![Logo do WorkAdventure](https://workadventu.re/wp-content/themes/wokadventure/assets/img/logos/logo-dark-full.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
 
 </div>
