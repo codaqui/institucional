@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+  - toc
+---
 # Link's
 
 ## Cronograma da Codaqui 2024
