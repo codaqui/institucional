@@ -101,7 +101,8 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 * Crie um novo repositório em sua conta pessoal no GitHub, mantenha o repositório público.
 * Abra um pull request e informe ao seu professor que você concluiu este curso.
 * Crie um novo arquivo markdown no seu repositório. Conte o que você aprendeu com este curso, e também sobre as dúvidas que ainda ficaram. Experimente com estilos diferentes!
-* Crie seu perfil README. Deixe o mundo saber um pouco mais sobre você! O que você tem interesse em aprender? Em que você está trabalhando? Qual é o seu passatempo favorito? Saiba mais sobre como criar seu perfil README no documento, ["Gerenciando seu perfil README"](https://docs.github.com/en/github/setting-up-and-managing-your-github-profile/managing-your-profile-readme).
+* Crie um repositório chamado `seuusuario.github.io` e esse repositório com um arquivo `README.md` vai se tornar um site em poucos minutos.
+* Crie seu perfil README. Deixe o mundo saber um pouco mais sobre você! O que você tem interesse em aprender? Em que você está trabalhando? Qual é o seu passatempo favorito? Saiba mais sobre como criar seu perfil README no documento, ["Gerenciando seu perfil README"](https://docs.github.com/pt/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme).
 * Vá para o painel do usuário e crie um novo repositório. Experimente os recursos desse repositório para se familiarizar com eles. 
 * [Deixe-nos saber o que você gostou ou não gostou sobre o conteúdo deste curso](https://support.github.com/contact/education). O que você gostaria de ver mais? O que seria interessante ou útil para sua jornada de aprendizado? 
 
