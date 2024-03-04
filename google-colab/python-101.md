@@ -25,7 +25,7 @@ Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 
 Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
 
-![https://www.youtube.com/watch?v=3J1xBL7zJXg](Video)
+<video id="3J1xBL7zJXg"></video>
 
 `Materiais de Referência`:
 
