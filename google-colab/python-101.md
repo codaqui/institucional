@@ -25,11 +25,11 @@ Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 
 Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
 
+![https://www.youtube.com/watch?v=3J1xBL7zJXg](Video)
+
 `Materiais de Referência`:
 
 - [Introdução - Python BR](https://python.org.br/introducao/)
-
-- [Vídeo Introdução ao Python - Canal Programador Python](https://www.youtube.com/watch?v=3J1xBL7zJXg)
 
 ## Variáveis e Tipos de Dados em Python
 
