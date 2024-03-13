@@ -114,6 +114,28 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 
 ## Tarefa 1
 
+### Crie uma conta no GitHub
+
+Acesse o site de registro [clicando aqui.](https://github.com/signup?source=login), preencha os campos necessários e você vai ser capaz de criar a sua conta e utilizar no GitHub.
+
+![image](https://github.com/codaqui/institucional/assets/11020807/0a841f2f-4731-4fb6-b04b-e105c7cfb7d3)
+
+Será solicitado que você encontre um código no seu e-mail para confirmar a validade.
+
+![image](https://github.com/codaqui/institucional/assets/11020807/f76ae444-ad92-4a04-a4fd-57e84a6611a2)
+
+### Crie o seu primeiro repositório
+
+[Screencast from 13-03-2024 19:56:17.webm](https://github.com/codaqui/institucional/assets/11020807/3ffe5af0-62fd-4917-ad7b-341a2dca57bd)
+
+### Edite seu arquivo utilizando um Pull Request
+
+[Screencast from 13-03-2024 19:57:47.webm](https://github.com/codaqui/institucional/assets/11020807/0c629e5e-7a8c-4826-8db7-b9029cfbf04c)
+
+### Edite o seu arquivo README.md
+
+Edite o seu arquivo `README.md` e conte como foi sua experiência estudando com a Codaqui. Compartilhe no WhatsApp ou no nosso ambiente de discussões.
+
 ## Tarefa 2
 
 ## Tarefa 3
