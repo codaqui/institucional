@@ -118,19 +118,19 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 
 Acesse o site de registro [clicando aqui.](https://github.com/signup?source=login), preencha os campos necessários e você vai ser capaz de criar a sua conta e utilizar no GitHub.
 
-![image](https://github.com/codaqui/institucional/assets/11020807/0a841f2f-4731-4fb6-b04b-e105c7cfb7d3)
+![Tela de Registro do GitHub](./assets/github-101/tela-registro-github.png)
 
 Será solicitado que você encontre um código no seu e-mail para confirmar a validade.
 
-![image](https://github.com/codaqui/institucional/assets/11020807/f76ae444-ad92-4a04-a4fd-57e84a6611a2)
+![Tela de Registro do GitHub solicitando um Código](./assets/github-101/tela-registro-github-parte2.png)
 
 ### Crie o seu primeiro repositório
 
-[Screencast from 13-03-2024 19:56:17.webm](https://github.com/codaqui/institucional/assets/11020807/3ffe5af0-62fd-4917-ad7b-341a2dca57bd)
+[Video mostrando como cria o primeiro repositório](./assets/github-101/criando-novo-repositorio.webm)
 
 ### Edite seu arquivo utilizando um Pull Request
 
-[Screencast from 13-03-2024 19:57:47.webm](https://github.com/codaqui/institucional/assets/11020807/0c629e5e-7a8c-4826-8db7-b9029cfbf04c)
+[Video mostrando como cria o primeiro pull request](./assets/github-101/criando-primeiro-pr.webm)
 
 ### Edite o seu arquivo README.md
 
