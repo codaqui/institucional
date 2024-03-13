@@ -19,7 +19,7 @@ Are you trying to create easy to use, visually appealing content for the tech co
 We'll be authoring the codelabs using markdown format. This gives us the flexibility of using our markdown file for other things and also storing it in our [github repo](https://github.com/SolaceDev/solace-dev-codelabs) with any code that might be used for a tutorial.
 
 Here is an example image of another Codelab that I created:
-![image_caption](img/certificado-python.png)
+![image_caption](./assets/python-101/certificado-python.png)
 ### Resources
 
 - The markdown for this codelab is located here: [codelab.md](https://raw.githubusercontent.com/SolaceDev/solace-dev-codelabs/master/markdown/codelab-4-codelab/codelab-4-codelab.md)
@@ -115,10 +115,10 @@ Duration: 0:05:00
 
 ### Tips 
 💡 To capture a multi-part topic, create smaller sections of the topic and organize the section titles as parts and sub-sections to capture the grouping of content.
-![image_caption](img/certificado-python.png)
+![image_caption](./assets/python-101/certificado-python.png)
 
 💡 Attempt to give complete context when specifying properties, configuration etc as much as possible.
-![image_caption](img/certificado-python.png)
+![image_caption](./assets/python-101/certificado-python.png)
 
 ### Where to create your codelab
 
@@ -142,7 +142,7 @@ Duration: 0:02:00
 Start by
 
 1. Forking the solace-dev-codelabs repo from [https://github.com/SolaceDev/solace-dev-codelabs](https://github.com/SolaceDev/solace-dev-codelabs)  
-   ![image_caption](img/certificado-python.png)
+   ![image_caption](./assets/python-101/certificado-python.png)
 
 2. Clone your fork. Note: replace `<Your_Github_User>` with your github username and `<name_of_codelab>` with the name of your codelabs. See note below if you do not have ssh setup
 
