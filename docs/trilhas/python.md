@@ -2,13 +2,9 @@
 # :simple-python: Aprendendo Python
 
 
-!!! codaqui-icon "Certificado Codaqui"
+!!! info "Comunicado"
 
-    ![Imagem do Certificado da Codaqui](https://assets.holopin.io/eyJidWNrZXQiOiJob2xvcGluLWFzc2V0cyIsImtleSI6ImFzc2V0cy9jbGN0ZDdjZmYyMjEzMDhtc21iZDUwY2NvIiwiZWRpdHMiOnsicm90YXRlIjpudWxsfX0=){ width="300" }
-
-    Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
-
-    <small> Recomendamos que estude antes de se inscrever, e caso tenha qualquer dúvida entre em contato por e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev) </small>
+    Nossos conteudos de trilhas foram migrados! Essa página está somente sendo mantida como arquivo. Você pode acessar o menu Trilhas: https://www.codaqui.dev/trilhas/ para ter acesso a nova forma de estudar com a Codaqui.
 
 ---
 

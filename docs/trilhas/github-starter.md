@@ -1,5 +1,9 @@
 # :octicons-logo-github-16: Aprendendo GitHub
 
+!!! info "Comunicado"
+
+    Nossos conteudos de trilhas foram migrados! Essa página está somente sendo mantida como arquivo. Você pode acessar o menu Trilhas: https://www.codaqui.dev/trilhas/ para ter acesso a nova forma de estudar com a Codaqui.
+
 ## 🤓 Visão geral do curso e resultados de aprendizado
 
 O objetivo deste curso é fornecer uma breve introdução ao GitHub. Também forneceremos materiais para aprendizado adicional e algumas ideias para você começar em nossa plataforma. 🚀

@@ -3,7 +3,7 @@
 
 !!! info "Comunicado"
 
-    Está trilha encontra-se e desenvolvimento e você pode apoiar isso pelas discussões realizadas no GitHub. Caso tenha dúvidas envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev)
+    Nossos conteudos de trilhas foram migrados! Essa página está somente sendo mantida como arquivo. Você pode acessar o menu Trilhas: https://www.codaqui.dev/trilhas/ para ter acesso a nova forma de estudar com a Codaqui.
 
 Discussão:
 
