@@ -126,11 +126,11 @@ Será solicitado que você encontre um código no seu e-mail para confirmar a va
 
 ### Crie o seu primeiro repositório
 
-[Video mostrando como cria o primeiro repositório](./assets/github-101/criando-novo-repositorio.webm)
+<img src="./assets/github-101/criando-novo-repositorio.webm">
 
 ### Edite seu arquivo utilizando um Pull Request
 
-[Video mostrando como cria o primeiro pull request](./assets/github-101/criando-primeiro-pr.webm)
+<img src="./assets/github-101/criando-primeiro-pr.webm">
 
 ### Edite o seu arquivo README.md
 
