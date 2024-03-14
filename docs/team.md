@@ -85,7 +85,7 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/nreinoso/)
 
 
-    __Luiz Amadeu__
+-   __Luiz Amadeu__
 
     ---
 
