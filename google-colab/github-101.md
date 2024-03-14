@@ -98,13 +98,47 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 
 ## 📝 Tarefas para Realizar
 
-* Crie um novo repositório em sua conta pessoal no GitHub, mantenha o repositório público.
-* Abra um pull request e informe ao seu professor que você concluiu este curso.
-* Crie um novo arquivo markdown no seu repositório. Conte o que você aprendeu com este curso, e também sobre as dúvidas que ainda ficaram. Experimente com estilos diferentes!
-* Crie um repositório chamado `seuusuario.github.io` e esse repositório com um arquivo `README.md` vai se tornar um site em poucos minutos.
-* Crie seu perfil README. Deixe o mundo saber um pouco mais sobre você! O que você tem interesse em aprender? Em que você está trabalhando? Qual é o seu passatempo favorito? Saiba mais sobre como criar seu perfil README no documento, ["Gerenciando seu perfil README"](https://docs.github.com/pt/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme).
-* Vá para o painel do usuário e crie um novo repositório. Experimente os recursos desse repositório para se familiarizar com eles. 
-* [Deixe-nos saber o que você gostou ou não gostou sobre o conteúdo deste curso](https://support.github.com/contact/education). O que você gostaria de ver mais? O que seria interessante ou útil para sua jornada de aprendizado? 
+* Tarefa 1
+  * Crie uma conta pessoal no GitHub.
+  * Crie um novo repositório em sua conta pessoal no GitHub, mantenha o repositório público.
+  * Crie um arquivo no seu repositório.
+  * Edite seu arquivo utilizando um Pull Request.
+  * Crie um arquivo `README.md` no seu repositório e conte o que você aprendeu com este curso, e também sobre as dúvidas que ainda ficaram. Experimente com estilos diferentes! 
+* Tarefa 2
+  * Crie um repositório chamado `seuusuario.github.io` e esse repositório com um arquivo `README.md` vai se tornar um site em poucos minutos.
+* Tarefa 3
+  * Crie um repositório chamado `seuusuario` e esse repositório vai se tornar o seu Perfil do GitHub de maneira diferente.
+  * Complemente com imagens, emojis e deixe a criatividade te inspirar 🚀
+  * ["Gerenciando seu perfil README"](https://docs.github.com/pt/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme).
+* [Deixe-nos saber o que você gostou ou não gostou sobre o conteúdo deste curso](https://github.com/orgs/codaqui/discussions). O que você gostaria de ver mais? O que seria interessante ou útil para sua jornada de aprendizado?
+
+## Tarefa 1
+
+### Crie uma conta no GitHub
+
+Acesse o site de registro [clicando aqui.](https://github.com/signup?source=login), preencha os campos necessários e você vai ser capaz de criar a sua conta e utilizar no GitHub.
+
+![Tela de Registro do GitHub](./assets/github-101/tela-registro-github.png)
+
+Será solicitado que você encontre um código no seu e-mail para confirmar a validade.
+
+![Tela de Registro do GitHub solicitando um Código](./assets/github-101/tela-registro-github-parte2.png)
+
+### Crie o seu primeiro repositório
+
+<img src="./assets/github-101/criando-novo-repositorio.webm">
+
+### Edite seu arquivo utilizando um Pull Request
+
+<img src="./assets/github-101/criando-primeiro-pr.webm">
+
+### Edite o seu arquivo README.md
+
+Edite o seu arquivo `README.md` e conte como foi sua experiência estudando com a Codaqui. Compartilhe no WhatsApp ou no nosso ambiente de discussões.
+
+## Tarefa 2
+
+## Tarefa 3
 
 ## 📚  Recursos 
 * [Um pequeno vídeo explicando o que é o GitHub](https://www.youtube.com/watch?v=w3jLJU7DT5E&feature=youtu.be)

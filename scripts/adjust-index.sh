@@ -6,6 +6,9 @@ if [ -z "$file" ]; then
   echo "Usage: $0 <file>"
   exit 1
 fi
+echo "Adjusting $file"
+
+# ----- Case 1: Google Analytics -----
 
 # Define the new code to be inserted
 new_code='<!-- Google tag (gtag.js) -->
@@ -33,3 +36,22 @@ awk -v ncode="$new_code" '/<head>/ {print; print ncode; next} 1' "$temp_file" > 
 
 # Remove the temporary file
 rm "$temp_file"
+
+# ----- Case 2: Identify IMGs ending with .webm and change the tag to video -----
+# Eg. <img src="img/1.webm" alt="1" />
+# After. <video src="img/1.webm" alt="1" />
+
+while IFS= read -r line; do
+  # Check if the line contains a .webm file
+  if [[ $line == *".webm"* ]]; then
+    # Replace the tag
+    new_line=$(echo "$line" | sed 's/<img/<video/')
+    new_line=$(echo "$new_line" | sed 's/<\/img/<\/video/')
+
+    # Set the width and controls attributes
+    new_line=$(echo "$new_line" | sed 's/.webm"/.webm" width="100%" controls/')
+
+    # Replace the line
+    sed -i "s|$line|$new_line|g" "$file"
+  fi
+done < "$file"

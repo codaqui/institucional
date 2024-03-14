@@ -354,7 +354,7 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 
 ## Certificação Codaqui
 
-<img src="./img/certificado-python.png">
+<img src="./assets/python-101/certificado-python.png">
 
 > aside positive
 > Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
