@@ -1,0 +1,222 @@
+
+<!doctype html>
+
+<html>
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HT7G6WDWHT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HT7G6WDWHT');
+</script>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Create a CodeLab with CLaaT</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab 
+                  
+                  id="codelab-101"
+                  title="Create a CodeLab with CLaaT"
+                  environment="web"
+                  feedback-link="https://github.com/orgs/codaqui/discussions/new/choose">
+    
+      <google-codelab-step label="CodeLab Overview" duration="1">
+        <p>In this Codelab we create a short tutorial with the CLaaT (Codelabs as a Thing) tool and publish it as a static site.</p>
+<p>Codelabs are interactive instructional tutorials which can be authored in Google Docs using some simple formatting conventions. You can also author codelabs using markdown syntax like in this tutorial. For more information about Codelabs check out the references.</p>
+<p>The basic building process of a Codelab tutorial can be divided into following steps:</p>
+<ol type="1">
+<li>Install the CLaat tool if not already done.</li>
+<li>Write your tutorial with markdown or Google Docs.</li>
+<li>Use to CLaat tool to build the static HTML site.</li>
+<li>Publish the tutorial on the internet into the Web2 or Web3 sphere.</li>
+</ol>
+<p><strong><em>This tutorial is written by Bole Roland.</em></strong></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Install Claat" duration="4">
+        <p>Firstly, you have to install the CLaat tool. For the installation process you have two possibilities: You can use the native bianry version or a Docker based version.</p>
+<p>In this tutorial we use the binary MacOs version. You can download the proper version for your OS here https://github.com/googlecodelabs/tools/releases/tag/v2.2.4.</p>
+<p>After the download copy the claat-darwin-amd64 file to the $HOME/usr/local/bin folder and rename it for better usage.</p>
+<pre><code language="language-bash" class="language-bash"># copy the bianry file to the users bin folder
+cp claat-darwin-amd64 $HOME/usr/local/bin
+
+# rename the command, alternatively you can create a symlink as well
+mv $HOME/usr/local/bin/claat-darwin-amd64 $HOME/usr/local/bin/claat
+</code></pre>
+<p>Make sure that you have the $HOME/usr/local/bin folder in your $PATH. Check your setup with the following command which should bring up the command&#39;s help section.</p>
+<pre><code language="language-bash" class="language-bash">claat -h
+</code></pre>
+<p>Well done! Your preparation is completed. Now you can move forward and write your first tutorial.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Create the tutorial" duration="4">
+        <p>The tutorial is basically written in one markdown file. CLaat itself divides your tutorial into sections. The section is represented by a HTML header h2 tag which is expressed in markdown with the ‘##&#39; sign.</p>
+<p>You can start by selecting a base folder for your tutorial. You can call this folder lab01. Then, create a markdown file for your content inside of this folder.</p>
+<p>The markdown file is divided into two sections:</p>
+<ol type="1">
+<li>metadata</li>
+<li>content</li>
+</ol>
+<h2 is-upgraded>Add the metadata</h2>
+<p>Copy and paste the headers below into your markdown file and change the values appropriately. Guidelines are available below the sample headers.</p>
+<pre><code language="language-bash" class="language-bash">author: Author Name
+summary: Summary of your codelab that is human readable
+id: unique-codelab-identifier
+categories: codelab,markdown,internet computer
+environments: Web
+status: Published
+feedback link: A link where users can go to provide feedback (e.g. the git repo)
+analytics account: Google Analytics ID
+</code></pre>
+<p>According to the offical documentation the metadata consists of key-value pairs of the form &#34;key: value&#34;. Keys cannot contain colons and separate metadata fields must be separated by blank lines. At present, values must all be on one line. All metadata must come before the title. Any arbitrary keys and values may be used. However, only the following will be understood by the renderer:</p>
+<ul>
+<li>Summary: A human-readable summary of the codelab. Defaults to blank.</li>
+<li>Id: An identifier composed of lowercase letters ideally describing the content of the codelab. This field should be unique among codelabs.</li>
+<li>Categories: A comma-separated list of the topics the codelab covers.</li>
+<li>Environments: A list of environments the codelab should be discoverable in. Codelabs marked &#34;Web&#34; will be visible at the codelabs index. Codelabs marked &#34;Kiosk&#34; will only be available at codelabs kiosks which have special equipment attached.</li>
+<li>Status: The publication status of the codelab. Valid values are: <ul>
+<li>Draft: Codelab is not finished.</li>
+<li>Published: Codelab is finished and visible.</li>
+<li>Deprecated: Codelab is considered stale and should not be widely advertised.</li>
+<li>Hidden: Codelab is not shown in index.</li>
+</ul>
+</li>
+<li>Feedback Link: A link to send users to if they wish to leave feedback on the codelab.</li>
+<li>Analytics Account: A Google Analytics ID to include with all codelab pages.</li>
+</ul>
+<h2 is-upgraded>Add the Content</h2>
+<p>Next, add your title using a single ‘#&#39; character. For your content you can use any valid markdown.</p>
+<p>Example</p>
+<pre><code language="language-bash" class="language-bash"># Title of your codelab
+</code></pre>
+<h3 is-upgraded>Add Section and Duration</h3>
+<p>Then, for each section use Header 2 h2 or ‘##&#39; and specify an optional duration beneath for time remaining calculations. Optional section times will be used to automatically total and remaining tutorial times. In markdown you have to use the following format: hh:mm:ss.</p>
+<p>Example</p>
+<pre><code language="language-bash" class="language-bash">## Section 1
+Duration: 0:02:00
+</code></pre>
+<h3 is-upgraded>Add Section Content</h3>
+<p>Now, as you have a section to your titled codelab, go ahead and add some content for this section.</p>
+<p>Example</p>
+<pre><code language="language-bash" class="language-bash">## Content section 1
+Write some valid markdown to represent your tutorial content.
+</code></pre>
+<p>Finally, a full example would look like this:</p>
+<pre><code language="language-bash" class="language-bash">author: Author name
+summary: Summary of your codelab that is human readable
+id: unique-codelab-identifier
+categories: codelab,markdown,internet computer
+environments: Web
+status: Published
+feedback link: A link where users can go to provide feedback (e.g. the git repo)
+analytics account: Google Analytics ID
+
+# Title of codelab
+
+## Section 1
+Duration: 0:02:00
+
+Content of section 1.
+</code></pre>
+<p>After finishing your content writing you are ready to build the static HTML version of this tutorial.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Build static HTML" duration="4">
+        <p>To create a ready to use static codelab you can use the following command.</p>
+<pre><code language="language-bash" class="language-bash">claat export index.md
+</code></pre>
+<p>Below, you can find the result. The result is a ready to use index.html file. In detail the CLaat tool creates a folder with the name of the &#34;id&#34; value from your metadata and puts the needed HTML and used images into that folder.</p>
+<pre><code language="language-bash" class="language-bash">├── index.md
+└── lab01
+    ├── codelab.json
+    └── index.html
+</code></pre>
+<p>After building the static version of your short tutorial you can use the CLaat tool for a preview as well.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Preview the tutorial" duration="4">
+        <p>The CLaat tool also allows the preview of your tutorial. Use the following command to run a local webserver on port 9090. Make sure you are in your base folder.</p>
+<pre><code language="language-bash" class="language-bash">claat serve
+</code></pre>
+<p>Now, open your browser and open the following link http://localhost:9090. The CLaat tool has placed static web content in a directory specified by your unique &#34;id&#34; and you can view it locally by opening the index.html page.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Use custom CSS" duration="4">
+        <p>The CLaat tool comes with a ready to use HTML implementation that includes CSS as well. Sometimes you want to change the CSS settings. One way to do that is presented below.</p>
+<p>To make things easier, make a short build script. In the base folder of your tutorial create the following script.</p>
+<pre><code language="language-bash" class="language-bash">#!/bin/bash
+
+# export or rebuild codelabs
+claat export index.md
+
+# add a custom css file before the end of the html body tag
+sed -i &#34;&#34; -e &#34;/body/i\\
+&lt;link rel=\&#34;stylesheet\&#34; href=\&#34;css/format.css\&#34;&gt;&#34; lab01/index.html
+</code></pre>
+<p>Create a CSS folder in the new lab01 folder and put your custom CSS in it. Name your CSS file format.css. Every time you rebuild your tutorial the <strong>sed</strong> command will add the link to the custom CSS file before the end of the HTML body. In this approach you overwrite the pre-built CSS definitions.</p>
+<p>The ready structure should look like this.</p>
+<pre><code language="language-bash" class="language-bash">tree .
+.
+├── build.sh
+├── index.md
+└── lab01
+    ├── codelab.json
+    ├── css
+    │   └── format.css
+    ├── img
+    └── index.html
+</code></pre>
+<p>Make sure that the build script has the proper execution rights.</p>
+<pre><code language="language-bash" class="language-bash">chmod 755 build.sh
+</code></pre>
+<p>Now, you can rebuild your tutorial with custom CSS every time you make some changes to your tutorial.</p>
+<pre><code language="language-bash" class="language-bash">./build.sh
+</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="References" duration="0">
+        <ul>
+<li><a href="https://codelabs.developers.google.com/" target="_blank">codelabs.developers.google.com</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>

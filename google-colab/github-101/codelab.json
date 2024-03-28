@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2024-03-28T00:19:56Z",
+  "id": "github-101",
+  "duration": 0,
+  "title": "GitHub 101 - Aprendendo GitHub",
+  "summary": "Introdução ao GitHub",
+  "source": "./github-101.md",
+  "theme": "",
+  "status": [
+    "published"
+  ],
+  "category": [
+    "github",
+    "101-category"
+  ],
+  "tags": [
+    "web"
+  ],
+  "feedback": "https://github.com/orgs/codaqui/discussions/new/choose",
+  "ga4": "G-HT7G6WDWHT",
+  "url": "github-101"
+}

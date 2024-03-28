@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-49880327-14",
+  "updated": "2024-03-28T00:19:56Z",
+  "id": "codelab-101",
+  "duration": 21,
+  "title": "Create a CodeLab with CLaaT",
+  "summary": "Página modelo sobre o novo modelo de Codelabs.",
+  "source": "./codelab-101.md",
+  "theme": "",
+  "status": [
+    "draft"
+  ],
+  "category": [
+    "codelab",
+    "101-category"
+  ],
+  "tags": [
+    "web"
+  ],
+  "feedback": "https://github.com/orgs/codaqui/discussions/new/choose",
+  "ga4": "G-HT7G6WDWHT",
+  "url": "codelab-101"
+}
