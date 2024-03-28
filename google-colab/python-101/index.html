@@ -1,0 +1,411 @@
+
+<!doctype html>
+
+<html>
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HT7G6WDWHT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HT7G6WDWHT');
+</script>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Python 101 - Aprendendo Python</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/claat-public/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab 
+                  
+                  id="python-101"
+                  title="Python 101 - Aprendendo Python"
+                  environment="web"
+                  feedback-link="https://github.com/orgs/codaqui/discussions/new/choose">
+    
+      <google-codelab-step label="Apresentação" duration="0">
+        <p>Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais. Essa linguagem de programação foi lançada por Guido van Rossum em 1991.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="http://antigo.scl.ifsp.edu.br/portal/arquivos/2016.05.04_Apostila_Python_-_PET_ADS_S%C3%A3o_Carlos.pdf" target="_blank">Introdução a Programação Python - IFSP</a></li>
+<li><a href="https://wiki.python.org.br/PythonApresentacao" target="_blank">WikiPython Brasil - Apresentação</a></li>
+<li><a href="https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python" target="_blank">Apresentando a Linguagem de Programação Python</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Introdução à linguagem Python" duration="0">
+        <p>Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.</p>
+<iframe class="youtube-video" src="https://www.youtube.com/embed/3J1xBL7zJXg?rel=0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://python.org.br/introducao/" target="_blank">Introdução - Python BR</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Variáveis e Tipos de Dados em Python" duration="0">
+        <p>Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/" target="_blank">Tipos de Dados - Algorítimos em Python</a></li>
+<li><a href="https://panda.ime.usp.br/cc110/static/cc110/03-variaveis.html" target="_blank">Variáveis - USP</a></li>
+</ul>
+<p><code>Material Complementar:</code></p>
+<ul>
+<li><a href="https://pythonacademy.com.br/blog/tipos-de-variaveis-no-python" target="_blank">Tipos de Variáveis - PythonAcademy</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Estruturas Lógicas e Condicionais em Python" duration="0">
+        <p>As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.hashtagtreinamentos.com/estruturas-condicionais-no-python" target="_blank">Estruturas e Condicionais - #Treinamentos</a></li>
+<li><a href="https://pense-python.caravela.club/05-condicionais-e-recursividade/00-condicionais-e-recursividade.html" target="_blank">Operadores Lógicos - Caravela</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Estruturas de Repetição em Python" duration="0">
+        <p>Estruturas de repetição são estruturas que permitem a execução de instruções repetidas vezes, até que uma condição seja atingida.</p>
+<p>Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.devmedia.com.br/estruturas-de-repeticao-em-python/41551" target="_blank">Estruturas de Repetição - DevMedia</a></li>
+<li><a href="https://www.hashtagtreinamentos.com/estruturas-de-repeticao-python" target="_blank">Estruturas de Repetição - #Treinamentos</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Coleções Python" duration="0">
+        <p>As coleções permitem armazenar múltiplos itens dentro de uma única unidade, que funciona como um container. Neste tópico iremos ver quais são e como usa-las.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.devmedia.com.br/colecoes-no-python-listas-tuplas-e-dicionarios/40678" target="_blank">Coleções no Python</a></li>
+<li><a href="https://www.phylos.net/2021-03-08/python-sequencias-e-colecoes/" target="_blank">Python sequências e coleções</a></li>
+</ul>
+<p><code>Vídeo Complementar:</code></p>
+<ul>
+<li><a href="https://youtu.be/2Q4GkMQ-vzQ" target="_blank">Coleções em python - Aprenda dicionário resumidamente)</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Funções em Python" duration="0">
+        <p>Após passarmos pela Seção 7, vamos comentar sobre as Funções em Python. São blocos de códigos que só são executados quando chamados, podemos passar dados (os famosos parâmetros), e depois retornar alguma resposta.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://algoritmosempython.com.br/cursos/programacao-python/funcoes/" target="_blank">Funções</a></li>
+<li><a href="https://panda.ime.usp.br/pensepy/static/pensepy/05-Funcoes/funcoes.html" target="_blank">Funções 2</a></li>
+<li><a href="https://www.dcc.ufrj.br/~fabiom/mab225/07func.pdf" target="_blank">Funções 3</a></li>
+</ul>
+<p><code>Vídeo Complementar:</code></p>
+<ul>
+<li><a href="https://youtu.be/arAz2Ff8s88?t=111" target="_blank">Um Programador Pleno já deveria saber usar esse Design Pattern (tutorial linha a linha)</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Comprehensions em Python" duration="0">
+        <p>As Comprehensions em Python serve para escrever uma nova lista baseada em outra lista existente de uma maneira mais curta, deixando mais fácil de entender e mais simples de ler o código.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://pythonacademy.com.br/blog/list-comprehensions-no-python" target="_blank">Comprehensions no Python</a></li>
+<li><a href="https://pythonhelp.wordpress.com/2011/03/01/list-comprehension/" target="_blank">Comprehension</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Expressões Lambdas e Funções Integradas" duration="0">
+        <p>Uma expressão lambda permite escrever funções anônimas/sem nome usando apenas uma linha de código. As funções integradas são funções que permitem obter alguma informação a respeito de uma variável de tipo padrão ou transformar o tipo de uma variável. Neste tópico, podemos aprender mais profundamente sobre ambas.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.codingame.com/playgrounds/52499/programacao-python-intermediario---prof--marco-vaz/funcao-lambda" target="_blank">Função Lambda</a></li>
+<li><a href="https://www.hashtagtreinamentos.com/funcoes-lambda-python" target="_blank">Funções Lambda em Python</a></li>
+<li><a href="https://pythonhelp.wordpress.com/tag/lambda/" target="_blank">Lambda</a></li>
+<li><a href="https://www.guru99.com/python-lambda-function.html" target="_blank">Guru99 - Lambda Functions Examples</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Debugando e Tratando erros" duration="0">
+        <p>Debugar é encontrar e corrigir erros de um programa. Nesse tópico iremos ver como tratar erros e exceções.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://panda.ime.usp.br/panda/static/pensepy/Appendices/app_a.html" target="_blank">Erros de sintaxe (Syntax errors)</a></li>
+<li><a href="https://pythonhelp.wordpress.com/2012/12/31/deu-erro-e-agora-o-que-eu-faco/" target="_blank">Entendendo melhor as mensagens de erro</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Trabalhando com Módulos Python" duration="0">
+        <p>Módulos em Python são arquivos contendo definições e comandos a serem utilizados em outros programas na mesma linguagem, utilizando a <code>keyword import</code>.</p>
+<p>Conforme a introdução do segundo <em>link</em> de estudo, a importação de módulos só é possível enquanto dentro do mesmo diretório, ou se estiver em uma lista de diretórios dadas pela variável <code>sys.path</code>, começada no diretório atual e procurada na variável <code>PYTHONPATH</code> do <strong>Shell</strong>, por fim no diretório padrão que depende da instalação.</p>
+<p>Leia mais a respeito de <strong>módulos</strong> nos <em>links</em> de estudo abaixo.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.pythonprogressivo.net/2018/07/import-Como-Criar-Importar-Usar-Modulo-Python-Curso.html" target="_blank">Como criar um módulo</a></li>
+<li><a href="https://docs.python.org/pt-br/3/tutorial/modules.html" target="_blank">Módulos-Executando módulos como scripts</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Leitura e Escrita em Arquivos" duration="0">
+        <p>Os computadores utilizam os arquivos como estruturas de dados, por exemplo, vídeos, imagens e planilhas. Nesta aula, vamos aprender como os programas em Python criam, recuperam, atualizam e processam arquivos de dados, ou seja, manipulam arquivos.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://panda.ime.usp.br/pensepy/static/pensepy/10-Arquivos/files.html" target="_blank">Abrindo, fechando e lendo arquivos (Com exercícios)</a></li>
+<li><a href="https://academiahopper.com.br/trabalhando-com-arquivos-em-python/" target="_blank">Como escrever e salvar arquivos JSON em Python</a></li>
+<li><a href="https://www.freecodecamp.org/portuguese/news/como-escrever-em-um-arquivo-em-python-open-read-append-e-outras-funcoes-de-manipulacao-explicadas/" target="_blank">Manipulando arquivos - FreeCodeCamp</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Iteradores e Geradores Python" duration="0">
+        <p>Iterator em python é um objeto que é usado para iterar sobre objetos iteráveis, como listas, tuplas, dicts e conjuntos. Os geradores em Python são uma maneira simples de criar um objeto iterável sem a necessidade de construí-lo dentro de uma classe. Um objeto iterável consiste em um conjunto finito de dados cujo conteúdo é tratado um elemento por vez, iniciando do primeiro e seguindo até o último, quando a iteração é terminada.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://pythonacademy.com.br/blog/iterators-e-generators-em-python" target="_blank">Iterators e Generators em Python - Python Academy</a></li>
+<li><a href="https://ichi.pro/pt/iteradores-iteraveis-e-geradores-132206850510725" target="_blank">Iteradores, iteráveis e geradores - ICHI.PRO</a></li>
+<li><a href="https://qastack.com.br/programming/2776829/difference-between-pythons-generators-and-iterators" target="_blank">Diferença entre iteradores e geradores do Python - QA Stack</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Decoradores em Python" duration="0">
+        <p>Saindo dos iteradores e geradores, seguiremos com decoradores em python. Para simplificarmos sua ideia, podemos dizer que eles são funções que modificam a funcionalidade de uma outra função.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://pythoniluminado.netlify.app/decoradores" target="_blank">Decoradores por Python Iluminado</a></li>
+<li><a href="https://wiki.python.org.br/Decoradores_Python_(Python_Decorators)" target="_blank">Decoradores por Python WIKI</a></li>
+<li><a href="https://pt.stackoverflow.com/questions/23628/como-funcionam-decoradores-em-python" target="_blank">Como funcionam os decoradores em Python?</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Orientação a Objetos com Python" duration="0">
+        <p>Programação orientada a objetos (POO) é um paradigma de programação baseado no conceito de &#34;objetos&#34;, que podem conter dados na forma de campos, também conhecidos como atributos, e códigos, na forma de procedimentos, também conhecidos como métodos.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://panda.ime.usp.br/pensepy/static/pensepy/13-Classes/classesintro.html" target="_blank">Classes</a></li>
+<li><a href="https://www.devmedia.com.br/python-orientado-a-objetos-com-o-framework-cherrypy/33489" target="_blank">Python Orientado a Objetos com Framework CherryPy</a></li>
+<li><a href="https://wiki.python.org.br/ProgramacaoOrientadaObjetoPython" target="_blank">Programação Orientada a Objetos com Python</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Herança e Polimorfismo" duration="0">
+        <p>Herança é um mecanismo importante quando um grupo de classes apresenta a mesma interface, mas a implementação interna dos métodos é diferente. Polimorfismo é a capacidade que uma subclasse tem de ter métodos com o mesmo nome de sua superclasse, e o programa saber qual método deve ser invocado, especificamente.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.pythonprogressivo.net/2018/11/Polimorfismo-O-que-Como-Usar-Como-fazer.html" target="_blank">Polimorfismo - O que é e como usar?</a></li>
+<li><a href="https://medium.com/code-rocket-blog/entendendo-o-super-do-python-da17ee8d26ca" target="_blank">Entendendo o Super() do Python</a></li>
+<li><a href="https://www.devmedia.com.br/conceitos-e-exemplos-polimorfismo-programacao-orientada-a-objetos/18701" target="_blank">Conceitos de Polimorfismo em POO</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Manipulando Arquivos CSV e JSON" duration="0">
+        <p>O arquivo CSV (valores separados por vírgulas) é um arquivo de texto com formato específico para possibilitar o salvamento dos dados em um formato estruturado de tabela. O formato JSON (JavaScript Object Notation) é utilizado para estruturar dados em formato de texto e permitir a troca de dados entre aplicações de forma simples, leve e rápida.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://imasters.com.br/back-end/data-science-importando-dados-com-python" target="_blank">importando dados com Python</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Trabalhando com Data e Hora em Python" duration="0">
+        <p>Registrar um momento qualquer no tempo é um requisito comum em todo sistema usual. Esse registro pode ser em data e hora. É comum fazer operações com esses dados, portanto, sua precisão é muito importante.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://vaiprogramar.com/como-trabalhar-com-data-hora-python-datetime/" target="_blank">Como trabalhar com data hora Python</a></li>
+<li><a href="https://docs.python.org/pt-br/3/library/datetime.html" target="_blank">Tipos básicos de data e hora</a></li>
+<li><a href="https://pythonhelp.wordpress.com/2012/07/10/trabalhando-com-datas-e-horas-em-python-datetime/" target="_blank">Trabalhando com datas e horas em Python</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Testes com Python" duration="0">
+        <p>Os testes servem para antecipar e corrigir falhas e bugs que apareceriam para o usuário final. Neste tópico iremos apresentar como fazer testes em um programa.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://dev.to/womakerscode/testes-em-python-parte-1-introducao-43ei" target="_blank">Testes em Python parte I</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Encerramento" duration="0">
+        <p>Neste tópico iremos abordar comandos que podem ser usados para fechar um programa escrito na linguagem Python.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://qastack.com.br/programming/73663/how-to-terminate-a-python-script" target="_blank">Finalizando um script Python - QA Stack</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Gerenciamento de Memória em Python" duration="0">
+        <p>Quando criamos uma variável em Python, essa variável é armazenada na memória do computador. A alocação de memória pode ser definida como a alocação de um bloco de espaço na memória do computador para um programa. Nesta aula iremos entender como funciona o gerenciamento de memória do computador.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://weekly-geekly-es.imtqy.com/articles/pt441568/index.html" target="_blank">Gerenciamento de memória Python – Weekly-Geekly ES</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Checagem de Tipos em Python" duration="0">
+        <p>Neste tópico você vai aprender a como checar o tipo de uma variável em Python, ou seja, saber qual o tipo de dado uma variável contém.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.horadecodar.com.br/2021/03/30/como-checar-o-tipo-de-uma-variavel-em-python-3/" target="_blank">Checando os tipos de variáveis em Python 3 - Hora de Codar</a></li>
+<li><a href="https://medium.com/gutierri/checagem-de-tipos-no-python-1533fe1e786f" target="_blank">Checagem de tipos no Python - gutierri</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Interagindo com o sistema operacional" duration="0">
+        <p>Há momentos no desenvolvimento de uma aplicação que precisamos interagir com o sistema operacional para acessar diretórios, criar arquivos, executar comandos entre outras ações, e para isso contamos com algumas bibliotecas nativas do Python, como <a href="https://docs.python.org/pt-br/3/library/os.html" target="_blank">os</a> e <a href="https://docs.python.org/pt-br/3/library/subprocess.html" target="_blank">subprocess</a>, que nos auxiliam nesses processos.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://techexpert.tips/pt-br/python-pt-br/python-executando-comandos-shell/" target="_blank">Executando comandos Shell - TechExpert Tips</a></li>
+<li><a href="https://tecnoguia.istocks.club/o-que-e-o-modulo-os-do-python-e-como-usa-lo/2021-03-15/" target="_blank">Interagindo com o sistema operacional - TecnoGuia</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Consumindo dados de fontes externas" duration="0">
+        <p>Neste tópico será abordado formas de trabalhar com dados provenientes de fontes externas, como um site ou outra aplicação.</p>
+<p>O Python disponibiliza nativamente a biblioteca <a href="https://docs.python.org/pt-br/3/library/urllib.html" target="_blank">urllib</a> para efetuar requisições a sites, APIs, entre outras, mas existe uma outra biblioteca, de terceiros, chamada <a href="https://requests.readthedocs.io/" target="_blank">requests</a> que é bem mais simples que pode ser utilizada para fazer realizar esse tipo de tarefa.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://ciksiti.com/pt/chapters/5031-how-to-use-urllib-in-python--linux-hint" target="_blank">Como usar Urllib - Ciksiti</a></li>
+<li><a href="https://www.alura.com.br/artigos/consumindo-a-api-do-github-em-python" target="_blank">Consumindo a API do Github - Alura</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Ambiente de Desenvolvimento Local" duration="0">
+        <p>Aqui é fornecido guias para a instalação de compiladores de Python.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://developer.mozilla.org/pt-BR/docs/Learn/Server-side/Django/development_environment" target="_blank">Configurando um ambiente de desenvolvimento Django</a></li>
+<li><a href="https://tutorial.djangogirls.org/pt/django_installation/" target="_blank">Instalação do Django</a></li>
+<li><a href="https://medium.com/welcome-to-the-django/guia-definitivo-para-organizar-meu-ambiente-python-a16e2479b753" target="_blank">Guia definitivo para organizar meu ambiente Python</a></li>
+<li><a href="https://replit.com/talk/learn/Flask-Tutorial-Part-1-the-basics/26272" target="_blank">Flask no Replit</a></li>
+<li><a href="https://docs.microsoft.com/pt-br/windows/wsl/install" target="_blank">WSL no Windows</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Novidades" duration="0">
+        <h2 is-upgraded>Novidades do Python 3.8</h2>
+<p>Vamos conhecer a versão 3.8 no Python. A nova versão apresenta novas funcionalidades, entre elas estão as expressões de atribuição e os parâmetros apenas posicionais.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://www.edivaldobrito.com.br/python-3-8-lancado-com-expressoes-de-atribuicao-e-mais/" target="_blank">Python 3.8 lançado com expressões de atribuição e mais</a></li>
+<li><a href="https://docs.python.org/pt-br/3/whatsnew/3.8.html" target="_blank">O que há de novo no Python 3.8</a></li>
+</ul>
+<h2 is-upgraded>Novidades do Python 3.9</h2>
+<p>Vamos conhecer a versão 3.9 no Python. A nova versão apresenta novas funcionalidades, entre elas estão os operadores de mesclagem &amp; atualização de dicionário e novos métodos de strings para remover prefixos e sufixos.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://docs.python.org/pt-br/3/whatsnew/index.html" target="_blank">O que há de novo no Python 3.9</a></li>
+<li><a href="https://cibersistemas.pt/tecnologia/atualizacoes-do-python-3-9-explicadas-com-exemplos-praticos-de-codigo/" target="_blank">Atualizações do Python 3.9 explicadas com exemplos práticos de código</a></li>
+<li><a href="https://www.edivaldobrito.com.br/python-3-9-lancado-com-melhorias-em-multiprocessamento-e-novo-analisador/" target="_blank">Python 3.9 lançado com melhorias em multiprocessamento e novo analisador</a></li>
+</ul>
+<h2 is-upgraded>Novidades do Python 3.10</h2>
+<p>Vamos conhecer a versão 3.10 no Python. A nova versão apresenta novas funcionalidades, entre elas estão a correspondência de padrões estruturais e gerenciadores de contexto entre parênteses.</p>
+<p><code>Materiais de Referência</code>:</p>
+<ul>
+<li><a href="https://docs.python.org/pt-br/3.10/whatsnew/index.html" target="_blank">O que há de novo no Python 3.10</a></li>
+<li><a href="https://towardsdatascience.com/whats-new-in-python-3-10-a757c6c69342" target="_blank">What&#39;s New in Python 3.10?</a></li>
+<li><a href="https://www.infoworld.com/article/3617460/whats-new-in-python-310.html" target="_blank">What&#39;s new in Python 3.10</a></li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Discussões" duration="0">
+        <p>As discussões para atualizações e sugestões aprovadas foram realizadas aqui:</p>
+<ul>
+<li><a href="https://github.com/codaqui/institucional-trilhas-estudos/pull/6" target="_blank">Atualização 1 - PR#6</a></li>
+<li><a href="https://github.com/codaqui/institucional-trilhas-estudos/pull/7" target="_blank">Atualização 2 - PR#7</a></li>
+<li><a href="https://github.com/codaqui/institucional/pull/78" target="_blank">Atualização 3 - PR#78</a></li>
+</ul>
+<p>Se você deseja alterar algo, inicie uma nova discussão <a href="https://github.com/orgs/codaqui/discussions/new/choose" target="_blank">clicando aqui.</a></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Bibliografia" duration="0">
+        <p>Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e posteriormente a <a href="https://github.com/melissarr" target="_blank">@melissarr</a> fez um trabalho de agrupamento e pesquisa dessa trilha em diversos portais. A partir desse trabalho de agrupamento e pesquisa da <a href="https://github.com/melissarr" target="_blank">@melissarr</a>:</p>
+<ul>
+<li><a href="https://github.com/pedrocvaranda" target="_blank">@pedrocvaranda</a> organizou os tópicos &#34;Introdução à linguagem Python&#34;, &#34;Variáveis e Tipos de Dados em Python&#34;, &#34;Estruturas Lógicas e Condicionais em Python&#34;, &#34;Estruturas de Repetição em Python&#34; e uma parte da &#34;Bibliografia&#34;.</li>
+<li><a href="https://github.com/melissarr" target="_blank">@melissarr</a> organizou os tópicos: &#34;Debugando e Tratando erros&#34;, &#34;Trabalhando com Módulos Python&#34; e &#34;Leitura e Escrita em Arquivos&#34;.</li>
+<li><a href="https://github.com/kamisinha" target="_blank">@kamisinha</a> organizou os tópicos: &#34;Novidades do Python 3.8&#34;, &#34;Novidades do Python 3.9&#34; e &#34;Novidades do Python 3.10&#34;.</li>
+<li><a href="https://github.com/LuizFernando-TC" target="_blank">@LuizFernando-TC</a> organizou os tópicos: &#34;Iteradores e Geradores Python&#34;, &#34;Encerramento&#34;, &#34;Gerenciamento de Memória em Python&#34; e &#34;Checagem de Tipos em Python&#34;. Ajudou a criar resumos de diversas categorias,</li>
+<li><a href="https://github.com/isiezz" target="_blank">@isiezz</a> organizou os tópicos: &#34;Manipulando Arquivos CSV e JSON&#34;, &#34;Trabalhando com Data e Hora em Python&#34; e &#34;Testes com Python&#34;.</li>
+<li><a href="https://github.com/caiodocoduiguin" target="_blank">@caiodocoduiguin</a> organizou os tópicos: &#34;Coleções Python&#34;, &#34;Funções em Python&#34;, &#34;Comprehensions em Python&#34; e &#34;Expressões Lambdas e Funções Integradas&#34;.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Certificação Codaqui" duration="0">
+        <p class="image-container"><img src="img/72a4b377fa4e2a5a.png"></p>
+<aside class="special"><p> Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se <a href="https://classroom.github.com/a/NxcWpy-1" target="_blank">clicando aqui.</a></p>
+</aside>
+<p>Recomendamos que estude antes de se inscrever, e caso tenha qualquer dúvida entre em contato por e-mail <a href="mailto:contato@codaqui.dev" target="_blank">contato@codaqui.dev</a></p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/claat-public/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/prettify.js"></script>
+  <script src="https://storage.googleapis.com/claat-public/codelab-elements.js"></script>
+  <script src="//support.google.com/inapp/api.js"></script>
+
+</body>
+</html>
