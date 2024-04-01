@@ -60,6 +60,16 @@ São estruturas que permitem a execução de instruções repetidas vezes, até 
 
 Em casos de repetição de comandos, ou um conjunto, é normal que se use "laços de repetiçao" que executam um bloco de códigos repetidas vezes, enquanto certa condição é atendida.
 
+`Exempls`:
+
+* Como percorrer uma lista de palavras.
+
+```python
+lista_de_palavras = ["Palavra1", "Palavra2"]
+for palavra in lista_de_palavras:
+    print(palavra)
+```
+
 `Materiais de Referência`:
 
 - [Estruturas de Repetição - DevMedia](https://www.devmedia.com.br/estruturas-de-repeticao-em-python/41551)
