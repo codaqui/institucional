@@ -47,6 +47,73 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 ### 4 - Estruturas Lógicas e Condicionais em Python
 As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
 
+Estruturas condicionais em Python é um recurso muito utilizado, sendo até mesmo frequentemente usado  na programação de qualquer projeto.
+
+O que é estrutura condicional em python?
+
+A estrutura condicional é uma seção que ajuda a definir condições para a execução de algum algoritmo, ao invés de executar tudo de uma vez, sem nenhuma interrupção, o programa realiza verificações e valida as condições impostas pelo programador.
+
+É como uma bifurcação, um momento importante para realizar a tomada de decisão. Nesse caso, essa decisão é resultado de alguma análise, de comparação.
+
+Funciona da seguinte maneira: Se essa condição X for satisfeita, execute esse bloco;senão execute outro bloco de comando.
+
+Em um fluxograma conseguimos visualizar melhor como ficaria esse caso.
+
+Estruturas condicionais no código
+
+Na linguagem de programação Python a estrutura condicional é representada por “IF” e “ELSE”, Esses dois termos vem originalmente da língua inglesa, que em português o “IF” significa “SE” ,e “ELSE” significa “SENÃO”.
+Desta forma talvez possa facilitar a sua compreensão ao ler o código escrito de Python.
+
+```python3
+Em Python podemos escrever da seguinte maneira a estrutura condicional “IF” e “ELSE”
+
+IF (Condição onde o resultado tem que ser um valor booleano):
+	Resultado da condição caso o resultado for verdadeiro
+ELSE:
+Resultado da condição caso o resultado for falso
+```
+
+Em Python podemos ramificar a condição para mais de dois resultados utilizando o “ELIF”. O “ELIF” é uma estrutura intermediária dentro da seção if-else no python, quando você já tem um “IF” e um “ELSE”, ao invés de criar mas if-else você apenas adiciona o “ELIF” entre eles para especificar alguma outra regra.
+
+Como exemplo ficaria desta forma:
+
+```python3
+IF (Condição onde o resultado tem que ser um valor booleano):
+	Resultado da condição caso o resultado for verdadeiro
+ELIF (Segunda condição onde o resultado retorna verdadeiro):
+	Resultado da segunda condição quando verdadeira
+ELSE:
+Resultado da condição caso o resultado for falso
+```
+Expressões booleanas
+
+Uma expressão booleana é uma expressão que pode ser verdadeira ou falsa. Como os exemplos seguintes
+
+```python3
+type(true)
+retorna bool
+type(false)
+retorna bool
+```
+
+É importante ressaltar que True e False são do tipo booleano e não strings
+O operador == é um dos operadores relacionais
+
+```python3
+5 == 5
+# retorna true
+5 == 6
+retorna false
+```
+
+Neste exemplo ele compara se um valor é igual ao outro e retorna um valor booleano
+Embora essas operações sejam familiares para você, os símbolos do python são diferentes dos símbolos matemáticos. Um erro muito comum é colocar apenas um sinal de (=) ao invés de um sinal duplo (==). Lembre-se que o (=) é um operador de atribuição e o (==) é um operador relacional.
+
+Mais alguns exemplos de expressões booleanas
+
+
+
+
 `Materiais de Referência`:
 
 - [Estruturas e Condicionais - #Treinamentos](https://www.hashtagtreinamentos.com/estruturas-condicionais-no-python)
