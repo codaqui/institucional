@@ -51,6 +51,7 @@ go install github.com/googlecodelabs/tools/claat@latest
 # Export Codelabs
 path="python-101.md"
 claat export $path
+bash ../scripts/adjust-index.sh ./python-101/index.html
 
 # Open the index.html generated and do not commit that file
 ```
