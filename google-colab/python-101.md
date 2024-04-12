@@ -58,9 +58,19 @@ As estruturas condicionais permitem que um programa execute diferentes comandos 
 
 ## Estruturas de Repetição em Python
 
-Estruturas de repetição são estruturas que permitem a execução de instruções repetidas vezes, até que uma condição seja atingida.
+São estruturas que permitem a execução de instruções repetidas vezes, até que uma condição seja atingida.
 
-Estruturas de repetição é uma estrutura lógica que permite executar mais de uma vez o mesmo comando ou conjunto de comandos, podendo ser utilizada para repetir um mesmo processamento até que a condição seja satisfeita ou até mesmo para repetir ações semelhantes que são executadas para todos os elementos de uma lista de dados. As estruturas de repetição vão fazer alguma tarefa repetitiva de forma automática.
+Em casos de repetição de comandos, ou um conjunto, é normal que se use "laços de repetiçao" que executam um bloco de códigos repetidas vezes, enquanto certa condição é atendida.
+
+`Exempls`:
+
+* Como percorrer uma lista de palavras.
+
+```python
+lista_de_palavras = ["Palavra1", "Palavra2"]
+for palavra in lista_de_palavras:
+    print(palavra)
+```
 
 `Materiais de Referência`:
 
@@ -361,6 +371,7 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 <img src="./assets/python-101/certificado-python.png">
 
 > aside positive
-> Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](https://classroom.github.com/a/NxcWpy-1)
+> Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](#)
+> Nosso certificado encontra-se em manutenção!
 
 > Recomendamos que estude antes de se inscrever, e caso tenha qualquer dúvida entre em contato por e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev)
