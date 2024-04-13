@@ -22,7 +22,7 @@ No menu esquerdo você pode ir avançando nos topicos de estudos e ao final de m
 ![iframe][code][1.html]
 
 > aside negative
-> Recomendamos que se o editor de código não for exibido, você pode tentar apertar algumas vezes a seta para CIMA e para BAIXO em seu teclado, ou rolar a página. Isso é um BUG conhecido e estamos corrigindo.
+> Recomendamos que se o editor de código (conteúdo acima) não for exibido, você pode tentar apertar algumas vezes a seta para CIMA e para BAIXO em seu teclado, ou rolar a página. Isso é um BUG conhecido e estamos corrigindo.
 
 A partir dessa caixa será possível colocar em prática o que foi aprendido no tópico e também se preparar para a certificação.
 
@@ -34,17 +34,18 @@ A partir dessa caixa será possível colocar em prática o que foi aprendido no 
 
 - [Apresentando a Linguagem de Programação Python](https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python)
 
-## Introdução à linguagem Python
-
-Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
-
-<video id="3J1xBL7zJXg"></video>
-
-`Materiais de Referência`:
-
 - [Introdução - Python BR](https://python.org.br/introducao/)
 
+## Introdução à linguagem Python
+Duration: 0:30:00
+
+Gosta de estudar com vídeos? Esse é um video do [Programador Python](https://www.youtube.com/@programadorpython) de quase 30 minutos! Vai apresentar um conceito geral da linguagem! Recomendamos ir para o próximo tópico e salvar esse vídeo como referência para mais tarde.
+
+<video id="3J1xBL7zJXg"></video>`
+
+
 ## Variáveis e Tipos de Dados em Python
+Duration: 0:10:00
 
 Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
