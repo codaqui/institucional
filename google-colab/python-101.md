@@ -22,7 +22,7 @@ No menu esquerdo você pode ir avançando nos topicos de estudos e ao final de m
 ![iframe][code][1.html]
 
 > aside negative
-> Recomendamos ao não ser exibido o editor de código que você aperta a seta para BAIXO no seu teclado, ou role a página para baixo.
+> Recomendamos que se o editor de código não for exibido, você pode tentar apertar algumas vezes a seta para CIMA e para BAIXO em seu teclado, ou rolar a página. Isso é um BUG conhecido e estamos corrigindo.
 
 A partir dessa caixa será possível colocar em prática o que foi aprendido no tópico e também se preparar para a certificação.
 
