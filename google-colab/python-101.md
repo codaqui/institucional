@@ -10,8 +10,21 @@ analytics_ga4_account: G-HT7G6WDWHT
 # Python 101 - Aprendendo Python
 
 ## Apresentação
+Duration: 0:01:00
+
 Python é uma linguagem de programação Open-Source (código aberto) de propósito geral usado bastante em data science, machine learning, desenvolvimento de web, desenvolvimento de aplicativos, automação de scripts, fintechs e mais.
 Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
+
+### Como funciona estudar com a Codaqui?
+
+No menu esquerdo você pode ir avançando nos topicos de estudos e ao final de muitos tópicos verá uma caixa como a seguinte:
+
+![iframe][code][1.html]
+
+> aside negative
+> Recomendamos ao não ser exibido o editor de código que você aperta a seta para BAIXO no seu teclado, ou role a página para baixo.
+
+A partir dessa caixa será possível colocar em prática o que foi aprendido no tópico e também se preparar para a certificação.
 
 `Materiais de Referência`:
 
@@ -20,8 +33,6 @@ Essa linguagem de programação foi lançada por Guido van Rossum em 1991.
 - [WikiPython Brasil - Apresentação](https://wiki.python.org.br/PythonApresentacao)
 
 - [Apresentando a Linguagem de Programação Python](https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python)
-
-![iframe][code][1.html]
 
 ## Introdução à linguagem Python
 
@@ -340,14 +351,7 @@ Vamos conhecer a versão 3.10 no Python. A nova versão apresenta novas funciona
 `Materiais de Referência`:
 
 - [O que há de novo no Python 3.10](https://docs.python.org/pt-br/3.10/whatsnew/index.html)
-
-- [What’s New in Python 3.10?](https://towardsdatascience.com/whats-new-in-python-3-10-a757c6c69342)
-
-- [What’s new in Python 3.10](https://www.infoworld.com/article/3617460/whats-new-in-python-310.html)
-
-## Discussões
-
-As discussões para atualizações e sugestões aprovadas foram realizadas aqui:
+> aside negativeizadas aqui:
 
 - [Atualização 1 - PR#6](https://github.com/codaqui/institucional-trilhas-estudos/pull/6)
 - [Atualização 2 - PR#7](https://github.com/codaqui/institucional-trilhas-estudos/pull/7)
@@ -372,6 +376,8 @@ Inicialmente a trilha de conteúdos usada foi do curso do Geek University, e pos
 
 > aside positive
 > Você deseja obter a certificação Codaqui para trilha de desenvolvimento em Python? Inscreva-se [clicando aqui.](#)
+
+> aside negative
 > Nosso certificado encontra-se em manutenção!
 
 > Recomendamos que estude antes de se inscrever, e caso tenha qualquer dúvida entre em contato por e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev)
