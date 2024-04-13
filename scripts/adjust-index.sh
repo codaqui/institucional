@@ -81,7 +81,8 @@ while IFS= read -r line; do
     TEMP_FILE="${BASH_REMATCH[1]}"
     FINAL_FILE="$FINAL_FOLDER/$TEMP_FILE"
     FILE_CONTENT=$(cat $FINAL_FILE)
-    head -n $COUNTER $file > temp.txt
+    COUNTER_WITHOUT_LINE=$(($COUNTER-1))
+    head -n $COUNTER_WITHOUT_LINE $file > temp.txt
     echo "$FILE_CONTENT" >> temp.txt
     tail -n +$((COUNTER+1)) $file >> temp.txt
     mv temp.txt $file
