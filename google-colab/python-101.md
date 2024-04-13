@@ -34,17 +34,18 @@ A partir dessa caixa será possível colocar em prática o que foi aprendido no 
 
 - [Apresentando a Linguagem de Programação Python](https://www.slideshare.net/MayogaX/apresentando-a-linguagem-de-programao-python)
 
-## Introdução à linguagem Python
-
-Nos links disponíveis abaixo será feita uma introdução da linguagem de programação Python.
-
-<video id="3J1xBL7zJXg"></video>
-
-`Materiais de Referência`:
-
 - [Introdução - Python BR](https://python.org.br/introducao/)
 
+## Introdução à linguagem Python
+Duration: 0:30:00
+
+Gosta de estudar com vídeos? Esse é um video do [Programador Python](https://www.youtube.com/@programadorpython) de quase 30 minutos! Vai apresentar um conceito geral da linguagem! Recomendamos ir para o próximo tópico e salvar esse vídeo como referência para mais tarde.
+
+<video id="3J1xBL7zJXg"></video>`
+
+
 ## Variáveis e Tipos de Dados em Python
+Duration: 0:10:00
 
 Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
