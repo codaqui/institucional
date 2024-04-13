@@ -26,7 +26,7 @@ No menu esquerdo você pode ir avançando nos topicos de estudos e ao final de m
 
 A partir dessa caixa será possível colocar em prática o que foi aprendido no tópico e também se preparar para a certificação.
 
-`Materiais de Referência`:
+### Materiais de Referência:
 
 - [Introdução a Programação Python - IFSP](http://antigo.scl.ifsp.edu.br/portal/arquivos/2016.05.04_Apostila_Python_-_PET_ADS_S%C3%A3o_Carlos.pdf)
 
