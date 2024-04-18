@@ -56,7 +56,7 @@ Funciona da seguinte maneira: Se essa condição X for satisfeita, execute esse 
 
 Em um fluxograma conseguimos visualizar melhor como ficaria esse caso.
 
-**Foto do fluxograma**
+<img src="./assets/python-101/estrutura de condicionais.png">
 
 **Estruturas condicionais no código**
 
