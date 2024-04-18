@@ -47,6 +47,12 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
 ### 4 - Estruturas Lógicas e Condicionais em Python
 As estruturas condicionais permitem que um programa execute diferentes comandos de acordo com as condições estabelecidas. Aqui, estudaremos suas aplicações e formatos.
 
+Estruturas condicionais em Python é um recurso muito utilizado, sendo até mesmo frequentemente usado  na programação de qualquer projeto.
+
+O que é estrutura condicional em python?
+
+A estrutura condicional é uma seção que ajuda a definir condições para a execução de algum algoritmo, ao invés de executar tudo de uma vez, sem nenhuma interrupção, o programa realiza verificações e valida as condições impostas pelo programador.
+
 `Materiais de Referência`:
 
 - [Estruturas e Condicionais - #Treinamentos](https://www.hashtagtreinamentos.com/estruturas-condicionais-no-python)
