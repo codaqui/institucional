@@ -63,11 +63,4 @@ Acesse nossa comunidade do Whatsapp para interagir, utilize o Discord ou o Worka
 
     [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
 
-
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
-
-    ---
-
-    [![Logo do WorkAdventure](https://workadventu.re/wp-content/themes/wokadventure/assets/img/logos/logo-dark-full.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
-
 </div>
