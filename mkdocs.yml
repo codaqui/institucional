@@ -20,6 +20,24 @@ nav:
       - "#QueroApoiar": quero/apoiar.md
       - "#QueroMentoria": quero/mentoria.md
     - Trilhas: trilhas.md
+    - "Trilha: Python":
+      - "Apresentação": trilhas/python/index.md
+      - "Aula 1: Variáveis e Tipos de Dados": trilhas/python/page-1.md
+      - "Aula 2: Estruturas Lógicas e Condicionais": trilhas/python/page-2.md
+      - "Aula 3: Estruturas de Repetição": trilhas/python/page-3.md
+      - "Aula 4: Coleções": trilhas/python/page-4.md
+      - "Aula 5: Funções": trilhas/python/page-5.md
+      - "Aula 6: Comprehensions": trilhas/python/page-6.md
+      - "Aula 7: Expressões Lambdas e Funções Integradas": trilhas/python/page-7.md
+      - "Aula 8: Debugando e Tratando Erros": trilhas/python/page-8.md
+      - "Aula 9: Trabalhando com Módulos": trilhas/python/page-9.md
+      - "Aula 10: Manipulação de Arquivos": trilhas/python/page-10.md
+      - "Aula 11: Iteradores e Geradores": trilhas/python/page-11.md
+      - "Aula 12: Decoradores": trilhas/python/page-12.md
+      - "Aula 13: Orientação a Objetos": trilhas/python/page-13.md
+      - "Aula 14: Herança e Polimorfismo": trilhas/python/page-14.md
+      - "Aula 15: Testes": trilhas/python/page-15.md
+      - "Aula 16: Novidades": trilhas/python/page-16.md
     - Blog:
       - blog/index.md
     - Contato: contact.md

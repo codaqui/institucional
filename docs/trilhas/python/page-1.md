@@ -1,4 +1,17 @@
-<div data-datacamp-exercise data-langte="python">
+<script type="text/javascript" src="https://cdn.datacamp.com/dcl-react.js.gz"></script>
+<script>
+initAddedDCLightExercises();
+</script>
+
+# Variáveis e Tipos de Dados em Python
+
+## Resumo
+
+Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
+
+## Playground
+
+<div data-datacamp-exercise data-lang="python">
 	<code data-type="pre-exercise-code">
 		texto = "Hello World!"
         number = 42
@@ -7,7 +20,6 @@
         false_or_true = False
         lista_de_numeros = [1, 2, 3, 4, 5]
         dicionario = {"nome": "João", "idade": 25}
-
 	</code>
 	<code data-type="sample-code">
 		# Remova o # das linhas e verifique o valores das variáveis!
@@ -48,5 +60,5 @@
 		test_function("print")
 		success_msg("Parabéns! Você imprimiu as variáveis e seus tipos!")
 	</code>
-	<div data-type="hint">Remova o # da segunda linha, e veja a mágica acontecer!</div>
+	<div data-type="hint">Remova o # das linhas, e veja como se comportam as variáveis!</div>
 </div>
