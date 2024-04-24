@@ -1,12 +1,4 @@
-author: LuizFernando-TC
-summary: Introdução ao GitHub
-id: github-101
-categories: github, 101-category
-environments: Web
-status: Published
-feedback link: https://github.com/orgs/codaqui/discussions/new/choose
-analytics_ga4_account: G-HT7G6WDWHT
-# GitHub 101 - Aprendendo GitHub
+# Aprendendo GitHub
 
 ## 🤓 Visão geral do curso e resultados de aprendizado
 
@@ -118,19 +110,22 @@ Você pode conferir o site do GitHub Explore [em github.com/explore](https://git
 
 Acesse o site de registro [clicando aqui.](https://github.com/signup?source=login), preencha os campos necessários e você vai ser capaz de criar a sua conta e utilizar no GitHub.
 
-![Tela de Registro do GitHub](./assets/github-101/tela-registro-github.png)
+![Tela de Registro do GitHub](../assets/tela-registro-github.png)
 
 Será solicitado que você encontre um código no seu e-mail para confirmar a validade.
 
-![Tela de Registro do GitHub solicitando um Código](./assets/github-101/tela-registro-github-parte2.png)
+![Tela de Registro do GitHub solicitando um Código](../assets/tela-registro-github-parte2.png)
 
 ### Crie o seu primeiro repositório
-
-<img src="./assets/github-101/criando-novo-repositorio.webm">
+<figure class="video_container">
+  <video src="../assets/criando-novo-repositorio.webm" controls>
+</figure>
 
 ### Edite seu arquivo utilizando um Pull Request
 
-<img src="./assets/github-101/criando-primeiro-pr.webm">
+<figure class="video_container">
+  <video src="../assets/criando-primeiro-pr.webm" controls>
+</figure>
 
 ### Edite o seu arquivo README.md
 

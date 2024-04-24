@@ -38,6 +38,9 @@ nav:
       - "Aula 14: Herança e Polimorfismo": trilhas/python/page-14.md
       - "Aula 15: Testes": trilhas/python/page-15.md
       - "Aula 16: Novidades": trilhas/python/page-16.md
+    - "Trilha: GitHub":
+      - "Apresentação": trilhas/github/index.md
+      - "Aula 1: Introdução ao Git": trilhas/github/page-1.md
     - Blog:
       - blog/index.md
     - Contato: contact.md
