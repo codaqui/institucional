@@ -49,6 +49,8 @@ Duration: 0:10:00
 
 Uma variável é um espaço na memória do computador destinado a um dado que é alterado durante a execução do algoritmo. Para funcionar corretamente, as variáveis precisam ser definidas por nomes e tipos. Nesta aula iremos estudar os tipos de variáveis e suas diferenças.
 
+![iframe][code][2.html]
+
 `Materiais de Referência`:
 
 - [Tipos de Dados - Algorítimos em Python](https://algoritmosempython.com.br/cursos/programacao-python/tipos-basicos/)
