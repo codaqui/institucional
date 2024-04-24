@@ -33,7 +33,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Estude `Python` de forma autônoma e acesse nosso discord caso precise de ajuda!
 
-    [:octicons-arrow-right-24: Começar](../trilhas/)
+    [:octicons-arrow-right-24: Começar](../trilhas.md)
 
 -   :fontawesome-brands-github:{ .lg .middle } __GitHub__
 
@@ -41,7 +41,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
     Se possui dúvidas, pode começar com a Trilha de `GitHub` e depois veja as outras.
 
-    [:octicons-arrow-right-24: Começar](../trilhas/)
+    [:octicons-arrow-right-24: Começar](../trilhas.md)
 
 </div>
 

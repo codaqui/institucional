@@ -17,7 +17,7 @@ A Codaqui é uma instituição educacional inovadora que adota a metodologia Git
 
     Estude `Python` de forma autônoma e acesse nosso discord caso precise de ajuda!
 
-    [:octicons-arrow-right-24: Começar](/google-colab/python-101/)
+    [:octicons-arrow-right-24: Começar](trilhas/python/index.md)
 
 -   :fontawesome-brands-github:{ .lg .middle } __GitHub 101__
 
@@ -25,7 +25,7 @@ A Codaqui é uma instituição educacional inovadora que adota a metodologia Git
 
     Se possui dúvidas, pode começar com a Trilha de `GitHub` e depois veja as outras.
 
-    [:octicons-arrow-right-24: Começar](/google-colab/github-101/)
+    [:octicons-arrow-right-24: Começar](trilhas/github/index.md)
 
 -   ::material-office-building-cog:{ .lg .middle } __Construção__
 
