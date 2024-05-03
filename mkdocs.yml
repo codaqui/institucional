@@ -48,7 +48,8 @@ nav:
       - "Aula 4.2: Solução da Tarefa 2": trilhas/github/page-6.md
       - "Aula 4.3: Solução da Tarefa 3": trilhas/github/page-7.md
       - "Aula 5: Recursos e Referências": trilhas/github/page-8.md
-
+    - Projetos:
+      - projetos.md
     - Blog:
       - blog/index.md
     - Contato: contact.md
