@@ -72,21 +72,13 @@ mv temp.txt $file
 # After. Catch the content of ./coding/python-101/1.html and put replace the tag for all the file
 
 COUNTER=1
+LINES=()
 while IFS= read -r line; do
   # Check if the line contains ![iframe][code][file]
   TEMP_REGEX='\!\[iframe\]\[code\]\[(.*?)\]'
   if [[ $line =~ $TEMP_REGEX ]]; then
     FOLDER=$(echo $file | awk -F'/' '{print $2}')
-    FINAL_FOLDER="./google-colab/coding/$FOLDER"
-    TEMP_FILE="${BASH_REMATCH[1]}"
-    FINAL_FILE="$FINAL_FOLDER/$TEMP_FILE"
-    FILE_CONTENT=$(cat $FINAL_FILE)
-    COUNTER_WITHOUT_LINE=$(($COUNTER-1))
-    head -n $COUNTER_WITHOUT_LINE $file > temp.txt
-    echo "$FILE_CONTENT" >> temp.txt
-    tail -n +$((COUNTER+1)) $file >> temp.txt
-    mv temp.txt $file
-    sed -i "s|$line||g" "$file"
+    LINES+=("$COUNTER")
   fi
   COUNTER=$((COUNTER+1))
 done < "$file"

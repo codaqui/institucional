@@ -10,7 +10,7 @@ Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), s
 
 Você quer ajudar a Codaqui? Você pode iniciar uma nova [Discussão](https://github.com/codaqui/institucional/discussions), ou uma Issue referente a algo pontual [por aqui](https://github.com/codaqui/institucional/issues/new/choose). Você também pode visualizar as Issues/Discussões já existentes e interagir com a comunidade.  
 
-Leia nosso documento completo sobre como apoiar a comunidade [clicando aqui.](https://www.codaqui.dev/quero/apoiar/) =]
+Leia nosso documento completo sobre como apoiar a comunidade [clicando aqui.](https://www.codaqui.dev/quero/apoiar/) 😁
 
 ## Espaços de Discussão
 
