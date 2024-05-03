@@ -41,6 +41,14 @@ nav:
     - "Trilha: GitHub":
       - "Apresentação": trilhas/github/index.md
       - "Aula 1: Introdução ao Git": trilhas/github/page-1.md
+      - "Aula 2: Entendendo o fluxo do GitHub": trilhas/github/page-2.md
+      - "Aula 3: Termos do GitHub": trilhas/github/page-3.md
+      - "Aula 4: Tarefas": trilhas/github/page-4.md
+      - "Aula 4.1: Solução da Tarefa 1": trilhas/github/page-5.md
+      - "Aula 4.2: Solução da Tarefa 2": trilhas/github/page-6.md
+      - "Aula 4.3: Solução da Tarefa 3": trilhas/github/page-7.md
+      - "Aula 5: Recursos e Referências": trilhas/github/page-8.md
+
     - Blog:
       - blog/index.md
     - Contato: contact.md
