@@ -12,7 +12,7 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
 ## Voluntários
 
-< class="grid cards" style="text-align: center;" markdown>
+<div class="grid cards" style="text-align: center;" markdown>
 
 -   __Enderson Menezes__
 
@@ -76,15 +76,21 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/Amad3eu/) [:simple-github:](https://github.com/Amad3eu)
 
 -   __Ana Carolyne__
+
     ---
     <img src="https://avatars.githubusercontent.com/u/111382055?v=4" alt="Foto de Ana Carolyne" width="150" height="150"/>
+
     <small>Voluntária</small>
+
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/ana-carolyne-%F0%9F%8F%B3%EF%B8%8F%E2%80%8D%F0%9F%8C%88-952b9314b/) [:simple-github:](https://github.com/anadevti)
 
 -   __Guilherme Siquinelli__
+
     ---
     <img src="https://avatars.githubusercontent.com/u/5638096?v=4" alt="Foto de Guilherme Siquinelli" width="150" height="150"/>
+
     <small>Mentor</small>
+    
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/guilherme-siquinelli/) [:simple-github:](https://github.com/guiseek)
 
 </div>
