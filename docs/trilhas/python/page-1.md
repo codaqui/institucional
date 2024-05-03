@@ -38,7 +38,6 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
         # print(type(false_or_true))
         # print(type(lista_de_numeros))
         # print(type(dicionario))
-
 	</code>
 	<code data-type="solution">
 		print(texto)
@@ -48,7 +47,6 @@ Uma variável é um espaço na memória do computador destinado a um dado que é
         print(false_or_true)
         print(lista_de_numeros)
         print(dicionario)
-
         print(type(texto))
         print(type(number))
         print(type(true_or_false))
