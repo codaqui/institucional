@@ -19,7 +19,7 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 | ----- | ------ | ---- | --------------- |
 | DevOps e Iniciantes | Enderson Menezes | Conversar sobre carreira em tecnologia, dia a dia, ferramentas, dicas e atividades de projetos para acompanhamento. | Quarta das 19h às 21h |
 | Frontend e Arquitetura | Guilherme Siquinelli | Mentoria para quem está com os primeiros passos em Frontend e também para quem quer entender sobre arquitetura. | Quarta das 19h às 21h |
-| Backend e .NET | Matheus Luis | Para pessoas que desejam aprender e seguir carreira dentro do Ambiente .NET | Quarta das 19h às 21h |
+| Backend e .NET | Matheus Luis | Para pessoas que desejam aprender e seguir carreira dentro do Ambiente .NET | Segunda, Quarta e Sexta das 19h às 20h |
 
 <!-- Google Calendar Appointment Scheduling begin -->
 <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet">
