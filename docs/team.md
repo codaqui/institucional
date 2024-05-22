@@ -96,7 +96,7 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 -   __Matheus Luis__
 
     ---
-    <img src="https://avatars.githubusercontent.com/u/5638096?v=4" alt="Foto de Matheus Luis" width="150" height="150"/>
+    <img src="https://avatars.githubusercontent.com/u/66440299?v=4" alt="Foto de Matheus Luis" width="150" height="150"/>
 
     <small>Mentor</small>
 
