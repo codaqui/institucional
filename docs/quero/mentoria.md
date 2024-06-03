@@ -7,11 +7,15 @@ hide:
 
 ## Público Alvo
 
-O Projeto Quero Mentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](estudar.md) e [#QueroApoiar](apoiar.md) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
+??? info "A Codaqui é uma escola Gratuita!"
+
+    A Codaqui é uma escola gratuita de tecnologia que tem como objetivo ensinar programação e desenvolvimento de produtos tecnológicos para jovens de 12 a 17 anos. Se você possui mais de 17 anos, temos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse.
+
+O Projeto #QueroMentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](estudar.md) e [#QueroApoiar](apoiar.md) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
 
 ## Onde?
 
-As mentorias e aulas particulares serão realizadas online, através de ferramentas como Discord e WorkAdventure.
+As mentorias e aulas particulares serão realizadas online, através de ferramentas como Discord e Google Meet.
 
 ## Quero uma mentoria!
 

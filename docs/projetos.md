@@ -12,6 +12,10 @@ hide:
 
 :simple-github: [Clique aqui](https://github.com/codaqui/boletim-diario-seguranca/issues)
 
+## Projeto de Data Analytics
+
+:simple-github: [Clique aqui.](https://github.com/codaqui/dados)
+
 ---
 
 ## Secret Sharing
