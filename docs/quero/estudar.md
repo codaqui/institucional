@@ -50,6 +50,13 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 ## Cronograma 2024
 
+### Cronograma - Datas
+
+| Semestre | Início | Término |
+| ---------| -------| ------- |
+| 01/2024  | 19/02  | 30/06   |
+| 02/2024  | 06/08  | 03/12   |
+
 ### Cronograma - Locais
 
 | Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
