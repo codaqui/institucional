@@ -7,10 +7,9 @@ hide:
 
 ## Cronograma da Codaqui 2024
 
-| Modalidade | Horário | Instrutor | Plataforma/Local |
-| ---------- | ------- | --------- | ---------------- |
-| Remoto     | Segundas-feiras às 19:30 | Enderson Menezes | Discord |
-| Presencial | Terças-feiras às 15:00   | Gustavo De Mendonça | Laboratório de Informática 4° CPM | 
+Para acessar o nosso cronograma [clique aqui](quero/estudar.md).
+
+## Como encontrar nossos ambientes digitais?
 
 <div class="grid cards" markdown>
 
