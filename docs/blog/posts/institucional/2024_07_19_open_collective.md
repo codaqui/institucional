@@ -35,7 +35,7 @@ Ao fazer parte do ecossistema do Open Collective, a Codaqui terá acesso a uma r
 Os apoiadores agora podem contribuir diretamente através da página da Codaqui no Open Collective. O processo é simples e transparente, permitindo que todos acompanhem como seus recursos estão sendo utilizados.
 
 ### Novas Funcionalidades
-Com a migração, teremos acesso a recursos adicionais, como metas de financiamento, recompensas para apoiadores e integração com outras ferramentas.
+Com a migração, teremos acesso a recursos adicionais, como metas de financiamento por projeto e globais, recompensas para apoiadores e integração com outras ferramentas.
 
 ## Conclusão
 A mudança para o Open Collective é um passo importante para a Codaqui. Estamos animados com as possibilidades que essa plataforma oferece e esperamos continuar crescendo e fortalecendo nossa comunidade.
