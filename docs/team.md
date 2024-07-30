@@ -102,4 +102,14 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/causticroot/) [:simple-github:](https://github.com/causticsudo)
 
+-   __Elina Torres__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/154446327?v=4" alt="Foto de Elina Torres" width="150" height="150"/>
+
+    <small>Voluntária</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/elina-torres/) [:simple-github:](https://github.com/elinatorresn)
+
+
 </div>
