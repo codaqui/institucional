@@ -102,6 +102,14 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/causticroot/) [:simple-github:](https://github.com/causticsudo)
 
+-   __Ivo Batistela__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/5186894?v=4" alt="Foto de Ivo Batistela" width="150" height="150"/>
+
+    <small>Mentor</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/byivo/) [:simple-github:](https://github.com/byivo)
 
 -   __Rebecca Ignácio__
 
