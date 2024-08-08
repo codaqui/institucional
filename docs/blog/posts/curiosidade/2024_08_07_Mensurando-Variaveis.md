@@ -34,15 +34,13 @@ Vídeos:
 
 ### Imagem de exemplo, endereçamento e seu funcionamento.
 
-<figure>
-<div style="display: flex; align-items: flex-start;">
-<img src="https://github.com/codaqui/institucional/assets/63540372/311fdd5f-ca81-4fc4-91f8-f859d81a5d14" style="border-radius: 10px; margin-right: 10px;">
-<figcaption style="font-style: italic;font-size: 17px; text-align: left; margin-top: 30px;">
-0x**** são endereços de<br>memória, 0x representa<br>que estão em hexadecimal.
-</figcaption>
-</div>
-</figure>
 
+![image](https://github.com/codaqui/institucional/assets/63540372/311fdd5f-ca81-4fc4-91f8-f859d81a5d14)
+
+
+```
+0x**** são endereços de memoria, 0x representa que estão em hexadecimal.
+```
 Dentro dos endereços é possível notar a presença de 8 dígitos, no quais correspondem a 0, isso é exatamente o exemplo de tamanho de variável, nesse caso uma variável de 8 bits ou 1 byte.
 
 Essa variável de 8 bits possui '2^8 = (256)' possibilidades de combinações de valores.
@@ -73,7 +71,7 @@ D --> E
 
 ### Imagem demonstração matemática binária!
 
-<img src="https://github.com/codaqui/institucional/assets/63540372/2a1acd63-26e4-4ecd-987d-15205deb34f4" style="border-radius: 10px;">
+![image](https://github.com/codaqui/institucional/assets/63540372/2a1acd63-26e4-4ecd-987d-15205deb34f4)
 
 # 
 # Extra
