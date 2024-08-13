@@ -9,7 +9,7 @@ Nosso formato de aulas em grupo é ideal para jovens de 12 a 17 anos que desejam
 
 Se você possui mais de 17 anos possuímos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse. [Acesse aqui](./mentoria.md) para saber mais.
 
-### Inscrições 2024 - 2° Semestre
+### Inscrições 2025 - 1° Semestre
 
 ??? success "Clique para abrir o formulário de inscrição!"
 
@@ -64,7 +64,6 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | 01/2024  | Remoto     | Segundas-feiras às 19:30 | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
 | 01/2024  | Presencial | Terças-feiras às 15:00   | Gustavo De Mendonça | [Laboratório de Informática 4° CPM](https://maps.app.goo.gl/dBT8RgcEZhw8y9nMA) |
 | 02/2024  | Remoto     | Terças-feiras às 19:30   | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
-| 02/2024  | Presencial | À definir                | À definir        | [Laboratório de Informática da AMTECH](https://maps.app.goo.gl/87DCJcJPze5yNFY78) |
 
 ### Cronograma - Atividades
 

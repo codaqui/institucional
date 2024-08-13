@@ -102,6 +102,7 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/causticroot/) [:simple-github:](https://github.com/causticsudo)
 
+
 -   __Estevan Bartmann Silveira__
 
     ---
@@ -110,5 +111,32 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
     <small>Voluntário</small>
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/estevan-silveira/) [:simple-github:](https://github.com/estevanbs)
+
+-   __Ivo Batistela__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/5186894?v=4" alt="Foto de Ivo Batistela" width="150" height="150"/>
+
+    <small>Mentor</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/byivo/) [:simple-github:](https://github.com/byivo)
+
+-   __Rebecca Ignácio__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/71036610?v=4" alt="Foto de Rebecca Ignácio" width="150" height="150"/>
+
+    <small>Mentora</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/rebecca-ignacio/) [:simple-github:](https://github.com/rebeccaaaaaaaaaaa)
+
+-   __Elina Torres__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/154446327?v=4" alt="Foto de Elina Torres" width="150" height="150"/>
+
+    <small>Voluntária</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/elina-torres/) [:simple-github:](https://github.com/elinatorresn)
 
 </div>
