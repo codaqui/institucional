@@ -33,6 +33,6 @@ A Codaqui é uma instituição educacional inovadora que adota a metodologia Git
 
     Estamos construindo outras trilhas e sempre tentando corrigir problemas, você pode interagir nas discussões e ver o atual estados dos documentos.
 
-    [:octicons-arrow-right-24: Ver](https://github.com/codaqui/institucional/tree/main/google-colab)
+    [:octicons-arrow-right-24: Ver](https://github.com/orgs/codaqui/discussions/new/choose)
 
 </div>
