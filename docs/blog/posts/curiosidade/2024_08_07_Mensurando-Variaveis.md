@@ -14,9 +14,11 @@ authors:
 # readtime: 10
 comments: true
 ---
-### Oque é endereçamento de memória?
+# Oque é endereçamento de memória?
 
-- Em resumo ele se refere ao processo de atribuir identificadores únicos, chamados de endereços, a locais específicos na memória de um computador. Esses endereços são utilizados para acessar e manipular dados armazenados na memória.
+Em resumo ele se refere ao processo de atribuir identificadores únicos, chamados de endereços, a locais específicos na memória de um computador. Esses endereços são utilizados para acessar e manipular dados armazenados na memória.
+
+<!-- more -->
 
 - O limite do endereçamento de memória em uma linguagem de programação depende da arquitetura do computador e do sistema operacional em que o programa está sendo executado. Em sistemas de 32 bits, o endereçamento de memória é limitado a 4 gigabytes (2^32 bytes) de memória. Já em sistemas de 64 bits, o limite é muito maior, chegando a 18.4 milhões de terabytes (2^64 bytes) de memória.
 
@@ -32,7 +34,7 @@ Vídeos:
 - [Memory addressing](https://www.youtube.com/watch?v=F-i9qPOIsoA) *- Apenas Legendado!*
 - [Endereçamento de memória](https://www.youtube.com/watch?v=G4om0r-Kgi0)
 
-### Imagem de exemplo, endereçamento e seu funcionamento.
+## Imagem de exemplo, endereçamento e seu funcionamento.
 
 
 ![image](https://github.com/codaqui/institucional/assets/63540372/311fdd5f-ca81-4fc4-91f8-f859d81a5d14)
@@ -49,8 +51,8 @@ Essa variável de 8 bits possui '2^8 = (256)' possibilidades de combinações de
   >0 a 255
   -128 a 127
 
-# 
-### Oque acontece caso exceda esses 8 bits (memory overflow)?
+
+## Oque acontece caso exceda esses 8 bits (memory overflow)?
 
 Simples, o valor estoura o limite de possibilidade, oque vai mudar é a percepção que cada linguagem, podem retornar erros ou simplesmente zerar a variável, pois ela só conta os 8 bits. 
 
@@ -58,7 +60,7 @@ Simples, o valor estoura o limite de possibilidade, oque vai mudar é a percepç
 
 - É importante ter cuidado com "memory overflows", pois eles podem levar a resultados inesperados e erros difíceis de depurar. É recomendado usar tipos de dados apropriados para o intervalo de valores que você espera armazenar, ou implementar verificações e tratamentos adequados para evitar "memory overflows".
 
-### De maneira matemática, segue esse fluxograma!
+## De maneira matemática, segue esse fluxograma!
 
 ```mermaid
 flowchart LR
@@ -69,12 +71,12 @@ B -->|É menor| E[Valor salvo na memória]
 D --> E
 ```
 
-### Imagem demonstração matemática binária!
+## Imagem demonstração matemática binária!
 
 ![image](https://github.com/codaqui/institucional/assets/63540372/2a1acd63-26e4-4ecd-987d-15205deb34f4)
 
-# 
-# Extra
+
+## Extra
 
 ### Como um hacker pode usar memory overflow como possível brecha!!
 
@@ -88,7 +90,7 @@ Um hacker pode explorar uma vulnerabilidade de memory overflow para obter acesso
 
 4. **Desvio de fluxo**: Ao corromper o fluxo de execução de um programa por meio de um estouro de memória, um hacker pode redirecionar o fluxo para áreas de código malicioso. Isso pode permitir que o hacker execute ações não autorizadas ou contorne mecanismos de segurança.
 
-#
+## Curta e Compartilhe!
 ```
 Se você chegou até aqui, peço que compartilhe com quem gosta desse tipo de conteúdo, para aumentar o engajamento e por também ser algo que é pouco falado! Meu muito obrigado!
 ```
