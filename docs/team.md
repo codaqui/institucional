@@ -102,6 +102,16 @@ A Codaqui é uma escola de programação sem fins lucrativos que apoia jovens qu
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/causticroot/) [:simple-github:](https://github.com/causticsudo)
 
+
+-   __Estevan Bartmann Silveira__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/u/53413670?v=4" alt="Foto de Estevan Bartmann Silveira" width="150" height="150"/>
+
+    <small>Voluntário</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/estevan-silveira/) [:simple-github:](https://github.com/estevanbs)
+
 -   __Ivo Batistela__
 
     ---
