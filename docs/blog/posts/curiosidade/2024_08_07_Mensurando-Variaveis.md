@@ -14,7 +14,7 @@ authors:
 # readtime: 10
 comments: true
 ---
-# Oque é endereçamento de memória?
+# O que é endereçamento de memória?
 
 Em resumo ele se refere ao processo de atribuir identificadores únicos, chamados de endereços, a locais específicos na memória de um computador. Esses endereços são utilizados para acessar e manipular dados armazenados na memória.
 
