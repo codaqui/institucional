@@ -41,14 +41,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
         run: |
-          # Git Config SSH -> HTTPS
-          git config --global url."https://".insteadOf git://
+          # Git Clone with GH
+          gh clone squidfunk/mkdocs-material-insiders
 
           # Install
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
-          python3 -m pip install git+ssh://git@github.com/squidfunk/mkdocs-material-insiders.git
+          python3 -m pip install -e mkdocs-material-insiders
 
       - name: Deploy mkdocs 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
