@@ -28,7 +28,7 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
   window.addEventListener('load', function() {
     calendar.schedulingButton.load({
       url: 'https://calendar.google.com/calendar/appointments/AcZssZ3ofYNXgj7RZo-JvhnBpBxo5kryoqul_raZzhg=?gv=true',
-      color: '#039BE5',
+      color: '#33B679',
       label: 'Agendar um compromisso',
       target,
     });
