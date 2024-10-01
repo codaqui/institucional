@@ -35,3 +35,7 @@ hide:
 :simple-github: [Clique aqui.](https://github.com/endersonmenezes/codeowners-superpowers)
 
 ---
+
+## Terraform Organization - Google Workspace
+
+:simple-github: [Clique aqui.](https://github.com/codaqui/terraform-organization)
