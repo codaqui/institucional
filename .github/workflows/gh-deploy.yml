@@ -42,7 +42,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
         run: |
           # Git Clone with GH
-          gh clone squidfunk/mkdocs-material-insiders
+          gh repo clone squidfunk/mkdocs-material-insiders
 
           # Install
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
