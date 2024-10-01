@@ -14,13 +14,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Checkout private tools
-        uses: actions/checkout@v4
-        with:
-          repository: squidfunk/mkdocs-material-insiders
-          token: ${{ secrets.GH_TOKEN_MKDOCS }}
-          path: mkdocs-material-insider
-
       - name: Some check on branch
         id: branch_check
         run: |
@@ -45,11 +38,17 @@ jobs:
           path: .cache
 
       - name: Install requirements
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
         run: |
+          # Git Config SSH -> HTTPS
+          git config --global url."https://".insteadOf git://
+
+          # Install
           sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
-          python3 -m pip install -e mkdocs-material-insider
+          python3 -m pip install git+ssh://git@github.com/squidfunk/mkdocs-material-insiders.git
 
       - name: Deploy mkdocs 🚀
         run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
