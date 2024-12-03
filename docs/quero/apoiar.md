@@ -6,6 +6,8 @@ hide:
 
 ## Apoio Financeiro
 
+[![Imagem com a quantidade de Apoiadores](https://opencollective.com/codaqui/tiers/badge.svg)](https://opencollective.com/codaqui)
+
 A Codaqui é uma comunidade sem fins lucrativos, mas precisa do apoio financeiro para manter seus projetos e infraestrutura. Nós temos atualmente uma campanha de financiamento coletivo no [Open Collective](https://opencollective.com/codaqui), onde você pode contribuir com qualquer valor mensalmente.
 
 ## Apoio Institucional
