@@ -4,38 +4,58 @@ hide:
 ---
 # Projetos
 
-## Boletim de Segurança
+<div class="grid cards" markdown>
 
-**Alunos:** [Elias Miranda](https://github.com/ArtumosGOC)
+-   :material-security:{ .lg .middle } __Boletim Diário de Segurança__
 
-**Descrição**: Todos os dias, as 10h da manhã, um bot solta um boletim com notícias sobre segurança da informação. Para receber Boletins no E-mail diariamente siga os passos [clicando aqui](https://github.com/codaqui/boletim-diario-seguranca/blob/main/README.md)!
+    ---
 
-:simple-github: [Clique aqui](https://github.com/codaqui/boletim-diario-seguranca/issues)
+    Todos os dias, as 10h da manhã, um bot solta um boletim com notícias sobre segurança da informação.
 
-## Projeto de Data Analytics
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/boletim-diario-seguranca/issues)
 
-:simple-github: [Clique aqui.](https://github.com/codaqui/dados)
+-   :material-database:{ .lg .middle } __Laboratório de Data Analytics__
 
----
+    ---
 
-## Secret Sharing
+    A Codaqui possui um laboratório para aprender Data Analytics, você pode testar os conceitos e _brincar_ com Python.
 
-:simple-github: [Clique aqui.](https://github.com/codaqui/secret-sharing)
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/dados)
 
----
+-   :material-form-textbox-password:{ .lg .middle } __Secret Sharing__
 
-## GitHub Action - FreeDiskSpace
+    ---
 
-:simple-github: [Clique aqui.](https://github.com/endersonmenezes/free-disk-space)
+    Um simples gerador e compartilhador de senhas para mostrar a capacidade do PiPing Server.
 
----
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/secret-sharing)
 
-## GitHub Action - CODEOWNERs SuperPower!
+-   :simple-github:{ .lg .middle } __GitHub Action FreeDiskSpace__
 
-:simple-github: [Clique aqui.](https://github.com/endersonmenezes/codeowners-superpowers)
+    ---
 
----
+    Uma GitHub Action que tem a capacidade de limpar o espaço em disco dos Runners SaaS do GitHub.
 
-## Terraform Organization - Google Workspace
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/endersonmenezes/free-disk-space)
 
-:simple-github: [Clique aqui.](https://github.com/codaqui/terraform-organization)
+
+-   :simple-github:{ .lg .middle } __GitHub Action FreeDiskSpace__
+
+    ---
+
+    Uma GitHub Action que aumenta o poder do arquivo `CODEOWNERS` dentro do GitHub.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/endersonmenezes/codeowners-superpowers)
+
+
+-   :simple-terraform:{ .lg .middle } __Laboratório de Terraform__
+
+    ---
+
+    Um laboratório para estudar Terraform dentro da Codaqui.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/terraform-organization)
+
+
+
+</div>
