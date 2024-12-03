@@ -7,9 +7,11 @@ hide:
 
 ## :heavy_check_mark: Objetivo
 
-Queremos democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo técnico.
+Somos uma **Associação** com o desejo de democratizar o aprendizado tecnológico e aproximar novas gerações do conteúdo técnico.
 
-Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
+A **Associação Codaqui** ajuda diretamente crianças e jovens a aprender programação enquanto desenvolvem soluções para problemas reais. Tudo sem custo algum.
+
+Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio para gestão de projetos e uma estrutura "burocrática" caso o seu projeto não a tenha.
 
 ## :fontawesome-solid-graduation-cap: Nossa solução
 
@@ -32,14 +34,30 @@ Ajudamos crianças e jovens a aprender programação enquanto desenvolvem soluç
 
     ---
 
-    Incentivamos nossos alunos a ocupar espaços públicos, estabelecendo parcerias para que todos tenham acesso a computador, internet e uma estação de estudo.
+    Incentivamos nossos membros a ocupar espaços públicos, estabelecendo parcerias para que todos tenham acesso a computador, internet e uma estação de estudo.
+
+-   :material-tally-mark-4:{ .lg .middle } __Comunidade de Comunidades__
+
+    ---
+
+    Além de todos esses benefícios, a Codaqui integra outras comunidades em sua estrutura, proporcionando oportunidades adicionais de networking e compartilhamento de conhecimento.
+
+</div>
+
+## :material-account-group: Comunidades Participantes
+
+<div class="grid cards" markdown>
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __DevParaná__
+
+    ---
+
+    [![Logo do DevParaná](https://avatars.githubusercontent.com/u/15199454?s=200&v=4){ width="100" }](https://github.com/DeveloperParana)
 
 
 </div>
 
 ## :material-google-circles-communities: Comunidade
-
-Entre para a comunidade da Codaqui e comece a estudar!
 
 <div class="grid cards" markdown>
 
@@ -54,36 +72,5 @@ Entre para a comunidade da Codaqui e comece a estudar!
     ---
 
     [![Logo do Discord](https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg)](https://discord.com/invite/xuTtxqCPpz)
-
-</div>
-
-
-## :material-family-tree: Parceiros
-
-<div class="grid cards" markdown>
-
--   :fontawesome-brands-github:{ .lg .middle } __GitHub Campus__
-
-    ---
-
-    [![Logo do GitHub Education](https://github.githubassets.com/images/modules/logos_page/GitHub-Logo.png){ width="100" }](https://education.github.com)
-
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __DevParaná__
-
-    ---
-
-    [![Logo do DevParaná](https://avatars.githubusercontent.com/u/15199454?s=200&v=4){ width="100" }](https://github.com/DeveloperParana)
-
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __WorkAdventure__
-
-    ---
-
-    [![Logo do WorkAdventure](https://workadventu.re/wp-content/themes/wokadventure/assets/img/logos/logo-dark-full.svg)](https://play.workadventu.re/@/codaqui/sala/embaixadores)
-
--   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle } __Holopin__
-
-    ---
-
-    [![Logo da Holopin](https://www.holopin.io/images/Long.svg)](https://www.holopin.io/)
 
 </div>
