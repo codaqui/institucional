@@ -3,6 +3,7 @@ title: "[CERTIFICADO] <Digite seu nome completo> "
 description: Acabei de terminar uma prova e desejo a correção do meu certificado.
 assignees:
   - endersonmenezes
+projects: ['codaqui/3']
 body:
   
   - type: checkboxes

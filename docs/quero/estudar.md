@@ -87,6 +87,15 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 _As aulas da Codaqui depois das primeiras semanas são conduzidas com projetos práticos, onde os alunos aplicam o conhecimento adquirido em aulas anteriores. Conheça alguns dos projetos mantidos pela Codaqui em: [Projetos](../projetos.md)_
 
+## Certificado 
+
+_Em desenvolvimento_
+
+1. [Aceitar o convite para iniciar o certificado](https://classroom.github.com/a/DsdcfJGG)
+2. O convite irá criar um repositório automático para você: https://github.com/codaqui/python-101-SEUNOMEDEUSUÁRIO
+3. Responda todos os exercicios, crie os arquivos necessários.
+4. Acesse o [seguinte endereço](https://github.com/codaqui/institucional/issues/new/choose), e crie em "[CERTIFICADO] Solicitação de Certificado", preencha os campos e nos comentários coloque como foi realizar os exercícios. 
+
 
 ## Plataformas Digitais
 
