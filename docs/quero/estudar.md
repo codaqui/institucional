@@ -48,37 +48,35 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 </div>
 
-## Cronograma 2024
+## Cronograma 2025
 
 ### Cronograma - Datas
 
 | Semestre | Início | Término |
 | ---------| -------| ------- |
-| 01/2024  | 19/02  | 30/06   |
-| 02/2024  | 06/08  | 03/12   |
+| 01/2025  | 10/02  | 01/07   |
+| 02/2025  | #      | #       |
 
 ### Cronograma - Locais
 
 | Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
-| 01/2024  | Remoto     | Segundas-feiras às 19:30 | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
-| 01/2024  | Presencial | Terças-feiras às 15:00   | Gustavo De Mendonça | [Laboratório de Informática 4° CPM](https://maps.app.goo.gl/dBT8RgcEZhw8y9nMA) |
-| 02/2024  | Remoto     | Terças-feiras às 19:30   | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
+| 01/2025  | Remoto     | Terças-feiras às 19:30  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
 
 ### Cronograma - Atividades
 
 | Semana | Aula | Resumo |
 | ------ | ---- | ------ |
-| 01     | Introdução à Programação | Apresentação do curso e dos alunos |
+| 01     | Introdução ao Programa da Codaqui | Apresentação do Curso + Lógica de Programação + Ferramentas |
 | 02     | Lógica de Programação | Introdução à lógica de programação com algoritmos |
-| 03     | GitHub #1 - Introdução | Introdução ao GitHub |
-| 04     | GitHub #2 - Repositórios e PullRequest | Criação de repositórios, PullRequest e apresentação Trilha de GitHub da Codaqui |
+| 03     | GitHub #1 - Introdução a Ferramenta | Introdução ao GitHub |
+| 04     | GitHub #2 - Git x GitHub | Criação de repositórios, PullRequest e apresentação Trilha de GitHub da Codaqui |
 | 05     | Python #1 - Introdução | Introdução à linguagem Python |
 | 06     | Python #2 - Variáveis e Operadores | Variáveis, operadores e tipos de dados |
 | 07     | Python #3 - Estruturas de Controle | Estruturas de controle de fluxo condições e repetições |
 | 08     | Python #4 - Funções | Funções e modularização de código |
 | 09     | Python #5 - Coleções | Listas, tuplas, dicionários e conjuntos |
-| 10     | Python #6 - Arquivos | Manipulação de Arquivos (CSV, JSON) |
+| 10     | Python #6 - Arquivos | Manipulação de Arquivos (CSV, JSON, YAML) |
 | 11     | Python #7 - Orientação a Objetos | Introdução à Programação Orientada a Objetos |
 | 12     | Python #8 - Orientação a Objetos pt 2 | Herança e Polimorfismo |
 | 13     | Python #9 - Error Handling | Tratamento de erros e exceções |
@@ -88,6 +86,15 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | 17     | Python #13 - Frameworks | Introdução a frameworks web (Flask, Django) |
 
 _As aulas da Codaqui depois das primeiras semanas são conduzidas com projetos práticos, onde os alunos aplicam o conhecimento adquirido em aulas anteriores. Conheça alguns dos projetos mantidos pela Codaqui em: [Projetos](../projetos.md)_
+
+## Certificado 
+
+_Em desenvolvimento_
+
+1. [Aceitar o convite para iniciar o certificado](https://classroom.github.com/a/DsdcfJGG)
+2. O convite irá criar um repositório automático para você: https://github.com/codaqui/python-101-SEUNOMEDEUSUÁRIO
+3. Responda todos os exercicios, crie os arquivos necessários.
+4. Acesse o [seguinte endereço](https://github.com/codaqui/institucional/issues/new/choose), e crie em "[CERTIFICADO] Solicitação de Certificado", preencha os campos e nos comentários coloque como foi realizar os exercícios. 
 
 
 ## Plataformas Digitais
