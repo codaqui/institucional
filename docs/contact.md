@@ -1,3 +1,9 @@
+---
+hide:
+  - toc
+  - navigation
+---
+
 # Contato
 
 [:material-gmail: Entre em contato por E-mail](mailto:contato@codaqui.dev){ .md-button }

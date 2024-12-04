@@ -3,6 +3,12 @@
 ## Setup
 
 ```bash
+## Create your virtual-env
+python -m venv venv
+
+## Activate your venv
+source venv/bin/activate
+
 ## Export GH_TOKEN
 export GH_TOKEN=<INSERT_YOUR_TOKEN_HERE>
 
@@ -36,26 +42,6 @@ Você pode usar o seguinte comando abaixo para enviar localmente sua versão de 
 ```
 mkdocs gh-deploy
 ```
-
-## Deploy Path's Locally
-
-```bash
-# Install GO
-sudo apt-get install golang-go
-export GOPATH="$HOME/go"
-PATH="$GOPATH/bin:$PATH"
-
-# Install Claat
-go install github.com/googlecodelabs/tools/claat@latest
-
-# Export Codelabs
-path="python-101.md"
-claat export $path
-bash ../scripts/adjust-index.sh ./python-101/index.html
-
-# Open the index.html generated and do not commit that file
-```
-
 
 ## Development Environment
 
