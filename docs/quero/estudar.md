@@ -61,7 +61,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 | Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
-| 01/2025  | Remoto     | Terças-feiras às 19:30  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
+| 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
 
 ### Cronograma - Atividades
 
@@ -91,7 +91,7 @@ _As aulas da Codaqui depois das primeiras semanas são conduzidas com projetos p
 
 _Em desenvolvimento_
 
-1. [Aceitar o convite para iniciar o certificado](https://classroom.github.com/a/DsdcfJGG)
+1. [Aceitar o convite para iniciar o certificado](https://classroom.github.com/a/jFE-cOK3)
 2. O convite irá criar um repositório automático para você: https://github.com/codaqui/python-101-SEUNOMEDEUSUÁRIO
 3. Responda todos os exercicios, crie os arquivos necessários.
 4. Acesse o [seguinte endereço](https://github.com/codaqui/institucional/issues/new/choose), e crie em "[CERTIFICADO] Solicitação de Certificado", preencha os campos e nos comentários coloque como foi realizar os exercícios. 
