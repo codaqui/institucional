@@ -61,7 +61,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 | Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
-| 01/2025  | Remoto     | Terças-feiras às 19:30  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
+| 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
 
 ### Cronograma - Atividades
 
