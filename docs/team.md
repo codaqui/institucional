@@ -78,15 +78,6 @@ Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Cod
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/byivo/) [:simple-github:](https://github.com/byivo)
 
--   __Rebecca Ignácio__
-
-    ---
-    <img src="https://avatars.githubusercontent.com/u/71036610?v=4" alt="Foto de Rebecca Ignácio" width="150" height="150"/>
-
-    <small>Mentora</small>
-
-    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/rebecca-ignacio/) [:simple-github:](https://github.com/rebeccaaaaaaaaaaa)
-
 -   __Elina Torres__
 
     ---
