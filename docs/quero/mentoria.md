@@ -43,4 +43,3 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 | Frontend e Arquitetura | Guilherme Siquinelli | Mentoria para quem está com os primeiros passos em Frontend e também para quem quer entender sobre arquitetura. | Quarta das 19h às 21h |
 | Backend e .NET | Matheus Luis | Para pessoas que desejam aprender e seguir carreira dentro do Ambiente .NET | Segunda, Quarta e Sexta das 19h às 20h |
 | Como organizar eventos na sua cidade | [Ivo Batistela](https://github.com/byivo) | Mentoria para quem quer organizar um evento na sua própria cidade | Segunda à Sexta, 18h às 18:30h |
-| Frontend e ReactJS | [Rebecca](https://github.com/orgs/codaqui/people/rebeccaaaaaaaaaaa) | Mentoria para quem quer aprender mais sobre front e também framework React | Sextas às 19h |
