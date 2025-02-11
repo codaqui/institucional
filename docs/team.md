@@ -90,7 +90,7 @@ Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Cod
 -   __Kátia Cibele__
 
     ---
-    <img src="https://avatars.githubusercontent.com/u/154446327?v=4" alt="Foto de Kátia Cibele" width="150" height="150"/>
+    <img src="https://avatars.githubusercontent.com/katiacih" alt="Foto de Kátia Cibele" width="150" height="150"/>
 
     <small>Voluntária</small>
 
