@@ -87,4 +87,13 @@ Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Cod
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/elina-torres/) [:simple-github:](https://github.com/elinatorresn)
 
+-   __Kátia Cibele__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/katiacih" alt="Foto de Kátia Cibele" width="150" height="150"/>
+
+    <small>Voluntária</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/k%C3%A1tia-cibele-r1b31ro-/) [:simple-github:](https://github.com/katiacih)
+
 </div>
