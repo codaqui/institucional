@@ -1,0 +1,13 @@
+name: "[TASK] Projeto]"
+title: "[INICIATIVA] - "
+description: Desejo criar uma task em uma iniciativa.
+assignees:
+  - endersonmenezes
+body:
+
+  - type: textarea
+    attributes:
+      label: Descrição
+      description: Forneça uma descrição detalhada da atividade..
+    validations:
+      required: true
