@@ -54,10 +54,16 @@ Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio pa
 
     [![Logo do DevParaná](https://avatars.githubusercontent.com/u/15199454?s=200&v=4){ width="100" }](https://github.com/DeveloperParana)
 
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __CamposTech__
+
+    ---
+
+    [![Logo da CamposTech](/assets/campostech.svg){ width="100" }](https://www.instagram.com/campostechpg)
+
 
 </div>
 
-## :material-google-circles-communities: Comunidade
+## :material-google-circles-communities: Links Importantes
 
 <div class="grid cards" markdown>
 
