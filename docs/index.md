@@ -61,6 +61,13 @@ Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio pa
     [![Logo da CamposTech](/assets/campostech.svg){ width="100" }](https://www.instagram.com/campostechpg)
 
 
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __ElasnoCódigo__
+
+    ---
+
+    [![Logo da Elas o código](/assets/elasnocodigo.svg){ width="100" }](https://www.instagram.com/elasnocodigo)
+
+
 </div>
 
 ## :material-google-circles-communities: Links Importantes
