@@ -18,6 +18,7 @@ comments: true
 
 # O Papel de uma SRE em Sistemas Financeiros Críticos
 
+![awesome](img/2025_04_02_ana_palestra_aws/post.jpeg)
 
 No dia 22 de março, tive a oportunidade de palestrar no **AWSOME WOMEN COMMUNITY SUMMIT BRASIL**, abordando um tema desafiador e essencial: **o papel de uma Site Reliability Engineer (SRE) em sistemas financeiros críticos**. Durante a apresentação, compartilhei experiências do meu dia a dia na Stone Pagamentos, explorando desde os bastidores (backstage) até as práticas que tornam a gestão de incidentes em ambientes críticos mais segura e eficiente.
 
