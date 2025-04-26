@@ -56,6 +56,12 @@ hide:
 
     [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/terraform-organization)
 
+-  :simple-github:{ .lg .middle } __Tutor__
 
+    ---
+
+    Uma aplicação para explorar Python e mais conceitos do mundo de Desenvolvimento.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/tutor)
 
 </div>
