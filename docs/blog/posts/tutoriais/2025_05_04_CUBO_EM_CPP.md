@@ -32,7 +32,7 @@ Este cubo serve como ponto de partida para explorações mais avançadas, como a
 
 ![Gif do Resultado, um cubo tridimensional](https://i.postimg.cc/0Qc8Z3cg/2025-05-05-18-34-10.gif)
 
-# Configuração do Ambiente para Desenvolvimento com SFML.
+# Configuração do Ambiente para Desenvolvimento com SFML
 
 ## Instalação do SFML
 
