@@ -17,6 +17,8 @@
 
 O SFML(Simple and Fast Multimedia Library) é uma biblioteca de desenvolvimento multimídia escrita em C++ que fornece uma interface simples para lidar com gráficos 2D, 3D, áudio, entrada do usuário (teclado, mouse, joystick), rede e janelas. Ele é amplamente utilizado para criar jogos, simuladores e outras aplicações gráficas devido à sua facilidade de uso, desempenho eficiente e suporte multiplataforma.
 
+<!-- more -->
+
 Se esta seção ainda não foi preenchida, você pode expandi-la explicando os principais recursos do SFML, como:
 - **Renderização gráfica**: Criação de formas, sprites, texto e outros elementos visuais.
 - **Manipulação de áudio**: Reprodução de sons e músicas.
