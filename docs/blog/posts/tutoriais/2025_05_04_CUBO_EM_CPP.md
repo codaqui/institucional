@@ -13,7 +13,26 @@
  # readtime: 10
  comments: true
  ---
-# Configuração do Ambiente para Desenvolvimento com SFML no Debian 12
+ # Oque é SFML
+
+O SFML(Simple and Fast Multimedia Library) é uma biblioteca de desenvolvimento multimídia escrita em C++ que fornece uma interface simples para lidar com gráficos 2D, 3D, áudio, entrada do usuário (teclado, mouse, joystick), rede e janelas. Ele é amplamente utilizado para criar jogos, simuladores e outras aplicações gráficas devido à sua facilidade de uso, desempenho eficiente e suporte multiplataforma.
+
+Se esta seção ainda não foi preenchida, você pode expandi-la explicando os principais recursos do SFML, como:
+- **Renderização gráfica**: Criação de formas, sprites, texto e outros elementos visuais.
+- **Manipulação de áudio**: Reprodução de sons e músicas.
+- **Gerenciamento de janelas**: Criação e controle de janelas de aplicação.
+- **Entrada do usuário**: Detecção de eventos de teclado, mouse e outros dispositivos.
+- **Rede**: Comunicação via TCP e UDP.
+
+# Projeto em questão
+
+Neste projeto, optei por criar um exemplo simples — um cubo 3D — com o objetivo de apresentar de forma prática o que é possível construir utilizando este framework. A ideia é fornecer uma base visual e acessível para quem está começando, demonstrando como estruturas tridimensionais básicas podem ser renderizadas com facilidade.
+
+Este cubo serve como ponto de partida para explorações mais avançadas, como animações, interações, iluminação e composição de cenas mais complexas. A imagem abaixo ilustra o resultado da implementação e evidenciam parte do potencial que essa ferramenta oferece para o desenvolvimento gráfico.
+
+![Gif do Resultado, um cubo tridimensional](https://i.postimg.cc/0Qc8Z3cg/2025-05-05-18-34-10.gif)
+
+# Configuração do Ambiente para Desenvolvimento com SFML.
 
 ## Instalação do SFML
 
