@@ -3,17 +3,21 @@ hide:
 ---
 # Quero Estudar!
 
+??? warning "Inscrições para o segundo semestre em breve!"
+
+    As inscrições para o segundo semestre de 2025 irão abrir em breve. Fique atento às nossas redes sociais e ao nosso site para mais informações!
+
 ## Público Alvo
 
 Nosso formato de aulas em grupo é ideal para jovens de 12 a 17 anos que desejam aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, a escola oferece uma excelente base para aqueles que têm interesse em trilhar um caminho empreendedor.
 
 Se você possui mais de 17 anos possuímos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse. [Acesse aqui](./mentoria.md) para saber mais.
 
-### Inscrições 2025 - 1° Semestre
+<!-- ### Inscrições 2025 - 1° Semestre
 
 ??? success "Clique para abrir o formulário de inscrição!"
 
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe> -->
 
 
 ## Como funciona?
@@ -55,17 +59,19 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | Semestre | Início | Término |
 | ---------| -------| ------- |
 | 01/2025  | 10/02  | 01/07   |
-| 02/2025  | #      | #       |
+| 02/2025  | 08/07  | 02/12   |
 
 ### Cronograma - Locais
 
 | Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
 | 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
+| 02/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
+| 02/2025  | Remoto     | Terças-feiras às 19:30 - 21:30 | Ana Carolyne | [Discord](https://discord.com/invite/xuTtxqCPpz) |
 
 ### Cronograma - Atividades
 
-| Semana | Aula | Resumo |
+| Encontro | Aula | Resumo |
 | ------ | ---- | ------ |
 | 01     | Introdução ao Programa da Codaqui | Apresentação do Curso + Lógica de Programação + Ferramentas |
 | 02     | Lógica de Programação | Introdução à lógica de programação com algoritmos |
