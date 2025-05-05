@@ -5,7 +5,7 @@ hide:
 ---
 # Link's
 
-## Cronograma da Codaqui 2024
+## Cronograma da Codaqui 2025
 
 Para acessar o nosso cronograma [clique aqui](quero/estudar.md).
 
