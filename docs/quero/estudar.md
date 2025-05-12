@@ -3,21 +3,17 @@ hide:
 ---
 # Quero Estudar!
 
-??? warning "Inscrições para o segundo semestre em breve!"
+### Inscrições 2025
 
-    As inscrições para o segundo semestre de 2025 irão abrir em breve. Fique atento às nossas redes sociais e ao nosso site para mais informações!
+??? success "Clique para abrir o formulário de inscrição!"
+
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
 
 ## Público Alvo
 
 Nosso formato de aulas em grupo é ideal para jovens de 12 a 17 anos que desejam aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, a escola oferece uma excelente base para aqueles que têm interesse em trilhar um caminho empreendedor.
 
 Se você possui mais de 17 anos possuímos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse. [Acesse aqui](./mentoria.md) para saber mais.
-
-<!-- ### Inscrições 2025 - 1° Semestre
-
-??? success "Clique para abrir o formulário de inscrição!"
-
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe> -->
 
 
 ## Como funciona?
@@ -61,37 +57,13 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | 01/2025  | 10/02  | 01/07   |
 | 02/2025  | 08/07  | 02/12   |
 
-### Cronograma - Locais
+### Cronograma - Turmas
 
-| Semestre | Modalidade | Horário | Instrutor | Plataforma/Local |
-| ---------| ---------- | ------- | --------- | ---------------- |
-| 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
-| 02/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) |
-| 02/2025  | Remoto     | Terças-feiras às 19:30 - 21:30 | Ana Carolyne | [Discord](https://discord.com/invite/xuTtxqCPpz) |
-
-### Cronograma - Atividades
-
-| Encontro | Aula | Resumo |
-| ------ | ---- | ------ |
-| 01     | Introdução ao Programa da Codaqui | Apresentação do Curso + Lógica de Programação + Ferramentas |
-| 02     | Lógica de Programação | Introdução à lógica de programação com algoritmos |
-| 03     | GitHub #1 - Introdução a Ferramenta | Introdução ao GitHub |
-| 04     | GitHub #2 - Git x GitHub | Criação de repositórios, PullRequest e apresentação Trilha de GitHub da Codaqui |
-| 05     | Python #1 - Introdução | Introdução à linguagem Python |
-| 06     | Python #2 - Variáveis e Operadores | Variáveis, operadores e tipos de dados |
-| 07     | Python #3 - Estruturas de Controle | Estruturas de controle de fluxo condições e repetições |
-| 08     | Python #4 - Funções | Funções e modularização de código |
-| 09     | Python #5 - Coleções | Listas, tuplas, dicionários e conjuntos |
-| 10     | Python #6 - Arquivos | Manipulação de Arquivos (CSV, JSON, YAML) |
-| 11     | Python #7 - Orientação a Objetos | Introdução à Programação Orientada a Objetos |
-| 12     | Python #8 - Orientação a Objetos pt 2 | Herança e Polimorfismo |
-| 13     | Python #9 - Error Handling | Tratamento de erros e exceções |
-| 14     | Python #10 - Módulos e Pacotes | Importação de módulos e criação de pacotes |
-| 15     | Python #11 - Decorators | Decoradores e funções de alta ordem |
-| 16     | Python #12 - Testes | Testes unitários e TDD |
-| 17     | Python #13 - Frameworks | Introdução a frameworks web (Flask, Django) |
-
-_As aulas da Codaqui depois das primeiras semanas são conduzidas com projetos práticos, onde os alunos aplicam o conhecimento adquirido em aulas anteriores. Conheça alguns dos projetos mantidos pela Codaqui em: [Projetos](../projetos.md)_
+| Semestre | Modalidade | Horário | Instrutor | Plataforma/Local | Turma |
+| ---------| ---------- | ------- | --------- | ---------------- | ----- |
+| 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) | Python 101 |
+| 02/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) | Grupo de Estudos Livre |
+| 02/2025  | Remoto     | Terças-feiras às 19:30 - 21:30 | Ana Carolyne | [Discord](https://discord.com/invite/xuTtxqCPpz) | Python 101 - Turma Feminina |
 
 ## Certificado 
 
