@@ -1,19 +1,20 @@
 ---
- draft: false 
- date: 2025-05-04
- categories:
+draft: false 
+date: 2025-05-04
+categories:
    - Tutoriais
- tags:
+tags:
    - github
    - programação
    - queroajudar
    - C++
- authors:
+authors:
    - artumosgoc
- # readtime: 10
- comments: true
- ---
- # Oque é SFML
+# readtime: 10
+comments: true
+---
+
+# O que é SFML
 
 O SFML(Simple and Fast Multimedia Library) é uma biblioteca de desenvolvimento multimídia escrita em C++ que fornece uma interface simples para lidar com gráficos 2D, 3D, áudio, entrada do usuário (teclado, mouse, joystick), rede e janelas. Ele é amplamente utilizado para criar jogos, simuladores e outras aplicações gráficas devido à sua facilidade de uso, desempenho eficiente e suporte multiplataforma.
 
