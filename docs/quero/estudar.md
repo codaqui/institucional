@@ -3,21 +3,17 @@ hide:
 ---
 # Quero Estudar!
 
-??? warning "Inscrições para o segundo semestre em breve!"
+### Inscrições 2025
 
-    As inscrições para o segundo semestre de 2025 irão abrir em breve. Fique atento às nossas redes sociais e ao nosso site para mais informações!
+??? success "Clique para abrir o formulário de inscrição!"
+
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
 
 ## Público Alvo
 
 Nosso formato de aulas em grupo é ideal para jovens de 12 a 17 anos que desejam aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, a escola oferece uma excelente base para aqueles que têm interesse em trilhar um caminho empreendedor.
 
 Se você possui mais de 17 anos possuímos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse. [Acesse aqui](./mentoria.md) para saber mais.
-
-<!-- ### Inscrições 2025 - 1° Semestre
-
-??? success "Clique para abrir o formulário de inscrição!"
-
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe> -->
 
 
 ## Como funciona?
