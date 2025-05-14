@@ -70,6 +70,8 @@ theme:
     - navigation.path
     - content.code.annotate
     - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
     # - announce.dismiss
   icon:
     repo: fontawesome/brands/github
