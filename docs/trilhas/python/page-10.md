@@ -783,7 +783,7 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, exploraremos iteradores e geradores, poderosas ferramentas para processamento de dados de forma eficiente.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-11.md)
+[Avance para a próxima aula →](/docs/trilhas/python/page-11)
 
-[← Voltar para Módulos](/docs/trilhas/python/page-9.md)
+[← Voltar para Módulos](/docs/trilhas/python/page-9)
 

@@ -825,6 +825,6 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, exploraremos decoradores em Python, um poderoso mecanismo para modificar o comportamento de funções e classes.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-12.md)
+[Avance para a próxima aula →](/docs/trilhas/python/page-12)
 
-[← Voltar para Manipulação de Arquivos](/docs/trilhas/python/page-10.md)
+[← Voltar para Manipulação de Arquivos](/docs/trilhas/python/page-10)

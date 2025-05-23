@@ -185,7 +185,7 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, exploraremos estruturas de repetição (loops) como `for` e `while`, que permitem executar blocos de código repetidamente.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-3.md)
+[Avance para a próxima aula →](/docs/trilhas/python/page-3)
 
-[← Voltar para Variáveis e Tipos de Dados](/docs/trilhas/python/page-1.md)
+[← Voltar para Variáveis e Tipos de Dados](/docs/trilhas/python/page-1)
 
