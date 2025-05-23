@@ -369,4 +369,4 @@ Nesta aula, você aprendeu sobre:
 
 Continue aprofundando seus conhecimentos em Python! Na próxima aula, vamos explorar estruturas lógicas e condicionais com `if`, `else` e `elif`.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-2.md)
+[Avance para a próxima aula →](/trilhas/python/page-2)
