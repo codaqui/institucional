@@ -49,7 +49,7 @@ Python se tornou uma das linguagens de programação mais populares do mundo por
 
 Este curso está organizado em várias lições progressivas, começando dos conceitos básicos e avançando para tópicos mais complexos:
 
-1. [Variáveis e Tipos de Dados](/docs/trilhas/python/page-1) - Aprenda sobre os blocos fundamentais da linguagem
+1. [Variáveis e Tipos de Dados](/trilhas/python/page-1) - Aprenda sobre os blocos fundamentais da linguagem
 2. Estruturas de Controle - Domine condicionais e loops
 3. Funções - Organize seu código de forma eficiente
 4. Coleções Avançadas - Trabalhe com estruturas de dados mais complexas
@@ -77,4 +77,4 @@ Python possui uma extensa documentação oficial e recursos de aprendizado de al
 !!! success "Pronto para começar?"
     Agora que você já conhece um pouco sobre Python, está na hora de mergulhar nos detalhes e começar a aprender de verdade!
 
-[Comece com Variáveis e Tipos de Dados →](/docs/trilhas/python/page-1)
+[Comece com Variáveis e Tipos de Dados →](/trilhas/python/page-1)

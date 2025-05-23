@@ -392,6 +392,6 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, exploraremos expressões lambda e funções integradas em Python, que complementam perfeitamente o uso de comprehensions.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-7)
+[Avance para a próxima aula →](/trilhas/python/page-7)
 
-[← Voltar para Funções](/docs/trilhas/python/page-5)
+[← Voltar para Funções](/trilhas/python/page-5)

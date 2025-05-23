@@ -1,4 +1,4 @@
-<!-- filepath: /home/Enderson.Menezes/Code/codaqui/institucional/docs/trilhas/python/page-12.md -->
+<!-- filepath: /home/Enderson.Menezes/Code/codaqui/institucional/docs//trilhas/python/page-12.md -->
 # Decoradores
 
 ## Introdução
@@ -1057,6 +1057,6 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, exploraremos Programação Orientada a Objetos em Python, um paradigma fundamental para organizar código em aplicações complexas.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-13)
+[Avance para a próxima aula →](//trilhas/python/page-13)
 
-[← Voltar para Iteradores e Geradores](/docs/trilhas/python/page-11)
+[← Voltar para Iteradores e Geradores](//trilhas/python/page-11)

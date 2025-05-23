@@ -289,6 +289,6 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, aprenderemos sobre funções em Python, que nos permitem organizar o código em blocos reutilizáveis.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-4)
+[Avance para a próxima aula →](/trilhas/python/page-4)
 
-[← Voltar para Estruturas Lógicas e Condicionais](/docs/trilhas/python/page-2)
+[← Voltar para Estruturas Lógicas e Condicionais](/trilhas/python/page-2)

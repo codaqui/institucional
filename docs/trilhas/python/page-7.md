@@ -486,6 +486,6 @@ Nesta aula, você aprendeu sobre:
 
 Na próxima aula, aprenderemos sobre depuração e tratamento de erros em Python, habilidades essenciais para desenvolver código robusto.
 
-[Avance para a próxima aula →](/docs/trilhas/python/page-8)
+[Avance para a próxima aula →](//trilhas/python/page-8)
 
-[← Voltar para Comprehensions](/docs/trilhas/python/page-6)
+[← Voltar para Comprehensions](//trilhas/python/page-6)
