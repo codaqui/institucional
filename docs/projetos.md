@@ -4,6 +4,17 @@ hide:
 ---
 # Projetos
 
+A Codaqui é uma comunidade viva, com o objetivo de aproximar as novas gerações do conteúdo técnico. Entendemos que criar um projeto do zero pode ser muitas vezes difícil, por isso a comunidade existe. Abaixo estão alguns projetos que a Codaqui mantém, em caráter de laboratório ou de produção, e que você pode contribuir.
+
+## Como Contribuir?
+
+Se você deseja contribuir com algum projeto, siga os seguintes passos:
+1. Escolha um projeto que você gostaria de contribuir.
+2. Abra uma _issue_ no repositório do projeto, descrevendo o que você gostaria de fazer.
+3. Aguarde a aprovação da equipe.
+
+## Lista de Projetos
+
 <div class="grid cards" markdown>
 
 -   :material-security:{ .lg .middle } __Boletim Diário de Segurança__
@@ -12,7 +23,7 @@ hide:
 
     Todos os dias, as 10h da manhã, um bot solta um boletim com notícias sobre segurança da informação.
 
-    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/boletim-diario-seguranca/issues)
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/boletim-diario-seguranca)
 
 -   :material-database:{ .lg .middle } __Laboratório de Data Analytics__
 
