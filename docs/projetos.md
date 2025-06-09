@@ -4,6 +4,8 @@ hide:
 ---
 # Projetos
 
+A Codaqui é uma comunidade viva, com o objetivo de aproximar as novas gerações do conteúdo técnico. Entendemos que criar um projeto do zero pode ser muitas vezes difícil, por isso a comunidade existe. Abaixo estão alguns projetos que a Codaqui mantém, em caráter de laboratório ou de produção, e que você pode contribuir.
+
 <div class="grid cards" markdown>
 
 -   :material-security:{ .lg .middle } __Boletim Diário de Segurança__
