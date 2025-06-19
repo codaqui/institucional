@@ -1,39 +1,135 @@
-# Linha do Tempo
+# :material-timeline: Linha do Tempo
 
-## 2020 - Acontecimentos
+!!! tip "Nossa Jornada"
+    Acompanhe os principais marcos da nossa história e como chegamos até aqui.
 
-- Bate-papo com o Fundador da Tecnogueto
-- Bate-papo com o Zaedy Sayão sobre educação e projetos sociais. Neste ano foi o primeiro emprego remoto do nosso Fundador.
-- Participação no Hackathon 2020 - Campo Mourão. Neste evento nosso Presidente foi um dos mentores e conheceu a primeira turma da "Kids Academy".
+## :material-calendar-clock: 2025 - Em Andamento
 
-## 2021 - Acontecimentos
+!!! success "Resultados Parciais"
+    Nossos números em 2025 mostram o crescimento contínuo da nossa missão.
 
-- **19/02/2021**: Primeiro encontro da "Kids Academy" no Discord do DevParana.org
-- Convite para participar do Grupo foi realizado ao Jean, Diana, Ivan. Esses foram os primeiros voluntários da "Kids Academy" e esse apoio foi essencial para organização interna.
-- Inicia-se a busca pela formalização da ONG. Foi realizada uma pesquisa pela LinkedIn, foi possível identificar que nosso nome não representava todos nossos valores e mudamos para Codaqui, buscando "abrasileirar" a tecnologia.
-- Atendemos 12 alunos contemplados;
-- 8 Bolsas de estudo concedidas (50 reais) durante 6 meses;
-- 3 computadores doados a alunos que precisavam desse apoio para ingressar nas aulas;
-- 1 trilha de ensino completa (Python) em colaboração com a turma piloto;
-- Embasamento pedagógico alinhado aos propósitos e valores da organização;
-- Formalização da associação.
+### :material-account-group: Comunidade
 
-## 2022 - Acontecimentos
+- **627 membros** no Discord
+- **488 membros** no WhatsApp Principal
 
-- Iniciamos nossa expansão conseguindo mais voluntários na área Jurídica e Contábil.
-- Atingimos 22 alunos no grupo do Whatsapp;
-- Atingimos 32 participantes do Discord;
-- Implementamos o Google Education, membro do programa Google AdGrants;
-- Implementamos o GitHub Education, graças a parceria com GitHub Campus;
-- Começamos a expandir nossas trilhas e iniciar fluxos de colaboração pelo GitHub;
-- Implementamos um espaço virtual para realizar as aulas com patrocínio do WorkAdventure;
+### :material-school: Educação
 
-## 2023 - Acontecimentos
+- **14 encontros virtuais** realizados
+- **≈ 20 alunos** participando ativamente
+- **77 mentorias** concluídas (totalizando **53 mentorias** e auxiliando **quase 40 pessoas**)
 
-- Iniciamos o nosso Financiamento Coletivo;
-- Remodelamos nosso site;
-- Iniciamos o projeto de mentorias particulares de maneira gratuita;
-- Contratamos uma pessoa para nos ajudar com as organizações;
-- Iniciamos um projeto para aulas presenciais;
-- Iniciamos nossa transparência mensal por meio da Apoia.se
-- Recebemos uma doação de computadores da Cortex Intelligence;
+---
+
+## :material-calendar-text: 2024 - Expansão Presencial
+
+!!! info "Modalidade Híbrida"
+    Implementamos aulas presenciais no CPM junto aos encontros virtuais.
+
+### :material-presentation: Encontros
+
+- **1º Semestre**: 25 encontros (Aulas Presenciais no CPM)
+- **2º Semestre**: 16 encontros
+
+---
+
+## :material-calendar-check: 2023 - Remodelação
+
+!!! note "Foco em Eventos Presenciais"
+    Ano marcado pela transição para eventos presenciais e expansão do impacto social.
+
+### :material-hand-heart: Ações Sociais
+
+- :material-computer: Doação de computadores para escola no RJ
+- :material-laptop: Doação de 3 computadores para alunos em Campo Mourão
+- :material-account-supervisor: Lançamento do Projeto Mentoria
+
+### :material-trending-up: Crescimento
+
+- :material-cash: Financiamento Coletivo iniciado
+- :material-web: Site remodelado
+- :material-account-tie: Contratação de apoio organizacional
+- :material-transparency: Transparência mensal via Apoia.se
+- :material-gift: Doação de computadores da Cortex Intelligence
+
+---
+
+## :material-calendar-range: 2021-2022 - Consolidação
+
+!!! abstract "Período de Estruturação"
+    **Fevereiro/2021 - Novembro/2022**: 74 Encontros realizados
+
+### :material-chart-line: Estatísticas
+
+- **≈ 15 alunos** recorrentes
+- **≈ 30 alunos** total no período
+
+---
+
+## :material-calendar-star: 2022 - Crescimento Digital
+
+### :material-account-multiple-plus: Expansão da Equipe
+
+- Novos voluntários nas áreas Jurídica e Contábil
+
+### :material-chart-bar: Comunidade
+
+- **22 alunos** no grupo do WhatsApp
+- **32 participantes** no Discord
+
+### :material-handshake: Parcerias Estratégicas
+
+- :material-google: Google Education (Google AdGrants)
+- :material-github: GitHub Education (GitHub Campus)
+- :material-earth: WorkAdventure (espaço virtual para aulas)
+
+### :material-cog: Melhorias Técnicas
+
+- Expansão das trilhas de ensino
+- Fluxos de colaboração via GitHub
+
+---
+
+## :material-calendar-heart: 2021 - Nascimento do Codaqui
+
+!!! success "Marco Inicial"
+    **19/02/2021**: Primeiro encontro da "Kids Academy" no Discord do DevParana.org
+
+### :material-account-group-outline: Primeiros Voluntários
+
+Jean, Diana e Ivan foram os **primeiros voluntários** essenciais para a organização interna.
+
+### :material-format-text: Transformação da Marca
+
+Mudança de "Kids Academy" para **Codaqui**, buscando "abrasileirar" a tecnologia.
+
+### :material-trophy: Conquistas do Ano
+
+| Métrica | Valor |
+|---------|-------|
+| :material-account-school: Alunos contemplados | 12 |
+| :material-cash-multiple: Bolsas concedidas | 8 (R$ 50/6 meses) |
+| :material-computer: Computadores doados | 3 |
+| :material-book-open: Trilhas completas | 1 (Python) |
+
+### :material-file-certificate: Formalização
+
+- Embasamento pedagógico alinhado aos valores
+- **Formalização da associação**
+
+---
+
+## :material-calendar-plus: 2020 - Primeiros Passos
+
+!!! quote "Inspiração Inicial"
+    O ano que plantou as sementes do que viria a ser o Codaqui.
+
+### :material-chat: Conexões Importantes
+
+- :material-microphone: Bate-papo com o Fundador da Tecnogueto
+- :material-school-outline: Conversa com Zaedy Sayão sobre educação e projetos sociais
+- :material-briefcase: Primeiro emprego remoto do nosso Fundador
+
+### :material-lightbulb: Momento Decisivo
+
+**Hackathon 2020 - Campo Mourão**: Nosso Presidente atuou como mentor e conheceu a primeira turma da "Kids Academy", plantando as sementes do futuro projeto.
