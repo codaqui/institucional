@@ -17,7 +17,7 @@
 
 - **14 encontros virtuais** realizados
 - **≈ 20 alunos** participando ativamente
-- **77 mentorias** concluídas (totalizando **53 mentorias** e auxiliando **quase 40 pessoas**)
+- **77 horas de mentorias** concluídas (totalizando **53 mentorias** e auxiliando **quase 40 pessoas**)
 
 ---
 
