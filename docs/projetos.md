@@ -53,7 +53,7 @@ Se você deseja contribuir com algum projeto, siga os seguintes passos:
     [:octicons-arrow-right-24: Ver mais...](https://github.com/endersonmenezes/free-disk-space)
 
 
--   :simple-github:{ .lg .middle } __GitHub Action FreeDiskSpace__
+-   :simple-github:{ .lg .middle } __GitHub Action CODEOWNERs Super Power__
 
     ---
 
