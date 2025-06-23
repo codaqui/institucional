@@ -9,8 +9,11 @@ A Codaqui é uma comunidade viva, com o objetivo de aproximar as novas geraçõe
 ## Como Contribuir?
 
 Se você deseja contribuir com algum projeto, siga os seguintes passos:
+
 1. Escolha um projeto que você gostaria de contribuir.
+
 2. Abra uma _issue_ no repositório do projeto, descrevendo o que você gostaria de fazer.
+
 3. Aguarde a aprovação da equipe.
 
 ## Lista de Projetos
