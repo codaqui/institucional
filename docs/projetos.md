@@ -78,4 +78,12 @@ Se você deseja contribuir com algum projeto, siga os seguintes passos:
 
     [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/tutor)
 
+-  :simple-github:{ .lg .middle } __Copilot Dashboard__
+
+    ---
+
+    Um painel para visualizar e analisar dados de uso do GitHub Copilot.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/copilot-dashboard)
+
 </div>
