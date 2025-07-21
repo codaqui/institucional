@@ -53,7 +53,7 @@ Se você deseja contribuir com algum projeto, siga os seguintes passos:
     [:octicons-arrow-right-24: Ver mais...](https://github.com/endersonmenezes/free-disk-space)
 
 
--   :simple-github:{ .lg .middle } __GitHub Action FreeDiskSpace__
+-   :simple-github:{ .lg .middle } __GitHub Action CODEOWNERs Super Power__
 
     ---
 
@@ -77,5 +77,13 @@ Se você deseja contribuir com algum projeto, siga os seguintes passos:
     Uma aplicação para explorar Python e mais conceitos do mundo de Desenvolvimento.
 
     [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/tutor)
+
+-  :simple-github:{ .lg .middle } __Copilot Dashboard__
+
+    ---
+
+    Um painel para visualizar e analisar dados de uso do GitHub Copilot.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/copilot-dashboard)
 
 </div>
