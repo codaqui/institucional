@@ -1,0 +1,6 @@
+name: "Mensal do Grupo de Estudos da Codaqui"
+title: "[MM/YYYY] [Calendário do Grupo de Estudos]"
+description: Semanalmente temos reunião para discutir os tópicos do grupo de Estudos. Essa reunião mensalmente será conduzida por uma Issue devendo cumprir requisitos básicos todos os meses.
+assignees:
+  - endersonmenezes
+body:
