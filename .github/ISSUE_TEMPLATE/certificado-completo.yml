@@ -1,27 +1,88 @@
-name: "[CERTIFICADO] Solicitação de Certificado"
-title: "[CERTIFICADO] <Digite seu nome completo> "
-description: Acabei de terminar uma prova e desejo a correção do meu certificado.
+name: "🏆 Solicitação de Certificado Completo"
+title: "🏆 [CERTIFICADO] <Digite seu nome completo>"
+description: "Acabei de terminar uma prova e desejo a correção do meu certificado completo."
 assignees:
   - endersonmenezes
 projects: ['codaqui/3']
+labels:
+  - "certificado"
+  - "correção"
 body:
   
+  - type: markdown
+    attributes:
+      value: |
+        ## 🎉 Parabéns por concluir sua prova!
+        
+        Obrigado por dedicar seu tempo aos estudos na Codaqui. Nossa equipe irá revisar sua solicitação e processar seu certificado o mais breve possível.
+
+  - type: input
+    id: nome_completo
+    attributes:
+      label: "👤 Nome Completo"
+      description: "Informe seu nome completo como deve aparecer no certificado"
+      placeholder: "Ex: João Silva Santos"
+    validations:
+      required: true
+
+  - type: input
+    id: certificado_nome
+    attributes:
+      label: "📜 Nome do Certificado/Trilha"
+      description: "Qual certificado ou trilha você completou?"
+      placeholder: "Ex: Python Básico, Desenvolvimento Web, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: data_conclusao
+    attributes:
+      label: "📅 Data de Conclusão"
+      description: "Quando você finalizou a prova/trilha?"
+      placeholder: "Ex: 15/08/2025"
+    validations:
+      required: true
+
   - type: checkboxes
     attributes:
-      label: Código de Conduta
-      description: Por favor leia o Código de Conduta e confirme que você concorda com ele.
+      label: "✅ Confirmação"
+      description: "Confirme que você atende aos requisitos"
       options:
-        - label: Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele.
+        - label: "Completei todos os exercícios/módulos obrigatórios"
+          required: true
+        - label: "Realizei a prova final (se aplicável)"
+          required: true
+        - label: "Eu já li o [Código de Conduta](https://www.codaqui.dev/conduta/) e concordo com ele"
           required: true
 
   - type: textarea
+    id: comentarios_adicionais
     attributes:
-      label: Comentários
-      description: Forneça comentários se desejar.
+      label: "💬 Comentários Adicionais"
+      description: "Adicione qualquer comentário ou observação sobre sua experiência"
+      placeholder: "Ex: Dificuldades encontradas, sugestões de melhoria, feedback geral..."
     validations:
-      required: true
+      required: false
+
+  - type: dropdown
+    id: como_conheceu
+    attributes:
+      label: "📢 Como conheceu a Codaqui?"
+      description: "Isso nos ajuda a entender melhor nossa comunidade"
+      options:
+        - "Redes sociais"
+        - "Indicação de amigo/colega"
+        - "Busca no Google"
+        - "YouTube"
+        - "LinkedIn"
+        - "GitHub"
+        - "Outros"
+    validations:
+      required: false
 
   - type: markdown
     attributes:
       value: |
-        ## Obrigado por nos ajudar a melhorar a Codaqui!
+        ## 🙏 Obrigado por fazer parte da Codaqui!
+        
+        Sua dedicação aos estudos faz nossa comunidade crescer. Em breve você receberá seu certificado!

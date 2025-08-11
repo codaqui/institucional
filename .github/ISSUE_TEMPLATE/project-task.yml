@@ -1,13 +1,127 @@
-name: "[TASK] Projeto da Associação"
-title: "[INICIATIVA] - "
-description: Desejo criar uma task em uma iniciativa.
+name: "🚀 Projeto da Associação"
+title: "🚀 [INICIATIVA] - <Nome da iniciativa>"
+description: "Desejo criar uma task ou propor uma nova iniciativa para a associação Codaqui."
 assignees:
   - endersonmenezes
+labels:
+  - "projeto"
+  - "iniciativa"
+  - "associação"
 body:
 
-  - type: textarea
+  - type: markdown
     attributes:
-      label: Descrição
-      description: Forneça uma descrição detalhada da atividade..
+      value: |
+        ## 🎯 Nova Iniciativa da Codaqui
+        
+        Obrigado por propor uma nova iniciativa! Projetos da comunidade são fundamentais para o crescimento da Codaqui.
+
+  - type: input
+    id: nome_iniciativa
+    attributes:
+      label: "📋 Nome da Iniciativa"
+      description: "Qual o nome da iniciativa ou projeto?"
+      placeholder: "Ex: Workshop de Python, Mentoria para Iniciantes, etc."
     validations:
       required: true
+
+  - type: dropdown
+    id: categoria_projeto
+    attributes:
+      label: "🏷️ Categoria do Projeto"
+      description: "Qual categoria melhor descreve esta iniciativa?"
+      options:
+        - "Educação/Ensino"
+        - "Evento/Workshop"
+        - "Infraestrutura/Tecnologia"
+        - "Comunidade/Engajamento"
+        - "Parcerias/Colaborações"
+        - "Marketing/Divulgação"
+        - "Administrativo/Gestão"
+        - "Outro"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: prioridade
+    attributes:
+      label: "⚡ Prioridade"
+      description: "Qual a urgência desta iniciativa?"
+      options:
+        - "🔴 Alta - Urgente"
+        - "🟡 Média - Importante"
+        - "🟢 Baixa - Pode aguardar"
+    validations:
+      required: true
+
+  - type: textarea
+    id: descricao_detalhada
+    attributes:
+      label: "📝 Descrição Detalhada"
+      description: "Forneça uma descrição completa da iniciativa, objetivos e benefícios esperados"
+      placeholder: "Descreva claramente: o que é, por que é importante, quais os benefícios para a comunidade..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: objetivos_especificos
+    attributes:
+      label: "🎯 Objetivos Específicos"
+      description: "Liste os objetivos específicos e mensuráveis desta iniciativa"
+      placeholder: "Ex: Capacitar 50 pessoas em Python básico, Criar 10 novos exercícios, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: publico_alvo
+    attributes:
+      label: "👥 Público-Alvo"
+      description: "Quem será beneficiado por esta iniciativa?"
+      placeholder: "Ex: Iniciantes em programação, estudantes universitários, profissionais em transição de carreira..."
+
+  - type: textarea
+    id: recursos_necessarios
+    attributes:
+      label: "🛠️ Recursos Necessários"
+      description: "Que recursos (humanos, tecnológicos, financeiros) são necessários?"
+      placeholder: "Ex: 2 voluntários, plataforma de streaming, material didático..."
+
+  - type: textarea
+    id: cronograma_estimado
+    attributes:
+      label: "⏰ Cronograma Estimado"
+      description: "Qual o tempo estimado para execução? Há datas importantes?"
+      placeholder: "Ex: 3 meses de preparação, execução em dezembro, etc."
+
+  - type: textarea
+    id: resultados_esperados
+    attributes:
+      label: "📊 Resultados Esperados"
+      description: "Como você mediria o sucesso desta iniciativa?"
+      placeholder: "Ex: Número de participantes, feedback positivo, certificados emitidos..."
+
+  - type: checkboxes
+    id: disponibilidade_ajuda
+    attributes:
+      label: "🤝 Disponibilidade para Ajudar"
+      description: "Como você pode contribuir com esta iniciativa?"
+      options:
+        - label: "Posso liderar este projeto"
+        - label: "Posso colaborar como voluntário"
+        - label: "Posso fornecer expertise técnica"
+        - label: "Posso ajudar na divulgação"
+        - label: "Apenas sugeri a ideia"
+
+  - type: textarea
+    id: observacoes_adicionais
+    attributes:
+      label: "💡 Observações Adicionais"
+      description: "Alguma informação adicional importante sobre esta iniciativa?"
+      placeholder: "Inspirações, referências, experiências anteriores, etc."
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 🌟 Obrigado pela Iniciativa!
+        
+        Sua proposta será analisada pela equipe da Codaqui. Iniciativas da comunidade são essenciais para nosso crescimento!
