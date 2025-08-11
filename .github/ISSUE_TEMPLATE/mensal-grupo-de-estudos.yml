@@ -1,6 +1,135 @@
-name: "Mensal do Grupo de Estudos da Codaqui"
-title: "[MM/YYYY] [Calendário do Grupo de Estudos]"
-description: Semanalmente temos reunião para discutir os tópicos do grupo de Estudos. Essa reunião mensalmente será conduzida por uma Issue devendo cumprir requisitos básicos todos os meses.
+name: "📅 Mensal do Grupo de Estudos da Codaqui"
+title: "[MM/YYYY] Grupo de Estudos - Atividades Mensais"
+description: Template para organizar as atividades mensais do grupo de estudos da Codaqui, incluindo revisões, atualizações e planejamento de conteúdo.
 assignees:
   - endersonmenezes
+labels:
+  - "grupo-de-estudos"
+  - "mensal"
+  - "coordenação"
 body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📚 Atividades Mensais do Grupo de Estudos
+        
+        Esta issue organiza as atividades mensais do grupo de estudos da Codaqui. As tarefas abaixo devem ser executadas ou planejadas durante o mês, com possibilidade de criação de sub-issues conforme necessário.
+
+  - type: input
+    id: mes_ano
+    attributes:
+      label: "📅 Mês/Ano"
+      description: "Informe o mês e ano de referência (ex: Janeiro/2025)"
+      placeholder: "ex: Janeiro/2025"
+    validations:
+      required: true
+
+  - type: textarea
+    id: objetivos_gerais
+    attributes:
+      label: "🎯 Objetivos Gerais do Mês"
+      description: "Descreva os principais objetivos e metas para este mês"
+      placeholder: "Liste os principais objetivos e metas para o mês..."
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: revisao_site
+    attributes:
+      label: "🔍 Revisão do Site (Erros Ortográficos)"
+      description: "Atividades relacionadas à revisão e correção do site"
+      options:
+        - label: "Revisar páginas principais do site"
+        - label: "Verificar ortografia e gramática"
+        - label: "Corrigir links quebrados"
+        - label: "Atualizar informações desatualizadas"
+        - label: "Testar responsividade em dispositivos móveis"
+
+  - type: textarea
+    id: detalhes_revisao_site
+    attributes:
+      label: "📝 Detalhes da Revisão do Site"
+      description: "Adicione observações específicas ou páginas que precisam de atenção especial"
+      placeholder: "Ex: Página X precisa de revisão completa, seção Y tem problemas de formatação..."
+
+  - type: checkboxes
+    id: revisao_trilhas
+    attributes:
+      label: "📖 Revisão das Trilhas (Atualizações Pequenas)"
+      description: "Atividades relacionadas à manutenção e atualização das trilhas de aprendizado"
+      options:
+        - label: "Revisar conteúdo das trilhas existentes"
+        - label: "Atualizar links e recursos"
+        - label: "Corrigir exercícios e exemplos"
+        - label: "Verificar ordem lógica do conteúdo"
+        - label: "Adicionar novos recursos quando necessário"
+
+  - type: textarea
+    id: detalhes_revisao_trilhas
+    attributes:
+      label: "📝 Detalhes da Revisão das Trilhas"
+      description: "Especifique quais trilhas precisam de atenção e que tipo de atualizações são necessárias"
+      placeholder: "Ex: Trilha de Python precisa de novos exercícios, Trilha de Git precisa atualizar comandos..."
+
+  - type: checkboxes
+    id: postagens_blog
+    attributes:
+      label: "📰 Postagens no Blog"
+      description: "Planejamento e coordenação de postagens para o blog (pode gerar sub-issues)"
+      options:
+        - label: "Definir temas das postagens do mês"
+        - label: "Distribuir responsabilidades entre membros"
+        - label: "Estabelecer cronograma de publicação"
+        - label: "Revisar rascunhos em andamento"
+        - label: "Criar calendário editorial"
+
+  - type: textarea
+    id: ideias_postagens
+    attributes:
+      label: "💡 Ideias para Postagens"
+      description: "Liste ideias de temas, tutoriais ou artigos para o blog"
+      placeholder: "Ex: Tutorial sobre Docker, Artigo sobre boas práticas em Python, Review de ferramentas..."
+
+  - type: textarea
+    id: cronograma_postagens
+    attributes:
+      label: "📅 Cronograma de Postagens"
+      description: "Defina datas tentativas e responsáveis para cada postagem planejada"
+      placeholder: "Ex: 15/01 - Tutorial Docker (João), 22/01 - Python Tips (Maria)..."
+
+  - type: checkboxes
+    id: atividades_extras
+    attributes:
+      label: "🚀 Atividades Extras"
+      description: "Outras atividades que podem surgir durante o mês"
+      options:
+        - label: "Organizar evento/workshop"
+        - label: "Criar novo material educativo"
+        - label: "Melhorar documentação"
+        - label: "Atualizar redes sociais"
+        - label: "Responder dúvidas da comunidade"
+
+  - type: textarea
+    id: observacoes_gerais
+    attributes:
+      label: "📋 Observações Gerais"
+      description: "Adicione qualquer observação importante, deadlines especiais ou considerações para o mês"
+      placeholder: "Ex: Feriados que podem afetar o cronograma, eventos especiais, mudanças na equipe..."
+
+  - type: textarea
+    id: sub_issues
+    attributes:
+      label: "🔗 Sub-Issues a Criar"
+      description: "Liste as sub-issues que precisam ser criadas para tarefas específicas"
+      placeholder: "Ex: Issue para postagem sobre Docker, Issue para revisão da trilha Python..."
+
+  - type: checkboxes
+    id: acompanhamento
+    attributes:
+      label: "📊 Acompanhamento"
+      description: "Itens de acompanhamento e métricas"
+      options:
+        - label: "Definir métricas de sucesso para o mês"
+        - label: "Agendar reuniões de acompanhamento"
+        - label: "Preparar relatório de atividades anteriores"
+        - label: "Coletar feedback da comunidade"
