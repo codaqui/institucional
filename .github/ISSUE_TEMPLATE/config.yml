@@ -23,14 +23,14 @@
 blank_issues_enabled: false
 contact_links:
 
-  - name: "[DISCUSSÕES] Certificado"
+  - name: "🏆 [DISCUSSÕES] Certificado"
     url: https://github.com/codaqui/institucional/discussions/categories/certificados
     about: "Inicie a proposta de um novo certificado, ou uma discussão sobre um certificado existente."
 
-  - name: "[DISCUSSÕES] Trilha"
+  - name: "🛤️ [DISCUSSÕES] Trilha"
     url: https://github.com/codaqui/institucional/discussions/categories/trilhas-de-ensino
     about: "Inicie a proposta de uma nova trilha, ou uma discussão sobre uma existente."
 
-  - name: "[DISCUSSÕES] Outros"
+  - name: "💬 [DISCUSSÕES] Outros"
     url: https://github.com/codaqui/institucional/discussions/categories/geral
     about: "Inicie uma discussão sobre um assunto não citado nessa página."
