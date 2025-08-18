@@ -83,178 +83,178 @@ az deployment group create \
    --parameters @vm-parameters.json
 ```
 <details>
-    <summary>Exemplo de `vm-template.json`</summary>
-```json
-{
-    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "location": {
-            "type": "string"
+<summary>Exemplo de vm-template.json</summary>
+    ```json
+    {
+        "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+        "contentVersion": "1.0.0.0",
+        "parameters": {
+            "location": {
+                "type": "string"
+            },
+            "networkInterfaceName": {
+                "type": "string"
+            },
+            "networkSecurityGroupName": {
+                "type": "string"
+            },
+            "networkSecurityGroupRules": {
+                "type": "array"
+            },
+            "subnetName": {
+                "type": "string"
+            },
+            "virtualNetworkName": {
+                "type": "string"
+            },
+            "addressPrefixes": {
+                "type": "array"
+            },
+            "subnets": {
+                "type": "array"
+            },
+            
+            "virtualMachineName": {
+                "type": "string"
+            },
+            "virtualMachineComputerName": {
+                "type": "string"
+            },
+            "virtualMachineRG": {
+                "type": "string"
+            },
+            "osDiskType": {
+                "type": "string"
+            },
+            "osDiskSizeGiB": {
+                "type": "int"
+            },
+            "osDiskDeleteOption": {
+                "type": "string"
+            },
+            "virtualMachineSize": {
+                "type": "string"
+            },
+            "nicDeleteOption": {
+                "type": "string"
+            },
+            "adminUsername": {
+                "type": "string"
+            },
+            "adminPassword": {
+                "type": "secureString"
+            }
         },
-        "networkInterfaceName": {
-            "type": "string"
+        "variables": {
+            "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+            "vnetName": "[parameters('virtualNetworkName')]",
+            "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+            "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]"
         },
-        "networkSecurityGroupName": {
-            "type": "string"
-        },
-        "networkSecurityGroupRules": {
-            "type": "array"
-        },
-        "subnetName": {
-            "type": "string"
-        },
-        "virtualNetworkName": {
-            "type": "string"
-        },
-        "addressPrefixes": {
-            "type": "array"
-        },
-        "subnets": {
-            "type": "array"
-        },
-        
-        "virtualMachineName": {
-            "type": "string"
-        },
-        "virtualMachineComputerName": {
-            "type": "string"
-        },
-        "virtualMachineRG": {
-            "type": "string"
-        },
-        "osDiskType": {
-            "type": "string"
-        },
-        "osDiskSizeGiB": {
-            "type": "int"
-        },
-        "osDiskDeleteOption": {
-            "type": "string"
-        },
-        "virtualMachineSize": {
-            "type": "string"
-        },
-        "nicDeleteOption": {
-            "type": "string"
-        },
-        "adminUsername": {
-            "type": "string"
-        },
-        "adminPassword": {
-            "type": "secureString"
-        }
-    },
-    "variables": {
-        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
-        "vnetName": "[parameters('virtualNetworkName')]",
-        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
-        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]"
-    },
-    "resources": [
-        {
-            "name": "[parameters('networkInterfaceName')]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "apiVersion": "2022-11-01",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
-                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
-            ],
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "ipconfig1",
-                        "properties": {
-                            "subnet": {
-                                "id": "[variables('subnetRef')]"
-                            },
-                            "privateIPAllocationMethod": "Dynamic"
-                        }
-                    }
+        "resources": [
+            {
+                "name": "[parameters('networkInterfaceName')]",
+                "type": "Microsoft.Network/networkInterfaces",
+                "apiVersion": "2022-11-01",
+                "location": "[parameters('location')]",
+                "dependsOn": [
+                    "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
+                    "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
                 ],
-                "networkSecurityGroup": {
-                    "id": "[variables('nsgId')]"
-                }
-            }
-        },
-        {
-            "name": "[parameters('networkSecurityGroupName')]",
-            "type": "Microsoft.Network/networkSecurityGroups",
-            "apiVersion": "2020-05-01",
-            "location": "[parameters('location')]",
-            "properties": {
-                "securityRules": "[parameters('networkSecurityGroupRules')]"
-            }
-        },
-        {
-            "name": "[parameters('virtualNetworkName')]",
-            "type": "Microsoft.Network/virtualNetworks",
-            "apiVersion": "2024-01-01",
-            "location": "[parameters('location')]",
-            "properties": {
-                "addressSpace": {
-                    "addressPrefixes": "[parameters('addressPrefixes')]"
-                },
-                "subnets": "[parameters('subnets')]"
-            }
-        },
-        
-        {
-            "name": "[parameters('virtualMachineName')]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "apiVersion": "2024-03-01",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
-            ],
-            "properties": {
-                "hardwareProfile": {
-                    "vmSize": "[parameters('virtualMachineSize')]"
-                },
-                "storageProfile": {
-                    "osDisk": {
-                        "createOption": "fromImage",
-                        "managedDisk": {
-                            "storageAccountType": "[parameters('osDiskType')]"
-                        },
-                        "diskSizeGB": "[parameters('osDiskSizeGiB')]",
-                        "deleteOption": "[parameters('osDiskDeleteOption')]"
-                    },
-                    "imageReference": {
-                        "publisher": "Canonical",
-                        "offer": "0001-com-ubuntu-server-jammy",
-                        "sku": "22_04-lts-gen2",
-                        "version": "latest"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
+                "properties": {
+                    "ipConfigurations": [
                         {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+                            "name": "ipconfig1",
                             "properties": {
-                                "deleteOption": "[parameters('nicDeleteOption')]"
+                                "subnet": {
+                                    "id": "[variables('subnetRef')]"
+                                },
+                                "privateIPAllocationMethod": "Dynamic"
                             }
                         }
-                    ]
-                },
-                "securityProfile": {},
-                "osProfile": {
-                    "computerName": "[parameters('virtualMachineComputerName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]"
+                    ],
+                    "networkSecurityGroup": {
+                        "id": "[variables('nsgId')]"
+                    }
+                }
+            },
+            {
+                "name": "[parameters('networkSecurityGroupName')]",
+                "type": "Microsoft.Network/networkSecurityGroups",
+                "apiVersion": "2020-05-01",
+                "location": "[parameters('location')]",
+                "properties": {
+                    "securityRules": "[parameters('networkSecurityGroupRules')]"
+                }
+            },
+            {
+                "name": "[parameters('virtualNetworkName')]",
+                "type": "Microsoft.Network/virtualNetworks",
+                "apiVersion": "2024-01-01",
+                "location": "[parameters('location')]",
+                "properties": {
+                    "addressSpace": {
+                        "addressPrefixes": "[parameters('addressPrefixes')]"
+                    },
+                    "subnets": "[parameters('subnets')]"
+                }
+            },
+            
+            {
+                "name": "[parameters('virtualMachineName')]",
+                "type": "Microsoft.Compute/virtualMachines",
+                "apiVersion": "2024-03-01",
+                "location": "[parameters('location')]",
+                "dependsOn": [
+                    "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+                ],
+                "properties": {
+                    "hardwareProfile": {
+                        "vmSize": "[parameters('virtualMachineSize')]"
+                    },
+                    "storageProfile": {
+                        "osDisk": {
+                            "createOption": "fromImage",
+                            "managedDisk": {
+                                "storageAccountType": "[parameters('osDiskType')]"
+                            },
+                            "diskSizeGB": "[parameters('osDiskSizeGiB')]",
+                            "deleteOption": "[parameters('osDiskDeleteOption')]"
+                        },
+                        "imageReference": {
+                            "publisher": "Canonical",
+                            "offer": "0001-com-ubuntu-server-jammy",
+                            "sku": "22_04-lts-gen2",
+                            "version": "latest"
+                        }
+                    },
+                    "networkProfile": {
+                        "networkInterfaces": [
+                            {
+                                "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+                                "properties": {
+                                    "deleteOption": "[parameters('nicDeleteOption')]"
+                                }
+                            }
+                        ]
+                    },
+                    "securityProfile": {},
+                    "osProfile": {
+                        "computerName": "[parameters('virtualMachineComputerName')]",
+                        "adminUsername": "[parameters('adminUsername')]",
+                        "adminPassword": "[parameters('adminPassword')]"
+                    }
                 }
             }
-        }
-    ],
-    "outputs": {
-        "adminUsername": {
-            "type": "string",
-            "value": "[parameters('adminUsername')]"
+        ],
+        "outputs": {
+            "adminUsername": {
+                "type": "string",
+                "value": "[parameters('adminUsername')]"
+            }
         }
     }
-}
-```
+    ```
 </details>
 
 <details>
