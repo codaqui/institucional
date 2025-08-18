@@ -259,32 +259,32 @@ az deployment group create \
 
 <details>
 <summary>Exemplo de `vm-parameters.json` (schema/valores)</summary>
-```json
-{
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-  "contentVersion": "1.0.0.0",
-  "parameters": {
-    "location": { "value": "eastus" },
-    "networkInterfaceName": { "value": "tutorial-codaqui329" },
-    "networkSecurityGroupName": { "value": "tutorial-codaqui-nsg" },
-    "networkSecurityGroupRules": { "value": [] },
-    "subnetName": { "value": "default" },
-    "virtualNetworkName": { "value": "tutorial-codaqui-vnet" },
-    "addressPrefixes": { "value": ["10.1.0.0/16"] },
-    "subnets": { "value": [{ "name": "default", "properties": { "addressPrefix": "10.1.1.0/24" } }] },
-    "virtualMachineName": { "value": "tutorial-codaqui" },
-    "virtualMachineComputerName": { "value": "tutorial-codaqu" },
-    "virtualMachineRG": { "value": "teste" },
-    "osDiskType": { "value": "Premium_LRS" },
-    "osDiskSizeGiB": { "value": 64 },
-    "osDiskDeleteOption": { "value": "Delete" },
-    "virtualMachineSize": { "value": "Standard_B1s" },
-    "nicDeleteOption": { "value": "Detach" },
-    "adminUsername": { "value": "codaqui" },
-    "adminPassword": { "value": "CoDAqui123!" }
-  }
-}
-```
+    ```json
+    {
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": { "value": "eastus" },
+        "networkInterfaceName": { "value": "tutorial-codaqui329" },
+        "networkSecurityGroupName": { "value": "tutorial-codaqui-nsg" },
+        "networkSecurityGroupRules": { "value": [] },
+        "subnetName": { "value": "default" },
+        "virtualNetworkName": { "value": "tutorial-codaqui-vnet" },
+        "addressPrefixes": { "value": ["10.1.0.0/16"] },
+        "subnets": { "value": [{ "name": "default", "properties": { "addressPrefix": "10.1.1.0/24" } }] },
+        "virtualMachineName": { "value": "tutorial-codaqui" },
+        "virtualMachineComputerName": { "value": "tutorial-codaqu" },
+        "virtualMachineRG": { "value": "teste" },
+        "osDiskType": { "value": "Premium_LRS" },
+        "osDiskSizeGiB": { "value": 64 },
+        "osDiskDeleteOption": { "value": "Delete" },
+        "virtualMachineSize": { "value": "Standard_B1s" },
+        "nicDeleteOption": { "value": "Detach" },
+        "adminUsername": { "value": "codaqui" },
+        "adminPassword": { "value": "CoDAqui123!" }
+    }
+    }
+    ```
 </details>
 
 Observações:
