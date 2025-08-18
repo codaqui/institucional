@@ -85,54 +85,216 @@ az deployment group create \
    --parameters @vm-parameters.json
 ```
 
+Exemplo de `vm-template.json`:
+```json
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "networkInterfaceName": {
+            "type": "string"
+        },
+        "networkSecurityGroupName": {
+            "type": "string"
+        },
+        "networkSecurityGroupRules": {
+            "type": "array"
+        },
+        "subnetName": {
+            "type": "string"
+        },
+        "virtualNetworkName": {
+            "type": "string"
+        },
+        "addressPrefixes": {
+            "type": "array"
+        },
+        "subnets": {
+            "type": "array"
+        },
+        
+        "virtualMachineName": {
+            "type": "string"
+        },
+        "virtualMachineComputerName": {
+            "type": "string"
+        },
+        "virtualMachineRG": {
+            "type": "string"
+        },
+        "osDiskType": {
+            "type": "string"
+        },
+        "osDiskSizeGiB": {
+            "type": "int"
+        },
+        "osDiskDeleteOption": {
+            "type": "string"
+        },
+        "virtualMachineSize": {
+            "type": "string"
+        },
+        "nicDeleteOption": {
+            "type": "string"
+        },
+        "adminUsername": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "secureString"
+        }
+    },
+    "variables": {
+        "nsgId": "[resourceId(resourceGroup().name, 'Microsoft.Network/networkSecurityGroups', parameters('networkSecurityGroupName'))]",
+        "vnetName": "[parameters('virtualNetworkName')]",
+        "vnetId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('subnetName'))]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('networkInterfaceName')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2022-11-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkSecurityGroups/', parameters('networkSecurityGroupName'))]",
+                "[concat('Microsoft.Network/virtualNetworks/', parameters('virtualNetworkName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        }
+                    }
+                ],
+                "networkSecurityGroup": {
+                    "id": "[variables('nsgId')]"
+                }
+            }
+        },
+        {
+            "name": "[parameters('networkSecurityGroupName')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2020-05-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": "[parameters('networkSecurityGroupRules')]"
+            }
+        },
+        {
+            "name": "[parameters('virtualNetworkName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2024-01-01",
+            "location": "[parameters('location')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": "[parameters('addressPrefixes')]"
+                },
+                "subnets": "[parameters('subnets')]"
+            }
+        },
+        
+        {
+            "name": "[parameters('virtualMachineName')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2024-03-01",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/networkInterfaces/', parameters('networkInterfaceName'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('virtualMachineSize')]"
+                },
+                "storageProfile": {
+                    "osDisk": {
+                        "createOption": "fromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('osDiskType')]"
+                        },
+                        "diskSizeGB": "[parameters('osDiskSizeGiB')]",
+                        "deleteOption": "[parameters('osDiskDeleteOption')]"
+                    },
+                    "imageReference": {
+                        "publisher": "Canonical",
+                        "offer": "0001-com-ubuntu-server-jammy",
+                        "sku": "22_04-lts-gen2",
+                        "version": "latest"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('networkInterfaceName'))]",
+                            "properties": {
+                                "deleteOption": "[parameters('nicDeleteOption')]"
+                            }
+                        }
+                    ]
+                },
+                "securityProfile": {},
+                "osProfile": {
+                    "computerName": "[parameters('virtualMachineComputerName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                }
+            }
+        }
+    ],
+    "outputs": {
+        "adminUsername": {
+            "type": "string",
+            "value": "[parameters('adminUsername')]"
+        }
+    }
+}
+```
+
 Exemplo de `vm-parameters.json` (schema/valores):
 
 ```json
 {
-      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
-      "contentVersion": "1.0.0.0",
-      "parameters": {
-            "location": { "value": "eastus" },
-            "networkInterfaceName": { "value": "tutorial-codaqui329" },
-            "networkSecurityGroupName": { "value": "tutorial-codaqui-nsg" },
-            "networkSecurityGroupRules": { "value": [] },
-            "subnetName": { "value": "default" },
-            "virtualNetworkName": { "value": "tutorial-codaqui-vnet" },
-            "addressPrefixes": { "value": [ "10.1.0.0/16" ] },
-            "subnets": { "value": [ { "name": "default", "properties": { "addressPrefix": "10.1.1.0/24" } } ] },
-            "publicIpAddressName": { "value": "tutorial-codaqui-ip" },
-            "publicIpAddressType": { "value": "Dynamic" },
-            "publicIpAddressSku": { "value": "Standard" },
-            "pipDeleteOption": { "value": "Detach" },
-            "virtualMachineName": { "value": "tutorial-codaqui" },
-            "virtualMachineComputerName": { "value": "tutorial-codaqu" },
-            "virtualMachineRG": { "value": "teste" },
-            "osDiskType": { "value": "Premium_LRS" },
-            "osDiskSizeGiB": { "value": 64 },
-            "osDiskDeleteOption": { "value": "Delete" },
-            "virtualMachineSize": { "value": "Standard_B1s" },
-            "nicDeleteOption": { "value": "Detach" },
-            "adminUsername": { "value": "codaqui" },
-            "adminPassword": { "value": null },
-            "patchMode": { "value": "AutomaticByPlatform" },
-            "enablePeriodicAssessment": { "value": "ImageDefault" },
-            "enableHotpatching": { "value": false },
-            "rebootSetting": { "value": "IfRequired" }
-      }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "eastus" },
+    "networkInterfaceName": { "value": "tutorial-codaqui329" },
+    "networkSecurityGroupName": { "value": "tutorial-codaqui-nsg" },
+    "networkSecurityGroupRules": { "value": [] },
+    "subnetName": { "value": "default" },
+    "virtualNetworkName": { "value": "tutorial-codaqui-vnet" },
+    "addressPrefixes": { "value": ["10.1.0.0/16"] },
+    "subnets": { "value": [{ "name": "default", "properties": { "addressPrefix": "10.1.1.0/24" } }] },
+    "virtualMachineName": { "value": "tutorial-codaqui" },
+    "virtualMachineComputerName": { "value": "tutorial-codaqu" },
+    "virtualMachineRG": { "value": "teste" },
+    "osDiskType": { "value": "Premium_LRS" },
+    "osDiskSizeGiB": { "value": 64 },
+    "osDiskDeleteOption": { "value": "Delete" },
+    "virtualMachineSize": { "value": "Standard_B1s" },
+    "nicDeleteOption": { "value": "Detach" },
+    "adminUsername": { "value": "codaqui" },
+    "adminPassword": { "value": "CoDAqui123!" }
+  }
 }
 ```
 
 Observações:
 
-- Ajuste `vm-template.json` para consumir os parâmetros com os mesmos nomes acima.
-- Se preferir não manter `publicIp` no template, configure o recurso como opcional no ARM e mantenha apenas saída de rede para internet (NAT/egress) — o ponto aqui é não depender de um IPv4 fixo para expor o serviço, já que o Tunnel fará o roteamento.
-- Se `cloudflared tunnel login` não puder abrir um navegador na VM, faça o login localmente e copie as credenciais para a VM, ou automatize com Account ID/Service Token.
+- O template cria uma VM Ubuntu Linux (gratuita) com autenticação por senha.
+- Use uma senha forte (exemplo: `CoDAqui123!`) ou altere no arquivo de parâmetros.
+- Sem IP público, use o Azure Serial Console ou Azure Bastion para acessar a VM após o deploy.
+- O Cloudflare Tunnel fará o roteamento, eliminando a necessidade de IP público fixo.
 
-Depois do deploy, você pode conectar via SSH no usuário definido em `adminUsername` (se houver IP público temporário) ou usar o console do provedor.
-
-```bash
-ssh codaqui@<VM_PUBLIC_IP_OR_CONSOLE>
-```
+Depois do deploy, você pode conectar via console do Azure Portal (Serial Console) usando o usuário `codaqui` e a senha definida.
 
 Observação: a VM precisa de saída para internet para que o `cloudflared` consiga estabelecer o túnel.
 
