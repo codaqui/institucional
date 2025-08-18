@@ -70,8 +70,6 @@ az login
 az group create --name tutorial-codaqui --location eastus
 ```
 
-#TODO Inserir GIF mostrando via Interface Web.
-
 ### 2.2 - Criar a VM sem IPv4
 
 Para um fluxo mais controlado (e reprodutível) use um ARM template com um arquivo de parâmetros JSON — esse é o esquema esperado para o arquivo de parâmetros. Salve o JSON abaixo como `vm-parameters.json` e tenha o template ARM (`vm-template.json`) ao lado.
