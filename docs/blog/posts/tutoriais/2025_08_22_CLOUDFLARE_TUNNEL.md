@@ -36,9 +36,10 @@ Projetos caseiros muitas vezes precisam ser acessíveis pela internet. Tradicion
 
 ## Checklist rápido (pré-requisitos)
 
-- Conta em um provedor de nuvem (ex.: Azure) com permissão para criar uma VM
-- Conta gratuita no Cloudflare e domínio gerenciável no Cloudflare (DNS)
-- Acesso SSH à VM
+- Conta em um provedor de nuvem (ex.: Azure) com permissão para criar uma VM.
+- Conta gratuita no Cloudflare e domínio gerenciável no Cloudflare (DNS).
+- Acesso SSH à VM.
+    - Recomenda-se usar o painel do Provider apenas para instalar o Cloudflared, e depois usar o Browser SSH do Cloudflare.
 - Ferramentas básicas: curl, sudo, systemd
 
 Se alguma etapa não for possível (ex.: você não tem domínio), há alternativas: testar localmente com `cloudflared tunnel run` e usar um subdomínio temporário do Cloudflare durante o login interativo.
@@ -63,20 +64,74 @@ Aqui vai só o essencial. Use o console do Azure Portal ou `az cli` para criar u
 
 Se preferir `az cli`:
 
+### 2.1 - Criar grupo de recurso
+
 ```bash
-az vm create \
-   --resource-group my-rg \
-   --name lab-vm \
-   --image UbuntuLTS \
-   --size Standard_B1s \
-   --admin-username dev \
-   --ssh-key-values ~/.ssh/id_rsa.pub
+az group create --name tutorial-codaqui --location eastus
 ```
 
-Depois acesse via SSH:
+#TODO Inserir GIF mostrando via Interface Web.
+
+### 2.2 - Criar a VM sem IPv4
+
+Para um fluxo mais controlado (e reprodutível) use um ARM template com um arquivo de parâmetros JSON — esse é o esquema esperado para o arquivo de parâmetros. Salve o JSON abaixo como `vm-parameters.json` e tenha o template ARM (`vm-template.json`) ao lado.
+
+Exemplo do comando de deploy:
 
 ```bash
-ssh dev@<VM_PUBLIC_IP>
+az deployment group create \
+   --resource-group tutorial-codaqui \
+   --template-file vm-template.json \
+   --parameters @vm-parameters.json
+```
+
+Exemplo de `vm-parameters.json` (schema/valores):
+
+```json
+{
+      "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+            "location": { "value": "eastus" },
+            "networkInterfaceName": { "value": "tutorial-codaqui329" },
+            "networkSecurityGroupName": { "value": "tutorial-codaqui-nsg" },
+            "networkSecurityGroupRules": { "value": [] },
+            "subnetName": { "value": "default" },
+            "virtualNetworkName": { "value": "tutorial-codaqui-vnet" },
+            "addressPrefixes": { "value": [ "10.1.0.0/16" ] },
+            "subnets": { "value": [ { "name": "default", "properties": { "addressPrefix": "10.1.1.0/24" } } ] },
+            "publicIpAddressName": { "value": "tutorial-codaqui-ip" },
+            "publicIpAddressType": { "value": "Dynamic" },
+            "publicIpAddressSku": { "value": "Standard" },
+            "pipDeleteOption": { "value": "Detach" },
+            "virtualMachineName": { "value": "tutorial-codaqui" },
+            "virtualMachineComputerName": { "value": "tutorial-codaqu" },
+            "virtualMachineRG": { "value": "teste" },
+            "osDiskType": { "value": "Premium_LRS" },
+            "osDiskSizeGiB": { "value": 64 },
+            "osDiskDeleteOption": { "value": "Delete" },
+            "virtualMachineSize": { "value": "Standard_B1s" },
+            "nicDeleteOption": { "value": "Detach" },
+            "adminUsername": { "value": "codaqui" },
+            "adminPassword": { "value": null },
+            "patchMode": { "value": "AutomaticByPlatform" },
+            "enablePeriodicAssessment": { "value": "ImageDefault" },
+            "enableHotpatching": { "value": false },
+            "rebootSetting": { "value": "IfRequired" }
+      }
+}
+```
+
+Observações:
+
+- Ajuste `vm-template.json` para consumir os parâmetros com os mesmos nomes acima.
+- Se preferir não manter `publicIp` no template, configure o recurso como opcional no ARM e mantenha apenas saída de rede para internet (NAT/egress) — o ponto aqui é não depender de um IPv4 fixo para expor o serviço, já que o Tunnel fará o roteamento.
+- Se `cloudflared tunnel login` não puder abrir um navegador na VM, faça o login localmente e copie as credenciais para a VM, ou automatize com Account ID/Service Token.
+
+Depois do deploy, você pode conectar via SSH no usuário definido em `adminUsername` (se houver IP público temporário) ou usar o console do provedor.
+
+```bash
+ssh codaqui@<VM_PUBLIC_IP_OR_CONSOLE>
 ```
 
 Observação: a VM precisa de saída para internet para que o `cloudflared` consiga estabelecer o túnel.
