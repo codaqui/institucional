@@ -56,13 +56,13 @@ Para este tutorial usamos uma VM como host do serviço (piping server) e do agen
 
 ## 2 — Criando a VM (visão geral — Azure)
 
-Aqui vai só o essencial. Use o console do Azure Portal ou `az cli` para criar uma VM Linux (Ubuntu LTS recomendado). Exemplos mínimos:
+### 2.0 - Pré-requisitos:
 
-1. Escolha tamanho pequeno (B1s/B2s) para laboratórios
-2. Abra porta SSH (22) no grupo de segurança
-3. Crie user com chave SSH
+Instalação do Azure CLI e login na conta Azure.
 
-Se preferir `az cli`:
+```bash
+az login
+```
 
 ### 2.1 - Criar grupo de recurso
 
