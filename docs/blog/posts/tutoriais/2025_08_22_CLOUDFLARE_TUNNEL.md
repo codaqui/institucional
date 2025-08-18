@@ -84,8 +84,8 @@ az deployment group create \
    --template-file vm-template.json \
    --parameters @vm-parameters.json
 ```
-
-Exemplo de `vm-template.json`:
+<details>
+    <summary>Exemplo de `vm-template.json`</summary>
 ```json
 {
     "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
@@ -257,9 +257,10 @@ Exemplo de `vm-template.json`:
     }
 }
 ```
+</details>
 
-Exemplo de `vm-parameters.json` (schema/valores):
-
+<details>
+<summary>Exemplo de `vm-parameters.json` (schema/valores)</summary>
 ```json
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
@@ -286,6 +287,7 @@ Exemplo de `vm-parameters.json` (schema/valores):
   }
 }
 ```
+</details>
 
 Observações:
 
