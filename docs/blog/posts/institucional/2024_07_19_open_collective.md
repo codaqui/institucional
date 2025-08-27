@@ -1,4 +1,5 @@
 ---
+title: "Coleta de Apoio da Codaqui agora na Open Collective"
 draft: false 
 date: 2024-07-19
 categories:

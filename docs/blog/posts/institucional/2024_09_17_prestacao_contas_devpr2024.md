@@ -1,4 +1,5 @@
 ---
+title: "Prestação de Contas do DevPR Conf 2024"
 draft: false 
 date: 2024-09-17
 categories:
