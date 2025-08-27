@@ -119,7 +119,7 @@ plugins:
   - search
   - meta
   - tags
-  - social
+  # - social
   # - privacy
   # - git-authors
   - blog:
