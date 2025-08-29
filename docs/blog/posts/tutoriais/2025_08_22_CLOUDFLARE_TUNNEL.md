@@ -1,4 +1,5 @@
 ---
+title: "Cloudflare Tunnel: Economizando IPv4 ao Expor Serviços em VMs"
 draft: false 
 date: 2025-08-22
 categories:
@@ -39,14 +40,14 @@ Projetos caseiros muitas vezes precisam ser acessíveis pela internet. Tradicion
 - Conta em um provedor de nuvem (ex.: Azure) com permissão para criar uma VM.
 - Conta gratuita no Cloudflare e domínio gerenciável no Cloudflare (DNS).
 - Acesso SSH à VM.
-    - Recomenda-se usar o painel do Provider apenas para instalar o Cloudflared, e depois usar o Browser SSH do Cloudflare.
+    - Recomenda-se usar o painel do provedor apenas para instalar o Cloudflared, e depois usar ferramentas como SSH através do console do provedor ou Azure Bastion.
 - Ferramentas básicas: curl, sudo, systemd
 
 Se alguma etapa não for possível (ex.: você não tem domínio), há alternativas: testar localmente com `cloudflared tunnel run` e usar um subdomínio temporário do Cloudflare durante o login interativo.
 
 ## 1 — Breve explicação: máquinas virtuais e por que usá-las
 
-Máquinas virtuais são instâncias isoladas que rodem um sistema operacional completo. Mesmo com arquiteturas modernas (containers, serverless), VMs ainda são úteis para:
+Máquinas virtuais são instâncias isoladas que rodam um sistema operacional completo. Mesmo com arquiteturas modernas (containers, serverless), VMs ainda são úteis para:
 
 - Ambientes persistentes para serviços de background
 - Testes de rede e configurações de baixo nível
