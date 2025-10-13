@@ -56,7 +56,7 @@ Para este tutorial usamos uma VM como host do serviço (piping server) e do agen
 
 ## 2 — Criando a VM (visão geral — Azure)
 
-### 2.0 - Pré-requisitos:
+### 2.0 - Pré-requisitos
 
 Instalação do Azure CLI e login na conta Azure.
 
