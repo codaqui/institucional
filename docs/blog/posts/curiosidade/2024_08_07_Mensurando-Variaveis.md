@@ -16,7 +16,7 @@ comments: true
 ---
 # O que é endereçamento de memória?
 
-Em resumo ele se refere ao processo de atribuir identificadores únicos, chamados de endereços, a locais específicos na memória de um computador. Esses endereços são utilizados para acessar e manipular dados armazenados na memória.
+Em resumo, ele se refere ao processo de atribuir identificadores únicos, chamados de endereços, a locais específicos na memória de um computador. Esses endereços são utilizados para acessar e manipular dados armazenados na memória.
 
 <!-- more -->
 
@@ -52,9 +52,9 @@ Essa variável de 8 bits possui '2^8 = (256)' possibilidades de combinações de
   -128 a 127
 
 
-## Oque acontece caso exceda esses 8 bits (memory overflow)?
+## O que acontece caso exceda esses 8 bits (memory overflow)?
 
-Simples, o valor estoura o limite de possibilidade, oque vai mudar é a percepção que cada linguagem, podem retornar erros ou simplesmente zerar a variável, pois ela só conta os 8 bits. 
+Simples, o valor estoura o limite de possibilidade, o que vai mudar é a percepção que cada linguagem, podem retornar erros ou simplesmente zerar a variável, pois ela só conta os 8 bits. 
 
 - Se ocorrer um "memory overflow" em uma variável de 8 bits, o valor excedente será truncado ou envolto (wraparound) para o intervalo válido. Por exemplo, se você tentar armazenar o valor 300 em uma variável de 8 bits, o valor será truncado para 44, pois 300 - 256 = 44. Isso ocorre porque 300 está fora do intervalo válido de 0 a 255.
 
