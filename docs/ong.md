@@ -27,7 +27,7 @@ Nosso suporte institucional é desenvolvido para atender às necessidades única
 - **Mentoria Especializada**: Orientação de especialistas nas áreas de tecnologia, desenvolvimento, jurídico e contábil.
 - **Conexão**: Acesso a uma rede de contatos com profissionais e líderes da indústria, ampliando suas oportunidades e promovendo sua expansão.
 - **Apoio Financeiro**: Oportunidades de financiamento e patrocínio para apoiar seus projetos e eventos.
-- **Visibilidade**x: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
+- **Visibilidade**: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
 
 ## Como funciona
 1. **Preencha o Formulário**: Envie suas informações e nos conte mais sobre seu projeto ou comunidade.
