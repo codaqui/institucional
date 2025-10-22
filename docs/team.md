@@ -95,6 +95,7 @@ Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Cod
     <small>Voluntário</small>
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/adoniasvitorio/) [:simple-github:](https://github.com/adoniasvitorio)
+
 -   __Kátia Cibele__
 
     ---
