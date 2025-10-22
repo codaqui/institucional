@@ -38,13 +38,7 @@ Nosso suporte institucional é desenvolvido para atender às necessidades única
 - **Visibilidade**: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
 
 ## Como funciona
-Envie um e-mail para contato@codaqui.dev, participe de uma reunião no nosso discord e apareça em nosso WhatsApp.
-
-Links estão aqui: http://codaqui.dev/bio
-
-## Pronto para começar?
-Estamos aqui para ajudar sua comunidade a crescer e prosperar. Entre em contato conosco hoje e descubra como podemos fazer a diferença juntos.
-Entre em contato pelo e-mail contato@codaqui.dev.
+Envie um e-mail para contato@codaqui.dev, participe de uma reunião no nosso discord e apareça em nosso WhatsApp. [Clique aqui para ver os links da comunidade.](https://codaqui.dev/bio)
 
 ## Transparência
 
