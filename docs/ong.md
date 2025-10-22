@@ -21,6 +21,14 @@ Se você está começando na área ou já tem experiência e quer trocar ideias 
 
 Ao longo dos anos, o DevParaná tem sido palco de eventos marcantes como meetups, workshops, hackathons e a conferência anual DevPR Conf, que reúne centenas de profissionais, estudantes e entusiastas da tecnologia. Com foco em diversidade, inovação e impacto regional, a comunidade promove encontros presenciais e online que estimulam o crescimento profissional e o networking entre seus participantes.
 
+### Elas no código
+[Elas no código](https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Felasnocodigo%2F&is_from_rle) é uma iniciativa que tem como objetivo inserir mulheres no setor da tecnologia e apoiar as que já estão, empoderando-as e oferecendo mais oportunidades de conhecimento.
+
+### Campos Tech
+[CamposTech](https://campostechpg.com.br/) é um espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa (PR). Seu objetivo é fomentar conexões entre estudantes, profissionais, empresas e entusiastas da área tech, promovendo eventos, capacitações, networking e projetos que impulsionam o ecossistema local. 
+
+Com uma abordagem inclusiva e dinâmica, a Compos Tech busca transformar ideias em soluções reais e fortalecer o desenvolvimento tecnológico da região.
+
 ## Como podemos ajudar
 Nosso suporte institucional é desenvolvido para atender às necessidades únicas do seu projeto social. Oferecemos uma gama de benefícios, incluindo:
 - **Recursos Exclusivos**: Acesso a ferramentas e materiais de apoio, além de um suporte completo para garantir que todos os aspectos do seu projeto sejam bem geridos e alinhados.
@@ -30,15 +38,14 @@ Nosso suporte institucional é desenvolvido para atender às necessidades única
 - **Visibilidade**: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
 
 ## Como funciona
-1. **Preencha o Formulário**: Envie suas informações e nos conte mais sobre seu projeto ou comunidade.
-2. **Avaliação**: Nossa equipe analisará seu projeto e entrará em contato para discutir como podemos ajudar.
-3. **Próximos passos**: Trabalhe conosco para criar um plano de apoio sob medida para sua comunidade.
-4. **Implementação**: Receba suporte contínuo e orientação para garantir o sucesso do seu projeto.
+Envie um e-mail para contato@codaqui.dev, participe de uma reunião no nosso discord e apareça em nosso WhatsApp.
+
+Links estão aqui: http://codaqui.dev/bio
 
 ## Pronto para começar?
 Estamos aqui para ajudar sua comunidade a crescer e prosperar. Entre em contato conosco hoje e descubra como podemos fazer a diferença juntos.
-Entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).
+Entre em contato pelo e-mail contato@codaqui.dev.
 
 ## Transparência
 
-Você pode consultar os nossos demonstrativos financeiros e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).
+Você pode consultar os nossos demonstrativos financeiros através dp [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail contato@codaqui.dev.
