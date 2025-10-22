@@ -87,6 +87,15 @@ Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Cod
 
     [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/elina-torres/) [:simple-github:](https://github.com/elinatorresn)
 
+-   __Adonias Vitorio__
+
+    ---
+    <img src="https://avatars.githubusercontent.com/adoniasvitorio" alt="Foto de Adonias Vitorio" width="150" height="150"/>
+
+    <small>Voluntário</small>
+
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/adoniasvitorio/) [:simple-github:](https://github.com/adoniasvitorio)
+
 -   __Kátia Cibele__
 
     ---
