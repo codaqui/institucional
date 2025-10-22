@@ -31,15 +31,20 @@ Com uma abordagem inclusiva e dinâmica, a Compos Tech busca transformar ideias 
 
 ## Como podemos ajudar
 Nosso suporte institucional é desenvolvido para atender às necessidades únicas do seu projeto social. Oferecemos uma gama de benefícios, incluindo:
+
 - **Recursos Exclusivos**: Acesso a ferramentas e materiais de apoio, além de um suporte completo para garantir que todos os aspectos do seu projeto sejam bem geridos e alinhados.
+
 - **Mentoria Especializada**: Orientação de especialistas nas áreas de tecnologia, desenvolvimento, jurídico e contábil.
+
 - **Conexão**: Acesso a uma rede de contatos com profissionais e líderes da indústria, ampliando suas oportunidades e promovendo sua expansão.
+
 - **Apoio Financeiro**: Oportunidades de financiamento e patrocínio para apoiar seus projetos e eventos.
+
 - **Visibilidade**: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
 
 ## Como funciona
-Envie um e-mail para contato@codaqui.dev, participe de uma reunião no nosso discord e apareça em nosso WhatsApp. [Clique aqui para ver os links da comunidade.](https://codaqui.dev/bio)
+Envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev), participe de uma reunião no nosso [Discord](https://codaqui.dev/bio) e venha conhecer nosso [WhatsApp](https://codaqui.dev/bio).
 
 ## Transparência
 
-Você pode consultar os nossos demonstrativos financeiros através dp [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail contato@codaqui.dev.
+Você pode consultar os nossos demonstrativos financeiros através dp [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).
