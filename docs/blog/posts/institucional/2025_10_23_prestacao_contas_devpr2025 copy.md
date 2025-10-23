@@ -4,7 +4,7 @@ date: 2025-10-23
 categories:
   - Institucional
 tags:
-  - história
+  - historia
   - comunidade
   - devparaná
 authors:
