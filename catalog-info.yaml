@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: codaqui-institucional
+  description: Site institucional da Codaqui
+spec:
+  type: website
+  owner: enderson@codaqui.dev
+  lifecycle: production
