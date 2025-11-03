@@ -5,5 +5,5 @@ metadata:
   description: Site institucional da Codaqui
 spec:
   type: website
-  owner: guests
+  owner: codaqui-conselho
   lifecycle: production
