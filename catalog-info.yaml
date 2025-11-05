@@ -3,7 +3,17 @@ kind: Component
 metadata:
   name: codaqui-institucional
   description: Site institucional da Codaqui
+  links:
+    - url: https://codaqui.dev
+      title: Codaqui Site Institucional
+      icon: website
+      type: website
+    - url: https://github.com/codaqui/institucional
+      title: Codaqui Institucional GitHub Repository
+      icon: github
+      type: source
 spec:
   type: website
   owner: conselho
   lifecycle: production
+  system: diretoria-institucional
