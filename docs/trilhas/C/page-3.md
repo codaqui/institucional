@@ -1,6 +1,6 @@
-# 💻 Estruturas de Controle, Funções C
+# 💻 Estruturas de Controle, Funções em C
 
-## Introdução
+## ✨ Introdução
 
 As estruturas de controle e funções em C são fundamentais para a construção de programas eficientes e organizados. Elas permitem que você controle o fluxo de execução do seu código e reutilize trechos de código, tornando-o mais modular e fácil de entender.
 
@@ -580,6 +580,7 @@ Aqui estão algumas funções matemáticas básicas em C, disponíveis na biblio
 
 ???+ "pow()"
     A função `pow()` eleva um número a uma potência especificada.
+
 === "Exemplo de pow()"
     ```c
     #include <stdio.h>
@@ -631,11 +632,87 @@ Aqui estão algumas funções relacionadas a locais (locales) em C, disponíveis
 
 Essas funções ajudam a adaptar o comportamento do programa às convenções culturais e regionais, como formatos de data, moeda e números.
 
+## 💡 Funções próprias
+
+???+ "Definição e Uso de Funções"
+    - Funções são definidas para encapsular blocos de código que realizam tarefas específicas.
+    - Permitem a reutilização de código, facilitando a manutenção e a organização do programa.
+    - Podem receber parâmetros para trabalhar com diferentes dados.
+    - Podem retornar valores para fornecer resultados ao chamador.
+    - A definição de uma função inclui o tipo de retorno, nome da função, lista de parâmetros (se houver) e o corpo da função.
+    - Funções podem ser chamadas de qualquer parte do programa, desde que estejam declaradas ou definidas antes da chamada.
+    - O escopo das variáveis dentro de uma função é local, ou seja, elas só são acessíveis dentro da função.
+    - Funções podem ser recursivas, ou seja, podem chamar a si mesmas para resolver problemas.
+    - Protótipos de função podem ser usados para declarar funções antes de sua definição, facilitando a organização do código.
+    - Funções podem ser agrupadas em bibliotecas para reutilização em diferentes programas.
+
+=== "Exemplo de Função Própria"
+    ```c
+    #include <stdio.h>
+
+    // Protótipo da função
+    int soma(int a, int b);
+
+    int main() {
+        int resultado = soma(5, 10);
+        printf("A soma é: %d\n", resultado);
+        return 0;
+    }
+
+    // Definição da função
+    int soma(int a, int b) {
+        return a + b;
+    }
+    ```
+
+=== "Exemplo de Função Recursiva"
+    ```c
+    #include <stdio.h>
+
+    // Protótipo da função
+    int fatorial(int n);
+
+    int main() {
+        int numero = 5;
+        int resultado = fatorial(numero);
+        printf("O fatorial de %d é: %d\n", numero, resultado);
+        return 0;
+    }
+
+    // Definição da função recursiva
+    int fatorial(int n) {
+        if (n == 0) {
+            return 1; // Caso base
+        } else {
+            return n * fatorial(n - 1); // Chamada recursiva
+        }
+    }
+    ```
+
+=== "Exemplo de função de texto própria"
+    ```c
+    #include <stdio.h>
+
+    // Protótipo da função
+    void imprimirMensagem(char mensagem[]);
+
+    int main() {
+        imprimirMensagem("Olá, Mundo!");
+        return 0;
+    }
+
+    // Definição da função
+    void imprimirMensagem(char mensagem[]) {
+        printf("%s\n", mensagem);
+    }
+    ```
+
+
 ## 🎯 Resumo
 
 Neste capítulo, exploramos as estruturas de controle, funções e escopo em C. Vimos como usar estruturas de controle como `if`, `else if`, `else` e `switch` para controlar o fluxo do programa. Também aprendemos sobre a definição e uso de funções, incluindo funções que retornam valores e funções `void`. 
 
-Discutimos o conceito de escopo, diferenciando entre variáveis locais e globais. Além disso, apresentamos várias funções básicas em C, incluindo funções de manipulação de strings, funções matemáticas e funções relacionadas a locais. Com esse conhecimento, você está melhor equipado para escrever programas em C mais organizados e eficientes.
+Discutimos algumas funções básicas em C, incluindo funções de manipulação de strings, funções matemáticas e funções relacionadas a locais. Com esse conhecimento, você está melhor equipado para escrever programas em C mais organizados e eficientes.
 
 Agora, vamos continuar nossa jornada na programação em C com mais tópicos avançados nos próximos capítulos!
 

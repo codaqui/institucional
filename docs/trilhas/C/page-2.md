@@ -1,6 +1,6 @@
 # 💻 Estruturas de dados em C
 
-## ⭐ Introdução
+## ✨ Introdução
 
 Variáveis são espaços nomeados na memória do computador que armazenam dados que podem ser modificados durante a execução de um programa. Elas são fundamentais para a programação, permitindo que os desenvolvedores armazenem, manipulem e recuperem informações conforme necessário.
 

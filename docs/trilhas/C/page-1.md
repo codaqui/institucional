@@ -1,6 +1,6 @@
 # 💻 C e microcontroladores
 
-## ⭐ Introdução
+## ✨ Introdução
 
 C é uma linguagem de programação de propósito geral desenvolvida por Dennis Ritchie entre 1969 e 1973 na Bell Labs. É uma linguagem de baixo nível, próxima da linguagem de máquina, o que a torna eficiente e rápida. C é amplamente utilizada para desenvolver sistemas operacionais, compiladores, drivers de dispositivos e aplicativos de alto desempenho. 
 
@@ -80,11 +80,11 @@ A sintaxe da linguagem C é composta por diversos elementos, incluindo:
 
 Esses conceitos seram forjados e aprofundados ao longo dos próximos módulos, com exemplos práticos e exercícios para consolidar o aprendizado.
 
-## Conclusão
+## ✅ Conclusão
 
 A linguagem C é uma poderosa ferramenta para programação de sistemas e aplicações de alto desempenho. Compreender sua sintaxe, tipos de dados e operadores é fundamental para escrever código eficiente e eficaz. A prática constante e a exploração de exemplos práticos ajudarão a consolidar o conhecimento e a desenvolver habilidades de programação em C.
 
-## Próximos Passos
+## ⏭️ Próximos Passos
 
 Agora que você está familiarizado com a sintaxe básica e os tipos de dados em C, é hora de colocar esse conhecimento em prática. Nos próximos módulos, exploraremos conceitos mais avançados, como estruturas de controle, funções, arrays e ponteiros. Além disso, veremos como aplicar esses conceitos na programação de microcontroladores, onde a eficiência e o controle sobre o hardware são essenciais.
 
