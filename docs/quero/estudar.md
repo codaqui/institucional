@@ -3,17 +3,15 @@ hide:
 ---
 # Quero Estudar!
 
-### Inscrições 2025
+### Inscrições 2026
 
 ??? success "Clique para abrir o formulário de inscrição!"
 
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfG9veFTNGvBJAFHl6sDgp7Ak5eKE7SCw-TFbbWCd8oI5DVaw/viewform?embedded=true" width="640" height="2369" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
+    Formulário de inscrição em desenvolvimento.
 
 ## Público Alvo
 
-Nosso formato de aulas em grupo é ideal para jovens de 12 a 17 anos que desejam aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, a escola oferece uma excelente base para aqueles que têm interesse em trilhar um caminho empreendedor.
-
-Se você possui mais de 17 anos possuímos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse. [Acesse aqui](./mentoria.md) para saber mais.
+Nosso formato de aulas em grupo é ideal para pessoas em início de carreira ou transição, porém não limitamos idade ou qualquer tipo de critério para inscrição, apenas "cobramos" frequência e participação de qualquer pessoa que deseja aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, oferecemos mentorias individuais para pessoas que desejam um acompanhamento mais próximo.
 
 
 ## Como funciona?
@@ -48,22 +46,25 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 </div>
 
-## Cronograma 2025
-
-### Cronograma - Datas
-
-| Semestre | Início | Término |
-| ---------| -------| ------- |
-| 01/2025  | 10/02  | 01/07   |
-| 02/2025  | 08/07  | 02/12   |
+## Cronograma 2026
 
 ### Cronograma - Turmas
 
-| Semestre | Modalidade | Horário | Instrutor | Plataforma/Local | Turma |
+| Mês | Modalidade | Horário | Instrutor | Plataforma/Local | Turma |
 | ---------| ---------- | ------- | --------- | ---------------- | ----- |
-| 01/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) | Python 101 |
-| 02/2025  | Remoto     | Segundas-feiras às 18:15  | Enderson Menezes | [Discord](https://discord.com/invite/xuTtxqCPpz) | Grupo de Estudos Livre |
-| 02/2025  | Remoto     | Terças-feiras às 19:30 - 21:30 | Ana Carolyne | [Discord](https://discord.com/invite/xuTtxqCPpz) | Python 101 - Turma Feminina |
+| Fevereiro | A confirmar | A confirmar | A confirmar | Discord |
+| Fevereiro | Gestão e Produtividade | A confirmar | A confirmar | Discord |
+| Março | Cloud / Infra | A confirmar | A confirmar | Discord |
+| Abril | Finanças e Economia | A confirmar | A confirmar | Discord |
+| Abril | Python e Lógica de Programação | A confirmar | A confirmar | Discord |
+| Maio | Product Discovery & Plataforma como Produto | A confirmar | A confirmar | Discord |
+| Junho | FinOps / CloudSRE | A confirmar | A confirmar | Discord |
+| Julho | C# e SQL | A confirmar | A confirmar | Discord |
+| Agosto | First Steps and Understanding Rust | A confirmar | A confirmar | Discord |
+| Setembro | NodeJS | A confirmar | A confirmar | Discord |
+| Setembro | Cibersegurança | A confirmar | A confirmar | Discord |
+| Outubro | A confirmar | A confirmar | A confirmar | Discord |
+| Novembro | Kotlin e KMP | A confirmar | A confirmar | Discord |
 
 ## Certificado 
 
