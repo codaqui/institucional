@@ -50,8 +50,8 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 ### Cronograma - Turmas
 
-| Mês | Modalidade | Horário | Instrutor | Plataforma/Local | Turma |
-| ---------| ---------- | ------- | --------- | ---------------- | ----- |
+| Mês | Modalidade | Horário | Instrutor | Plataforma/Local |
+| ---------| ---------- | ------- | --------- | ---------------- |
 | Fevereiro | A confirmar | A confirmar | A confirmar | Discord |
 | Fevereiro | Gestão e Produtividade | A confirmar | A confirmar | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
