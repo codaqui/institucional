@@ -10,8 +10,9 @@
 
 ### :material-account-group: Comunidade
 
-- **627 membros** no Discord
-- **488 membros** no WhatsApp Principal
+- **684 membros** no Discord
+- **458 membros** no WhatsApp Principal
+- **+2000 visualizações** mensais no Site
 
 ### :material-school: Educação
 
@@ -40,8 +41,7 @@
 
 ### :material-hand-heart: Ações Sociais
 
-- :material-computer: Doação de computadores para escola no RJ
-- :material-laptop: Doação de 3 computadores para alunos em Campo Mourão
+- :material-laptop: Doação de computadores para escola no RJ
 - :material-account-supervisor: Lançamento do Projeto Mentoria
 
 ### :material-trending-up: Crescimento
@@ -49,7 +49,7 @@
 - :material-cash: Financiamento Coletivo iniciado
 - :material-web: Site remodelado
 - :material-account-tie: Contratação de apoio organizacional
-- :material-transparency: Transparência mensal via Apoia.se
+- :material-chart-line: Transparência mensal via Apoia.se
 - :material-gift: Doação de computadores da Cortex Intelligence
 
 ---
@@ -93,7 +93,7 @@
 ## :material-calendar-heart: 2021 - Nascimento do Codaqui
 
 !!! success "Marco Inicial"
-    **19/02/2021**: Primeiro encontro da "Kids Academy" no Discord do DevParana.org
+    **19/02/2021**: Primeiro encontro da "Kids Academy" no Discord do devpr.org
 
 ### :material-account-group-outline: Primeiros Voluntários
 
@@ -109,20 +109,23 @@ Mudança de "Kids Academy" para **Codaqui**, buscando "abrasileirar" a tecnologi
 |---------|-------|
 | :material-account-school: Alunos contemplados | 12 |
 | :material-cash-multiple: Bolsas concedidas | 8 (R$ 50/6 meses) |
-| :material-computer: Computadores doados | 3 |
+| :material-laptop: Computadores doados | 3 |
 | :material-book-open: Trilhas completas | 1 (Python) |
 
 ### :material-file-certificate: Formalização
 
-- Embasamento pedagógico alinhado aos valores
-- **Formalização da associação**
+- :material-book-education: **Embasamento pedagógico** desenvolvido pela pedagoga [Lucia Maria Sendim Vieira](https://www.escavador.com/sobre/560423998/lucia-maria-sendim-vieira), alinhado aos nossos valores educacionais
+- :material-certificate: **Constituição jurídica** da Associação Codaqui (CNPJ: 44.593.429/0001-05)
+- :material-heart-handshake: **Agradecimentos especiais**:
+    - [Diana Carvalho](https://www.linkedin.com/in/diana-carvalho-46b63998/) por acreditar na nossa missão
+    - [Ivan Coelho Dias](https://www.linkedin.com/in/ivancoelhodias/) pelo suporte jurídico essencial
 
 ---
 
 ## :material-calendar-plus: 2020 - Primeiros Passos
 
 !!! quote "Inspiração Inicial"
-    O ano que plantou as sementes do que viria a ser o Codaqui.
+    Um ano transformador que plantou as primeiras sementes do que se tornaria o Codaqui, consolidando a visão de democratizar o ensino de tecnologia para jovens brasileiros.
 
 ### :material-chat: Conexões Importantes
 
