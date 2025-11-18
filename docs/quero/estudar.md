@@ -7,7 +7,9 @@ hide:
 
 ??? success "Clique para abrir o formulário de inscrição!"
 
-    Formulário de inscrição em desenvolvimento.
+    Inscrição para os Cursos - _Em desenvolvimento_
+
+    Inscrição para o Grupo de Estudos de Arquitetura de Software e DDD - _Em desenvolvimento_
 
 ## Público Alvo
 
@@ -65,6 +67,12 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | Setembro | Cibersegurança | A confirmar | A confirmar | Discord |
 | Outubro | A confirmar | A confirmar | A confirmar | Discord |
 | Novembro | Kotlin e KMP | A confirmar | A confirmar | Discord |
+
+### Cronograma - Grupos de Estudos
+
+| Tema | Mediador | Período | Horário | Plataforma/Local |
+| ---------| ---------- | ------- | ------- | ---------------- |
+| Arquitetura de Software e DDD | Eugênio Tavares | A confirmar | A confirmar | Discord |
 
 ## Certificado 
 
