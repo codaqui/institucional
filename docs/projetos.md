@@ -86,4 +86,12 @@ Se você deseja contribuir com algum projeto, siga os seguintes passos:
 
     [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/copilot-dashboard)
 
+- :simple-github:{ .lg .middle } __Backstage Lab__
+
+    ---
+
+    Um projeto para explorar o Backstage, a plataforma de desenvolvimento de software open source da Spotify.
+
+    [:octicons-arrow-right-24: Ver mais...](https://github.com/codaqui/backstage)
+
 </div>
