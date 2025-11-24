@@ -15,6 +15,8 @@ hide:
 
 Nosso formato de aulas em grupo é ideal para pessoas em início de carreira ou transição, porém não limitamos idade ou qualquer tipo de critério para inscrição, apenas "cobramos" frequência e participação de qualquer pessoa que deseja aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, oferecemos mentorias individuais para pessoas que desejam um acompanhamento mais próximo.
 
+Os grupos de estudos são voltados para pessoas com conhecimento prévio na área, que desejam aprofundar seus estudos em temas específicos, recomendamos a participação de pessoas com experiência intermediária ou avançada.
+
 
 ## Como funciona?
 
