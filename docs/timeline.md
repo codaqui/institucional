@@ -3,22 +3,35 @@
 !!! tip "Nossa Jornada"
     Acompanhe os principais marcos da nossa história e como chegamos até aqui.
 
-## :material-calendar-clock: 2025 - Em Andamento
+## :material-calendar-clock: 2026
 
 !!! success "Resultados Parciais"
-    Nossos números em 2025 mostram o crescimento contínuo da nossa missão.
+    Nossos números em 2026 mostram o crescimento contínuo da nossa missão.
+
+
+### :material-presentation: Encontros
+
+- **1º Semestre**:
+- **2º Semestre**:
 
 ### :material-account-group: Comunidade
 
-- **684 membros** no Discord
-- **458 membros** no WhatsApp Principal
-- **+2000 visualizações** mensais no Site
+- 
 
-### :material-school: Educação
+## :material-calendar-clock: 2025
 
-- **14 encontros virtuais** realizados
-- **≈ 20 alunos** participando ativamente
-- **77 horas de mentorias** concluídas (totalizando **53 mentorias** e auxiliando **quase 40 pessoas**)
+
+### :material-presentation: Encontros
+
+- **1º Semestre**: 15 alunos (Aulas Virtuais)
+- **2º Semestre**: 10 alunos (Aulas Virtuais)
+- **95 mentorias realizadas totalizando 66 horas de mentoria e 45 alunos**
+
+### :material-account-group: Comunidade
+
+- **692 membros** no Discord
+- **463 membros** no WhatsApp Principal
+- **+7000 visualizações** mensais no Site
 
 ---
 
