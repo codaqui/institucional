@@ -44,6 +44,13 @@
 
 - **1º Semestre**: 25 encontros (Aulas Presenciais no CPM)
 - **2º Semestre**: 16 encontros
+- **31 mentorias realizadas totalizando 23 horas de mentoria e 17 alunos**
+
+### :material-account-group: Comunidade
+
+- **501 membros** no Discord
+- **350 membros** no WhatsApp Principal
+- **+14000 visualizações** mensais no Site
 
 ---
 
