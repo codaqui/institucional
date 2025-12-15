@@ -46,6 +46,12 @@
 - **2º Semestre**: 16 encontros
 - **31 mentorias realizadas totalizando 23 horas de mentoria e 17 alunos**
 
+### :material-account-group: Comunidade
+
+- **X membros** no Discord
+- **350 membros** no WhatsApp Principal
+- **+14000 visualizações** mensais no Site
+
 ---
 
 ## :material-calendar-check: 2023 - Remodelação
