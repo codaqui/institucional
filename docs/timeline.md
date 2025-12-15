@@ -44,6 +44,7 @@
 
 - **1º Semestre**: 25 encontros (Aulas Presenciais no CPM)
 - **2º Semestre**: 16 encontros
+- **31 mentorias realizadas totalizando 23 horas de mentoria e 17 alunos**
 
 ---
 
