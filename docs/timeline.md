@@ -48,7 +48,7 @@
 
 ### :material-account-group: Comunidade
 
-- **X membros** no Discord
+- **501 membros** no Discord
 - **350 membros** no WhatsApp Principal
 - **+14000 visualizações** mensais no Site
 
