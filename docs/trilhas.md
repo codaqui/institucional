@@ -36,3 +36,14 @@ A Codaqui é uma instituição educacional inovadora que adota a metodologia Git
     [:octicons-arrow-right-24: Ver](https://github.com/orgs/codaqui/discussions/new/choose)
 
 </div>
+<br/>
+<div class="grid cards" markdown>
+
+-   :fontawesome-brands-python:{ .lg .middle } __C 101__
+
+    ---
+
+    Estude `C` de forma autônoma! Acesse nosso discord caso precise de ajuda!
+
+    [:octicons-arrow-right-24: Começar](trilhas/C/index.md)
+</div>
