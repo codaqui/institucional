@@ -84,8 +84,8 @@ A **Codaqui** é para todos que desejam aprender e crescer, independentemente da
 
 As inscrições serão abertas em breve! Fique atento aos nossos canais de comunicação:
 
-- [#Quero Estudar!](../quero/estudar.md)
-- [Nossos links oficiais](../bio.md)
+- [#Quero Estudar!](../../../quero/estudar.md)
+- [Nossos links oficiais](../../../bio.md)
 
 ## Mais Informações sobre o Danilo
 
