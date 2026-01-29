@@ -52,7 +52,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 ### Cronograma - Turmas
 
-| Mês | Modalidade | Horário | Instrutor | Plataforma/Local |
+| Mês | Modalidade | Datas/Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
 | Fevereiro | Gestão e Produtividade | 10/02 (Introdução), 24/02 e 26/02 (Aprofundamento) | Danilo Mesquita | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
