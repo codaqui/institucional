@@ -7,9 +7,7 @@ hide:
 
 ??? success "Clique para abrir o formulário de inscrição!"
 
-    Inscrição para os Cursos - _Em desenvolvimento_
-
-    Inscrição para o Grupo de Estudos de Arquitetura de Software e DDD - _Em desenvolvimento_
+    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdt1Klx324MMMCswN7ot-FnvTLvWEEQW711ySbHomHCd0OGLw/viewform?embedded=true" width="640" height="2339" frameborder="0" marginheight="0" marginwidth="0">Carregando…</iframe>
 
 ## Público Alvo
 
@@ -56,8 +54,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 | Mês | Modalidade | Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
-| Fevereiro | A confirmar | A confirmar | A confirmar | Discord |
-| Fevereiro | Gestão e Produtividade | A confirmar | A confirmar | Discord |
+| Fevereiro | Gestão e Produtividade | 10/02 (Introdução), 24/02 e 26/02 (Aprofundamento) | Danilo Mesquita | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
 | Abril | Finanças e Economia | A confirmar | A confirmar | Discord |
 | Abril | Python e Lógica de Programação | A confirmar | A confirmar | Discord |
