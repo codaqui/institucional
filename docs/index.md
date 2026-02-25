@@ -68,6 +68,12 @@ Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio pa
     [![Logo da Elas o código](/assets/elasnocodigo.svg){ width="100" }](https://www.instagram.com/elasnocodigo)
 
 
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __TI Social__
+
+    ---
+
+    [![Logo da TI Social](/assets/tisocial.png){ width="100" }](https://www.instagram.com/tisocialmaringa)
+
 </div>
 
 ## :material-google-circles-communities: Links Importantes
