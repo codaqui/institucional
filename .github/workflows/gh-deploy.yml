@@ -42,41 +42,16 @@ jobs:
           path: .cache
 
       - name: Install requirements
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
         run: |
-          # Git Clone with GH
-          gh repo clone squidfunk/mkdocs-material-insiders
-
-          # Install
-          sudo apt-get update
-          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
           python3 -m pip install -U pip
           python3 -m pip install -r requirements.txt
-          python3 -m pip install -e mkdocs-material-insiders
 
-      - name: Deploy mkdocs 🚀
-        run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
+      - name: Build site
+        run: python3 -m zensical build
 
-      # - name: Set up Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '>=1.18.0'
-
-      # - name: Deploy Colabs from google-colab directory 🚀
-      #   run: |
-      #     # Create a claat files
-      #     bash .github/workflows/scripts/claat.sh
-
-      #     # Checkout on branch gh-pages-* depending on branch
-      #     git checkout ${{ steps.branch_check.outputs.env_name }}
-
-      #     # See actual branch
-      #     echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
-
-      #     # Git add folder google-colab excluding .md files
-      #     git config --global user.name 'Codaqui Bot'
-      #     git config --global user.email 'contato@codaqui.dev'
-      #     git add google-colab -f --all -- ':!*.md'
-      #     git commit -m "Update google-colab paths"
-      #     git push --set-upstream origin ${{ steps.branch_check.outputs.env_name }}
+      - name: Deploy to GitHub Pages 🚀
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: ${{ steps.branch_check.outputs.env_name }}

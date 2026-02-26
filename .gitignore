@@ -1,10 +1,7 @@
-# Builded Site
+# Built Site
 site/*
 
-# Mkdocs Private
-mkdocs-material/*
-
-# Environtment
+# Environment
 .env
 venv/*
 

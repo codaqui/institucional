@@ -22,7 +22,7 @@
 
 {% import "partials/tabs-item.html" as item with context %}
 
-<!-- Navigation tabs -->
+<!-- Navigation tabs (compatible with both MkDocs/Jinja2 and Zensical/MiniJinja) -->
 <nav
   class="md-tabs"
   aria-label="{{ lang.t('tabs') }}"
@@ -30,10 +30,9 @@
 >
   <div class="md-grid">
     <ul class="md-tabs__list">
-      <!-- Ignore if nav_item.title ~ "Trilhas: "-->
-      {% for nav_item in nav %}
-        {% if nav_item.title.split(":")[0] == "Trilha" %}
-            {{ pass }}
+      <!-- Ignore nav items starting with "Trilha:" -->
+      {% for nav_item in nav.items or nav %}
+        {% if nav_item.title is defined and "Trilha:" in nav_item.title %}
         {% else %}
             {{ item.render(nav_item) }}
         {% endif %}
