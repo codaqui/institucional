@@ -89,7 +89,7 @@ De acordo com a [tabela de feature parity](https://zensical.org/compatibility/fe
 | `tags` | ✅ | ✅ | [Tags, Tags in search, Tag listings](https://zensical.org/compatibility/features/#site-and-page-structure) |
 | `social` | ✅ | ✅ | [Social cards](https://zensical.org/compatibility/features/#appearance) |
 | `blog` | ✅ | ✅ | [Blog](https://zensical.org/compatibility/features/#content) |
-| `git-committers` | ✅ | ✅ (planejado nativo) | [Será suportado nativamente](https://zensical.org/compatibility/plugins/#mkdocstrings) — incluindo git-authors e git-revision-date-localized |
+| `git-committers` | ✅ | ✅ (planejado nativo) | [Será suportado nativamente](https://zensical.org/compatibility/plugins/#what-well-cover) — incluindo git-authors e git-revision-date-localized |
 
 **Resultado: 6/6 plugins/funcionalidades com suporte confirmado.**
 
