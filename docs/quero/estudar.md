@@ -54,7 +54,7 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 
 | Mês | Modalidade | Datas/Horário | Instrutor | Plataforma/Local |
 | ---------| ---------- | ------- | --------- | ---------------- |
-| Fevereiro | Gestão e Produtividade | 10/02 (Introdução), 24/02 e 26/02 (Aprofundamento) | Danilo Mesquita | Discord |
+| Fevereiro | Gestão e Produtividade | 18/02 (Introdução), 24/02 e 02/03 (Aprofundamento) | Danilo Mesquita | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
 | Abril | Finanças e Economia | A confirmar | A confirmar | Discord |
 | Abril | Python e Lógica de Programação | A confirmar | A confirmar | Discord |

@@ -30,8 +30,8 @@ O curso será dividido em três encontros que abordarão desde os fundamentos da
 
 ### 📅 Cronograma
 
-- **10/02** - Aula de Introdução
-- **24/02 e 26/02** - Aulas de Aprofundamento
+- **~10/02~** | 18/02 - Aula de Introdução
+- **~24/02 e 26/02~** | 24/02 & 02/03 - Aulas de Aprofundamento
 
 ## Sobre o Instrutor
 
