@@ -2,8 +2,8 @@
 
 **Data**: 2026-02-26 (revisado com dados de [zensical.org](https://zensical.org))
 **Repositório**: codaqui/institucional
-**Branch de trabalho**: feat/migration-to-zensical
-**Versão analisada do Zensical**: [0.0.24](https://pypi.org/project/zensical/) (Alpha)
+**Status**: ✅ Migração executada
+**Versão do Zensical**: [0.0.24](https://pypi.org/project/zensical/) (Alpha)
 
 ---
 

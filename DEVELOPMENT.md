@@ -16,7 +16,7 @@ pip install -r requirements.txt
 zensical serve
 ```
 
-## Deploy Locally
+## Build Locally
 
 Você pode usar o seguinte comando abaixo para gerar o site localmente:
 
