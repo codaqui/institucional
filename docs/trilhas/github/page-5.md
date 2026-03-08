@@ -1,6 +1,6 @@
-# Tarefa 1
+# 📒 Tarefa 1
 
-## Crie uma conta no GitHub
+## 🚀 Crie uma conta no GitHub
 
 Acesse o site de registro [clicando aqui.](https://github.com/signup?source=login), preencha os campos necessários e você vai ser capaz de criar a sua conta e utilizar no GitHub.
 
@@ -10,12 +10,12 @@ Será solicitado que você encontre um código no seu e-mail para confirmar a va
 
 ![Tela de Registro do GitHub solicitando um Código](../assets/tela-registro-github-parte2.png)
 
-## Crie o seu primeiro repositório
+## 📝 Crie o seu primeiro repositório
 <figure class="video_container">
   <video src="../assets/criando-novo-repositorio.webm" controls>
 </figure>
 
-## Edite seu arquivo utilizando um Pull Request
+## 📝 Edite seu arquivo utilizando um Pull Request
 
 <figure class="video_container">
   <video src="../assets/criando-primeiro-pr.webm" controls>
