@@ -1,7 +1,7 @@
 ---
 title: "Carreiras em Tech: Trajetórias Femininas que Transformam"
 draft: false 
-date: 2026-03-25
+date: 2026-03-28
 categories:
   - Institucional
 tags:
@@ -11,7 +11,7 @@ tags:
   - mulheres na tech
   - inclusão
 authors:
-  - elasnocodigo
+  - josilenefernandes
 readtime: 5
 comments: true
 ---
