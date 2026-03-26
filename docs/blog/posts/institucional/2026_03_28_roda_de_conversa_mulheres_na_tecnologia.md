@@ -18,7 +18,8 @@ comments: true
 
 # Carreiras em Tech: Trajetórias Femininas que Transformam
 
-![Carreiras em Tech](https://via.placeholder.com/800x400)
+<img width="1066" height="847" alt="capa live" src="https://github.com/user-attachments/assets/2827404e-240c-425a-9e50-b3f2c9d4b857" />
+
 
 Neste mês de março de 2026, em celebração ao **Mês da Mulher**, a Codaqui tem o prazer de receber o coletivo **Elas No Código** para uma roda de conversa inspiradora.
 
@@ -81,6 +82,7 @@ Acompanhe a transmissão ao vivo e interaja com as convidadas:
 
 ## Mais Informações
 
+O Elas No Código é uma comunidade vibrante e acolhedora que nasceu com a missão de fortalecer o protagonismo feminino no universo da tecnologia, especialmente no Piauí. Por meio de uma rede de apoio sólida que une aprendizado, mentorias e troca de experiências reais, o movimento busca derrubar barreiras de gênero e transformar a jornada de mulheres e meninas que desejam ingressar ou evoluir no mercado de TI
 Para ficar por dentro de todas as novidades e projetos do coletivo:
 
 - 📱 Instagram: https://instagram.com/elasnocodigo  
