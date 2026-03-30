@@ -19,6 +19,8 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 
 ## Quero uma mentoria!
 
+Conheça nossos [mentores](../team.md#mentores) e agende uma sessão:
+
 <!-- Google Calendar Appointment Scheduling begin -->
 <link href="https://calendar.google.com/calendar/scheduling-button-script.css" rel="stylesheet">
 <script src="https://calendar.google.com/calendar/scheduling-button-script.js" async></script>
