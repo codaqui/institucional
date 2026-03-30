@@ -43,7 +43,7 @@ Se ainda lhe restou alguma dúvida, você pode criar uma Discussão na categoria
 
 ### Preciso de ajuda, não sei usar o GitHub.
 
-Se você é novo no GitHub, com certeza nossa trilha inicial de Git irá te ajudar, [clique aqui](https://www.codaqui.dev/trilhas/github-starter/) e comece a estudar.
+Se você é novo no GitHub, com certeza nossa trilha inicial de Git irá te ajudar, [clique aqui](/trilhas/github/) e comece a estudar.
 
 Enquanto isso, você pode enviar uma solicitação de ajuda para [contato@codaqui.dev](mailto:contato@codaqui.dev), iremos transpor as suas ajudas e te ajudar a contribuir.
 

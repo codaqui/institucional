@@ -1,0 +1,257 @@
+/**
+ * Codaqui - Custom CSS for Docusaurus
+ * Brand colors and custom styles
+ */
+
+:root {
+  --ifm-color-primary: #1a1a1a;
+  --ifm-color-primary-dark: #111111;
+  --ifm-color-primary-darker: #0a0a0a;
+  --ifm-color-primary-darkest: #000000;
+  --ifm-color-primary-light: #333333;
+  --ifm-color-primary-lighter: #444444;
+  --ifm-color-primary-lightest: #555555;
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] {
+  --ifm-color-primary: #e0e0e0;
+  --ifm-color-primary-dark: #c9c9c9;
+  --ifm-color-primary-darker: #bebebe;
+  --ifm-color-primary-darkest: #9d9d9d;
+  --ifm-color-primary-light: #f0f0f0;
+  --ifm-color-primary-lighter: #f5f5f5;
+  --ifm-color-primary-lightest: #ffffff;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* Navbar */
+.navbar {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.navbar__title {
+  font-weight: 700;
+}
+
+/* Hero section */
+.hero {
+  padding: 4rem 0;
+}
+
+.hero__title {
+  font-size: 3rem;
+  font-weight: 800;
+}
+
+.hero__subtitle {
+  font-size: 1.25rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  margin-top: 0.5rem;
+}
+
+.card img {
+  border-radius: 50%;
+}
+
+/* Team member cards */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.team-card {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.team-card img {
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.team-card h4 {
+  margin: 0.25rem 0;
+}
+
+.team-card small {
+  color: var(--ifm-color-emphasis-600);
+}
+
+.team-card .social-links {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.team-card .social-links a {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1.25rem;
+}
+
+.team-card .social-links a:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Community logos */
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.community-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.community-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+/* Feature cards for homepage */
+.feature-card {
+  padding: 2rem;
+  border-radius: 12px;
+  background: var(--ifm-color-emphasis-100);
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Button styles */
+.button--codaqui {
+  background-color: #1a1a1a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.button--codaqui:hover {
+  background-color: #333333;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .button--codaqui {
+  background-color: #e0e0e0;
+  color: #1a1a1a;
+}
+
+[data-theme="dark"] .button--codaqui:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* Timeline styles */
+.timeline-section {
+  border-left: 3px solid var(--ifm-color-primary);
+  padding-left: 1.5rem;
+  margin-left: 1rem;
+  margin-bottom: 2rem;
+}
+
+.timeline-section h2 {
+  margin-left: -1.75rem;
+  padding-left: 1.75rem;
+  position: relative;
+}
+
+.timeline-section h2::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 0.5em;
+  width: 12px;
+  height: 12px;
+  background: var(--ifm-color-primary);
+  border-radius: 50%;
+}
+
+/* Admonitions / callouts */
+.admonition {
+  border-radius: 8px;
+}
+
+/* Footer */
+.footer {
+  background-color: #1a1a1a;
+}
+
+/* Table improvements */
+table {
+  width: 100%;
+}
+
+/* Schedule table */
+.schedule-table th {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+/* Contact buttons */
+.contact-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 2rem 0;
+}
+
+.contact-buttons a {
+  display: block;
+  text-align: center;
+}

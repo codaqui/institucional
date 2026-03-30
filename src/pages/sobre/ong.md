@@ -53,4 +53,4 @@ Envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev), particip
 
 ## Transparência
 
-Você pode consultar os nossos demonstrativos financeiros através dp [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).
+Você pode consultar os nossos demonstrativos financeiros através do [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).

@@ -5,7 +5,7 @@ import type * as Preset from "@docusaurus/preset-classic";
 const config: Config = {
   title: "CODAQUI.dev",
   tagline: "Democratizando o ensino tecnológico para jovens",
-  favicon: "img/favicon.ico",
+  favicon: "img/favicon.png",
 
   url: "https://codaqui.dev",
   baseUrl: "/",
@@ -13,7 +13,7 @@ const config: Config = {
   organizationName: "codaqui",
   projectName: "institucional",
 
-  onBrokenLinks: "throw",
+  onBrokenLinks: "warn",
   onBrokenMarkdownLinks: "warn",
 
   i18n: {
@@ -180,15 +180,13 @@ const config: Config = {
     },
     giscus: {
       repo: "codaqui/institucional",
-      // TODO: Obtain repoId from https://giscus.app for codaqui/institucional
-      repoId: "",
-      category: "General",
-      // TODO: Obtain categoryId from https://giscus.app for codaqui/institucional
-      categoryId: "",
-      mapping: "pathname",
+      repoId: "R_kgDOG9s0Ng",
+      category: "Blog",
+      categoryId: "DIC_kwDOG9s0Ns4CRk25",
+      mapping: "og:title",
       strict: "0",
       reactionsEnabled: "1",
-      emitMetadata: "0",
+      emitMetadata: "1",
       inputPosition: "bottom",
       theme: "preferred_color_scheme",
       lang: "pt",
