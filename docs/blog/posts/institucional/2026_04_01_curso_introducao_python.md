@@ -22,6 +22,8 @@ comments: true
 
 A Associação Codaqui tem o prazer de anunciar um curso especial sobre **Lógica de Programação e Python**, ministrado por **Paulinea**, uma futura desenvolvedora apaixonada por gerar impacto social através da educação tecnológica.
 
+<!-- more -->
+
 ## Sobre o Curso
 
 Este material tem foco em uma abordagem simples e direta, com exemplos comentados para facilitar a compreensão. Todas as atividades práticas serão realizadas por meio de um compilador online gratuito chamado Programiz. Isso garante que os alunos possam escrever e testar seus códigos sem a necessidade de instalar nada no computador.
