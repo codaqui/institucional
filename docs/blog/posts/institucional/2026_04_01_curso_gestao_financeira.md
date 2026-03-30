@@ -67,6 +67,7 @@ O conteúdo do curso é estruturado em 7 módulos fundamentais para o seu cresci
 ## Para Quem é Este Curso?
 
 Este curso é ideal para:
+
 - Pessoas que desejam parar de ser reféns do próprio salário e aprender a poupar;
 - Profissionais que buscam organizar suas finanças, sair das dívidas e começar a investir;
 - Qualquer pessoa interessada em alcançar a independência financeira através de métodos práticos e sustentáveis.
