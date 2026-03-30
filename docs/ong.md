@@ -11,13 +11,11 @@ Capacite sua comunidade, amplie seu impacto e aumente seu alcance com nosso prog
 
 <div class="grid cards" markdown>
 
--   :fontawesome-solid-school: &nbsp; __Codaqui__
+-   :material-umbrella: &nbsp; __Codaqui__
 
     ---
 
-    Escola de programação sem fins lucrativos que apoia jovens que desejam aprender a desenvolver produtos tecnológicos mas não possuem acesso à educação tecnológica por outros meios.
-
-    Com foco em inclusão, diversidade e aprendizado contínuo, organiza meetups, trilhas de aprendizado e oficinas que aproximam profissionais experientes, iniciantes e curiosos do universo da programação.
+    A **Associação Codaqui** é a entidade responsável por este programa de apoio. Atuamos como guarda-chuva institucional para comunidades de tecnologia, oferecendo estrutura jurídica, gestão de projetos e suporte para iniciativas sem fins lucrativos.
 
     [:octicons-arrow-right-24: codaqui.dev](https://www.codaqui.dev/)
 
@@ -49,9 +47,15 @@ Capacite sua comunidade, amplie seu impacto e aumente seu alcance com nosso prog
 
     [:octicons-arrow-right-24: campostechpg.com.br](https://campostechpg.com.br/)
 
-</div>
+-   :material-kubernetes: &nbsp; __Cloud Native Maringá__
 
-## Como podemos ajudar
+    ---
+
+    Grupo de Meetup oficial da **Cloud Native Computing Foundation (CNCF)** em Maringá — PR. Fomenta o aprendizado de tecnologias cloud-native, organiza grupos de estudo para certificações (KCNA, CKA, CKAD) e promove encontros entre estudantes e profissionais de SRE, DevOps e arquitetura de software.
+
+    [💬 WhatsApp](https://chat.whatsapp.com/DJeegYRE1SC1zQuW64Hmzn){ .md-button } &nbsp; [:octicons-arrow-right-24: community.cncf.io](https://community.cncf.io/cloud-native-maringa/)
+
+</div>
 
 Nosso suporte institucional é desenvolvido para atender às necessidades únicas do seu projeto social.
 

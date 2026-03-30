@@ -7,11 +7,10 @@ hide:
 
 ## Público Alvo
 
-??? info "A Codaqui é uma escola Gratuita!"
+!!! info "Programa gratuito da Associação Codaqui"
+    A **Associação Codaqui** oferece programas gratuitos de tecnologia abertos a qualquer pessoa, sem restrição de idade. Se você está dando os primeiros passos ou quer aprofundar conhecimentos, há um espaço para você aqui.
 
-    A Codaqui é uma escola gratuita de tecnologia que tem como objetivo ensinar programação e desenvolvimento de produtos tecnológicos para jovens de 12 a 17 anos. Se você possui mais de 17 anos, temos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse.
-
-O Projeto #QueroMentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](estudar.md) e [#QueroApoiar](apoiar.md) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
+O Projeto #QueroMentoria é uma iniciativa da Codaqui que conecta o [#QueroEstudar](estudar.md) ao [#QueroApoiar](apoiar.md), oferecendo mentorias e sessões individuais a pessoas que estão iniciando na área de tecnologia. Você pode se inscrever como mentor ou mentorado.
 
 ## Onde?
 

@@ -13,7 +13,7 @@ A **Associação Codaqui** ajuda diretamente crianças e jovens a aprender progr
 
 Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio para gestão de projetos e uma estrutura "burocrática" caso o seu projeto não a tenha.
 
-## :fontawesome-solid-graduation-cap: Nossa solução
+## :fontawesome-solid-people-roof: Nossa solução
 
 <div class="grid cards" markdown>
 
@@ -21,13 +21,13 @@ Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio pa
 
     ---
 
-    Os alunos percorrem de forma autônoma algumas trilhas de aprendizado criadas com a ajuda de especialistas voluntários e semanalmente encontram um mentor para atividades práticas.
+    Os participantes percorrem de forma autônoma trilhas de aprendizado criadas com a ajuda de especialistas voluntários e, semanalmente, encontram um mentor para atividades práticas.
 
 -   :material-tally-mark-2:{ .lg .middle } __Resolução de problemas reais__
 
     ---
 
-    Além dos projetos pessoais desenvolvido ao longo do curso, os alunos podem participar de projetos reais, de desenvolvimento de serviços e produtos para outras organizações sem fins lucrativos, podendo receber uma bolsa financeira.
+    Além dos projetos pessoais desenvolvidos ao longo do programa, os participantes podem contribuir com projetos reais de organizações sem fins lucrativos, podendo receber uma bolsa financeira.
 
 
 -   :material-tally-mark-3:{ .lg .middle } __Acesso a computador e internet__
@@ -73,6 +73,12 @@ Além disso a **Codaqui** também reúne outras comunidades e fornece o apoio pa
     ---
 
     [![Logo da TI Social](/assets/tisocial.png){ width="100" }](https://www.instagram.com/tisocialmaringa)
+
+-   :fontawesome-brands-square-font-awesome-stroke:{ .lg .middle  } __Cloud Native Maringá__
+
+    ---
+
+    [![Logo da CNCF](https://avatars.githubusercontent.com/u/13455738?v=4){ width="100" }](https://community.cncf.io/cloud-native-maringa/)
 
 </div>
 

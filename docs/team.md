@@ -6,7 +6,7 @@ hide:
 
 ## Nossa missão
 
-Nosso objetivo é quebrar barreiras e levar o ensino tecnológico a todos. A Codaqui é uma associação sem fins lucrativos dedicada a apoiar jovens e comunidades, promovendo o acesso à tecnologia para aqueles que mais necessitam.
+Nosso objetivo é quebrar barreiras e democratizar o acesso à tecnologia. A Codaqui é uma associação sem fins lucrativos que atua como guarda-chuva de comunidades tech, apoiando participantes, mentores e projetos que promovem inclusão e colaboração.
 
 ## Associação
 
@@ -154,11 +154,11 @@ Pessoas que fizeram parte da associação e que contribuíram para sua história
 
     ---
 
-    <img src="https://github.com/ghost.png" alt="Foto de Diana" width="150" height="150"/>
+    <img src="https://avatars.githubusercontent.com/Divcarvalho?v=4" alt="Foto de Diana Carvalho" width="150" height="150"/>
 
     <small>Fundadora</small>
 
-    [:fontawesome-brands-linkedin-in:](#) [:simple-github:](#)
+    [:fontawesome-brands-linkedin-in:](https://www.linkedin.com/in/diana-carvalho-46b63998/) [:simple-github:](https://github.com/Divcarvalho)
 
 </div>
 

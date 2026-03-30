@@ -27,7 +27,7 @@ Para acessar o nosso cronograma [clique aqui](quero/estudar.md).
 
     ---
 
-    Em nosso servidor do Discord você pode interagir com outros alunos, tirar dúvidas com os mentores e acompanhar todos os encontros virtuais. 
+    Em nosso servidor do Discord você pode interagir com outros membros, tirar dúvidas com os mentores e acompanhar todos os encontros virtuais. 
     
     (_Clique na logo abaixo_)
 

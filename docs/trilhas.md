@@ -5,9 +5,10 @@ hide:
 ---
 # :material-map: Trilhas de Aprendizado
 
-A Codaqui é uma instituição educacional inovadora que adota a metodologia GitBased. Isso implica que todos os nossos materiais didáticos estão hospedados e acessíveis através do GitHub. Nossa filosofia é de crescimento coletivo, onde os próprios estudantes, juntamente com uma equipe dedicada de mentores, têm a responsabilidade de atualizar e aprimorar continuamente nossos currículos. Este processo teve início em um repositório que, no momento, está arquivado.
+A **Associação Codaqui** adota uma metodologia GitBased — todos os materiais estão hospedados e acessíveis pelo GitHub. Nossa filosofia é de crescimento coletivo: os próprios participantes, junto com uma equipe dedicada de mentores, têm a responsabilidade de atualizar e aprimorar continuamente os currículos.
 
-É importante ressaltar que nosso objetivo principal não é a criação de novos conteúdos, mas sim a curadoria de informações já disponíveis na internet. Nosso propósito é transformar a vastidão de informações disponíveis em um caminho estruturado e fácil de seguir. Por isso, a maioria dos módulos em nossos currículos direcionará os alunos para outros sites que foram previamente avaliados e aprovados por nossa comunidade de mentores. Esta abordagem garante que nossos alunos tenham acesso ao melhor conteúdo educacional disponível.
+!!! tip "Curadoria em vez de criação"
+    Nosso objetivo principal não é criar novos conteúdos do zero, mas sim curar o que já existe na internet. Transformamos a vastidão de informações disponíveis em um caminho estruturado e fácil de seguir. A maioria dos módulos direciona os participantes para conteúdos previamente avaliados e aprovados pela nossa comunidade de mentores.
 
 <div class="grid cards" markdown>
 

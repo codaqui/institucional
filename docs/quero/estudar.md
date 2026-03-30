@@ -11,20 +11,21 @@ hide:
 
 ## Público Alvo
 
-Nosso formato de aulas em grupo é ideal para pessoas em início de carreira ou transição, porém não limitamos idade ou qualquer tipo de critério para inscrição, apenas "cobramos" frequência e participação de qualquer pessoa que deseja aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, oferecemos mentorias individuais para pessoas que desejam um acompanhamento mais próximo.
+Nosso formato de encontros em grupo é ideal para pessoas em início de carreira ou em transição. Não limitamos idade ou qualquer outro critério — apenas pedimos frequência e participação. Além dos encontros coletivos, oferecemos mentorias individuais para quem deseja um acompanhamento mais próximo.
 
-Os grupos de estudos são voltados para pessoas com conhecimento prévio na área, que desejam aprofundar seus estudos em temas específicos, recomendamos a participação de pessoas com experiência intermediária ou avançada.
+Os grupos de estudos são voltados para participantes com conhecimento prévio na área que desejam aprofundar temas específicos. Recomendamos para pessoas com experiência intermediária ou avançada.
 
 
 ## Como funciona?
 
 ### O que esperar?
 
-Nossos alunos têm encontros semanais com um mentor, abordando conteúdos que dizem respeito ao mundo da tecnologia e variam conforme o nível de conhecimento da turma. Fazem parte da trilha pedagógica as linguagens de programação, a lógica computacional, os componentes dos computadores, dentre outros conteúdos.
+Nossos participantes têm encontros semanais com um mentor, abordando conteúdos do mundo da tecnologia que variam conforme o nível de conhecimento do grupo. Fazem parte da trilha as linguagens de programação, a lógica computacional, os componentes dos computadores, entre outros temas.
 
-Os encontros de mentoria acontecem de forma virtual, e nos demais dias os alunos ainda podem consumir conteúdo de ensino, seja por meio de atividades ou por outro tipo de material fornecido pelo mentor.
+Os encontros de mentoria acontecem de forma virtual, e nos demais dias os participantes ainda podem consumir conteúdo das trilhas ou materiais fornecidos pelo mentor.
 
-Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord, que reúne toda a comunidade de alunos, mentores e colaboradores da Codaqui.
+!!! tip "Comunidade ativa"
+    Nossos participantes podem tirar dúvidas a qualquer momento no nosso [Discord](https://discord.com/invite/xuTtxqCPpz), que reúne toda a comunidade de participantes, mentores e colaboradores da Codaqui.
 
 ### O que poderei aprender?
 
@@ -85,7 +86,7 @@ _Em desenvolvimento_
 
 ## Plataformas Digitais
 
-Participe da nossa comunidade no WhatsApp para interagir com outros membros. Além disso, você também pode utilizar o Discord para encontrar seus colegas e estudar em comunidade. Essas plataformas oferecem ótimas oportunidades para trocar ideias, compartilhar conhecimento e colaborar com outros estudantes.
+Participe da nossa comunidade no WhatsApp para interagir com outros membros. Além disso, você também pode utilizar o Discord para encontrar outros participantes e estudar em comunidade. Essas plataformas oferecem ótimas oportunidades para trocar ideias, compartilhar conhecimento e colaborar.
 
 <div class="grid cards" markdown>
 
