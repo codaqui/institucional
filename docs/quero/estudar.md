@@ -56,8 +56,8 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | ---------| ---------- | ------- | --------- | ---------------- |
 | Fevereiro | Gestão e Produtividade | 18/02 (Introdução), 24/02 e 02/03 (Aprofundamento) | Danilo Mesquita | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
-| Abril | Finanças e Economia | A confirmar | A confirmar | Discord |
-| Abril | Python e Lógica de Programação | A confirmar | A confirmar | Discord |
+| Abril | [Educação Financeira](../blog/posts/institucional/2026_04_01_curso_gestao_financeira.md) | A confirmar | Valnaire Nascimento | Discord |
+| Abril | [Lógica de Programação com Python](../blog/posts/institucional/2026_04_01_curso_introducao_python.md) | 20/04, 22/04, 27/04 e 29/04 às 20h30 | Paulinea | Discord |
 | Maio | Product Discovery & Plataforma como Produto | A confirmar | A confirmar | Discord |
 | Junho | FinOps / CloudSRE | A confirmar | A confirmar | Discord |
 | Julho | C# e SQL | A confirmar | A confirmar | Discord |
