@@ -205,9 +205,14 @@ function parseYouTubeSubscriberText(text) {
 }
 
 async function fetchYouTubeSubscribers(handle) {
-  // handle: "@codaqui" or "devparana" (with or without @)
-  const slug = handle.startsWith("@") ? handle : handle;
-  const url = `https://www.youtube.com/${slug}`;
+  // handle: "@codaqui", "devparana", or legacy channel ID "UCxxxx"
+  let path;
+  if (handle.startsWith("UC") && !handle.startsWith("@")) {
+    path = `/channel/${handle}`;
+  } else {
+    path = `/${handle}`;
+  }
+  const url = `https://www.youtube.com${path}`;
   try {
     const res = await fetchWithTimeout(url, {
       headers: {

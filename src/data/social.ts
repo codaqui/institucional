@@ -10,6 +10,7 @@ export interface SocialChannel {
 }
 
 export const DISCORD_URL = "https://discord.com/invite/xuTtxqCPpz";
+export const DISCORD_WIDGET_URL = "https://discord.com/api/guilds/829882821559451659/widget.json";
 export const WHATSAPP_URL = "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up";
 export const EMAIL = "contato@codaqui.dev";
 export const GITHUB_ORG = "https://github.com/codaqui";

@@ -12,8 +12,9 @@ import {
   useTheme,
 } from "@mui/material";
 import { communities, type Community } from "../data/communities";
-import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
+import { DISCORD_URL, DISCORD_WIDGET_URL, WHATSAPP_URL } from "../data/social";
 import { SupportersBadge } from "../components/OpenCollective";
+import DiscordServerWidget from "../components/DiscordServerWidget";
 
 function HeroBanner() {
   return (
@@ -226,6 +227,20 @@ function CommunitySection() {
   );
 }
 
+function DiscordSection() {
+  return (
+    <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
+      <Typography variant="h4" fontWeight={700} gutterBottom>
+        💬 Comunidade no Discord
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        Faça parte da comunidade e conecte-se com quem está aprendendo agora.
+      </Typography>
+      <DiscordServerWidget widgetUrl={DISCORD_WIDGET_URL} compact />
+    </Container>
+  );
+}
+
 function LinksSection() {
   const channels = [
     {
@@ -294,6 +309,7 @@ export default function Home(): React.JSX.Element {
       <main>
         <FeaturesSection />
         <CommunitySection />
+        <DiscordSection />
         <LinksSection />
       </main>
     </Layout>

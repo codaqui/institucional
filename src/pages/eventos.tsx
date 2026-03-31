@@ -346,7 +346,7 @@ export default function EventosPage(): React.JSX.Element {
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {selectedSourceKey === "all"
-                        ? "Total agregado no indice publico."
+                        ? "Total de eventos publicados."
                         : "Total de eventos na comunidade filtrada."}
                     </Typography>
                   </CardContent>
@@ -362,7 +362,7 @@ export default function EventosPage(): React.JSX.Element {
                       {filteredEvents.filter((event) => Boolean(event.recurrenceRule)).length}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Eventos com regra de recorrencia na API.
+                      Eventos que se repetem regularmente.
                     </Typography>
                   </CardContent>
                 </Card>
@@ -371,13 +371,13 @@ export default function EventosPage(): React.JSX.Element {
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="overline" color="text.secondary">
-                      Inscricoes somadas
+                      Inscrições somadas
                     </Typography>
                     <Typography variant="h4" fontWeight={800}>
                       {filteredEvents.reduce((total, event) => total + (event.userCount ?? 0), 0)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Soma de interessados retornada pela API.
+                      Total de participantes interessados.
                     </Typography>
                   </CardContent>
                 </Card>
@@ -387,176 +387,7 @@ export default function EventosPage(): React.JSX.Element {
         </Grid>
       </Container>
 
-      <Container id="agenda" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
-        <Stack spacing={2} sx={{ mb: 4 }}>
-          <Typography variant="h4" fontWeight={800}>
-            Comunidades em destaque
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Explore a agenda geral ou aprofunde nas comunidades e plataformas que fazem parte do ecossistema da Codaqui.
-          </Typography>
-        </Stack>
-
-        {loading ? null : (
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <Avatar sx={{ bgcolor: "primary.main", color: "primary.contrastText" }}>C</Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        Associação Codaqui
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Encontros próprios, trilhas, cursos e atividades da comunidade.
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-                    {sources
-                      .filter((source) => source.source === "discord")
-                      .map((source) => (
-                        <Chip key={source.sourceKey} label={source.label} color="primary" variant="outlined" />
-                      ))}
-                  </Stack>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                    <Button variant="contained" onClick={() => setSelectedSourceKey("all")}>
-                      Ver agenda completa
-                    </Button>
-                    {primaryDiscordSource?.ctaHref ? (
-                      <Button
-                        component={Link}
-                        href={primaryDiscordSource.ctaHref}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="outlined"
-                        endIcon={<OpenInNewIcon />}
-                      >
-                        Entrar no Discord
-                      </Button>
-                    ) : null}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                  <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <Avatar sx={{ bgcolor: "secondary.main", color: "secondary.contrastText" }}>D</Avatar>
-                    <Box>
-                      <Typography variant="h6" fontWeight={700}>
-                        Dev Paraná
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Histórico e próximos encontros da comunidade parceira no Meetup.
-                      </Typography>
-                    </Box>
-                  </Stack>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-                    {sources
-                      .filter((source) => source.source === "meetup")
-                      .map((source) => (
-                        <Chip
-                          key={source.sourceKey}
-                          label={`${source.itemCount} eventos`}
-                          color="info"
-                          variant="outlined"
-                        />
-                      ))}
-                  </Stack>
-                  <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
-                    <Button
-                      variant="contained"
-                      color="secondary"
-                      onClick={() => setSelectedSourceKey("meetup:devparana")}
-                    >
-                      Ver Dev Paraná
-                    </Button>
-                    {sources.find((source) => source.sourceKey === "meetup:devparana")?.ctaHref ? (
-                      <Button
-                        component={Link}
-                        href={sources.find((source) => source.sourceKey === "meetup:devparana")?.ctaHref ?? "#"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        variant="outlined"
-                        endIcon={<OpenInNewIcon />}
-                      >
-                        Abrir no Meetup
-                      </Button>
-                    ) : null}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        )}
-
-        {loading ? null : (
-          <Card variant="outlined" sx={{ mb: 4 }}>
-            <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-              <Stack spacing={2}>
-                <Typography variant="h6" fontWeight={700}>
-                  Filtrar agenda
-                </Typography>
-                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-                  <Chip
-                    label={`Tudo (${events.length})`}
-                    color={selectedSourceKey === "all" ? "primary" : "default"}
-                    variant={selectedSourceKey === "all" ? "filled" : "outlined"}
-                    onClick={() => setSelectedSourceKey("all")}
-                    clickable
-                  />
-                  {sources.map((source) => (
-                    <Chip
-                      key={source.sourceKey}
-                      label={`${source.emoji} ${source.label} (${source.itemCount})`}
-                      color={selectedSourceKey === source.sourceKey ? "primary" : "default"}
-                      variant={selectedSourceKey === source.sourceKey ? "filled" : "outlined"}
-                      onClick={() => setSelectedSourceKey(source.sourceKey)}
-                      clickable
-                    />
-                  ))}
-                </Stack>
-                <Typography variant="body2" color="text.secondary">
-                  {selectedSourceKey === "all"
-                    ? "Você está vendo a visão geral com todas as comunidades integradas."
-                    : `Filtro ativo: ${sourcesById[selectedSourceKey]?.label ?? "comunidade selecionada"}.`}
-                </Typography>
-              </Stack>
-            </CardContent>
-          </Card>
-        )}
-
-        {loading ? (
-          <Grid container spacing={3}>
-            {Array.from({ length: 2 }).map((_, index) => (
-              <Grid key={index} size={{ xs: 12, md: 6 }}>
-                <Skeleton variant="rounded" height={280} />
-              </Grid>
-            ))}
-          </Grid>
-        ) : hasError ? (
-          <Alert severity="warning" variant="outlined">
-            Não foi possível carregar o índice de eventos agora.
-          </Alert>
-        ) : featuredEvents.length > 0 ? (
-          <Grid container spacing={3}>
-            {featuredEvents.map((event) => (
-              <Grid key={`${event.sourceKey}:${event.id}`} size={{ xs: 12, md: 6 }}>
-                {renderEventCard(event)}
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Alert severity="info" variant="outlined">
-            Ainda não há eventos marcados como destaque.
-          </Alert>
-        )}
-      </Container>
-
-      <Box sx={{ bgcolor: "action.hover", py: { xs: 6, md: 8 } }}>
+      <Box id="agenda" sx={{ bgcolor: "action.hover", py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
           <Grid container spacing={3} alignItems="stretch">
             <Grid size={{ xs: 12, lg: 7 }}>
@@ -575,9 +406,7 @@ export default function EventosPage(): React.JSX.Element {
                     Fontes de eventos
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Cada fonte publica um índice próprio e arquivos individuais por evento. O
-                    frontend usa o agregado leve, e o restante fica pronto para detalhes, cache e
-                    expansão futura.
+                    Eventos agregados de diferentes comunidades e plataformas parceiras da Codaqui.
                   </Typography>
 
                   <Stack spacing={1.5} sx={{ mb: 3 }}>
@@ -599,18 +428,11 @@ export default function EventosPage(): React.JSX.Element {
                           {source.description}
                         </Typography>
                         <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-                          {source.itemCount} evento(s) · {source.indexPath}
+                          {source.itemCount} evento(s)
+                          {source.generatedAt
+                            ? ` · atualizado em ${new Date(source.generatedAt).toLocaleDateString("pt-BR")}`
+                            : null}
                         </Typography>
-                        {source.generatedAt ? (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                            Atualizado em {new Date(source.generatedAt).toLocaleString("pt-BR")}
-                          </Typography>
-                        ) : null}
-                        {source.refreshStrategy ? (
-                          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
-                            {source.refreshStrategy}
-                          </Typography>
-                        ) : null}
                       </Box>
                     ))}
                   </Stack>
@@ -647,6 +469,39 @@ export default function EventosPage(): React.JSX.Element {
       </Box>
 
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+        {loading ? null : (
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardContent sx={{ p: { xs: 2, md: 3 } }}>
+              <Stack spacing={1.5}>
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Chip
+                    label={`Tudo (${events.length})`}
+                    color={selectedSourceKey === "all" ? "primary" : "default"}
+                    variant={selectedSourceKey === "all" ? "filled" : "outlined"}
+                    onClick={() => setSelectedSourceKey("all")}
+                    clickable
+                  />
+                  {sources.map((source) => (
+                    <Chip
+                      key={source.sourceKey}
+                      label={`${source.emoji} ${source.label} (${source.itemCount})`}
+                      color={selectedSourceKey === source.sourceKey ? "primary" : "default"}
+                      variant={selectedSourceKey === source.sourceKey ? "filled" : "outlined"}
+                      onClick={() => setSelectedSourceKey(source.sourceKey)}
+                      clickable
+                    />
+                  ))}
+                </Stack>
+                <Typography variant="body2" color="text.secondary">
+                  {selectedSourceKey === "all"
+                    ? "Você está vendo a visão geral com todas as comunidades integradas."
+                    : `Filtro ativo: ${sourcesById[selectedSourceKey]?.label ?? "comunidade selecionada"}.`}
+                </Typography>
+              </Stack>
+            </CardContent>
+          </Card>
+        )}
+
         <Stack spacing={2} sx={{ mb: 4 }}>
             <Typography variant="h4" fontWeight={800}>
               Agenda completa
@@ -687,7 +542,7 @@ export default function EventosPage(): React.JSX.Element {
         <Container maxWidth="lg">
           <Stack spacing={2} sx={{ mb: 4 }}>
             <Typography variant="h4" fontWeight={800}>
-              Historico da comunidade
+              Histórico da comunidade
             </Typography>
             <Typography variant="body1" color="text.secondary">
               Eventos anteriores continuam acessíveis para consulta, com espaço para destacar a trajetória de cada comunidade.
