@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "generatedAt": "2026-03-31T21:58:09.817Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-03-31T20:08:56.017Z",
+      "generatedAt": "2026-03-31T21:58:09.817Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 10
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-03-31T20:08:56.017Z",
+      "generatedAt": "2026-03-31T21:58:09.817Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
@@ -10191,7 +10191,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 3,
+      "userCount": 6,
       "creatorName": "Everton Tavares",
       "creatorId": "188896297",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/3/highres_533376035.jpeg",
@@ -10278,7 +10278,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 10,
+      "userCount": 11,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/9/highres_533391913.jpeg",
