@@ -120,7 +120,7 @@ export default function ApoiarPage(): React.JSX.Element {
             <AlertTitle>Níveis em discussão</AlertTitle>
             Os valores, níveis e benefícios abaixo estão em fase de teste e podem mudar.
             Quer opinar?{" "}
-            <Link href="https://github.com/codaqui/institucional/discussions" target="_blank" rel="noopener noreferrer">
+            <Link href="https://github.com/orgs/codaqui/discussions/447" target="_blank" rel="noopener noreferrer">
               Participe da discussão no GitHub →
             </Link>
           </Alert>
