@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "263071901",
+    "title": "Front In Maringá 2019",
+    "summary": "Vamos participar do maior evento de frontend do Paraná? Aproveite já o 1º lote com valor promocional! As compras de ingresso deverão ser feitas pelo Sympla, garanta o seu - http://bit.ly/ingressos-meetup --- Palestrante…",
+    "startAt": "2019-09-14T08:00:00-03:00",
+    "endAt": "2019-09-14T18:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Sebrae Maringá · Av. Bento Munhoz da Rocha Neto, 1116 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/263071901/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 17,
+    "creatorName": "Guilherme Bayer",
+    "creatorId": "156179012",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/3/b/9/highres_483033721.jpeg"
+  }
+}

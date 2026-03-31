@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "230927469",
+    "title": "Meetup in Company #2 - DB1",
+    "summary": "Viemos convidar a todos para mais uma edição do Meetup in Company, nesta edição contaremos com 3 talks, e corre lá, que são apenas 50 vagas disponíveis! Firmata e o Arduíno com C , tão fácil que parece brincadeira - Mar…",
+    "startAt": "2016-05-21T14:00:00-03:00",
+    "endAt": "2016-05-21T17:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 Global Software · Avenida Advogado Horácio Raccanello Filho · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/230927469/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 30,
+    "creatorName": "Guilherme Bayer",
+    "creatorId": "156179012"
+  }
+}

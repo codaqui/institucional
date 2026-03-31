@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "252630361",
+    "title": "[Pré] TDC Maringá Meetup",
+    "summary": "Muitos pessoas de Maringá foram selecionadas para palestrar no TDC em São Paulo (http://www.thedevelopersconference.com.br/tdc/2018/index.html). Muitos são marujos de primeira viagem em eventos maiores assim, o objetivo…",
+    "startAt": "2018-07-14T14:30:00-03:00",
+    "endAt": "2018-07-14T18:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · Av. Duque de Caxias, 882 - Zona 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/252630361/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 17,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973"
+  }
+}

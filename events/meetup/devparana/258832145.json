@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "258832145",
+    "title": "#4 Maringá Agile - aiqfome",
+    "summary": "A quarta edição dos meetups sobre agilidade traz a Maringá será dessa vez na sede do AIQFOME com os facilitadores Vinícius Felix e Danilo Garcia. [PROGRAMAÇÃO] 19:00 - 19:15: Chegada e bate-papo 19:15 - 19:50: Dissecand…",
+    "startAt": "2019-02-19T19:00:00-03:00",
+    "endAt": "2019-02-19T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "aiqfome · Av. Pintassilgo, 286 - Parque das Laranjeiras · Maringá · pw",
+    "href": "https://www.meetup.com/developerparana/events/258832145/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 33,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/b/0/e/highres_478531502.jpeg"
+  }
+}

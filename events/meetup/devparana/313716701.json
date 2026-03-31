@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313716701",
+    "title": "1° LondrinaTech Meetup",
+    "summary": "🚀 1º LondrinaTech Meetup A comunidade tech do norte do Paraná está se conectando ainda mais! O LondrinaTech Meetup nasce para fortalecer o ecossistema regional de tecnologia, reunindo profissionais, estudantes e entusi…",
+    "startAt": "2026-03-24T19:00:00-03:00",
+    "endAt": "2026-03-24T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Auditório do IPOLON 2 · Rua Alagoas, 2015 - Jd. Quebec · Londrina",
+    "href": "https://www.meetup.com/developerparana/events/313716701/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 60,
+    "creatorName": "Paulo Cesar Ferreira Mello",
+    "creatorId": "185209798",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/f/9/4/highres_533277236.jpeg"
+  }
+}

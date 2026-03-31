@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "259570471",
+    "title": "DevOps Maringá",
+    "summary": "DevOps Maringá Talks: Bruno Pereira - Diretor de inovação Mandic Junior Miqueletti - Desenvolvedor na DB1 [ATENÇÃO] Informações importantes aos inscritos! - Para acessar o evento, será necessário identificação na portar…",
+    "startAt": "2019-03-14T18:30:00-03:00",
+    "endAt": "2019-03-14T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/259570471/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 40,
+    "creatorName": "Leonardo Elias",
+    "creatorId": "182647292",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/a/3/9/highres_479275865.jpeg"
+  }
+}

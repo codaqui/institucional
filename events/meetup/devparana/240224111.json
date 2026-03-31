@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "240224111",
+    "title": "Dev Paraná in Academy - IFPR (Campus Paranavaí)",
+    "summary": "https://secure.meetupstatic.com/photos/event/6/5/3/8/600 461245912.jpeg Primeiros passos na nuvem Fernando Fabricio Chega de somente ouvir falar sobre cloud computing é hora de colocar a mão na massa e montar seu ambien…",
+    "startAt": "2017-05-26T19:15:00-03:00",
+    "endAt": "2017-05-26T22:45:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Instituto Federal do Paraná - Campus Paranavaí · Rua José Felipe Tequinha 1400 · Paranavaí",
+    "href": "https://www.meetup.com/developerparana/events/240224111/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 18,
+    "creatorName": "Junior Conte",
+    "creatorId": "152994462"
+  }
+}

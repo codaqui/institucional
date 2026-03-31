@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265934143",
+    "title": "7º  Delphi Ingá - Faculdade SMG",
+    "summary": "Vamos falar de Delphi? Palestras Confirmadas 1) Integração com balanças usando ACBr - Jean Ambrosio 2) Clean Architecture com Delphi, é possível? Claro que sim! - André Celestino Sobre o local: - Segue os padrões de ace…",
+    "startAt": "2019-10-29T19:30:00-03:00",
+    "endAt": "2019-10-29T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Centro Universitário Santa Maria da Glória - UNISMG · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265934143/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 39,
+    "creatorName": "Francisco Thiago de Almeida",
+    "creatorId": "264857383",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg"
+  }
+}

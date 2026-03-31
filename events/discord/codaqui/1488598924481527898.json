@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "discord",
+    "sourceId": "codaqui",
+    "type": "discord",
+    "label": "Discord Codaqui",
+    "emoji": "💬",
+    "description": "Eventos e encontros da comunidade hospedados no servidor da Codaqui.",
+    "ctaLabel": "Entrar no Discord da Codaqui",
+    "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
+    "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "1488598924481527898",
+    "title": "Educação Financeira #2",
+    "summary": "Controle receitas e despesas (Módulo 2) · Defina metas e orçamento (Módulo 3)",
+    "startAt": "2026-04-20T22:30:00+00:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Discord",
+    "host": "Comunidade Codaqui",
+    "location": "Servidor da Codaqui no Discord",
+    "href": "https://discord.com/invite/xuTtxqCPpz",
+    "tags": [
+      "discord",
+      "comunidade"
+    ],
+    "ctaLabel": "Entrar no Discord da Codaqui",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "voice",
+    "userCount": 1,
+    "creatorName": "Enderson Menezes",
+    "creatorId": "265457153257635850",
+    "channelId": "836223645143662592",
+    "imageUrl": "https://cdn.discordapp.com/guild-events/1488598924481527898/771762f7822266fbcf8aa9523ad3ba82.png?size=1024"
+  }
+}

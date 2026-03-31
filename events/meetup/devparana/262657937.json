@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "262657937",
+    "title": "After Data #4 - Algoritmos Genéticos",
+    "summary": "Algoritmos que jogam videogames, geração de músicas e robótica só são algumas das aplicações mais comuns de algoritmos genéticos. Nesse Meetup teremos as motivações, aplicações e passos para aprender, aplicar e implemen…",
+    "startAt": "2019-07-04T19:00:00-03:00",
+    "endAt": "2019-07-04T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Grupo TecnoSpeed · R. Vitório Balani, 1211 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/262657937/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 34,
+    "creatorName": "Vinícius Basseto Félix",
+    "creatorId": "223742833",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/9/c/b/highres_482615275.jpeg"
+  }
+}

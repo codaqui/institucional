@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "247835620",
+    "title": "DevParaná Conference 2018",
+    "summary": "Novamente uma conf do DevParaná acontecerá em Maringá! Já guarde esta data em sua agenda, em breve teremos mais notícias.",
+    "startAt": "2018-07-28T08:00:00-03:00",
+    "endAt": "2018-07-28T19:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Meetup",
+    "href": "https://www.meetup.com/developerparana/events/247835620/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 54,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/1/c/f/5/highres_468487413.jpeg"
+  }
+}

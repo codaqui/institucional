@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "305537216",
+    "title": "Meetup Guarapuava 23/01",
+    "summary": "Inscrições no link: Inscrições Local : Cilla Tech Park Rua Primavera, Nº 231 - Cidade dos Lagos, Guarapuava - PR",
+    "startAt": "2025-01-23T18:45:00-03:00",
+    "endAt": "2025-01-23T22:45:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Cilla Tech Park · Rua Primavera, Nº 231 - Cidade dos Lagos, Guarapuava - PR · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/305537216/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 26,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/9/e/2/1/highres_525760481.jpeg"
+  }
+}

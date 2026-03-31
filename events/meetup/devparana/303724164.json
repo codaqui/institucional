@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "303724164",
+    "title": "Meetup Front End - Guarapuava PR",
+    "summary": "Mergulhe profundamente no mundo dos frameworks JavaScript em nosso próximo evento organizado pela Dev Paraná. Quer você seja um desenvolvedor experiente em busca de expandir seu conhecimento ou um iniciante ansioso por…",
+    "startAt": "2024-10-24T18:45:00-03:00",
+    "endAt": "2024-10-24T22:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "3C Plus · R. Mal. Floriano Peixoto, 1601 - Centro, Guarapuava - PR, 85010-250 · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/303724164/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 51,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/e/3/1/3/highres_523858131.jpeg"
+  }
+}

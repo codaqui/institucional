@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "307109196",
+    "title": "Frontend Maringá na TecnoSpeed",
+    "summary": "🚀 Reunindo a comunidade de desenvolvimento frontend de Maringá 🚀 Estamos animados em nos reunir na TecnoSpeed para realizar o sétimo encontro mensal seguido do grupo. Todos são bem vindos para participar gratuitamente…",
+    "startAt": "2025-04-23T19:00:00-03:00",
+    "endAt": "2025-04-23T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · R. Vitório Balani, 1211 - Zona 05, Maringá - PR, 87015-310 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/307109196/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 17,
+    "creatorName": "Ofelquis Gimenes",
+    "creatorId": "368507859",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/1/c/b/highres_527373227.jpeg"
+  }
+}

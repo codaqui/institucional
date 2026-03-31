@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "253902054",
+    "title": "Password #1 - Burger Perk",
+    "summary": "Password é um grupo de pessoas interessadas em segurança da informação. O que vai acontecer lá? Muitos assuntos voltados a segurança da informação, como: - Alice no País da Vulnerabilidade, Daiane Santos; -Exploração de…",
+    "startAt": "2018-08-25T15:30:00-03:00",
+    "endAt": "2018-08-25T18:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Burger Perk · Av. Cerro Azul, 454  Jardim Novo Horizonte · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/253902054/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 35,
+    "creatorName": "Eloisa Potrich",
+    "creatorId": "225304255",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/4/7/e/highres_473837534.jpeg"
+  }
+}

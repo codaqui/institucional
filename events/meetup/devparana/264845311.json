@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "264845311",
+    "title": "6º  Delphi Ingá - Sabium Sistemas",
+    "summary": "Vamos falar de Delphi? Palestras Confirmadas 1) REST DataWare (RDW) - Amauri Alves 2) Produtividade com o Open Tools API - André Celestino Sobre o local: - Segue os padrões de acessibilidade em toda a área; F.A.Q: - É o…",
+    "startAt": "2019-09-30T19:00:00-03:00",
+    "endAt": "2019-09-30T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Sabium Sistemas · Av. Humaitá, 542 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/264845311/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 21,
+    "creatorName": "Francisco Thiago de Almeida",
+    "creatorId": "264857383",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg"
+  }
+}

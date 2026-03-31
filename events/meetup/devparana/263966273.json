@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "263966273",
+    "title": "#4 Ingá.php - DB1 Global Software",
+    "summary": "echo \"Vamos falar de PHP?\"; $palestras = [ [ 'talk' = 'SOLID Principles', 'description' = 'vamos falar sobre o conceito e a aplicação de dois Princípios de Design de Software: Substituição de Liskov e Segregação de Inte…",
+    "startAt": "2019-08-26T19:00:00-03:00",
+    "endAt": "2019-08-26T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/263966273/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 20,
+    "creatorName": "Eduardo Bona",
+    "creatorId": "281534700",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/7/e/highres_483971390.jpeg"
+  }
+}

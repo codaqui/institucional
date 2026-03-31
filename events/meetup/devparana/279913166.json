@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "279913166",
+    "title": "#14 DevGirls Maringá - Liderança Subversiva",
+    "summary": "A 14ª edição do DevGirls Maringá , está incrível, com o tema \"Liderança Subversiva\" com a ilustre palestrante Maíra Blasi. Sobre a Maíra: \"Maíra Blasi acredita em formas de trabalho mais evolutivas e horizontais. Atualm…",
+    "startAt": "2021-08-12T19:00:00-03:00",
+    "endAt": "2021-08-12T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/279913166/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 33,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/e/1/5/c/highres_497997692.jpeg"
+  }
+}

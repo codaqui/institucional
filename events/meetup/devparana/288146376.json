@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "288146376",
+    "title": "DevParaná na Estrada - Umuarama",
+    "summary": "Palestras: - Trabalho remoto e Comunidade - Fernando Fabricio (Dash.fi) - Carreira Dev - Edson Macoto Jr - Dicas e Truques de HTML5\\, CSS e Javascript que talvez passem despercebidos - João Vitorino Este evento tem patr…",
+    "startAt": "2022-09-16T19:00:00-03:00",
+    "endAt": "2022-09-16T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "CURSO E COLÉGIO ALFA · R. Arapongas, 4316 · Umuarama · PR",
+    "href": "https://www.meetup.com/developerparana/events/288146376/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 15,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/e/3/8/highres_506856408.jpeg"
+  }
+}

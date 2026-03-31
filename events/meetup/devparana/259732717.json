@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "259732717",
+    "title": "17º  Encontro Backend Meetup Group Maringá - SG Sistemas",
+    "summary": "Programação: 19:00 ~ 19:10: Chegada e Bate Papo 19:10 ~ 20:00: PostgreSQL, provavelmente você está usando errado - Thiago Ribeiro 20:00 ~ 20:30: Lean Coffe (roda de discussão): Estimando software",
+    "startAt": "2019-03-19T19:00:00-03:00",
+    "endAt": "2019-03-19T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "SG Sistemas · R. São João, 1759 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/259732717/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 26,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "276256013",
+    "title": "Comunicação em Tempo Real com WebRTC",
+    "summary": "A transmissão do evento acontecerá no YouTube do DevParaná. https://youtu.be/TX51wIpzqRc Conteúdo WebRTC (Web Real-Time Communications) é uma tecnologia que permite aplicativos e sites da Web a transmitirem mídia de áud…",
+    "startAt": "2021-02-11T20:00:00-03:00",
+    "endAt": "2021-02-11T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/276256013/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 18,
+    "creatorName": "Luis Berns",
+    "creatorId": "223750190",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/b/1/highres_494682929.jpeg"
+  }
+}

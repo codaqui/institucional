@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313816476",
+    "title": "DevPR na Estrada - Cianorte",
+    "summary": "DevParaná na Estrada 2026 chega com um conjunto de palestras incríveis! 🎤 Palestras: GitHub e o Universo Open Source das Comunidades Enderson Menezes - DevParaná Maringá e Lead Infra @ Thoughtworks Vibe Coding & Agenti…",
+    "startAt": "2026-03-26T19:00:00-03:00",
+    "endAt": "2026-03-26T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Teatro Cândido Garcia · Av. Brasil, 1123 - Zona 1 · Cianorte",
+    "href": "https://www.meetup.com/developerparana/events/313816476/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 156,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/1/highres_533376033.jpeg"
+  }
+}

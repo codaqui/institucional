@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "261448522",
+    "title": "2º  Ingá.php - UOL BoaCompra",
+    "summary": "Vamos falar de PHP? Sobre o local: - Segue os padrões de acessibilidade em toda área - Vai ter um lanchinho (coffee break) F.A.Q: - É o segundo mas queremos manter uma frequencia de pelo menos um por mes - Vamos variar…",
+    "startAt": "2019-05-27T19:00:00-03:00",
+    "endAt": "2019-05-27T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UOL BoaCompra Maringá · Av. Bento Munhoz da Rocha Neto, 632 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/261448522/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 23,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/highres_479820100.jpeg"
+  }
+}
