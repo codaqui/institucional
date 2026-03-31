@@ -33,8 +33,8 @@ const links: LinkItem[] = [
 // useColorMode must be called inside a component rendered within Layout (provides the context)
 function BioAvatar(): React.JSX.Element {
   const { colorMode } = useColorMode();
-  // logo.png = white/light logo (for dark backgrounds); logo_blk.png = dark logo (for light backgrounds)
-  const logoSrc = colorMode === 'dark' ? '/img/logo.png' : '/img/logo_blk.png';
+  // logo_principal.svg = dark/teal colored (for light backgrounds); logo_monocromatica.svg = white (for dark backgrounds)
+  const logoSrc = colorMode === 'dark' ? '/img/logo_monocromatica.svg' : '/img/logo_principal.svg';
   return (
     <Avatar
       src={logoSrc}

@@ -95,8 +95,8 @@ const config: Config = {
       title: "CODAQUI.dev",
       logo: {
         alt: "Codaqui Logo",
-        src: "img/logo.png",
-        srcDark: "img/logo_blk.png",
+        src: "img/logo_principal.svg",
+        srcDark: "img/logo_monocromatica.svg",
       },
       items: [
         {

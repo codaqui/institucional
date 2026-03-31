@@ -30,7 +30,7 @@ function HeroBanner() {
       <Container maxWidth="lg">
         <Box
           component="img"
-          src="/img/logo.png"
+          src="/img/logo_monocromatica.svg"
           alt="Codaqui Logo"
           sx={{ width: 120, height: "auto", mb: 3 }}
         />
