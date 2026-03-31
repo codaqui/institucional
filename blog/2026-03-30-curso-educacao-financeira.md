@@ -39,7 +39,7 @@ O curso acontecerá em cinco encontros conduzidos por **Valnaire Nascimento**:
 | **Aula 1** | **13 abr** | Dinheiro é comportamento (Módulo 1) · Crenças influenciam decisões (Módulo 1) | Apresentação de slides · vídeos | Diagnóstico e tipo de gasto |
 | **Aula 2** | **20 abr** | Controle receitas e despesas (Módulo 2) · Defina metas e orçamento (Módulo 3) | Apresentação de slides · planilhas | Ensinar a criar orçamento |
 | **Aula 3** | **27 abr** | Gerencie juros e crédito (Módulo 4) · Invista com consistência (Módulo 5) | Apresentação de slides · melhores investimentos | Verificar perfil do investidor |
-| **Aula 4** | **03 mai** | Construa renda passiva (Módulo 6) · Planejamento de longo prazo (Módulo 7) | Apresentação de slides | Não informado |
+| **Aula 4** | **04 mai** | Construa renda passiva (Módulo 6) · Planejamento de longo prazo (Módulo 7) | Apresentação de slides | Não informado |
 | **Aula 5** | **11 mai** | Planejamento de longo prazo (Módulo 7) | Apresentação de slides | Verificar planos de previdência no mercado |
 
 > A participação acontece conforme a programação divulgada pela Codaqui. Para acompanhar inscrições e atualizações, consulte nossos canais oficiais.
