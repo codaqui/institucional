@@ -57,7 +57,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync analytics snapshot
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git commit -m "chore: sync analytics snapshot"
           git push

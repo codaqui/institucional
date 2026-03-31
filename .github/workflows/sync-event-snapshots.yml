@@ -51,7 +51,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync event snapshots
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git commit -m "chore: sync event snapshots"
           git push
