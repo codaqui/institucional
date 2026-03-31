@@ -14,6 +14,8 @@ import ChatIcon from "@mui/icons-material/Chat";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import SchoolIcon from "@mui/icons-material/School";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import { BackersWall, DonateButton } from "../../components/OpenCollective";
 import { WHATSAPP_URL } from "../../data/social";
 
@@ -111,11 +113,48 @@ export default function ApoiarPage(): React.JSX.Element {
             Qualquer valor faz diferença.
           </Typography>
 
+          <Alert
+            severity="info"
+            sx={{ mb: 3 }}
+          >
+            <AlertTitle>Níveis em discussão</AlertTitle>
+            Os valores, níveis e benefícios abaixo estão em fase de teste e podem mudar.
+            Quer opinar?{" "}
+            <Link href="https://github.com/codaqui/institucional/discussions" target="_blank" rel="noopener noreferrer">
+              Participe da discussão no GitHub →
+            </Link>
+          </Alert>
+
           <Grid container spacing={3} sx={{ mb: 4 }}>
             {[
-              { tier: "Apoiador", value: "R$ 20/mês", perks: ["Nome na lista de apoiadores", "Acesso antecipado a novidades"] },
-              { tier: "Patrocinador", value: "R$ 100/mês", perks: ["Logo na página de associação", "Menção no blog", "Todos os benefícios anteriores"] },
-              { tier: "Patrono", value: "Valor único", perks: ["Contribuição pontual", "Sem compromisso de recorrência", "Transparência total do uso"] },
+              {
+                tier: "Apoiador",
+                value: "R$ 20/mês",
+                perks: [
+                  "Nome na lista de apoiadores",
+                  "Acesso antecipado a novidades",
+                  "Canal privado de discussões com organizadores",
+                ],
+              },
+              {
+                tier: "Patrocinador",
+                value: "R$ 100/mês",
+                perks: [
+                  "Logo na página de associação",
+                  "Menção no blog",
+                  "Canal privado de discussões com organizadores",
+                  "Todos os benefícios anteriores",
+                ],
+              },
+              {
+                tier: "Patrono",
+                value: "Valor único",
+                perks: [
+                  "Contribuição pontual",
+                  "Sem compromisso de recorrência",
+                  "Transparência total do uso",
+                ],
+              },
             ].map((plan) => (
               <Grid key={plan.tier} size={{ xs: 12, sm: 4 }}>
                 <Card
@@ -150,6 +189,7 @@ export default function ApoiarPage(): React.JSX.Element {
             <DonateButton
               label="Ver finanças transparentes"
               variant="outlined"
+              href="https://opencollective.com/codaqui/transactions?kind=ALL"
             />
           </Box>
         </Box>

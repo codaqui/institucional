@@ -11,6 +11,8 @@ interface DonateButtonProps {
   /** Full width */
   fullWidth?: boolean;
   size?: "small" | "medium" | "large";
+  /** Override the default OC donate URL */
+  href?: string;
 }
 
 export default function DonateButton({
@@ -18,6 +20,7 @@ export default function DonateButton({
   variant = "contained",
   fullWidth = false,
   size = "medium",
+  href = OC_DONATE_URL,
 }: DonateButtonProps): React.JSX.Element {
   return (
     <Button
@@ -26,7 +29,7 @@ export default function DonateButton({
       size={size}
       fullWidth={fullWidth}
       startIcon={<FavoriteIcon />}
-      href={OC_DONATE_URL}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       sx={{
