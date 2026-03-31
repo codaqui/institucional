@@ -68,6 +68,14 @@ jobs:
       - name: Ensure custom domain file
         run: cp CNAME build/CNAME
 
+      - name: Override robots for previews
+        if: steps.deploy_meta.outputs.deploy_type == 'preview'
+        run: |
+          cat <<'EOF' > build/robots.txt
+          User-agent: *
+          Disallow: /
+          EOF
+
       - name: Deploy to GitHub Pages (main) 🚀
         if: steps.deploy_meta.outputs.deploy_type == 'production'
         uses: JamesIves/github-pages-deploy-action@v4

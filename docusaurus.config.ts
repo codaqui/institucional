@@ -96,6 +96,7 @@ const config: Config = {
 
   url: siteUrl,
   baseUrl,
+  noIndex: isPreview,
 
   organizationName: "codaqui",
   projectName: "institucional",
@@ -133,7 +134,10 @@ const config: Config = {
   presets: [
     [
       "classic",
-      classicPresetOptions,
+      {
+        ...classicPresetOptions,
+        sitemap: isPreview ? false : undefined,
+      },
     ],
   ],
 

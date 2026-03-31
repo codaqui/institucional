@@ -47,6 +47,12 @@ Esses builds usam `SITE_URL=https://codaqui.dev` com `BASE_URL` específico do s
 
 Quando o PR é `develop -> main`, o workflow reutiliza o preview contínuo de `develop` em vez de publicar um preview dedicado do PR.
 
+SEO/robots:
+
+- Produção publica `robots.txt` com sitemap em `https://codaqui.dev/sitemap.xml`
+- Previews usam `noIndex: true`
+- Os workflows de preview sobrescrevem `build/robots.txt` com `Disallow: /`
+
 ## Deploy
 
 O deploy é feito automaticamente via GitHub Actions quando há push nas branches `main` ou `develop`:

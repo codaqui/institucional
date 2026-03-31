@@ -10,6 +10,8 @@ Os previews publicados usam a mesma estratégia:
 - `develop` → `https://codaqui.dev/previews/develop/`
 - PRs → `https://codaqui.dev/previews/pr-<numero>/`
 
+Em produção, o `robots.txt` permite indexação normal e expõe o sitemap. Nos previews, o build aplica `noindex` e sobrescreve o `robots.txt` para bloquear crawling.
+
 O deploy principal também pode ser reexecutado manualmente no GitHub Actions quando for preciso republicar `main` ou `develop` sem criar um novo commit.
 
 ## Tecnologia
