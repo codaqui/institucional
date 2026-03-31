@@ -19,6 +19,16 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 const rootDir = process.cwd();
 const outputDir = path.join(rootDir, "static", "analytics");
 const outputFile = path.join(outputDir, "index.json");
@@ -50,7 +60,7 @@ function expectedPeriods() {
 }
 
 async function fetchJson(url) {
-  const res = await fetch(url);
+  const res = await fetchWithTimeout(url);
   if (!res.ok) return null;
   return res.json();
 }
@@ -66,7 +76,7 @@ async function dispatchReport(period) {
     return false;
   }
 
-  const res = await fetch(DISPATCH_API, {
+  const res = await fetchWithTimeout(DISPATCH_API, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,

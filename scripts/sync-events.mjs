@@ -1,6 +1,16 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 const rootDir = process.cwd();
 const configPath = path.join(rootDir, "events.config.json");
 const outputDir = path.join(rootDir, "static", "events");
@@ -11,7 +21,7 @@ async function readJson(filePath) {
 }
 
 async function fetchJson(url, init) {
-  const response = await fetch(url, init);
+  const response = await fetchWithTimeout(url, init);
   if (!response.ok) {
     throw new Error(`Request failed for ${url}: ${response.status}`);
   }
@@ -173,7 +183,7 @@ function buildMeetupPageUrl(config, type) {
 
 async function fetchMeetupCsrf(config) {
   const pageUrl = buildMeetupPageUrl(config, "past");
-  const response = await fetch(pageUrl, {
+  const response = await fetchWithTimeout(pageUrl, {
     headers: {
       "User-Agent": "Mozilla/5.0",
     },
@@ -323,7 +333,7 @@ async function fetchMeetupEventsPage(config, kind, cursor, boundary, session) {
           },
   };
 
-  const response = await fetch("https://www.meetup.com/gql2", {
+  const response = await fetchWithTimeout("https://www.meetup.com/gql2", {
     method: "POST",
     headers: {
       "User-Agent": "Mozilla/5.0",

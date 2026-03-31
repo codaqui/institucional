@@ -1,6 +1,16 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
+async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 const rootDir = process.cwd();
 const syncConfigPath = path.join(rootDir, "social-stats.config.json");
 const outputDir = path.join(rootDir, "static", "social-stats");
@@ -19,7 +29,7 @@ async function fetchDiscordMemberCount(guildId) {
   }
 
   const url = `https://discord.com/api/v10/guilds/${guildId}?with_counts=true`;
-  const res = await fetch(url, {
+  const res = await fetchWithTimeout(url, {
     headers: {
       Authorization: `Bot ${token}`,
       "Content-Type": "application/json",
@@ -39,7 +49,7 @@ async function fetchDiscordMemberCount(guildId) {
 
 async function fetchMeetupCsrf(urlname) {
   const pageUrl = `https://www.meetup.com/pt-BR/${urlname}/`;
-  const res = await fetch(pageUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+  const res = await fetchWithTimeout(pageUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
   if (!res.ok) throw new Error(`Meetup page unavailable: ${res.status}`);
 
   const html = await res.text();
@@ -63,7 +73,7 @@ async function fetchMeetupMemberCount(urlname) {
   try {
     const session = await fetchMeetupCsrf(urlname);
 
-    const res = await fetch("https://www.meetup.com/gql2", {
+    const res = await fetchWithTimeout("https://www.meetup.com/gql2", {
       method: "POST",
       headers: {
         "User-Agent": "Mozilla/5.0",
@@ -96,7 +106,7 @@ async function fetchMeetupMemberCount(urlname) {
 
 async function fetchCncfMemberCount(chapterSlug) {
   try {
-    const res = await fetch(`https://community.cncf.io/${chapterSlug}/`, {
+    const res = await fetchWithTimeout(`https://community.cncf.io/${chapterSlug}/`, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
     if (!res.ok) return null;
@@ -128,7 +138,7 @@ async function fetchWhatsAppGroupParticipants(groupId) {
 
   const url = `https://graph.facebook.com/v25.0/${groupId}?fields=total_participant_count,subject&access_token=${token}`;
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { "User-Agent": "codaqui-social-stats" },
     });
     if (!res.ok) {
@@ -154,7 +164,7 @@ async function fetchWhatsAppGroupParticipants(groupId) {
 
 async function fetchGitHubFollowers(username) {
   try {
-    const res = await fetch(`https://api.github.com/users/${username}`, {
+    const res = await fetchWithTimeout(`https://api.github.com/users/${username}`, {
       headers: { "User-Agent": "codaqui-social-stats" },
     });
     if (!res.ok) return null;
@@ -179,7 +189,7 @@ async function fetchInstagramFollowers(username) {
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36";
   try {
     // Step 1: load the page to get CSRF token + session cookies
-    const pageRes = await fetch(BASE, { headers: { "User-Agent": UA } });
+    const pageRes = await fetchWithTimeout(BASE, { headers: { "User-Agent": UA } });
     const html = await pageRes.text();
 
     // Extract CSRF token from window.__config = { token: "..." }
@@ -197,7 +207,7 @@ async function fetchInstagramFollowers(username) {
       .join("; ");
 
     // Step 2: POST with username + CSRF token + cookies
-    const postRes = await fetch(BASE, {
+    const postRes = await fetchWithTimeout(BASE, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -236,7 +246,7 @@ async function fetchYouTubeSubscribers(handle) {
   const slug = handle.startsWith("@") ? handle : handle;
   const url = `https://www.youtube.com/${slug}`;
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
