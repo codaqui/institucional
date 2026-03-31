@@ -92,6 +92,59 @@ Esperamos que todos os participantes da comunidade (contribuintes, remunerados o
 
 Este código de conduta e seus procedimentos relacionados também se aplicam ao comportamento inaceitável que ocorre fora do escopo das atividades comunitárias, quando esse comportamento tem o potencial de afetar adversamente a segurança e o bem-estar dos membros da comunidade.
 
+### 8. Privacidade e Proteção de Dados (LGPD)
+
+A Codaqui respeita a **Lei Geral de Proteção de Dados Pessoais — Lei nº 13.709/2018 (LGPD)** e adota boas práticas de privacidade em todos os seus canais.
+
+#### 8.1 Dados que coletamos
+
+| Dado | Finalidade | Ferramenta | Base legal (Art. 7º LGPD) |
+|------|-----------|------------|--------------------------|
+| Dados de navegação anonimizados (páginas visitadas, dispositivo, país) | Melhoria do site | Google Analytics (`anonymizeIP: true`) | Legítimo interesse (inciso IX) |
+| Perfil público do GitHub (nome, avatar) | Publicação de comentários no blog | Giscus via GitHub OAuth | Consentimento (inciso I) — usuário inicia voluntariamente |
+
+Não coletamos nome completo, CPF, e-mail, endereço ou qualquer dado sensível (Art. 5º, II e IX da LGPD) por meio deste site.
+
+#### 8.2 Com quem compartilhamos
+
+- **Google LLC** — processamento de analytics. Seus dados são anonimizados antes do envio (IP mascarado). [Política de privacidade do Google](https://policies.google.com/privacy).
+- **GitHub Inc.** — hospedagem do sistema de comentários (Giscus). Comentários ficam registrados publicamente nas [GitHub Discussions do repositório](https://github.com/codaqui/institucional/discussions). [Política de privacidade do GitHub](https://docs.github.com/pt/site-policy/privacy-policies/github-general-privacy-statement).
+
+Não vendemos, alugamos nem cedemos dados pessoais a terceiros.
+
+#### 8.3 Seus direitos como titular (Art. 18 da LGPD)
+
+Você tem direito a:
+
+- **Confirmação e acesso** — saber se tratamos seus dados e quais são eles.
+- **Correção** — solicitar atualização de dados incompletos ou desatualizados.
+- **Eliminação** — pedir a exclusão de dados tratados com base em consentimento.
+- **Portabilidade** — receber seus dados em formato estruturado.
+- **Revogação do consentimento** — retirar seu consentimento a qualquer momento, sem prejudicar tratamentos anteriores.
+- **Informação sobre compartilhamento** — saber com quais entidades seus dados são compartilhados.
+
+Para exercer qualquer um desses direitos, entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev) com o assunto **"LGPD — Direitos do Titular"**.
+
+#### 8.4 Encarregado de Dados (DPO)
+
+Nos termos do Art. 41 da LGPD, o canal de contato do Encarregado de Dados da Codaqui é:
+
+📧 **contato@codaqui.dev** | Associação Codaqui — CNPJ 44.593.429/0001-05
+
+#### 8.5 Cookies e armazenamento local
+
+O site utiliza cookies de sessão e localStorage exclusivamente para preferências de interface (tema claro/escuro) e para o funcionamento do Google Analytics. Não utilizamos cookies de rastreamento de terceiros para fins publicitários.
+
+#### 8.6 Menores de idade
+
+A Codaqui atende jovens e incentiva a participação de menores de 18 anos em seus programas. De acordo com o Art. 14 da LGPD, o tratamento de dados de crianças e adolescentes é realizado com base no consentimento específico dado por pelo menos um dos pais ou responsável legal, quando aplicável. Em nosso site, não coletamos dados pessoais identificáveis de menores sem consentimento.
+
+#### 8.7 Autoridade Nacional de Proteção de Dados (ANPD)
+
+Se considerar que seus direitos foram violados, você pode apresentar reclamação à **ANPD** por meio do portal [gov.br/anpd](https://www.gov.br/anpd).
+
+---
+
 ### Referências
 
 Este código de conduta é distribuído sob uma licença [Creative Commons Attribution-ShareAlike](https://creativecommons.org/licenses/by-sa/3.0/), feito pela comunidade do Codaqui.

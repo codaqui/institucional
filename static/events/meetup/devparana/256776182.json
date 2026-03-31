@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "256776182",
+    "title": "#3 Maringá Agile - A construção de um time de alto desempenho com Management 3.0",
+    "summary": "A terceira edição dos meetups sobre agilidade traz a Maringá o facilitador Pascoal Pinto Vernieri (https://management30.com/facilitators/about/?trainer=3609) para falar sobre Management 3.0 [PROGRAMAÇÃO] 19:00 - 19:30:…",
+    "startAt": "2018-12-05T19:00:00-02:00",
+    "endAt": "2018-12-05T21:00:00-02:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · Av. Duque de Caxias, 882 - Zona 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/256776182/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 55,
+    "creatorName": "Wagner Fusca",
+    "creatorId": "188810094",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/d/0/b/highres_476684299.jpeg"
+  }
+}

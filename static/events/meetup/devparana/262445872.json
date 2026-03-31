@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "262445872",
+    "title": "5º DevOps Maringá",
+    "summary": "Talks: Monitoramento de aplicações WEB no Zabbix Robson Mantovani Mantendo seu código de infraestrutura com o Terragrunt Flaudísio Tolentino [ATENÇÃO] Informações importantes aos inscritos! - Caso você não consiga parti…",
+    "startAt": "2019-06-26T18:30:00-03:00",
+    "endAt": "2019-06-26T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "CRMALL · Av. Tamandaré, 100 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/262445872/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 27,
+    "creatorName": "Leonardo Elias",
+    "creatorId": "182647292",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/6/9/1/highres_482390833.jpeg"
+  }
+}

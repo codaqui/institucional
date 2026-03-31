@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "266216637",
+    "title": "4º Meetup DevParana Umuarama",
+    "summary": "No 4º Meetup do DevParana Umuarama Data: 11/11 (Segunda-Feira) Local: IFPR às 19h Sala 06 e 07 - Bloco 02 3 Talks 1) Conheça o NTI de Umuarama (Dean Costa e Leandro Cavalieri - e/code e WinSite) 2) Desenvolvimento Mobil…",
+    "startAt": "2019-11-11T19:00:00-03:00",
+    "endAt": "2019-11-11T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "IFPR - Federal Institute of Paraná Campus Umuarama · Umuarama · PR",
+    "href": "https://www.meetup.com/developerparana/events/266216637/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 35,
+    "creatorName": "Anderson Fernandes Burnes",
+    "creatorId": "202031101",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/7/6/highres_486383158.jpeg"
+  }
+}

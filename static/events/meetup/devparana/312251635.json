@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "312251635",
+    "title": "Retrospectiva DevParaná Cascavel 2025 ",
+    "summary": "SAVE THE DATE! 📅 A Retrospectiva DevParaná 2025 já tem local, data e hora marcada! Vamos nos encontrar no Palo Santo para trocar ideias e celebrar o ano que passou. 🔥 O que vai rolar: 📅 09/12, terça-feira 🍻 Happy ho…",
+    "startAt": "2025-12-09T18:00:00-03:00",
+    "endAt": "2025-12-09T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Palo Santo · R. Voluntários da Pátria, 1370 · Cascavel",
+    "href": "https://www.meetup.com/developerparana/events/312251635/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 9,
+    "creatorName": "Daniela Rolloff",
+    "creatorId": "466552220",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/f/9/1/highres_531572657.jpeg"
+  }
+}

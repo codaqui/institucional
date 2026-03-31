@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "277387765",
+    "title": "#10 DevGirls Maringá - Lean Coffee",
+    "summary": "Vem aí 10ª edição do DevGirls Maringá Os meetUps organizados pela comunidade são para TODAS(OS) Que tal participar do nosso maravilhoso Lean Coffee?! Vai ser incrível! O encontro será no formato Lean Coffee: vamos bater…",
+    "startAt": "2021-04-08T19:00:00-03:00",
+    "endAt": "2021-04-08T20:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/277387765/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 15,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/4/2/6/highres_491442022.jpeg"
+  }
+}

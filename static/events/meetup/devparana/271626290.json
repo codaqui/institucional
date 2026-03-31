@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "271626290",
+    "title": "Primeiros passos com Deno",
+    "summary": "Em parceria com a Uniciv vamos fazer uma aula sobre o novo runtime para javascript. Nesta aula ao vivo você vai aprender de forma prática a utilizar o Deno em suas aplicações. Vamos mostrar algumas demonstrações nessa W…",
+    "startAt": "2020-07-02T20:00:00-03:00",
+    "endAt": "2020-07-02T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/271626290/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 11,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/e/7/d/c/highres_491099356.jpeg"
+  }
+}

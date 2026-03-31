@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "280464690",
+    "title": "#15 DevGirls Maringá - Introdução a Inteligência Artificial",
+    "summary": "A 15ª edição do DevGirls Maringá , está incrível, com o tema \"Introdução a Inteligência Artificial\" com a ilustre palestrante Marcia Bussolaro. Sobre a Marcia: \"Venho da área técnica e me apaixonei pelas pessoas, gosto…",
+    "startAt": "2021-09-09T19:00:00-03:00",
+    "endAt": "2021-09-09T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/280464690/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 33,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072"
+  }
+}

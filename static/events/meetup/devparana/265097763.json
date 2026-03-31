@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265097763",
+    "title": "7º DevOps Meetup Group Maringá",
+    "summary": "Dia 25 de setembro de 2019 sera realizado nosso sexto DevOps Maringá, aiqfome - Happy Delivery. Make: automatize seus processos e deixe o time todo feliz Você já teve problemas para começar a trabalhar em um projeto? Co…",
+    "startAt": "2019-09-25T18:30:00-03:00",
+    "endAt": "2019-09-25T20:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Aiqfome · Av. Pintassilgo, 286 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265097763/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 14,
+    "creatorName": "Leonardo Elias",
+    "creatorId": "182647292"
+  }
+}

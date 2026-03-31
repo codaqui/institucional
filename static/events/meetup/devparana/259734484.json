@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "259734484",
+    "title": "1º  AfroTech MGA - Tecnospeed",
+    "summary": "A ideia é criar um ambiente seguro pra discussão de temas que envolvem ser negro no ambiente de TI. F.A.Q: - Sim, é liberado para todos. Programação: 19:00 - 19:10: Chegada e bate-papo 19:10 - 19:50: O cenário da tecnol…",
+    "startAt": "2019-03-28T19:00:00-03:00",
+    "endAt": "2019-03-28T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Grupo TecnoSpeed · R. Vitório Balani, 1211 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/259734484/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 23,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/d/9/f/highres_479444447.jpeg"
+  }
+}

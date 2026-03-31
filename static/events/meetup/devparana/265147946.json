@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265147946",
+    "title": "23º  Encontro Backend Meetup Group Maringá",
+    "summary": "Patrocínio HBSIS O meetup vai ocorrer na Sala Fernando Pessoa / Auditório Programação: 19:00 ~ 19:20: Chegada e Bate Papo 19:20 ~ 20:00: Teste de carga - Clayton K. N. Passos Perguntas, armadilhas e lições aprendidas em…",
+    "startAt": "2019-10-03T19:00:00-03:00",
+    "endAt": "2019-10-03T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "ibis budget Maringa · Av. Advogado Horácio Raccanello Filho, 5105 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265147946/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 37,
+    "creatorName": "Arthur Fritz Santiago",
+    "creatorId": "254976049",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

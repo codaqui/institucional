@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "266019259",
+    "title": "#5 English Meetup Crew feat. Projeto Trava-línguas 🎳",
+    "summary": "Welcome to the 5 English Meetup Crew feat. Projeto Trava-línguas! Hey guys and gals... This is our 1st combined Meetup! The English Meetup Crew will be teaming up with the folks from Projeto Trava-línguas for a nice bow…",
+    "startAt": "2019-10-30T19:00:00-03:00",
+    "endAt": "2019-10-30T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Pinos&Beers · Av. Pioneiro Henrique Bula, 4060 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/266019259/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 4,
+    "creatorName": "Luis Berns",
+    "creatorId": "223750190",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/d/0/7/highres_486172487.jpeg"
+  }
+}

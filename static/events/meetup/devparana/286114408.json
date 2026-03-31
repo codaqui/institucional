@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "286114408",
+    "title": "#30 [BEMUG] - O que é DDD? e A arte do Backend",
+    "summary": "O que é DDD? Jamerson Lima A Arte do Backend - Um passeio pela história do desenvolvimento web e como o backend pode recuperar o protagonismo que já teve. Victor Osório",
+    "startAt": "2022-05-25T19:00:00-03:00",
+    "endAt": "2022-05-25T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/286114408/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 8,
+    "creatorName": "Arthur Fritz Santiago",
+    "creatorId": "254976049",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/4/9/d/highres_504329853.jpeg"
+  }
+}

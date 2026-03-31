@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "253951888",
+    "title": "12º Encontro Backend Meetup Group Maringá - Matera",
+    "summary": "Performance do front-end depois do HTTP/2 O HTTP 1.1 fez seu 20º aniversário em 2017 e tornou-se fundamental para o desenvolvimento da Web ao longo dessas duas décadas. Em 2015, a versão 2.0 do protocolo foi lançada com…",
+    "startAt": "2018-08-23T19:00:00-03:00",
+    "endAt": "2018-08-23T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Matera · Av. Advogado Horácio Raccanello Filho, 5570 - Zona 7 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/253951888/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 16,
+    "creatorName": "Rodrigo Nonose",
+    "creatorId": "201204906",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

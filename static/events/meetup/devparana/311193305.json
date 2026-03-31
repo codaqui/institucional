@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "311193305",
+    "title": "Frontend na Maringá Tech",
+    "summary": "🚀 Reunindo a comunidade de desenvolvimento frontend de Maringá 🚀 Estamos animados em nos reunir no Maringá Tech para realizar o 9º encontro mensal do grupo! 📍 Local: Maringá Tech – Google Maps Incubadora Tecnológica…",
+    "startAt": "2025-09-25T19:00:00-03:00",
+    "endAt": "2025-09-25T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Incubadora Tecnológica de Maringá / Maringatech · Av. Centenário, 116 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/311193305/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 18,
+    "creatorName": "caciano4",
+    "creatorId": "450225750",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/6/c/7/a/highres_530367770.jpeg"
+  }
+}

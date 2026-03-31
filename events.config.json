@@ -1,0 +1,89 @@
+{
+  "sources": [
+    {
+      "source": "discord",
+      "sourceId": "codaqui",
+      "guildId": "829882821559451659",
+      "label": "Discord Codaqui",
+      "emoji": "💬",
+      "description": "Eventos e encontros da comunidade hospedados no servidor da Codaqui.",
+      "ctaLabel": "Entrar no Discord da Codaqui",
+      "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
+      "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
+      "defaultHost": "Comunidade Codaqui",
+      "defaultLocation": "Servidor da Codaqui no Discord",
+      "defaultPlatform": "Discord",
+      "fallbackEvents": [
+        {
+          "id": "educacao-financeira-aula-1",
+          "title": "Educacao Financeira - Aula 1",
+          "summary": "Primeiro encontro do curso com Valnaire Nascimento, abordando comportamento financeiro e crencas que influenciam decisoes.",
+          "startAt": "2026-04-13T19:30:00-03:00",
+          "timezone": "America/Sao_Paulo",
+          "platform": "Discord",
+          "host": "Valnaire Nascimento",
+          "location": "Servidor da Codaqui no Discord",
+          "href": "/blog/2026/03/30/curso-educacao-financeira",
+          "tags": ["curso", "financas", "discord"],
+          "ctaLabel": "Ver detalhes do curso",
+          "featured": true
+        },
+        {
+          "id": "educacao-financeira-aula-2",
+          "title": "Educacao Financeira - Aula 2",
+          "summary": "Encontro sobre controle de receitas e despesas, metas e orcamento pessoal, sempre com foco em aplicacao pratica.",
+          "startAt": "2026-04-20T19:30:00-03:00",
+          "timezone": "America/Sao_Paulo",
+          "platform": "Discord",
+          "host": "Valnaire Nascimento",
+          "location": "Servidor da Codaqui no Discord",
+          "href": "/blog/2026/03/30/curso-educacao-financeira",
+          "tags": ["curso", "educacao financeira", "discord"],
+          "ctaLabel": "Ver detalhes do curso"
+        },
+        {
+          "id": "educacao-financeira-aula-3",
+          "title": "Educacao Financeira - Aula 3",
+          "summary": "Aula sobre juros, credito e investimentos com consistencia, incluindo orientacao para identificar perfil de investidor.",
+          "startAt": "2026-04-27T19:30:00-03:00",
+          "timezone": "America/Sao_Paulo",
+          "platform": "Discord",
+          "host": "Valnaire Nascimento",
+          "location": "Servidor da Codaqui no Discord",
+          "href": "/blog/2026/03/30/curso-educacao-financeira",
+          "tags": ["investimentos", "curso", "discord"],
+          "ctaLabel": "Ver detalhes do curso"
+        },
+        {
+          "id": "logica-python-aula-1",
+          "title": "Logica de Programacao com Python - Aula 1",
+          "summary": "Primeiro encontro do curso introdutorio de Python com Paulinea, voltado para quem esta comecando em programacao.",
+          "startAt": "2026-04-20T20:30:00-03:00",
+          "timezone": "America/Sao_Paulo",
+          "platform": "Discord",
+          "host": "Paulinea",
+          "location": "Servidor da Codaqui no Discord",
+          "href": "/blog/2026/03/30/curso-introducao-python",
+          "tags": ["python", "iniciantes", "discord"],
+          "ctaLabel": "Ver detalhes do curso",
+          "featured": true
+        }
+      ]
+    },
+    {
+      "source": "meetup",
+      "sourceId": "devparana",
+      "urlname": "developerparana",
+      "locale": "pt-BR",
+      "label": "Dev Paraná no Meetup",
+      "emoji": "📍",
+      "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+      "ctaLabel": "Abrir grupo do Dev Paraná",
+      "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+      "defaultHost": "Dev Paraná",
+      "defaultLocation": "Meetup",
+      "defaultPlatform": "Meetup",
+      "fallbackEvents": []
+    }
+  ]
+}

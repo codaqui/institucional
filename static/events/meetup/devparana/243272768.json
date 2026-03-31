@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "243272768",
+    "title": "Bate papo sobre trabalho remoto",
+    "summary": "https://secure.meetupstatic.com/photos/event/1/4/e/4/600 464645348.jpeg",
+    "startAt": "2017-09-20T19:30:00-03:00",
+    "endAt": "2017-09-20T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Top Office - Escritórios Inteligentes e Coworking · Av Pedro Taques, 294 - Torre Sul - 10º andar, sala 1001 e 1002 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/243272768/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 23,
+    "creatorName": "Junior Conte",
+    "creatorId": "152994462"
+  }
+}

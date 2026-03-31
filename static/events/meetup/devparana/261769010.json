@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "261769010",
+    "title": "#3 English Meetup Crew",
+    "summary": "Welcome to the 3 English Meetup Crew event! --- This is an event organized by members of Dev Paraná Community and our purpose is to have conversations in English about career, technology, design and so on. --- Event dyn…",
+    "startAt": "2019-08-24T16:30:00-03:00",
+    "endAt": "2019-08-24T18:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Hands Bar Board Games · R. Joaquim Nabuco, 421 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/261769010/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 14,
+    "creatorName": "Luis Berns",
+    "creatorId": "223750190",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/3/9/7/7/highres_484154711.jpeg"
+  }
+}

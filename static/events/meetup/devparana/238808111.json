@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "238808111",
+    "title": "Tributação para Desenvolvedores",
+    "summary": "https://secure.meetupstatic.com/photos/event/7/0/a/d/600 459748845.jpeg Esta é uma transmissão voltada para desenvolvedores que pretendem prestar serviços como freelance ou PJ. Os tópicos foram coletados ao longo de doi…",
+    "startAt": "2017-04-10T20:00:00-03:00",
+    "endAt": "2017-04-10T23:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "YouTube Ao Vivo · link disponível em breve · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/238808111/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 50,
+    "creatorName": "Junior Conte",
+    "creatorId": "152994462"
+  }
+}

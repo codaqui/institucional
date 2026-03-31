@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "270322864",
+    "title": "#16 Maringá Agile ",
+    "summary": "A décima sexta edição do meetup sobre agilidade de Maringá contara com a participação da Vanessa Viana e do Nelson Tenório. O meetup será realizado online LINK : https://youtu.be/qq8GJZTDaGM [PROGRAMAÇÃO] 19:10hrs: Desm…",
+    "startAt": "2020-05-13T19:10:00-03:00",
+    "endAt": "2020-05-13T21:10:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/270322864/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 56,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/e/9/1/highres_489584689.jpeg"
+  }
+}

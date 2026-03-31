@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "312306398",
+    "title": "[DevPR] BEMUG #40",
+    "summary": "🚀 Meetup da comunidade backend de Maringá 👩‍💻👨‍💻 O público alvo do evento são pessoas que possuam interesse por tecnologia, independente da senioridade e sem exigência de tempo mínimo de experiência 👩‍💻👨‍💻 📆 D…",
+    "startAt": "2025-12-13T15:45:00-03:00",
+    "endAt": "2025-12-13T17:45:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Incubadora Tecnológica de Maringá / Maringatech · Av. Centenário, 116 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/312306398/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 17,
+    "creatorName": "Renan Delmonico",
+    "creatorId": "288803051",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/d/4/b/highres_531623883.jpeg"
+  }
+}

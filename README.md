@@ -55,6 +55,25 @@ Os previews automáticos de PR são publicados em `https://codaqui.dev/previews/
 
 Quando o PR é `develop -> main`, reutilizamos `https://codaqui.dev/previews/develop/` em vez de gerar um preview dedicado.
 
+### Snapshots de eventos
+
+A página `/eventos` consome snapshots estáticos versionados em:
+
+```bash
+/events/index.json
+/events/<source>/<source_id>/index.json
+/events/<source>/<source_id>/<event_id>.json
+```
+
+O fluxo ideal é:
+
+- um workflow consulta a API da fonte com alguma frequência
+- normaliza os dados para o contrato público de eventos
+- publica um índice agregado leve para a UI
+- publica shards por fonte e um arquivo por evento para detalhe/cache
+
+Hoje o repositório já inclui o script `scripts/sync-events.mjs` e o workflow `sync-event-snapshots.yml` como base para esse processo.
+
 ## Contribuições
 
 Você quer ajudar a Codaqui? Você pode iniciar uma nova [Discussão](https://github.com/codaqui/institucional/discussions), ou uma Issue referente a algo pontual [por aqui](https://github.com/codaqui/institucional/issues/new/choose). Você também pode visualizar as Issues/Discussões já existentes e interagir com a comunidade.  

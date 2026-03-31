@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268711909",
+    "title": "DevOps Maringá",
+    "summary": "Fevereiro chegou e com ele, um novo DevOps Maringá ♥️ Talks: 1. What Are Deployment Strategies? Altieres de Matos Escolher qual a melhor estratégia de atualização do seu projeto de software pode não ser simples, já que…",
+    "startAt": "2020-02-20T19:00:00-03:00",
+    "endAt": "2020-02-20T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "CRMALL · Av. Tamandaré, 100 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268711909/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 55,
+    "creatorName": "Leonardo Elias",
+    "creatorId": "182647292",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/3/f/2/highres_489001010.jpeg"
+  }
+}

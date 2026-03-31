@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313793619",
+    "title": "[Ingá.php] Encontro #3 de 2026",
+    "summary": "Meetup da comunidade Ingá.php A Comunidade Ingá.php seguirá 2026 com os eventos presenciais! ‍‍ O público alvo do evento são pessoas que possuam interesse por tecnologia, principalmente programadores PHP, independente d…",
+    "startAt": "2026-03-26T19:00:00-03:00",
+    "endAt": "2026-03-26T20:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UniCV · Av. Advogado Horácio Raccanello Filho, 5950 - Zona 7 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/313793619/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 16,
+    "creatorName": "Danilo Pinotti",
+    "creatorId": "475426391",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/3/6/7/a/highres_533233946.jpeg"
+  }
+}

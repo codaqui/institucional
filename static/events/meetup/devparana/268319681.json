@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268319681",
+    "title": "9º  Delphi Ingá - Grupo Prever",
+    "summary": "Vamos falar de Delphi? O EVENTO SERÁ ÀS 19H - Por conta das alterações nas regras de horário do Brasil, a maioria dos sites (entre eles, o meetup.com) está mostrando informações com diferença de 1h. O Delphi Ingá é um m…",
+    "startAt": "2020-02-18T19:00:00-03:00",
+    "endAt": "2020-02-18T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "R. Ver. Primo Monteschio, 522 · R. Ver. Primo Monteschio, 522 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268319681/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 31,
+    "creatorName": "Francisco Thiago de Almeida",
+    "creatorId": "264857383",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/f/d/highres_486943005.jpeg"
+  }
+}

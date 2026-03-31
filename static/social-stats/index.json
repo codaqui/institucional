@@ -1,0 +1,105 @@
+{
+  "generatedAt": "2026-03-31T20:34:35.556Z",
+  "totalEvents": 373,
+  "profiles": [
+    {
+      "entityId": "codaqui",
+      "platform": "youtube",
+      "handle": "@codaqui",
+      "url": "https://www.youtube.com/@codaqui",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 17,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "instagram",
+      "handle": "@codaqui.dev",
+      "url": "https://www.instagram.com/codaqui.dev/",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 386,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "devparana",
+      "platform": "meetup",
+      "handle": "developerparana",
+      "url": "https://www.meetup.com/pt-BR/developerparana/",
+      "countLabel": "membros",
+      "baselineCount": 2100,
+      "count": 6053,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "devparana",
+      "platform": "youtube",
+      "handle": "@devparana",
+      "url": "https://www.youtube.com/devparana",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 1570,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "devparana",
+      "platform": "instagram",
+      "handle": "@devparana",
+      "url": "https://www.instagram.com/devparana",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 4995,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "elasnocodigo",
+      "platform": "instagram",
+      "handle": "@elasnocodigo",
+      "url": "https://www.instagram.com/elasnocodigo/",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
+      "entityId": "campostechpg",
+      "platform": "website",
+      "handle": "campostechpg.com.br",
+      "url": "https://campostechpg.com.br/",
+      "countLabel": "site",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
+      "entityId": "tisocial",
+      "platform": "instagram",
+      "handle": "@tisocialmaringa",
+      "url": "https://www.instagram.com/tisocialmaringa",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
+      "entityId": "cloudnativemaringa",
+      "platform": "cncf",
+      "handle": "cloud-native-maringa",
+      "url": "https://community.cncf.io/cloud-native-maringa/",
+      "countLabel": "membros",
+      "baselineCount": 3,
+      "count": 3,
+      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "isFallback": false
+    }
+  ]
+}

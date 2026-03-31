@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "262293074",
+    "title": "Meetup Campo Mourão",
+    "summary": "Para manter ativa a comunidade de Campo Mourão teremos um novo meetup! A lista de palestras ainda não está fechada, então, participe do Call for Papers: http://bit.ly/cfp-meetupcm-2 Palestras: - Introdução ao .NET Core…",
+    "startAt": "2019-06-25T19:00:00-03:00",
+    "endAt": "2019-06-25T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "EDEN BEER - CAMPO MOURÃO · R. Araruna, 1460 · Campo Mourão · PR",
+    "href": "https://www.meetup.com/developerparana/events/262293074/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 4,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010"
+  }
+}

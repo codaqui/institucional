@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "311282867",
+    "title": "Meetup DevParaná Pato Branco",
+    "summary": "Está chegando o encontro do DevParaná Pato Branco em parceria com a Tecsul, um evento para fazer networking e falar de tecnologia! 🗓️ Programação: Recepção e Coffee 19h Abertura 19h30 Talk 1 - Como colocar Raytracing e…",
+    "startAt": "2025-10-09T19:00:00-03:00",
+    "endAt": "2025-10-09T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Centro Cultural de Pato Branco · R. Benjamin Borges dos Santos, 600 - Fraron, Pato Branco - PR, 85503-350 · Pato Branco",
+    "href": "https://www.meetup.com/developerparana/events/311282867/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 95,
+    "creatorName": "Giovanna Resende ",
+    "creatorId": "474778838",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/1/b/a/9/highres_530467081.jpeg"
+  }
+}

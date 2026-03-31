@@ -36,7 +36,7 @@ const TURMAS = [
   {
     mes: "Abril e Maio",
     modalidade: "Educação Financeira",
-    datas: "13/04, 20/04, 27/04, 03/05 e 11/05",
+    datas: "13/04, 20/04, 27/04, 03/05 e 11/05 às 19h30",
     instrutor: "Valnaire Nascimento",
     plataforma: "Discord",
   },

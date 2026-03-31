@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "279985301",
+    "title": "Quarkus - Java Supersonico e Subatomico",
+    "summary": "Você esá convidado a conversar conosco sobre Quarkus, e ajudar a entender como ele nos permite resolver problemas através do software. O evento será online, transmitido pelo youtube do devparaná https://www.youtube.com/…",
+    "startAt": "2021-08-20T21:00:00-03:00",
+    "endAt": "2021-08-20T23:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/279985301/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 24,
+    "creatorName": "Guilherme Siquinelli",
+    "creatorId": "194464939",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/1/c/f/highres_498101423.jpeg"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "254979519",
+    "title": "14º Encontro Backend Meetup Group Maringá - Aceleradora Orbital ",
+    "summary": "Como o serverless mudou a minha vida? Guilherme Prado ---- Vou lhes apresentar um novo conceito para serverless, agora! Por: Fernando Migliorini Tenório (@dotenorio)",
+    "startAt": "2018-10-04T19:00:00-03:00",
+    "endAt": "2018-10-04T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Aceleradora Orbital · Avenida Duque de Caxias, 882, New Towers Plaza Torre 1 – Sala 803 (Oitavo andar) · Maringa",
+    "href": "https://www.meetup.com/developerparana/events/254979519/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 29,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

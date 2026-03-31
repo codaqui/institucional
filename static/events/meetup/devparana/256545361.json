@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "256545361",
+    "title": "After Data #1 - Machine Learning",
+    "summary": "Machine Learning é um dos termos mais comentados ultimamente, mas o que significa na verdade? A ideia deste meetup é justamente desmistificar e apresentar o que é de fato o aprendizado de máquina. 19h00 - Abertura 19h20…",
+    "startAt": "2018-11-29T19:00:00-02:00",
+    "endAt": "2018-11-29T21:00:00-02:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · Av. Duque de Caxias, 882 - Zona 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/256545361/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 52,
+    "creatorName": "Vinícius Basseto Félix",
+    "creatorId": "223742833",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/6/3/1/highres_476477969.jpeg"
+  }
+}

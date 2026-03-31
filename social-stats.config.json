@@ -1,0 +1,46 @@
+{
+  "entities": [
+    {
+      "entityId": "codaqui",
+      "fetchProfiles": [
+        { "platform": "discord",   "fetchId": "829882821559451659" },
+        { "platform": "github",    "fetchId": "codaqui" },
+        { "platform": "youtube",   "fetchId": "@codaqui" },
+        { "platform": "instagram", "fetchId": "codaqui.dev" }
+      ]
+    },
+    {
+      "entityId": "devparana",
+      "fetchProfiles": [
+        { "platform": "meetup",    "fetchId": "developerparana" },
+        { "platform": "youtube",   "fetchId": "devparana" },
+        { "platform": "instagram", "fetchId": "devparana" }
+      ]
+    },
+    {
+      "entityId": "campostechpg",
+      "fetchProfiles": [
+        { "platform": "youtube",   "fetchId": "UC4DBdSVpA-72UqHubk0AN0w" },
+        { "platform": "instagram", "fetchId": "campostechpg" }
+      ]
+    },
+    {
+      "entityId": "elasnocodigo",
+      "fetchProfiles": [
+        { "platform": "instagram", "fetchId": "elasnocodigo" }
+      ]
+    },
+    {
+      "entityId": "tisocial",
+      "fetchProfiles": [
+        { "platform": "instagram", "fetchId": "tisocialmaringa" }
+      ]
+    },
+    {
+      "entityId": "cloudnativemaringa",
+      "fetchProfiles": [
+        { "platform": "cncf", "fetchId": "cloud-native-maringa" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "239002266",
+    "title": "Carreira no exterior, grandes centros e home office",
+    "summary": "https://secure.meetupstatic.com/photos/event/d/5/b/600 459783419.jpeg Este será um evento um pouco diferente, faremos um bate papo com Brian Thomas Storti (https://www.linkedin.com/in/brianstorti), que 6 anos atrás deix…",
+    "startAt": "2017-04-13T19:30:00-03:00",
+    "endAt": "2017-04-13T22:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Espaço Office Coworking · R. Piratininga 808, Sl. 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/239002266/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 47,
+    "creatorName": "Junior Conte",
+    "creatorId": "152994462"
+  }
+}

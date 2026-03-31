@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "288146231",
+    "title": "DevParaná na Estrada - Campo Mourão",
+    "summary": "Palestras: - Trabalho remoto e Comunidade - Fernando Fabricio (Dash.fi) - Otimizando a performance no front-end com Nuxt SSR - Alan dos Santos - Dicas e Truques de HTML5\\, CSS e Javascript que talvez passem despercebido…",
+    "startAt": "2022-09-13T19:00:00-03:00",
+    "endAt": "2022-09-13T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Centro Universitário Grupo Integrado, Centro · Av. Irmãos Pereira, 670 · Campo Mourão · PR",
+    "href": "https://www.meetup.com/developerparana/events/288146231/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 28,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/9/7/7/2/highres_506678770.jpeg"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "228785576",
+    "title": "Meetup #2 - Maringá",
+    "summary": "http://photos3.meetupstatic.com/photos/event/d/1/0/1/600 447893505.jpeg Meetup em Maringá com 5 palestras de alto nível! Não perca a oportunidade de compartilhar este momento com outros Dev's do nosso estado.",
+    "startAt": "2016-03-19T13:00:00-03:00",
+    "endAt": "2016-03-19T17:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UniCesumar · AV. GUEDNER, 1610 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/228785576/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 134,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010"
+  }
+}

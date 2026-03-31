@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "253306850",
+    "title": "11º Encontro Backend Meetup Group Maringá - UDS Tecnologia",
+    "summary": "Software Livre: chegou a sua hora de contribuir! Bom, usamos os famosos software, bibliotecas, posts, etc.. livres todos os dias o tempo todo, mas será que devolvemos algo para comunidade?? Talvez já tenha passado a hor…",
+    "startAt": "2018-08-02T19:00:00-03:00",
+    "endAt": "2018-08-02T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UDS Tecnologia · Av. Arquiteto Nildo Ribeiro da Rocha, 3853 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/253306850/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 18,
+    "creatorName": "Rodrigo Nonose",
+    "creatorId": "201204906",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

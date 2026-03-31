@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313962822",
+    "title": "DevPR na Estrada - Guarapuava",
+    "summary": "DevParaná na Estrada 2026 chega a Guarapuava com um conjunto de palestras incríveis! Palestras: Hospedagem Gratuita para front-end SPA Danilo Pinotti (https://www.linkedin.com/in/danilopinotti/) - Senior Backend Develop…",
+    "startAt": "2026-04-17T19:00:00-03:00",
+    "endAt": "2026-04-17T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Meetup",
+    "href": "https://www.meetup.com/developerparana/events/313962822/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "external",
+    "userCount": 16,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/2/b/highres_533392011.jpeg"
+  }
+}

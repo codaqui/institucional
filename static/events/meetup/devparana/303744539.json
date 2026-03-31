@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "303744539",
+    "title": "Frontend Meetup Maringá",
+    "summary": "Qualquer dúvida entre em contato no grupo do WhatsApp https://chat.whatsapp.com/DkZfAot4bHHGqLvRJGhdg2 🚀 Reunindo a comunidade de desenvolvimento frontend de Maringá 🚀 A Comunidade do DevParaná está com mais um evento…",
+    "startAt": "2024-10-23T19:00:00-03:00",
+    "endAt": "2024-10-23T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "SENAI · R. José Corrêa de Águiar, 361 - Jardim Leblon, Maringá - PR, 87053-276 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/303744539/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 26,
+    "creatorName": "Ofelquis Gimenes",
+    "creatorId": "368507859",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg"
+  }
+}

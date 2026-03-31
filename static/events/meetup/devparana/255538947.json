@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "255538947",
+    "title": "DevGirls #1",
+    "summary": "Nesse meetup organizado por meninas está aberto para todo o publico, Homens e Mulheres, onde o que importa é o compartilhamento de conhecimento. Teremos 3 talk´s e uma dinâmica. 1ª Talk - Scrum + Squad com Kelly Garcia;…",
+    "startAt": "2018-10-20T14:00:00-03:00",
+    "endAt": "2018-10-20T17:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · Av. Duque de Caxias, 882 - Zona 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/255538947/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 17,
+    "creatorName": "Eloisa Potrich",
+    "creatorId": "225304255",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/8/3/c/highres_475470780.jpeg"
+  }
+}

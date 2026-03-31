@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265028349",
+    "title": "After Data #8 - Business Intelligence (BI)",
+    "summary": "Na oitava edição do AfterData falaremos sobre Business Intelligence (BI), mas antes de discutir sobre ferramentas veremos como é essencial a validação dos dados e a fundamentação da arquitetura antes de iniciar um dashb…",
+    "startAt": "2019-10-09T19:00:00-03:00",
+    "endAt": "2019-10-09T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Pontifícia Universidade Católica do Paraná · R. Arthur Thomas, 596 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265028349/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 56,
+    "creatorName": "Vinícius Basseto Félix",
+    "creatorId": "223742833",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/9/6/e/highres_485462414.jpeg"
+  }
+}
