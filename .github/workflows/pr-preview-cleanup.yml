@@ -1,0 +1,88 @@
+name: PR Preview Cleanup
+
+on:
+  pull_request_target:
+    types:
+      - closed
+
+concurrency:
+  group: pr-preview-cleanup-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  cleanup-preview:
+    name: Cleanup PR preview
+    runs-on: ubuntu-slim
+    steps:
+      - name: Prepare GitHub Pages branch
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git -C gh-pages ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git -C gh-pages fetch origin gh-pages
+            git -C gh-pages checkout gh-pages
+            git -C gh-pages reset --hard origin/gh-pages
+          else
+            git -C gh-pages checkout --orphan gh-pages
+            git -C gh-pages rm -rf . >/dev/null 2>&1 || true
+            find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            touch gh-pages/.nojekyll
+            git -C gh-pages add .nojekyll
+            git -C gh-pages commit -m "chore: initialize gh-pages branch"
+            git -C gh-pages push origin gh-pages
+          fi
+
+      - name: Remove preview files
+        id: cleanup
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          git -C gh-pages pull --rebase origin gh-pages
+
+          PREVIEW_PATH="gh-pages/previews/pr-${PR_NUMBER}"
+
+          if [ ! -d "$PREVIEW_PATH" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          rm -rf "$PREVIEW_PATH"
+          find gh-pages/previews -type d -empty -delete 2>/dev/null || true
+
+          git -C gh-pages add -A previews
+
+          if git -C gh-pages diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git -C gh-pages commit -m "chore: remove PR preview #${PR_NUMBER}"
+
+          for attempt in 1 2 3; do
+            if git -C gh-pages push origin HEAD:gh-pages; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "Preview cleanup push failed after retries" >&2
+              exit 1
+            fi
+
+            git -C gh-pages pull --rebase origin gh-pages
+          done
+
+      - name: Remove preview comment
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ github.event.pull_request.number }}
+          header: pr-preview
+          delete: true

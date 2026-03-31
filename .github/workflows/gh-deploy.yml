@@ -1,82 +1,175 @@
-name: "Deploy Environment"
+name: Deploy Environment
 
 on:
   push:
-    branches: [ develop, main ]
+    branches:
+      - develop
+      - main
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build-and-deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ 3.11 ]
+    outputs:
+      deploy_type: ${{ steps.deploy_meta.outputs.deploy_type }}
+      site_url: ${{ steps.deploy_meta.outputs.site_url }}
+      preview_path: ${{ steps.deploy_meta.outputs.preview_path }}
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-      - name: Some check on branch
-        id: branch_check
+      - name: Determine deploy target
+        id: deploy_meta
         run: |
           echo "Running on branch ${{ github.ref }}"
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "env_name=gh-pages" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            echo "env_name=gh-pages-develop" >> $GITHUB_OUTPUT
+            echo "deploy_type=production" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://codaqui.dev/" >> "$GITHUB_OUTPUT"
+            echo "preview_path=" >> "$GITHUB_OUTPUT"
           else
-            echo "env_name=gh-pages-feature" >> $GITHUB_OUTPUT
-          fi         
-        
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64 
+            echo "deploy_type=preview" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://codaqui.dev/previews/develop/" >> "$GITHUB_OUTPUT"
+            echo "preview_path=previews/develop" >> "$GITHUB_OUTPUT"
+          fi
 
-      - uses: actions/cache@v4
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
         with:
-          key: ${{ github.ref }}
-          path: .cache
+          node-version: 24
+          cache: npm
 
-      - name: Install requirements
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build website
         run: |
-          # Git Clone with GH
-          gh repo clone squidfunk/mkdocs-material-insiders
+          if [ "${{ steps.deploy_meta.outputs.deploy_type }}" = "preview" ]; then
+            SITE_URL="https://codaqui.dev" \
+            BASE_URL="/${{ steps.deploy_meta.outputs.preview_path }}/" \
+            PREVIEW="true" \
+            npm run build
+          else
+            npm run build
+          fi
 
-          # Install
-          sudo apt-get update
-          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-          python3 -m pip install -U pip
-          python3 -m pip install -r requirements.txt
-          python3 -m pip install -e mkdocs-material-insiders
+      - name: Ensure .nojekyll exists
+        run: touch build/.nojekyll
 
-      - name: Deploy mkdocs 🚀
-        run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
+      - name: Deploy to GitHub Pages (main) 🚀
+        if: steps.deploy_meta.outputs.deploy_type == 'production'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build
+          clean: true
+          clean-exclude: |
+            previews
 
-      # - name: Set up Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '>=1.18.0'
+      - name: Prepare GitHub Pages branch
+        if: steps.deploy_meta.outputs.deploy_type == 'preview'
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      # - name: Deploy Colabs from google-colab directory 🚀
-      #   run: |
-      #     # Create a claat files
-      #     bash .github/workflows/scripts/claat.sh
+          if git -C gh-pages ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git -C gh-pages fetch origin gh-pages
+            git -C gh-pages checkout gh-pages
+            git -C gh-pages reset --hard origin/gh-pages
+          else
+            git -C gh-pages checkout --orphan gh-pages
+            git -C gh-pages rm -rf . >/dev/null 2>&1 || true
+            find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            touch gh-pages/.nojekyll
+            git -C gh-pages add .nojekyll
+            git -C gh-pages commit -m "chore: initialize gh-pages branch"
+            git -C gh-pages push origin gh-pages
+          fi
 
-      #     # Checkout on branch gh-pages-* depending on branch
-      #     git checkout ${{ steps.branch_check.outputs.env_name }}
+      - name: Sync develop preview into gh-pages
+        if: steps.deploy_meta.outputs.deploy_type == 'preview'
+        env:
+          PREVIEW_PATH: ${{ steps.deploy_meta.outputs.preview_path }}
+        run: |
+          git -C gh-pages pull --rebase origin gh-pages
 
-      #     # See actual branch
-      #     echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
+          mkdir -p "gh-pages/${PREVIEW_PATH}"
+          rsync -a --delete build/ "gh-pages/${PREVIEW_PATH}/"
+          touch gh-pages/.nojekyll
 
-      #     # Git add folder google-colab excluding .md files
-      #     git config --global user.name 'Codaqui Bot'
-      #     git config --global user.email 'contato@codaqui.dev'
-      #     git add google-colab -f --all -- ':!*.md'
-      #     git commit -m "Update google-colab paths"
-      #     git push --set-upstream origin ${{ steps.branch_check.outputs.env_name }}
+          git -C gh-pages add "${PREVIEW_PATH}" .nojekyll
+
+          if git -C gh-pages diff --cached --quiet; then
+            exit 0
+          fi
+
+          git -C gh-pages commit -m "chore: update develop preview"
+
+          for attempt in 1 2 3; do
+            if git -C gh-pages push origin HEAD:gh-pages; then
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "Develop preview push failed after retries" >&2
+              exit 1
+            fi
+
+            git -C gh-pages pull --rebase origin gh-pages
+          done
+
+  notify:
+    name: Notify Merged PR
+    runs-on: ubuntu-slim
+    needs: build-and-deploy
+    if: success()
+
+    steps:
+      - name: Find associated merged PR
+        id: find-pr
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const merged = prs.find(pr => pr.merged_at !== null);
+            if (merged) {
+              core.info(`Found merged PR #${merged.number}`);
+              return String(merged.number);
+            }
+            core.info('No merged PR found for this commit');
+            return '';
+
+      - name: Comment on merged PR
+        if: steps.find-pr.outputs.result != ''
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.find-pr.outputs.result }}
+          header: deploy-status
+          message: |
+            ## 🚀 Deployed Successfully!
+
+            This PR has been deployed to GitHub Pages.
+
+            | | |
+            |---|---|
+            | **Branch** | `${{ github.ref_name }}` |
+            | **Environment** | `${{ needs.build-and-deploy.outputs.deploy_type }}` |
+            | **URL** | [${{ needs.build-and-deploy.outputs.site_url }}](${{ needs.build-and-deploy.outputs.site_url }}) |
+            | **Commit** | `${{ github.sha }}` |
+            | **Run** | [View deployment](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

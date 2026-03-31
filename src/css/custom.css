@@ -1,0 +1,384 @@
+/**
+ * Codaqui - Custom CSS for Docusaurus
+ *
+ * Brand palette:
+ *   #57B593  primary teal-green
+ *   #3A2F39  dark plum (dark mode backgrounds)
+ *   #F8F8F8  near-white (light mode background)
+ */
+
+:root {
+  /* Primary color scale derived from #57B593 */
+  --ifm-color-primary:          #57B593;
+  --ifm-color-primary-dark:     #4AA07A;
+  --ifm-color-primary-darker:   #3D8A68;
+  --ifm-color-primary-darkest:  #296247;
+  --ifm-color-primary-light:    #6DC4A5;
+  --ifm-color-primary-lighter:  #87D2B7;
+  --ifm-color-primary-lightest: #ABDECE;
+
+  /* Backgrounds */
+  --ifm-background-color:         #F8F8F8;
+  --ifm-background-surface-color: #FFFFFF;
+
+  --ifm-code-font-size: 95%;
+  --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(87, 181, 147, 0.15);
+
+  /* Codaqui brand tokens (use these in custom components) */
+  --codaqui-primary:    #57B593;
+  --codaqui-dark-bg:    #3A2F39;
+  --codaqui-light-bg:   #F8F8F8;
+}
+
+[data-theme="dark"] {
+  /* Lighter primary for legibility on dark plum backgrounds */
+  --ifm-color-primary:          #87D2B7;
+  --ifm-color-primary-dark:     #6DC4A5;
+  --ifm-color-primary-darker:   #57B593;
+  --ifm-color-primary-darkest:  #4AA07A;
+  --ifm-color-primary-light:    #ABDECE;
+  --ifm-color-primary-lighter:  #C4E9DC;
+  --ifm-color-primary-lightest: #DCF3EC;
+
+  /* Dark plum backgrounds */
+  --ifm-background-color:         #2A2130;
+  --ifm-background-surface-color: #3A2F39;
+  --ifm-navbar-background-color:  #3A2F39;
+  --ifm-footer-background-color:  #241C2B;
+
+  --docusaurus-highlighted-code-line-bg: rgba(135, 210, 183, 0.15);
+}
+
+/* Navbar */
+.navbar {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.navbar__title {
+  font-weight: 700;
+}
+
+/* Hero section */
+.hero {
+  padding: 4rem 0;
+}
+
+.hero__title {
+  font-size: 3rem;
+  font-weight: 800;
+}
+
+.hero__subtitle {
+  font-size: 1.25rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.card {
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card h3 {
+  margin-top: 0.5rem;
+}
+
+.card img {
+  border-radius: 50%;
+}
+
+/* Team member cards */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.team-card {
+  text-align: center;
+  padding: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.team-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.team-card img {
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.team-card h4 {
+  margin: 0.25rem 0;
+}
+
+.team-card small {
+  color: var(--ifm-color-emphasis-600);
+}
+
+.team-card .social-links {
+  margin-top: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.team-card .social-links a {
+  color: var(--ifm-color-emphasis-700);
+  font-size: 1.25rem;
+}
+
+.team-card .social-links a:hover {
+  color: var(--ifm-color-primary);
+}
+
+/* Community logos */
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.community-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.community-item img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+/* Feature cards for homepage */
+.feature-card {
+  padding: 2rem;
+  border-radius: 12px;
+  background: var(--ifm-color-emphasis-100);
+  margin-bottom: 1rem;
+}
+
+.feature-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Blog */
+.codaqui-blog-list-content {
+  padding-bottom: 2rem;
+}
+
+.codaqui-blog-post-header h1,
+.codaqui-blog-post-header h2 {
+  margin-bottom: 0;
+}
+
+.codaqui-blog-post-header h2 a {
+  text-decoration: none;
+}
+
+.codaqui-blog-post-header h2 a:hover {
+  color: var(--ifm-color-primary);
+}
+
+.codaqui-blog-list-card .markdown > :last-child,
+.codaqui-blog-post-page-surface .markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.codaqui-blog-list-card .markdown {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.blog-list-page .codaqui-blog-list-card {
+  max-width: 54rem;
+}
+
+.blog-list-page .codaqui-blog-list-card footer,
+.blog-post-page .codaqui-blog-post-page-surface footer {
+  margin-top: 2rem;
+}
+
+.blog-list-page .pagination-nav,
+.blog-post-page .pagination-nav {
+  margin-top: 2.5rem;
+}
+
+.blog-list-page .pagination-nav__link,
+.blog-post-page .pagination-nav__link {
+  border-radius: 16px;
+  border-color: var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.blog-list-page .pagination-nav__link:hover,
+.blog-post-page .pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown {
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown h2,
+.blog-post-page .codaqui-blog-post-page-surface .markdown h3,
+.blog-post-page .codaqui-blog-post-page-surface .markdown h4 {
+  margin-top: 2.5rem;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown img {
+  border-radius: 16px;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface blockquote {
+  border-left: 4px solid var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 0 12px 12px 0;
+  padding: 1rem 1.25rem;
+}
+
+.codaqui-blog-post-author {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.codaqui-blog-post-author:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.codaqui-blog-comments .giscus {
+  margin-top: 0;
+}
+
+/* Button styles */
+.button--codaqui {
+  background-color: #57B593;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.button--codaqui:hover {
+  background-color: #4AA07A;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .button--codaqui {
+  background-color: #87D2B7;
+  color: #2A2130;
+}
+
+[data-theme="dark"] .button--codaqui:hover {
+  background-color: #ABDECE;
+  color: #2A2130;
+}
+
+/* Timeline styles */
+.timeline-section {
+  border-left: 3px solid var(--ifm-color-primary);
+  padding-left: 1.5rem;
+  margin-left: 1rem;
+  margin-bottom: 2rem;
+}
+
+.timeline-section h2 {
+  margin-left: -1.75rem;
+  padding-left: 1.75rem;
+  position: relative;
+}
+
+.timeline-section h2::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 0.5em;
+  width: 12px;
+  height: 12px;
+  background: var(--ifm-color-primary);
+  border-radius: 50%;
+}
+
+/* Admonitions / callouts */
+.admonition {
+  border-radius: 8px;
+}
+
+/* Footer */
+.footer {
+  background-color: #1a1a1a;
+}
+
+/* Table improvements */
+table {
+  width: 100%;
+}
+
+/* Schedule table */
+.schedule-table th {
+  background-color: var(--ifm-color-emphasis-200);
+}
+
+/* Contact buttons */
+.contact-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 400px;
+  margin: 2rem 0;
+}
+
+.contact-buttons a {
+  display: block;
+  text-align: center;
+}
+
+/* Community logos: most partner logos are single-variant (dark/black).
+   Invert them in dark mode so they remain visible on dark backgrounds. */
+[data-theme="dark"] .community-logo-img {
+  filter: invert(1) brightness(1.8) saturate(0.4);
+}
+
+/* Also invert any MUI Avatar or img that carries this class */
+[data-theme="dark"] img.community-logo-img,
+[data-theme="dark"] .MuiAvatar-img.community-logo-img {
+  filter: invert(1) brightness(1.8) saturate(0.4);
+}

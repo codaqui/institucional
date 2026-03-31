@@ -3,46 +3,53 @@
 ## Setup
 
 ```bash
-## Create your virtual-env
-python -m venv venv
+# Instalar dependências
+npm install
 
-## Activate your venv
-source venv/bin/activate
-
-## Export GH_TOKEN
-export GH_TOKEN=<INSERT_YOUR_TOKEN_HERE>
-
-## Basic Requirements
-pip install -r requirements.txt
-
-# Insider from Mkdocs (Private)
-pip install git+ssh://git@github.com/squidfunk/mkdocs-material-insiders.git
-
-# Social Cards Dependency
-## Ubuntu
-apt-get install libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-
-## Fedora
-yum install cairo-devel freetype-devel libffi-devel libjpeg-devel libpng-devel zlib-devel
-
-## Windows
-## See: https://www.cairographics.org/download/
-
-## MacOS
-brew install cairo freetype libffi libjpeg libpng zlib
-
-# Server Online
-mkdocs serve
+# Iniciar servidor de desenvolvimento
+npm start
 ```
 
-## Deploy Locally
+O servidor de desenvolvimento estará disponível em `http://localhost:3000`.
 
-Você pode usar o seguinte comando abaixo para enviar localmente sua versão de emergência, porém recomendamos utilizar o fluxo de git-flow.
+## Build
 
+```bash
+# Gerar build de produção
+npm run build
+
+# Servir build localmente
+npm run serve
 ```
-mkdocs gh-deploy
-```
+
+## Estrutura do Projeto
+
+O site é construído com [Docusaurus 3.9](https://docusaurus.io/).
+
+- `blog/` - Posts do blog com frontmatter YAML
+- `trilhas/` - Trilhas de aprendizado (plugin docs do Docusaurus)
+- `src/pages/` - Páginas estáticas do site
+- `src/css/` - Estilos customizados
+- `static/` - Arquivos estáticos (imagens, fontes, etc.)
+- `docusaurus.config.ts` - Configuração principal do site
+- `sidebars.ts` - Configuração das barras laterais das trilhas
 
 ## Development Environment
 
-A Branch `develop` é a branch de desenvolvimento, onde todas as features são testadas e desenvolvidas. O Workflow dela cria a branch `gh-pages-develop` e você é capaz de visualizar o status dela [clicando aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
+A branch `develop` é a branch de desenvolvimento, onde todas as features são testadas e desenvolvidas. O preview dela é publicado em [https://codaqui.dev/previews/develop/](https://codaqui.dev/previews/develop/).
+
+Os previews usam uma estratégia unificada em subpaths do `gh-pages`:
+
+- `develop` → `https://codaqui.dev/previews/develop/`
+- PRs → `https://codaqui.dev/previews/pr-<numero>/`
+
+Esses builds usam `SITE_URL=https://codaqui.dev` com `BASE_URL` específico do subpath para que os assets sejam resolvidos corretamente no preview.
+
+Quando o PR é `develop -> main`, o workflow reutiliza o preview contínuo de `develop` em vez de publicar um preview dedicado do PR.
+
+## Deploy
+
+O deploy é feito automaticamente via GitHub Actions quando há push nas branches `main` ou `develop`:
+
+- `main` → deploys to `gh-pages` (produção)
+- `develop` → atualiza o preview em `gh-pages/previews/develop/`
