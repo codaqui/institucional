@@ -35,7 +35,8 @@ jobs:
             git -C gh-pages rm -rf . >/dev/null 2>&1 || true
             find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
             touch gh-pages/.nojekyll
-            git -C gh-pages add .nojekyll
+            cp CNAME gh-pages/CNAME
+            git -C gh-pages add .nojekyll CNAME
             git -C gh-pages commit -m "chore: initialize gh-pages branch"
             git -C gh-pages push origin gh-pages
           fi
@@ -46,6 +47,7 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           git -C gh-pages pull --rebase origin gh-pages
+          cp CNAME gh-pages/CNAME
 
           PREVIEW_PATH="gh-pages/previews/pr-${PR_NUMBER}"
 
@@ -57,7 +59,7 @@ jobs:
           rm -rf "$PREVIEW_PATH"
           find gh-pages/previews -type d -empty -delete 2>/dev/null || true
 
-          git -C gh-pages add -A previews
+          git -C gh-pages add -A previews CNAME
 
           if git -C gh-pages diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
