@@ -20,12 +20,13 @@ import { diretoria, membros, alumni, mentores, type Member } from "../../data/te
 function MemberCard({ name, role, specialty, avatar, linkedin, github }: Member) {
   return (
     <Card
+      variant="outlined"
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s, box-shadow 0.2s",
-        "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
+        transition: "all 0.2s",
+        "&:hover": { transform: "translateY(-2px)", boxShadow: 3 },
       }}
     >
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 1 }}>
@@ -111,25 +112,27 @@ export default function EquipePage(): React.JSX.Element {
           sx={{
             background: (theme) =>
               `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-            py: 8,
+            py: { xs: 6, md: 8 },
             textAlign: "center",
           }}
         >
-          <Typography variant="h3" component="h1" color="white">
-            Quem somos
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
-          >
-            Nosso objetivo é quebrar barreiras e democratizar o acesso à tecnologia.
-            A Codaqui é uma associação sem fins lucrativos (CNPJ 44.593.429/0001-05) que atua como
-            guarda-chuva de comunidades tech, apoiando participantes, mentores e projetos que promovem
-            inclusão e colaboração.
-          </Typography>
+          <Container maxWidth="lg">
+            <Typography variant="h3" component="h1" fontWeight={800} color="white">
+              👥 Quem somos
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
+            >
+              Nosso objetivo é quebrar barreiras e democratizar o acesso à tecnologia.
+              A Codaqui é uma associação sem fins lucrativos (CNPJ 44.593.429/0001-05) que atua como
+              guarda-chuva de comunidades tech, apoiando participantes, mentores e projetos que promovem
+              inclusão e colaboração.
+            </Typography>
+          </Container>
         </Box>
 
-        <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
           <Section
             title="Diretoria"
             description="Responsável pela gestão, representação legal e prestação de contas da associação."

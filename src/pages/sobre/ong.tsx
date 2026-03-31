@@ -13,20 +13,25 @@ import {
   Grid,
   Container,
   Divider,
+  useTheme,
 } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import { communities, type Community } from "../../data/communities";
+import { BackersWall, DonateButton } from "../../components/OpenCollective";
 
 function CommunityCard({ community }: { community: Community }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
+  const isLocal = community.logo.startsWith("/img/");
   return (
     <Card
+      variant="outlined"
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        border: 1,
-        borderColor: "divider",
         transition: "all 0.2s",
-        "&:hover": { boxShadow: 4 },
+        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
       }}
     >
       <CardContent sx={{ flexGrow: 1 }}>
@@ -34,14 +39,17 @@ function CommunityCard({ community }: { community: Community }) {
           <Avatar
             src={community.logo}
             alt={community.name}
-            imgProps={{ className: "community-logo-img" }}
             sx={{
               width: 56,
               height: 56,
               bgcolor: "background.paper",
               border: 1,
               borderColor: "divider",
-              "& img": { objectFit: "contain", p: 0.5 },
+              "& img": {
+                objectFit: "contain",
+                p: 0.5,
+                filter: isDark && isLocal ? "invert(1) brightness(2)" : "none",
+              },
             }}
           />
           <Box>
@@ -87,24 +95,27 @@ export default function OngPage(): React.JSX.Element {
     >
       <Box
         sx={{
-          background: "linear-gradient(135deg, #16a34a 0%, #22c55e 100%)",
-          py: 8,
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+          py: { xs: 6, md: 8 },
           textAlign: "center",
         }}
       >
-        <Typography variant="h3" color="white" fontWeight={800}>
-          Programa de Apoio Institucional
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{ color: "rgba(255,255,255,0.9)", maxWidth: 600, mx: "auto", mt: 2 }}
-        >
-          Capacite sua comunidade, amplie seu impacto e aumente seu alcance com
-          nosso programa de apoio institucional e suporte especializado.
-        </Typography>
+        <Container maxWidth="lg">
+          <Typography variant="h3" component="h1" color="white" fontWeight={800}>
+            🏛️ Programa de Apoio Institucional
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
+          >
+            Capacite sua comunidade, amplie seu impacto e aumente seu alcance com
+            nosso programa de apoio institucional e suporte especializado.
+          </Typography>
+        </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
         <Typography variant="h4" component="h2" mb={4} fontWeight={700}>
           Comunidades apoiadas
         </Typography>
@@ -172,6 +183,30 @@ export default function OngPage(): React.JSX.Element {
             💬 Discord / WhatsApp
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 6 }} />
+
+        {/* ── Nossos Apoiadores ── */}
+        <Box sx={{ mb: 6 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+            <FavoriteIcon sx={{ color: "primary.main" }} />
+            <Typography variant="h5" fontWeight={700}>
+              Quem apoia a Codaqui
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 640 }}>
+            Essas pessoas e organizações acreditam que tecnologia de qualidade deve
+            chegar a todos. A Codaqui usa o{" "}
+            <a href="https://opencollective.com/codaqui" target="_blank" rel="noopener noreferrer">
+              OpenCollective
+            </a>{" "}
+            para receber e reportar contribuições com total transparência.
+          </Typography>
+          <BackersWall limit={20} avatarSize={56} />
+          <Box sx={{ mt: 3 }}>
+            <DonateButton label="Fazer parte desse grupo" variant="outlined" />
+          </Box>
+        </Box>
 
         <Divider sx={{ my: 6 }} />
 

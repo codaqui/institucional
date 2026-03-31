@@ -1,25 +1,51 @@
 import { createTheme, type Theme } from "@mui/material/styles";
 
+/**
+ * Codaqui brand palette:
+ *   #57B593 — teal green (primary)
+ *   #3A2F39 — dark plum (dark mode backgrounds)
+ *   #F8F8F8 — near-white (light mode background)
+ */
+
+const BRAND = {
+  primary: "#57B593",
+  primaryDark: "#4AA07A",
+  primaryDarker: "#3D8A68",
+  primaryLight: "#6DC4A5",
+  primaryLighter: "#87D2B7",
+  darkBg: "#2A2130",       // darker variant of #3A2F39 for default bg
+  darkPaper: "#3A2F39",    // dark plum for cards/paper
+  lightBg: "#F8F8F8",
+  lightPaper: "#FFFFFF",
+};
+
 export function createCodaquiTheme(mode: "light" | "dark"): Theme {
   return createTheme({
     palette: {
       mode,
       primary: {
-        main: "#22c55e",
-        dark: "#16a34a",
-        light: "#4ade80",
+        main: BRAND.primary,
+        dark: BRAND.primaryDark,
+        light: BRAND.primaryLight,
         contrastText: "#ffffff",
       },
       secondary: {
-        main: "#0ea5e9",
-        dark: "#0284c7",
-        light: "#38bdf8",
-        contrastText: "#ffffff",
+        main: BRAND.primaryLighter,
+        dark: BRAND.primaryDark,
+        light: "#ABE0CB",
+        contrastText: "#3A2F39",
       },
       background: {
-        default: mode === "dark" ? "#1b1b1d" : "#ffffff",
-        paper: mode === "dark" ? "#242526" : "#ffffff",
+        default: mode === "dark" ? BRAND.darkBg : BRAND.lightBg,
+        paper: mode === "dark" ? BRAND.darkPaper : BRAND.lightPaper,
       },
+      ...(mode === "dark" && {
+        text: {
+          primary: "#F0EDF2",
+          secondary: "#C9BFD1",
+          disabled: "#7A6F80",
+        },
+      }),
     },
     typography: {
       fontFamily:
@@ -39,6 +65,14 @@ export function createCodaquiTheme(mode: "light" | "dark"): Theme {
       MuiButton: {
         defaultProps: {
           disableElevation: true,
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          colorPrimary: {
+            backgroundColor: mode === "dark" ? BRAND.primaryDarker : BRAND.primary,
+            color: "#ffffff",
+          },
         },
       },
     },

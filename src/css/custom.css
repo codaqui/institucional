@@ -1,31 +1,38 @@
 /**
  * Codaqui - Custom CSS for Docusaurus
- * Brand colors and custom styles
+ *
+ * Brand palette:
+ *   #57B593  primary teal-green
+ *   #3A2F39  dark plum (dark mode backgrounds)
+ *   #F8F8F8  near-white (light mode background)
  */
 
 :root {
-  --ifm-color-primary: #1a1a1a;
-  --ifm-color-primary-dark: #111111;
-  --ifm-color-primary-darker: #0a0a0a;
-  --ifm-color-primary-darkest: #000000;
-  --ifm-color-primary-light: #333333;
-  --ifm-color-primary-lighter: #444444;
-  --ifm-color-primary-lightest: #555555;
+  /* Primary color scale — matches MUI theme primary #22c55e */
+  --ifm-color-primary: #16a34a;
+  --ifm-color-primary-dark: #15803d;
+  --ifm-color-primary-darker: #166534;
+  --ifm-color-primary-darkest: #14532d;
+  --ifm-color-primary-light: #22c55e;
+  --ifm-color-primary-lighter: #4ade80;
+  --ifm-color-primary-lightest: #86efac;
+
   --ifm-code-font-size: 95%;
   --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(34, 197, 94, 0.1);
 }
 
 [data-theme="dark"] {
-  --ifm-color-primary: #e0e0e0;
-  --ifm-color-primary-dark: #c9c9c9;
-  --ifm-color-primary-darker: #bebebe;
-  --ifm-color-primary-darkest: #9d9d9d;
-  --ifm-color-primary-light: #f0f0f0;
-  --ifm-color-primary-lighter: #f5f5f5;
-  --ifm-color-primary-lightest: #ffffff;
-  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #dcfce7;
+
+  --docusaurus-highlighted-code-line-bg: rgba(74, 222, 128, 0.15);
 }
 
 /* Navbar */
@@ -173,7 +180,7 @@
 
 /* Button styles */
 .button--codaqui {
-  background-color: #1a1a1a;
+  background-color: #16a34a;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -183,18 +190,18 @@
 }
 
 .button--codaqui:hover {
-  background-color: #333333;
+  background-color: #15803d;
   color: #ffffff;
 }
 
 [data-theme="dark"] .button--codaqui {
-  background-color: #e0e0e0;
-  color: #1a1a1a;
+  background-color: #4ade80;
+  color: #14532d;
 }
 
 [data-theme="dark"] .button--codaqui:hover {
-  background-color: #ffffff;
-  color: #000000;
+  background-color: #86efac;
+  color: #14532d;
 }
 
 /* Timeline styles */

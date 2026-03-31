@@ -1,54 +1,92 @@
 import React from "react";
-import clsx from "clsx";
 import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
-import { useColorMode } from "@docusaurus/theme-common";
-import styles from "./index.module.css";
 import {
-  Grid,
+  Box,
+  Button,
   Card,
   CardContent,
-  Box,
-  Typography,
   Container,
+  Grid,
+  Typography,
+  useTheme,
 } from "@mui/material";
 import { communities, type Community } from "../data/communities";
 import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
+import { SupportersBadge } from "../components/OpenCollective";
 
 function HeroBanner() {
   const { siteConfig } = useDocusaurusContext();
-  const { colorMode } = useColorMode();
-  // logo.png = dark green (visible on light bg) → light mode navbar & dark-mode hero
-  // logo_blk.png = light mint (visible on dark bg) → dark mode navbar & light-mode hero
-  // The hero uses --ifm-color-primary (#1a1a1a) as background in light mode → needs light logo
-  const logoSrc = colorMode === "dark" ? "/img/logo.png" : "/img/logo_blk.png";
   return (
-    <header className={clsx("hero hero--primary", styles.heroBanner)}>
-      <div className="container">
-        <img
-          src={logoSrc}
+    <Box
+      component="header"
+      sx={{
+        background: (theme) =>
+          `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+        py: { xs: 6, md: 8 },
+        textAlign: "center",
+      }}
+    >
+      <Container maxWidth="lg">
+        <Box
+          component="img"
+          src="/img/logo.png"
           alt="Codaqui Logo"
-          className={styles.heroLogo}
+          sx={{ width: 120, height: "auto", mb: 3 }}
         />
-        <h1 className="hero__title">{siteConfig.title}</h1>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
-        <div className={styles.buttons}>
-          <Link
-            className="button button--secondary button--lg"
-            to="/participe/estudar"
+        <Typography variant="h3" component="h1" fontWeight={800} color="white">
+          {siteConfig.title}
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2, mb: 3 }}
+        >
+          {siteConfig.tagline}
+        </Typography>
+
+        {/* Non-intrusive social proof — shows backer count, links to OC */}
+        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
+          <SupportersBadge />
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 2,
+            mt: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          <Button
+            variant="contained"
+            size="large"
+            href="/participe/estudar"
+            sx={{
+              bgcolor: "white",
+              color: "primary.dark",
+              fontWeight: 700,
+              "&:hover": { bgcolor: "grey.100" },
+            }}
           >
             #QueroEstudar
-          </Link>
-          <Link
-            className="button button--secondary button--lg"
-            to="/participe/apoiar"
+          </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            href="/participe/apoiar"
+            sx={{
+              color: "white",
+              borderColor: "rgba(255,255,255,0.5)",
+              fontWeight: 700,
+              "&:hover": { borderColor: "white", bgcolor: "rgba(255,255,255,0.1)" },
+            }}
           >
             #QueroApoiar
-          </Link>
-        </div>
-      </div>
-    </header>
+          </Button>
+        </Box>
+      </Container>
+    </Box>
   );
 }
 
@@ -87,14 +125,21 @@ const features: FeatureItem[] = [
 
 function FeaturesSection() {
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
       <Typography variant="h4" fontWeight={700} gutterBottom>
         🎓 Nossa solução
       </Typography>
       <Grid container spacing={3}>
         {features.map((feature) => (
           <Grid key={feature.title} size={{ xs: 12, sm: 6 }}>
-            <Card sx={{ height: "100%", border: 1, borderColor: "divider" }}>
+            <Card
+              variant="outlined"
+              sx={{
+                height: "100%",
+                transition: "all 0.2s",
+                "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
+              }}
+            >
               <CardContent>
                 <Box component="span" sx={{ fontSize: "2rem", display: "block", mb: 1 }}>
                   {feature.emoji}
@@ -115,8 +160,10 @@ function FeaturesSection() {
 }
 
 function CommunitySection() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === "dark";
   return (
-    <Box sx={{ bgcolor: "action.hover", py: 6 }}>
+    <Box sx={{ bgcolor: "action.hover", py: { xs: 6, md: 10 } }}>
       <Container maxWidth="lg">
         <Typography variant="h4" fontWeight={700} gutterBottom>
           🤝 Comunidades Participantes
@@ -124,6 +171,7 @@ function CommunitySection() {
         <Grid container spacing={2} justifyContent="center">
           {communities.map((community: Community) => {
             const link = community.links[0]?.url ?? "#";
+            const isLocal = community.logo.startsWith("/img/");
             return (
               <Grid key={community.id} size={{ xs: 6, sm: 4, md: 2 }}>
                 <Box
@@ -145,11 +193,17 @@ function CommunitySection() {
                     "&:hover": { bgcolor: "action.selected" },
                   }}
                 >
-          <img
+                  <Box
+                    component="img"
                     src={community.logo}
                     alt={community.name}
-                    className="community-logo-img"
-                    style={{ width: 64, height: 64, objectFit: "contain", borderRadius: 8 }}
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      objectFit: "contain",
+                      borderRadius: 2,
+                      filter: isDark && isLocal ? "invert(1) brightness(2)" : "none",
+                    }}
                   />
                   <Typography variant="body2" fontWeight={600}>
                     {community.name}
@@ -181,7 +235,7 @@ function LinksSection() {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ py: 6 }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
       <Typography variant="h4" fontWeight={700} gutterBottom>
         🔗 Links Importantes
       </Typography>
@@ -193,17 +247,16 @@ function LinksSection() {
               href={channel.href}
               target="_blank"
               rel="noopener noreferrer"
+              variant="outlined"
               sx={{
                 display: "block",
                 textDecoration: "none",
                 color: "inherit",
-                border: 1,
-                borderColor: "divider",
                 textAlign: "center",
                 transition: "all 0.2s",
                 "&:hover": {
-                  transform: "translateY(-3px)",
-                  boxShadow: 4,
+                  transform: "translateY(-2px)",
+                  boxShadow: 3,
                   borderColor: "primary.main",
                 },
               }}

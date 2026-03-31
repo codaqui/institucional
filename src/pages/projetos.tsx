@@ -16,16 +16,15 @@ import { projects, type Project } from "../data/projects";
 function ProjectCard({ emoji, title, description, href }: Project) {
   return (
     <Card
+      variant="outlined"
       sx={{
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        border: 1,
-        borderColor: "divider",
         transition: "all 0.2s",
         "&:hover": {
-          transform: "translateY(-4px)",
-          boxShadow: 6,
+          transform: "translateY(-2px)",
+          boxShadow: 3,
           borderColor: "primary.main",
         },
       }}
@@ -58,16 +57,28 @@ function ProjectCard({ emoji, title, description, href }: Project) {
 export default function ProjetosPage(): React.JSX.Element {
   return (
     <Layout title="Projetos" description="Projetos mantidos pela comunidade Codaqui">
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Box sx={{ textAlign: "center", mb: 6 }}>
-          <Typography variant="h3" fontWeight={700} gutterBottom>
-            Projetos 🛠️
+      <Box
+        sx={{
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+          py: { xs: 6, md: 8 },
+          textAlign: "center",
+        }}
+      >
+        <Container maxWidth="lg">
+          <Typography variant="h3" component="h1" fontWeight={800} color="white">
+            🛠️ Projetos
           </Typography>
-          <Typography variant="body1" color="text.secondary">
+          <Typography
+            variant="h6"
+            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
+          >
             A Codaqui é uma comunidade viva. Abaixo estão projetos que mantemos — em laboratório
             ou em produção — abertos para contribuição.
           </Typography>
-        </Box>
+        </Container>
+      </Box>
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
 
         <Card variant="outlined" sx={{ mb: 6, p: 3, bgcolor: "action.hover" }}>
           <Typography variant="h5" fontWeight={700} gutterBottom>

@@ -34,6 +34,7 @@ function ChannelCard({ key: channelKey, name, description, href, cta }: SocialCh
       href={href}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
+      variant="outlined"
       sx={{
         textDecoration: "none",
         color: "inherit",
@@ -42,9 +43,7 @@ function ChannelCard({ key: channelKey, name, description, href, cta }: SocialCh
         gap: 2,
         p: 2.5,
         transition: "all 0.2s",
-        "&:hover": { transform: "translateY(-3px)", boxShadow: 4, borderColor: "primary.main" },
-        border: 1,
-        borderColor: "divider",
+        "&:hover": { transform: "translateY(-2px)", boxShadow: 3, borderColor: "primary.main" },
       }}
     >
       <Box>{iconMap[channelKey]}</Box>
@@ -63,13 +62,27 @@ export default function ContatoPage(): React.JSX.Element {
   return (
     <Layout title="Contato" description="Entre em contato com a Codaqui">
       <main>
-        <Container maxWidth="md" sx={{ py: 8 }}>
-          <Typography variant="h3" textAlign="center" mb={1}>
-            Fale com a gente 👋
-          </Typography>
-          <Typography variant="body1" color="text.secondary" textAlign="center" mb={5}>
-            Escolha o canal que preferir — estamos disponíveis em várias plataformas.
-          </Typography>
+        <Box
+          sx={{
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+            py: { xs: 6, md: 8 },
+            textAlign: "center",
+          }}
+        >
+          <Container maxWidth="md">
+            <Typography variant="h3" component="h1" fontWeight={800} color="white">
+              👋 Fale com a gente
+            </Typography>
+            <Typography
+              variant="h6"
+              sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
+            >
+              Escolha o canal que preferir — estamos disponíveis em várias plataformas.
+            </Typography>
+          </Container>
+        </Box>
+        <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
           <Grid container spacing={2}>
             {socialChannels.map((c) => (
               <Grid key={c.key} size={{ xs: 12, sm: 6 }}>

@@ -33,8 +33,8 @@ const links: LinkItem[] = [
 // useColorMode must be called inside a component rendered within Layout (provides the context)
 function BioAvatar(): React.JSX.Element {
   const { colorMode } = useColorMode();
-  // background.paper is white in light mode → use dark logo; dark in dark mode → use light logo
-  const logoSrc = colorMode === 'dark' ? '/img/logo_blk.png' : '/img/logo.png';
+  // logo.png = white/light logo (for dark backgrounds); logo_blk.png = dark logo (for light backgrounds)
+  const logoSrc = colorMode === 'dark' ? '/img/logo.png' : '/img/logo_blk.png';
   return (
     <Avatar
       src={logoSrc}
@@ -76,6 +76,7 @@ export default function BioPage(): React.JSX.Element {
               {...(link.external
                 ? { target: '_blank', rel: 'noopener noreferrer' }
                 : {})}
+              variant="outlined"
               sx={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -83,8 +84,6 @@ export default function BioPage(): React.JSX.Element {
                 alignItems: 'center',
                 gap: 2,
                 p: 2,
-                border: 1,
-                borderColor: 'divider',
                 transition: 'all 0.2s',
                 '&:hover': {
                   borderColor: 'primary.main',

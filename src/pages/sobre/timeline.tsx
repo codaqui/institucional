@@ -30,24 +30,27 @@ export default function TimelinePage(): React.JSX.Element {
       title="Linha do Tempo"
       description="Acompanhe os principais marcos da história da Codaqui"
     >
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        <Typography
-          variant="h3"
-          component="h1"
-          textAlign="center"
-          mb={1}
-          fontWeight={700}
-        >
-          🕐 Linha do Tempo
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          color="text.secondary"
-          textAlign="center"
-          mb={6}
-        >
-          Acompanhe os principais marcos da história da Codaqui
-        </Typography>
+      <Box
+        sx={{
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
+          py: { xs: 6, md: 8 },
+          textAlign: "center",
+        }}
+      >
+        <Container maxWidth="md">
+          <Typography variant="h3" component="h1" fontWeight={800} color="white">
+            🕐 Linha do Tempo
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
+          >
+            Acompanhe os principais marcos da história da Codaqui
+          </Typography>
+        </Container>
+      </Box>
+      <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
 
         <Timeline position={isMobile ? "right" : "alternate"}>
           {timelineEvents.map((event: TimelineEvent, index: number) => (
@@ -71,7 +74,7 @@ export default function TimelinePage(): React.JSX.Element {
               </TimelineSeparator>
 
               <TimelineContent sx={{ pb: 4 }}>
-                <Card elevation={0} sx={{ border: 1, borderColor: "divider" }}>
+                <Card variant="outlined">
                   <CardContent>
                     {isMobile && (
                       <Typography variant="h6" color="text.secondary" mb={1}>
