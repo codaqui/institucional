@@ -22,12 +22,19 @@ jobs:
     if: >
       github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
-    env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
       - name: Resolve preview metadata
         id: meta
         uses: actions/github-script@v8
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         with:
           script: |
             const pr = context.payload.workflow_run.pull_requests?.[0];
@@ -71,7 +78,7 @@ jobs:
         env:
           REPOSITORY: ${{ github.repository }}
         run: |
-          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git clone "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${REPOSITORY}.git" gh-pages
           git -C gh-pages config user.name "github-actions[bot]"
           git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 

@@ -25,8 +25,17 @@ jobs:
       preview_path: ${{ steps.deploy_meta.outputs.preview_path }}
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Determine deploy target
         id: deploy_meta
@@ -91,7 +100,7 @@ jobs:
         env:
           REPOSITORY: ${{ github.repository }}
         run: |
-          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git clone "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${REPOSITORY}.git" gh-pages
           git -C gh-pages config user.name "github-actions[bot]"
           git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
