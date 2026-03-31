@@ -19,22 +19,26 @@ jobs:
     name: Build & Deploy
     runs-on: ubuntu-latest
     outputs:
-      env_name: ${{ steps.branch_check.outputs.env_name }}
+      deploy_type: ${{ steps.deploy_meta.outputs.deploy_type }}
+      site_url: ${{ steps.deploy_meta.outputs.site_url }}
+      preview_path: ${{ steps.deploy_meta.outputs.preview_path }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Determine deploy branch
-        id: branch_check
+      - name: Determine deploy target
+        id: deploy_meta
         run: |
           echo "Running on branch ${{ github.ref }}"
           if [ "${{ github.ref }}" = "refs/heads/main" ]; then
-            echo "env_name=gh-pages" >> $GITHUB_OUTPUT
-          elif [ "${{ github.ref }}" = "refs/heads/develop" ]; then
-            echo "env_name=gh-pages-develop" >> $GITHUB_OUTPUT
+            echo "deploy_type=production" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://codaqui.dev/" >> "$GITHUB_OUTPUT"
+            echo "preview_path=" >> "$GITHUB_OUTPUT"
           else
-            echo "env_name=gh-pages-feature" >> $GITHUB_OUTPUT
+            echo "deploy_type=preview" >> "$GITHUB_OUTPUT"
+            echo "site_url=https://codaqui.dev/previews/develop/" >> "$GITHUB_OUTPUT"
+            echo "preview_path=previews/develop" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up Node.js 24
@@ -48,9 +52,9 @@ jobs:
 
       - name: Build website
         run: |
-          if [ "${{ steps.branch_check.outputs.env_name }}" = "gh-pages-develop" ]; then
-            SITE_URL="https://raw.githack.com" \
-            BASE_URL="/codaqui/institucional/gh-pages-develop/" \
+          if [ "${{ steps.deploy_meta.outputs.deploy_type }}" = "preview" ]; then
+            SITE_URL="https://codaqui.dev" \
+            BASE_URL="/${{ steps.deploy_meta.outputs.preview_path }}/" \
             PREVIEW="true" \
             npm run build
           else
@@ -61,7 +65,7 @@ jobs:
         run: touch build/.nojekyll
 
       - name: Deploy to GitHub Pages (main) 🚀
-        if: steps.branch_check.outputs.env_name == 'gh-pages'
+        if: steps.deploy_meta.outputs.deploy_type == 'production'
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
@@ -70,13 +74,47 @@ jobs:
           clean-exclude: |
             previews
 
-      - name: Deploy to GitHub Pages (develop) 🚀
-        if: steps.branch_check.outputs.env_name != 'gh-pages'
-        uses: peaceiris/actions-gh-pages@v4
+      - name: Checkout GitHub Pages branch
+        if: steps.deploy_meta.outputs.deploy_type == 'preview'
+        uses: actions/checkout@v6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          publish_branch: ${{ steps.branch_check.outputs.env_name }}
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 0
+
+      - name: Sync develop preview into gh-pages
+        if: steps.deploy_meta.outputs.deploy_type == 'preview'
+        env:
+          PREVIEW_PATH: ${{ steps.deploy_meta.outputs.preview_path }}
+        run: |
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C gh-pages pull --rebase origin gh-pages
+
+          mkdir -p "gh-pages/${PREVIEW_PATH}"
+          rsync -a --delete build/ "gh-pages/${PREVIEW_PATH}/"
+          touch gh-pages/.nojekyll
+
+          git -C gh-pages add "${PREVIEW_PATH}" .nojekyll
+
+          if git -C gh-pages diff --cached --quiet; then
+            exit 0
+          fi
+
+          git -C gh-pages commit -m "chore: update develop preview"
+
+          for attempt in 1 2 3; do
+            if git -C gh-pages push origin HEAD:gh-pages; then
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "Develop preview push failed after retries" >&2
+              exit 1
+            fi
+
+            git -C gh-pages pull --rebase origin gh-pages
+          done
 
   notify:
     name: Notify Merged PR
@@ -118,6 +156,7 @@ jobs:
             | | |
             |---|---|
             | **Branch** | `${{ github.ref_name }}` |
-            | **Environment** | `${{ needs.build-and-deploy.outputs.env_name }}` |
+            | **Environment** | `${{ needs.build-and-deploy.outputs.deploy_type }}` |
+            | **URL** | [${{ needs.build-and-deploy.outputs.site_url }}](${{ needs.build-and-deploy.outputs.site_url }}) |
             | **Commit** | `${{ github.sha }}` |
             | **Run** | [View deployment](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

@@ -4,9 +4,11 @@
 
 ## Bem vindo 🫶
 
-Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), se você deseja ver o site gerado pela branch develop [acesse aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
+Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), se você deseja ver o preview gerado pela branch `develop` [acesse aqui](https://codaqui.dev/previews/develop/).
 
-O preview da branch `develop` usa `BASE_URL=/codaqui/institucional/gh-pages-develop/` para funcionar corretamente no RawGitHack.
+Os previews publicados usam a mesma estratégia:
+- `develop` → `https://codaqui.dev/previews/develop/`
+- PRs → `https://codaqui.dev/previews/pr-<numero>/`
 
 ## Tecnologia
 

@@ -57,7 +57,12 @@ jobs:
 
       - name: Build website
         id: build
-        run: npm run build
+        run: |
+          SITE_URL="https://codaqui.dev" \
+          BASE_URL="/previews/pr-${{ github.event.pull_request.number }}/" \
+          PREVIEW="true" \
+          PREVIEW_PR_NUMBER="${{ github.event.pull_request.number }}" \
+          npm run build
 
       - name: Upload build artifact
         if: success()

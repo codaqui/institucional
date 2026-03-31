@@ -391,16 +391,17 @@ export default function MyPage(): React.JSX.Element {
 | Branch | Deploys to | URL |
 |--------|-----------|-----|
 | `main` | `gh-pages` | https://codaqui.dev (production) |
-| `develop` | `gh-pages-develop` | Preview environment |
+| `develop` | `gh-pages/previews/develop/` | https://codaqui.dev/previews/develop/ |
 
 ### CI Pipeline (`.github/workflows/gh-deploy.yml`)
 
 On push to `develop` or `main`:
-1. `actions/checkout@v5`
-2. `setup-node@v4` with Node 20 + npm cache
+1. `actions/checkout@v6`
+2. `actions/setup-node@v6` with Node 24 + npm cache
 3. `npm ci`
 4. `npm run build`
-5. Deploy `./build/` to target branch via `peaceiris/actions-gh-pages@v4`
+5. Deploy production from `main` to `gh-pages`, preserving `previews/`
+6. Sync the `develop` preview to `gh-pages/previews/develop/`
 
 ### Commit Convention
 
@@ -418,7 +419,7 @@ chore: atualiza dependências do projeto
 1. Create branch from `develop`: `feat/nome` or `fix/nome`
 2. Make changes, ensure `npm run build` passes
 3. Open PR targeting `develop`
-4. Review → merge → auto-deploy to `gh-pages-develop`
+4. Review → merge → auto-update preview at `https://codaqui.dev/previews/develop/`
 5. After validation, merge `develop` → `main` → auto-deploy to production
 
 ---
