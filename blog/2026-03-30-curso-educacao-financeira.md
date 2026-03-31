@@ -32,6 +32,8 @@ O treinamento abordará desde a desconstrução de crenças limitantes até estr
 
 O curso acontecerá em cinco encontros conduzidos por **Valnaire Nascimento**:
 
+> Todas as aulas acontecem **às 19h30**.
+
 | Aula | Data | Temas | Material | Atividade |
 | --- | --- | --- | --- | --- |
 | **Aula 1** | **13 abr** | Dinheiro é comportamento (Módulo 1) · Crenças influenciam decisões (Módulo 1) | Apresentação de slides · vídeos | Diagnóstico e tipo de gasto |
