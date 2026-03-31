@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Determine deploy target
         id: deploy_meta
@@ -43,7 +43,7 @@ jobs:
           fi
 
       - name: Set up Node.js 24
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
@@ -152,7 +152,7 @@ jobs:
     steps:
       - name: Find associated merged PR
         id: find-pr
-        uses: actions/github-script@v8
+        uses: actions/github-script@v7
         with:
           result-encoding: string
           script: |
