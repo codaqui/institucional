@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[7721],{19072(i,a,t){t.r(a),t.d(a,{default:()=>c});var u=t(56347),n=t(74848);function c(){return(0,n.jsx)(u.rd,{to:"/participe/mentoria"})}}}]);

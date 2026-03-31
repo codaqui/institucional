@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[85],{51223(i,a,t){t.r(a),t.d(a,{default:()=>n});var u=t(56347),c=t(74848);function n(){return(0,c.jsx)(u.rd,{to:"/participe/estudar"})}}}]);

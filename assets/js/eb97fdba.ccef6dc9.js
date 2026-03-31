@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[6043],{43574(i,a,u){u.r(a),u.d(a,{default:()=>n});var t=u(56347),c=u(74848);function n(){return(0,c.jsx)(t.rd,{to:"/blog/archive#2022"})}}}]);

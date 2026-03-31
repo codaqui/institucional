@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[3690],{70332(i,s,a){a.r(s),a.d(s,{default:()=>o});var u=a(56347),n=a(74848);function o(){return(0,n.jsx)(u.rd,{to:"/sobre/pais-responsaveis"})}}}]);

@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[7531],{25323(i,u,a){a.r(u),a.d(u,{default:()=>o});var t=a(56347),n=a(74848);function o(){return(0,n.jsx)(t.rd,{to:"/sobre/equipe"})}}}]);

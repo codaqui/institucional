@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[5673],{24393(i,t,u){u.r(t),u.d(t,{default:()=>o});var a=u(56347),n=u(74848);function o(){return(0,n.jsx)(a.rd,{to:"/sobre/timeline"})}}}]);
