@@ -14,7 +14,15 @@ const config: Config = {
   projectName: "institucional",
 
   onBrokenLinks: "warn",
-  onBrokenMarkdownLinks: "warn",
+  onBrokenAnchors: "warn",
+
+  markdown: {
+    format: "detect",
+    hooks: {
+      onBrokenMarkdownLinks: "warn",
+      onBrokenMarkdownImages: "warn",
+    },
+  },
 
   i18n: {
     defaultLocale: "pt-BR",
@@ -37,6 +45,7 @@ const config: Config = {
           blogTitle: "Blog",
           blogSidebarCount: 10,
           blogSidebarTitle: "Posts recentes",
+          onInlineAuthors: "ignore",
         },
         theme: {
           customCss: "./src/css/custom.css",

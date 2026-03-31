@@ -10,3 +10,6 @@ venv/*
 
 # Cache
 .cache
+node_modules/
+build/
+.docusaurus/
