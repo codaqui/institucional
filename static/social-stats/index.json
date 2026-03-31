@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T20:34:35.556Z",
+  "generatedAt": "2026-03-31T22:16:52.364Z",
   "totalEvents": 373,
   "profiles": [
     {
@@ -10,7 +10,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     },
     {
@@ -21,7 +21,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 386,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     },
     {
@@ -31,8 +31,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6053,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "count": 6054,
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     },
     {
@@ -43,7 +43,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 1570,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     },
     {
@@ -53,8 +53,8 @@
       "url": "https://www.instagram.com/devparana",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 4995,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "count": 4997,
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     },
     {
@@ -64,9 +64,9 @@
       "url": "https://www.instagram.com/elasnocodigo/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 0,
-      "fetchedAt": null,
-      "isFallback": true
+      "count": 190,
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "isFallback": false
     },
     {
       "entityId": "campostechpg",
@@ -80,15 +80,37 @@
       "isFallback": true
     },
     {
+      "entityId": "campostechpg",
+      "platform": "instagram",
+      "handle": "@campostechpg",
+      "url": "https://www.instagram.com/campostechpg",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 1350,
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "campostechpg",
+      "platform": "youtube",
+      "handle": "CamposTech",
+      "url": "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
       "entityId": "tisocial",
       "platform": "instagram",
       "handle": "@tisocialmaringa",
       "url": "https://www.instagram.com/tisocialmaringa",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 0,
-      "fetchedAt": null,
-      "isFallback": true
+      "count": 196,
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "isFallback": false
     },
     {
       "entityId": "cloudnativemaringa",
@@ -98,7 +120,7 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 3,
-      "fetchedAt": "2026-03-31T20:34:35.556Z",
+      "fetchedAt": "2026-03-31T22:16:52.364Z",
       "isFallback": false
     }
   ]
