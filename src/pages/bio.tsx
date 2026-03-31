@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '@theme/Layout';
+import { useColorMode } from '@docusaurus/theme-common';
 import {
   Avatar,
   Box,
@@ -29,6 +30,27 @@ const links: LinkItem[] = [
   { label: '🐙 GitHub', href: 'https://github.com/codaqui', external: true },
 ];
 
+// useColorMode must be called inside a component rendered within Layout (provides the context)
+function BioAvatar(): React.JSX.Element {
+  const { colorMode } = useColorMode();
+  // background.paper is white in light mode → use dark logo; dark in dark mode → use light logo
+  const logoSrc = colorMode === 'dark' ? '/img/logo_blk.png' : '/img/logo.png';
+  return (
+    <Avatar
+      src={logoSrc}
+      sx={{
+        width: 80,
+        height: 80,
+        mx: 'auto',
+        mb: 2,
+        bgcolor: 'background.paper',
+        border: 2,
+        borderColor: 'divider',
+      }}
+    />
+  );
+}
+
 export default function BioPage(): React.JSX.Element {
   return (
     <Layout
@@ -36,18 +58,7 @@ export default function BioPage(): React.JSX.Element {
       description="Encontre todos os links da Codaqui em um só lugar"
     >
       <Container maxWidth="sm" sx={{ py: 8, textAlign: 'center' }}>
-        <Avatar
-          src="/img/logo.png"
-          sx={{
-            width: 80,
-            height: 80,
-            mx: 'auto',
-            mb: 2,
-            bgcolor: 'background.paper',
-            border: 2,
-            borderColor: 'divider',
-          }}
-        />
+        <BioAvatar />
         <Typography variant="h4" fontWeight={800}>
           Codaqui
         </Typography>

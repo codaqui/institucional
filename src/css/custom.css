@@ -255,3 +255,15 @@ table {
   display: block;
   text-align: center;
 }
+
+/* Community logos: most partner logos are single-variant (dark/black).
+   Invert them in dark mode so they remain visible on dark backgrounds. */
+[data-theme="dark"] .community-logo-img {
+  filter: invert(1) brightness(1.8) saturate(0.4);
+}
+
+/* Also invert any MUI Avatar or img that carries this class */
+[data-theme="dark"] img.community-logo-img,
+[data-theme="dark"] .MuiAvatar-img.community-logo-img {
+  filter: invert(1) brightness(1.8) saturate(0.4);
+}

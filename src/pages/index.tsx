@@ -19,7 +19,10 @@ import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
 function HeroBanner() {
   const { siteConfig } = useDocusaurusContext();
   const { colorMode } = useColorMode();
-  const logoSrc = colorMode === "dark" ? "/img/logo_blk.png" : "/img/logo.png";
+  // logo.png = dark green (visible on light bg) → light mode navbar & dark-mode hero
+  // logo_blk.png = light mint (visible on dark bg) → dark mode navbar & light-mode hero
+  // The hero uses --ifm-color-primary (#1a1a1a) as background in light mode → needs light logo
+  const logoSrc = colorMode === "dark" ? "/img/logo.png" : "/img/logo_blk.png";
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
@@ -142,9 +145,10 @@ function CommunitySection() {
                     "&:hover": { bgcolor: "action.selected" },
                   }}
                 >
-                  <img
+          <img
                     src={community.logo}
                     alt={community.name}
+                    className="community-logo-img"
                     style={{ width: 64, height: 64, objectFit: "contain", borderRadius: 8 }}
                   />
                   <Typography variant="body2" fontWeight={600}>

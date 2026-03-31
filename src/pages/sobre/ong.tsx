@@ -34,6 +34,7 @@ function CommunityCard({ community }: { community: Community }) {
           <Avatar
             src={community.logo}
             alt={community.name}
+            imgProps={{ className: "community-logo-img" }}
             sx={{
               width: 56,
               height: 56,

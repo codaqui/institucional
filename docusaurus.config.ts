@@ -16,6 +16,16 @@ const config: Config = {
   onBrokenLinks: "warn",
   onBrokenAnchors: "warn",
 
+  // Ensure window.gtag is defined before the async Google script loads,
+  // preventing "window.gtag is not a function" on early route changes.
+  headTags: [
+    {
+      tagName: "script",
+      attributes: { type: "text/javascript" },
+      innerHTML: `window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};`,
+    },
+  ],
+
   markdown: {
     format: "detect",
     mermaid: true,
