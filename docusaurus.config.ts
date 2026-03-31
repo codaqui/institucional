@@ -44,6 +44,21 @@ const config: Config = {
           routeBasePath: "trilhas",
           sidebarPath: "./sidebars.ts",
           breadcrumbs: true,
+
+          // "Edit this page" button → opens file directly in GitHub web editor
+          editUrl: ({ docPath }) =>
+            `https://github.com/codaqui/institucional/edit/develop/trilhas/${docPath}`,
+
+          // Show git-based metadata on each lesson
+          showLastUpdateTime: true,
+          showLastUpdateAuthor: true,
+
+          // Include markdown and MDX
+          include: ["**/*.md", "**/*.mdx"],
+
+          // Remark plugin: math support (optional, already excluded if not installed)
+          remarkPlugins: [],
+          rehypePlugins: [],
         },
         blog: {
           path: "blog",
