@@ -8,31 +8,47 @@
  */
 
 :root {
-  /* Primary color scale — matches MUI theme primary #22c55e */
-  --ifm-color-primary: #16a34a;
-  --ifm-color-primary-dark: #15803d;
-  --ifm-color-primary-darker: #166534;
-  --ifm-color-primary-darkest: #14532d;
-  --ifm-color-primary-light: #22c55e;
-  --ifm-color-primary-lighter: #4ade80;
-  --ifm-color-primary-lightest: #86efac;
+  /* Primary color scale derived from #57B593 */
+  --ifm-color-primary:          #57B593;
+  --ifm-color-primary-dark:     #4AA07A;
+  --ifm-color-primary-darker:   #3D8A68;
+  --ifm-color-primary-darkest:  #296247;
+  --ifm-color-primary-light:    #6DC4A5;
+  --ifm-color-primary-lighter:  #87D2B7;
+  --ifm-color-primary-lightest: #ABDECE;
+
+  /* Backgrounds */
+  --ifm-background-color:         #F8F8F8;
+  --ifm-background-surface-color: #FFFFFF;
 
   --ifm-code-font-size: 95%;
   --ifm-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  --docusaurus-highlighted-code-line-bg: rgba(34, 197, 94, 0.1);
+  --docusaurus-highlighted-code-line-bg: rgba(87, 181, 147, 0.15);
+
+  /* Codaqui brand tokens (use these in custom components) */
+  --codaqui-primary:    #57B593;
+  --codaqui-dark-bg:    #3A2F39;
+  --codaqui-light-bg:   #F8F8F8;
 }
 
 [data-theme="dark"] {
-  --ifm-color-primary: #4ade80;
-  --ifm-color-primary-dark: #22c55e;
-  --ifm-color-primary-darker: #16a34a;
-  --ifm-color-primary-darkest: #15803d;
-  --ifm-color-primary-light: #86efac;
-  --ifm-color-primary-lighter: #bbf7d0;
-  --ifm-color-primary-lightest: #dcfce7;
+  /* Lighter primary for legibility on dark plum backgrounds */
+  --ifm-color-primary:          #87D2B7;
+  --ifm-color-primary-dark:     #6DC4A5;
+  --ifm-color-primary-darker:   #57B593;
+  --ifm-color-primary-darkest:  #4AA07A;
+  --ifm-color-primary-light:    #ABDECE;
+  --ifm-color-primary-lighter:  #C4E9DC;
+  --ifm-color-primary-lightest: #DCF3EC;
 
-  --docusaurus-highlighted-code-line-bg: rgba(74, 222, 128, 0.15);
+  /* Dark plum backgrounds */
+  --ifm-background-color:         #2A2130;
+  --ifm-background-surface-color: #3A2F39;
+  --ifm-navbar-background-color:  #3A2F39;
+  --ifm-footer-background-color:  #241C2B;
+
+  --docusaurus-highlighted-code-line-bg: rgba(135, 210, 183, 0.15);
 }
 
 /* Navbar */
@@ -180,7 +196,7 @@
 
 /* Button styles */
 .button--codaqui {
-  background-color: #16a34a;
+  background-color: #57B593;
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -190,18 +206,18 @@
 }
 
 .button--codaqui:hover {
-  background-color: #15803d;
+  background-color: #4AA07A;
   color: #ffffff;
 }
 
 [data-theme="dark"] .button--codaqui {
-  background-color: #4ade80;
-  color: #14532d;
+  background-color: #87D2B7;
+  color: #2A2130;
 }
 
 [data-theme="dark"] .button--codaqui:hover {
-  background-color: #86efac;
-  color: #14532d;
+  background-color: #ABDECE;
+  color: #2A2130;
 }
 
 /* Timeline styles */
