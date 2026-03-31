@@ -3,7 +3,7 @@ import type { SocialProfile } from "./social-stats";
 export type { SocialProfile };
 
 export interface CommunityLink {
-  type: "website" | "instagram" | "whatsapp" | "github";
+  type: "website" | "instagram" | "whatsapp" | "github" | "youtube";
   label: string;
   url: string;
 }
@@ -92,6 +92,8 @@ export const communities: Community[] = [
     location: "Ponta Grossa, PR",
     links: [
       { type: "website", label: "campostechpg.com.br", url: "https://campostechpg.com.br/" },
+      { type: "instagram", label: "@campostechpg", url: "https://www.instagram.com/campostechpg" },
+      { type: "youtube", label: "CamposTech no YouTube", url: "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos" },
     ],
     socialProfiles: [
       {
@@ -99,6 +101,20 @@ export const communities: Community[] = [
         handle: "campostechpg.com.br",
         url: "https://campostechpg.com.br/",
         countLabel: "site",
+        baselineCount: 0,
+      },
+      {
+        platform: "instagram",
+        handle: "@campostechpg",
+        url: "https://www.instagram.com/campostechpg",
+        countLabel: "seguidores",
+        baselineCount: 0,
+      },
+      {
+        platform: "youtube",
+        handle: "CamposTech",
+        url: "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
+        countLabel: "inscritos",
         baselineCount: 0,
       },
     ],
