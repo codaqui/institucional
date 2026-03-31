@@ -83,6 +83,13 @@ jobs:
           PREVIEW_PR_NUMBER="${{ github.event.pull_request.number }}" \
           npm run build
 
+      - name: Override robots for preview artifact
+        run: |
+          cat <<'EOF' > build/robots.txt
+          User-agent: *
+          Disallow: /
+          EOF
+
       - name: Upload build artifact
         if: success()
         uses: actions/upload-artifact@v7
