@@ -33,7 +33,13 @@ const GOOGLE_FORM_URL =
 
 const TURMAS = [
   { mes: "Fevereiro", modalidade: "Gestão e Produtividade", datas: "18/02 (Intro), 24/02 e 02/03", instrutor: "Danilo Mesquita", plataforma: "Discord" },
-  { mes: "Abril", modalidade: "Educação Financeira", datas: "A confirmar", instrutor: "Valnaire Nascimento", plataforma: "Discord" },
+  {
+    mes: "Abril e Maio",
+    modalidade: "Educação Financeira",
+    datas: "13/04, 20/04, 27/04, 03/05 e 11/05",
+    instrutor: "Valnaire Nascimento",
+    plataforma: "Discord",
+  },
   { mes: "Abril", modalidade: "Lógica de Programação com Python", datas: "20/04, 22/04, 27/04 e 29/04 às 20h30", instrutor: "Paulinea", plataforma: "Discord" },
   { mes: "Maio", modalidade: "Product Discovery & Plataforma como Produto", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
   { mes: "Junho", modalidade: "FinOps / CloudSRE", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },

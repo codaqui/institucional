@@ -26,11 +26,21 @@ A Codaqui tem o prazer de anunciar um curso especial sobre **Educação Financei
 
 A verdade é que ninguém nunca nos ensinou a lidar com dinheiro da forma correta. Aprendemos a trabalhar e a pagar contas, mas não a construir riqueza. Este curso foi desenhado para mudar essa realidade, pois a mudança ocorre como o primeiro passo.
 
-O treinamento abordará desde a desconstrução de crenças limitantes até estratégias práticas de investimento e planejamento para o futuro.
+O treinamento abordará desde a desconstrução de crenças limitantes até estratégias práticas de organização financeira, investimento e planejamento para o futuro.
 
 ### 📅 Cronograma
 
-- **Datas e Horários:** *A serem definidos em breve. Fique atento às nossas redes sociais para não perder a abertura das turmas!*
+O curso acontecerá em cinco encontros conduzidos por **Valnaire Nascimento**:
+
+| Aula | Data | Temas | Material | Atividade |
+| --- | --- | --- | --- | --- |
+| **Aula 1** | **13 abr** | Dinheiro é comportamento (Módulo 1) · Crenças influenciam decisões (Módulo 1) | Apresentação de slides · vídeos | Diagnóstico e tipo de gasto |
+| **Aula 2** | **20 abr** | Controle receitas e despesas (Módulo 2) · Defina metas e orçamento (Módulo 3) | Apresentação de slides · planilhas | Ensinar a criar orçamento |
+| **Aula 3** | **27 abr** | Gerencie juros e crédito (Módulo 4) · Invista com consistência (Módulo 5) | Apresentação de slides · melhores investimentos | Verificar perfil do investidor |
+| **Aula 4** | **03 mai** | Construa renda passiva (Módulo 6) · Planejamento de longo prazo (Módulo 7) | Apresentação de slides | Não informado |
+| **Aula 5** | **11 mai** | Planejamento de longo prazo (Módulo 7) | Apresentação de slides | Verificar planos de previdência no mercado |
+
+> A participação acontece conforme a programação divulgada pela Codaqui. Para acompanhar inscrições e atualizações, consulte nossos canais oficiais.
 
 ## Sobre a Instrutora
 
@@ -50,13 +60,13 @@ Com um perfil analítico e orientado a resultados, Valnaire conta com vasta expe
 
 ## O Que Você Vai Aprender
 
-- **Módulo 1 - Mentalidade Financeira:** Entenda sua relação emocional com o dinheiro, supere crenças limitantes e aprenda sobre economia comportamental.
-- **Módulo 2 - Organização Financeira:** Faça um diagnóstico financeiro claro, entenda seus tipos de gastos e crie um fluxo de caixa pessoal utilizando ferramentas simples.
-- **Módulo 3 - Planejamento e Orçamento:** Aprenda a direcionar sua renda usando o Método 50-30-20, defina metas e estabeleça prioridades.
-- **Módulo 4 - Dívidas e Crédito:** Descubra estratégias eficientes para sair das dívidas e como usar o crédito com inteligência.
-- **Módulo 5 - Investimentos:** Entenda o poder dos juros compostos, descubra seu perfil de investidor e aprenda a diversificar.
-- **Módulo 6 - Construção de Riqueza:** Desenvolva uma mentalidade de longo prazo e crie fontes de renda passiva.
-- **Módulo 7 - Previdência Complementar:** Planeje seu futuro com segurança.
+- **Módulo 1 - Mentalidade Financeira:** Compreenda como comportamento e crenças influenciam decisões financeiras no dia a dia.
+- **Módulo 2 - Organização Financeira:** Aprenda a controlar receitas e despesas para ter mais clareza sobre sua realidade financeira.
+- **Módulo 3 - Planejamento e Orçamento:** Defina metas, prioridades e um orçamento aplicável à sua rotina.
+- **Módulo 4 - Juros e Crédito:** Entenda como gerenciar crédito com responsabilidade e tomar decisões mais conscientes.
+- **Módulo 5 - Investimentos com Consistência:** Conheça fundamentos para investir com regularidade e de acordo com seu perfil.
+- **Módulo 6 - Renda Passiva:** Explore caminhos para construir novas fontes de renda no longo prazo.
+- **Módulo 7 - Planejamento de Longo Prazo:** Estruture objetivos futuros com mais segurança, incluindo a análise de alternativas de previdência.
 
 ## Para Quem é Este Curso?
 
