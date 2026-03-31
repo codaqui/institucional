@@ -194,6 +194,98 @@
   gap: 0.5rem;
 }
 
+/* Blog */
+.codaqui-blog-list-content {
+  padding-bottom: 2rem;
+}
+
+.codaqui-blog-post-header h1,
+.codaqui-blog-post-header h2 {
+  margin-bottom: 0;
+}
+
+.codaqui-blog-post-header h2 a {
+  text-decoration: none;
+}
+
+.codaqui-blog-post-header h2 a:hover {
+  color: var(--ifm-color-primary);
+}
+
+.codaqui-blog-list-card .markdown > :last-child,
+.codaqui-blog-post-page-surface .markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.codaqui-blog-list-card .markdown {
+  color: var(--ifm-color-emphasis-700);
+}
+
+.blog-list-page .codaqui-blog-list-card {
+  max-width: 54rem;
+}
+
+.blog-list-page .codaqui-blog-list-card footer,
+.blog-post-page .codaqui-blog-post-page-surface footer {
+  margin-top: 2rem;
+}
+
+.blog-list-page .pagination-nav,
+.blog-post-page .pagination-nav {
+  margin-top: 2.5rem;
+}
+
+.blog-list-page .pagination-nav__link,
+.blog-post-page .pagination-nav__link {
+  border-radius: 16px;
+  border-color: var(--ifm-color-emphasis-200);
+  background: var(--ifm-background-surface-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.blog-list-page .pagination-nav__link:hover,
+.blog-post-page .pagination-nav__link:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown {
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown h2,
+.blog-post-page .codaqui-blog-post-page-surface .markdown h3,
+.blog-post-page .codaqui-blog-post-page-surface .markdown h4 {
+  margin-top: 2.5rem;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface .markdown img {
+  border-radius: 16px;
+}
+
+.blog-post-page .codaqui-blog-post-page-surface blockquote {
+  border-left: 4px solid var(--ifm-color-primary);
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 0 12px 12px 0;
+  padding: 1rem 1.25rem;
+}
+
+.codaqui-blog-post-author {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.codaqui-blog-post-author:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.codaqui-blog-comments .giscus {
+  margin-top: 0;
+}
+
 /* Button styles */
 .button--codaqui {
   background-color: #57B593;
