@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "269455004",
+    "title": "28º  Encontro Backend Meetup Group Maringá",
+    "summary": "Já estamos quase na metade de Março e com ele chegou, um novo BEMUG ♥️ Essa edição vai rolar na TecnoSpeed e vai contar com o sorteio de uma licença de 1 ano em um produto da JetBrains. Programação: 19:00 ~ 19:20: Chega…",
+    "startAt": "2020-03-19T19:00:00-03:00",
+    "endAt": "2020-03-19T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Grupo TecnoSpeed · R. Vitório Balani, 1211 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/269455004/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 30,
+    "creatorName": "Arthur Fritz Santiago",
+    "creatorId": "254976049",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/9/f/1/f/highres_488140735.jpeg"
+  }
+}

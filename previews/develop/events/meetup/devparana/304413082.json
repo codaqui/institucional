@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "304413082",
+    "title": "Meetup Curitiba",
+    "summary": "\\ Fortalecendo a comunidade DevParaná também na Capital \\ Venha participar do 1º Meetup do grupo DevParaná organizado em Curitiba. Teremos 2 palestras incríveis com muito conhecimento e networking. Programação: 19:00 -…",
+    "startAt": "2024-11-19T19:00:00-03:00",
+    "endAt": "2024-11-19T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Setor de Educação Profissional e Tecnológica da UFPR, Auditório Bloco A · Rua Dr. Alcides Vieira Arcoverde, 1225 · Curitiba",
+    "href": "https://www.meetup.com/developerparana/events/304413082/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 43,
+    "creatorName": "Welington Oliveira da Silva",
+    "creatorId": "442863629",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/4/4/0/highres_524649280.jpeg"
+  }
+}

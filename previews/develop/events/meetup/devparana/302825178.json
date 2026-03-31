@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "302825178",
+    "title": "Meetup de Ruby on Rails",
+    "summary": "🚀 Meetup de Ruby on Rails 🚀 A Comunidade do DevParaná está com mais um evento presencial imperdível! Estamos animados em nos reunir novamente e dessa vez nosso encontro será no auditório da UNIPAR, em Francisco Beltrã…",
+    "startAt": "2024-09-10T19:15:00-03:00",
+    "endAt": "2024-09-10T22:15:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UNIPAR - Francisco Beltrão · Av. Júlio Assis Cavalheiro, 2000 - Centro · Francisco Beltrão",
+    "href": "https://www.meetup.com/developerparana/events/302825178/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 192,
+    "creatorName": "Geovane Norbert",
+    "creatorId": "370171009",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/f/6/8/highres_523433096.jpeg"
+  }
+}

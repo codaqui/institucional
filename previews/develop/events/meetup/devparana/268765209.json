@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268765209",
+    "title": "#13 Maringá Agile - Matera",
+    "summary": "Começando mais um ano com a décima terceira edição do meetup sobre agilidade de Maringá. Para isto, convidamos Altieres de Matos e o Rodrigo Nonose [PROGRAMAÇÃO] 19:00hrs: Recepção 19:20hrs: A Maioridade Ágil: decisões,…",
+    "startAt": "2020-02-19T19:00:00-03:00",
+    "endAt": "2020-02-19T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "MATERA Systems · Av. Carneiro Leão, 833 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268765209/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 61,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "266056625",
+    "title": "#12 Maringá Agile - Matera",
+    "summary": "A décima segunda edição do meetup sobre agilidade de Maringá abordará fluxo e Kanban. Para isto, convidamos João Grabosque e Rodolfo Jordão para compartilhar sobre o tema. [PROGRAMAÇÃO] 19h: Recepção com coffee 19:30: K…",
+    "startAt": "2019-11-13T19:00:00-03:00",
+    "endAt": "2019-11-13T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "MATERA Systems · Av. Carneiro Leão, 833 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/266056625/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 50,
+    "creatorName": "Wagner Fusca",
+    "creatorId": "188810094",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg"
+  }
+}

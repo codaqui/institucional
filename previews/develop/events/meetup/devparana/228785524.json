@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "228785524",
+    "title": "Meetup #1 - Cianorte",
+    "summary": "https://fbcdn-sphotos-h-a.akamaihd.net/hphotos-ak-xfp1/v/t1.0-9/12734085 1558833797763315 1431558576547030948 n.png?oh=4ed376d1b6f78e9fd0207f5abdc746c1&oe=576D79D3& gda =1466582403 3c883695404b847c4adf9f0999801ca2 Começ…",
+    "startAt": "2016-03-01T19:00:00-03:00",
+    "endAt": "2016-03-01T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Unipar · Av. Brasil, 1123 · Cianorte",
+    "href": "https://www.meetup.com/developerparana/events/228785524/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 64,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010"
+  }
+}

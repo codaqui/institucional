@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "264402492",
+    "title": "#2 Python Maringá",
+    "summary": "Segundo Python Maringá, evento organizado para a comunidade compartilhar experiências sobre Python entre seus membros. Seja você experiente em desenvolver soluções/análises ou iniciante com interesse em conhecer mais so…",
+    "startAt": "2019-09-17T19:00:00-03:00",
+    "endAt": "2019-09-17T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/264402492/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 51,
+    "creatorName": "Luis Berns",
+    "creatorId": "223750190",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/d/e/highres_484943262.jpeg"
+  }
+}

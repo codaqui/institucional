@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "236553813",
+    "title": "Workshop - NodeJS",
+    "summary": "A segunda etapa do Workshop será neste sábado dia 28/01. Desta vez os temas abordados serão: Testes - Melhorando e refatorando seu código para ser adequado a testes. - Criação de testes unitários. - Como rodar e ter mét…",
+    "startAt": "2017-01-28T14:00:00-02:00",
+    "endAt": "2017-01-28T18:00:00-02:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "FCV - Faculdade Cidade Verde · Avenida Horácio Raccanello Filho, 5950 - Novo Centro · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/236553813/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 32,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010"
+  }
+}

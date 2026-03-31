@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "303837677",
+    "title": "Meetup: Arquitetura de apps Cloud Native",
+    "summary": "Bora bater um papo sobre tecnologia em Ponta Grossa? Na próxima quinta-feira, dia 10 de outubro , acontece mais um meetup da Campos Valley ! Venha se conectar com a comunidade de tecnologia dos Campos Gerais. ---- Talk:…",
+    "startAt": "2024-10-10T19:00:00-03:00",
+    "endAt": "2024-10-10T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Auditório da Unimed Ponta Grossa · Rua Comendador Miró, 417 - Centro · Ponta Grossa",
+    "href": "https://www.meetup.com/developerparana/events/303837677/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 15,
+    "creatorName": "Elina Torres",
+    "creatorId": "279217319",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/b/6/highres_523877334.jpeg"
+  }
+}

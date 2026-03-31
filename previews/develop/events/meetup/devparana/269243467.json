@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "269243467",
+    "title": "#14 Maringá Agile - HBSIS",
+    "summary": "A décima quarta edição do meetup sobre agilidade de maringá contara com a participação de Kelly Garcia e Fabio Rodrigo Magalhães (Magal), para compartilhar um pouco da experiência. [PROGRAMAÇÃO] 19:00hrs: Recepção 19:20…",
+    "startAt": "2020-03-11T19:00:00-03:00",
+    "endAt": "2020-03-11T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Ambev Tech Maringá · andar, 5145 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/269243467/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 25,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/e/9/1/highres_489584689.jpeg"
+  }
+}

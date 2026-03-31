@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[4408],{38087(i,s,t){t.r(s),t.d(s,{default:()=>n});t(96540);var u=t(56347),a=t(74848);function n(){return(0,a.jsx)(u.rd,{to:"/sobre/insights"})}}}]);

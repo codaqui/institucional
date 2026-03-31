@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "260866810",
+    "title": "#6 Maringá Agile - Hands Bar Board Games",
+    "summary": "A sexta edição do meetup sobre agilidade de Maringá será um Lean Coffee com o tema OKR dessa vez na sede do Hands Bar Board Games com a participação da Rafaela Campos. [PROGRAMAÇÃO] 15:00 - 15:15: Chegada e bate-papo 15…",
+    "startAt": "2019-04-27T15:00:00-03:00",
+    "endAt": "2019-04-27T17:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Hands Bar Board Games · R. Joaquim Nabuco, 421 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/260866810/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 28,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/b/0/e/highres_478531502.jpeg"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313962810",
+    "title": "DevPR na Estrada - Francisco Beltrão",
+    "summary": "DevParaná na Estrada 2026 chega a Francisco Beltrão com um conjunto de palestras incríveis! Palestras: A Arquitetura escondida de sistemas AI: Contexto, Memória e Controle Fernando Fabricio (https://www.linkedin.com/in/…",
+    "startAt": "2026-04-25T08:30:00-03:00",
+    "endAt": "2026-04-25T11:50:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Associação Empresarial de Francisco Beltrão - ACEFB · R. Peru, 1213 - Luther King · Francisco Beltrão",
+    "href": "https://www.meetup.com/developerparana/events/313962810/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "external",
+    "userCount": 13,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/0/a/highres_533391978.jpeg"
+  }
+}

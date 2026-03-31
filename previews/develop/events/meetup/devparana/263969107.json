@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "263969107",
+    "title": "5º  Delphi Ingá - Senai CTM",
+    "summary": "Vamos falar de Delphi? Helpers and Interposer from Hell - Por Pandaaa (Victor Gonzales) JSON: Não é a sexta-feira 13 que você imagina - Por Messias Bueno Sobre o local: - Segue os padrões de acessibilidade em toda a áre…",
+    "startAt": "2019-08-27T19:00:00-03:00",
+    "endAt": "2019-08-27T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Senai - Maringá CTM · R. José Corrêa de Águiar, 361 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/263969107/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 19,
+    "creatorName": "Francisco Thiago de Almeida",
+    "creatorId": "264857383",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg"
+  }
+}

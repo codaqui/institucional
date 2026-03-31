@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "253321884",
+    "title": "1º inga.js - Sumério Cervejas Especiais",
+    "summary": "Eae, primeiro role, bora falar sobre javascript? Vamos trabalhar com talks de 20 minutos o/ P5.js - um jeito JavaScript de fazer um jogo Por: Eloisa Potrich @ello po Mais: https://bit.ly/2OJxqBK Criando seus próprios mó…",
+    "startAt": "2018-08-09T18:30:00-03:00",
+    "endAt": "2018-08-09T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Sumério Cervejas Especiais · Avenida Bento Munhoz da Rocha Netto, N° 717 · Maringa",
+    "href": "https://www.meetup.com/developerparana/events/253321884/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 48,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973"
+  }
+}

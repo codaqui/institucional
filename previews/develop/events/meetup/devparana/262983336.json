@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "262983336",
+    "title": "3º  Ingá.php - BS2/CRMALL",
+    "summary": "Vamos falar de PHP? Palestras e Palestrantes: MEMCACHED COMO UMA ALTERNATIVA DE CACHE PARA ARQUITETURAS DE ALTA ESCALABILIDADE por Felipe Bergamaschi ENTENDENDO PROGRAMAÇÃO REATIVA COM RxPHP por André Luis PHP STATEFUL:…",
+    "startAt": "2019-07-15T19:00:00-03:00",
+    "endAt": "2019-07-15T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "CRMALL · Av. Tamandaré, 100 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/262983336/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 20,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/highres_479820100.jpeg"
+  }
+}

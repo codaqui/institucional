@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268510043",
+    "title": "Dia da Internet Segura 2020",
+    "summary": "O Safer Internet Day é uma iniciativa anual com objetivo de envolver e UNIR os diferentes atores, públicos e privados, na promoção de atividades de conscientização em torno do uso seguro, ético e responsável das TICs, n…",
+    "startAt": "2020-02-11T18:30:00-03:00",
+    "endAt": "2020-02-11T20:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Av. Papa João XXIII, 239 · Av. Papa João XXIII, 239 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268510043/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 7,
+    "creatorName": "Enderson Menezes",
+    "creatorId": "264802809",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/c/5/highres_488787589.jpeg"
+  }
+}

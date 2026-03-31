@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "258668093",
+    "title": "#4 DevGirls - Lean Beer",
+    "summary": "Neste encontro do DevGirls será especial, iremos realizar um Lean Beer (semelhante ao lean coffee) onde teremos um tema especial a ser discutido. No Lean Beer será aberto para todos os públicos!",
+    "startAt": "2019-02-16T16:00:00-02:00",
+    "endAt": "2019-02-16T18:00:00-02:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Sumerian Beer Special · Av. Bento Munhoz da Rocha Neto, 717 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/258668093/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 20,
+    "creatorName": "Eloisa Potrich",
+    "creatorId": "225304255",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/b/9/5/highres_478399349.jpeg"
+  }
+}

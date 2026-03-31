@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "277992085",
+    "title": "#22 Maringá Agile - Fora da Caixa",
+    "summary": "A vigésima segunda edição do Maringá Agile, conta com um tema bem diferente, onde contará com a participação do Marcos Dubovski falando sobre \"Agilismo e Filosofia: eles tem mais em comum do que você pensa\". Confira o L…",
+    "startAt": "2021-05-12T19:00:00-03:00",
+    "endAt": "2021-05-12T20:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/277992085/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 45,
+    "creatorName": "Altieres de Matos",
+    "creatorId": "204888044",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg"
+  }
+}

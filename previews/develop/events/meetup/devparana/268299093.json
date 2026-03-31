@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268299093",
+    "title": "React Maringá 2020",
+    "summary": "Nosso primeiro encontro de 2020 já tem local e horário definidos para acontecer! Se liga, convide o pessoal e vem com a gente compartilhar conhecimento conosco! Mande a sua palestra: https://github.com/react-maringa/rea…",
+    "startAt": "2020-02-20T19:00:00-03:00",
+    "endAt": "2020-02-20T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268299093/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 34,
+    "creatorName": "Leonardo Elias",
+    "creatorId": "182647292",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/b/c/6/7/highres_488568231.jpeg"
+  }
+}

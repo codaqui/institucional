@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "310507058",
+    "title": "Meetup DevParaná Francisco Beltrão",
+    "summary": "Está chegando o encontro do DevParaná Francisco Beltrão em parceria com a NUBETEC , um evento para fazer networking e falar de tecnologia! 🗓️ Programação: \\ Manhã\\ 08:45: Recepção 09:00: Abertura 09:05: Mineração de Bi…",
+    "startAt": "2025-08-30T08:30:00-03:00",
+    "endAt": "2025-08-30T12:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Associação Empresarial de Francisco Beltrão - ACEFB · R. Peru, 1213 - Luther King · Francisco Beltrão",
+    "href": "https://www.meetup.com/developerparana/events/310507058/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 37,
+    "creatorName": "Gabriel Prando",
+    "creatorId": "370530343",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/9/f/b/highres_529643035.jpeg"
+  }
+}

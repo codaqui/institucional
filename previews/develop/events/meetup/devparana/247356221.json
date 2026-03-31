@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "247356221",
+    "title": "1º Encontro - Backend Meetup Group (Bemugo)",
+    "summary": "Galera estamos começando encontros para discutirmos assuntos relacionados a backend, se você tem trabalha com backend, tem familiaridade, quer aprender e principalmente quer compartilhar algo sobre este assunto será bem…",
+    "startAt": "2018-02-08T19:00:00-02:00",
+    "endAt": "2018-02-08T21:00:00-02:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Tecnospeed · Av. Duque de Caxias, 882 - Zona 01 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/247356221/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 34,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/9/d/e/4/highres_468280420.jpeg"
+  }
+}
