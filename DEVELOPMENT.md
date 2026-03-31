@@ -53,3 +53,5 @@ O deploy é feito automaticamente via GitHub Actions quando há push nas branche
 
 - `main` → deploys to `gh-pages` (produção)
 - `develop` → atualiza o preview em `gh-pages/previews/develop/`
+
+Se necessário, o workflow de deploy também pode ser executado manualmente pelo GitHub Actions com `workflow_dispatch`.

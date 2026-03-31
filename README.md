@@ -10,6 +10,8 @@ Os previews publicados usam a mesma estratégia:
 - `develop` → `https://codaqui.dev/previews/develop/`
 - PRs → `https://codaqui.dev/previews/pr-<numero>/`
 
+O deploy principal também pode ser reexecutado manualmente no GitHub Actions quando for preciso republicar `main` ou `develop` sem criar um novo commit.
+
 ## Tecnologia
 
 Este site é construído com [Docusaurus 3.9](https://docusaurus.io/), um gerador de sites estáticos moderno baseado em React.
