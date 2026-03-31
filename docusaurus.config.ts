@@ -92,11 +92,13 @@ const config: Config = {
 
   themeConfig: {
     navbar: {
-      title: "CODAQUI.dev",
+      title: "",
       logo: {
-        alt: "Codaqui Logo",
+        alt: "Codaqui — Democratizando o ensino de tecnologia",
         src: "img/logo_principal.svg",
         srcDark: "img/logo_monocromatica.svg",
+        width: 122,
+        height: 33,
       },
       items: [
         {

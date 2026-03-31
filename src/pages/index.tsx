@@ -16,45 +16,36 @@ import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
 import { SupportersBadge } from "../components/OpenCollective";
 
 function HeroBanner() {
-  const { siteConfig } = useDocusaurusContext();
   return (
     <Box
       component="header"
       sx={{
         background: (theme) =>
           `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-        py: { xs: 6, md: 8 },
+        py: { xs: 7, md: 10 },
         textAlign: "center",
       }}
     >
-      <Container maxWidth="lg">
+      <Container maxWidth="md">
+        {/* Logo is the wordmark — no separate title text needed */}
         <Box
           component="img"
           src="/img/logo_monocromatica.svg"
-          alt="Codaqui Logo"
-          sx={{ width: 120, height: "auto", mb: 3 }}
+          alt="Codaqui"
+          sx={{ width: { xs: 160, md: 200 }, height: "auto", mb: 4 }}
         />
-        <Typography variant="h3" component="h1" fontWeight={800} color="white">
-          {siteConfig.title}
-        </Typography>
         <Typography
-          variant="h6"
-          sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2, mb: 3 }}
+          variant="h5"
+          component="p"
+          sx={{ color: "rgba(255,255,255,0.9)", maxWidth: 560, mx: "auto", mb: 4, lineHeight: 1.6 }}
         >
-          {siteConfig.tagline}
+          Democratizando o ensino de tecnologia para jovens brasileiros 🇧🇷
         </Typography>
-
-        {/* Non-intrusive social proof — shows backer count, links to OC */}
-        <Box sx={{ display: "flex", justifyContent: "center", mb: 3 }}>
-          <SupportersBadge />
-        </Box>
-
         <Box
           sx={{
             display: "flex",
             justifyContent: "center",
             gap: 2,
-            mt: 1,
             flexWrap: "wrap",
           }}
         >
@@ -86,6 +77,23 @@ function HeroBanner() {
           </Button>
         </Box>
       </Container>
+    </Box>
+  );
+}
+
+/** Thin social-proof strip between hero and content — white/paper background */
+function SocialProofStrip() {
+  return (
+    <Box
+      sx={{
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        py: 1.5,
+        textAlign: "center",
+        bgcolor: "background.paper",
+      }}
+    >
+      <SupportersBadge />
     </Box>
   );
 }
@@ -282,6 +290,7 @@ export default function Home(): React.JSX.Element {
   return (
     <Layout title="Página Inicial" description={siteConfig.tagline}>
       <HeroBanner />
+      <SocialProofStrip />
       <main>
         <FeaturesSection />
         <CommunitySection />

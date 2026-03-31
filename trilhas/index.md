@@ -1,7 +1,7 @@
 ---
 sidebar_position: 0
 title: Trilhas de Aprendizado
-slug: /
+slug: intro
 ---
 
 # 🗺️ Trilhas de Aprendizado
