@@ -37,13 +37,13 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 <div className="card">
 <h4>🐍 Python</h4>
 <p>Estude <code>Python</code> de forma autônoma e acesse nosso discord caso precise de ajuda!</p>
-<p><a href="/trilhas-overview">➡️ Começar</a></p>
+<p><a href="/trilhas">➡️ Começar</a></p>
 </div>
 
 <div className="card">
 <h4>🐙 GitHub</h4>
 <p>Se possui dúvidas, pode começar com a Trilha de <code>GitHub</code> e depois veja as outras.</p>
-<p><a href="/trilhas-overview">➡️ Começar</a></p>
+<p><a href="/trilhas">➡️ Começar</a></p>
 </div>
 
 </div>

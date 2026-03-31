@@ -1,15 +1,20 @@
-# Builded Site
-site/*
+# Build output
+build/
+.docusaurus/
 
-# Mkdocs Private
-mkdocs-material/*
+# Dependencies
+node_modules/
 
-# Environtment
+# Environment
 .env
-venv/*
 
 # Cache
 .cache
-node_modules/
-build/
-.docusaurus/
+
+# OS files
+.DS_Store
+
+# Legacy MkDocs
+site/
+mkdocs-material/
+venv/
