@@ -47,7 +47,15 @@ jobs:
         run: npm ci
 
       - name: Build website
-        run: npm run build
+        run: |
+          if [ "${{ steps.branch_check.outputs.env_name }}" = "gh-pages-develop" ]; then
+            SITE_URL="https://raw.githack.com" \
+            BASE_URL="/codaqui/institucional/gh-pages-develop/" \
+            PREVIEW="true" \
+            npm run build
+          else
+            npm run build
+          fi
 
       - name: Ensure .nojekyll exists
         run: touch build/.nojekyll

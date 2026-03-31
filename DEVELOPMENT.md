@@ -36,7 +36,9 @@ O site é construído com [Docusaurus 3.9](https://docusaurus.io/).
 
 ## Development Environment
 
-A Branch `develop` é a branch de desenvolvimento, onde todas as features são testadas e desenvolvidas. O Workflow dela cria a branch `gh-pages-develop` e você é capaz de visualizar o status dela [clicando aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
+A Branch `develop` é a branch de desenvolvimento, onde todas as features são testadas e desenvolvidas. O workflow dela cria a branch `gh-pages-develop` e você é capaz de visualizar o status dela [clicando aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
+
+Esse build usa `SITE_URL=https://raw.githack.com` e `BASE_URL=/codaqui/institucional/gh-pages-develop/` para que os assets sejam resolvidos corretamente no preview.
 
 ## Deploy
 
@@ -44,4 +46,3 @@ O deploy é feito automaticamente via GitHub Actions quando há push nas branche
 
 - `main` → deploys to `gh-pages` (produção)
 - `develop` → deploys to `gh-pages-develop` (desenvolvimento)
-

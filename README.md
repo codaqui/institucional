@@ -6,13 +6,15 @@
 
 Se você deseja acessar o nosso site basta [clicar aqui](https://codaqui.dev), se você deseja ver o site gerado pela branch develop [acesse aqui](https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html).
 
+O preview da branch `develop` usa `BASE_URL=/codaqui/institucional/gh-pages-develop/` para funcionar corretamente no RawGitHack.
+
 ## Tecnologia
 
 Este site é construído com [Docusaurus 3.9](https://docusaurus.io/), um gerador de sites estáticos moderno baseado em React.
 
 ### Pré-requisitos
 
-- [Node.js](https://nodejs.org/) versão 20 ou superior
+- [Node.js](https://nodejs.org/) versão 24 ou superior
 - npm (incluído com o Node.js)
 
 ### Desenvolvimento Local
