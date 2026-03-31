@@ -1,6 +1,6 @@
-export type EventSourceType = "discord" | "internal" | "external" | string;
-export type EventStatus = "scheduled" | "active" | "completed" | "canceled" | string;
-export type EventEntityType = "stage_instance" | "voice" | "external" | string;
+export type EventSourceType = "discord" | "internal" | "external";
+export type EventStatus = "scheduled" | "active" | "completed" | "canceled";
+export type EventEntityType = "stage_instance" | "voice" | "external";
 
 export interface EventRecurrenceRule {
   start?: string;

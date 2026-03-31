@@ -477,7 +477,7 @@ export default function EventosPage(): React.JSX.Element {
                     {sources.find((source) => source.sourceKey === "meetup:devparana")?.ctaHref ? (
                       <Button
                         component={Link}
-                        href={sources.find((source) => source.sourceKey === "meetup:devparana")!.ctaHref!}
+                        href={sources.find((source) => source.sourceKey === "meetup:devparana")?.ctaHref ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         variant="outlined"
@@ -618,23 +618,26 @@ export default function EventosPage(): React.JSX.Element {
                   <Stack spacing={1.5}>
                     {sources
                       .filter((source) => source.ctaHref && source.ctaLabel)
-                      .map((source) => (
+                      .map((source) => {
+                        const isExternal = source.ctaHref?.startsWith("http") ?? false;
+                        return (
                         <Button
                           key={source.sourceKey}
                           component={Link}
-                          href={source.ctaHref!}
-                          target={source.ctaHref!.startsWith("http") ? "_blank" : undefined}
+                          href={source.ctaHref}
+                          target={isExternal ? "_blank" : undefined}
                           rel={
-                            source.ctaHref!.startsWith("http") ? "noopener noreferrer" : undefined
+                            isExternal ? "noopener noreferrer" : undefined
                           }
                           variant="outlined"
                           endIcon={
-                            source.ctaHref!.startsWith("http") ? <OpenInNewIcon /> : undefined
+                            isExternal ? <OpenInNewIcon /> : undefined
                           }
                         >
                           {source.ctaLabel}
                         </Button>
-                      ))}
+                        );
+                      })}
                   </Stack>
                 </CardContent>
               </Card>

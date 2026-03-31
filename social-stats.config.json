@@ -24,6 +24,20 @@
         { "platform": "instagram", "fetchId": "campostechpg" }
       ]
     },
+    {
+      "entityId": "elasnocodigo",
+      "fetchProfiles": [
+        { "platform": "instagram", "fetchId": "elasnocodigo" }
+      ]
+    },
+    {
+      "entityId": "tisocial",
+      "fetchProfiles": [
+        { "platform": "instagram", "fetchId": "tisocialmaringa" }
+      ]
+    },
+    {
+      "entityId": "cloudnativemaringa",
       "fetchProfiles": [
         { "platform": "cncf", "fetchId": "cloud-native-maringa" }
       ]
