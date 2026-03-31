@@ -22,7 +22,7 @@ Para acessar o nosso cronograma [clique aqui](/participe/estudar).
 
 <div className="card">
 <h4>💬 Discord</h4>
-<p>Em nosso servidor do Discord você pode interagir com outros alunos, tirar dúvidas com os mentores e acompanhar todos os encontros virtuais.</p>
+<p>Em nosso servidor do Discord você pode interagir com outros participantes, tirar dúvidas com os mentores e acompanhar todos os encontros virtuais.</p>
 <p>(<em>Clique na logo abaixo</em>)</p>
 <p><a href="https://discord.com/invite/xuTtxqCPpz"><img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg" alt="Logo do Discord" /></a></p>
 </div>

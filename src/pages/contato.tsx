@@ -15,7 +15,7 @@ const channels: Channel[] = [
   { emoji: "📸", name: "Instagram", description: "Acompanhe nossa rotina e novidades.", href: "https://www.instagram.com/codaqui.dev/", cta: "@codaqui.dev" },
   { emoji: "💼", name: "LinkedIn", description: "Conecte-se com nossa equipe.", href: "https://www.linkedin.com/company/codaqui/", cta: "Codaqui" },
   { emoji: "🐦", name: "Twitter / X", description: "Fique por dentro das atualizações.", href: "https://twitter.com/codaquidev", cta: "@codaquidev" },
-  { emoji: "💬", name: "Discord", description: "Converse com alunos e mentores ao vivo.", href: "https://discord.com/invite/xuTtxqCPpz", cta: "Entrar no servidor" },
+  { emoji: "💬", name: "Discord", description: "Converse com participantes e mentores ao vivo.", href: "https://discord.com/invite/xuTtxqCPpz", cta: "Entrar no servidor" },
   { emoji: "📱", name: "WhatsApp", description: "Receba avisos e novidades do projeto.", href: "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up", cta: "Entrar no grupo" },
 ];
 

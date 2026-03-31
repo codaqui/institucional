@@ -50,13 +50,13 @@ const features: FeatureItem[] = [
     title: "Autonomia no aprendizado",
     emoji: "📚",
     description:
-      "Os alunos percorrem de forma autônoma algumas trilhas de aprendizado criadas com a ajuda de especialistas voluntários e semanalmente encontram um mentor para atividades práticas.",
+      "Os participantes percorrem de forma autônoma trilhas de aprendizado criadas com a ajuda de especialistas voluntários e, semanalmente, encontram um mentor para atividades práticas.",
   },
   {
     title: "Resolução de problemas reais",
     emoji: "🛠️",
     description:
-      "Além dos projetos pessoais desenvolvido ao longo do curso, os alunos podem participar de projetos reais, de desenvolvimento de serviços e produtos para outras organizações sem fins lucrativos.",
+      "Além dos projetos pessoais desenvolvidos ao longo do programa, os participantes podem contribuir com projetos reais de organizações sem fins lucrativos, podendo receber uma bolsa financeira.",
   },
   {
     title: "Acesso a computador e internet",
@@ -111,6 +111,11 @@ const communities: CommunityItem[] = [
     name: "TI Social",
     logo: "/img/tisocial.png",
     link: "https://www.instagram.com/tisocialmaringa",
+  },
+  {
+    name: "Cloud Native Maringá",
+    logo: "https://avatars.githubusercontent.com/u/13455738?v=4",
+    link: "https://community.cncf.io/cloud-native-maringa/",
   },
 ];
 

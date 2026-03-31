@@ -66,9 +66,9 @@ function MemberCard({ name, role, specialty, avatar, linkedin, github }: Member)
   );
 }
 
-function Section({ title, members, description }: { title: string; members: Member[]; description?: string }) {
+function Section({ title, members, description, id }: { title: string; members: Member[]; description?: string; id?: string }) {
   return (
-    <section className="margin-bottom--xl">
+    <section id={id} className="margin-bottom--xl">
       <h2 className={styles.sectionTitle}>{title}</h2>
       {description && <p className={styles.sectionDesc}>{description}</p>}
       <div className={styles.grid}>
@@ -109,6 +109,7 @@ export default function EquipePage(): React.JSX.Element {
             members={alumni}
           />
           <Section
+            id="mentores"
             title="Mentores"
             description="Nossos mentores participam do programa #QueroMentoria, oferecendo mentorias individuais e aulas para quem está iniciando na tecnologia."
             members={mentores}
