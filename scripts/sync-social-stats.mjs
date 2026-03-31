@@ -355,7 +355,15 @@ async function readAllSocialProfiles() {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
+function logMissingSecrets() {
+  if (!process.env.DISCORD_BOT_TOKEN) console.warn("⚠️  DISCORD_BOT_TOKEN not set — Discord skipped");
+  if (!process.env.META_BUSINESS_APP_ID && !process.env.META_ACCESS_TOKEN) {
+    console.warn("⚠️  No Meta credentials — Instagram/WhatsApp skipped");
+  }
+}
+
 async function main() {
+  logMissingSecrets();
   const generatedAt = new Date().toISOString();
   const now = generatedAt;
   const existing = await readExistingSnapshot();
