@@ -16,10 +16,10 @@ permissions:
 jobs:
   cleanup-preview:
     name: Cleanup PR preview
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Checkout GitHub Pages branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
           path: gh-pages
@@ -68,7 +68,7 @@ jobs:
           done
 
       - name: Remove preview comment
-        uses: marocchino/sticky-pull-request-comment@v2
+        uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ github.event.pull_request.number }}
           header: pr-preview
