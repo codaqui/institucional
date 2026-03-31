@@ -1,5 +1,5 @@
 ---
-slug: devpr-starter-codaqui
+slug: 2023/02/14/devpr-starter-codaqui
 title: DevPR Starter - Codaqui
 authors:
   - name: Ana Elisa

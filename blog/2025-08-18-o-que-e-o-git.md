@@ -1,5 +1,5 @@
 ---
-slug: o-que-e-o-git
+slug: 2025/08/18/o-que-e-o-git
 title: O que é o GIT?
 authors:
   - name: Elias Miranda

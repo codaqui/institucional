@@ -1199,6 +1199,6 @@ Nesta aula, você aprendeu sobre os seguintes tópicos:
 
 Na próxima aula, iremos explorar o tópico de Testes em Python, aprendendo como verificar se nosso código funciona corretamente e como garantir a qualidade do software.
 
-[Avance para a próxima aula →](//trilhas/python/page-15)
+[Avance para a próxima aula →](/trilhas/python/page-15)
 
-[← Voltar para POO em Python](//trilhas/python/page-13)
+[← Voltar para POO em Python](/trilhas/python/page-13)

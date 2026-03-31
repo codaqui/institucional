@@ -11,7 +11,7 @@ Acompanhe os principais marcos da nossa história e como chegamos até aqui.
 
 ## 📅 2026
 
-:::success[Resultados Parciais]
+:::tip[Resultados Parciais]
 Nossos números em 2026 mostram o crescimento contínuo da nossa missão.
 :::
 

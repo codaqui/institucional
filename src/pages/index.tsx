@@ -3,15 +3,18 @@ import clsx from "clsx";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import { useColorMode } from "@docusaurus/theme-common";
 import styles from "./index.module.css";
 
 function HeroBanner() {
   const { siteConfig } = useDocusaurusContext();
+  const { colorMode } = useColorMode();
+  const logoSrc = colorMode === "dark" ? "/img/logo_blk.png" : "/img/logo.png";
   return (
     <header className={clsx("hero hero--primary", styles.heroBanner)}>
       <div className="container">
         <img
-          src="/img/logo_blk.png"
+          src={logoSrc}
           alt="Codaqui Logo"
           className={styles.heroLogo}
         />

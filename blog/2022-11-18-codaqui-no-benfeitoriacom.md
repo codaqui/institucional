@@ -1,5 +1,5 @@
 ---
-slug: codaqui-no-benfeitoriacom
+slug: 2022/11/18/codaqui-no-benfeitoriacom
 title: Codaqui no Benfeitoria.com
 authors:
   - name: Thainara Furforo

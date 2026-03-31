@@ -1,5 +1,5 @@
 ---
-slug: devparana-e-codaqui-unidos-pela-comunidade
+slug: 2024/07/22/devparana-e-codaqui-unidos-pela-comunidade
 title: "DevParaná e Codaqui: Unidos pela Comunidade"
 authors:
   - name: Thainara Furforo

@@ -1,5 +1,5 @@
 ---
-slug: prestacao-de-contas-do-devpr-conf-2025
+slug: 2025/10/23/prestacao-de-contas-do-devpr-conf-2025
 title: Prestação de Contas do DevPR Conf 2025
 authors:
   - name: Enderson Menezes

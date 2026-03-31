@@ -1071,4 +1071,4 @@ Parabéns por concluir esta trilha de aprendizado Python! Para continuar sua jor
    - Práticas de DevOps e CI/CD com Python
    - Segurança em aplicações Python
 
-[← Voltar para Testes em Python](//trilhas/python/page-15)
+[← Voltar para Testes em Python](/trilhas/python/page-15)

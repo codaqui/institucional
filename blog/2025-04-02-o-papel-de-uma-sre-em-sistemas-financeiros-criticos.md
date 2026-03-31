@@ -1,5 +1,5 @@
 ---
-slug: o-papel-de-uma-sre-em-sistemas-financeiros-criticos
+slug: 2025/04/02/o-papel-de-uma-sre-em-sistemas-financeiros-criticos
 title: O Papel de uma SRE em Sistemas Financeiros Críticos
 authors:
   - name: Ana Carolyne

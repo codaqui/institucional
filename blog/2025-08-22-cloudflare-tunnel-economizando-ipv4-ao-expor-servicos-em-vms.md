@@ -1,5 +1,5 @@
 ---
-slug: cloudflare-tunnel-economizando-ipv4-ao-expor-servicos-em-vms
+slug: 2025/08/22/cloudflare-tunnel-economizando-ipv4-ao-expor-servicos-em-vms
 title: "Cloudflare Tunnel: economizando IPv4 ao expor serviços em VMs"
 authors:
   - name: Enderson Menezes

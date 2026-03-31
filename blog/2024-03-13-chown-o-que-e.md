@@ -1,5 +1,5 @@
 ---
-slug: chown-o-que-e
+slug: 2024/03/13/chown-o-que-e
 title: "CHOWN: O que é?"
 authors:
   - name: Elias Miranda

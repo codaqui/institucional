@@ -1,5 +1,5 @@
 ---
-slug: hello-world
+slug: 2022/10/14/hello-world
 title: "Hello world!"
 authors:
   - name: Enderson Menezes

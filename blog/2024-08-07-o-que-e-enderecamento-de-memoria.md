@@ -1,5 +1,5 @@
 ---
-slug: o-que-e-enderecamento-de-memoria
+slug: 2024/08/07/o-que-e-enderecamento-de-memoria
 title: O que é endereçamento de memória?
 authors:
   - name: Elias Miranda

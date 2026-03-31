@@ -18,6 +18,7 @@ const config: Config = {
 
   markdown: {
     format: "detect",
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: "warn",
       onBrokenMarkdownImages: "warn",
@@ -28,6 +29,11 @@ const config: Config = {
     defaultLocale: "pt-BR",
     locales: ["pt-BR"],
   },
+
+  themes: [
+    "@docusaurus/theme-live-codeblock",
+    "@docusaurus/theme-mermaid",
+  ],
 
   presets: [
     [
@@ -46,6 +52,7 @@ const config: Config = {
           blogSidebarCount: 10,
           blogSidebarTitle: "Posts recentes",
           onInlineAuthors: "ignore",
+          tagsBasePath: "category",
         },
         theme: {
           customCss: "./src/css/custom.css",
@@ -63,7 +70,8 @@ const config: Config = {
       title: "CODAQUI.dev",
       logo: {
         alt: "Codaqui Logo",
-        src: "img/logo_blk.png",
+        src: "img/logo.png",
+        srcDark: "img/logo_blk.png",
       },
       items: [
         {
@@ -177,6 +185,12 @@ const config: Config = {
         },
       ],
       copyright: `Codaqui © Copyright ${new Date().getFullYear()} - Todos os direitos reservados - CNPJ 44.593.429/0001-05`,
+    },
+    liveCodeBlock: {
+      playgroundPosition: "bottom",
+    },
+    mermaid: {
+      theme: { light: "neutral", dark: "dark" },
     },
     prism: {
       theme: prismThemes.github,

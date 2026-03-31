@@ -1,5 +1,5 @@
 ---
-slug: codaqui-apoia-campeonato-de-skate-em-marialva
+slug: 2023/10/23/codaqui-apoia-campeonato-de-skate-em-marialva
 title: "Codaqui Apoia Campeonato de Skate em Marialva!"
 authors:
   - name: Enderson Menezes

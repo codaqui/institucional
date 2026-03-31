@@ -1,5 +1,5 @@
 ---
-slug: codaqui-na-conferencia-do-devpr-2023
+slug: 2023/01/05/codaqui-na-conferencia-do-devpr-2023
 title: Codaqui na Conferência do DevPR 2023
 authors:
   - name: Thainara Furforo

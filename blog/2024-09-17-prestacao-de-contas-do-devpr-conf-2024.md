@@ -1,5 +1,5 @@
 ---
-slug: prestacao-de-contas-do-devpr-conf-2024
+slug: 2024/09/17/prestacao-de-contas-do-devpr-conf-2024
 title: Prestação de Contas do DevPR Conf 2024
 authors:
   - name: Enderson Menezes

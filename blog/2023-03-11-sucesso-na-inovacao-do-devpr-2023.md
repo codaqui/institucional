@@ -1,5 +1,5 @@
 ---
-slug: sucesso-na-inovacao-do-devpr-2023
+slug: 2023/03/11/sucesso-na-inovacao-do-devpr-2023
 title: Sucesso na inovação do DevPR 2023
 authors:
   - name: Amanda Tambara

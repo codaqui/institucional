@@ -1,5 +1,5 @@
 ---
-slug: coleta-de-apoio-da-codaqui-agora-na-open-collective
+slug: 2024/07/19/coleta-de-apoio-da-codaqui-agora-na-open-collective
 title: Coleta de Apoio da Codaqui agora na Open Collective
 authors:
   - name: Enderson Menezes

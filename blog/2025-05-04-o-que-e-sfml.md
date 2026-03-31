@@ -1,5 +1,5 @@
 ---
-slug: o-que-e-sfml
+slug: 2025/05/04/o-que-e-sfml
 title: O que é SFML
 authors:
   - name: Elias Miranda

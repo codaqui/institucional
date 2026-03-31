@@ -1,5 +1,5 @@
 ---
-slug: curso-de-gestao-e-produtividade-com-danilo-mesquita
+slug: 2026/01/29/curso-de-gestao-e-produtividade-com-danilo-mesquita
 title: Curso de Gestão e Produtividade com Danilo Mesquita
 authors:
   - name: Enderson Menezes

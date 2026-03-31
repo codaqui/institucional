@@ -1,5 +1,5 @@
 ---
-slug: codaqui-e-seu-boletim-de-seguranca
+slug: 2023/03/01/codaqui-e-seu-boletim-de-seguranca
 title: "Codaqui e seu Boletim de Segurança!"
 authors:
   - name: Elias Miranda
