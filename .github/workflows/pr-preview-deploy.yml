@@ -3,7 +3,7 @@ name: PR Preview Deploy
 on:
   workflow_run:
     workflows:
-      - PR Preview Build
+      - PR Check
     types:
       - completed
 
@@ -20,8 +20,7 @@ jobs:
   deploy-preview:
     name: Deploy PR preview
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -50,21 +49,21 @@ jobs:
             });
 
             const artifact = data.artifacts.find((item) => item.name === 'preview-site');
-            if (!artifact) {
-              core.setFailed('Artifact "preview-site" not found.');
-              return;
-            }
-
             const previewPath = `previews/pr-${pr.number}`;
             const isTrusted = pull.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`;
-            core.setOutput('artifact_id', String(artifact.id));
+            const artifactFound = Boolean(artifact);
+            if (!artifact) {
+              core.info('Artifact "preview-site" not found. Preview deploy will be skipped.');
+            }
+            core.setOutput('artifact_id', artifact ? String(artifact.id) : '');
+            core.setOutput('artifact_found', String(artifactFound));
             core.setOutput('is_trusted', String(isTrusted));
             core.setOutput('pr_number', String(pr.number));
             core.setOutput('preview_path', previewPath);
             core.setOutput('preview_url', `https://codaqui.dev/${previewPath}/`);
 
       - name: Checkout GitHub Pages branch
-        if: steps.meta.outputs.is_trusted == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
         uses: actions/checkout@v6
         with:
           ref: gh-pages
@@ -72,7 +71,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download preview artifact
-        if: steps.meta.outputs.is_trusted == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
         run: |
           gh api \
             -H "Accept: application/vnd.github+json" \
@@ -82,7 +81,7 @@ jobs:
           unzip -q preview-site.zip -d preview-artifact
 
       - name: Detect artifact root
-        if: steps.meta.outputs.is_trusted == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
         id: artifact
         run: |
           if [ -d preview-artifact/build ]; then
@@ -92,7 +91,7 @@ jobs:
           fi
 
       - name: Sync preview files into gh-pages
-        if: steps.meta.outputs.is_trusted == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
         env:
           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
           PREVIEW_PATH: ${{ steps.meta.outputs.preview_path }}
@@ -149,7 +148,7 @@ jobs:
             _O build continua rodando sem privilégios; o deploy em GitHub Pages fica restrito a PRs do próprio repositório._
 
       - name: Comment preview URL on PR
-        if: steps.meta.outputs.is_trusted == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.meta.outputs.pr_number }}
@@ -167,10 +166,9 @@ jobs:
             _Preview em subpath com `noindex`, sem Giscus e sem Google Analytics._
 
   notify-failure:
-    name: Notify failed preview build
+    name: Notify unavailable preview
     if: >
-      github.event.workflow_run.event == 'pull_request' &&
-      github.event.workflow_run.conclusion != 'success'
+      github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-slim
     steps:
       - name: Resolve PR number
@@ -183,9 +181,17 @@ jobs:
               core.setFailed('No pull request found in workflow_run payload.');
               return;
             }
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const artifact = data.artifacts.find((item) => item.name === 'preview-site');
             core.setOutput('pr_number', String(pr.number));
+            core.setOutput('artifact_found', String(Boolean(artifact)));
 
       - name: Comment failed preview status
+        if: steps.meta.outputs.artifact_found != 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.meta.outputs.pr_number }}
@@ -193,7 +199,7 @@ jobs:
           message: |
             ## ❌ Preview indisponível
 
-            O build do preview falhou ou foi cancelado para este PR.
+            O artifact do preview não foi gerado para este PR, então não houve publicação.
 
             | | |
             |---|---|
