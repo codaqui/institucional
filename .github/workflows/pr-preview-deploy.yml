@@ -62,13 +62,28 @@ jobs:
             core.setOutput('preview_path', previewPath);
             core.setOutput('preview_url', `https://codaqui.dev/${previewPath}/`);
 
-      - name: Checkout GitHub Pages branch
+      - name: Prepare GitHub Pages branch
         if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
-        uses: actions/checkout@v6
-        with:
-          ref: gh-pages
-          path: gh-pages
-          fetch-depth: 0
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git -C gh-pages ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git -C gh-pages fetch origin gh-pages
+            git -C gh-pages checkout gh-pages
+            git -C gh-pages reset --hard origin/gh-pages
+          else
+            git -C gh-pages checkout --orphan gh-pages
+            git -C gh-pages rm -rf . >/dev/null 2>&1 || true
+            find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            touch gh-pages/.nojekyll
+            git -C gh-pages add .nojekyll
+            git -C gh-pages commit -m "chore: initialize gh-pages branch"
+            git -C gh-pages push origin gh-pages
+          fi
 
       - name: Download preview artifact
         if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
@@ -97,8 +112,6 @@ jobs:
           PREVIEW_PATH: ${{ steps.meta.outputs.preview_path }}
           SOURCE_DIR: ${{ steps.artifact.outputs.source_dir }}
         run: |
-          git -C gh-pages config user.name "github-actions[bot]"
-          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C gh-pages pull --rebase origin gh-pages
 
           mkdir -p "gh-pages/${PREVIEW_PATH}"

@@ -18,20 +18,33 @@ jobs:
     name: Cleanup PR preview
     runs-on: ubuntu-slim
     steps:
-      - name: Checkout GitHub Pages branch
-        uses: actions/checkout@v6
-        with:
-          ref: gh-pages
-          path: gh-pages
-          fetch-depth: 0
+      - name: Prepare GitHub Pages branch
+        env:
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          git clone "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${REPOSITORY}.git" gh-pages
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git -C gh-pages ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+            git -C gh-pages fetch origin gh-pages
+            git -C gh-pages checkout gh-pages
+            git -C gh-pages reset --hard origin/gh-pages
+          else
+            git -C gh-pages checkout --orphan gh-pages
+            git -C gh-pages rm -rf . >/dev/null 2>&1 || true
+            find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+            touch gh-pages/.nojekyll
+            git -C gh-pages add .nojekyll
+            git -C gh-pages commit -m "chore: initialize gh-pages branch"
+            git -C gh-pages push origin gh-pages
+          fi
 
       - name: Remove preview files
         id: cleanup
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          git -C gh-pages config user.name "github-actions[bot]"
-          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git -C gh-pages pull --rebase origin gh-pages
 
           PREVIEW_PATH="gh-pages/previews/pr-${PR_NUMBER}"
