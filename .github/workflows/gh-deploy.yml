@@ -1,24 +1,31 @@
-name: "Deploy Environment"
+name: Deploy Environment
 
 on:
   push:
-    branches: [ develop, main ]
+    branches:
+      - develop
+      - main
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  build-and-deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ 3.11 ]
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v6
 
-      - name: Some check on branch
+      - name: Determine deploy branch
         id: branch_check
         run: |
           echo "Running on branch ${{ github.ref }}"
@@ -28,55 +35,81 @@ jobs:
             echo "env_name=gh-pages-develop" >> $GITHUB_OUTPUT
           else
             echo "env_name=gh-pages-feature" >> $GITHUB_OUTPUT
-          fi         
-        
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+          fi
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v6
         with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64 
+          node-version: 20
+          cache: npm
 
-      - uses: actions/cache@v4
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build website
+        run: npm run build
+
+      - name: Ensure .nojekyll exists
+        run: touch build/.nojekyll
+
+      - name: Deploy to GitHub Pages (main) 🚀
+        if: steps.branch_check.outputs.env_name == 'gh-pages'
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          key: ${{ github.ref }}
-          path: .cache
+          branch: gh-pages
+          folder: build
+          clean: true
+          clean-exclude: |
+            previews
 
-      - name: Install requirements
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_MKDOCS }}
-        run: |
-          # Git Clone with GH
-          gh repo clone squidfunk/mkdocs-material-insiders
+      - name: Deploy to GitHub Pages (develop) 🚀
+        if: steps.branch_check.outputs.env_name != 'gh-pages'
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build
+          publish_branch: ${{ steps.branch_check.outputs.env_name }}
 
-          # Install
-          sudo apt-get update
-          sudo apt-get install -y libcairo2-dev libfreetype6-dev libffi-dev libjpeg-dev libpng-dev libz-dev
-          python3 -m pip install -U pip
-          python3 -m pip install -r requirements.txt
-          python3 -m pip install -e mkdocs-material-insiders
+  notify:
+    name: Notify Merged PR
+    runs-on: ubuntu-slim
+    needs: build-and-deploy
+    if: success()
 
-      - name: Deploy mkdocs 🚀
-        run: python3 -m mkdocs gh-deploy --force --remote-branch ${{ steps.branch_check.outputs.env_name }}
+    steps:
+      - name: Find associated merged PR
+        id: find-pr
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const merged = prs.find(pr => pr.merged_at !== null);
+            if (merged) {
+              core.info(`Found merged PR #${merged.number}`);
+              return String(merged.number);
+            }
+            core.info('No merged PR found for this commit');
+            return '';
 
-      # - name: Set up Go
-      #   uses: actions/setup-go@v4
-      #   with:
-      #     go-version: '>=1.18.0'
+      - name: Comment on merged PR
+        if: steps.find-pr.outputs.result != ''
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.find-pr.outputs.result }}
+          header: deploy-status
+          message: |
+            ## 🚀 Deployed Successfully!
 
-      # - name: Deploy Colabs from google-colab directory 🚀
-      #   run: |
-      #     # Create a claat files
-      #     bash .github/workflows/scripts/claat.sh
+            This PR has been deployed to GitHub Pages.
 
-      #     # Checkout on branch gh-pages-* depending on branch
-      #     git checkout ${{ steps.branch_check.outputs.env_name }}
-
-      #     # See actual branch
-      #     echo "Running on branch $(git rev-parse --abbrev-ref HEAD)"
-
-      #     # Git add folder google-colab excluding .md files
-      #     git config --global user.name 'Codaqui Bot'
-      #     git config --global user.email 'contato@codaqui.dev'
-      #     git add google-colab -f --all -- ':!*.md'
-      #     git commit -m "Update google-colab paths"
-      #     git push --set-upstream origin ${{ steps.branch_check.outputs.env_name }}
+            | | |
+            |---|---|
+            | **Branch** | `${{ github.ref_name }}` |
+            | **Environment** | `${{ needs.build-and-deploy.outputs.env_name }}` |
+            | **Commit** | `${{ github.sha }}` |
+            | **Run** | [View deployment](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |

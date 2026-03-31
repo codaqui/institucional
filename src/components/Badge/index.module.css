@@ -1,0 +1,24 @@
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.iniciante  { background: #d1fae5; color: #065f46; }
+.intermediario { background: #fef3c7; color: #92400e; }
+.avancado   { background: #fee2e2; color: #991b1b; }
+.info       { background: #dbeafe; color: #1e40af; }
+.destaque   { background: #ede9fe; color: #5b21b6; }
+.novo       { background: #d1fae5; color: #065f46; }
+
+[data-theme="dark"] .iniciante   { background: #064e3b; color: #6ee7b7; }
+[data-theme="dark"] .intermediario { background: #78350f; color: #fde68a; }
+[data-theme="dark"] .avancado    { background: #7f1d1d; color: #fca5a5; }
+[data-theme="dark"] .info        { background: #1e3a8a; color: #93c5fd; }
+[data-theme="dark"] .destaque    { background: #4c1d95; color: #c4b5fd; }
+[data-theme="dark"] .novo        { background: #064e3b; color: #6ee7b7; }

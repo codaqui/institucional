@@ -1,0 +1,81 @@
+.heroBanner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1a1a 0%, #333333 100%);
+  color: #ffffff;
+}
+
+[data-theme="dark"] .heroBanner {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.heroLogo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 1.5rem;
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.features {
+  padding: 3rem 0;
+}
+
+.featureCard {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: var(--ifm-color-emphasis-100);
+  margin-bottom: 1.5rem;
+  height: 100%;
+}
+
+.featureCard h3 {
+  margin-bottom: 0.75rem;
+}
+
+.communitySection {
+  padding: 3rem 0;
+  background: var(--ifm-color-emphasis-100);
+}
+
+.linksSection {
+  padding: 3rem 0;
+}
+
+.linksGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.linkCard {
+  display: block;
+  padding: 2rem;
+  border-radius: 12px;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-align: center;
+}
+
+.linkCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: inherit;
+}
+
+.linkCard h3 {
+  margin-bottom: 0.5rem;
+}

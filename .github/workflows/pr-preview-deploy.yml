@@ -1,0 +1,208 @@
+name: PR Preview Deploy
+
+on:
+  workflow_run:
+    workflows:
+      - PR Check
+    types:
+      - completed
+
+concurrency:
+  group: pr-preview-deploy-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    name: Deploy PR preview
+    if: >
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Resolve preview metadata
+        id: meta
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.workflow_run.pull_requests?.[0];
+            if (!pr) {
+              core.setFailed('No pull request found in workflow_run payload.');
+              return;
+            }
+
+            const { data: pull } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+
+            const artifact = data.artifacts.find((item) => item.name === 'preview-site');
+            const previewPath = `previews/pr-${pr.number}`;
+            const isTrusted = pull.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`;
+            const artifactFound = Boolean(artifact);
+            if (!artifact) {
+              core.info('Artifact "preview-site" not found. Preview deploy will be skipped.');
+            }
+            core.setOutput('artifact_id', artifact ? String(artifact.id) : '');
+            core.setOutput('artifact_found', String(artifactFound));
+            core.setOutput('is_trusted', String(isTrusted));
+            core.setOutput('pr_number', String(pr.number));
+            core.setOutput('preview_path', previewPath);
+            core.setOutput('preview_url', `https://codaqui.dev/${previewPath}/`);
+
+      - name: Checkout GitHub Pages branch
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: gh-pages
+          fetch-depth: 0
+
+      - name: Download preview artifact
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        run: |
+          gh api \
+            -H "Accept: application/vnd.github+json" \
+            "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${{ steps.meta.outputs.artifact_id }}/zip" \
+            > preview-site.zip
+          mkdir -p preview-artifact
+          unzip -q preview-site.zip -d preview-artifact
+
+      - name: Detect artifact root
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        id: artifact
+        run: |
+          if [ -d preview-artifact/build ]; then
+            echo "source_dir=preview-artifact/build" >> "$GITHUB_OUTPUT"
+          else
+            echo "source_dir=preview-artifact" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync preview files into gh-pages
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        env:
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
+          PREVIEW_PATH: ${{ steps.meta.outputs.preview_path }}
+          SOURCE_DIR: ${{ steps.artifact.outputs.source_dir }}
+        run: |
+          git -C gh-pages config user.name "github-actions[bot]"
+          git -C gh-pages config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C gh-pages pull --rebase origin gh-pages
+
+          mkdir -p "gh-pages/${PREVIEW_PATH}"
+          rsync -a --delete "${SOURCE_DIR}/" "gh-pages/${PREVIEW_PATH}/"
+          touch gh-pages/.nojekyll
+
+          git -C gh-pages add "${PREVIEW_PATH}" .nojekyll
+
+          if git -C gh-pages diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git -C gh-pages commit -m "chore: update PR preview #${PR_NUMBER}"
+
+          for attempt in 1 2 3; do
+            if git -C gh-pages push origin HEAD:gh-pages; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "Preview deploy push failed after retries" >&2
+              exit 1
+            fi
+
+            git -C gh-pages pull --rebase origin gh-pages
+          done
+
+      - name: Comment skipped preview for fork PR
+        if: steps.meta.outputs.is_trusted != 'true'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.meta.outputs.pr_number }}
+          header: pr-preview
+          message: |
+            ## 🔒 Preview não publicado
+
+            Este PR vem de um fork. Por segurança, o preview não é publicado em `codaqui.dev`.
+
+            | | |
+            |---|---|
+            | **PR** | #${{ steps.meta.outputs.pr_number }} |
+            | **Artifact** | disponível na execução do workflow por 7 dias |
+            | **Run** | [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) |
+
+            _O build continua rodando sem privilégios; o deploy em GitHub Pages fica restrito a PRs do próprio repositório._
+
+      - name: Comment preview URL on PR
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.meta.outputs.pr_number }}
+          header: pr-preview
+          message: |
+            ## 🔍 Preview disponível
+
+            | | |
+            |---|---|
+            | **URL** | [${{ steps.meta.outputs.preview_url }}](${{ steps.meta.outputs.preview_url }}) |
+            | **PR** | #${{ steps.meta.outputs.pr_number }} |
+            | **Commit** | `${{ github.event.workflow_run.head_sha }}` |
+            | **Run** | [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) |
+
+            _Preview em subpath com `noindex`, sem Giscus e sem Google Analytics._
+
+  notify-failure:
+    name: Notify unavailable preview
+    if: >
+      github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-slim
+    steps:
+      - name: Resolve PR number
+        id: meta
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.workflow_run.pull_requests?.[0];
+            if (!pr) {
+              core.setFailed('No pull request found in workflow_run payload.');
+              return;
+            }
+            const { data } = await github.rest.actions.listWorkflowRunArtifacts({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.payload.workflow_run.id,
+            });
+            const artifact = data.artifacts.find((item) => item.name === 'preview-site');
+            core.setOutput('pr_number', String(pr.number));
+            core.setOutput('artifact_found', String(Boolean(artifact)));
+
+      - name: Comment failed preview status
+        if: steps.meta.outputs.artifact_found != 'true'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.meta.outputs.pr_number }}
+          header: pr-preview
+          message: |
+            ## ❌ Preview indisponível
+
+            O artifact do preview não foi gerado para este PR, então não houve publicação.
+
+            | | |
+            |---|---|
+            | **PR** | #${{ steps.meta.outputs.pr_number }} |
+            | **Status** | `${{ github.event.workflow_run.conclusion }}` |
+            | **Run** | [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) |

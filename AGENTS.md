@@ -1,380 +1,505 @@
-# AGENTS.md - Instruções para Agentes de IA
+# AGENTS.md — Codaqui Institutional Site
 
-## 📋 Visão Geral do Projeto
+> Instructions for AI agents, contributors, and maintainers.
 
-Este repositório contém o site institucional da **Codaqui**, uma associação sem fins lucrativos focada em democratizar o ensino tecnológico para jovens. O site é construído com **MkDocs Material** e hospedado no GitHub Pages.
+## Tech Stack
 
-### Informações Básicas
-- **Framework**: MkDocs com tema Material
-- **Linguagem de Marcação**: Markdown
-- **Hospedagem**: GitHub Pages
-- **Repositório**: https://github.com/codaqui/institucional
-- **Site**: https://codaqui.dev
-- **CNPJ**: 44.593.429/0001-05
+| Layer | Technology |
+|-------|-----------|
+| **Framework** | Docusaurus 3.9.2 (`@docusaurus/preset-classic`) |
+| **UI Library** | MUI v7 (`@mui/material` ^7.3, `@mui/icons-material`, `@mui/lab`) |
+| **Styling** | `@emotion/react` + `@emotion/styled` (MUI's SSR-compatible engine) |
+| **Language** | TypeScript 5.6, React 19, MDX |
+| **Diagrams** | `@docusaurus/theme-mermaid` |
+| **Live Code** | `@docusaurus/theme-live-codeblock` |
+| **Comments** | Giscus (`@giscus/react`, repo: `codaqui/institucional`, category: "Blog") |
+| **Analytics** | Google gtag `G-CL043JTTND` |
+| **Redirects** | `@docusaurus/plugin-client-redirects` |
+| **Node** | ≥20 (enforced in `package.json` engines) |
+| **Hosting** | GitHub Pages via GitHub Actions |
 
-## 🎯 Objetivos do Projeto
+**Site**: https://codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
 
-1. **Educação Tecnológica**: Democratizar o acesso ao aprendizado de programação
-2. **Comunidade**: Reunir comunidades de tecnologia sob uma estrutura organizacional
-3. **Transparência**: Manter documentação aberta e acessível
-4. **Inclusão**: Garantir que o conteúdo seja acessível a todos os públicos
+---
 
-## 📁 Estrutura do Projeto
+## Commands
+
+```bash
+npm install        # Install dependencies
+npm start          # Dev server → http://localhost:3000
+npm run build      # Production build → ./build/
+npm run serve      # Serve production build locally
+npm run typecheck  # TypeScript check (tsc)
+```
+
+---
+
+## Directory Structure
 
 ```
 institucional/
-├── docs/                      # Conteúdo principal do site
-│   ├── blog/                  # Blog com posts institucionais e tutoriais
-│   │   ├── .authors.yml       # Autores dos posts
-│   │   ├── index.md           # Página índice do blog
-│   │   └── posts/             # Posts organizados por categoria
-│   │       ├── curiosidade/   # Posts sobre curiosidades técnicas
-│   │       ├── institucional/ # Posts sobre a organização
-│   │       ├── projetos/      # Posts sobre projetos desenvolvidos
-│   │       └── tutoriais/     # Tutoriais técnicos
-│   ├── trilhas/               # Trilhas de aprendizado
-│   │   ├── python/            # Curso de Python (16 aulas)
-│   │   └── github/            # Curso de GitHub (8 aulas)
-│   ├── quero/                 # Páginas de participação
-│   ├── assets/                # Recursos visuais
-│   └── *.md                   # Páginas principais
-├── mkdocs.yml                 # Configuração principal do MkDocs
-├── requirements.txt           # Dependências Python
-├── README.md                  # Documentação geral
-├── DEVELOPMENT.md             # Instruções de desenvolvimento
-└── CNAME                      # Configuração de domínio customizado
+├── blog/                        # Blog posts (Markdown/MDX)
+│   ├── authors.yml              # Blog author definitions
+│   └── YYYY-MM-DD-slug.md      # Post files (slug in frontmatter)
+├── trilhas/                     # Learning trails (Docusaurus docs plugin)
+│   ├── python/                  # Python 101 (index.md + page-1..page-16.md)
+│   └── github/                  # GitHub 101 (index.md + page-1..page-8.md)
+├── src/
+│   ├── components/              # Shared React components
+│   │   ├── Badge/
+│   │   ├── GiscusComponent/     # Giscus wrapper (reads config from themeConfig)
+│   │   ├── LessonCard/
+│   │   ├── VideoEmbed/
+│   │   └── index.ts             # Barrel exports
+│   ├── data/                    # ⭐ Centralized data layer (see below)
+│   │   ├── social.ts            # DISCORD_URL, WHATSAPP_URL, EMAIL, GITHUB_ORG, socialChannels[]
+│   │   ├── team.ts              # diretoria[], membros[], alumni[], mentores[]
+│   │   ├── communities.ts       # communities[] (5 partners)
+│   │   ├── projects.ts          # projects[] (9 open-source projects)
+│   │   └── timeline.ts          # timelineEvents[] (2020–2026)
+│   ├── pages/                   # Custom pages (TSX or MD)
+│   │   ├── index.tsx            # Homepage (MUI Grid + Cards)
+│   │   ├── bio.tsx              # Links page
+│   │   ├── contato.tsx          # Contact page
+│   │   ├── projetos.tsx         # Projects page
+│   │   ├── regex.md             # Regex learning page
+│   │   ├── participe/           # Participation pages (Markdown)
+│   │   │   ├── estudar.md
+│   │   │   ├── mentoria.md
+│   │   │   └── apoiar.md
+│   │   ├── sobre/               # About section
+│   │   │   ├── equipe.tsx       # Team (MUI Avatar + Card + Chip)
+│   │   │   ├── ong.tsx          # Association + communities
+│   │   │   ├── timeline.tsx     # Timeline (@mui/lab Timeline)
+│   │   │   ├── conduta.md       # Code of conduct
+│   │   │   └── pais-responsaveis.md
+│   │   ├── blog/archive/        # Year archive redirects (2022–2025)
+│   │   ├── quero/               # ⚠️ Legacy URL redirects — DO NOT DELETE
+│   │   ├── team.tsx             # ⚠️ Redirect → /sobre/equipe
+│   │   ├── contact.tsx          # ⚠️ Redirect → /contato
+│   │   ├── conduta.tsx          # ⚠️ Redirect → /sobre/conduta
+│   │   ├── ong.tsx              # ⚠️ Redirect → /sobre/ong
+│   │   ├── timeline.tsx         # ⚠️ Redirect → /sobre/timeline
+│   │   └── pais_responsaveis.tsx # ⚠️ Redirect → /sobre/pais-responsaveis
+│   ├── theme/                   # Docusaurus theme overrides
+│   │   ├── Root.tsx             # MUI ThemeProvider (SSR-safe, see below)
+│   │   ├── muiTheme.ts          # createCodaquiTheme(mode) factory
+│   │   └── BlogPostItem/        # Swizzled: injects Giscus comments
+│   └── css/
+│       └── custom.css           # Docusaurus CSS variables + global overrides
+├── static/
+│   ├── img/                     # logo.png, logo_blk.png, community logos
+│   └── assets/docs/             # PDFs (estatuto.pdf)
+├── docusaurus.config.ts         # Main Docusaurus configuration
+├── sidebars.ts                  # Sidebar config for trilhas
+├── tsconfig.json
+├── CNAME                        # codaqui.dev
+└── .github/workflows/
+    └── gh-deploy.yml            # CI: npm ci → build → deploy
 ```
 
-## 🔧 Configuração Técnica
+---
 
-### Dependências Principais
+## Critical Architecture Decisions
+
+### 1. MUI v7 Grid API (most common pitfall)
+
+MUI v7 removed the `item` prop and replaced `xs`/`md`/etc. with the `size` prop:
+
+```tsx
+// ✅ CORRECT — MUI v7 Grid
+import Grid from '@mui/material/Grid';
+
+<Grid container spacing={3}>
+  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+    <Card>...</Card>
+  </Grid>
+</Grid>
+
+// ❌ WRONG — MUI v5/v6 API (will NOT compile)
+<Grid item xs={12} md={6}>
 ```
-mkdocs                                    # Gerador de site estático
-mkdocs-git-authors-plugin                # Plugin de autores
-mkdocs-git-committers-plugin-2           # Plugin de contribuidores
-mkdocs-git-revision-date-localized-plugin # Plugin de datas
-pillow                                    # Manipulação de imagens
-cairosvg                                  # Renderização de SVG
+
+The codebase imports `Grid` (not `Grid2`) — MUI v7 unified the component name.
+
+### 2. Dark Mode Sync (SSR-safe pattern)
+
+`src/theme/Root.tsx` wraps the entire app in a MUI `ThemeProvider`. It reads Docusaurus's `data-theme` attribute on `<html>` via a `MutationObserver`:
+
+```tsx
+// Root.tsx — simplified
+function MuiThemeWrapper({ children }) {
+  const [mode, setMode] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    const getMode = () =>
+      document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+    setMode(getMode());
+
+    const observer = new MutationObserver(() => setMode(getMode()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  return <ThemeProvider theme={createCodaquiTheme(mode)}>{children}</ThemeProvider>;
+}
 ```
 
-### Plugins Ativos
-- `search`: Busca no site
-- `meta`: Metadados das páginas
-- `tags`: Sistema de tags
-- `social`: Cards sociais
-- `blog`: Sistema de blog
-- `git-committers`: Rastreamento de contribuidores
+> **⚠️ NEVER use `useColorMode()` in `Root.tsx`** — it causes `ReactContextError` during SSR because `ColorModeProvider` is a child of `Root` in the Docusaurus component tree.
 
-### Extensões Markdown
-- Admonitions (blocos de aviso)
-- Tabs (abas)
-- Code highlighting (destaque de código)
-- Emoji support
-- Task lists
-- Footnotes
+`useColorMode()` is safe in any other component (pages, GiscusComponent, etc.) — just not in Root.
 
-## 📝 Padrões de Conteúdo
+### 3. Data Layer Pattern
 
-### Estrutura de Posts do Blog
+All shared data lives in `src/data/*.ts`. Pages import from these files — **never inline arrays in page components**.
 
-Todo post deve conter:
+| File | Exports | Used by |
+|------|---------|---------|
+| `social.ts` | `DISCORD_URL`, `WHATSAPP_URL`, `EMAIL`, `GITHUB_ORG`, `socialChannels[]` | index.tsx, contato.tsx, bio.tsx |
+| `team.ts` | `diretoria[]`, `membros[]`, `alumni[]`, `mentores[]` | sobre/equipe.tsx |
+| `communities.ts` | `communities[]` | index.tsx, sobre/ong.tsx |
+| `projects.ts` | `projects[]` | projetos.tsx |
+| `timeline.ts` | `timelineEvents[]` | sobre/timeline.tsx |
+
+**To add a team member** — edit `src/data/team.ts` only:
+```typescript
+// Add to the correct array: diretoria, membros, alumni, or mentores
+{
+  name: "Nome Completo",
+  role: "Cargo",
+  avatar: "https://avatars.githubusercontent.com/username?v=4",
+  linkedin: "https://www.linkedin.com/in/username/",  // optional
+  github: "https://github.com/username",              // optional
+  specialty: "DevOps e Iniciantes",                    // mentores only
+}
+```
+
+**To add a community** — edit `src/data/communities.ts` only:
+```typescript
+{
+  id: "slug",
+  name: "Community Name",
+  emoji: "🤝",
+  logo: "/img/community-logo.svg",      // or external URL
+  description: "Short description.",
+  location: "City, State",              // optional
+  founded: 2020,                        // optional
+  links: [
+    { type: "website", label: "example.com", url: "https://example.com/" },
+  ],
+  tags: ["tag1", "tag2"],
+}
+```
+
+**To add a project** — edit `src/data/projects.ts` only.
+
+**To add a timeline event** — edit `src/data/timeline.ts` only.
+
+### 4. Blog URL Convention (SEO critical)
+
+Posts live at `blog/YYYY-MM-DD-slug.md`. The frontmatter `slug` determines the final URL path — this preserves Google-indexed URLs from the legacy site:
+
 ```yaml
 ---
-draft: false                # Status de publicação
-date: YYYY-MM-DD           # Data de publicação
-categories:                # Categorias do post
-  - Categoria
-tags:                      # Tags relevantes
-  - tag1
-  - tag2
-authors:                   # Autores (definidos em .authors.yml)
-  - username
-# readtime: X              # Tempo de leitura estimado (opcional)
-comments: true             # Habilitar comentários
+slug: 2024/07/22/meu-post
+title: Título do Post
+authors: [username]
+tags: [tag1, tag2]
+date: 2024-07-22
 ---
 
-# Título do Post
+Resumo do post (appears in listing).
 
-Breve descrição ou resumo do post.
+<!-- truncate -->
 
-<!-- more -->            # Separador de resumo
-
-Conteúdo completo do post...
+Full content below the fold...
 ```
 
-### Estrutura de Trilhas de Aprendizado
+- `tagsBasePath: 'category'` in `docusaurus.config.ts` preserves `/blog/category/X/` URLs — **do not change**.
+- Blog comments: enabled by default via swizzled `BlogPostItem`. Disable per-post with `enableComments: false` in frontmatter.
 
-Cada aula deve seguir:
+### 5. Learning Trails (Trilhas)
+
+Configured as a docs plugin: `path: "trilhas"`, `routeBasePath: "trilhas"`.
+
+Lesson files: `trilhas/python/page-N.md` or `trilhas/github/page-N.md`:
+
 ```markdown
+---
+sidebar_position: N
+title: Título da Aula
+---
+
 # Título da Aula
 
 ## Objetivos
-- Objetivo 1
-- Objetivo 2
-
 ## Conteúdo Principal
-[Explicações, exemplos de código, etc.]
-
 ## Exercícios Práticos
-[Atividades para fixação]
-
 ## Referências
-[Links e materiais complementares]
 ```
 
-## 🤖 Instruções para Agentes de IA
+Sidebars are manually defined in `sidebars.ts` (not auto-generated).
 
-### Ao Criar Novos Conteúdos
+### 6. Giscus Comments
 
-1. **Sempre siga os padrões estabelecidos** no mkdocs.yml e nos arquivos existentes
-2. **Use frontmatter completo** em todos os arquivos Markdown
-3. **Adicione alt text descritivo** em todas as imagens
-4. **Use linguagem inclusiva** e acessível
-5. **Revise ortografia e gramática** antes de submeter
-6. **Teste links externos** para garantir que funcionam
-7. **Mantenha consistência** com o estilo existente
+Configuration lives in `docusaurus.config.ts` → `themeConfig.giscus`. The `GiscusComponent` reads it at runtime:
 
-### Ao Revisar Conteúdos
-
-1. **Verificar ortografia** em português brasileiro
-2. **Validar formatação** Markdown e YAML
-3. **Testar código** em blocos de código
-4. **Conferir links** internos e externos
-5. **Validar estrutura** do frontmatter
-6. **Verificar acessibilidade** (alt text, semântica)
-
-### Ao Responder Questões sobre o Projeto
-
-1. **Contexto**: A Codaqui é uma ONG educacional
-2. **Público-alvo**: Jovens de 6 a 16 anos e comunidade tech
-3. **Tom**: Amigável, inclusivo e educacional
-4. **Valores**: Transparência, inclusão, colaboração
-5. **Licença**: Creative Commons Attribution-ShareAlike
-
-### Fluxo de Contribuição
-
-```mermaid
-graph TD
-    A[Nova Contribuição] --> B{Tipo de Mudança}
-    B -->|Nova Feature| C[Branch feat/nome]
-    B -->|Correção| D[Branch fix/nome]
-    C --> E[Pull Request para develop]
-    D --> E
-    E --> F[Review]
-    F --> G{Aprovado?}
-    G -->|Sim| H[Merge em develop]
-    G -->|Não| I[Ajustes necessários]
-    I --> E
-    H --> J[Deploy em gh-pages-develop]
-    J --> K[Testes]
-    K --> L{Tudo OK?}
-    L -->|Sim| M[Merge em main]
-    L -->|Não| I
-    M --> N[Deploy em produção]
+```typescript
+const giscusConfig = siteConfig.themeConfig.giscus as Record<string, string>;
 ```
 
-## 📚 Recursos Importantes
+- **Mapping**: `og:title` — works for both blog posts and learning trail pages.
+- **Theme**: automatically syncs with Docusaurus color mode.
+- **Usage**: import `GiscusComponent` from `@site/src/components/GiscusComponent` wherever you need comments.
 
-### Documentação
-- [MkDocs](https://www.mkdocs.org/)
-- [Material for MkDocs](https://squidfunk.github.io/mkdocs-material/)
-- [Markdown Guide](https://www.markdownguide.org/)
+### 7. Legacy URL Redirects
 
-### Comunidade
-- **Discord**: https://discord.com/invite/xuTtxqCPpz
-- **WhatsApp**: https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up
-- **GitHub Discussions**: https://github.com/codaqui/institucional/discussions
+These files exist solely to redirect old URLs and **must not be deleted**:
 
-### Contatos
-- **Email**: contato@codaqui.dev
-- **Site**: https://codaqui.dev
-- **GitHub**: https://github.com/codaqui
+| Redirect file | Redirects to |
+|---------------|-------------|
+| `src/pages/quero/estudar.tsx` | `/participe/estudar` |
+| `src/pages/quero/apoiar.tsx` | `/participe/apoiar` |
+| `src/pages/quero/mentoria.tsx` | `/participe/mentoria` |
+| `src/pages/team.tsx` | `/sobre/equipe` |
+| `src/pages/contact.tsx` | `/contato` |
+| `src/pages/conduta.tsx` | `/sobre/conduta` |
+| `src/pages/ong.tsx` | `/sobre/ong` |
+| `src/pages/timeline.tsx` | `/sobre/timeline` |
+| `src/pages/pais_responsaveis.tsx` | `/sobre/pais-responsaveis` |
 
-## 🔐 Variáveis de Ambiente
-
-### Desenvolvimento Local
-```bash
-# Token do GitHub (necessário para plugins git)
-export GH_TOKEN=<seu_token_aqui>
-
-# Ativar ambiente virtual
-source venv/bin/activate
-
-# Servir localmente
-mkdocs serve
+Pattern:
+```tsx
+import { Redirect } from "@docusaurus/router";
+export default function RedirectX() {
+  return <Redirect to="/new/path" />;
+}
 ```
 
-### Deploy
-- **Produção**: Branch `main` → `gh-pages`
-- **Desenvolvimento**: Branch `develop` → `gh-pages-develop`
-- **Preview**: https://raw.githack.com/codaqui/institucional/gh-pages-develop/index.html
+---
 
-## ⚠️ Cuidados Especiais
+## MUI Theme
 
-### Segurança
-- Nunca commitar tokens ou credenciais
-- Revisar informações pessoais antes de publicar
-- Respeitar LGPD em coleta de dados
+Defined in `src/theme/muiTheme.ts`:
 
-### Performance
-- Otimizar imagens antes de fazer upload
-- Evitar arquivos muito grandes no repositório
-- Usar lazy loading para imagens quando possível
+| Token | Value |
+|-------|-------|
+| `primary.main` | `#22c55e` (Codaqui green) |
+| `primary.dark` | `#16a34a` |
+| `primary.light` | `#4ade80` |
+| `secondary.main` | `#0ea5e9` (sky blue) |
+| `background.default` (dark) | `#1b1b1d` |
+| `background.paper` (dark) | `#242526` |
+| `shape.borderRadius` | `8` |
+| `typography.fontFamily` | `var(--ifm-font-family-base, ...)` — inherits from Docusaurus |
 
-### Acessibilidade
-- Sempre usar alt text em imagens
-- Manter hierarquia correta de títulos (h1, h2, h3...)
-- Garantir contraste adequado em cores customizadas
-- Testar navegação por teclado
+**Always use theme tokens** (`color="text.primary"`, `bgcolor="action.hover"`). Never hardcode hex values in components.
 
-### SEO
-- Usar descrições meta adequadas
-- Manter URLs amigáveis (slugs limpos)
-- Usar tags e categorias de forma consistente
-- Adicionar sitemap.xml (gerado automaticamente)
+---
 
-## 🎨 Diretrizes de Estilo
+## Component Creation Pattern
 
-### Tom de Voz
-- **Amigável**: Usar linguagem acessível
-- **Educativo**: Explicar conceitos claramente
-- **Inclusivo**: Evitar jargões desnecessários
-- **Profissional**: Manter seriedade em temas importantes
+New components go in `src/components/ComponentName/index.tsx`:
 
-### Formatação de Código
-```python
-# Bom exemplo
-def funcao_exemplo(parametro):
-    """Documentação clara da função."""
-    return parametro * 2
+```tsx
+import React from "react";
+import { Card, CardContent, Typography } from "@mui/material";
 
-# Evitar
-def f(x):return x*2  # Sem documentação ou formatação
+interface MyComponentProps {
+  title: string;
+  description: string;
+}
+
+export default function MyComponent({ title, description }: MyComponentProps) {
+  return (
+    <Card sx={{ height: "100%", "&:hover": { transform: "translateY(-4px)", boxShadow: 6 } }}>
+      <CardContent>
+        <Typography variant="h6" fontWeight={700}>{title}</Typography>
+        <Typography variant="body2" color="text.secondary">{description}</Typography>
+      </CardContent>
+    </Card>
+  );
+}
 ```
 
-### Links
-- Preferir links relativos para navegação interna
-- Usar títulos descritivos: `[veja nosso guia](link)` em vez de `[clique aqui](link)`
-- Abrir links externos em nova aba quando apropriado
-
-### Imagens
-- Formato: PNG para capturas de tela, SVG para logos, WEBP para fotos
-- Tamanho máximo: 500KB por imagem
-- Resolução: Máximo 2x da exibida (para telas retina)
-- Nomenclatura: `descricao-clara.extensao`
-
-## 🧪 Testes e Validação
-
-### Antes de Submeter PR
-```bash
-# 1. Validar sintaxe do mkdocs.yml
-mkdocs build --strict
-
-# 2. Testar localmente
-mkdocs serve
-
-# 3. Verificar links quebrados
-# (usar ferramenta externa ou plugin)
-
-# 4. Revisar ortografia
-# (usar corretor ortográfico)
-
-# 5. Validar frontmatter YAML
-# (usar linter YAML)
+Then export from `src/components/index.ts`:
+```typescript
+export { default as MyComponent } from "./MyComponent";
 ```
 
-## 📊 Métricas e Analytics
+### Page Creation Pattern
 
-O site usa Google Analytics (G-CL043JTTND) para:
-- Entender quais conteúdos são mais acessados
-- Melhorar a experiência do usuário
-- Medir efetividade das trilhas de aprendizado
+Pages go in `src/pages/`:
 
-**Sempre respeitar a LGPD e privacidade dos usuários.**
+```tsx
+import React from "react";
+import Layout from "@theme/Layout";
+import { Container, Typography, Grid, Card, CardContent } from "@mui/material";
+import { someData } from "../data/someFile";
 
-## 🤝 Comunidades Associadas
+export default function MyPage(): React.JSX.Element {
+  return (
+    <Layout title="Page Title" description="SEO description">
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Typography variant="h3" fontWeight={800} gutterBottom>
+          Page Title
+        </Typography>
+        <Grid container spacing={3}>
+          {someData.map((item) => (
+            <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card>
+                <CardContent>
+                  <Typography>{item.name}</Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </Layout>
+  );
+}
+```
 
-1. **DevParaná**: Comunidade de desenvolvedores do Paraná
-2. **CamposTech**: Comunidade tech de Campos dos Goytacazes
-3. **ElasNoCódigo**: Comunidade focada em mulheres na tecnologia
+---
 
-## 📱 Social Media
+## Common Anti-Patterns
 
-- GitHub: [@codaqui](https://github.com/codaqui)
-- Twitter: [@codaquidev](https://twitter.com/codaquidev)
-- LinkedIn: [codaqui](https://www.linkedin.com/company/codaqui)
-- Instagram: [@codaqui.dev](https://instagram.com/codaqui.dev)
-- YouTube: [@codaqui](https://youtube.com/@codaqui)
+| ❌ Don't | ✅ Do |
+|----------|-------|
+| `<Grid item xs={12}>` | `<Grid size={{ xs: 12 }}>` (MUI v7) |
+| `useColorMode()` in `Root.tsx` | Read `data-theme` via MutationObserver |
+| Hardcode Discord/WhatsApp URLs | Import from `src/data/social.ts` |
+| Inline team/community arrays in pages | Import from `src/data/*.ts` |
+| `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
+| `makeStyles()` or `styled-components` | MUI `sx` prop |
+| Hardcode hex colors in components | Use theme tokens (`color="text.secondary"`) |
+| Delete files in `src/pages/quero/` | They are SEO redirect stubs |
+| `slug: meu-post` (blog) | `slug: 2024/07/22/meu-post` (preserves Google URLs) |
+| Edit `equipe.tsx` to add a member | Edit `src/data/team.ts` |
+| Use "alunos", "escola", "curso" | Use "participantes", "Associação", "programa" |
 
-## 🏆 Boas Práticas
+---
 
-### Git Commits
+## Git Workflow & Deployment
+
+### Branches
+
+| Branch | Deploys to | URL |
+|--------|-----------|-----|
+| `main` | `gh-pages` | https://codaqui.dev (production) |
+| `develop` | `gh-pages-develop` | Preview environment |
+
+### CI Pipeline (`.github/workflows/gh-deploy.yml`)
+
+On push to `develop` or `main`:
+1. `actions/checkout@v5`
+2. `setup-node@v4` with Node 20 + npm cache
+3. `npm ci`
+4. `npm run build`
+5. Deploy `./build/` to target branch via `peaceiris/actions-gh-pages@v4`
+
+### Commit Convention
+
 ```
 feat: adiciona nova trilha de JavaScript
 fix: corrige link quebrado na página inicial
 docs: atualiza README com novas instruções
 style: ajusta formatação do post sobre Python
-refactor: reorganiza estrutura de pastas do blog
-test: adiciona testes para links
+refactor: reorganiza estrutura de pastas
 chore: atualiza dependências do projeto
 ```
 
-### Nomenclatura de Arquivos
-- Posts do blog: `YYYY_MM_DD_titulo-descritivo.md`
-- Imagens: `descricao-clara.extensao`
-- Pastas: `nome-em-minusculo-com-hifens`
+### Contribution Flow
 
-### Organização de Assets
-```
-docs/
-└── blog/
-    └── posts/
-        └── categoria/
-            ├── YYYY_MM_DD_post.md
-            └── img/
-                └── YYYY_MM_DD_post/
-                    ├── imagem1.png
-                    └── imagem2.png
-```
-
-## 🔄 Atualizações Frequentes
-
-### Conteúdos que Precisam de Manutenção Regular
-1. **Links externos**: Verificar mensalmente
-2. **Tecnologias citadas**: Atualizar versões quando relevante
-3. **Eventos**: Remover eventos passados, adicionar futuros
-4. **Certificações**: Manter lista atualizada
-
-### Revisões Anuais
-1. **Código de conduta**: Revisar e atualizar se necessário
-2. **Estrutura do site**: Avaliar se atende às necessidades
-3. **Trilhas de aprendizado**: Atualizar conteúdos desatualizados
-4. **Documentação**: Garantir que reflete o estado atual
-
-## 💡 Dicas para Agentes
-
-1. **Sempre verifique o contexto**: A Codaqui trabalha com jovens, então o conteúdo deve ser apropriado
-2. **Use exemplos práticos**: Facilita o aprendizado
-3. **Cite fontes**: Transparência é importante
-4. **Seja consistente**: Siga os padrões estabelecidos
-5. **Peça feedback**: Use as discussões do GitHub
-6. **Teste antes de publicar**: Use o ambiente de desenvolvimento
-7. **Documente mudanças**: Mantenha changelog atualizado
-
-## 📞 Suporte
-
-Em caso de dúvidas:
-1. Consulte a documentação existente (README.md, DEVELOPMENT.md)
-2. Busque em discussões anteriores no GitHub
-3. Crie nova discussão se necessário
-4. Entre em contato via email: contato@codaqui.dev
+1. Create branch from `develop`: `feat/nome` or `fix/nome`
+2. Make changes, ensure `npm run build` passes
+3. Open PR targeting `develop`
+4. Review → merge → auto-deploy to `gh-pages-develop`
+5. After validation, merge `develop` → `main` → auto-deploy to production
 
 ---
 
-**Última atualização**: 2025-10-13
+## PR Checklist
 
-**Versão do documento**: 1.0.0
+Before submitting:
 
-**Mantido por**: Comunidade Codaqui
+- [ ] `npm run build` completes without errors
+- [ ] `npm run typecheck` passes
+- [ ] Blog posts include `slug: YYYY/MM/DD/name` in frontmatter
+- [ ] Data changes go in `src/data/*.ts`, not inline in pages
+- [ ] Social URLs imported from `src/data/social.ts`
+- [ ] MUI Grid uses `size={{ xs, sm, md }}` (not `item xs={}`)
+- [ ] Images optimized (max 500KB; SVG for logos, PNG for screenshots)
+- [ ] External links have `target="_blank" rel="noopener noreferrer"`
+- [ ] MUI Avatars have `alt={name}`
+- [ ] IconButtons have `aria-label`
+- [ ] Heading hierarchy is correct (h1 → h2 → h3, no skipping)
+- [ ] Inclusive language: "participantes", "programa", "encontros", "Associação"
+- [ ] No hardcoded hex colors — use MUI theme tokens
+- [ ] No secrets or credentials committed
+- [ ] Legacy redirect files untouched
 
-**Licença**: Creative Commons Attribution-ShareAlike
+---
+
+## File Naming Conventions
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Blog post | `YYYY-MM-DD-slug.md` | `2024-07-22-welcome.md` |
+| Blog image | `blog/img/YYYY-MM-DD-slug/` | `blog/img/2024-07-22-welcome/hero.png` |
+| Component | `src/components/Name/index.tsx` | `src/components/Badge/index.tsx` |
+| Data file | `src/data/name.ts` | `src/data/team.ts` |
+| Page | `src/pages/name.tsx` or `.md` | `src/pages/projetos.tsx` |
+| Static asset | `static/img/description.ext` | `static/img/elasnocodigo.svg` |
+
+---
+
+## About Codaqui
+
+Codaqui is a **Brazilian non-profit association** (not a school or company) that democratizes technology education for youth. It serves as an umbrella for partner tech communities.
+
+- **Branding**: "Associação Codaqui" — never "escola" or "empresa"
+- **Language**: "participantes" (not "alunos"), "programa" (not "curso"), "encontros" (not "aulas")
+- **Values**: Transparency, inclusion, collaboration, collective growth
+- **License**: Creative Commons Attribution-ShareAlike
+- **Contact**: contato@codaqui.dev
+- **Communities**: DevParaná, Elas no Código, CamposTech, TI Social, Cloud Native Maringá
+
+### Social
+
+| Platform | Handle |
+|----------|--------|
+| GitHub | [@codaqui](https://github.com/codaqui) |
+| Discord | [Server](https://discord.com/invite/xuTtxqCPpz) |
+| WhatsApp | [Group](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up) |
+| Instagram | [@codaqui.dev](https://instagram.com/codaqui.dev) |
+| LinkedIn | [codaqui](https://www.linkedin.com/company/codaqui) |
+| Twitter/X | [@codaquidev](https://twitter.com/codaquidev) |
+| YouTube | [@codaqui](https://youtube.com/@codaqui) |
+
+---
+
+## Regular Maintenance
+
+| What | When | Where |
+|------|------|-------|
+| Team changes | As needed | `src/data/team.ts` |
+| New community partners | As needed | `src/data/communities.ts` |
+| Timeline events | Annually | `src/data/timeline.ts` |
+| Social links (WhatsApp expires) | When links change | `src/data/social.ts` |
+| External links | Monthly check | Throughout site |
+| Dependencies | Quarterly | `package.json` → `npm update` |
+
+---
+
+## References
+
+- [Docusaurus 3 Docs](https://docusaurus.io/docs)
+- [MUI v7 Components](https://mui.com/material-ui/all-components/)
+- [MUI Timeline (@mui/lab)](https://mui.com/material-ui/react-timeline/)
+- [Giscus](https://giscus.app/)
+- [GitHub Discussions](https://github.com/codaqui/institucional/discussions)
