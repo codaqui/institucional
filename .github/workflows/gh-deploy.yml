@@ -10,6 +10,10 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     name: Build & Deploy
@@ -45,7 +49,21 @@ jobs:
       - name: Build website
         run: npm run build
 
-      - name: Deploy to GitHub Pages 🚀
+      - name: Ensure .nojekyll exists
+        run: touch build/.nojekyll
+
+      - name: Deploy to GitHub Pages (main) 🚀
+        if: steps.branch_check.outputs.env_name == 'gh-pages'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: build
+          clean: true
+          clean-exclude: |
+            previews
+
+      - name: Deploy to GitHub Pages (develop) 🚀
+        if: steps.branch_check.outputs.env_name != 'gh-pages'
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -95,4 +113,3 @@ jobs:
             | **Environment** | `${{ needs.build-and-deploy.outputs.env_name }}` |
             | **Commit** | `${{ github.sha }}` |
             | **Run** | [View deployment](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
-

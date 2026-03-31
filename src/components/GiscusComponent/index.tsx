@@ -12,6 +12,11 @@ export default function GiscusComponent(): React.JSX.Element {
   const { colorMode } = useColorMode();
   const { siteConfig } = useDocusaurusContext();
   const giscusConfig = siteConfig.themeConfig.giscus as Record<string, string>;
+  const isPreview = Boolean(siteConfig.customFields?.isPreview);
+
+  if (isPreview) {
+    return <></>;
+  }
 
   return (
     <Giscus

@@ -2,29 +2,112 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 
+const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
+const requestedBaseUrl = process.env.BASE_URL || "/";
+const normalizedBaseUrl = requestedBaseUrl.startsWith("/")
+  ? requestedBaseUrl
+  : `/${requestedBaseUrl}`;
+const baseUrl = normalizedBaseUrl.endsWith("/")
+  ? normalizedBaseUrl
+  : `${normalizedBaseUrl}/`;
+const previewPrNumber = process.env.PREVIEW_PR_NUMBER || "";
+const isPreview = process.env.PREVIEW === "true" || baseUrl.startsWith("/previews/");
+
+const headTags: NonNullable<Config["headTags"]> = [
+  !isPreview
+    ? {
+        tagName: "script",
+        attributes: { type: "text/javascript" },
+        innerHTML:
+          "window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};",
+      }
+    : null,
+  isPreview
+    ? {
+        tagName: "meta",
+        attributes: {
+          name: "robots",
+          content: "noindex, nofollow, noarchive",
+        },
+      }
+    : null,
+].filter(Boolean) as NonNullable<Config["headTags"]>;
+
+const classicPresetOptions: Preset.Options = {
+  docs: {
+    path: "trilhas",
+    routeBasePath: "trilhas",
+    sidebarPath: "./sidebars.ts",
+    breadcrumbs: true,
+
+    // "Edit this page" button → opens file directly in GitHub web editor
+    editUrl: ({ docPath }) =>
+      `https://github.com/codaqui/institucional/edit/develop/trilhas/${docPath}`,
+
+    // Show git-based metadata on each lesson
+    showLastUpdateTime: true,
+    showLastUpdateAuthor: true,
+
+    // Include markdown and MDX
+    include: ["**/*.md", "**/*.mdx"],
+
+    // Remark plugin: math support (optional, already excluded if not installed)
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
+  blog: {
+    path: "blog",
+    showReadingTime: true,
+    blogTitle: "Blog",
+    blogSidebarCount: 10,
+    blogSidebarTitle: "Posts recentes",
+    onInlineAuthors: "ignore",
+    tagsBasePath: "category",
+    postsPerPage: 9,
+    blogDescription:
+      "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — democratizando o ensino de tecnologia.",
+    feedOptions: {
+      type: "all",
+      title: "Blog da Codaqui",
+      description: "Tutoriais, projetos e novidades da comunidade Codaqui",
+      copyright: `© ${new Date().getFullYear()} Associação Codaqui`,
+      language: "pt-BR",
+    },
+  },
+  theme: {
+    customCss: "./src/css/custom.css",
+  },
+  ...(isPreview
+    ? {}
+    : {
+        gtag: {
+          trackingID: "G-CL043JTTND",
+          anonymizeIP: true,
+        },
+      }),
+};
+
 const config: Config = {
   title: "CODAQUI.dev",
   tagline: "Democratizando o ensino tecnológico para jovens",
   favicon: "img/favicon.png",
 
-  url: "https://codaqui.dev",
-  baseUrl: "/",
+  url: siteUrl,
+  baseUrl,
 
   organizationName: "codaqui",
   projectName: "institucional",
+  customFields: {
+    isPreview,
+    previewPrNumber,
+  },
 
   onBrokenLinks: "warn",
   onBrokenAnchors: "warn",
 
   // Ensure window.gtag is defined before the async Google script loads,
   // preventing "window.gtag is not a function" on early route changes.
-  headTags: [
-    {
-      tagName: "script",
-      attributes: { type: "text/javascript" },
-      innerHTML: `window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};`,
-    },
-  ],
+  headTags,
 
   markdown: {
     format: "detect",
@@ -48,56 +131,7 @@ const config: Config = {
   presets: [
     [
       "classic",
-      {
-        docs: {
-          path: "trilhas",
-          routeBasePath: "trilhas",
-          sidebarPath: "./sidebars.ts",
-          breadcrumbs: true,
-
-          // "Edit this page" button → opens file directly in GitHub web editor
-          editUrl: ({ docPath }) =>
-            `https://github.com/codaqui/institucional/edit/develop/trilhas/${docPath}`,
-
-          // Show git-based metadata on each lesson
-          showLastUpdateTime: true,
-          showLastUpdateAuthor: true,
-
-          // Include markdown and MDX
-          include: ["**/*.md", "**/*.mdx"],
-
-          // Remark plugin: math support (optional, already excluded if not installed)
-          remarkPlugins: [],
-          rehypePlugins: [],
-        },
-        blog: {
-          path: "blog",
-          showReadingTime: true,
-          blogTitle: "Blog",
-          blogSidebarCount: 10,
-          blogSidebarTitle: "Posts recentes",
-          onInlineAuthors: "ignore",
-          tagsBasePath: "category",
-          postsPerPage: 9,
-          blogDescription:
-            "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — democratizando o ensino de tecnologia.",
-          feedOptions: {
-            type: "all",
-            title: "Blog da Codaqui",
-            description:
-              "Tutoriais, projetos e novidades da comunidade Codaqui",
-            copyright: `© ${new Date().getFullYear()} Associação Codaqui`,
-            language: "pt-BR",
-          },
-        },
-        theme: {
-          customCss: "./src/css/custom.css",
-        },
-        gtag: {
-          trackingID: "G-CL043JTTND",
-          anonymizeIP: true,
-        },
-      } satisfies Preset.Options,
+      classicPresetOptions,
     ],
   ],
 

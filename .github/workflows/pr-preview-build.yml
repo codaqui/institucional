@@ -1,0 +1,53 @@
+name: PR Preview Build
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+concurrency:
+  group: pr-preview-build-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-preview:
+    name: Build preview artifact
+    runs-on: ubuntu-latest
+    env:
+      PREVIEW: "true"
+      PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+      BASE_URL: /previews/pr-${{ github.event.pull_request.number }}/
+      SITE_URL: https://codaqui.dev
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: npm run typecheck
+
+      - name: Build preview website
+        run: npm run build
+
+      - name: Ensure .nojekyll exists
+        run: touch build/.nojekyll
+
+      - name: Upload preview artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-site
+          path: build/
+          retention-days: 7
