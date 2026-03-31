@@ -30,8 +30,6 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
-          META_BUSINESS_APP_ID: ${{ secrets.META_BUSINESS_APP_ID }}
-          META_BUSINESS_APP_SECRET: ${{ secrets.META_BUSINESS_APP_SECRET }}
         run: npm run sync:social
 
       - name: Commit updated snapshot

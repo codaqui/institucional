@@ -114,15 +114,15 @@ async function fetchCncfMemberCount(chapterSlug) {
 }
 
 // ─── WhatsApp Business Groups API v25 ────────────────────────────────────────
-// fetchId: GROUP_ID (opaque base64 string assigned by the API, e.g. Y2FwaV9ncm91cDox...)
+// fetchId: GROUP_ID (opaque base64 string assigned by the API)
 // The group must be created/managed by the business phone number registered in Meta.
 // Requires META_ACCESS_TOKEN with whatsapp_business_messaging permission.
 // total_participant_count excludes the business itself — we add +1 for the actual total.
 
 async function fetchWhatsAppGroupParticipants(groupId) {
-  const { token, appOnly } = await resolveMetaToken();
-  if (!token || appOnly) {
-    if (appOnly) console.warn("  WhatsApp Groups API requires a User Token — skipping (App Token only)");
+  const token = process.env.META_ACCESS_TOKEN;
+  if (!token) {
+    console.warn("  META_ACCESS_TOKEN not set — skipping WhatsApp group count");
     return null;
   }
 
@@ -163,95 +163,6 @@ async function fetchGitHubFollowers(username) {
   } catch {
     return null;
   }
-}
-
-// ─── Meta token resolution ────────────────────────────────────────────────────
-// Priority:
-//   1. META_ACCESS_TOKEN (User/System User token) + optional exchange for long-lived
-//   2. META_BUSINESS_APP_ID|META_BUSINESS_APP_SECRET as App Access Token (limited — no user data)
-// For Instagram follower counts, a User Token with instagram_basic permission is required.
-// App Token only works for oEmbed and app-level endpoints.
-
-let _metaToken = null; // cached across calls within the same run
-let _metaTokenIsAppOnly = false;
-
-async function resolveMetaToken() {
-  if (_metaToken) return { token: _metaToken, appOnly: _metaTokenIsAppOnly };
-
-  const appId = process.env.META_BUSINESS_APP_ID;
-  const appSecret = process.env.META_BUSINESS_APP_SECRET;
-  const existingToken = process.env.META_ACCESS_TOKEN;
-
-  if (!existingToken && !(appId && appSecret)) {
-    console.warn("META_ACCESS_TOKEN not set — skipping Meta API calls");
-    console.warn(
-      "  → To get Instagram follower counts:\n" +
-      "    1. Add the 'Instagram API' product to your Meta app\n" +
-      "    2. Connect your Instagram Business/Creator account\n" +
-      "    3. Get a User Token at https://developers.facebook.com/tools/explorer with instagram_basic\n" +
-      "    4. Set it as META_ACCESS_TOKEN in GitHub Secrets"
-    );
-    return { token: null, appOnly: false };
-  }
-
-  // If we have only APP_ID + APP_SECRET (no user token), use App Access Token
-  // App Token format: "{APP_ID}|{APP_SECRET}" — works for oEmbed, NOT for user data like follower counts
-  if (!existingToken && appId && appSecret) {
-    _metaToken = `${appId}|${appSecret}`;
-    _metaTokenIsAppOnly = true;
-    console.warn("  ⚠️  Using App Access Token only (APP_ID|APP_SECRET)");
-    console.warn("     Instagram follower counts require a User Token with instagram_basic permission.");
-    console.warn("     Add 'Instagram API' product to your Meta app, then get a User Token via Graph Explorer.");
-    return { token: _metaToken, appOnly: true };
-  }
-
-  // If we have app credentials, exchange for a long-lived token (idempotent — already long-lived tokens are returned unchanged)
-  if (appId && appSecret) {
-    try {
-      const url =
-        `https://graph.facebook.com/oauth/access_token` +
-        `?grant_type=fb_exchange_token` +
-        `&client_id=${appId}` +
-        `&client_secret=${appSecret}` +
-        `&fb_exchange_token=${existingToken}`;
-
-      const res = await fetch(url, { headers: { "User-Agent": "codaqui-social-stats" } });
-      const data = await res.json();
-
-      if (data.access_token) {
-        _metaToken = data.access_token;
-        const expiresIn = data.expires_in;
-        const expiresInDays = expiresIn ? Math.round(expiresIn / 86400) : null;
-        if (expiresInDays) {
-          console.log(`  ✓ Meta token exchanged — valid for ~${expiresInDays} days`);
-          if (expiresInDays < 10) {
-            console.warn(
-              `  ⚠️  Token expires in ${expiresInDays} days! Update META_ACCESS_TOKEN in GitHub Secrets.`
-            );
-          }
-        } else {
-          console.log("  ✓ Meta token ready (non-expiring System User token)");
-        }
-        if (_metaToken !== existingToken) {
-          console.log(
-            `  ℹ️  Renewed token (update META_ACCESS_TOKEN secret when convenient):\n` +
-            `     ${_metaToken.slice(0, 20)}...`
-          );
-        }
-      } else {
-        console.warn("  Meta token exchange failed:", data.error?.message ?? JSON.stringify(data));
-        _metaToken = existingToken; // fall back to existing
-      }
-    } catch (err) {
-      console.warn("  Meta token exchange error:", err.message);
-      _metaToken = existingToken; // fall back to existing
-    }
-  } else {
-    _metaToken = existingToken;
-    console.warn("  META_BUSINESS_APP_ID/SECRET not set — using token as-is (may expire)");
-  }
-
-  return { token: _metaToken, appOnly: false };
 }
 
 // ─── Instagram via blastup.com wrapper ───────────────────────────────────────
