@@ -4,6 +4,8 @@ import type * as Preset from "@docusaurus/preset-classic";
 
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
+const socialCardImage = "img/header.png";
+const socialCardAlt = "Codaqui - Democratizando o ensino de tecnologia para jovens";
 const normalizedBaseUrl = requestedBaseUrl.startsWith("/")
   ? requestedBaseUrl
   : `/${requestedBaseUrl}`;
@@ -136,6 +138,13 @@ const config: Config = {
   ],
 
   themeConfig: {
+    image: socialCardImage,
+    metadata: [
+      { name: "twitter:site", content: "@codaquidev" },
+      { name: "twitter:creator", content: "@codaquidev" },
+      { property: "og:image:alt", content: socialCardAlt },
+      { name: "twitter:image:alt", content: socialCardAlt },
+    ],
     navbar: {
       title: "",
       logo: {
