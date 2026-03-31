@@ -65,6 +65,9 @@ jobs:
       - name: Ensure .nojekyll exists
         run: touch build/.nojekyll
 
+      - name: Ensure custom domain file
+        run: cp CNAME build/CNAME
+
       - name: Deploy to GitHub Pages (main) 🚀
         if: steps.deploy_meta.outputs.deploy_type == 'production'
         uses: JamesIves/github-pages-deploy-action@v4
@@ -93,7 +96,8 @@ jobs:
             git -C gh-pages rm -rf . >/dev/null 2>&1 || true
             find gh-pages -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
             touch gh-pages/.nojekyll
-            git -C gh-pages add .nojekyll
+            cp CNAME gh-pages/CNAME
+            git -C gh-pages add .nojekyll CNAME
             git -C gh-pages commit -m "chore: initialize gh-pages branch"
             git -C gh-pages push origin gh-pages
           fi
@@ -108,8 +112,9 @@ jobs:
           mkdir -p "gh-pages/${PREVIEW_PATH}"
           rsync -a --delete build/ "gh-pages/${PREVIEW_PATH}/"
           touch gh-pages/.nojekyll
+          cp CNAME gh-pages/CNAME
 
-          git -C gh-pages add "${PREVIEW_PATH}" .nojekyll
+          git -C gh-pages add "${PREVIEW_PATH}" .nojekyll CNAME
 
           if git -C gh-pages diff --cached --quiet; then
             exit 0
