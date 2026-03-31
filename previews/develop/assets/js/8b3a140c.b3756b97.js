@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[6101],{87346(i,t,a){a.r(t),a.d(t,{default:()=>o});var u=a(56347),n=a(74848);function o(){return(0,n.jsx)(u.rd,{to:"/contato"})}}}]);

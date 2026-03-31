@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[9969],{19808(i,u,a){a.r(u),a.d(u,{default:()=>t});var n=a(56347),o=a(74848);function t(){return(0,o.jsx)(n.rd,{to:"/sobre/ong"})}}}]);
