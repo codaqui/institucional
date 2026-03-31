@@ -5,7 +5,7 @@ description: Links e ambientes digitais da Codaqui
 
 # Links
 
-## Cronograma da Codaqui 2025
+## Cronograma da Codaqui 2026
 
 Para acessar o nosso cronograma [clique aqui](/participe/estudar).
 

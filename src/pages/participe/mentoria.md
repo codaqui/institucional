@@ -7,17 +7,19 @@ description: Programa de mentoria da Codaqui
 
 ## Público Alvo
 
-:::info[A Codaqui é uma escola Gratuita!]
-A Codaqui é uma escola gratuita de tecnologia que tem como objetivo ensinar programação e desenvolvimento de produtos tecnológicos para jovens de 12 a 17 anos. Se você possui mais de 17 anos, temos um programa de mentoria individual, onde você pode aprender a programar e desenvolver projetos de acordo com o seu interesse.
+:::info[Programa gratuito da Associação Codaqui]
+A **Associação Codaqui** oferece programas gratuitos de tecnologia abertos a qualquer pessoa, sem restrição de idade. Se você está dando os primeiros passos ou quer aprofundar conhecimentos, há um espaço para você aqui.
 :::
 
-O Projeto #QueroMentoria é uma iniciativa da Codaqui que envolve o projeto [#QueroEstudar](/participe/estudar) e [#QueroApoiar](/participe/apoiar) e queremos oferecer mentorias e aulas particulares a pessoas que estão iniciando na área de tecnologia. Para esse projeto você pode se inscrever como mentor ou mentorado.
+O Projeto #QueroMentoria é uma iniciativa da Codaqui que conecta o [#QueroEstudar](/participe/estudar) ao [#QueroApoiar](/participe/apoiar), oferecendo mentorias e sessões individuais a pessoas que estão iniciando na área de tecnologia. Você pode se inscrever como mentor ou mentorado.
 
 ## Onde?
 
 As mentorias e aulas particulares serão realizadas online, através de ferramentas como Discord e Google Meet.
 
 ## Quero uma mentoria!
+
+Conheça nossos [mentores](/sobre/equipe#mentores) e agende uma sessão:
 
 <a href="https://calendar.google.com/calendar/appointments/AcZssZ3ofYNXgj7RZo-JvhnBpBxo5kryoqul_raZzhg=?gv=true" target="_blank" style={{display: 'inline-block', padding: '10px 20px', backgroundColor: '#33B679', color: 'white', borderRadius: '4px', textDecoration: 'none', fontWeight: 'bold'}}>📅 Agendar um compromisso</a>
 
@@ -28,3 +30,4 @@ As mentorias e aulas particulares serão realizadas online, através de ferramen
 | Backend e .NET | Matheus Luis | Para pessoas que desejam aprender e seguir carreira dentro do Ambiente .NET | Segunda, Quarta e Sexta das 19h às 20h |
 | Como organizar eventos na sua cidade | [Ivo Batistela](https://github.com/byivo) | Mentoria para quem quer organizar um evento na sua própria cidade | Segunda à Sexta, 18h às 18:30h |
 | Empreendedorismo | Renan Ceratto | Mentoria para quem deseja empreender e não sabe por onde começar | Quinta das 19h às 20h |
+

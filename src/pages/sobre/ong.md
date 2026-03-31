@@ -1,56 +1,70 @@
 ---
 title: Associação
-description: Transforme seu Projeto ou Comunidade com Nosso Programa de Apoio Institucional
+description: Programa de Apoio Institucional da Codaqui para comunidades de tecnologia
 ---
 
-# Transforme seu Projeto ou Comunidade com Nosso Programa de Apoio Institucional
+# Programa de Apoio Institucional
 
 Capacite sua comunidade, amplie seu impacto e aumente seu alcance com nosso programa de apoio institucional e suporte especializado.
 
-## Comunidades
+## Comunidades apoiadas
 
-### Codaqui
+### 🏠 Codaqui
 
-[Codaqui.dev](https://www.codaqui.dev/) é uma escola de programação sem fins lucrativos que apoia jovens que desejam aprender a desenvolver produtos tecnológicos mas não possuem acesso a uma educação tecnológica por outros meios.
+A **Associação Codaqui** é a entidade responsável por este programa de apoio. Atuamos como guarda-chuva institucional para comunidades de tecnologia, oferecendo estrutura jurídica, gestão de projetos e suporte para iniciativas sem fins lucrativos.
 
-Com foco em inclusão, diversidade e aprendizado contínuo, a Codaqui.dev organiza meetups, trilhas de aprendizado, oficinas e outras atividades que aproximam profissionais experientes, iniciantes e curiosos do universo da programação.
+[🌐 codaqui.dev](https://www.codaqui.dev/)
 
-Se você está começando na área ou já tem experiência e quer trocar ideias com pessoas engajadas e acolhedoras, a Codaqui.dev é o lugar certo pra você.
+### 👥 DevParaná
 
-### DevParana
+Comunidade sem fins lucrativos que conecta pessoas desenvolvedoras de software em todo o estado do Paraná. Fundada em 2015 e sediada em Maringá, nasceu com o propósito de fortalecer o ecossistema tecnológico local.
 
-[DevParaná](https://devpr.org/) é uma comunidade sem fins lucrativos que conecta pessoas desenvolvedoras de software em todo o estado do Paraná. Fundada em 2015 e sediada em Maringá, a iniciativa nasceu com o propósito de fortalecer o ecossistema tecnológico local por meio da colaboração, da troca de experiências e da promoção do conhecimento.
+Ao longo dos anos, promoveu meetups, workshops, hackathons e a conferência anual DevPR Conf, reunindo centenas de profissionais e estudantes de tecnologia.
 
-Ao longo dos anos, o DevParaná tem sido palco de eventos marcantes como meetups, workshops, hackathons e a conferência anual DevPR Conf, que reúne centenas de profissionais, estudantes e entusiastas da tecnologia. Com foco em diversidade, inovação e impacto regional, a comunidade promove encontros presenciais e online que estimulam o crescimento profissional e o networking entre seus participantes.
+[🌐 devpr.org](https://devpr.org/)
 
-### Elas no código
+### ♀️ Elas no Código
 
-[Elas no código](https://www.instagram.com/accounts/login/?next=https%3A%2F%2Fwww.instagram.com%2Felasnocodigo%2F&is_from_rle) é uma iniciativa que tem como objetivo inserir mulheres no setor da tecnologia e apoiar as que já estão, empoderando-as e oferecendo mais oportunidades de conhecimento.
+Iniciativa que tem como objetivo inserir mulheres no setor da tecnologia e apoiar as que já estão, empoderando-as e oferecendo mais oportunidades de conhecimento e desenvolvimento profissional.
 
-### Campos Tech
+[📷 @elasnocodigo](https://www.instagram.com/elasnocodigo/)
 
-[CamposTech](https://campostechpg.com.br/) é um espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa (PR). Seu objetivo é fomentar conexões entre estudantes, profissionais, empresas e entusiastas da área tech, promovendo eventos, capacitações, networking e projetos que impulsionam o ecossistema local.
+### 💻 CamposTech
 
-Com uma abordagem inclusiva e dinâmica, a Compos Tech busca transformar ideias em soluções reais e fortalecer o desenvolvimento tecnológico da região.
+Espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa (PR). Fomenta conexões entre estudantes, profissionais, empresas e entusiastas da área tech, promovendo eventos, capacitações e networking.
 
-## Como podemos ajudar
+[🌐 campostechpg.com.br](https://campostechpg.com.br/)
 
-Nosso suporte institucional é desenvolvido para atender às necessidades únicas do seu projeto social. Oferecemos uma gama de benefícios, incluindo:
+### ☁️ Cloud Native Maringá
 
-- **Recursos Exclusivos**: Acesso a ferramentas e materiais de apoio, além de um suporte completo para garantir que todos os aspectos do seu projeto sejam bem geridos e alinhados.
+Grupo de Meetup oficial da **Cloud Native Computing Foundation (CNCF)** em Maringá — PR. Fomenta o aprendizado de tecnologias cloud-native, organiza grupos de estudo para certificações (KCNA, CKA, CKAD) e promove encontros entre estudantes e profissionais de SRE, DevOps e arquitetura de software.
 
-- **Mentoria Especializada**: Orientação de especialistas nas áreas de tecnologia, desenvolvimento, jurídico e contábil.
+[💬 WhatsApp](https://chat.whatsapp.com/DJeegYRE1SC1zQuW64Hmzn) · [🌐 community.cncf.io](https://community.cncf.io/cloud-native-maringa/)
 
-- **Conexão**: Acesso a uma rede de contatos com profissionais e líderes da indústria, ampliando suas oportunidades e promovendo sua expansão.
+---
 
-- **Apoio Financeiro**: Oportunidades de financiamento e patrocínio para apoiar seus projetos e eventos.
+## O que oferecemos
 
-- **Visibilidade**: Assistência na promoção da sua comunidade e das suas iniciativas, aumentando sua visibilidade e alcance.
+Nosso suporte institucional é desenvolvido para atender às necessidades únicas do seu projeto social.
+
+- **🔧 Recursos Exclusivos**: Acesso a ferramentas e materiais de apoio, com suporte completo para que todos os aspectos do seu projeto sejam bem geridos e alinhados.
+- **⭐ Mentoria Especializada**: Orientação de especialistas nas áreas de tecnologia, desenvolvimento, jurídico e contábil.
+- **🤝 Conexão**: Acesso a uma rede de contatos com profissionais e líderes da indústria, ampliando suas oportunidades.
+- **💰 Apoio Financeiro**: Oportunidades de financiamento e patrocínio para apoiar seus projetos e eventos.
+- **📢 Visibilidade**: Assistência na promoção da sua comunidade e iniciativas.
 
 ## Como funciona
 
-Envie um e-mail para [contato@codaqui.dev](mailto:contato@codaqui.dev), participe de uma reunião no nosso [Discord](https://codaqui.dev/bio) e venha conhecer nosso [WhatsApp](https://codaqui.dev/bio).
+:::info[Entre em contato e venha fazer parte]
+O primeiro passo é bem simples: apresente seu projeto e vamos conversar sobre como podemos ajudar.
+
+[✉️ Enviar e-mail](mailto:contato@codaqui.dev) · [💬 Discord](/bio) · [📱 WhatsApp](/bio)
+:::
 
 ## Transparência
 
-Você pode consultar os nossos demonstrativos financeiros através do [Open Collective](http://opencollective.com/codaqui) e as atas das reuniões por meio do [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing), caso tenha alguma dúvida comente o arquivo ou entre em contato pelo e-mail [contato@codaqui.dev](mailto:contato@codaqui.dev).
+A Codaqui acredita em gestão aberta e prestação de contas pública.
+
+- **📊 Demonstrativos Financeiros**: Consulte receitas, despesas e repasses através do [Open Collective](http://opencollective.com/codaqui).
+- **📄 Atas de Reuniões**: Todas as atas estão disponíveis publicamente no [Google Drive](https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing).
+

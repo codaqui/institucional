@@ -16,19 +16,21 @@ description: Inscreva-se para estudar na Codaqui
 
 ## Público Alvo
 
-Nosso formato de aulas em grupo é ideal para pessoas em início de carreira ou transição, porém não limitamos idade ou qualquer tipo de critério para inscrição, apenas "cobramos" frequência e participação de qualquer pessoa que deseja aprender programação e desenvolver produtos tecnológicos, jogos, aplicativos e sites. Além disso, oferecemos mentorias individuais para pessoas que desejam um acompanhamento mais próximo.
+Nosso formato de encontros em grupo é ideal para pessoas em início de carreira ou em transição. Não limitamos idade ou qualquer outro critério — apenas pedimos frequência e participação. Além dos encontros coletivos, oferecemos mentorias individuais para quem deseja um acompanhamento mais próximo.
 
-Os grupos de estudos são voltados para pessoas com conhecimento prévio na área, que desejam aprofundar seus estudos em temas específicos, recomendamos a participação de pessoas com experiência intermediária ou avançada.
+Os grupos de estudos são voltados para participantes com conhecimento prévio na área que desejam aprofundar temas específicos. Recomendamos para pessoas com experiência intermediária ou avançada.
 
 ## Como funciona?
 
 ### O que esperar?
 
-Nossos alunos têm encontros semanais com um mentor, abordando conteúdos que dizem respeito ao mundo da tecnologia e variam conforme o nível de conhecimento da turma. Fazem parte da trilha pedagógica as linguagens de programação, a lógica computacional, os componentes dos computadores, dentre outros conteúdos.
+Nossos participantes têm encontros semanais com um mentor, abordando conteúdos do mundo da tecnologia que variam conforme o nível de conhecimento do grupo. Fazem parte da trilha as linguagens de programação, a lógica computacional, os componentes dos computadores, entre outros temas.
 
-Os encontros de mentoria acontecem de forma virtual, e nos demais dias os alunos ainda podem consumir conteúdo de ensino, seja por meio de atividades ou por outro tipo de material fornecido pelo mentor.
+Os encontros de mentoria acontecem de forma virtual, e nos demais dias os participantes ainda podem consumir conteúdo das trilhas ou materiais fornecidos pelo mentor.
 
-Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord, que reúne toda a comunidade de alunos, mentores e colaboradores da Codaqui.
+:::tip[Comunidade ativa]
+Nossos participantes podem tirar dúvidas a qualquer momento no nosso [Discord](https://discord.com/invite/xuTtxqCPpz), que reúne toda a comunidade de participantes, mentores e colaboradores da Codaqui.
+:::
 
 ### O que poderei aprender?
 
@@ -56,8 +58,8 @@ Nossos alunos podem tirar dúvidas a qualquer momento em nosso canal do Discord,
 | ---------| ---------- | ------- | --------- | ---------------- |
 | Fevereiro | Gestão e Produtividade | 18/02 (Introdução), 24/02 e 02/03 (Aprofundamento) | Danilo Mesquita | Discord |
 | Março | Cloud / Infra | A confirmar | A confirmar | Discord |
-| Abril | Finanças e Economia | A confirmar | A confirmar | Discord |
-| Abril | Python e Lógica de Programação | A confirmar | A confirmar | Discord |
+| Abril | [Educação Financeira](/blog/2026/03/30/curso-educacao-financeira) | A confirmar | Valnaire Nascimento | Discord |
+| Abril | [Lógica de Programação com Python](/blog/2026/03/30/curso-introducao-python) | 20/04, 22/04, 27/04 e 29/04 às 20h30 | Paulinea | Discord |
 | Maio | Product Discovery & Plataforma como Produto | A confirmar | A confirmar | Discord |
 | Junho | FinOps / CloudSRE | A confirmar | A confirmar | Discord |
 | Julho | C# e SQL | A confirmar | A confirmar | Discord |
@@ -84,18 +86,8 @@ _Em desenvolvimento_
 
 ## Plataformas Digitais
 
-Participe da nossa comunidade no WhatsApp para interagir com outros membros. Além disso, você também pode utilizar o Discord para encontrar seus colegas e estudar em comunidade. Essas plataformas oferecem ótimas oportunidades para trocar ideias, compartilhar conhecimento e colaborar com outros estudantes.
+Participe da nossa comunidade no WhatsApp para interagir com outros membros. Além disso, você também pode utilizar o Discord para encontrar outros participantes e estudar em comunidade.
 
-<div className="cards-grid">
+- [📱 WhatsApp](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up)
+- [💬 Discord](https://discord.com/invite/xuTtxqCPpz)
 
-<div className="card">
-<h4>📱 WhatsApp</h4>
-<p><a href="https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up"><img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTamvOqJHyNAZ_NUjZcXXTVaF3HCd17B-Su_Q&amp;usqp=CAU" alt="Logo do WhatsApp" /></a></p>
-</div>
-
-<div className="card">
-<h4>💬 Discord</h4>
-<p><a href="https://discord.com/invite/xuTtxqCPpz"><img src="https://assets-global.website-files.com/6257adef93867e50d84d30e2/636e0b5061df29d55a92d945_full_logo_blurple_RGB.svg" alt="Logo do Discord" /></a></p>
-</div>
-
-</div>

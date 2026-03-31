@@ -123,6 +123,26 @@
   justify-content: center;
 }
 
+.sectionTitle {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--ifm-color-emphasis-200);
+  padding-bottom: 0.5rem;
+}
+
+.sectionDesc {
+  color: var(--ifm-color-emphasis-700);
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.specialty {
+  font-size: 0.75rem;
+  color: var(--ifm-color-primary);
+  font-style: italic;
+}
+
 .link {
   font-size: 0.78rem;
   font-weight: 500;
