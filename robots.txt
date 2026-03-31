@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /previews/
+
+Sitemap: https://codaqui.dev/sitemap.xml
