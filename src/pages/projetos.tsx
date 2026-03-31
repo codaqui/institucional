@@ -1,66 +1,99 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import styles from "./projetos.module.css";
-
-type Project = {
-  emoji: string;
-  title: string;
-  description: string;
-  href: string;
-};
-
-const projects: Project[] = [
-  { emoji: "🔒", title: "Boletim Diário de Segurança", description: "Todos os dias às 10h, um bot publica um boletim com notícias sobre segurança da informação.", href: "https://github.com/codaqui/boletim-diario-seguranca" },
-  { emoji: "📊", title: "Laboratório de Data Analytics", description: "Laboratório para aprender Data Analytics, testando conceitos e brincando com Python.", href: "https://github.com/codaqui/dados" },
-  { emoji: "🔑", title: "Secret Sharing", description: "Gerador e compartilhador de senhas para demonstrar a capacidade do PiPing Server.", href: "https://github.com/codaqui/secret-sharing" },
-  { emoji: "🐙", title: "GitHub Action FreeDiskSpace", description: "GitHub Action para limpar o espaço em disco dos Runners SaaS do GitHub.", href: "https://github.com/endersonmenezes/free-disk-space" },
-  { emoji: "🐙", title: "CODEOWNERS Super Power", description: "GitHub Action que aumenta o poder do arquivo CODEOWNERS dentro do GitHub.", href: "https://github.com/endersonmenezes/codeowners-superpowers" },
-  { emoji: "🏗️", title: "Laboratório de Terraform", description: "Laboratório para estudar Terraform dentro da Codaqui.", href: "https://github.com/codaqui/terraform-organization" },
-  { emoji: "🐙", title: "Tutor", description: "Aplicação para explorar Python e conceitos do mundo de Desenvolvimento.", href: "https://github.com/codaqui/tutor" },
-  { emoji: "📈", title: "Copilot Dashboard", description: "Painel para visualizar e analisar dados de uso do GitHub Copilot.", href: "https://github.com/codaqui/copilot-dashboard" },
-  { emoji: "🎭", title: "Backstage Lab", description: "Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.", href: "https://github.com/codaqui/backstage" },
-];
+import {
+  Card,
+  CardContent,
+  CardActions,
+  Button,
+  Grid,
+  Box,
+  Typography,
+  Container,
+} from "@mui/material";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { projects, type Project } from "../data/projects";
 
 function ProjectCard({ emoji, title, description, href }: Project) {
   return (
-    <div className={styles.card}>
-      <span className={styles.emoji}>{emoji}</span>
-      <h3 className={styles.title}>{title}</h3>
-      <p className={styles.description}>{description}</p>
-      <a href={href} target="_blank" rel="noopener noreferrer" className={styles.button}>
-        Ver no GitHub →
-      </a>
-    </div>
+    <Card
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        border: 1,
+        borderColor: "divider",
+        transition: "all 0.2s",
+        "&:hover": {
+          transform: "translateY(-4px)",
+          boxShadow: 6,
+          borderColor: "primary.main",
+        },
+      }}
+    >
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Box sx={{ fontSize: "2.5rem", mb: 1 }}>{emoji}</Box>
+        <Typography variant="h6" fontWeight={700} gutterBottom>
+          {title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {description}
+        </Typography>
+      </CardContent>
+      <CardActions>
+        <Button
+          variant="outlined"
+          size="small"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          endIcon={<OpenInNewIcon />}
+        >
+          Ver no GitHub
+        </Button>
+      </CardActions>
+    </Card>
   );
 }
 
 export default function ProjetosPage(): React.JSX.Element {
   return (
     <Layout title="Projetos" description="Projetos mantidos pela comunidade Codaqui">
-      <main className="container margin-vert--xl">
-        <div className="text--center margin-bottom--xl">
-          <h1>Projetos 🛠️</h1>
-          <p className={styles.subtitle}>
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box sx={{ textAlign: "center", mb: 6 }}>
+          <Typography variant="h3" fontWeight={700} gutterBottom>
+            Projetos 🛠️
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
             A Codaqui é uma comunidade viva. Abaixo estão projetos que mantemos — em laboratório
             ou em produção — abertos para contribuição.
-          </p>
-        </div>
+          </Typography>
+        </Box>
 
-        <div className={styles.howTo}>
-          <h2>Como contribuir?</h2>
-          <ol>
-            <li>Escolha um projeto que desperte seu interesse.</li>
-            <li>Abra uma <em>issue</em> descrevendo o que gostaria de fazer.</li>
-            <li>Aguarde o ok da equipe e mãos à obra!</li>
-          </ol>
-        </div>
+        <Card variant="outlined" sx={{ mb: 6, p: 3, bgcolor: "action.hover" }}>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
+            Como contribuir?
+          </Typography>
+          <Box component="ol" sx={{ pl: 3, m: 0 }}>
+            <Typography component="li" variant="body1" sx={{ mb: 0.5 }}>
+              Escolha um projeto que desperte seu interesse.
+            </Typography>
+            <Typography component="li" variant="body1" sx={{ mb: 0.5 }}>
+              Abra uma <em>issue</em> descrevendo o que gostaria de fazer.
+            </Typography>
+            <Typography component="li" variant="body1">
+              Aguarde o ok da equipe e mãos à obra!
+            </Typography>
+          </Box>
+        </Card>
 
-        <div className={styles.grid}>
-          {projects.map((p) => (
-            <ProjectCard key={p.title} {...p} />
+        <Grid container spacing={3}>
+          {projects.map((project) => (
+            <Grid key={project.title} size={{ xs: 12, sm: 6, md: 4 }}>
+              <ProjectCard {...project} />
+            </Grid>
           ))}
-        </div>
-      </main>
+        </Grid>
+      </Container>
     </Layout>
   );
 }

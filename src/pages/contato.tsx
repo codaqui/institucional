@@ -1,58 +1,83 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import styles from "./contato.module.css";
+import {
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  Chip,
+  Grid,
+  Container,
+} from "@mui/material";
+import EmailIcon from "@mui/icons-material/Email";
+import InstagramIcon from "@mui/icons-material/Instagram";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import TwitterIcon from "@mui/icons-material/Twitter";
+import ForumIcon from "@mui/icons-material/Forum";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
+import { socialChannels, type SocialChannel } from "../data/social";
 
-type Channel = {
-  emoji: string;
-  name: string;
-  description: string;
-  href: string;
-  cta: string;
+const iconMap: Record<string, React.ReactElement> = {
+  email: <EmailIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
+  instagram: <InstagramIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
+  linkedin: <LinkedInIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
+  twitter: <TwitterIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
+  discord: <ForumIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
+  whatsapp: <WhatsAppIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
 };
 
-const channels: Channel[] = [
-  { emoji: "📧", name: "E-mail", description: "Nos envie uma mensagem diretamente.", href: "mailto:contato@codaqui.dev", cta: "contato@codaqui.dev" },
-  { emoji: "📸", name: "Instagram", description: "Acompanhe nossa rotina e novidades.", href: "https://www.instagram.com/codaqui.dev/", cta: "@codaqui.dev" },
-  { emoji: "💼", name: "LinkedIn", description: "Conecte-se com nossa equipe.", href: "https://www.linkedin.com/company/codaqui/", cta: "Codaqui" },
-  { emoji: "🐦", name: "Twitter / X", description: "Fique por dentro das atualizações.", href: "https://twitter.com/codaquidev", cta: "@codaquidev" },
-  { emoji: "💬", name: "Discord", description: "Converse com participantes e mentores ao vivo.", href: "https://discord.com/invite/xuTtxqCPpz", cta: "Entrar no servidor" },
-  { emoji: "📱", name: "WhatsApp", description: "Receba avisos e novidades do projeto.", href: "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up", cta: "Entrar no grupo" },
-];
-
-function ChannelCard({ emoji, name, description, href, cta }: Channel) {
+function ChannelCard({ key: channelKey, name, description, href, cta }: SocialChannel) {
   const isExternal = href.startsWith("http");
   return (
-    <a
+    <Card
+      component="a"
       href={href}
-      className={styles.card}
       target={isExternal ? "_blank" : undefined}
       rel={isExternal ? "noopener noreferrer" : undefined}
+      sx={{
+        textDecoration: "none",
+        color: "inherit",
+        display: "flex",
+        alignItems: "center",
+        gap: 2,
+        p: 2.5,
+        transition: "all 0.2s",
+        "&:hover": { transform: "translateY(-3px)", boxShadow: 4, borderColor: "primary.main" },
+        border: 1,
+        borderColor: "divider",
+      }}
     >
-      <span className={styles.emoji}>{emoji}</span>
-      <div className={styles.body}>
-        <strong className={styles.name}>{name}</strong>
-        <span className={styles.desc}>{description}</span>
-      </div>
-      <span className={styles.cta}>{cta} →</span>
-    </a>
+      <Box>{iconMap[channelKey]}</Box>
+      <Box flex={1}>
+        <Typography variant="h6">{name}</Typography>
+        <Typography variant="body2" color="text.secondary">
+          {description}
+        </Typography>
+      </Box>
+      <Chip label={cta} variant="outlined" color="primary" size="small" sx={{ flexShrink: 0 }} />
+    </Card>
   );
 }
 
 export default function ContatoPage(): React.JSX.Element {
   return (
     <Layout title="Contato" description="Entre em contato com a Codaqui">
-      <main className="container margin-vert--xl">
-        <div className="text--center margin-bottom--xl">
-          <h1>Fale com a gente 👋</h1>
-          <p className={styles.subtitle}>
+      <main>
+        <Container maxWidth="md" sx={{ py: 8 }}>
+          <Typography variant="h3" textAlign="center" mb={1}>
+            Fale com a gente 👋
+          </Typography>
+          <Typography variant="body1" color="text.secondary" textAlign="center" mb={5}>
             Escolha o canal que preferir — estamos disponíveis em várias plataformas.
-          </p>
-        </div>
-        <div className={styles.grid}>
-          {channels.map((c) => (
-            <ChannelCard key={c.name} {...c} />
-          ))}
-        </div>
+          </Typography>
+          <Grid container spacing={2}>
+            {socialChannels.map((c) => (
+              <Grid key={c.key} size={{ xs: 12, sm: 6 }}>
+                <ChannelCard {...c} />
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
       </main>
     </Layout>
   );

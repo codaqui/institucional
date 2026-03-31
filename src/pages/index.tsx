@@ -5,6 +5,16 @@ import Link from "@docusaurus/Link";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import { useColorMode } from "@docusaurus/theme-common";
 import styles from "./index.module.css";
+import {
+  Grid,
+  Card,
+  CardContent,
+  Box,
+  Typography,
+  Container,
+} from "@mui/material";
+import { communities, type Community } from "../data/communities";
+import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
 
 function HeroBanner() {
   const { siteConfig } = useDocusaurusContext();
@@ -72,126 +82,151 @@ const features: FeatureItem[] = [
   },
 ];
 
-function Feature({ title, emoji, description }: FeatureItem) {
+function FeaturesSection() {
   return (
-    <div className={clsx("col col--6")}>
-      <div className={styles.featureCard}>
-        <h3>
-          {emoji} {title}
-        </h3>
-        <p>{description}</p>
-      </div>
-    </div>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Typography variant="h4" fontWeight={700} gutterBottom>
+        🎓 Nossa solução
+      </Typography>
+      <Grid container spacing={3}>
+        {features.map((feature) => (
+          <Grid key={feature.title} size={{ xs: 12, sm: 6 }}>
+            <Card sx={{ height: "100%", border: 1, borderColor: "divider" }}>
+              <CardContent>
+                <Box component="span" sx={{ fontSize: "2rem", display: "block", mb: 1 }}>
+                  {feature.emoji}
+                </Box>
+                <Typography variant="h6" fontWeight={700} gutterBottom>
+                  {feature.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {feature.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 }
 
-type CommunityItem = {
-  name: string;
-  logo: string;
-  link: string;
-};
-
-const communities: CommunityItem[] = [
-  {
-    name: "DevParaná",
-    logo: "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
-    link: "https://github.com/DeveloperParana",
-  },
-  {
-    name: "CamposTech",
-    logo: "/img/campostech.svg",
-    link: "https://www.instagram.com/campostechpg",
-  },
-  {
-    name: "Elas no Código",
-    logo: "/img/elasnocodigo.svg",
-    link: "https://www.instagram.com/elasnocodigo",
-  },
-  {
-    name: "TI Social",
-    logo: "/img/tisocial.png",
-    link: "https://www.instagram.com/tisocialmaringa",
-  },
-  {
-    name: "Cloud Native Maringá",
-    logo: "https://avatars.githubusercontent.com/u/13455738?v=4",
-    link: "https://community.cncf.io/cloud-native-maringa/",
-  },
-];
-
 function CommunitySection() {
   return (
-    <section className={styles.communitySection}>
-      <div className="container">
-        <h2>🤝 Comunidades Participantes</h2>
-        <div className="community-grid">
-          {communities.map((community) => (
-            <a
-              key={community.name}
-              href={community.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="community-item"
-            >
-              <img src={community.logo} alt={`Logo ${community.name}`} />
-              <strong>{community.name}</strong>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
+    <Box sx={{ bgcolor: "action.hover", py: 6 }}>
+      <Container maxWidth="lg">
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          🤝 Comunidades Participantes
+        </Typography>
+        <Grid container spacing={2} justifyContent="center">
+          {communities.map((community: Community) => {
+            const link = community.links[0]?.url ?? "#";
+            return (
+              <Grid key={community.id} size={{ xs: 6, sm: 4, md: 2 }}>
+                <Box
+                  component="a"
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    textAlign: "center",
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1,
+                    p: 1,
+                    borderRadius: 2,
+                    transition: "all 0.2s",
+                    "&:hover": { bgcolor: "action.selected" },
+                  }}
+                >
+                  <img
+                    src={community.logo}
+                    alt={community.name}
+                    style={{ width: 64, height: 64, objectFit: "contain", borderRadius: 8 }}
+                  />
+                  <Typography variant="body2" fontWeight={600}>
+                    {community.name}
+                  </Typography>
+                </Box>
+              </Grid>
+            );
+          })}
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 
 function LinksSection() {
+  const channels = [
+    {
+      href: WHATSAPP_URL,
+      emoji: "📱",
+      title: "WhatsApp",
+      description: "Entre no nosso grupo do WhatsApp",
+    },
+    {
+      href: DISCORD_URL,
+      emoji: "💬",
+      title: "Discord",
+      description: "Participe do nosso servidor do Discord",
+    },
+  ];
+
   return (
-    <section className={styles.linksSection}>
-      <div className="container">
-        <h2>🔗 Links Importantes</h2>
-        <div className={styles.linksGrid}>
-          <a
-            href="https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.linkCard}
-          >
-            <h3>📱 WhatsApp</h3>
-            <p>Entre no nosso grupo do WhatsApp</p>
-          </a>
-          <a
-            href="https://discord.com/invite/xuTtxqCPpz"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.linkCard}
-          >
-            <h3>💬 Discord</h3>
-            <p>Participe do nosso servidor do Discord</p>
-          </a>
-        </div>
-      </div>
-    </section>
+    <Container maxWidth="lg" sx={{ py: 6 }}>
+      <Typography variant="h4" fontWeight={700} gutterBottom>
+        🔗 Links Importantes
+      </Typography>
+      <Grid container spacing={3}>
+        {channels.map((channel) => (
+          <Grid key={channel.title} size={{ xs: 12, sm: 6 }}>
+            <Card
+              component="a"
+              href={channel.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                display: "block",
+                textDecoration: "none",
+                color: "inherit",
+                border: 1,
+                borderColor: "divider",
+                textAlign: "center",
+                transition: "all 0.2s",
+                "&:hover": {
+                  transform: "translateY(-3px)",
+                  boxShadow: 4,
+                  borderColor: "primary.main",
+                },
+              }}
+            >
+              <CardContent>
+                <Typography variant="h5" gutterBottom>
+                  {channel.emoji} {channel.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {channel.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 }
 
 export default function Home(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   return (
-    <Layout
-      title="Página Inicial"
-      description={siteConfig.tagline}
-    >
+    <Layout title="Página Inicial" description={siteConfig.tagline}>
       <HeroBanner />
       <main>
-        <section className={styles.features}>
-          <div className="container">
-            <h2>🎓 Nossa solução</h2>
-            <div className="row">
-              {features.map((props, idx) => (
-                <Feature key={idx} {...props} />
-              ))}
-            </div>
-          </div>
-        </section>
+        <FeaturesSection />
         <CommunitySection />
         <LinksSection />
       </main>
