@@ -1,19 +1,25 @@
-name: "Deploy Environment"
+name: Deploy Environment
 
 on:
   push:
-    branches: [ develop, main ]
+    branches:
+      - develop
+      - main
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  build:
+  build-and-deploy:
+    name: Build & Deploy
     runs-on: ubuntu-latest
+    outputs:
+      env_name: ${{ steps.branch_check.outputs.env_name }}
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Determine deploy branch
         id: branch_check
@@ -27,7 +33,7 @@ jobs:
             echo "env_name=gh-pages-feature" >> $GITHUB_OUTPUT
           fi
 
-      - name: Set up Node.js
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -45,4 +51,48 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
           publish_branch: ${{ steps.branch_check.outputs.env_name }}
+
+  notify:
+    name: Notify Merged PR
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: success()
+
+    steps:
+      - name: Find associated merged PR
+        id: find-pr
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+            });
+            const merged = prs.find(pr => pr.merged_at !== null);
+            if (merged) {
+              core.info(`Found merged PR #${merged.number}`);
+              return String(merged.number);
+            }
+            core.info('No merged PR found for this commit');
+            return '';
+
+      - name: Comment on merged PR
+        if: steps.find-pr.outputs.result != ''
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          number: ${{ steps.find-pr.outputs.result }}
+          header: deploy-status
+          message: |
+            ## 🚀 Deployed Successfully!
+
+            This PR has been deployed to GitHub Pages.
+
+            | | |
+            |---|---|
+            | **Branch** | `${{ github.ref_name }}` |
+            | **Environment** | `${{ needs.build-and-deploy.outputs.env_name }}` |
+            | **Commit** | `${{ github.sha }}` |
+            | **Run** | [View deployment](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
 

@@ -1,0 +1,112 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  typecheck:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript check
+        run: npm run typecheck
+
+  build:
+    name: Build & Upload Preview
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build website
+        id: build
+        run: npm run build
+
+      - name: Upload build artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-preview-pr${{ github.event.pull_request.number }}
+          path: build/
+          retention-days: 7
+
+      - name: Post build success comment
+        if: success()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: build-status
+          message: |
+            ## ✅ Build Successful
+
+            The Docusaurus site built successfully for this PR.
+
+            | | |
+            |---|---|
+            | **Commit** | `${{ github.sha }}` |
+            | **Artifact** | `build-preview-pr${{ github.event.pull_request.number }}` (7 days) |
+            | **Run** | [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+
+      - name: Post build failure comment
+        if: failure()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: build-status
+          message: |
+            ## ❌ Build Failed
+
+            The Docusaurus build failed for this PR. Please check the logs before merging.
+
+            | | |
+            |---|---|
+            | **Commit** | `${{ github.sha }}` |
+            | **Run** | [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+
+  lighthouse:
+    name: Lighthouse CI
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-preview-pr${{ github.event.pull_request.number }}
+          path: build/
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v11
+        with:
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          runs: 1
+          staticDistDir: ./build
