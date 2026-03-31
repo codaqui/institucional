@@ -1,3 +1,7 @@
+import type { SocialProfile } from "./social-stats";
+
+export type { SocialProfile };
+
 export interface CommunityLink {
   type: "website" | "instagram" | "whatsapp" | "github";
   label: string;
@@ -13,6 +17,8 @@ export interface Community {
   location?: string;
   founded?: number;
   links: CommunityLink[];
+  /** Perfis sociais da comunidade — usados pela página de Insights */
+  socialProfiles?: SocialProfile[];
   tags: string[];
 }
 
@@ -30,6 +36,29 @@ export const communities: Community[] = [
       { type: "website", label: "devpr.org", url: "https://devpr.org/" },
       { type: "github", label: "GitHub", url: "https://github.com/DeveloperParana" },
     ],
+    socialProfiles: [
+      {
+        platform: "meetup",
+        handle: "developerparana",
+        url: "https://www.meetup.com/pt-BR/developerparana/",
+        countLabel: "membros",
+        baselineCount: 2100,
+      },
+      {
+        platform: "youtube",
+        handle: "@devparana",
+        url: "https://www.youtube.com/devparana",
+        countLabel: "inscritos",
+        baselineCount: 0,
+      },
+      {
+        platform: "instagram",
+        handle: "@devparana",
+        url: "https://www.instagram.com/devparana",
+        countLabel: "seguidores",
+        baselineCount: 0,
+      },
+    ],
     tags: ["developers", "paraná", "meetups", "conferências"],
   },
   {
@@ -41,6 +70,15 @@ export const communities: Community[] = [
       "Iniciativa que tem como objetivo inserir mulheres no setor da tecnologia e apoiar as que já estão, empoderando-as e oferecendo mais oportunidades de conhecimento e desenvolvimento profissional.",
     links: [
       { type: "instagram", label: "@elasnocodigo", url: "https://www.instagram.com/elasnocodigo/" },
+    ],
+    socialProfiles: [
+      {
+        platform: "instagram",
+        handle: "@elasnocodigo",
+        url: "https://www.instagram.com/elasnocodigo/",
+        countLabel: "seguidores",
+        baselineCount: 0,
+      },
     ],
     tags: ["mulheres", "inclusão", "empoderamento", "tech"],
   },
@@ -55,6 +93,15 @@ export const communities: Community[] = [
     links: [
       { type: "website", label: "campostechpg.com.br", url: "https://campostechpg.com.br/" },
     ],
+    socialProfiles: [
+      {
+        platform: "website",
+        handle: "campostechpg.com.br",
+        url: "https://campostechpg.com.br/",
+        countLabel: "site",
+        baselineCount: 0,
+      },
+    ],
     tags: ["inovação", "empreendedorismo", "networking"],
   },
   {
@@ -67,6 +114,15 @@ export const communities: Community[] = [
     location: "Maringá, PR",
     links: [
       { type: "instagram", label: "@tisocialmaringa", url: "https://www.instagram.com/tisocialmaringa" },
+    ],
+    socialProfiles: [
+      {
+        platform: "instagram",
+        handle: "@tisocialmaringa",
+        url: "https://www.instagram.com/tisocialmaringa",
+        countLabel: "seguidores",
+        baselineCount: 0,
+      },
     ],
     tags: ["inclusão digital", "educação", "social"],
   },
@@ -81,6 +137,15 @@ export const communities: Community[] = [
     links: [
       { type: "website", label: "community.cncf.io", url: "https://community.cncf.io/cloud-native-maringa/" },
       { type: "whatsapp", label: "WhatsApp", url: "https://chat.whatsapp.com/DJeegYRE1SC1zQuW64Hmzn" },
+    ],
+    socialProfiles: [
+      {
+        platform: "cncf",
+        handle: "cloud-native-maringa",
+        url: "https://community.cncf.io/cloud-native-maringa/",
+        countLabel: "membros",
+        baselineCount: 3,
+      },
     ],
     tags: ["cloud-native", "devops", "sre", "certificações"],
   },

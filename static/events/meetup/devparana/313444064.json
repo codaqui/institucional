@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "313444064",
+    "title": "[DevPR Guarapuava] Meetup 26/02",
+    "summary": "Meetup DevPR – Guarapuava A comunidade DevParaná realiza mais uma edição do meetup em Guarapuava, promovendo uma noite de conteúdo técnico, troca de experiências e networking entre desenvolvedores da região. Nesta ediçã…",
+    "startAt": "2026-02-26T19:00:00-03:00",
+    "endAt": "2026-02-26T21:30:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Centro de Inovação Guarapuava · Rua Nereu Ramos 1909, · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/313444064/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 61,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/f/7/c/highres_532824444.jpeg"
+  }
+}

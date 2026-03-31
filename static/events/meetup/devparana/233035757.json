@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "233035757",
+    "title": "2º encontro FEMUG Maringá",
+    "summary": "FEMUG \"Front-End Meet-Up Group\" é um projeto que nasceu da necessidade de unir os desenvolvedores Front-End de São Paulo, e então tornou-se uma idéia coletiva, para que o acesso à informação seja feito em qualquer lugar…",
+    "startAt": "2016-09-03T14:00:00-03:00",
+    "endAt": "2016-09-03T17:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Serrabits · Av. das indústrias, 462 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/233035757/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 18,
+    "creatorName": "Guilherme Bayer",
+    "creatorId": "156179012"
+  }
+}

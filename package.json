@@ -12,7 +12,14 @@
     "serve": "docusaurus serve",
     "write-translations": "docusaurus write-translations",
     "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "sync:events": "node scripts/sync-events.mjs",
+    "sync:events:full": "node scripts/sync-events.mjs --full",
+    "sync:social": "node scripts/sync-social-stats.mjs",
+    "sync:analytics": "node scripts/sync-analytics.mjs",
+    "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
+    "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
+    "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full"
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",

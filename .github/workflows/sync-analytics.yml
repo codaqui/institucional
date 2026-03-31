@@ -1,0 +1,63 @@
+name: Sync Analytics
+
+on:
+  workflow_dispatch:
+    inputs:
+      full:
+        description: 'Full consolidation (re-fetch all months)?'
+        required: false
+        default: 'false'
+        type: boolean
+  schedule:
+    # Runs at 02:30 UTC daily — after codaqui/dados publishes on the 2nd at 00:00 UTC
+    - cron: "30 2 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-analytics
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync analytics snapshot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Sync analytics (incremental)
+        if: ${{ github.event.inputs.full != 'true' }}
+        env:
+          DADOS_DISPATCH_TOKEN: ${{ secrets.DADOS_DISPATCH_TOKEN }}
+        run: npm run sync:analytics
+
+      - name: Sync analytics (full consolidation)
+        if: ${{ github.event.inputs.full == 'true' }}
+        env:
+          DADOS_DISPATCH_TOKEN: ${{ secrets.DADOS_DISPATCH_TOKEN }}
+        run: npm run sync:analytics:full
+
+      - name: Commit updated snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/analytics/index.json
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+
+          git commit -m "chore: sync analytics snapshot
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git push

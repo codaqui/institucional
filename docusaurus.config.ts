@@ -172,7 +172,7 @@ const config: Config = {
           items: [
             { label: "Equipe", to: "/sobre/equipe" },
             { label: "Associação", to: "/sobre/ong" },
-            { label: "Linha do Tempo", to: "/sobre/timeline" },
+            { label: "Insights", to: "/sobre/insights" },
             { label: "Pais e Responsáveis", to: "/sobre/pais-responsaveis" },
             { label: "Código de Conduta", to: "/sobre/conduta" },
           ],
@@ -196,6 +196,11 @@ const config: Config = {
             { label: "Python 101", to: "/trilhas/python/" },
             { label: "GitHub 101", to: "/trilhas/github/" },
           ],
+        },
+        {
+          label: "Eventos",
+          to: "/eventos",
+          position: "left",
         },
         {
           label: "Projetos",

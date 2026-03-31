@@ -1,0 +1,27 @@
+{
+  "entities": [
+    {
+      "entityId": "codaqui",
+      "fetchProfiles": [
+        { "platform": "discord",   "fetchId": "829882821559451659" },
+        { "platform": "github",    "fetchId": "codaqui" },
+        { "platform": "youtube",   "fetchId": "@codaqui" },
+        { "platform": "instagram", "fetchId": "codaqui.dev" }
+      ]
+    },
+    {
+      "entityId": "devparana",
+      "fetchProfiles": [
+        { "platform": "meetup",    "fetchId": "developerparana" },
+        { "platform": "youtube",   "fetchId": "devparana" },
+        { "platform": "instagram", "fetchId": "devparana" }
+      ]
+    },
+    {
+      "entityId": "cloudnativemaringa",
+      "fetchProfiles": [
+        { "platform": "cncf", "fetchId": "cloud-native-maringa" }
+      ]
+    }
+  ]
+}

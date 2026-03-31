@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265483348",
+    "title": "#1 Hablamos Meetup",
+    "summary": "¿Vamos hablar español? Primeira edição do Hablamos Meetup, um encontro dedicado aos amantes dos español para treinarmos o idioma com assuntos diversos. O objetivo principal do meetup é a conversação, então venha falar c…",
+    "startAt": "2019-10-12T17:00:00-03:00",
+    "endAt": "2019-10-12T19:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Sumerian Beer Special · Av. Bento Munhoz da Rocha Neto, 717 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265483348/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 8,
+    "creatorName": "Luis Berns",
+    "creatorId": "223750190",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/3/3/2/highres_485569970.jpeg"
+  }
+}

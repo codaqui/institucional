@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "273114764",
+    "title": "#19 Maringá Agile - Entrega de Valor e Formação de times",
+    "summary": "A décima nona edição do Maringá Agile contará com a presença da Érika Lopes de Moraes Gomes e do Lucas Costa Mendes compartilhando sobre temas team building e entrega de valor, respectivamente. LINK DO YOUTUBE: https://…",
+    "startAt": "2020-09-16T19:00:00-03:00",
+    "endAt": "2020-09-16T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/273114764/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 28,
+    "creatorName": "Wagner Fusca",
+    "creatorId": "188810094",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg"
+  }
+}

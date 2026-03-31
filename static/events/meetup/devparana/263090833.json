@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "263090833",
+    "title": "4º  Delphi Ingá - Elotech",
+    "summary": "Vamos falar de Delphi? Talks: 1) RECURSOS DO FIREDAC QUE MERECEM DESTAQUE! - André Celestino Alguns recursos do FireDAC, como o ArrayDML, embora poucos conhecidos, são de grande relevância ao se trabalhar com bancos de…",
+    "startAt": "2019-07-31T19:00:00-03:00",
+    "endAt": "2019-07-31T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Elotech Public Management · R. Tupã, 1643 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/263090833/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 25,
+    "creatorName": "Francisco Thiago de Almeida",
+    "creatorId": "264857383",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg"
+  }
+}

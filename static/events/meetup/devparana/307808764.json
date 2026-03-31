@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "307808764",
+    "title": "Meetup DevParaná - Curitiba",
+    "summary": "A comunidade DevParaná organiza mais um encontro de desenvolvedores em Curitiba. Desta vez o encontro será no SENAI Celso Charuri, Rua Paula Gomes, 282, e será realizado dia 05 de junho a partir das 19 horas. Configura…",
+    "startAt": "2025-06-05T19:00:00-03:00",
+    "endAt": "2025-06-05T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "SENAI Celso Charuri · Rua Paula Gomes, 282 · Curitiba",
+    "href": "https://www.meetup.com/developerparana/events/307808764/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 47,
+    "creatorName": "Welington Oliveira da Silva",
+    "creatorId": "442863629",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/3/f/4/a/highres_528196202.jpeg"
+  }
+}

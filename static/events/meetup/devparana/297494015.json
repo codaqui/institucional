@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "297494015",
+    "title": "[Ingá.php] Testes automatizados",
+    "summary": "🚀 Volta às Atividades Presenciais! Encontro Ingá.php na Trade Technology 🚀 A Comunidade Ingá.php está de volta com um evento presencial imperdível! Após alguns anos de eventos virtuais, estamos animados em nos reunir…",
+    "startAt": "2023-12-05T19:00:00-03:00",
+    "endAt": "2023-12-05T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Trade Technology · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/297494015/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 25,
+    "creatorName": "Ivo Roberto Batistela",
+    "creatorId": "194369232",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/1/f/2/4/highres_517447972.jpeg"
+  }
+}

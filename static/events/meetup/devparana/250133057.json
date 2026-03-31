@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "250133057",
+    "title": "7º Encontro Backend Meetup Group Maringá - DB1 Global Software",
+    "summary": "Palestras da vez: Node JS vs PHP para desenvolvimento Server-Side Um clássico X vs Y, uma abordagem rápida sobre NodeJS e PHP para desenvolvimento server-side (backend). Por: Julio Vedovatto @juliovedovatto ---- Electro…",
+    "startAt": "2018-05-10T19:00:00-03:00",
+    "endAt": "2018-05-10T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "DB1 Global Software · Av. Advogado Horácio Raccanello Filho, 5410 - Zona 7 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/250133057/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 34,
+    "creatorName": "Marcos Florencio",
+    "creatorId": "188007973",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg"
+  }
+}

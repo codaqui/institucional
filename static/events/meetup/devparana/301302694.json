@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "301302694",
+    "title": "[Ingá.php] Códigos Legados e PHP Moderno",
+    "summary": "🚀 Meetup da comunidade Ingá PHP no Aiqfome 🚀 A Comunidade Ingá PHP, em parceria com o DevParaná, está organizando um evento imperdível para todos os entusiastas de tecnologia e PHP! Junte-se a nós para uma noite reple…",
+    "startAt": "2024-06-06T19:00:00-03:00",
+    "endAt": "2024-06-06T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "aiqfome · Av. Gastão Vidigal, 634 · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/301302694/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 38,
+    "creatorName": "Matheus Bloise",
+    "creatorId": "325900197",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/9/b/6/highres_521371158.jpeg"
+  }
+}

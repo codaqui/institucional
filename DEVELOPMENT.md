@@ -61,3 +61,37 @@ O deploy é feito automaticamente via GitHub Actions quando há push nas branche
 - `develop` → atualiza o preview em `gh-pages/previews/develop/`
 
 Se necessário, o workflow de deploy também pode ser executado manualmente pelo GitHub Actions com `workflow_dispatch`.
+
+## Eventos e snapshots de API
+
+A página `/eventos` não deve manter listas de eventos em código. O padrão é publicar snapshots estáticos consumidos pelo frontend:
+
+```bash
+/events/index.json
+/events/<source>/<source_id>/index.json
+/events/<source>/<source_id>/<event_id>.json
+```
+
+Exemplos:
+
+- `/events/discord/codaqui.json`
+- `/events/meetup/python-maringa.json`
+
+Responsabilidades:
+
+- workflow/integrador: consulta a API externa, normaliza o payload e grava o snapshot
+- frontend: lê o índice agregado e renderiza a agenda
+
+Modelo híbrido adotado:
+
+- `events/index.json`: índice resumido para a página pública
+- `events/<source>/<source_id>/index.json`: shard por fonte
+- `events/<source>/<source_id>/<event_id>.json`: detalhe individual
+
+Para Discord, o repositório já possui:
+
+- `events.config.json` com o cadastro das fontes
+- `scripts/sync-events.mjs` para gerar snapshots
+- `.github/workflows/sync-event-snapshots.yml` para sincronização periódica
+
+Sem `DISCORD_BOT_TOKEN`, o script preserva os eventos existentes ou usa fallback configurado, evitando apagar a agenda publicada.

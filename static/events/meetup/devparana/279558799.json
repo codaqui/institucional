@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "279558799",
+    "title": "GDG Cascavel - Comunicação web p2p de áudio, vídeo e dados",
+    "summary": "Engenheiro Front-end no Itaú Unibanco e 15 anos de experiência, Guilherme está sempre avaliando tecnologias na tentativa de identificar que problemas podem ser resolvidos, misturado à aceitação da comunidade. Ele acredi…",
+    "startAt": "2021-07-20T19:00:00-03:00",
+    "endAt": "2021-07-20T20:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Online via Meetup",
+    "href": "https://www.meetup.com/developerparana/events/279558799/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "online"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 9,
+    "creatorName": "Guilherme Siquinelli",
+    "creatorId": "194464939",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/a/6/6/d/highres_497622605.jpeg"
+  }
+}

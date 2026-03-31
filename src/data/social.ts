@@ -1,3 +1,5 @@
+import type { SocialProfile } from "./social-stats";
+
 export interface SocialChannel {
   key: string;
   name: string;
@@ -11,6 +13,48 @@ export const DISCORD_URL = "https://discord.com/invite/xuTtxqCPpz";
 export const WHATSAPP_URL = "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up";
 export const EMAIL = "contato@codaqui.dev";
 export const GITHUB_ORG = "https://github.com/codaqui";
+
+/**
+ * Perfis sociais da Codaqui — fonte de verdade para o sync de estatísticas.
+ * Contagens baseLine são valores manuais usados como fallback.
+ */
+export const codaquiSocialProfiles: SocialProfile[] = [
+  {
+    platform: "discord",
+    handle: "@codaqui",
+    url: DISCORD_URL,
+    countLabel: "membros",
+    baselineCount: 692,
+  },
+  {
+    platform: "whatsapp",
+    handle: "Grupo Codaqui",
+    url: WHATSAPP_URL,
+    countLabel: "participantes",
+    baselineCount: 0,
+  },
+  {
+    platform: "youtube",
+    handle: "@codaqui",
+    url: "https://www.youtube.com/@codaqui",
+    countLabel: "inscritos",
+    baselineCount: 0,
+  },
+  {
+    platform: "instagram",
+    handle: "@codaqui.dev",
+    url: "https://www.instagram.com/codaqui.dev/",
+    countLabel: "seguidores",
+    baselineCount: 0,
+  },
+  {
+    platform: "github",
+    handle: "codaqui",
+    url: GITHUB_ORG,
+    countLabel: "seguidores",
+    baselineCount: 0,
+  },
+];
 
 export const socialChannels: SocialChannel[] = [
   {

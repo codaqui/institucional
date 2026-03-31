@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "268119530",
+    "title": "8º DevOps Meetup Group Maringá",
+    "summary": "Dia 28 de Janeiro de 2020 sera realizado nosso DevOps Maringá na HBSIS! Programação: 19:00 ~ 19:20: Chegada e bate-papo 19:20 ~ 20:00: Conhecendo o Apache NIFI! - Everton Tavares 20:00 ~ 20:40: A jornada de um Dev para…",
+    "startAt": "2020-01-28T19:00:00-03:00",
+    "endAt": "2020-01-28T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Ambev Tech Maringá · andar, 5145 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/268119530/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 28,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/5/c/f/highres_488374255.jpeg"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "265568469",
+    "title": "#11 Maringá Agile - UOL Boa Compra",
+    "summary": "A décima primeira edição do meetup sobre agilidade de Maringá será uma oportunidade única de ouvirmos um pouco sobre o que aconteceu em Setembro no Agile Brazil. Para isto, convidamos Ivo Batistela e Wagner Fusca para c…",
+    "startAt": "2019-10-16T19:00:00-03:00",
+    "endAt": "2019-10-16T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "UOL BoaCompra Maringá · Av. Bento Munhoz da Rocha Neto, 632 · Maringá · PR",
+    "href": "https://www.meetup.com/developerparana/events/265568469/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 29,
+    "creatorName": "Wagner Fusca",
+    "creatorId": "188810094",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg"
+  }
+}

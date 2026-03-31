@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "311885573",
+    "title": "DevParaná - Meetup Curitiba",
+    "summary": "Você está convidado a participar do Meetup da comunidade DevParaná em Curitiba no próximo dia 26 de novembro às 19 horas na EBANX. Venha participar de Encerramento do ano em um evento muito bacana, adiquirindo conhecime…",
+    "startAt": "2025-11-26T19:00:00-03:00",
+    "endAt": "2025-11-26T22:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "EBANX · Rua Marechal Deodoro, 630 · Curitiba",
+    "href": "https://www.meetup.com/developerparana/events/311885573/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 55,
+    "creatorName": "Welington Oliveira da Silva",
+    "creatorId": "442863629",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/5/1/2/highres_531414546.jpeg"
+  }
+}

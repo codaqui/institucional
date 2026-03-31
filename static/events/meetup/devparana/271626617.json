@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-03-31T20:08:56.017Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-03-31T20:08:56.017Z"
+  },
+  "event": {
+    "id": "271626617",
+    "title": "Vida de Programador Weekend",
+    "summary": "Serão dois dias de palestras que contarão com dezenas de palestrantes destaque em suas áreas, que irão abordar diversas tecnologias. No total serão 20 palestras transmitidas ao vivo, sendo que cada uma poderá ter até 23…",
+    "startAt": "2020-07-17T13:00:00-03:00",
+    "endAt": "2020-07-17T19:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Meetup",
+    "href": "https://www.meetup.com/developerparana/events/271626617/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 19,
+    "creatorName": "Fernando Fabricio dos Santos",
+    "creatorId": "187548010",
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/e/8/0/e/highres_491099406.jpeg"
+  }
+}
