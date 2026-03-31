@@ -123,43 +123,6 @@ async function fetchCncfMemberCount(chapterSlug) {
   }
 }
 
-// ─── WhatsApp Business Groups API v25 ────────────────────────────────────────
-// fetchId: GROUP_ID (opaque base64 string assigned by the API)
-// The group must be created/managed by the business phone number registered in Meta.
-// Requires META_ACCESS_TOKEN with whatsapp_business_messaging permission.
-// total_participant_count excludes the business itself — we add +1 for the actual total.
-
-async function fetchWhatsAppGroupParticipants(groupId) {
-  const token = process.env.META_ACCESS_TOKEN;
-  if (!token) {
-    console.warn("  META_ACCESS_TOKEN not set — skipping WhatsApp group count");
-    return null;
-  }
-
-  const url = `https://graph.facebook.com/v25.0/${groupId}?fields=total_participant_count,subject&access_token=${token}`;
-  try {
-    const res = await fetchWithTimeout(url, {
-      headers: { "User-Agent": "codaqui-social-stats" },
-    });
-    if (!res.ok) {
-      const body = await res.text();
-      console.warn(`WhatsApp Groups API error (${res.status}):`, body.slice(0, 200));
-      return null;
-    }
-    const data = await res.json();
-    if (data.error) {
-      console.warn(`WhatsApp Groups API error:`, data.error.message);
-      return null;
-    }
-    const count = (data.total_participant_count ?? 0) + 1; // +1 = the business itself
-    console.log(`  WhatsApp group "${data.subject}": ${count} participants`);
-    return count;
-  } catch (err) {
-    console.warn(`WhatsApp group fetch error for ${groupId}:`, err.message);
-    return null;
-  }
-}
-
 // ─── GitHub ───────────────────────────────────────────────────────────────────
 
 async function fetchGitHubFollowers(username) {
@@ -192,10 +155,10 @@ async function fetchInstagramFollowers(username) {
     const pageRes = await fetchWithTimeout(BASE, { headers: { "User-Agent": UA } });
     const html = await pageRes.text();
 
-    // Extract CSRF token from window.__config = { token: "..." }
-    const tokenMatch = html.match(/window\.__config\s*=\s*\{[^}]*token:\s*"([^"]+)"/);
+    // Extract CSRF token from window.__config = {\n  token: "..." (multi-line object)
+    const tokenMatch = html.match(/window\.__config\s*=\s*\{[\s\S]*?token:\s*"([^"]+)"/);
     if (!tokenMatch) {
-      console.warn("  blastup: could not find CSRF token in page");
+      console.warn(`  blastup: CSRF token not found for @${handle} — page structure may have changed`);
       return null;
     }
     const csrfToken = tokenMatch[1];
@@ -274,7 +237,6 @@ async function fetchByPlatform(platform, fetchId) {
     case "github": return fetchGitHubFollowers(fetchId);
     case "youtube": return fetchYouTubeSubscribers(fetchId);
     case "instagram": return fetchInstagramFollowers(fetchId);
-    case "whatsapp": return fetchWhatsAppGroupParticipants(fetchId);
     case "cncf": return fetchCncfMemberCount(fetchId);
     default:
       console.warn(`No auto-fetch for platform "${platform}" (fetchId: ${fetchId})`);
@@ -357,9 +319,6 @@ async function readAllSocialProfiles() {
 
 function logMissingSecrets() {
   if (!process.env.DISCORD_BOT_TOKEN) console.warn("⚠️  DISCORD_BOT_TOKEN not set — Discord skipped");
-  if (!process.env.META_BUSINESS_APP_ID && !process.env.META_ACCESS_TOKEN) {
-    console.warn("⚠️  No Meta credentials — Instagram/WhatsApp skipped");
-  }
 }
 
 async function main() {
