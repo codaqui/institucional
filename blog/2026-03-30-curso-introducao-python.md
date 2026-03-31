@@ -2,6 +2,7 @@
 title: "Curso de Lógica de Programação com Python com Paulinea"
 date: 2026-03-30
 slug: 2026/03/30/curso-introducao-python
+image: ./img/2026-03-30-curso-introducao-python/gemini_banner.png
 tags:
   - curso
   - comunidade

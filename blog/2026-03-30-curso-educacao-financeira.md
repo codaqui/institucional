@@ -2,6 +2,7 @@
 title: "Curso de Educação Financeira com Valnaire Nascimento"
 date: 2026-03-30
 slug: 2026/03/30/curso-educacao-financeira
+image: ./img/2026-03-30-curso-educacao-financeira/gemini_banner.png
 tags:
   - curso
   - comunidade

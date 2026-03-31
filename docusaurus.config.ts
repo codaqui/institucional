@@ -78,6 +78,17 @@ const config: Config = {
           blogSidebarTitle: "Posts recentes",
           onInlineAuthors: "ignore",
           tagsBasePath: "category",
+          postsPerPage: 9,
+          blogDescription:
+            "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — democratizando o ensino de tecnologia.",
+          feedOptions: {
+            type: "all",
+            title: "Blog da Codaqui",
+            description:
+              "Tutoriais, projetos e novidades da comunidade Codaqui",
+            copyright: `© ${new Date().getFullYear()} Associação Codaqui`,
+            language: "pt-BR",
+          },
         },
         theme: {
           customCss: "./src/css/custom.css",

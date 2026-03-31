@@ -6,6 +6,10 @@ on:
       - develop
       - main
 
+concurrency:
+  group: pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
@@ -33,9 +37,14 @@ jobs:
   build:
     name: Build & Upload Preview
     runs-on: ubuntu-latest
+    needs: typecheck
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Node.js 20
         uses: actions/setup-node@v4
@@ -54,7 +63,7 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: build-preview-pr${{ github.event.pull_request.number }}
+          name: build-preview-pr${{ github.event.pull_request.number }}-${{ github.run_id }}
           path: build/
           retention-days: 7
 
@@ -66,13 +75,13 @@ jobs:
           message: |
             ## ✅ Build Successful
 
-            The Docusaurus site built successfully for this PR.
+            O site Docusaurus compilou com sucesso para este PR.
 
             | | |
             |---|---|
             | **Commit** | `${{ github.sha }}` |
-            | **Artifact** | `build-preview-pr${{ github.event.pull_request.number }}` (7 days) |
-            | **Run** | [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            | **Artifact** | disponível por 7 dias na aba Actions |
+            | **Run** | [Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
 
       - name: Post build failure comment
         if: failure()
@@ -80,14 +89,14 @@ jobs:
         with:
           header: build-status
           message: |
-            ## ❌ Build Failed
+            ## ❌ Build Falhou
 
-            The Docusaurus build failed for this PR. Please check the logs before merging.
+            O build do Docusaurus falhou neste PR. Verifique os logs antes de fazer merge.
 
             | | |
             |---|---|
             | **Commit** | `${{ github.sha }}` |
-            | **Run** | [View logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            | **Run** | [Ver logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
 
   lighthouse:
     name: Lighthouse CI
@@ -100,7 +109,7 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: build-preview-pr${{ github.event.pull_request.number }}
+          name: build-preview-pr${{ github.event.pull_request.number }}-${{ github.run_id }}
           path: build/
 
       - name: Run Lighthouse CI
@@ -110,3 +119,4 @@ jobs:
           temporaryPublicStorage: true
           runs: 1
           staticDistDir: ./build
+          budgetPath: .github/lighthouse-budget.json
