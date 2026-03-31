@@ -19,10 +19,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js 24
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -46,7 +46,5 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore: sync social stats snapshot
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
+          git commit -m "chore: sync social stats snapshot"
           git push
