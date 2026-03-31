@@ -88,7 +88,7 @@ export const communities: Community[] = [
     emoji: "💻",
     logo: "/img/campostech.svg",
     description:
-      "Espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa. Fomenta conexões entre estudantes, profissionais, empresas e entusiastas.",
+      "Espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa. Fomenta conexões entre participantes, profissionais, organizações e entusiastas.",
     location: "Ponta Grossa, PR",
     links: [
       { type: "website", label: "campostechpg.com.br", url: "https://campostechpg.com.br/" },
