@@ -51,7 +51,9 @@ jobs:
             const artifact = data.artifacts.find((item) => item.name === 'preview-site');
             const previewPath = `previews/pr-${pr.number}`;
             const isTrusted = pull.head.repo.full_name === `${context.repo.owner}/${context.repo.repo}`;
+            const reuseDevelopPreview = pull.base.ref === 'main' && pull.head.ref === 'develop';
             const artifactFound = Boolean(artifact);
+            const shouldDeployPreview = artifactFound && !reuseDevelopPreview;
             if (!artifact) {
               core.info('Artifact "preview-site" not found. Preview deploy will be skipped.');
             }
@@ -61,9 +63,11 @@ jobs:
             core.setOutput('pr_number', String(pr.number));
             core.setOutput('preview_path', previewPath);
             core.setOutput('preview_url', `https://codaqui.dev/${previewPath}/`);
+            core.setOutput('reuse_develop_preview', String(reuseDevelopPreview));
+            core.setOutput('should_deploy_preview', String(shouldDeployPreview));
 
       - name: Prepare GitHub Pages branch
-        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.should_deploy_preview == 'true'
         env:
           REPOSITORY: ${{ github.repository }}
         run: |
@@ -86,7 +90,7 @@ jobs:
           fi
 
       - name: Download preview artifact
-        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.should_deploy_preview == 'true'
         run: |
           gh api \
             -H "Accept: application/vnd.github+json" \
@@ -96,7 +100,7 @@ jobs:
           unzip -q preview-site.zip -d preview-artifact
 
       - name: Detect artifact root
-        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.should_deploy_preview == 'true'
         id: artifact
         run: |
           if [ -d preview-artifact/build ]; then
@@ -106,7 +110,7 @@ jobs:
           fi
 
       - name: Sync preview files into gh-pages
-        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.should_deploy_preview == 'true'
         env:
           PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
           PREVIEW_PATH: ${{ steps.meta.outputs.preview_path }}
@@ -160,8 +164,26 @@ jobs:
 
             _O build continua rodando sem privilégios; o deploy em GitHub Pages fica restrito a PRs do próprio repositório._
 
+      - name: Comment reused develop preview
+        if: steps.meta.outputs.reuse_develop_preview == 'true'
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          number: ${{ steps.meta.outputs.pr_number }}
+          header: pr-preview
+          message: |
+            ## 🔁 Preview reutilizado
+
+            Este PR é `develop -> main`, então reutilizamos o preview contínuo da branch `develop`.
+
+            | | |
+            |---|---|
+            | **URL** | [https://codaqui.dev/previews/develop/](https://codaqui.dev/previews/develop/) |
+            | **PR** | #${{ steps.meta.outputs.pr_number }} |
+            | **Commit** | `${{ github.event.workflow_run.head_sha }}` |
+            | **Run** | [Ver workflow](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}) |
+
       - name: Comment preview URL on PR
-        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.artifact_found == 'true'
+        if: steps.meta.outputs.is_trusted == 'true' && steps.meta.outputs.should_deploy_preview == 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.meta.outputs.pr_number }}
@@ -204,7 +226,7 @@ jobs:
             core.setOutput('artifact_found', String(Boolean(artifact)));
 
       - name: Comment failed preview status
-        if: steps.meta.outputs.artifact_found != 'true'
+        if: steps.meta.outputs.artifact_found != 'true' && steps.meta.outputs.reuse_develop_preview != 'true'
         uses: marocchino/sticky-pull-request-comment@v3
         with:
           number: ${{ steps.meta.outputs.pr_number }}

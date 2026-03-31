@@ -15,9 +15,25 @@ permissions:
   pull-requests: write
 
 jobs:
+  metadata:
+    name: Resolve PR metadata
+    runs-on: ubuntu-slim
+    outputs:
+      reuse_develop_preview: ${{ steps.meta.outputs.reuse_develop_preview }}
+    steps:
+      - name: Detect develop-to-main PR
+        id: meta
+        run: |
+          if [ "${{ github.event.pull_request.base.ref }}" = "main" ] && [ "${{ github.event.pull_request.head.ref }}" = "develop" ]; then
+            echo "reuse_develop_preview=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "reuse_develop_preview=false" >> "$GITHUB_OUTPUT"
+          fi
+
   typecheck:
     name: TypeScript Check
     runs-on: ubuntu-slim
+    needs: metadata
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -37,7 +53,10 @@ jobs:
   build:
     name: Build & Upload Preview
     runs-on: ubuntu-latest
-    needs: typecheck
+    needs:
+      - metadata
+      - typecheck
+    if: needs.metadata.outputs.reuse_develop_preview != 'true'
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -106,6 +125,7 @@ jobs:
   lighthouse:
     name: Lighthouse CI
     runs-on: ubuntu-latest
+    if: needs.metadata.outputs.reuse_develop_preview != 'true'
     needs: build
     steps:
       - name: Checkout code
@@ -125,3 +145,26 @@ jobs:
           runs: 1
           configPath: .github/lighthouserc.json
           budgetPath: .github/lighthouse-budget.json
+
+  reuse-develop-preview:
+    name: Reuse develop preview
+    runs-on: ubuntu-slim
+    needs:
+      - metadata
+      - typecheck
+    if: needs.metadata.outputs.reuse_develop_preview == 'true'
+    steps:
+      - name: Comment reused preview URL
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: build-status
+          message: |
+            ## ✅ Build reutilizado
+
+            Este PR é `develop -> main`, então reutilizamos o preview contínuo da branch `develop` em vez de gerar um preview dedicado.
+
+            | | |
+            |---|---|
+            | **URL** | [https://codaqui.dev/previews/develop/](https://codaqui.dev/previews/develop/) |
+            | **Commit** | `${{ github.sha }}` |
+            | **Observação** | TypeScript check executado; preview e Lighthouse dedicados foram pulados |

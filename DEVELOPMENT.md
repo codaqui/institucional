@@ -45,6 +45,8 @@ Os previews usam uma estratégia unificada em subpaths do `gh-pages`:
 
 Esses builds usam `SITE_URL=https://codaqui.dev` com `BASE_URL` específico do subpath para que os assets sejam resolvidos corretamente no preview.
 
+Quando o PR é `develop -> main`, o workflow reutiliza o preview contínuo de `develop` em vez de publicar um preview dedicado do PR.
+
 ## Deploy
 
 O deploy é feito automaticamente via GitHub Actions quando há push nas branches `main` ou `develop`:

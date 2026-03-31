@@ -49,6 +49,8 @@ BASE_URL=/previews/pr-123/ PREVIEW=true PREVIEW_PR_NUMBER=123 npm run build
 
 Os previews automáticos de PR são publicados em `https://codaqui.dev/previews/pr-<numero>/`, comentados no PR e removidos ao fechar ou fazer merge. Em PRs vindos de forks, o build continua sendo gerado, mas a publicação é pulada por segurança.
 
+Quando o PR é `develop -> main`, reutilizamos `https://codaqui.dev/previews/develop/` em vez de gerar um preview dedicado.
+
 ## Contribuições
 
 Você quer ajudar a Codaqui? Você pode iniciar uma nova [Discussão](https://github.com/codaqui/institucional/discussions), ou uma Issue referente a algo pontual [por aqui](https://github.com/codaqui/institucional/issues/new/choose). Você também pode visualizar as Issues/Discussões já existentes e interagir com a comunidade.  
