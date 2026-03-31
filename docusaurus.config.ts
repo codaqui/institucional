@@ -96,6 +96,7 @@ const config: Config = {
 
   url: siteUrl,
   baseUrl,
+  trailingSlash: false,
   noIndex: isPreview,
 
   organizationName: "codaqui",
@@ -148,6 +149,8 @@ const config: Config = {
       { name: "twitter:creator", content: "@codaquidev" },
       { property: "og:image:alt", content: socialCardAlt },
       { name: "twitter:image:alt", content: socialCardAlt },
+      { property: "og:type", content: "website" },
+      { property: "og:locale", content: "pt_BR" },
     ],
     navbar: {
       title: "",
