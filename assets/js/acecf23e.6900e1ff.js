@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[1903],{1912(i){i.exports=JSON.parse('{"blogBasePath":"/codaqui/institucional/gh-pages-develop/blog","blogTitle":"Blog","authorsListPath":"/codaqui/institucional/gh-pages-develop/blog/authors"}')}}]);
