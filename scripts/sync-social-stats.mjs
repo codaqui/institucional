@@ -21,28 +21,35 @@ const eventsIndexPath = path.join(rootDir, "static", "events", "index.json");
 
 // ─── Discord ─────────────────────────────────────────────────────────────────
 
-async function fetchDiscordMemberCount(guildId) {
+async function fetchDiscordGuildData(guildId) {
   const token = process.env.DISCORD_BOT_TOKEN;
   if (!token) {
     console.warn("DISCORD_BOT_TOKEN not set — skipping Discord member count");
     return null;
   }
 
-  const url = `https://discord.com/api/v10/guilds/${guildId}?with_counts=true`;
-  const res = await fetchWithTimeout(url, {
-    headers: {
-      Authorization: `Bot ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const headers = { Authorization: `Bot ${token}`, "Content-Type": "application/json" };
+  const [guildRes, channelsRes] = await Promise.all([
+    fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, { headers }),
+    fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}/channels`, { headers }),
+  ]);
 
-  if (!res.ok) {
-    console.warn(`Discord guild fetch failed: ${res.status}`);
+  if (!guildRes.ok) {
+    console.warn(`Discord guild fetch failed: ${guildRes.status}`);
     return null;
   }
 
-  const data = await res.json();
-  return data.approximate_member_count ?? data.member_count ?? null;
+  const guild = await guildRes.json();
+  const memberCount = guild.approximate_member_count ?? guild.member_count ?? null;
+
+  let channelCount = null;
+  if (channelsRes.ok) {
+    const channels = await channelsRes.json();
+    // type 4 = GUILD_CATEGORY — exclude categories, count only real channels
+    channelCount = Array.isArray(channels) ? channels.filter((c) => c.type !== 4).length : null;
+  }
+
+  return { memberCount, channelCount };
 }
 
 // ─── Meetup ───────────────────────────────────────────────────────────────────
@@ -237,7 +244,7 @@ async function fetchYouTubeSubscribers(handle) {
 
 async function fetchByPlatform(platform, fetchId) {
   switch (platform) {
-    case "discord": return fetchDiscordMemberCount(fetchId);
+    case "discord": return fetchDiscordGuildData(fetchId);
     case "meetup": return fetchMeetupMemberCount(fetchId);
     case "github": return fetchGitHubFollowers(fetchId);
     case "youtube": return fetchYouTubeSubscribers(fetchId);
@@ -358,12 +365,20 @@ async function main() {
   for (const [entityId, entityProfiles] of allProfiles) {
     for (const profile of entityProfiles) {
       const key = `${entityId}:${profile.platform}`;
-      const fetchedCount = fetchResults.has(key) ? fetchResults.get(key) : null;
+      let rawFetched = fetchResults.has(key) ? fetchResults.get(key) : null;
+
+      // Discord returns { memberCount, channelCount } — extract extra fields
+      let extra = {};
+      if (rawFetched !== null && typeof rawFetched === "object") {
+        extra = { channelCount: rawFetched.channelCount ?? null };
+        rawFetched = rawFetched.memberCount ?? null;
+      }
+
       const prevEntry = existing?.profiles?.find(
         (p) => p.entityId === entityId && p.platform === profile.platform
       );
-      const count = fetchedCount ?? prevEntry?.count ?? profile.baselineCount ?? 0;
-      const isFallback = fetchedCount === null;
+      const count = rawFetched ?? prevEntry?.count ?? profile.baselineCount ?? 0;
+      const isFallback = rawFetched === null;
 
       profiles.push({
         entityId,
@@ -373,6 +388,7 @@ async function main() {
         countLabel: profile.countLabel,
         baselineCount: profile.baselineCount ?? 0,
         count,
+        ...extra,
         fetchedAt: isFallback ? (prevEntry?.fetchedAt ?? null) : now,
         isFallback,
       });

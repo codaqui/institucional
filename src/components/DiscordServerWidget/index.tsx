@@ -44,6 +44,8 @@ interface DiscordWidgetPayload {
 interface DiscordServerWidgetProps {
   widgetUrl: string;
   compact?: boolean;
+  /** Total de canais do servidor (dado estático do sync, complementa o widget da API) */
+  channelCount?: number | null;
 }
 
 function formatChannelName(name: string): string {
@@ -63,6 +65,7 @@ function formatMemberName(name: string): string {
 export default function DiscordServerWidget({
   widgetUrl,
   compact = false,
+  channelCount,
 }: DiscordServerWidgetProps): React.JSX.Element {
   const [data, setData] = useState<DiscordWidgetPayload | null>(null);
   const [error, setError] = useState(false);
@@ -166,7 +169,11 @@ export default function DiscordServerWidget({
           {!compact && (
             <Chip
               icon={<HeadsetMicIcon />}
-              label={`${data.channels.length} salas listadas`}
+              label={
+                channelCount != null
+                  ? `${channelCount} canais`
+                  : `${data.channels.length} salas com membros`
+              }
               color="info"
               variant="outlined"
             />

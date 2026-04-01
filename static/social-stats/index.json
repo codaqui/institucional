@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-03-31T22:16:52.364Z",
+  "generatedAt": "2026-03-31T23:15:09.792Z",
   "totalEvents": 373,
   "profiles": [
     {
@@ -10,7 +10,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -21,7 +21,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 386,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -32,7 +32,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6054,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -43,7 +43,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 1570,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -54,7 +54,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 4997,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -64,8 +64,8 @@
       "url": "https://www.instagram.com/elasnocodigo/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 190,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "count": 191,
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -87,7 +87,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 1350,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -97,9 +97,9 @@
       "url": "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 0,
-      "fetchedAt": null,
-      "isFallback": true
+      "count": 111,
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
+      "isFallback": false
     },
     {
       "entityId": "tisocial",
@@ -109,7 +109,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 196,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     },
     {
@@ -120,7 +120,7 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 3,
-      "fetchedAt": "2026-03-31T22:16:52.364Z",
+      "fetchedAt": "2026-03-31T23:15:09.792Z",
       "isFallback": false
     }
   ]

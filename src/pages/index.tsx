@@ -1,6 +1,7 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import Link from "@docusaurus/Link";
 import {
   Box,
   Button,
@@ -8,11 +9,13 @@ import {
   CardContent,
   Container,
   Grid,
+  Stack,
   Typography,
   useTheme,
 } from "@mui/material";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { communities, type Community } from "../data/communities";
-import { DISCORD_URL, DISCORD_WIDGET_URL, WHATSAPP_URL } from "../data/social";
+import { DISCORD_URL, DISCORD_WIDGET_URL, socialChannels } from "../data/social";
 import { SupportersBadge } from "../components/OpenCollective";
 import DiscordServerWidget from "../components/DiscordServerWidget";
 
@@ -227,76 +230,81 @@ function CommunitySection() {
   );
 }
 
-function DiscordSection() {
-  return (
-    <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom>
-        💬 Comunidade no Discord
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Faça parte da comunidade e conecte-se com quem está aprendendo agora.
-      </Typography>
-      <DiscordServerWidget widgetUrl={DISCORD_WIDGET_URL} compact />
-    </Container>
-  );
-}
-
-function LinksSection() {
-  const channels = [
-    {
-      href: WHATSAPP_URL,
-      emoji: "📱",
-      title: "WhatsApp",
-      description: "Entre no nosso grupo do WhatsApp",
-    },
-    {
-      href: DISCORD_URL,
-      emoji: "💬",
-      title: "Discord",
-      description: "Participe do nosso servidor do Discord",
-    },
-  ];
+function JoinSection() {
+  const otherChannels = socialChannels.filter((c) => c.key !== "discord");
 
   return (
-    <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
-      <Typography variant="h4" fontWeight={700} gutterBottom>
-        🔗 Links Importantes
-      </Typography>
-      <Grid container spacing={3}>
-        {channels.map((channel) => (
-          <Grid key={channel.title} size={{ xs: 12, sm: 6 }}>
-            <Card
-              component="a"
-              href={channel.href}
+    <Box sx={{ bgcolor: "action.hover", py: { xs: 6, md: 10 } }}>
+      <Container maxWidth="lg">
+        <Grid container spacing={5} alignItems="flex-start">
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <Typography variant="h4" fontWeight={800} gutterBottom>
+              💬 Entre na comunidade
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Conecte-se com participantes e mentores ao vivo no Discord.
+            </Typography>
+            <DiscordServerWidget widgetUrl={DISCORD_WIDGET_URL} />
+          </Grid>
+
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
+              Siga e acompanhe
+            </Typography>
+            <Stack spacing={1.5}>
+              {otherChannels.map((channel) => (
+                <Card
+                  key={channel.key}
+                  component={Link}
+                  href={channel.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="outlined"
+                  sx={{
+                    display: "block",
+                    textDecoration: "none",
+                    color: "inherit",
+                    transition: "all 0.2s",
+                    "&:hover": { transform: "translateX(4px)", boxShadow: 2, borderColor: "primary.main" },
+                  }}
+                >
+                  <CardContent sx={{ py: "12px !important", px: 2 }}>
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Typography variant="h5" component="span" sx={{ lineHeight: 1, minWidth: 28 }}>
+                        {channel.emoji}
+                      </Typography>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2" fontWeight={700} noWrap>
+                          {channel.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap>
+                          {channel.description}
+                        </Typography>
+                      </Box>
+                      <OpenInNewIcon sx={{ fontSize: 16, color: "text.disabled", flexShrink: 0 }} />
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+
+            <Button
+              component={Link}
+              href={DISCORD_URL}
               target="_blank"
               rel="noopener noreferrer"
-              variant="outlined"
-              sx={{
-                display: "block",
-                textDecoration: "none",
-                color: "inherit",
-                textAlign: "center",
-                transition: "all 0.2s",
-                "&:hover": {
-                  transform: "translateY(-2px)",
-                  boxShadow: 3,
-                  borderColor: "primary.main",
-                },
-              }}
+              variant="contained"
+              size="large"
+              endIcon={<OpenInNewIcon />}
+              fullWidth
+              sx={{ mt: 3 }}
             >
-              <CardContent>
-                <Typography variant="h5" gutterBottom>
-                  {channel.emoji} {channel.title}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {channel.description}
-                </Typography>
-              </CardContent>
-            </Card>
+              Entrar no Discord
+            </Button>
           </Grid>
-        ))}
-      </Grid>
-    </Container>
+        </Grid>
+      </Container>
+    </Box>
   );
 }
 
@@ -309,8 +317,7 @@ export default function Home(): React.JSX.Element {
       <main>
         <FeaturesSection />
         <CommunitySection />
-        <DiscordSection />
-        <LinksSection />
+        <JoinSection />
       </main>
     </Layout>
   );
