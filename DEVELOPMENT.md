@@ -181,11 +181,19 @@ Baseie-se no `.env.example`. Variáveis principais:
 
 **Produção (apenas `compose.prod.yaml`):**
 
-| Variável | Exemplo |
-|----------|---------|
-| `API_DOMAIN` | `api.intranet.codaqui.dev` |
-| `AUTH_DOMAIN` | `auth.intranet.codaqui.dev` |
-| `MINIO_DOMAIN` | `minio.intranet.codaqui.dev` |
+| Variável | Exemplo | Obrigatório |
+|----------|---------|-------------|
+| `POSTGRES_USER` | `codaqui` | Sim (default: `codaqui`) |
+| `POSTGRES_PASSWORD` | senha segura | **Sim** |
+| `POSTGRES_DB` | `codaqui_db` | Sim (default: `codaqui_db`) |
+| `GITHUB_CLIENT_ID` | `Ov23li...` | **Sim** |
+| `GITHUB_CLIENT_SECRET` | `abc123...` | **Sim** |
+| `JWT_SECRET` | `openssl rand -hex 64` | **Sim** |
+| `BACKEND_URL` | `https://api.codaqui.dev` | Sim (tem default) |
+| `FRONTEND_URL` | `https://codaqui.dev` | Sim (tem default) |
+| `STRIPE_SECRET_KEY` | `sk_live_...` | **Sim** |
+| `STRIPE_WEBHOOK_SECRET` | `whsec_...` | **Sim** — obtido no dashboard Stripe → Webhooks |
+| `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | **Sim** |
 
 ---
 
@@ -200,7 +208,21 @@ Push em `main` ou `develop` dispara `.github/workflows/gh-deploy.yml`:
 
 O `backend/` **nunca** é enviado para o GitHub Pages.
 
-### Backend → Produção ARM64
+### Secrets e Variáveis do GitHub Actions
+
+Configure em **Settings → Secrets and variables → Actions** do repositório:
+
+| Nome | Tipo | Workflow | Para quê |
+|------|------|----------|----------|
+| `GH_APP_PRIVATE_KEY` | **Secret** | `gh-deploy`, `pr-preview-deploy`, `pr-preview-cleanup` | Chave privada do GitHub App que faz push no branch `gh-pages`. Sem isso o deploy falha. |
+| `GH_APP_ID` | **Variable** (não secret) | Idem | App ID do mesmo GitHub App |
+| `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `gh-deploy`, `pr-check` | Chave pública Stripe (`pk_live_...`) injetada no build do Docusaurus. Sem isso o botão de doação fica desativado. |
+| `DISCORD_BOT_TOKEN` | **Secret** | `sync-event-snapshots`, `sync-social-stats` | Token do bot Discord. Opcional — sem ele os scripts preservam os snapshots existentes. |
+
+> **Como obter o GitHub App:**
+> Crie um GitHub App em *Settings → Developer settings → GitHub Apps* com permissão de escrita em `Contents` do repositório, gere uma chave privada (`.pem`) e use seu conteúdo como valor de `GH_APP_PRIVATE_KEY`.
+
+
 
 ```bash
 # No servidor de produção

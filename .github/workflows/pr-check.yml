@@ -115,6 +115,7 @@ jobs:
           BASE_URL="/previews/pr-${{ github.event.pull_request.number }}/" \
           PREVIEW="true" \
           PREVIEW_PR_NUMBER="${{ github.event.pull_request.number }}" \
+          STRIPE_PUBLISHABLE_KEY="${{ vars.STRIPE_PUBLISHABLE_KEY }}" \
           npm run build
 
       - name: Override robots for preview artifact

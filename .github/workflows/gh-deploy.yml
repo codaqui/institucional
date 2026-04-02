@@ -67,9 +67,11 @@ jobs:
             BASE_URL="/${{ steps.deploy_meta.outputs.preview_path }}/" \
             PREVIEW="true" \
             DOCUSAURUS_API_URL="https://api.codaqui.dev" \
+            STRIPE_PUBLISHABLE_KEY="${{ vars.STRIPE_PUBLISHABLE_KEY }}" \
             npm run build
           else
             DOCUSAURUS_API_URL="https://api.codaqui.dev" \
+            STRIPE_PUBLISHABLE_KEY="${{ vars.STRIPE_PUBLISHABLE_KEY }}" \
             npm run build
           fi
 
