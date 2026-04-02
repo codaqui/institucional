@@ -13,8 +13,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - codaqui-network
 
   backend-codaqui:
     image: ghcr.io/codaqui/institucional-backend:latest-arm64-v8 # ARM64 Production image reference
@@ -42,12 +40,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    networks:
-      - codaqui-network
-
-networks:
-  codaqui-network:
-    driver: bridge
 
 volumes:
   pgdata-codaqui:
