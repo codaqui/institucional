@@ -29,7 +29,7 @@ interface Account {
 export default function LançamentoPage(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
-  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
+  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
 
   const [accounts, setAccounts] = useState<Account[]>([]);

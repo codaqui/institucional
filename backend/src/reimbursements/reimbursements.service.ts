@@ -4,30 +4,19 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   ReimbursementRequest,
   ReimbursementStatus,
 } from './entities/reimbursement-request.entity';
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
+import { CreateReimbursementDto } from './dto/create-reimbursement.dto';
+import { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
+import { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
 
-export interface CreateReimbursementDto {
-  accountId: string;
-  amount: number; // em reais
-  description: string;
-  receiptUrl: string; // OBRIGATÓRIO — URL pública do comprovante
-}
-
-export interface ApproveReimbursementDto {
-  internalReceiptUrl: string; // URL da cópia no Google Drive
-  reviewNote?: string;
-}
-
-export interface RejectReimbursementDto {
-  reviewNote: string; // OBRIGATÓRIO na rejeição
-}
+export { CreateReimbursementDto, ApproveReimbursementDto, RejectReimbursementDto };
 
 const REIMBURSEMENTS_ACCOUNT_KEY = 'reembolsos-pagos';
 
@@ -37,6 +26,7 @@ export class ReimbursementsService {
     @InjectRepository(ReimbursementRequest)
     private readonly repo: Repository<ReimbursementRequest>,
     private readonly ledgerService: LedgerService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   /** Membro cria uma solicitação de reembolso */
@@ -109,21 +99,7 @@ export class ReimbursementsService {
     dto: ApproveReimbursementDto,
     reviewerRole?: string,
   ): Promise<ReimbursementRequest> {
-    const request = await this.findOrFail(id);
-
-    if (request.status !== ReimbursementStatus.PENDING) {
-      throw new BadRequestException(
-        `Solicitação já foi ${request.status === ReimbursementStatus.APPROVED ? 'aprovada' : 'rejeitada'}.`,
-      );
-    }
-
-    // Impedir self-approval para finance-analyzer; admin pode aprovar os próprios
-    if (request.memberId === reviewerId && reviewerRole !== 'admin') {
-      throw new ForbiddenException(
-        'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
-      );
-    }
-
+    // Validações que não dependem de estado DB: fail-fast antes de abrir transação
     if (!dto.internalReceiptUrl?.trim()) {
       throw new BadRequestException(
         'O link interno do comprovante (internalReceiptUrl) é obrigatório para aprovar. ' +
@@ -131,42 +107,65 @@ export class ReimbursementsService {
       );
     }
 
-    // Verificar saldo suficiente
-    const balance = await this.ledgerService.getAccountBalance(
-      request.accountId,
-    );
-    if (balance < request.amount) {
-      throw new ForbiddenException(
-        `Saldo insuficiente na conta "${request.account?.name ?? request.accountId}". ` +
-          `Disponível: R$ ${balance.toFixed(2)}, necessário: R$ ${request.amount.toFixed(2)}. ` +
-          `Abra uma solicitação de transferência para o Admin.`,
+    return await this.dataSource.transaction(async (manager) => {
+      const request = await manager.findOne(ReimbursementRequest, {
+        where: { id },
+        relations: ['account'],
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!request) throw new NotFoundException('Solicitação não encontrada.');
+
+      if (request.status !== ReimbursementStatus.PENDING) {
+        throw new BadRequestException(
+          `Solicitação já foi ${request.status === ReimbursementStatus.APPROVED ? 'aprovada' : 'rejeitada'}.`,
+        );
+      }
+
+      // Impedir self-approval para finance-analyzer; admin pode aprovar os próprios
+      if (request.memberId === reviewerId && reviewerRole !== 'admin') {
+        throw new ForbiddenException(
+          'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
+        );
+      }
+
+      // Verificar saldo suficiente dentro da transação (protege contra TOCTOU via lock na requisição)
+      const balance = await this.ledgerService.getAccountBalance(
+        request.accountId,
       );
-    }
+      if (balance < request.amount) {
+        throw new ForbiddenException(
+          `Saldo insuficiente na conta "${request.account?.name ?? request.accountId}". ` +
+            `Disponível: R$ ${balance.toFixed(2)}, necessário: R$ ${request.amount.toFixed(2)}. ` +
+            `Abra uma solicitação de transferência para o Admin.`,
+        );
+      }
 
-    // Conta destino: "Reembolsos Pagos" (criada automaticamente se não existir)
-    const reimbursementsAccount =
-      await this.ledgerService.getOrCreateCommunityAccount(
-        REIMBURSEMENTS_ACCOUNT_KEY,
-        'Reembolsos Pagos',
-        AccountType.EXPENSE,
+      // Conta destino: "Reembolsos Pagos" (criada automaticamente se não existir)
+      const reimbursementsAccount =
+        await this.ledgerService.getOrCreateCommunityAccount(
+          REIMBURSEMENTS_ACCOUNT_KEY,
+          'Reembolsos Pagos',
+          AccountType.EXPENSE,
+        );
+
+      // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
+      await this.ledgerService.recordTransaction(
+        request.accountId,
+        reimbursementsAccount.id,
+        request.amount,
+        `Reembolso aprovado: ${request.description}`,
+        `reimbursement:${request.id}`,
       );
 
-    // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
-    await this.ledgerService.recordTransaction(
-      request.accountId,
-      reimbursementsAccount.id,
-      request.amount,
-      `Reembolso aprovado: ${request.description}`,
-      `reimbursement:${request.id}`,
-    );
+      request.status = ReimbursementStatus.APPROVED;
+      request.reviewedById = reviewerId;
+      request.internalReceiptUrl = dto.internalReceiptUrl;
+      request.reviewNote = dto.reviewNote ?? null;
+      request.reviewedAt = new Date();
 
-    request.status = ReimbursementStatus.APPROVED;
-    request.reviewedById = reviewerId;
-    request.internalReceiptUrl = dto.internalReceiptUrl;
-    request.reviewNote = dto.reviewNote ?? null;
-    request.reviewedAt = new Date();
-
-    return this.repo.save(request);
+      return manager.save(request);
+    });
   }
 
   /** Finance-analyzer / Admin rejeita uma solicitação */

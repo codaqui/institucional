@@ -34,7 +34,15 @@ export class LedgerService {
   ): Promise<Account> {
     const existing = await this.accountRepo.findOneBy({ projectKey });
     if (existing) return existing;
-    return this.createAccount(defaultName, type, projectKey);
+
+    try {
+      return await this.createAccount(defaultName, type, projectKey);
+    } catch (err: unknown) {
+      // Violação de UNIQUE constraint — outra instância criou a conta simultaneamente
+      const account = await this.accountRepo.findOneBy({ projectKey });
+      if (account) return account;
+      throw err;
+    }
   }
 
   async recordTransaction(

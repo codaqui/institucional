@@ -16,10 +16,8 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { TransfersService } from './transfers.service';
-import type {
-  CreateTransferRequestDto,
-  ReviewTransferRequestDto,
-} from './transfers.service';
+import { CreateTransferRequestDto } from './dto/create-transfer-request.dto';
+import { ReviewTransferRequestDto } from './dto/review-transfer-request.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';

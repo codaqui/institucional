@@ -17,11 +17,9 @@ import {
   ApiResponse,
 } from '@nestjs/swagger';
 import { ReimbursementsService } from './reimbursements.service';
-import type {
-  CreateReimbursementDto,
-  ApproveReimbursementDto,
-  RejectReimbursementDto,
-} from './reimbursements.service';
+import { CreateReimbursementDto } from './dto/create-reimbursement.dto';
+import { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
+import { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -72,21 +70,9 @@ export class ReimbursementsController {
   })
   createRequest(
     @Req() req: { user: JwtPayload },
-    @Body()
-    dto: {
-      accountId: string;
-      amount: number;
-      description: string;
-      receiptUrl: string;
-    },
+    @Body() dto: CreateReimbursementDto,
   ) {
-    const createDto: CreateReimbursementDto = {
-      accountId: dto.accountId,
-      amount: dto.amount,
-      description: dto.description,
-      receiptUrl: dto.receiptUrl,
-    };
-    return this.service.createRequest(req.user.sub, createDto);
+    return this.service.createRequest(req.user.sub, dto);
   }
 
   @Get('my')

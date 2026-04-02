@@ -25,7 +25,7 @@ export class Transaction {
   @ManyToOne(() => Account, { eager: true })
   destinationAccount: Account;
 
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   referenceId: string;
 
   @CreateDateColumn()

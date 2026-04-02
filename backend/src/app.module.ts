@@ -25,6 +25,8 @@ import { AuditModule } from './audit/audit.module';
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations
+      migrations: ['dist/migrations/*.js'],
+      migrationsRun: process.env.NODE_ENV === 'production',
     }),
     ThrottlerModule.forRoot([
       {

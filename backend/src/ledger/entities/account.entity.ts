@@ -28,7 +28,7 @@ export class Account {
   type: AccountType;
 
   // Optional project identifier
-  @Column({ nullable: true })
+  @Column({ nullable: true, unique: true })
   projectKey: string;
 
   @CreateDateColumn()

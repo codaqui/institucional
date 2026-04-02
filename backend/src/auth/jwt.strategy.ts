@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
+import { MembersService } from '../members/members.service';
 
 export interface JwtPayload {
   sub: string; // UUID da tabela members (chave primária) — use para FKs
@@ -27,7 +28,7 @@ const cookieExtractor = (req: Request): string | null =>
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
-  constructor() {
+  constructor(private readonly membersService: MembersService) {
     const secret = process.env.JWT_SECRET;
     if (!secret && process.env.NODE_ENV === 'production') {
       throw new Error('JWT_SECRET is required in production');
@@ -44,6 +45,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   async validate(payload: JwtPayload): Promise<JwtPayload> {
-    return payload;
+    const member = await this.membersService.findOne(payload.sub);
+    if (!member) {
+      throw new UnauthorizedException('Usuário inativo ou não encontrado.');
+    }
+    return { ...payload, role: member.role };
   }
 }

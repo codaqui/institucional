@@ -24,8 +24,14 @@ export default function AuthCallback(): React.JSX.Element {
     // Hidrata o estado lendo o cookie httpOnly via GET /auth/me
     refreshUser().then((profile) => {
       if (profile) {
-        const returnTo = sessionStorage.getItem("codaqui_auth_return") ?? "/membro";
+        const rawReturnTo = sessionStorage.getItem("codaqui_auth_return") ?? "/membro";
         sessionStorage.removeItem("codaqui_auth_return");
+        // Garantir que é path relativo interno (não URL externa)
+        const isRelativePath =
+          rawReturnTo.startsWith("/") &&
+          !rawReturnTo.startsWith("//") &&
+          !rawReturnTo.includes(":");
+        const returnTo = isRelativePath ? rawReturnTo : "/membro";
         history.replace(returnTo);
       } else {
         setError(true);

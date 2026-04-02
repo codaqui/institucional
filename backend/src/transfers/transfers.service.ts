@@ -3,24 +3,17 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, DataSource } from 'typeorm';
 import {
   AccountTransferRequest,
   TransferRequestStatus,
 } from './entities/account-transfer-request.entity';
 import { LedgerService } from '../ledger/ledger.service';
+import { CreateTransferRequestDto } from './dto/create-transfer-request.dto';
+import { ReviewTransferRequestDto } from './dto/review-transfer-request.dto';
 
-export interface CreateTransferRequestDto {
-  sourceAccountId: string;
-  destinationAccountId: string;
-  amount: number; // em reais
-  reason: string;
-}
-
-export interface ReviewTransferRequestDto {
-  reviewNote?: string;
-}
+export { CreateTransferRequestDto, ReviewTransferRequestDto };
 
 @Injectable()
 export class TransfersService {
@@ -28,6 +21,7 @@ export class TransfersService {
     @InjectRepository(AccountTransferRequest)
     private readonly repo: Repository<AccountTransferRequest>,
     private readonly ledgerService: LedgerService,
+    @InjectDataSource() private readonly dataSource: DataSource,
   ) {}
 
   /** Finance-analyzer cria pedido de transferência entre contas */
@@ -85,26 +79,33 @@ export class TransfersService {
     adminId: string,
     dto: ReviewTransferRequestDto,
   ): Promise<AccountTransferRequest> {
-    const request = await this.findOrFail(id);
+    return await this.dataSource.transaction(async (manager) => {
+      const request = await manager.findOne(AccountTransferRequest, {
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
 
-    if (request.status !== TransferRequestStatus.PENDING) {
-      throw new BadRequestException('Solicitação não está pendente.');
-    }
+      if (!request) throw new NotFoundException('Solicitação não encontrada.');
 
-    await this.ledgerService.recordTransaction(
-      request.sourceAccountId,
-      request.destinationAccountId,
-      request.amount,
-      `Transferência interna aprovada: ${request.reason}`,
-      `transfer:${request.id}`,
-    );
+      if (request.status !== TransferRequestStatus.PENDING) {
+        throw new BadRequestException('Solicitação não está pendente.');
+      }
 
-    request.status = TransferRequestStatus.APPROVED;
-    request.reviewedById = adminId;
-    request.reviewNote = dto.reviewNote ?? null;
-    request.reviewedAt = new Date();
+      await this.ledgerService.recordTransaction(
+        request.sourceAccountId,
+        request.destinationAccountId,
+        request.amount,
+        `Transferência interna aprovada: ${request.reason}`,
+        `transfer:${request.id}`,
+      );
 
-    return this.repo.save(request);
+      request.status = TransferRequestStatus.APPROVED;
+      request.reviewedById = adminId;
+      request.reviewNote = dto.reviewNote ?? null;
+      request.reviewedAt = new Date();
+
+      return manager.save(request);
+    });
   }
 
   /** Admin rejeita o pedido de transferência */

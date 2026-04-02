@@ -320,6 +320,15 @@ export class StripeService {
       `Comunidade: ${communityId}`,
     );
 
+    // Idempotência: ignora se paymentIntentId já foi registrado no ledger
+    const existing = await this.txRepo.findOneBy({ referenceId: paymentIntentId });
+    if (existing) {
+      this.logger.warn(
+        `Webhook idempotente: transação ${paymentIntentId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
     const displayName = githubHandle
       ? `@${githubHandle}`
       : (memberId ?? 'anônimo');
