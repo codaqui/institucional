@@ -6,7 +6,6 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
@@ -114,13 +113,11 @@ const TX_TYPE_CONFIG: Record<TxType, { label: string; color: "success" | "warnin
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
 };
 
-/** Extrai o handle do doador da description ("Doação de @handle [uuid] — ...") */
-function extractDonorHandle(description: string): string | null {
-  const match = description.match(/Doação de (@[\w.-]+)/);
-  return match?.[1] ?? null;
-}
+const extractDonorHandle = (description: string) => {
+  const match = /Doação de (@[\w.-]+)/.exec(description);
+  return match?.[1] || null;
+};
 
-/** Extrai descrição limpa do reembolso ("Reembolso aprovado: <descr>") */
 function extractReimbursementDesc(description: string): string {
   return description.replace(/^Reembolso aprovado:\s*/i, "").trim();
 }
@@ -147,19 +144,18 @@ function TransactionDetailDialog({
   accountId,
   apiUrl,
   onClose,
-}: {
+}: Readonly<{
   tx: Transaction | null;
   accountId: string;
   apiUrl: string;
   onClose: () => void;
-}) {
+}>) {
   const [reimbInfo, setReimbInfo] = useState<ReimbursementPublicInfo | null>(null);
   const [reimbLoading, setReimbLoading] = useState(false);
 
   const type = tx ? detectTxType(tx) : "other";
   const config = TX_TYPE_CONFIG[type];
 
-  // Fetch reimbursement details when modal opens for a reimbursement
   useEffect(() => {
     if (!tx) { setReimbInfo(null); return; }
     if (type !== "reimbursement") { setReimbInfo(null); return; }
@@ -178,31 +174,32 @@ function TransactionDetailDialog({
   if (!tx) return null;
 
   const isCredit = tx.destinationAccount?.id === accountId;
-
-  // --- Donation-specific ---
   const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
   const isSubscription = tx.description?.toLowerCase().includes("assinatura");
   const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
-
-  // --- Stripe link ---
   const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
   const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
+  const stripeModePath = isTestMode ? "test/" : "";
   const stripeDashboardUrl = paymentIntentId
-    ? `https://dashboard.stripe.com/${isTestMode ? "test/" : ""}payments/${paymentIntentId}`
+    ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
     : null;
-
-  // --- Reimbursement-specific ---
   const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
-
-  // --- Transfer-specific ---
   const isTransfer = type === "transfer";
   const transferReason = isTransfer
     ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
     : null;
 
   return (
-    <Dialog open={!!tx} onClose={onClose} maxWidth="sm" fullWidth
-      PaperProps={{ sx: { borderTop: 3, borderColor: `${config.color}.main` } }}
+    <Dialog
+      open={!!tx}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: { borderTop: 3, borderColor: `${config.color}.main` },
+        },
+      }}
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -221,8 +218,6 @@ function TransactionDetailDialog({
 
       <DialogContent sx={{ pt: 0 }}>
         <Divider sx={{ mb: 2 }} />
-
-        {/* Data e ID */}
         <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
           <Box>
             <Typography variant="caption" color="text.disabled">Data</Typography>
@@ -237,8 +232,6 @@ function TransactionDetailDialog({
             </Tooltip>
           </Box>
         </Box>
-
-        {/* Fluxo: de → para */}
         <Box sx={{
           display: "flex", alignItems: "center", gap: 1.5, mb: 2, p: 1.5,
           borderRadius: 2, bgcolor: "action.hover", flexWrap: "wrap",
@@ -253,11 +246,8 @@ function TransactionDetailDialog({
             <Typography variant="body2" fontWeight={700} color="primary.main">{tx.destinationAccount?.name}</Typography>
           </Box>
         </Box>
-
-        {/* ── DOAÇÃO ── */}
         {type === "donation" && (
           <>
-            {/* Doador */}
             {donorHandle ? (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.disabled">Doador</Typography>
@@ -286,8 +276,6 @@ function TransactionDetailDialog({
                 </Typography>
               </Box>
             )}
-
-            {/* Tipo de doação */}
             <Box sx={{ mb: 2 }}>
               <Typography variant="caption" color="text.disabled">Tipo</Typography>
               <Typography variant="body2" sx={{ mt: 0.5 }}>
@@ -298,28 +286,22 @@ function TransactionDetailDialog({
             </Box>
           </>
         )}
-
-        {/* ── REEMBOLSO ── */}
         {type === "reimbursement" && (
           <>
-            {/* Finalidade */}
             {reimbDesc && (
               <Box sx={{ mb: 2 }}>
                 <Typography variant="caption" color="text.disabled">Finalidade do reembolso</Typography>
                 <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{reimbDesc}"</Typography>
               </Box>
             )}
-
             {reimbLoading && (
               <Box sx={{ mb: 2 }}>
                 <Skeleton height={24} width="60%" />
                 <Skeleton height={20} width="40%" />
               </Box>
             )}
-
             {reimbInfo && (
               <>
-                {/* Solicitante */}
                 {reimbInfo.requester && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="caption" color="text.disabled">Solicitado por</Typography>
@@ -341,8 +323,6 @@ function TransactionDetailDialog({
                     </Box>
                   </Box>
                 )}
-
-                {/* Aprovador */}
                 {reimbInfo.approver && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="caption" color="text.disabled">Aprovado por</Typography>
@@ -363,8 +343,6 @@ function TransactionDetailDialog({
                     </Box>
                   </Box>
                 )}
-
-                {/* Nota de revisão */}
                 {reimbInfo.reviewNote && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="caption" color="text.disabled">Nota do aprovador</Typography>
@@ -373,8 +351,6 @@ function TransactionDetailDialog({
                     </Typography>
                   </Box>
                 )}
-
-                {/* Comprovante público */}
                 {reimbInfo.receiptUrl && (
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="caption" color="text.disabled">Comprovante</Typography>
@@ -396,16 +372,12 @@ function TransactionDetailDialog({
             )}
           </>
         )}
-
-        {/* ── TRANSFERÊNCIA ── */}
         {isTransfer && transferReason && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" color="text.disabled">Justificativa da transferência</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{transferReason}"</Typography>
           </Box>
         )}
-
-        {/* ── LANÇAMENTO MANUAL ── */}
         {type === "other" && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" color="text.disabled">Descrição</Typography>
@@ -414,10 +386,7 @@ function TransactionDetailDialog({
             </Typography>
           </Box>
         )}
-
         <Divider sx={{ mb: 2 }} />
-
-        {/* Links externos */}
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           {stripeDashboardUrl && paymentIntentId && (
             <Chip
@@ -457,12 +426,12 @@ function KpiCard({
   value,
   label,
   color = "primary.main",
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   value: React.ReactNode;
   label: string;
   color?: string;
-}) {
+}>) {
   return (
     <Card
       variant="outlined"
@@ -491,11 +460,11 @@ function TransactionTable({
   accountId,
   accountName,
   apiUrl,
-}: {
+}: Readonly<{
   accountId: string;
   accountName: string;
   apiUrl: string;
-}) {
+}>) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [result, setResult] = useState<PaginatedTransactions | null>(null);
@@ -532,7 +501,7 @@ function TransactionTable({
   };
 
   const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(e.target.value, 10));
+    setRowsPerPage(Number.parseInt(e.target.value, 10));
     setPage(0);
   };
 
@@ -546,8 +515,6 @@ function TransactionTable({
 
   const rows = result?.data ?? [];
   const total = result?.total ?? 0;
-
-  const skeletonRows = Array.from({ length: rowsPerPage });
 
   return (
     <Box>
@@ -568,83 +535,111 @@ function TransactionTable({
             </TableRow>
           </TableHead>
           <TableBody>
-            {loading
-              ? skeletonRows.map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <TableCell key={j}>
-                        <Skeleton height={22} />
-                      </TableCell>
-                    ))}
+            {(() => {
+              if (loading) {
+                return [1, 2, 3, 4, 5].map((i) => (
+                  <TableRow key={`skeleton-${i}`}>
+                    <TableCell colSpan={6}>
+                      <Skeleton variant="text" width="100%" height={30} />
+                    </TableCell>
                   </TableRow>
-                ))
-              : rows.length === 0
-              ? (
+                ));
+              }
+
+              if (rows.length === 0) {
+                return (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                    <TableCell
+                      colSpan={6}
+                      align="center"
+                      sx={{ py: 4, color: "text.secondary" }}
+                    >
                       Nenhuma movimentação registrada ainda.
                     </TableCell>
                   </TableRow>
-                )
-              : rows.map((tx) => {
-                  const isCredit = tx.destinationAccount.id === accountId;
-                  const type = detectTxType(tx);
-                  const typeConfig = TX_TYPE_CONFIG[type];
-                  return (
-                    <TableRow
-                      key={tx.id}
-                      hover
-                      onClick={() => setSelectedTx(tx)}
+                );
+              }
+
+              return rows.map((tx) => {
+                const isCredit = tx.destinationAccount.id === accountId;
+                const type = detectTxType(tx);
+                const typeConfig = TX_TYPE_CONFIG[type];
+                return (
+                  <TableRow
+                    key={tx.id}
+                    hover
+                    onClick={() => setSelectedTx(tx)}
+                    sx={{
+                      "&:last-child td": { border: 0 },
+                      cursor: "pointer",
+                      "&:hover": { bgcolor: "action.hover" },
+                    }}
+                  >
+                    <TableCell sx={{ px: 1.5 }}>
+                      <Tooltip
+                        title={isCredit ? "Crédito (entrada)" : "Débito (saída)"}
+                      >
+                        {isCredit ? (
+                          <ArrowUpwardIcon
+                            fontSize="small"
+                            sx={{ color: "success.main", display: "block" }}
+                          />
+                        ) : (
+                          <ArrowDownwardIcon
+                            fontSize="small"
+                            sx={{ color: "error.main", display: "block" }}
+                          />
+                        )}
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell
+                      sx={{ whiteSpace: "nowrap", fontSize: "0.75rem" }}
+                    >
+                      {formatDate(tx.createdAt)}
+                    </TableCell>
+                    <TableCell sx={{ minWidth: 110 }}>
+                      <Chip
+                        icon={typeConfig.icon}
+                        label={typeConfig.label}
+                        color={typeConfig.color}
+                        size="small"
+                        variant="outlined"
+                        sx={{ fontSize: "0.68rem" }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: "0.8rem", maxWidth: 220 }}>
+                      <Typography
+                        variant="caption"
+                        noWrap
+                        sx={{ display: "block", maxWidth: 220 }}
+                      >
+                        {tx.description}
+                      </Typography>
+                    </TableCell>
+                    <TableCell
                       sx={{
-                        "&:last-child td": { border: 0 },
-                        cursor: "pointer",
-                        "&:hover": { bgcolor: "action.hover" },
+                        fontSize: "0.75rem",
+                        color: "text.secondary",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      <TableCell sx={{ px: 1.5 }}>
-                        <Tooltip title={isCredit ? "Crédito (entrada)" : "Débito (saída)"}>
-                          {isCredit ? (
-                            <ArrowUpwardIcon fontSize="small" sx={{ color: "success.main", display: "block" }} />
-                          ) : (
-                            <ArrowDownwardIcon fontSize="small" sx={{ color: "error.main", display: "block" }} />
-                          )}
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap", fontSize: "0.75rem" }}>
-                        {formatDate(tx.createdAt)}
-                      </TableCell>
-                      <TableCell sx={{ minWidth: 110 }}>
-                        <Chip
-                          icon={typeConfig.icon}
-                          label={typeConfig.label}
-                          color={typeConfig.color}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: "0.68rem" }}
-                        />
-                      </TableCell>
-                      <TableCell sx={{ fontSize: "0.8rem", maxWidth: 220 }}>
-                        <Typography variant="caption" noWrap sx={{ display: "block", maxWidth: 220 }}>
-                          {tx.description}
-                        </Typography>
-                      </TableCell>
-                      <TableCell sx={{ fontSize: "0.75rem", color: "text.secondary", whiteSpace: "nowrap" }}>
-                        {tx.sourceAccount?.name} → {tx.destinationAccount?.name}
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        sx={{
-                          fontWeight: 700,
-                          fontSize: "0.8rem",
-                          color: isCredit ? "success.main" : "error.main",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {isCredit ? "+" : "−"} {formatBRL(Number(tx.amount))}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                      {tx.sourceAccount?.name} → {tx.destinationAccount?.name}
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.8rem",
+                        color: isCredit ? "success.main" : "error.main",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {isCredit ? "+" : "−"} {formatBRL(Number(tx.amount))}
+                    </TableCell>
+                  </TableRow>
+                );
+              });
+            })()}
           </TableBody>
         </Table>
       </TableContainer>
@@ -657,13 +652,12 @@ function TransactionTable({
         onRowsPerPageChange={handleChangeRowsPerPage}
         rowsPerPageOptions={[5, 10, 25, 50]}
         labelRowsPerPage="Linhas:"
-        labelDisplayedRows={({ from, to, count }) =>
-          `${from}–${to} de ${count !== -1 ? count : `mais de ${to}`}`
-        }
+        labelDisplayedRows={({ from, to, count }) => {
+          const totalStr = count === -1 ? `mais de ${to}` : count;
+          return `${from}–${to} de ${totalStr}`;
+        }}
         sx={{ mt: 0.5 }}
       />
-
-      {/* Detalhe da transação */}
       <TransactionDetailDialog
         tx={selectedTx}
         accountId={accountId}
@@ -698,7 +692,6 @@ export default function TransparenciaPage(): React.JSX.Element {
   }, [apiUrl]);
 
   const totalBalance = balances?.reduce((sum, b) => sum + b.balance, 0) ?? 0;
-  const activeBalance = balances?.find((b, i) => i === activeTab);
 
   return (
     <Layout
@@ -958,13 +951,13 @@ export default function TransparenciaPage(): React.JSX.Element {
             <Typography variant="h4" fontWeight={800} gutterBottom>
               Como funciona
             </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
               Usamos <strong>contabilidade de dupla partida</strong>: cada doação cria dois
               lançamentos — um débito na conta de entrada (Stripe Income) e um crédito na
               carteira virtual da comunidade escolhida. Isso garante que nenhum valor apareça
               ou desapareça sem rastreamento completo.
             </Typography>
-            <Typography variant="body1" color="text.secondary" paragraph>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
               O backend NestJS valida cada pagamento diretamente com a API da Stripe via
               Webhook antes de registrar qualquer transação. Pagamentos não confirmados nunca
               chegam ao sistema.
@@ -1012,7 +1005,7 @@ export default function TransparenciaPage(): React.JSX.Element {
                   API REST pública
                 </Typography>
               </Box>
-              <Typography variant="body2" color="text.secondary" paragraph>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Todos os dados aqui exibidos estão disponíveis via API REST documentada.
                 Qualquer pessoa pode consultar os saldos e transações programaticamente.
               </Typography>

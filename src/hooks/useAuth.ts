@@ -55,16 +55,16 @@ export function useAuth() {
 
   /** Inicia o fluxo OAuth do GitHub. Salva a URL atual para redirecionamento pós-login. */
   const login = useCallback(() => {
-    if (globalThis.window === undefined) return;
-    sessionStorage.setItem("codaqui_auth_return", globalThis.window.location.pathname);
-    globalThis.window.location.href = `${apiUrl}/auth/github`;
+    if (globalThis.sessionStorage) {
+      globalThis.sessionStorage.setItem("codaqui_auth_return", globalThis.location.pathname);
+    }
+    globalThis.location.href = `${apiUrl}/auth/github`;
   }, [apiUrl]);
 
   /** Encerra a sessão limpando o cookie via backend e resetando o estado local. */
   const logout = useCallback(() => {
-    if (globalThis.window === undefined) return;
     setUser(null);
-    globalThis.window.location.href = `${apiUrl}/auth/logout`;
+    globalThis.location.href = `${apiUrl}/auth/logout`;
   }, [apiUrl]);
 
   /**

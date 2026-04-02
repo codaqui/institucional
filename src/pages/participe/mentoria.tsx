@@ -67,7 +67,7 @@ const HOW_IT_WORKS = [
     title: "Escolha um mentor",
     description:
       "Leia o foco de cada mentor e escolha o que melhor se encaixa com seu objetivo.",
-    href: "/sobre/equipe#mentores",
+    to: "/sobre/equipe/#mentores",
     linkLabel: "Ver equipe de mentores →",
   },
   {
@@ -290,9 +290,9 @@ export default function MentoriaPage(): React.JSX.Element {
                       {step.description}
                     </Typography>
                     <Link
-                      href={step.href}
-                      target={step.href.startsWith("http") ? "_blank" : undefined}
-                      rel={step.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                      to={step.to || step.href}
+                      target={(step.to || step.href).startsWith("http") ? "_blank" : undefined}
+                      rel={(step.to || step.href).startsWith("http") ? "noopener noreferrer" : undefined}
                     >
                       <Typography variant="body2" fontWeight={600} color="primary.main">
                         {step.linkLabel}

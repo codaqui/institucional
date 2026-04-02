@@ -86,8 +86,8 @@ function Section({
   id,
 }: Readonly<SectionProps>) {
   return (
-    <Box id={id} sx={{ mb: 8 }}>
-      <Typography variant="h4" component="h2" sx={{ mb: 1, fontWeight: 700 }}>
+    <Box component="section" id={id} sx={{ mb: 8 }}>
+      <Typography id={id} variant="h4" component="h2" sx={{ mb: 1, fontWeight: 700 }}>
         {title}
       </Typography>
       {description && (
