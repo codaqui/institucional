@@ -24,6 +24,13 @@ interface Member {
   joinedAt: string;
 }
 
+interface MembersResponse {
+  data: Member[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 interface MembersWallProps {
   readonly limit?: number;
 }
@@ -39,8 +46,9 @@ export default function MembersWall({ limit }: MembersWallProps): React.JSX.Elem
   useEffect(() => {
     fetch(`${apiUrl}/members`)
       .then((r) => r.json())
-      .then((data: Member[]) => {
-        setMembers(limit ? data.slice(0, limit) : data);
+      .then((response: MembersResponse) => {
+        const list = response.data ?? [];
+        setMembers(limit ? list.slice(0, limit) : list);
         setLoading(false);
       })
       .catch(() => {

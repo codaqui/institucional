@@ -61,6 +61,7 @@ services:
   # Requer STRIPE_SECRET_KEY no .env. Inicie 1x para ver o webhook secret:
   # podman logs codaqui_stripe_cli
   stripe-cli:
+    container_name: codaqui_stripe_cli
     image: stripe/stripe-cli:latest
     command: listen --forward-to http://backend:3000/stripe/webhook --skip-verify
     env_file:

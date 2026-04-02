@@ -11,7 +11,7 @@ import {
   ReimbursementStatus,
 } from './entities/reimbursement-request.entity';
 import { LedgerService } from '../ledger/ledger.service';
-import { AccountType } from '../ledger/entities/account.entity';
+import { Account, AccountType } from '../ledger/entities/account.entity';
 import { CreateReimbursementDto } from './dto/create-reimbursement.dto';
 import { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
 import { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
@@ -112,13 +112,22 @@ export class ReimbursementsService {
     }
 
     return await this.dataSource.transaction(async (manager) => {
+      // FOR UPDATE não pode ser combinado com LEFT JOIN (PostgreSQL restringe).
+      // As relações têm eager:true na entidade, o que gera LEFT JOINs automáticos.
+      // loadEagerRelations: false desabilita o eager só para esta query de lock.
       const request = await manager.findOne(ReimbursementRequest, {
         where: { id },
-        relations: ['account'],
         lock: { mode: 'pessimistic_write' },
+        loadEagerRelations: false,
       });
 
       if (!request) throw new NotFoundException('Solicitação não encontrada.');
+
+      // Carrega account separadamente (sem lock — somente leitura)
+      const account = request.accountId
+        ? await manager.findOne(Account, { where: { id: request.accountId } })
+        : null;
+      request.account = account!;
 
       if (request.status !== ReimbursementStatus.PENDING) {
         throw new BadRequestException(

@@ -155,14 +155,14 @@ db-shell: ## Abre um shell psql no container do PostgreSQL
 # =============================================================================
 # As migrations usam o data-source em backend/src/data-source.ts.
 # Certifique-se de que o PostgreSQL está rodando antes de executar.
-# Exemplo: make migration-generate NAME=CreateUsersTable
+# O nome é gerado automaticamente: NNN_YYYYMMDD (sequência + data de hoje).
 
-migration-generate: ## Gera uma nova migration (obrigatório: NAME=NomeDaMigration)
-	@if [ -z "$(NAME)" ]; then \
-	    printf "$(RED)✖  Informe o nome: make migration-generate NAME=NomeDaMigration$(RESET)\n"; \
-	    exit 1; \
-	fi
-	cd $(BACKEND_DIR) && npm run migration:generate -- src/migrations/$(NAME)
+migration-generate: ## Gera uma nova migration com nome automático (Migration_NNN_YYYYMMDD)
+	@LAST=$$(find $(BACKEND_DIR)/src/migrations -maxdepth 1 -name "*.ts" -exec basename {} .ts \; 2>/dev/null \
+	    | grep -oE 'Migration[0-9]+_' | grep -oE '[0-9]+' | sort -n | tail -1); \
+	NEXT=$$(printf "%03d" $$(( $${LAST:-0} + 1 ))); \
+	DATE=$$(date +%Y%m%d); \
+	cd $(BACKEND_DIR) && npm run migration:generate -- "src/migrations/Migration$${NEXT}_$${DATE}"
 
 migration-run: ## Executa todas as migrations pendentes
 	cd $(BACKEND_DIR) && npm run migration:run
