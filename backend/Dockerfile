@@ -10,16 +10,18 @@ FROM node:24-alpine AS runner
 RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nestjs
 
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/package-lock.json ./package-lock.json
+# Ensure /app belongs to node user
+RUN chown node:node /app
+
+COPY --from=builder --chown=node:node /app/package.json ./package.json
+COPY --from=builder --chown=node:node /app/package-lock.json ./package-lock.json
 RUN npm ci --omit=dev
 
-COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
+COPY --from=builder --chown=node:node /app/dist ./dist
 
-USER nestjs
+# Start application as non-root user (uid 1000)
+USER node
 EXPOSE 3000
 ENV PORT=3000
 CMD ["node", "dist/main.js"]
