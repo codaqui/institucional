@@ -60,7 +60,7 @@ async function fetchMeetupCsrf(urlname) {
   if (!res.ok) throw new Error(`Meetup page unavailable: ${res.status}`);
 
   const html = await res.text();
-  const match = html.match(/<meta name="next_csrf" content="([^"]+)"/);
+  const match = /<meta name="next_csrf" content="([^"]+)"/.exec(html);
   if (!match) throw new Error("Meetup CSRF token not found");
 
   return { csrf: match[1], referer: pageUrl };
@@ -119,7 +119,7 @@ async function fetchCncfMemberCount(chapterSlug) {
     if (!res.ok) return null;
 
     const html = await res.text();
-    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/);
+    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/.exec(html);
     if (!match) return null;
 
     const data = JSON.parse(match[1]);
@@ -163,7 +163,7 @@ async function fetchInstagramFollowers(username) {
     const html = await pageRes.text();
 
     // Extract CSRF token from window.__config = {\n  token: "..." (multi-line object)
-    const tokenMatch = html.match(/window\.__config\s*=\s*\{[\s\S]*?token:\s*"([^"]+)"/);
+    const tokenMatch = /window\.__config\s*=\s*\{[\s\S]*?token:\s*"([^"]+)"/.exec(html);
     if (!tokenMatch) {
       console.warn(`  blastup: CSRF token not found for @${handle} — page structure may have changed`);
       return null;
@@ -203,11 +203,13 @@ async function fetchInstagramFollowers(username) {
 }
 /** Parses YouTube subscriber text like "17 subscribers", "1.57K subscribers", "2.3M subscribers" */
 function parseYouTubeSubscriberText(text) {
-  const clean = text.replace(/,/g, "").toLowerCase();
+  const clean = text.replaceAll(",", "").toLowerCase();
   const m = clean.match(/^([\d.]+)\s*([km]?)\s*subscriber/);
   if (!m) return null;
-  const num = parseFloat(m[1]);
-  const mult = m[2] === "k" ? 1000 : m[2] === "m" ? 1_000_000 : 1;
+  const num = Number.parseFloat(m[1]);
+  let mult = 1;
+  if (m[2] === "k") mult = 1000;
+  else if (m[2] === "m") mult = 1_000_000;
   return Math.round(num * mult);
 }
 
@@ -231,7 +233,7 @@ async function fetchYouTubeSubscribers(handle) {
     if (!res.ok) return null;
     const html = await res.text();
     // YouTube embeds subscriber count in ytInitialData as: "content":"X subscribers"
-    const m = html.match(/"content":"([\d,\.]+[KkMm]? subscribers?)"/);
+    const m = /"content":"([\d,.]+[KkMm]? subscribers?)"/.exec(html);
     if (!m) return null;
     return parseYouTubeSubscriberText(m[1]);
   } catch (err) {
@@ -284,20 +286,31 @@ async function readExistingSnapshot() {
 // to get handle, url, countLabel, baselineCount for each profile.
 
 function extractSocialProfiles(tsSource, arrayName) {
-  // Extract the array block and parse socialProfiles objects using JSON-like regex
   const profiles = [];
-  // Match platform, handle, url, countLabel, baselineCount fields
-  const blockRegex = /platform:\s*["']([^"']+)["'][^}]*?handle:\s*["']([^"']+)["'][^}]*?url:\s*["']([^"']+)["'][^}]*?countLabel:\s*["']([^"']+)["'](?:[^}]*?baselineCount:\s*(\d+))?/gs;
-
-  let m;
-  while ((m = blockRegex.exec(tsSource)) !== null) {
-    profiles.push({
-      platform: m[1],
-      handle: m[2],
-      url: m[3],
-      countLabel: m[4],
-      baselineCount: m[5] ? parseInt(m[5], 10) : 0,
-    });
+  // Uses a less complex regex by matching object enclosures { ... } first
+  // and extracting properties individually.
+  const objectRegex = /\{[^}]+\}/g;
+  let match;
+  while ((match = objectRegex.exec(tsSource)) !== null) {
+    const block = match[0];
+    
+    const platformMatch = /platform:\s*["']([^"']+)["']/.exec(block);
+    if (!platformMatch) continue;
+    
+    const handleMatch = /handle:\s*["']([^"']+)["']/.exec(block);
+    const urlMatch = /url:\s*["']([^"']+)["']/.exec(block);
+    const countLabelMatch = /countLabel:\s*["']([^"']+)["']/.exec(block);
+    const baselineCountMatch = /baselineCount:\s*(\d+)/.exec(block);
+    
+    if (handleMatch && urlMatch && countLabelMatch) {
+      profiles.push({
+        platform: platformMatch[1],
+        handle: handleMatch[1],
+        url: urlMatch[1],
+        countLabel: countLabelMatch[1],
+        baselineCount: baselineCountMatch ? Number.parseInt(baselineCountMatch[1], 10) : 0,
+      });
+    }
   }
 
   return profiles;
@@ -309,7 +322,7 @@ async function readAllSocialProfiles() {
 
   // Codaqui profiles from social.ts
   const socialSrc = await readFile(socialPath, "utf8");
-  const codaquiBlock = socialSrc.match(/codaquiSocialProfiles[^=]*=\s*\[([\s\S]*?)\];/)?.[0] ?? "";
+  const codaquiBlock = /codaquiSocialProfiles[^=]*=\s*\[([\s\S]*?)\];/.exec(socialSrc)?.[0] ?? "";
   result.set("codaqui", extractSocialProfiles(codaquiBlock));
 
   // Community profiles from communities.ts
@@ -333,41 +346,13 @@ function logMissingSecrets() {
   if (!process.env.DISCORD_BOT_TOKEN) console.warn("⚠️  DISCORD_BOT_TOKEN not set — Discord skipped");
 }
 
-async function main() {
-  logMissingSecrets();
-  const generatedAt = new Date().toISOString();
-  const now = generatedAt;
-  const existing = await readExistingSnapshot();
-  const syncConfig = JSON.parse(await readFile(syncConfigPath, "utf8"));
-  const allProfiles = await readAllSocialProfiles();
-
-  // Build a lookup for which entityId+platform has a fetchId configured
-  const fetchMap = new Map();
-  for (const entity of syncConfig.entities) {
-    for (const fp of entity.fetchProfiles ?? []) {
-      fetchMap.set(`${entity.entityId}:${fp.platform}`, fp.fetchId);
-    }
-  }
-
-  // Run fetches in parallel across all configured entries
-  const fetchResults = new Map();
-  const fetchPromises = [];
-  for (const [key, fetchId] of fetchMap) {
-    const [, platform] = key.split(":");
-    fetchPromises.push(
-      fetchByPlatform(platform, fetchId).then((count) => fetchResults.set(key, count))
-    );
-  }
-  await Promise.all(fetchPromises);
-
-  // Build profiles array from communities.ts / social.ts data + fetched counts
+function buildProfilesList(allProfiles, fetchResults, existing, now) {
   const profiles = [];
   for (const [entityId, entityProfiles] of allProfiles) {
     for (const profile of entityProfiles) {
       const key = `${entityId}:${profile.platform}`;
       let rawFetched = fetchResults.has(key) ? fetchResults.get(key) : null;
 
-      // Discord returns { memberCount, channelCount } — extract extra fields
       let extra = {};
       if (rawFetched !== null && typeof rawFetched === "object") {
         extra = { channelCount: rawFetched.channelCount ?? null };
@@ -394,6 +379,35 @@ async function main() {
       });
     }
   }
+  return profiles;
+}
+
+async function main() {
+  logMissingSecrets();
+  const generatedAt = new Date().toISOString();
+  const now = generatedAt;
+  const existing = await readExistingSnapshot();
+  const syncConfig = JSON.parse(await readFile(syncConfigPath, "utf8"));
+  const allProfiles = await readAllSocialProfiles();
+
+  const fetchMap = new Map();
+  for (const entity of syncConfig.entities) {
+    for (const fp of entity.fetchProfiles ?? []) {
+      fetchMap.set(`${entity.entityId}:${fp.platform}`, fp.fetchId);
+    }
+  }
+
+  const fetchResults = new Map();
+  const fetchPromises = [];
+  for (const [key, fetchId] of fetchMap) {
+    const [, platform] = key.split(":");
+    fetchPromises.push(
+      fetchByPlatform(platform, fetchId).then((count) => fetchResults.set(key, count))
+    );
+  }
+  await Promise.all(fetchPromises);
+
+  const profiles = buildProfilesList(allProfiles, fetchResults, existing, now);
 
   const totalEvents = await readTotalEvents();
   const snapshot = { generatedAt, totalEvents, profiles };

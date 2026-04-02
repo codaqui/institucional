@@ -46,10 +46,10 @@ function buildEventItemPath(source, sourceId, eventId) {
 
 function stripMarkdown(text) {
   return (text || "")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
-    .replace(/[*_`>#]/g, " ")
-    .replace(/\\([()[\].-])/g, "$1")
-    .replace(/\s+/g, " ")
+    .replaceAll(/\[([^\]]+)\]\(([^)]+)\)/g, "$1")
+    .replaceAll(/[*_`>#]/g, " ")
+    .replaceAll(/\\([()[\].-])/g, "$1")
+    .replaceAll(/\s+/g, " ")
     .trim();
 }
 
@@ -194,7 +194,7 @@ async function fetchMeetupCsrf(config) {
   }
 
   const html = await response.text();
-  const match = html.match(/<meta name="next_csrf" content="([^"]+)"/);
+  const match = /<meta name="next_csrf" content="([^"]+)"/.exec(html);
   if (!match) {
     throw new Error("Meetup CSRF token not found");
   }
@@ -358,6 +358,24 @@ async function fetchMeetupEventsPage(config, kind, cursor, boundary, session) {
   return connection;
 }
 
+function processConnectionEdges(connection, events, seenIds, kind, stopBefore) {
+  let reachedCutoff = false;
+  for (const edge of connection.edges ?? []) {
+    if (!edge?.node?.id || seenIds.has(edge.node.id)) continue;
+    // In incremental mode for past events, stop when events are older than cutoff
+    if (stopBefore && kind === "past") {
+      const eventDate = edge.node.dateTime ?? edge.node.endTime ?? null;
+      if (eventDate && eventDate < stopBefore) {
+        reachedCutoff = true;
+        break;
+      }
+    }
+    seenIds.add(edge.node.id);
+    events.push(edge.node);
+  }
+  return reachedCutoff;
+}
+
 async function paginateMeetupEvents(config, kind, boundary, session, stopBefore = null) {
   const events = [];
   const seenIds = new Set();
@@ -372,21 +390,7 @@ async function paginateMeetupEvents(config, kind, boundary, session, stopBefore 
     }
 
     const connection = await fetchMeetupEventsPage(config, kind, cursor, boundary, session);
-    let reachedCutoff = false;
-
-    for (const edge of connection.edges ?? []) {
-      if (!edge?.node?.id || seenIds.has(edge.node.id)) continue;
-      // In incremental mode for past events, stop when events are older than cutoff
-      if (stopBefore && kind === "past") {
-        const eventDate = edge.node.dateTime ?? edge.node.endTime ?? null;
-        if (eventDate && eventDate < stopBefore) {
-          reachedCutoff = true;
-          break;
-        }
-      }
-      seenIds.add(edge.node.id);
-      events.push(edge.node);
-    }
+    const reachedCutoff = processConnectionEdges(connection, events, seenIds, kind, stopBefore);
 
     if (reachedCutoff) break;
     hasNextPage = Boolean(connection.pageInfo?.hasNextPage);
@@ -546,6 +550,70 @@ async function cleanSourceDir(sourceDir) {
   await mkdir(sourceDir, { recursive: true });
 }
 
+async function processSource(sourceConfig, fullSync, generatedAt) {
+  console.log(`  syncing ${sourceConfig.source}/${sourceConfig.sourceId}...`);
+  const sourceDir = buildSourceDir(sourceConfig.source, sourceConfig.sourceId);
+  const existingEvents = await readExistingEvents(sourceConfig.source, sourceConfig.sourceId);
+
+  let events = existingEvents;
+  if (sourceConfig.source === "discord") {
+    events = await resolveDiscordEvents(sourceConfig, existingEvents);
+  } else if (sourceConfig.source === "meetup") {
+    events = await resolveMeetupEvents(sourceConfig, existingEvents, fullSync);
+  }
+
+  await cleanSourceDir(sourceDir);
+
+  const sourceMeta = {
+    source: sourceConfig.source,
+    sourceId: sourceConfig.sourceId,
+    type: sourceConfig.source,
+    label: sourceConfig.label,
+    emoji: sourceConfig.emoji,
+    description: sourceConfig.description,
+    ctaLabel: sourceConfig.ctaLabel,
+    ctaHref: sourceConfig.ctaHref,
+    widgetUrl: sourceConfig.widgetUrl,
+    refreshStrategy:
+      "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    generatedAt
+  };
+
+  const summaries = events
+    .map((event) => ({
+      ...event,
+      source: sourceConfig.source,
+      sourceId: sourceConfig.sourceId,
+      sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
+      itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id)
+    }))
+    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+
+  const sourceSummary = {
+    ...sourceMeta,
+    sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
+    indexPath: buildSourceIndexPath(sourceConfig.source, sourceConfig.sourceId),
+    itemCount: summaries.length
+  };
+
+  for (const event of events) {
+    await writeFile(
+      path.join(sourceDir, `${event.id}.json`),
+      `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`,
+      "utf8"
+    );
+  }
+
+  await writeFile(
+    path.join(sourceDir, "index.json"),
+    `${JSON.stringify({ generatedAt, source: sourceSummary, events: summaries }, null, 2)}\n`,
+    "utf8"
+  );
+
+  console.log(`    ✓ ${summaries.length} events written`);
+  return { sourceSummary, summaries };
+}
+
 async function main() {
   const fullSync =
     process.argv.includes("--full") || process.env.FULL_CONSOLIDATION === "true";
@@ -562,66 +630,7 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
 
   for (const sourceConfig of config.sources) {
-    console.log(`  syncing ${sourceConfig.source}/${sourceConfig.sourceId}...`);
-    const sourceDir = buildSourceDir(sourceConfig.source, sourceConfig.sourceId);
-    const existingEvents = await readExistingEvents(sourceConfig.source, sourceConfig.sourceId);
-
-    let events = existingEvents;
-    if (sourceConfig.source === "discord") {
-      events = await resolveDiscordEvents(sourceConfig, existingEvents);
-    } else if (sourceConfig.source === "meetup") {
-      events = await resolveMeetupEvents(sourceConfig, existingEvents, fullSync);
-    }
-
-    await cleanSourceDir(sourceDir);
-
-    const sourceMeta = {
-      source: sourceConfig.source,
-      sourceId: sourceConfig.sourceId,
-      type: sourceConfig.source,
-      label: sourceConfig.label,
-      emoji: sourceConfig.emoji,
-      description: sourceConfig.description,
-      ctaLabel: sourceConfig.ctaLabel,
-      ctaHref: sourceConfig.ctaHref,
-      widgetUrl: sourceConfig.widgetUrl,
-      refreshStrategy:
-        "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      generatedAt
-    };
-
-    const summaries = events
-      .map((event) => ({
-        ...event,
-        source: sourceConfig.source,
-        sourceId: sourceConfig.sourceId,
-        sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
-        itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id)
-      }))
-      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
-
-    const sourceSummary = {
-      ...sourceMeta,
-      sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
-      indexPath: buildSourceIndexPath(sourceConfig.source, sourceConfig.sourceId),
-      itemCount: summaries.length
-    };
-
-    for (const event of events) {
-      await writeFile(
-        path.join(sourceDir, `${event.id}.json`),
-        `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`,
-        "utf8"
-      );
-    }
-
-    await writeFile(
-      path.join(sourceDir, "index.json"),
-      `${JSON.stringify({ generatedAt, source: sourceSummary, events: summaries }, null, 2)}\n`,
-      "utf8"
-    );
-
-    console.log(`    ✓ ${summaries.length} events written`);
+    const { sourceSummary, summaries } = await processSource(sourceConfig, fullSync, generatedAt);
     rootIndex.sources.push(sourceSummary);
     rootIndex.events.push(...summaries);
   }

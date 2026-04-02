@@ -133,7 +133,7 @@ interface StatCardProps {
   color?: string;
 }
 
-function StatCard({ icon, value, label, color }: StatCardProps) {
+function StatCard({ icon, value, label, color }: Readonly<StatCardProps>) {
   return (
     <Paper
       elevation={0}
@@ -152,22 +152,25 @@ function StatCard({ icon, value, label, color }: StatCardProps) {
 
 // ─── Social stat chip ─────────────────────────────────────────────────────────
 
-function SocialStatChip({ entry }: { entry: SocialStatEntry }) {
+function SocialStatChip({ entry }: Readonly<{ entry: SocialStatEntry }>) {
   const color = platformColor(entry.platform);
   const icon = platformIcon(entry.platform);
   // Platforms without automated fetch show as link-only chips (no count)
   const hasCount = !entry.isFallback || entry.count > 0;
 
+  let tooltipText = "";
+  if (hasCount) {
+    if (entry.isFallback) {
+      tooltipText = "Valor estimado — ainda não sincronizado";
+    } else {
+      tooltipText = `Atualizado em ${entry.fetchedAt ? new Date(entry.fetchedAt).toLocaleDateString("pt-BR") : "—"}`;
+    }
+  } else {
+    tooltipText = `${entry.handle} — clique para visitar`;
+  }
+
   return (
-    <Tooltip
-      title={
-        !hasCount
-          ? `${entry.handle} — clique para visitar`
-          : entry.isFallback
-          ? "Valor estimado — ainda não sincronizado"
-          : `Atualizado em ${entry.fetchedAt ? new Date(entry.fetchedAt).toLocaleDateString("pt-BR") : "—"}`
-      }
-    >
+    <Tooltip title={tooltipText}>
       <Chip
         component="a"
         href={entry.url}
@@ -232,7 +235,7 @@ function PresenceCard({
   location,
   tags,
   primaryLink,
-}: PresenceCardProps) {
+}: Readonly<PresenceCardProps>) {
   // Always show all profiles: those with count show stats, those without show as links
   return (
     <Card variant="outlined" sx={{ height: "100%", "&:hover": { boxShadow: 3 }, transition: "box-shadow 0.2s" }}>
@@ -301,7 +304,7 @@ const COLOR_MAP: Record<string, string> = {
   grey: "grey.500",
 };
 
-function StatsFigures({ stats }: { stats: TimelineStats[] }) {
+function StatsFigures({ stats }: Readonly<{ stats: TimelineStats[] }>) {
   return (
     <Stack
       direction="row"
@@ -331,7 +334,7 @@ function StatsFigures({ stats }: { stats: TimelineStats[] }) {
   );
 }
 
-function ChapterItems({ items }: { items: string[] }) {
+function ChapterItems({ items }: Readonly<{ items: string[] }>) {
   const [open, setOpen] = useState(false);
   const threshold = 4;
   const hasMore = items.length > threshold;
@@ -340,8 +343,8 @@ function ChapterItems({ items }: { items: string[] }) {
   return (
     <>
       <Box component="ul" sx={{ pl: 2, m: 0, "& li + li": { mt: 0.5 } }}>
-        {visible.map((item, i) => (
-          <Box component="li" key={i}>
+        {visible.map((item) => (
+          <Box component="li" key={item}>
             <Typography variant="body2" color="text.secondary">
               {item}
             </Typography>
@@ -351,8 +354,8 @@ function ChapterItems({ items }: { items: string[] }) {
       {hasMore && (
         <Collapse in={open}>
           <Box component="ul" sx={{ pl: 2, mt: 0.5, m: 0, "& li + li": { mt: 0.5 } }}>
-            {items.slice(threshold).map((item, i) => (
-              <Box component="li" key={i}>
+            {items.slice(threshold).map((item) => (
+              <Box component="li" key={item}>
                 <Typography variant="body2" color="text.secondary">
                   {item}
                 </Typography>
@@ -380,12 +383,12 @@ function TimelineChapter({
   index,
   isMobile,
   isLast,
-}: {
+}: Readonly<{
   event: TimelineEvent;
   index: number;
   isMobile: boolean;
   isLast: boolean;
-}) {
+}>) {
   const isEven = index % 2 === 0;
   const isCurrent = event.tag === "Em andamento";
   const accentColor = COLOR_MAP[event.color] ?? "primary.main";
@@ -592,6 +595,29 @@ function TimelineChapter({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
+function buildFallbackSnapshot(): SocialStatsSnapshot {
+  const now = new Date().toISOString();
+  const profiles = [
+    ...codaquiSocialProfiles.map((p) => ({
+      ...p,
+      entityId: "codaqui",
+      count: p.baselineCount ?? 0,
+      isFallback: true,
+      fetchedAt: now,
+    })),
+    ...communities.flatMap((c) =>
+      (c.socialProfiles ?? []).map((p) => ({
+        ...p,
+        entityId: c.id,
+        count: p.baselineCount ?? 0,
+        isFallback: true,
+        fetchedAt: now,
+      }))
+    ),
+  ];
+  return { generatedAt: now, totalEvents: 0, profiles };
+}
+
 export default function InsightsPage(): React.JSX.Element {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -603,27 +629,7 @@ export default function InsightsPage(): React.JSX.Element {
       .then((r) => r.json())
       .then((data: SocialStatsSnapshot) => setSnapshot(data))
       .catch(() => {
-        // Build fallback from config baselines
-        const now = new Date().toISOString();
-        const profiles = [
-          ...codaquiSocialProfiles.map((p) => ({
-            ...p,
-            entityId: "codaqui",
-            count: p.baselineCount ?? 0,
-            isFallback: true,
-            fetchedAt: now,
-          })),
-          ...communities.flatMap((c) =>
-            (c.socialProfiles ?? []).map((p) => ({
-              ...p,
-              entityId: c.id,
-              count: p.baselineCount ?? 0,
-              isFallback: true,
-              fetchedAt: now,
-            }))
-          ),
-        ];
-        setSnapshot({ generatedAt: now, totalEvents: 0, profiles });
+        setSnapshot(buildFallbackSnapshot());
       });
   }, []);
 

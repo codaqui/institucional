@@ -23,8 +23,11 @@ jobs:
     steps:
       - name: Detect develop-to-main PR
         id: meta
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ "${{ github.event.pull_request.base.ref }}" = "main" ] && [ "${{ github.event.pull_request.head.ref }}" = "develop" ]; then
+          if [ "$PR_BASE" = "main" ] && [ "$PR_HEAD" = "develop" ]; then
             echo "reuse_develop_preview=true" >> "$GITHUB_OUTPUT"
           else
             echo "reuse_develop_preview=false" >> "$GITHUB_OUTPUT"

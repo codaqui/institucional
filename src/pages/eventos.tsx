@@ -3,7 +3,6 @@ import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import {
   Alert,
-  Avatar,
   Box,
   Button,
   Card,
@@ -67,6 +66,130 @@ function getStatusColor(status?: string): "default" | "success" | "warning" | "e
   }
 }
 
+function EventCard({
+  event,
+  sourceMeta,
+}: {
+  readonly event: EventSummary;
+  readonly sourceMeta?: EventSourceSummary;
+}): React.JSX.Element {
+  const isExternal = event.href.startsWith("http");
+  const statusLabel = getStatusLabel(event.status);
+
+  return (
+    <Card
+      variant="outlined"
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        transition: "all 0.2s",
+        "&:hover": {
+          transform: "translateY(-2px)",
+          boxShadow: 3,
+          borderColor: "primary.main",
+        },
+      }}
+    >
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+          <Chip
+            label={`${sourceMeta?.emoji ?? "📌"} ${sourceMeta?.label ?? event.source}`}
+            size="small"
+            color={sourceMeta?.type === "discord" ? "primary" : "default"}
+            variant="outlined"
+          />
+          {statusLabel ? (
+            <Chip label={statusLabel} size="small" color={getStatusColor(event.status)} />
+          ) : null}
+          {event.featured ? <Chip label="Destaque" size="small" color="success" /> : null}
+          {event.recurrenceLabel ? (
+            <Chip
+              icon={<RepeatIcon />}
+              label={event.recurrenceLabel}
+              size="small"
+              variant="outlined"
+            />
+          ) : null}
+        </Stack>
+
+        {event.imageUrl ? (
+          <Box
+            sx={{
+              mb: 2,
+              borderRadius: 2,
+              overflow: "hidden",
+              border: "1px solid",
+              borderColor: "divider",
+            }}
+          >
+            <Box
+              component="img"
+              src={event.imageUrl}
+              alt={event.title}
+              sx={{ display: "block", width: "100%", height: 160, objectFit: "cover" }}
+            />
+          </Box>
+        ) : null}
+
+        <Typography variant="h5" fontWeight={700} gutterBottom>
+           {event.title}
+        </Typography>
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
+          {event.summary}
+        </Typography>
+
+        <Stack spacing={1.25} sx={{ mb: 2.5 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <CalendarMonthIcon color="primary" fontSize="small" />
+            <Typography variant="body2">{formatEventDate(event.startAt, event.timezone)}</Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ForumIcon color="primary" fontSize="small" />
+            <Typography variant="body2">
+              {event.platform} · com {event.creatorName ?? event.host}
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <PlaceOutlinedIcon color="primary" fontSize="small" />
+            <Typography variant="body2">{event.location}</Typography>
+          </Stack>
+          {typeof event.userCount === "number" ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <GroupsIcon color="primary" fontSize="small" />
+              <Typography variant="body2">{event.userCount} pessoa(s) interessadas</Typography>
+            </Stack>
+          ) : null}
+        </Stack>
+
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+          {event.tags.map((tag) => (
+            <Chip key={tag} label={tag} size="small" variant="outlined" />
+          ))}
+        </Stack>
+      </CardContent>
+
+      <CardActions sx={{ px: 2, pb: 2 }}>
+        <Button
+          component={Link}
+          href={event.href}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+          variant="outlined"
+          endIcon={isExternal ? <OpenInNewIcon /> : undefined}
+        >
+          {event.ctaLabel}
+        </Button>
+      </CardActions>
+    </Card>
+  );
+}
+
+function scrollToAgenda(): void {
+  document.getElementById("agenda")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 export default function EventosPage(): React.JSX.Element {
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [sources, setSources] = useState<EventSourceSummary[]>([]);
@@ -125,11 +248,6 @@ export default function EventosPage(): React.JSX.Element {
     [events, selectedSourceKey]
   );
 
-  const featuredEvents = useMemo(
-    () => filteredEvents.filter((event) => event.featured),
-    [filteredEvents]
-  );
-
   const upcomingEvents = useMemo(
     () =>
       [...filteredEvents]
@@ -151,125 +269,6 @@ export default function EventosPage(): React.JSX.Element {
   useEffect(() => {
     setVisiblePastCount(12);
   }, [selectedSourceKey]);
-
-  function scrollToAgenda(): void {
-    document.getElementById("agenda")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function renderEventCard(event: EventSummary): React.JSX.Element {
-    const sourceMeta = sourcesById[event.sourceKey];
-    const isExternal = event.href.startsWith("http");
-    const statusLabel = getStatusLabel(event.status);
-
-    return (
-      <Card
-        variant="outlined"
-        sx={{
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-          transition: "all 0.2s",
-          "&:hover": {
-            transform: "translateY(-2px)",
-            boxShadow: 3,
-            borderColor: "primary.main",
-          },
-        }}
-      >
-        <CardContent sx={{ flexGrow: 1 }}>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-            <Chip
-              label={`${sourceMeta?.emoji ?? "📌"} ${sourceMeta?.label ?? event.source}`}
-              size="small"
-              color={sourceMeta?.type === "discord" ? "primary" : "default"}
-              variant="outlined"
-            />
-            {statusLabel ? (
-              <Chip label={statusLabel} size="small" color={getStatusColor(event.status)} />
-            ) : null}
-            {event.featured ? <Chip label="Destaque" size="small" color="success" /> : null}
-            {event.recurrenceLabel ? (
-              <Chip
-                icon={<RepeatIcon />}
-                label={event.recurrenceLabel}
-                size="small"
-                variant="outlined"
-              />
-            ) : null}
-          </Stack>
-
-          {event.imageUrl ? (
-            <Box
-              sx={{
-                mb: 2,
-                borderRadius: 2,
-                overflow: "hidden",
-                border: "1px solid",
-                borderColor: "divider",
-              }}
-            >
-              <Box
-                component="img"
-                src={event.imageUrl}
-                alt={event.title}
-                sx={{ display: "block", width: "100%", height: 160, objectFit: "cover" }}
-              />
-            </Box>
-          ) : null}
-
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            {event.title}
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5 }}>
-            {event.summary}
-          </Typography>
-
-          <Stack spacing={1.25} sx={{ mb: 2.5 }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CalendarMonthIcon color="primary" fontSize="small" />
-              <Typography variant="body2">{formatEventDate(event.startAt, event.timezone)}</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ForumIcon color="primary" fontSize="small" />
-              <Typography variant="body2">
-                {event.platform} · com {event.creatorName ?? event.host}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <PlaceOutlinedIcon color="primary" fontSize="small" />
-              <Typography variant="body2">{event.location}</Typography>
-            </Stack>
-            {typeof event.userCount === "number" ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <GroupsIcon color="primary" fontSize="small" />
-                <Typography variant="body2">{event.userCount} pessoa(s) interessadas</Typography>
-              </Stack>
-            ) : null}
-          </Stack>
-
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-            {event.tags.map((tag) => (
-              <Chip key={tag} label={tag} size="small" variant="outlined" />
-            ))}
-          </Stack>
-        </CardContent>
-
-        <CardActions sx={{ px: 2, pb: 2 }}>
-          <Button
-            component={Link}
-            href={event.href}
-            target={isExternal ? "_blank" : undefined}
-            rel={isExternal ? "noopener noreferrer" : undefined}
-            variant="outlined"
-            endIcon={isExternal ? <OpenInNewIcon /> : undefined}
-          >
-            {event.ctaLabel}
-          </Button>
-        </CardActions>
-      </Card>
-    );
-  }
 
   return (
     <Layout
@@ -329,7 +328,7 @@ export default function EventosPage(): React.JSX.Element {
         <Grid container spacing={2}>
           {loading ? (
             Array.from({ length: 3 }).map((_, index) => (
-              <Grid key={index} size={{ xs: 12, md: 4 }}>
+              <Grid key={`stat-skeleton-${String(index)}`} size={{ xs: 12, md: 4 }}>
                 <Skeleton variant="rounded" height={110} />
               </Grid>
             ))
@@ -511,27 +510,33 @@ export default function EventosPage(): React.JSX.Element {
             </Typography>
           </Stack>
 
-        {loading ? (
+        {loading && (
           <Grid container spacing={3}>
             {Array.from({ length: 3 }).map((_, index) => (
-              <Grid key={index} size={{ xs: 12, md: 6, xl: 4 }}>
+              <Grid key={`upcoming-skeleton-${String(index)}`} size={{ xs: 12, md: 6, xl: 4 }}>
                 <Skeleton variant="rounded" height={280} />
               </Grid>
             ))}
           </Grid>
-        ) : hasError ? (
+        )}
+        
+        {!loading && hasError && (
           <Alert severity="warning" variant="outlined">
             Não foi possível carregar a agenda completa neste momento.
           </Alert>
-        ) : upcomingEvents.length > 0 ? (
+        )}
+        
+        {!loading && !hasError && upcomingEvents.length > 0 && (
           <Grid container spacing={3}>
             {upcomingEvents.map((event) => (
               <Grid key={`${event.sourceKey}:${event.id}`} size={{ xs: 12, md: 6, xl: 4 }}>
-                {renderEventCard(event)}
+                <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
               </Grid>
             ))}
           </Grid>
-        ) : (
+        )}
+        
+        {!loading && !hasError && upcomingEvents.length === 0 && (
           <Alert severity="info" variant="outlined">
             Nenhum evento foi publicado ainda.
           </Alert>
@@ -549,20 +554,22 @@ export default function EventosPage(): React.JSX.Element {
             </Typography>
           </Stack>
 
-          {loading ? (
+          {loading && (
             <Grid container spacing={3}>
               {Array.from({ length: 3 }).map((_, index) => (
-                <Grid key={index} size={{ xs: 12, md: 6, xl: 4 }}>
+                <Grid key={`past-skeleton-${String(index)}`} size={{ xs: 12, md: 6, xl: 4 }}>
                   <Skeleton variant="rounded" height={280} />
                 </Grid>
               ))}
             </Grid>
-          ) : pastEvents.length > 0 ? (
+          )}
+          
+          {!loading && pastEvents.length > 0 && (
             <>
               <Grid container spacing={3}>
                 {pastEvents.slice(0, visiblePastCount).map((event) => (
                   <Grid key={`${event.sourceKey}:${event.id}`} size={{ xs: 12, md: 6, xl: 4 }}>
-                    {renderEventCard(event)}
+                    <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
                   </Grid>
                 ))}
               </Grid>
@@ -575,7 +582,9 @@ export default function EventosPage(): React.JSX.Element {
                 </Box>
               ) : null}
             </>
-          ) : (
+          )}
+          
+          {!loading && pastEvents.length === 0 && (
             <Alert severity="info" variant="outlined">
               Ainda não há eventos passados indexados.
             </Alert>
