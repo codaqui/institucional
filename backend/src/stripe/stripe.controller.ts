@@ -105,6 +105,12 @@ export class StripeController {
       throw new BadRequestException('O valor deve ser positivo.');
     }
 
+    // Limite superior para evitar abuso
+    const MAX_AMOUNT_CENTS = 5_000_000; // R$ 50.000
+    if (body.amount > MAX_AMOUNT_CENTS) {
+      throw new BadRequestException('Valor máximo por transação: R$ 50.000.');
+    }
+
     const isRecurring = !!body.recurring;
 
     // Subscriptions sempre requerem login

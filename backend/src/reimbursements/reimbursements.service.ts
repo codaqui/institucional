@@ -109,6 +109,13 @@ export class ReimbursementsService {
       );
     }
 
+    // Impedir self-approval: quem solicitou não pode aprovar a própria solicitação
+    if (request.memberId === reviewerId) {
+      throw new ForbiddenException(
+        'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
+      );
+    }
+
     if (!dto.internalReceiptUrl?.trim()) {
       throw new BadRequestException(
         'O link interno do comprovante (internalReceiptUrl) é obrigatório para aprovar. ' +

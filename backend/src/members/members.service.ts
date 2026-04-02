@@ -92,13 +92,16 @@ export class MembersService {
     return this.repo.save(member);
   }
 
-  /** Lista membros ativos (endpoint público) */
-  findAllActive(): Promise<Member[]> {
-    return this.repo.find({
+  /** Lista membros ativos (endpoint público, paginado) */
+  async findAllActive(page = 1, limit = 50): Promise<{ data: Member[]; total: number; page: number; totalPages: number }> {
+    const [data, total] = await this.repo.findAndCount({
       where: { isActive: true },
       select: ['id', 'githubHandle', 'name', 'avatarUrl', 'bio', 'linkedinUrl', 'role', 'joinedAt'],
       order: { joinedAt: 'ASC' },
+      skip: (page - 1) * limit,
+      take: Math.min(limit, 100), // hard cap at 100 per page
     });
+    return { data, total, page, totalPages: Math.ceil(total / limit) };
   }
 
   /** Perfil individual (endpoint público) */

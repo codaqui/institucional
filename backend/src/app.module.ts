@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LedgerModule } from './ledger/ledger.module';
@@ -21,8 +23,12 @@ import { TransfersModule } from './transfers/transfers.module';
       password: process.env.DB_PASSWORD || 'codaqui_pass',
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
-      synchronize: true, // Auto-sync schema for MVP
+      synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60_000,   // janela de 1 minuto
+      limit: 30,     // máximo 30 requisições por IP por minuto
+    }]),
     LedgerModule,
     ExpensesModule,
     StorageModule,
@@ -33,6 +39,9 @@ import { TransfersModule } from './transfers/transfers.module';
     TransfersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

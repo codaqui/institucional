@@ -348,15 +348,18 @@ export class StripeService {
     currentPeriodEnd: number;
     cancelAtPeriodEnd: boolean;
   }[]> {
+    // Sanitize UUID to prevent Stripe Search API injection
+    const safeMemberId = memberId.replace(/[^a-f0-9-]/gi, '');
+
     // Stripe Search API — busca por metadata
     const result = await this.stripe.subscriptions.search({
-      query: `metadata['memberId']:'${memberId}' AND status:'active'`,
+      query: `metadata['memberId']:'${safeMemberId}' AND status:'active'`,
       limit: 20,
     });
 
     // Inclui também past_due (assinaturas com falha de pagamento mas ainda ativas)
     const pastDue = await this.stripe.subscriptions.search({
-      query: `metadata['memberId']:'${memberId}' AND status:'past_due'`,
+      query: `metadata['memberId']:'${safeMemberId}' AND status:'past_due'`,
       limit: 20,
     });
 

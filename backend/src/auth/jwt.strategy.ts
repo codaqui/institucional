@@ -28,13 +28,17 @@ const cookieExtractor = (req: Request): string | null =>
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret && process.env.NODE_ENV === 'production') {
+      throw new Error('JWT_SECRET is required in production');
+    }
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         cookieExtractor,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET ?? 'dev-secret-change-me',
+      secretOrKey: secret || 'dev-secret-change-me',
       passReqToCallback: false,
     });
   }

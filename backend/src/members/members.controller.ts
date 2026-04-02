@@ -5,9 +5,11 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   UseGuards,
   Req,
   NotFoundException,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { MembersService } from './members.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -25,8 +27,11 @@ export class MembersController {
   // para evitar que o parâmetro dinâmico capture strings literais.
 
   @Get('members')
-  findAll() {
-    return this.membersService.findAllActive();
+  findAll(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.membersService.findAllActive(page ? Number(page) : 1, limit ? Number(limit) : 50);
   }
 
   // ── Membro logado ─────────────────────────────────────────────────────────
@@ -52,7 +57,7 @@ export class MembersController {
   // Deve vir DEPOIS de /members/me.
 
   @Get('members/:id')
-  async findOne(@Param('id') id: string) {
+  async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const member = await this.membersService.findOne(id);
     if (!member) throw new NotFoundException('Membro não encontrado.');
     return member;
@@ -71,7 +76,7 @@ export class MembersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   adminUpdate(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() body: { role?: MemberRole; isActive?: boolean },
   ) {
     return this.membersService.adminUpdate(id, body);

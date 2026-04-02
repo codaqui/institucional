@@ -6,6 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -187,7 +188,7 @@ export class LedgerController {
   @ApiResponse({ status: 400, description: 'Conta não encontrada.' })
   @ApiResponse({ status: 401, description: 'Não autenticado.' })
   @ApiResponse({ status: 403, description: 'Role insuficiente.' })
-  getAccountBalance(@Param('id') id: string) {
+  getAccountBalance(@Param('id', ParseUUIDPipe) id: string) {
     return this.ledgerService.getAccountBalance(id);
   }
 
@@ -229,7 +230,7 @@ export class LedgerController {
   })
   @ApiResponse({ status: 400, description: 'Parâmetros inválidos.' })
   getAccountTransactions(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Query() query: GetTransactionsQueryDto,
   ) {
     return this.ledgerService.getAccountTransactions(
