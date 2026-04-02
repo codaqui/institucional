@@ -22,4 +22,4 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 USER nestjs
 EXPOSE 3000
 ENV PORT=3000
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]
