@@ -6,7 +6,7 @@ COPY . .
 RUN npm run build
 
 FROM node:24-alpine AS runner
-# Utilizando curl conforme referencia externa de saude
+# Utilizando curl conforme referencia externa de saúde
 RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
