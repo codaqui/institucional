@@ -1,0 +1,34 @@
+# ─── Artefatos de build (gerados dentro do container) ──
+dist/
+
+# ─── Dependências (instaladas via npm ci no Dockerfile) ─
+node_modules/
+
+# ─── Ambiente e segredos ────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Git e CI ──────────────────────────────────────────
+.git/
+.github/
+.gitignore
+.prettierrc
+
+# ─── Testes (não vão para produção) ────────────────────
+**/*.spec.ts
+**/*.e2e-spec.ts
+test/
+
+# ─── IDE e macOS ───────────────────────────────────────
+.DS_Store
+.vscode/
+*.swp
+*.swo
+
+# ─── Logs ──────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Documentação desnecessária no container ───────────
+README.md
