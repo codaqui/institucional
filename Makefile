@@ -19,6 +19,13 @@ BACKEND_DIR      := backend
 ENV_FILE         := .env
 ENV_EXAMPLE      := .env.example
 
+# Load .env into make's environment so host targets see variables (if file exists)
+ifneq (,$(wildcard $(ENV_FILE)))
+include $(ENV_FILE)
+export
+endif
+
+
 # Cores para output do terminal
 RESET  := \033[0m
 BOLD   := \033[1m
