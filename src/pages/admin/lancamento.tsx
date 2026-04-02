@@ -82,8 +82,8 @@ export default function LançamentoPage(): React.JSX.Element {
       setSubmitError("A conta de origem e destino não podem ser a mesma.");
       return;
     }
-    const amountVal = parseFloat(form.amount.replace(",", "."));
-    if (isNaN(amountVal) || amountVal <= 0) {
+    const amountVal = Number.parseFloat(form.amount.replace(",", "."));
+    if (Number.isNaN(amountVal) || amountVal <= 0) {
       setSubmitError("O valor deve ser um número positivo.");
       return;
     }
@@ -95,7 +95,7 @@ export default function LançamentoPage(): React.JSX.Element {
     setSubmitLoading(true);
     setSubmitError("");
     try {
-      const amountVal = parseFloat(form.amount.replace(",", "."));
+      const amountVal = Number.parseFloat(form.amount.replace(",", "."));
       const payload = {
         sourceAccountId: form.sourceAccountId,
         destinationAccountId: form.destinationAccountId,
@@ -132,25 +132,14 @@ export default function LançamentoPage(): React.JSX.Element {
 
   if (!ready || !isLoggedIn || !isAdmin) return <Layout><Box /></Layout>;
 
-  return (
-    <Layout title="Lançamento Manual" description="Painel Admin">
-      <Container maxWidth="md" sx={{ py: 6 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" fontWeight={800} gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <PostAddIcon color="primary" fontSize="large" />
-            Lançamento Manual
-          </Typography>
-          <Typography color="text.secondary">
-            Registre movimentações que fugiram do webhook ou ajustes de conciliação bancária de dupla partida.
-          </Typography>
-        </Box>
-
-        {loading ? (
-          <Box sx={{ textAlign: "center", py: 4 }}><CircularProgress /></Box>
-        ) : error ? (
-          <Alert severity="error">{error}</Alert>
-        ) : (
-          <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", p: 2 }}>
+  let formContent: React.JSX.Element;
+  if (loading) {
+    formContent = <Box sx={{ textAlign: "center", py: 4 }}><CircularProgress /></Box>;
+  } else if (error) {
+    formContent = <Alert severity="error">{error}</Alert>;
+  } else {
+    formContent = (
+      <Card elevation={0} sx={{ border: "1px solid", borderColor: "divider", p: 2 }}>
             <CardContent>
               {success && (
                 <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 3 }} onClose={() => setSuccess(false)}>
@@ -246,7 +235,23 @@ export default function LançamentoPage(): React.JSX.Element {
               </form>
             </CardContent>
           </Card>
-        )}
+    );
+  }
+
+  return (
+    <Layout title="Lançamento Manual" description="Painel Admin">
+      <Container maxWidth="md" sx={{ py: 6 }}>
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" fontWeight={800} gutterBottom sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <PostAddIcon color="primary" fontSize="large" />
+            Lançamento Manual
+          </Typography>
+          <Typography color="text.secondary">
+            Registre movimentações que fugiram do webhook ou ajustes de conciliação bancária de dupla partida.
+          </Typography>
+        </Box>
+
+        {formContent}
 
         {/* Modal de Confirmação */}
         <ModalConfirm

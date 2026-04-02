@@ -15,7 +15,6 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -29,8 +28,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
-import PersonIcon from "@mui/icons-material/Person";
-import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
 
@@ -76,12 +73,14 @@ function PersonBadge({
   person,
   color = "default",
 }: {
-  label: string;
-  person: Person;
-  color?: "default" | "success" | "error";
+  readonly label: string;
+  readonly person: Person;
+  readonly color?: "default" | "success" | "error";
 }) {
   const initials = person.name?.charAt(0)?.toUpperCase() ?? "?";
   const display = person.githubHandle ? `@${person.githubHandle}` : person.name;
+  const avatarBgColor =
+    color === "success" ? "success.main" : color === "error" ? "error.main" : "action.selected";
   return (
     <Tooltip title={display}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -95,12 +94,7 @@ function PersonBadge({
             width: 18,
             height: 18,
             fontSize: "0.6rem",
-            bgcolor:
-              color === "success"
-                ? "success.main"
-                : color === "error"
-                ? "error.main"
-                : "action.selected",
+            bgcolor: avatarBgColor,
           }}
         >
           {!person.avatarUrl && initials}
@@ -171,7 +165,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
         body: JSON.stringify({
           sourceAccountId,
           destinationAccountId: destAccountId,
-          amount: Math.round(parseFloat(amount)),
+          amount: Math.round(Number.parseFloat(amount)),
           reason,
         }),
       });
@@ -257,6 +251,112 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
     );
   }
 
+  const emptyLabel = tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada";
+  let transferListContent: React.ReactNode;
+  if (loading) {
+    transferListContent = (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  } else if (filtered.length === 0) {
+    transferListContent = (
+      <Typography color="text.secondary" textAlign="center" py={6}>
+        Nenhuma transferência {emptyLabel}.
+      </Typography>
+    );
+  } else {
+    transferListContent = (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {filtered.map((req) => {
+          const sc = statusConfig[req.status];
+          return (
+            <Card key={req.id} variant="outlined">
+              <CardContent>
+                {/* ── Cabeçalho: motivo + valor + status ── */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1, mb: 1.5 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="body2" fontWeight={700} gutterBottom>
+                      {req.reason}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {new Date(req.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexShrink: 0 }}>
+                    <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
+                    <Typography variant="h6" fontWeight={800} color="primary.main">
+                      {formatBRL(req.amount)}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* ── Rota da transferência ── */}
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1.5 }}>
+                  <Chip label={req.sourceAccount?.name} size="small" variant="outlined" />
+                  <Typography variant="caption" color="text.secondary">→</Typography>
+                  <Chip label={req.destinationAccount?.name} size="small" variant="outlined" color="primary" />
+                </Box>
+
+                {/* ── Pessoas envolvidas ── */}
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center", mb: req.reviewNote || (req.status === "pending" && isAdmin) ? 1.5 : 0 }}>
+                  {req.requestedBy && (
+                    <PersonBadge
+                      label="Solicitante"
+                      person={req.requestedBy}
+                    />
+                  )}
+                  {req.reviewedBy && req.status !== "pending" && (
+                    <>
+                      <Typography variant="caption" color="text.disabled">·</Typography>
+                      <PersonBadge
+                        label={req.status === "approved" ? "Aprovado por" : "Rejeitado por"}
+                        person={req.reviewedBy}
+                        color={req.status === "approved" ? "success" : "error"}
+                      />
+                      {req.reviewedAt && (
+                        <Typography variant="caption" color="text.disabled">
+                          em {new Date(req.reviewedAt).toLocaleDateString("pt-BR")}
+                        </Typography>
+                      )}
+                    </>
+                  )}
+                </Box>
+
+                {req.reviewNote && (
+                  <Alert severity={req.status === "approved" ? "success" : "error"} sx={{ mt: 1.5 }}>
+                    <strong>{req.reviewedBy?.name}:</strong> {req.reviewNote}
+                  </Alert>
+                )}
+
+                {req.status === "pending" && isAdmin && (
+                  <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      onClick={() => { setApproveTarget(req); setApproveNote(""); setActionError(""); }}
+                    >
+                      Aprovar
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => { setRejectTarget(req); setRejectNote(""); setActionError(""); }}
+                    >
+                      Rejeitar
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </Box>
+    );
+  }
+
   return (
     <Layout title="Transferências Internas" description="Pedidos de transferência entre contas do ledger">
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -286,101 +386,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
           <Tab label={`Rejeitadas (${requests.filter((r) => r.status === "rejected").length})`} />
         </Tabs>
 
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress /></Box>
-        ) : filtered.length === 0 ? (
-          <Typography color="text.secondary" textAlign="center" py={6}>
-            Nenhuma transferência {tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada"}.
-          </Typography>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filtered.map((req) => {
-              const sc = statusConfig[req.status];
-              return (
-                <Card key={req.id} variant="outlined">
-                  <CardContent>
-                    {/* ── Cabeçalho: motivo + valor + status ── */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1, mb: 1.5 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography variant="body2" fontWeight={700} gutterBottom>
-                          {req.reason}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(req.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexShrink: 0 }}>
-                        <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
-                        <Typography variant="h6" fontWeight={800} color="primary.main">
-                          {formatBRL(req.amount)}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* ── Rota da transferência ── */}
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", mb: 1.5 }}>
-                      <Chip label={req.sourceAccount?.name} size="small" variant="outlined" />
-                      <Typography variant="caption" color="text.secondary">→</Typography>
-                      <Chip label={req.destinationAccount?.name} size="small" variant="outlined" color="primary" />
-                    </Box>
-
-                    {/* ── Pessoas envolvidas ── */}
-                    <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", alignItems: "center", mb: req.reviewNote || (req.status === "pending" && isAdmin) ? 1.5 : 0 }}>
-                      {req.requestedBy && (
-                        <PersonBadge
-                          label="Solicitante"
-                          person={req.requestedBy}
-                        />
-                      )}
-                      {req.reviewedBy && req.status !== "pending" && (
-                        <>
-                          <Typography variant="caption" color="text.disabled">·</Typography>
-                          <PersonBadge
-                            label={req.status === "approved" ? "Aprovado por" : "Rejeitado por"}
-                            person={req.reviewedBy}
-                            color={req.status === "approved" ? "success" : "error"}
-                          />
-                          {req.reviewedAt && (
-                            <Typography variant="caption" color="text.disabled">
-                              em {new Date(req.reviewedAt).toLocaleDateString("pt-BR")}
-                            </Typography>
-                          )}
-                        </>
-                      )}
-                    </Box>
-
-                    {req.reviewNote && (
-                      <Alert severity={req.status === "approved" ? "success" : "error"} sx={{ mt: 1.5 }}>
-                        <strong>{req.reviewedBy?.name}:</strong> {req.reviewNote}
-                      </Alert>
-                    )}
-
-                    {req.status === "pending" && isAdmin && (
-                      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                        <Button
-                          variant="contained"
-                          color="success"
-                          size="small"
-                          onClick={() => { setApproveTarget(req); setApproveNote(""); setActionError(""); }}
-                        >
-                          Aprovar
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={() => { setRejectTarget(req); setRejectNote(""); setActionError(""); }}
-                        >
-                          Rejeitar
-                        </Button>
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Box>
-        )}
+        {transferListContent}
       </Container>
 
       {/* ── New Transfer Dialog ── */}

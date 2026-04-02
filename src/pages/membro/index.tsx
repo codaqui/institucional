@@ -81,6 +81,189 @@ const reimbursementStatusConfig = {
   rejected: { label: "Rejeitado", color: "error" as const, icon: <CancelIcon fontSize="small" /> },
 };
 
+function getRoleLabel(role: string): string {
+  if (role === "admin") return "Organização";
+  if (role === "finance-analyzer") return "Finance Analyzer";
+  return "Membro";
+}
+
+function getRoleColor(role: string): "primary" | "secondary" | "default" {
+  if (role === "admin") return "primary";
+  if (role === "finance-analyzer") return "secondary";
+  return "default";
+}
+
+interface ReimbursementListProps {
+  loading: boolean;
+  reimbursements: ReimbursementRequest[];
+}
+
+function ReimbursementList({ loading, reimbursements }: ReimbursementListProps): React.JSX.Element {
+  if (loading) {
+    return <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>;
+  }
+  if (reimbursements.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+        Nenhuma solicitação ainda.
+      </Typography>
+    );
+  }
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 4 }}>
+      {reimbursements.map((r) => {
+        const sc = reimbursementStatusConfig[r.status];
+        return (
+          <Card key={r.id} variant="outlined">
+            <CardContent sx={{ py: "12px !important" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
+                <Box>
+                  <Typography variant="body2" fontWeight={600}>{r.description}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {r.account?.name} · {new Date(r.createdAt).toLocaleDateString("pt-BR")}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
+                  <Typography variant="body1" fontWeight={700} color="primary.main">
+                    {formatBRL(r.amount)}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap", alignItems: "center" }}>
+                <Button size="small" variant="text" endIcon={<OpenInNewIcon />} href={r.receiptUrl} target="_blank" rel="noopener noreferrer">
+                  Comprovante
+                </Button>
+              </Box>
+              {r.reviewNote && (
+                <Alert severity={r.status === "approved" ? "success" : "error"} sx={{ mt: 1 }}>
+                  {r.reviewNote}
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </Box>
+  );
+}
+
+interface SubscriptionListProps {
+  loading: boolean;
+  subscriptions: Subscription[];
+  onCancelClick: (id: string) => void;
+}
+
+function SubscriptionList({ loading, subscriptions, onCancelClick }: SubscriptionListProps): React.JSX.Element {
+  if (loading) {
+    return <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>;
+  }
+  if (subscriptions.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", py: 3, mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">Nenhuma assinatura ativa.</Typography>
+      </Box>
+    );
+  }
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 4 }}>
+      {subscriptions.map((sub) => (
+        <Card key={sub.id} variant="outlined" sx={{
+          borderColor: sub.cancelAtPeriodEnd ? "warning.main" : "primary.main",
+          borderWidth: 1,
+        }}>
+          <CardContent sx={{ py: "12px !important" }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                  <AutorenewIcon fontSize="small" color={sub.cancelAtPeriodEnd ? "warning" : "info"} />
+                  <Typography variant="body2" fontWeight={700}>
+                    {sub.communityId === "tesouro-geral" ? "Tesouro Codaqui" : sub.communityId}
+                  </Typography>
+                  <Chip
+                    label={sub.interval === "month" ? "Mensal" : "Anual"}
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                  />
+                  {sub.cancelAtPeriodEnd && (
+                    <Chip label="Encerra em breve" size="small" color="warning" variant="outlined" />
+                  )}
+                </Box>
+                <Typography variant="caption" color="text.secondary">
+                  {sub.cancelAtPeriodEnd
+                    ? `Ativa até ${new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("pt-BR")}`
+                    : `Próxima cobrança: ${new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("pt-BR")}`
+                  }
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Typography variant="body1" fontWeight={700} color="primary.main">
+                  {formatBRL(sub.amount / 100)}/{sub.interval === "month" ? "mês" : "ano"}
+                </Typography>
+                {!sub.cancelAtPeriodEnd && (
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    startIcon={<CancelIcon />}
+                    onClick={() => onCancelClick(sub.id)}
+                  >
+                    Cancelar
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          </CardContent>
+        </Card>
+      ))}
+    </Box>
+  );
+}
+
+interface DonationListProps {
+  loading: boolean;
+  donations: Donation[];
+}
+
+function DonationList({ loading, donations }: DonationListProps): React.JSX.Element {
+  if (loading) {
+    return <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress size={32} /></Box>;
+  }
+  if (donations.length === 0) {
+    return (
+      <Box sx={{ textAlign: "center", py: 4 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Nenhuma doação registrada ainda.
+        </Typography>
+        <Button variant="contained" href="/participe/apoiar">Fazer uma doação</Button>
+      </Box>
+    );
+  }
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+      {donations.map((tx) => (
+        <Card key={tx.id} variant="outlined">
+          <CardContent sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: "12px !important" }}>
+            <Box>
+              <Typography variant="body2" fontWeight={600}>{tx.community}</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {new Date(tx.createdAt).toLocaleDateString("pt-BR")}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <ArrowUpwardIcon fontSize="small" sx={{ color: "success.main" }} />
+              <Typography variant="body1" fontWeight={700} color="success.main">
+                {formatBRL(tx.amount)}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      ))}
+    </Box>
+  );
+}
+
 export default function MembroPage(): React.JSX.Element {
   const { user, ready, isLoggedIn, logout, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
@@ -151,7 +334,7 @@ export default function MembroPage(): React.JSX.Element {
         method: "POST",
         body: JSON.stringify({
           accountId,
-          amount: Math.round(parseFloat(amount)),
+          amount: Math.round(Number.parseFloat(amount)),
           description,
           receiptUrl,
         }),
@@ -212,8 +395,8 @@ export default function MembroPage(): React.JSX.Element {
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5, flexWrap: "wrap" }}>
                 <Typography variant="h5" fontWeight={800}>{user!.name}</Typography>
                 <Chip
-                  label={user!.role === "admin" ? "Organização" : user!.role === "finance-analyzer" ? "Finance Analyzer" : "Membro"}
-                  color={user!.role === "admin" ? "primary" : user!.role === "finance-analyzer" ? "secondary" : "default"}
+                  label={getRoleLabel(user!.role)}
+                  color={getRoleColor(user!.role)}
                   size="small"
                   variant="outlined"
                 />
@@ -257,49 +440,7 @@ export default function MembroPage(): React.JSX.Element {
           </Button>
         </Box>
 
-        {reimbLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>
-        ) : reimbursements.length === 0 ? (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
-            Nenhuma solicitação ainda.
-          </Typography>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 4 }}>
-            {reimbursements.map((r) => {
-              const sc = reimbursementStatusConfig[r.status];
-              return (
-                <Card key={r.id} variant="outlined">
-                  <CardContent sx={{ py: "12px !important" }}>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
-                      <Box>
-                        <Typography variant="body2" fontWeight={600}>{r.description}</Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {r.account?.name} · {new Date(r.createdAt).toLocaleDateString("pt-BR")}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                        <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
-                        <Typography variant="body1" fontWeight={700} color="primary.main">
-                          {formatBRL(r.amount)}
-                        </Typography>
-                      </Box>
-                    </Box>
-                    <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap", alignItems: "center" }}>
-                      <Button size="small" variant="text" endIcon={<OpenInNewIcon />} href={r.receiptUrl} target="_blank" rel="noopener noreferrer">
-                        Comprovante
-                      </Button>
-                    </Box>
-                    {r.reviewNote && (
-                      <Alert severity={r.status === "approved" ? "success" : "error"} sx={{ mt: 1 }}>
-                        {r.reviewNote}
-                      </Alert>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Box>
-        )}
+        <ReimbursementList loading={reimbLoading} reimbursements={reimbursements} />
 
         <Divider sx={{ my: 4 }} />
 
@@ -314,99 +455,10 @@ export default function MembroPage(): React.JSX.Element {
           </Button>
         </Box>
 
-        {subsLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>
-        ) : subscriptions.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 3, mb: 2 }}>
-            <Typography variant="body2" color="text.secondary">Nenhuma assinatura ativa.</Typography>
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 4 }}>
-            {subscriptions.map((sub) => (
-              <Card key={sub.id} variant="outlined" sx={{
-                borderColor: sub.cancelAtPeriodEnd ? "warning.main" : "primary.main",
-                borderWidth: sub.cancelAtPeriodEnd ? 1 : 1,
-              }}>
-                <CardContent sx={{ py: "12px !important" }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
-                    <Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                        <AutorenewIcon fontSize="small" color={sub.cancelAtPeriodEnd ? "warning" : "info"} />
-                        <Typography variant="body2" fontWeight={700}>
-                          {sub.communityId === "tesouro-geral" ? "Tesouro Codaqui" : sub.communityId}
-                        </Typography>
-                        <Chip
-                          label={sub.interval === "month" ? "Mensal" : "Anual"}
-                          size="small"
-                          color="info"
-                          variant="outlined"
-                        />
-                        {sub.cancelAtPeriodEnd && (
-                          <Chip label="Encerra em breve" size="small" color="warning" variant="outlined" />
-                        )}
-                      </Box>
-                      <Typography variant="caption" color="text.secondary">
-                        {sub.cancelAtPeriodEnd
-                          ? `Ativa até ${new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("pt-BR")}`
-                          : `Próxima cobrança: ${new Date(sub.currentPeriodEnd * 1000).toLocaleDateString("pt-BR")}`
-                        }
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Typography variant="body1" fontWeight={700} color="primary.main">
-                        {formatBRL(sub.amount / 100)}/{sub.interval === "month" ? "mês" : "ano"}
-                      </Typography>
-                      {!sub.cancelAtPeriodEnd && (
-                        <Button
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                          startIcon={<CancelIcon />}
-                          onClick={() => setCancelSubId(sub.id)}
-                        >
-                          Cancelar
-                        </Button>
-                      )}
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        )}
+        <SubscriptionList loading={subsLoading} subscriptions={subscriptions} onCancelClick={setCancelSubId} />
 
         <Typography variant="h6" fontWeight={700} gutterBottom>Minhas Doações</Typography>
-        {txLoading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress size={32} /></Box>
-        ) : donations.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 4 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Nenhuma doação registrada ainda.
-            </Typography>
-            <Button variant="contained" href="/participe/apoiar">Fazer uma doação</Button>
-          </Box>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-            {donations.map((tx) => (
-              <Card key={tx.id} variant="outlined">
-                <CardContent sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: "12px !important" }}>
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>{tx.community}</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {new Date(tx.createdAt).toLocaleDateString("pt-BR")}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <ArrowUpwardIcon fontSize="small" sx={{ color: "success.main" }} />
-                    <Typography variant="body1" fontWeight={700} color="success.main">
-                      {formatBRL(tx.amount)}
-                    </Typography>
-                  </Box>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
-        )}
+        <DonationList loading={txLoading} donations={donations} />
       </Container>
 
       {/* ── Dialog: Confirmar cancelamento de assinatura ── */}

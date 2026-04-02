@@ -203,8 +203,7 @@ export default function OngPage(): React.JSX.Element {
           <Typography variant="body1">
             <strong>📊 Demonstrativos Financeiros</strong>: Consulte receitas,
             despesas e repasses no{" "}
-            <a href="/transparencia">Portal de Transparência</a>
-            .
+            <a href="/transparencia">Portal de Transparência</a>.
           </Typography>
           <Typography variant="body1">
             <strong>📄 Atas de Reuniões</strong>: Todas as atas estão disponíveis

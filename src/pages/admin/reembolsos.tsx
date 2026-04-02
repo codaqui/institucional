@@ -26,7 +26,6 @@ import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import ModalConfirm from "../../components/ModalConfirm";
 import { useAuth } from "../../hooks/useAuth";
 
 interface ReimbursementRequest {
@@ -178,6 +177,140 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
     );
   }
 
+  const tabLabel = tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada";
+
+  let listContent: React.JSX.Element;
+  if (loading) {
+    listContent = (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  } else if (filtered.length === 0) {
+    listContent = (
+      <Typography color="text.secondary" textAlign="center" py={6}>
+        Nenhuma solicitação {tabLabel}.
+      </Typography>
+    );
+  } else {
+    listContent = (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {filtered.map((req) => {
+          const balance = getBalance(req.account?.id);
+          const hasEnough = balance === null || balance >= req.amount;
+          const sc = statusConfig[req.status];
+          return (
+            <Card key={req.id} variant="outlined">
+              <CardContent>
+                <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1, mb: 1.5 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Avatar src={req.member?.avatarUrl} alt={req.member?.name} sx={{ width: 36, height: 36 }} />
+                    <Box>
+                      <Typography variant="body2" fontWeight={700}>{req.member?.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">@{req.member?.githubHandle}</Typography>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                    <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
+                    <Typography variant="h6" fontWeight={800} color="primary.main">
+                      {formatBRL(req.amount)}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                <Typography variant="body2" sx={{ mb: 1 }}>{req.description}</Typography>
+
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center", mb: 1 }}>
+                  <Chip label={req.account?.name} size="small" variant="outlined" />
+                  {balance !== null && (
+                    <Chip
+                      label={`Saldo: ${formatBRL(balance)}`}
+                      size="small"
+                      color={hasEnough ? "success" : "error"}
+                      variant="outlined"
+                    />
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    {new Date(req.createdAt).toLocaleDateString("pt-BR")}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+                  <Button
+                    size="small"
+                    variant="text"
+                    startIcon={<ReceiptLongIcon />}
+                    endIcon={<OpenInNewIcon />}
+                    href={req.receiptUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Comprovante original
+                  </Button>
+                  {req.internalReceiptUrl && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="success"
+                      startIcon={<DriveFileMoveIcon />}
+                      endIcon={<OpenInNewIcon />}
+                      href={req.internalReceiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Cópia interna
+                    </Button>
+                  )}
+                </Box>
+
+                {req.reviewNote && (
+                  <Alert severity={req.status === "approved" ? "success" : "error"} sx={{ mt: 1.5 }}>
+                    <strong>{req.reviewedBy?.name}:</strong> {req.reviewNote}
+                  </Alert>
+                )}
+
+                {req.status === "pending" && (
+                  <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                    <Tooltip title={hasEnough ? "" : "Saldo insuficiente — solicite uma transferência ao Admin"}>
+                      <span>
+                        <Button
+                          variant="contained"
+                          color="success"
+                          size="small"
+                          disabled={!hasEnough}
+                          onClick={() => { setApproveDialog(req); setActionError(""); }}
+                        >
+                          Aprovar
+                        </Button>
+                      </span>
+                    </Tooltip>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => { setRejectDialog(req); setActionError(""); }}
+                    >
+                      Rejeitar
+                    </Button>
+                    {!hasEnough && (
+                      <Button
+                        variant="text"
+                        size="small"
+                        href="/admin/transferencias"
+                      >
+                        Solicitar transferência →
+                      </Button>
+                    )}
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </Box>
+    );
+  }
+
   return (
     <Layout title="Gestão de Reembolsos" description="Aprovar ou rejeitar solicitações de reembolso">
       <Container maxWidth="lg" sx={{ py: 6 }}>
@@ -216,130 +349,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
           <Tab label={`Rejeitados (${requests.filter((r) => r.status === "rejected").length})`} />
         </Tabs>
 
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : filtered.length === 0 ? (
-          <Typography color="text.secondary" textAlign="center" py={6}>
-            Nenhuma solicitação {tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada"}.
-          </Typography>
-        ) : (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {filtered.map((req) => {
-              const balance = getBalance(req.account?.id);
-              const hasEnough = balance === null || balance >= req.amount;
-              const sc = statusConfig[req.status];
-              return (
-                <Card key={req.id} variant="outlined">
-                  <CardContent>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 1, mb: 1.5 }}>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Avatar src={req.member?.avatarUrl} alt={req.member?.name} sx={{ width: 36, height: 36 }} />
-                        <Box>
-                          <Typography variant="body2" fontWeight={700}>{req.member?.name}</Typography>
-                          <Typography variant="caption" color="text.secondary">@{req.member?.githubHandle}</Typography>
-                        </Box>
-                      </Box>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                        <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
-                        <Typography variant="h6" fontWeight={800} color="primary.main">
-                          {formatBRL(req.amount)}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Typography variant="body2" sx={{ mb: 1 }}>{req.description}</Typography>
-
-                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center", mb: 1 }}>
-                      <Chip label={req.account?.name} size="small" variant="outlined" />
-                      {balance !== null && (
-                        <Chip
-                          label={`Saldo: ${formatBRL(balance)}`}
-                          size="small"
-                          color={hasEnough ? "success" : "error"}
-                          variant="outlined"
-                        />
-                      )}
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(req.createdAt).toLocaleDateString("pt-BR")}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
-                      <Button
-                        size="small"
-                        variant="text"
-                        startIcon={<ReceiptLongIcon />}
-                        endIcon={<OpenInNewIcon />}
-                        href={req.receiptUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Comprovante original
-                      </Button>
-                      {req.internalReceiptUrl && (
-                        <Button
-                          size="small"
-                          variant="text"
-                          color="success"
-                          startIcon={<DriveFileMoveIcon />}
-                          endIcon={<OpenInNewIcon />}
-                          href={req.internalReceiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Cópia interna
-                        </Button>
-                      )}
-                    </Box>
-
-                    {req.reviewNote && (
-                      <Alert severity={req.status === "approved" ? "success" : "error"} sx={{ mt: 1.5 }}>
-                        <strong>{req.reviewedBy?.name}:</strong> {req.reviewNote}
-                      </Alert>
-                    )}
-
-                    {req.status === "pending" && (
-                      <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                        <Tooltip title={!hasEnough ? "Saldo insuficiente — solicite uma transferência ao Admin" : ""}>
-                          <span>
-                            <Button
-                              variant="contained"
-                              color="success"
-                              size="small"
-                              disabled={!hasEnough}
-                              onClick={() => { setApproveDialog(req); setActionError(""); }}
-                            >
-                              Aprovar
-                            </Button>
-                          </span>
-                        </Tooltip>
-                        <Button
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          onClick={() => { setRejectDialog(req); setActionError(""); }}
-                        >
-                          Rejeitar
-                        </Button>
-                        {!hasEnough && (
-                          <Button
-                            variant="text"
-                            size="small"
-                            href="/admin/transferencias"
-                          >
-                            Solicitar transferência →
-                          </Button>
-                        )}
-                      </Box>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </Box>
-        )}
+        {listContent}
       </Container>
 
       {/* ── Approve Dialog — mantém Dialog rico (requer link do Drive + nota) ── */}

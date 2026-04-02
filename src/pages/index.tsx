@@ -108,9 +108,9 @@ function SocialProofStrip() {
       }}
     >
       <Typography variant="body2" color="text.secondary">
-        {count !== null
-          ? `${count} pessoas apoiam e constroem a Codaqui 💚`
-          : "Carregando apoiadores…"}
+        {count === null
+          ? "Carregando apoiadores…"
+          : `${count} pessoas apoiam e constroem a Codaqui 💚`}
       </Typography>
     </Box>
   );

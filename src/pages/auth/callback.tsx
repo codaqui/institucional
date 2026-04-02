@@ -13,7 +13,7 @@ export default function AuthCallback(): React.JSX.Element {
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
     const status = params.get("status");
 
     if (status === "error") {
