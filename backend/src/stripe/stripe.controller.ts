@@ -11,6 +11,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import {
   StripeService,
@@ -145,6 +146,7 @@ export class StripeController {
   }
 
   @Post('webhook')
+  @SkipThrottle()
   @ApiOperation({ summary: 'Webhook Stripe (interno)' })
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
