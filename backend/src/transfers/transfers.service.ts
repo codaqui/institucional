@@ -13,7 +13,8 @@ import { LedgerService } from '../ledger/ledger.service';
 import { CreateTransferRequestDto } from './dto/create-transfer-request.dto';
 import { ReviewTransferRequestDto } from './dto/review-transfer-request.dto';
 
-export { CreateTransferRequestDto, ReviewTransferRequestDto };
+export { CreateTransferRequestDto } from './dto/create-transfer-request.dto';
+export { ReviewTransferRequestDto } from './dto/review-transfer-request.dto';
 
 @Injectable()
 export class TransfersService {

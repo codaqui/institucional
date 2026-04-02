@@ -16,11 +16,9 @@ import { CreateReimbursementDto } from './dto/create-reimbursement.dto';
 import { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
 import { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
 
-export {
-  CreateReimbursementDto,
-  ApproveReimbursementDto,
-  RejectReimbursementDto,
-};
+export { CreateReimbursementDto } from './dto/create-reimbursement.dto';
+export { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
+export { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
 
 const REIMBURSEMENTS_ACCOUNT_KEY = 'reembolsos-pagos';
 
