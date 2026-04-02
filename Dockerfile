@@ -1,13 +1,15 @@
 FROM node:24-alpine
 WORKDIR /app
 
-# Ensure /app belongs to node user
-RUN chown node:node /app
-
-COPY --chown=node:node package.json package-lock.json ./
+# Application resources are root-owned and read-only for security (S6504)
+# Config files are read-only (444), source and app code are read-execute (555)
+COPY --chown=root:root --chmod=444 package.json package-lock.json ./
 RUN npm ci
 
-COPY --chown=node:node . .
+COPY --chown=root:root --chmod=555 . .
+
+# Ensure Docusaurus has write access to its own metadata/cache
+RUN mkdir -p .docusaurus .cache && chown -R node:node .docusaurus .cache
 
 # Start dev server as non-root user
 USER node

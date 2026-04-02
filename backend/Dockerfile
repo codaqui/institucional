@@ -11,14 +11,13 @@ RUN apk add --no-cache curl
 WORKDIR /app
 ENV NODE_ENV=production
 
-# Ensure /app belongs to node user
-RUN chown node:node /app
-
-COPY --from=builder --chown=node:node /app/package.json ./package.json
-COPY --from=builder --chown=node:node /app/package-lock.json ./package-lock.json
+# Application resources are root-owned and read-only for security (S6504)
+# Config files are read-only (444), dist/ is read-execute (555)
+COPY --from=builder --chown=root:root --chmod=444 /app/package.json ./package.json
+COPY --from=builder --chown=root:root --chmod=444 /app/package-lock.json ./package-lock.json
 RUN npm ci --omit=dev
 
-COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --from=builder --chown=root:root --chmod=555 /app/dist ./dist
 
 # Start application as non-root user (uid 1000)
 USER node
