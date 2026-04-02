@@ -61,14 +61,17 @@ export class StripeService {
       email,
     } = dto;
 
-    if (amountCents <= 0) throw new BadRequestException('Amount must be positive');
+    if (amountCents <= 0)
+      throw new BadRequestException('Amount must be positive');
 
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const returnUrl = `${frontendUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${frontendUrl}/participe/apoiar?status=cancelled`;
 
     const isSubscription = !!recurring;
-    const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription ? 'subscription' : 'payment';
+    const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
+      ? 'subscription'
+      : 'payment';
 
     const displayName = githubHandle ? `@${githubHandle}` : 'Doador';
     const productName = `Apoio à ${communityId === 'tesouro-geral' ? 'Codaqui' : `Comunidade ${communityId}`}`;
@@ -127,27 +130,35 @@ export class StripeService {
 
     try {
       if (isDev) {
-        this.logger.debug('Dev: webhook signature verification skipped (Stripe CLI)');
+        this.logger.debug(
+          'Dev: webhook signature verification skipped (Stripe CLI)',
+        );
         event = JSON.parse(payload.toString()) as Stripe.Event;
       } else if (!webhookSecret) {
         throw new Error('STRIPE_WEBHOOK_SECRET não definido em produção');
       } else {
-        event = this.stripe.webhooks.constructEvent(payload, signature, webhookSecret);
+        event = this.stripe.webhooks.constructEvent(
+          payload,
+          signature,
+          webhookSecret,
+        );
       }
     } catch (err: any) {
-      this.logger.error(`Falha na verificação da assinatura do webhook: ${err.message}`);
+      this.logger.error(
+        `Falha na verificação da assinatura do webhook: ${err.message}`,
+      );
       throw new BadRequestException(`Webhook Error: ${err.message}`);
     }
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(event.data.object as Stripe.Checkout.Session);
+        await this.handleCheckoutCompleted(event.data.object);
         break;
       case 'invoice.payment_succeeded':
-        await this.handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice);
+        await this.handleInvoicePaymentSucceeded(event.data.object);
         break;
       case 'customer.subscription.deleted':
-        this.logger.log(`Assinatura cancelada: ${(event.data.object as Stripe.Subscription).id}`);
+        this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
         break;
       default:
         this.logger.debug(`Evento ignorado: ${event.type}`);
@@ -167,7 +178,9 @@ export class StripeService {
     // Evita duplicata: para assinaturas, ignoramos o Checkout Session e
     // registramos a doação apenas quando a Fatura (Invoice) for paga.
     if (isSubscription) {
-      this.logger.debug('checkout.session.completed: Ignorado para assinatura (transferido para invoice.payment_succeeded)');
+      this.logger.debug(
+        'checkout.session.completed: Ignorado para assinatura (transferido para invoice.payment_succeeded)',
+      );
       return;
     }
 
@@ -176,7 +189,9 @@ export class StripeService {
 
     const amountCents = session.amount_total ?? 0;
     if (amountCents <= 0) {
-      this.logger.warn(`Webhook recebido com amount_total inválido: ${amountCents}`);
+      this.logger.warn(
+        `Webhook recebido com amount_total inválido: ${amountCents}`,
+      );
       return;
     }
 
@@ -184,11 +199,12 @@ export class StripeService {
 
     // payment_intent (pi_xxx) é o ID que aparece no Stripe Dashboard.
     // Para subscriptions, pode ser null na session — usamos session.id como fallback.
-    const paymentIntentId = typeof session.payment_intent === 'string'
-      ? session.payment_intent
-      : session.subscription
-        ? `sub_${(session.subscription as string).slice(4)}_first` // fallback legível
-        : session.id;
+    const paymentIntentId =
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.subscription
+          ? `sub_${(session.subscription as string).slice(4)}_first` // fallback legível
+          : session.id;
 
     try {
       await this.recordDonationToLedger({
@@ -202,7 +218,9 @@ export class StripeService {
         interval: session.metadata?.interval as CheckoutInterval | undefined,
       });
     } catch (error: any) {
-      this.logger.error(`Falha ao registrar doação no Ledger: ${error.message}`);
+      this.logger.error(
+        `Falha ao registrar doação no Ledger: ${error.message}`,
+      );
     }
   }
 
@@ -228,7 +246,8 @@ export class StripeService {
     if (amountCents <= 0) return;
 
     const amountReais = amountCents / 100;
-    const paymentIntentId: string = (invoice as any).payment_intent ?? invoice.id;
+    const paymentIntentId: string =
+      (invoice as any).payment_intent ?? invoice.id;
 
     try {
       await this.recordDonationToLedger({
@@ -239,10 +258,14 @@ export class StripeService {
         sessionId: invoice.id,
         paymentIntentId,
         isSubscription: true,
-        interval: subscription.metadata?.interval as CheckoutInterval | undefined,
+        interval: subscription.metadata?.interval as
+          | CheckoutInterval
+          | undefined,
       });
     } catch (error: any) {
-      this.logger.error(`Falha ao registrar renovação no Ledger: ${error.message}`);
+      this.logger.error(
+        `Falha ao registrar renovação no Ledger: ${error.message}`,
+      );
     }
   }
 
@@ -260,20 +283,32 @@ export class StripeService {
     isSubscription: boolean;
     interval?: CheckoutInterval;
   }) {
-    const { communityId, memberId, githubHandle, amountReais, sessionId, paymentIntentId, isSubscription, interval } = params;
+    const {
+      communityId,
+      memberId,
+      githubHandle,
+      amountReais,
+      sessionId,
+      paymentIntentId,
+      isSubscription,
+      interval,
+    } = params;
 
-    const stripeIncomeAccount = await this.ledgerService.getOrCreateCommunityAccount(
-      'stripe_income',
-      'Stripe Income (External)',
-      AccountType.EXTERNAL,
-    );
+    const stripeIncomeAccount =
+      await this.ledgerService.getOrCreateCommunityAccount(
+        'stripe_income',
+        'Stripe Income (External)',
+        AccountType.EXTERNAL,
+      );
 
     const destAccount = await this.ledgerService.getOrCreateCommunityAccount(
       communityId,
       `Comunidade: ${communityId}`,
     );
 
-    const displayName = githubHandle ? `@${githubHandle}` : memberId ?? 'anônimo';
+    const displayName = githubHandle
+      ? `@${githubHandle}`
+      : (memberId ?? 'anônimo');
     const typeLabel = isSubscription
       ? `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`
       : 'Doação';
@@ -305,14 +340,16 @@ export class StripeService {
    * Lista doações do membro logado (pagamentos únicos + assinaturas).
    * Busca por memberId na description (sempre presente quando logado).
    */
-  async getMyDonations(memberId: string): Promise<{
-    id: string;
-    amount: number;
-    description: string;
-    community: string;
-    referenceId: string;
-    createdAt: Date;
-  }[]> {
+  async getMyDonations(memberId: string): Promise<
+    {
+      id: string;
+      amount: number;
+      description: string;
+      community: string;
+      referenceId: string;
+      createdAt: Date;
+    }[]
+  > {
     const rows = await this.txRepo
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
@@ -338,16 +375,18 @@ export class StripeService {
    * Retorna apenas assinaturas com status active ou past_due (cobráveis).
    * Usando search API do Stripe (disponível no API versão 2022-11-15+).
    */
-  async getMySubscriptions(memberId: string): Promise<{
-    id: string;
-    status: string;
-    interval: string;
-    amount: number;
-    currency: string;
-    communityId: string;
-    currentPeriodEnd: number;
-    cancelAtPeriodEnd: boolean;
-  }[]> {
+  async getMySubscriptions(memberId: string): Promise<
+    {
+      id: string;
+      status: string;
+      interval: string;
+      amount: number;
+      currency: string;
+      communityId: string;
+      currentPeriodEnd: number;
+      cancelAtPeriodEnd: boolean;
+    }[]
+  > {
     // Sanitize UUID to prevent Stripe Search API injection
     const safeMemberId = memberId.replace(/[^a-f0-9-]/gi, '');
 
@@ -388,7 +427,10 @@ export class StripeService {
    * Verifica que o memberId da assinatura corresponde ao solicitante
    * para evitar que um membro cancele a assinatura de outro.
    */
-  async cancelSubscription(subscriptionId: string, memberId: string): Promise<{ cancelAtPeriodEnd: boolean; currentPeriodEnd: number }> {
+  async cancelSubscription(
+    subscriptionId: string,
+    memberId: string,
+  ): Promise<{ cancelAtPeriodEnd: boolean; currentPeriodEnd: number }> {
     const sub = await this.stripe.subscriptions.retrieve(subscriptionId);
 
     if (sub.metadata?.memberId !== memberId) {
@@ -405,7 +447,9 @@ export class StripeService {
 
     this.logger.log(
       `Assinatura ${subscriptionId} marcada para cancelar em ` +
-        new Date((updated as any).current_period_end * 1000).toLocaleDateString('pt-BR') +
+        new Date((updated as any).current_period_end * 1000).toLocaleDateString(
+          'pt-BR',
+        ) +
         ` (membro: ${memberId})`,
     );
 

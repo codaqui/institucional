@@ -27,7 +27,11 @@ export class LedgerService {
     return this.accountRepo.save(account);
   }
 
-  async getOrCreateCommunityAccount(projectKey: string, defaultName: string, type: AccountType = AccountType.VIRTUAL_WALLET): Promise<Account> {
+  async getOrCreateCommunityAccount(
+    projectKey: string,
+    defaultName: string,
+    type: AccountType = AccountType.VIRTUAL_WALLET,
+  ): Promise<Account> {
     const existing = await this.accountRepo.findOneBy({ projectKey });
     if (existing) return existing;
     return this.createAccount(defaultName, type, projectKey);
@@ -44,12 +48,16 @@ export class LedgerService {
       throw new BadRequestException('Amount must be strictly positive');
     }
     if (sourceAccountId === destinationAccountId) {
-      throw new BadRequestException('Source and destination cannot be the same');
+      throw new BadRequestException(
+        'Source and destination cannot be the same',
+      );
     }
 
     return await this.dataSource.transaction(async (manager) => {
       const source = await manager.findOneBy(Account, { id: sourceAccountId });
-      const dest = await manager.findOneBy(Account, { id: destinationAccountId });
+      const dest = await manager.findOneBy(Account, {
+        id: destinationAccountId,
+      });
 
       if (!source || !dest) {
         throw new BadRequestException('Invalid account IDs provided');
@@ -99,7 +107,9 @@ export class LedgerService {
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
       .leftJoinAndSelect('tx.destinationAccount', 'dst')
-      .where('tx.sourceAccountId = :id OR tx.destinationAccountId = :id', { id: accountId })
+      .where('tx.sourceAccountId = :id OR tx.destinationAccountId = :id', {
+        id: accountId,
+      })
       .orderBy('tx.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
@@ -118,16 +128,29 @@ export class LedgerService {
     return this.accountRepo.find();
   }
 
-  async getCommunityBalances(): Promise<Array<{ id: string; projectKey: string; name: string; balance: number }>> {
-    const accounts = await this.accountRepo.createQueryBuilder('acc')
+  async getCommunityBalances(): Promise<
+    Array<{ id: string; projectKey: string; name: string; balance: number }>
+  > {
+    const accounts = await this.accountRepo
+      .createQueryBuilder('acc')
       .where('acc.projectKey IS NOT NULL')
       .andWhere('acc.type = :type', { type: AccountType.VIRTUAL_WALLET })
       .getMany();
 
-    const result: Array<{ id: string; projectKey: string; name: string; balance: number }> = [];
+    const result: Array<{
+      id: string;
+      projectKey: string;
+      name: string;
+      balance: number;
+    }> = [];
     for (const acc of accounts) {
       const balance = await this.getAccountBalance(acc.id);
-      result.push({ id: acc.id, projectKey: acc.projectKey, name: acc.name, balance });
+      result.push({
+        id: acc.id,
+        projectKey: acc.projectKey,
+        name: acc.name,
+        balance,
+      });
     }
     return result;
   }

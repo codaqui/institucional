@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Expense, ExpenseStatus } from './entities/expense.entity';
@@ -45,7 +49,7 @@ export class ExpensesService {
     if (expense.status !== ExpenseStatus.PENDING) {
       throw new BadRequestException('Can only approve pending expenses');
     }
-    
+
     expense.status = ExpenseStatus.APPROVED;
     expense.approvedByUserId = approvedByUserId;
     return this.expenseRepo.save(expense);
@@ -54,14 +58,16 @@ export class ExpensesService {
   async markAsPaid(id: string, externalAccountId: string) {
     const expense = await this.getExpenseById(id);
     if (expense.status !== ExpenseStatus.APPROVED) {
-      throw new BadRequestException('Expense must be APPROVED before it can be marked as PAID');
+      throw new BadRequestException(
+        'Expense must be APPROVED before it can be marked as PAID',
+      );
     }
 
     // Source is the virtual wallet (decreases balance)
     // Destination is the external account (vendor)
     await this.ledgerService.recordTransaction(
       expense.targetProjectId,
-      externalAccountId, 
+      externalAccountId,
       expense.amount,
       `Payment for expense: ${expense.description}`,
       expense.id,

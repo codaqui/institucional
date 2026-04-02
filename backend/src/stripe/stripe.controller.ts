@@ -12,7 +12,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { StripeService, CheckoutInterval, CheckoutUiMode } from './stripe.service';
+import {
+  StripeService,
+  CheckoutInterval,
+  CheckoutUiMode,
+} from './stripe.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -99,7 +103,9 @@ export class StripeController {
     },
   ) {
     if (!body.amount || !body.communityId) {
-      throw new BadRequestException('amount (centavos) e communityId são obrigatórios.');
+      throw new BadRequestException(
+        'amount (centavos) e communityId são obrigatórios.',
+      );
     }
     if (body.amount <= 0) {
       throw new BadRequestException('O valor deve ser positivo.');

@@ -17,21 +17,26 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from './entities/member.entity';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 
 @Controller()
 export class MembersController {
-  constructor(private readonly membersService: MembersService) {}
+  constructor(
+    private readonly membersService: MembersService,
+    private readonly auditService: AuditService,
+  ) {}
 
   // ── Público ──────────────────────────────────────────────────────────────
   // IMPORTANTE: rotas estáticas (/me, /admin/*) DEVEM vir antes de /:id
   // para evitar que o parâmetro dinâmico capture strings literais.
 
   @Get('members')
-  findAll(
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.membersService.findAllActive(page ? Number(page) : 1, limit ? Number(limit) : 50);
+  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.membersService.findAllActive(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 50,
+    );
   }
 
   // ── Membro logado ─────────────────────────────────────────────────────────
@@ -75,10 +80,29 @@ export class MembersController {
   @Patch('admin/members/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  adminUpdate(
+  async adminUpdate(
     @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
     @Body() body: { role?: MemberRole; isActive?: boolean },
   ) {
-    return this.membersService.adminUpdate(id, body);
+    const result = await this.membersService.adminUpdate(id, body);
+
+    // Audit trail
+    const action = body.role
+      ? AuditAction.ROLE_CHANGE
+      : body.isActive === false
+        ? AuditAction.MEMBER_DEACTIVATE
+        : AuditAction.MEMBER_ACTIVATE;
+
+    void this.auditService.log({
+      action,
+      actorId: req.user.sub,
+      actorHandle: req.user.handle,
+      targetId: id,
+      targetType: 'member',
+      details: body,
+    });
+
+    return result;
   }
 }

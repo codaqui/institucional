@@ -14,7 +14,7 @@ import { LedgerService } from '../ledger/ledger.service';
 export interface CreateTransferRequestDto {
   sourceAccountId: string;
   destinationAccountId: string;
-  amount: number;   // em reais
+  amount: number; // em reais
   reason: string;
 }
 
@@ -39,7 +39,9 @@ export class TransfersService {
       throw new BadRequestException('O valor deve ser maior que zero.');
     }
     if (dto.sourceAccountId === dto.destinationAccountId) {
-      throw new BadRequestException('Contas de origem e destino devem ser diferentes.');
+      throw new BadRequestException(
+        'Contas de origem e destino devem ser diferentes.',
+      );
     }
     if (!dto.reason?.trim()) {
       throw new BadRequestException('A justificativa é obrigatória.');
@@ -61,7 +63,12 @@ export class TransfersService {
   async getAllRequests(
     page = 1,
     limit = 20,
-  ): Promise<{ data: AccountTransferRequest[]; total: number; page: number; totalPages: number }> {
+  ): Promise<{
+    data: AccountTransferRequest[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
     const [data, total] = await this.repo.findAndCount({
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,

@@ -4,11 +4,11 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 
 export interface JwtPayload {
-  sub: string;       // UUID da tabela members (chave primária) — use para FKs
-  githubId: string;  // GitHub numeric ID (referência externa)
-  handle: string;    // githubHandle
+  sub: string; // UUID da tabela members (chave primária) — use para FKs
+  githubId: string; // GitHub numeric ID (referência externa)
+  handle: string; // githubHandle
   name: string;
-  email: string;     // Email público usado no checkout
+  email: string; // Email público usado no checkout
   avatarUrl: string;
   role: string;
   iat?: number;

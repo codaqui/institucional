@@ -83,12 +83,25 @@ export class LedgerController {
   @ApiBody({
     schema: {
       type: 'object',
-      required: ['sourceAccountId', 'destinationAccountId', 'amount', 'description'],
+      required: [
+        'sourceAccountId',
+        'destinationAccountId',
+        'amount',
+        'description',
+      ],
       properties: {
         sourceAccountId: { type: 'string', format: 'uuid' },
         destinationAccountId: { type: 'string', format: 'uuid' },
-        amount: { type: 'number', minimum: 0.01, example: 75.00, description: 'Valor em reais (ex: 75.50 = R$ 75,50)' },
-        description: { type: 'string', example: 'Doação via Stripe — Dev Paraná' },
+        amount: {
+          type: 'number',
+          minimum: 0.01,
+          example: 75.0,
+          description: 'Valor em reais (ex: 75.50 = R$ 75,50)',
+        },
+        description: {
+          type: 'string',
+          example: 'Doação via Stripe — Dev Paraná',
+        },
         referenceId: {
           type: 'string',
           nullable: true,
@@ -98,8 +111,14 @@ export class LedgerController {
       },
     },
   })
-  @ApiResponse({ status: 201, description: 'Transação registrada com sucesso.' })
-  @ApiResponse({ status: 400, description: 'Dados inválidos ou contas não encontradas.' })
+  @ApiResponse({
+    status: 201,
+    description: 'Transação registrada com sucesso.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Dados inválidos ou contas não encontradas.',
+  })
   @ApiResponse({ status: 401, description: 'Não autenticado.' })
   @ApiResponse({ status: 403, description: 'Role insuficiente.' })
   recordTransaction(
@@ -131,7 +150,8 @@ export class LedgerController {
   @ApiBearerAuth('jwt')
   @ApiOperation({
     summary: '🔒 Listar todas as contas [admin]',
-    description: 'Lista todas as contas contábeis, incluindo contas internas. Requer role **admin**.',
+    description:
+      'Lista todas as contas contábeis, incluindo contas internas. Requer role **admin**.',
   })
   @ApiResponse({ status: 200, description: 'Lista de contas.' })
   @ApiResponse({ status: 401, description: 'Não autenticado.' })
@@ -160,7 +180,7 @@ export class LedgerController {
           name: { type: 'string', example: 'Dev Paraná' },
           balance: {
             type: 'number',
-            example: 150.00,
+            example: 150.0,
             description: 'Saldo em reais (ex: 75.50 = R$ 75,50)',
           },
         },
@@ -177,13 +197,14 @@ export class LedgerController {
   @ApiBearerAuth('jwt')
   @ApiOperation({
     summary: '🔒 Saldo de uma conta [admin]',
-    description: 'Retorna o saldo calculado de uma conta específica (créditos − débitos). Requer role **admin**.',
+    description:
+      'Retorna o saldo calculado de uma conta específica (créditos − débitos). Requer role **admin**.',
   })
   @ApiParam({ name: 'id', description: 'UUID da conta', format: 'uuid' })
   @ApiResponse({
     status: 200,
     description: 'Saldo atual em reais.',
-    schema: { type: 'number', example: 75.00 },
+    schema: { type: 'number', example: 75.0 },
   })
   @ApiResponse({ status: 400, description: 'Conta não encontrada.' })
   @ApiResponse({ status: 401, description: 'Não autenticado.' })
@@ -212,12 +233,32 @@ export class LedgerController {
             type: 'object',
             properties: {
               id: { type: 'string', format: 'uuid' },
-              amount: { type: 'number', example: 75.00, description: 'Valor em reais' },
+              amount: {
+                type: 'number',
+                example: 75.0,
+                description: 'Valor em reais',
+              },
               description: { type: 'string', example: 'Doação via Stripe' },
-              referenceId: { type: 'string', nullable: true, example: 'cs_live_xxx' },
+              referenceId: {
+                type: 'string',
+                nullable: true,
+                example: 'cs_live_xxx',
+              },
               createdAt: { type: 'string', format: 'date-time' },
-              sourceAccount: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' } } },
-              destinationAccount: { type: 'object', properties: { id: { type: 'string' }, name: { type: 'string' } } },
+              sourceAccount: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                },
+              },
+              destinationAccount: {
+                type: 'object',
+                properties: {
+                  id: { type: 'string' },
+                  name: { type: 'string' },
+                },
+              },
             },
           },
         },

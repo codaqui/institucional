@@ -27,6 +27,8 @@ describe('StorageService', () => {
   });
 
   it('should reject non-http protocols', () => {
-    expect(() => service.validateReceiptUrl('ftp://example.com/file')).toThrow();
+    expect(() =>
+      service.validateReceiptUrl('ftp://example.com/file'),
+    ).toThrow();
   });
 });

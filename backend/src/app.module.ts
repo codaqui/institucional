@@ -12,6 +12,7 @@ import { StripeModule } from './stripe/stripe.module';
 import { MembersModule } from './members/members.module';
 import { ReimbursementsModule } from './reimbursements/reimbursements.module';
 import { TransfersModule } from './transfers/transfers.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -25,10 +26,12 @@ import { TransfersModule } from './transfers/transfers.module';
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60_000,   // janela de 1 minuto
-      limit: 30,     // máximo 30 requisições por IP por minuto
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000, // janela de 1 minuto
+        limit: 30, // máximo 30 requisições por IP por minuto
+      },
+    ]),
     LedgerModule,
     ExpensesModule,
     StorageModule,
@@ -37,11 +40,9 @@ import { TransfersModule } from './transfers/transfers.module';
     MembersModule,
     ReimbursementsModule,
     TransfersModule,
+    AuditModule,
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

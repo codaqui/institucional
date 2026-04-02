@@ -1,4 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 export enum AccountType {
   BANK = 'BANK',
@@ -15,7 +20,11 @@ export class Account {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: AccountType, default: AccountType.VIRTUAL_WALLET })
+  @Column({
+    type: 'enum',
+    enum: AccountType,
+    default: AccountType.VIRTUAL_WALLET,
+  })
   type: AccountType;
 
   // Optional project identifier

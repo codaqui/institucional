@@ -19,7 +19,9 @@ describe('StorageController', () => {
   });
 
   it('should validate a valid receipt URL', () => {
-    const result = controller.validateReceiptUrl('https://drive.google.com/file/d/abc123');
+    const result = controller.validateReceiptUrl(
+      'https://drive.google.com/file/d/abc123',
+    );
     expect(result.valid).toBe(true);
   });
 });

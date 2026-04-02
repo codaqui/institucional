@@ -20,7 +20,7 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
     profile: Profile,
   ) {
     const email =
-      (profile.emails?.[0]?.value) ?? `${profile.username ?? 'user'}@github.com`;
+      profile.emails?.[0]?.value ?? `${profile.username ?? 'user'}@github.com`;
 
     return this.membersService.upsertByGithub({
       githubId: profile.id,

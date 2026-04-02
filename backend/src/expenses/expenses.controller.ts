@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -18,7 +26,8 @@ export class ExpensesController {
   @Post()
   createExpense(
     @Req() req: { user: JwtPayload },
-    @Body() dto: {
+    @Body()
+    dto: {
       description: string;
       amount: number;
       targetProjectId: string;

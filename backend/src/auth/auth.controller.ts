@@ -17,23 +17,32 @@ export class AuthController {
   @UseGuards(AuthGuard('github'))
   @ApiOperation({
     summary: 'Iniciar OAuth com GitHub',
-    description: 'Redireciona o navegador para o fluxo OAuth do GitHub. Não chamar diretamente via fetch.',
+    description:
+      'Redireciona o navegador para o fluxo OAuth do GitHub. Não chamar diretamente via fetch.',
   })
-  @ApiResponse({ status: 302, description: 'Redireciona para github.com/login/oauth.' })
+  @ApiResponse({
+    status: 302,
+    description: 'Redireciona para github.com/login/oauth.',
+  })
   githubLogin() {
     // Passport redireciona automaticamente para github.com
   }
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
-  @ApiOperation({ summary: 'Callback OAuth do GitHub (uso interno do Passport)' })
-  @ApiResponse({ status: 302, description: 'Redireciona para o frontend com cookie JWT definido.' })
+  @ApiOperation({
+    summary: 'Callback OAuth do GitHub (uso interno do Passport)',
+  })
+  @ApiResponse({
+    status: 302,
+    description: 'Redireciona para o frontend com cookie JWT definido.',
+  })
   async githubCallback(@Req() req: { user: Member }, @Res() res: Response) {
     const member = req.user;
     const isProd = process.env.NODE_ENV === 'production';
 
     const token = this.jwtService.sign({
-      sub: member.id,          // UUID da tabela members (chave primária)
+      sub: member.id, // UUID da tabela members (chave primária)
       githubId: member.githubId, // GitHub numeric ID (referência externa)
       handle: member.githubHandle,
       name: member.name,
@@ -58,7 +67,8 @@ export class AuthController {
   @Get('me')
   @ApiOperation({
     summary: 'Retorna dados do usuário logado via cookie',
-    description: 'Lê o cookie `codaqui_token` e retorna o payload do JWT. Retorna 401 se não autenticado.',
+    description:
+      'Lê o cookie `codaqui_token` e retorna o payload do JWT. Retorna 401 se não autenticado.',
   })
   @ApiResponse({
     status: 200,
@@ -66,7 +76,10 @@ export class AuthController {
     schema: {
       type: 'object',
       properties: {
-        sub: { type: 'string', description: 'Member UUID (chave primária do banco)' },
+        sub: {
+          type: 'string',
+          description: 'Member UUID (chave primária do banco)',
+        },
         githubId: { type: 'string', description: 'GitHub numeric ID' },
         handle: { type: 'string', example: 'johndoe' },
         name: { type: 'string', example: 'John Doe' },
@@ -94,7 +107,10 @@ export class AuthController {
     summary: 'Encerrar sessão',
     description: 'Limpa o cookie JWT e redireciona para o frontend.',
   })
-  @ApiResponse({ status: 302, description: 'Cookie removido, redirecionado para o frontend.' })
+  @ApiResponse({
+    status: 302,
+    description: 'Cookie removido, redirecionado para o frontend.',
+  })
   logout(@Res() res: Response) {
     res.clearCookie(COOKIE_NAME, { path: '/' });
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';

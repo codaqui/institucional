@@ -15,18 +15,18 @@ import { AccountType } from '../ledger/entities/account.entity';
 
 export interface CreateReimbursementDto {
   accountId: string;
-  amount: number;         // em reais
+  amount: number; // em reais
   description: string;
-  receiptUrl: string;     // OBRIGATÓRIO — URL pública do comprovante
+  receiptUrl: string; // OBRIGATÓRIO — URL pública do comprovante
 }
 
 export interface ApproveReimbursementDto {
-  internalReceiptUrl: string;  // URL da cópia no Google Drive
+  internalReceiptUrl: string; // URL da cópia no Google Drive
   reviewNote?: string;
 }
 
 export interface RejectReimbursementDto {
-  reviewNote: string;          // OBRIGATÓRIO na rejeição
+  reviewNote: string; // OBRIGATÓRIO na rejeição
 }
 
 const REIMBURSEMENTS_ACCOUNT_KEY = 'reembolsos-pagos';
@@ -45,7 +45,9 @@ export class ReimbursementsService {
     dto: CreateReimbursementDto,
   ): Promise<ReimbursementRequest> {
     if (!dto.receiptUrl?.trim()) {
-      throw new BadRequestException('O comprovante (receiptUrl) é obrigatório.');
+      throw new BadRequestException(
+        'O comprovante (receiptUrl) é obrigatório.',
+      );
     }
     if (dto.amount <= 0) {
       throw new BadRequestException('O valor deve ser maior que zero.');
@@ -75,7 +77,12 @@ export class ReimbursementsService {
   async getAllRequests(
     page = 1,
     limit = 20,
-  ): Promise<{ data: ReimbursementRequest[]; total: number; page: number; totalPages: number }> {
+  ): Promise<{
+    data: ReimbursementRequest[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
     const [data, total] = await this.repo.findAndCount({
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -119,26 +126,29 @@ export class ReimbursementsService {
     if (!dto.internalReceiptUrl?.trim()) {
       throw new BadRequestException(
         'O link interno do comprovante (internalReceiptUrl) é obrigatório para aprovar. ' +
-        'Copie o comprovante para a pasta do Drive e cole o link aqui.',
+          'Copie o comprovante para a pasta do Drive e cole o link aqui.',
       );
     }
 
     // Verificar saldo suficiente
-    const balance = await this.ledgerService.getAccountBalance(request.accountId);
+    const balance = await this.ledgerService.getAccountBalance(
+      request.accountId,
+    );
     if (balance < request.amount) {
       throw new ForbiddenException(
         `Saldo insuficiente na conta "${request.account?.name ?? request.accountId}". ` +
-        `Disponível: R$ ${balance.toFixed(2)}, necessário: R$ ${request.amount.toFixed(2)}. ` +
-        `Abra uma solicitação de transferência para o Admin.`,
+          `Disponível: R$ ${balance.toFixed(2)}, necessário: R$ ${request.amount.toFixed(2)}. ` +
+          `Abra uma solicitação de transferência para o Admin.`,
       );
     }
 
     // Conta destino: "Reembolsos Pagos" (criada automaticamente se não existir)
-    const reimbursementsAccount = await this.ledgerService.getOrCreateCommunityAccount(
-      REIMBURSEMENTS_ACCOUNT_KEY,
-      'Reembolsos Pagos',
-      AccountType.EXPENSE,
-    );
+    const reimbursementsAccount =
+      await this.ledgerService.getOrCreateCommunityAccount(
+        REIMBURSEMENTS_ACCOUNT_KEY,
+        'Reembolsos Pagos',
+        AccountType.EXPENSE,
+      );
 
     // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
     await this.ledgerService.recordTransaction(
