@@ -16,14 +16,14 @@ const previewPrNumber = process.env.PREVIEW_PR_NUMBER || "";
 const isPreview = process.env.PREVIEW === "true" || baseUrl.startsWith("/previews/");
 
 const headTags: NonNullable<Config["headTags"]> = [
-  !isPreview
-    ? {
+  isPreview
+    ? null
+    : {
         tagName: "script",
         attributes: { type: "text/javascript" },
         innerHTML:
           "window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};",
-      }
-    : null,
+      },
   isPreview
     ? {
         tagName: "meta",

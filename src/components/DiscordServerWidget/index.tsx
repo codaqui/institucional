@@ -42,14 +42,14 @@ interface DiscordWidgetPayload {
 }
 
 interface DiscordServerWidgetProps {
-  widgetUrl: string;
-  compact?: boolean;
+  readonly widgetUrl: string;
+  readonly compact?: boolean;
   /** Total de canais do servidor (dado estático do sync, complementa o widget da API) */
-  channelCount?: number | null;
+  readonly channelCount?: number | null;
 }
 
 function formatChannelName(name: string): string {
-  return name.replace(/\s+/g, " ").trim();
+  return name.replaceAll(/\s+/g, " ").trim();
 }
 
 function formatMemberName(name: string): string {
@@ -170,9 +170,9 @@ export default function DiscordServerWidget({
             <Chip
               icon={<HeadsetMicIcon />}
               label={
-                channelCount != null
-                  ? `${channelCount} canais`
-                  : `${data.channels.length} salas com membros`
+                channelCount == null
+                  ? `${data.channels.length} salas com membros`
+                  : `${channelCount} canais`
               }
               color="info"
               variant="outlined"

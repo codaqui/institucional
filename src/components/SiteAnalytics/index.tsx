@@ -43,7 +43,7 @@ function pageLabel(path: string): string {
   return path
     .replace(/^\//, "")
     .replace(/\/$/, "")
-    .replace(/\//g, " › ") || "Página inicial";
+    .replaceAll("/", " › ") || "Página inicial";
 }
 
 // ─── Bar chart ────────────────────────────────────────────────────────────────
@@ -56,10 +56,10 @@ const YEAR_H = 18;
 function MonthlyChart({
   monthly,
   peakMonth,
-}: {
+}: Readonly<{
   monthly: MonthlyMetric[];
   peakMonth: string;
-}) {
+}>) {
   const theme = useTheme();
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -90,7 +90,7 @@ function MonthlyChart({
     }
   });
 
-  const hoveredMonth = hovered !== null ? monthly[hovered] : null;
+  const hoveredMonth = hovered === null ? null : monthly[hovered];
 
   return (
     <Box sx={{ position: "relative", width: "100%" }}>
@@ -160,7 +160,12 @@ function MonthlyChart({
           );
           const x = i * (barW + BAR_GAP);
           const y = CHART_H - h;
-          const fill = isPeak ? primaryDark : isHovered ? primary : dimColor;
+          let fill = dimColor;
+          if (isPeak) {
+            fill = primaryDark;
+          } else if (isHovered) {
+            fill = primary;
+          }
 
           return (
             <rect
@@ -237,7 +242,7 @@ function MonthlyChart({
 
 // ─── Traffic sources bar ───────────────────────────────────────────────────────
 
-function TrafficBar({ sources }: { sources: Record<string, number> }) {
+function TrafficBar({ sources }: Readonly<{ sources: Record<string, number> }>) {
   const LABELS: Record<string, { label: string; emoji: string; show: boolean }> = {
     google: { label: "Google", emoji: "🔍", show: true },
     new: { label: "Novos visitantes", emoji: "🆕", show: true },
@@ -302,10 +307,10 @@ function TrafficBar({ sources }: { sources: Record<string, number> }) {
 function TopPages({
   pages,
   latestPeriod,
-}: {
+}: Readonly<{
   pages: AnalyticsSnapshot["topPages"];
   latestPeriod: string;
-}) {
+}>) {
   if (pages.length === 0) return null;
   const max = pages[0].screenPageViews;
 
@@ -362,12 +367,12 @@ function HeroMetric({
   value,
   sub,
   label,
-}: {
+}: Readonly<{
   icon: React.ReactNode;
   value: string;
   sub?: string;
   label: string;
-}) {
+}>) {
   return (
     <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
       <Box

@@ -19,7 +19,7 @@ import { AuditModule } from './audit/audit.module';
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432', 10),
+      port: Number.parseInt(process.env.DB_PORT || '5432', 10),
       username: process.env.DB_USER || 'codaqui',
       password: process.env.DB_PASSWORD || 'codaqui_pass',
       database: process.env.DB_NAME || 'codaqui_db',

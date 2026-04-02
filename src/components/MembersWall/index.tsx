@@ -25,7 +25,7 @@ interface Member {
 }
 
 interface MembersWallProps {
-  limit?: number;
+  readonly limit?: number;
 }
 
 export default function MembersWall({ limit }: MembersWallProps): React.JSX.Element {
@@ -50,10 +50,11 @@ export default function MembersWall({ limit }: MembersWallProps): React.JSX.Elem
   }, [apiUrl, limit]);
 
   if (loading) {
+    const skeletonKeys = Array.from({ length: 6 }, (_, i) => `member-sk-${i}`);
     return (
       <Grid container spacing={2}>
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+        {skeletonKeys.map((sKey) => (
+          <Grid key={sKey} size={{ xs: 12, sm: 6, md: 4 }}>
             <Card variant="outlined">
               <CardContent sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                 <Skeleton variant="circular" width={56} height={56} />

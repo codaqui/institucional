@@ -23,7 +23,7 @@ export interface CreateCheckoutDto {
 
 @Injectable()
 export class StripeService {
-  private stripe: Stripe;
+  private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeService.name);
 
   constructor(
@@ -74,9 +74,12 @@ export class StripeService {
       : 'payment';
 
     const displayName = githubHandle ? `@${githubHandle}` : 'Doador';
-    const productName = `Apoio à ${communityId === 'tesouro-geral' ? 'Codaqui' : `Comunidade ${communityId}`}`;
+    const communityName =
+      communityId === 'tesouro-geral' ? 'Codaqui' : `Comunidade ${communityId}`;
+    const productName = `Apoio à ${communityName}`;
+    const typeDescription = isSubscription ? 'Assinatura' : 'Doação';
     const productDescription = memberId
-      ? `${isSubscription ? 'Assinatura' : 'Doação'} de ${displayName} via Portal Codaqui`
+      ? `${typeDescription} de ${displayName} via Portal Codaqui`
       : 'Doação anônima via Portal Codaqui';
 
     const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
@@ -134,9 +137,10 @@ export class StripeService {
           'Dev: webhook signature verification skipped (Stripe CLI)',
         );
         event = JSON.parse(payload.toString()) as Stripe.Event;
-      } else if (!webhookSecret) {
-        throw new Error('STRIPE_WEBHOOK_SECRET não definido em produção');
       } else {
+        if (!webhookSecret) {
+          throw new Error('STRIPE_WEBHOOK_SECRET não definido em produção');
+        }
         event = this.stripe.webhooks.constructEvent(
           payload,
           signature,
@@ -199,12 +203,14 @@ export class StripeService {
 
     // payment_intent (pi_xxx) é o ID que aparece no Stripe Dashboard.
     // Para subscriptions, pode ser null na session — usamos session.id como fallback.
-    const paymentIntentId =
-      typeof session.payment_intent === 'string'
-        ? session.payment_intent
-        : session.subscription
-          ? `sub_${(session.subscription as string).slice(4)}_first` // fallback legível
-          : session.id;
+    let paymentIntentId: string;
+    if (typeof session.payment_intent === 'string') {
+      paymentIntentId = session.payment_intent;
+    } else if (session.subscription) {
+      paymentIntentId = `sub_${(session.subscription as string).slice(4)}_first`; // fallback legível
+    } else {
+      paymentIntentId = session.id;
+    }
 
     try {
       await this.recordDonationToLedger({
@@ -309,9 +315,13 @@ export class StripeService {
     const displayName = githubHandle
       ? `@${githubHandle}`
       : (memberId ?? 'anônimo');
-    const typeLabel = isSubscription
-      ? `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`
-      : 'Doação';
+
+    let typeLabel: string;
+    if (isSubscription) {
+      typeLabel = `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
+    } else {
+      typeLabel = 'Doação';
+    }
 
     // description inclui sessionId (cs_test/in_xxx) para detectar modo test/live no frontend
     const description = memberId
@@ -388,7 +398,7 @@ export class StripeService {
     }[]
   > {
     // Sanitize UUID to prevent Stripe Search API injection
-    const safeMemberId = memberId.replace(/[^a-f0-9-]/gi, '');
+    const safeMemberId = memberId.replaceAll(/[^a-f0-9-]/gi, '');
 
     // Stripe Search API — busca por metadata
     const result = await this.stripe.subscriptions.search({

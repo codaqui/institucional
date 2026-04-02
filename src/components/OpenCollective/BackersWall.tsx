@@ -12,14 +12,15 @@ import {
 } from "../../data/opencollective";
 
 const FALLBACK_AVATAR = "https://opencollective.com/static/images/default-guest-logo.svg";
+const SKELETON_KEYS = Array.from({ length: 8 }, (_, i) => `oc-sk-${i}`);
 
 interface BackersWallProps {
   /** Max number of avatars to show before "+N mais" */
-  limit?: number;
+  readonly limit?: number;
   /** Only show active (recurring) backers */
-  activeOnly?: boolean;
+  readonly activeOnly?: boolean;
   /** Avatar size in px */
-  avatarSize?: number;
+  readonly avatarSize?: number;
 }
 
 export default function BackersWall({
@@ -56,9 +57,9 @@ export default function BackersWall({
   if (loading) {
     return (
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-        {Array.from({ length: 8 }).map((_, i) => (
+        {SKELETON_KEYS.map((sKey) => (
           <Skeleton
-            key={i}
+            key={sKey}
             variant="circular"
             width={avatarSize}
             height={avatarSize}
@@ -67,7 +68,6 @@ export default function BackersWall({
       </Box>
     );
   }
-
   if (error || backers.length === 0) {
     return (
       <Typography variant="body2" color="text.secondary">
@@ -94,53 +94,56 @@ export default function BackersWall({
       </Typography>
 
       <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mb: 2 }}>
-        {visible.map((backer) => (
-          <Tooltip
-            key={backer.MemberId}
-            title={
-              <Box>
-                <Typography variant="body2" fontWeight={700}>
-                  {backer.name}
-                </Typography>
-                {backer.tier && (
-                  <Typography variant="caption" display="block">
-                    {backer.tier}
+        {visible.map((backer) => {
+          const amountFormatted = new Intl.NumberFormat("pt-BR", {
+            style: "currency",
+            currency: backer.currency,
+          }).format(backer.totalAmountDonated);
+
+          return (
+            <Tooltip
+              key={backer.MemberId}
+              title={
+                <Box>
+                  <Typography variant="body2" fontWeight={700}>
+                    {backer.name}
                   </Typography>
-                )}
-                <Typography variant="caption" color="success.light">
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: backer.currency,
-                  }).format(backer.totalAmountDonated)}{" "}
-                  contribuídos
-                </Typography>
-              </Box>
-            }
-            arrow
-          >
-            <Avatar
-              component="a"
-              href={backer.profile}
-              target="_blank"
-              rel="noopener noreferrer"
-              src={backer.image ?? FALLBACK_AVATAR}
-              alt={backer.name}
-              sx={{
-                width: avatarSize,
-                height: avatarSize,
-                border: 2,
-                borderColor: backer.isActive ? "primary.main" : "divider",
-                cursor: "pointer",
-                transition: "transform 0.15s ease, box-shadow 0.15s ease",
-                "&:hover": {
-                  transform: "scale(1.12)",
-                  boxShadow: 3,
-                  zIndex: 1,
-                },
-              }}
-            />
-          </Tooltip>
-        ))}
+                  {backer.tier && (
+                    <Typography variant="caption" display="block">
+                      {backer.tier}
+                    </Typography>
+                  )}
+                  <Typography variant="caption" color="success.light">
+                    {amountFormatted} contribuídos
+                  </Typography>
+                </Box>
+              }
+              arrow
+            >
+              <Avatar
+                component="a"
+                href={backer.profile}
+                target="_blank"
+                rel="noopener noreferrer"
+                src={backer.image ?? FALLBACK_AVATAR}
+                alt={backer.name}
+                sx={{
+                  width: avatarSize,
+                  height: avatarSize,
+                  border: 2,
+                  borderColor: backer.isActive ? "primary.main" : "divider",
+                  cursor: "pointer",
+                  transition: "transform 0.15s ease, box-shadow 0.15s ease",
+                  "&:hover": {
+                    transform: "scale(1.12)",
+                    boxShadow: 3,
+                    zIndex: 1,
+                  },
+                }}
+              />
+            </Tooltip>
+          );
+        })}
 
         {remaining > 0 && (
           <Tooltip title={`+${remaining} apoiadores no OpenCollective`} arrow>
@@ -152,8 +155,8 @@ export default function BackersWall({
               sx={{
                 width: avatarSize,
                 height: avatarSize,
-                bgcolor: "action.selected",
-                color: "text.secondary",
+                bgcolor: "#3D8A68",
+                color: "#ffffff",
                 fontSize: "0.75rem",
                 fontWeight: 700,
                 border: 2,

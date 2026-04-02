@@ -4,12 +4,12 @@ import styles from "./index.module.css";
 import clsx from "clsx";
 
 type Props = {
-  title: string;
-  description: string;
-  to: string;
-  emoji?: string;
-  badge?: string;
-  className?: string;
+  readonly title: string;
+  readonly description: string;
+  readonly to: string;
+  readonly emoji?: string;
+  readonly badge?: string;
+  readonly className?: string;
 };
 
 export default function LessonCard({

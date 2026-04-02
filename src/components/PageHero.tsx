@@ -1,18 +1,15 @@
 import React from "react";
-import Box from "@mui/material/Box";
-import Container from "@mui/material/Container";
-import Divider from "@mui/material/Divider";
-import Typography from "@mui/material/Typography";
+import { Container, Box, Typography } from "@mui/material";
 
 interface PageHeroProps {
   /** Eyebrow label acima do título — ex: "Portal de Transparência" */
-  eyebrow?: string;
-  title: string;
-  subtitle?: string;
+  readonly eyebrow?: string;
+  readonly title: string;
+  readonly subtitle?: string;
   /** Slot para botões de ação ou chips abaixo do subtítulo */
-  children?: React.ReactNode;
+  readonly children?: React.ReactNode;
   /** Alinhamento do conteúdo — padrão "center" */
-  align?: "center" | "left";
+  readonly align?: "center" | "left";
 }
 
 /**

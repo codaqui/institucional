@@ -10,14 +10,12 @@ concurrency:
   group: pr-check-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
   metadata:
     name: Resolve PR metadata
     runs-on: ubuntu-slim
+    permissions:
+      contents: read
     outputs:
       reuse_develop_preview: ${{ steps.meta.outputs.reuse_develop_preview }}
     steps:
@@ -37,6 +35,8 @@ jobs:
     name: TypeScript Check
     runs-on: ubuntu-slim
     needs: metadata
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -57,6 +57,8 @@ jobs:
     name: Backend CI
     runs-on: ubuntu-slim
     needs: metadata
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -86,6 +88,9 @@ jobs:
       - typecheck
       - backend-check
     if: needs.metadata.outputs.reuse_develop_preview != 'true'
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -163,6 +168,8 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.metadata.outputs.reuse_develop_preview != 'true'
     needs: build
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -190,6 +197,8 @@ jobs:
       - typecheck
       - backend-check
     if: needs.metadata.outputs.reuse_develop_preview == 'true'
+    permissions:
+      pull-requests: write
     steps:
       - name: Comment reused preview URL
         uses: marocchino/sticky-pull-request-comment@v3

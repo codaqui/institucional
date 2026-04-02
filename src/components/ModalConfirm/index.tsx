@@ -12,26 +12,26 @@ export type ModalConfirmVariant = "warning" | "error" | "success" | "info";
 
 interface ModalConfirmProps {
   /** Controla visibilidade */
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
 
   /** Textos */
-  title: string;
-  description?: React.ReactNode;
-  confirmLabel?: string;
-  cancelLabel?: string;
+  readonly title: string;
+  readonly description?: React.ReactNode;
+  readonly confirmLabel?: string;
+  readonly cancelLabel?: string;
 
   /** Estilo do botão de confirmação */
-  variant?: ModalConfirmVariant;
+  readonly variant?: ModalConfirmVariant;
 
   /** Estado de carregamento durante ação async */
-  loading?: boolean;
+  readonly loading?: boolean;
 
   /** Mensagem de erro exibida dentro do modal */
-  error?: string;
+  readonly error?: string;
 
   /** Callback executado ao confirmar */
-  onConfirm: () => void | Promise<void>;
+  readonly onConfirm: () => void | Promise<void>;
 }
 
 const variantColor: Record<ModalConfirmVariant, "warning" | "error" | "success" | "primary"> = {
@@ -79,10 +79,12 @@ export default function ModalConfirm({
       onClose={loading ? undefined : onClose}
       maxWidth="xs"
       fullWidth
-      PaperProps={{
-        sx: {
-          borderTop: 3,
-          borderColor: `${color}.main`,
+      slotProps={{
+        paper: {
+          sx: {
+            borderTop: 3,
+            borderColor: `${color}.main`,
+          },
         },
       }}
     >

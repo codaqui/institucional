@@ -16,10 +16,10 @@ export interface PaginatedResult<T> {
 export class LedgerService {
   constructor(
     @InjectRepository(Account)
-    private accountRepo: Repository<Account>,
+    private readonly accountRepo: Repository<Account>,
     @InjectRepository(Transaction)
-    private txRepo: Repository<Transaction>,
-    private dataSource: DataSource,
+    private readonly txRepo: Repository<Transaction>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async createAccount(name: string, type: AccountType, projectKey?: string) {
@@ -137,21 +137,18 @@ export class LedgerService {
       .andWhere('acc.type = :type', { type: AccountType.VIRTUAL_WALLET })
       .getMany();
 
-    const result: Array<{
-      id: string;
-      projectKey: string;
-      name: string;
-      balance: number;
-    }> = [];
-    for (const acc of accounts) {
-      const balance = await this.getAccountBalance(acc.id);
-      result.push({
-        id: acc.id,
-        projectKey: acc.projectKey,
-        name: acc.name,
-        balance,
-      });
-    }
+    const result = await Promise.all(
+      accounts.map(async (acc) => {
+        const balance = await this.getAccountBalance(acc.id);
+        return {
+          id: acc.id,
+          projectKey: acc.projectKey,
+          name: acc.name,
+          balance,
+        };
+      }),
+    );
+
     return result;
   }
 }

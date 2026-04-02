@@ -5,14 +5,14 @@ import { OC_DONATE_URL } from "../../data/opencollective";
 
 interface DonateButtonProps {
   /** Button label — default is "Apoiar a Codaqui" */
-  label?: string;
+  readonly label?: string;
   /** MUI button variant */
-  variant?: "contained" | "outlined" | "text";
+  readonly variant?: "contained" | "outlined" | "text";
   /** Full width */
-  fullWidth?: boolean;
-  size?: "small" | "medium" | "large";
+  readonly fullWidth?: boolean;
+  readonly size?: "small" | "medium" | "large";
   /** Override the default OC donate URL */
-  href?: string;
+  readonly href?: string;
 }
 
 export default function DonateButton({

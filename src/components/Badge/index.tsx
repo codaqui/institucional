@@ -11,8 +11,8 @@ export type BadgeVariant =
   | "novo";
 
 type Props = {
-  label: string;
-  variant?: BadgeVariant;
+  readonly label: string;
+  readonly variant?: BadgeVariant;
 };
 
 export default function Badge({ label, variant = "info" }: Props): React.JSX.Element {
