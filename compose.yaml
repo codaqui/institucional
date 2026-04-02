@@ -63,6 +63,8 @@ services:
   stripe-cli:
     image: stripe/stripe-cli:latest
     command: listen --forward-to http://backend:3000/stripe/webhook --skip-verify
+    env_file:
+      - .env
     environment:
       STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_DEVICE_NAME: codaqui-dev
