@@ -16,7 +16,11 @@ import { CreateReimbursementDto } from './dto/create-reimbursement.dto';
 import { ApproveReimbursementDto } from './dto/approve-reimbursement.dto';
 import { RejectReimbursementDto } from './dto/reject-reimbursement.dto';
 
-export { CreateReimbursementDto, ApproveReimbursementDto, RejectReimbursementDto };
+export {
+  CreateReimbursementDto,
+  ApproveReimbursementDto,
+  RejectReimbursementDto,
+};
 
 const REIMBURSEMENTS_ACCOUNT_KEY = 'reembolsos-pagos';
 

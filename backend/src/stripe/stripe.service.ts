@@ -145,7 +145,7 @@ export class StripeService {
         webhookSecret,
       );
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Erro desconhecido";
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
       this.logger.error(
         `Falha na verificação da assinatura do webhook: ${message}`,
       );
@@ -154,14 +154,10 @@ export class StripeService {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(
-          event.data.object,
-        );
+        await this.handleCheckoutCompleted(event.data.object);
         break;
       case 'invoice.payment_succeeded':
-        await this.handleInvoicePaymentSucceeded(
-          event.data.object,
-        );
+        await this.handleInvoicePaymentSucceeded(event.data.object);
         break;
       case 'customer.subscription.deleted':
         this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
@@ -226,10 +222,9 @@ export class StripeService {
         interval: session.metadata?.interval as CheckoutInterval | undefined,
       });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Erro desconhecido";
-      this.logger.error(
-        `Falha ao registrar doação no Ledger: ${message}`,
-      );
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(`Falha ao registrar doação no Ledger: ${message}`);
     }
   }
 
@@ -239,9 +234,10 @@ export class StripeService {
 
     // Stripe SDK types for Invoice/Subscription can be tricky depending on version/expansion
     const invoiceAny = invoice as any;
-    const subscriptionId = typeof invoiceAny.subscription === 'string'
-      ? invoiceAny.subscription
-      : invoiceAny.subscription?.id;
+    const subscriptionId =
+      typeof invoiceAny.subscription === 'string'
+        ? invoiceAny.subscription
+        : invoiceAny.subscription?.id;
 
     const subscription = subscriptionId
       ? await this.stripe.subscriptions.retrieve(subscriptionId)
@@ -258,9 +254,10 @@ export class StripeService {
     if (amountCents <= 0) return;
 
     const amountReais = amountCents / 100;
-    const paymentIntentId = (typeof invoiceAny.payment_intent === 'string'
-      ? invoiceAny.payment_intent
-      : invoiceAny.payment_intent?.id) ?? invoice.id;
+    const paymentIntentId =
+      (typeof invoiceAny.payment_intent === 'string'
+        ? invoiceAny.payment_intent
+        : invoiceAny.payment_intent?.id) ?? invoice.id;
 
     try {
       await this.recordDonationToLedger({
@@ -276,10 +273,9 @@ export class StripeService {
           | undefined,
       });
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Erro desconhecido";
-      this.logger.error(
-        `Falha ao registrar renovação no Ledger: ${message}`,
-      );
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(`Falha ao registrar renovação no Ledger: ${message}`);
     }
   }
 
@@ -321,7 +317,9 @@ export class StripeService {
     );
 
     // Idempotência: ignora se paymentIntentId já foi registrado no ledger
-    const existing = await this.txRepo.findOneBy({ referenceId: paymentIntentId });
+    const existing = await this.txRepo.findOneBy({
+      referenceId: paymentIntentId,
+    });
     if (existing) {
       this.logger.warn(
         `Webhook idempotente: transação ${paymentIntentId} já registrada, ignorando.`,
@@ -474,7 +472,7 @@ export class StripeService {
 
     const currentPeriodEnd = (updated as any).current_period_end;
     this.logger.log(
-      `Assinatura ${subscriptionId} marcada para cancelar em ${new Date(currentPeriodEnd * 1000).toLocaleDateString("pt-BR")} (membro: ${memberId})`,
+      `Assinatura ${subscriptionId} marcada para cancelar em ${new Date(currentPeriodEnd * 1000).toLocaleDateString('pt-BR')} (membro: ${memberId})`,
     );
 
     return {

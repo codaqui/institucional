@@ -1,4 +1,11 @@
-import { IsUUID, IsNumber, IsString, IsUrl, Min, MaxLength } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsString,
+  IsUrl,
+  Min,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateReimbursementDto {
   @IsUUID()

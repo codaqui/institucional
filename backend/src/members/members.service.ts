@@ -144,7 +144,10 @@ export class MembersService {
   }
 
   /** Atualiza dados editáveis pelo próprio membro (busca por githubId — legado) */
-  async updateMe(githubId: string, dto: Readonly<UpdateMeDto>): Promise<Member> {
+  async updateMe(
+    githubId: string,
+    dto: Readonly<UpdateMeDto>,
+  ): Promise<Member> {
     await this.repo.update({ githubId }, dto);
     return this.repo.findOneOrFail({ where: { githubId } });
   }
@@ -165,7 +168,10 @@ export class MembersService {
    * Nota: bootstrap admins que fizerem login novamente terão role=admin
    * restaurada automaticamente — a restrição é por design.
    */
-  async adminUpdate(id: string, dto: Readonly<AdminUpdateDto>): Promise<Member> {
+  async adminUpdate(
+    id: string,
+    dto: Readonly<AdminUpdateDto>,
+  ): Promise<Member> {
     await this.repo.update(id, dto);
     return this.repo.findOneOrFail({ where: { id } });
   }

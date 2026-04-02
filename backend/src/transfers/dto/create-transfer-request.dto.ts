@@ -1,4 +1,11 @@
-import { IsUUID, IsNumber, IsString, Min, MaxLength, MinLength } from 'class-validator';
+import {
+  IsUUID,
+  IsNumber,
+  IsString,
+  Min,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class CreateTransferRequestDto {
   @IsUUID()
