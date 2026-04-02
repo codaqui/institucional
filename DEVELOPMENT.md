@@ -144,7 +144,7 @@ stripe listen --forward-to localhost:3001/stripe/webhook
 1. Acesse [dashboard.stripe.com → Webhooks](https://dashboard.stripe.com/webhooks)
 2. Clique em **"Add endpoint"**
 3. URL: `https://api.codaqui.dev/stripe/webhook`
-4. Eventos a escutar: `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_succeeded`, `invoice.payment_failed`
+4. Eventos a escutar: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
 5. Copie o **Signing secret** (`whsec_...`) gerado e defina como `STRIPE_WEBHOOK_SECRET` no servidor de produção
 
 ---
