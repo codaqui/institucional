@@ -98,7 +98,7 @@ interface ReimbursementListProps {
   reimbursements: ReimbursementRequest[];
 }
 
-function ReimbursementList({ loading, reimbursements }: ReimbursementListProps): React.JSX.Element {
+function ReimbursementList({ loading, reimbursements }: Readonly<ReimbursementListProps>): React.JSX.Element {
   if (loading) {
     return <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>;
   }
@@ -154,7 +154,7 @@ interface SubscriptionListProps {
   onCancelClick: (id: string) => void;
 }
 
-function SubscriptionList({ loading, subscriptions, onCancelClick }: SubscriptionListProps): React.JSX.Element {
+function SubscriptionList({ loading, subscriptions, onCancelClick }: Readonly<SubscriptionListProps>): React.JSX.Element {
   if (loading) {
     return <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>;
   }
@@ -226,7 +226,7 @@ interface DonationListProps {
   donations: Donation[];
 }
 
-function DonationList({ loading, donations }: DonationListProps): React.JSX.Element {
+function DonationList({ loading, donations }: Readonly<DonationListProps>): React.JSX.Element {
   if (loading) {
     return <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress size={32} /></Box>;
   }

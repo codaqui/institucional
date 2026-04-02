@@ -177,7 +177,10 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
     );
   }
 
-  const tabLabel = tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada";
+  let tabLabel: string;
+  if (tab === 0) { tabLabel = "pendente"; }
+  else if (tab === 1) { tabLabel = "aprovada"; }
+  else { tabLabel = "rejeitada"; }
 
   let listContent: React.JSX.Element;
   if (loading) {

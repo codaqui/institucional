@@ -79,8 +79,10 @@ function PersonBadge({
 }) {
   const initials = person.name?.charAt(0)?.toUpperCase() ?? "?";
   const display = person.githubHandle ? `@${person.githubHandle}` : person.name;
-  const avatarBgColor =
-    color === "success" ? "success.main" : color === "error" ? "error.main" : "action.selected";
+  let avatarBgColor: string;
+  if (color === "success") { avatarBgColor = "success.main"; }
+  else if (color === "error") { avatarBgColor = "error.main"; }
+  else { avatarBgColor = "action.selected"; }
   return (
     <Tooltip title={display}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
@@ -251,7 +253,10 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
     );
   }
 
-  const emptyLabel = tab === 0 ? "pendente" : tab === 1 ? "aprovada" : "rejeitada";
+  let emptyLabel: string;
+  if (tab === 0) { emptyLabel = "pendente"; }
+  else if (tab === 1) { emptyLabel = "aprovada"; }
+  else { emptyLabel = "rejeitada"; }
   let transferListContent: React.ReactNode;
   if (loading) {
     transferListContent = (
