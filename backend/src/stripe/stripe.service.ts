@@ -132,21 +132,18 @@ export class StripeService {
     let event: Stripe.Event;
 
     try {
-      if (isDev) {
-        this.logger.debug(
-          'Dev: webhook signature verification skipped (Stripe CLI)',
-        );
-        event = JSON.parse(payload.toString()) as Stripe.Event;
-      } else {
-        if (!webhookSecret) {
-          throw new Error('STRIPE_WEBHOOK_SECRET não definido em produção');
-        }
-        event = this.stripe.webhooks.constructEvent(
-          payload,
-          signature,
-          webhookSecret,
+      if (!webhookSecret) {
+        throw new Error(
+          isDev
+            ? 'STRIPE_WEBHOOK_SECRET não definido. Use o Stripe CLI: stripe listen --forward-to localhost:3001/stripe/webhook'
+            : 'STRIPE_WEBHOOK_SECRET não definido em produção',
         );
       }
+      event = this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        webhookSecret,
+      );
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Erro desconhecido";
       this.logger.error(
