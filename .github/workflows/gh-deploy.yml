@@ -66,10 +66,10 @@ jobs:
             SITE_URL="https://codaqui.dev" \
             BASE_URL="/${{ steps.deploy_meta.outputs.preview_path }}/" \
             PREVIEW="true" \
-            DOCUSAURUS_API_URL="https://api.intranet.codaqui.dev" \
+            DOCUSAURUS_API_URL="https://api.codaqui.dev" \
             npm run build
           else
-            DOCUSAURUS_API_URL="https://api.intranet.codaqui.dev" \
+            DOCUSAURUS_API_URL="https://api.codaqui.dev" \
             npm run build
           fi
 
