@@ -88,23 +88,25 @@ export class MembersController {
     const result = await this.membersService.adminUpdate(id, body);
 
     // Audit trail
-    let action: AuditAction;
+    let action: AuditAction | null = null;
     if (body.role) {
       action = AuditAction.ROLE_CHANGE;
     } else if (body.isActive === false) {
       action = AuditAction.MEMBER_DEACTIVATE;
-    } else {
+    } else if (body.isActive === true) {
       action = AuditAction.MEMBER_ACTIVATE;
     }
 
-    void this.auditService.log({
-      action,
-      actorId: req.user.sub,
-      actorHandle: req.user.handle,
-      targetId: id,
-      targetType: 'member',
-      details: body,
-    });
+    if (action) {
+      void this.auditService.log({
+        action,
+        actorId: req.user.sub,
+        actorHandle: req.user.handle,
+        targetId: id,
+        targetType: 'member',
+        details: body,
+      });
+    }
 
     return result;
   }

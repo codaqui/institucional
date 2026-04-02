@@ -138,7 +138,7 @@ async function fetchCncfMemberCount(chapterSlug) {
     });
     const html = await fetchSafeText(res);
     // Safer match with restricted range
-    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]{1,100000}?)<\/script>/.exec(html);
+    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]{1,200000}?)<\/script>/.exec(html);
     if (!match) return null;
 
     const data = JSON.parse(match[1]);
@@ -182,7 +182,7 @@ async function fetchInstagramFollowers(username) {
     const html = await fetchSafeText(pageRes);
 
     // Safer match: restrict object depth and token length
-    const tokenMatch = /window\.__config\s*=\s*\{[^}]*?token:\s*"([^"]{1,255})"/.exec(html);
+    const tokenMatch = /window\.__config\s*=\s*\{[^{}]*?token:\s*"([^"]{1,255})"/.exec(html);
     if (!tokenMatch) {
       console.warn(`  blastup: CSRF token not found for @${handle} — page structure may have changed`);
       return null;
@@ -252,7 +252,7 @@ async function fetchYouTubeSubscribers(handle) {
     });
     const html = await fetchSafeText(res);
     // YouTube embeds subscriber count in ytInitialData. Restricted content match.
-    const m = /"content":"([\d,.]+[KkMm]? subscribers?)"/.exec(html);
+    const m = /"content":"([\d,.]+[KkMm]?\s*subscribers?)"/.exec(html);
     if (!m) return null;
     return parseYouTubeSubscriberText(m[1]);
   } catch (err) {
@@ -305,7 +305,7 @@ async function readExistingSnapshot() {
 function extractSocialProfiles(tsSource) {
   const profiles = [];
   // Safer object match: limit search distance and avoid nested universal quantifiers
-  const objectRegex = /\{[^{}]{1,1000}platform:\s*["']([^"']+)["'][^{}]{1,1000}\}/g;
+  const objectRegex = /\{[^{}]{1,1000}platform:\s*["']([a-z]{3,20})["'][^{}]{1,1000}\}/g;
   let match;
   while ((match = objectRegex.exec(tsSource)) !== null) {
     const block = match[0];
@@ -335,14 +335,14 @@ async function readAllSocialProfiles() {
 
   const socialSrc = await readFile(socialPath, "utf8");
   // Limit source scan to the array block itself
-  const codaquiMatch = /codaquiSocialProfiles[^=]*=\s*\[([\s\S]*?)\];/.exec(socialSrc);
+  const codaquiMatch = /codaquiSocialProfiles[^=]{1,100}=\s*\[([\s\S]{1,5000}?)\];/.exec(socialSrc);
   if (codaquiMatch) {
     result.set("codaqui", extractSocialProfiles(codaquiMatch[1]));
   }
 
   const commSrc = await readFile(communitiesPath, "utf8");
   // Find each community block and extract profiles within it locally
-  const communityBlocks = commSrc.matchAll(/id:\s*["']([^"']+)["'][\s\S]*?socialProfiles:\s*\[([\s\S]*?)\]/g);
+  const communityBlocks = commSrc.matchAll(/id:\s*["']([a-z0-9-]{1,50})["'][\s\S]{1,2000}?socialProfiles:\s*\[([\s\S]{1,5000}?)\]/g);
   for (const match of communityBlocks) {
     const entityId = match[1];
     const profiles = extractSocialProfiles(match[2]);

@@ -34,7 +34,10 @@ const ANONYMOUS_LIMIT_CENTS = 10_000;
 
 export default function StripeDonateSection() {
   const { siteConfig } = useDocusaurusContext();
-  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
+  const apiUrl =
+    typeof siteConfig.customFields?.apiUrl === "string"
+      ? siteConfig.customFields.apiUrl
+      : "http://localhost:3001";
   const { user, isLoggedIn, ready, authFetch, login } = useAuth();
 
   const [selectedCommunity, setSelectedCommunity] = useState<string>(communities[0].id);
@@ -42,9 +45,23 @@ export default function StripeDonateSection() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const community = communities.find((c) => c.id === selectedCommunity)!;
+  const community = communities.find((c) => c.id === selectedCommunity) || communities[0];
   const amountLabel = PRESET_AMOUNTS.find((a) => a.cents === selectedAmount)?.label ?? "";
   const requiresLogin = selectedAmount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
+
+  let donateIcon = <FavoriteIcon />;
+  if (loading) {
+    donateIcon = <CircularProgress size={18} color="inherit" />;
+  } else if (requiresLogin) {
+    donateIcon = <GitHubIcon />;
+  }
+
+  let donateLabel = `Apoiar com ${amountLabel}`;
+  if (loading) {
+    donateLabel = "Redirecionando…";
+  } else if (requiresLogin) {
+    donateLabel = "Entrar com GitHub para continuar";
+  }
 
   const handleDonate = async () => {
     if (requiresLogin) {
@@ -67,7 +84,7 @@ export default function StripeDonateSection() {
       if (!res.ok) throw new Error("Falha ao criar sessão de pagamento.");
 
       const data = await res.json();
-      if (data.url) window.location.href = data.url;
+      if (data.url) globalThis.location.href = data.url;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro inesperado. Tente novamente.");
     } finally {
@@ -87,7 +104,7 @@ export default function StripeDonateSection() {
         100% rastreado no{" "}
         <a href="/transparencia" style={{ color: "inherit", fontWeight: 600 }}>
           Portal de Transparência
-        </a>
+        </a>{" "}
         . Doações anônimas aceitas até R$ 100.
       </Typography>
 
@@ -217,10 +234,10 @@ export default function StripeDonateSection() {
       )}
 
       {/* ── Usuário logado ── */}
-      {ready && isLoggedIn && (
+      {ready && isLoggedIn && user && (
         <Chip
-          avatar={<Avatar src={user!.avatarUrl} alt={user!.name} sx={{ width: 20, height: 20 }} />}
-          label={`Doando como @${user!.handle}`}
+          avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 20, height: 20 }} />}
+          label={`Doando como @${user.handle}`}
           size="small"
           variant="outlined"
           color="primary"
@@ -279,21 +296,11 @@ export default function StripeDonateSection() {
               fullWidth
               disabled={loading}
               onClick={handleDonate}
-              startIcon={
-                loading
-                  ? <CircularProgress size={18} color="inherit" />
-                  : requiresLogin
-                    ? <GitHubIcon />
-                    : <FavoriteIcon />
-              }
+              startIcon={donateIcon}
               endIcon={!loading && !requiresLogin && <OpenInNewIcon />}
               sx={{ fontWeight: 700, borderRadius: 2, mt: 0.5 }}
             >
-              {loading
-                ? "Redirecionando…"
-                : requiresLogin
-                  ? "Entrar com GitHub para continuar"
-                  : `Apoiar com ${amountLabel}`}
+              {donateLabel}
             </Button>
           </Stack>
         </CardContent>
