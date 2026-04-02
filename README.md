@@ -15,7 +15,7 @@ Este repositório é um **monorepo**:
 | Camada | Diretório | Hospedagem |
 |--------|-----------|-----------|
 | Frontend (Docusaurus) | `/` (raiz) | GitHub Pages — automático via CI |
-| Backend (NestJS) | `backend/` | Servidor ARM64 via Podman Compose |
+| Backend (NestJS) | [`backend/`](./backend/README.md) | Servidor ARM64 via Podman Compose |
 
 O GitHub Pages **nunca** publica o `backend/`. O CI usa apenas `npm ci → npm run build → deploy`.
 

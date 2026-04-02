@@ -1,98 +1,71 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend — Codaqui
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST do monorepo Codaqui. Responsável por pagamentos (Stripe), contabilidade (Ledger), autenticação (Keycloak/JWT), armazenamento (MinIO) e gestão de membros, reembolsos e transferências.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+> Para setup completo, variáveis de ambiente e deploy, consulte o **[DEVELOPMENT.md](../DEVELOPMENT.md#backend-nestjs)**.
+> Para padrões de código e decisões de arquitetura, consulte o **[AGENTS.md](../AGENTS.md)**.
 
-## Description
+---
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Stack
 
-## Project setup
+| Camada | Tecnologia |
+|--------|-----------|
+| Framework | NestJS (TypeScript) |
+| ORM | TypeORM + PostgreSQL 15 |
+| Autenticação | Keycloak 22 + JWT (RS256) |
+| Pagamentos | Stripe (Checkout Sessions + Webhooks) |
+| Armazenamento | MinIO (S3-compatible) |
+| Validação | `class-validator` + `class-transformer` |
+| Reverse Proxy | Traefik v2.10 |
+| Container | Podman Compose |
+
+---
+
+## Comandos
 
 ```bash
-$ npm install
+npm run start:dev       # Watch mode → http://localhost:4000
+npm run build           # Compila → dist/  (rode antes de qualquer PR)
+npm run test            # Unit tests
+npm run test:e2e        # E2E tests
+npm run test:cov        # Cobertura de testes
 ```
 
-## Compile and run the project
+### Migrations (TypeORM)
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm run migration:generate -- src/migrations/NomeDaMigration
+npm run migration:run
+npm run migration:revert
 ```
 
-## Run tests
+> Em produção (`NODE_ENV=production`) as migrations rodam automaticamente no boot (`migrationsRun: true`).
+> Em desenvolvimento o schema é sincronizado via `synchronize: true` — use migrations para validar antes de fazer deploy.
+
+---
+
+## Módulos
+
+| Módulo | Endpoints principais | Descrição |
+|--------|---------------------|-----------|
+| `AuthModule` | `POST /auth/login` · `GET /auth/me` · `POST /auth/logout` | GitHub OAuth → JWT httpOnly cookie. Guards: `JwtAuthGuard`, `RolesGuard`. |
+| `MembersModule` | `GET /members` · `PATCH /members/:id` | Cadastro e perfil de membros. |
+| `LedgerModule` | `GET /ledger/community-balances` · `GET /ledger/accounts/:id/transactions` | Contabilidade dupla partida por `projectKey`. Contas criadas automaticamente com proteção contra race condition. |
+| `StripeModule` | `POST /stripe/checkout-session` · `POST /stripe/webhook` | Cria sessões de checkout e processa webhooks (com validação de assinatura obrigatória e idempotência por `referenceId`). |
+| `ReimbursementsModule` | `POST /reimbursements` · `PATCH /reimbursements/:id/approve` · `PATCH /reimbursements/:id/reject` | Solicitações de reembolso com aprovação atômica (pessimistic lock). |
+| `TransfersModule` | `POST /account-transfers` · `PATCH /account-transfers/:id/review` | Transferências entre contas com aprovação atômica (pessimistic lock). |
+| `StorageModule` | `POST /storage/upload` · `GET /storage/:key` | Upload e acesso a arquivos via MinIO. |
+| `AuditModule` | `GET /audit` | Log de auditoria para operações sensíveis. |
+
+---
+
+## Testando Webhooks do Stripe localmente
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# Instale a CLI: https://stripe.com/docs/stripe-cli
+stripe listen --forward-to localhost:4000/stripe/webhook
+# A CLI imprime o STRIPE_WEBHOOK_SECRET temporário — cole no .env
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+> A validação de assinatura é **sempre obrigatória** — não há bypass em desenvolvimento.
