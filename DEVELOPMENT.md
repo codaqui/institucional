@@ -35,7 +35,7 @@ As páginas `/transparencia` e `/participe/apoiar` exibem mensagem de fallback q
 
 ```bash
 npm run build       # Gera ./build/ (mesmo que o CI)
-npm run serve       # Serve o build локальнo para testar
+npm run serve       # Serve o build localmente para testar
 npm run typecheck   # TypeScript (exclui /backend automaticamente)
 ```
 
@@ -65,7 +65,10 @@ Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor 
 | `npm run sync:events` | Eventos (Discord + Meetup) → `static/events/` |
 | `npm run sync:events:full` | Re-pagina todos os eventos passados |
 | `npm run sync:social` | Contagens de membros/seguidores → `static/social-stats/index.json` |
-| `npm run sync` | `sync:events` + `sync:social` em sequência |
+| `npm run sync:analytics` | Analytics → `static/analytics/` |
+| `npm run sync:analytics:full` | Re-pagina todo o histórico de analytics |
+| `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
+| `npm run sync:full` | Versão completa (full) de todos os syncs |
 
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
@@ -80,13 +83,13 @@ Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor 
 ```bash
 cd backend
 npm install
-npm run start:dev   # Watch mode → http://localhost:4000
+npm run start:dev   # Watch mode → http://localhost:3000
 ```
 
-Para ter um banco disponível sem subir tudo, suba só o Postgres:
+Para ter um banco disponível sem subir tudo:
 
 ```bash
-podman compose -f compose.yaml up postgres -d
+make db-up   # Sobe apenas o PostgreSQL e aguarda estar pronto
 ```
 
 Configure as variáveis no `.env` da raiz (veja [Variáveis de Ambiente](#variáveis-de-ambiente)):
@@ -108,23 +111,41 @@ npm run build   # Compila → dist/
 
 > Sempre rode antes de abrir um PR que altere o backend.
 
-### Módulos
+### Módulos e Endpoints
 
 | Módulo | Endpoints principais | Descrição |
 |--------|---------------------|-----------|
-| `LedgerModule` | `GET /ledger/community-balances` · `GET /ledger/accounts/:id/transactions` | Contabilidade dupla partida. Contas criadas automaticamente por `projectKey`. |
-| `StripeModule` | `POST /stripe/checkout-session` · `POST /stripe/webhook` | Pagamentos. Webhook credita a carteira da comunidade no Ledger. |
-| `AuthModule` | — | Integração Keycloak |
-| `ExpensesModule` | — | Gestão de despesas |
-| `StorageModule` | — | Armazenamento MinIO |
+| `LedgerModule` | `GET /ledger/community-balances` · `GET /ledger/accounts` · `GET /ledger/accounts/:id/transactions` · `POST /ledger/accounts` · `POST /ledger/transactions` | Contabilidade dupla partida. Contas criadas automaticamente por `projectKey`. |
+| `StripeModule` | `POST /stripe/checkout-session` · `POST /stripe/webhook` · `GET /stripe/my-donations` · `GET /stripe/my-subscriptions` · `DELETE /stripe/subscriptions/:id` | Pagamentos. Webhook credita a carteira da comunidade no Ledger. |
+| `AuthModule` | `GET /auth/github` · `GET /auth/github/callback` · `GET /auth/me` · `GET /auth/logout` | Autenticação via GitHub OAuth + JWT. |
+| `MembersModule` | `GET /members` · `GET /members/:id` · `GET /members/me` · `PUT /members/me` · `GET /admin/members` · `PATCH /admin/members/:id` | Perfis de membros da Associação. |
+| `ReimbursementsModule` | `POST /reimbursements` · `GET /reimbursements` · `GET /reimbursements/my` · `GET /reimbursements/public/:id` · `PATCH /reimbursements/:id/approve` · `PATCH /reimbursements/:id/reject` | Solicitações de reembolso com fluxo de aprovação. |
+| `TransfersModule` | `POST /account-transfers` · `GET /account-transfers` · `PATCH /account-transfers/:id/approve` · `PATCH /account-transfers/:id/reject` | Transferências entre contas do Ledger. |
+| `ExpensesModule` | `POST /expenses` · `GET /expenses` · `GET /expenses/:id` · `POST /expenses/:id/approve` · `POST /expenses/:id/pay` | Gestão de despesas organizacionais. |
+| `StorageModule` | `POST /storage/validate-receipt-url` | Validação de URLs de comprovantes (MinIO). |
+| `AuditModule` | `GET /audit/logs` · `POST /audit/cleanup` | Trilha de auditoria das ações administrativas. |
 
-### Testando Webhooks do Stripe localmente
+### Swagger / OpenAPI
+
+Disponível em `http://localhost:3000/docs` (sem containers) ou `http://localhost:3001/docs` (via Compose). Desabilitado em produção por padrão — para habilitar: `SWAGGER_ENABLED=true`.
+
+### Webhook do Stripe
+
+**Em desenvolvimento** — o `make up` sobe o Stripe CLI como container e captura o secret automaticamente. Ou rode manualmente:
 
 ```bash
 # Instale a CLI: https://stripe.com/docs/stripe-cli
-stripe listen --forward-to localhost:4000/stripe/webhook
+stripe listen --forward-to localhost:3001/stripe/webhook
 # A CLI imprime o STRIPE_WEBHOOK_SECRET temporário — cole no .env
 ```
+
+**Em produção** — registre o endpoint no dashboard do Stripe:
+
+1. Acesse [dashboard.stripe.com → Webhooks](https://dashboard.stripe.com/webhooks)
+2. Clique em **"Add endpoint"**
+3. URL: `https://api.codaqui.dev/stripe/webhook`
+4. Eventos a escutar: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
+5. Copie o **Signing secret** (`whsec_...`) gerado e defina como `STRIPE_WEBHOOK_SECRET` no servidor de produção
 
 ---
 
@@ -134,34 +155,53 @@ stripe listen --forward-to localhost:4000/stripe/webhook
 
 ### Setup
 
-Copie e preencha o `.env`:
+```bash
+make setup   # Cria .env a partir de .env.example e instala dependências
+```
+
+Edite o `.env` gerado com suas credenciais, depois:
 
 ```bash
-cp .env.example .env
-```
-
-Adicione ao `/etc/hosts`:
-
-```
-127.0.0.1 codaqui.localhost api.localhost auth.localhost minio.localhost
-```
-
-Suba tudo:
-
-```bash
-podman compose -f compose.yaml build --no-cache && podman compose up
+make up   # Sobe todos os serviços e captura o STRIPE_WEBHOOK_SECRET automaticamente
 ```
 
 ### Serviços (DEV)
 
-| Serviço | Host | Porta direta |
-|---------|------|--------------|
-| Docusaurus | http://codaqui.localhost:8000 | — |
-| Backend NestJS | http://api.localhost:8000 | 4000 |
-| Keycloak | http://auth.localhost:8000 | 8081 |
-| MinIO Console | http://minio.localhost:8000 | 9001 |
-| Traefik Dashboard | http://localhost:8080 | — |
-| PostgreSQL | — | 5432 |
+| Serviço | URL |
+|---------|-----|
+| Docusaurus | http://localhost:3000 |
+| Backend NestJS | http://localhost:3001 |
+| Backend Swagger UI | http://localhost:3001/docs |
+| PostgreSQL | localhost:5432 |
+| Stripe CLI | (sem UI — use `make logs SERVICE=stripe-cli`) |
+
+### Comandos úteis do Makefile
+
+```bash
+make up              # Sobe tudo (captura Stripe secret automaticamente)
+make down            # Para e remove containers
+make logs            # Logs de todos os serviços em tempo real
+make logs SERVICE=backend   # Logs só do backend
+make restart SERVICE=backend  # Reinicia apenas o backend
+make ps              # Status dos containers
+make db-shell        # Shell psql direto no container
+```
+
+---
+
+## Migrations (TypeORM)
+
+O nome é gerado automaticamente no formato `MigrationNNN_YYYYMMDD`. PostgreSQL precisa estar rodando.
+
+```bash
+make db-up              # Sobe o PostgreSQL (se ainda não estiver rodando)
+make migration-generate # Gera uma nova migration (auto-nomeada)
+make migration-run      # Executa migrations pendentes
+make migration-revert   # Reverte a última migration aplicada
+make migration-show     # Lista todas as migrations e seus status
+```
+
+Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar.
 
 ---
 
@@ -173,11 +213,12 @@ Baseie-se no `.env.example`. Variáveis principais:
 |----------|-----------|-----------|
 | `DISCORD_BOT_TOKEN` | `sync:events`, `sync:social` | Token do bot Discord (sync de eventos e membros) |
 | `DB_USER` / `DB_PASSWORD` / `DB_NAME` | Backend, Compose | Credenciais do PostgreSQL |
-| `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` | Compose | Credenciais do MinIO |
-| `KC_ADMIN` / `KC_ADMIN_PASSWORD` | Compose | Admin do Keycloak |
-| `STRIPE_SECRET_KEY` | Backend | Chave secreta da Stripe (obter em dashboard.stripe.com) |
-| `STRIPE_WEBHOOK_SECRET` | Backend | Segredo do webhook Stripe |
-| `FRONTEND_URL` | Backend | URL base do frontend (redirects pós-doação) |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | Backend | OAuth App do GitHub para autenticação |
+| `JWT_SECRET` | Backend | Segredo para assinar tokens JWT — gere com `openssl rand -hex 64` |
+| `STRIPE_SECRET_KEY` | Backend | Chave secreta Stripe (`sk_test_...` em dev, `sk_live_...` em prod) |
+| `STRIPE_WEBHOOK_SECRET` | Backend | Segredo do webhook Stripe (capturado automaticamente pelo `make up`) |
+| `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
+| `FRONTEND_URL` | Backend | URL base do frontend (default: `http://localhost:3000`) |
 
 **Produção (apenas `compose.prod.yaml`):**
 
@@ -193,7 +234,6 @@ Baseie-se no `.env.example`. Variáveis principais:
 | `FRONTEND_URL` | `https://codaqui.dev` | Sim (tem default) |
 | `STRIPE_SECRET_KEY` | `sk_live_...` | **Sim** |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_...` | **Sim** — obtido no dashboard Stripe → Webhooks |
-| `STRIPE_PUBLISHABLE_KEY` | `pk_live_...` | **Sim** |
 
 ---
 
@@ -203,7 +243,7 @@ Baseie-se no `.env.example`. Variáveis principais:
 
 Push em `main` ou `develop` dispara `.github/workflows/gh-deploy.yml`:
 1. `npm ci`
-2. `npm run build`
+2. `npm run build` (com `STRIPE_PUBLISHABLE_KEY` injetada via GitHub Variable)
 3. Deploy em `gh-pages` (main) ou `gh-pages/previews/develop/` (develop)
 
 O `backend/` **nunca** é enviado para o GitHub Pages.
@@ -222,7 +262,7 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 > **Como obter o GitHub App:**
 > Crie um GitHub App em *Settings → Developer settings → GitHub Apps* com permissão de escrita em `Contents` do repositório, gere uma chave privada (`.pem`) e use seu conteúdo como valor de `GH_APP_PRIVATE_KEY`.
 
-
+### Backend → Produção ARM64
 
 ```bash
 # No servidor de produção
@@ -230,7 +270,9 @@ podman compose -f compose.prod.yaml pull
 podman compose -f compose.prod.yaml up -d
 ```
 
-Sobe: Traefik, Postgres, Keycloak, MinIO e Backend. Sem Docusaurus.
+Sobe: PostgreSQL + Backend. Sem Docusaurus, sem Stripe CLI.
+
+As migrations são executadas automaticamente na inicialização (`migrationsRun: true` em produção).
 
 ---
 
@@ -243,3 +285,4 @@ docs: atualiza DEVELOPMENT.md
 refactor: reorganiza módulo de ledger
 chore: atualiza dependências
 ```
+

@@ -30,6 +30,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BACKEND_URL=${BACKEND_URL:-https://api.codaqui.dev}
       - FRONTEND_URL=${FRONTEND_URL:-https://codaqui.dev}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_PMC_ID=${STRIPE_PMC_ID}
     depends_on:
       postgres-codaqui:
         condition: service_healthy
