@@ -19,7 +19,7 @@ export default function LessonCard({
   emoji = "📄",
   badge,
   className,
-}: Props): React.JSX.Element {
+}: Readonly<Props>): React.JSX.Element {
   return (
     <Link to={to} className={clsx(styles.card, className)}>
       <span className={styles.emoji}>{emoji}</span>

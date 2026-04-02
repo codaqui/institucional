@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+
 import Avatar from "@mui/material/Avatar";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Menu from "@mui/material/Menu";
@@ -17,7 +16,6 @@ import { useAuth } from "../../hooks/useAuth";
 
 export default function NavbarAuth(): React.JSX.Element | null {
   const { user, ready, isLoggedIn, isAdmin, login, logout } = useAuth();
-  const { siteConfig } = useDocusaurusContext();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -54,12 +52,12 @@ export default function NavbarAuth(): React.JSX.Element | null {
       <Chip
         avatar={
           <Avatar
-            src={user!.avatarUrl}
-            alt={user!.name}
+            src={user?.avatarUrl}
+            alt={user?.name}
             sx={{ width: "22px !important", height: "22px !important" }}
           />
         }
-        label={`@${user!.handle}`}
+        label={`@${user?.handle}`}
         size="small"
         onClick={(e) => setAnchorEl(e.currentTarget)}
         sx={{

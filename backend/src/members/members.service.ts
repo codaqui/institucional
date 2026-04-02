@@ -32,9 +32,9 @@ interface AdminUpdateDto {
 //
 // Para adicionar um novo bootstrap admin, inclua o handle (lowercase) abaixo.
 // ─────────────────────────────────────────────────────────────────────────────
-const BOOTSTRAP_ADMINS: readonly string[] = [
+const BOOTSTRAP_ADMINS = new Set<string>([
   'endersonmenezes', // Admin 0 — fundador da Codaqui
-];
+]);
 
 @Injectable()
 export class MembersService {
@@ -53,7 +53,7 @@ export class MembersService {
    * mesmo que alguém altere no banco, é restaurado no próximo login.
    */
   async upsertByGithub(profile: GithubProfile): Promise<Member> {
-    const isBootstrapAdmin = BOOTSTRAP_ADMINS.includes(
+    const isBootstrapAdmin = BOOTSTRAP_ADMINS.has(
       profile.githubHandle.toLowerCase(),
     );
 

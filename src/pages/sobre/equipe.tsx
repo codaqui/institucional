@@ -18,7 +18,7 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import { diretoria, membros, alumni, mentores, type Member } from "../../data/team";
 import PageHero from "../../components/PageHero";
 
-function MemberCard({ name, role, specialty, avatar, linkedin, github }: Member) {
+function MemberCard({ name, role, specialty, avatar, linkedin, github }: Readonly<Member>) {
   return (
     <Card
       variant="outlined"
@@ -72,20 +72,22 @@ function MemberCard({ name, role, specialty, avatar, linkedin, github }: Member)
   );
 }
 
+interface SectionProps {
+  title: string;
+  members: Member[];
+  description?: string;
+  id?: string;
+}
+
 function Section({
   title,
   members,
   description,
   id,
-}: {
-  title: string;
-  members: Member[];
-  description?: string;
-  id?: string;
-}) {
+}: Readonly<SectionProps>) {
   return (
-    <Box id={id} sx={{ mb: 8 }}>
-      <Typography variant="h4" component="h2" sx={{ mb: 1, fontWeight: 700 }}>
+    <Box sx={{ mb: 8 }}>
+      <Typography id={id} variant="h4" component="h2" sx={{ mb: 1, fontWeight: 700 }}>
         {title}
       </Typography>
       {description && (

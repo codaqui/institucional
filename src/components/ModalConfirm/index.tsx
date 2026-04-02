@@ -70,7 +70,7 @@ export default function ModalConfirm({
   loading = false,
   error,
   onConfirm,
-}: ModalConfirmProps): React.JSX.Element {
+}: Readonly<ModalConfirmProps>): React.JSX.Element {
   const color = variantColor[variant];
 
   return (

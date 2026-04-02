@@ -152,7 +152,11 @@ function StatCard({ icon, value, label, color }: Readonly<StatCardProps>) {
 
 // ─── Social stat chip ─────────────────────────────────────────────────────────
 
-function SocialStatChip({ entry }: Readonly<{ entry: SocialStatEntry }>) {
+interface SocialStatChipProps {
+  entry: SocialStatEntry;
+}
+
+function SocialStatChip({ entry }: Readonly<SocialStatChipProps>) {
   const color = platformColor(entry.platform);
   const icon = platformIcon(entry.platform);
   // Platforms without automated fetch show as link-only chips (no count)
@@ -304,7 +308,11 @@ const COLOR_MAP: Record<string, string> = {
   grey: "grey.500",
 };
 
-function StatsFigures({ stats }: Readonly<{ stats: TimelineStats[] }>) {
+interface StatsFiguresProps {
+  stats: TimelineStats[];
+}
+
+function StatsFigures({ stats }: Readonly<StatsFiguresProps>) {
   return (
     <Stack
       direction="row"
@@ -334,7 +342,11 @@ function StatsFigures({ stats }: Readonly<{ stats: TimelineStats[] }>) {
   );
 }
 
-function ChapterItems({ items }: Readonly<{ items: string[] }>) {
+interface ChapterItemsProps {
+  items: string[];
+}
+
+function ChapterItems({ items }: Readonly<ChapterItemsProps>) {
   const [open, setOpen] = useState(false);
   const threshold = 4;
   const hasMore = items.length > threshold;
@@ -378,17 +390,19 @@ function ChapterItems({ items }: Readonly<{ items: string[] }>) {
   );
 }
 
+interface TimelineChapterProps {
+  event: TimelineEvent;
+  index: number;
+  isMobile: boolean;
+  isLast: boolean;
+}
+
 function TimelineChapter({
   event,
   index,
   isMobile,
   isLast,
-}: Readonly<{
-  event: TimelineEvent;
-  index: number;
-  isMobile: boolean;
-  isLast: boolean;
-}>) {
+}: Readonly<TimelineChapterProps>) {
   const isEven = index % 2 === 0;
   const isCurrent = event.tag === "Em andamento";
   const accentColor = COLOR_MAP[event.color] ?? "primary.main";

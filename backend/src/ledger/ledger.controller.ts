@@ -15,7 +15,6 @@ import {
   ApiParam,
   ApiBody,
   ApiBearerAuth,
-  ApiSecurity,
 } from '@nestjs/swagger';
 import { LedgerService } from './ledger.service';
 import { AccountType } from './entities/account.entity';
@@ -95,7 +94,7 @@ export class LedgerController {
         amount: {
           type: 'number',
           minimum: 0.01,
-          example: 75.0,
+          example: 75,
           description: 'Valor em reais (ex: 75.50 = R$ 75,50)',
         },
         description: {
@@ -180,7 +179,7 @@ export class LedgerController {
           name: { type: 'string', example: 'Dev Paraná' },
           balance: {
             type: 'number',
-            example: 150.0,
+            example: 150,
             description: 'Saldo em reais (ex: 75.50 = R$ 75,50)',
           },
         },
@@ -204,7 +203,7 @@ export class LedgerController {
   @ApiResponse({
     status: 200,
     description: 'Saldo atual em reais.',
-    schema: { type: 'number', example: 75.0 },
+    schema: { type: 'number', example: 75 },
   })
   @ApiResponse({ status: 400, description: 'Conta não encontrada.' })
   @ApiResponse({ status: 401, description: 'Não autenticado.' })
@@ -235,7 +234,7 @@ export class LedgerController {
               id: { type: 'string', format: 'uuid' },
               amount: {
                 type: 'number',
-                example: 75.0,
+                example: 75,
                 description: 'Valor em reais',
               },
               description: { type: 'string', example: 'Doação via Stripe' },
