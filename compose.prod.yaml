@@ -4,7 +4,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-codaqui}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env (ex: openssl rand -hex 16)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB:-codaqui_db}
     volumes:
       - pgdata-codaqui:/var/lib/postgresql/data
@@ -23,7 +23,7 @@ services:
       - DB_HOST=postgres-codaqui
       - DB_PORT=5432
       - DB_USER=${POSTGRES_USER:-codaqui}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:?Defina POSTGRES_PASSWORD no arquivo .env (ex: openssl rand -hex 16)}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_NAME=${POSTGRES_DB:-codaqui_db}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
