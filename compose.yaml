@@ -6,7 +6,7 @@ services:
       - .env
     environment:
       POSTGRES_USER: ${DB_USER:-codaqui}
-      POSTGRES_PASSWORD: ${DB_PASSWORD)}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME:-codaqui_db}
     ports:
       - "5432:5432"
