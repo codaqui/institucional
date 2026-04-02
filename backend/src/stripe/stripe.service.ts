@@ -107,7 +107,7 @@ export class StripeService {
       line_items: [lineItem],
       mode,
       metadata,
-payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
+      payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
       ...(isSubscription && { subscription_data: { metadata } }),
       ...(email && { customer_email: email }),
       ...(uiMode === 'embedded_page'
