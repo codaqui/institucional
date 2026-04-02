@@ -1,0 +1,42 @@
+# ─── Artefatos de build ────────────────────────────────
+build/
+.docusaurus/
+.cache/
+
+# ─── Dependências (serão instaladas via npm ci) ────────
+node_modules/
+
+# ─── Backend (não faz parte do contexto Docusaurus) ────
+backend/
+backend/dist/
+backend/node_modules/
+
+# ─── Ambiente e segredos ────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Git e CI ──────────────────────────────────────────
+.git/
+.github/
+.gitignore
+
+# ─── Dados/backups locais desnecessários ────────────────
+old-docs-backup/
+images/
+tmp/
+
+# ─── IDE e macOS ───────────────────────────────────────
+.DS_Store
+.vscode/
+*.swp
+*.swo
+
+# ─── Logs ──────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Legado MkDocs ─────────────────────────────────────
+site/
+mkdocs-material/
+venv/

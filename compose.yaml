@@ -1,0 +1,79 @@
+services:
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:18-alpine
+    container_name: codaqui_postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${DB_USER:-codaqui}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-codaqui_pass}
+      POSTGRES_DB: ${DB_NAME:-codaqui_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - codaqui-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: codaqui_backend
+    env_file:
+      - .env
+    ports:
+      - "3001:3000" # http://localhost:3001
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-codaqui}
+      - DB_PASSWORD=${DB_PASSWORD:-codaqui_pass}
+      - DB_NAME=${DB_NAME:-codaqui_db}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BACKEND_URL=${BACKEND_URL:-http://localhost:3001}
+      - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      - postgres
+    networks:
+      - codaqui-network
+
+  docusaurus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: codaqui_docusaurus
+    env_file:
+      - .env
+    ports:
+      - "3000:3000" # http://localhost:3000
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.docusaurus
+    networks:
+      - codaqui-network
+
+  # Stripe CLI — encaminha webhooks do Stripe para o backend local
+  # Requer STRIPE_SECRET_KEY no .env. Inicie 1x para ver o webhook secret:
+  # podman logs codaqui_stripe_cli
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    command: listen --forward-to http://backend:3000/stripe/webhook --skip-verify
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_DEVICE_NAME: codaqui-dev
+    depends_on:
+      - backend
+    networks:
+      - codaqui-network
+
+networks:
+  codaqui-network:
+    driver: bridge
+
+volumes:
+  pgdata:

@@ -50,12 +50,38 @@ jobs:
       - name: Run TypeScript check
         run: npm run typecheck
 
+  backend-check:
+    name: Backend CI
+    runs-on: ubuntu-slim
+    needs: metadata
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run Backend Build
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: npm run test
+
   build:
     name: Build & Upload Preview
     runs-on: ubuntu-latest
     needs:
       - metadata
       - typecheck
+      - backend-check
     if: needs.metadata.outputs.reuse_develop_preview != 'true'
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -159,6 +185,7 @@ jobs:
     needs:
       - metadata
       - typecheck
+      - backend-check
     if: needs.metadata.outputs.reuse_develop_preview == 'true'
     steps:
       - name: Comment reused preview URL
