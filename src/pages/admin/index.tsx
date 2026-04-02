@@ -24,7 +24,6 @@ import Alert from "@mui/material/Alert";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import ModalConfirm from "../../components/ModalConfirm";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -142,6 +141,13 @@ export default function AdminPage(): React.JSX.Element {
         </Box>
       </Layout>
     );
+  }
+
+  let modalVariant: "error" | "warning" | "info" = "info";
+  if (roleTarget?.nextRole === "admin") {
+    modalVariant = "error";
+  } else if (roleTarget?.nextRole === "finance-analyzer") {
+    modalVariant = "warning";
   }
 
   return (
@@ -279,13 +285,7 @@ export default function AdminPage(): React.JSX.Element {
             </>
           )
         }
-        variant={
-          roleTarget?.nextRole === "admin"
-            ? "error"
-            : roleTarget?.nextRole === "finance-analyzer"
-            ? "warning"
-            : "info"
-        }
+        variant={modalVariant}
         confirmLabel="Alterar role"
         loading={actionLoading}
         error={actionError}
