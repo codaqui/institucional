@@ -93,7 +93,7 @@ export class LedgerService {
       .where('tx.sourceAccountId = :id', { id: accountId })
       .getRawOne();
 
-    return (Number(credits) || 0) - (Number(debits) || 0);
+    return (Number.parseFloat(credits) || 0) - (Number.parseFloat(debits) || 0);
   }
 
   async getAccountTransactions(

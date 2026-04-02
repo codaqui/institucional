@@ -147,19 +147,24 @@ export class StripeService {
           webhookSecret,
         );
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Erro desconhecido";
       this.logger.error(
-        `Falha na verificação da assinatura do webhook: ${err.message}`,
+        `Falha na verificação da assinatura do webhook: ${message}`,
       );
-      throw new BadRequestException(`Webhook Error: ${err.message}`);
+      throw new BadRequestException(`Webhook Error: ${message}`);
     }
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutCompleted(event.data.object);
+        await this.handleCheckoutCompleted(
+          event.data.object,
+        );
         break;
       case 'invoice.payment_succeeded':
-        await this.handleInvoicePaymentSucceeded(event.data.object);
+        await this.handleInvoicePaymentSucceeded(
+          event.data.object,
+        );
         break;
       case 'customer.subscription.deleted':
         this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
@@ -223,9 +228,10 @@ export class StripeService {
         isSubscription,
         interval: session.metadata?.interval as CheckoutInterval | undefined,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Erro desconhecido";
       this.logger.error(
-        `Falha ao registrar doação no Ledger: ${error.message}`,
+        `Falha ao registrar doação no Ledger: ${message}`,
       );
     }
   }
@@ -234,9 +240,12 @@ export class StripeService {
     // A 1ª cobrança (subscription_create) e as subsequentes (subscription_cycle)
     // agora são processadas magicamente aqui.
 
-    // Stripe SDK v17: subscription ID fica em invoice.lines.data[].parent.subscription_item_details
-    // ou acessamos via cast pois o tipo do SDK varia entre versões
-    const subscriptionId: string | undefined = (invoice as any).subscription;
+    // Stripe SDK types for Invoice/Subscription can be tricky depending on version/expansion
+    const invoiceAny = invoice as any;
+    const subscriptionId = typeof invoiceAny.subscription === 'string'
+      ? invoiceAny.subscription
+      : invoiceAny.subscription?.id;
+
     const subscription = subscriptionId
       ? await this.stripe.subscriptions.retrieve(subscriptionId)
       : null;
@@ -252,8 +261,9 @@ export class StripeService {
     if (amountCents <= 0) return;
 
     const amountReais = amountCents / 100;
-    const paymentIntentId: string =
-      (invoice as any).payment_intent ?? invoice.id;
+    const paymentIntentId = (typeof invoiceAny.payment_intent === 'string'
+      ? invoiceAny.payment_intent
+      : invoiceAny.payment_intent?.id) ?? invoice.id;
 
     try {
       await this.recordDonationToLedger({
@@ -268,9 +278,10 @@ export class StripeService {
           | CheckoutInterval
           | undefined,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Erro desconhecido";
       this.logger.error(
-        `Falha ao registrar renovação no Ledger: ${error.message}`,
+        `Falha ao registrar renovação no Ledger: ${message}`,
       );
     }
   }
@@ -336,9 +347,9 @@ export class StripeService {
       paymentIntentId, // pi_xxx — ID visível no Stripe Dashboard
     );
 
+    const memberLabel = memberId ? ` | membro: ${memberId}` : ' (anônimo)';
     this.logger.log(
-      `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}` +
-        (memberId ? ` | membro: ${memberId}` : ' (anônimo)'),
+      `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}${memberLabel}`,
     );
   }
 
@@ -370,7 +381,7 @@ export class StripeService {
 
     return rows.map((tx) => ({
       id: tx.id,
-      amount: Number(tx.amount),
+      amount: Number.parseFloat(String(tx.amount)),
       description: tx.description,
       community: tx.destinationAccount?.name ?? 'Comunidade',
       referenceId: tx.referenceId ?? '',
@@ -455,12 +466,9 @@ export class StripeService {
       cancel_at_period_end: true, // Stripe best practice: não cancela imediatamente
     });
 
+    const currentPeriodEnd = (updated as any).current_period_end;
     this.logger.log(
-      `Assinatura ${subscriptionId} marcada para cancelar em ` +
-        new Date((updated as any).current_period_end * 1000).toLocaleDateString(
-          'pt-BR',
-        ) +
-        ` (membro: ${memberId})`,
+      `Assinatura ${subscriptionId} marcada para cancelar em ${new Date(currentPeriodEnd * 1000).toLocaleDateString("pt-BR")} (membro: ${memberId})`,
     );
 
     return {

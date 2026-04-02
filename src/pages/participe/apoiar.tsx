@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
 import { useLocation } from "@docusaurus/router";
@@ -105,11 +105,11 @@ import { loadStripe } from "@stripe/stripe-js";
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 
 interface EmbeddedCheckoutDialogProps {
-  open: boolean;
-  clientSecret: string | null;
-  stripeKey: string;
-  onClose: () => void;
-  onSuccess: () => void;
+  readonly open: boolean;
+  readonly clientSecret: string | null;
+  readonly stripeKey: string;
+  readonly onClose: () => void;
+  readonly onSuccess: () => void;
 }
 
 function EmbeddedCheckoutDialog({
@@ -134,7 +134,7 @@ function EmbeddedCheckoutDialog({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      PaperProps={{ sx: { borderTop: 3, borderColor: "primary.main", minHeight: 400 } }}
+      slotProps={{ paper: { sx: { borderTop: 3, borderColor: "primary.main", minHeight: 400 } } }}
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -195,7 +195,7 @@ export default function ApoiarPage(): React.JSX.Element {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [donationSuccess, setDonationSuccess] = useState(false);
 
-  const selected = DONATION_TARGETS.find((t) => t.id === target)!;
+  const selected = DONATION_TARGETS.find((t) => t.id === target) ?? TESOURO;
   const amountLabel = PRESET_AMOUNTS.find((a) => a.cents === amount)?.label ?? formatBRL(amount / 100);
   const isRecurring = mode !== "once";
   const requiresLogin = isRecurring || (amount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn);
@@ -248,7 +248,7 @@ export default function ApoiarPage(): React.JSX.Element {
         setCheckoutOpen(true);
       } else if (data.url) {
         // fallback hosted
-        window.location.href = data.url;
+        globalThis.location.href = data.url;
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Erro inesperado.");
@@ -268,7 +268,7 @@ export default function ApoiarPage(): React.JSX.Element {
     return w ? w.balance : 0;
   };
 
-  const modeConfig = DONATION_MODES.find((m) => m.value === mode)!;
+  const modeConfig = DONATION_MODES.find((m) => m.value === mode) ?? DONATION_MODES[0];
 
   return (
     <Layout
@@ -291,7 +291,7 @@ export default function ApoiarPage(): React.JSX.Element {
             sx={{ mb: 4, fontSize: "1rem" }}
             onClose={() => {
               setDonationSuccess(false);
-              window.history.replaceState(null, "", "/participe/apoiar");
+              globalThis.history.replaceState(null, "", "/participe/apoiar");
             }}
           >
             <strong>Doação realizada!</strong> Obrigado pelo apoio. O saldo será
@@ -302,7 +302,7 @@ export default function ApoiarPage(): React.JSX.Element {
           <Alert
             severity="info"
             sx={{ mb: 4 }}
-            onClose={() => window.history.replaceState(null, "", "/participe/apoiar")}
+            onClose={() => globalThis.history.replaceState(null, "", "/participe/apoiar")}
           >
             Pagamento cancelado. Você pode tentar novamente abaixo.
           </Alert>
@@ -435,7 +435,7 @@ export default function ApoiarPage(): React.JSX.Element {
 
             {/* ── Valor ── */}
             <Typography variant="overline" color="text.secondary" letterSpacing={1.5} sx={{ mb: 1, display: "block" }}>
-              Valor {isRecurring ? `(por ${mode === "month" ? "mês" : "ano"})` : "da Doação"}
+              Valor {isRecurring ? `(por ${modeConfig.label.toLowerCase()})` : "da Doação"}
             </Typography>
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
               {PRESET_AMOUNTS.map((a) => {
@@ -469,47 +469,16 @@ export default function ApoiarPage(): React.JSX.Element {
               Identidade
             </Typography>
             <Box sx={{ mb: 3 }}>
-              {!ready ? (
-                <Skeleton height={40} />
-              ) : isLoggedIn ? (
-                <Chip
-                  avatar={<Avatar src={user!.avatarUrl} alt={user!.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-                  label={`Doando como @${user!.handle}`}
-                  variant="outlined"
-                  color="primary"
+              {ready ? (
+                <IdentityStatus
+                  isLoggedIn={isLoggedIn}
+                  user={user}
+                  isRecurring={isRecurring}
+                  amount={amount}
+                  login={login}
                 />
-              ) : isRecurring ? (
-                <Alert
-                  severity="info"
-                  icon={<LockIcon />}
-                  action={
-                    <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="outlined" color="inherit">
-                      Entrar
-                    </Button>
-                  }
-                  sx={{ ".MuiAlert-message": { display: "flex", alignItems: "center" } }}
-                >
-                  Doações recorrentes requerem login para rastreabilidade.
-                </Alert>
-              ) : amount <= ANONYMOUS_LIMIT_CENTS ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                  <Chip label="Doação anônima" size="small" variant="outlined" />
-                  <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="text" sx={{ fontSize: "0.8rem" }}>
-                    Ou entrar com GitHub
-                  </Button>
-                </Box>
               ) : (
-                <Alert
-                  severity="info"
-                  icon={<LockIcon />}
-                  action={
-                    <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="outlined" color="inherit">
-                      Entrar
-                    </Button>
-                  }
-                >
-                  Doações acima de R$ 100 requerem login para transparência fiscal.
-                </Alert>
+                <Skeleton height={40} />
               )}
             </Box>
 
@@ -551,29 +520,16 @@ export default function ApoiarPage(): React.JSX.Element {
                       Cartão · Apple Pay · Google Pay (via Stripe)
                     </Typography>
                   </Box>
-                  <Button
-                    variant="contained"
-                    color={requiresLogin && !isLoggedIn ? "warning" : "primary"}
-                    size="large"
-                    fullWidth
-                    disabled={loading}
-                    onClick={handleDonate}
-                    startIcon={
-                      loading
-                        ? <CircularProgress size={18} color="inherit" />
-                        : requiresLogin && !isLoggedIn
-                          ? <GitHubIcon />
-                          : <FavoriteIcon />
-                    }
-                    sx={{ fontWeight: 700, borderRadius: 2, mt: 0.5 }}
-                  >
-                    {loading
-                      ? "Preparando…"
-                      : requiresLogin && !isLoggedIn
-                        ? "Entrar com GitHub para continuar"
-                        : `${isRecurring ? "Assinar" : "Apoiar"} com ${amountLabel}${isRecurring ? `/${mode === "month" ? "mês" : "ano"}` : ""}`
-                    }
-                  </Button>
+
+                  <DonateButton
+                    isLoggedIn={isLoggedIn}
+                    requiresLogin={requiresLogin}
+                    loading={loading}
+                    isRecurring={isRecurring}
+                    mode={mode}
+                    amountLabel={amountLabel}
+                    handleDonate={handleDonate}
+                  />
                 </Stack>
               </CardContent>
             </Card>
@@ -596,5 +552,129 @@ export default function ApoiarPage(): React.JSX.Element {
         onSuccess={handleCheckoutSuccess}
       />
     </Layout>
+  );
+}
+
+// ─── Sub-components para redução de complexidade ───
+
+interface IdentityStatusProps {
+  readonly isLoggedIn: boolean;
+  readonly user: any;
+  readonly isRecurring: boolean;
+  readonly amount: number;
+  readonly login: () => void;
+}
+
+function IdentityStatus({ isLoggedIn, user, isRecurring, amount, login }: IdentityStatusProps) {
+  if (isLoggedIn && user) {
+    return (
+      <Chip
+        avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
+        label={`Doando como @${user.handle}`}
+        variant="outlined"
+        color="primary"
+      />
+    );
+  }
+
+  if (isRecurring) {
+    return (
+      <Alert
+        severity="info"
+        icon={<LockIcon />}
+        action={
+          <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="outlined" color="inherit">
+            Entrar
+          </Button>
+        }
+        sx={{ ".MuiAlert-message": { display: "flex", alignItems: "center" } }}
+      >
+        Doações recorrentes requerem login para rastreabilidade.
+      </Alert>
+    );
+  }
+
+  if (amount <= ANONYMOUS_LIMIT_CENTS) {
+    return (
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+        <Chip label="Doação anônima" size="small" variant="outlined" />
+        <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="text" sx={{ fontSize: "0.8rem" }}>
+          Ou entrar com GitHub
+        </Button>
+      </Box>
+    );
+  }
+
+  return (
+    <Alert
+      severity="info"
+      icon={<LockIcon />}
+      action={
+        <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="outlined" color="inherit">
+          Entrar
+        </Button>
+      }
+    >
+      Doações acima de R$ 100 requerem login para transparência fiscal.
+    </Alert>
+  );
+}
+
+interface DonateButtonProps {
+  readonly isLoggedIn: boolean;
+  readonly requiresLogin: boolean;
+  readonly loading: boolean;
+  readonly isRecurring: boolean;
+  readonly mode: string;
+  readonly amountLabel: string;
+  readonly handleDonate: () => void;
+}
+
+function DonateButton({
+  isLoggedIn,
+  requiresLogin,
+  loading,
+  isRecurring,
+  mode,
+  amountLabel,
+  handleDonate,
+}: DonateButtonProps) {
+  const showGitHub = requiresLogin && !isLoggedIn;
+  const buttonPrefix = isRecurring ? "Assinar" : "Apoiar";
+  
+  let recurrenceSuffix = "";
+  if (isRecurring) {
+    recurrenceSuffix = mode === "month" ? "/mês" : "/ano";
+  }
+  
+  const buttonTextLabel = `${buttonPrefix} com ${amountLabel}${recurrenceSuffix}`;
+  
+  let buttonLabelText = buttonTextLabel;
+  if (loading) {
+    buttonLabelText = "Preparando…";
+  } else if (showGitHub) {
+    buttonLabelText = "Entrar com GitHub para continuar";
+  }
+
+  let startIcon = <FavoriteIcon />;
+  if (loading) {
+    startIcon = <CircularProgress size={18} color="inherit" />;
+  } else if (showGitHub) {
+    startIcon = <GitHubIcon />;
+  }
+
+  return (
+    <Button
+      variant="contained"
+      color={showGitHub ? "warning" : "primary"}
+      size="large"
+      fullWidth
+      disabled={loading}
+      onClick={handleDonate}
+      startIcon={startIcon}
+      sx={{ fontWeight: 700, borderRadius: 2, mt: 0.5 }}
+    >
+      {buttonLabelText}
+    </Button>
   );
 }

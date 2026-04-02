@@ -34,8 +34,8 @@ export class MembersController {
   @Get('members')
   findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
     return this.membersService.findAllActive(
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 50,
+      page ? Number.parseInt(String(page), 10) : 1,
+      limit ? Number.parseInt(String(limit), 10) : 50,
     );
   }
 
@@ -88,11 +88,14 @@ export class MembersController {
     const result = await this.membersService.adminUpdate(id, body);
 
     // Audit trail
-    const action = body.role
-      ? AuditAction.ROLE_CHANGE
-      : body.isActive === false
-        ? AuditAction.MEMBER_DEACTIVATE
-        : AuditAction.MEMBER_ACTIVATE;
+    let action: AuditAction;
+    if (body.role) {
+      action = AuditAction.ROLE_CHANGE;
+    } else if (body.isActive === false) {
+      action = AuditAction.MEMBER_DEACTIVATE;
+    } else {
+      action = AuditAction.MEMBER_ACTIVATE;
+    }
 
     void this.auditService.log({
       action,

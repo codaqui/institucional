@@ -29,8 +29,8 @@ export class AuditController {
   @ApiResponse({ status: 200, description: 'Logs paginados.' })
   getLogs(@Query('page') page?: number, @Query('limit') limit?: number) {
     return this.auditService.findAll(
-      page ? Number(page) : 1,
-      limit ? Number(limit) : 50,
+      page ? Number.parseInt(String(page), 10) : 1,
+      limit ? Number.parseInt(String(limit), 10) : 50,
     );
   }
 
