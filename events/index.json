@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-02T18:12:23.884Z",
+  "generatedAt": "2026-04-02T19:19:24.810Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-02T18:12:23.884Z",
+      "generatedAt": "2026-04-02T19:19:24.810Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 10
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-02T18:12:23.884Z",
+      "generatedAt": "2026-04-02T19:19:24.810Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
