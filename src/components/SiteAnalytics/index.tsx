@@ -43,7 +43,7 @@ function pageLabel(path: string): string {
   return path
     .replace(/^\//, "")
     .replace(/\/$/, "")
-    .replace(/\//g, " › ") || "Página inicial";
+    .replaceAll("/", " › ") || "Página inicial";
 }
 
 // ─── Bar chart ────────────────────────────────────────────────────────────────
@@ -53,13 +53,15 @@ const BAR_MIN_H = 2;
 const CHART_H = 80;
 const YEAR_H = 18;
 
+interface MonthlyChartProps {
+  monthly: MonthlyMetric[];
+  peakMonth: string;
+}
+
 function MonthlyChart({
   monthly,
   peakMonth,
-}: {
-  monthly: MonthlyMetric[];
-  peakMonth: string;
-}) {
+}: Readonly<MonthlyChartProps>) {
   const theme = useTheme();
   const [hovered, setHovered] = useState<number | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
@@ -90,7 +92,7 @@ function MonthlyChart({
     }
   });
 
-  const hoveredMonth = hovered !== null ? monthly[hovered] : null;
+  const hoveredMonth = hovered === null ? null : monthly[hovered];
 
   return (
     <Box sx={{ position: "relative", width: "100%" }}>
@@ -160,7 +162,12 @@ function MonthlyChart({
           );
           const x = i * (barW + BAR_GAP);
           const y = CHART_H - h;
-          const fill = isPeak ? primaryDark : isHovered ? primary : dimColor;
+          let fill = dimColor;
+          if (isPeak) {
+            fill = primaryDark;
+          } else if (isHovered) {
+            fill = primary;
+          }
 
           return (
             <rect
@@ -237,7 +244,11 @@ function MonthlyChart({
 
 // ─── Traffic sources bar ───────────────────────────────────────────────────────
 
-function TrafficBar({ sources }: { sources: Record<string, number> }) {
+interface TrafficBarProps {
+  sources: Record<string, number>;
+}
+
+function TrafficBar({ sources }: Readonly<TrafficBarProps>) {
   const LABELS: Record<string, { label: string; emoji: string; show: boolean }> = {
     google: { label: "Google", emoji: "🔍", show: true },
     new: { label: "Novos visitantes", emoji: "🆕", show: true },
@@ -299,13 +310,15 @@ function TrafficBar({ sources }: { sources: Record<string, number> }) {
 
 // ─── Top pages ────────────────────────────────────────────────────────────────
 
+interface TopPagesProps {
+  pages: AnalyticsSnapshot["topPages"];
+  latestPeriod: string;
+}
+
 function TopPages({
   pages,
   latestPeriod,
-}: {
-  pages: AnalyticsSnapshot["topPages"];
-  latestPeriod: string;
-}) {
+}: Readonly<TopPagesProps>) {
   if (pages.length === 0) return null;
   const max = pages[0].screenPageViews;
 
@@ -357,17 +370,19 @@ function TopPages({
 
 // ─── Hero metric ──────────────────────────────────────────────────────────────
 
+interface HeroMetricProps {
+  icon: React.ReactNode;
+  value: string;
+  sub?: string;
+  label: string;
+}
+
 function HeroMetric({
   icon,
   value,
   sub,
   label,
-}: {
-  icon: React.ReactNode;
-  value: string;
-  sub?: string;
-  label: string;
-}) {
+}: Readonly<HeroMetricProps>) {
   return (
     <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1.5 }}>
       <Box

@@ -11,11 +11,11 @@ export type BadgeVariant =
   | "novo";
 
 type Props = {
-  label: string;
-  variant?: BadgeVariant;
+  readonly label: string;
+  readonly variant?: BadgeVariant;
 };
 
-export default function Badge({ label, variant = "info" }: Props): React.JSX.Element {
+export default function Badge({ label, variant = "info" }: Readonly<Props>): React.JSX.Element {
   return (
     <span className={clsx(styles.badge, styles[variant])}>
       {label}

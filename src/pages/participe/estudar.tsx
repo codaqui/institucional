@@ -125,7 +125,7 @@ export default function EstudarPage(): React.JSX.Element {
     >
       {/* ── Hero ── */}
       <PageHero
-        tag="#QueroEstudar"
+        eyebrow="Quero Estudar"
         title="Aprenda Tecnologia"
         subtitle="Encontros semanais, trilhas de aprendizado e mentoria individual — de graça."
       >

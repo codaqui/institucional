@@ -1,0 +1,45 @@
+services:
+  postgres-codaqui:
+    image: public.ecr.aws/docker/library/postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-codaqui}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-codaqui_db}
+    volumes:
+      - pgdata-codaqui:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend-codaqui:
+    image: ghcr.io/codaqui/institucional-backend:latest-arm64-v8 # ARM64 Production image reference
+    restart: always
+    ports:
+      - "3002:3000" # Cloudflare aponta para esta porta
+    environment:
+      - DB_HOST=postgres-codaqui
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-codaqui}
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_NAME=${POSTGRES_DB:-codaqui_db}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - JWT_SECRET=${JWT_SECRET}
+      - BACKEND_URL=${BACKEND_URL:-https://api.codaqui.dev}
+      - FRONTEND_URL=${FRONTEND_URL:-https://codaqui.dev}
+    depends_on:
+      postgres-codaqui:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - 'curl -f http://localhost:3000/ || exit 1'
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  pgdata-codaqui:

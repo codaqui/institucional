@@ -42,11 +42,14 @@ interface DiscordWidgetPayload {
 }
 
 interface DiscordServerWidgetProps {
-  widgetUrl: string;
+  readonly widgetUrl: string;
+  readonly compact?: boolean;
+  /** Total de canais do servidor (dado estático do sync, complementa o widget da API) */
+  readonly channelCount?: number | null;
 }
 
 function formatChannelName(name: string): string {
-  return name.replace(/\s+/g, " ").trim();
+  return name.replaceAll(/\s+/g, " ").trim();
 }
 
 function formatMemberName(name: string): string {
@@ -61,6 +64,8 @@ function formatMemberName(name: string): string {
 
 export default function DiscordServerWidget({
   widgetUrl,
+  compact = false,
+  channelCount,
 }: DiscordServerWidgetProps): React.JSX.Element {
   const [data, setData] = useState<DiscordWidgetPayload | null>(null);
   const [error, setError] = useState(false);
@@ -95,8 +100,8 @@ export default function DiscordServerWidget({
     () =>
       (data?.members ?? [])
         .filter((member) => member.id !== "0")
-        .slice(0, 8),
-    [data]
+        .slice(0, compact ? 4 : 8),
+    [data, compact]
   );
 
   const channels = useMemo(
@@ -114,29 +119,31 @@ export default function DiscordServerWidget({
   }
 
   if (!data) {
-    return <Skeleton variant="rounded" height={320} />;
+    return <Skeleton variant="rounded" height={compact ? 180 : 320} />;
   }
 
   return (
     <Card variant="outlined" sx={{ height: "100%" }}>
-      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+      <CardContent sx={{ p: compact ? { xs: 2, md: 3 } : { xs: 3, md: 4 } }}>
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={2}
           justifyContent="space-between"
           alignItems={{ xs: "flex-start", sm: "center" }}
-          sx={{ mb: 3 }}
+          sx={{ mb: compact ? 2 : 3 }}
         >
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: compact ? 0 : 1 }}>
               <ForumIcon color="primary" />
-              <Typography variant="h5" fontWeight={700}>
+              <Typography variant={compact ? "h6" : "h5"} fontWeight={700}>
                 {data.name} no Discord
               </Typography>
             </Stack>
-            <Typography variant="body2" color="text.secondary">
-              Um resumo em tempo real da comunidade para complementar a agenda publicada no site.
-            </Typography>
+            {!compact && (
+              <Typography variant="body2" color="text.secondary">
+                Um resumo em tempo real da comunidade para complementar a agenda publicada no site.
+              </Typography>
+            )}
           </Box>
           <Button
             component={Link}
@@ -144,30 +151,38 @@ export default function DiscordServerWidget({
             target="_blank"
             rel="noopener noreferrer"
             variant="contained"
+            size={compact ? "small" : "medium"}
             endIcon={<OpenInNewIcon />}
           >
             Entrar no Discord
           </Button>
         </Stack>
 
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} useFlexGap sx={{ mb: 3 }}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5} useFlexGap sx={{ mb: compact ? 2 : 3 }}>
           <Chip
             icon={<GroupsIcon />}
             label={`${data.presence_count ?? data.members.length} pessoas online`}
             color="primary"
             variant="outlined"
+            size={compact ? "small" : "medium"}
           />
-          <Chip
-            icon={<HeadsetMicIcon />}
-            label={`${data.channels.length} salas listadas`}
-            color="info"
-            variant="outlined"
-          />
+          {!compact && (
+            <Chip
+              icon={<HeadsetMicIcon />}
+              label={
+                channelCount == null
+                  ? `${data.channels.length} salas com membros`
+                  : `${channelCount} canais`
+              }
+              color="info"
+              variant="outlined"
+            />
+          )}
         </Stack>
 
-        <Divider sx={{ mb: 3 }} />
+        {!compact && <Divider sx={{ mb: 3 }} />}
 
-        <Stack spacing={3}>
+        <Stack spacing={compact ? 2 : 3}>
           <Box>
             <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
               Pessoas online agora
@@ -180,6 +195,7 @@ export default function DiscordServerWidget({
                     avatar={<Avatar alt={member.username} src={member.avatar_url} />}
                     label={formatMemberName(member.username)}
                     variant="outlined"
+                    size={compact ? "small" : "medium"}
                     sx={{ bgcolor: "background.default" }}
                   />
                 ))
@@ -191,29 +207,31 @@ export default function DiscordServerWidget({
             </Stack>
           </Box>
 
-          <Box>
-            <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
-              Salas em destaque
-            </Typography>
-            <Stack spacing={1.5} sx={{ mt: 1.5 }}>
-              {channels.map((channel) => (
-                <Box
-                  key={channel.id}
-                  sx={{
-                    p: 1.5,
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    bgcolor: "background.default",
-                  }}
-                >
-                  <Typography variant="body2" fontWeight={600}>
-                    {formatChannelName(channel.name)}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-          </Box>
+          {!compact && (
+            <Box>
+              <Typography variant="overline" color="text.secondary" sx={{ letterSpacing: 0.6 }}>
+                Salas em destaque
+              </Typography>
+              <Stack spacing={1.5} sx={{ mt: 1.5 }}>
+                {channels.map((channel) => (
+                  <Box
+                    key={channel.id}
+                    sx={{
+                      p: 1.5,
+                      border: "1px solid",
+                      borderColor: "divider",
+                      borderRadius: 2,
+                      bgcolor: "background.default",
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={600}>
+                      {formatChannelName(channel.name)}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Box>
+          )}
         </Stack>
       </CardContent>
     </Card>

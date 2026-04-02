@@ -28,6 +28,8 @@ export interface SocialStatEntry extends SocialProfile {
   entityId: string;
   /** Contagem atual (buscada via sync ou baseline) */
   count: number;
+  /** Número total de canais do servidor (apenas para plataforma "discord") */
+  channelCount?: number | null;
   /** ISO 8601 timestamp da última busca bem-sucedida */
   fetchedAt?: string;
   /** true quando count veio do baselineCount, não de uma API */

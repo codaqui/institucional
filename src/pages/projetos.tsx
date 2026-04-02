@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { projects, type Project } from "../data/projects";
+import PageHero from "../components/PageHero";
 
 function ProjectCard({ emoji, title, description, href }: Project) {
   return (
@@ -57,27 +58,11 @@ function ProjectCard({ emoji, title, description, href }: Project) {
 export default function ProjetosPage(): React.JSX.Element {
   return (
     <Layout title="Projetos" description="Projetos mantidos pela comunidade Codaqui">
-      <Box
-        sx={{
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-          py: { xs: 6, md: 8 },
-          textAlign: "center",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h1" fontWeight={800} color="white">
-            🛠️ Projetos
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
-          >
-            A Codaqui é uma comunidade viva. Abaixo estão projetos que mantemos — em laboratório
-            ou em produção — abertos para contribuição.
-          </Typography>
-        </Container>
-      </Box>
+      <PageHero
+        eyebrow="Open Source"
+        title="Projetos da Codaqui"
+        subtitle="A Codaqui é uma comunidade viva. Abaixo estão projetos que mantemos — em laboratório ou em produção — abertos para contribuição."
+      />
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
 
         <Card variant="outlined" sx={{ mb: 6, p: 3, bgcolor: "action.hover" }}>

@@ -1,0 +1,39 @@
+# ─── Git e CI ──────────────────────────────────────────
+.git/
+.github/
+.gitignore
+
+# ─── Docker e Infra ───────────────────────────────────
+Dockerfile*
+.dockerignore
+compose*.yaml
+
+# ─── Ferramentas de Desenvolvimento ──────────────────
+.vscode/
+.editorconfig
+.prettier*
+.eslint*
+*.log
+npm-debug.log*
+node_modules/
+
+# ─── Artefatos de build (gerados dentro do container) ──
+dist/
+
+# ─── Ambiente e segredos ────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Testes (não vão para produção) ────────────────────
+**/*.spec.ts
+**/*.e2e-spec.ts
+test/
+
+# ─── IDE e macOS ───────────────────────────────────────
+.DS_Store
+*.swp
+*.swo
+
+# ─── Documentação desnecessária no container ───────────
+README.md

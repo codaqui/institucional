@@ -16,6 +16,7 @@ import TwitterIcon from "@mui/icons-material/Twitter";
 import ForumIcon from "@mui/icons-material/Forum";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { socialChannels, type SocialChannel } from "../data/social";
+import PageHero from "../components/PageHero";
 
 const iconMap: Record<string, React.ReactElement> = {
   email: <EmailIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
@@ -62,26 +63,11 @@ export default function ContatoPage(): React.JSX.Element {
   return (
     <Layout title="Contato" description="Entre em contato com a Codaqui">
       <main>
-        <Box
-          sx={{
-            background: (theme) =>
-              `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-            py: { xs: 6, md: 8 },
-            textAlign: "center",
-          }}
-        >
-          <Container maxWidth="md">
-            <Typography variant="h3" component="h1" fontWeight={800} color="white">
-              👋 Fale com a gente
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
-            >
-              Escolha o canal que preferir — estamos disponíveis em várias plataformas.
-            </Typography>
-          </Container>
-        </Box>
+      <PageHero
+        eyebrow="Entre em contato"
+        title="Fale com a Codaqui"
+        subtitle="Escolha o canal que preferir — estamos disponíveis em várias plataformas."
+      />
         <Container maxWidth="md" sx={{ py: { xs: 6, md: 8 } }}>
           <Grid container spacing={2}>
             {socialChannels.map((c) => (

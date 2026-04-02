@@ -18,6 +18,12 @@ jobs:
     name: Cleanup PR preview
     runs-on: ubuntu-slim
     steps:
+      - name: Skip if fork PR
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: |
+          echo "Fork PR — skipping preview cleanup (no write access needed)"
+          exit 0
+
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v2

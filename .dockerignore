@@ -1,0 +1,47 @@
+# ─── Git e CI ──────────────────────────────────────────
+.git/
+.github/
+.gitignore
+
+# ─── Docker e Infra ───────────────────────────────────
+Dockerfile*
+.dockerignore
+compose*.yaml
+
+# ─── Ferramentas de Desenvolvimento ──────────────────
+.vscode/
+.sonarlint/
+.sonar*
+.editorconfig
+.prettier*
+.eslint*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+
+# ─── Artefatos de build ────────────────────────────────
+build/
+.docusaurus/
+.cache/
+
+# ─── Ambiente e segredos ────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ─── Dados/backups locais desnecessários ────────────────
+old-docs-backup/
+images/
+tmp/
+
+# ─── IDE e macOS ───────────────────────────────────────
+.DS_Store
+*.swp
+*.swo
+
+# ─── Legado MkDocs ─────────────────────────────────────
+site/
+mkdocs-material/
+venv/

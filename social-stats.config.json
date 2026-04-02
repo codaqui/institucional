@@ -20,7 +20,7 @@
     {
       "entityId": "campostechpg",
       "fetchProfiles": [
-        { "platform": "youtube",   "fetchId": "UC4DBdSVpA-72UqHubk0AN0w" },
+        { "platform": "youtube",   "fetchId": "@camposvalley7408" },
         { "platform": "instagram", "fetchId": "campostechpg" }
       ]
     },

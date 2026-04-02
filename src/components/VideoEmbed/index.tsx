@@ -2,15 +2,16 @@ import React from "react";
 import styles from "./index.module.css";
 
 type Props = {
-  url: string;
-  title?: string;
-  caption?: string;
+  readonly url: string;
+  readonly title?: string;
+  readonly caption?: string;
 };
 
 function getYouTubeId(url: string): string | null {
-  const match = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-  );
+  const match =
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/.exec(
+      url
+    );
   return match ? match[1] : null;
 }
 
@@ -24,9 +25,9 @@ export default function VideoEmbed({ url, title = "Vídeo", caption }: Props): R
     <figure className={styles.wrapper}>
       <div className={styles.container}>
         <iframe
+          title={title || 'Vídeo'}
           className={styles.iframe}
           src={src}
-          title={title}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />

@@ -16,14 +16,14 @@ const previewPrNumber = process.env.PREVIEW_PR_NUMBER || "";
 const isPreview = process.env.PREVIEW === "true" || baseUrl.startsWith("/previews/");
 
 const headTags: NonNullable<Config["headTags"]> = [
-  !isPreview
-    ? {
+  isPreview
+    ? null
+    : {
         tagName: "script",
         attributes: { type: "text/javascript" },
         innerHTML:
           "window.dataLayer=window.dataLayer||[];window.gtag=window.gtag||function(){window.dataLayer.push(arguments)};",
-      }
-    : null,
+      },
   isPreview
     ? {
         tagName: "meta",
@@ -104,6 +104,8 @@ const config: Config = {
   customFields: {
     isPreview,
     previewPrNumber,
+    apiUrl: process.env.DOCUSAURUS_API_URL ?? 'http://localhost:3001',
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '',
   },
 
   onBrokenLinks: "warn",
@@ -176,6 +178,7 @@ const config: Config = {
             { label: "Equipe", to: "/sobre/equipe" },
             { label: "Associação", to: "/sobre/ong" },
             { label: "Insights", to: "/sobre/insights" },
+            { label: "Transparência", to: "/transparencia" },
             { label: "Pais e Responsáveis", to: "/sobre/pais-responsaveis" },
             { label: "Código de Conduta", to: "/sobre/conduta" },
           ],
@@ -215,11 +218,8 @@ const config: Config = {
           to: "/blog",
           position: "left",
         },
-        {
-          label: "Contato",
-          to: "/contato",
-          position: "left",
-        },
+        { label: "Contato", to: "/contato", position: "left" },
+        { type: "custom-authButton", position: "right" },
       ],
     },
     footer: {

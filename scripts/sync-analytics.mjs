@@ -49,12 +49,12 @@ function expectedPeriods() {
   // "last month" — data published on the 2nd of each month for the previous month
   const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const periods = [];
-  const cursor = new Date(2024, 0, 1); // 2024-01
+  let cursor = new Date(2024, 0, 1); // 2024-01
   while (cursor <= lastMonth) {
     const y = cursor.getFullYear();
     const m = String(cursor.getMonth() + 1).padStart(2, "0");
     periods.push(`${y}-${m}`);
-    cursor.setMonth(cursor.getMonth() + 1);
+    cursor = new Date(y, cursor.getMonth() + 1, 1);
   }
   return periods;
 }
@@ -116,13 +116,13 @@ function parsePeriodInfo(period, info) {
   const row = Array.isArray(info) ? info[0] : info;
   return {
     period,
-    screenPageViews: parseInt(row.screenPageViews, 10),
-    activeUsers: parseInt(row.activeUsers, 10),
-    sessions: parseInt(row.sessions, 10),
-    averageSessionDuration: parseFloat(
-      parseFloat(row.averageSessionDuration ?? 0).toFixed(1)
+    screenPageViews: Number.parseInt(row.screenPageViews, 10),
+    activeUsers: Number.parseInt(row.activeUsers, 10),
+    sessions: Number.parseInt(row.sessions, 10),
+    averageSessionDuration: Number.parseFloat(
+      Number.parseFloat(row.averageSessionDuration ?? 0).toFixed(1)
     ),
-    bounceRate: parseFloat(parseFloat(row.bounceRate ?? 0).toFixed(4)),
+    bounceRate: Number.parseFloat(Number.parseFloat(row.bounceRate ?? 0).toFixed(4)),
   };
 }
 
@@ -131,45 +131,41 @@ function parseTopPages(pages) {
   return pages
     .sort(
       (a, b) =>
-        parseInt(b.screenPageViews, 10) - parseInt(a.screenPageViews, 10)
+        Number.parseInt(b.screenPageViews, 10) - Number.parseInt(a.screenPageViews, 10)
     )
     .slice(0, 8)
     .map((p) => ({
       pagePath: p.pagePath,
-      screenPageViews: parseInt(p.screenPageViews, 10),
-      activeUsers: parseInt(p.activeUsers, 10),
+      screenPageViews: Number.parseInt(p.screenPageViews, 10),
+      activeUsers: Number.parseInt(p.activeUsers, 10),
     }));
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-async function main() {
-  await mkdir(outputDir, { recursive: true });
-
-  const allPeriods = expectedPeriods();
-  console.log(
-    `📅 Expected periods: ${allPeriods[0]} → ${allPeriods[allPeriods.length - 1]} (${allPeriods.length} months)`
-  );
-
-  // Load existing snapshot if not full mode
+async function loadExistingData() {
+  if (FULL_MODE) return { existing: null, existingByPeriod: {} };
+  
   let existing = null;
-  if (!FULL_MODE) {
-    try {
-      const raw = await readFile(outputFile, "utf8");
-      existing = JSON.parse(raw);
-      console.log(
-        `📂 Loaded existing snapshot (latestPeriod: ${existing.latestPeriod})`
-      );
-    } catch {
-      console.log("📂 No existing snapshot — running full fetch");
-    }
+  try {
+    const raw = await readFile(outputFile, "utf8");
+    existing = JSON.parse(raw);
+    console.log(
+      `📂 Loaded existing snapshot (latestPeriod: ${existing.latestPeriod})`
+    );
+  } catch {
+    console.log("📂 No existing snapshot — running full fetch");
   }
-
+  
   const existingByPeriod = {};
   if (existing?.monthly) {
     for (const m of existing.monthly) existingByPeriod[m.period] = m;
   }
+  
+  return { existing, existingByPeriod };
+}
 
+async function fetchPeriodsData(allPeriods, existingByPeriod, existing) {
   const monthly = [];
   let latestPages = existing?.topPages ?? [];
   let latestSources = existing?.trafficSources ?? {};
@@ -177,7 +173,6 @@ async function main() {
   const dispatched = [];
 
   for (const period of allPeriods) {
-    // In incremental mode, reuse data we already have
     if (!FULL_MODE && existingByPeriod[period]) {
       monthly.push(existingByPeriod[period]);
       continue;
@@ -197,14 +192,16 @@ async function main() {
     monthly.push(row);
     latestPeriod = period;
 
-    // Keep latest period's pages + sources for the component
     if (pages) latestPages = parseTopPages(pages);
     if (sources) latestSources = sources;
 
     console.log(`${row.screenPageViews.toLocaleString()} views`);
   }
+  
+  return { monthly, latestPages, latestSources, latestPeriod, dispatched };
+}
 
-  // Recompute totals
+function computeTotals(monthly) {
   let totalViews = 0,
     totalUsers = 0,
     totalSessions = 0;
@@ -219,16 +216,31 @@ async function main() {
       peakMonth = m.period;
     }
   }
+  
+  return { totalViews, totalUsers, totalSessions, peakViews, peakMonth };
+}
+
+async function main() {
+  await mkdir(outputDir, { recursive: true });
+
+  const allPeriods = expectedPeriods();
+  console.log(
+    `📅 Expected periods: ${allPeriods[0]} → ${allPeriods[allPeriods.length - 1]} (${allPeriods.length} months)`
+  );
+
+  const { existing, existingByPeriod } = await loadExistingData();
+  const { monthly, latestPages, latestSources, latestPeriod, dispatched } = await fetchPeriodsData(allPeriods, existingByPeriod, existing);
+  const totals = computeTotals(monthly);
 
   const snapshot = {
     updatedAt: new Date().toISOString(),
     latestPeriod,
     totals: {
-      screenPageViews: totalViews,
-      activeUsers: totalUsers,
-      sessions: totalSessions,
-      peakMonth,
-      peakViews,
+      screenPageViews: totals.totalViews,
+      activeUsers: totals.totalUsers,
+      sessions: totals.totalSessions,
+      peakMonth: totals.peakMonth,
+      peakViews: totals.peakViews,
     },
     monthly,
     topPages: latestPages,
@@ -237,7 +249,7 @@ async function main() {
 
   await writeFile(outputFile, JSON.stringify(snapshot, null, 2));
   console.log(`\n✅ Wrote ${outputFile}`);
-  console.log(`   ${monthly.length} months · ${totalViews.toLocaleString()} total views`);
+  console.log(`   ${monthly.length} months · ${totals.totalViews.toLocaleString()} total views`);
 
   if (dispatched.length > 0) {
     console.log(

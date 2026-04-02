@@ -10,21 +10,22 @@ concurrency:
   group: pr-check-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: write
-
 jobs:
   metadata:
     name: Resolve PR metadata
     runs-on: ubuntu-slim
+    permissions:
+      contents: read
     outputs:
       reuse_develop_preview: ${{ steps.meta.outputs.reuse_develop_preview }}
     steps:
       - name: Detect develop-to-main PR
         id: meta
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
         run: |
-          if [ "${{ github.event.pull_request.base.ref }}" = "main" ] && [ "${{ github.event.pull_request.head.ref }}" = "develop" ]; then
+          if [ "$PR_BASE" = "main" ] && [ "$PR_HEAD" = "develop" ]; then
             echo "reuse_develop_preview=true" >> "$GITHUB_OUTPUT"
           else
             echo "reuse_develop_preview=false" >> "$GITHUB_OUTPUT"
@@ -34,6 +35,8 @@ jobs:
     name: TypeScript Check
     runs-on: ubuntu-slim
     needs: metadata
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -50,13 +53,44 @@ jobs:
       - name: Run TypeScript check
         run: npm run typecheck
 
+  backend-check:
+    name: Backend CI
+    runs-on: ubuntu-slim
+    needs: metadata
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run Backend Build
+        working-directory: ./backend
+        run: npm run build
+
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: npm run test
+
   build:
     name: Build & Upload Preview
     runs-on: ubuntu-latest
     needs:
       - metadata
       - typecheck
+      - backend-check
     if: needs.metadata.outputs.reuse_develop_preview != 'true'
+    permissions:
+      contents: read
+      pull-requests: write
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -81,6 +115,7 @@ jobs:
           BASE_URL="/previews/pr-${{ github.event.pull_request.number }}/" \
           PREVIEW="true" \
           PREVIEW_PR_NUMBER="${{ github.event.pull_request.number }}" \
+          STRIPE_PUBLISHABLE_KEY="${{ vars.STRIPE_PUBLISHABLE_KEY }}" \
           npm run build
 
       - name: Override robots for preview artifact
@@ -134,6 +169,8 @@ jobs:
     runs-on: ubuntu-latest
     if: needs.metadata.outputs.reuse_develop_preview != 'true'
     needs: build
+    permissions:
+      contents: read
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -159,7 +196,10 @@ jobs:
     needs:
       - metadata
       - typecheck
+      - backend-check
     if: needs.metadata.outputs.reuse_develop_preview == 'true'
+    permissions:
+      pull-requests: write
     steps:
       - name: Comment reused preview URL
         uses: marocchino/sticky-pull-request-comment@v3
