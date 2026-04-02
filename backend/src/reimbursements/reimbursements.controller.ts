@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Req,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -35,6 +36,23 @@ export class ReimbursementsController {
     private readonly service: ReimbursementsService,
     private readonly auditService: AuditService,
   ) {}
+
+  // ── Público ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Retorna dados públicos de um reembolso para exibição no portal de transparência.
+   * Não expõe dados sensíveis (apenas handle do solicitante, comprovantes públicos, e aprovador).
+   */
+  @Get('public/:id')
+  @ApiOperation({
+    summary: 'Info pública de reembolso (para transparência)',
+    description: 'Retorna dados sanitizados para exibição no portal público.',
+  })
+  @ApiResponse({ status: 200, description: 'Dados públicos do reembolso.' })
+  @ApiResponse({ status: 404, description: 'Reembolso não encontrado.' })
+  async getPublicInfo(@Param('id', ParseUUIDPipe) id: string) {
+    return this.service.getPublicInfo(id);
+  }
 
   // ── Membro ────────────────────────────────────────────────────────────────
 

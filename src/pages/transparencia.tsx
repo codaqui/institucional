@@ -128,29 +128,76 @@ function extractReimbursementDesc(description: string): string {
 // ---------------------------------------------------------------------------
 // Transaction Detail Dialog
 // ---------------------------------------------------------------------------
+interface ReimbursementPublicInfo {
+  id: string;
+  status: string;
+  amount: number;
+  description: string;
+  receiptUrl: string;
+  accountName: string | null;
+  requester: { handle: string; name: string; avatarUrl: string } | null;
+  approver: { handle: string; name: string; avatarUrl: string } | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
+}
+
 function TransactionDetailDialog({
   tx,
   accountId,
+  apiUrl,
   onClose,
 }: {
   tx: Transaction | null;
   accountId: string;
+  apiUrl: string;
   onClose: () => void;
 }) {
+  const [reimbInfo, setReimbInfo] = useState<ReimbursementPublicInfo | null>(null);
+  const [reimbLoading, setReimbLoading] = useState(false);
+
+  const type = tx ? detectTxType(tx) : "other";
+  const config = TX_TYPE_CONFIG[type];
+
+  // Fetch reimbursement details when modal opens for a reimbursement
+  useEffect(() => {
+    if (!tx) { setReimbInfo(null); return; }
+    if (type !== "reimbursement") { setReimbInfo(null); return; }
+
+    const reimbId = tx.referenceId?.replace("reimbursement:", "");
+    if (!reimbId) return;
+
+    setReimbLoading(true);
+    fetch(`${apiUrl}/reimbursements/public/${reimbId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setReimbInfo(data))
+      .catch(() => setReimbInfo(null))
+      .finally(() => setReimbLoading(false));
+  }, [tx, type, apiUrl]);
+
   if (!tx) return null;
 
-  const type = detectTxType(tx);
-  const config = TX_TYPE_CONFIG[type];
   const isCredit = tx.destinationAccount?.id === accountId;
-  const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
-  const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
 
-  // referenceId agora é o Payment Intent (pi_xxx) — visível no Stripe Dashboard.
-  // Detectamos modo test/live pelo session.id (cs_test_) gravado na description.
+  // --- Donation-specific ---
+  const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
+  const isSubscription = tx.description?.toLowerCase().includes("assinatura");
+  const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
+
+  // --- Stripe link ---
   const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
-  const isTestMode = tx.description?.includes("cs_test_");
+  const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
   const stripeDashboardUrl = paymentIntentId
     ? `https://dashboard.stripe.com/${isTestMode ? "test/" : ""}payments/${paymentIntentId}`
+    : null;
+
+  // --- Reimbursement-specific ---
+  const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
+
+  // --- Transfer-specific ---
+  const isTransfer = type === "transfer";
+  const transferReason = isTransfer
+    ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
     : null;
 
   return (
@@ -160,6 +207,9 @@ function TransactionDetailDialog({
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Chip icon={config.icon} label={config.label} color={config.color} size="small" variant="outlined" />
+          {isSubscription && type === "donation" && (
+            <Chip label={`Recorrente ${subscriptionInterval}`} size="small" color="info" variant="outlined" />
+          )}
           <Typography variant="h6" fontWeight={700}>
             {isCredit ? "+" : "−"} {formatBRL(Number(tx.amount))}
           </Typography>
@@ -204,44 +254,164 @@ function TransactionDetailDialog({
           </Box>
         </Box>
 
-        {/* Descrição completa */}
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.disabled">Descrição</Typography>
-          <Typography variant="body2" sx={{ mt: 0.5 }}>
-            {tx.description.replace(/\s\[.*?\]/g, "").replace(/\s*—\s*Sessão\s+.*$/, "")}
-          </Typography>
-        </Box>
+        {/* ── DOAÇÃO ── */}
+        {type === "donation" && (
+          <>
+            {/* Doador */}
+            {donorHandle ? (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Doador</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                  <Avatar
+                    src={`https://github.com/${donorHandle.replace("@", "")}.png?size=32`}
+                    alt={donorHandle}
+                    sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
+                  />
+                  <Button
+                    size="small" variant="text"
+                    endIcon={<OpenInNewIcon fontSize="small" />}
+                    href={`https://github.com/${donorHandle.replace("@", "")}`}
+                    target="_blank" rel="noopener noreferrer"
+                    sx={{ fontWeight: 700, textTransform: "none" }}
+                  >
+                    {donorHandle}
+                  </Button>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Doador</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic", color: "text.secondary" }}>
+                  Doação anônima
+                </Typography>
+              </Box>
+            )}
 
-        {/* Doador (quando é doação) */}
-        {donorHandle && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.disabled">Doador</Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-              <Avatar
-                src={`https://github.com/${donorHandle.replace("@", "")}.png?size=32`}
-                alt={donorHandle}
-                sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
-              />
-              <Button
-                size="small"
-                variant="text"
-                endIcon={<OpenInNewIcon fontSize="small" />}
-                href={`https://github.com/${donorHandle.replace("@", "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{ fontWeight: 700, textTransform: "none" }}
-              >
-                {donorHandle}
-              </Button>
+            {/* Tipo de doação */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.disabled">Tipo</Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                {isSubscription
+                  ? `Assinatura recorrente (${subscriptionInterval})`
+                  : "Pagamento único"}
+              </Typography>
             </Box>
+          </>
+        )}
+
+        {/* ── REEMBOLSO ── */}
+        {type === "reimbursement" && (
+          <>
+            {/* Finalidade */}
+            {reimbDesc && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Finalidade do reembolso</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{reimbDesc}"</Typography>
+              </Box>
+            )}
+
+            {reimbLoading && (
+              <Box sx={{ mb: 2 }}>
+                <Skeleton height={24} width="60%" />
+                <Skeleton height={20} width="40%" />
+              </Box>
+            )}
+
+            {reimbInfo && (
+              <>
+                {/* Solicitante */}
+                {reimbInfo.requester && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="text.disabled">Solicitado por</Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                      <Avatar
+                        src={reimbInfo.requester.avatarUrl}
+                        alt={reimbInfo.requester.handle}
+                        sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
+                      />
+                      <Button
+                        size="small" variant="text"
+                        endIcon={<OpenInNewIcon fontSize="small" />}
+                        href={`https://github.com/${reimbInfo.requester.handle}`}
+                        target="_blank" rel="noopener noreferrer"
+                        sx={{ fontWeight: 700, textTransform: "none" }}
+                      >
+                        @{reimbInfo.requester.handle}
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Aprovador */}
+                {reimbInfo.approver && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="text.disabled">Aprovado por</Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                      <Avatar
+                        src={reimbInfo.approver.avatarUrl}
+                        alt={reimbInfo.approver.handle}
+                        sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
+                      />
+                      <Typography variant="body2" fontWeight={600}>
+                        @{reimbInfo.approver.handle}
+                      </Typography>
+                      {reimbInfo.reviewedAt && (
+                        <Typography variant="caption" color="text.secondary">
+                          em {formatDate(reimbInfo.reviewedAt)}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Nota de revisão */}
+                {reimbInfo.reviewNote && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="text.disabled">Nota do aprovador</Typography>
+                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic", color: "text.secondary" }}>
+                      "{reimbInfo.reviewNote}"
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Comprovante público */}
+                {reimbInfo.receiptUrl && (
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="caption" color="text.disabled">Comprovante</Typography>
+                    <Box sx={{ mt: 0.5 }}>
+                      <Button
+                        size="small" variant="outlined" color="warning"
+                        startIcon={<ReceiptLongIcon />}
+                        endIcon={<OpenInNewIcon fontSize="small" />}
+                        href={reimbInfo.receiptUrl}
+                        target="_blank" rel="noopener noreferrer"
+                        sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                      >
+                        Ver comprovante original
+                      </Button>
+                    </Box>
+                  </Box>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {/* ── TRANSFERÊNCIA ── */}
+        {isTransfer && transferReason && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.disabled">Justificativa da transferência</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{transferReason}"</Typography>
           </Box>
         )}
 
-        {/* Descrição do reembolso */}
-        {reimbDesc && (
+        {/* ── LANÇAMENTO MANUAL ── */}
+        {type === "other" && (
           <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.disabled">Finalidade do reembolso</Typography>
-            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>“{reimbDesc}”</Typography>
+            <Typography variant="caption" color="text.disabled">Descrição</Typography>
+            <Typography variant="body2" sx={{ mt: 0.5 }}>
+              {tx.description}
+            </Typography>
           </Box>
         )}
 
@@ -252,14 +422,11 @@ function TransactionDetailDialog({
           {stripeDashboardUrl && paymentIntentId && (
             <Chip
               label={`Stripe: ${paymentIntentId.slice(0, 24)}…`}
-              size="small"
-              variant="outlined"
-              color="success"
+              size="small" variant="outlined" color="success"
               icon={<OpenInNewIcon />}
               component="a"
               href={stripeDashboardUrl}
-              target="_blank"
-              rel="noopener noreferrer"
+              target="_blank" rel="noopener noreferrer"
               clickable
               sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}
             />
@@ -268,8 +435,7 @@ function TransactionDetailDialog({
             <Tooltip title={tx.referenceId}>
               <Chip
                 label={tx.referenceId.slice(0, 30) + (tx.referenceId.length > 30 ? "…" : "")}
-                size="small"
-                variant="outlined"
+                size="small" variant="outlined"
                 sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}
               />
             </Tooltip>
@@ -501,6 +667,7 @@ function TransactionTable({
       <TransactionDetailDialog
         tx={selectedTx}
         accountId={accountId}
+        apiUrl={apiUrl}
         onClose={() => setSelectedTx(null)}
       />
     </Box>

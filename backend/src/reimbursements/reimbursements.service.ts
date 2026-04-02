@@ -198,4 +198,43 @@ export class ReimbursementsService {
     if (!request) throw new NotFoundException('Solicitação não encontrada.');
     return request;
   }
+
+  /**
+   * Dados públicos de um reembolso para exibição no portal de transparência.
+   * NÃO expõe: internalReceiptUrl (link do Drive interno).
+   * EXPÕE: handle do solicitante, comprovante público, handle do aprovador, nota.
+   */
+  async getPublicInfo(id: string) {
+    const request = await this.repo.findOne({
+      where: { id },
+      relations: ['member', 'reviewedBy', 'account'],
+    });
+    if (!request) throw new NotFoundException('Reembolso não encontrado.');
+
+    return {
+      id: request.id,
+      status: request.status,
+      amount: request.amount,
+      description: request.description,
+      receiptUrl: request.receiptUrl, // URL pública do comprovante
+      accountName: request.account?.name ?? null,
+      requester: request.member
+        ? {
+            handle: request.member.githubHandle,
+            name: request.member.name,
+            avatarUrl: request.member.avatarUrl,
+          }
+        : null,
+      approver: request.reviewedBy
+        ? {
+            handle: request.reviewedBy.githubHandle,
+            name: request.reviewedBy.name,
+            avatarUrl: request.reviewedBy.avatarUrl,
+          }
+        : null,
+      reviewNote: request.reviewNote,
+      reviewedAt: request.reviewedAt,
+      createdAt: request.createdAt,
+    };
+  }
 }
