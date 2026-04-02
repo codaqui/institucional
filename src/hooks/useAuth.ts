@@ -49,22 +49,22 @@ export function useAuth() {
 
   // Hidrata o estado no mount (SSR-safe)
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (globalThis.window === undefined) return;
     refreshUser().finally(() => setReady(true));
   }, [refreshUser]);
 
   /** Inicia o fluxo OAuth do GitHub. Salva a URL atual para redirecionamento pós-login. */
   const login = useCallback(() => {
-    if (typeof window === "undefined") return;
-    sessionStorage.setItem("codaqui_auth_return", window.location.pathname);
-    window.location.href = `${apiUrl}/auth/github`;
+    if (globalThis.window === undefined) return;
+    sessionStorage.setItem("codaqui_auth_return", globalThis.window.location.pathname);
+    globalThis.window.location.href = `${apiUrl}/auth/github`;
   }, [apiUrl]);
 
   /** Encerra a sessão limpando o cookie via backend e resetando o estado local. */
   const logout = useCallback(() => {
-    if (typeof window === "undefined") return;
+    if (globalThis.window === undefined) return;
     setUser(null);
-    window.location.href = `${apiUrl}/auth/logout`;
+    globalThis.window.location.href = `${apiUrl}/auth/logout`;
   }, [apiUrl]);
 
   /**
@@ -81,7 +81,7 @@ export function useAuth() {
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
-          ...(init.headers ?? {}),
+          ...init.headers,
         },
       });
     },
