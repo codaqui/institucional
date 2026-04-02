@@ -107,6 +107,7 @@ export class ReimbursementsService {
     id: string,
     reviewerId: string,
     dto: ApproveReimbursementDto,
+    reviewerRole?: string,
   ): Promise<ReimbursementRequest> {
     const request = await this.findOrFail(id);
 
@@ -116,8 +117,8 @@ export class ReimbursementsService {
       );
     }
 
-    // Impedir self-approval: quem solicitou não pode aprovar a própria solicitação
-    if (request.memberId === reviewerId) {
+    // Impedir self-approval para finance-analyzer; admin pode aprovar os próprios
+    if (request.memberId === reviewerId && reviewerRole !== 'admin') {
       throw new ForbiddenException(
         'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
       );

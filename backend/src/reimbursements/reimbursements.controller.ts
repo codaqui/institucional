@@ -118,7 +118,12 @@ export class ReimbursementsController {
     @Req() req: { user: JwtPayload },
     @Body() dto: ApproveReimbursementDto,
   ) {
-    const result = await this.service.approveRequest(id, req.user.sub, dto);
+    const result = await this.service.approveRequest(
+      id,
+      req.user.sub,
+      dto,
+      req.user.role,
+    );
 
     void this.auditService.log({
       action: AuditAction.REIMBURSEMENT_APPROVED,
