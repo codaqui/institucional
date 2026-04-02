@@ -277,7 +277,7 @@ export default function EventosPage(): React.JSX.Element {
       description="Acompanhe os próximos encontros, cursos e atividades da comunidade Codaqui."
     >
       <PageHero
-        tag="Agenda da comunidade"
+        eyebrow="Agenda da comunidade"
         title="Eventos da Codaqui"
         subtitle="Descubra encontros da Associação Codaqui e de comunidades parceiras, com filtros para explorar cada iniciativa sem perder a visão geral."
       >

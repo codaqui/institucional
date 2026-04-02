@@ -107,7 +107,7 @@ export default function MentoriaPage(): React.JSX.Element {
       <PageHero
         title="Mentoria Individual"
         subtitle="Conectamos você a um mentor experiente para sessões individuais online — de graça."
-        tag="#QueroMentoria"
+        eyebrow="Quero Mentoria"
       >
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 1.5, flexWrap: "wrap" }}>
           <Button

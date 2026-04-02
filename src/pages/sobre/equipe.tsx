@@ -16,6 +16,7 @@ import {
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import { diretoria, membros, alumni, mentores, type Member } from "../../data/team";
+import PageHero from "../../components/PageHero";
 
 function MemberCard({ name, role, specialty, avatar, linkedin, github }: Member) {
   return (
@@ -108,29 +109,11 @@ export default function EquipePage(): React.JSX.Element {
   return (
     <Layout title="Equipe" description="Conheça a diretoria, membros, mentores e alumni da Codaqui">
       <main>
-        <Box
-          sx={{
-            background: (theme) =>
-              `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-            py: { xs: 6, md: 8 },
-            textAlign: "center",
-          }}
-        >
-          <Container maxWidth="lg">
-            <Typography variant="h3" component="h1" fontWeight={800} color="white">
-              👥 Quem somos
-            </Typography>
-            <Typography
-              variant="h6"
-              sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
-            >
-              Nosso objetivo é quebrar barreiras e democratizar o acesso à tecnologia.
-              A Codaqui é uma associação sem fins lucrativos (CNPJ 44.593.429/0001-05) que atua como
-              guarda-chuva de comunidades tech, apoiando participantes, mentores e projetos que promovem
-              inclusão e colaboração.
-            </Typography>
-          </Container>
-        </Box>
+        <PageHero
+          eyebrow="Associação Codaqui · CNPJ 44.593.429/0001-05"
+          title="Quem somos"
+          subtitle="Quebramos barreiras e democratizamos o acesso à tecnologia. Uma associação sem fins lucrativos que atua como guarda-chuva de comunidades tech."
+        />
 
         <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
           <Section

@@ -104,6 +104,8 @@ const config: Config = {
   customFields: {
     isPreview,
     previewPrNumber,
+    apiUrl: process.env.DOCUSAURUS_API_URL ?? 'http://localhost:3001',
+    stripePublishableKey: process.env.STRIPE_PUBLISHABLE_KEY ?? '',
   },
 
   onBrokenLinks: "warn",
@@ -176,6 +178,7 @@ const config: Config = {
             { label: "Equipe", to: "/sobre/equipe" },
             { label: "Associação", to: "/sobre/ong" },
             { label: "Insights", to: "/sobre/insights" },
+            { label: "Transparência", to: "/transparencia" },
             { label: "Pais e Responsáveis", to: "/sobre/pais-responsaveis" },
             { label: "Código de Conduta", to: "/sobre/conduta" },
           ],
@@ -215,11 +218,8 @@ const config: Config = {
           to: "/blog",
           position: "left",
         },
-        {
-          label: "Contato",
-          to: "/contato",
-          position: "left",
-        },
+        { label: "Contato", to: "/contato", position: "left" },
+        { type: "custom-authButton", position: "right" },
       ],
     },
     footer: {

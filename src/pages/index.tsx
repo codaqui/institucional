@@ -16,7 +16,6 @@ import {
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { communities, type Community } from "../data/communities";
 import { DISCORD_URL, DISCORD_WIDGET_URL, socialChannels } from "../data/social";
-import { SupportersBadge } from "../components/OpenCollective";
 import DiscordServerWidget from "../components/DiscordServerWidget";
 
 function HeroBanner() {
@@ -85,8 +84,19 @@ function HeroBanner() {
   );
 }
 
-/** Thin social-proof strip between hero and content — white/paper background */
+/** Thin social-proof strip entre hero e conteúdo */
 function SocialProofStrip() {
+  const { siteConfig } = useDocusaurusContext();
+  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
+  const [count, setCount] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    fetch(`${apiUrl}/members`)
+      .then((r) => r.json())
+      .then((data: unknown[]) => setCount(data.length))
+      .catch(() => {});
+  }, [apiUrl]);
+
   return (
     <Box
       sx={{
@@ -97,7 +107,11 @@ function SocialProofStrip() {
         bgcolor: "background.paper",
       }}
     >
-      <SupportersBadge />
+      <Typography variant="body2" color="text.secondary">
+        {count !== null
+          ? `${count} pessoas apoiam e constroem a Codaqui 💚`
+          : "Carregando apoiadores…"}
+      </Typography>
     </Box>
   );
 }

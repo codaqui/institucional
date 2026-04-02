@@ -66,7 +66,7 @@ function BlogListPageContent(props: Props): ReactNode {
   return (
     <Layout>
       <PageHero
-        tag="Conteúdo da comunidade"
+        eyebrow="Conteúdo da comunidade"
         title="Blog da Codaqui"
         subtitle="Tutoriais técnicos, bastidores da Associação, relatos de projetos e publicações que ajudam a democratizar o acesso à tecnologia."
       >

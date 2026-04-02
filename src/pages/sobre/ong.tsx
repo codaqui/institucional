@@ -17,7 +17,8 @@ import {
 } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { communities, type Community } from "../../data/communities";
-import { BackersWall, DonateButton } from "../../components/OpenCollective";
+import MembersWall from "../../components/MembersWall";
+import PageHero from "../../components/PageHero";
 
 function CommunityCard({ community }: { community: Community }) {
   const theme = useTheme();
@@ -93,27 +94,11 @@ export default function OngPage(): React.JSX.Element {
       title="Associação"
       description="Programa de Apoio Institucional da Codaqui para comunidades de tecnologia"
     >
-      <Box
-        sx={{
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.primary.dark}, ${theme.palette.primary.main})`,
-          py: { xs: 6, md: 8 },
-          textAlign: "center",
-        }}
-      >
-        <Container maxWidth="lg">
-          <Typography variant="h3" component="h1" color="white" fontWeight={800}>
-            🏛️ Programa de Apoio Institucional
-          </Typography>
-          <Typography
-            variant="h6"
-            sx={{ color: "rgba(255,255,255,0.85)", maxWidth: 600, mx: "auto", mt: 2 }}
-          >
-            Capacite sua comunidade, amplie seu impacto e aumente seu alcance com
-            nosso programa de apoio institucional e suporte especializado.
-          </Typography>
-        </Container>
-      </Box>
+      <PageHero
+        eyebrow="Programa de Apoio Institucional"
+        title="Codaqui para Comunidades"
+        subtitle="Capacitamos comunidades tech com recursos, mentoria especializada e suporte jurídico-contábil para que ampliem seu impacto."
+      />
 
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
         <Typography variant="h4" component="h2" mb={4} fontWeight={700}>
@@ -186,7 +171,6 @@ export default function OngPage(): React.JSX.Element {
 
         <Divider sx={{ my: 6 }} />
 
-        {/* ── Nossos Apoiadores ── */}
         <Box sx={{ mb: 6 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
             <FavoriteIcon sx={{ color: "primary.main" }} />
@@ -196,15 +180,14 @@ export default function OngPage(): React.JSX.Element {
           </Box>
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 640 }}>
             Essas pessoas e organizações acreditam que tecnologia de qualidade deve
-            chegar a todos. A Codaqui usa o{" "}
-            <a href="https://opencollective.com/codaqui" target="_blank" rel="noopener noreferrer">
-              OpenCollective
-            </a>{" "}
-            para receber e reportar contribuições com total transparência.
+            chegar a todos. Toda contribuição financeira é rastreada em nosso{" "}
+            <a href="/transparencia">portal de transparência</a>.
           </Typography>
-          <BackersWall limit={20} avatarSize={56} />
+          <MembersWall limit={12} />
           <Box sx={{ mt: 3 }}>
-            <DonateButton label="Fazer parte desse grupo" variant="outlined" />
+            <Button variant="outlined" href="/participe/apoiar">
+              Quero fazer parte
+            </Button>
           </Box>
         </Box>
 
@@ -219,10 +202,8 @@ export default function OngPage(): React.JSX.Element {
         <Stack spacing={1}>
           <Typography variant="body1">
             <strong>📊 Demonstrativos Financeiros</strong>: Consulte receitas,
-            despesas e repasses através do{" "}
-            <a href="http://opencollective.com/codaqui" target="_blank" rel="noopener noreferrer">
-              Open Collective
-            </a>
+            despesas e repasses no{" "}
+            <a href="/transparencia">Portal de Transparência</a>
             .
           </Typography>
           <Typography variant="body1">
