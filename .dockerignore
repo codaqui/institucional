@@ -1,25 +1,33 @@
+# ─── Git e CI ──────────────────────────────────────────
+.git/
+.github/
+.gitignore
+
+# ─── Docker e Infra ───────────────────────────────────
+Dockerfile*
+.dockerignore
+compose*.yaml
+
+# ─── Ferramentas de Desenvolvimento ──────────────────
+.vscode/
+.editorconfig
+.prettier*
+.eslint*
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+node_modules/
+
 # ─── Artefatos de build ────────────────────────────────
 build/
 .docusaurus/
 .cache/
 
-# ─── Dependências (serão instaladas via npm ci) ────────
-node_modules/
-
-# ─── Backend (não faz parte do contexto Docusaurus) ────
-backend/
-backend/dist/
-backend/node_modules/
-
 # ─── Ambiente e segredos ────────────────────────────────
 .env
 .env.local
 .env.*.local
-
-# ─── Git e CI ──────────────────────────────────────────
-.git/
-.github/
-.gitignore
 
 # ─── Dados/backups locais desnecessários ────────────────
 old-docs-backup/
@@ -28,13 +36,8 @@ tmp/
 
 # ─── IDE e macOS ───────────────────────────────────────
 .DS_Store
-.vscode/
 *.swp
 *.swo
-
-# ─── Logs ──────────────────────────────────────────────
-*.log
-npm-debug.log*
 
 # ─── Legado MkDocs ─────────────────────────────────────
 site/
