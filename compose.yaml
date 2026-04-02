@@ -6,7 +6,7 @@ services:
       - .env
     environment:
       POSTGRES_USER: ${DB_USER:-codaqui}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-codaqui_pass}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env (ex: openssl rand -hex 16)}
       POSTGRES_DB: ${DB_NAME:-codaqui_db}
     ports:
       - "5432:5432"
@@ -29,7 +29,7 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=${DB_USER:-codaqui}
-      - DB_PASSWORD=${DB_PASSWORD:-codaqui_pass}
+      - DB_PASSWORD=${DB_PASSWORD:?Defina DB_PASSWORD no arquivo .env (ex: openssl rand -hex 16)}
       - DB_NAME=${DB_NAME:-codaqui_db}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
