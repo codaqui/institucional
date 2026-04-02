@@ -11,6 +11,26 @@ async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
   }
 }
 
+const MAX_SCRAPE_BYTES = 1_000_000; // 1MB limit for scraping external pages
+
+/** Safely reads text from a response up to a limit to prevent ReDoS on massive inputs */
+async function fetchSafeText(res, limit = MAX_SCRAPE_BYTES) {
+  if (!res.ok) return "";
+  const reader = res.body.getReader();
+  let text = "";
+  let bytesRead = 0;
+  const decoder = new TextDecoder();
+  
+  while (bytesRead < limit) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    bytesRead += value.length;
+    text += decoder.decode(value, { stream: true });
+  }
+  reader.releaseLock();
+  return text;
+}
+
 const rootDir = process.cwd();
 const syncConfigPath = path.join(rootDir, "social-stats.config.json");
 const outputDir = path.join(rootDir, "static", "social-stats");
@@ -57,9 +77,9 @@ async function fetchDiscordGuildData(guildId) {
 async function fetchMeetupCsrf(urlname) {
   const pageUrl = `https://www.meetup.com/pt-BR/${urlname}/`;
   const res = await fetchWithTimeout(pageUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
-  if (!res.ok) throw new Error(`Meetup page unavailable: ${res.status}`);
+  const html = await fetchSafeText(res);
 
-  const html = await res.text();
+  // Restricted match: don't match beyond quotes
   const match = /<meta name="next_csrf" content="([^"]+)"/.exec(html);
   if (!match) throw new Error("Meetup CSRF token not found");
 
@@ -116,10 +136,9 @@ async function fetchCncfMemberCount(chapterSlug) {
     const res = await fetchWithTimeout(`https://community.cncf.io/${chapterSlug}/`, {
       headers: { "User-Agent": "Mozilla/5.0" },
     });
-    if (!res.ok) return null;
-
-    const html = await res.text();
-    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/.exec(html);
+    const html = await fetchSafeText(res);
+    // Safer match with restricted range
+    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]{1,100000}?)<\/script>/.exec(html);
     if (!match) return null;
 
     const data = JSON.parse(match[1]);
@@ -160,10 +179,10 @@ async function fetchInstagramFollowers(username) {
   try {
     // Step 1: load the page to get CSRF token + session cookies
     const pageRes = await fetchWithTimeout(BASE, { headers: { "User-Agent": UA } });
-    const html = await pageRes.text();
+    const html = await fetchSafeText(pageRes);
 
-    // Extract CSRF token from window.__config = {\n  token: "..." (multi-line object)
-    const tokenMatch = /window\.__config\s*=\s*\{[\s\S]*?token:\s*"([^"]+)"/.exec(html);
+    // Safer match: restrict object depth and token length
+    const tokenMatch = /window\.__config\s*=\s*\{[^}]*?token:\s*"([^"]{1,255})"/.exec(html);
     if (!tokenMatch) {
       console.warn(`  blastup: CSRF token not found for @${handle} — page structure may have changed`);
       return null;
@@ -201,6 +220,7 @@ async function fetchInstagramFollowers(username) {
     return null;
   }
 }
+
 /** Parses YouTube subscriber text like "17 subscribers", "1.57K subscribers", "2.3M subscribers" */
 function parseYouTubeSubscriberText(text) {
   const clean = text.replaceAll(",", "").toLowerCase();
@@ -230,9 +250,8 @@ async function fetchYouTubeSubscribers(handle) {
         "Accept-Language": "en-US,en;q=0.9",
       },
     });
-    if (!res.ok) return null;
-    const html = await res.text();
-    // YouTube embeds subscriber count in ytInitialData as: "content":"X subscribers"
+    const html = await fetchSafeText(res);
+    // YouTube embeds subscriber count in ytInitialData. Restricted content match.
     const m = /"content":"([\d,.]+[KkMm]? subscribers?)"/.exec(html);
     if (!m) return null;
     return parseYouTubeSubscriberText(m[1]);
@@ -282,21 +301,16 @@ async function readExistingSnapshot() {
 }
 
 // ─── Read communities display data from TS source (regex extract) ─────────────
-// Reads socialProfiles from communities.ts and codaquiSocialProfiles from social.ts
-// to get handle, url, countLabel, baselineCount for each profile.
 
-function extractSocialProfiles(tsSource, arrayName) {
+function extractSocialProfiles(tsSource) {
   const profiles = [];
-  // Uses a less complex regex by matching object enclosures { ... } first
-  // and extracting properties individually.
-  const objectRegex = /\{[^}]+\}/g;
+  // Safer object match: limit search distance and avoid nested universal quantifiers
+  const objectRegex = /\{[^{}]{1,1000}platform:\s*["']([^"']+)["'][^{}]{1,1000}\}/g;
   let match;
   while ((match = objectRegex.exec(tsSource)) !== null) {
     const block = match[0];
     
-    const platformMatch = /platform:\s*["']([^"']+)["']/.exec(block);
-    if (!platformMatch) continue;
-    
+    const platform = match[1];
     const handleMatch = /handle:\s*["']([^"']+)["']/.exec(block);
     const urlMatch = /url:\s*["']([^"']+)["']/.exec(block);
     const countLabelMatch = /countLabel:\s*["']([^"']+)["']/.exec(block);
@@ -304,7 +318,7 @@ function extractSocialProfiles(tsSource, arrayName) {
     
     if (handleMatch && urlMatch && countLabelMatch) {
       profiles.push({
-        platform: platformMatch[1],
+        platform,
         handle: handleMatch[1],
         url: urlMatch[1],
         countLabel: countLabelMatch[1],
@@ -317,17 +331,17 @@ function extractSocialProfiles(tsSource, arrayName) {
 }
 
 async function readAllSocialProfiles() {
-  // Returns: Map<entityId, SocialProfile[]>
   const result = new Map();
 
-  // Codaqui profiles from social.ts
   const socialSrc = await readFile(socialPath, "utf8");
-  const codaquiBlock = /codaquiSocialProfiles[^=]*=\s*\[([\s\S]*?)\];/.exec(socialSrc)?.[0] ?? "";
-  result.set("codaqui", extractSocialProfiles(codaquiBlock));
+  // Limit source scan to the array block itself
+  const codaquiMatch = /codaquiSocialProfiles[^=]*=\s*\[([\s\S]*?)\];/.exec(socialSrc);
+  if (codaquiMatch) {
+    result.set("codaqui", extractSocialProfiles(codaquiMatch[1]));
+  }
 
-  // Community profiles from communities.ts
   const commSrc = await readFile(communitiesPath, "utf8");
-  // Split by community objects and find socialProfiles for each
+  // Find each community block and extract profiles within it locally
   const communityBlocks = commSrc.matchAll(/id:\s*["']([^"']+)["'][\s\S]*?socialProfiles:\s*\[([\s\S]*?)\]/g);
   for (const match of communityBlocks) {
     const entityId = match[1];
