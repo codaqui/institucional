@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-02T16:10:01.034Z",
+  "generatedAt": "2026-04-03T06:33:43.735Z",
   "totalEvents": 373,
   "profiles": [
     {
@@ -10,7 +10,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
+      "fetchedAt": "2026-04-03T06:33:43.735Z",
       "isFallback": false
     },
     {
@@ -22,7 +22,7 @@
       "baselineCount": 0,
       "count": 393,
       "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "devparana",
@@ -31,8 +31,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6082,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
+      "count": 6085,
+      "fetchedAt": "2026-04-03T06:33:43.735Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "baselineCount": 0,
       "count": 5002,
       "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "elasnocodigo",
@@ -66,7 +66,7 @@
       "baselineCount": 0,
       "count": 194,
       "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "campostechpg",
@@ -88,7 +88,7 @@
       "baselineCount": 0,
       "count": 1350,
       "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "campostechpg",
@@ -98,7 +98,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
+      "fetchedAt": "2026-04-03T06:33:43.735Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "baselineCount": 0,
       "count": 198,
       "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": false
+      "isFallback": true
     },
     {
       "entityId": "cloudnativemaringa",
@@ -119,9 +119,9 @@
       "url": "https://community.cncf.io/cloud-native-maringa/",
       "countLabel": "membros",
       "baselineCount": 3,
-      "count": 5,
-      "fetchedAt": "2026-04-02T06:34:48.357Z",
-      "isFallback": true
+      "count": 6,
+      "fetchedAt": "2026-04-03T06:33:43.735Z",
+      "isFallback": false
     }
   ]
 }
