@@ -124,12 +124,13 @@ export const communities: Community[] = [
     id: "tisocial",
     name: "TI Social",
     emoji: "🤝",
-    logo: "/img/tisocial.png",
+    logo: "/img/tisocial-white.png",
     description:
       "Projeto que une tecnologia e responsabilidade social, promovendo o acesso à educação digital para comunidades carentes da região de Maringá.",
     location: "Maringá, PR",
     links: [
-      { type: "instagram", label: "@tisocialmaringa", url: "https://www.instagram.com/tisocialmaringa" },
+      { type: "website", label: "tisocial.org.br", url: "https://tisocial.org.br" },
+      { type: "instagram", label: "@tisocialmaringa", url: "https://www.instagram.com/tisocialmaringa" }
     ],
     socialProfiles: [
       {
