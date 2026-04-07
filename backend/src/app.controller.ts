@@ -1,7 +1,20 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
-const { npm_package_version } = process.env;
+// Lê a versão diretamente do package.json para funcionar tanto com
+// `npm start` quanto com `node dist/main.js` (Docker sem npm).
+const APP_VERSION = (() => {
+  try {
+    const pkg = JSON.parse(
+      readFileSync(join(__dirname, '..', 'package.json'), 'utf-8'),
+    ) as { version: string };
+    return pkg.version;
+  } catch {
+    return '0.0.0';
+  }
+})();
 
 @ApiTags('Status')
 @Controller()
@@ -18,7 +31,7 @@ export class AppController {
       type: 'object',
       properties: {
         status: { type: 'string', example: 'ok' },
-        version: { type: 'string', example: '0.0.1' },
+        version: { type: 'string', example: '0.0.5' },
         timestamp: { type: 'string', format: 'date-time' },
       },
     },
@@ -26,7 +39,7 @@ export class AppController {
   ping() {
     return {
       status: 'ok',
-      version: npm_package_version ?? '0.0.1',
+      version: APP_VERSION,
       timestamp: new Date().toISOString(),
     };
   }

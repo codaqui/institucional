@@ -52,3 +52,4 @@ yarn-error.log*
 site/
 mkdocs-material/
 venv/
+sql-commands
