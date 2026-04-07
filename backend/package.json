@@ -1,6 +1,6 @@
 {
   "name": "backend-codaqui",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "API for Codaqui Website and Intranet",
   "author": "Enderson Menezes Candido <enderson@codaqui.dev>",
   "private": true,
