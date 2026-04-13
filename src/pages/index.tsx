@@ -91,9 +91,11 @@ function SocialProofStrip() {
   const [count, setCount] = React.useState<number | null>(null);
 
   React.useEffect(() => {
-    fetch(`${apiUrl}/members`)
+    fetch(`${apiUrl}/members/donors`)
       .then((r) => r.json())
-      .then((data: unknown[]) => setCount(data.length))
+      .then((res: { total?: number; data?: unknown[] }) =>
+        setCount(res.total ?? res.data?.length ?? 0),
+      )
       .catch(() => {});
   }, [apiUrl]);
 

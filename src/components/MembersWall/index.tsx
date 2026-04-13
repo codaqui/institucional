@@ -12,6 +12,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 
 interface Member {
   id: string;
@@ -22,6 +23,9 @@ interface Member {
   linkedinUrl: string | null;
   role: "membro" | "admin";
   joinedAt: string;
+  totalDonated?: number;
+  donationCount?: number;
+  lastDonatedAt?: string;
 }
 
 interface MembersResponse {
@@ -32,30 +36,44 @@ interface MembersResponse {
 }
 
 interface MembersWallProps {
+  /** Número máximo de membros exibidos */
   readonly limit?: number;
+  /** Endpoint da API (default: /members). Use /members/donors para exibir apenas doadores. */
+  readonly endpoint?: string;
 }
 
-export default function MembersWall({ limit }: MembersWallProps): React.JSX.Element {
+function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+export default function MembersWall({
+  limit,
+  endpoint = "/members",
+}: MembersWallProps): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
+  const isDonorsMode = endpoint.includes("donors");
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    fetch(`${apiUrl}/members`)
+    const url = limit
+      ? `${apiUrl}${endpoint}?limit=${limit}`
+      : `${apiUrl}${endpoint}`;
+
+    fetch(url)
       .then((r) => r.json())
       .then((response: MembersResponse) => {
-        const list = response.data ?? [];
-        setMembers(limit ? list.slice(0, limit) : list);
+        setMembers(response.data ?? []);
         setLoading(false);
       })
       .catch(() => {
         setError(true);
         setLoading(false);
       });
-  }, [apiUrl, limit]);
+  }, [apiUrl, endpoint, limit]);
 
   if (loading) {
     const skeletonKeys = Array.from({ length: 6 }, (_, i) => `member-sk-${i}`);
@@ -107,29 +125,60 @@ export default function MembersWall({ limit }: MembersWallProps): React.JSX.Elem
               />
               <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                  <Typography variant="subtitle1" fontWeight={700} noWrap>
-                    {m.name}
-                  </Typography>
+                  <Link
+                    href={`/@${m.githubHandle}`}
+                    underline="hover"
+                    color="inherit"
+                    sx={{ "&:hover": { color: "primary.main" } }}
+                  >
+                    <Typography variant="subtitle1" fontWeight={700} noWrap>
+                      {m.name}
+                    </Typography>
+                  </Link>
                   {m.role === "admin" && (
                     <Chip label="Organização" size="small" color="primary" variant="outlined" />
+                  )}
+                  {isDonorsMode && (
+                    <Chip
+                      icon={<FavoriteIcon sx={{ fontSize: 14 }} />}
+                      label="Doador(a)"
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                    />
                   )}
                 </Box>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                   @{m.githubHandle}
                 </Typography>
-                {m.bio && (
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                    }}
-                  >
-                    {m.bio}
+                {isDonorsMode && m.totalDonated != null && (
+                  <Typography variant="body2" color="success.main" fontWeight={600} sx={{ mb: 0.5 }}>
+                    {formatCurrency(m.totalDonated)} em {m.donationCount ?? 0} doação(ões) 💚
                   </Typography>
+                )}
+                {m.bio && (
+                  <>
+                    <Typography
+                      variant="caption"
+                      color="text.disabled"
+                      sx={{ display: "block", mt: 0.5 }}
+                    >
+                      Autodescrição
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{
+                        overflow: "hidden",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      &ldquo;{m.bio}&rdquo;
+                    </Typography>
+                  </>
                 )}
                 <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                   <Tooltip title={`GitHub: ${m.githubHandle}`}>

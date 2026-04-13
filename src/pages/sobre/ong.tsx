@@ -183,10 +183,13 @@ export default function OngPage(): React.JSX.Element {
             chegar a todos. Toda contribuição financeira é rastreada em nosso{" "}
             <a href="/transparencia">portal de transparência</a>.
           </Typography>
-          <MembersWall limit={12} />
-          <Box sx={{ mt: 3 }}>
+          <MembersWall endpoint="/members/donors" limit={12} />
+          <Box sx={{ mt: 3, display: "flex", gap: 2, flexWrap: "wrap" }}>
             <Button variant="outlined" href="/participe/apoiar">
               Quero fazer parte
+            </Button>
+            <Button variant="text" href="/membros">
+              Ver mais membros →
             </Button>
           </Box>
         </Box>
