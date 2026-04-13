@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Member, MemberRole } from './entities/member.entity';
+import { Transaction } from '../ledger/entities/transaction.entity';
 
 interface GithubProfile {
   githubId: string;
@@ -43,6 +44,8 @@ export class MembersService {
   constructor(
     @InjectRepository(Member)
     private readonly repo: Repository<Member>,
+    @InjectRepository(Transaction)
+    private readonly txRepo: Repository<Transaction>,
   ) {}
 
   /**
@@ -138,6 +141,23 @@ export class MembersService {
     });
   }
 
+  /** Busca membro ativo pelo handle do GitHub (público) */
+  findByHandle(handle: string): Promise<Member | null> {
+    return this.repo.findOne({
+      where: { githubHandle: handle, isActive: true },
+      select: [
+        'id',
+        'githubHandle',
+        'name',
+        'avatarUrl',
+        'bio',
+        'linkedinUrl',
+        'role',
+        'joinedAt',
+      ],
+    });
+  }
+
   /** Perfil completo do usuário logado */
   findByGithubId(githubId: string): Promise<Member | null> {
     return this.repo.findOne({ where: { githubId } });
@@ -174,5 +194,138 @@ export class MembersService {
   ): Promise<Member> {
     await this.repo.update(id, dto);
     return this.repo.findOneOrFail({ where: { id } });
+  }
+
+  // ── Doadores ──────────────────────────────────────────────────────────────
+
+  /**
+   * Lista membros que fizeram pelo menos uma doação, ordenados por total doado.
+   * Cruza members com transactions via padrão [memberId] na descrição.
+   */
+  async findDonors(
+    page = 1,
+    limit = 50,
+  ): Promise<{
+    data: Array<{
+      id: string;
+      githubHandle: string;
+      name: string;
+      avatarUrl: string;
+      bio: string | null;
+      linkedinUrl: string | null;
+      role: string;
+      joinedAt: Date;
+      totalDonated: number;
+      lastDonatedAt: Date;
+      donationCount: number;
+    }>;
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+    const offset = (safePage - 1) * safeLimit;
+
+    // Query doadores: junta members com transactions via padrão [memberId]
+    const rawDonors = await this.txRepo
+      .createQueryBuilder('tx')
+      .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
+      .where('m."isActive" = true')
+      .select([
+        'm.id AS id',
+        'm."githubHandle" AS "githubHandle"',
+        'm.name AS name',
+        'm."avatarUrl" AS "avatarUrl"',
+        'm.bio AS bio',
+        'm."linkedinUrl" AS "linkedinUrl"',
+        'm.role AS role',
+        'm."joinedAt" AS "joinedAt"',
+        'COALESCE(SUM(tx.amount), 0) AS "totalDonated"',
+        'MAX(tx."createdAt") AS "lastDonatedAt"',
+        'COUNT(tx.id) AS "donationCount"',
+      ])
+      .groupBy('m.id')
+      .addGroupBy('m."githubHandle"')
+      .addGroupBy('m.name')
+      .addGroupBy('m."avatarUrl"')
+      .addGroupBy('m.bio')
+      .addGroupBy('m."linkedinUrl"')
+      .addGroupBy('m.role')
+      .addGroupBy('m."joinedAt"')
+      .orderBy('"totalDonated"', 'DESC')
+      .offset(offset)
+      .limit(safeLimit)
+      .getRawMany();
+
+    // Count total de doadores distintos
+    const countResult = await this.txRepo
+      .createQueryBuilder('tx')
+      .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
+      .where('m."isActive" = true')
+      .select('COUNT(DISTINCT m.id)', 'count')
+      .getRawOne();
+
+    const total = parseInt(countResult?.count ?? '0', 10);
+
+    return {
+      data: rawDonors.map((r) => ({
+        id: r.id,
+        githubHandle: r.githubHandle,
+        name: r.name,
+        avatarUrl: r.avatarUrl,
+        bio: r.bio,
+        linkedinUrl: r.linkedinUrl,
+        role: r.role,
+        joinedAt: new Date(r.joinedAt),
+        totalDonated: parseFloat(r.totalDonated) || 0,
+        lastDonatedAt: new Date(r.lastDonatedAt),
+        donationCount: parseInt(r.donationCount, 10) || 0,
+      })),
+      total,
+      page: safePage,
+      totalPages: Math.ceil(total / safeLimit),
+    };
+  }
+
+  /**
+   * Lista doações públicas de um membro específico.
+   * Retorna comunidade destino, valor, data e tipo.
+   */
+  async findMemberDonations(
+    memberId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      amount: number;
+      community: string;
+      communityKey: string;
+      type: string;
+      createdAt: Date;
+    }>
+  > {
+    const rows = await this.txRepo
+      .createQueryBuilder('tx')
+      .leftJoinAndSelect('tx.destinationAccount', 'dst')
+      .where('tx.description LIKE :pattern', {
+        pattern: `%[${memberId}]%`,
+      })
+      .orderBy('tx.createdAt', 'DESC')
+      .getMany();
+
+    return rows.map((tx) => {
+      let type = 'Doação única';
+      if (tx.description.includes('Assinatura mensal')) type = 'Assinatura mensal';
+      else if (tx.description.includes('Assinatura anual')) type = 'Assinatura anual';
+
+      return {
+        id: tx.id,
+        amount: parseFloat(String(tx.amount)),
+        community: tx.destinationAccount?.name ?? 'Comunidade',
+        communityKey: tx.destinationAccount?.projectKey ?? '',
+        type,
+        createdAt: tx.createdAt,
+      };
+    });
   }
 }
