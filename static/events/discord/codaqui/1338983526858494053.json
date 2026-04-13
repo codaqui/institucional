@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-13T18:20:42.227Z",
+  "generatedAt": "2026-04-13T19:27:05.403Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,13 +11,13 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-04-13T18:20:42.227Z"
+    "generatedAt": "2026-04-13T19:27:05.403Z"
   },
   "event": {
     "id": "1338983526858494053",
     "title": "Reunião Geral da Associação",
     "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-    "startAt": "2026-04-13T21:30:00+00:00",
+    "startAt": "2026-04-20T21:30:00+00:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Discord",
     "host": "Comunidade Codaqui",
