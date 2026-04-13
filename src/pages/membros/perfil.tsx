@@ -360,6 +360,13 @@ export default function PerfilPage(): React.JSX.Element {
       return;
     }
 
+    // Valida formato do handle para evitar path traversal
+    if (memberHandle && !/^[a-zA-Z0-9_-]+$/.test(memberHandle)) {
+      setError("Handle inválido.");
+      setLoading(false);
+      return;
+    }
+
     // Resolve o membro: por ID ou por handle
     const memberFetch = memberId
       ? fetch(`${apiUrl}/members/${memberId}`)

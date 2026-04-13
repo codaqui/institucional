@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Req,
+  BadRequestException,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -70,8 +71,13 @@ export class MembersController {
   // ── Por ID (público) ──────────────────────────────────────────────────────
   // Deve vir DEPOIS de /members/me.
 
+  private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
+
   @Get('members/by-handle/:handle')
   async findByHandle(@Param('handle') handle: string) {
+    if (!MembersController.HANDLE_REGEX.test(handle)) {
+      throw new BadRequestException('Handle inválido.');
+    }
     const member = await this.membersService.findByHandle(handle);
     if (!member) throw new NotFoundException('Membro não encontrado.');
     return member;

@@ -48,6 +48,8 @@ export class MembersService {
     private readonly txRepo: Repository<Transaction>,
   ) {}
 
+  private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
+
   /**
    * Cria ou atualiza membro com dados frescos do GitHub.
    * Chamado no callback OAuth a cada login.
@@ -56,6 +58,10 @@ export class MembersService {
    * mesmo que alguém altere no banco, é restaurado no próximo login.
    */
   async upsertByGithub(profile: Readonly<GithubProfile>): Promise<Member> {
+    if (!MembersService.HANDLE_REGEX.test(profile.githubHandle)) {
+      throw new Error(`Handle GitHub inválido: ${profile.githubHandle}`);
+    }
+
     const isBootstrapAdmin = BOOTSTRAP_ADMINS.has(
       profile.githubHandle.toLowerCase(),
     );
