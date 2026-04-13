@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-12T06:40:27.329Z",
+  "generatedAt": "2026-04-13T06:54:27.707Z",
   "totalEvents": 373,
   "profiles": [
     {
@@ -10,7 +10,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-04-12T06:40:27.329Z",
+      "fetchedAt": "2026-04-13T06:54:27.707Z",
       "isFallback": false
     },
     {
@@ -31,8 +31,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6229,
-      "fetchedAt": "2026-04-12T06:40:27.329Z",
+      "count": 6235,
+      "fetchedAt": "2026-04-13T06:54:27.707Z",
       "isFallback": false
     },
     {
@@ -98,7 +98,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-04-12T06:40:27.329Z",
+      "fetchedAt": "2026-04-13T06:54:27.707Z",
       "isFallback": false
     },
     {
@@ -120,7 +120,7 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 7,
-      "fetchedAt": "2026-04-12T06:40:27.329Z",
+      "fetchedAt": "2026-04-13T06:54:27.707Z",
       "isFallback": false
     }
   ]
