@@ -272,7 +272,7 @@ export class MembersService {
       .select('COUNT(DISTINCT m.id)', 'count')
       .getRawOne();
 
-    const total = parseInt(countResult?.count ?? '0', 10);
+    const total = Number.parseInt(countResult?.count ?? '0', 10);
 
     return {
       data: rawDonors.map((r) => ({
@@ -284,9 +284,9 @@ export class MembersService {
         linkedinUrl: r.linkedinUrl,
         role: r.role,
         joinedAt: new Date(r.joinedAt),
-        totalDonated: parseFloat(r.totalDonated) || 0,
+        totalDonated: Number.parseFloat(r.totalDonated) || 0,
         lastDonatedAt: new Date(r.lastDonatedAt),
-        donationCount: parseInt(r.donationCount, 10) || 0,
+        donationCount: Number.parseInt(r.donationCount, 10) || 0,
       })),
       total,
       page: safePage,
@@ -326,7 +326,7 @@ export class MembersService {
 
       return {
         id: tx.id,
-        amount: parseFloat(String(tx.amount)),
+        amount: Number.parseFloat(String(tx.amount)),
         community: tx.destinationAccount?.name ?? 'Comunidade',
         communityKey: tx.destinationAccount?.projectKey ?? '',
         type,

@@ -94,11 +94,11 @@ function Carteirinha({
   member,
   isDonor,
   profileUrl,
-}: {
+}: Readonly<{
   member: Member;
   isDonor: boolean;
   profileUrl: string;
-}) {
+}>) {
   return (
     <Card
       sx={{
@@ -261,7 +261,7 @@ function Carteirinha({
 
 // ── Donation History ───────────────────────────────────────────────────────
 
-function DonationHistory({ donations }: { donations: Donation[] }) {
+function DonationHistory({ donations }: Readonly<{ donations: Donation[] }>) {
   if (donations.length === 0) return null;
 
   const total = donations.reduce((sum, d) => sum + d.amount, 0);
@@ -340,17 +340,17 @@ export default function PerfilPage(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>
-  const params =
-    typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search)
-      : null;
+  const isBrowser = typeof globalThis.window !== "undefined";
+  const params = isBrowser
+    ? new URLSearchParams(globalThis.location.search)
+    : null;
   const memberId = params?.get("id") ?? null;
   const memberHandle = params?.get("handle") ?? null;
 
   // URL bonita para QR code: /@handle
   const vanityUrl =
-    typeof window !== "undefined" && member
-      ? `${window.location.origin}/@${member.githubHandle}`
+    isBrowser && member
+      ? `${globalThis.location.origin}/@${member.githubHandle}`
       : "";
 
   useEffect(() => {

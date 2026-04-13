@@ -70,10 +70,10 @@ function formatDate(iso: string): string {
 function MemberCard({
   member,
   donorInfo,
-}: {
+}: Readonly<{
   member: Member;
   donorInfo?: DonorInfo;
-}) {
+}>) {
   return (
     <Card
       variant="outlined"

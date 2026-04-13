@@ -8,13 +8,13 @@ export default function NotFoundPage(): ReactNode {
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    const path = window.location.pathname;
+    const path = globalThis.location.pathname;
 
     // /@username → /membros/perfil?handle=username
-    const vanityMatch = path.match(/^\/@([a-zA-Z0-9_-]+)\/?$/);
+    const vanityMatch = /^\/@([a-zA-Z0-9_-]+)\/?$/.exec(path);
     if (vanityMatch) {
       setRedirecting(true);
-      window.location.replace(`/membros/perfil?handle=${vanityMatch[1]}`);
+      globalThis.location.replace(`/membros/perfil?handle=${vanityMatch[1]}`);
     }
   }, []);
 
