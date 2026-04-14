@@ -13,6 +13,7 @@ import { MembersModule } from './members/members.module';
 import { ReimbursementsModule } from './reimbursements/reimbursements.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { AuditModule } from './audit/audit.module';
+import { VendorsModule } from './vendors/vendors.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { AuditModule } from './audit/audit.module';
     ReimbursementsModule,
     TransfersModule,
     AuditModule,
+    VendorsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
