@@ -14,7 +14,6 @@ import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
@@ -92,6 +91,10 @@ const emptyForm: PaymentForm = {
   receiptUrl: "",
   internalReceiptUrl: "",
 };
+
+function vendorLabel(v: Vendor): string {
+  return v.document ? `${v.name} (${v.document})` : v.name;
+}
 
 export default function PagamentosPage(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
@@ -293,7 +296,7 @@ export default function PagamentosPage(): React.JSX.Element {
               <form onSubmit={handleSubmit}>
                 <Autocomplete
                   options={vendors}
-                  getOptionLabel={(v) => `${v.name}${v.document ? ` (${v.document})` : ""}`}
+                  getOptionLabel={vendorLabel}
                   value={vendors.find((v) => v.id === form.vendorId) ?? null}
                   onChange={(_, v) => setForm({ ...form, vendorId: v?.id ?? "" })}
                   renderInput={(params) => (
@@ -534,7 +537,7 @@ export default function PagamentosPage(): React.JSX.Element {
                 />
                 <Autocomplete
                   options={vendors}
-                  getOptionLabel={(v) => `${v.name}${v.document ? ` (${v.document})` : ""}`}
+                  getOptionLabel={vendorLabel}
                   value={vendors.find((v) => v.id === tplForm.vendorId) ?? null}
                   onChange={(_, v) => setTplForm({ ...tplForm, vendorId: v?.id ?? "" })}
                   renderInput={(params) => (

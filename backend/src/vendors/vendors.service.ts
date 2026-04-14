@@ -4,7 +4,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Vendor } from './entities/vendor.entity';
 import { VendorPayment } from './entities/vendor-payment.entity';
 import { TransactionTemplate } from './entities/transaction-template.entity';
@@ -41,8 +41,14 @@ export class VendorsService {
   async createVendor(dto: CreateVendorDto): Promise<Vendor> {
     let accountId = dto.accountId;
 
-    if (!accountId) {
-      const projectKey = `vendor-${dto.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}`;
+    if (accountId) {
+      const account = await this.accountRepo.findOneBy({ id: accountId });
+      if (!account)
+        throw new BadRequestException('Conta informada não encontrada.');
+      if (account.type !== AccountType.EXTERNAL)
+        throw new BadRequestException('Conta informada deve ser do tipo EXTERNAL.');
+    } else {
+      const projectKey = `vendor-${dto.name.toLowerCase().replaceAll(/\s+/g, '-').replaceAll(/[^a-z0-9-]/g, '')}`;
 
       const existing = await this.accountRepo.findOneBy({ projectKey });
       if (existing) {
@@ -138,15 +144,19 @@ export class VendorsService {
 
     const saved = await this.paymentRepo.save(payment);
 
-    // Registra transação no ledger (valor em reais: centavos / 100)
-    const amountBrl = dto.amount / 100;
-    await this.ledgerService.recordTransaction(
-      dto.sourceAccountId,
-      vendor.accountId,
-      amountBrl,
-      `Pagamento a fornecedor: ${vendor.name} — ${dto.description}`,
-      `vendor-payment:${saved.id}`,
-    );
+    try {
+      const amountBrl = dto.amount / 100;
+      await this.ledgerService.recordTransaction(
+        dto.sourceAccountId,
+        vendor.accountId,
+        amountBrl,
+        `Pagamento a fornecedor: ${vendor.name} — ${dto.description}`,
+        `vendor-payment:${saved.id}`,
+      );
+    } catch (error) {
+      await this.paymentRepo.delete(saved.id);
+      throw error;
+    }
 
     return this.paymentRepo.findOneOrFail({ where: { id: saved.id } });
   }
@@ -159,7 +169,7 @@ export class VendorsService {
 
     const userIds = [...new Set(payments.map((p) => p.paidByUserId))];
     const members = userIds.length > 0
-      ? await this.memberRepo.findByIds(userIds)
+      ? await this.memberRepo.find({ where: { id: In(userIds) } })
       : [];
     const memberMap = new Map(members.map((m) => [m.id, m]));
 
@@ -196,6 +206,7 @@ export class VendorsService {
     vendor?: { name: string; document: string | null; website: string | null };
     paidBy?: { name: string; avatarUrl: string; githubHandle: string };
   } | null> {
+    if (!refId.startsWith('vendor-payment:')) return null;
     const paymentId = refId.replace('vendor-payment:', '');
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId },
@@ -243,6 +254,10 @@ export class VendorsService {
     });
     if (!vendor)
       throw new BadRequestException('Fornecedor não encontrado ou inativo.');
+
+    const sourceAccount = await this.accountRepo.findOneBy({ id: dto.sourceAccountId });
+    if (!sourceAccount)
+      throw new BadRequestException('Conta de origem não encontrada.');
 
     const template = this.templateRepo.create({
       ...dto,

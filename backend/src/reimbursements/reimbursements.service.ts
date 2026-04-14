@@ -211,8 +211,7 @@ export class ReimbursementsService {
 
   /**
    * Dados públicos de um reembolso para exibição no portal de transparência.
-   * NÃO expõe: internalReceiptUrl (link do Drive interno).
-   * EXPÕE: handle do solicitante, comprovante público, handle do aprovador, nota.
+   * EXPÕE: handle do solicitante, comprovantes (público + interno), handle do aprovador, nota.
    */
   async getPublicInfo(id: string) {
     const request = await this.repo.findOne({
@@ -226,7 +225,8 @@ export class ReimbursementsService {
       status: request.status,
       amount: request.amount,
       description: request.description,
-      receiptUrl: request.receiptUrl, // URL pública do comprovante
+      receiptUrl: request.receiptUrl,
+      internalReceiptUrl: request.internalReceiptUrl,
       accountName: request.account?.name ?? null,
       requester: request.member
         ? {

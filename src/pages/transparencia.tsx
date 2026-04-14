@@ -135,6 +135,7 @@ interface ReimbursementPublicInfo {
   amount: number;
   description: string;
   receiptUrl: string;
+  internalReceiptUrl: string | null;
   accountName: string | null;
   requester: { handle: string; name: string; avatarUrl: string } | null;
   approver: { handle: string; name: string; avatarUrl: string } | null;
@@ -154,6 +155,31 @@ interface VendorPaymentPublicInfo {
   paidBy?: { name: string; avatarUrl: string; githubHandle: string };
 }
 
+function deriveTransactionMeta(tx: Transaction, accountId: string) {
+  const type = detectTxType(tx);
+  const config = TX_TYPE_CONFIG[type];
+  const isCredit = tx.destinationAccount?.id === accountId;
+  const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
+  const isSubscription = tx.description?.toLowerCase().includes("assinatura");
+  const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
+  const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
+  const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
+  const stripeModePath = isTestMode ? "test/" : "";
+  const stripeDashboardUrl = paymentIntentId
+    ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
+    : null;
+  const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
+  const isTransfer = type === "transfer";
+  const transferReason = isTransfer
+    ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
+    : null;
+
+  return {
+    type, config, isCredit, donorHandle, isSubscription, subscriptionInterval,
+    paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
+  };
+}
+
 function TransactionDetailDialog({
   tx,
   accountId,
@@ -170,8 +196,9 @@ function TransactionDetailDialog({
   const [vendorInfo, setVendorInfo] = useState<VendorPaymentPublicInfo | null>(null);
   const [vendorLoading, setVendorLoading] = useState(false);
 
-  const type = tx ? detectTxType(tx) : "other";
-  const config = TX_TYPE_CONFIG[type];
+  const meta = tx ? deriveTransactionMeta(tx, accountId) : null;
+  const type = meta?.type ?? "other";
+  const config = meta?.config ?? TX_TYPE_CONFIG.other;
 
   useEffect(() => {
     if (!tx) { setReimbInfo(null); return; }
@@ -203,23 +230,12 @@ function TransactionDetailDialog({
       .finally(() => setVendorLoading(false));
   }, [tx, type, apiUrl]);
 
-  if (!tx) return null;
+  if (!tx || !meta) return null;
 
-  const isCredit = tx.destinationAccount?.id === accountId;
-  const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
-  const isSubscription = tx.description?.toLowerCase().includes("assinatura");
-  const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
-  const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
-  const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
-  const stripeModePath = isTestMode ? "test/" : "";
-  const stripeDashboardUrl = paymentIntentId
-    ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
-    : null;
-  const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
-  const isTransfer = type === "transfer";
-  const transferReason = isTransfer
-    ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
-    : null;
+  const {
+    isCredit, donorHandle, isSubscription, subscriptionInterval,
+    paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
+  } = meta;
 
   return (
     <Dialog
@@ -383,20 +399,34 @@ function TransactionDetailDialog({
                     </Typography>
                   </Box>
                 )}
-                {reimbInfo.receiptUrl && (
+                {(reimbInfo.receiptUrl || reimbInfo.internalReceiptUrl) && (
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.disabled">Comprovante</Typography>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Button
-                        size="small" variant="outlined" color="warning"
-                        startIcon={<ReceiptLongIcon />}
-                        endIcon={<OpenInNewIcon fontSize="small" />}
-                        href={reimbInfo.receiptUrl}
-                        target="_blank" rel="noopener noreferrer"
-                        sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                      >
-                        Ver comprovante original
-                      </Button>
+                    <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
+                    <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                      {reimbInfo.receiptUrl && (
+                        <Button
+                          size="small" variant="outlined" color="warning"
+                          startIcon={<ReceiptLongIcon />}
+                          endIcon={<OpenInNewIcon fontSize="small" />}
+                          href={reimbInfo.receiptUrl}
+                          target="_blank" rel="noopener noreferrer"
+                          sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                        >
+                          Comprovante original
+                        </Button>
+                      )}
+                      {reimbInfo.internalReceiptUrl && (
+                        <Button
+                          size="small" variant="outlined" color="primary"
+                          startIcon={<ReceiptLongIcon />}
+                          endIcon={<OpenInNewIcon fontSize="small" />}
+                          href={reimbInfo.internalReceiptUrl}
+                          target="_blank" rel="noopener noreferrer"
+                          sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                        >
+                          Cópia interna
+                        </Button>
+                      )}
                     </Box>
                   </Box>
                 )}
