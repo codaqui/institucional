@@ -1,4 +1,22 @@
-import { IsString, IsOptional, MaxLength, IsUrl, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MaxLength,
+  IsUrl,
+  IsUUID,
+  Matches,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
+
+/**
+ * Strips all non-digit characters so the DB stores only raw digits.
+ * Future-proof: when CNPJ gains letters (July 2026), change to strip
+ * only formatting chars (dots, dashes, slashes).
+ */
+const stripNonDigits = () =>
+  Transform(({ value }) =>
+    typeof value === 'string' ? value.replaceAll(/\D/g, '') || undefined : value,
+  );
 
 export class CreateVendorDto {
   @IsString()
@@ -6,8 +24,11 @@ export class CreateVendorDto {
   name: string;
 
   @IsOptional()
+  @stripNonDigits()
   @IsString()
-  @MaxLength(20)
+  @Matches(/^\d{11}$|^\d{14}$/, {
+    message: 'Documento deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).',
+  })
   document?: string;
 
   @IsOptional()
@@ -28,8 +49,11 @@ export class UpdateVendorDto {
   name?: string;
 
   @IsOptional()
+  @stripNonDigits()
   @IsString()
-  @MaxLength(20)
+  @Matches(/^\d{11}$|^\d{14}$/, {
+    message: 'Documento deve conter 11 dígitos (CPF) ou 14 dígitos (CNPJ).',
+  })
   document?: string;
 
   @IsOptional()
