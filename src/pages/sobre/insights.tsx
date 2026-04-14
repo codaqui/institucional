@@ -30,7 +30,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import SiteAnalytics from "../../components/SiteAnalytics";
 import { timelineEvents, type TimelineEvent, type TimelineStats } from "../../data/timeline";
 import { communities } from "../../data/communities";
-import { codaquiSocialProfiles } from "../../data/social";
+import { codaquiSocialProfiles, PLATFORM_COLORS } from "../../data/social";
 import {
   SOCIAL_STATS_URL,
   type SocialStatsSnapshot,
@@ -45,27 +45,27 @@ const PLATFORM_META: Record<
 > = {
   discord: {
     icon: <GroupsIcon fontSize="small" />,
-    color: "#5865f2",
+    color: PLATFORM_COLORS.discord,
     label: "Discord",
   },
   meetup: {
     icon: <EventIcon fontSize="small" />,
-    color: "#e0393e",
+    color: PLATFORM_COLORS.meetup,
     label: "Meetup",
   },
   youtube: {
     icon: <YouTubeIcon fontSize="small" />,
-    color: "#ff0000",
+    color: PLATFORM_COLORS.youtube,
     label: "YouTube",
   },
   instagram: {
     icon: <InstagramIcon fontSize="small" />,
-    color: "#e1306c",
+    color: PLATFORM_COLORS.instagram,
     label: "Instagram",
   },
   github: {
     icon: <GitHubIcon fontSize="small" />,
-    color: "text.primary",
+    color: PLATFORM_COLORS.github,
     label: "GitHub",
   },
   cncf: {
@@ -77,7 +77,7 @@ const PLATFORM_META: Record<
         sx={{ width: 16, height: 16, borderRadius: "50%" }}
       />
     ),
-    color: "#446ca9",
+    color: PLATFORM_COLORS.cncf,
     label: "CNCF Community",
   },
   website: {
@@ -86,7 +86,7 @@ const PLATFORM_META: Record<
         🌐
       </Typography>
     ),
-    color: "text.secondary",
+    color: PLATFORM_COLORS.website,
     label: "Website",
   },
   twitter: {
@@ -95,7 +95,7 @@ const PLATFORM_META: Record<
         𝕏
       </Typography>
     ),
-    color: "#1da1f2",
+    color: PLATFORM_COLORS.twitter,
     label: "Twitter/X",
   },
   whatsapp: {
@@ -104,7 +104,7 @@ const PLATFORM_META: Record<
         💬
       </Typography>
     ),
-    color: "#25d366",
+    color: PLATFORM_COLORS.whatsapp,
     label: "WhatsApp",
   },
 };

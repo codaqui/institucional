@@ -15,6 +15,20 @@ export const WHATSAPP_URL = "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up";
 export const EMAIL = "contato@codaqui.dev";
 export const GITHUB_ORG = "https://github.com/codaqui";
 
+/** Brand colors for external platforms — centralized to avoid hardcoded hex in components. */
+export const PLATFORM_COLORS: Record<string, string> = {
+  discord: "#5865f2",
+  meetup: "#e0393e",
+  youtube: "#ff0000",
+  instagram: "#e1306c",
+  github: "text.primary",
+  cncf: "#446ca9",
+  twitter: "#1da1f2",
+  whatsapp: "#25d366",
+  linkedin: "#0077b5",
+  website: "text.secondary",
+};
+
 /**
  * Perfis sociais da Codaqui — fonte de verdade para o sync de estatísticas.
  * Contagens baseLine são valores manuais usados como fallback.

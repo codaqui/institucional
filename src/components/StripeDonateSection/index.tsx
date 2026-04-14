@@ -192,7 +192,7 @@ export default function StripeDonateSection() {
                 border: "2px solid",
                 borderColor: active ? "primary.main" : "divider",
                 bgcolor: active ? "primary.main" : "background.paper",
-                color: active ? "#fff" : "text.primary",
+                color: active ? "common.white" : "text.primary",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
