@@ -129,7 +129,7 @@ function parsePeriodInfo(period, info) {
 function parseTopPages(pages) {
   if (!Array.isArray(pages)) return [];
   return pages
-    .sort(
+    .toSorted(
       (a, b) =>
         Number.parseInt(b.screenPageViews, 10) - Number.parseInt(a.screenPageViews, 10)
     )
@@ -225,7 +225,7 @@ async function main() {
 
   const allPeriods = expectedPeriods();
   console.log(
-    `📅 Expected periods: ${allPeriods[0]} → ${allPeriods[allPeriods.length - 1]} (${allPeriods.length} months)`
+    `📅 Expected periods: ${allPeriods[0]} → ${allPeriods.at(-1)} (${allPeriods.length} months)`
   );
 
   const { existing, existingByPeriod } = await loadExistingData();
@@ -261,7 +261,7 @@ async function main() {
   }
 }
 
-main().catch((err) => {
+await main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
