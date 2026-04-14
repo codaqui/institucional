@@ -23,7 +23,9 @@ import Typography from "@mui/material/Typography";
 import Alert from "@mui/material/Alert";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import PaymentIcon from "@mui/icons-material/Payment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import ModalConfirm from "../../components/ModalConfirm";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -171,6 +173,12 @@ export default function AdminPage(): React.JSX.Element {
             </Button>
             <Button variant="outlined" size="small" startIcon={<AccountBalanceIcon />} href="/transparencia">
               Transparência
+            </Button>
+            <Button variant="outlined" size="small" startIcon={<StorefrontIcon />} href="/admin/fornecedores">
+              Fornecedores
+            </Button>
+            <Button variant="outlined" size="small" startIcon={<PaymentIcon />} href="/admin/pagamentos">
+              Pagamentos
             </Button>
           </Box>
         </Box>

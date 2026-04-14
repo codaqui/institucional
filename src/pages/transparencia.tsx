@@ -36,6 +36,7 @@ import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import StorefrontIcon from "@mui/icons-material/Storefront";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import CodeIcon from "@mui/icons-material/Code";
@@ -94,21 +95,24 @@ const formatDate = (iso: string) =>
 // ---------------------------------------------------------------------------
 // Transaction type detection
 // ---------------------------------------------------------------------------
-type TxType = "donation" | "reimbursement" | "transfer" | "other";
+type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "other";
 
 function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
+  if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
   if (tx.referenceId?.startsWith("transfer:")) return "transfer";
   if (tx.referenceId?.startsWith("cs_")) return "donation";
   if (tx.description?.toLowerCase().startsWith("doação")) return "donation";
+  if (tx.description?.toLowerCase().startsWith("pagamento a fornecedor")) return "vendor-payment";
   if (tx.description?.toLowerCase().startsWith("reembolso")) return "reimbursement";
   if (tx.description?.toLowerCase().startsWith("transfer")) return "transfer";
   return "other";
 }
 
-const TX_TYPE_CONFIG: Record<TxType, { label: string; color: "success" | "warning" | "info" | "default"; icon: React.ReactElement }> = {
+const TX_TYPE_CONFIG: Record<TxType, { label: string; color: "success" | "warning" | "info" | "default" | "secondary"; icon: React.ReactElement }> = {
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
+  "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
 };
@@ -139,6 +143,17 @@ interface ReimbursementPublicInfo {
   createdAt: string;
 }
 
+interface VendorPaymentPublicInfo {
+  id: string;
+  amount: number;
+  description: string;
+  receiptUrl: string | null;
+  internalReceiptUrl: string | null;
+  paidAt: string;
+  vendor?: { name: string; document: string | null; website: string | null };
+  paidBy?: { name: string; avatarUrl: string; githubHandle: string };
+}
+
 function TransactionDetailDialog({
   tx,
   accountId,
@@ -152,6 +167,8 @@ function TransactionDetailDialog({
 }>) {
   const [reimbInfo, setReimbInfo] = useState<ReimbursementPublicInfo | null>(null);
   const [reimbLoading, setReimbLoading] = useState(false);
+  const [vendorInfo, setVendorInfo] = useState<VendorPaymentPublicInfo | null>(null);
+  const [vendorLoading, setVendorLoading] = useState(false);
 
   const type = tx ? detectTxType(tx) : "other";
   const config = TX_TYPE_CONFIG[type];
@@ -169,6 +186,21 @@ function TransactionDetailDialog({
       .then((data) => setReimbInfo(data))
       .catch(() => setReimbInfo(null))
       .finally(() => setReimbLoading(false));
+  }, [tx, type, apiUrl]);
+
+  useEffect(() => {
+    if (!tx) { setVendorInfo(null); return; }
+    if (type !== "vendor-payment") { setVendorInfo(null); return; }
+
+    const refId = tx.referenceId;
+    if (!refId) return;
+
+    setVendorLoading(true);
+    fetch(`${apiUrl}/vendors/payments/by-reference/${encodeURIComponent(refId)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setVendorInfo(data))
+      .catch(() => setVendorInfo(null))
+      .finally(() => setVendorLoading(false));
   }, [tx, type, apiUrl]);
 
   if (!tx) return null;
@@ -377,6 +409,107 @@ function TransactionDetailDialog({
             <Typography variant="caption" color="text.disabled">Justificativa da transferência</Typography>
             <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{transferReason}"</Typography>
           </Box>
+        )}
+        {type === "vendor-payment" && (
+          <>
+            {/* Extract payment description from ledger description: "Pagamento a fornecedor: Name — desc" */}
+            {tx.description && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Finalidade do pagamento</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  {tx.description.includes(" — ")
+                    ? tx.description.split(" — ").slice(1).join(" — ")
+                    : tx.description}
+                </Typography>
+              </Box>
+            )}
+            {vendorLoading && (
+              <Box sx={{ mb: 2 }}>
+                <Skeleton height={24} width="60%" />
+                <Skeleton height={20} width="40%" />
+              </Box>
+            )}
+            {vendorInfo?.vendor && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Fornecedor</Typography>
+                <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                  <StorefrontIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
+                  {vendorInfo.vendor.name}
+                  {vendorInfo.vendor.document && (
+                    <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                      ({vendorInfo.vendor.document})
+                    </Typography>
+                  )}
+                </Typography>
+                {vendorInfo.vendor.website && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    endIcon={<OpenInNewIcon fontSize="small" />}
+                    href={vendorInfo.vendor.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{ textTransform: "none", fontSize: "0.75rem", mt: 0.5 }}
+                  >
+                    {vendorInfo.vendor.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                  </Button>
+                )}
+              </Box>
+            )}
+            {vendorInfo?.paidBy && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Autorizado/registrado por</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                  <Avatar
+                    src={vendorInfo.paidBy.avatarUrl}
+                    alt={vendorInfo.paidBy.name}
+                    sx={{ width: 28, height: 28 }}
+                  />
+                  <Box>
+                    <Typography variant="body2" fontWeight={700}>{vendorInfo.paidBy.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">@{vendorInfo.paidBy.githubHandle}</Typography>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+            {vendorInfo && (vendorInfo.receiptUrl || vendorInfo.internalReceiptUrl) && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
+                <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  {vendorInfo.receiptUrl && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<ReceiptLongIcon />}
+                      endIcon={<OpenInNewIcon fontSize="small" />}
+                      href={vendorInfo.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                    >
+                      Comprovante original
+                    </Button>
+                  )}
+                  {vendorInfo.internalReceiptUrl && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      startIcon={<ReceiptLongIcon />}
+                      endIcon={<OpenInNewIcon fontSize="small" />}
+                      href={vendorInfo.internalReceiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                    >
+                      Cópia interna
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            )}
+          </>
         )}
         {type === "other" && (
           <Box sx={{ mb: 2 }}>
