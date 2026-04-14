@@ -7,9 +7,7 @@ on:
       - main
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: deploy-${{ github.ref }}
@@ -19,6 +17,8 @@ jobs:
   build-and-deploy:
     name: Build & Deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     outputs:
       deploy_type: ${{ steps.deploy_meta.outputs.deploy_type }}
       site_url: ${{ steps.deploy_meta.outputs.site_url }}
@@ -159,6 +159,8 @@ jobs:
   notify:
     name: Notify Merged PR
     runs-on: ubuntu-slim
+    permissions:
+      pull-requests: write
     needs: build-and-deploy
     if: success()
 
