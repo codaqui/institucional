@@ -439,7 +439,7 @@ export class StripeService {
         amount: item?.price?.unit_amount ?? 0,
         currency: item?.price?.currency ?? 'brl',
         communityId: sub.metadata?.communityId ?? 'tesouro-geral',
-        currentPeriodEnd: (sub as any).current_period_end ?? 0,
+        currentPeriodEnd: item?.current_period_end ?? 0,
         cancelAtPeriodEnd: sub.cancel_at_period_end,
       };
     });
@@ -471,14 +471,15 @@ export class StripeService {
       cancel_at_period_end: true, // Stripe best practice: não cancela imediatamente
     });
 
-    const currentPeriodEnd = (updated as any).current_period_end;
+    const updatedItem = updated.items.data[0];
+    const currentPeriodEnd = updatedItem?.current_period_end ?? 0;
     this.logger.log(
       `Assinatura ${subscriptionId} marcada para cancelar em ${new Date(currentPeriodEnd * 1000).toLocaleDateString('pt-BR')} (membro: ${memberId})`,
     );
 
     return {
       cancelAtPeriodEnd: updated.cancel_at_period_end,
-      currentPeriodEnd: (updated as any).current_period_end,
+      currentPeriodEnd,
     };
   }
 }
