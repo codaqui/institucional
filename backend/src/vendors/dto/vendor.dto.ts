@@ -15,7 +15,7 @@ import { Transform } from 'class-transformer';
  */
 const stripNonDigits = () =>
   Transform(({ value }) =>
-    typeof value === 'string' ? value.replaceAll(/\D/g, '') || undefined : value,
+    typeof value === 'string' ? value.replaceAll(/\D/g, '') : value,
   );
 
 export class CreateVendorDto {

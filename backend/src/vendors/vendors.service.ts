@@ -260,12 +260,13 @@ export class VendorsService {
 
     const amountBrl = payment.amount / 100;
     try {
+      const ts = Date.now();
       await this.ledgerService.recordTransaction(
         payment.vendor.accountId,
         payment.sourceAccountId,
         amountBrl,
         `Estorno: ${payment.vendor.name} — ${payment.description}`,
-        `vendor-payment-reversal:${payment.id}`,
+        `vendor-payment-reversal:${payment.id}:${ts}`,
       );
     } catch (error) {
       this.logger.error(`Falha ao registrar estorno no ledger: ${error}`);

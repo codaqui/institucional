@@ -163,12 +163,14 @@ export class ReimbursementsService {
         );
 
       // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
+      // Usa timestamp para permitir re-aprovação após reversão (referenceId é unique)
+      const ts = Date.now();
       await this.ledgerService.recordTransaction(
         request.accountId,
         reimbursementsAccount.id,
         request.amount,
         `Reembolso aprovado: ${request.description}`,
-        `reimbursement:${request.id}`,
+        `reimbursement:${request.id}:${ts}`,
       );
 
       request.status = ReimbursementStatus.APPROVED;
@@ -238,12 +240,13 @@ export class ReimbursementsService {
         );
 
       try {
+        const ts = Date.now();
         await this.ledgerService.recordTransaction(
           reimbursementsAccount.id,
           request.accountId,
           request.amount,
           `Estorno de reembolso (reversão de aprovação): ${request.description}`,
-          `reimbursement-reversal:${request.id}`,
+          `reimbursement-reversal:${request.id}:${ts}`,
         );
       } catch (error) {
         this.logger.error(
@@ -282,12 +285,13 @@ export class ReimbursementsService {
         );
 
       try {
+        const ts = Date.now();
         await this.ledgerService.recordTransaction(
           reimbursementsAccount.id,
           request.accountId,
           request.amount,
           `Estorno de reembolso: ${request.description}`,
-          `reimbursement-reversal:${request.id}`,
+          `reimbursement-deletion:${request.id}:${ts}`,
         );
       } catch (error) {
         this.logger.error(`Falha ao registrar estorno de reembolso no ledger: ${error}`);
