@@ -56,6 +56,12 @@ export class ExpensesService {
       throw new BadRequestException('Can only approve pending expenses');
     }
 
+    if (expense.submittedByUserId === approvedByUserId) {
+      throw new BadRequestException(
+        'Você não pode aprovar suas próprias despesas.',
+      );
+    }
+
     expense.status = ExpenseStatus.APPROVED;
     expense.approvedByUserId = approvedByUserId;
     return this.expenseRepo.save(expense);
