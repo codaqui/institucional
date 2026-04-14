@@ -119,7 +119,7 @@ export class ReimbursementsController {
   })
   @ApiResponse({ status: 403, description: 'Saldo insuficiente na carteira.' })
   async approveRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: ApproveReimbursementDto,
   ) {
@@ -216,7 +216,7 @@ export class ReimbursementsController {
     description: 'reviewNote ausente ou solicitação já revisada.',
   })
   async rejectRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: RejectReimbursementDto,
   ) {

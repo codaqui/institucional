@@ -135,8 +135,8 @@ export class ReimbursementsService {
         );
       }
 
-      // Impedir self-approval para finance-analyzer; admin pode aprovar os próprios
-      if (request.memberId === reviewerId && reviewerRole !== 'admin') {
+      // Impedir self-approval — nenhum usuário pode aprovar seu próprio reembolso
+      if (request.memberId === reviewerId) {
         throw new ForbiddenException(
           'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
         );
