@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import {
 
 @Injectable()
 export class VendorsService {
+  private readonly logger = new Logger(VendorsService.name);
   constructor(
     @InjectRepository(Vendor)
     private readonly vendorRepo: Repository<Vendor>,
@@ -156,6 +158,7 @@ export class VendorsService {
         `vendor-payment:${saved.id}`,
       );
     } catch (error) {
+      this.logger.error(`Falha ao registrar pagamento no ledger, revertendo: ${error}`);
       await this.paymentRepo.delete(saved.id);
       throw error;
     }

@@ -1,4 +1,4 @@
-import { IsString, IsInt, IsOptional, IsUrl, IsUUID, Min } from 'class-validator';
+import { IsString, IsInt, IsOptional, IsUrl, IsUUID, MaxLength, Min } from 'class-validator';
 
 export class CreateVendorPaymentDto {
   @IsUUID()
@@ -12,6 +12,7 @@ export class CreateVendorPaymentDto {
   amount: number;
 
   @IsString()
+  @MaxLength(500)
   description: string;
 
   @IsOptional()

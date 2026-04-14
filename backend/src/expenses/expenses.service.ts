@@ -38,9 +38,15 @@ export class ExpensesService {
     return this.expenseRepo.find({ order: { createdAt: 'DESC' } });
   }
 
-  async getExpenseById(id: string) {
+  async getExpenseById(id: string, requestingUserId?: string) {
     const expense = await this.expenseRepo.findOneBy({ id });
     if (!expense) throw new NotFoundException('Expense not found');
+    if (
+      requestingUserId &&
+      expense.submittedByUserId !== requestingUserId
+    ) {
+      throw new NotFoundException('Expense not found');
+    }
     return expense;
   }
 

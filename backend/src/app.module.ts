@@ -22,7 +22,11 @@ import { VendorsModule } from './vendors/vendors.module';
       host: process.env.DB_HOST || 'localhost',
       port: Number.parseInt(process.env.DB_PORT || '5432', 10),
       username: process.env.DB_USER || 'codaqui',
-      password: process.env.DB_PASSWORD || 'codaqui_pass', // NOSONAR
+      password:
+        process.env.DB_PASSWORD ||
+        (process.env.NODE_ENV === 'production'
+          ? (() => { throw new Error('DB_PASSWORD is required in production'); })()
+          : 'codaqui_pass'),
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations

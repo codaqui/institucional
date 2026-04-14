@@ -4,6 +4,7 @@ import {
   Post,
   Body,
   Param,
+  ParseUUIDPipe,
   UseGuards,
   Req,
 } from '@nestjs/common';
@@ -51,14 +52,20 @@ export class ExpensesController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  getExpenseById(@Param('id') id: string) {
-    return this.expensesService.getExpenseById(id);
+  getExpenseById(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.expensesService.getExpenseById(id, req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Post(':id/approve')
-  approveExpense(@Param('id') id: string, @Req() req: { user: JwtPayload }) {
+  approveExpense(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
     return this.expensesService.approveExpense(id, req.user.sub);
   }
 
@@ -66,7 +73,7 @@ export class ExpensesController {
   @Roles('admin')
   @Post(':id/pay')
   markAsPaid(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body('externalAccountId') externalAccountId: string,
   ) {
     return this.expensesService.markAsPaid(id, externalAccountId);

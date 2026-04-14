@@ -135,9 +135,10 @@ export class StripeService {
     try {
       if (!webhookSecret) {
         throw new Error(
-          isDev
-            ? 'STRIPE_WEBHOOK_SECRET não definido. Use o Stripe CLI: stripe listen --forward-to localhost:3001/stripe/webhook'
-            : 'STRIPE_WEBHOOK_SECRET não definido em produção',
+          'STRIPE_WEBHOOK_SECRET não definido. ' +
+            (isDev
+              ? 'Use o Stripe CLI: stripe listen --forward-to localhost:3001/stripe/webhook'
+              : 'Configure o secret em produção.'),
         );
       }
       event = this.stripe.webhooks.constructEvent(
@@ -415,6 +416,9 @@ export class StripeService {
   > {
     // Sanitize UUID to prevent Stripe Search API injection
     const safeMemberId = memberId.replaceAll(/[^a-f0-9-]/gi, '');
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(safeMemberId)) {
+      throw new BadRequestException('ID de membro inválido.');
+    }
 
     // Stripe Search API — busca por metadata
     const result = await this.stripe.subscriptions.search({

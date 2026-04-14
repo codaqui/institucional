@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Param,
+  ParseUUIDPipe,
   Query,
   UseGuards,
   Req,
@@ -77,7 +78,7 @@ export class TransfersController {
       'Admin aprova o pedido — cria transação no ledger imediatamente.',
   })
   async approveRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: ReviewTransferRequestDto,
   ) {
@@ -101,7 +102,7 @@ export class TransfersController {
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: '🔒 Rejeitar transferência [admin]' })
   async rejectRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: ReviewTransferRequestDto,
   ) {

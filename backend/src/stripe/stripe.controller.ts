@@ -146,7 +146,7 @@ export class StripeController {
   }
 
   @Post('webhook')
-  @SkipThrottle()
+  @SkipThrottle() // Stripe sends rapid webhook bursts; signature validation prevents abuse
   @ApiOperation({ summary: 'Webhook Stripe (interno)' })
   async handleWebhook(
     @Headers('stripe-signature') signature: string,

@@ -10,18 +10,41 @@ import { Injectable } from '@nestjs/common';
  */
 @Injectable()
 export class StorageService {
+  private readonly trustedHostnames = [
+    'drive.google.com',
+    'docs.google.com',
+    'www.dropbox.com',
+    'dropbox.com',
+    'onedrive.live.com',
+    '1drv.ms',
+    'imgur.com',
+    'i.imgur.com',
+  ];
+
   /**
-   * Valida se a URL fornecida é acessível (básico — apenas formato).
+   * Valida se a URL fornecida é de um domínio confiável e usa HTTPS.
    * Retorna a URL se válida.
    */
   validateReceiptUrl(url: string): string {
     try {
       const parsed = new URL(url);
-      if (!['http:', 'https:'].includes(parsed.protocol)) {
-        throw new Error('URL deve usar http ou https');
+      if (parsed.protocol !== 'https:') {
+        throw new Error('URL deve usar https');
+      }
+      const isTrusted = this.trustedHostnames.some(
+        (domain) =>
+          parsed.hostname === domain ||
+          parsed.hostname.endsWith(`.${domain}`),
+      );
+      if (!isTrusted) {
+        throw new Error(
+          `Domínio não permitido. Use: ${this.trustedHostnames.join(', ')}`,
+        );
       }
       return url;
-    } catch {
+    } catch (err) {
+      if (err instanceof Error && err.message.startsWith('Domínio')) throw err;
+      if (err instanceof Error && err.message.startsWith('URL deve')) throw err;
       throw new Error(`URL inválida para comprovante: "${url}"`);
     }
   }
