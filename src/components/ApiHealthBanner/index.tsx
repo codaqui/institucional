@@ -39,7 +39,7 @@ export default function ApiHealthBanner({
   }, [apiUrl]);
 
   useEffect(() => {
-    if (typeof globalThis.window === "undefined") return;
+    if (globalThis.window === undefined) return;
 
     checkHealth();
     const id = globalThis.setInterval(checkHealth, CHECK_INTERVAL_MS);

@@ -368,7 +368,7 @@ export default function EstudarPage(): React.JSX.Element {
                 {TURMAS.map((row, i) => {
                   const muted = row.instrutor === "A confirmar";
                   return (
-                    <TableRow key={i} hover>
+                    <TableRow key={`${row.mes}-${row.modalidade}`} hover>
                       <TableCell sx={muted ? { color: "text.disabled" } : undefined}>
                         {row.mes}
                       </TableCell>
@@ -403,8 +403,8 @@ export default function EstudarPage(): React.JSX.Element {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {GRUPOS_ESTUDO.map((row, i) => (
-                  <TableRow key={i} hover>
+                {GRUPOS_ESTUDO.map((row) => (
+                  <TableRow key={row.tema} hover>
                     <TableCell>{row.tema}</TableCell>
                     <TableCell>{row.mediador}</TableCell>
                   </TableRow>

@@ -20,7 +20,7 @@ import { communities, type Community } from "../../data/communities";
 import MembersWall from "../../components/MembersWall";
 import PageHero from "../../components/PageHero";
 
-function CommunityCard({ community }: { community: Community }) {
+function CommunityCard({ community }: Readonly<{ community: Community }>) {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const isLocal = community.logo.startsWith("/img/");
@@ -217,8 +217,7 @@ export default function OngPage(): React.JSX.Element {
               rel="noopener noreferrer"
             >
               Google Drive
-            </a>
-            .
+            </a>{"."}
           </Typography>
         </Stack>
       </Container>

@@ -14,7 +14,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { projects, type Project } from "../data/projects";
 import PageHero from "../components/PageHero";
 
-function ProjectCard({ emoji, title, description, href }: Project) {
+function ProjectCard({ emoji, title, description, href }: Readonly<Project>) {
   return (
     <Card
       variant="outlined"

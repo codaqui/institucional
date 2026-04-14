@@ -2,7 +2,6 @@ import React from "react";
 import Layout from "@theme/Layout";
 import {
   Card,
-  CardContent,
   Box,
   Typography,
   Chip,
@@ -27,7 +26,7 @@ const iconMap: Record<string, React.ReactElement> = {
   whatsapp: <WhatsAppIcon sx={{ fontSize: "2rem", color: "primary.main" }} />,
 };
 
-function ChannelCard({ key: channelKey, name, description, href, cta }: SocialChannel) {
+function ChannelCard({ key: channelKey, name, description, href, cta }: Readonly<SocialChannel>) {
   const isExternal = href.startsWith("http");
   return (
     <Card

@@ -87,7 +87,7 @@ const howItWorks = [
   },
 ];
 
-function TrackCard({ icon, title, description, lessonCount, level, topics, href }: Track) {
+function TrackCard({ icon, title, description, lessonCount, level, topics, href }: Readonly<Track>) {
   return (
     <Card
       variant="outlined"
