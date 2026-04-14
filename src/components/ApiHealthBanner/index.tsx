@@ -16,14 +16,13 @@ export default function ApiHealthBanner({
   const [dismissed, setDismissed] = useState(false);
 
   const checkHealth = useCallback(async () => {
+    const controller = new AbortController();
+    const timer = globalThis.setTimeout(
+      () => controller.abort(),
+      TIMEOUT_MS,
+    );
     try {
-      const controller = new AbortController();
-      const timer = globalThis.setTimeout(
-        () => controller.abort(),
-        TIMEOUT_MS,
-      );
       const res = await fetch(apiUrl, { signal: controller.signal });
-      globalThis.clearTimeout(timer);
 
       if (!res.ok) {
         setIsDown(true);
@@ -34,6 +33,8 @@ export default function ApiHealthBanner({
       if (data.status === "ok") setDismissed(false);
     } catch {
       setIsDown(true);
+    } finally {
+      globalThis.clearTimeout(timer);
     }
   }, [apiUrl]);
 

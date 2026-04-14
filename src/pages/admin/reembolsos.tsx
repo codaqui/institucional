@@ -472,12 +472,12 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               setActionError(err.message || "Erro ao excluir.");
+              return;
             }
             setDeleteId(null);
             fetchData();
           } catch {
             setActionError("Erro ao excluir reembolso.");
-            setDeleteId(null);
           } finally {
             setDeleteLoading(false);
           }
@@ -499,12 +499,12 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
             if (!res.ok) {
               const err = await res.json().catch(() => ({}));
               setActionError(err.message || "Erro ao reverter.");
+              return;
             }
             setRevertId(null);
             fetchData();
           } catch {
             setActionError("Erro ao reverter aprovação.");
-            setRevertId(null);
           } finally {
             setRevertLoading(false);
           }

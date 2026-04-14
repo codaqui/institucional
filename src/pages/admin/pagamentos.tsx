@@ -718,12 +718,12 @@ export default function PagamentosPage(): React.JSX.Element {
               if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
                 setError(err.message || "Erro ao excluir pagamento.");
+                return;
               }
               setPayDeleteId(null);
               fetchAll();
             } catch {
               setError("Erro ao excluir pagamento.");
-              setPayDeleteId(null);
             } finally {
               setPayDeleteLoading(false);
             }
