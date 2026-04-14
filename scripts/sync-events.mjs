@@ -545,6 +545,115 @@ async function resolveMeetupEvents(config, existingEvents, fullSync = false) {
   }
 }
 
+// ─── Bevy (CNCF Community Groups) ─────────────────────────────────────────────
+
+function stripHtml(html) {
+  return (html || "")
+    .replaceAll(/<[^>]+>/g, " ")
+    .replaceAll(/&[a-z]+;/gi, " ")
+    .replaceAll(/\s+/g, " ")
+    .trim();
+}
+
+function mapBevyStatus(event) {
+  const now = Date.now();
+  const start = Date.parse(event.start_date);
+  const end = Date.parse(event.end_date || event.start_date);
+
+  if (end < now) return "completed";
+  if (start <= now && end >= now) return "active";
+  return "scheduled";
+}
+
+function mapBevyEvent(event, config) {
+  const summary = truncateText(
+    stripHtml(event.description_short || event.description || ""),
+  ) || `Evento publicado por ${config.defaultHost}.`;
+
+  return {
+    id: `bevy-${event.id || event.url?.split("/").filter(Boolean).pop() || Date.now()}`,
+    title: event.title,
+    summary,
+    startAt: event.start_date,
+    endAt: event.end_date || undefined,
+    timezone: config.timezone || "America/Sao_Paulo",
+    platform: config.defaultPlatform,
+    host: config.defaultHost,
+    location: config.defaultLocation,
+    href: event.url || event.cohost_registration_url || config.ctaHref,
+    tags: ["cncf", config.sourceId, event.event_type_title?.toLowerCase() || "meetup"].filter(Boolean),
+    ctaLabel: config.ctaLabel || "Ver evento",
+    featured: false,
+    status: mapBevyStatus(event),
+    imageUrl: event.cropped_banner_url || event.cropped_picture_url || undefined,
+  };
+}
+
+async function fetchBevyEventsPage(chapterId, status, page = 1) {
+  const fields = "id,title,start_date,end_date,url,description_short,description,event_type_title,cropped_picture_url,cropped_banner_url,cohost_registration_url";
+  const order = status === "Completed" ? "-start_date" : "start_date";
+  const url = `https://community.cncf.io/api/chapter/${chapterId}/event/?status=${status}&order=${order}&page=${page}&fields=${fields}`;
+  return fetchJson(url, {
+    headers: { Accept: "application/json" },
+  });
+}
+
+async function paginateBevyEvents(chapterId, status) {
+  const events = [];
+  let page = 1;
+  let hasNext = true;
+
+  while (hasNext && page <= 20) {
+    const data = await fetchBevyEventsPage(chapterId, status, page);
+    events.push(...(data.results || []));
+    hasNext = Boolean(data.links?.next);
+    page += 1;
+  }
+
+  return events;
+}
+
+async function resolveBevyEvents(config, existingEvents, fullSync = false) {
+  try {
+    const chapterId = config.chapterId;
+    if (!chapterId) {
+      console.warn(`  ⚠ No chapterId for ${config.sourceId}, using fallback`);
+      return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+    }
+
+    let published, completed;
+    if (fullSync) {
+      [published, completed] = await Promise.all([
+        paginateBevyEvents(chapterId, "Published"),
+        paginateBevyEvents(chapterId, "Completed"),
+      ]);
+    } else {
+      [published, completed] = await Promise.all([
+        paginateBevyEvents(chapterId, "Published"),
+        paginateBevyEvents(chapterId, "Completed"),
+      ]);
+    }
+
+    const freshById = new Map();
+    for (const event of [...published, ...completed].map((e) => mapBevyEvent(e, config))) {
+      freshById.set(event.id, event);
+    }
+
+    if (!fullSync) {
+      for (const existing of existingEvents) {
+        if (!freshById.has(existing.id)) {
+          freshById.set(existing.id, existing);
+        }
+      }
+    }
+
+    return [...freshById.values()];
+  } catch (error) {
+    console.warn(`Skipping Bevy sync for ${config.source}/${config.sourceId}:`, error.message);
+    return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+  }
+}
+
 async function cleanSourceDir(sourceDir) {
   await rm(sourceDir, { recursive: true, force: true });
   await mkdir(sourceDir, { recursive: true });
@@ -560,6 +669,8 @@ async function processSource(sourceConfig, fullSync, generatedAt) {
     events = await resolveDiscordEvents(sourceConfig, existingEvents);
   } else if (sourceConfig.source === "meetup") {
     events = await resolveMeetupEvents(sourceConfig, existingEvents, fullSync);
+  } else if (sourceConfig.source === "bevy") {
+    events = await resolveBevyEvents(sourceConfig, existingEvents, fullSync);
   }
 
   await cleanSourceDir(sourceDir);
