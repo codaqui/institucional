@@ -13,6 +13,7 @@ import { MembersModule } from './members/members.module';
 import { ReimbursementsModule } from './reimbursements/reimbursements.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { AuditModule } from './audit/audit.module';
+import { VendorsModule } from './vendors/vendors.module';
 
 @Module({
   imports: [
@@ -21,7 +22,11 @@ import { AuditModule } from './audit/audit.module';
       host: process.env.DB_HOST || 'localhost',
       port: Number.parseInt(process.env.DB_PORT || '5432', 10),
       username: process.env.DB_USER || 'codaqui',
-      password: process.env.DB_PASSWORD || 'codaqui_pass', // NOSONAR
+      password:
+        process.env.DB_PASSWORD ||
+        (process.env.NODE_ENV === 'production'
+          ? (() => { throw new Error('DB_PASSWORD is required in production'); })()
+          : 'codaqui_pass'),
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
       synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations
@@ -43,6 +48,7 @@ import { AuditModule } from './audit/audit.module';
     ReimbursementsModule,
     TransfersModule,
     AuditModule,
+    VendorsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

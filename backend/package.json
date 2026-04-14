@@ -1,6 +1,6 @@
 {
   "name": "backend-codaqui",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "description": "API for Codaqui Website and Intranet",
   "author": "Enderson Menezes Candido <enderson@codaqui.dev>",
   "private": true,
@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
+    "@nestjs/core": "^11.1.19",
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
@@ -93,13 +93,6 @@
   },
   "overrides": {
     "path-to-regexp": "8.4.2",
-    "lodash": "4.17.21",
-    "picomatch": "4.0.4",
-    "@nestjs/swagger": {
-      "lodash": "4.17.21"
-    },
-    "node-emoji": {
-      "lodash": "4.17.21"
-    }
+    "picomatch": "4.0.4"
   }
 }
