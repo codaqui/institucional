@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -119,6 +120,9 @@ export class VendorsController {
     description: 'Usado pela página de transparência para resolver vendor-payment:<id>.',
   })
   getPaymentByReference(@Param('refId') refId: string) {
+    if (!/^vendor-payment:[0-9a-f-]{36}$/.test(refId)) {
+      throw new BadRequestException('Formato de referência inválido. Esperado: vendor-payment:<uuid>');
+    }
     return this.vendorsService.findPaymentByReferenceId(refId);
   }
 
