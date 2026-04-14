@@ -23,6 +23,7 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import PeopleIcon from "@mui/icons-material/People";
 import PageHero from "../../components/PageHero";
+import { PLATFORM_COLORS } from "../../data/social";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -195,7 +196,7 @@ function MemberCard({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <LinkedInIcon
-                      sx={{ fontSize: "1.1rem", opacity: 0.7, color: "#0077b5" }}
+                      sx={{ fontSize: "1.1rem", opacity: 0.7, color: PLATFORM_COLORS.linkedin }}
                     />
                   </Link>
                 </Tooltip>

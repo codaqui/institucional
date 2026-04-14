@@ -26,7 +26,10 @@ import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import DeleteIcon from "@mui/icons-material/Delete";
+import UndoIcon from "@mui/icons-material/Undo";
 import { useAuth } from "../../hooks/useAuth";
+import ModalConfirm from "../../components/ModalConfirm";
 
 interface ReimbursementRequest {
   id: string;
@@ -86,6 +89,14 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
   // Reject dialog state
   const [rejectDialog, setRejectDialog] = useState<ReimbursementRequest | null>(null);
   const [rejectNote, setRejectNote] = useState("");
+
+  // Delete state
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Revert state
+  const [revertId, setRevertId] = useState<string | null>(null);
+  const [revertLoading, setRevertLoading] = useState(false);
 
   const fetchData = useCallback(() => {
     setLoading(true);
@@ -295,6 +306,17 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                     >
                       Rejeitar
                     </Button>
+                    {isAdmin && (
+                      <Button
+                        variant="text"
+                        color="error"
+                        size="small"
+                        startIcon={<DeleteIcon />}
+                        onClick={() => setDeleteId(req.id)}
+                      >
+                        Excluir
+                      </Button>
+                    )}
                     {!hasEnough && (
                       <Button
                         variant="text"
@@ -304,6 +326,31 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                         Solicitar transferência →
                       </Button>
                     )}
+                  </Box>
+                )}
+
+                {req.status !== "pending" && isAdmin && (
+                  <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+                    {req.status === "approved" && (
+                      <Button
+                        variant="outlined"
+                        color="warning"
+                        size="small"
+                        startIcon={<UndoIcon />}
+                        onClick={() => setRevertId(req.id)}
+                      >
+                        Reverter aprovação
+                      </Button>
+                    )}
+                    <Button
+                      variant="text"
+                      color="error"
+                      size="small"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => setDeleteId(req.id)}
+                    >
+                      Excluir{req.status === "approved" ? " (com estorno)" : ""}
+                    </Button>
                   </Box>
                 )}
               </CardContent>
@@ -407,6 +454,64 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ── Delete Confirmation ── */}
+      <ModalConfirm
+        open={!!deleteId}
+        title="Excluir reembolso?"
+        description={
+          requests.find((r) => r.id === deleteId)?.status === "approved"
+            ? "Este reembolso já foi aprovado. Um lançamento de estorno será criado no ledger para reverter a operação."
+            : "A solicitação será permanentemente removida."
+        }
+        onConfirm={async () => {
+          if (!deleteId) return;
+          setDeleteLoading(true);
+          try {
+            const res = await authFetch(`${apiUrl}/reimbursements/${deleteId}`, { method: "DELETE" });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              setActionError(err.message || "Erro ao excluir.");
+              return;
+            }
+            setDeleteId(null);
+            fetchData();
+          } catch {
+            setActionError("Erro ao excluir reembolso.");
+          } finally {
+            setDeleteLoading(false);
+          }
+        }}
+        onClose={() => setDeleteId(null)}
+        loading={deleteLoading}
+      />
+
+      {/* ── Revert Confirmation ── */}
+      <ModalConfirm
+        open={!!revertId}
+        title="Reverter aprovação?"
+        description="A aprovação será desfeita: um estorno será lançado no ledger e o status voltará para PENDENTE, permitindo reavaliação."
+        onConfirm={async () => {
+          if (!revertId) return;
+          setRevertLoading(true);
+          try {
+            const res = await authFetch(`${apiUrl}/reimbursements/${revertId}/revert`, { method: "PATCH" });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              setActionError(err.message || "Erro ao reverter.");
+              return;
+            }
+            setRevertId(null);
+            fetchData();
+          } catch {
+            setActionError("Erro ao reverter aprovação.");
+          } finally {
+            setRevertLoading(false);
+          }
+        }}
+        onClose={() => setRevertId(null)}
+        loading={revertLoading}
+      />
 
       {/* ── Reject — ModalConfirm com campo de nota ── */}
       <Dialog open={!!rejectDialog} onClose={() => setRejectDialog(null)} maxWidth="xs" fullWidth

@@ -451,7 +451,7 @@ export default function ApoiarPage(): React.JSX.Element {
                       fontFamily: "inherit", borderRadius: 2, border: "2px solid",
                       borderColor: active ? "primary.main" : "divider",
                       bgcolor: active ? "primary.main" : "background.paper",
-                      color: active ? "#fff" : "text.primary",
+                      color: active ? "common.white" : "text.primary",
                       cursor: "pointer", display: "flex", alignItems: "center", gap: 0.5,
                       transition: "all 0.15s ease",
                       "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },

@@ -13,6 +13,7 @@ import Typography from "@mui/material/Typography";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import { PLATFORM_COLORS } from "../../data/social";
 
 interface Member {
   id: string;
@@ -64,7 +65,10 @@ export default function MembersWall({
       : `${apiUrl}${endpoint}`;
 
     fetch(url)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((response: MembersResponse) => {
         setMembers(response.data ?? []);
         setLoading(false);
@@ -199,7 +203,7 @@ export default function MembersWall({
                         rel="noopener noreferrer"
                         color="inherit"
                       >
-                        <LinkedInIcon sx={{ fontSize: "1.1rem", opacity: 0.7, color: "#0077b5" }} />
+                        <LinkedInIcon sx={{ fontSize: "1.1rem", opacity: 0.7, color: PLATFORM_COLORS.linkedin }} />
                       </Link>
                     </Tooltip>
                   )}

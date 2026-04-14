@@ -84,6 +84,21 @@
       "defaultLocation": "Meetup",
       "defaultPlatform": "Meetup",
       "fallbackEvents": []
+    },
+    {
+      "source": "bevy",
+      "sourceId": "cloud-native-maringa",
+      "chapterId": 749,
+      "label": "Cloud Native Maringá",
+      "emoji": "☁️",
+      "description": "Eventos do chapter oficial CNCF em Maringá — Kubernetes, containers, cloud-native e SRE.",
+      "ctaLabel": "Ver no CNCF Community",
+      "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
+      "defaultHost": "Cloud Native Maringá",
+      "defaultLocation": "Maringá, PR",
+      "defaultPlatform": "CNCF Community",
+      "timezone": "America/Sao_Paulo",
+      "fallbackEvents": []
     }
   ]
 }

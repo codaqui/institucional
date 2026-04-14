@@ -6,3 +6,4 @@ export { default as DiscordServerWidget } from "./DiscordServerWidget";
 export { default as SiteAnalytics } from "./SiteAnalytics";
 export { default as ModalConfirm } from "./ModalConfirm";
 export type { ModalConfirmVariant } from "./ModalConfirm";
+export { default as ApiHealthBanner } from "./ApiHealthBanner";

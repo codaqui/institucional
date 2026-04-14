@@ -1,6 +1,6 @@
 {
   "name": "backend-codaqui",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "API for Codaqui Website and Intranet",
   "author": "Enderson Menezes Candido <enderson@codaqui.dev>",
   "private": true,
@@ -93,6 +93,7 @@
   },
   "overrides": {
     "path-to-regexp": "8.4.2",
-    "picomatch": "4.0.4"
+    "picomatch": "4.0.4",
+    "lodash": "4.18.1"
   }
 }

@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -118,7 +119,7 @@ export class ReimbursementsController {
   })
   @ApiResponse({ status: 403, description: 'Saldo insuficiente na carteira.' })
   async approveRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: ApproveReimbursementDto,
   ) {
@@ -141,6 +142,69 @@ export class ReimbursementsController {
     return result;
   }
 
+  @Patch(':id/revert')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({
+    summary: '🔒 Reverter aprovação de reembolso [admin]',
+    description:
+      'Desfaz a aprovação: cria estorno no ledger e retorna o status para PENDING, ' +
+      'permitindo reavaliação.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Aprovação revertida — estorno criado, status volta a PENDING.',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Solicitação não está aprovada.',
+  })
+  async revertApproval(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    const result = await this.service.revertApproval(id);
+
+    void this.auditService.log({
+      action: AuditAction.REIMBURSEMENT_REVERTED,
+      actorId: req.user.sub,
+      actorHandle: req.user.handle,
+      targetId: id,
+      targetType: 'reimbursement',
+      details: { amount: result.amount, description: result.description },
+    });
+
+    return result;
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({
+    summary: '🔒 Excluir reembolso (com estorno se aprovado) [admin]',
+    description: 'Remove a solicitação. Se já aprovada, cria transação de estorno no ledger.',
+  })
+  @ApiResponse({ status: 200, description: 'Excluído.' })
+  async deleteRequest(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    await this.service.deleteRequest(id);
+
+    void this.auditService.log({
+      action: AuditAction.REIMBURSEMENT_DELETED,
+      actorId: req.user.sub,
+      actorHandle: req.user.handle,
+      targetId: id,
+      targetType: 'reimbursement',
+      details: { action: 'deleted' },
+    });
+
+    return { deleted: true };
+  }
+
   @Patch(':id/reject')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('finance-analyzer', 'admin')
@@ -152,7 +216,7 @@ export class ReimbursementsController {
     description: 'reviewNote ausente ou solicitação já revisada.',
   })
   async rejectRequest(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
     @Body() dto: RejectReimbursementDto,
   ) {

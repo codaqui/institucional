@@ -34,6 +34,8 @@ export enum AuditAction {
   // Reimbursements
   REIMBURSEMENT_APPROVED = 'reimbursement.approved',
   REIMBURSEMENT_REJECTED = 'reimbursement.rejected',
+  REIMBURSEMENT_DELETED = 'reimbursement.deleted',
+  REIMBURSEMENT_REVERTED = 'reimbursement.reverted',
 
   // Transfers
   TRANSFER_APPROVED = 'transfer.approved',

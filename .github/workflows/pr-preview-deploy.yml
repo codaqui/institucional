@@ -11,6 +11,8 @@ concurrency:
   group: pr-preview-deploy-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   deploy-preview:
     name: Deploy PR preview
@@ -213,6 +215,8 @@ jobs:
     if: >
       github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-slim
+    permissions:
+      pull-requests: write
     steps:
       - name: Resolve PR number
         id: meta

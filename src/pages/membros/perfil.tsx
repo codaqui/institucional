@@ -30,6 +30,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { QRCodeSVG } from "qrcode.react";
+import { PLATFORM_COLORS } from "../../data/social";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -104,8 +105,8 @@ function Carteirinha({
       sx={{
         background: (theme) =>
           theme.palette.mode === "dark"
-            ? "linear-gradient(135deg, #1a3a2a 0%, #242526 50%, #1a2a3a 100%)"
-            : "linear-gradient(135deg, #e8f5e9 0%, #ffffff 50%, #e3f2fd 100%)",
+            ? `linear-gradient(135deg, ${theme.palette.primary.dark}33 0%, ${theme.palette.background.paper} 50%, ${theme.palette.secondary.dark}33 100%)`
+            : `linear-gradient(135deg, ${theme.palette.primary.light}33 0%, ${theme.palette.background.default} 50%, ${theme.palette.secondary.light}33 100%)`,
         border: "2px solid",
         borderColor: "primary.main",
         borderRadius: 3,
@@ -220,7 +221,7 @@ function Carteirinha({
                   size={120}
                   level="M"
                   includeMargin={false}
-                  fgColor="#16a34a"
+                  fgColor="#57B593"
                 />
               </Paper>
               <Typography
@@ -477,7 +478,7 @@ export default function PerfilPage(): React.JSX.Element {
                     display: "flex",
                     alignItems: "center",
                     gap: 0.5,
-                    color: "#0077b5",
+                    color: PLATFORM_COLORS.linkedin,
                   }}
                 >
                   <LinkedInIcon sx={{ fontSize: 20 }} />

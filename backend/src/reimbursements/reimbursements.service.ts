@@ -3,6 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -24,6 +25,7 @@ const REIMBURSEMENTS_ACCOUNT_KEY = 'reembolsos-pagos';
 
 @Injectable()
 export class ReimbursementsService {
+  private readonly logger = new Logger(ReimbursementsService.name);
   constructor(
     @InjectRepository(ReimbursementRequest)
     private readonly repo: Repository<ReimbursementRequest>,
@@ -133,8 +135,8 @@ export class ReimbursementsService {
         );
       }
 
-      // Impedir self-approval para finance-analyzer; admin pode aprovar os próprios
-      if (request.memberId === reviewerId && reviewerRole !== 'admin') {
+      // Impedir self-approval — nenhum usuário pode aprovar seu próprio reembolso
+      if (request.memberId === reviewerId) {
         throw new ForbiddenException(
           'Você não pode aprovar seu próprio reembolso. Peça para outro aprovador revisar.',
         );
@@ -161,12 +163,14 @@ export class ReimbursementsService {
         );
 
       // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
+      // Usa timestamp para permitir re-aprovação após reversão (referenceId é unique)
+      const ts = Date.now();
       await this.ledgerService.recordTransaction(
         request.accountId,
         reimbursementsAccount.id,
         request.amount,
         `Reembolso aprovado: ${request.description}`,
-        `reimbursement:${request.id}`,
+        `reimbursement:${request.id}:${ts}`,
       );
 
       request.status = ReimbursementStatus.APPROVED;
@@ -207,6 +211,95 @@ export class ReimbursementsService {
     const request = await this.repo.findOne({ where: { id } });
     if (!request) throw new NotFoundException('Solicitação não encontrada.');
     return request;
+  }
+
+  /**
+   * Reverte a aprovação de um reembolso: cria estorno no ledger
+   * e retorna o status para PENDING, permitindo reavaliação.
+   */
+  async revertApproval(id: string): Promise<ReimbursementRequest> {
+    return await this.dataSource.transaction(async (manager) => {
+      const request = await manager.findOne(ReimbursementRequest, {
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+        loadEagerRelations: false,
+      });
+      if (!request) throw new NotFoundException('Solicitação não encontrada.');
+
+      if (request.status !== ReimbursementStatus.APPROVED) {
+        throw new BadRequestException(
+          'Apenas reembolsos aprovados podem ser revertidos.',
+        );
+      }
+
+      const reimbursementsAccount =
+        await this.ledgerService.getOrCreateCommunityAccount(
+          REIMBURSEMENTS_ACCOUNT_KEY,
+          'Reembolsos Pagos',
+          AccountType.EXPENSE,
+        );
+
+      try {
+        const ts = Date.now();
+        await this.ledgerService.recordTransaction(
+          reimbursementsAccount.id,
+          request.accountId,
+          request.amount,
+          `Estorno de reembolso (reversão de aprovação): ${request.description}`,
+          `reimbursement-reversal:${request.id}:${ts}`,
+        );
+      } catch (error) {
+        this.logger.error(
+          `Falha ao registrar estorno de reembolso no ledger: ${error}`,
+        );
+        throw error;
+      }
+
+      request.status = ReimbursementStatus.PENDING;
+      request.reviewedById = null;
+      request.internalReceiptUrl = null;
+      request.reviewNote = null;
+      request.reviewedAt = null;
+
+      return manager.save(request);
+    });
+  }
+
+  /**
+   * Exclui um reembolso. Se já aprovado, cria estorno no ledger.
+   * Pendentes e rejeitados são simplesmente removidos.
+   */
+  async deleteRequest(id: string): Promise<void> {
+    const request = await this.repo.findOne({
+      where: { id },
+      relations: ['account'],
+    });
+    if (!request) throw new NotFoundException('Solicitação não encontrada.');
+
+    if (request.status === ReimbursementStatus.APPROVED) {
+      const reimbursementsAccount =
+        await this.ledgerService.getOrCreateCommunityAccount(
+          REIMBURSEMENTS_ACCOUNT_KEY,
+          'Reembolsos Pagos',
+          AccountType.EXPENSE,
+        );
+
+      try {
+        const ts = Date.now();
+        await this.ledgerService.recordTransaction(
+          reimbursementsAccount.id,
+          request.accountId,
+          request.amount,
+          `Estorno de reembolso: ${request.description}`,
+          `reimbursement-deletion:${request.id}:${ts}`,
+        );
+      } catch (error) {
+        this.logger.error(`Falha ao registrar estorno de reembolso no ledger: ${error}`);
+        throw error;
+      }
+    }
+
+    await this.repo.delete(id);
   }
 
   /**

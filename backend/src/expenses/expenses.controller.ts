@@ -9,6 +9,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
+import { CreateExpenseDto } from './dto/create-expense.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -27,13 +28,7 @@ export class ExpensesController {
   @Post()
   createExpense(
     @Req() req: { user: JwtPayload },
-    @Body()
-    dto: {
-      description: string;
-      amount: number;
-      targetProjectId: string;
-      receiptUrl?: string; // URL pública do comprovante
-    },
+    @Body() dto: CreateExpenseDto,
   ) {
     return this.expensesService.createExpense(
       dto.description,

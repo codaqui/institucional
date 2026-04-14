@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
   ParseUUIDPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -119,6 +120,9 @@ export class VendorsController {
     description: 'Usado pela página de transparência para resolver vendor-payment:<id>.',
   })
   getPaymentByReference(@Param('refId') refId: string) {
+    if (!/^vendor-payment:[0-9a-f-]{36}$/.test(refId)) {
+      throw new BadRequestException('Formato de referência inválido. Esperado: vendor-payment:<uuid>');
+    }
     return this.vendorsService.findPaymentByReferenceId(refId);
   }
 
@@ -130,6 +134,15 @@ export class VendorsController {
   @ApiResponse({ status: 201, description: 'Pagamento registrado e lançado no ledger.' })
   createPayment(@Body() dto: CreateVendorPaymentDto, @Req() req: { user: JwtPayload }) {
     return this.vendorsService.createPayment(dto, req.user.sub);
+  }
+
+  @Delete('payments/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Excluir pagamento (com estorno no ledger) [admin]' })
+  deletePayment(@Param('id', ParseUUIDPipe) id: string) {
+    return this.vendorsService.deletePayment(id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
