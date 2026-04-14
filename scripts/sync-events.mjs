@@ -495,7 +495,25 @@ async function resolveDiscordEvents(config, existingEvents) {
       }
     });
 
-    return payload.map((event) => mapDiscordEvent(event, config));
+    const freshEvents = payload.map((event) => mapDiscordEvent(event, config));
+    const freshById = new Map(freshEvents.map((e) => [e.id, e]));
+
+    // Merge: keep existing past events that are no longer in the API.
+    // Discord only returns scheduled/active events — once an event ends,
+    // it disappears from the API. We preserve those as "completed".
+    const now = new Date();
+    for (const existing of existingEvents) {
+      if (!freshById.has(existing.id)) {
+        // Mark as completed if the event has already started
+        const startAt = new Date(existing.startAt);
+        if (startAt <= now && existing.status !== "canceled") {
+          existing.status = "completed";
+        }
+        freshById.set(existing.id, existing);
+      }
+    }
+
+    return [...freshById.values()];
   } catch (error) {
     console.warn(`Skipping live Discord sync for ${config.source}/${config.sourceId}:`, error.message);
     return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
