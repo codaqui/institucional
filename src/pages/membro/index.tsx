@@ -298,9 +298,9 @@ export default function MembroPage(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
 
   const origin =
-    typeof globalThis.window !== "undefined"
-      ? globalThis.location.origin
-      : "";
+    globalThis.window === undefined
+      ? ""
+      : globalThis.location.origin;
   const vanityUrl = user ? `${origin}/@${user.handle}` : "";
 
   const copyVanityUrl = () => {

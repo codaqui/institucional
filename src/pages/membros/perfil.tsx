@@ -340,7 +340,7 @@ export default function PerfilPage(): React.JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>
-  const isBrowser = typeof globalThis.window !== "undefined";
+  const isBrowser = globalThis.window !== undefined;
   const params = isBrowser
     ? new URLSearchParams(globalThis.location.search)
     : null;
