@@ -92,7 +92,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run Trivy (frontend — vuln + secret + misconfig)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -112,7 +112,7 @@ jobs:
           category: 'trivy-frontend'
 
       - name: Run Trivy (backend — vuln + secret + misconfig)
-        uses: aquasecurity/trivy-action@0.33.1
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           scan-type: 'fs'
           scan-ref: './backend'
