@@ -65,9 +65,13 @@ export default function FornecedoresPage(): React.JSX.Element {
 
   const fetchVendors = useCallback(() => {
     authFetch(`${apiUrl}/vendors`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => {
         setVendors(Array.isArray(data) ? data : []);
+        setError("");
         setLoading(false);
       })
       .catch(() => {

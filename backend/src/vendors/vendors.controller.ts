@@ -19,6 +19,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import type { JwtPayload } from '../auth/jwt.strategy';
 import { VendorsService } from './vendors.service';
 import { CreateVendorDto, UpdateVendorDto } from './dto/vendor.dto';
 import { CreateVendorPaymentDto } from './dto/vendor-payment.dto';
@@ -127,7 +128,7 @@ export class VendorsController {
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: '🔒 Registrar pagamento a fornecedor [admin]' })
   @ApiResponse({ status: 201, description: 'Pagamento registrado e lançado no ledger.' })
-  createPayment(@Body() dto: CreateVendorPaymentDto, @Req() req: any) {
+  createPayment(@Body() dto: CreateVendorPaymentDto, @Req() req: { user: JwtPayload }) {
     return this.vendorsService.createPayment(dto, req.user.sub);
   }
 
@@ -150,7 +151,7 @@ export class VendorsController {
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: '🔒 Criar template [admin]' })
   @ApiResponse({ status: 201, description: 'Template criado.' })
-  createTemplate(@Body() dto: CreateTemplateDto, @Req() req: any) {
+  createTemplate(@Body() dto: CreateTemplateDto, @Req() req: { user: JwtPayload }) {
     return this.vendorsService.createTemplate(dto, req.user.sub);
   }
 

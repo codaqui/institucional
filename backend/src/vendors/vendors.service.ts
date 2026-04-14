@@ -131,6 +131,8 @@ export class VendorsService {
     });
     if (!sourceAccount)
       throw new BadRequestException('Conta de origem não encontrada.');
+    if (sourceAccount.type === AccountType.EXTERNAL)
+      throw new BadRequestException('Conta de origem inválida para pagamento a fornecedor.');
 
     const payment = this.paymentRepo.create({
       vendorId: dto.vendorId,
@@ -258,6 +260,8 @@ export class VendorsService {
     const sourceAccount = await this.accountRepo.findOneBy({ id: dto.sourceAccountId });
     if (!sourceAccount)
       throw new BadRequestException('Conta de origem não encontrada.');
+    if (sourceAccount.type === AccountType.EXTERNAL)
+      throw new BadRequestException('Conta de origem inválida para template de pagamento.');
 
     const template = this.templateRepo.create({
       ...dto,

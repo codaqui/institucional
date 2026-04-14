@@ -133,6 +133,8 @@ export default function PagamentosPage(): React.JSX.Element {
         authFetch(`${apiUrl}/vendors/templates`),
         authFetch(`${apiUrl}/vendors/payments`),
       ]);
+      const failed = [vRes, aRes, tRes, pRes].find((r) => !r.ok);
+      if (failed) throw new Error(`HTTP ${failed.status}`);
       const [vData, aData, tData, pData] = await Promise.all([
         vRes.json(),
         aRes.json(),
@@ -143,6 +145,7 @@ export default function PagamentosPage(): React.JSX.Element {
       setAccounts(Array.isArray(aData) ? aData : []);
       setTemplates(Array.isArray(tData) ? tData : []);
       setPayments(Array.isArray(pData) ? pData : []);
+      setError("");
     } catch {
       setError("Erro ao carregar dados.");
     } finally {
