@@ -23,6 +23,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PaymentIcon from "@mui/icons-material/Payment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ReplayIcon from "@mui/icons-material/Replay";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -32,6 +33,7 @@ import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
+import { formatDocument } from "../../utils/document";
 
 interface Account {
   id: string;
@@ -93,7 +95,7 @@ const emptyForm: PaymentForm = {
 };
 
 function vendorLabel(v: Vendor): string {
-  return v.document ? `${v.name} (${v.document})` : v.name;
+  return v.document ? `${v.name} (${formatDocument(v.document)})` : v.name;
 }
 
 export default function PagamentosPage(): React.JSX.Element {
@@ -124,6 +126,10 @@ export default function PagamentosPage(): React.JSX.Element {
   const [tplSubmitError, setTplSubmitError] = useState("");
   const [tplDeleteId, setTplDeleteId] = useState<string | null>(null);
   const [tplDeleteLoading, setTplDeleteLoading] = useState(false);
+
+  // Payment delete state
+  const [payDeleteId, setPayDeleteId] = useState<string | null>(null);
+  const [payDeleteLoading, setPayDeleteLoading] = useState(false);
 
   const fetchAll = useCallback(async () => {
     try {
@@ -170,6 +176,20 @@ export default function PagamentosPage(): React.JSX.Element {
       description: t.description,
       receiptUrl: "",
       internalReceiptUrl: "",
+    });
+    setSuccess(false);
+    setSubmitError("");
+    setTab(0);
+  };
+
+  const reusePayment = (p: VendorPayment) => {
+    setForm({
+      vendorId: p.vendorId,
+      sourceAccountId: p.sourceAccountId,
+      amount: (p.amount / 100).toFixed(2),
+      description: p.description,
+      receiptUrl: p.receiptUrl ?? "",
+      internalReceiptUrl: p.internalReceiptUrl ?? "",
     });
     setSuccess(false);
     setSubmitError("");
@@ -409,9 +429,31 @@ export default function PagamentosPage(): React.JSX.Element {
                           {p.description}
                         </Typography>
                       </Box>
-                      <Typography variant="h6" fontWeight={700} color="error.main">
-                        {formatCurrency(p.amount)}
-                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography variant="h6" fontWeight={700} color="error.main">
+                          {formatCurrency(p.amount)}
+                        </Typography>
+                        <Tooltip title="Reutilizar dados">
+                          <IconButton
+                            size="small"
+                            aria-label="Reutilizar pagamento"
+                            color="primary"
+                            onClick={() => reusePayment(p)}
+                          >
+                            <ReplayIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="Excluir (com estorno)">
+                          <IconButton
+                            size="small"
+                            aria-label="Excluir pagamento"
+                            color="error"
+                            onClick={() => setPayDeleteId(p.id)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
                     </Box>
                     <Box display="flex" gap={1} mt={1} flexWrap="wrap" alignItems="center">
                       {p.paidBy && (
@@ -662,6 +704,33 @@ export default function PagamentosPage(): React.JSX.Element {
             />
           </Box>
         )}
+
+        {/* Confirmação de exclusão de pagamento */}
+        <ModalConfirm
+          open={!!payDeleteId}
+          title="Excluir pagamento?"
+          description="O pagamento será excluído e um lançamento de estorno será criado no ledger para reverter a operação."
+          onConfirm={async () => {
+            if (!payDeleteId) return;
+            setPayDeleteLoading(true);
+            try {
+              const res = await authFetch(`${apiUrl}/vendors/payments/${payDeleteId}`, { method: "DELETE" });
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                setError(err.message || "Erro ao excluir pagamento.");
+              }
+              setPayDeleteId(null);
+              fetchAll();
+            } catch {
+              setError("Erro ao excluir pagamento.");
+              setPayDeleteId(null);
+            } finally {
+              setPayDeleteLoading(false);
+            }
+          }}
+          onClose={() => setPayDeleteId(null)}
+          loading={payDeleteLoading}
+        />
 
         {/* Confirmação */}
         <ModalConfirm

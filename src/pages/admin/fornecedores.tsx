@@ -24,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
+import { formatDocument, stripToDigits } from "../../utils/document";
 
 interface Vendor {
   id: string;
@@ -98,7 +99,11 @@ export default function FornecedoresPage(): React.JSX.Element {
 
   const openEdit = (v: Vendor) => {
     setEditingId(v.id);
-    setForm({ name: v.name, document: v.document ?? "", website: v.website ?? "" });
+    setForm({
+      name: v.name,
+      document: stripToDigits(v.document ?? ""),
+      website: v.website ?? "",
+    });
     setSubmitError("");
     setDialogOpen(true);
   };
@@ -193,7 +198,7 @@ export default function FornecedoresPage(): React.JSX.Element {
                       </Typography>
                       {v.document && (
                         <Typography variant="body2" color="text.secondary">
-                          {v.document}
+                          {formatDocument(v.document)}
                         </Typography>
                       )}
                     </Box>
@@ -252,10 +257,19 @@ export default function FornecedoresPage(): React.JSX.Element {
             <TextField
               fullWidth
               label="CNPJ / CPF"
-              value={form.document}
-              onChange={(e) => setForm({ ...form, document: e.target.value })}
+              value={formatDocument(form.document)}
+              onChange={(e) => {
+                const digits = stripToDigits(e.target.value).slice(0, 14);
+                setForm({ ...form, document: digits });
+              }}
               margin="normal"
-              placeholder="44.593.429/0001-05"
+              placeholder="000.000.000-00 ou 00.000.000/0000-00"
+              helperText={
+                form.document.length > 0 && form.document.length !== 11 && form.document.length !== 14
+                  ? `${form.document.length} dígitos — CPF tem 11, CNPJ tem 14`
+                  : undefined
+              }
+              inputProps={{ inputMode: "numeric" }}
             />
             <TextField
               fullWidth

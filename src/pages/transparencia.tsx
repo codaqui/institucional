@@ -43,6 +43,7 @@ import CodeIcon from "@mui/icons-material/Code";
 import Link from "@docusaurus/Link";
 import { communities } from "../data/communities";
 import PageHero from "../components/PageHero";
+import { formatDocument } from "../utils/document";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -467,7 +468,7 @@ function TransactionDetailDialog({
                   {vendorInfo.vendor.name}
                   {vendorInfo.vendor.document && (
                     <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      ({vendorInfo.vendor.document})
+                      ({formatDocument(vendorInfo.vendor.document)})
                     </Typography>
                   )}
                 </Typography>
