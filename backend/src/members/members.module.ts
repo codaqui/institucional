@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
+import { Transaction } from '../ledger/entities/transaction.entity';
 import { MembersService } from './members.service';
 import { MembersController } from './members.controller';
 import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Member]), AuditModule],
+  imports: [TypeOrmModule.forFeature([Member, Transaction]), AuditModule],
   controllers: [MembersController],
   providers: [MembersService],
   exports: [MembersService],

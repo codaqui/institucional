@@ -176,6 +176,7 @@ const config: Config = {
           type: "dropdown",
           items: [
             { label: "Equipe", to: "/sobre/equipe" },
+            { label: "Membros", to: "/membros" },
             { label: "Associação", to: "/sobre/ong" },
             { label: "Insights", to: "/sobre/insights" },
             { label: "Transparência", to: "/transparencia" },

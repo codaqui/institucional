@@ -22,6 +22,8 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import EditIcon from "@mui/icons-material/Edit";
 import GitHubIcon from "@mui/icons-material/GitHub";
@@ -32,6 +34,10 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import QrCode2Icon from "@mui/icons-material/QrCode2";
+import PersonIcon from "@mui/icons-material/Person";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import { QRCodeSVG } from "qrcode.react";
 import { useAuth } from "../../hooks/useAuth";
 
 interface Donation {
@@ -288,6 +294,21 @@ export default function MembroPage(): React.JSX.Element {
   const [receiptUrl, setReceiptUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [showQr, setShowQr] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const origin =
+    globalThis.window === undefined
+      ? ""
+      : globalThis.location.origin;
+  const vanityUrl = user ? `${origin}/@${user.handle}` : "";
+
+  const copyVanityUrl = () => {
+    navigator.clipboard.writeText(vanityUrl).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   const fetchReimbursements = useCallback(() => {
     setReimbLoading(true);
@@ -405,10 +426,21 @@ export default function MembroPage(): React.JSX.Element {
                 <GitHubIcon sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }} />
                 @{user!.handle}
               </Typography>
-              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", alignItems: "center" }}>
                 <Button variant="outlined" size="small" startIcon={<EditIcon />} href="/membro/editar">
                   Editar perfil
                 </Button>
+                <Button
+                  variant="outlined" size="small" startIcon={<PersonIcon />}
+                  href={`/@${user!.handle}`}
+                >
+                  Ver perfil público
+                </Button>
+                <Tooltip title="Exibir QR Code do perfil">
+                  <IconButton size="small" onClick={() => setShowQr(true)} aria-label="Exibir QR Code">
+                    <QrCode2Icon />
+                  </IconButton>
+                </Tooltip>
                 {(user!.role === "admin" || user!.role === "finance-analyzer") && (
                   <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
                     Painel de Reembolsos
@@ -421,9 +453,57 @@ export default function MembroPage(): React.JSX.Element {
                   Sair
                 </Button>
               </Box>
+
+              {/* URL pública */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1.5 }}>
+                <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+                  {vanityUrl}
+                </Typography>
+                <Tooltip title={copied ? "Copiado!" : "Copiar URL"}>
+                  <IconButton size="small" onClick={copyVanityUrl} aria-label="Copiar URL do perfil">
+                    <ContentCopyIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
           </CardContent>
         </Card>
+
+        {/* ── QR Code Dialog ── */}
+        <Dialog open={showQr} onClose={() => setShowQr(false)} maxWidth="xs" fullWidth>
+          <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>
+            Seu QR Code
+          </DialogTitle>
+          <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, pb: 3 }}>
+            <Box sx={{ bgcolor: "white", p: 2, borderRadius: 2, display: "inline-block" }}>
+              <QRCodeSVG
+                value={vanityUrl}
+                size={200}
+                level="M"
+                includeMargin={false}
+                fgColor="#16a34a"
+              />
+            </Box>
+            <Typography variant="body2" color="text.secondary" textAlign="center">
+              Escaneie para acessar seu perfil público
+            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Typography variant="caption" fontFamily="monospace" color="text.secondary">
+                {vanityUrl}
+              </Typography>
+              <Tooltip title={copied ? "Copiado!" : "Copiar"}>
+                <IconButton size="small" onClick={copyVanityUrl} aria-label="Copiar URL">
+                  <ContentCopyIcon sx={{ fontSize: 14 }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+            <Button onClick={() => setShowQr(false)} variant="outlined">
+              Fechar
+            </Button>
+          </DialogActions>
+        </Dialog>
 
         <Divider sx={{ my: 4 }} />
 

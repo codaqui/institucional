@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   Req,
+  BadRequestException,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from './entities/member.entity';
+import { UpdateMemberDto } from './dto/update-member.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 
@@ -39,6 +41,14 @@ export class MembersController {
     );
   }
 
+  @Get('members/donors')
+  findDonors(@Query('page') page?: number, @Query('limit') limit?: number) {
+    return this.membersService.findDonors(
+      page ? Number.parseInt(String(page), 10) : 1,
+      limit ? Number.parseInt(String(limit), 10) : 50,
+    );
+  }
+
   // ── Membro logado ─────────────────────────────────────────────────────────
   // Declarado ANTES de GET /members/:id para não ser capturado pelo parâmetro.
 
@@ -53,7 +63,7 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   updateMe(
     @Req() req: { user: JwtPayload },
-    @Body() body: { bio?: string; linkedinUrl?: string },
+    @Body() body: UpdateMemberDto,
   ) {
     return this.membersService.updateMeById(req.user.sub, body);
   }
@@ -61,11 +71,30 @@ export class MembersController {
   // ── Por ID (público) ──────────────────────────────────────────────────────
   // Deve vir DEPOIS de /members/me.
 
+  private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+  @Get('members/by-handle/:handle')
+  async findByHandle(@Param('handle') handle: string) {
+    if (!MembersController.HANDLE_REGEX.test(handle)) {
+      throw new BadRequestException('Handle inválido.');
+    }
+    const member = await this.membersService.findByHandle(handle);
+    if (!member) throw new NotFoundException('Membro não encontrado.');
+    return member;
+  }
+
   @Get('members/:id')
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
     const member = await this.membersService.findOne(id);
     if (!member) throw new NotFoundException('Membro não encontrado.');
     return member;
+  }
+
+  @Get('members/:id/donations')
+  async findMemberDonations(@Param('id', ParseUUIDPipe) id: string) {
+    const member = await this.membersService.findOne(id);
+    if (!member) throw new NotFoundException('Membro não encontrado.');
+    return this.membersService.findMemberDonations(id);
   }
 
   // ── Admin ─────────────────────────────────────────────────────────────────
