@@ -132,6 +132,15 @@ export class VendorsController {
     return this.vendorsService.createPayment(dto, req.user.sub);
   }
 
+  @Delete('payments/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Excluir pagamento (com estorno no ledger) [admin]' })
+  deletePayment(@Param('id', ParseUUIDPipe) id: string) {
+    return this.vendorsService.deletePayment(id);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // ADMIN — TEMPLATES
   // ═══════════════════════════════════════════════════════════════════════════

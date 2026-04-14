@@ -245,6 +245,36 @@ export class VendorsService {
     };
   }
 
+  /**
+   * Exclui um pagamento a fornecedor e cria uma transação de estorno no ledger.
+   *
+   * Contabilidade: cria uma transação reversa (vendor → source) para manter
+   * o histórico completo no ledger. O registro do pagamento é removido.
+   */
+  async deletePayment(id: string): Promise<void> {
+    const payment = await this.paymentRepo.findOne({
+      where: { id },
+      relations: ['vendor', 'sourceAccount'],
+    });
+    if (!payment) throw new NotFoundException('Pagamento não encontrado.');
+
+    const amountBrl = payment.amount / 100;
+    try {
+      await this.ledgerService.recordTransaction(
+        payment.vendor.accountId,
+        payment.sourceAccountId,
+        amountBrl,
+        `Estorno: ${payment.vendor.name} — ${payment.description}`,
+        `vendor-payment-reversal:${payment.id}`,
+      );
+    } catch (error) {
+      this.logger.error(`Falha ao registrar estorno no ledger: ${error}`);
+      throw error;
+    }
+
+    await this.paymentRepo.delete(id);
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════
   // TRANSACTION TEMPLATES
   // ═══════════════════════════════════════════════════════════════════════════
