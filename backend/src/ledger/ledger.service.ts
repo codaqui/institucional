@@ -108,16 +108,59 @@ export class LedgerService {
     accountId: string,
     page = 1,
     limit = 10,
+    filters?: { type?: string; days?: number; search?: string },
   ): Promise<PaginatedResult<Transaction>> {
     const skip = (page - 1) * limit;
 
-    const [data, total] = await this.txRepo
+    const qb = this.txRepo
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
       .leftJoinAndSelect('tx.destinationAccount', 'dst')
       .where('tx.sourceAccountId = :id OR tx.destinationAccountId = :id', {
         id: accountId,
-      })
+      });
+
+    // Type filter
+    if (filters?.type) {
+      switch (filters.type) {
+        case 'donation':
+          qb.andWhere(
+            "(tx.referenceId LIKE 'cs_%' OR tx.description ILIKE 'doação%')",
+          );
+          break;
+        case 'reimbursement':
+          qb.andWhere(
+            "(tx.referenceId LIKE 'reimbursement:%' OR tx.description ILIKE 'reembolso%')",
+          );
+          break;
+        case 'vendor-payment':
+          qb.andWhere(
+            "(tx.referenceId LIKE 'vendor-payment:%' OR tx.description ILIKE 'pagamento a fornecedor%')",
+          );
+          break;
+        case 'transfer':
+          qb.andWhere(
+            "(tx.referenceId LIKE 'transfer:%' OR tx.description ILIKE 'transfer%')",
+          );
+          break;
+      }
+    }
+
+    // Date filter
+    if (filters?.days) {
+      const since = new Date();
+      since.setDate(since.getDate() - filters.days);
+      qb.andWhere('tx.createdAt >= :since', { since });
+    }
+
+    // Search filter
+    if (filters?.search) {
+      qb.andWhere('tx.description ILIKE :search', {
+        search: `%${filters.search}%`,
+      });
+    }
+
+    const [data, total] = await qb
       .orderBy('tx.createdAt', 'DESC')
       .skip(skip)
       .take(limit)
@@ -158,5 +201,142 @@ export class LedgerService {
     );
 
     return result;
+  }
+
+  async getTransparencyStats(): Promise<{
+    totalReceived: number;
+    totalExpenses: number;
+    totalTransactions: number;
+    uniqueDonors: number;
+    recentDonors: Array<{
+      handle: string;
+      communityName: string;
+      date: string;
+      amount: number;
+    }>;
+    communityStats: Array<{
+      projectKey: string;
+      name: string;
+      totalIn: number;
+      totalOut: number;
+      txCount: number;
+    }>;
+  }> {
+    const wallets = await this.accountRepo
+      .createQueryBuilder('acc')
+      .where('acc.projectKey IS NOT NULL')
+      .andWhere('acc.type = :type', { type: AccountType.VIRTUAL_WALLET })
+      .getMany();
+
+    const walletIds = wallets.map((w) => w.id);
+
+    if (walletIds.length === 0) {
+      return {
+        totalReceived: 0,
+        totalExpenses: 0,
+        totalTransactions: 0,
+        uniqueDonors: 0,
+        recentDonors: [],
+        communityStats: [],
+      };
+    }
+
+    // Total received (credits to wallets = donations + transfers in)
+    const { sum: totalReceived } = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('COALESCE(SUM(tx.amount), 0)', 'sum')
+      .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .getRawOne();
+
+    // Total expenses (debits from wallets = reimbursements + vendor payments + transfers out)
+    const { sum: totalExpenses } = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('COALESCE(SUM(tx.amount), 0)', 'sum')
+      .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
+      .getRawOne();
+
+    // Total transactions involving wallets
+    const { count: totalTransactions } = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('COUNT(tx.id)', 'count')
+      .where(
+        'tx.destinationAccountId IN (:...ids) OR tx.sourceAccountId IN (:...ids)',
+        { ids: walletIds },
+      )
+      .getRawOne();
+
+    // Unique donors — extract handles from descriptions like "Doação de @handle"
+    const donorRows: Array<{ handle: string }> = await this.txRepo
+      .createQueryBuilder('tx')
+      .select("DISTINCT SUBSTRING(tx.description FROM 'Doação de (@[\\w.-]+)')", 'handle')
+      .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .andWhere("tx.description LIKE 'Doação de @%'")
+      .getRawMany();
+    const uniqueDonors = donorRows.filter((r) => r.handle).length;
+
+    // Recent donors (last 10)
+    const recentDonorRows: Array<{
+      handle: string;
+      communityName: string;
+      date: string;
+      amount: number;
+    }> = await this.txRepo
+      .createQueryBuilder('tx')
+      .leftJoin('tx.destinationAccount', 'dst')
+      .select([
+        "SUBSTRING(tx.description FROM 'Doação de (@[\\w.-]+)') AS handle",
+        'dst.name AS "communityName"',
+        'tx.createdAt AS date',
+        'tx.amount AS amount',
+      ])
+      .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .andWhere("tx.description LIKE 'Doação de @%'")
+      .orderBy('tx.createdAt', 'DESC')
+      .limit(10)
+      .getRawMany();
+    const recentDonors = recentDonorRows.filter((r) => r.handle);
+
+    // Per-community stats
+    const communityStats = await Promise.all(
+      wallets.map(async (w) => {
+        const { sum: totalIn } = await this.txRepo
+          .createQueryBuilder('tx')
+          .select('COALESCE(SUM(tx.amount), 0)', 'sum')
+          .where('tx.destinationAccountId = :id', { id: w.id })
+          .getRawOne();
+
+        const { sum: totalOut } = await this.txRepo
+          .createQueryBuilder('tx')
+          .select('COALESCE(SUM(tx.amount), 0)', 'sum')
+          .where('tx.sourceAccountId = :id', { id: w.id })
+          .getRawOne();
+
+        const { count: txCount } = await this.txRepo
+          .createQueryBuilder('tx')
+          .select('COUNT(tx.id)', 'count')
+          .where(
+            'tx.destinationAccountId = :id OR tx.sourceAccountId = :id',
+            { id: w.id },
+          )
+          .getRawOne();
+
+        return {
+          projectKey: w.projectKey,
+          name: w.name,
+          totalIn: Number.parseFloat(totalIn) || 0,
+          totalOut: Number.parseFloat(totalOut) || 0,
+          txCount: Number.parseInt(txCount, 10) || 0,
+        };
+      }),
+    );
+
+    return {
+      totalReceived: Number.parseFloat(totalReceived) || 0,
+      totalExpenses: Number.parseFloat(totalExpenses) || 0,
+      totalTransactions: Number.parseInt(totalTransactions, 10) || 0,
+      uniqueDonors,
+      recentDonors,
+      communityStats,
+    };
   }
 }

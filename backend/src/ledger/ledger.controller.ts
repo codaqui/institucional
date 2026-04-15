@@ -190,6 +190,18 @@ export class LedgerController {
     return this.ledgerService.getCommunityBalances();
   }
 
+  @Get('transparency-stats')
+  @ApiOperation({
+    summary: 'Estatísticas agregadas para o Portal de Transparência',
+    description:
+      'Retorna totais de recebimentos, despesas, transações, doadores únicos, ' +
+      'doadores recentes e estatísticas por comunidade. Endpoint público.',
+  })
+  @ApiResponse({ status: 200, description: 'Estatísticas de transparência.' })
+  getTransparencyStats() {
+    return this.ledgerService.getTransparencyStats();
+  }
+
   @Get('accounts/:id/balance')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -277,6 +289,7 @@ export class LedgerController {
       id,
       query.page ?? 1,
       query.limit ?? 10,
+      { type: query.type, days: query.days, search: query.search },
     );
   }
 }
