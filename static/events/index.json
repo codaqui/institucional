@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-15T12:13:08.108Z",
+  "generatedAt": "2026-04-15T13:29:23.073Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-15T12:13:08.108Z",
+      "generatedAt": "2026-04-15T13:29:23.073Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 9
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-15T12:13:08.108Z",
+      "generatedAt": "2026-04-15T13:29:23.073Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Community",
       "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-15T12:13:08.108Z",
+      "generatedAt": "2026-04-15T13:29:23.073Z",
       "sourceKey": "bevy:cloud-native-maringa",
       "indexPath": "/events/bevy/cloud-native-maringa/index.json",
       "itemCount": 1
@@ -10314,7 +10314,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 44,
+      "userCount": 45,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/2/b/highres_533392011.jpeg",
@@ -10609,7 +10609,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 26,
+      "userCount": 27,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/0/a/highres_533391978.jpeg",
