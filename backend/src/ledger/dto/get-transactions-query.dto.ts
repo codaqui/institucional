@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class GetTransactionsQueryDto {
   @ApiPropertyOptional({
@@ -28,4 +28,30 @@ export class GetTransactionsQueryDto {
   @Min(1)
   @Max(50)
   limit?: number = 10;
+
+  @ApiPropertyOptional({
+    description: 'Filtro por tipo (donation, reimbursement, vendor-payment, transfer)',
+    example: 'donation',
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtro por período em dias (ex: 30 = último mês)',
+    example: 30,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  days?: number;
+
+  @ApiPropertyOptional({
+    description: 'Busca na descrição da transação',
+    example: 'doação',
+  })
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

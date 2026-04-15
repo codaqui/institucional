@@ -33,6 +33,8 @@ import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LockIcon from "@mui/icons-material/Lock";
+import StarIcon from "@mui/icons-material/Star";
+import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
 import { communities } from "../../data/communities";
 import { useAuth } from "../../hooks/useAuth";
 import PageHero from "../../components/PageHero";
@@ -50,9 +52,9 @@ const PRESET_AMOUNTS = [
 type RecurringInterval = "month" | "year";
 type DonationMode = "once" | RecurringInterval;
 
-const DONATION_MODES: { value: DonationMode; label: string; description: string }[] = [
+const DONATION_MODES: { value: DonationMode; label: string; description: string; recommended?: boolean }[] = [
   { value: "once",  label: "Única",   description: "Pagamento único, sem compromisso." },
-  { value: "month", label: "Mensal",  description: "Cobrança automática todo mês." },
+  { value: "month", label: "Mensal",  description: "Cobrança automática todo mês. Cancele quando quiser.", recommended: true },
   { value: "year",  label: "Anual",   description: "Cobrança anual com menor fricção." },
 ];
 
@@ -186,7 +188,7 @@ export default function ApoiarPage(): React.JSX.Element {
   // ── Estado do formulário ──
   const [target, setTarget] = useState<string>("tesouro-geral");
   const [amount, setAmount] = useState<number>(2500);
-  const [mode, setMode] = useState<DonationMode>("once");
+  const [mode, setMode] = useState<DonationMode>("month");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -198,7 +200,7 @@ export default function ApoiarPage(): React.JSX.Element {
   const selected = DONATION_TARGETS.find((t) => t.id === target) ?? TESOURO;
   const amountLabel = PRESET_AMOUNTS.find((a) => a.cents === amount)?.label ?? formatBRL(amount / 100);
   const isRecurring = mode !== "once";
-  const requiresLogin = isRecurring || (amount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn);
+  const requiresLogin = amount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
 
   // ── Busca saldos ──
   const fetchBalances = useCallback(() => {
@@ -398,7 +400,7 @@ export default function ApoiarPage(): React.JSX.Element {
             <Typography variant="h5" fontWeight={800} gutterBottom>Fazer uma Doação</Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
               Selecione a carteira à esquerda, o valor e a frequência. Doações anônimas aceitas até{" "}
-              <strong>R$ 100</strong> (única).
+              <strong>R$ 100</strong> (única ou recorrente).
             </Typography>
 
             {/* Destino selecionado */}
@@ -422,16 +424,58 @@ export default function ApoiarPage(): React.JSX.Element {
               sx={{ mb: 0.5, "& .MuiToggleButton-root": { px: 2.5, fontWeight: 600, textTransform: "none" } }}
             >
               {DONATION_MODES.map((m) => (
-                <ToggleButton key={m.value} value={m.value}>
+                <ToggleButton key={m.value} value={m.value} sx={m.recommended ? {
+                  "&.Mui-selected": { bgcolor: "primary.main", color: "common.white", "&:hover": { bgcolor: "primary.dark" } },
+                } : undefined}>
                   {m.value !== "once" && <AutorenewIcon sx={{ fontSize: "0.9rem", mr: 0.5 }} />}
                   {m.label}
+                  {m.recommended && (
+                    <StarIcon sx={{ fontSize: "0.75rem", ml: 0.5, color: mode === m.value ? "common.white" : "warning.main" }} />
+                  )}
                 </ToggleButton>
               ))}
             </ToggleButtonGroup>
-            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 2.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
               {modeConfig.description}
               {isRecurring && " Cancele a qualquer momento pelo Stripe."}
             </Typography>
+
+            {/* Nudge para mensal quando "Única" selecionada */}
+            <Collapse in={mode === "once"}>
+              <Box sx={{
+                display: "flex", alignItems: "center", gap: 1,
+                mb: 2, p: 1.5, borderRadius: 2,
+                bgcolor: "action.hover", border: "1px dashed", borderColor: "primary.light",
+              }}>
+                <TipsAndUpdatesIcon sx={{ color: "primary.main", fontSize: "1.1rem" }} />
+                <Typography variant="caption" color="text.secondary">
+                  <strong>Dica:</strong> apoio mensal gera impacto contínuo e pode ser cancelado a qualquer momento.{" "}
+                  <Box
+                    component="span"
+                    onClick={() => setMode("month")}
+                    sx={{ color: "primary.main", cursor: "pointer", fontWeight: 700, textDecoration: "underline" }}
+                  >
+                    Tornar mensal →
+                  </Box>
+                </Typography>
+              </Box>
+            </Collapse>
+
+            {/* Card de impacto quando recorrente */}
+            <Collapse in={isRecurring}>
+              <Box sx={{
+                display: "flex", alignItems: "center", gap: 1.5,
+                mb: 2, p: 1.5, borderRadius: 2,
+                bgcolor: "primary.main", color: "common.white",
+              }}>
+                <FavoriteIcon sx={{ fontSize: "1.2rem" }} />
+                <Typography variant="caption" fontWeight={600}>
+                  {mode === "month"
+                    ? `${amountLabel}/mês = ${formatBRL((amount * 12) / 100)}/ano de impacto contínuo 💚`
+                    : `${amountLabel}/ano de apoio contínuo para a comunidade 💚`}
+                </Typography>
+              </Box>
+            </Collapse>
 
             {/* ── Valor ── */}
             <Typography variant="overline" color="text.secondary" letterSpacing={1.5} sx={{ mb: 1, display: "block" }}>
@@ -440,25 +484,39 @@ export default function ApoiarPage(): React.JSX.Element {
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}>
               {PRESET_AMOUNTS.map((a) => {
                 const active = amount === a.cents;
-                const needsLoginHint = !isRecurring && a.cents > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
+                const needsLoginHint = a.cents > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
+                const isPopular = a.cents === 2500;
                 return (
-                  <Box
-                    key={a.cents}
-                    component="button"
-                    onClick={() => setAmount(a.cents)}
-                    sx={{
-                      px: 2.5, py: 0.9, fontWeight: 700, fontSize: "0.92rem",
-                      fontFamily: "inherit", borderRadius: 2, border: "2px solid",
-                      borderColor: active ? "primary.main" : "divider",
-                      bgcolor: active ? "primary.main" : "background.paper",
-                      color: active ? "common.white" : "text.primary",
-                      cursor: "pointer", display: "flex", alignItems: "center", gap: 0.5,
-                      transition: "all 0.15s ease",
-                      "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },
-                    }}
-                  >
-                    {a.label}
-                    {needsLoginHint && !active && <LockIcon sx={{ fontSize: "0.75rem", opacity: 0.5 }} />}
+                  <Box key={a.cents} sx={{ position: "relative" }}>
+                    {isPopular && (
+                      <Chip
+                        label="Popular"
+                        size="small"
+                        color="primary"
+                        sx={{
+                          position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
+                          fontSize: "0.6rem", height: 18, zIndex: 1,
+                          "& .MuiChip-label": { px: 0.8 },
+                        }}
+                      />
+                    )}
+                    <Box
+                      component="button"
+                      onClick={() => setAmount(a.cents)}
+                      sx={{
+                        px: 2.5, py: 0.9, fontWeight: 700, fontSize: "0.92rem",
+                        fontFamily: "inherit", borderRadius: 2, border: "2px solid",
+                        borderColor: active ? "primary.main" : "divider",
+                        bgcolor: active ? "primary.main" : "background.paper",
+                        color: active ? "common.white" : "text.primary",
+                        cursor: "pointer", display: "flex", alignItems: "center", gap: 0.5,
+                        transition: "all 0.15s ease",
+                        "&:hover": { borderColor: "primary.main", transform: "translateY(-1px)" },
+                      }}
+                    >
+                      {a.label}
+                      {needsLoginHint && !active && <LockIcon sx={{ fontSize: "0.75rem", opacity: 0.5 }} />}
+                    </Box>
                   </Box>
                 );
               })}
@@ -577,7 +635,7 @@ function IdentityStatus({ isLoggedIn, user, isRecurring, amount, login }: Identi
     );
   }
 
-  if (isRecurring) {
+  if (amount > ANONYMOUS_LIMIT_CENTS) {
     return (
       <Alert
         severity="info"
@@ -587,36 +645,19 @@ function IdentityStatus({ isLoggedIn, user, isRecurring, amount, login }: Identi
             Entrar
           </Button>
         }
-        sx={{ ".MuiAlert-message": { display: "flex", alignItems: "center" } }}
       >
-        Doações recorrentes requerem login para rastreabilidade.
+        Doações acima de R$ 100 requerem login para transparência fiscal.
       </Alert>
     );
   }
 
-  if (amount <= ANONYMOUS_LIMIT_CENTS) {
-    return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-        <Chip label="Doação anônima" size="small" variant="outlined" />
-        <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="text" sx={{ fontSize: "0.8rem" }}>
-          Ou entrar com GitHub
-        </Button>
-      </Box>
-    );
-  }
-
   return (
-    <Alert
-      severity="info"
-      icon={<LockIcon />}
-      action={
-        <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="outlined" color="inherit">
-          Entrar
-        </Button>
-      }
-    >
-      Doações acima de R$ 100 requerem login para transparência fiscal.
-    </Alert>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+      <Chip label={isRecurring ? "Assinatura anônima" : "Doação anônima"} size="small" variant="outlined" />
+      <Button size="small" startIcon={<GitHubIcon />} onClick={login} variant="text" sx={{ fontSize: "0.8rem" }}>
+        Ou entrar com GitHub
+      </Button>
+    </Box>
   );
 }
 

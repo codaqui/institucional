@@ -46,9 +46,8 @@ export class StripeService {
    *  - com recurring → mode: 'subscription' (mensal/anual)
    *
    * Regras de acesso:
-   *  - Pagamento único até R$ 100: aceito anônimo
-   *  - Pagamento único acima de R$ 100: requer memberId
-   *  - Subscription: always requer memberId (controlado no controller)
+   *  - Até R$ 100 (único ou recorrente): aceito anônimo
+   *  - Acima de R$ 100: requer memberId (controlado no controller)
    */
   async createCheckoutSession(dto: CreateCheckoutDto) {
     const {

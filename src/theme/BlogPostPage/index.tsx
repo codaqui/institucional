@@ -18,10 +18,10 @@ import type { Props } from "@theme/BlogPostPage";
 function BlogPostPageContent({
   sidebar,
   children,
-}: {
+}: Readonly<{
   sidebar: BlogSidebar;
   children: ReactNode;
-}): ReactNode {
+}>): ReactNode {
   const { metadata, toc } = useBlogPost();
   const { nextItem, prevItem, frontMatter } = metadata;
   const {

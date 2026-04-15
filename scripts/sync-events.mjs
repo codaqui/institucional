@@ -589,7 +589,7 @@ function mapBevyEvent(event, config) {
   ) || `Evento publicado por ${config.defaultHost}.`;
 
   return {
-    id: `bevy-${event.id || event.url?.split("/").filter(Boolean).pop() || Date.now()}`,
+    id: `bevy-${event.id || event.url?.split("/").filter(Boolean).findLast(() => true) || Date.now()}`,
     title: event.title,
     summary,
     startAt: event.start_date,
@@ -640,17 +640,10 @@ async function resolveBevyEvents(config, existingEvents, fullSync = false) {
     }
 
     let published, completed;
-    if (fullSync) {
-      [published, completed] = await Promise.all([
-        paginateBevyEvents(chapterId, "Published"),
-        paginateBevyEvents(chapterId, "Completed"),
-      ]);
-    } else {
-      [published, completed] = await Promise.all([
-        paginateBevyEvents(chapterId, "Published"),
-        paginateBevyEvents(chapterId, "Completed"),
-      ]);
-    }
+    [published, completed] = await Promise.all([
+      paginateBevyEvents(chapterId, "Published"),
+      paginateBevyEvents(chapterId, "Completed"),
+    ]);
 
     const freshById = new Map();
     for (const event of [...published, ...completed].map((e) => mapBevyEvent(e, config))) {

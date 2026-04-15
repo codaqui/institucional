@@ -26,6 +26,7 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import SchoolIcon from "@mui/icons-material/School";
 import PageHero from "../../components/PageHero";
+import InfoCard from "../../components/InfoCard";
 import { DISCORD_URL, WHATSAPP_URL } from "../../data/social";
 
 const GOOGLE_FORM_URL =
@@ -180,46 +181,18 @@ export default function EstudarPage(): React.JSX.Element {
           </Typography>
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Card
-                variant="outlined"
-                sx={{
-                  height: "100%",
-                  borderColor: "primary.main",
-                  "&:hover": { boxShadow: 3, transform: "translateY(-2px)", transition: "all 0.2s ease" },
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h6" fontWeight={700} color="primary.main" gutterBottom>
-                    Início de carreira ou transição
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Nosso formato de encontros em grupo é ideal para quem está dando os primeiros
-                    passos ou migrando de área. Não limitamos idade ou critério de entrada —
-                    apenas pedimos frequência e participação ativa.
-                  </Typography>
-                </CardContent>
-              </Card>
+              <InfoCard
+                title="Início de carreira ou transição"
+                description="Nosso formato de encontros em grupo é ideal para quem está dando os primeiros passos ou migrando de área. Não limitamos idade ou critério de entrada — apenas pedimos frequência e participação ativa."
+                borderColor="primary.main"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Card
-                variant="outlined"
-                sx={{
-                  height: "100%",
-                  borderColor: "primary.main",
-                  "&:hover": { boxShadow: 3, transform: "translateY(-2px)", transition: "all 0.2s ease" },
-                }}
-              >
-                <CardContent>
-                  <Typography variant="h6" fontWeight={700} color="primary.main" gutterBottom>
-                    Grupos de Estudo
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Para participantes com experiência intermediária ou avançada que queiram
-                    aprofundar temas específicos. Os grupos se reúnem para explorar conteúdos
-                    técnicos em maior profundidade.
-                  </Typography>
-                </CardContent>
-              </Card>
+              <InfoCard
+                title="Grupos de Estudo"
+                description="Para participantes com experiência intermediária ou avançada que queiram aprofundar temas específicos. Os grupos se reúnem para explorar conteúdos técnicos em maior profundidade."
+                borderColor="primary.main"
+              />
             </Grid>
           </Grid>
         </Box>
@@ -368,7 +341,7 @@ export default function EstudarPage(): React.JSX.Element {
                 {TURMAS.map((row, i) => {
                   const muted = row.instrutor === "A confirmar";
                   return (
-                    <TableRow key={i} hover>
+                    <TableRow key={`${row.mes}-${row.modalidade}`} hover>
                       <TableCell sx={muted ? { color: "text.disabled" } : undefined}>
                         {row.mes}
                       </TableCell>
@@ -403,8 +376,8 @@ export default function EstudarPage(): React.JSX.Element {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {GRUPOS_ESTUDO.map((row, i) => (
-                  <TableRow key={i} hover>
+                {GRUPOS_ESTUDO.map((row) => (
+                  <TableRow key={row.tema} hover>
                     <TableCell>{row.tema}</TableCell>
                     <TableCell>{row.mediador}</TableCell>
                   </TableRow>

@@ -17,7 +17,7 @@ function formatDate(date: string): string {
 }
 
 function formatReadingTime(readingTime?: number): string | null {
-  if (typeof readingTime === "undefined") {
+  if (readingTime === undefined) {
     return null;
   }
 

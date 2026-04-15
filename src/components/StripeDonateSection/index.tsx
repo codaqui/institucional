@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Box from "@mui/material/Box";
+import Avatar from "@mui/material/Avatar";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Grid from "@mui/material/Grid";
@@ -9,15 +10,14 @@ import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LockIcon from "@mui/icons-material/Lock";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import SelectableCard from "../SelectableCard";
 import { communities } from "../../data/communities";
 import { useAuth } from "../../hooks/useAuth";
 
@@ -117,53 +117,15 @@ export default function StripeDonateSection() {
           const active = selectedCommunity === c.id;
           return (
             <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card
+              <SelectableCard
+                selected={active}
                 onClick={() => setSelectedCommunity(c.id)}
-                variant="outlined"
-                sx={{
-                  cursor: "pointer",
-                  borderWidth: active ? 2 : 1,
-                  borderColor: active ? "primary.main" : "divider",
-                  bgcolor: active ? "action.selected" : "background.paper",
-                  transition: "all 0.18s ease",
-                  "&:hover": {
-                    borderColor: "primary.main",
-                    transform: "translateY(-2px)",
-                    boxShadow: 2,
-                  },
-                }}
-              >
-                <CardContent
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    py: "10px !important",
-                    px: "14px !important",
-                  }}
-                >
-                  <Avatar
-                    src={c.logo}
-                    alt={c.name}
-                    sx={{ width: 34, height: 34, fontSize: "1.1rem", flexShrink: 0 }}
-                  >
-                    {c.emoji}
-                  </Avatar>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" fontWeight={700} noWrap>
-                      {c.name}
-                    </Typography>
-                    {c.location && (
-                      <Typography variant="caption" color="text.secondary" noWrap>
-                        {c.location}
-                      </Typography>
-                    )}
-                  </Box>
-                  {active && (
-                    <CheckCircleIcon sx={{ color: "primary.main", fontSize: "1.1rem", flexShrink: 0 }} />
-                  )}
-                </CardContent>
-              </Card>
+                primary={c.name}
+                secondary={c.location}
+                avatar={c.logo}
+                avatarFallback={c.emoji}
+                compact
+              />
             </Grid>
           );
         })}

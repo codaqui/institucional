@@ -118,17 +118,8 @@ export class StripeController {
       throw new BadRequestException('Valor máximo por transação: R$ 50.000.');
     }
 
-    const isRecurring = !!body.recurring;
-
-    // Subscriptions sempre requerem login
-    if (isRecurring && !req.user) {
-      throw new UnauthorizedException(
-        'Doações recorrentes requerem login com GitHub.',
-      );
-    }
-
-    // Pagamentos únicos acima de R$ 100 requerem login
-    if (!isRecurring && body.amount > ANONYMOUS_LIMIT_CENTS && !req.user) {
+    // Doações acima de R$ 100 (únicas ou recorrentes) requerem login
+    if (body.amount > ANONYMOUS_LIMIT_CENTS && !req.user) {
       throw new UnauthorizedException(
         'Doações acima de R$ 100 requerem login com GitHub.',
       );
