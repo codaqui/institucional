@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "@theme/Layout";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Button from "@mui/material/Button";
@@ -6,831 +6,35 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
 import Skeleton from "@mui/material/Skeleton";
 import Alert from "@mui/material/Alert";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TablePagination from "@mui/material/TablePagination";
-import Paper from "@mui/material/Paper";
+import Stack from "@mui/material/Stack";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
-import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
-import BalanceIcon from "@mui/icons-material/Balance";
-import CloseIcon from "@mui/icons-material/Close";
-import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import StorefrontIcon from "@mui/icons-material/Storefront";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import CodeIcon from "@mui/icons-material/Code";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import PeopleIcon from "@mui/icons-material/People";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import TrendingDownIcon from "@mui/icons-material/TrendingDown";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import Link from "@docusaurus/Link";
 import { communities } from "../data/communities";
 import PageHero from "../components/PageHero";
-import { formatDocument } from "../utils/document";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-interface CommunityBalance {
-  id: string;
-  projectKey: string;
-  name: string;
-  balance: number;
-}
-
-interface TransactionAccount {
-  id: string;
-  name: string;
-}
-
-interface Transaction {
-  id: string;
-  amount: number;
-  description: string;
-  createdAt: string;
-  referenceId?: string;
-  sourceAccount: TransactionAccount;
-  destinationAccount: TransactionAccount;
-}
-
-interface PaginatedTransactions {
-  data: Transaction[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-const formatBRL = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-// ---------------------------------------------------------------------------
-// Transaction type detection
-// ---------------------------------------------------------------------------
-type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "other";
-
-function detectTxType(tx: Transaction): TxType {
-  if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
-  if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
-  if (tx.referenceId?.startsWith("transfer:")) return "transfer";
-  if (tx.referenceId?.startsWith("cs_")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("doação")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("pagamento a fornecedor")) return "vendor-payment";
-  if (tx.description?.toLowerCase().startsWith("reembolso")) return "reimbursement";
-  if (tx.description?.toLowerCase().startsWith("transfer")) return "transfer";
-  return "other";
-}
-
-const TX_TYPE_CONFIG: Record<TxType, { label: string; color: "success" | "warning" | "info" | "default" | "secondary"; icon: React.ReactElement }> = {
-  donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
-  reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
-  "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
-  transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
-  other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
-};
-
-const extractDonorHandle = (description: string) => {
-  const match = /Doação de (@[\w.-]+)/.exec(description);
-  return match?.[1] || null;
-};
-
-function extractReimbursementDesc(description: string): string {
-  return description.replace(/^Reembolso aprovado:\s*/i, "").trim();
-}
-
-// ---------------------------------------------------------------------------
-// Transaction Detail Dialog
-// ---------------------------------------------------------------------------
-interface ReimbursementPublicInfo {
-  id: string;
-  status: string;
-  amount: number;
-  description: string;
-  receiptUrl: string;
-  internalReceiptUrl: string | null;
-  accountName: string | null;
-  requester: { handle: string; name: string; avatarUrl: string } | null;
-  approver: { handle: string; name: string; avatarUrl: string } | null;
-  reviewNote: string | null;
-  reviewedAt: string | null;
-  createdAt: string;
-}
-
-interface VendorPaymentPublicInfo {
-  id: string;
-  amount: number;
-  description: string;
-  receiptUrl: string | null;
-  internalReceiptUrl: string | null;
-  paidAt: string;
-  vendor?: { name: string; document: string | null; website: string | null };
-  paidBy?: { name: string; avatarUrl: string; githubHandle: string };
-}
-
-function deriveTransactionMeta(tx: Transaction, accountId: string) {
-  const type = detectTxType(tx);
-  const config = TX_TYPE_CONFIG[type];
-  const isCredit = tx.destinationAccount?.id === accountId;
-  const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
-  const isSubscription = tx.description?.toLowerCase().includes("assinatura");
-  const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
-  const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
-  const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
-  const stripeModePath = isTestMode ? "test/" : "";
-  const stripeDashboardUrl = paymentIntentId
-    ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
-    : null;
-  const reimbDesc = type === "reimbursement" ? extractReimbursementDesc(tx.description) : null;
-  const isTransfer = type === "transfer";
-  const transferReason = isTransfer
-    ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
-    : null;
-
-  return {
-    type, config, isCredit, donorHandle, isSubscription, subscriptionInterval,
-    paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
-  };
-}
-
-function TransactionDetailDialog({
-  tx,
-  accountId,
-  apiUrl,
-  onClose,
-}: Readonly<{
-  tx: Transaction | null;
-  accountId: string;
-  apiUrl: string;
-  onClose: () => void;
-}>) {
-  const [reimbInfo, setReimbInfo] = useState<ReimbursementPublicInfo | null>(null);
-  const [reimbLoading, setReimbLoading] = useState(false);
-  const [vendorInfo, setVendorInfo] = useState<VendorPaymentPublicInfo | null>(null);
-  const [vendorLoading, setVendorLoading] = useState(false);
-
-  const meta = tx ? deriveTransactionMeta(tx, accountId) : null;
-  const type = meta?.type ?? "other";
-  const config = meta?.config ?? TX_TYPE_CONFIG.other;
-
-  useEffect(() => {
-    if (!tx) { setReimbInfo(null); return; }
-    if (type !== "reimbursement") { setReimbInfo(null); return; }
-
-    const reimbId = tx.referenceId?.replace("reimbursement:", "");
-    if (!reimbId) return;
-
-    setReimbLoading(true);
-    fetch(`${apiUrl}/reimbursements/public/${reimbId}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setReimbInfo(data))
-      .catch(() => setReimbInfo(null))
-      .finally(() => setReimbLoading(false));
-  }, [tx, type, apiUrl]);
-
-  useEffect(() => {
-    if (!tx) { setVendorInfo(null); return; }
-    if (type !== "vendor-payment") { setVendorInfo(null); return; }
-
-    const refId = tx.referenceId;
-    if (!refId) return;
-
-    setVendorLoading(true);
-    fetch(`${apiUrl}/vendors/payments/by-reference/${encodeURIComponent(refId)}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setVendorInfo(data))
-      .catch(() => setVendorInfo(null))
-      .finally(() => setVendorLoading(false));
-  }, [tx, type, apiUrl]);
-
-  if (!tx || !meta) return null;
-
-  const {
-    isCredit, donorHandle, isSubscription, subscriptionInterval,
-    paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
-  } = meta;
-
-  return (
-    <Dialog
-      open={!!tx}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      slotProps={{
-        paper: {
-          sx: { borderTop: 3, borderColor: `${config.color}.main` },
-        },
-      }}
-    >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Chip icon={config.icon} label={config.label} color={config.color} size="small" variant="outlined" />
-          {isSubscription && type === "donation" && (
-            <Chip label={`Recorrente ${subscriptionInterval}`} size="small" color="info" variant="outlined" />
-          )}
-          <Typography variant="h6" fontWeight={700}>
-            {isCredit ? "+" : "−"} {formatBRL(Number(tx.amount))}
-          </Typography>
-        </Box>
-        <IconButton onClick={onClose} size="small" aria-label="Fechar">
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent sx={{ pt: 0 }}>
-        <Divider sx={{ mb: 2 }} />
-        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Box>
-            <Typography variant="caption" color="text.disabled">Data</Typography>
-            <Typography variant="body2" fontWeight={600}>{formatDate(tx.createdAt)}</Typography>
-          </Box>
-          <Box sx={{ textAlign: "right" }}>
-            <Typography variant="caption" color="text.disabled">ID da transação</Typography>
-            <Tooltip title={tx.id}>
-              <Typography variant="body2" fontWeight={600} sx={{ fontFamily: "monospace", fontSize: "0.7rem", color: "text.secondary" }}>
-                {tx.id.slice(0, 16)}…
-              </Typography>
-            </Tooltip>
-          </Box>
-        </Box>
-        <Box sx={{
-          display: "flex", alignItems: "center", gap: 1.5, mb: 2, p: 1.5,
-          borderRadius: 2, bgcolor: "action.hover", flexWrap: "wrap",
-        }}>
-          <Box sx={{ flex: 1, minWidth: 100 }}>
-            <Typography variant="caption" color="text.disabled">De</Typography>
-            <Typography variant="body2" fontWeight={700}>{tx.sourceAccount?.name}</Typography>
-          </Box>
-          <CompareArrowsIcon sx={{ color: "text.disabled", flexShrink: 0 }} />
-          <Box sx={{ flex: 1, minWidth: 100 }}>
-            <Typography variant="caption" color="text.disabled">Para</Typography>
-            <Typography variant="body2" fontWeight={700} color="primary.main">{tx.destinationAccount?.name}</Typography>
-          </Box>
-        </Box>
-        {type === "donation" && (
-          <>
-            {donorHandle ? (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Doador</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                  <Avatar
-                    src={`https://github.com/${donorHandle.replace("@", "")}.png?size=32`}
-                    alt={donorHandle}
-                    sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
-                  />
-                  <Button
-                    size="small" variant="text"
-                    endIcon={<OpenInNewIcon fontSize="small" />}
-                    href={`https://github.com/${donorHandle.replace("@", "")}`}
-                    target="_blank" rel="noopener noreferrer"
-                    sx={{ fontWeight: 700, textTransform: "none" }}
-                  >
-                    {donorHandle}
-                  </Button>
-                </Box>
-              </Box>
-            ) : (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Doador</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic", color: "text.secondary" }}>
-                  Doação anônima
-                </Typography>
-              </Box>
-            )}
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" color="text.disabled">Tipo</Typography>
-              <Typography variant="body2" sx={{ mt: 0.5 }}>
-                {isSubscription
-                  ? `Assinatura recorrente (${subscriptionInterval})`
-                  : "Pagamento único"}
-              </Typography>
-            </Box>
-          </>
-        )}
-        {type === "reimbursement" && (
-          <>
-            {reimbDesc && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Finalidade do reembolso</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{reimbDesc}"</Typography>
-              </Box>
-            )}
-            {reimbLoading && (
-              <Box sx={{ mb: 2 }}>
-                <Skeleton height={24} width="60%" />
-                <Skeleton height={20} width="40%" />
-              </Box>
-            )}
-            {reimbInfo && (
-              <>
-                {reimbInfo.requester && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.disabled">Solicitado por</Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                      <Avatar
-                        src={reimbInfo.requester.avatarUrl}
-                        alt={reimbInfo.requester.handle}
-                        sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
-                      />
-                      <Button
-                        size="small" variant="text"
-                        endIcon={<OpenInNewIcon fontSize="small" />}
-                        href={`https://github.com/${reimbInfo.requester.handle}`}
-                        target="_blank" rel="noopener noreferrer"
-                        sx={{ fontWeight: 700, textTransform: "none" }}
-                      >
-                        @{reimbInfo.requester.handle}
-                      </Button>
-                    </Box>
-                  </Box>
-                )}
-                {reimbInfo.approver && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.disabled">Aprovado por</Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                      <Avatar
-                        src={reimbInfo.approver.avatarUrl}
-                        alt={reimbInfo.approver.handle}
-                        sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
-                      />
-                      <Typography variant="body2" fontWeight={600}>
-                        @{reimbInfo.approver.handle}
-                      </Typography>
-                      {reimbInfo.reviewedAt && (
-                        <Typography variant="caption" color="text.secondary">
-                          em {formatDate(reimbInfo.reviewedAt)}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
-                )}
-                {reimbInfo.reviewNote && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.disabled">Nota do aprovador</Typography>
-                    <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic", color: "text.secondary" }}>
-                      "{reimbInfo.reviewNote}"
-                    </Typography>
-                  </Box>
-                )}
-                {(reimbInfo.receiptUrl || reimbInfo.internalReceiptUrl) && (
-                  <Box sx={{ mb: 2 }}>
-                    <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
-                    <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
-                      {reimbInfo.receiptUrl && (
-                        <Button
-                          size="small" variant="outlined" color="warning"
-                          startIcon={<ReceiptLongIcon />}
-                          endIcon={<OpenInNewIcon fontSize="small" />}
-                          href={reimbInfo.receiptUrl}
-                          target="_blank" rel="noopener noreferrer"
-                          sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                        >
-                          Comprovante original
-                        </Button>
-                      )}
-                      {reimbInfo.internalReceiptUrl && (
-                        <Button
-                          size="small" variant="outlined" color="primary"
-                          startIcon={<ReceiptLongIcon />}
-                          endIcon={<OpenInNewIcon fontSize="small" />}
-                          href={reimbInfo.internalReceiptUrl}
-                          target="_blank" rel="noopener noreferrer"
-                          sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                        >
-                          Cópia interna
-                        </Button>
-                      )}
-                    </Box>
-                  </Box>
-                )}
-              </>
-            )}
-          </>
-        )}
-        {isTransfer && transferReason && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.disabled">Justificativa da transferência</Typography>
-            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: "italic" }}>"{transferReason}"</Typography>
-          </Box>
-        )}
-        {type === "vendor-payment" && (
-          <>
-            {/* Extract payment description from ledger description: "Pagamento a fornecedor: Name — desc" */}
-            {tx.description && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Finalidade do pagamento</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>
-                  {tx.description.includes(" — ")
-                    ? tx.description.split(" — ").slice(1).join(" — ")
-                    : tx.description}
-                </Typography>
-              </Box>
-            )}
-            {vendorLoading && (
-              <Box sx={{ mb: 2 }}>
-                <Skeleton height={24} width="60%" />
-                <Skeleton height={20} width="40%" />
-              </Box>
-            )}
-            {vendorInfo?.vendor && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Fornecedor</Typography>
-                <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
-                  <StorefrontIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
-                  {vendorInfo.vendor.name}
-                  {vendorInfo.vendor.document && (
-                    <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      ({formatDocument(vendorInfo.vendor.document)})
-                    </Typography>
-                  )}
-                </Typography>
-                {vendorInfo.vendor.website && (
-                  <Button
-                    size="small"
-                    variant="text"
-                    endIcon={<OpenInNewIcon fontSize="small" />}
-                    href={vendorInfo.vendor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ textTransform: "none", fontSize: "0.75rem", mt: 0.5 }}
-                  >
-                    {vendorInfo.vendor.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                  </Button>
-                )}
-              </Box>
-            )}
-            {vendorInfo?.paidBy && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Autorizado/registrado por</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                  <Avatar
-                    src={vendorInfo.paidBy.avatarUrl}
-                    alt={vendorInfo.paidBy.name}
-                    sx={{ width: 28, height: 28 }}
-                  />
-                  <Box>
-                    <Typography variant="body2" fontWeight={700}>{vendorInfo.paidBy.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">@{vendorInfo.paidBy.githubHandle}</Typography>
-                  </Box>
-                </Box>
-              </Box>
-            )}
-            {vendorInfo && (vendorInfo.receiptUrl || vendorInfo.internalReceiptUrl) && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
-                <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {vendorInfo.receiptUrl && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<ReceiptLongIcon />}
-                      endIcon={<OpenInNewIcon fontSize="small" />}
-                      href={vendorInfo.receiptUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                    >
-                      Comprovante original
-                    </Button>
-                  )}
-                  {vendorInfo.internalReceiptUrl && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<ReceiptLongIcon />}
-                      endIcon={<OpenInNewIcon fontSize="small" />}
-                      href={vendorInfo.internalReceiptUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                    >
-                      Cópia interna
-                    </Button>
-                  )}
-                </Box>
-              </Box>
-            )}
-          </>
-        )}
-        {type === "other" && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="caption" color="text.disabled">Descrição</Typography>
-            <Typography variant="body2" sx={{ mt: 0.5 }}>
-              {tx.description}
-            </Typography>
-          </Box>
-        )}
-        <Divider sx={{ mb: 2 }} />
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
-          {stripeDashboardUrl && paymentIntentId && (
-            <Chip
-              label={`Stripe: ${paymentIntentId.slice(0, 24)}…`}
-              size="small" variant="outlined" color="success"
-              icon={<OpenInNewIcon />}
-              component="a"
-              href={stripeDashboardUrl}
-              target="_blank" rel="noopener noreferrer"
-              clickable
-              sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}
-            />
-          )}
-          {tx.referenceId && !paymentIntentId && (
-            <Tooltip title={tx.referenceId}>
-              <Chip
-                label={tx.referenceId.slice(0, 30) + (tx.referenceId.length > 30 ? "…" : "")}
-                size="small" variant="outlined"
-                sx={{ fontFamily: "monospace", fontSize: "0.68rem" }}
-              />
-            </Tooltip>
-          )}
-          {!tx.referenceId && (
-            <Typography variant="caption" color="text.disabled">Sem referência externa vinculada.</Typography>
-          )}
-        </Box>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// KPI Card
-// ---------------------------------------------------------------------------
-function KpiCard({
-  icon,
-  value,
-  label,
-  color = "primary.main",
-}: Readonly<{
-  icon: React.ReactNode;
-  value: React.ReactNode;
-  label: string;
-  color?: string;
-}>) {
-  return (
-    <Card
-      variant="outlined"
-      sx={{
-        textAlign: "center",
-        p: 3,
-        transition: "box-shadow 0.2s",
-        "&:hover": { boxShadow: 4 },
-      }}
-    >
-      <Box sx={{ color, mb: 1 }}>{icon}</Box>
-      <Typography variant="h4" fontWeight={800} color={color} sx={{ lineHeight: 1.2 }}>
-        {value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        {label}
-      </Typography>
-    </Card>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Transaction Table (server-side pagination)
-// ---------------------------------------------------------------------------
-function TransactionTable({
-  accountId,
-  accountName,
-  apiUrl,
-}: Readonly<{
-  accountId: string;
-  accountName: string;
-  apiUrl: string;
-}>) {
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [result, setResult] = useState<PaginatedTransactions | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
-
-  const fetchTransactions = useCallback(
-    async (p: number, limit: number) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch(
-          `${apiUrl}/ledger/accounts/${accountId}/transactions?page=${p + 1}&limit=${limit}`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: PaginatedTransactions = await res.json();
-        setResult(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Erro desconhecido");
-      } finally {
-        setLoading(false);
-      }
-    },
-    [accountId, apiUrl]
-  );
-
-  useEffect(() => {
-    fetchTransactions(page, rowsPerPage);
-  }, [fetchTransactions, page, rowsPerPage]);
-
-  const handleChangePage = (_: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(Number.parseInt(e.target.value, 10));
-    setPage(0);
-  };
-
-  if (error) {
-    return (
-      <Alert severity="warning" sx={{ mt: 2 }}>
-        Não foi possível carregar as transações: <strong>{error}</strong>
-      </Alert>
-    );
-  }
-
-  const rows = result?.data ?? [];
-  const total = result?.total ?? 0;
-
-  return (
-    <Box>
-      <TableContainer
-        component={Paper}
-        variant="outlined"
-        sx={{ borderRadius: 2, mt: 2 }}
-      >
-        <Table size="small" aria-label={`Transações de ${accountName}`}>
-          <TableHead>
-            <TableRow sx={{ "& th": { fontWeight: 700, whiteSpace: "nowrap" } }}>
-              <TableCell sx={{ width: 40 }} />
-              <TableCell>Data</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Descrição</TableCell>
-              <TableCell>De → Para</TableCell>
-              <TableCell align="right">Valor</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(() => {
-              if (loading) {
-                return [1, 2, 3, 4, 5].map((i) => (
-                  <TableRow key={`skeleton-${i}`}>
-                    <TableCell colSpan={6}>
-                      <Skeleton variant="text" width="100%" height={30} />
-                    </TableCell>
-                  </TableRow>
-                ));
-              }
-
-              if (rows.length === 0) {
-                return (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      align="center"
-                      sx={{ py: 4, color: "text.secondary" }}
-                    >
-                      Nenhuma movimentação registrada ainda.
-                    </TableCell>
-                  </TableRow>
-                );
-              }
-
-              return rows.map((tx) => {
-                const isCredit = tx.destinationAccount.id === accountId;
-                const type = detectTxType(tx);
-                const typeConfig = TX_TYPE_CONFIG[type];
-                return (
-                  <TableRow
-                    key={tx.id}
-                    hover
-                    onClick={() => setSelectedTx(tx)}
-                    sx={{
-                      "&:last-child td": { border: 0 },
-                      cursor: "pointer",
-                      "&:hover": { bgcolor: "action.hover" },
-                    }}
-                  >
-                    <TableCell sx={{ px: 1.5 }}>
-                      <Tooltip
-                        title={isCredit ? "Crédito (entrada)" : "Débito (saída)"}
-                      >
-                        {isCredit ? (
-                          <ArrowUpwardIcon
-                            fontSize="small"
-                            sx={{ color: "success.main", display: "block" }}
-                          />
-                        ) : (
-                          <ArrowDownwardIcon
-                            fontSize="small"
-                            sx={{ color: "error.main", display: "block" }}
-                          />
-                        )}
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell
-                      sx={{ whiteSpace: "nowrap", fontSize: "0.75rem" }}
-                    >
-                      {formatDate(tx.createdAt)}
-                    </TableCell>
-                    <TableCell sx={{ minWidth: 110 }}>
-                      <Chip
-                        icon={typeConfig.icon}
-                        label={typeConfig.label}
-                        color={typeConfig.color}
-                        size="small"
-                        variant="outlined"
-                        sx={{ fontSize: "0.68rem" }}
-                      />
-                    </TableCell>
-                    <TableCell sx={{ fontSize: "0.8rem", maxWidth: 220 }}>
-                      <Typography
-                        variant="caption"
-                        noWrap
-                        sx={{ display: "block", maxWidth: 220 }}
-                      >
-                        {tx.description}
-                      </Typography>
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontSize: "0.75rem",
-                        color: "text.secondary",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {tx.sourceAccount?.name} → {tx.destinationAccount?.name}
-                    </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: "0.8rem",
-                        color: isCredit ? "success.main" : "error.main",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {isCredit ? "+" : "−"} {formatBRL(Number(tx.amount))}
-                    </TableCell>
-                  </TableRow>
-                );
-              });
-            })()}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        component="div"
-        count={total}
-        page={page}
-        onPageChange={handleChangePage}
-        rowsPerPage={rowsPerPage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, 50]}
-        labelRowsPerPage="Linhas:"
-        labelDisplayedRows={({ from, to, count }) => {
-          const totalStr = count === -1 ? `mais de ${to}` : count;
-          return `${from}–${to} de ${totalStr}`;
-        }}
-        sx={{ mt: 0.5 }}
-      />
-      <TransactionDetailDialog
-        tx={selectedTx}
-        accountId={accountId}
-        apiUrl={apiUrl}
-        onClose={() => setSelectedTx(null)}
-      />
-    </Box>
-  );
-}
+import StatCard from "../components/StatCard";
+import TransactionTable from "../components/TransactionTable";
+import {
+  type CommunityBalance,
+  type TransparencyStats,
+  formatBRL,
+} from "../utils/transaction";
 
 // ---------------------------------------------------------------------------
 // Page
@@ -840,7 +44,9 @@ export default function TransparenciaPage(): React.JSX.Element {
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
 
   const [balances, setBalances] = useState<CommunityBalance[] | null>(null);
+  const [stats, setStats] = useState<TransparencyStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -853,6 +59,12 @@ export default function TransparenciaPage(): React.JSX.Element {
       .then((data: CommunityBalance[]) => setBalances(data))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+
+    fetch(`${apiUrl}/ledger/transparency-stats`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: TransparencyStats | null) => setStats(data))
+      .catch(() => setStats(null))
+      .finally(() => setStatsLoading(false));
   }, [apiUrl]);
 
   const totalBalance = balances?.reduce((sum, b) => sum + b.balance, 0) ?? 0;
@@ -872,31 +84,126 @@ export default function TransparenciaPage(): React.JSX.Element {
 
         {/* ── KPIs ── */}
         <Grid container spacing={3} sx={{ mb: 6 }}>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              icon={<AccountBalanceWalletIcon sx={{ fontSize: 40 }} />}
-              value={loading ? <Skeleton width={120} sx={{ mx: "auto" }} /> : formatBRL(totalBalance)}
-              label="Saldo total em carteiras comunitárias"
+          <Grid size={{ xs: 6, md: 3 }}>
+            <StatCard
+              icon={<AccountBalanceWalletIcon sx={{ fontSize: 36 }} />}
+              value={loading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(totalBalance)}
+              label="Saldo total"
               color="primary.main"
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              icon={<BalanceIcon sx={{ fontSize: 40 }} />}
-              value={loading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (balances?.length ?? "—")}
-              label="Comunidades com conta ativa"
-              color="secondary.main"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <KpiCard
-              icon={<TrendingUpIcon sx={{ fontSize: 40 }} />}
-              value="100%"
-              label="Das transações auditáveis publicamente"
+          <Grid size={{ xs: 6, md: 3 }}>
+            <StatCard
+              icon={<TrendingUpIcon sx={{ fontSize: 36 }} />}
+              value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalReceived ?? 0)}
+              label="Total recebido"
               color="success.main"
             />
           </Grid>
+          <Grid size={{ xs: 6, md: 3 }}>
+            <StatCard
+              icon={<TrendingDownIcon sx={{ fontSize: 36 }} />}
+              value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalExpenses ?? 0)}
+              label="Total investido"
+              color="warning.main"
+            />
+          </Grid>
+          <Grid size={{ xs: 6, md: 3 }}>
+            <StatCard
+              icon={<PeopleIcon sx={{ fontSize: 36 }} />}
+              value={statsLoading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (stats?.uniqueDonors ?? 0)}
+              label="Doadores identificados"
+              color="secondary.main"
+            />
+          </Grid>
         </Grid>
+
+        {/* ── Community Summary Cards ── */}
+        {!loading && stats?.communityStats && stats.communityStats.length > 0 && (
+          <>
+            <Typography variant="h5" fontWeight={800} sx={{ mb: 2 }}>
+              Resumo por Comunidade
+            </Typography>
+            <Grid container spacing={2} sx={{ mb: 5 }}>
+              {stats.communityStats.map((cs) => {
+                const meta = communities.find((c) => c.id === cs.projectKey);
+                const balance = balances?.find((b) => b.projectKey === cs.projectKey);
+                const maxFlow = Math.max(cs.totalIn, cs.totalOut, 1);
+                return (
+                  <Grid key={cs.projectKey} size={{ xs: 12, sm: 6, md: 4 }}>
+                    <Card variant="outlined" sx={{
+                      height: "100%", transition: "all 0.2s",
+                      "&:hover": { boxShadow: 4, transform: "translateY(-2px)" },
+                    }}>
+                      <CardContent>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
+                          <Avatar src={meta?.logo} alt={meta?.name ?? cs.name} sx={{ width: 36, height: 36, fontSize: "1rem" }}>
+                            {meta?.emoji ?? "💰"}
+                          </Avatar>
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Typography variant="body2" fontWeight={700} noWrap>{meta?.name ?? cs.name}</Typography>
+                            {meta?.location && <Typography variant="caption" color="text.secondary" noWrap>{meta.location}</Typography>}
+                          </Box>
+                          <Typography variant="h6" fontWeight={800} color={balance && balance.balance > 0 ? "success.main" : "text.primary"}>
+                            {balance ? formatBRL(balance.balance) : "—"}
+                          </Typography>
+                        </Box>
+
+                        <Stack spacing={1}>
+                          <Box>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}>
+                              <Typography variant="caption" color="success.main" fontWeight={600}>
+                                ↑ Entradas: {formatBRL(cs.totalIn)}
+                              </Typography>
+                            </Box>
+                            <LinearProgress
+                              variant="determinate"
+                              value={(cs.totalIn / maxFlow) * 100}
+                              color="success"
+                              sx={{ height: 6, borderRadius: 3 }}
+                            />
+                          </Box>
+                          <Box>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.3 }}>
+                              <Typography variant="caption" color="warning.main" fontWeight={600}>
+                                ↓ Saídas: {formatBRL(cs.totalOut)}
+                              </Typography>
+                            </Box>
+                            <LinearProgress
+                              variant="determinate"
+                              value={(cs.totalOut / maxFlow) * 100}
+                              color="warning"
+                              sx={{ height: 6, borderRadius: 3 }}
+                            />
+                          </Box>
+                        </Stack>
+
+                        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1.5 }}>
+                          <Chip
+                            icon={<SwapHorizIcon />}
+                            label={`${cs.txCount} movimentações`}
+                            size="small"
+                            variant="outlined"
+                            sx={{ fontSize: "0.7rem" }}
+                          />
+                          <Button
+                            size="small"
+                            variant="text"
+                            component={Link}
+                            href="/participe/apoiar"
+                            sx={{ fontSize: "0.72rem", textTransform: "none", fontWeight: 700 }}
+                          >
+                            Apoiar →
+                          </Button>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                );
+              })}
+            </Grid>
+          </>
+        )}
 
         {/* ── Info ── */}
         <Alert severity="info" sx={{ mb: 4 }}>
@@ -1105,6 +412,60 @@ export default function TransparenciaPage(): React.JSX.Element {
               <Skeleton height={200} sx={{ mt: 2 }} />
             </Box>
           </Card>
+        )}
+
+        {/* ── Recent Donors Wall ── */}
+        {!statsLoading && stats?.recentDonors && stats.recentDonors.length > 0 && (
+          <>
+            <Divider sx={{ my: 6 }} />
+            <Box sx={{ textAlign: "center", mb: 4 }}>
+              <FavoriteIcon sx={{ color: "primary.main", fontSize: 32, mb: 1 }} />
+              <Typography variant="h5" fontWeight={800} gutterBottom>
+                Últimos Apoiadores
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Reconhecemos publicamente quem apoia a comunidade. Obrigado por fazer a diferença! 💚
+              </Typography>
+            </Box>
+            <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }}>
+              {stats.recentDonors.map((donor, idx) => (
+                <Grid key={`${donor.handle}-${idx}`} size={{ xs: 6, sm: 4, md: 2.4 }}>
+                  <Card variant="outlined" sx={{
+                    textAlign: "center", py: 2, px: 1,
+                    transition: "all 0.2s",
+                    "&:hover": { boxShadow: 4, transform: "translateY(-2px)" },
+                  }}>
+                    <Avatar
+                      src={`https://github.com/${donor.handle.replace("@", "")}.png?size=64`}
+                      alt={donor.handle}
+                      sx={{ width: 48, height: 48, mx: "auto", mb: 1 }}
+                    />
+                    <Typography variant="body2" fontWeight={700} noWrap>
+                      {donor.handle}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
+                      {donor.communityName}
+                    </Typography>
+                    <Typography variant="caption" color="text.disabled" sx={{ display: "block", mt: 0.5, fontSize: "0.65rem" }}>
+                      {new Date(donor.date).toLocaleDateString("pt-BR")}
+                    </Typography>
+                  </Card>
+                </Grid>
+              ))}
+            </Grid>
+            <Box sx={{ textAlign: "center", mb: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                component={Link}
+                href="/participe/apoiar"
+                startIcon={<FavoriteIcon />}
+                sx={{ fontWeight: 700, borderRadius: 2, textTransform: "none" }}
+              >
+                Faça parte desta lista — apoie agora
+              </Button>
+            </Box>
+          </>
         )}
 
         <Divider sx={{ my: 8 }} />

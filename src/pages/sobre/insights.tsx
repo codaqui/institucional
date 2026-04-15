@@ -10,7 +10,6 @@ import Collapse from "@mui/material/Collapse";
 import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -28,6 +27,7 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import SiteAnalytics from "../../components/SiteAnalytics";
+import StatCard from "../../components/StatCard";
 import { timelineEvents, type TimelineEvent, type TimelineStats } from "../../data/timeline";
 import { communities } from "../../data/communities";
 import { codaquiSocialProfiles, PLATFORM_COLORS } from "../../data/social";
@@ -122,32 +122,6 @@ function platformColor(platform: string) {
 function formatCount(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".0", "")}K`;
   return n > 0 ? String(n) : "–";
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  icon: React.ReactNode;
-  value: string;
-  label: string;
-  color?: string;
-}
-
-function StatCard({ icon, value, label, color }: Readonly<StatCardProps>) {
-  return (
-    <Paper
-      elevation={0}
-      sx={{ textAlign: "center", py: 2.5, px: 1, bgcolor: "action.hover", borderRadius: 2 }}
-    >
-      <Box sx={{ color: color ?? "primary.main", mb: 0.5 }}>{icon}</Box>
-      <Typography variant="h5" fontWeight={800} color={color ?? "primary.main"}>
-        {value}
-      </Typography>
-      <Typography variant="caption" color="text.secondary">
-        {label}
-      </Typography>
-    </Paper>
-  );
 }
 
 // ─── Social stat chip ─────────────────────────────────────────────────────────
@@ -721,7 +695,7 @@ export default function InsightsPage(): React.JSX.Element {
           <Grid container spacing={2}>
             {heroStats.map((s) => (
               <Grid key={s.label} size={{ xs: 6, sm: 4, md: 12 / 5 }}>
-                <StatCard {...s} />
+                <StatCard {...s} variant="filled" />
               </Grid>
             ))}
           </Grid>
