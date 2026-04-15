@@ -1,0 +1,45 @@
+import type { Config } from "jest";
+
+const config: Config = {
+  testEnvironment: "jsdom",
+  roots: ["<rootDir>/src"],
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        tsconfig: {
+          jsx: "react-jsx",
+          module: "commonjs",
+          moduleResolution: "node",
+          esModuleInterop: true,
+          allowJs: true,
+          target: "ES2022",
+          lib: ["ES2022", "DOM"],
+        },
+      },
+    ],
+  },
+  moduleNameMapper: {
+    "^@site/(.*)$": "<rootDir>/$1",
+    "^@theme/(.*)$": "<rootDir>/src/__mocks__/theme/$1",
+    "^@docusaurus/Link$": "<rootDir>/src/__mocks__/docusaurus/Link",
+    "^@docusaurus/useDocusaurusContext$":
+      "<rootDir>/src/__mocks__/docusaurus/useDocusaurusContext",
+    "^@docusaurus/router$": "<rootDir>/src/__mocks__/docusaurus/router",
+  },
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    "/backend/",
+    "/build/",
+    "/.docusaurus/",
+  ],
+  collectCoverageFrom: [
+    "src/**/*.{ts,tsx}",
+    "!src/__mocks__/**",
+    "!src/**/*.d.ts",
+  ],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+  transformIgnorePatterns: ["/node_modules/(?!@mui|@emotion)"],
+};
+
+export default config;
