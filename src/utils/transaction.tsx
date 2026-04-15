@@ -121,7 +121,7 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   const isSubscription = tx.description?.toLowerCase().includes("assinatura");
   const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
   const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
-  const isTestMode = tx.description?.includes("cs_test_") || tx.description?.includes("in_");
+  const isTestMode = tx.description?.includes("cs_test_") || tx.referenceId?.startsWith("pi_test_");
   const stripeModePath = isTestMode ? "test/" : "";
   const stripeDashboardUrl = paymentIntentId
     ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`

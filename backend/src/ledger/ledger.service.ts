@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, Brackets } from 'typeorm';
 import { Account, AccountType } from './entities/account.entity';
 import { Transaction } from './entities/transaction.entity';
 
@@ -116,9 +116,12 @@ export class LedgerService {
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
       .leftJoinAndSelect('tx.destinationAccount', 'dst')
-      .where('tx.sourceAccountId = :id OR tx.destinationAccountId = :id', {
-        id: accountId,
-      });
+      .where(
+        new Brackets((sub) =>
+          sub.where('tx.sourceAccountId = :id').orWhere('tx.destinationAccountId = :id'),
+        ),
+        { id: accountId },
+      );
 
     // Type filter
     if (filters?.type) {
@@ -241,18 +244,24 @@ export class LedgerService {
       };
     }
 
-    // Total received (credits to wallets = donations + transfers in)
+    // Total received (credits to wallets, excluding internal transfers)
     const { sum: totalReceived } = await this.txRepo
       .createQueryBuilder('tx')
       .select('COALESCE(SUM(tx.amount), 0)', 'sum')
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .andWhere(
+        "(tx.referenceId IS NULL OR tx.referenceId NOT LIKE 'transfer:%')",
+      )
       .getRawOne();
 
-    // Total expenses (debits from wallets = reimbursements + vendor payments + transfers out)
+    // Total expenses (debits from wallets, excluding internal transfers)
     const { sum: totalExpenses } = await this.txRepo
       .createQueryBuilder('tx')
       .select('COALESCE(SUM(tx.amount), 0)', 'sum')
       .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
+      .andWhere(
+        "(tx.referenceId IS NULL OR tx.referenceId NOT LIKE 'transfer:%')",
+      )
       .getRawOne();
 
     // Total transactions involving wallets
@@ -296,39 +305,67 @@ export class LedgerService {
       .getRawMany();
     const recentDonors = recentDonorRows.filter((r) => r.handle);
 
-    // Per-community stats
-    const communityStats = await Promise.all(
-      wallets.map(async (w) => {
-        const { sum: totalIn } = await this.txRepo
-          .createQueryBuilder('tx')
-          .select('COALESCE(SUM(tx.amount), 0)', 'sum')
-          .where('tx.destinationAccountId = :id', { id: w.id })
-          .getRawOne();
+    // Per-community stats (grouped queries instead of N+1)
+    const inboundRows: Array<{ accountId: string; totalIn: string; inboundCount: string }> =
+      await this.txRepo
+        .createQueryBuilder('tx')
+        .select('tx.destinationAccountId', 'accountId')
+        .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalIn')
+        .addSelect('COUNT(tx.id)', 'inboundCount')
+        .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+        .groupBy('tx.destinationAccountId')
+        .getRawMany();
 
-        const { sum: totalOut } = await this.txRepo
-          .createQueryBuilder('tx')
-          .select('COALESCE(SUM(tx.amount), 0)', 'sum')
-          .where('tx.sourceAccountId = :id', { id: w.id })
-          .getRawOne();
+    const outboundRows: Array<{ accountId: string; totalOut: string; outboundCount: string }> =
+      await this.txRepo
+        .createQueryBuilder('tx')
+        .select('tx.sourceAccountId', 'accountId')
+        .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalOut')
+        .addSelect('COUNT(tx.id)', 'outboundCount')
+        .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
+        .groupBy('tx.sourceAccountId')
+        .getRawMany();
 
-        const { count: txCount } = await this.txRepo
-          .createQueryBuilder('tx')
-          .select('COUNT(tx.id)', 'count')
-          .where(
-            'tx.destinationAccountId = :id OR tx.sourceAccountId = :id',
-            { id: w.id },
-          )
-          .getRawOne();
-
-        return {
-          projectKey: w.projectKey,
-          name: w.name,
-          totalIn: Number.parseFloat(totalIn) || 0,
-          totalOut: Number.parseFloat(totalOut) || 0,
-          txCount: Number.parseInt(txCount, 10) || 0,
-        };
-      }),
+    const inboundByAccount = new Map(
+      inboundRows.map((r) => [r.accountId, {
+        totalIn: Number.parseFloat(r.totalIn) || 0,
+        count: Number.parseInt(r.inboundCount, 10) || 0,
+      }]),
     );
+    const outboundByAccount = new Map(
+      outboundRows.map((r) => [r.accountId, {
+        totalOut: Number.parseFloat(r.totalOut) || 0,
+        count: Number.parseInt(r.outboundCount, 10) || 0,
+      }]),
+    );
+
+    // Count self-transfers to avoid double-counting
+    const selfTransferRows: Array<{ accountId: string; selfCount: string }> =
+      await this.txRepo
+        .createQueryBuilder('tx')
+        .select('tx.sourceAccountId', 'accountId')
+        .addSelect('COUNT(tx.id)', 'selfCount')
+        .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
+        .andWhere('tx.sourceAccountId = tx.destinationAccountId')
+        .groupBy('tx.sourceAccountId')
+        .getRawMany();
+    const selfByAccount = new Map(
+      selfTransferRows.map((r) => [r.accountId, Number.parseInt(r.selfCount, 10) || 0]),
+    );
+
+    const communityStats = wallets.map((w) => {
+      const id = String(w.id);
+      const inbound = inboundByAccount.get(id);
+      const outbound = outboundByAccount.get(id);
+      const selfCount = selfByAccount.get(id) || 0;
+      return {
+        projectKey: w.projectKey,
+        name: w.name,
+        totalIn: inbound?.totalIn || 0,
+        totalOut: outbound?.totalOut || 0,
+        txCount: (inbound?.count || 0) + (outbound?.count || 0) - selfCount,
+      };
+    });
 
     return {
       totalReceived: Number.parseFloat(totalReceived) || 0,

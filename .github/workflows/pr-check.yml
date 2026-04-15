@@ -73,7 +73,9 @@ jobs:
         run: npm ci
 
       - name: Run Frontend Tests with Coverage
-        run: npx jest --config jest.config.ts --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee frontend-coverage.txt
+        run: |
+          set -o pipefail
+          npx jest --config jest.config.ts --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee frontend-coverage.txt
 
       - name: Upload frontend coverage
         if: always()
@@ -110,7 +112,9 @@ jobs:
 
       - name: Run Backend Tests with Coverage
         working-directory: ./backend
-        run: npx jest --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee backend-coverage.txt
+        run: |
+          set -o pipefail
+          npx jest --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee backend-coverage.txt
 
       - name: Upload backend coverage
         if: always()
