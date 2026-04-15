@@ -10,6 +10,7 @@ build/
 # ─────────────────────────────────────────────────────
 backend/dist/
 backend/node_modules/
+backend/coverage/
 
 # ─────────────────────────────────────────────────────
 # Dependências (raiz)
@@ -17,26 +18,76 @@ backend/node_modules/
 node_modules/
 
 # ─────────────────────────────────────────────────────
+# Cobertura de testes
+# ─────────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+# ─────────────────────────────────────────────────────
 # Variáveis de ambiente — NUNCA comitar
 # ─────────────────────────────────────────────────────
 .env
 .env.local
 .env.*.local
+.env.production
+.env.staging
 backend/.env
 backend/.env.local
+backend/.env.*.local
 
 # ─────────────────────────────────────────────────────
 # Dados temporários e backups
 # ─────────────────────────────────────────────────────
 tmp/
+temp/
+*.bak
+*.backup
+*.orig
+*.tmp
 
 # ─────────────────────────────────────────────────────
-# macOS / IDE
+# Docker / Podman
+# ─────────────────────────────────────────────────────
+docker-data/
+pgdata/
+minio-data/
+keycloak-data/
+
+# ─────────────────────────────────────────────────────
+# macOS
 # ─────────────────────────────────────────────────────
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ─────────────────────────────────────────────────────
+# Linux
+# ─────────────────────────────────────────────────────
+*~
+
+# ─────────────────────────────────────────────────────
+# Windows
+# ─────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─────────────────────────────────────────────────────
+# IDE / Editores
+# ─────────────────────────────────────────────────────
 .vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+.idea/
+*.iml
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
 # ─────────────────────────────────────────────────────
 # Logs
@@ -45,6 +96,15 @@ tmp/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─────────────────────────────────────────────────────
+# Pacotes / binários acidentais
+# ─────────────────────────────────────────────────────
+*.tgz
+*.tar.gz
+*.zip
 
 # ─────────────────────────────────────────────────────
 # Legado — MkDocs (migração antiga)
