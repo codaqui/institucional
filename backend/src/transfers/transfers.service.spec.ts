@@ -72,7 +72,7 @@ describe('TransfersService', () => {
         reason: 'Need funds',
       };
 
-      const result = await service.createTransferRequest(uuid(5), dto);
+      await service.createTransferRequest(uuid(5), dto);
 
       expect(repo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -199,7 +199,7 @@ describe('TransfersService', () => {
       const request = mockRequest();
       repo.findOne.mockResolvedValue(request);
 
-      const result = await service.rejectRequest(uuid(1), uuid(9), {
+      await service.rejectRequest(uuid(1), uuid(9), {
         reviewNote: 'Insufficient justification',
       });
 

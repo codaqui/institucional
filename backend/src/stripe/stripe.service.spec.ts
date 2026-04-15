@@ -4,7 +4,6 @@ import { BadRequestException } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { Transaction } from '../ledger/entities/transaction.entity';
-import { AccountType } from '../ledger/entities/account.entity';
 
 // Mock the stripe module
 jest.mock('stripe', () => {

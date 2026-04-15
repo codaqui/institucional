@@ -325,21 +325,21 @@ describe('MembersService', () => {
         getMany: jest.fn().mockResolvedValue([
           {
             id: 'tx-1',
-            amount: 50.0,
+            amount: 50,
             description: 'Doação de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-06-01'),
             destinationAccount: { name: 'DevParaná', projectKey: 'devparana' },
           },
           {
             id: 'tx-2',
-            amount: 25.0,
+            amount: 25,
             description: 'Assinatura mensal de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-07-01'),
             destinationAccount: { name: 'Codaqui', projectKey: 'tesouro-geral' },
           },
           {
             id: 'tx-3',
-            amount: 100.0,
+            amount: 100,
             description: 'Assinatura anual de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-08-01'),
             destinationAccount: null,

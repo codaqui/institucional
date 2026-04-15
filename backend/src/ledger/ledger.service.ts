@@ -277,7 +277,7 @@ export class LedgerService {
     // Unique donors — extract handles from descriptions like "Doação de @handle"
     const donorRows: Array<{ handle: string }> = await this.txRepo
       .createQueryBuilder('tx')
-      .select("DISTINCT SUBSTRING(tx.description FROM 'Doação de (@[\\w.-]+)')", 'handle')
+      .select(String.raw`DISTINCT SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)')`, 'handle')
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
       .andWhere("tx.description LIKE 'Doação de @%'")
       .getRawMany();
@@ -293,7 +293,7 @@ export class LedgerService {
       .createQueryBuilder('tx')
       .leftJoin('tx.destinationAccount', 'dst')
       .select([
-        "SUBSTRING(tx.description FROM 'Doação de (@[\\w.-]+)') AS handle",
+        String.raw`SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)') AS handle`,
         'dst.name AS "communityName"',
         'tx.createdAt AS date',
         'tx.amount AS amount',

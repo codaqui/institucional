@@ -118,8 +118,6 @@ export class StripeController {
       throw new BadRequestException('Valor máximo por transação: R$ 50.000.');
     }
 
-    const isRecurring = !!body.recurring;
-
     // Doações acima de R$ 100 (únicas ou recorrentes) requerem login
     if (body.amount > ANONYMOUS_LIMIT_CENTS && !req.user) {
       throw new UnauthorizedException(

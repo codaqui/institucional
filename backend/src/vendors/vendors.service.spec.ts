@@ -184,7 +184,7 @@ describe('VendorsService', () => {
       const vendor = mockVendor();
       vendorRepo.findOneBy.mockResolvedValue(vendor);
 
-      const result = await service.updateVendor(uuid(2), { name: 'Updated' });
+      await service.updateVendor(uuid(2), { name: 'Updated' });
 
       expect(vendor.name).toBe('Updated');
       expect(vendorRepo.save).toHaveBeenCalled();
@@ -231,7 +231,7 @@ describe('VendorsService', () => {
         description: 'Monthly payment',
       };
 
-      const result = await service.createPayment(dto, uuid(9));
+      await service.createPayment(dto, uuid(9));
 
       expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
         uuid(1),
