@@ -34,9 +34,11 @@ const config: Config = {
     "/.docusaurus/",
   ],
   collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
+    "src/components/**/*.{ts,tsx}",
+    "src/utils/**/*.{ts,tsx}",
     "!src/__mocks__/**",
     "!src/**/*.d.ts",
+    "!src/**/*.test.{ts,tsx}",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transformIgnorePatterns: ["/node_modules/(?!@mui|@emotion)"],

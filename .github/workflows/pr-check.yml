@@ -224,11 +224,11 @@ jobs:
             fi
 
             # Backend
-            if [ -f backend-cov/backend/coverage/coverage-summary.json ]; then
-              BE_STMTS=$(jq -r '.total.statements.pct' backend-cov/backend/coverage/coverage-summary.json)
-              BE_BRANCH=$(jq -r '.total.branches.pct' backend-cov/backend/coverage/coverage-summary.json)
-              BE_FUNCS=$(jq -r '.total.functions.pct' backend-cov/backend/coverage/coverage-summary.json)
-              BE_LINES=$(jq -r '.total.lines.pct' backend-cov/backend/coverage/coverage-summary.json)
+            if [ -f backend-cov/coverage/coverage-summary.json ]; then
+              BE_STMTS=$(jq -r '.total.statements.pct' backend-cov/coverage/coverage-summary.json)
+              BE_BRANCH=$(jq -r '.total.branches.pct' backend-cov/coverage/coverage-summary.json)
+              BE_FUNCS=$(jq -r '.total.functions.pct' backend-cov/coverage/coverage-summary.json)
+              BE_LINES=$(jq -r '.total.lines.pct' backend-cov/coverage/coverage-summary.json)
               echo "### Backend"
               echo ""
               echo "| Statements | Branches | Functions | Lines |"
