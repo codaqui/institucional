@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-16T15:29:52.210Z",
+  "generatedAt": "2026-04-16T16:28:11.964Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-16T15:29:52.210Z",
+      "generatedAt": "2026-04-16T16:28:11.964Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 9
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-16T15:29:52.210Z",
+      "generatedAt": "2026-04-16T16:28:11.964Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Community",
       "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-16T15:29:52.210Z",
+      "generatedAt": "2026-04-16T16:28:11.964Z",
       "sourceKey": "bevy:cloud-native-maringa",
       "indexPath": "/events/bevy/cloud-native-maringa/index.json",
       "itemCount": 1
@@ -10314,7 +10314,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 50,
+      "userCount": 53,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/2/b/highres_533392011.jpeg",
@@ -10343,7 +10343,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 23,
+      "userCount": 24,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/6/6/highres_533392070.jpeg",
@@ -10351,43 +10351,6 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/313962842.json"
-    },
-    {
-      "id": "1338983526858494053",
-      "title": "Reunião Geral da Associação",
-      "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-      "startAt": "2026-04-20T21:30:00+00:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Discord",
-      "host": "Comunidade Codaqui",
-      "location": "Servidor da Codaqui no Discord",
-      "href": "https://discord.com/invite/xuTtxqCPpz",
-      "tags": [
-        "discord",
-        "comunidade"
-      ],
-      "ctaLabel": "Entrar no Discord da Codaqui",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "voice",
-      "userCount": 13,
-      "creatorName": "Enderson Menezes",
-      "creatorId": "265457153257635850",
-      "channelId": "836223754156638209",
-      "recurrenceLabel": "semanal · segunda",
-      "recurrenceRule": {
-        "start": "2025-09-22T21:30:00+00:00",
-        "frequency": 2,
-        "interval": 1,
-        "byWeekday": [
-          0
-        ]
-      },
-      "imageUrl": "https://cdn.discordapp.com/guild-events/1338983526858494053/803f9dca5b3692d7653df69edb2f3ee5.png?size=1024",
-      "source": "discord",
-      "sourceId": "codaqui",
-      "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1338983526858494053.json"
     },
     {
       "id": "1488598924481527898",
@@ -10671,6 +10634,43 @@
       "sourceId": "cloud-native-maringa",
       "sourceKey": "bevy:cloud-native-maringa",
       "itemPath": "/events/bevy/cloud-native-maringa/bevy-12669.json"
+    },
+    {
+      "id": "1338983526858494053",
+      "title": "Reunião Geral da Associação",
+      "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
+      "startAt": "2026-04-27T21:30:00+00:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Discord",
+      "host": "Comunidade Codaqui",
+      "location": "Servidor da Codaqui no Discord",
+      "href": "https://discord.com/invite/xuTtxqCPpz",
+      "tags": [
+        "discord",
+        "comunidade"
+      ],
+      "ctaLabel": "Entrar no Discord da Codaqui",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "voice",
+      "userCount": 13,
+      "creatorName": "Enderson Menezes",
+      "creatorId": "265457153257635850",
+      "channelId": "836223754156638209",
+      "recurrenceLabel": "semanal · segunda",
+      "recurrenceRule": {
+        "start": "2025-09-22T21:30:00+00:00",
+        "frequency": 2,
+        "interval": 1,
+        "byWeekday": [
+          0
+        ]
+      },
+      "imageUrl": "https://cdn.discordapp.com/guild-events/1338983526858494053/803f9dca5b3692d7653df69edb2f3ee5.png?size=1024",
+      "source": "discord",
+      "sourceId": "codaqui",
+      "sourceKey": "discord:codaqui",
+      "itemPath": "/events/discord/codaqui/1338983526858494053.json"
     },
     {
       "id": "1488599076889952267",
