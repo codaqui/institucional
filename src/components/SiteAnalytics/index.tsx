@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
+import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
@@ -422,8 +423,38 @@ function HeroMetric({
 
 // ─── Main export ──────────────────────────────────────────────────────────────
 
+type PeriodFilter = 3 | 6 | 12 | 0;
+const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
+  { value: 6, label: "6 meses" },
+  { value: 3, label: "3 meses" },
+  { value: 12, label: "12 meses" },
+  { value: 0, label: "Todos" },
+];
+
+function sliceMonthly(monthly: MonthlyMetric[], months: PeriodFilter): MonthlyMetric[] {
+  if (months === 0 || monthly.length <= months) return monthly;
+  return monthly.slice(-months);
+}
+
+function computeFilteredTotals(filtered: MonthlyMetric[]) {
+  let screenPageViews = 0;
+  let activeUsers = 0;
+  let peakViews = 0;
+  let peakMonth = "";
+  for (const m of filtered) {
+    screenPageViews += m.screenPageViews;
+    activeUsers += m.activeUsers;
+    if (m.screenPageViews > peakViews) {
+      peakViews = m.screenPageViews;
+      peakMonth = m.period;
+    }
+  }
+  return { screenPageViews, activeUsers, peakViews, peakMonth };
+}
+
 export default function SiteAnalytics() {
   const [data, setData] = useState<AnalyticsSnapshot | null>(null);
+  const [period, setPeriod] = useState<PeriodFilter>(6);
 
   useEffect(() => {
     fetch(ANALYTICS_URL)
@@ -436,7 +467,10 @@ export default function SiteAnalytics() {
 
   if (!data) return null;
 
-  const { totals, monthly, topPages, trafficSources, latestPeriod } = data;
+  const { monthly, topPages, trafficSources, latestPeriod } = data;
+  const filtered = sliceMonthly(monthly, period);
+  const stats = computeFilteredTotals(filtered);
+  const periodDesc = period === 0 ? `${monthly.length} meses` : `${period} meses`;
 
   return (
     <Box sx={{ bgcolor: "background.paper", borderTop: 1, borderColor: "divider", py: { xs: 5, md: 7 } }}>
@@ -466,6 +500,21 @@ export default function SiteAnalytics() {
           </Typography>
         </Stack>
 
+        {/* Period filter tabs */}
+        <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+          {PERIOD_OPTIONS.map((opt) => (
+            <Chip
+              key={opt.value}
+              label={opt.label}
+              size="small"
+              variant={period === opt.value ? "filled" : "outlined"}
+              color={period === opt.value ? "primary" : "default"}
+              onClick={() => setPeriod(opt.value)}
+              sx={{ fontWeight: 600 }}
+            />
+          ))}
+        </Stack>
+
         {/* Hero metrics row */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
@@ -474,18 +523,18 @@ export default function SiteAnalytics() {
         >
           <HeroMetric
             icon={<TrendingUpIcon fontSize="small" />}
-            value={fmtViews(totals.screenPageViews)}
-            label="visualizações totais (26 meses)"
+            value={fmtViews(stats.screenPageViews)}
+            label={`visualizações (${periodDesc})`}
           />
           <HeroMetric
             icon={<PeopleAltIcon fontSize="small" />}
-            value={fmtViews(totals.activeUsers)}
+            value={fmtViews(stats.activeUsers)}
             label="usuários únicos"
           />
           <HeroMetric
             icon={<EmojiEventsIcon fontSize="small" />}
-            value={fmtViews(totals.peakViews)}
-            sub={periodLabel(totals.peakMonth)}
+            value={fmtViews(stats.peakViews)}
+            sub={stats.peakMonth ? periodLabel(stats.peakMonth) : ""}
             label="recorde mensal"
           />
         </Stack>
@@ -504,7 +553,7 @@ export default function SiteAnalytics() {
           >
             Visualizações por mês ★ = pico
           </Typography>
-          <MonthlyChart monthly={monthly} peakMonth={totals.peakMonth} />
+          <MonthlyChart monthly={filtered} peakMonth={stats.peakMonth} />
         </Paper>
 
         {/* Sources + Top pages */}

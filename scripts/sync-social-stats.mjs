@@ -302,7 +302,17 @@ async function readExistingSnapshot() {
 
 // ─── Read communities display data from TS source (regex extract) ─────────────
 
-function extractSocialProfiles(tsSource) {
+function extractExportedConstants(tsSource) {
+  const constants = new Map();
+  const constRegex = /(?:export\s+)?const\s+([A-Z_][A-Z_0-9]*)\s*=\s*["']([^"']+)["']/g;
+  let m;
+  while ((m = constRegex.exec(tsSource)) !== null) {
+    constants.set(m[1], m[2]);
+  }
+  return constants;
+}
+
+function extractSocialProfiles(tsSource, constants = new Map()) {
   const profiles = [];
   // Safer object match: limit search distance and avoid nested universal quantifiers
   const objectRegex = /\{[^{}]{1,1000}platform:\s*["']([a-z]{3,20})["'][^{}]{1,1000}\}/g;
@@ -312,15 +322,20 @@ function extractSocialProfiles(tsSource) {
     
     const platform = match[1];
     const handleMatch = /handle:\s*["']([^"']+)["']/.exec(block);
-    const urlMatch = /url:\s*["']([^"']+)["']/.exec(block);
+    const urlMatch = /url:\s*(?:["']([^"']+)["']|([A-Z_][A-Z_0-9]*))/.exec(block);
     const countLabelMatch = /countLabel:\s*["']([^"']+)["']/.exec(block);
     const baselineCountMatch = /baselineCount:\s*(\d+)/.exec(block);
     
     if (handleMatch && urlMatch && countLabelMatch) {
+      // url can be a string literal (group 1) or a variable reference (group 2)
+      let urlValue = urlMatch[1] || "";
+      if (!urlValue && urlMatch[2]) {
+        urlValue = constants.get(urlMatch[2]) || urlMatch[2];
+      }
       profiles.push({
         platform,
         handle: handleMatch[1],
-        url: urlMatch[1],
+        url: urlValue,
         countLabel: countLabelMatch[1],
         baselineCount: baselineCountMatch ? Number.parseInt(baselineCountMatch[1], 10) : 0,
       });
@@ -334,10 +349,11 @@ async function readAllSocialProfiles() {
   const result = new Map();
 
   const socialSrc = await readFile(socialPath, "utf8");
+  const constants = extractExportedConstants(socialSrc);
   // Limit source scan to the array block itself
   const codaquiMatch = /codaquiSocialProfiles[^=]{1,100}=\s*\[([\s\S]{1,5000}?)\];/.exec(socialSrc);
   if (codaquiMatch) {
-    result.set("codaqui", extractSocialProfiles(codaquiMatch[1]));
+    result.set("codaqui", extractSocialProfiles(codaquiMatch[1], constants));
   }
 
   const commSrc = await readFile(communitiesPath, "utf8");
@@ -433,7 +449,8 @@ async function main() {
   console.log(`  totalEvents: ${totalEvents}`);
   console.log(`  profiles: ${profiles.length} total`);
   for (const [key, count] of fetchResults) {
-    console.log(`  ${key}: ${count ?? "fallback"}`);
+    const display = count !== null && typeof count === "object" ? count.memberCount : count;
+    console.log(`  ${key}: ${display ?? "fallback"}`);
   }
 }
 
