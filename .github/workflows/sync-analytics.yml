@@ -1,0 +1,58 @@
+name: Sync Analytics
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 6 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-analytics
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    name: Sync analytics snapshot
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate analytics snapshot
+        env:
+          DADOS_DISPATCH_TOKEN: ${{ secrets.DADOS_DISPATCH_TOKEN }}
+        run: npm run sync:analytics
+
+      - name: Commit updated snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/analytics
+
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+
+          git commit -m "chore: sync analytics snapshot"
+          git push
