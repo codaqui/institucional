@@ -1,7 +1,30 @@
 {
-  "generatedAt": "2026-04-16T06:46:59.497Z",
+  "generatedAt": "2026-04-17T06:46:36.433Z",
   "totalEvents": 373,
   "profiles": [
+    {
+      "entityId": "codaqui",
+      "platform": "discord",
+      "handle": "@codaqui",
+      "url": "https://discord.com/invite/xuTtxqCPpz",
+      "countLabel": "membros",
+      "baselineCount": 692,
+      "count": 740,
+      "channelCount": 41,
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "whatsapp",
+      "handle": "Grupo Codaqui",
+      "url": "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up",
+      "countLabel": "participantes",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
     {
       "entityId": "codaqui",
       "platform": "youtube",
@@ -10,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-04-16T06:46:59.497Z",
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
       "isFallback": false
     },
     {
@@ -25,14 +48,25 @@
       "isFallback": true
     },
     {
+      "entityId": "codaqui",
+      "platform": "github",
+      "handle": "codaqui",
+      "url": "https://github.com/codaqui",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 188,
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
+      "isFallback": false
+    },
+    {
       "entityId": "devparana",
       "platform": "meetup",
       "handle": "developerparana",
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6302,
-      "fetchedAt": "2026-04-16T06:46:59.497Z",
+      "count": 6335,
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
       "isFallback": false
     },
     {
@@ -98,7 +132,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-04-16T06:46:59.497Z",
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
       "isFallback": false
     },
     {
@@ -119,8 +153,8 @@
       "url": "https://community.cncf.io/cloud-native-maringa/",
       "countLabel": "membros",
       "baselineCount": 3,
-      "count": 39,
-      "fetchedAt": "2026-04-16T06:46:59.497Z",
+      "count": 41,
+      "fetchedAt": "2026-04-17T06:46:36.433Z",
       "isFallback": false
     }
   ]
