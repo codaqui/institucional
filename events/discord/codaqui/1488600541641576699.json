@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-17T06:30:58.031Z",
+  "generatedAt": "2026-04-17T07:30:21.711Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-04-17T06:30:58.031Z"
+    "generatedAt": "2026-04-17T07:30:21.711Z"
   },
   "event": {
     "id": "1488600541641576699",
