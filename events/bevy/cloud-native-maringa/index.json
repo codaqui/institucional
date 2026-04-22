@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-22T10:26:50.015Z",
+  "generatedAt": "2026-04-22T11:22:11.849Z",
   "source": {
     "source": "bevy",
     "sourceId": "cloud-native-maringa",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver no CNCF Community",
     "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-04-22T10:26:50.015Z",
+    "generatedAt": "2026-04-22T11:22:11.849Z",
     "sourceKey": "bevy:cloud-native-maringa",
     "indexPath": "/events/bevy/cloud-native-maringa/index.json",
     "itemCount": 1
