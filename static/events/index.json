@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T23:13:51.690Z",
+  "generatedAt": "2026-04-24T00:12:36.589Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-23T23:13:51.690Z",
+      "generatedAt": "2026-04-24T00:12:36.589Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 9
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-23T23:13:51.690Z",
+      "generatedAt": "2026-04-24T00:12:36.589Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Community",
       "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-23T23:13:51.690Z",
+      "generatedAt": "2026-04-24T00:12:36.589Z",
       "sourceKey": "bevy:cloud-native-maringa",
       "indexPath": "/events/bevy/cloud-native-maringa/index.json",
       "itemCount": 1
@@ -10466,35 +10466,6 @@
       "itemPath": "/events/discord/codaqui/1488600541641576699.json"
     },
     {
-      "id": "313962865",
-      "title": "DevPR na Estrada - Pato Branco",
-      "summary": "DevParaná na Estrada 2026 chega a Pato Branco com um conjunto de palestras incríveis! Palestras: A Arquitetura escondida de sistemas AI: Contexto, Memória e Controle Fernando Fabricio (https://www.linkedin.com/in/ferfab…",
-      "startAt": "2026-04-23T19:00:00-03:00",
-      "endAt": "2026-04-23T21:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Meetup",
-      "host": "Dev Paraná",
-      "location": "Afya Centro Universitário Pato Branco - R. Benjamin Borges dos Santos, 1100, Fraron · Afya Centro Universitário Pato Branco - R. Benjamin Borges dos Santos, 1100, Fraron · Pato Branco",
-      "href": "https://www.meetup.com/developerparana/events/313962865/",
-      "tags": [
-        "meetup",
-        "devparana",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento no Meetup",
-      "featured": false,
-      "status": "active",
-      "entityType": "external",
-      "userCount": 44,
-      "creatorName": "Luiz Schons",
-      "creatorId": "370720313",
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/8/2/highres_533392098.jpeg",
-      "source": "meetup",
-      "sourceId": "devparana",
-      "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962865.json"
-    },
-    {
       "id": "313962877",
       "title": "DevPR na Estrada - Toledo",
       "summary": "DevParaná na Estrada 2026 chega a Toledo com um conjunto de palestras incríveis! Palestras: BaaS: Construindo um Projeto Open Source em Comunidade Nestor Hugo (https://www.linkedin.com/in/ne) - Software Developer @ BigC…",
@@ -10512,7 +10483,7 @@
       ],
       "ctaLabel": "Ver evento no Meetup",
       "featured": false,
-      "status": "active",
+      "status": "completed",
       "entityType": "external",
       "userCount": 23,
       "creatorName": "Luiz Schons",
@@ -10522,6 +10493,35 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/313962877.json"
+    },
+    {
+      "id": "313962865",
+      "title": "DevPR na Estrada - Pato Branco",
+      "summary": "DevParaná na Estrada 2026 chega a Pato Branco com um conjunto de palestras incríveis! Palestras: A Arquitetura escondida de sistemas AI: Contexto, Memória e Controle Fernando Fabricio (https://www.linkedin.com/in/ferfab…",
+      "startAt": "2026-04-23T19:00:00-03:00",
+      "endAt": "2026-04-23T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Afya Centro Universitário Pato Branco - R. Benjamin Borges dos Santos, 1100, Fraron · Afya Centro Universitário Pato Branco - R. Benjamin Borges dos Santos, 1100, Fraron · Pato Branco",
+      "href": "https://www.meetup.com/developerparana/events/313962865/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 44,
+      "creatorName": "Luiz Schons",
+      "creatorId": "370720313",
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/8/2/highres_533392098.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/313962865.json"
     },
     {
       "id": "313962755",
@@ -10543,7 +10543,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 79,
+      "userCount": 80,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/e/highres_533391918.jpeg",
@@ -10572,7 +10572,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 56,
+      "userCount": 57,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/0/a/highres_533391978.jpeg",
