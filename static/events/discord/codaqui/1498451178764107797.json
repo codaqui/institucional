@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-04-27T23:15:47.132Z",
+  "source": {
+    "source": "discord",
+    "sourceId": "codaqui",
+    "type": "discord",
+    "label": "Discord Codaqui",
+    "emoji": "💬",
+    "description": "Eventos e encontros da comunidade hospedados no servidor da Codaqui.",
+    "ctaLabel": "Entrar no Discord da Codaqui",
+    "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
+    "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-04-27T23:15:47.132Z"
+  },
+  "event": {
+    "id": "1498451178764107797",
+    "title": "Lógica de Programação com Python #6 (Reposição)",
+    "summary": "Evento publicado pela comunidade no Discord.",
+    "startAt": "2026-05-12T23:30:00+00:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Discord",
+    "host": "Comunidade Codaqui",
+    "location": "Servidor da Codaqui no Discord",
+    "href": "https://discord.com/invite/xuTtxqCPpz",
+    "tags": [
+      "discord",
+      "comunidade"
+    ],
+    "ctaLabel": "Entrar no Discord da Codaqui",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "voice",
+    "userCount": 1,
+    "creatorName": "Enderson Menezes",
+    "creatorId": "265457153257635850",
+    "channelId": "836223700482392075",
+    "imageUrl": "https://cdn.discordapp.com/guild-events/1498451178764107797/7342ff2ab4698ea3dcdfca6d39185b71.png?size=1024"
+  }
+}
