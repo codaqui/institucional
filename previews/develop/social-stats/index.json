@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-23T06:47:39.232Z",
+  "generatedAt": "2026-04-27T22:42:27.288Z",
   "totalEvents": 373,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 744,
+      "count": 743,
       "channelCount": 41,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     },
     {
@@ -43,9 +43,9 @@
       "url": "https://www.instagram.com/codaqui.dev/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 393,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 412,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
     },
     {
       "entityId": "codaqui",
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 191,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6420,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "count": 6495,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     },
     {
@@ -87,9 +87,9 @@
       "url": "https://www.instagram.com/devparana",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 5002,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 5181,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
     },
     {
       "entityId": "elasnocodigo",
@@ -98,9 +98,20 @@
       "url": "https://www.instagram.com/elasnocodigo/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 194,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 233,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "elasnocodigo",
+      "platform": "youtube",
+      "handle": "@elasnocodigo",
+      "url": "https://www.youtube.com/@elasnocodigo",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 164,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
     },
     {
       "entityId": "campostechpg",
@@ -120,9 +131,9 @@
       "url": "https://www.instagram.com/campostechpg",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 1350,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 1353,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
     },
     {
       "entityId": "campostechpg",
@@ -132,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     },
     {
@@ -142,9 +153,9 @@
       "url": "https://www.instagram.com/tisocialmaringa",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 198,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 196,
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
+      "isFallback": false
     },
     {
       "entityId": "cloudnativemaringa",
@@ -154,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 44,
-      "fetchedAt": "2026-04-23T06:47:39.232Z",
+      "fetchedAt": "2026-04-27T22:42:27.288Z",
       "isFallback": false
     }
   ]
