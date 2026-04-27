@@ -68,4 +68,18 @@ export const projects: Project[] = [
       "Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.",
     href: "https://github.com/codaqui/backstage",
   },
+  {
+    emoji: "🗣️",
+    title: "Translate Talks",
+    description:
+      "Tradução em tempo real das talks de eventos para melhorar a acessibilidade para pessoas com deficiência auditiva.",
+    href: "https://github.com/DeveloperParana/translate-talks",
+  },
+  {
+    emoji: "🎲",
+    title: "Sorteio App",
+    description:
+      "Aplicação para realizar sorteios nos eventos e meetups das comunidades.",
+    href: "https://github.com/DeveloperParana/sorteio-app",
+  },
 ];
