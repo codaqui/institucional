@@ -27,7 +27,8 @@
     {
       "entityId": "elasnocodigo",
       "fetchProfiles": [
-        { "platform": "instagram", "fetchId": "elasnocodigo" }
+        { "platform": "instagram", "fetchId": "elasnocodigo" },
+        { "platform": "youtube",   "fetchId": "@elasnocodigo" }
       ]
     },
     {
