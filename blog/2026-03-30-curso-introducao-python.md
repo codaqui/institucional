@@ -30,10 +30,12 @@ Este material tem foco em uma abordagem simples e direta, com exemplos comentado
 
 As aulas acontecerão às **segundas e quartas-feiras, sempre às 20h30**:
 
-- **20/04/2026** (Segunda-feira)
+- ~**20/04/2026**~ (Segunda-feira) - Remarcada devido a feriado.
 - ~**22/04/2026**~ (Quarta-feira) - Remarcada devido a feriado.
 - **27/04/2026** (Segunda-feira)
 - **29/04/2026** (Quarta-feira)
+- **05/12/2026** (Terça-feira)
+- **12/05/2026** (Terça-feira)
 
 ## Sobre a Instrutora
 
