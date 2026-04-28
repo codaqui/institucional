@@ -1,14 +1,12 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import {
-  Button,
-  Box,
-  Typography,
-  Stack,
-  Grid,
-  Container,
-  Divider,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { communities, type Community } from "../../data/communities";
 import MembersWall from "../../components/MembersWall";
