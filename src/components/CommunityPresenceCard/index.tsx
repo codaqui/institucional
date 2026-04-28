@@ -9,7 +9,7 @@ import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { useTheme, type Theme } from "@mui/material/styles";
 import GroupsIcon from "@mui/icons-material/Groups";
 import EventIcon from "@mui/icons-material/Event";
 import GitHubIcon from "@mui/icons-material/GitHub";
@@ -18,6 +18,17 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import { PLATFORM_COLORS } from "../../data/social";
 import type { SocialStatEntry } from "../../data/social-stats";
+
+/** Resolve MUI theme tokens (e.g. "text.primary") to their actual CSS color value. */
+function resolveThemeColor(theme: Theme, token: string): string {
+  const parts = token.split(".");
+  let obj: unknown = theme.palette;
+  for (const part of parts) {
+    if (!obj || typeof obj !== "object") return token;
+    obj = (obj as Record<string, unknown>)[part];
+  }
+  return typeof obj === "string" ? obj : token;
+}
 
 // ─── Platform metadata ────────────────────────────────────────────────────────
 
@@ -54,7 +65,7 @@ export const PLATFORM_META: Record<
     icon: (
       <Box
         component="img"
-        src="https://avatars.githubusercontent.com/u/13455738?v=4"
+        src="/img/cncf-logo.png"
         alt="CNCF"
         sx={{ width: 16, height: 16, borderRadius: "50%" }}
       />
@@ -111,7 +122,8 @@ interface SocialStatChipProps {
 }
 
 export function SocialStatChip({ entry }: Readonly<SocialStatChipProps>) {
-  const color = platformColor(entry.platform);
+  const theme = useTheme();
+  const color = resolveThemeColor(theme, platformColor(entry.platform));
   const icon = platformIcon(entry.platform);
   const hasCount = !entry.isFallback || entry.count > 0;
 
@@ -187,7 +199,7 @@ export interface CommunityPresenceCardProps {
 }
 
 export default function CommunityPresenceCard({
-  entityId: _entityId,
+  entityId,
   name,
   logo,
   description,
@@ -209,6 +221,7 @@ export default function CommunityPresenceCard({
   return (
     <Card
       variant="outlined"
+      data-entity-id={entityId}
       sx={{
         height: "100%",
         display: "flex",
