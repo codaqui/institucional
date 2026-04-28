@@ -79,6 +79,13 @@ export const communities: Community[] = [
         countLabel: "seguidores",
         baselineCount: 0,
       },
+      {
+        platform: "youtube",
+        handle: "@elasnocodigo",
+        url: "https://www.youtube.com/@elasnocodigo",
+        countLabel: "inscritos",
+        baselineCount: 0,
+      },
     ],
     tags: ["mulheres", "inclusão", "empoderamento", "tech"],
   },

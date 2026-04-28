@@ -581,12 +581,56 @@ chore: atualiza dependências do projeto
 
 ---
 
+## SonarCloud — Code Quality
+
+Every PR is analyzed by SonarCloud (`codaqui_institucional` project). Issues are surfaced as PR checks and block merge when the Quality Gate fails.
+
+### Querying issues (API — SPA won't render in CLI/bots)
+
+```bash
+# List all open issues for a PR (replace 513 with the PR number)
+curl -s "https://sonarcloud.io/api/issues/search?componentKeys=codaqui_institucional&pullRequest=<PR_NUMBER>&statuses=OPEN,CONFIRMED&sinceLeakPeriod=true&ps=100"
+
+# With jq for readable output:
+curl -s "..." | jq '.issues[] | {rule, message, component, line}'
+```
+
+The UI URL is:
+```
+https://sonarcloud.io/project/issues?id=codaqui_institucional&pullRequest=<PR_NUMBER>&issueStatuses=OPEN,CONFIRMED&sinceLeakPeriod=true
+```
+> The SonarCloud UI is a React SPA — it does not render in `curl` or headless fetches. Always use the REST API (`/api/issues/search`) when automating or scripting.
+
+### Common rules in this project
+
+| SonarCloud Rule | What it flags | Quick fix |
+|----------------|--------------|-----------|
+| `typescript:S1128` | Unused imports | Remove the `import` line |
+| `typescript:S1854` | Dead assignments | Remove or use the variable |
+| `typescript:S6544` | `async` function with no `await` | Remove `async` or add `await` |
+| `Web:S5254` | Missing `alt` on `<img>` | Add `alt` attribute |
+| `javascript:S1192` | Duplicate string literals | Extract to constant |
+
+### Fixing and committing
+
+```bash
+# 1. Get open issues via API (see above)
+# 2. Fix the flagged lines in the source files
+# 3. Validate
+npm run typecheck
+# 4. Commit with a descriptive message referencing the rule
+git commit -m "fix: remove unused imports in insights.tsx (SonarCloud PR#513)"
+```
+
+---
+
 ## PR Checklist
 
 Before submitting:
 
 - [ ] `npm run build` completes without errors
 - [ ] `npm run typecheck` passes (runs only on frontend — backend is excluded)
+- [ ] SonarCloud Quality Gate passes (check via API or PR checks tab)
 - [ ] Blog posts include `slug: YYYY/MM/DD/name` in frontmatter
 - [ ] Data changes go in `src/data/*.ts`, not inline in pages
 - [ ] Social URLs imported from `src/data/social.ts`

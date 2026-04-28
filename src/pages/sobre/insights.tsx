@@ -1,17 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Layout from "@theme/Layout";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Collapse from "@mui/material/Collapse";
 import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
@@ -22,255 +18,12 @@ import EventIcon from "@mui/icons-material/Event";
 import SchoolIcon from "@mui/icons-material/School";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
-import GitHubIcon from "@mui/icons-material/GitHub";
-import YouTubeIcon from "@mui/icons-material/YouTube";
-import InstagramIcon from "@mui/icons-material/Instagram";
 import SiteAnalytics from "../../components/SiteAnalytics";
 import StatCard from "../../components/StatCard";
+import CommunityPresenceCard from "../../components/CommunityPresenceCard";
 import { timelineEvents, type TimelineEvent, type TimelineStats } from "../../data/timeline";
 import { communities } from "../../data/communities";
-import { codaquiSocialProfiles, PLATFORM_COLORS } from "../../data/social";
-import {
-  SOCIAL_STATS_URL,
-  type SocialStatsSnapshot,
-  type SocialStatEntry,
-} from "../../data/social-stats";
-
-// ─── Platform helpers ─────────────────────────────────────────────────────────
-
-const PLATFORM_META: Record<
-  string,
-  { icon: React.ReactNode; color: string; label: string }
-> = {
-  discord: {
-    icon: <GroupsIcon fontSize="small" />,
-    color: PLATFORM_COLORS.discord,
-    label: "Discord",
-  },
-  meetup: {
-    icon: <EventIcon fontSize="small" />,
-    color: PLATFORM_COLORS.meetup,
-    label: "Meetup",
-  },
-  youtube: {
-    icon: <YouTubeIcon fontSize="small" />,
-    color: PLATFORM_COLORS.youtube,
-    label: "YouTube",
-  },
-  instagram: {
-    icon: <InstagramIcon fontSize="small" />,
-    color: PLATFORM_COLORS.instagram,
-    label: "Instagram",
-  },
-  github: {
-    icon: <GitHubIcon fontSize="small" />,
-    color: PLATFORM_COLORS.github,
-    label: "GitHub",
-  },
-  cncf: {
-    icon: (
-      <Box
-        component="img"
-        src="https://avatars.githubusercontent.com/u/13455738?v=4"
-        alt="CNCF"
-        sx={{ width: 16, height: 16, borderRadius: "50%" }}
-      />
-    ),
-    color: PLATFORM_COLORS.cncf,
-    label: "CNCF Community",
-  },
-  website: {
-    icon: (
-      <Typography component="span" sx={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>
-        🌐
-      </Typography>
-    ),
-    color: PLATFORM_COLORS.website,
-    label: "Website",
-  },
-  twitter: {
-    icon: (
-      <Typography component="span" sx={{ fontSize: 14, fontWeight: 800, lineHeight: 1 }}>
-        𝕏
-      </Typography>
-    ),
-    color: PLATFORM_COLORS.twitter,
-    label: "Twitter/X",
-  },
-  whatsapp: {
-    icon: (
-      <Typography component="span" sx={{ fontSize: 13, lineHeight: 1 }}>
-        💬
-      </Typography>
-    ),
-    color: PLATFORM_COLORS.whatsapp,
-    label: "WhatsApp",
-  },
-};
-
-function platformIcon(platform: string) {
-  return PLATFORM_META[platform]?.icon ?? null;
-}
-
-function platformColor(platform: string) {
-  return PLATFORM_META[platform]?.color ?? "primary.main";
-}
-
-// ─── Number formatting ────────────────────────────────────────────────────────
-
-function formatCount(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1).replace(".0", "")}K`;
-  return n > 0 ? String(n) : "–";
-}
-
-// ─── Social stat chip ─────────────────────────────────────────────────────────
-
-interface SocialStatChipProps {
-  entry: SocialStatEntry;
-}
-
-function SocialStatChip({ entry }: Readonly<SocialStatChipProps>) {
-  const color = platformColor(entry.platform);
-  const icon = platformIcon(entry.platform);
-  // Platforms without automated fetch show as link-only chips (no count)
-  const hasCount = !entry.isFallback || entry.count > 0;
-
-  let tooltipText = "";
-  if (hasCount) {
-    if (entry.isFallback) {
-      tooltipText = "Valor estimado — ainda não sincronizado";
-    } else {
-      tooltipText = `Atualizado em ${entry.fetchedAt ? new Date(entry.fetchedAt).toLocaleDateString("pt-BR") : "—"}`;
-    }
-  } else {
-    tooltipText = `${entry.handle} — clique para visitar`;
-  }
-
-  return (
-    <Tooltip title={tooltipText}>
-      <Chip
-        component="a"
-        href={entry.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        clickable
-        icon={
-          <Box component="span" sx={{ color: `${color} !important`, display: "flex" }}>
-            {icon}
-          </Box>
-        }
-        label={
-          hasCount ? (
-            <Box component="span">
-              <Box component="span" sx={{ fontWeight: 800 }}>
-                {formatCount(entry.count)}
-              </Box>{" "}
-              <Box component="span" sx={{ fontWeight: 400, opacity: 0.8 }}>
-                {entry.countLabel}
-              </Box>
-              {entry.isFallback && (
-                <Box component="span" sx={{ ml: 0.5, opacity: 0.5, fontSize: "0.7rem" }}>
-                  ~
-                </Box>
-              )}
-            </Box>
-          ) : (
-            <Box component="span" sx={{ fontWeight: 400, opacity: 0.85 }}>
-              {entry.handle}
-            </Box>
-          )
-        }
-        variant="outlined"
-        sx={{
-          "& .MuiChip-icon": { ml: "6px" },
-          "&:hover": { bgcolor: "action.selected" },
-        }}
-      />
-    </Tooltip>
-  );
-}
-
-// ─── Presence card (unified: Codaqui + communities) ──────────────────────────
-
-interface PresenceCardProps {
-  entityId: string;
-  name: string;
-  logo: string;
-  description: string;
-  profiles: SocialStatEntry[];
-  location?: string;
-  tags?: string[];
-  primaryLink?: { label: string; url: string };
-}
-
-function PresenceCard({
-  entityId: _entityId,
-  name,
-  logo,
-  description,
-  profiles,
-  location,
-  tags,
-  primaryLink,
-}: Readonly<PresenceCardProps>) {
-  // Always show all profiles: those with count show stats, those without show as links
-  return (
-    <Card variant="outlined" sx={{ height: "100%", "&:hover": { boxShadow: 3 }, transition: "box-shadow 0.2s" }}>
-      <CardContent>
-        <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 0.5 }}>
-          <Avatar src={logo} alt={name} sx={{ width: 44, height: 44 }} />
-          <Box>
-            <Typography variant="h6" fontWeight={700} lineHeight={1.2}>
-              {name}
-            </Typography>
-            {location && (
-              <Typography variant="caption" color="text.secondary">
-                📍 {location}
-              </Typography>
-            )}
-          </Box>
-        </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5, mt: 1 }}>
-          {description}
-        </Typography>
-        <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: tags?.length ? 1.5 : 0 }}>
-          {profiles.length === 0 ? (
-            <Typography variant="caption" color="text.disabled">
-              Estatísticas ainda não disponíveis
-            </Typography>
-          ) : (
-            profiles.map((p) => (
-              <SocialStatChip key={`${p.entityId}-${p.platform}`} entry={p} />
-            ))
-          )}
-        </Stack>
-        {tags && tags.length > 0 && (
-          <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mb: primaryLink ? 1 : 0 }}>
-            {tags.map((t) => (
-              <Chip key={t} label={t} size="small" variant="outlined" />
-            ))}
-          </Stack>
-        )}
-        {primaryLink && (
-          <Button
-            href={primaryLink.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            endIcon={<OpenInNewIcon />}
-            size="small"
-            variant="text"
-            sx={{ mt: 0.5, textTransform: "none" }}
-          >
-            {primaryLink.label}
-          </Button>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Timeline components ───────────────────────────────────────────────────────
+import { useSocialStatsSnapshot } from "../../hooks/useSocialStatsSnapshot";
 
 const COLOR_MAP: Record<string, string> = {
   success: "success.main",
@@ -583,71 +336,35 @@ function TimelineChapter({
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-function buildFallbackSnapshot(): SocialStatsSnapshot {
-  const now = new Date().toISOString();
-  const profiles = [
-    ...codaquiSocialProfiles.map((p) => ({
-      ...p,
-      entityId: "codaqui",
-      count: p.baselineCount ?? 0,
-      isFallback: true,
-      fetchedAt: now,
-    })),
-    ...communities.flatMap((c) =>
-      (c.socialProfiles ?? []).map((p) => ({
-        ...p,
-        entityId: c.id,
-        count: p.baselineCount ?? 0,
-        isFallback: true,
-        fetchedAt: now,
-      }))
-    ),
-  ];
-  return { generatedAt: now, totalEvents: 0, profiles };
-}
-
 export default function InsightsPage(): React.JSX.Element {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-  const [snapshot, setSnapshot] = useState<SocialStatsSnapshot | null>(null);
-
-  useEffect(() => {
-    fetch(SOCIAL_STATS_URL)
-      .then((r) => r.json())
-      .then((data: SocialStatsSnapshot) => setSnapshot(data))
-      .catch(() => {
-        setSnapshot(buildFallbackSnapshot());
-      });
-  }, []);
-
-  function profilesFor(entityId: string): SocialStatEntry[] {
-    return snapshot?.profiles.filter((p) => p.entityId === entityId) ?? [];
-  }
+  const { snapshot, profilesFor } = useSocialStatsSnapshot();
 
   // Hero stats: events + discord + meetup devparana
-  const totalEvents = snapshot?.totalEvents ?? 0;
-  const discordCount = snapshot?.profiles.find(
-    (p) => p.entityId === "codaqui" && p.platform === "discord"
-  )?.count ?? 0;
-  const meetupCount = snapshot?.profiles.find(
-    (p) => p.entityId === "devparana" && p.platform === "meetup"
-  )?.count ?? 0;
+  const totalEvents = snapshot.totalEvents;
+  const discordCount =
+    snapshot.profiles.find((p) => p.entityId === "codaqui" && p.platform === "discord")
+      ?.count ?? 0;
+  const meetupCount =
+    snapshot.profiles.find((p) => p.entityId === "devparana" && p.platform === "meetup")
+      ?.count ?? 0;
 
   const heroStats = [
     {
       icon: <EventIcon />,
-      value: totalEvents > 0 ? `${totalEvents}+` : "370+",
+      value: `${totalEvents}+`,
       label: "Eventos organizados",
     },
     {
       icon: <GroupsIcon />,
-      value: discordCount > 0 ? `${discordCount.toLocaleString("pt-BR")}` : "692+",
+      value: discordCount > 0 ? discordCount.toLocaleString("pt-BR") : "–",
       label: "Membros no Discord",
     },
     {
       icon: <PeopleAltIcon />,
-      value: meetupCount > 0 ? `${meetupCount.toLocaleString("pt-BR")}` : "2.100+",
+      value: meetupCount > 0 ? meetupCount.toLocaleString("pt-BR") : "–",
       label: "Membros no Meetup",
     },
     {
@@ -719,7 +436,7 @@ export default function InsightsPage(): React.JSX.Element {
           <Grid container spacing={3}>
             {/* Codaqui */}
             <Grid size={{ xs: 12, md: 6 }}>
-              <PresenceCard
+              <CommunityPresenceCard
                 entityId="codaqui"
                 name="Codaqui"
                 logo="/img/logo.png"
@@ -733,7 +450,7 @@ export default function InsightsPage(): React.JSX.Element {
             {/* All communities */}
             {communities.map((c) => (
               <Grid key={c.id} size={{ xs: 12, md: 6 }}>
-                <PresenceCard
+                <CommunityPresenceCard
                   entityId={c.id}
                   name={`${c.emoji} ${c.name}`}
                   logo={c.logo}

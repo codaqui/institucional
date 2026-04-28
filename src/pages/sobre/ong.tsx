@@ -1,94 +1,21 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import {
-  Card,
-  CardContent,
-  CardActions,
-  Button,
-  Avatar,
-  Box,
-  Typography,
-  Chip,
-  Stack,
-  Grid,
-  Container,
-  Divider,
-  useTheme,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { communities, type Community } from "../../data/communities";
 import MembersWall from "../../components/MembersWall";
 import PageHero from "../../components/PageHero";
-
-function CommunityCard({ community }: Readonly<{ community: Community }>) {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === "dark";
-  const isLocal = community.logo.startsWith("/img/");
-  return (
-    <Card
-      variant="outlined"
-      sx={{
-        height: "100%",
-        display: "flex",
-        flexDirection: "column",
-        transition: "all 0.2s",
-        "&:hover": { boxShadow: 3, transform: "translateY(-2px)" },
-      }}
-    >
-      <CardContent sx={{ flexGrow: 1 }}>
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <Avatar
-            src={community.logo}
-            alt={community.name}
-            sx={{
-              width: 56,
-              height: 56,
-              bgcolor: "background.paper",
-              border: 1,
-              borderColor: "divider",
-              "& img": {
-                objectFit: "contain",
-                p: 0.5,
-                filter: isDark && isLocal ? "invert(1) brightness(2)" : "none",
-              },
-            }}
-          />
-          <Box>
-            <Typography variant="h6">{community.name}</Typography>
-            {community.location && (
-              <Typography variant="caption" color="text.secondary">
-                {community.location}
-              </Typography>
-            )}
-          </Box>
-        </Box>
-        <Typography variant="body2" color="text.secondary">
-          {community.description}
-        </Typography>
-        <Stack direction="row" flexWrap="wrap" gap={1} mt={2}>
-          {community.tags.map((tag) => (
-            <Chip key={tag} label={tag} size="small" variant="outlined" />
-          ))}
-        </Stack>
-      </CardContent>
-      <CardActions sx={{ gap: 1, flexWrap: "wrap", pt: 0 }}>
-        {community.links.map((link) => (
-          <Button
-            key={link.url}
-            size="small"
-            variant="outlined"
-            href={link.url}
-            target="_blank"
-          >
-            {link.label}
-          </Button>
-        ))}
-      </CardActions>
-    </Card>
-  );
-}
+import CommunityPresenceCard from "../../components/CommunityPresenceCard";
+import { useSocialStatsSnapshot } from "../../hooks/useSocialStatsSnapshot";
 
 export default function OngPage(): React.JSX.Element {
+  const { profilesFor } = useSocialStatsSnapshot();
   return (
     <Layout
       title="Associação"
@@ -108,7 +35,16 @@ export default function OngPage(): React.JSX.Element {
         <Grid container spacing={3}>
           {communities.map((community: Community) => (
             <Grid key={community.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <CommunityCard community={community} />
+              <CommunityPresenceCard
+                entityId={community.id}
+                name={`${community.emoji} ${community.name}`}
+                logo={community.logo}
+                description={community.description}
+                profiles={profilesFor(community.id)}
+                location={community.location}
+                tags={community.tags}
+                links={community.links.map((l) => ({ label: l.label, url: l.url }))}
+              />
             </Grid>
           ))}
         </Grid>
