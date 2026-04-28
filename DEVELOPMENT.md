@@ -276,6 +276,26 @@ As migrations são executadas automaticamente na inicialização (`migrationsRun
 
 ---
 
+## Git: merge de `main` no branch de feature
+
+A `main` recebe commits automáticos de sync de dados (`static/events/`, `static/social-stats/`).
+Ao fazer merge de `main` no branch de desenvolvimento, sempre preserve os snapshots da `main`:
+
+```bash
+git fetch origin
+git merge origin/main
+
+# Se houver conflito em static/, resolva mantendo a versão da main:
+git checkout origin/main -- static/events/ static/social-stats/ static/analytics/
+git add static/
+git merge --continue   # ou git commit se não for um merge conflict
+```
+
+> **Por quê?** Os arquivos em `static/` são gerados automaticamente por workflows na `main`.
+> A versão da `main` sempre é mais recente. Nunca resolva conflitos nesses arquivos mantendo o branch local.
+
+---
+
 ## Convenção de Commits
 
 ```
