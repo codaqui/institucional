@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { communities } from "../data/communities";
 import { codaquiSocialProfiles } from "../data/social";
 import {
+  BASELINE_TOTAL_EVENTS,
   SOCIAL_STATS_URL,
   type SocialStatEntry,
   type SocialStatsSnapshot,
@@ -27,22 +28,24 @@ function buildFallbackSnapshot(): SocialStatsSnapshot {
       }))
     ),
   ];
-  return { generatedAt: now, totalEvents: 0, profiles };
+  return { generatedAt: now, totalEvents: BASELINE_TOTAL_EVENTS, profiles };
 }
 
 export function useSocialStatsSnapshot() {
-  const [snapshot, setSnapshot] = useState<SocialStatsSnapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<SocialStatsSnapshot>(buildFallbackSnapshot);
 
   useEffect(() => {
     fetch(SOCIAL_STATS_URL)
       .then((r) => r.json())
       .then((data: SocialStatsSnapshot) => setSnapshot(data))
-      .catch(() => setSnapshot(buildFallbackSnapshot()));
+      .catch((err) => console.error("[useSocialStatsSnapshot] fetch failed:", err));
   }, []);
 
-  function profilesFor(entityId: string): SocialStatEntry[] {
-    return snapshot?.profiles.filter((p) => p.entityId === entityId) ?? [];
-  }
+  const profilesFor = useCallback(
+    (entityId: string): SocialStatEntry[] =>
+      snapshot.profiles.filter((p) => p.entityId === entityId),
+    [snapshot]
+  );
 
   return { snapshot, profilesFor };
 }
