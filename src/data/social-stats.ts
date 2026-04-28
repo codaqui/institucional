@@ -44,3 +44,6 @@ export interface SocialStatsSnapshot {
 }
 
 export const SOCIAL_STATS_URL = "/social-stats/index.json";
+
+/** Baseline manual para total de eventos — atualizar ao rodar sync:events */
+export const BASELINE_TOTAL_EVENTS = 376;
