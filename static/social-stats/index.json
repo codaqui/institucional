@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-04-26T06:46:09.469Z",
-  "totalEvents": 373,
+  "generatedAt": "2026-04-28T07:03:53.942Z",
+  "totalEvents": 376,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 745,
+      "count": 747,
       "channelCount": 41,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     },
     {
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 191,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "count": 192,
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6495,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     },
     {
@@ -132,7 +132,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     },
     {
@@ -154,7 +154,7 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 44,
-      "fetchedAt": "2026-04-26T06:46:09.469Z",
+      "fetchedAt": "2026-04-28T07:03:53.942Z",
       "isFallback": false
     }
   ]
