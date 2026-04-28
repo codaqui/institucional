@@ -128,7 +128,7 @@ export class LedgerService {
       switch (filters.type) {
         case 'donation':
           qb.andWhere(
-            "(tx.referenceId LIKE 'cs_%' OR tx.description ILIKE 'doação%')",
+            "(tx.referenceId LIKE 'cs_%' OR tx.referenceId LIKE 'in_%' OR tx.description ILIKE 'doação%' OR tx.description ILIKE 'assinatura%')",
           );
           break;
         case 'reimbursement':
@@ -274,12 +274,17 @@ export class LedgerService {
       )
       .getRawOne();
 
-    // Unique donors — extract handles from descriptions like "Doação de @handle"
+    // Unique donors — extract handles from descriptions like "Doação de @handle" or "Assinatura mensal de @handle"
     const donorRows: Array<{ handle: string }> = await this.txRepo
       .createQueryBuilder('tx')
-      .select(String.raw`DISTINCT SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)')`, 'handle')
+      .select(
+        String.raw`DISTINCT SUBSTRING(tx.description FROM '(?:Doação|Assinatura (?:mensal|anual)) de (@[\w.-]+)')`,
+        'handle',
+      )
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere("tx.description LIKE 'Doação de @%'")
+      .andWhere(
+        "(tx.description LIKE 'Doação de @%' OR tx.description LIKE 'Assinatura%de @%')",
+      )
       .getRawMany();
     const uniqueDonors = donorRows.filter((r) => r.handle).length;
 
@@ -293,13 +298,15 @@ export class LedgerService {
       .createQueryBuilder('tx')
       .leftJoin('tx.destinationAccount', 'dst')
       .select([
-        String.raw`SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)') AS handle`,
+        String.raw`SUBSTRING(tx.description FROM '(?:Doação|Assinatura (?:mensal|anual)) de (@[\w.-]+)') AS handle`,
         'dst.name AS "communityName"',
         'tx.createdAt AS date',
         'tx.amount AS amount',
       ])
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere("tx.description LIKE 'Doação de @%'")
+      .andWhere(
+        "(tx.description LIKE 'Doação de @%' OR tx.description LIKE 'Assinatura%de @%')",
+      )
       .orderBy('tx.createdAt', 'DESC')
       .limit(10)
       .getRawMany();
