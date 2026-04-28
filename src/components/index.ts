@@ -12,3 +12,6 @@ export { default as InfoCard } from "./InfoCard";
 export { default as SelectableCard } from "./SelectableCard";
 export { default as TransactionDetailDialog } from "./TransactionDetailDialog";
 export { default as TransactionTable } from "./TransactionTable";
+export { default as CommunityPresenceCard } from "./CommunityPresenceCard";
+export type { CommunityPresenceCardProps } from "./CommunityPresenceCard";
+export { SocialStatChip, PLATFORM_META, platformIcon, platformColor, formatCount } from "./CommunityPresenceCard";
