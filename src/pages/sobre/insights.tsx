@@ -25,10 +25,6 @@ import { timelineEvents, type TimelineEvent, type TimelineStats } from "../../da
 import { communities } from "../../data/communities";
 import { useSocialStatsSnapshot } from "../../hooks/useSocialStatsSnapshot";
 
-// ─── Platform helpers ─────────────────────────────────────────────────────────
-
-// ─── Timeline components ───────────────────────────────────────────────────────
-
 const COLOR_MAP: Record<string, string> = {
   success: "success.main",
   info: "info.main",
@@ -347,28 +343,28 @@ export default function InsightsPage(): React.JSX.Element {
   const { snapshot, profilesFor } = useSocialStatsSnapshot();
 
   // Hero stats: events + discord + meetup devparana
-  const totalEvents = snapshot?.totalEvents ?? 0;
-  const discordCount = snapshot?.profiles.find(
-    (p) => p.entityId === "codaqui" && p.platform === "discord"
-  )?.count ?? 0;
-  const meetupCount = snapshot?.profiles.find(
-    (p) => p.entityId === "devparana" && p.platform === "meetup"
-  )?.count ?? 0;
+  const totalEvents = snapshot.totalEvents;
+  const discordCount =
+    snapshot.profiles.find((p) => p.entityId === "codaqui" && p.platform === "discord")
+      ?.count ?? 0;
+  const meetupCount =
+    snapshot.profiles.find((p) => p.entityId === "devparana" && p.platform === "meetup")
+      ?.count ?? 0;
 
   const heroStats = [
     {
       icon: <EventIcon />,
-      value: totalEvents > 0 ? `${totalEvents}+` : "370+",
+      value: `${totalEvents}+`,
       label: "Eventos organizados",
     },
     {
       icon: <GroupsIcon />,
-      value: discordCount > 0 ? `${discordCount.toLocaleString("pt-BR")}` : "692+",
+      value: discordCount > 0 ? discordCount.toLocaleString("pt-BR") : "–",
       label: "Membros no Discord",
     },
     {
       icon: <PeopleAltIcon />,
-      value: meetupCount > 0 ? `${meetupCount.toLocaleString("pt-BR")}` : "2.100+",
+      value: meetupCount > 0 ? meetupCount.toLocaleString("pt-BR") : "–",
       label: "Membros no Meetup",
     },
     {
