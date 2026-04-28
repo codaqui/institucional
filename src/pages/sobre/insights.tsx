@@ -1,10 +1,7 @@
 import React, { useState } from "react";
 import Layout from "@theme/Layout";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import Collapse from "@mui/material/Collapse";
 import Container from "@mui/material/Container";
@@ -21,14 +18,12 @@ import EventIcon from "@mui/icons-material/Event";
 import SchoolIcon from "@mui/icons-material/School";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import SiteAnalytics from "../../components/SiteAnalytics";
 import StatCard from "../../components/StatCard";
 import CommunityPresenceCard from "../../components/CommunityPresenceCard";
 import { timelineEvents, type TimelineEvent, type TimelineStats } from "../../data/timeline";
 import { communities } from "../../data/communities";
 import { useSocialStatsSnapshot } from "../../hooks/useSocialStatsSnapshot";
-import type { SocialStatsSnapshot } from "../../data/social-stats";
 
 // ─── Platform helpers ─────────────────────────────────────────────────────────
 
