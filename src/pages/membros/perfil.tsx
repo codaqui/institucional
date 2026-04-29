@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "@theme/Layout";
+import Head from "@docusaurus/Head";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Avatar,
@@ -348,12 +349,6 @@ export default function PerfilPage(): React.JSX.Element {
   const memberId = params?.get("id") ?? null;
   const memberHandle = params?.get("handle") ?? null;
 
-  // URL bonita para QR code: /@handle
-  const vanityUrl =
-    isBrowser && member
-      ? `${globalThis.location.origin}/@${member.githubHandle}`
-      : "";
-
   useEffect(() => {
     if (!memberId && !memberHandle) {
       setError("ID ou handle do membro não informado.");
@@ -400,15 +395,41 @@ export default function PerfilPage(): React.JSX.Element {
 
   const isDonor = donations.length > 0;
 
+  // URL canônica (HTTP 200, usada para SEO e QR code)
+  const canonicalHandle = member?.githubHandle ?? memberHandle ?? "";
+  const canonicalUrl = isBrowser && canonicalHandle
+    ? `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`
+    : "";
+
+  // QR code usa URL canônica (não /@handle que retorna HTTP 404 no GitHub Pages)
+  const vanityUrl = canonicalUrl;
+
+  const seoTitle = member
+    ? `${member.name} (@${member.githubHandle}) — Membro Codaqui`
+    : "Perfil de Membro — Codaqui";
+  const seoDescription = member
+    ? `Perfil público de ${member.name} na Associação Codaqui. Membro desde ${formatDate(member.joinedAt)}.${isDonor ? " Apoiador(a) da comunidade." : ""}`
+    : "Perfil de membro da Associação Codaqui.";
+
   return (
-    <Layout
-      title={member ? `${member.name} — Membro` : "Perfil de Membro"}
-      description={
-        member
-          ? `Perfil público de ${member.name} na Associação Codaqui.`
-          : "Perfil de membro da Associação Codaqui."
-      }
-    >
+    <Layout title={seoTitle} description={seoDescription}>
+      {/* Dynamic SEO tags — updated once member data loads */}
+      {member && (
+        <Head>
+          <title>{seoTitle}</title>
+          <meta name="description" content={seoDescription} />
+          {canonicalUrl && <link rel="canonical" href={canonicalUrl} />}
+          <meta property="og:title" content={seoTitle} />
+          <meta property="og:description" content={seoDescription} />
+          <meta property="og:image" content={member.avatarUrl} />
+          {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+          <meta property="og:type" content="profile" />
+          <meta name="twitter:card" content="summary" />
+          <meta name="twitter:title" content={seoTitle} />
+          <meta name="twitter:description" content={seoDescription} />
+          <meta name="twitter:image" content={member.avatarUrl} />
+        </Head>
+      )}
       <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
         {/* Back link */}
         <Link

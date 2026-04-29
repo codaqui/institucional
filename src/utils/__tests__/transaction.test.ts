@@ -71,8 +71,24 @@ describe("detectTxType", () => {
     expect(detectTxType(makeTx({ referenceId: "cs_live_abc" }))).toBe("donation");
   });
 
+  it("detects donation by Stripe payment intent referenceId (pi_)", () => {
+    expect(detectTxType(makeTx({ referenceId: "pi_live_abc" }))).toBe("donation");
+  });
+
+  it("detects donation by Stripe invoice referenceId (in_)", () => {
+    expect(detectTxType(makeTx({ referenceId: "in_live_abc" }))).toBe("donation");
+  });
+
   it("detects donation by description", () => {
     expect(detectTxType(makeTx({ description: "Doação de @user" }))).toBe("donation");
+  });
+
+  it("detects monthly subscription as donation by description", () => {
+    expect(detectTxType(makeTx({ description: "Assinatura mensal de @user [id] — Sessão in_xxx" }))).toBe("donation");
+  });
+
+  it("detects annual subscription as donation by description", () => {
+    expect(detectTxType(makeTx({ description: "Assinatura anual de @user [id] — Sessão in_xxx" }))).toBe("donation");
   });
 
   it("detects vendor-payment by description", () => {
@@ -99,6 +115,14 @@ describe("detectTxType", () => {
 describe("extractDonorHandle", () => {
   it("extracts GitHub handle from donation description", () => {
     expect(extractDonorHandle("Doação de @john-doe")).toBe("@john-doe");
+  });
+
+  it("extracts GitHub handle from monthly subscription description", () => {
+    expect(extractDonorHandle("Assinatura mensal de @john-doe [id] — Sessão in_xxx")).toBe("@john-doe");
+  });
+
+  it("extracts GitHub handle from annual subscription description", () => {
+    expect(extractDonorHandle("Assinatura anual de @jane.doe")).toBe("@jane.doe");
   });
 
   it("returns null when no handle found", () => {

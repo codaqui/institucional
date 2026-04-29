@@ -85,11 +85,20 @@ export function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
   if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
   if (tx.referenceId?.startsWith("transfer:")) return "transfer";
-  if (tx.referenceId?.startsWith("cs_")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("doação")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("pagamento a fornecedor")) return "vendor-payment";
-  if (tx.description?.toLowerCase().startsWith("reembolso")) return "reimbursement";
-  if (tx.description?.toLowerCase().startsWith("transfer")) return "transfer";
+  // cs_ = Stripe Checkout Session (pagamento único legado)
+  // pi_ = Stripe Payment Intent (pagamento único atual + assinaturas)
+  // in_ = Stripe Invoice (renovação de assinatura sem payment_intent)
+  if (
+    tx.referenceId?.startsWith("cs_") ||
+    tx.referenceId?.startsWith("pi_") ||
+    tx.referenceId?.startsWith("in_")
+  )
+    return "donation";
+  const desc = tx.description?.toLowerCase() ?? "";
+  if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
+  if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
+  if (desc.startsWith("reembolso")) return "reimbursement";
+  if (desc.startsWith("transfer")) return "transfer";
   return "other";
 }
 
@@ -105,7 +114,8 @@ export const TX_TYPE_CONFIG: Record<
 };
 
 export const extractDonorHandle = (description: string) => {
-  const match = /Doação de (@[\w.-]+)/.exec(description);
+  // Matches both "Doação de @handle" and "Assinatura mensal/anual de @handle"
+  const match = /(?:Doação|Assinatura\s+\w+)\s+de\s+(@[\w.-]+)/.exec(description);
   return match?.[1] || null;
 };
 

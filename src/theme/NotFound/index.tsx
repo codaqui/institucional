@@ -1,6 +1,7 @@
 import React, { useEffect, useState, type ReactNode } from "react";
 import { translate } from "@docusaurus/Translate";
 import { PageMetadata } from "@docusaurus/theme-common";
+import Head from "@docusaurus/Head";
 import Layout from "@theme/Layout";
 import NotFoundContent from "@theme/NotFound/Content";
 
@@ -27,6 +28,9 @@ export default function NotFoundPage(): ReactNode {
     return (
       <>
         <PageMetadata title="Redirecionando…" />
+        <Head>
+          <meta name="robots" content="noindex,nofollow" />
+        </Head>
         <Layout>
           <main className="container margin-vert--xl">
             <div className="row">
