@@ -407,8 +407,9 @@ export default function PerfilPage(): React.JSX.Element {
   const seoTitle = member
     ? `${member.name} (@${member.githubHandle}) — Membro Codaqui`
     : "Perfil de Membro — Codaqui";
+  const seoDonorSuffix = isDonor ? " Apoiador(a) da comunidade." : "";
   const seoDescription = member
-    ? `Perfil público de ${member.name} na Associação Codaqui. Membro desde ${formatDate(member.joinedAt)}.${isDonor ? " Apoiador(a) da comunidade." : ""}`
+    ? `Perfil público de ${member.name} na Associação Codaqui. Membro desde ${formatDate(member.joinedAt)}.${seoDonorSuffix}`
     : "Perfil de membro da Associação Codaqui.";
 
   return (
