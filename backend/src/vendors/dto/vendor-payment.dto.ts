@@ -1,25 +1,8 @@
-import { IsString, IsInt, IsOptional, IsUrl, IsUUID, MaxLength, Min } from 'class-validator';
+import { IsUUID } from 'class-validator';
+import { CreateVendorTransactionBaseDto } from './vendor-transaction-base.dto';
 
-export class CreateVendorPaymentDto {
-  @IsUUID()
-  vendorId: string;
-
+export class CreateVendorPaymentDto extends CreateVendorTransactionBaseDto {
+  /** Conta da comunidade que vai pagar (não pode ser EXTERNAL) */
   @IsUUID()
   sourceAccountId: string;
-
-  @IsInt()
-  @Min(1)
-  amount: number;
-
-  @IsString()
-  @MaxLength(500)
-  description: string;
-
-  @IsOptional()
-  @IsUrl()
-  receiptUrl?: string;
-
-  @IsOptional()
-  @IsUrl()
-  internalReceiptUrl?: string;
 }
