@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[5390],{75390(i,c,a){a.d(c,{createArchitectureServices:()=>e.S});var e=a(65530);a(72519)}}]);
