@@ -1,6 +1,7 @@
 import React from "react";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
@@ -79,12 +80,14 @@ export const formatDate = (iso: string) =>
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "other";
+export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "refund" | "other";
 
 export function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
   if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
   if (tx.referenceId?.startsWith("transfer:")) return "transfer";
+  // re_ = Stripe Refund (estorno de doação)
+  if (tx.referenceId?.startsWith("re_")) return "refund";
   // cs_ = Stripe Checkout Session (pagamento único legado)
   // pi_ = Stripe Payment Intent (pagamento único atual + assinaturas)
   // in_ = Stripe Invoice (renovação de assinatura sem payment_intent)
@@ -95,6 +98,7 @@ export function detectTxType(tx: Transaction): TxType {
   )
     return "donation";
   const desc = tx.description?.toLowerCase() ?? "";
+  if (desc.startsWith("estorno")) return "refund";
   if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
   if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
   if (desc.startsWith("reembolso")) return "reimbursement";
@@ -104,12 +108,13 @@ export function detectTxType(tx: Transaction): TxType {
 
 export const TX_TYPE_CONFIG: Record<
   TxType,
-  { label: string; color: "success" | "warning" | "info" | "default" | "secondary"; icon: React.ReactElement }
+  { label: string; color: "success" | "warning" | "info" | "default" | "secondary" | "error"; icon: React.ReactElement }
 > = {
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
   "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
+  refund: { label: "Estorno de Doação", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
 };
 
