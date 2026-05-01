@@ -18,22 +18,20 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PaymentIcon from "@mui/icons-material/Payment";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import ReplayIcon from "@mui/icons-material/Replay";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
 import VendorTransactionCard from "../../components/VendorTransactionCard";
+import VendorTransactionForm, {
+  VendorTxFormValues,
+} from "../../components/VendorTransactionForm";
 import { formatCurrencyCents, vendorLabel } from "../../utils/vendorFormat";
 
 interface Account {
@@ -77,24 +75,6 @@ interface VendorPayment {
   registeredBy?: { name: string; avatarUrl: string; githubHandle: string };
 }
 
-interface PaymentForm {
-  vendorId: string;
-  sourceAccountId: string;
-  amount: string;
-  description: string;
-  receiptUrl: string;
-  internalReceiptUrl: string;
-}
-
-const emptyForm: PaymentForm = {
-  vendorId: "",
-  sourceAccountId: "",
-  amount: "",
-  description: "",
-  receiptUrl: "",
-  internalReceiptUrl: "",
-};
-
 // vendorLabel is imported from utils/vendorFormat
 
 export default function PagamentosPage(): React.JSX.Element {
@@ -111,12 +91,9 @@ export default function PagamentosPage(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form state
-  const [form, setForm] = useState<PaymentForm>(emptyForm);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [success, setSuccess] = useState(false);
+  // Reuse / template seed
+  const [reuseSeed, setReuseSeed] = useState<VendorTxFormValues | undefined>();
+  const [reuseKey, setReuseKey] = useState(0);
 
   // Template form state
   const [tplDialogOpen, setTplDialogOpen] = useState(false);
@@ -173,88 +150,29 @@ export default function PagamentosPage(): React.JSX.Element {
   }, [ready, isLoggedIn, isAdmin, history, fetchAll]);
 
   const applyTemplate = (t: Template) => {
-    setForm({
+    setReuseSeed({
       vendorId: t.vendorId,
-      sourceAccountId: t.sourceAccountId,
+      accountId: t.sourceAccountId,
       amount: (t.amount / 100).toFixed(2),
       description: t.description,
       receiptUrl: "",
       internalReceiptUrl: "",
     });
-    setSuccess(false);
-    setSubmitError("");
+    setReuseKey((k) => k + 1);
     setTab(0);
   };
 
   const reusePayment = (p: VendorPayment) => {
-    setForm({
+    setReuseSeed({
       vendorId: p.vendorId,
-      sourceAccountId: p.sourceAccountId,
+      accountId: p.sourceAccountId,
       amount: (p.amount / 100).toFixed(2),
       description: p.description,
       receiptUrl: p.receiptUrl ?? "",
       internalReceiptUrl: p.internalReceiptUrl ?? "",
     });
-    setSuccess(false);
-    setSubmitError("");
+    setReuseKey((k) => k + 1);
     setTab(0);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess(false);
-    setSubmitError("");
-
-    if (!form.vendorId || !form.sourceAccountId || !form.amount || !form.description) {
-      setSubmitError("Preencha todos os campos obrigatórios.");
-      return;
-    }
-
-    const amountCents = Math.round(Number.parseFloat(form.amount) * 100);
-    if (Number.isNaN(amountCents) || amountCents <= 0) {
-      setSubmitError("Valor inválido.");
-      return;
-    }
-
-    setConfirmOpen(true);
-  };
-
-  const handleConfirm = async () => {
-    setConfirmOpen(false);
-    setSubmitLoading(true);
-    setSubmitError("");
-
-    const amountCents = Math.round(Number.parseFloat(form.amount) * 100);
-
-    try {
-      const body: Record<string, unknown> = {
-        vendorId: form.vendorId,
-        sourceAccountId: form.sourceAccountId,
-        amount: amountCents,
-        description: form.description,
-      };
-      if (form.receiptUrl.trim()) body.receiptUrl = form.receiptUrl.trim();
-      if (form.internalReceiptUrl.trim()) body.internalReceiptUrl = form.internalReceiptUrl.trim();
-
-      const res = await authFetch(`${apiUrl}/vendors/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Erro ao registrar pagamento.");
-      }
-
-      setSuccess(true);
-      setForm(emptyForm);
-      fetchAll();
-    } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "Erro desconhecido.");
-    } finally {
-      setSubmitLoading(false);
-    }
   };
 
   const formatCurrency = formatCurrencyCents;
@@ -310,97 +228,16 @@ export default function PagamentosPage(): React.JSX.Element {
                 </Box>
               )}
 
-              <form onSubmit={handleSubmit}>
-                <Autocomplete
-                  options={vendors}
-                  getOptionLabel={vendorLabel}
-                  value={vendors.find((v) => v.id === form.vendorId) ?? null}
-                  onChange={(_, v) => setForm({ ...form, vendorId: v?.id ?? "" })}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Fornecedor *" margin="normal" />
-                  )}
-                  isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                />
-
-                <TextField
-                  select
-                  fullWidth
-                  label="Conta de Origem *"
-                  value={form.sourceAccountId}
-                  onChange={(e) => setForm({ ...form, sourceAccountId: e.target.value })}
-                  margin="normal"
-                >
-                  <MenuItem value="">Selecione...</MenuItem>
-                  {accounts
-                    .filter((a) => a.type !== "EXTERNAL")
-                    .map((a) => (
-                      <MenuItem key={a.id} value={a.id}>
-                        {a.name} ({a.type})
-                      </MenuItem>
-                    ))}
-                </TextField>
-
-                <TextField
-                  fullWidth
-                  label="Valor (R$) *"
-                  type="number"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  margin="normal"
-                  slotProps={{
-                    input: {
-                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                      inputProps: { min: 0.01, step: 0.01 },
-                    },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Descrição *"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  margin="normal"
-                  multiline
-                  rows={2}
-                />
-
-                <TextField
-                  fullWidth
-                  label="URL do Comprovante (original)"
-                  value={form.receiptUrl}
-                  onChange={(e) => setForm({ ...form, receiptUrl: e.target.value })}
-                  margin="normal"
-                  placeholder="https://..."
-                />
-
-                <TextField
-                  fullWidth
-                  label="URL do Comprovante (cópia interna / Drive)"
-                  value={form.internalReceiptUrl}
-                  onChange={(e) => setForm({ ...form, internalReceiptUrl: e.target.value })}
-                  margin="normal"
-                  placeholder="https://drive.google.com/..."
-                />
-
-                {submitError && <Alert severity="error" sx={{ mt: 1 }}>{submitError}</Alert>}
-                {success && (
-                  <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mt: 1 }}>
-                    Pagamento registrado e lançado no ledger!
-                  </Alert>
-                )}
-
-                <Box mt={2} display="flex" gap={2}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={submitLoading}
-                    startIcon={submitLoading ? <CircularProgress size={18} /> : <PaymentIcon />}
-                  >
-                    Registrar Pagamento
-                  </Button>
-                </Box>
-              </form>
+              <VendorTransactionForm
+                direction="payment"
+                vendors={vendors}
+                accounts={accounts}
+                authFetch={authFetch}
+                apiUrl={apiUrl}
+                onSuccess={fetchAll}
+                initialValues={reuseSeed}
+                initialKey={reuseKey}
+              />
             </CardContent>
           </Card>
         )}
@@ -652,15 +489,6 @@ export default function PagamentosPage(): React.JSX.Element {
           loading={payDeleteLoading}
         />
 
-        {/* Confirmação */}
-        <ModalConfirm
-          open={confirmOpen}
-          title="Confirmar pagamento?"
-          description={`Registrar pagamento de R$ ${form.amount} para ${vendors.find((v) => v.id === form.vendorId)?.name ?? "fornecedor"}? Esta ação criará um lançamento no ledger.`}
-          onConfirm={handleConfirm}
-          onClose={() => setConfirmOpen(false)}
-          loading={submitLoading}
-        />
       </Container>
     </Layout>
   );
