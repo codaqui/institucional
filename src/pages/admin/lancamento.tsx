@@ -17,6 +17,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PostAddIcon from "@mui/icons-material/PostAdd";
 import { useAuth } from "../../hooks/useAuth";
+import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 
 interface Account {
@@ -49,17 +50,21 @@ export default function LançamentoPage(): React.JSX.Element {
   const [submitError, setSubmitError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const fetchAccounts = useCallback(() => {
-    authFetch(`${apiUrl}/ledger/accounts`)
-      .then((r) => r.json())
-      .then((data) => {
-        setAccounts(Array.isArray(data) ? data : []);
+  const fetchAccounts = useCallback(async () => {
+    try {
+      const res = await authFetch(`${apiUrl}/ledger/accounts`);
+      const data = await parseAuthJson<Account[]>(res, setError);
+      if (!data) {
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Não foi possível carregar as contas contábeis.");
-        setLoading(false);
-      });
+        return;
+      }
+      setAccounts(data);
+      setError("");
+    } catch {
+      setError("Não foi possível carregar as contas contábeis.");
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl, authFetch]);
 
   useEffect(() => {
@@ -110,8 +115,7 @@ export default function LançamentoPage(): React.JSX.Element {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Falha ao registrar lançamento.");
+        throw new Error(await extractErrorMessage(res, "Falha ao registrar lançamento."));
       }
 
       setSuccess(true);

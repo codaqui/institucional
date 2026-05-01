@@ -29,6 +29,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import { useAuth } from "../../hooks/useAuth";
+import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 
 interface TransferRequest {
@@ -122,6 +123,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
   const [requests, setRequests] = useState<TransferRequest[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // New transfer dialog (finance-analyzer)
   const [newDialog, setNewDialog] = useState(false);
@@ -136,20 +138,29 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    const fetchTransfers = authFetch(`${apiUrl}/account-transfers`).then((r) => r.json());
-    const fetchAccounts = isAdmin
-      ? authFetch(`${apiUrl}/ledger/accounts`).then((r) => r.json())
-      : fetch(`${apiUrl}/ledger/community-balances`).then((r) => r.json());
+    setLoadError("");
+    try {
+      const transfersRes = await authFetch(`${apiUrl}/account-transfers`);
+      const accountsRes = isAdmin
+        ? await authFetch(`${apiUrl}/ledger/accounts`)
+        : await fetch(`${apiUrl}/ledger/community-balances`);
 
-    Promise.all([fetchTransfers, fetchAccounts])
-      .then(([reqs, accs]) => {
-        setRequests(Array.isArray(reqs.data) ? reqs.data : []);
-        setAccounts(Array.isArray(accs) ? accs : []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      const transfersBody = await parseAuthJson<{ data?: TransferRequest[] }>(
+        transfersRes,
+        setLoadError,
+      );
+      if (!transfersBody) return;
+      const accountsData = await parseAuthJson<unknown>(accountsRes, setLoadError);
+
+      setRequests(Array.isArray(transfersBody.data) ? transfersBody.data : []);
+      setAccounts(Array.isArray(accountsData) ? (accountsData as Account[]) : []);
+    } catch {
+      setLoadError("Erro inesperado ao carregar dados.");
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl, authFetch, isAdmin]);
 
   useEffect(() => {
@@ -172,8 +183,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
         }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao criar solicitação.");
+        setActionError(await extractErrorMessage(res, "Erro ao criar solicitação."));
         return;
       }
       setNewDialog(false);
@@ -199,8 +209,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
         body: JSON.stringify({ reviewNote: approveNote }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao aprovar.");
+        setActionError(await extractErrorMessage(res, "Erro ao aprovar."));
         return;
       }
       setApproveTarget(null);
@@ -223,8 +232,7 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
         body: JSON.stringify({ reviewNote: rejectNote }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao rejeitar.");
+        setActionError(await extractErrorMessage(res, "Erro ao rejeitar."));
         return;
       }
       setRejectTarget(null);
@@ -378,6 +386,8 @@ export default function TransferenciasAdminPage(): React.JSX.Element {
             </Button>
           )}
         </Box>
+
+        {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
 
         {!isAdmin && (
           <Alert severity="info" sx={{ mb: 3 }}>

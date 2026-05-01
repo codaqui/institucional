@@ -29,6 +29,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UndoIcon from "@mui/icons-material/Undo";
 import { useAuth } from "../../hooks/useAuth";
+import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 
 interface ReimbursementRequest {
@@ -78,6 +79,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
   const [requests, setRequests] = useState<ReimbursementRequest[]>([]);
   const [balances, setBalances] = useState<CommunityBalance[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   // Approve dialog state
   const [approveDialog, setApproveDialog] = useState<ReimbursementRequest | null>(null);
@@ -98,18 +100,24 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
   const [revertId, setRevertId] = useState<string | null>(null);
   const [revertLoading, setRevertLoading] = useState(false);
 
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
-    Promise.all([
-      authFetch(`${apiUrl}/reimbursements`).then((r) => r.json()),
-      fetch(`${apiUrl}/ledger/community-balances`).then((r) => r.json()),
-    ])
-      .then(([reqs, bals]) => {
-        setRequests(Array.isArray(reqs.data) ? reqs.data : []);
-        setBalances(Array.isArray(bals) ? bals : []);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    setLoadError("");
+    try {
+      const [reqRes, balRes] = await Promise.all([
+        authFetch(`${apiUrl}/reimbursements`),
+        fetch(`${apiUrl}/ledger/community-balances`),
+      ]);
+      const reqs = await parseAuthJson<{ data?: ReimbursementRequest[] }>(reqRes, setLoadError);
+      if (!reqs) return;
+      const bals = await parseAuthJson<unknown>(balRes, setLoadError);
+      setRequests(Array.isArray(reqs.data) ? reqs.data : []);
+      setBalances(Array.isArray(bals) ? (bals as CommunityBalance[]) : []);
+    } catch {
+      setLoadError("Erro inesperado ao carregar dados.");
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl, authFetch]);
 
   useEffect(() => {
@@ -133,8 +141,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
         body: JSON.stringify({ internalReceiptUrl, reviewNote: approveNote }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao aprovar.");
+        setActionError(await extractErrorMessage(res, "Erro ao aprovar."));
         return;
       }
       setApproveDialog(null);
@@ -158,8 +165,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
         body: JSON.stringify({ reviewNote: rejectNote }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao rejeitar.");
+        setActionError(await extractErrorMessage(res, "Erro ao rejeitar."));
         return;
       }
       setRejectDialog(null);
@@ -393,6 +399,8 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
           e informe o novo link no campo de aprovação.
         </Alert>
 
+        {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
+
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
           <Tab label={`Pendentes (${requests.filter((r) => r.status === "pending").length})`} />
           <Tab label={`Aprovados (${requests.filter((r) => r.status === "approved").length})`} />
@@ -470,8 +478,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
           try {
             const res = await authFetch(`${apiUrl}/reimbursements/${deleteId}`, { method: "DELETE" });
             if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              setActionError(err.message || "Erro ao excluir.");
+              setActionError(await extractErrorMessage(res, "Erro ao excluir."));
               return;
             }
             setDeleteId(null);
@@ -497,8 +504,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
           try {
             const res = await authFetch(`${apiUrl}/reimbursements/${revertId}/revert`, { method: "PATCH" });
             if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              setActionError(err.message || "Erro ao reverter.");
+              setActionError(await extractErrorMessage(res, "Erro ao reverter."));
               return;
             }
             setRevertId(null);

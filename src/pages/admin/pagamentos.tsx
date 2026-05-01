@@ -69,11 +69,11 @@ interface VendorPayment {
   receiptUrl: string | null;
   internalReceiptUrl: string | null;
   paidByUserId: string;
-  paidAt: string;
+  occurredAt: string;
   createdAt: string;
   vendor?: Vendor;
   sourceAccount?: Account;
-  paidBy?: { name: string; avatarUrl: string; githubHandle: string };
+  registeredBy?: { name: string; avatarUrl: string; githubHandle: string };
 }
 
 interface PaymentForm {
@@ -139,6 +139,11 @@ export default function PagamentosPage(): React.JSX.Element {
         authFetch(`${apiUrl}/vendors/templates`),
         authFetch(`${apiUrl}/vendors/payments`),
       ]);
+      const unauthorized = [vRes, aRes, tRes, pRes].find((r) => r.status === 401);
+      if (unauthorized) {
+        setError("Sessão expirada — faça login novamente.");
+        return;
+      }
       const failed = [vRes, aRes, tRes, pRes].find((r) => !r.ok);
       if (failed) throw new Error(`HTTP ${failed.status}`);
       const [vData, aData, tData, pData] = await Promise.all([
@@ -456,12 +461,12 @@ export default function PagamentosPage(): React.JSX.Element {
                       </Box>
                     </Box>
                     <Box display="flex" gap={1} mt={1} flexWrap="wrap" alignItems="center">
-                      {p.paidBy && (
-                        <Tooltip title={`Registrado por @${p.paidBy.githubHandle}`}>
+                      {p.registeredBy && (
+                        <Tooltip title={`Registrado por @${p.registeredBy.githubHandle}`}>
                           <Chip
                             size="small"
-                            avatar={<Avatar src={p.paidBy.avatarUrl} alt={p.paidBy.name} />}
-                            label={`@${p.paidBy.githubHandle}`}
+                            avatar={<Avatar src={p.registeredBy.avatarUrl} alt={p.registeredBy.name} />}
+                            label={`@${p.registeredBy.githubHandle}`}
                             variant="outlined"
                           />
                         </Tooltip>
@@ -471,7 +476,7 @@ export default function PagamentosPage(): React.JSX.Element {
                         label={p.sourceAccount?.name ?? p.sourceAccountId}
                         variant="outlined"
                       />
-                      <Chip size="small" label={formatDate(p.paidAt)} variant="outlined" />
+                      <Chip size="small" label={formatDate(p.occurredAt)} variant="outlined" />
                       {p.receiptUrl && (
                         <Chip
                           size="small"
