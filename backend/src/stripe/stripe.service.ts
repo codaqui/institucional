@@ -160,6 +160,9 @@ export class StripeService {
       case 'invoice.payment_succeeded':
         await this.handleInvoicePaymentSucceeded(event.data.object);
         break;
+      case 'charge.refunded':
+        await this.handleChargeRefunded(event.data.object);
+        break;
       case 'customer.subscription.deleted':
         this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
         break;
@@ -277,6 +280,89 @@ export class StripeService {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
       this.logger.error(`Falha ao registrar renovação no Ledger: ${message}`);
+    }
+  }
+
+  /**
+   * charge.refunded — disparado quando um reembolso (parcial ou total) é
+   * processado no Stripe. Cria uma transação reversa no ledger (débito da
+   * comunidade → crédito da conta externa Stripe), preservando histórico e
+   * partidas dobradas. Não modifica nem deleta a doação original.
+   *
+   * Idempotência: usa o `refund.id` (re_xxx) como referenceId. Reembolsos
+   * múltiplos no mesmo charge geram transações distintas (cada refund tem id único).
+   */
+  private async handleChargeRefunded(charge: Stripe.Charge) {
+    const refunds = charge.refunds?.data ?? [];
+    if (refunds.length === 0) {
+      this.logger.warn(
+        `charge.refunded sem refunds[]: ${charge.id} — ignorando`,
+      );
+      return;
+    }
+
+    // Localiza tx original pelo payment_intent (referenceId padrão das doações)
+    const paymentIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+
+    if (!paymentIntentId) {
+      this.logger.warn(
+        `charge.refunded sem payment_intent: ${charge.id} — não é possível localizar doação original`,
+      );
+      return;
+    }
+
+    const originalTx = await this.txRepo.findOne({
+      where: { referenceId: paymentIntentId },
+      relations: ['sourceAccount', 'destinationAccount'],
+    });
+
+    if (!originalTx) {
+      this.logger.warn(
+        `charge.refunded: doação original não encontrada para ${paymentIntentId} — ignorando`,
+      );
+      return;
+    }
+
+    for (const refund of refunds) {
+      // Idempotência: ignora se este refund já foi registrado
+      const existing = await this.txRepo.findOneBy({ referenceId: refund.id });
+      if (existing) {
+        this.logger.debug(
+          `Webhook idempotente: refund ${refund.id} já registrado, ignorando.`,
+        );
+        continue;
+      }
+
+      const amountReais = (refund.amount ?? 0) / 100;
+      if (amountReais <= 0) {
+        this.logger.warn(`Refund ${refund.id} com valor inválido — ignorando`);
+        continue;
+      }
+
+      // Reversa: source = destino original (comunidade), destino = origem original (stripe_income)
+      const description = `Estorno de doação — Refund ${refund.id} (referente a ${paymentIntentId})`;
+
+      try {
+        await this.ledgerService.recordTransaction(
+          originalTx.destinationAccount.id,
+          originalTx.sourceAccount.id,
+          amountReais,
+          description,
+          refund.id,
+        );
+        this.logger.log(
+          `↩️  Estorno R$ ${amountReais.toFixed(2)} ← ${originalTx.destinationAccount.name} | refund: ${refund.id}`,
+        );
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : 'Erro desconhecido';
+        this.logger.error(
+          `Falha ao registrar estorno ${refund.id}: ${message}`,
+        );
+      }
     }
   }
 
@@ -415,7 +501,11 @@ export class StripeService {
   > {
     // Sanitize UUID to prevent Stripe Search API injection
     const safeMemberId = memberId.replaceAll(/[^a-f0-9-]/gi, '');
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(safeMemberId)) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        safeMemberId,
+      )
+    ) {
       throw new BadRequestException('ID de membro inválido.');
     }
 

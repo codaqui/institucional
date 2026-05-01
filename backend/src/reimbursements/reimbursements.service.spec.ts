@@ -14,7 +14,8 @@ import {
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 const mockReimbursement = (overrides = {}): Partial<ReimbursementRequest> => ({
   id: uuid(1),
@@ -30,7 +31,12 @@ const mockReimbursement = (overrides = {}): Partial<ReimbursementRequest> => ({
   reviewedAt: null,
   createdAt: new Date(),
   updatedAt: new Date(),
-  account: { id: uuid(10), name: 'DevParaná', type: AccountType.VIRTUAL_WALLET, projectKey: 'devparana' } as any,
+  account: {
+    id: uuid(10),
+    name: 'DevParaná',
+    type: AccountType.VIRTUAL_WALLET,
+    projectKey: 'devparana',
+  } as any,
   ...overrides,
 });
 
@@ -156,7 +162,8 @@ describe('ReimbursementsService', () => {
     it('should approve and create ledger transaction', async () => {
       const request = mockReimbursement();
       const mockManager = {
-        findOne: jest.fn()
+        findOne: jest
+          .fn()
           .mockResolvedValueOnce(request) // ReimbursementRequest
           .mockResolvedValueOnce(request.account), // Account
         save: jest.fn().mockResolvedValue({
@@ -165,12 +172,17 @@ describe('ReimbursementsService', () => {
         }),
       };
 
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       const result = await service.approveRequest(
         uuid(1),
         uuid(9), // different from memberId
-        { internalReceiptUrl: 'https://drive.google.com/file/123', reviewNote: 'Looks good' },
+        {
+          internalReceiptUrl: 'https://drive.google.com/file/123',
+          reviewNote: 'Looks good',
+        },
       );
 
       expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
@@ -195,7 +207,9 @@ describe('ReimbursementsService', () => {
       const mockManager = {
         findOne: jest.fn().mockResolvedValue(null),
       };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       await expect(
         service.approveRequest(uuid(1), uuid(9), {
@@ -205,13 +219,18 @@ describe('ReimbursementsService', () => {
     });
 
     it('should throw when request is not pending', async () => {
-      const request = mockReimbursement({ status: ReimbursementStatus.APPROVED });
+      const request = mockReimbursement({
+        status: ReimbursementStatus.APPROVED,
+      });
       const mockManager = {
-        findOne: jest.fn()
+        findOne: jest
+          .fn()
           .mockResolvedValueOnce(request)
           .mockResolvedValueOnce(request.account),
       };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       await expect(
         service.approveRequest(uuid(1), uuid(9), {
@@ -223,11 +242,14 @@ describe('ReimbursementsService', () => {
     it('should throw ForbiddenException for self-approval', async () => {
       const request = mockReimbursement({ memberId: uuid(9) }); // same as reviewer
       const mockManager = {
-        findOne: jest.fn()
+        findOne: jest
+          .fn()
           .mockResolvedValueOnce(request)
           .mockResolvedValueOnce(request.account),
       };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       await expect(
         service.approveRequest(uuid(1), uuid(9), {
@@ -239,11 +261,14 @@ describe('ReimbursementsService', () => {
     it('should throw ForbiddenException when insufficient balance', async () => {
       const request = mockReimbursement({ amount: 2000 });
       const mockManager = {
-        findOne: jest.fn()
+        findOne: jest
+          .fn()
           .mockResolvedValueOnce(request)
           .mockResolvedValueOnce(request.account),
       };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
       ledgerService.getAccountBalance.mockResolvedValue(100); // less than 2000
 
       await expect(
@@ -317,7 +342,9 @@ describe('ReimbursementsService', () => {
         }),
       };
 
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       const result = await service.revertApproval(uuid(1));
 
@@ -333,26 +360,44 @@ describe('ReimbursementsService', () => {
 
     it('should throw when not found', async () => {
       const mockManager = { findOne: jest.fn().mockResolvedValue(null) };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
-      await expect(service.revertApproval(uuid(1))).rejects.toThrow(NotFoundException);
+      await expect(service.revertApproval(uuid(1))).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw when not approved', async () => {
-      const request = mockReimbursement({ status: ReimbursementStatus.PENDING });
+      const request = mockReimbursement({
+        status: ReimbursementStatus.PENDING,
+      });
       const mockManager = { findOne: jest.fn().mockResolvedValue(request) };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
-      await expect(service.revertApproval(uuid(1))).rejects.toThrow(BadRequestException);
+      await expect(service.revertApproval(uuid(1))).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw when ledger reversal fails', async () => {
-      const request = mockReimbursement({ status: ReimbursementStatus.APPROVED });
+      const request = mockReimbursement({
+        status: ReimbursementStatus.APPROVED,
+      });
       const mockManager = { findOne: jest.fn().mockResolvedValue(request) };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
-      ledgerService.recordTransaction.mockRejectedValue(new Error('Ledger fail'));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
+      ledgerService.recordTransaction.mockRejectedValue(
+        new Error('Ledger fail'),
+      );
 
-      await expect(service.revertApproval(uuid(1))).rejects.toThrow('Ledger fail');
+      await expect(service.revertApproval(uuid(1))).rejects.toThrow(
+        'Ledger fail',
+      );
     });
   });
 
@@ -387,16 +432,22 @@ describe('ReimbursementsService', () => {
 
     it('should throw when not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.deleteRequest(uuid(1))).rejects.toThrow(NotFoundException);
+      await expect(service.deleteRequest(uuid(1))).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should not delete if ledger reversal fails', async () => {
       repo.findOne.mockResolvedValue(
         mockReimbursement({ status: ReimbursementStatus.APPROVED }),
       );
-      ledgerService.recordTransaction.mockRejectedValue(new Error('Ledger fail'));
+      ledgerService.recordTransaction.mockRejectedValue(
+        new Error('Ledger fail'),
+      );
 
-      await expect(service.deleteRequest(uuid(1))).rejects.toThrow('Ledger fail');
+      await expect(service.deleteRequest(uuid(1))).rejects.toThrow(
+        'Ledger fail',
+      );
       expect(repo.delete).not.toHaveBeenCalled();
     });
   });
@@ -408,7 +459,11 @@ describe('ReimbursementsService', () => {
       const request = {
         ...mockReimbursement(),
         member: { githubHandle: 'user1', name: 'User One', avatarUrl: 'url' },
-        reviewedBy: { githubHandle: 'admin', name: 'Admin', avatarUrl: 'admin-url' },
+        reviewedBy: {
+          githubHandle: 'admin',
+          name: 'Admin',
+          avatarUrl: 'admin-url',
+        },
       };
       repo.findOne.mockResolvedValue(request);
 
@@ -429,7 +484,9 @@ describe('ReimbursementsService', () => {
 
     it('should throw when not found', async () => {
       repo.findOne.mockResolvedValue(null);
-      await expect(service.getPublicInfo(uuid(1))).rejects.toThrow(NotFoundException);
+      await expect(service.getPublicInfo(uuid(1))).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should handle null member and reviewer', async () => {

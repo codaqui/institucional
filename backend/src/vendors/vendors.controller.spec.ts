@@ -3,7 +3,8 @@ import { BadRequestException } from '@nestjs/common';
 import { VendorsController } from './vendors.controller';
 import { VendorsService } from './vendors.service';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 describe('VendorsController', () => {
   let controller: VendorsController;
@@ -13,6 +14,7 @@ describe('VendorsController', () => {
     service = {
       findAllPublic: jest.fn(),
       findAll: jest.fn(),
+      findAllWithCounters: jest.fn(),
       createVendor: jest.fn(),
       updateVendor: jest.fn(),
       softDeleteVendor: jest.fn(),
@@ -21,6 +23,11 @@ describe('VendorsController', () => {
       findPaymentByReferenceId: jest.fn(),
       createPayment: jest.fn(),
       deletePayment: jest.fn(),
+      findReceipts: jest.fn(),
+      findReceiptById: jest.fn(),
+      findReceiptByReferenceId: jest.fn(),
+      createReceipt: jest.fn(),
+      deleteReceipt: jest.fn(),
       findTemplates: jest.fn(),
       createTemplate: jest.fn(),
       updateTemplate: jest.fn(),
@@ -36,7 +43,15 @@ describe('VendorsController', () => {
   });
 
   const req = {
-    user: { sub: uuid(9), githubId: '99', handle: 'admin', name: 'Admin', email: 'a@a.com', avatarUrl: '', role: 'admin' },
+    user: {
+      sub: uuid(9),
+      githubId: '99',
+      handle: 'admin',
+      name: 'Admin',
+      email: 'a@a.com',
+      avatarUrl: '',
+      role: 'admin',
+    },
   };
 
   describe('getPublicVendors', () => {
@@ -66,7 +81,9 @@ describe('VendorsController', () => {
   describe('updateVendor', () => {
     it('should update a vendor', async () => {
       service.updateVendor.mockResolvedValue({ id: uuid(1), name: 'Updated' });
-      const result = await controller.updateVendor(uuid(1), { name: 'Updated' });
+      const result = await controller.updateVendor(uuid(1), {
+        name: 'Updated',
+      });
       expect(result.name).toBe('Updated');
     });
   });
@@ -97,7 +114,9 @@ describe('VendorsController', () => {
 
   describe('getPaymentByReference', () => {
     it('should validate reference format', () => {
-      expect(() => controller.getPaymentByReference('bad-format')).toThrow(BadRequestException);
+      expect(() => controller.getPaymentByReference('bad-format')).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should accept valid reference format', async () => {
@@ -112,7 +131,12 @@ describe('VendorsController', () => {
     it('should create payment with user sub', async () => {
       service.createPayment.mockResolvedValue({ id: uuid(3) });
 
-      const dto = { vendorId: uuid(2), sourceAccountId: uuid(1), amount: 100, description: 'Test' };
+      const dto = {
+        vendorId: uuid(2),
+        sourceAccountId: uuid(1),
+        amount: 100,
+        description: 'Test',
+      };
       await controller.createPayment(dto, req);
 
       expect(service.createPayment).toHaveBeenCalledWith(dto, uuid(9));
@@ -127,6 +151,60 @@ describe('VendorsController', () => {
     });
   });
 
+  describe('receipts', () => {
+    it('should list receipts', async () => {
+      service.findReceipts.mockResolvedValue([]);
+      const result = await controller.getReceipts();
+      expect(result).toEqual([]);
+    });
+
+    it('should get a single receipt', async () => {
+      service.findReceiptById.mockResolvedValue({ id: uuid(4) });
+      const result = await controller.getReceipt(uuid(4));
+      expect(result.id).toBe(uuid(4));
+    });
+
+    it('should validate receipt reference format', () => {
+      expect(() => controller.getReceiptByReference('bad-format')).toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should accept valid receipt reference', async () => {
+      service.findReceiptByReferenceId.mockResolvedValue({ id: uuid(4) });
+      const result = await controller.getReceiptByReference(
+        `vendor-receipt:${uuid(4)}`,
+      );
+      expect(result).toBeDefined();
+    });
+
+    it('should create receipt with user sub', async () => {
+      service.createReceipt.mockResolvedValue({ id: uuid(4) });
+      const dto = {
+        vendorId: uuid(2),
+        destinationAccountId: uuid(1),
+        amount: 250,
+        description: 'Repasse',
+      };
+      await controller.createReceipt(dto, req);
+      expect(service.createReceipt).toHaveBeenCalledWith(dto, uuid(9));
+    });
+
+    it('should delete receipt', async () => {
+      service.deleteReceipt.mockResolvedValue(undefined);
+      await controller.deleteReceipt(uuid(4));
+      expect(service.deleteReceipt).toHaveBeenCalledWith(uuid(4));
+    });
+  });
+
+  describe('getVendorsWithCounters', () => {
+    it('should delegate to findAllWithCounters', async () => {
+      service.findAllWithCounters.mockResolvedValue([]);
+      const result = await controller.getVendorsWithCounters();
+      expect(result).toEqual([]);
+    });
+  });
+
   describe('templates', () => {
     it('should list templates', async () => {
       service.findTemplates.mockResolvedValue([]);
@@ -136,14 +214,25 @@ describe('VendorsController', () => {
 
     it('should create a template with user sub', async () => {
       service.createTemplate.mockResolvedValue({ id: uuid(1) });
-      const dto = { name: 'T', sourceAccountId: uuid(1), vendorId: uuid(2), amount: 100, description: 'X' };
+      const dto = {
+        name: 'T',
+        sourceAccountId: uuid(1),
+        vendorId: uuid(2),
+        amount: 100,
+        description: 'X',
+      };
       await controller.createTemplate(dto, req);
       expect(service.createTemplate).toHaveBeenCalledWith(dto, uuid(9));
     });
 
     it('should update a template', async () => {
-      service.updateTemplate.mockResolvedValue({ id: uuid(1), name: 'Updated' });
-      const result = await controller.updateTemplate(uuid(1), { name: 'Updated' });
+      service.updateTemplate.mockResolvedValue({
+        id: uuid(1),
+        name: 'Updated',
+      });
+      const result = await controller.updateTemplate(uuid(1), {
+        name: 'Updated',
+      });
       expect(result.name).toBe('Updated');
     });
 

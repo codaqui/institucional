@@ -118,7 +118,9 @@ export class LedgerService {
       .leftJoinAndSelect('tx.destinationAccount', 'dst')
       .where(
         new Brackets((sub) =>
-          sub.where('tx.sourceAccountId = :id').orWhere('tx.destinationAccountId = :id'),
+          sub
+            .where('tx.sourceAccountId = :id')
+            .orWhere('tx.destinationAccountId = :id'),
         ),
         { id: accountId },
       );
@@ -128,7 +130,7 @@ export class LedgerService {
       switch (filters.type) {
         case 'donation':
           qb.andWhere(
-            "(tx.referenceId LIKE 'cs_%' OR tx.description ILIKE 'doação%')",
+            "(tx.referenceId LIKE 'cs_%' OR tx.referenceId LIKE 'in_%' OR tx.description ILIKE 'doação%' OR tx.description ILIKE 'assinatura%')",
           );
           break;
         case 'reimbursement':
@@ -274,12 +276,17 @@ export class LedgerService {
       )
       .getRawOne();
 
-    // Unique donors — extract handles from descriptions like "Doação de @handle"
+    // Unique donors — extract handles from descriptions like "Doação de @handle" or "Assinatura mensal de @handle"
     const donorRows: Array<{ handle: string }> = await this.txRepo
       .createQueryBuilder('tx')
-      .select(String.raw`DISTINCT SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)')`, 'handle')
+      .select(
+        String.raw`DISTINCT SUBSTRING(tx.description FROM '(?:Doação|Assinatura (?:mensal|anual)) de (@[\w.-]+)')`,
+        'handle',
+      )
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere("tx.description LIKE 'Doação de @%'")
+      .andWhere(
+        "(tx.description LIKE 'Doação de @%' OR tx.description LIKE 'Assinatura%de @%')",
+      )
       .getRawMany();
     const uniqueDonors = donorRows.filter((r) => r.handle).length;
 
@@ -293,50 +300,64 @@ export class LedgerService {
       .createQueryBuilder('tx')
       .leftJoin('tx.destinationAccount', 'dst')
       .select([
-        String.raw`SUBSTRING(tx.description FROM 'Doação de (@[\w.-]+)') AS handle`,
+        String.raw`SUBSTRING(tx.description FROM '(?:Doação|Assinatura (?:mensal|anual)) de (@[\w.-]+)') AS handle`,
         'dst.name AS "communityName"',
         'tx.createdAt AS date',
         'tx.amount AS amount',
       ])
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere("tx.description LIKE 'Doação de @%'")
+      .andWhere(
+        "(tx.description LIKE 'Doação de @%' OR tx.description LIKE 'Assinatura%de @%')",
+      )
       .orderBy('tx.createdAt', 'DESC')
       .limit(10)
       .getRawMany();
     const recentDonors = recentDonorRows.filter((r) => r.handle);
 
     // Per-community stats (grouped queries instead of N+1)
-    const inboundRows: Array<{ accountId: string; totalIn: string; inboundCount: string }> =
-      await this.txRepo
-        .createQueryBuilder('tx')
-        .select('tx.destinationAccountId', 'accountId')
-        .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalIn')
-        .addSelect('COUNT(tx.id)', 'inboundCount')
-        .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-        .groupBy('tx.destinationAccountId')
-        .getRawMany();
+    const inboundRows: Array<{
+      accountId: string;
+      totalIn: string;
+      inboundCount: string;
+    }> = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('tx.destinationAccountId', 'accountId')
+      .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalIn')
+      .addSelect('COUNT(tx.id)', 'inboundCount')
+      .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .groupBy('tx.destinationAccountId')
+      .getRawMany();
 
-    const outboundRows: Array<{ accountId: string; totalOut: string; outboundCount: string }> =
-      await this.txRepo
-        .createQueryBuilder('tx')
-        .select('tx.sourceAccountId', 'accountId')
-        .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalOut')
-        .addSelect('COUNT(tx.id)', 'outboundCount')
-        .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
-        .groupBy('tx.sourceAccountId')
-        .getRawMany();
+    const outboundRows: Array<{
+      accountId: string;
+      totalOut: string;
+      outboundCount: string;
+    }> = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('tx.sourceAccountId', 'accountId')
+      .addSelect('COALESCE(SUM(tx.amount), 0)', 'totalOut')
+      .addSelect('COUNT(tx.id)', 'outboundCount')
+      .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
+      .groupBy('tx.sourceAccountId')
+      .getRawMany();
 
     const inboundByAccount = new Map(
-      inboundRows.map((r) => [r.accountId, {
-        totalIn: Number.parseFloat(r.totalIn) || 0,
-        count: Number.parseInt(r.inboundCount, 10) || 0,
-      }]),
+      inboundRows.map((r) => [
+        r.accountId,
+        {
+          totalIn: Number.parseFloat(r.totalIn) || 0,
+          count: Number.parseInt(r.inboundCount, 10) || 0,
+        },
+      ]),
     );
     const outboundByAccount = new Map(
-      outboundRows.map((r) => [r.accountId, {
-        totalOut: Number.parseFloat(r.totalOut) || 0,
-        count: Number.parseInt(r.outboundCount, 10) || 0,
-      }]),
+      outboundRows.map((r) => [
+        r.accountId,
+        {
+          totalOut: Number.parseFloat(r.totalOut) || 0,
+          count: Number.parseInt(r.outboundCount, 10) || 0,
+        },
+      ]),
     );
 
     // Count self-transfers to avoid double-counting
@@ -350,7 +371,10 @@ export class LedgerService {
         .groupBy('tx.sourceAccountId')
         .getRawMany();
     const selfByAccount = new Map(
-      selfTransferRows.map((r) => [r.accountId, Number.parseInt(r.selfCount, 10) || 0]),
+      selfTransferRows.map((r) => [
+        r.accountId,
+        Number.parseInt(r.selfCount, 10) || 0,
+      ]),
     );
 
     const communityStats = wallets.map((w) => {

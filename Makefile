@@ -38,7 +38,7 @@ RED    := \033[31m
 .PHONY: help \
         setup env-check \
         up up-build down restart ps logs \
-        db-up db-shell db-wait \
+        db-up db-shell db-wait db-restore-prod \
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
@@ -149,6 +149,9 @@ db-wait: ## Aguarda o PostgreSQL estar pronto para aceitar conexões
 
 db-shell: ## Abre um shell psql no container do PostgreSQL
 	podman compose -f $(COMPOSE_FILE) exec postgres psql -U $${DB_USER:-codaqui} $${DB_NAME:-codaqui_db}
+
+db-restore-prod: env-check ## Restaura dump de produção (pg_dump/*.dmp); use DUMP=path para específico
+	@./scripts/db-restore-prod.sh
 
 # =============================================================================
 ##@ 🔄 Migrations (TypeORM — backend)

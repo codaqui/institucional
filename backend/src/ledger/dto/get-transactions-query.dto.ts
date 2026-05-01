@@ -30,7 +30,8 @@ export class GetTransactionsQueryDto {
   limit?: number = 10;
 
   @ApiPropertyOptional({
-    description: 'Filtro por tipo (donation, reimbursement, vendor-payment, transfer)',
+    description:
+      'Filtro por tipo (donation, reimbursement, vendor-payment, transfer)',
     example: 'donation',
   })
   @IsOptional()

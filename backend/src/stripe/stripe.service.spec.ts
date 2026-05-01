@@ -24,7 +24,8 @@ jest.mock('stripe', () => {
   }));
 });
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 describe('StripeService', () => {
   let service: StripeService;
@@ -39,6 +40,7 @@ describe('StripeService', () => {
     };
 
     txRepo = {
+      findOne: jest.fn(),
       findOneBy: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
@@ -124,7 +126,9 @@ describe('StripeService', () => {
     });
 
     it('should include memberId and githubHandle in metadata', async () => {
-      stripeInstance.checkout.sessions.create.mockResolvedValue({ client_secret: 'x' });
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        client_secret: 'x',
+      });
 
       await service.createCheckoutSession({
         amountCents: 1000,
@@ -193,7 +197,10 @@ describe('StripeService', () => {
         },
       });
 
-      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
 
       expect(result).toEqual({ received: true });
       expect(ledgerService.recordTransaction).toHaveBeenCalled();
@@ -212,7 +219,10 @@ describe('StripeService', () => {
         },
       });
 
-      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
 
       expect(result).toEqual({ received: true });
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
@@ -244,9 +254,107 @@ describe('StripeService', () => {
         data: { object: {} },
       });
 
-      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
 
       expect(result).toEqual({ received: true });
+    });
+
+    it('should handle charge.refunded creating reverse transaction', async () => {
+      const originalTx = {
+        id: 'tx-original',
+        referenceId: 'pi_3TSH3JFtPCSoiGky1wUsFOJy',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe Income' },
+        destinationAccount: {
+          id: 'acc-community',
+          name: 'Comunidade: ti-social',
+        },
+      };
+      txRepo.findOne.mockResolvedValue(originalTx);
+      txRepo.findOneBy.mockResolvedValue(null); // refund not yet recorded
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_3TSH3JFtPCSoiGky1bnkoUn8',
+            payment_intent: 'pi_3TSH3JFtPCSoiGky1wUsFOJy',
+            refunds: {
+              data: [
+                {
+                  id: 're_3TSH3JFtPCSoiGky18dl80ut',
+                  amount: 10000,
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      // Reverse direction: source = community, destination = stripe income
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        'acc-community',
+        'acc-stripe',
+        100,
+        expect.stringContaining('Estorno de doação'),
+        're_3TSH3JFtPCSoiGky18dl80ut',
+      );
+    });
+
+    it('should be idempotent on duplicate charge.refunded events', async () => {
+      txRepo.findOne.mockResolvedValue({
+        id: 'tx-original',
+        referenceId: 'pi_xxx',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe' },
+        destinationAccount: { id: 'acc-community', name: 'Comunidade' },
+      });
+      txRepo.findOneBy.mockResolvedValue({ id: 'existing-refund' }); // already recorded
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_xxx',
+            payment_intent: 'pi_xxx',
+            refunds: { data: [{ id: 're_xxx', amount: 5000 }] },
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should warn and skip when original donation not found on refund', async () => {
+      txRepo.findOne.mockResolvedValue(null); // original tx missing
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_orphan',
+            payment_intent: 'pi_orphan',
+            refunds: { data: [{ id: 're_orphan', amount: 1000 }] },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
   });
 
@@ -295,7 +403,11 @@ describe('StripeService', () => {
               items: {
                 data: [
                   {
-                    price: { recurring: { interval: 'month' }, unit_amount: 2500, currency: 'brl' },
+                    price: {
+                      recurring: { interval: 'month' },
+                      unit_amount: 2500,
+                      currency: 'brl',
+                    },
                     current_period_end: 1700000000,
                   },
                 ],
@@ -313,7 +425,9 @@ describe('StripeService', () => {
     });
 
     it('should throw for invalid memberId', async () => {
-      await expect(service.getMySubscriptions('not-a-uuid')).rejects.toThrow(BadRequestException);
+      await expect(service.getMySubscriptions('not-a-uuid')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -333,9 +447,12 @@ describe('StripeService', () => {
       const result = await service.cancelSubscription('sub_1', uuid(5));
 
       expect(result.cancelAtPeriodEnd).toBe(true);
-      expect(stripeInstance.subscriptions.update).toHaveBeenCalledWith('sub_1', {
-        cancel_at_period_end: true,
-      });
+      expect(stripeInstance.subscriptions.update).toHaveBeenCalledWith(
+        'sub_1',
+        {
+          cancel_at_period_end: true,
+        },
+      );
     });
 
     it('should throw if subscription does not belong to member', async () => {

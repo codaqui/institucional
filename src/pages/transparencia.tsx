@@ -17,6 +17,8 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Avatar from "@mui/material/Avatar";
+import Badge from "@mui/material/Badge";
+import Tooltip from "@mui/material/Tooltip";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import CodeIcon from "@mui/icons-material/Code";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -428,30 +430,62 @@ export default function TransparenciaPage(): React.JSX.Element {
               </Typography>
             </Box>
             <Grid container spacing={2} justifyContent="center" sx={{ mb: 4 }}>
-              {stats.recentDonors.map((donor, idx) => (
-                <Grid key={`${donor.handle}-${idx}`} size={{ xs: 6, sm: 4, md: 2.4 }}>
-                  <Card variant="outlined" sx={{
-                    textAlign: "center", py: 2, px: 1,
-                    transition: "all 0.2s",
-                    "&:hover": { boxShadow: 4, transform: "translateY(-2px)" },
-                  }}>
-                    <Avatar
-                      src={`https://github.com/${donor.handle.replace("@", "")}.png?size=64`}
-                      alt={donor.handle}
-                      sx={{ width: 48, height: 48, mx: "auto", mb: 1 }}
-                    />
-                    <Typography variant="body2" fontWeight={700} noWrap>
-                      {donor.handle}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
-                      {donor.communityName}
-                    </Typography>
-                    <Typography variant="caption" color="text.disabled" sx={{ display: "block", mt: 0.5, fontSize: "0.65rem" }}>
-                      {new Date(donor.date).toLocaleDateString("pt-BR")}
-                    </Typography>
-                  </Card>
-                </Grid>
-              ))}
+              {(() => {
+                // Count appearances per handle and deduplicate (keep most recent = first)
+                const donorCounts = stats.recentDonors.reduce<Record<string, number>>(
+                  (acc, d) => { acc[d.handle] = (acc[d.handle] ?? 0) + 1; return acc; },
+                  {},
+                );
+                const uniqueDonors = stats.recentDonors.filter(
+                  (d, i, arr) => arr.findIndex((x) => x.handle === d.handle) === i,
+                );
+                return uniqueDonors.map((donor) => {
+                  const count = donorCounts[donor.handle] ?? 1;
+                  return (
+                    <Grid key={donor.handle} size={{ xs: 6, sm: 4, md: 2.4 }}>
+                      <Card variant="outlined" sx={{
+                        textAlign: "center", py: 2, px: 1,
+                        transition: "all 0.2s",
+                        "&:hover": { boxShadow: 4, transform: "translateY(-2px)" },
+                      }}>
+                        <Tooltip
+                          title={count > 1 ? `Apoiou ${count} vezes nos últimos registros` : ""}
+                          placement="top"
+                        >
+                          <Badge
+                            badgeContent={count > 1 ? `×${count}` : null}
+                            color="primary"
+                            overlap="circular"
+                            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                            sx={{
+                              mx: "auto",
+                              display: "flex",
+                              justifyContent: "center",
+                              mb: 1,
+                              "& .MuiBadge-badge": { fontSize: "0.6rem", fontWeight: 800, minWidth: 18, height: 18 },
+                            }}
+                          >
+                            <Avatar
+                              src={`https://github.com/${donor.handle.replace("@", "")}.png?size=64`}
+                              alt={donor.handle}
+                              sx={{ width: 48, height: 48 }}
+                            />
+                          </Badge>
+                        </Tooltip>
+                        <Typography variant="body2" fontWeight={700} noWrap>
+                          {donor.handle}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: "block" }}>
+                          {donor.communityName}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" sx={{ display: "block", mt: 0.5, fontSize: "0.65rem" }}>
+                          {new Date(donor.date).toLocaleDateString("pt-BR")}
+                        </Typography>
+                      </Card>
+                    </Grid>
+                  );
+                });
+              })()}
             </Grid>
             <Box sx={{ textAlign: "center", mb: 2 }}>
               <Button

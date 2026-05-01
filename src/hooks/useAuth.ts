@@ -71,12 +71,16 @@ export function useAuth() {
    * Wrapper autenticado para `fetch`.
    * Inclui `credentials: 'include'` automaticamente — necessário para enviar o cookie JWT.
    *
+   * Se receber **401 Unauthorized**, limpa o estado local (o cookie já está
+   * inválido/expirado) — o guard de auth da página vai redirecionar o usuário
+   * para `/` automaticamente, exibindo a tela de login.
+   *
    * Uso: `authFetch('/endpoint', { method: 'POST', body: JSON.stringify(data) })`
    */
   const authFetch = useCallback(
-    (path: string, init: RequestInit = {}): Promise<Response> => {
+    async (path: string, init: RequestInit = {}): Promise<Response> => {
       const url = path.startsWith("http") ? path : `${apiUrl}${path}`;
-      return fetch(url, {
+      const res = await fetch(url, {
         ...init,
         credentials: "include",
         headers: {
@@ -84,6 +88,10 @@ export function useAuth() {
           ...init.headers,
         },
       });
+      if (res.status === 401) {
+        setUser(null);
+      }
+      return res;
     },
     [apiUrl]
   );

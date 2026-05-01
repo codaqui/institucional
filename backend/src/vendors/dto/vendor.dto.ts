@@ -14,7 +14,7 @@ import { Transform } from 'class-transformer';
  * only formatting chars (dots, dashes, slashes).
  */
 const stripNonDigits = () =>
-  Transform(({ value }) =>
+  Transform(({ value }: { value: unknown }) =>
     typeof value === 'string' ? value.replaceAll(/\D/g, '') : value,
   );
 

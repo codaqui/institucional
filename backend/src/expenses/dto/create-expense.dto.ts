@@ -1,4 +1,12 @@
-import { IsString, IsNumber, IsUUID, IsOptional, IsUrl, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsUUID,
+  IsOptional,
+  IsUrl,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateExpenseDto {
   @IsString()

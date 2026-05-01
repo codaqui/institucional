@@ -45,6 +45,7 @@ temp/
 *.backup
 *.orig
 *.tmp
+pg_dump
 
 # ─────────────────────────────────────────────────────
 # Docker / Podman

@@ -18,22 +18,21 @@ import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import PaymentIcon from "@mui/icons-material/Payment";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import ReplayIcon from "@mui/icons-material/Replay";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
-import Avatar from "@mui/material/Avatar";
-import Tooltip from "@mui/material/Tooltip";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
-import { formatDocument } from "../../utils/document";
+import VendorTransactionCard from "../../components/VendorTransactionCard";
+import VendorTransactionForm, {
+  VendorTxFormValues,
+} from "../../components/VendorTransactionForm";
+import { formatCurrencyCents, vendorLabel } from "../../utils/vendorFormat";
 
 interface Account {
   id: string;
@@ -69,34 +68,14 @@ interface VendorPayment {
   receiptUrl: string | null;
   internalReceiptUrl: string | null;
   paidByUserId: string;
-  paidAt: string;
+  occurredAt: string;
   createdAt: string;
   vendor?: Vendor;
   sourceAccount?: Account;
-  paidBy?: { name: string; avatarUrl: string; githubHandle: string };
+  registeredBy?: { name: string; avatarUrl: string; githubHandle: string };
 }
 
-interface PaymentForm {
-  vendorId: string;
-  sourceAccountId: string;
-  amount: string;
-  description: string;
-  receiptUrl: string;
-  internalReceiptUrl: string;
-}
-
-const emptyForm: PaymentForm = {
-  vendorId: "",
-  sourceAccountId: "",
-  amount: "",
-  description: "",
-  receiptUrl: "",
-  internalReceiptUrl: "",
-};
-
-function vendorLabel(v: Vendor): string {
-  return v.document ? `${v.name} (${formatDocument(v.document)})` : v.name;
-}
+// vendorLabel is imported from utils/vendorFormat
 
 export default function PagamentosPage(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
@@ -112,12 +91,9 @@ export default function PagamentosPage(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Form state
-  const [form, setForm] = useState<PaymentForm>(emptyForm);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [success, setSuccess] = useState(false);
+  // Reuse / template seed
+  const [reuseSeed, setReuseSeed] = useState<VendorTxFormValues | undefined>();
+  const [reuseKey, setReuseKey] = useState(0);
 
   // Template form state
   const [tplDialogOpen, setTplDialogOpen] = useState(false);
@@ -139,6 +115,11 @@ export default function PagamentosPage(): React.JSX.Element {
         authFetch(`${apiUrl}/vendors/templates`),
         authFetch(`${apiUrl}/vendors/payments`),
       ]);
+      const unauthorized = [vRes, aRes, tRes, pRes].find((r) => r.status === 401);
+      if (unauthorized) {
+        setError("Sessão expirada — faça login novamente.");
+        return;
+      }
       const failed = [vRes, aRes, tRes, pRes].find((r) => !r.ok);
       if (failed) throw new Error(`HTTP ${failed.status}`);
       const [vData, aData, tData, pData] = await Promise.all([
@@ -169,101 +150,32 @@ export default function PagamentosPage(): React.JSX.Element {
   }, [ready, isLoggedIn, isAdmin, history, fetchAll]);
 
   const applyTemplate = (t: Template) => {
-    setForm({
+    setReuseSeed({
       vendorId: t.vendorId,
-      sourceAccountId: t.sourceAccountId,
+      accountId: t.sourceAccountId,
       amount: (t.amount / 100).toFixed(2),
       description: t.description,
       receiptUrl: "",
       internalReceiptUrl: "",
     });
-    setSuccess(false);
-    setSubmitError("");
+    setReuseKey((k) => k + 1);
     setTab(0);
   };
 
   const reusePayment = (p: VendorPayment) => {
-    setForm({
+    setReuseSeed({
       vendorId: p.vendorId,
-      sourceAccountId: p.sourceAccountId,
+      accountId: p.sourceAccountId,
       amount: (p.amount / 100).toFixed(2),
       description: p.description,
       receiptUrl: p.receiptUrl ?? "",
       internalReceiptUrl: p.internalReceiptUrl ?? "",
     });
-    setSuccess(false);
-    setSubmitError("");
+    setReuseKey((k) => k + 1);
     setTab(0);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccess(false);
-    setSubmitError("");
-
-    if (!form.vendorId || !form.sourceAccountId || !form.amount || !form.description) {
-      setSubmitError("Preencha todos os campos obrigatórios.");
-      return;
-    }
-
-    const amountCents = Math.round(Number.parseFloat(form.amount) * 100);
-    if (Number.isNaN(amountCents) || amountCents <= 0) {
-      setSubmitError("Valor inválido.");
-      return;
-    }
-
-    setConfirmOpen(true);
-  };
-
-  const handleConfirm = async () => {
-    setConfirmOpen(false);
-    setSubmitLoading(true);
-    setSubmitError("");
-
-    const amountCents = Math.round(Number.parseFloat(form.amount) * 100);
-
-    try {
-      const body: Record<string, unknown> = {
-        vendorId: form.vendorId,
-        sourceAccountId: form.sourceAccountId,
-        amount: amountCents,
-        description: form.description,
-      };
-      if (form.receiptUrl.trim()) body.receiptUrl = form.receiptUrl.trim();
-      if (form.internalReceiptUrl.trim()) body.internalReceiptUrl = form.internalReceiptUrl.trim();
-
-      const res = await authFetch(`${apiUrl}/vendors/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || "Erro ao registrar pagamento.");
-      }
-
-      setSuccess(true);
-      setForm(emptyForm);
-      fetchAll();
-    } catch (err: unknown) {
-      setSubmitError(err instanceof Error ? err.message : "Erro desconhecido.");
-    } finally {
-      setSubmitLoading(false);
-    }
-  };
-
-  const formatCurrency = (cents: number) =>
-    `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const formatCurrency = formatCurrencyCents;
 
   if (!ready || loading) {
     return (
@@ -316,97 +228,16 @@ export default function PagamentosPage(): React.JSX.Element {
                 </Box>
               )}
 
-              <form onSubmit={handleSubmit}>
-                <Autocomplete
-                  options={vendors}
-                  getOptionLabel={vendorLabel}
-                  value={vendors.find((v) => v.id === form.vendorId) ?? null}
-                  onChange={(_, v) => setForm({ ...form, vendorId: v?.id ?? "" })}
-                  renderInput={(params) => (
-                    <TextField {...params} label="Fornecedor *" margin="normal" />
-                  )}
-                  isOptionEqualToValue={(opt, val) => opt.id === val.id}
-                />
-
-                <TextField
-                  select
-                  fullWidth
-                  label="Conta de Origem *"
-                  value={form.sourceAccountId}
-                  onChange={(e) => setForm({ ...form, sourceAccountId: e.target.value })}
-                  margin="normal"
-                >
-                  <MenuItem value="">Selecione...</MenuItem>
-                  {accounts
-                    .filter((a) => a.type !== "EXTERNAL")
-                    .map((a) => (
-                      <MenuItem key={a.id} value={a.id}>
-                        {a.name} ({a.type})
-                      </MenuItem>
-                    ))}
-                </TextField>
-
-                <TextField
-                  fullWidth
-                  label="Valor (R$) *"
-                  type="number"
-                  value={form.amount}
-                  onChange={(e) => setForm({ ...form, amount: e.target.value })}
-                  margin="normal"
-                  slotProps={{
-                    input: {
-                      startAdornment: <InputAdornment position="start">R$</InputAdornment>,
-                      inputProps: { min: 0.01, step: 0.01 },
-                    },
-                  }}
-                />
-
-                <TextField
-                  fullWidth
-                  label="Descrição *"
-                  value={form.description}
-                  onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  margin="normal"
-                  multiline
-                  rows={2}
-                />
-
-                <TextField
-                  fullWidth
-                  label="URL do Comprovante (original)"
-                  value={form.receiptUrl}
-                  onChange={(e) => setForm({ ...form, receiptUrl: e.target.value })}
-                  margin="normal"
-                  placeholder="https://..."
-                />
-
-                <TextField
-                  fullWidth
-                  label="URL do Comprovante (cópia interna / Drive)"
-                  value={form.internalReceiptUrl}
-                  onChange={(e) => setForm({ ...form, internalReceiptUrl: e.target.value })}
-                  margin="normal"
-                  placeholder="https://drive.google.com/..."
-                />
-
-                {submitError && <Alert severity="error" sx={{ mt: 1 }}>{submitError}</Alert>}
-                {success && (
-                  <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mt: 1 }}>
-                    Pagamento registrado e lançado no ledger!
-                  </Alert>
-                )}
-
-                <Box mt={2} display="flex" gap={2}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    disabled={submitLoading}
-                    startIcon={submitLoading ? <CircularProgress size={18} /> : <PaymentIcon />}
-                  >
-                    Registrar Pagamento
-                  </Button>
-                </Box>
-              </form>
+              <VendorTransactionForm
+                direction="payment"
+                vendors={vendors}
+                accounts={accounts}
+                authFetch={authFetch}
+                apiUrl={apiUrl}
+                onSuccess={fetchAll}
+                initialValues={reuseSeed}
+                initialKey={reuseKey}
+              />
             </CardContent>
           </Card>
         )}
@@ -418,88 +249,14 @@ export default function PagamentosPage(): React.JSX.Element {
               <Alert severity="info">Nenhum pagamento registrado.</Alert>
             ) : (
               payments.map((p) => (
-                <Card key={p.id} variant="outlined" sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight={700}>
-                          {p.vendor?.name ?? "Fornecedor desconhecido"}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {p.description}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="h6" fontWeight={700} color="error.main">
-                          {formatCurrency(p.amount)}
-                        </Typography>
-                        <Tooltip title="Reutilizar dados">
-                          <IconButton
-                            size="small"
-                            aria-label="Reutilizar pagamento"
-                            color="primary"
-                            onClick={() => reusePayment(p)}
-                          >
-                            <ReplayIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Excluir (com estorno)">
-                          <IconButton
-                            size="small"
-                            aria-label="Excluir pagamento"
-                            color="error"
-                            onClick={() => setPayDeleteId(p.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Box>
-                    <Box display="flex" gap={1} mt={1} flexWrap="wrap" alignItems="center">
-                      {p.paidBy && (
-                        <Tooltip title={`Registrado por @${p.paidBy.githubHandle}`}>
-                          <Chip
-                            size="small"
-                            avatar={<Avatar src={p.paidBy.avatarUrl} alt={p.paidBy.name} />}
-                            label={`@${p.paidBy.githubHandle}`}
-                            variant="outlined"
-                          />
-                        </Tooltip>
-                      )}
-                      <Chip
-                        size="small"
-                        label={p.sourceAccount?.name ?? p.sourceAccountId}
-                        variant="outlined"
-                      />
-                      <Chip size="small" label={formatDate(p.paidAt)} variant="outlined" />
-                      {p.receiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Comprovante"
-                          component="a"
-                          href={p.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                        />
-                      )}
-                      {p.internalReceiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Cópia interna"
-                          component="a"
-                          href={p.internalReceiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                          color="primary"
-                        />
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
+                <VendorTransactionCard
+                  key={p.id}
+                  tx={p}
+                  direction="payment"
+                  accountLabel={p.sourceAccount?.name ?? p.sourceAccountId}
+                  onReuse={() => reusePayment(p)}
+                  onDelete={() => setPayDeleteId(p.id)}
+                />
               ))
             )}
           </Box>
@@ -732,15 +489,6 @@ export default function PagamentosPage(): React.JSX.Element {
           loading={payDeleteLoading}
         />
 
-        {/* Confirmação */}
-        <ModalConfirm
-          open={confirmOpen}
-          title="Confirmar pagamento?"
-          description={`Registrar pagamento de R$ ${form.amount} para ${vendors.find((v) => v.id === form.vendorId)?.name ?? "fornecedor"}? Esta ação criará um lançamento no ledger.`}
-          onConfirm={handleConfirm}
-          onClose={() => setConfirmOpen(false)}
-          loading={submitLoading}
-        />
       </Container>
     </Layout>
   );

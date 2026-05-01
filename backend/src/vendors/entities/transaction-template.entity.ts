@@ -48,6 +48,17 @@ export class TransactionTemplate {
   @Column({ type: 'text' })
   description: string;
 
+  /**
+   * Direção do template:
+   *  - 'payment'  → community(sourceAccountId) → vendor.account (saída)
+   *  - 'receipt'  → vendor.account → community(sourceAccountId) (entrada)
+   *
+   * Em ambos os casos, sourceAccountId é a conta da comunidade envolvida
+   * (a "outra ponta" não-EXTERNAL); apenas o sentido do lançamento muda.
+   */
+  @Column({ type: 'varchar', length: 10, default: 'payment' })
+  direction: 'payment' | 'receipt';
+
   @Column()
   createdByUserId: string;
 

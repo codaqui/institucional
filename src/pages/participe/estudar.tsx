@@ -33,15 +33,30 @@ const GOOGLE_FORM_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSdt1Klx324MMMCswN7ot-FnvTLvWEEQW711ySbHomHCd0OGLw/viewform";
 
 const TURMAS = [
-  { mes: "Fevereiro", modalidade: "Gestão e Produtividade", datas: "18/02 (Intro), 24/02 e 02/03", instrutor: "Danilo Mesquita", plataforma: "Discord" },
+  {
+    mes: "Fevereiro",
+    modalidade: "Gestão e Produtividade",
+    datas: "18/02 (Intro), 24/02 e 02/03",
+    instrutor: "Danilo Mesquita",
+    plataforma: "Discord",
+    blogHref: "/blog/2026/01/29/curso-de-gestao-e-produtividade-com-danilo-mesquita",
+  },
   {
     mes: "Abril e Maio",
     modalidade: "Educação Financeira",
-    datas: "13/04, 20/04, 27/04, 03/05 e 11/05 às 19h30",
+    datas: "13/04, 27/04, 04/05, 11/05 e 18/05 às 19h30",
     instrutor: "Valnaire Nascimento",
     plataforma: "Discord",
+    blogHref: "/blog/2026/03/30/curso-educacao-financeira",
   },
-  { mes: "Abril", modalidade: "Lógica de Programação com Python", datas: "20/04, 22/04, 27/04 e 29/04 às 20h30", instrutor: "Paulinea", plataforma: "Discord" },
+  {
+    mes: "Abril e Maio",
+    modalidade: "Lógica de Programação com Python",
+    datas: "27/04, 29/04, 05/05 e 12/05 às 20h30",
+    instrutor: "Paulinea",
+    plataforma: "Discord",
+    blogHref: "/blog/2026/03/30/curso-introducao-python",
+  },
   { mes: "Maio", modalidade: "Product Discovery & Plataforma como Produto", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
   { mes: "Junho", modalidade: "FinOps / CloudSRE", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
   { mes: "Julho", modalidade: "C# e SQL", datas: "A confirmar", instrutor: "A confirmar", plataforma: "Discord" },
@@ -335,6 +350,7 @@ export default function EstudarPage(): React.JSX.Element {
                   <TableCell sx={{ fontWeight: 700 }}>Datas / Horário</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Instrutor</TableCell>
                   <TableCell sx={{ fontWeight: 700 }}>Plataforma</TableCell>
+                  <TableCell sx={{ fontWeight: 700 }}>Publicação</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -356,6 +372,17 @@ export default function EstudarPage(): React.JSX.Element {
                       </TableCell>
                       <TableCell sx={muted ? { color: "text.disabled" } : undefined}>
                         {row.plataforma}
+                      </TableCell>
+                      <TableCell>
+                        {row.blogHref ? (
+                          <Link href={row.blogHref}>
+                            <Typography variant="body2" fontWeight={600} color="primary.main" noWrap>
+                              Ver post →
+                            </Typography>
+                          </Link>
+                        ) : (
+                          <Typography variant="body2" color="text.disabled">—</Typography>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
