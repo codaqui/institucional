@@ -29,14 +29,12 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *  - Se a doação não existir ou o estorno já tiver sido criado pelo webhook,
  *    a migration vira no-op
  */
-export class Migration004RefundAnonymousDonation1775163746255
-  implements MigrationInterface
-{
+export class Migration004RefundAnonymousDonation1775163746255 implements MigrationInterface {
   name = 'Migration004RefundAnonymousDonation1775163746255';
 
   private readonly originalReferenceId = 'pi_3TSH3JFtPCSoiGky1wUsFOJy';
   private readonly refundReferenceId = 're_3TSH3JFtPCSoiGky18dl80ut';
-  private readonly amount = 100.0;
+  private readonly amount = 100;
   private readonly description =
     'Estorno de doação — Refund re_3TSH3JFtPCSoiGky18dl80ut (referente a pi_3TSH3JFtPCSoiGky1wUsFOJy)';
   private readonly refundedAt = '2026-05-01 13:25:55+00'; // Unix 1777644355

@@ -1,4 +1,4 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
  * Migration002 — Seed de contas e saldos históricos (OpenCollective → Ledger)
@@ -12,24 +12,24 @@ import { MigrationInterface, QueryRunner } from "typeorm";
  *     em getCommunityBalances() e no portal de transparência.
  */
 export class Migration002202604061775163746253 implements MigrationInterface {
-    name = 'Migration002202604061775163746253'
+  name = 'Migration002202604061775163746253';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        // ── stripe_income (EXTERNAL) ─────────────────────────────────────────
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    // ── stripe_income (EXTERNAL) ─────────────────────────────────────────
+    await queryRunner.query(`
             INSERT INTO accounts (id, name, type, "projectKey", "createdAt")
             VALUES (uuid_generate_v4(), 'Stripe Income (External)', 'EXTERNAL', 'stripe_income', now())
             ON CONFLICT ("projectKey") DO NOTHING
         `);
 
-        // ── tisocial ─────────────────────────────────────────────────────────
-        await queryRunner.query(`
+    // ── tisocial ─────────────────────────────────────────────────────────
+    await queryRunner.query(`
             INSERT INTO accounts (id, name, type, "projectKey", "createdAt")
             VALUES (uuid_generate_v4(), 'Comunidade: TI Social', 'VIRTUAL_WALLET', 'tisocial', now())
             ON CONFLICT ("projectKey") DO NOTHING
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO transactions (id, amount, description, "referenceId", "sourceAccountId", "destinationAccountId", "createdAt")
             SELECT
                 uuid_generate_v4(),
@@ -42,14 +42,14 @@ export class Migration002202604061775163746253 implements MigrationInterface {
             WHERE NOT EXISTS (SELECT 1 FROM transactions WHERE "referenceId" = 'migration-seed-20260406-tisocial')
         `);
 
-        // ── campostechpg ──────────────────────────────────────────────────────
-        await queryRunner.query(`
+    // ── campostechpg ──────────────────────────────────────────────────────
+    await queryRunner.query(`
             INSERT INTO accounts (id, name, type, "projectKey", "createdAt")
             VALUES (uuid_generate_v4(), 'Comunidade: CamposTech', 'VIRTUAL_WALLET', 'campostechpg', now())
             ON CONFLICT ("projectKey") DO NOTHING
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO transactions (id, amount, description, "referenceId", "sourceAccountId", "destinationAccountId", "createdAt")
             SELECT
                 uuid_generate_v4(),
@@ -62,14 +62,14 @@ export class Migration002202604061775163746253 implements MigrationInterface {
             WHERE NOT EXISTS (SELECT 1 FROM transactions WHERE "referenceId" = 'migration-seed-20260406-campostechpg')
         `);
 
-        // ── devparana ─────────────────────────────────────────────────────────
-        await queryRunner.query(`
+    // ── devparana ─────────────────────────────────────────────────────────
+    await queryRunner.query(`
             INSERT INTO accounts (id, name, type, "projectKey", "createdAt")
             VALUES (uuid_generate_v4(), 'Comunidade: DevParaná', 'VIRTUAL_WALLET', 'devparana', now())
             ON CONFLICT ("projectKey") DO NOTHING
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO transactions (id, amount, description, "referenceId", "sourceAccountId", "destinationAccountId", "createdAt")
             SELECT
                 uuid_generate_v4(),
@@ -82,19 +82,19 @@ export class Migration002202604061775163746253 implements MigrationInterface {
             WHERE NOT EXISTS (SELECT 1 FROM transactions WHERE "referenceId" = 'migration-seed-20260406-devparana')
         `);
 
-        // ── tesouro-geral (Codaqui) ───────────────────────────────────────────
-        // Esta conta tipicamente já existe (criada pelo Stripe webhook).
-        // type = VIRTUAL_WALLET para aparecer em getCommunityBalances().
-        // O seed de R$ 3.686,26 é uma importação histórica intencional do saldo
-        // legado do OpenCollective — deve ser inserido mesmo em conta pré-existente.
-        // A idempotência é garantida pelo referenceId único.
-        await queryRunner.query(`
+    // ── tesouro-geral (Codaqui) ───────────────────────────────────────────
+    // Esta conta tipicamente já existe (criada pelo Stripe webhook).
+    // type = VIRTUAL_WALLET para aparecer em getCommunityBalances().
+    // O seed de R$ 3.686,26 é uma importação histórica intencional do saldo
+    // legado do OpenCollective — deve ser inserido mesmo em conta pré-existente.
+    // A idempotência é garantida pelo referenceId único.
+    await queryRunner.query(`
             INSERT INTO accounts (id, name, type, "projectKey", "createdAt")
             VALUES (uuid_generate_v4(), 'Codaqui (Tesouro)', 'VIRTUAL_WALLET', 'tesouro-geral', now())
             ON CONFLICT ("projectKey") DO NOTHING
         `);
 
-        await queryRunner.query(`
+    await queryRunner.query(`
             INSERT INTO transactions (id, amount, description, "referenceId", "sourceAccountId", "destinationAccountId", "createdAt")
             SELECT
                 uuid_generate_v4(),
@@ -106,10 +106,10 @@ export class Migration002202604061775163746253 implements MigrationInterface {
                 now()
             WHERE NOT EXISTS (SELECT 1 FROM transactions WHERE "referenceId" = 'migration-seed-20260406-tesouro-geral')
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             DELETE FROM transactions WHERE "referenceId" IN (
                 'migration-seed-20260406-tesouro-geral',
                 'migration-seed-20260406-tisocial',
@@ -117,6 +117,6 @@ export class Migration002202604061775163746253 implements MigrationInterface {
                 'migration-seed-20260406-devparana'
             )
         `);
-        // Contas não são removidas para preservar dados pré-existentes.
-    }
+    // Contas não são removidas para preservar dados pré-existentes.
+  }
 }
