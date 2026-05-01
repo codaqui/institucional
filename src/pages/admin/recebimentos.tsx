@@ -4,30 +4,24 @@ import { useHistory } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Alert from "@mui/material/Alert";
 import Autocomplete from "@mui/material/Autocomplete";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
-import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
-import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import ReplayIcon from "@mui/icons-material/Replay";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
-import { formatDocument } from "../../utils/document";
+import VendorTransactionCard from "../../components/VendorTransactionCard";
+import { formatCurrencyCents, vendorLabel } from "../../utils/vendorFormat";
 
 interface Account {
   id: string;
@@ -76,22 +70,6 @@ const emptyForm: ReceiptForm = {
   receiptUrl: "",
   internalReceiptUrl: "",
 };
-
-function vendorLabel(v: Vendor): string {
-  return v.document ? `${v.name} (${formatDocument(v.document)})` : v.name;
-}
-
-const formatCurrency = (cents: number) =>
-  `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 
 export default function RecebimentosPage(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
@@ -378,88 +356,14 @@ export default function RecebimentosPage(): React.JSX.Element {
               <Alert severity="info">Nenhum recebimento registrado.</Alert>
             ) : (
               receipts.map((r) => (
-                <Card key={r.id} variant="outlined" sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight={700}>
-                          {r.vendor?.name ?? "Fornecedor desconhecido"}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {r.description}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="h6" fontWeight={700} color="success.main">
-                          + {formatCurrency(r.amount)}
-                        </Typography>
-                        <Tooltip title="Reutilizar dados">
-                          <IconButton
-                            size="small"
-                            aria-label="Reutilizar recebimento"
-                            color="primary"
-                            onClick={() => reuseReceipt(r)}
-                          >
-                            <ReplayIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Excluir (com estorno)">
-                          <IconButton
-                            size="small"
-                            aria-label="Excluir recebimento"
-                            color="error"
-                            onClick={() => setDeleteId(r.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Box>
-                    <Box display="flex" gap={1} mt={1} flexWrap="wrap" alignItems="center">
-                      {r.registeredBy && (
-                        <Tooltip title={`Registrado por @${r.registeredBy.githubHandle}`}>
-                          <Chip
-                            size="small"
-                            avatar={<Avatar src={r.registeredBy.avatarUrl} alt={r.registeredBy.name} />}
-                            label={`@${r.registeredBy.githubHandle}`}
-                            variant="outlined"
-                          />
-                        </Tooltip>
-                      )}
-                      <Chip
-                        size="small"
-                        label={r.destinationAccount?.name ?? r.destinationAccountId}
-                        variant="outlined"
-                      />
-                      <Chip size="small" label={formatDate(r.occurredAt)} variant="outlined" />
-                      {r.receiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Comprovante"
-                          component="a"
-                          href={r.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                        />
-                      )}
-                      {r.internalReceiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Cópia interna"
-                          component="a"
-                          href={r.internalReceiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                          color="primary"
-                        />
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
+                <VendorTransactionCard
+                  key={r.id}
+                  tx={r}
+                  direction="receipt"
+                  accountLabel={r.destinationAccount?.name ?? r.destinationAccountId}
+                  onReuse={() => reuseReceipt(r)}
+                  onDelete={() => setDeleteId(r.id)}
+                />
               ))
             )}
           </Box>

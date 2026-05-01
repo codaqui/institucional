@@ -33,7 +33,8 @@ import Avatar from "@mui/material/Avatar";
 import Tooltip from "@mui/material/Tooltip";
 import { useAuth } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
-import { formatDocument } from "../../utils/document";
+import VendorTransactionCard from "../../components/VendorTransactionCard";
+import { formatCurrencyCents, vendorLabel } from "../../utils/vendorFormat";
 
 interface Account {
   id: string;
@@ -94,9 +95,7 @@ const emptyForm: PaymentForm = {
   internalReceiptUrl: "",
 };
 
-function vendorLabel(v: Vendor): string {
-  return v.document ? `${v.name} (${formatDocument(v.document)})` : v.name;
-}
+// vendorLabel is imported from utils/vendorFormat
 
 export default function PagamentosPage(): React.JSX.Element {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
@@ -258,17 +257,7 @@ export default function PagamentosPage(): React.JSX.Element {
     }
   };
 
-  const formatCurrency = (cents: number) =>
-    `R$ ${(cents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-
-  const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const formatCurrency = formatCurrencyCents;
 
   if (!ready || loading) {
     return (
@@ -423,88 +412,14 @@ export default function PagamentosPage(): React.JSX.Element {
               <Alert severity="info">Nenhum pagamento registrado.</Alert>
             ) : (
               payments.map((p) => (
-                <Card key={p.id} variant="outlined" sx={{ mb: 2 }}>
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                      <Box>
-                        <Typography variant="subtitle1" fontWeight={700}>
-                          {p.vendor?.name ?? "Fornecedor desconhecido"}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {p.description}
-                        </Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="h6" fontWeight={700} color="error.main">
-                          {formatCurrency(p.amount)}
-                        </Typography>
-                        <Tooltip title="Reutilizar dados">
-                          <IconButton
-                            size="small"
-                            aria-label="Reutilizar pagamento"
-                            color="primary"
-                            onClick={() => reusePayment(p)}
-                          >
-                            <ReplayIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Excluir (com estorno)">
-                          <IconButton
-                            size="small"
-                            aria-label="Excluir pagamento"
-                            color="error"
-                            onClick={() => setPayDeleteId(p.id)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Box>
-                    </Box>
-                    <Box display="flex" gap={1} mt={1} flexWrap="wrap" alignItems="center">
-                      {p.registeredBy && (
-                        <Tooltip title={`Registrado por @${p.registeredBy.githubHandle}`}>
-                          <Chip
-                            size="small"
-                            avatar={<Avatar src={p.registeredBy.avatarUrl} alt={p.registeredBy.name} />}
-                            label={`@${p.registeredBy.githubHandle}`}
-                            variant="outlined"
-                          />
-                        </Tooltip>
-                      )}
-                      <Chip
-                        size="small"
-                        label={p.sourceAccount?.name ?? p.sourceAccountId}
-                        variant="outlined"
-                      />
-                      <Chip size="small" label={formatDate(p.occurredAt)} variant="outlined" />
-                      {p.receiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Comprovante"
-                          component="a"
-                          href={p.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                        />
-                      )}
-                      {p.internalReceiptUrl && (
-                        <Chip
-                          size="small"
-                          icon={<ReceiptLongIcon />}
-                          label="Cópia interna"
-                          component="a"
-                          href={p.internalReceiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          clickable
-                          color="primary"
-                        />
-                      )}
-                    </Box>
-                  </CardContent>
-                </Card>
+                <VendorTransactionCard
+                  key={p.id}
+                  tx={p}
+                  direction="payment"
+                  accountLabel={p.sourceAccount?.name ?? p.sourceAccountId}
+                  onReuse={() => reusePayment(p)}
+                  onDelete={() => setPayDeleteId(p.id)}
+                />
               ))
             )}
           </Box>
