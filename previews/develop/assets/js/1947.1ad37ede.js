@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[1947],{1947(i,a,c){c.d(a,{createWardleyServices:()=>e.J});var e=c(22295);c(72519)}}]);
