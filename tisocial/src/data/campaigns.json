@@ -1,0 +1,79 @@
+[
+  {
+    "slug": "pascoa-2025",
+    "date": "04/2025",
+    "action": "Páscoa 2025",
+    "details": "632 caixas de bombom",
+    "raised": 7584.00,
+    "peopleImpacted": 632,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "level-up-careers-2025",
+    "date": "05/2025",
+    "action": "Level Up Careers",
+    "details": "133 Inscritos, 11 palestras, 9 temas",
+    "raised": 0,
+    "peopleImpacted": 133,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "batalha-contra-o-frio-2025",
+    "date": "07/2025",
+    "action": "A batalha contra o frio",
+    "details": "15 mil peças doadas, + 600Kg, +40 instituições apoiadas",
+    "raised": 0,
+    "peopleImpacted": 0,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "cestou-2025",
+    "date": "07/2025",
+    "action": "Cestou",
+    "details": "100 cestas arrecadadas, 3 instituições apoiadas",
+    "raised": 6990.00,
+    "peopleImpacted": 400,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "workshop-seguranca-digital-2025",
+    "date": "2025",
+    "action": "Workshop Educação e Segurança Digital para terceira idade",
+    "details": "",
+    "raised": 0,
+    "peopleImpacted": 50,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "pet-fevereiro-2026",
+    "date": "02/2026",
+    "action": "PET fev/2026",
+    "details": "Ração, medicamentos e acessórios adquiridos por meio da venda de cookies e doações",
+    "raised": 2859.45,
+    "peopleImpacted": 4,
+    "animalsImpacted": 350,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "pascoa-2026",
+    "date": "03/2026",
+    "action": "Páscoa 2026",
+    "details": "Doação em chocolate e dinheiro",
+    "raised": 5556.00,
+    "peopleImpacted": 1250,
+    "animalsImpacted": 0,
+    "status": "Em andamento",
+    "isFinalized": false
+  }
+]

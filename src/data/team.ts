@@ -59,7 +59,12 @@ export const membros: Member[] = [
     linkedin: "https://www.linkedin.com/in/causticroot/",
     github: "https://github.com/causticsudo",
   },
-  { name: "Renan Ceratto", role: "Membro", avatar: "https://github.com/ghost.png" },
+  { name: "Renan Ceratto",
+    role: "Membro",
+    avatar: "https://avatars.githubusercontent.com/u/5787023?v=4",
+    linkedin: "https://www.linkedin.com/in/renanceratto/",
+    github: "https://github.com/renanceratto"
+  },
   {
     name: "Thainara Furforo",
     role: "Membra",

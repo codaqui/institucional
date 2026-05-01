@@ -20,7 +20,9 @@
     "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
-    "test:frontend": "jest --config jest.config.ts"
+    "test:frontend": "jest --config jest.config.ts",
+    "tisocial:start": "cd tisocial && docusaurus start --port 3005",
+    "tisocial:build": "cd tisocial && docusaurus build --out-dir ../build-tisocial"
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",

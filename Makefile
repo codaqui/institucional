@@ -207,6 +207,16 @@ frontend-serve: ## Serve o build estático localmente para homologação
 	npm run serve
 
 # =============================================================================
+##@ 🤝 TI Social
+# =============================================================================
+
+tisocial-start: ## Inicia o servidor de desenvolvimento do TI Social (Porta 3005)
+	npm run tisocial:start
+
+tisocial-build: ## Gera o build de produção do TI Social
+	npm run tisocial:build
+
+# =============================================================================
 ##@ 📊 Sync de dados estáticos
 # =============================================================================
 # Requer DISCORD_BOT_TOKEN no .env para eventos do Discord.
