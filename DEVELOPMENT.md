@@ -1,3 +1,22 @@
+<!-- AGENT-INDEX
+purpose: Setup, environment variables, migrations and deploy procedures for the monorepo.
+audience: Developers running the project locally, DevOps, AI agents needing operational details.
+sections:
+  - Arquitetura do Monorepo
+  - Frontend (Docusaurus) — npm scripts, dev server
+  - Backend (NestJS) — npm scripts, Stripe CLI for webhooks
+  - Full Stack (Frontend + Backend + Infra) — Podman Compose
+  - Migrations (TypeORM) — generate/run/revert
+  - Variáveis de Ambiente — .env reference
+  - Deploy — produção ARM64 via Podman Compose
+  - Git: merge de main no branch de feature
+  - Convenção de Commits
+related-docs:
+  - AGENTS.md — architecture decisions, patterns, anti-patterns
+  - README.md — high-level overview
+agent-protocol: All operational/setup commands live HERE — AGENTS.md only references this file. If user asks "how do I run X?" check this first.
+-->
+
 # Development Guide
 
 > Manual técnico para desenvolvedores do monorepo Codaqui.
