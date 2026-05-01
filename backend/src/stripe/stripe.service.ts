@@ -398,6 +398,18 @@ export class StripeService {
       return;
     }
 
+    // Idempotency check ANTES do retrieve (economiza API call em duplicatas)
+    const feeReferenceId = `stripe-fee:${btId}`;
+    const existingFee = await this.txRepo.findOneBy({
+      referenceId: feeReferenceId,
+    });
+    if (existingFee) {
+      this.logger.debug(
+        `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
     const paymentIntentId =
       typeof charge.payment_intent === 'string'
         ? charge.payment_intent

@@ -166,9 +166,9 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   let stripeFeeOriginalDashboardUrl: string | null = null;
   if (type === "stripe-fee") {
     stripeFeeBalanceTransactionId = tx.referenceId?.replace(/^stripe-fee:/, "") ?? null;
-    stripeFeeChargeId = /Charge\s+(ch_[A-Za-z0-9]+)/.exec(tx.description)?.[1] ?? null;
+    stripeFeeChargeId = /Charge\s+(ch_[A-Za-z0-9_]+)/.exec(tx.description)?.[1] ?? null;
     stripeFeeOriginalPaymentIntentId =
-      /referente a\s+(pi_[A-Za-z0-9]+)/.exec(tx.description)?.[1] ?? null;
+      /referente a\s+(pi_[A-Za-z0-9_]+)/.exec(tx.description)?.[1] ?? null;
     if (stripeFeeOriginalPaymentIntentId) {
       stripeFeeOriginalDashboardUrl = `https://dashboard.stripe.com/${stripeModePath}payments/${stripeFeeOriginalPaymentIntentId}`;
     }
