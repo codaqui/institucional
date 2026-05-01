@@ -385,7 +385,23 @@ export default function TransactionTable({
           const totalStr = count === -1 ? `mais de ${to}` : count;
           return `${from}–${to} de ${totalStr}`;
         }}
-        sx={{ mt: 0.5 }}
+        sx={{
+          mt: 0.5,
+          overflow: "hidden",
+          "& .MuiTablePagination-toolbar": {
+            flexWrap: "wrap",
+            rowGap: 1,
+            paddingLeft: { xs: 1, sm: 2 },
+            paddingRight: { xs: 1, sm: 2 },
+            justifyContent: "flex-end",
+          },
+          "& .MuiTablePagination-spacer": { display: "none" },
+          "& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows": {
+            margin: 0,
+            fontSize: { xs: "0.75rem", sm: "0.875rem" },
+          },
+          "& .MuiTablePagination-input": { mr: { xs: 1, sm: 2 } },
+        }}
       />
       <TransactionDetailDialog
         tx={selectedTx}

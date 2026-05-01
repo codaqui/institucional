@@ -27,7 +27,12 @@ export default function StatCard({
         sx={{ textAlign: "center", py: 2.5, px: 1, bgcolor: "action.hover", borderRadius: 2 }}
       >
         <Box sx={{ color, mb: 0.5 }}>{icon}</Box>
-        <Typography variant="h5" fontWeight={800} color={color}>
+        <Typography
+          variant="h5"
+          fontWeight={800}
+          color={color}
+          sx={{ fontSize: { xs: "1.1rem", sm: "1.25rem", md: "1.4rem" }, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+        >
           {value}
         </Typography>
         <Typography variant="caption" color="text.secondary">
@@ -42,13 +47,24 @@ export default function StatCard({
       variant="outlined"
       sx={{
         textAlign: "center",
-        p: 3,
+        p: { xs: 2, md: 3 },
         transition: "box-shadow 0.2s",
         "&:hover": { boxShadow: 4 },
       }}
     >
       <Box sx={{ color, mb: 1 }}>{icon}</Box>
-      <Typography variant="h4" fontWeight={800} color={color} sx={{ lineHeight: 1.2 }}>
+      <Typography
+        variant="h4"
+        fontWeight={800}
+        color={color}
+        sx={{
+          lineHeight: 1.2,
+          fontSize: { xs: "1.25rem", sm: "1.5rem", md: "1.75rem", lg: "2rem" },
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
         {value}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
