@@ -154,7 +154,8 @@ export class ReimbursementsController {
   })
   @ApiResponse({
     status: 200,
-    description: 'Aprovação revertida — estorno criado, status volta a PENDING.',
+    description:
+      'Aprovação revertida — estorno criado, status volta a PENDING.',
   })
   @ApiResponse({
     status: 400,
@@ -184,7 +185,8 @@ export class ReimbursementsController {
   @ApiBearerAuth('jwt')
   @ApiOperation({
     summary: '🔒 Excluir reembolso (com estorno se aprovado) [admin]',
-    description: 'Remove a solicitação. Se já aprovada, cria transação de estorno no ledger.',
+    description:
+      'Remove a solicitação. Se já aprovada, cria transação de estorno no ledger.',
   })
   @ApiResponse({ status: 200, description: 'Excluído.' })
   async deleteRequest(

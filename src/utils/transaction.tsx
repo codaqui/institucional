@@ -1,4 +1,5 @@
 import React from "react";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
@@ -80,11 +81,12 @@ export const formatDate = (iso: string) =>
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "refund" | "other";
+export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "other";
 
 export function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
   if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
+  if (tx.referenceId?.startsWith("vendor-receipt:")) return "vendor-receipt";
   if (tx.referenceId?.startsWith("transfer:")) return "transfer";
   // re_ = Stripe Refund (estorno de doação)
   if (tx.referenceId?.startsWith("re_")) return "refund";
@@ -101,6 +103,7 @@ export function detectTxType(tx: Transaction): TxType {
   if (desc.startsWith("estorno")) return "refund";
   if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
   if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
+  if (desc.startsWith("recebimento de fornecedor")) return "vendor-receipt";
   if (desc.startsWith("reembolso")) return "reimbursement";
   if (desc.startsWith("transfer")) return "transfer";
   return "other";
@@ -113,6 +116,7 @@ export const TX_TYPE_CONFIG: Record<
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
   "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
+  "vendor-receipt": { label: "Recebimento de Fornecedor", color: "success", icon: <CallReceivedIcon fontSize="small" /> },
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
   refund: { label: "Estorno de Doação", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },

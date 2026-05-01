@@ -3,7 +3,8 @@ import { ReimbursementsController } from './reimbursements.controller';
 import { ReimbursementsService } from './reimbursements.service';
 import { AuditService } from '../audit/audit.service';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 describe('ReimbursementsController', () => {
   let controller: ReimbursementsController;
@@ -38,7 +39,15 @@ describe('ReimbursementsController', () => {
   });
 
   const req = {
-    user: { sub: uuid(9), githubId: '99', handle: 'admin', name: 'Admin', email: 'a@a.com', avatarUrl: '', role: 'admin' },
+    user: {
+      sub: uuid(9),
+      githubId: '99',
+      handle: 'admin',
+      name: 'Admin',
+      email: 'a@a.com',
+      avatarUrl: '',
+      role: 'admin',
+    },
   };
 
   describe('getPublicInfo', () => {
@@ -77,7 +86,12 @@ describe('ReimbursementsController', () => {
 
   describe('getAllRequests', () => {
     it('should return paginated requests', async () => {
-      service.getAllRequests.mockResolvedValue({ data: [], total: 0, page: 1, totalPages: 0 });
+      service.getAllRequests.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 1,
+        totalPages: 0,
+      });
       const result = await controller.getAllRequests();
       expect(result.total).toBe(0);
       expect(service.getAllRequests).toHaveBeenCalledWith(1, 20);
@@ -86,14 +100,24 @@ describe('ReimbursementsController', () => {
 
   describe('approveRequest', () => {
     it('should approve and log audit', async () => {
-      const result = { id: uuid(1), amount: 75, description: 'Uber', status: 'approved' };
+      const result = {
+        id: uuid(1),
+        amount: 75,
+        description: 'Uber',
+        status: 'approved',
+      };
       service.approveRequest.mockResolvedValue(result);
 
       const dto = { internalReceiptUrl: 'https://drive.google.com/file/123' };
       const response = await controller.approveRequest(uuid(1), req, dto);
 
       expect(response).toEqual(result);
-      expect(service.approveRequest).toHaveBeenCalledWith(uuid(1), uuid(9), dto, 'admin');
+      expect(service.approveRequest).toHaveBeenCalledWith(
+        uuid(1),
+        uuid(9),
+        dto,
+        'admin',
+      );
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'reimbursement.approved',

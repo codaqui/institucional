@@ -3,7 +3,8 @@ import { TransfersController } from './transfers.controller';
 import { TransfersService } from './transfers.service';
 import { AuditService } from '../audit/audit.service';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 describe('TransfersController', () => {
   let controller: TransfersController;
@@ -34,7 +35,15 @@ describe('TransfersController', () => {
   });
 
   const req = {
-    user: { sub: uuid(9), githubId: '99', handle: 'admin', name: 'Admin', email: 'a@a.com', avatarUrl: '', role: 'admin' },
+    user: {
+      sub: uuid(9),
+      githubId: '99',
+      handle: 'admin',
+      name: 'Admin',
+      email: 'a@a.com',
+      avatarUrl: '',
+      role: 'admin',
+    },
   };
 
   describe('createTransferRequest', () => {
@@ -67,7 +76,12 @@ describe('TransfersController', () => {
     });
 
     it('should pass page and limit', async () => {
-      service.getAllRequests.mockResolvedValue({ data: [], total: 0, page: 2, totalPages: 0 });
+      service.getAllRequests.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 2,
+        totalPages: 0,
+      });
       await controller.getAllRequests(2, 10);
       expect(service.getAllRequests).toHaveBeenCalledWith(2, 10);
     });
@@ -75,13 +89,22 @@ describe('TransfersController', () => {
 
   describe('approveRequest', () => {
     it('should approve and log audit', async () => {
-      const result = { id: uuid(1), amount: 500, reason: 'Test', status: 'approved' };
+      const result = {
+        id: uuid(1),
+        amount: 500,
+        reason: 'Test',
+        status: 'approved',
+      };
       service.approveRequest.mockResolvedValue(result);
 
-      const response = await controller.approveRequest(uuid(1), req, { reviewNote: 'OK' });
+      const response = await controller.approveRequest(uuid(1), req, {
+        reviewNote: 'OK',
+      });
 
       expect(response).toEqual(result);
-      expect(service.approveRequest).toHaveBeenCalledWith(uuid(1), uuid(9), { reviewNote: 'OK' });
+      expect(service.approveRequest).toHaveBeenCalledWith(uuid(1), uuid(9), {
+        reviewNote: 'OK',
+      });
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'transfer.approved',
@@ -97,7 +120,9 @@ describe('TransfersController', () => {
       const result = { id: uuid(1), status: 'rejected' };
       service.rejectRequest.mockResolvedValue(result);
 
-      const response = await controller.rejectRequest(uuid(1), req, { reviewNote: 'Denied' });
+      const response = await controller.rejectRequest(uuid(1), req, {
+        reviewNote: 'Denied',
+      });
 
       expect(response).toEqual(result);
       expect(auditService.log).toHaveBeenCalledWith(

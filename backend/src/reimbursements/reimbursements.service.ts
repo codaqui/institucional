@@ -294,7 +294,9 @@ export class ReimbursementsService {
           `reimbursement-deletion:${request.id}:${ts}`,
         );
       } catch (error) {
-        this.logger.error(`Falha ao registrar estorno de reembolso no ledger: ${error}`);
+        this.logger.error(
+          `Falha ao registrar estorno de reembolso no ledger: ${error}`,
+        );
         throw error;
       }
     }

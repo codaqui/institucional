@@ -50,10 +50,25 @@ interface VendorPaymentPublicInfo {
   description: string;
   receiptUrl: string | null;
   internalReceiptUrl: string | null;
-  paidAt: string;
+  occurredAt: string;
   vendor?: { name: string; document: string | null; website: string | null };
-  paidBy?: { name: string; avatarUrl: string; githubHandle: string };
+  registeredBy?: { name: string; avatarUrl: string; githubHandle: string };
 }
+
+const VENDOR_TX_LABELS = {
+  "vendor-payment": {
+    descriptionLabel: "Finalidade do pagamento",
+    vendorBoxLabel: "Pago a",
+    vendorIconColor: "secondary.main" as const,
+    occurredAtLabel: "Data do pagamento",
+  },
+  "vendor-receipt": {
+    descriptionLabel: "Origem do recebimento",
+    vendorBoxLabel: "Recebido de",
+    vendorIconColor: "success.main" as const,
+    occurredAtLabel: "Data do recebimento",
+  },
+} as const;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -98,13 +113,17 @@ export default function TransactionDetailDialog({
 
   useEffect(() => {
     if (!tx) { setVendorInfo(null); return; }
-    if (type !== "vendor-payment") { setVendorInfo(null); return; }
+    if (type !== "vendor-payment" && type !== "vendor-receipt") { setVendorInfo(null); return; }
 
     const refId = tx.referenceId;
     if (!refId) return;
 
+    const endpoint = type === "vendor-receipt"
+      ? `${apiUrl}/vendors/receipts/by-reference/${encodeURIComponent(refId)}`
+      : `${apiUrl}/vendors/payments/by-reference/${encodeURIComponent(refId)}`;
+
     setVendorLoading(true);
-    fetch(`${apiUrl}/vendors/payments/by-reference/${encodeURIComponent(refId)}`)
+    fetch(endpoint)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setVendorInfo(data))
       .catch(() => setVendorInfo(null))
@@ -328,105 +347,153 @@ export default function TransactionDetailDialog({
           </Box>
         )}
 
-        {/* Vendor payment details */}
-        {type === "vendor-payment" && (
+        {/* Vendor payment / receipt details */}
+        {(type === "vendor-payment" || type === "vendor-receipt") && (
           <>
-            {tx.description && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Finalidade do pagamento</Typography>
-                <Typography variant="body2" sx={{ mt: 0.5 }}>
-                  {tx.description.includes(" — ")
-                    ? tx.description.split(" — ").slice(1).join(" — ")
-                    : tx.description}
-                </Typography>
-              </Box>
-            )}
-            {vendorLoading && (
-              <Box sx={{ mb: 2 }}>
-                <Skeleton height={24} width="60%" />
-                <Skeleton height={20} width="40%" />
-              </Box>
-            )}
-            {vendorInfo?.vendor && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Fornecedor</Typography>
-                <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
-                  <StorefrontIcon fontSize="small" sx={{ mr: 0.5, verticalAlign: "middle" }} />
-                  {vendorInfo.vendor.name}
-                  {vendorInfo.vendor.document && (
-                    <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      ({formatDocument(vendorInfo.vendor.document)})
-                    </Typography>
+            {(() => {
+              const vendorLabels = VENDOR_TX_LABELS[type];
+
+              const vendorCard = vendorInfo?.vendor && (
+                <Box
+                  sx={{
+                    mb: 2,
+                    p: 2,
+                    borderRadius: 2,
+                    border: 1,
+                    borderColor: "divider",
+                    bgcolor: type === "vendor-receipt" ? "success.50" : "secondary.50",
+                  }}
+                >
+                  <Typography variant="caption" color="text.disabled" sx={{ display: "block", mb: 0.5 }}>
+                    {vendorLabels.vendorBoxLabel}
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <StorefrontIcon sx={{ color: vendorLabels.vendorIconColor }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="body1" fontWeight={700}>
+                        {vendorInfo.vendor.name}
+                      </Typography>
+                      {vendorInfo.vendor.document && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>
+                          {formatDocument(vendorInfo.vendor.document)}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                  {vendorInfo.vendor.website && (
+                    <Button
+                      size="small"
+                      variant="text"
+                      endIcon={<OpenInNewIcon fontSize="small" />}
+                      href={vendorInfo.vendor.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      sx={{ textTransform: "none", fontSize: "0.75rem", mt: 1, ml: -1 }}
+                    >
+                      {vendorInfo.vendor.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                    </Button>
                   )}
-                </Typography>
-                {vendorInfo.vendor.website && (
-                  <Button
-                    size="small"
-                    variant="text"
-                    endIcon={<OpenInNewIcon fontSize="small" />}
-                    href={vendorInfo.vendor.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    sx={{ textTransform: "none", fontSize: "0.75rem", mt: 0.5 }}
-                  >
-                    {vendorInfo.vendor.website.replace(/^https?:\/\//, "").replace(/\/$/, "")}
-                  </Button>
-                )}
-              </Box>
-            )}
-            {vendorInfo?.paidBy && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Autorizado/registrado por</Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
-                  <Avatar
-                    src={vendorInfo.paidBy.avatarUrl}
-                    alt={vendorInfo.paidBy.name}
-                    sx={{ width: 28, height: 28 }}
-                  />
-                  <Box>
-                    <Typography variant="body2" fontWeight={700}>{vendorInfo.paidBy.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">@{vendorInfo.paidBy.githubHandle}</Typography>
+                </Box>
+              );
+
+              const occurredAtBlock = vendorInfo?.occurredAt && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.disabled">
+                    {vendorLabels.occurredAtLabel}
+                  </Typography>
+                  <Typography variant="body2" fontWeight={600}>
+                    {formatDate(vendorInfo.occurredAt)}
+                  </Typography>
+                </Box>
+              );
+
+              const descriptionBlock = tx.description && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.disabled">
+                    {vendorLabels.descriptionLabel}
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    {tx.description.includes(" — ")
+                      ? tx.description.split(" — ").slice(1).join(" — ")
+                      : tx.description}
+                  </Typography>
+                </Box>
+              );
+
+              const loadingBlock = vendorLoading && (
+                <Box sx={{ mb: 2 }}>
+                  <Skeleton height={80} sx={{ borderRadius: 2 }} />
+                </Box>
+              );
+
+              const registeredByBlock = vendorInfo?.registeredBy && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.disabled">
+                    Registrado por
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                    <Avatar
+                      src={vendorInfo.registeredBy.avatarUrl}
+                      alt={vendorInfo.registeredBy.name}
+                      sx={{ width: 28, height: 28 }}
+                    />
+                    <Box>
+                      <Typography variant="body2" fontWeight={700}>{vendorInfo.registeredBy.name}</Typography>
+                      <Typography variant="caption" color="text.secondary">@{vendorInfo.registeredBy.githubHandle}</Typography>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-            )}
-            {vendorInfo && (vendorInfo.receiptUrl || vendorInfo.internalReceiptUrl) && (
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
-                <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
-                  {vendorInfo.receiptUrl && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<ReceiptLongIcon />}
-                      endIcon={<OpenInNewIcon fontSize="small" />}
-                      href={vendorInfo.receiptUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                    >
-                      Comprovante original
-                    </Button>
-                  )}
-                  {vendorInfo.internalReceiptUrl && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      startIcon={<ReceiptLongIcon />}
-                      endIcon={<OpenInNewIcon fontSize="small" />}
-                      href={vendorInfo.internalReceiptUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
-                    >
-                      Cópia interna
-                    </Button>
-                  )}
+              );
+
+              const receiptsBlock = vendorInfo && (vendorInfo.receiptUrl || vendorInfo.internalReceiptUrl) && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.disabled">Comprovantes</Typography>
+                  <Box sx={{ mt: 0.5, display: "flex", gap: 1, flexWrap: "wrap" }}>
+                    {vendorInfo.receiptUrl && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        startIcon={<ReceiptLongIcon />}
+                        endIcon={<OpenInNewIcon fontSize="small" />}
+                        href={vendorInfo.receiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                      >
+                        Comprovante original
+                      </Button>
+                    )}
+                    {vendorInfo.internalReceiptUrl && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        startIcon={<ReceiptLongIcon />}
+                        endIcon={<OpenInNewIcon fontSize="small" />}
+                        href={vendorInfo.internalReceiptUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+                      >
+                        Cópia interna
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
-              </Box>
-            )}
+              );
+
+              return (
+                <>
+                  {loadingBlock}
+                  {vendorCard}
+                  {descriptionBlock}
+                  {occurredAtBlock}
+                  {registeredByBlock}
+                  {receiptsBlock}
+                </>
+              );
+            })()}
           </>
         )}
 
