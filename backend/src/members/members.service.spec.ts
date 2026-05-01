@@ -30,7 +30,12 @@ describe('MembersService', () => {
       findAndCount: jest.fn(),
       find: jest.fn(),
       create: jest.fn((data) => ({ ...data })),
-      save: jest.fn((entity) => Promise.resolve({ ...entity, id: entity.id ?? '22222222-2222-2222-2222-222222222222' })),
+      save: jest.fn((entity) =>
+        Promise.resolve({
+          ...entity,
+          id: entity.id ?? '22222222-2222-2222-2222-222222222222',
+        }),
+      ),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
@@ -99,10 +104,17 @@ describe('MembersService', () => {
     });
 
     it('should restore admin role for bootstrap admin on login', async () => {
-      const existing = { ...mockMember(), githubHandle: 'endersonmenezes', role: MemberRole.MEMBRO };
+      const existing = {
+        ...mockMember(),
+        githubHandle: 'endersonmenezes',
+        role: MemberRole.MEMBRO,
+      };
       memberRepo.findOne.mockResolvedValue(existing);
 
-      await service.upsertByGithub({ ...profile, githubHandle: 'endersonmenezes' });
+      await service.upsertByGithub({
+        ...profile,
+        githubHandle: 'endersonmenezes',
+      });
 
       expect(existing.role).toBe(MemberRole.ADMIN);
     });
@@ -207,7 +219,10 @@ describe('MembersService', () => {
 
       const result = await service.updateMeById(member.id, { bio: 'New bio' });
 
-      expect(memberRepo.update).toHaveBeenCalledWith({ id: member.id }, { bio: 'New bio' });
+      expect(memberRepo.update).toHaveBeenCalledWith(
+        { id: member.id },
+        { bio: 'New bio' },
+      );
       expect(result).toEqual(member);
     });
   });
@@ -219,9 +234,13 @@ describe('MembersService', () => {
       const member = mockMember();
       memberRepo.findOneOrFail.mockResolvedValue(member);
 
-      const result = await service.adminUpdate(member.id, { role: MemberRole.ADMIN });
+      const result = await service.adminUpdate(member.id, {
+        role: MemberRole.ADMIN,
+      });
 
-      expect(memberRepo.update).toHaveBeenCalledWith(member.id, { role: MemberRole.ADMIN });
+      expect(memberRepo.update).toHaveBeenCalledWith(member.id, {
+        role: MemberRole.ADMIN,
+      });
       expect(result).toEqual(member);
     });
 
@@ -231,7 +250,9 @@ describe('MembersService', () => {
 
       await service.adminUpdate(member.id, { isActive: false });
 
-      expect(memberRepo.update).toHaveBeenCalledWith(member.id, { isActive: false });
+      expect(memberRepo.update).toHaveBeenCalledWith(member.id, {
+        isActive: false,
+      });
     });
   });
 
@@ -245,7 +266,9 @@ describe('MembersService', () => {
       const result = await service.findAll();
 
       expect(result).toEqual(members);
-      expect(memberRepo.find).toHaveBeenCalledWith({ order: { joinedAt: 'DESC' } });
+      expect(memberRepo.find).toHaveBeenCalledWith({
+        order: { joinedAt: 'DESC' },
+      });
     });
   });
 
@@ -326,21 +349,27 @@ describe('MembersService', () => {
           {
             id: 'tx-1',
             amount: 50,
-            description: 'Doação de @user [11111111-1111-1111-1111-111111111111]',
+            description:
+              'Doação de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-06-01'),
             destinationAccount: { name: 'DevParaná', projectKey: 'devparana' },
           },
           {
             id: 'tx-2',
             amount: 25,
-            description: 'Assinatura mensal de @user [11111111-1111-1111-1111-111111111111]',
+            description:
+              'Assinatura mensal de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-07-01'),
-            destinationAccount: { name: 'Codaqui', projectKey: 'tesouro-geral' },
+            destinationAccount: {
+              name: 'Codaqui',
+              projectKey: 'tesouro-geral',
+            },
           },
           {
             id: 'tx-3',
             amount: 100,
-            description: 'Assinatura anual de @user [11111111-1111-1111-1111-111111111111]',
+            description:
+              'Assinatura anual de @user [11111111-1111-1111-1111-111111111111]',
             createdAt: new Date('2024-08-01'),
             destinationAccount: null,
           },
