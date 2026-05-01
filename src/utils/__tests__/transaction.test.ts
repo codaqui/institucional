@@ -55,56 +55,24 @@ function makeTx(overrides: Partial<Transaction> = {}): Transaction {
 }
 
 describe("detectTxType", () => {
-  it("detects reimbursement by referenceId", () => {
-    expect(detectTxType(makeTx({ referenceId: "reimbursement:123" }))).toBe("reimbursement");
-  });
-
-  it("detects vendor-payment by referenceId", () => {
-    expect(detectTxType(makeTx({ referenceId: "vendor-payment:456" }))).toBe("vendor-payment");
-  });
-
-  it("detects transfer by referenceId", () => {
-    expect(detectTxType(makeTx({ referenceId: "transfer:789" }))).toBe("transfer");
-  });
-
-  it("detects donation by Stripe checkout session referenceId", () => {
-    expect(detectTxType(makeTx({ referenceId: "cs_live_abc" }))).toBe("donation");
-  });
-
-  it("detects donation by Stripe payment intent referenceId (pi_)", () => {
-    expect(detectTxType(makeTx({ referenceId: "pi_live_abc" }))).toBe("donation");
-  });
-
-  it("detects donation by Stripe invoice referenceId (in_)", () => {
-    expect(detectTxType(makeTx({ referenceId: "in_live_abc" }))).toBe("donation");
-  });
-
-  it("detects donation by description", () => {
-    expect(detectTxType(makeTx({ description: "Doação de @user" }))).toBe("donation");
-  });
-
-  it("detects monthly subscription as donation by description", () => {
-    expect(detectTxType(makeTx({ description: "Assinatura mensal de @user [id] — Sessão in_xxx" }))).toBe("donation");
-  });
-
-  it("detects annual subscription as donation by description", () => {
-    expect(detectTxType(makeTx({ description: "Assinatura anual de @user [id] — Sessão in_xxx" }))).toBe("donation");
-  });
-
-  it("detects vendor-payment by description", () => {
-    expect(detectTxType(makeTx({ description: "Pagamento a fornecedor XYZ" }))).toBe("vendor-payment");
-  });
-
-  it("detects reimbursement by description", () => {
-    expect(detectTxType(makeTx({ description: "Reembolso aprovado: compra" }))).toBe("reimbursement");
-  });
-
-  it("detects transfer by description", () => {
-    expect(detectTxType(makeTx({ description: "Transferência interna aprovada: teste" }))).toBe("transfer");
-  });
-
-  it("returns other for unknown transactions", () => {
-    expect(detectTxType(makeTx({ description: "Something else" }))).toBe("other");
+  it.each<[string, Partial<Transaction>, ReturnType<typeof detectTxType>]>([
+    ["detects reimbursement by referenceId", { referenceId: "reimbursement:123" }, "reimbursement"],
+    ["detects vendor-payment by referenceId", { referenceId: "vendor-payment:456" }, "vendor-payment"],
+    ["detects transfer by referenceId", { referenceId: "transfer:789" }, "transfer"],
+    ["detects donation by Stripe checkout session referenceId", { referenceId: "cs_live_abc" }, "donation"],
+    ["detects donation by Stripe payment intent referenceId (pi_)", { referenceId: "pi_live_abc" }, "donation"],
+    ["detects donation by Stripe invoice referenceId (in_)", { referenceId: "in_live_abc" }, "donation"],
+    ["detects donation by description", { description: "Doação de @user" }, "donation"],
+    ["detects monthly subscription as donation by description", { description: "Assinatura mensal de @user [id] — Sessão in_xxx" }, "donation"],
+    ["detects annual subscription as donation by description", { description: "Assinatura anual de @user [id] — Sessão in_xxx" }, "donation"],
+    ["detects vendor-payment by description", { description: "Pagamento a fornecedor XYZ" }, "vendor-payment"],
+    ["detects reimbursement by description", { description: "Reembolso aprovado: compra" }, "reimbursement"],
+    ["detects transfer by description", { description: "Transferência interna aprovada: teste" }, "transfer"],
+    ["detects refund by referenceId (re_)", { referenceId: "re_3TSH3JFtPCSoiGky18dl80ut" }, "refund"],
+    ["detects refund by description (Estorno)", { description: "Estorno de doação — Refund re_xxx" }, "refund"],
+    ["returns other for unknown transactions", { description: "Something else" }, "other"],
+  ])("%s", (_label, overrides, expected) => {
+    expect(detectTxType(makeTx(overrides))).toBe(expected);
   });
 });
 

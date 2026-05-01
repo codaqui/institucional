@@ -19,31 +19,15 @@ describe("stripToDigits", () => {
 });
 
 describe("formatDocument", () => {
-  it("returns empty string for empty input", () => {
-    expect(formatDocument("")).toBe("");
-  });
-
-  it("formats a full CPF (11 digits)", () => {
-    expect(formatDocument("12345678909")).toBe("123.456.789-09");
-  });
-
-  it("strips non-digits before formatting CPF", () => {
-    expect(formatDocument("123.456.789-09")).toBe("123.456.789-09");
-  });
-
-  it("formats partial CPF (up to 11 digits)", () => {
-    expect(formatDocument("123456")).toBe("123.456");
-  });
-
-  it("formats a full CNPJ (14 digits)", () => {
-    expect(formatDocument("44593429000105")).toBe("44.593.429/0001-05");
-  });
-
-  it("strips non-digits before formatting CNPJ", () => {
-    expect(formatDocument("44.593.429/0001-05")).toBe("44.593.429/0001-05");
-  });
-
-  it("formats partial CNPJ (12 digits)", () => {
-    expect(formatDocument("445934290001")).toBe("44.593.429/0001");
+  it.each([
+    ["returns empty string for empty input", "", ""],
+    ["formats a full CPF (11 digits)", "12345678909", "123.456.789-09"],
+    ["strips non-digits before formatting CPF", "123.456.789-09", "123.456.789-09"],
+    ["formats partial CPF (up to 11 digits)", "123456", "123.456"],
+    ["formats a full CNPJ (14 digits)", "44593429000105", "44.593.429/0001-05"],
+    ["strips non-digits before formatting CNPJ", "44.593.429/0001-05", "44.593.429/0001-05"],
+    ["formats partial CNPJ (12 digits)", "445934290001", "44.593.429/0001"],
+  ])("%s", (_label, input, expected) => {
+    expect(formatDocument(input)).toBe(expected);
   });
 });
