@@ -25,7 +25,9 @@ import { VendorsModule } from './vendors/vendors.module';
       password:
         process.env.DB_PASSWORD ||
         (process.env.NODE_ENV === 'production'
-          ? (() => { throw new Error('DB_PASSWORD is required in production'); })()
+          ? (() => {
+              throw new Error('DB_PASSWORD is required in production');
+            })()
           : 'codaqui_pass'),
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
