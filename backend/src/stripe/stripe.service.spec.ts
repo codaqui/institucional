@@ -39,6 +39,7 @@ describe('StripeService', () => {
     };
 
     txRepo = {
+      findOne: jest.fn(),
       findOneBy: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
@@ -247,6 +248,92 @@ describe('StripeService', () => {
       const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
 
       expect(result).toEqual({ received: true });
+    });
+
+    it('should handle charge.refunded creating reverse transaction', async () => {
+      const originalTx = {
+        id: 'tx-original',
+        referenceId: 'pi_3TSH3JFtPCSoiGky1wUsFOJy',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe Income' },
+        destinationAccount: { id: 'acc-community', name: 'Comunidade: ti-social' },
+      };
+      txRepo.findOne.mockResolvedValue(originalTx);
+      txRepo.findOneBy.mockResolvedValue(null); // refund not yet recorded
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_3TSH3JFtPCSoiGky1bnkoUn8',
+            payment_intent: 'pi_3TSH3JFtPCSoiGky1wUsFOJy',
+            refunds: {
+              data: [
+                {
+                  id: 're_3TSH3JFtPCSoiGky18dl80ut',
+                  amount: 10000,
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(result).toEqual({ received: true });
+      // Reverse direction: source = community, destination = stripe income
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        'acc-community',
+        'acc-stripe',
+        100,
+        expect.stringContaining('Estorno de doação'),
+        're_3TSH3JFtPCSoiGky18dl80ut',
+      );
+    });
+
+    it('should be idempotent on duplicate charge.refunded events', async () => {
+      txRepo.findOne.mockResolvedValue({
+        id: 'tx-original',
+        referenceId: 'pi_xxx',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe' },
+        destinationAccount: { id: 'acc-community', name: 'Comunidade' },
+      });
+      txRepo.findOneBy.mockResolvedValue({ id: 'existing-refund' }); // already recorded
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_xxx',
+            payment_intent: 'pi_xxx',
+            refunds: { data: [{ id: 're_xxx', amount: 5000 }] },
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('should warn and skip when original donation not found on refund', async () => {
+      txRepo.findOne.mockResolvedValue(null); // original tx missing
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_orphan',
+            payment_intent: 'pi_orphan',
+            refunds: { data: [{ id: 're_orphan', amount: 1000 }] },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
   });
 
