@@ -423,6 +423,54 @@ describe('StripeService', () => {
       },
     });
 
+    // --- Shared assertion helpers (DRY) ---------------------------------------
+
+    /** Asserts a "Stripe fee" ledger transaction was recorded with the given fee/charge/bt. */
+    const expectFeeRecorded = (opts: {
+      amount: number;
+      chargeId?: string;
+      btId: string;
+    }) => {
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        COMMUNITY_ACCOUNT_ID,
+        STRIPE_FEES_ACCOUNT_ID,
+        opts.amount,
+        opts.chargeId
+          ? expect.stringContaining(`Charge ${opts.chargeId}`)
+          : expect.stringContaining('Charge'),
+        `stripe-fee:${opts.btId}`,
+      );
+    };
+
+    /** Asserts no fee was recorded (donation may still be recorded). */
+    const expectNoFeeRecorded = () => {
+      const feeCalls = ledgerService.recordTransaction.mock.calls.filter(
+        (call: unknown[]) =>
+          typeof call[4] === 'string' &&
+          (call[4] as string).startsWith('stripe-fee:'),
+      );
+      expect(feeCalls).toHaveLength(0);
+    };
+
+    /** Mocks idempotency checks: 1st = donation (none), 2nd = fee (none). */
+    const mockNoExisting = () => {
+      txRepo.findOneBy
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+    };
+
+    /** Stubs PI retrieve with an expanded latest_charge containing the BT. */
+    const mockExpandedPI = (
+      piId: string,
+      chargeId: string,
+      bt: ReturnType<typeof buildBalanceTransaction>,
+    ) => {
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: piId,
+        latest_charge: { id: chargeId, balance_transaction: bt },
+      });
+    };
+
     beforeEach(() => {
       // Default: stripe_fees account creation returns a stable id
       ledgerService.getOrCreateCommunityAccount.mockImplementation(
@@ -438,7 +486,7 @@ describe('StripeService', () => {
     it('captures fee on charge.updated when BT transitions null → txn', async () => {
       const bt = buildBalanceTransaction();
       stripeInstance.balanceTransactions.retrieve.mockResolvedValue(bt);
-      txRepo.findOneBy.mockResolvedValue(null); // no existing fee
+      txRepo.findOneBy.mockResolvedValue(null);
       txRepo.findOne.mockResolvedValue(buildOriginalDonation());
 
       stripeInstance.webhooks.constructEvent.mockReturnValue(
@@ -452,14 +500,7 @@ describe('StripeService', () => {
         'Stripe Fees (External)',
         'EXTERNAL',
       );
-      // Direction: community → stripe_fees, amount = fee/100, refId = stripe-fee:<bt.id>
-      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
-        COMMUNITY_ACCOUNT_ID,
-        STRIPE_FEES_ACCOUNT_ID,
-        1.99,
-        expect.stringContaining('Taxa Stripe — Charge ch_test_main'),
-        'stripe-fee:txn_test_bt_1',
-      );
+      expectFeeRecorded({ amount: 1.99, chargeId: 'ch_test_main', btId: bt.id });
     });
 
     it('skips silently on charge.updated when balance_transaction is still null', async () => {
@@ -491,13 +532,7 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
-        COMMUNITY_ACCOUNT_ID,
-        STRIPE_FEES_ACCOUNT_ID,
-        5.38,
-        expect.stringContaining('Charge ch_sub_main'),
-        'stripe-fee:txn_sub_1',
-      );
+      expectFeeRecorded({ amount: 5.38, chargeId: 'ch_sub_main', btId: 'txn_sub_1' });
     });
 
     // --- Idempotency ---------------------------------------------------------
@@ -520,14 +555,14 @@ describe('StripeService', () => {
       stripeInstance.balanceTransactions.retrieve.mockResolvedValue(bt);
       txRepo.findOne.mockResolvedValue(buildOriginalDonation());
 
-      // First webhook: charge.succeeded — no existing fee, records it
+      // 1st webhook: charge.succeeded — no existing fee, records it
       txRepo.findOneBy.mockResolvedValueOnce(null);
       stripeInstance.webhooks.constructEvent.mockReturnValueOnce(
         buildChargeSucceededEvent({ balance_transaction: 'txn_race' }),
       );
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      // Second webhook: charge.updated — finds existing fee, skips
+      // 2nd webhook: charge.updated — finds existing fee, skips
       txRepo.findOneBy.mockResolvedValueOnce({ id: 'existing-fee' });
       stripeInstance.webhooks.constructEvent.mockReturnValueOnce(
         buildChargeUpdatedEvent({ balance_transaction: 'txn_race' }),
@@ -544,7 +579,7 @@ describe('StripeService', () => {
         buildBalanceTransaction(),
       );
       txRepo.findOneBy.mockResolvedValue(null);
-      txRepo.findOne.mockResolvedValue(null); // original tx missing
+      txRepo.findOne.mockResolvedValue(null);
 
       stripeInstance.webhooks.constructEvent.mockReturnValue(
         buildChargeUpdatedEvent({
@@ -608,28 +643,9 @@ describe('StripeService', () => {
 
     it('captures fee inline after checkout.session.completed (one-time)', async () => {
       const bt = buildBalanceTransaction({ id: 'txn_inline_oneshot' });
-      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
-        id: 'pi_inline_oneshot',
-        latest_charge: {
-          id: 'ch_inline_oneshot',
-          balance_transaction: bt,
-        },
-      });
-
-      // First findOneBy: idempotency check on donation (none) — record donation
-      // Second findOneBy: idempotency check on fee (none)
-      txRepo.findOneBy
-        .mockResolvedValueOnce(null) // donation idempotency
-        .mockResolvedValueOnce(null); // fee idempotency
-      txRepo.findOne.mockResolvedValue({
-        id: 'tx-original',
-        referenceId: 'pi_inline_oneshot',
-        sourceAccount: { id: STRIPE_INCOME_ACCOUNT_ID, name: 'Stripe Income' },
-        destinationAccount: {
-          id: COMMUNITY_ACCOUNT_ID,
-          name: 'Comunidade: tesouro-geral',
-        },
-      });
+      mockExpandedPI('pi_inline_oneshot', 'ch_inline_oneshot', bt);
+      mockNoExisting();
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_inline_oneshot'));
 
       stripeInstance.webhooks.constructEvent.mockReturnValue({
         type: 'checkout.session.completed',
@@ -649,7 +665,6 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      // Donation recorded
       expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
         expect.any(String),
         COMMUNITY_ACCOUNT_ID,
@@ -657,14 +672,11 @@ describe('StripeService', () => {
         expect.stringContaining('Doação'),
         'pi_inline_oneshot',
       );
-      // Fee recorded inline (avoids race with charge.succeeded)
-      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
-        COMMUNITY_ACCOUNT_ID,
-        STRIPE_FEES_ACCOUNT_ID,
-        1.99,
-        expect.stringContaining('Charge ch_inline_oneshot'),
-        'stripe-fee:txn_inline_oneshot',
-      );
+      expectFeeRecorded({
+        amount: 1.99,
+        chargeId: 'ch_inline_oneshot',
+        btId: 'txn_inline_oneshot',
+      });
     });
 
     it('captures fee inline after invoice.payment_succeeded (subscription, fixes race)', async () => {
@@ -673,26 +685,9 @@ describe('StripeService', () => {
         id: 'sub_inline',
         metadata: { communityId: 'tesouro-geral', memberId: uuid(8) },
       });
-      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
-        id: 'pi_inline_sub',
-        latest_charge: {
-          id: 'ch_inline_sub',
-          balance_transaction: bt,
-        },
-      });
-
-      txRepo.findOneBy
-        .mockResolvedValueOnce(null) // donation idempotency
-        .mockResolvedValueOnce(null); // fee idempotency
-      txRepo.findOne.mockResolvedValue({
-        id: 'tx-sub-donation',
-        referenceId: 'pi_inline_sub',
-        sourceAccount: { id: STRIPE_INCOME_ACCOUNT_ID, name: 'Stripe Income' },
-        destinationAccount: {
-          id: COMMUNITY_ACCOUNT_ID,
-          name: 'Comunidade: tesouro-geral',
-        },
-      });
+      mockExpandedPI('pi_inline_sub', 'ch_inline_sub', bt);
+      mockNoExisting();
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_inline_sub'));
 
       stripeInstance.webhooks.constructEvent.mockReturnValue({
         type: 'invoice.payment_succeeded',
@@ -708,7 +703,6 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      // Donation recorded with PI as referenceId
       expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
         expect.any(String),
         COMMUNITY_ACCOUNT_ID,
@@ -716,14 +710,11 @@ describe('StripeService', () => {
         expect.stringContaining('Assinatura'),
         'pi_inline_sub',
       );
-      // Fee recorded inline (no race condition)
-      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
-        COMMUNITY_ACCOUNT_ID,
-        STRIPE_FEES_ACCOUNT_ID,
-        4.12,
-        expect.stringContaining('Charge ch_inline_sub'),
-        'stripe-fee:txn_inline_sub',
-      );
+      expectFeeRecorded({
+        amount: 4.12,
+        chargeId: 'ch_inline_sub',
+        btId: 'txn_inline_sub',
+      });
     });
 
     it('inline capture is best-effort: does not crash if PI retrieve fails', async () => {
@@ -749,15 +740,15 @@ describe('StripeService', () => {
         Buffer.from('body'),
       );
 
-      // Donation still recorded — fee capture is best-effort
       expect(result).toEqual({ received: true });
       expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expectNoFeeRecorded();
     });
 
     it('inline capture: logs and continues when latest_charge is not expanded', async () => {
       stripeInstance.paymentIntents.retrieve.mockResolvedValue({
         id: 'pi_no_expand',
-        latest_charge: 'ch_string_only', // not expanded
+        latest_charge: 'ch_string_only',
       });
       txRepo.findOneBy.mockResolvedValue(null);
 
@@ -775,8 +766,8 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      // Only donation recorded — fee deferred to charge.succeeded fallback
       expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expectNoFeeRecorded();
     });
   });
 
