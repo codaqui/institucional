@@ -141,7 +141,7 @@ npm run build   # Compila → dist/
 | `ReimbursementsModule` | `POST /reimbursements` · `GET /reimbursements` · `GET /reimbursements/my` · `GET /reimbursements/public/:id` · `PATCH /reimbursements/:id/approve` · `PATCH /reimbursements/:id/reject` | Solicitações de reembolso com fluxo de aprovação. |
 | `TransfersModule` | `POST /account-transfers` · `GET /account-transfers` · `PATCH /account-transfers/:id/approve` · `PATCH /account-transfers/:id/reject` | Transferências entre contas do Ledger. |
 | `ExpensesModule` | `POST /expenses` · `GET /expenses` · `GET /expenses/:id` · `POST /expenses/:id/approve` · `POST /expenses/:id/pay` | Gestão de despesas organizacionais. |
-| `StorageModule` | `POST /storage/validate-receipt-url` | Validação de URLs de comprovantes (MinIO). |
+| `StorageModule` | `POST /storage/validate-receipt-url` | Validação do **formato** de URLs de comprovante. Os arquivos ficam no **Google Drive (upload manual)**; o backend não usa S3/MinIO/disco. |
 | `AuditModule` | `GET /audit/logs` · `POST /audit/cleanup` | Trilha de auditoria das ações administrativas. |
 
 ### Swagger / OpenAPI

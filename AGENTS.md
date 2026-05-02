@@ -74,7 +74,7 @@ When creating new `.md` files in this repo, **always include an `<!-- AGENT-INDE
 | **Validação** | `class-validator` 0.14 + `class-transformer` (ValidationPipe global, whitelist + transform) |
 | **Rate Limiting** | `@nestjs/throttler` 6.5 |
 | **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
-| **Storage** | MinIO (S3-compatible) — infra externa em produção |
+| **Storage** | ⚠ **Evitado**: comprovantes/recibos vão para **Google Drive manualmente** pelo time. O `StorageModule` existe no código (validação de URL de comprovante), mas **não há S3/MinIO conectado** — o backend não escreve em disco local nem em bucket. |
 | **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
 | **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
@@ -125,7 +125,7 @@ institucional/
 │   │   │   ├── dto/             # Base DTOs reutilizados por payment/receipt
 │   │   │   └── vendors.service.ts  # Helpers genéricos (persistWithLedger c/ factory, resolveByReference, etc.)
 │   │   ├── audit/               # Audit log de ações sensíveis
-│   │   ├── storage/             # MinIO (S3-compatible) — comprovantes
+│   │   ├── storage/             # Validação de URL de comprovante (Google Drive manual; ⚠ sem S3/MinIO)
 │   │   └── migrations/          # TypeORM migrations (Migration001..005)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── blog/                        # Blog posts (Markdown/MDX)
