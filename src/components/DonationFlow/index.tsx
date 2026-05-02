@@ -54,6 +54,11 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe
 import { communities } from "@site/src/data/communities";
 import { useAuth, type AuthUser } from "@site/src/hooks/useAuth";
 import { resolveApiUrl } from "@site/src/lib/api-url";
+import {
+  buildCheckoutBody,
+  detectWhitelabelDeploy,
+  requestCheckoutSession,
+} from "./helpers";
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -111,87 +116,6 @@ interface WalletBalance {
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-/** True quando rodando no browser (não SSR). */
-const hasWindow = (): boolean => globalThis.window !== undefined;
-
-/**
- * Detecta deploy whitelabel (Cloudflare Worker em domínio próprio da
- * comunidade). Quando true, o dashboard do membro vive na Codaqui canônica e
- * exibimos aviso de gestão de assinaturas.
- */
-function detectWhitelabelDeploy(apiUrl: string): boolean {
-  if (!hasWindow()) return false;
-  const { host, origin } = globalThis.location;
-  if (apiUrl !== origin) return false;
-  if (host.startsWith("localhost")) return false;
-  if (host.endsWith(":3000") || host.endsWith(":3030")) return false;
-  return true;
-}
-
-/** Pathname atual no browser (ou undefined em SSR). */
-function getCurrentPath(): string | undefined {
-  return hasWindow() ? globalThis.location.pathname : undefined;
-}
-
-interface CheckoutBodyParams {
-  amount: number;
-  target: string;
-  isRecurring: boolean;
-  mode: DonationMode;
-}
-
-/** Monta o body do POST /stripe/checkout-session. */
-function buildCheckoutBody({
-  amount,
-  target,
-  isRecurring,
-  mode,
-}: CheckoutBodyParams): Record<string, unknown> {
-  const body: Record<string, unknown> = {
-    amount,
-    communityId: target,
-    uiMode: "embedded_page",
-    // Mantém o usuário no contexto da comunidade ao retornar do Stripe.
-    // Em deploys whitelabel (tisocial.org.br), `pathname` será
-    // `/comunidades/tisocial/apoiar` em vez do default `/participe/apoiar`.
-    returnPath: getCurrentPath(),
-  };
-  if (isRecurring) body.recurring = { interval: mode };
-  return body;
-}
-
-interface CheckoutResult {
-  kind: "client-secret" | "redirect" | "auth-required" | "error";
-  clientSecret?: string;
-  url?: string;
-  error?: string;
-}
-
-/** Faz a requisição de criação da sessão Stripe e devolve um resultado normalizado. */
-async function requestCheckoutSession(
-  authFetch: (url: string, init: RequestInit) => Promise<Response>,
-  apiUrl: string,
-  body: Record<string, unknown>,
-): Promise<CheckoutResult> {
-  try {
-    const res = await authFetch(`${apiUrl}/stripe/checkout-session`, {
-      method: "POST",
-      body: JSON.stringify(body),
-    });
-    if (res.status === 401) return { kind: "auth-required" };
-    if (!res.ok) return { kind: "error", error: "Falha ao criar sessão de pagamento." };
-    const data = await res.json();
-    if (data.clientSecret) return { kind: "client-secret", clientSecret: data.clientSecret };
-    if (data.url) return { kind: "redirect", url: data.url };
-    return { kind: "error", error: "Resposta inesperada do servidor." };
-  } catch (err: unknown) {
-    return {
-      kind: "error",
-      error: err instanceof Error ? err.message : "Erro inesperado.",
-    };
-  }
-}
 
 // ─── Embedded Checkout Dialog ────────────────────────────────────────────────
 

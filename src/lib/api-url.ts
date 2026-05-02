@@ -12,7 +12,7 @@ const CODAQUI_DEV_URL = "http://localhost:3000";
  * build time (ex: `https://api.codaqui.dev` ou `http://localhost:3001`) deve ser
  * usado diretamente. Qualquer outro host é tratado como deploy whitelabel.
  */
-function isCodaquiOrigin(origin: string, siteUrl: string): boolean {
+export function isCodaquiOrigin(origin: string, siteUrl: string): boolean {
   if (origin === siteUrl) return true;
   if (origin === CODAQUI_DEV_URL) return true;
   if (origin === "http://localhost:3030") return true; // Docusaurus alt port
@@ -20,8 +20,30 @@ function isCodaquiOrigin(origin: string, siteUrl: string): boolean {
 }
 
 /** True se `host` (window.location.host) é dev local — `localhost` puro ou `*.localhost[:porta]`. */
-function isLocalDevHost(host: string): boolean {
+export function isLocalDevHost(host: string): boolean {
   return /(^|\.)localhost(:|$)/.test(host);
+}
+
+/** Versão pura de `resolveApiUrl` — recebe origin diretamente. */
+export function resolveApiUrlFor(
+  origin: string | undefined,
+  configuredApiUrl: string,
+  siteUrl: string,
+): string {
+  if (origin === undefined) return configuredApiUrl;
+  if (isCodaquiOrigin(origin, siteUrl)) return configuredApiUrl;
+  return origin;
+}
+
+/** Versão pura de `resolveCodaquiUrl` — recebe host diretamente. */
+export function resolveCodaquiUrlFor(
+  host: string | undefined,
+  siteUrl: string,
+  baseUrl: string,
+): string {
+  if (host === undefined) return `${siteUrl}${baseUrl}`;
+  if (isLocalDevHost(host)) return `${CODAQUI_DEV_URL}${baseUrl}`;
+  return `${siteUrl}${baseUrl}`;
 }
 
 /**
@@ -42,10 +64,9 @@ export function resolveApiUrl(
   configuredApiUrl: string,
   siteUrl: string,
 ): string {
-  if (globalThis.window === undefined) return configuredApiUrl;
-  const here = globalThis.window.location.origin;
-  if (isCodaquiOrigin(here, siteUrl)) return configuredApiUrl;
-  return here;
+  const origin =
+    globalThis.window === undefined ? undefined : globalThis.window.location.origin;
+  return resolveApiUrlFor(origin, configuredApiUrl, siteUrl);
 }
 
 /**
@@ -55,9 +76,7 @@ export function resolveApiUrl(
  * `https://codaqui.dev`.
  */
 export function resolveCodaquiUrl(siteUrl: string, baseUrl: string): string {
-  if (globalThis.window === undefined) return `${siteUrl}${baseUrl}`;
-  if (isLocalDevHost(globalThis.window.location.host)) {
-    return `${CODAQUI_DEV_URL}${baseUrl}`;
-  }
-  return `${siteUrl}${baseUrl}`;
+  const host =
+    globalThis.window === undefined ? undefined : globalThis.window.location.host;
+  return resolveCodaquiUrlFor(host, siteUrl, baseUrl);
 }
