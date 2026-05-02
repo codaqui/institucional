@@ -21,6 +21,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
+import { resolveOrigin } from '../common/allowed-origins';
 
 /** Limite em centavos para doação anônima: R$ 100 */
 const ANONYMOUS_LIMIT_CENTS = 10_000;
@@ -94,13 +95,21 @@ export class StripeController {
       'Recurring exige login.',
   })
   async createCheckoutSession(
-    @Req() req: { user?: JwtPayload },
+    @Req() req: { user?: JwtPayload; headers: Record<string, string> },
+    @Headers('origin') originHeader: string | undefined,
+    @Headers('referer') refererHeader: string | undefined,
     @Body()
     body: {
       amount: number;
       communityId: string;
       uiMode?: CheckoutUiMode;
       recurring?: { interval: CheckoutInterval };
+      /**
+       * Caminho relativo (ex: `/comunidades/tisocial/apoiar`) onde o usuário
+       * deve aterrissar após o checkout. Permite que deploys whitelabel
+       * mantenham o usuário no contexto da comunidade ao voltar do Stripe.
+       */
+      returnPath?: string;
     },
   ) {
     if (!body.amount || !body.communityId) {
@@ -133,6 +142,8 @@ export class StripeController {
       memberId: req.user?.sub,
       githubHandle: req.user?.handle,
       email: req.user?.email,
+      originUrl: resolveOrigin(undefined, originHeader, refererHeader),
+      returnPath: body.returnPath,
     });
   }
 

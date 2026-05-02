@@ -15,6 +15,14 @@ export interface CreateCheckoutDto {
   memberId?: string;
   githubHandle?: string;
   email?: string;
+  /** Origem (scheme://host) já validada pelo controller; usada para montar return_url/cancel_url. */
+  originUrl?: string;
+  /**
+   * Caminho relativo (ex: `/comunidades/tisocial/apoiar`) onde o Stripe
+   * redireciona o usuário. Default: `/participe/apoiar`. Importante para
+   * deploys whitelabel — preserva o contexto da comunidade no retorno.
+   */
+  returnPath?: string;
   /** 'embedded_page' renderiza na página; 'hosted' redireciona para Stripe (legado) */
   uiMode?: CheckoutUiMode;
   /** Se definido, cria uma assinatura recorrente */
@@ -58,14 +66,25 @@ export class StripeService {
       uiMode = 'embedded_page',
       recurring,
       email,
+      originUrl,
+      returnPath,
     } = dto;
 
     if (amountCents <= 0)
       throw new BadRequestException('Amount must be positive');
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const returnUrl = `${frontendUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${frontendUrl}/participe/apoiar?status=cancelled`;
+    const baseUrl =
+      originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    // Sanitiza o returnPath: tem que ser caminho relativo começando em `/` e
+    // não pode ser protocol-relative (`//host`) — evita open redirect.
+    const safePath =
+      returnPath &&
+      returnPath.startsWith('/') &&
+      !returnPath.startsWith('//')
+        ? returnPath
+        : '/participe/apoiar';
+    const returnUrl = `${baseUrl}${safePath}?status=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}${safePath}?status=cancelled`;
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
