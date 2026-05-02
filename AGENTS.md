@@ -919,6 +919,140 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 
 ---
 
+## Multi-tenant communities (D1 — single Docusaurus)
+
+> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Plano completo em **`MULTISITE_PLAN.md`**. T.I. Social é o piloto.
+
+### Arquitetura — onde vive cada peça
+
+| Item | Caminho | Responsabilidade |
+|------|---------|------------------|
+| **Config da comunidade** | `comunidades/<slug>/community.config.ts` | Branding, slug Stripe, navMenu, features, hero, impact stats |
+| **Páginas** | `src/pages/comunidades/<slug>/*.tsx` | `index.tsx`, `apoiar.tsx`, `transparencia.tsx`, `membro/index.tsx` (TSX, NÃO em `comunidades/`) |
+| **Blog da comunidade** | `comunidades/<slug>/blog/*.mdx` | Plugin `plugin-content-blog` instanciado com `id=community-<slug>-blog` |
+| **Docs da comunidade** | `comunidades/<slug>/docs/*.md` | Plugin `plugin-content-docs` instanciado com `id=community-<slug>-docs` |
+| **Resolver de tenant** | `src/lib/community-context.ts` | `resolveCommunityFromPath(pathname)` mapeia `/comunidades/<slug>/*` → config |
+| **Navbar whitelabel** | `src/theme/Navbar/Content/index.tsx` | Função `buildCommunityItems()` substitui itens do navbar quando dentro de comunidade |
+| **Auth callback whitelabel** | `src/pages/auth/callback.tsx` | Renderiza logo + cor da comunidade durante spinner OAuth |
+| **DonationFlow reusável** | `src/components/DonationFlow/index.tsx` | Aceita `lockedTargetId`, `accentColor`, `accentColorDark`, `authCommunitySlug` |
+
+### Como criar uma nova comunidade — checklist
+
+> Onboarding ideal: **criar pasta + adicionar páginas + registrar no resolver**. Sem mexer em backend.
+
+1. **Criar pasta `comunidades/<slug>/`** (kebab-case, exatamente igual ao `metadata.communityId` que vai ser usado no Stripe).
+
+2. **Criar `comunidades/<slug>/community.config.ts`** seguindo a interface `CommunitySiteConfig` (ver `comunidades/tisocial/community.config.ts` como referência viva). Campos obrigatórios:
+   - `slug`, `name`, `shortName`, `tagline`, `description`
+   - `logoUrl` (caminho em `/static/img/...` ou URL absoluta), `logoUrlDark` opcional
+   - `theme.{primary, primaryDark, primaryLight, accent, footerBg}`
+   - `basePath` = `/comunidades/<slug>` (sem barra final)
+   - `navMenu[]` — lista de itens do navbar quando o usuário está dentro da comunidade
+   - `features.{donations, transparency, events, blog, docs}` — controla quais páginas/sections aparecem
+   - `hero.{title, subtitle, ctaPrimary, ctaSecondary?}`
+   - `impact?` — cards de números na home (ex: "+350 animais beneficiados")
+   - `exploreSection?`, `channelsSection?` — texto das seções da home
+
+3. **Criar conteúdo Markdown**:
+   - `comunidades/<slug>/blog/YYYY-MM-DD-slug-do-post.mdx` (use `.mdx` se for usar componentes MUI no post)
+   - `comunidades/<slug>/docs/index.md` (ao menos um placeholder)
+   - Frontmatter padrão Docusaurus (mesmo do blog principal)
+
+4. **Registrar no resolver** em `comunidades/index.ts` — fonte única de verdade:
+   ```typescript
+   import myCommunityConfig from "./<slug>/community.config";
+   export const COMMUNITIES_CONFIG: CommunitySiteConfig[] = [
+     tisocialConfig,
+     myCommunityConfig,  // ← adicionar
+   ];
+   ```
+   `docusaurus.config.ts` lê esse array e **gera os plugins de blog/docs automaticamente** (respeitando `community.features.{blog,docs}`).
+
+5. **Criar páginas TSX** em `src/pages/comunidades/<slug>/`:
+   - `index.tsx` — home da comunidade (use `tisocial/index.tsx` como template; ele já lê tudo do `community.config.ts`)
+   - `apoiar.tsx` — usa `<DonationFlow lockedTargetId={community.slug} hideWallets authCommunitySlug={community.slug} accentColor={...} accentColorDark={...} />`
+   - `transparencia.tsx` — fetch `GET /ledger/community-balances`, filtra por `b.projectKey === community.slug`, renderiza `<TransactionTable accountId={balance.id} ... />`
+   - `membro/index.tsx` — opcional (painel pessoal whitelabel)
+
+6. **Conteúdo de blog/docs** — basta criar arquivos. Plugins **já estão registrados** automaticamente.
+
+7. **Backend (Stripe)** — confirmar que `metadata.communityId === '<slug>'` no checkout. O ledger cria/usa a conta automaticamente baseado nesse valor.
+
+8. **Validar**:
+   - `npm run typecheck`
+   - `npm run build` — confirmar que rotas `/comunidades/<slug>/*` aparecem
+   - Smoke local: navegar para a home da comunidade e verificar que o navbar trocou de cor, o chip "← Codaqui" aparece, e doações vão pro Stripe com o `communityId` certo
+
+### Padrões obrigatórios em páginas de comunidade
+
+- ✅ **Importar `community` do `community.config.ts` local** — nunca hardcode strings da comunidade em TSX
+- ✅ **Cores via `community.theme.primary` / `accent`** — nunca hex inline em página de comunidade
+- ✅ **`<DonationFlow>` para doação** — não usar `<StripeDonateSection>` (legacy/simples); o flow rico tem login encouraged, mensal/anual, presets, etc.
+- ✅ **Logos em modo claro/escuro** — usar `useColorMode()` para alternar `community.logoUrl` ↔ `community.logoUrlDark` quando relevante
+- ✅ **`Layout` do Docusaurus** — usar normal; o Navbar swizzled detecta a comunidade via `useLocation()`
+
+### Anti-patterns
+
+| ❌ Don't | ✅ Do |
+|----------|-------|
+| Hardcode `"T.I. Social"` em página | `community.shortName` |
+| Hardcode cor `#0ea5e9` | `community.theme.primary` |
+| Path `/comunidades/tisocial/blog` literal | ``${community.basePath}/blog`` |
+| Filtrar ledger por `b.id === slug` | `b.projectKey === community.slug` (id é UUID) |
+| Criar página de comunidade dentro de `comunidades/<slug>/pages/` | Páginas TSX vão em `src/pages/comunidades/<slug>/` (Docusaurus convention) |
+| Adicionar item de auth no `community.navMenu` | Auth fica oculto em comunidades hoje (decisão de domínio próprio incerto) |
+
+### Estado atual da Fase 1 (T.I. Social piloto)
+
+- ✅ Estrutura completa: config, páginas (`index`, `apoiar`, `transparencia`, `membro`), 1 post de blog (AUMIGO)
+- ✅ Navbar whitelabel + chip "← Codaqui"
+- ✅ DonationFlow reusável com gate de login encouraged
+- ✅ Transparência com `<TransactionTable>` real (drill-down + filtros)
+- ✅ Auth callback whitelabel (logo + cor durante spinner)
+- ⚠️ `features.events: false` (sem dados de eventos próprios ainda)
+- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver MULTISITE_PLAN.md §6)
+
+### Domínio próprio via Cloudflare Worker (`workers/`)
+
+> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `MULTISITE_PLAN.md §6`.
+
+| Caminho | Conteúdo |
+|---------|----------|
+| `workers/shared/index.js` | Código do Worker — **reusável**, lê env vars `STATIC_ORIGIN`, `API_ORIGIN`, `COMMUNITY_PREFIX` |
+| `workers/<slug>/wrangler.toml` | Config produção (route + vars) |
+| `workers/<slug>/wrangler.dev.toml` | Config local (`*.localhost`) |
+
+**Comandos:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `make worker-dev-tisocial` | Sobe Worker local em `http://tisocial.localhost:8787` (precisa de `make up-build` rodando) |
+| `make worker-deploy-tisocial` | Deploy em produção (route `tisocial.org.br/*`) |
+
+**Whitelist de origens (backend) para domínio próprio:**
+
+A lista de origens autorizadas a receber redirects pós-OAuth e pós-Stripe vive em **`backend/src/common/allowed-origins.config.ts`** (TypeScript commitado, sem env var). Adicionar comunidade com domínio próprio é PR adicionando uma entrada em `ALLOWED_ORIGINS_PROD`.
+
+```ts
+// backend/src/common/allowed-origins.config.ts
+export const ALLOWED_ORIGINS_PROD = [
+  'https://codaqui.dev',
+  'https://tisocial.org.br', // ← nova comunidade
+];
+```
+
+O middleware `ReturnToMiddleware` (`backend/src/auth/return-to.middleware.ts`) captura `?returnTo=<url>` em `/auth/github` e `/auth/logout`, valida contra a whitelist e persiste em cookie httpOnly de 5min. O callback (`/auth/github/callback`) e o logout leem o cookie e redirecionam para a comunidade certa em vez do `FRONTEND_URL` global. O Stripe usa o header `Origin` validado para montar `success_url`/`cancel_url` (`backend/src/common/allowed-origins.ts`).
+
+**Adicionar nova comunidade com domínio:**
+
+1. Criar `workers/<slug>/wrangler.toml` e `wrangler.dev.toml` (copiar de `tisocial/`)
+2. Adicionar scripts `worker:dev:<slug>` / `worker:deploy:<slug>` em `package.json`
+3. Adicionar targets `worker-dev-<slug>` / `worker-deploy-<slug>` em `Makefile`
+4. Adicionar a origem em `ALLOWED_ORIGINS_PROD` em `backend/src/common/allowed-origins.config.ts`
+5. Configurar GitHub OAuth callback URL para `https://<dominio>/auth/github/callback` (próximo passo da Fase 3 — multi-OAuth-app ou broker)
+
+---
+
 ## References
 
 - [Docusaurus 3 Docs](https://docusaurus.io/docs)

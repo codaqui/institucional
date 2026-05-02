@@ -114,3 +114,6 @@ site/
 mkdocs-material/
 venv/
 sql-commands
+
+# Cloudflare Workers local state
+workers/**/.wrangler/

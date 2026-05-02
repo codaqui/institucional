@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "@docusaurus/router";
 
 import Avatar from "@mui/material/Avatar";
 import Button from "@mui/material/Button";
@@ -13,9 +14,12 @@ import PersonIcon from "@mui/icons-material/Person";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useAuth } from "../../hooks/useAuth";
+import { resolveCommunityFromPath } from "../../lib/community-context";
 
 export default function NavbarAuth(): React.JSX.Element | null {
   const { user, ready, isLoggedIn, isAdmin, login, logout } = useAuth();
+  const { pathname } = useLocation();
+  const community = resolveCommunityFromPath(pathname);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [mounted, setMounted] = useState(false);
 
@@ -24,13 +28,17 @@ export default function NavbarAuth(): React.JSX.Element | null {
 
   if (!mounted || !ready) return null;
 
+  const authOptions = community
+    ? { returnTo: community.basePath, communitySlug: community.slug }
+    : undefined;
+
   if (!isLoggedIn) {
     return (
       <Button
         size="small"
         variant="outlined"
         startIcon={<GitHubIcon />}
-        onClick={login}
+        onClick={() => login(authOptions)}
         sx={{
           ml: 1,
           borderColor: "rgba(127,127,127,0.4)",
@@ -93,7 +101,7 @@ export default function NavbarAuth(): React.JSX.Element | null {
           <ListItemText>Fazer uma Doação</ListItemText>
         </MenuItem>
         <Divider />
-        <MenuItem onClick={logout} sx={{ color: "error.main" }}>
+        <MenuItem onClick={() => logout(authOptions)} sx={{ color: "error.main" }}>
           <ListItemIcon><LogoutIcon fontSize="small" color="error" /></ListItemIcon>
           <ListItemText>Sair</ListItemText>
         </MenuItem>

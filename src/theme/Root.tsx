@@ -3,11 +3,13 @@ import { ThemeProvider } from "@mui/material";
 import { createCodaquiTheme } from "./muiTheme";
 import ApiHealthBanner from "../components/ApiHealthBanner";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import { resolveApiUrl } from "../lib/api-url";
 
 function ApiHealthCheck() {
   const { siteConfig } = useDocusaurusContext();
-  const apiUrl =
+  const configured =
     (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
+  const apiUrl = resolveApiUrl(configured, siteConfig.url);
 
   return <ApiHealthBanner apiUrl={apiUrl} />;
 }

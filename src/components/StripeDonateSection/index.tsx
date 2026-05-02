@@ -32,7 +32,21 @@ const PRESET_AMOUNTS = [
 /** Limite em centavos para doação anônima */
 const ANONYMOUS_LIMIT_CENTS = 10_000;
 
-export default function StripeDonateSection() {
+export interface StripeDonateSectionProps {
+  /** When set, the community selector is hidden and locked to this id. */
+  lockedCommunityId?: string;
+  /**
+   * When true, suppresses all auth UI (login banners, "Doando como" chip, login-required CTA).
+   * Donations above R$ 100 are blocked client-side with a soft error since auth is unavailable.
+   * Use on community pages that don't share an auth cookie with the main domain.
+   */
+  disableAuth?: boolean;
+}
+
+export default function StripeDonateSection({
+  lockedCommunityId,
+  disableAuth = false,
+}: StripeDonateSectionProps = {}) {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl =
     typeof siteConfig.customFields?.apiUrl === "string"
@@ -40,14 +54,21 @@ export default function StripeDonateSection() {
       : "http://localhost:3001";
   const { user, isLoggedIn, ready, authFetch, login } = useAuth();
 
-  const [selectedCommunity, setSelectedCommunity] = useState<string>(communities[0].id);
+  const initialCommunityId =
+    lockedCommunityId && communities.some((c) => c.id === lockedCommunityId)
+      ? lockedCommunityId
+      : communities[0].id;
+  const [selectedCommunity, setSelectedCommunity] = useState<string>(initialCommunityId);
   const [selectedAmount, setSelectedAmount] = useState<number>(2500);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const community = communities.find((c) => c.id === selectedCommunity) || communities[0];
   const amountLabel = PRESET_AMOUNTS.find((a) => a.cents === selectedAmount)?.label ?? "";
-  const requiresLogin = selectedAmount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
+  const requiresLogin =
+    !disableAuth && selectedAmount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
+  const blockedAnonAmount =
+    disableAuth && selectedAmount > ANONYMOUS_LIMIT_CENTS;
 
   let donateIcon = <FavoriteIcon />;
   if (loading) {
@@ -64,6 +85,12 @@ export default function StripeDonateSection() {
   }
 
   const handleDonate = async () => {
+    if (blockedAnonAmount) {
+      setError(
+        "Doações acima de R$ 100 só estão disponíveis em codaqui.dev/participe/apoiar.",
+      );
+      return;
+    }
     if (requiresLogin) {
       login(); // redireciona para GitHub OAuth
       return;
@@ -109,31 +136,35 @@ export default function StripeDonateSection() {
       </Typography>
 
       {/* ── Passo 1: Comunidade ── */}
-      <Typography variant="overline" color="text.secondary" letterSpacing={1.5}>
-        1 · Comunidade
-      </Typography>
-      <Grid container spacing={1.5} sx={{ mt: 0.5, mb: 3 }}>
-        {communities.map((c) => {
-          const active = selectedCommunity === c.id;
-          return (
-            <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <SelectableCard
-                selected={active}
-                onClick={() => setSelectedCommunity(c.id)}
-                primary={c.name}
-                secondary={c.location}
-                avatar={c.logo}
-                avatarFallback={c.emoji}
-                compact
-              />
-            </Grid>
-          );
-        })}
-      </Grid>
+      {!lockedCommunityId && (
+        <>
+          <Typography variant="overline" color="text.secondary" letterSpacing={1.5}>
+            1 · Comunidade
+          </Typography>
+          <Grid container spacing={1.5} sx={{ mt: 0.5, mb: 3 }}>
+            {communities.map((c) => {
+              const active = selectedCommunity === c.id;
+              return (
+                <Grid key={c.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <SelectableCard
+                    selected={active}
+                    onClick={() => setSelectedCommunity(c.id)}
+                    primary={c.name}
+                    secondary={c.location}
+                    avatar={c.logo}
+                    avatarFallback={c.emoji}
+                    compact
+                  />
+                </Grid>
+              );
+            })}
+          </Grid>
+        </>
+      )}
 
       {/* ── Passo 2: Valor ── */}
       <Typography variant="overline" color="text.secondary" letterSpacing={1.5}>
-        2 · Valor
+        {lockedCommunityId ? "1 · Valor" : "2 · Valor"}
       </Typography>
       <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5, mb: 3 }}>
         {PRESET_AMOUNTS.map((a) => {
@@ -183,9 +214,7 @@ export default function StripeDonateSection() {
             <Button
               size="small"
               startIcon={<GitHubIcon />}
-              onClick={login}
-              variant="outlined"
-              color="inherit"
+              onClick={() => login()}
             >
               Entrar com GitHub
             </Button>
@@ -195,8 +224,19 @@ export default function StripeDonateSection() {
         </Alert>
       )}
 
+      {/* ── Aviso quando auth está desabilitada (contexto de comunidade) ── */}
+      {disableAuth && blockedAnonAmount && (
+        <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 2 }}>
+          Para doações acima de R$ 100, acesse a página principal de doação em{" "}
+          <a href="/participe/apoiar" style={{ fontWeight: 600 }}>
+            codaqui.dev/participe/apoiar
+          </a>
+          .
+        </Alert>
+      )}
+
       {/* ── Usuário logado ── */}
-      {ready && isLoggedIn && user && (
+      {!disableAuth && ready && isLoggedIn && user && (
         <Chip
           avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 20, height: 20 }} />}
           label={`Doando como @${user.handle}`}
