@@ -72,7 +72,9 @@ describe('StripeController', () => {
     it('should throw when amount is missing', async () => {
       await expect(
         controller.createCheckoutSession(
-          { user: undefined },
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
           { amount: 0, communityId: 'test' },
         ),
       ).rejects.toThrow(BadRequestException);
@@ -81,7 +83,9 @@ describe('StripeController', () => {
     it('should throw when communityId is missing', async () => {
       await expect(
         controller.createCheckoutSession(
-          { user: undefined },
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
           { amount: 1000, communityId: '' },
         ),
       ).rejects.toThrow(BadRequestException);
@@ -90,7 +94,9 @@ describe('StripeController', () => {
     it('should throw when amount is negative', async () => {
       await expect(
         controller.createCheckoutSession(
-          { user: undefined },
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
           { amount: -100, communityId: 'test' },
         ),
       ).rejects.toThrow(BadRequestException);
@@ -98,17 +104,24 @@ describe('StripeController', () => {
 
     it('should throw when amount exceeds max (R$ 50.000)', async () => {
       await expect(
-        controller.createCheckoutSession(authedReq, {
-          amount: 5_000_001,
-          communityId: 'test',
-        }),
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          {
+            amount: 5_000_001,
+            communityId: 'test',
+          },
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw UnauthorizedException for anonymous donation > R$100', async () => {
       await expect(
         controller.createCheckoutSession(
-          { user: undefined },
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
           { amount: 10_001, communityId: 'test' },
         ),
       ).rejects.toThrow(UnauthorizedException);
@@ -120,7 +133,9 @@ describe('StripeController', () => {
       });
 
       const result = await controller.createCheckoutSession(
-        { user: undefined },
+        { user: undefined, headers: {} },
+        undefined,
+        undefined,
         { amount: 10_000, communityId: 'test' },
       );
 
@@ -138,10 +153,15 @@ describe('StripeController', () => {
         clientSecret: 'cs_test',
       });
 
-      await controller.createCheckoutSession(authedReq, {
-        amount: 50_000,
-        communityId: 'devparana',
-      });
+      await controller.createCheckoutSession(
+        { ...authedReq, headers: {} },
+        undefined,
+        undefined,
+        {
+          amount: 50_000,
+          communityId: 'devparana',
+        },
+      );
 
       expect(service.createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({ memberId: uuid(5), githubHandle: 'donor' }),
