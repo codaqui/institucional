@@ -170,3 +170,111 @@ describe("deriveTransactionMeta", () => {
     expect(meta.transferReason).toBe("motivo");
   });
 });
+
+// ---------------------------------------------------------------------------
+// stripe-fee — type detection + meta extraction
+// ---------------------------------------------------------------------------
+
+describe("stripe-fee detection", () => {
+  it("detects stripe-fee via referenceId prefix", () => {
+    const tx = makeTx({
+      referenceId: "stripe-fee:txn_abc123",
+      description: "Taxa Stripe — Charge ch_xyz (referente a pi_999)",
+    });
+    expect(detectTxType(tx)).toBe("stripe-fee");
+  });
+
+  it("detects stripe-fee via description fallback (no referenceId)", () => {
+    const tx = makeTx({
+      referenceId: undefined,
+      description: "Taxa Stripe — Charge ch_only_desc (referente a pi_999)",
+    });
+    expect(detectTxType(tx)).toBe("stripe-fee");
+  });
+
+  it("does not classify regular donations as stripe-fee", () => {
+    const tx = makeTx({ referenceId: "pi_abc", description: "Doação de @user" });
+    expect(detectTxType(tx)).toBe("donation");
+  });
+});
+
+describe("deriveTransactionMeta — stripe-fee", () => {
+  const buildFeeTx = (overrides: Partial<Transaction> = {}): Transaction =>
+    makeTx({
+      id: "tx-fee",
+      amount: 1.99,
+      referenceId: "stripe-fee:txn_3TSNi9CBtDeABDbg1ROo8zyg",
+      description:
+        "Taxa Stripe — Charge ch_3TSNi9CBtDeABDbg1edtfD4k (referente a pi_3TSNi9CBtDeABDbg1DrlIisO)",
+      ...overrides,
+    });
+
+  it("extracts balance transaction id from referenceId", () => {
+    const meta = deriveTransactionMeta(buildFeeTx(), "dst");
+    expect(meta.type).toBe("stripe-fee");
+    expect(meta.stripeFeeBalanceTransactionId).toBe(
+      "txn_3TSNi9CBtDeABDbg1ROo8zyg",
+    );
+  });
+
+  it("extracts charge id from description", () => {
+    const meta = deriveTransactionMeta(buildFeeTx(), "dst");
+    expect(meta.stripeFeeChargeId).toBe("ch_3TSNi9CBtDeABDbg1edtfD4k");
+  });
+
+  it("extracts original payment intent id from description", () => {
+    const meta = deriveTransactionMeta(buildFeeTx(), "dst");
+    expect(meta.stripeFeeOriginalPaymentIntentId).toBe(
+      "pi_3TSNi9CBtDeABDbg1DrlIisO",
+    );
+  });
+
+  it("builds Stripe dashboard URL for the original PI (live mode)", () => {
+    const meta = deriveTransactionMeta(buildFeeTx(), "dst");
+    expect(meta.stripeFeeOriginalDashboardUrl).toBe(
+      "https://dashboard.stripe.com/payments/pi_3TSNi9CBtDeABDbg1DrlIisO",
+    );
+  });
+
+  it("builds Stripe dashboard URL with /test/ when description contains pi_test_", () => {
+    const tx = buildFeeTx({
+      description:
+        "Taxa Stripe — Charge ch_test_xyz (referente a pi_test_abc123)",
+    });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.stripeFeeOriginalDashboardUrl).toBe(
+      "https://dashboard.stripe.com/test/payments/pi_test_abc123",
+    );
+  });
+
+  it("returns null fee fields for non-stripe-fee transactions", () => {
+    const tx = makeTx({ referenceId: "pi_abc", description: "Doação de @user" });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.stripeFeeBalanceTransactionId).toBeNull();
+    expect(meta.stripeFeeChargeId).toBeNull();
+    expect(meta.stripeFeeOriginalPaymentIntentId).toBeNull();
+    expect(meta.stripeFeeOriginalDashboardUrl).toBeNull();
+  });
+
+  it("handles malformed description gracefully (missing charge / pi)", () => {
+    const tx = buildFeeTx({ description: "Taxa Stripe — descrição corrompida" });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.type).toBe("stripe-fee");
+    expect(meta.stripeFeeChargeId).toBeNull();
+    expect(meta.stripeFeeOriginalPaymentIntentId).toBeNull();
+    expect(meta.stripeFeeOriginalDashboardUrl).toBeNull();
+    // BT id ainda é extraído via referenceId
+    expect(meta.stripeFeeBalanceTransactionId).toBe(
+      "txn_3TSNi9CBtDeABDbg1ROo8zyg",
+    );
+  });
+
+  it("marks as debit when community is the source (fee leaves community)", () => {
+    const tx = buildFeeTx({
+      sourceAccount: { id: "acc-community", name: "Comunidade" },
+      destinationAccount: { id: "acc-stripe-fees", name: "Stripe Fees" },
+    });
+    const meta = deriveTransactionMeta(tx, "acc-community");
+    expect(meta.isCredit).toBe(false);
+  });
+});

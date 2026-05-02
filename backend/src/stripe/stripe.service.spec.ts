@@ -21,6 +21,12 @@ jest.mock('stripe', () => {
       search: jest.fn(),
       update: jest.fn(),
     },
+    paymentIntents: {
+      retrieve: jest.fn(),
+    },
+    balanceTransactions: {
+      retrieve: jest.fn(),
+    },
   }));
 });
 
@@ -355,6 +361,413 @@ describe('StripeService', () => {
 
       expect(result).toEqual({ received: true });
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── Stripe fee capture (charge.succeeded / charge.updated / inline) ─────
+
+  describe('Stripe fee capture', () => {
+    const STRIPE_FEES_ACCOUNT_ID = uuid(99);
+    const COMMUNITY_ACCOUNT_ID = 'acc-community';
+    const STRIPE_INCOME_ACCOUNT_ID = 'acc-stripe-income';
+
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const buildOriginalDonation = (paymentIntentId = 'pi_test_main') => ({
+      id: 'tx-original',
+      referenceId: paymentIntentId,
+      sourceAccount: { id: STRIPE_INCOME_ACCOUNT_ID, name: 'Stripe Income' },
+      destinationAccount: {
+        id: COMMUNITY_ACCOUNT_ID,
+        name: 'Comunidade: tesouro-geral',
+      },
+    });
+
+    const buildBalanceTransaction = (overrides: Record<string, unknown> = {}) => ({
+      id: 'txn_test_bt_1',
+      fee: 199,
+      net: 4801,
+      amount: 5000,
+      ...overrides,
+    });
+
+    const buildChargeUpdatedEvent = (
+      charge: Record<string, unknown>,
+      previous: Record<string, unknown> | null = { balance_transaction: null },
+    ) => ({
+      type: 'charge.updated',
+      data: {
+        object: {
+          id: 'ch_test_main',
+          payment_intent: 'pi_test_main',
+          ...charge,
+        },
+        previous_attributes: previous,
+      },
+    });
+
+    const buildChargeSucceededEvent = (charge: Record<string, unknown>) => ({
+      type: 'charge.succeeded',
+      data: {
+        object: {
+          id: 'ch_test_main',
+          payment_intent: 'pi_test_main',
+          ...charge,
+        },
+      },
+    });
+
+    // --- Shared assertion helpers (DRY) ---------------------------------------
+
+    /** Asserts a "Stripe fee" ledger transaction was recorded with the given fee/charge/bt. */
+    const expectFeeRecorded = (opts: {
+      amount: number;
+      chargeId?: string;
+      btId: string;
+    }) => {
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        COMMUNITY_ACCOUNT_ID,
+        STRIPE_FEES_ACCOUNT_ID,
+        opts.amount,
+        opts.chargeId
+          ? expect.stringContaining(`Charge ${opts.chargeId}`)
+          : expect.stringContaining('Charge'),
+        `stripe-fee:${opts.btId}`,
+      );
+    };
+
+    /** Asserts no fee was recorded (donation may still be recorded). */
+    const expectNoFeeRecorded = () => {
+      const feeCalls = ledgerService.recordTransaction.mock.calls.filter(
+        (call: unknown[]) =>
+          typeof call[4] === 'string' &&
+          (call[4] as string).startsWith('stripe-fee:'),
+      );
+      expect(feeCalls).toHaveLength(0);
+    };
+
+    /** Mocks idempotency checks: 1st = donation (none), 2nd = fee (none). */
+    const mockNoExisting = () => {
+      txRepo.findOneBy
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+    };
+
+    /** Stubs PI retrieve with an expanded latest_charge containing the BT. */
+    const mockExpandedPI = (
+      piId: string,
+      chargeId: string,
+      bt: ReturnType<typeof buildBalanceTransaction>,
+    ) => {
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: piId,
+        latest_charge: { id: chargeId, balance_transaction: bt },
+      });
+    };
+
+    beforeEach(() => {
+      // Default: stripe_fees account creation returns a stable id
+      ledgerService.getOrCreateCommunityAccount.mockImplementation(
+        async (key: string) =>
+          key === 'stripe_fees'
+            ? { id: STRIPE_FEES_ACCOUNT_ID }
+            : { id: COMMUNITY_ACCOUNT_ID },
+      );
+    });
+
+    // --- charge.updated path (one-time payments) -----------------------------
+
+    it('captures fee on charge.updated when BT transitions null → txn', async () => {
+      const bt = buildBalanceTransaction();
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue(bt);
+      txRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation());
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({ balance_transaction: bt.id }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.getOrCreateCommunityAccount).toHaveBeenCalledWith(
+        'stripe_fees',
+        'Stripe Fees (External)',
+        'EXTERNAL',
+      );
+      expectFeeRecorded({ amount: 1.99, chargeId: 'ch_test_main', btId: bt.id });
+    });
+
+    it('skips silently on charge.updated when balance_transaction is still null', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({ balance_transaction: null }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    // --- charge.succeeded path (subscriptions, BT already populated) ---------
+
+    it('captures fee on charge.succeeded when BT is already populated (subscription)', async () => {
+      const bt = buildBalanceTransaction({ id: 'txn_sub_1', fee: 538 });
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue(bt);
+      txRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_sub_main'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeSucceededEvent({
+          id: 'ch_sub_main',
+          payment_intent: 'pi_sub_main',
+          balance_transaction: 'txn_sub_1',
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expectFeeRecorded({ amount: 5.38, chargeId: 'ch_sub_main', btId: 'txn_sub_1' });
+    });
+
+    // --- Idempotency ---------------------------------------------------------
+
+    it('is idempotent: skips fee when stripe-fee:<bt> already recorded', async () => {
+      txRepo.findOneBy.mockResolvedValue({ id: 'existing-fee-tx' });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({ balance_transaction: 'txn_dup' }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('does not double-record when both charge.succeeded and charge.updated arrive', async () => {
+      const bt = buildBalanceTransaction({ id: 'txn_race' });
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue(bt);
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation());
+
+      // 1st webhook: charge.succeeded — no existing fee, records it
+      txRepo.findOneBy.mockResolvedValueOnce(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValueOnce(
+        buildChargeSucceededEvent({ balance_transaction: 'txn_race' }),
+      );
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      // 2nd webhook: charge.updated — finds existing fee, skips
+      txRepo.findOneBy.mockResolvedValueOnce({ id: 'existing-fee' });
+      stripeInstance.webhooks.constructEvent.mockReturnValueOnce(
+        buildChargeUpdatedEvent({ balance_transaction: 'txn_race' }),
+      );
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    // --- Edge cases / error handling ----------------------------------------
+
+    it('warns and skips when original donation cannot be located', async () => {
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue(
+        buildBalanceTransaction(),
+      );
+      txRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({
+          balance_transaction: 'txn_orphan',
+          payment_intent: 'pi_orphan',
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('skips when fee is zero (test mode with some test cards)', async () => {
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue(
+        buildBalanceTransaction({ fee: 0 }),
+      );
+      txRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation());
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({ balance_transaction: 'txn_no_fee' }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('skips when balanceTransactions.retrieve throws (does not crash webhook)', async () => {
+      stripeInstance.balanceTransactions.retrieve.mockRejectedValue(
+        new Error('Stripe API error'),
+      );
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({ balance_transaction: 'txn_api_err' }),
+      );
+
+      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('skips when charge.payment_intent is missing', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        buildChargeUpdatedEvent({
+          balance_transaction: 'txn_no_pi',
+          payment_intent: null,
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    // --- Inline capture (resolves race condition) ----------------------------
+
+    it('captures fee inline after checkout.session.completed (one-time)', async () => {
+      const bt = buildBalanceTransaction({ id: 'txn_inline_oneshot' });
+      mockExpandedPI('pi_inline_oneshot', 'ch_inline_oneshot', bt);
+      mockNoExisting();
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_inline_oneshot'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_test_inline',
+            metadata: {
+              communityId: 'tesouro-geral',
+              memberId: uuid(7),
+              isSubscription: 'false',
+            },
+            amount_total: 5000,
+            payment_intent: 'pi_inline_oneshot',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        COMMUNITY_ACCOUNT_ID,
+        50,
+        expect.stringContaining('Doação'),
+        'pi_inline_oneshot',
+      );
+      expectFeeRecorded({
+        amount: 1.99,
+        chargeId: 'ch_inline_oneshot',
+        btId: 'txn_inline_oneshot',
+      });
+    });
+
+    it('captures fee inline after invoice.payment_succeeded (subscription, fixes race)', async () => {
+      const bt = buildBalanceTransaction({ id: 'txn_inline_sub', fee: 412 });
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_inline',
+        metadata: { communityId: 'tesouro-geral', memberId: uuid(8) },
+      });
+      mockExpandedPI('pi_inline_sub', 'ch_inline_sub', bt);
+      mockNoExisting();
+      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_inline_sub'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'invoice.payment_succeeded',
+        data: {
+          object: {
+            id: 'in_inline_sub',
+            subscription: 'sub_inline',
+            amount_paid: 20000,
+            payment_intent: 'pi_inline_sub',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        COMMUNITY_ACCOUNT_ID,
+        200,
+        expect.stringContaining('Assinatura'),
+        'pi_inline_sub',
+      );
+      expectFeeRecorded({
+        amount: 4.12,
+        chargeId: 'ch_inline_sub',
+        btId: 'txn_inline_sub',
+      });
+    });
+
+    it('inline capture is best-effort: does not crash if PI retrieve fails', async () => {
+      stripeInstance.paymentIntents.retrieve.mockRejectedValue(
+        new Error('Stripe API down'),
+      );
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_test_pi_fail',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 1000,
+            payment_intent: 'pi_pi_fail',
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expectNoFeeRecorded();
+    });
+
+    it('inline capture: logs and continues when latest_charge is not expanded', async () => {
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_no_expand',
+        latest_charge: 'ch_string_only',
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_test_no_expand',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 1000,
+            payment_intent: 'pi_no_expand',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expectNoFeeRecorded();
     });
   });
 

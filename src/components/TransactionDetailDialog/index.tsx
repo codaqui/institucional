@@ -135,6 +135,8 @@ export default function TransactionDetailDialog({
   const {
     isCredit, donorHandle, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
+    stripeFeeBalanceTransactionId, stripeFeeChargeId,
+    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,
   } = meta;
 
   return (
@@ -495,6 +497,108 @@ export default function TransactionDetailDialog({
               );
             })()}
           </>
+        )}
+
+        {/* Stripe fee details */}
+        {type === "stripe-fee" && (
+          <Box sx={{ mb: 2 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                bgcolor: "warning.50",
+                border: 1,
+                borderColor: "warning.200",
+                mb: 2,
+              }}
+            >
+              <Typography variant="caption" color="warning.dark" fontWeight={700} sx={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
+                Por que essa taxa?
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5, color: "text.secondary" }}>
+                A Stripe é a operadora de cartões e PIX que processa nossas doações. Para cada
+                pagamento, ela retém uma taxa proporcional ao valor doado. Essa transação registra
+                o débito dessa taxa, mantendo a contabilidade da Codaqui transparente e fidedigna
+                ao saldo real movimentado.
+              </Typography>
+            </Box>
+
+            {stripeFeeOriginalPaymentIntentId && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">
+                  Doação que originou esta taxa
+                </Typography>
+                <Box
+                  sx={{
+                    mt: 0.5,
+                    p: 1.5,
+                    borderRadius: 2,
+                    bgcolor: "action.hover",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Typography
+                    variant="body2"
+                    sx={{ fontFamily: "monospace", fontSize: "0.78rem", flex: 1, minWidth: 200, wordBreak: "break-all" }}
+                  >
+                    {stripeFeeOriginalPaymentIntentId}
+                  </Typography>
+                  {stripeFeeOriginalDashboardUrl && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="success"
+                      startIcon={<OpenInNewIcon />}
+                      href={stripeFeeOriginalDashboardUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Ver no Stripe
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+            )}
+
+            {stripeFeeChargeId && (
+              <Box sx={{ mb: 2, display: "flex", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
+                <Box sx={{ flex: 1, minWidth: 180 }}>
+                  <Typography variant="caption" color="text.disabled">
+                    Cobrança Stripe (charge)
+                  </Typography>
+                  <Tooltip title={stripeFeeChargeId}>
+                    <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.72rem", mt: 0.5, wordBreak: "break-all" }}>
+                      {stripeFeeChargeId}
+                    </Typography>
+                  </Tooltip>
+                </Box>
+                {stripeFeeBalanceTransactionId && (
+                  <Box sx={{ flex: 1, minWidth: 180 }}>
+                    <Typography variant="caption" color="text.disabled">
+                      Balance Transaction
+                    </Typography>
+                    <Tooltip title={stripeFeeBalanceTransactionId}>
+                      <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.72rem", mt: 0.5, wordBreak: "break-all" }}>
+                        {stripeFeeBalanceTransactionId}
+                      </Typography>
+                    </Tooltip>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            <Box>
+              <Typography variant="caption" color="text.disabled">
+                Descrição registrada
+              </Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                {tx.description}
+              </Typography>
+            </Box>
+          </Box>
         )}
 
         {/* Generic/other */}

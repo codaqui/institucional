@@ -163,6 +163,10 @@ export class StripeService {
       case 'charge.refunded':
         await this.handleChargeRefunded(event.data.object);
         break;
+      case 'charge.succeeded':
+      case 'charge.updated':
+        await this.handleChargeFinalized(event.data.object);
+        break;
       case 'customer.subscription.deleted':
         this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
         break;
@@ -225,6 +229,10 @@ export class StripeService {
         isSubscription,
         interval: session.metadata?.interval as CheckoutInterval | undefined,
       });
+      // Captura inline da taxa Stripe (resolve race com charge.succeeded)
+      if (typeof session.payment_intent === 'string') {
+        await this.captureFeeFromPaymentIntent(session.payment_intent);
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -276,6 +284,10 @@ export class StripeService {
           | CheckoutInterval
           | undefined,
       });
+      // Captura inline da taxa Stripe (resolve race com charge.succeeded)
+      if (paymentIntentId.startsWith('pi_')) {
+        await this.captureFeeFromPaymentIntent(paymentIntentId);
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -363,6 +375,179 @@ export class StripeService {
           `Falha ao registrar estorno ${refund.id}: ${message}`,
         );
       }
+    }
+  }
+
+  /**
+   * charge.succeeded / charge.updated — fallback para registrar a taxa Stripe
+   * caso a captura inline (em handleCheckoutCompleted / handleInvoicePaymentSucceeded)
+   * tenha falhado (ex: BT ainda não pronto naquele instante).
+   *
+   * Idempotência: `stripe-fee:<txn_id>` garante que múltiplas execuções não dupliquem.
+   */
+  private async handleChargeFinalized(charge: Stripe.Charge) {
+    const btId =
+      typeof charge.balance_transaction === 'string'
+        ? charge.balance_transaction
+        : charge.balance_transaction?.id;
+
+    if (!btId) {
+      this.logger.debug(
+        `charge ${charge.id} sem balance_transaction (ainda pendente) — ignorando`,
+      );
+      return;
+    }
+
+    // Idempotency check ANTES do retrieve (economiza API call em duplicatas)
+    const feeReferenceId = `stripe-fee:${btId}`;
+    const existingFee = await this.txRepo.findOneBy({
+      referenceId: feeReferenceId,
+    });
+    if (existingFee) {
+      this.logger.debug(
+        `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
+    const paymentIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+
+    if (!paymentIntentId) {
+      this.logger.warn(
+        `charge ${charge.id} sem payment_intent — não é possível localizar doação`,
+      );
+      return;
+    }
+
+    let bt: Stripe.BalanceTransaction;
+    try {
+      bt = await this.stripe.balanceTransactions.retrieve(btId);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Falha ao recuperar BalanceTransaction ${btId}: ${message}`,
+      );
+      return;
+    }
+
+    await this.recordStripeFee(charge.id, paymentIntentId, bt);
+  }
+
+  /**
+   * Captura inline a taxa Stripe a partir de um payment_intent ID.
+   * Faz retrieve do PI com expand do latest_charge e seu balance_transaction.
+   * Best-effort: se BT ainda não estiver pronto, loga e ignora — o
+   * handler `charge.succeeded`/`charge.updated` cuidará como fallback.
+   */
+  private async captureFeeFromPaymentIntent(paymentIntentId: string) {
+    let pi: Stripe.PaymentIntent;
+    try {
+      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {
+        expand: ['latest_charge.balance_transaction'],
+      });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.warn(
+        `captureFee: falha ao recuperar PI ${paymentIntentId}: ${message}`,
+      );
+      return;
+    }
+
+    const latestCharge = pi.latest_charge as Stripe.Charge | string | null;
+    if (!latestCharge || typeof latestCharge === 'string') {
+      this.logger.debug(
+        `captureFee: PI ${paymentIntentId} sem latest_charge expandido — fallback aguardando charge.succeeded`,
+      );
+      return;
+    }
+
+    const bt = latestCharge.balance_transaction as
+      | Stripe.BalanceTransaction
+      | string
+      | null;
+    if (!bt || typeof bt === 'string') {
+      this.logger.debug(
+        `captureFee: charge ${latestCharge.id} sem balance_transaction expandido — fallback aguardando charge.succeeded`,
+      );
+      return;
+    }
+
+    await this.recordStripeFee(latestCharge.id, paymentIntentId, bt);
+  }
+
+  /**
+   * Core idempotente do registro da taxa no ledger.
+   * Idempotência: `stripe-fee:<txn_id>`.
+   */
+  private async recordStripeFee(
+    chargeId: string,
+    paymentIntentId: string,
+    bt: Stripe.BalanceTransaction,
+  ) {
+    const feeReferenceId = `stripe-fee:${bt.id}`;
+    const existingFee = await this.txRepo.findOneBy({
+      referenceId: feeReferenceId,
+    });
+    if (existingFee) {
+      this.logger.debug(
+        `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
+    const originalTx = await this.txRepo.findOne({
+      where: { referenceId: paymentIntentId },
+      relations: ['sourceAccount', 'destinationAccount'],
+    });
+
+    if (!originalTx) {
+      this.logger.warn(
+        `recordStripeFee: doação original não encontrada para ${paymentIntentId} (charge ${chargeId}) — ignorando taxa`,
+      );
+      return;
+    }
+
+    const feeCents = bt.fee ?? 0;
+    if (feeCents <= 0) {
+      this.logger.debug(
+        `recordStripeFee: charge ${chargeId} sem taxa (fee=${feeCents}) — ignorando`,
+      );
+      return;
+    }
+
+    const feeReais = feeCents / 100;
+
+    const stripeFeesAccount =
+      await this.ledgerService.getOrCreateCommunityAccount(
+        'stripe_fees',
+        'Stripe Fees (External)',
+        AccountType.EXTERNAL,
+      );
+
+    const description = `Taxa Stripe — Charge ${chargeId} (referente a ${paymentIntentId})`;
+
+    try {
+      await this.ledgerService.recordTransaction(
+        originalTx.destinationAccount.id,
+        stripeFeesAccount.id,
+        feeReais,
+        description,
+        feeReferenceId,
+      );
+      this.logger.log(
+        `💸 Taxa Stripe R$ ${feeReais.toFixed(2)} ← ${originalTx.destinationAccount.name} | bt: ${bt.id} | pi: ${paymentIntentId}`,
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Falha ao registrar taxa Stripe ${feeReferenceId}: ${message}`,
+      );
     }
   }
 
