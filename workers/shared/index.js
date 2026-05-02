@@ -40,10 +40,10 @@ const API_PREFIXES = [
   '/ledger/',
   '/members/',
 ];
-const API_EXACT_PATHS = ['/health', '/auth/me', '/auth/logout', '/auth/finalize'];
+const API_EXACT_PATHS = new Set(['/health', '/auth/me', '/auth/logout', '/auth/finalize']);
 
 function isApiRequest(pathname) {
-  if (API_EXACT_PATHS.includes(pathname)) return true;
+  if (API_EXACT_PATHS.has(pathname)) return true;
   return API_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

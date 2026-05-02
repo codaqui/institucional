@@ -43,6 +43,53 @@ export class StripeService {
   }
 
   /**
+   * Sanitiza returnPath: tem que ser caminho relativo começando em `/` e
+   * não pode ser protocol-relative (`//host`) — evita open redirect.
+   */
+  private sanitizeReturnPath(returnPath: string | undefined): string {
+    if (!returnPath) return '/participe/apoiar';
+    if (!returnPath.startsWith('/')) return '/participe/apoiar';
+    if (returnPath.startsWith('//')) return '/participe/apoiar';
+    return returnPath;
+  }
+
+  private buildLineItem(
+    amountCents: number,
+    productName: string,
+    productDescription: string,
+    isSubscription: boolean,
+    recurring: CreateCheckoutDto['recurring'],
+  ): Stripe.Checkout.SessionCreateParams.LineItem {
+    return {
+      quantity: 1,
+      price_data: {
+        currency: 'brl',
+        product_data: { name: productName, description: productDescription },
+        unit_amount: amountCents,
+        ...(isSubscription &&
+          recurring && {
+            recurring: { interval: recurring.interval },
+          }),
+      },
+    };
+  }
+
+  private buildCheckoutMetadata(
+    dto: CreateCheckoutDto,
+    isSubscription: boolean,
+  ): Record<string, string> {
+    const { amountCents, communityId, memberId, githubHandle, recurring } = dto;
+    return {
+      communityId,
+      amountCents: String(amountCents),
+      isSubscription: String(isSubscription),
+      ...(recurring && { interval: recurring.interval }),
+      ...(memberId && { memberId }),
+      ...(githubHandle && { githubHandle }),
+    };
+  }
+
+  /**
    * Cria sessão de checkout Stripe.
    *
    * Modos:
@@ -75,14 +122,7 @@ export class StripeService {
 
     const baseUrl =
       originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
-    // Sanitiza o returnPath: tem que ser caminho relativo começando em `/` e
-    // não pode ser protocol-relative (`//host`) — evita open redirect.
-    const safePath =
-      returnPath &&
-      returnPath.startsWith('/') &&
-      !returnPath.startsWith('//')
-        ? returnPath
-        : '/participe/apoiar';
+    const safePath = this.sanitizeReturnPath(returnPath);
     const returnUrl = `${baseUrl}${safePath}?status=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = `${baseUrl}${safePath}?status=cancelled`;
 
@@ -100,26 +140,15 @@ export class StripeService {
       ? `${typeDescription} de ${displayName} via Portal Codaqui`
       : 'Doação anônima via Portal Codaqui';
 
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
-      quantity: 1,
-      price_data: {
-        currency: 'brl',
-        product_data: { name: productName, description: productDescription },
-        unit_amount: amountCents,
-        ...(isSubscription && {
-          recurring: { interval: recurring.interval },
-        }),
-      },
-    };
+    const lineItem = this.buildLineItem(
+      amountCents,
+      productName,
+      productDescription,
+      isSubscription,
+      recurring,
+    );
 
-    const metadata: Record<string, string> = {
-      communityId,
-      amountCents: String(amountCents),
-      isSubscription: String(isSubscription),
-      ...(recurring && { interval: recurring.interval }),
-      ...(memberId && { memberId }),
-      ...(githubHandle && { githubHandle }),
-    };
+    const metadata = this.buildCheckoutMetadata(dto, isSubscription);
 
     const sessionParams = {
       line_items: [lineItem],

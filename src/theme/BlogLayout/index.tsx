@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation } from "@docusaurus/router";
 import OriginalBlogLayout from "@theme-original/BlogLayout";
 import Link from "@docusaurus/Link";
-import { Box, Container, Typography, Stack, Chip } from "@mui/material";
+import { Box, Typography, Stack, Chip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { resolveCommunityFromPath } from "@site/src/lib/community-context";
 

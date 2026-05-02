@@ -112,6 +112,28 @@ interface WalletBalance {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
+/** True quando rodando no browser (não SSR). */
+const hasWindow = (): boolean => globalThis.window !== undefined;
+
+/**
+ * Detecta deploy whitelabel (Cloudflare Worker em domínio próprio da
+ * comunidade). Quando true, o dashboard do membro vive na Codaqui canônica e
+ * exibimos aviso de gestão de assinaturas.
+ */
+function detectWhitelabelDeploy(apiUrl: string): boolean {
+  if (!hasWindow()) return false;
+  const { host, origin } = globalThis.location;
+  if (apiUrl !== origin) return false;
+  if (host.startsWith("localhost")) return false;
+  if (host.endsWith(":3000") || host.endsWith(":3030")) return false;
+  return true;
+}
+
+/** Pathname atual no browser (ou undefined em SSR). */
+function getCurrentPath(): string | undefined {
+  return hasWindow() ? globalThis.location.pathname : undefined;
+}
+
 // ─── Embedded Checkout Dialog ────────────────────────────────────────────────
 
 interface EmbeddedCheckoutDialogProps {
@@ -340,12 +362,7 @@ export default function DonationFlow({
   // Detecta deploy whitelabel (Cloudflare Worker em domínio próprio da
   // comunidade). Quando true, exibimos aviso de gestão de assinaturas — o
   // dashboard do membro vive na Codaqui canônica, não no domínio whitelabel.
-  const isWhitelabelDeploy =
-    typeof globalThis.window !== "undefined" &&
-    apiUrl === globalThis.location.origin &&
-    !globalThis.location.host.startsWith("localhost") &&
-    !globalThis.location.host.endsWith(":3000") &&
-    !globalThis.location.host.endsWith(":3030");
+  const isWhitelabelDeploy = detectWhitelabelDeploy(apiUrl);
   const codaquiHomeUrl = `${siteConfig.url}${siteConfig.baseUrl}`;
 
   const fetchBalances = useCallback(() => {
@@ -391,10 +408,7 @@ export default function DonationFlow({
         // Mantém o usuário no contexto da comunidade ao retornar do Stripe.
         // Em deploys whitelabel (tisocial.org.br), `pathname` será
         // `/comunidades/tisocial/apoiar` em vez do default `/participe/apoiar`.
-        returnPath:
-          typeof globalThis.window !== "undefined"
-            ? globalThis.location.pathname
-            : undefined,
+        returnPath: getCurrentPath(),
       };
       if (isRecurring) body.recurring = { interval: mode };
 

@@ -7,10 +7,8 @@
  * with `docusaurus.config.ts` (which uses it to generate plugin entries).
  */
 
-import {
-  COMMUNITIES_CONFIG,
-  type CommunitySiteConfig,
-} from "@site/comunidades";
+import { COMMUNITIES_CONFIG } from "@site/comunidades";
+import type { CommunitySiteConfig } from "@site/comunidades";
 
 export function resolveCommunityFromPath(
   pathname: string | undefined,
@@ -23,5 +21,5 @@ export function resolveCommunityFromPath(
   );
 }
 
-export type { CommunitySiteConfig };
+export type { CommunitySiteConfig } from "@site/comunidades";
 

@@ -20,7 +20,6 @@ import NavbarLogo from "@theme/Navbar/Logo";
 import NavbarSearch from "@theme/Navbar/Search";
 import Chip from "@mui/material/Chip";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import Link from "@docusaurus/Link";
 import styles from "./styles.module.css";
 import {
   resolveCommunityFromPath,
@@ -38,12 +37,12 @@ function useNavbarItems(): AnyNavItem[] {
   return (useThemeConfig() as any).navbar.items as AnyNavItem[];
 }
 
-function NavbarItems({ items }: { items: AnyNavItem[] }) {
+function NavbarItems({ items }: Readonly<{ items: AnyNavItem[] }>) {
   return (
     <>
       {items.map((item, i) => (
         <ErrorCauseBoundary
-          key={i}
+          key={`${item.type ?? "item"}-${(item.label as string) ?? (item.to as string) ?? i}`}
           onError={(error) =>
             new Error(
               `A theme navbar item failed to render.\n${JSON.stringify(item, null, 2)}`,
@@ -62,10 +61,10 @@ function NavbarItems({ items }: { items: AnyNavItem[] }) {
 function NavbarContentLayout({
   left,
   right,
-}: {
+}: Readonly<{
   left: React.ReactNode;
   right: React.ReactNode;
-}) {
+}>) {
   return (
     <div className="navbar__inner">
       <div

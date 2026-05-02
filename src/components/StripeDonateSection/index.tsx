@@ -228,10 +228,7 @@ export default function StripeDonateSection({
       {disableAuth && blockedAnonAmount && (
         <Alert severity="warning" icon={<LockIcon />} sx={{ mb: 2 }}>
           Para doações acima de R$ 100, acesse a página principal de doação em{" "}
-          <a href="/participe/apoiar" style={{ fontWeight: 600 }}>
-            codaqui.dev/participe/apoiar
-          </a>
-          .
+          <a href="/participe/apoiar" style={{ fontWeight: 600 }}>codaqui.dev/participe/apoiar</a>.
         </Alert>
       )}
 
