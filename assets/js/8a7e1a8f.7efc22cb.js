@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[3330],{57988(i){i.exports=JSON.parse('{"blogBasePath":"/comunidades/tisocial/blog","blogTitle":"T.I. Social \u2014 Blog","authorsListPath":"/comunidades/tisocial/blog/authors"}')}}]);

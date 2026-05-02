@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[8843],{6242(i){i.exports=JSON.parse('{"name":"docusaurus-plugin-content-blog","id":"community-tisocial-blog"}')}}]);
