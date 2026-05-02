@@ -96,11 +96,14 @@ export class Wallet {
   balances: Record<string, number>;
 
   /**
-   * Tipos de coin congelados — array PG nativo para queries seguras.
+   * Tipos de coin congelados — array PG nativo (`text[]`) para queries seguras.
+   * Suporta operadores Postgres `&&`, `ANY`, e indexação GIN.
    * Ex: ["sort_coin"]
    */
-  @Column({ type: 'simple-array', default: '' })
-  frozenTypes: string[];         // ⚠️ usar 'text' array no SQL nativo; simple-array é fallback TypeORM
+  @Column({ type: 'text', array: true, default: () => "ARRAY[]::text[]" })
+  frozenTypes: string[];
+  // ⚠️ Não use `simple-array`: ele serializa em string CSV e não permite
+  //    queries com operadores de array do Postgres.
 
   @CreateDateColumn()
   createdAt: Date;
@@ -383,7 +386,7 @@ O design de **1 wallet por membro** com JSONB é naturalmente extensível:
 - [ ] Criar módulo `club` com entidades e migration
 - [ ] Injetar `clubService.creditFromInvoice()` em `stripe.service.ts` (`invoice.payment_succeeded`)
 - [ ] Injetar `clubService.freezeWallet()` em `stripe.service.ts` (`customer.subscription.deleted`)
-- [ ] Endpoints REST com guards Keycloak
+- [ ] Endpoints REST protegidos com `JwtAuthGuard` + `RolesGuard` (stack atual do backend: GitHub OAuth + JWT, **não há Keycloak**)
 - [ ] Testes unitários: `club.service.spec.ts`, `raffle.service.spec.ts`
 - [ ] Seção "Clube" em `/membros/perfil`
 - [ ] Página `/clube` com listagem de sorteios

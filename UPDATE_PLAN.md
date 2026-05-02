@@ -18,7 +18,9 @@ related-docs:
 agent-protocol:
   - Cada bloco abaixo é um upgrade independente. Execute em ordem; não bundle dois majors no mesmo PR.
   - Atualize "Status" no topo de cada seção quando começar/terminar.
-  - Após qualquer upgrade, RODE típecheck + build + jest em ambos repos antes de commitar.
+  - Após qualquer upgrade, valide ambos os repos antes de commitar:
+    - Frontend (`/`): `npm run typecheck && npm run build && npx jest`
+    - Backend (`/backend`): `npm run build && npm run lint && npx jest` (não há `typecheck` separado — o `nest build` já faz a checagem TS)
 -->
 
 # UPDATE_PLAN.md — Major Dependency Upgrades
@@ -31,28 +33,41 @@ Plano consolidado de upgrades majors pendentes no monorepo. Patches semver-minor
 
 ## Estado Atual
 
-Snapshot do `npm outdated` (referência — verificar antes de cada execução):
+> **Snapshot tirado em:** _atualizar com `date -u` + commit hash ao executar este plano._
+> Antes de iniciar qualquer upgrade, **regere o snapshot** rodando `npm outdated` em `/` e `/backend` — as versões abaixo são apenas referência para identificar quais majors estão pendentes, e podem estar desatualizadas se patches/minors foram aplicados desde a redação.
 
-### Frontend (`/`)
+### Como obter o snapshot atualizado
 
-| Pacote | Instalado | Latest | Diff |
-|--------|-----------|--------|------|
-| `@mui/material` | 7.3.10 | 9.0.0 | **major** (v8 pulado) |
-| `@mui/icons-material` | 7.3.10 | 9.0.0 | **major** |
-| `@mui/lab` | 7.0.1-beta.24 | 9.0.0-beta.2 | **major** |
-| `typescript` | 5.6.3 | 6.0.3 | **major** |
-| (Docusaurus, React, Stripe-JS) | — | — | em dia ✅ |
+```bash
+# Frontend
+npm outdated
 
-### Backend (`/backend`)
+# Backend
+cd backend && npm outdated
+```
 
-| Pacote | Instalado | Latest | Diff |
-|--------|-----------|--------|------|
-| `stripe` | 21.0.1 | 22.1.0 | **major** |
-| `typescript` | 5.9.3 | 6.0.3 | **major** |
-| `eslint` | 9.39.4 | 10.3.0 | **major** |
-| `@eslint/js` | 9.39.4 | 10.0.1 | **major** |
-| `class-validator` | 0.14.4 | 0.15.1 | **major** (semver pré-1.0) |
-| (NestJS, swagger, schematics) | — | — | em dia ✅ |
+Use o output bruto (incluindo coluna `Wanted`/`Latest`) para preencher as tabelas abaixo no PR de execução.
+
+### Frontend (`/`) — referência
+
+| Pacote | Latest no momento da redação | Diff |
+|--------|------------------------------|------|
+| `@mui/material` | 9.0.0 | **major** (v8 pulado, repo está em ^7.3.9) |
+| `@mui/icons-material` | 9.0.0 | **major** |
+| `@mui/lab` | 9.0.0-beta.2 | **major** (repo em ^7.0.1-beta) |
+| `typescript` | 6.0.3 | **major** (repo em ~5.6.2) |
+| (Docusaurus, React, Stripe-JS) | — | em dia ✅ |
+
+### Backend (`/backend`) — referência
+
+| Pacote | Latest no momento da redação | Diff |
+|--------|------------------------------|------|
+| `stripe` | 22.1.0 | **major** (repo em ^21.0.1) |
+| `typescript` | 6.0.3 | **major** (repo em ^5.7.3) |
+| `eslint` | 10.3.0 | **major** (repo em ^9.18.0) |
+| `@eslint/js` | 10.0.1 | **major** (repo em ^9.18.0) |
+| `class-validator` | 0.15.1 | **major** (semver pré-1.0, repo em ^0.14.4) |
+| (NestJS, swagger, schematics) | — | em dia ✅ |
 
 ---
 
@@ -231,8 +246,7 @@ TS 6 traz melhorias de performance no compiler e novos lints, mas a quebra princ
 - Frontend: subir só quando Docusaurus 3.x ou 4.x declarar suporte explícito.
 
 ### Critério de pronto (quando desbloquear)
-- [ ] `npm run typecheck` passa em ambos workspaces.
-- [ ] `npm run build` passa em ambos.
+- [ ] `npm run build` passa em ambos workspaces (frontend roda `tsc` em `npm run typecheck`; backend valida TS dentro do `nest build`).
 - [ ] Atualizar **AGENTS.md** e **backend/README.md** com nova versão.
 
 ---
@@ -243,7 +257,7 @@ Toda conclusão de major exige:
 
 1. ✅ `npm run typecheck` (frontend) sem erros.
 2. ✅ `npm run build` (frontend) sem erros.
-3. ✅ `cd backend && npm run build && npx jest --silent` 100% verde.
+3. ✅ `cd backend && npm run build && npx jest --silent` 100% verde (o `nest build` já faz a checagem TS — não há script `typecheck` separado no backend).
 4. ✅ `npm run lint` (backend) sem novos erros.
 5. ✅ Teste manual em homologação cobrindo o módulo afetado.
 6. ✅ Documentação atualizada (AGENTS.md, backend/README.md, este UPDATE_PLAN.md com status).

@@ -77,11 +77,14 @@ export enum MemberRole {
   ADMIN            = 'admin',
 }
 
-// Coluna migrada de enum para text[]:
+// Coluna migrada de enum para array nativo do Postgres:
 // Antes:   @Column({ type: 'enum', ... }) role: MemberRole;
-// Depois:
-@Column({ type: 'simple-array', default: 'membro' })
+// Depois (recomendado — array PG nativo, suporta GIN index e queries com ANY/&&):
+@Column({ type: 'text', array: true, default: () => "ARRAY['membro']::text[]" })
 roles: MemberRole[];   // ex: ['membro'], ['admin'], ['membro','event_organizer']
+
+// ⚠️ Não use `simple-array` aqui: ele serializa em string CSV e perde
+// as garantias de array nativo (queries seguras, indexação, constraints).
 ```
 
 > Atualizar `RolesGuard` para usar `user.roles.includes(requiredRole)` em vez de igualdade.
@@ -281,9 +284,13 @@ A página exibe um badge **"Metadados verificados por @handle"** quando override
 
 ## GitHub Action: Validação de Overrides
 
-Como o commit é feito com o token do próprio organizador (não um bot), não precisamos de
-auto-merge — o commit vai direto para `main`. A GitHub Action valida que os arquivos
-modificados pelo organizer seguem o schema correto:
+O commit é feito pelo backend usando o token do **GitHub App `codaqui-bot`** (committer
+preservado nos metadados do JSON, autor lógico no `ownerHandle`). Como o backend valida o
+schema antes de commitar e o GitHub App tem permissão `Contents: write`, o arquivo vai
+direto para `main` sem necessidade de auto-merge.
+
+A GitHub Action abaixo é uma **defesa em profundidade**: revalida o schema em cada push,
+caso alguém edite os arquivos override fora do fluxo do backend (ex.: PR manual):
 
 ```yaml
 # .github/workflows/validate-overrides.yml
@@ -299,8 +306,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with: { node-version: '24' }
       - name: Validate override schema
         run: node scripts/validate-overrides.mjs
@@ -321,13 +328,21 @@ GITHUB_COMMIT_DISABLED=false    # true = modo 100% local, grava em _dev-override
 GITHUB_CREATE_PR=false          # true = cria PR aberto (dev); false = commit direto (prod)
 GITHUB_REPO_OWNER=codaqui
 GITHUB_REPO_NAME=institucional
-MEMBER_TOKEN_ENCRYPTION_KEY=    # AES-256 key para criptografar githubAccessToken
+
+# GitHub App — usado para commits no repositório (NUNCA token pessoal de membro):
+GITHUB_APP_ID=                  # ID numérico do GitHub App `codaqui-bot`
+GITHUB_APP_INSTALLATION_ID=     # ID da instalação no org `codaqui`
+GITHUB_APP_PRIVATE_KEY=         # Chave privada PEM do GitHub App (multiline; usar base64 se necessário)
 ```
 
 > **Combinações práticas:**
 > - Dev inspeção: `GITHUB_CREATE_PR=true` → cria PR real, visível no GitHub, não auto-merge
 > - Dev offline: `GITHUB_COMMIT_DISABLED=true` → grava localmente em `_dev-overrides/`
 > - Produção: ambos `false` (padrão) → commit direto em `main`
+
+> ⚠️ **Não há `MEMBER_TOKEN_ENCRYPTION_KEY`**: o backend não armazena tokens pessoais do
+> GitHub. A autoria do organizador é registrada no campo `ownerHandle` do JSON override e
+> repetida na commit message — o committer real é sempre o GitHub App.
 
 
 
@@ -346,14 +361,20 @@ MEMBER_TOKEN_ENCRYPTION_KEY=    # AES-256 key para criptografar githubAccessToke
 
 ## Padrão Reutilizável: GitHub-as-Database
 
-Este fluxo (membro usa seu próprio token OAuth com `public_repo` → commit direto → gera contribuição) é reutilizável para:
+Este fluxo (backend valida → **GitHub App** commita em `main` → autoria do membro preservada nos metadados/commit message) é reutilizável para:
 
-| Caso de uso | Arquivo alvo | Quem dispara |
+| Caso de uso | Arquivo alvo | Quem dispara (role) |
 |---|---|---|
 | Override de metadados de evento | `static/events/**/*.override.json` | event_organizer |
 | Atualização de dados da equipe | `src/data/team.ts` | admin |
 | Atualização de stats manuais (YouTube, Instagram) | `src/data/social.ts` | admin |
 | Upload de fallback de eventos | `events.config.json` | admin |
+
+> Em todos os casos o **committer é o GitHub App `codaqui-bot`**. O backend nunca usa
+> tokens pessoais do membro para escrita — isso garante que:
+> 1. Não dependemos do membro ser colaborador write do repo (`public_repo` scope OAuth não cobre);
+> 2. Todos os tokens sensíveis ficam no servidor (não trafegam para o browser);
+> 3. A auditoria fica centralizada (commits do bot, autoria lógica em `ownerHandle`).
 
 ### Biblioteca interna: `GitHubDBService`
 
@@ -362,14 +383,15 @@ Este fluxo (membro usa seu próprio token OAuth com `public_repo` → commit dir
 @Injectable()
 export class GitHubDBService {
   /**
-   * Commita um arquivo no repositório usando o token GitHub do membro.
+   * Commita um arquivo no repositório usando o token de instalação do GitHub App.
+   * O `actorHandle` é apenas para a commit message — não é usado como autenticação.
    * Em modo dev (GITHUB_COMMIT_DISABLED=true), grava localmente em static/events/_dev-overrides/.
    */
   async commitFile(opts: {
     path: string;           // caminho no repositório
     content: string;        // conteúdo em UTF-8
-    message: string;        // commit message
-    memberToken: string;    // token OAuth do membro (public_repo scope)
+    message: string;        // commit message (inclui "by @<actorHandle>")
+    actorHandle: string;    // handle GitHub do membro que disparou a ação (auditoria)
   }): Promise<{ sha: string; htmlUrl: string }>;
 
   async readFile(path: string): Promise<string | null>;
@@ -377,12 +399,13 @@ export class GitHubDBService {
   async deleteFile(opts: {
     path: string;
     message: string;
-    memberToken: string;
+    actorHandle: string;
   }): Promise<void>;
 }
 ```
 
-> `memberToken` = `githubAccessToken` descriptografado da tabela `members`.
+> Internamente o service usa `GITHUB_APP_ID` + `GITHUB_APP_INSTALLATION_ID` + `GITHUB_APP_PRIVATE_KEY`
+> para gerar tokens de instalação de curta duração via `POST /app/installations/:id/access_tokens`.
 
 ---
 
