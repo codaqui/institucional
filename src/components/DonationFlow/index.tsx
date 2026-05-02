@@ -134,6 +134,65 @@ function getCurrentPath(): string | undefined {
   return hasWindow() ? globalThis.location.pathname : undefined;
 }
 
+interface CheckoutBodyParams {
+  amount: number;
+  target: string;
+  isRecurring: boolean;
+  mode: DonationMode;
+}
+
+/** Monta o body do POST /stripe/checkout-session. */
+function buildCheckoutBody({
+  amount,
+  target,
+  isRecurring,
+  mode,
+}: CheckoutBodyParams): Record<string, unknown> {
+  const body: Record<string, unknown> = {
+    amount,
+    communityId: target,
+    uiMode: "embedded_page",
+    // Mantém o usuário no contexto da comunidade ao retornar do Stripe.
+    // Em deploys whitelabel (tisocial.org.br), `pathname` será
+    // `/comunidades/tisocial/apoiar` em vez do default `/participe/apoiar`.
+    returnPath: getCurrentPath(),
+  };
+  if (isRecurring) body.recurring = { interval: mode };
+  return body;
+}
+
+interface CheckoutResult {
+  kind: "client-secret" | "redirect" | "auth-required" | "error";
+  clientSecret?: string;
+  url?: string;
+  error?: string;
+}
+
+/** Faz a requisição de criação da sessão Stripe e devolve um resultado normalizado. */
+async function requestCheckoutSession(
+  authFetch: (url: string, init: RequestInit) => Promise<Response>,
+  apiUrl: string,
+  body: Record<string, unknown>,
+): Promise<CheckoutResult> {
+  try {
+    const res = await authFetch(`${apiUrl}/stripe/checkout-session`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status === 401) return { kind: "auth-required" };
+    if (!res.ok) return { kind: "error", error: "Falha ao criar sessão de pagamento." };
+    const data = await res.json();
+    if (data.clientSecret) return { kind: "client-secret", clientSecret: data.clientSecret };
+    if (data.url) return { kind: "redirect", url: data.url };
+    return { kind: "error", error: "Resposta inesperada do servidor." };
+  } catch (err: unknown) {
+    return {
+      kind: "error",
+      error: err instanceof Error ? err.message : "Erro inesperado.",
+    };
+  }
+}
+
 // ─── Embedded Checkout Dialog ────────────────────────────────────────────────
 
 interface EmbeddedCheckoutDialogProps {
@@ -400,40 +459,24 @@ export default function DonationFlow({
     }
     setLoading(true);
     setError(null);
-    try {
-      const body: Record<string, unknown> = {
-        amount,
-        communityId: target,
-        uiMode: "embedded_page",
-        // Mantém o usuário no contexto da comunidade ao retornar do Stripe.
-        // Em deploys whitelabel (tisocial.org.br), `pathname` será
-        // `/comunidades/tisocial/apoiar` em vez do default `/participe/apoiar`.
-        returnPath: getCurrentPath(),
-      };
-      if (isRecurring) body.recurring = { interval: mode };
-
-      const res = await authFetch(`${apiUrl}/stripe/checkout-session`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
-
-      if (res.status === 401) {
-        setError("Login com GitHub é necessário para continuar.");
-        return;
-      }
-      if (!res.ok) throw new Error("Falha ao criar sessão de pagamento.");
-
-      const data = await res.json();
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret);
-        setCheckoutOpen(true);
-      } else if (data.url) {
-        globalThis.location.href = data.url;
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Erro inesperado.");
-    } finally {
-      setLoading(false);
+    const body = buildCheckoutBody({ amount, target, isRecurring, mode });
+    const result = await requestCheckoutSession(authFetch, apiUrl, body);
+    setLoading(false);
+    if (result.kind === "auth-required") {
+      setError("Login com GitHub é necessário para continuar.");
+      return;
+    }
+    if (result.kind === "error") {
+      setError(result.error ?? "Erro inesperado.");
+      return;
+    }
+    if (result.kind === "client-secret" && result.clientSecret) {
+      setClientSecret(result.clientSecret);
+      setCheckoutOpen(true);
+      return;
+    }
+    if (result.kind === "redirect" && result.url) {
+      globalThis.location.href = result.url;
     }
   };
 

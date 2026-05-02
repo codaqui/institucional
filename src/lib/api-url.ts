@@ -42,7 +42,7 @@ export function resolveApiUrl(
   configuredApiUrl: string,
   siteUrl: string,
 ): string {
-  if (typeof globalThis.window === "undefined") return configuredApiUrl;
+  if (globalThis.window === undefined) return configuredApiUrl;
   const here = globalThis.window.location.origin;
   if (isCodaquiOrigin(here, siteUrl)) return configuredApiUrl;
   return here;
@@ -55,7 +55,7 @@ export function resolveApiUrl(
  * `https://codaqui.dev`.
  */
 export function resolveCodaquiUrl(siteUrl: string, baseUrl: string): string {
-  if (typeof globalThis.window === "undefined") return `${siteUrl}${baseUrl}`;
+  if (globalThis.window === undefined) return `${siteUrl}${baseUrl}`;
   if (isLocalDevHost(globalThis.window.location.host)) {
     return `${CODAQUI_DEV_URL}${baseUrl}`;
   }
