@@ -448,7 +448,7 @@ export default function MembroPage(): React.JSX.Element {
                 )}
                 <Button
                   variant="text" size="small" color="inherit" startIcon={<LogoutIcon />}
-                  onClick={logout} sx={{ color: "text.secondary" }}
+                  onClick={() => logout()} sx={{ color: "text.secondary" }}
                 >
                   Sair
                 </Button>

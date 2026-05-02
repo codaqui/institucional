@@ -43,4 +43,14 @@ export class AppController {
       timestamp: new Date().toISOString(),
     };
   }
+
+  @Get('health')
+  @ApiOperation({
+    summary: 'Health check explícito',
+    description:
+      'Mesmo payload de `/`, mas em um path estável que sobrevive a proxies/Workers que redirecionam a raiz.',
+  })
+  health() {
+    return this.ping();
+  }
 }

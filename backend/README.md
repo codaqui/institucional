@@ -32,7 +32,7 @@ API REST do monorepo Codaqui (NestJS + TypeORM + PostgreSQL). Núcleo financeiro
 | Rate Limiting | `@nestjs/throttler` 6.5 |
 | API Docs | `@nestjs/swagger` 11.2 |
 | Pagamentos | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
-| Storage | MinIO (S3-compatible) — infra externa em produção |
+| Storage | ⚠ Sem upload pelo backend — comprovantes são **links externos** (allowlist HTTPS: Google Drive/Docs, Dropbox, OneDrive, Imgur). Sem S3/MinIO/disco local. |
 | Reverse Proxy | Traefik (infra externa do servidor ARM64) |
 | Container | Podman Compose |
 | Imagem prod | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
@@ -81,7 +81,7 @@ npm run migration:revert
 | `ReimbursementsModule` | Reembolsos a membros (request → approve+pay atômico → optional revert). | `POST /reimbursements` · `GET /reimbursements/public/:id` · `GET /reimbursements/my` · `GET /reimbursements` · `PATCH /reimbursements/:id/approve` · `PATCH /reimbursements/:id/reject` · `PATCH /reimbursements/:id/revert` · `DELETE /reimbursements/:id` |
 | `VendorsModule` | ⭐ Fornecedores **bidirecional**: pagamentos a fornecedor + recebimentos de fornecedor (ex: Sympla repassando ingressos). Templates parametrizados por `direction`. | `GET /vendors` · `GET /vendors/with-counters` · `POST /vendors` · `PATCH /vendors/:id` · `DELETE /vendors/:id` · **payments:** `GET /vendors/payments` · `POST /vendors/payments` · `GET /vendors/payments/by-reference/:refId` · `DELETE /vendors/payments/:id` · **receipts:** `GET /vendors/receipts` · `POST /vendors/receipts` · `GET /vendors/receipts/by-reference/:refId` · `DELETE /vendors/receipts/:id` · **templates:** CRUD em `/vendors/templates` |
 | `AuditModule` | Log de auditoria de ações sensíveis (mutações financeiras). Apenas leitura/cleanup admin. | `GET /audit/logs` · `POST /audit/cleanup` |
-| `StorageModule` | MinIO presigned URLs e validação de URL de comprovante. | `POST /storage/validate-receipt-url` |
+| `StorageModule` | Valida URLs de comprovante (apenas links externos — não há upload pelo backend). Aceita HTTPS de uma allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. Rejeita não-HTTPS e domínios fora da allowlist. O time sobe os arquivos manualmente nos serviços confiáveis. | `POST /storage/validate-receipt-url` |
 
 ---
 

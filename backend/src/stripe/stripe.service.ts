@@ -15,6 +15,14 @@ export interface CreateCheckoutDto {
   memberId?: string;
   githubHandle?: string;
   email?: string;
+  /** Origem (scheme://host) já validada pelo controller; usada para montar return_url/cancel_url. */
+  originUrl?: string;
+  /**
+   * Caminho relativo (ex: `/comunidades/tisocial/apoiar`) onde o Stripe
+   * redireciona o usuário. Default: `/participe/apoiar`. Importante para
+   * deploys whitelabel — preserva o contexto da comunidade no retorno.
+   */
+  returnPath?: string;
   /** 'embedded_page' renderiza na página; 'hosted' redireciona para Stripe (legado) */
   uiMode?: CheckoutUiMode;
   /** Se definido, cria uma assinatura recorrente */
@@ -32,6 +40,53 @@ export class StripeService {
     private readonly txRepo: Repository<Transaction>,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
+  }
+
+  /**
+   * Sanitiza returnPath: tem que ser caminho relativo começando em `/` e
+   * não pode ser protocol-relative (`//host`) — evita open redirect.
+   */
+  private sanitizeReturnPath(returnPath: string | undefined): string {
+    if (!returnPath) return '/participe/apoiar';
+    if (!returnPath.startsWith('/')) return '/participe/apoiar';
+    if (returnPath.startsWith('//')) return '/participe/apoiar';
+    return returnPath;
+  }
+
+  private buildLineItem(
+    amountCents: number,
+    productName: string,
+    productDescription: string,
+    isSubscription: boolean,
+    recurring: CreateCheckoutDto['recurring'],
+  ): Stripe.Checkout.SessionCreateParams.LineItem {
+    return {
+      quantity: 1,
+      price_data: {
+        currency: 'brl',
+        product_data: { name: productName, description: productDescription },
+        unit_amount: amountCents,
+        ...(isSubscription &&
+          recurring && {
+            recurring: { interval: recurring.interval },
+          }),
+      },
+    };
+  }
+
+  private buildCheckoutMetadata(
+    dto: CreateCheckoutDto,
+    isSubscription: boolean,
+  ): Record<string, string> {
+    const { amountCents, communityId, memberId, githubHandle, recurring } = dto;
+    return {
+      communityId,
+      amountCents: String(amountCents),
+      isSubscription: String(isSubscription),
+      ...(recurring && { interval: recurring.interval }),
+      ...(memberId && { memberId }),
+      ...(githubHandle && { githubHandle }),
+    };
   }
 
   /**
@@ -58,14 +113,18 @@ export class StripeService {
       uiMode = 'embedded_page',
       recurring,
       email,
+      originUrl,
+      returnPath,
     } = dto;
 
     if (amountCents <= 0)
       throw new BadRequestException('Amount must be positive');
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const returnUrl = `${frontendUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${frontendUrl}/participe/apoiar?status=cancelled`;
+    const baseUrl =
+      originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const safePath = this.sanitizeReturnPath(returnPath);
+    const returnUrl = `${baseUrl}${safePath}?status=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}${safePath}?status=cancelled`;
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
@@ -81,26 +140,15 @@ export class StripeService {
       ? `${typeDescription} de ${displayName} via Portal Codaqui`
       : 'Doação anônima via Portal Codaqui';
 
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
-      quantity: 1,
-      price_data: {
-        currency: 'brl',
-        product_data: { name: productName, description: productDescription },
-        unit_amount: amountCents,
-        ...(isSubscription && {
-          recurring: { interval: recurring.interval },
-        }),
-      },
-    };
+    const lineItem = this.buildLineItem(
+      amountCents,
+      productName,
+      productDescription,
+      isSubscription,
+      recurring,
+    );
 
-    const metadata: Record<string, string> = {
-      communityId,
-      amountCents: String(amountCents),
-      isSubscription: String(isSubscription),
-      ...(recurring && { interval: recurring.interval }),
-      ...(memberId && { memberId }),
-      ...(githubHandle && { githubHandle }),
-    };
+    const metadata = this.buildCheckoutMetadata(dto, isSubscription);
 
     const sessionParams = {
       line_items: [lineItem],

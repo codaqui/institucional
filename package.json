@@ -20,7 +20,9 @@
     "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
-    "test:frontend": "jest --config jest.config.ts"
+    "test:frontend": "jest --config jest.config.ts",
+    "worker:dev:tisocial": "wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787",
+    "worker:deploy:tisocial": "wrangler deploy --config workers/tisocial/wrangler.toml"
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",
@@ -54,7 +56,8 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "ts-jest": "^29.4.9",
-    "typescript": "~5.6.2"
+    "typescript": "~5.6.2",
+    "wrangler": "^4.87.0"
   },
   "browserslist": {
     "production": [

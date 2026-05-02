@@ -22,7 +22,10 @@ export default function ApiHealthBanner({
       TIMEOUT_MS,
     );
     try {
-      const res = await fetch(apiUrl, { signal: controller.signal });
+      // Usamos `/health` (não a raiz) porque em deploys whitelabel a raiz é
+      // um redirect 301 do Worker para a home da comunidade — não retorna JSON.
+      const healthUrl = `${apiUrl.replace(/\/$/, "")}/health`;
+      const res = await fetch(healthUrl, { signal: controller.signal });
 
       if (!res.ok) {
         setIsDown(true);

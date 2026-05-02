@@ -44,6 +44,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         frontend-start frontend-build frontend-typecheck frontend-serve \
         sync sync-events sync-events-full sync-social sync-analytics \
+        worker-dev-tisocial worker-deploy-tisocial \
         clean clean-volumes
 
 # Target padrão
@@ -229,6 +230,19 @@ sync-social: ## Sincroniza contagem de membros/seguidores → static/social-stat
 
 sync-analytics: ## Sincroniza analytics → static/analytics/
 	npm run sync:analytics
+
+# =============================================================================
+##@ 🌍 Workers (Cloudflare) — domínios próprios das comunidades
+# =============================================================================
+# Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
+# Código do Worker é compartilhado em `workers/shared/index.js`.
+# Ver workers/README.md e MULTISITE_PLAN.md §6.
+
+worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
+	npm run worker:dev:tisocial
+
+worker-deploy-tisocial: ## Deploy do Worker da T.I. Social em produção (route tisocial.org.br/*)
+	npm run worker:deploy:tisocial
 
 # =============================================================================
 ##@ 🧹 Limpeza
