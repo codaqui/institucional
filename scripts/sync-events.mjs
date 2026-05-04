@@ -640,8 +640,8 @@ function parseOcgroupsTime(timePart) {
 function parseOcgroupsDateRange(dateText) {
   // Matches: "April 25, 2026 09:30 AM - 12:00 PM -03"
   // Pre-normalize whitespace to simplify the regex and avoid backtracking
-  const normalized = dateText.replace(/\s+/g, " ").trim();
-  const match = /([A-Za-z]+) (\d{1,2}), (\d{4}) (\d+:\d+ \w+) - (\d+:\d+ \w+) ([+-]\d{2})/i.exec(normalized);
+  const normalized = dateText.replaceAll(/\s+/g, " ").trim();
+  const match = /([A-Z]+) (\d{1,2}), (\d{4}) (\d+:\d+ \w+) - (\d+:\d+ \w+) ([+-]\d{2})/i.exec(normalized);
   if (!match) return { startAt: null, endAt: null };
 
   const [, monthName, day, year, startTime, endTime, tzRaw] = match;
