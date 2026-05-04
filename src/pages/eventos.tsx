@@ -66,6 +66,13 @@ function getStatusColor(status?: string): "default" | "success" | "warning" | "e
   }
 }
 
+function formatOrganizers(event: EventSummary): string {
+  const orgs = event.organizers;
+  if (!orgs?.length) return event.host;
+  if (orgs.length === 1) return orgs[0].name;
+  return `${orgs.slice(0, -1).map((o) => o.name).join(", ")} e ${orgs.at(-1)?.name ?? ""}`;
+}
+
 function EventCard({
   event,
   sourceMeta,
@@ -149,11 +156,7 @@ function EventCard({
             <ForumIcon color="primary" fontSize="small" />
             <Typography variant="body2">
               {event.platform} · com{" "}
-              {event.organizers?.length
-                ? event.organizers.length === 1
-                  ? event.organizers[0].name
-                  : `${event.organizers.slice(0, -1).map((o) => o.name).join(", ")} e ${event.organizers.at(-1)!.name}`
-                : (event.creatorName ?? event.host)}
+              {formatOrganizers(event)}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center">

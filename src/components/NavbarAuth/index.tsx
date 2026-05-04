@@ -22,7 +22,7 @@ interface NavbarAuthProps {
   [key: string]: unknown;
 }
 
-export default function NavbarAuth({ mobile = false }: NavbarAuthProps): React.JSX.Element | null {
+export default function NavbarAuth({ mobile = false }: Readonly<NavbarAuthProps>): React.JSX.Element | null {
   const { user, ready, isLoggedIn, isAdmin, login, logout } = useAuth();
   const { pathname } = useLocation();
   const community = resolveCommunityFromPath(pathname);

@@ -171,7 +171,7 @@ function mapDiscordEvent(event, config) {
     creatorName,
     creatorId: event.creator_id ?? undefined,
     organizers: creatorName
-      ? [{ name: creatorName, id: event.creator_id != null ? String(event.creator_id) : undefined }]
+      ? [{ name: creatorName, id: event.creator_id == null ? undefined : String(event.creator_id) }]
       : [],
     channelId: event.channel_id ?? undefined,
     recurrenceLabel: formatDiscordRecurrence(event.recurrence_rule),
@@ -476,10 +476,10 @@ function mapMeetupEvent(event, config) {
     creatorId: event.creatorMember?.id ?? undefined,
     organizers: (() => {
       const hosts = Array.isArray(event.eventHosts) && event.eventHosts.length > 0
-        ? event.eventHosts.map((h) => ({ name: h.name, id: h.memberId != null ? String(h.memberId) : undefined }))
+        ? event.eventHosts.map((h) => ({ name: h.name, id: h.memberId == null ? undefined : String(h.memberId) }))
         : null;
       if (hosts) return hosts;
-      if (event.creatorMember?.name) return [{ name: event.creatorMember.name, id: event.creatorMember.id != null ? String(event.creatorMember.id) : undefined }];
+      if (event.creatorMember?.name) return [{ name: event.creatorMember.name, id: event.creatorMember.id == null ? undefined : String(event.creatorMember.id) }];
       return [];
     })(),
     imageUrl: event.featuredEventPhoto?.highResUrl ?? undefined,
@@ -596,9 +596,9 @@ const HTML_NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", 
 
 /** Single-pass HTML entity decoder — avoids double-unescaping from chained replaces. */
 function decodeHtmlEntities(str) {
-  return str.replace(/&(?:#(\d+)|#x([0-9a-fA-F]+)|([a-zA-Z]+));/g, (_, dec, hex, name) => {
-    if (dec) return String.fromCharCode(Number(dec));
-    if (hex) return String.fromCharCode(parseInt(hex, 16));
+  return str.replaceAll(/&(?:#(\d+)|#x([0-9a-fA-F]+)|([a-zA-Z]+));/g, (_, dec, hex, name) => {
+    if (dec) return String.fromCodePoint(Number(dec));
+    if (hex) return String.fromCodePoint(Number.parseInt(hex, 16));
     return HTML_NAMED_ENTITIES[name] ?? "";
   });
 }
@@ -629,7 +629,7 @@ function extractOcgroupsEventSlugs(html, groupId) {
 function parseOcgroupsTime(timePart) {
   const m = /(\d{1,2}):(\d{2})\s+(AM|PM)/i.exec(timePart.trim());
   if (!m) return null;
-  let h = parseInt(m[1]);
+  let h = Number.parseInt(m[1]);
   const min = m[2];
   const ampm = m[3].toUpperCase();
   if (ampm === "PM" && h !== 12) h += 12;
@@ -639,7 +639,9 @@ function parseOcgroupsTime(timePart) {
 
 function parseOcgroupsDateRange(dateText) {
   // Matches: "April 25, 2026 09:30 AM - 12:00 PM -03"
-  const match = /([A-Z][a-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)\s*([-+]\d{2})/i.exec(dateText);
+  // Pre-normalize whitespace to simplify the regex and avoid backtracking
+  const normalized = dateText.replace(/\s+/g, " ").trim();
+  const match = /([A-Za-z]+) (\d{1,2}), (\d{4}) (\d+:\d+ \w+) - (\d+:\d+ \w+) ([+-]\d{2})/i.exec(normalized);
   if (!match) return { startAt: null, endAt: null };
 
   const [, monthName, day, year, startTime, endTime, tzRaw] = match;
@@ -659,10 +661,10 @@ function parseOcgroupsDateRange(dateText) {
 
 function mapOcgroupsEventStatus(startAt, endAt) {
   const now = Date.now();
-  const start = startAt ? Date.parse(startAt) : NaN;
-  const end = endAt ? Date.parse(endAt) : NaN;
-  if (!isNaN(end) && end < now) return "completed";
-  if (!isNaN(start) && start <= now && (isNaN(end) || end >= now)) return "active";
+  const start = startAt ? Date.parse(startAt) : Number.NaN;
+  const end = endAt ? Date.parse(endAt) : Number.NaN;
+  if (!Number.isNaN(end) && end < now) return "completed";
+  if (!Number.isNaN(start) && start <= now && (Number.isNaN(end) || end >= now)) return "active";
   return "scheduled";
 }
 
@@ -693,7 +695,7 @@ async function scrapeOcgroupsEvent(config, slug) {
   const dateSectionMatch = /Event date[^<]*<\/[^>]+>(.*?)(?=Location)/is.exec(html);
   let startAt = null, endAt = null;
   if (dateSectionMatch) {
-    const dateText = dateSectionMatch[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const dateText = dateSectionMatch[1].replaceAll(/<[^>]+>/g, " ").replaceAll(/\s+/g, " ").trim();
     const parsed = parseOcgroupsDateRange(dateText);
     startAt = parsed.startAt;
     endAt = parsed.endAt;
@@ -709,9 +711,9 @@ async function scrapeOcgroupsEvent(config, slug) {
   if (descMatch) {
     const rawDesc = decodeHtmlEntities(
       descMatch[1]
-        .replace(/<script[^>]*>[\s\S]*?<\/\s*script[^>]*>/gi, " ")
-        .replace(/<[^>]+>/g, " ")
-        .replace(/\s+/g, " ")
+        .replaceAll(/<script[^>]*>[\s\S]*?<\/\s*script[^>]*>/gi, " ")
+        .replaceAll(/<[^>]+>/g, " ")
+        .replaceAll(/\s+/g, " ")
         .trim()
     );
     if (rawDesc.length >= 20) {
@@ -766,7 +768,7 @@ async function scrapeOcgroupsEvent(config, slug) {
     organizers: organizers.length > 0
       ? organizers.map((o) => ({
           name: o.name,
-          id: o.user_id != null ? String(o.user_id) : undefined,
+          id: o.user_id == null ? undefined : String(o.user_id),
           photoUrl: o.photo_url ?? undefined,
         }))
       : [],

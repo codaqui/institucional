@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-28T19:30:11.987Z",
+  "generatedAt": "2026-05-04T22:35:14.586Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-28T19:30:11.987Z",
+      "generatedAt": "2026-05-04T22:35:14.586Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,25 +27,25 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-28T19:30:11.987Z",
+      "generatedAt": "2026-05-04T22:35:14.586Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
     },
     {
-      "source": "bevy",
+      "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
-      "type": "bevy",
+      "type": "ocgroups",
       "label": "Cloud Native Maringá",
       "emoji": "☁️",
       "description": "Eventos do chapter oficial CNCF em Maringá — Kubernetes, containers, cloud-native e SRE.",
-      "ctaLabel": "Ver no CNCF Community",
-      "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-04-28T19:30:11.987Z",
-      "sourceKey": "bevy:cloud-native-maringa",
-      "indexPath": "/events/bevy/cloud-native-maringa/index.json",
-      "itemCount": 1
+      "generatedAt": "2026-05-04T22:35:14.586Z",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
+      "itemCount": 2
     }
   ],
   "events": [
@@ -10172,6 +10172,12 @@
       "userCount": 44,
       "creatorName": "Everton Tavares",
       "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "Welington Oliveira da Silva",
+          "id": "442863629"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/3/highres_533376035.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10201,6 +10207,12 @@
       "userCount": 78,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/a/a/highres_533391882.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10230,6 +10242,12 @@
       "userCount": 54,
       "creatorName": "Everton Tavares",
       "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "Anderson Fernandes Burnes",
+          "id": "202031101"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/4/highres_533376036.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10259,6 +10277,16 @@
       "userCount": 31,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "Welington Oliveira da Silva",
+          "id": "442863629"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/9/highres_533391913.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10288,6 +10316,16 @@
       "userCount": 87,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "Paulo Cesar Ferreira Mello",
+          "id": "185209798"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/5/2/highres_533392050.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10314,9 +10352,15 @@
       "featured": false,
       "status": "completed",
       "entityType": "external",
-      "userCount": 29,
+      "userCount": 28,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/6/6/highres_533392070.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10346,6 +10390,12 @@
       "userCount": 79,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/2/b/highres_533392011.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10431,6 +10481,16 @@
       "userCount": 21,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "Fernando Schutz",
+          "id": "480473750"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/7/9/highres_533392089.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10488,6 +10548,12 @@
       "userCount": 23,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/9/e/highres_533392126.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10517,6 +10583,20 @@
       "userCount": 44,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "Cezar Augusto Mezzalira",
+          "id": "370495059"
+        },
+        {
+          "name": "Geovane Norbert",
+          "id": "370171009"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/8/2/highres_533392098.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10546,6 +10626,20 @@
       "userCount": 88,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "Gustavo Slomski",
+          "id": "370151066"
+        },
+        {
+          "name": "Geovane Norbert",
+          "id": "370171009"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/e/highres_533391918.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10575,6 +10669,12 @@
       "userCount": 61,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Gabriel Prando",
+          "id": "370530343"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/0/a/highres_533391978.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10582,29 +10682,44 @@
       "itemPath": "/events/meetup/devparana/313962810.json"
     },
     {
-      "id": "bevy-12669",
+      "id": "ocgroups-9357cced-df19-5145-91e7-a5eee55966ad",
       "title": "Cloud Native Maringá #1 - Inauguração, Artefatos e DDD",
-      "summary": "Inauguração do Chapter Cloud Native Maringá",
+      "summary": "Olá comunidade de Maringá! Estamos entusiasmados em lançar o Cloud Native de Maringá, um ambiente dedicado à conexão entre universitários e profissionais da área de tecnologia e inovação. Este evento visa promover o con…",
       "startAt": "2026-04-25T09:30:00-03:00",
       "endAt": "2026-04-25T12:00:00-03:00",
       "timezone": "America/Sao_Paulo",
-      "platform": "CNCF Community",
+      "platform": "CNCF Open Community Groups",
       "host": "Cloud Native Maringá",
-      "location": "Maringá, PR",
-      "href": "https://community.cncf.io/events/details/cncf-cloud-native-maringa-presents-cloud-native-maringa-1-inauguracao-artefatos-e-ddd/",
+      "location": "UniCV Maringá, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/ac5gv7u",
       "tags": [
         "cncf",
         "cloud-native-maringa",
-        "meetup"
+        "presencial"
       ],
-      "ctaLabel": "Ver no CNCF Community",
+      "ctaLabel": "Ver no CNCF Open Community Groups",
       "featured": false,
       "status": "completed",
-      "imageUrl": "https://res.cloudinary.com/startup-grind/image/upload/c_scale,w_2560/c_crop,h_640,w_2560,y_0.0_mul_h_sub_0.0_mul_640/c_crop,h_640,w_2560/c_fill,dpr_2.0,f_auto,g_center,q_auto:good/v1/gcs/platform-data-cncf/event_banners/eventbanner.jpg",
-      "source": "bevy",
+      "entityType": "external",
+      "userCount": 52,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
-      "sourceKey": "bevy:cloud-native-maringa",
-      "itemPath": "/events/bevy/cloud-native-maringa/bevy-12669.json"
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-9357cced-df19-5145-91e7-a5eee55966ad.json"
     },
     {
       "id": "313962761",
@@ -10629,6 +10744,12 @@
       "userCount": 56,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Frederick Moschkowich",
+          "id": "237557818"
+        }
+      ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/d/0/highres_533391920.jpeg",
       "source": "meetup",
       "sourceId": "devparana",
@@ -10895,6 +11016,46 @@
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
       "itemPath": "/events/discord/codaqui/1498450535655931944.json"
+    },
+    {
+      "id": "ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91",
+      "title": "Cloud Native Maringá #2 - To be defined",
+      "summary": "Em breve mais atualizações! Reservem essa data! No menu abaixo você pode enviar sugestão de palestra, ou seja, nosso Call4Papers está oficialmente aberto.",
+      "startAt": "2026-05-23T09:30:00-03:00",
+      "endAt": "2026-05-23T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "SENAC Maringá, Av. Colombo, 6225 - Zona 7, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/u6uyhcn",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 0,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json"
     }
   ]
 }
