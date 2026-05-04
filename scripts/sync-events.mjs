@@ -709,7 +709,7 @@ async function scrapeOcgroupsEvent(config, slug) {
   if (descMatch) {
     const rawDesc = decodeHtmlEntities(
       descMatch[1]
-        .replace(/<script[^>]*>[\s\S]*?<\/\s*script\s*>/gi, " ")
+        .replace(/<script[^>]*>[\s\S]*?<\/\s*script[^>]*>/gi, " ")
         .replace(/<[^>]+>/g, " ")
         .replace(/\s+/g, " ")
         .trim()
