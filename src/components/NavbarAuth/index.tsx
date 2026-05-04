@@ -35,7 +35,7 @@ export default function NavbarAuth({ mobile = false }: NavbarAuthProps): React.J
   if (!mounted || !ready) return null;
 
   const authOptions = community
-    ? { returnTo: community.basePath, communitySlug: community.slug }
+    ? { returnTo: pathname, communitySlug: community.slug }
     : undefined;
 
   // ── Renderização mobile (sidebar hambúrguer) ──────────────────────────────

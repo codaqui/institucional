@@ -592,6 +592,17 @@ const OCGROUPS_MONTH_MAP = {
   September: "09", October: "10", November: "11", December: "12",
 };
 
+const HTML_NAMED_ENTITIES = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+
+/** Single-pass HTML entity decoder — avoids double-unescaping from chained replaces. */
+function decodeHtmlEntities(str) {
+  return str.replace(/&(?:#(\d+)|#x([0-9a-fA-F]+)|([a-zA-Z]+));/g, (_, dec, hex, name) => {
+    if (dec) return String.fromCharCode(Number(dec));
+    if (hex) return String.fromCharCode(parseInt(hex, 16));
+    return HTML_NAMED_ENTITIES[name] ?? "";
+  });
+}
+
 async function fetchOcgroupsHtml(url) {
   const response = await fetchWithTimeout(url, {
     headers: {
@@ -696,13 +707,13 @@ async function scrapeOcgroupsEvent(config, slug) {
   const descMatch = /About this event[^<]*<\/[^>]+>(.*?)(?=Speakers|Organizers|Copyright)/is.exec(html);
   let summary = `Evento publicado por ${config.defaultHost}.`;
   if (descMatch) {
-    const rawDesc = descMatch[1]
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
-      .replace(/&[a-z]+;/gi, " ")
-      .replace(/\s+/g, " ").trim();
+    const rawDesc = decodeHtmlEntities(
+      descMatch[1]
+        .replace(/<script[^>]*>[\s\S]*?<\/\s*script\s*>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    );
     if (rawDesc.length >= 20) {
       summary = truncateText(rawDesc);
     }
@@ -714,8 +725,7 @@ async function scrapeOcgroupsEvent(config, slug) {
   const userChipMatches = [...orgSection.matchAll(/<user-chip\s+user='([^']+)'/g)];
   const organizers = userChipMatches.flatMap((m) => {
     try {
-      const decoded = m[1].replace(/&#34;/g, '"').replace(/&amp;/g, "&").replace(/&#39;/g, "'");
-      return [JSON.parse(decoded)];
+      return [JSON.parse(decodeHtmlEntities(m[1]))];
     } catch {
       return [];
     }

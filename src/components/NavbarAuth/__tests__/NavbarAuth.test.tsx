@@ -260,6 +260,19 @@ describe("em contexto de comunidade", () => {
       communitySlug: "tisocial",
     });
   });
+
+  it("preserva o pathname atual como returnTo (deep link)", () => {
+    const loginMock = jest.fn();
+    mockUseAuth.mockReturnValue({ ...BASE_AUTH, login: loginMock });
+    mockUseLocation.mockReturnValue({ pathname: "/comunidades/tisocial/blog/meu-post" });
+    render(<NavbarAuth mobile />);
+    const btn = screen.getByRole("button", { name: /entrar com github/i });
+    btn.click();
+    expect(loginMock).toHaveBeenCalledWith({
+      returnTo: "/comunidades/tisocial/blog/meu-post",
+      communitySlug: "tisocial",
+    });
+  });
 });
 
 // ── edge cases ────────────────────────────────────────────────────────────────
