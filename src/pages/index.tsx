@@ -42,7 +42,7 @@ function HeroBanner() {
           component="p"
           sx={{ color: "rgba(255,255,255,0.9)", maxWidth: 560, mx: "auto", mb: 4, lineHeight: 1.6 }}
         >
-          Democratizando o ensino de tecnologia para jovens brasileiros 🇧🇷
+          Democratizando comunidades e projetos de tecnologia! 🇧🇷
         </Typography>
         <Box
           sx={{

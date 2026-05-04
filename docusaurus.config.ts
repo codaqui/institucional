@@ -6,7 +6,7 @@ import { COMMUNITIES_CONFIG } from "./comunidades";
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
 const socialCardImage = "img/header.png";
-const socialCardAlt = "Codaqui - Democratizando o ensino de tecnologia para jovens";
+const socialCardAlt = "Codaqui - Uma comunidade de comunidades de tecnologia.";
 const normalizedBaseUrl = requestedBaseUrl.startsWith("/")
   ? requestedBaseUrl
   : `/${requestedBaseUrl}`;
@@ -68,7 +68,7 @@ const classicPresetOptions: Preset.Options = {
     tagsBasePath: "category",
     postsPerPage: 9,
     blogDescription:
-      "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — democratizando o ensino de tecnologia.",
+      "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — Uma comunidade de comunidades de tecnologia.",
     feedOptions: {
       type: "all",
       title: "Blog da Codaqui",
@@ -92,7 +92,7 @@ const classicPresetOptions: Preset.Options = {
 
 const config: Config = {
   title: "CODAQUI.dev",
-  tagline: "Democratizando o ensino tecnológico para jovens",
+  tagline: "Uma comunidade de comunidades de tecnologia",
   favicon: "img/favicon.png",
 
   url: siteUrl,
@@ -215,7 +215,7 @@ const config: Config = {
     navbar: {
       title: "",
       logo: {
-        alt: "Codaqui — Democratizando o ensino de tecnologia",
+        alt: "Codaqui — Uma comunidade de comunidades de tecnologia",
         src: "img/logo_principal.svg",
         srcDark: "img/logo_monocromatica.svg",
         width: 122,

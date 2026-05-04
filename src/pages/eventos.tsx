@@ -66,6 +66,13 @@ function getStatusColor(status?: string): "default" | "success" | "warning" | "e
   }
 }
 
+function formatOrganizers(event: EventSummary): string {
+  const orgs = event.organizers;
+  if (!orgs?.length) return event.host;
+  if (orgs.length === 1) return orgs[0].name;
+  return `${orgs.slice(0, -1).map((o) => o.name).join(", ")} e ${orgs.at(-1)?.name ?? ""}`;
+}
+
 function EventCard({
   event,
   sourceMeta,
@@ -148,14 +155,15 @@ function EventCard({
           <Stack direction="row" spacing={1} alignItems="center">
             <ForumIcon color="primary" fontSize="small" />
             <Typography variant="body2">
-              {event.platform} · com {event.creatorName ?? event.host}
+              {event.platform} · com{" "}
+              {formatOrganizers(event)}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center">
             <PlaceOutlinedIcon color="primary" fontSize="small" />
             <Typography variant="body2">{event.location}</Typography>
           </Stack>
-          {typeof event.userCount === "number" ? (
+          {typeof event.userCount === "number" && event.userCount > 0 ? (
             <Stack direction="row" spacing={1} alignItems="center">
               <GroupsIcon color="primary" fontSize="small" />
               <Typography variant="body2">{event.userCount} pessoa(s) interessadas</Typography>

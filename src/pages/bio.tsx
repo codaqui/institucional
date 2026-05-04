@@ -63,7 +63,7 @@ export default function BioPage(): React.JSX.Element {
           Codaqui
         </Typography>
         <Typography variant="body1" color="text.secondary" mb={4}>
-          Associação sem fins lucrativos democratizando o acesso à tecnologia
+          Associação sem fins lucrativos democratizando projetos e comunidades tecnológicas.
         </Typography>
         <Chip label="2026" variant="outlined" sx={{ mb: 4 }} />
 
