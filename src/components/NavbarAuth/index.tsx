@@ -16,7 +16,13 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveCommunityFromPath } from "../../lib/community-context";
 
-export default function NavbarAuth(): React.JSX.Element | null {
+interface NavbarAuthProps {
+  /** Passado automaticamente pelo Docusaurus quando renderizado no sidebar mobile. */
+  mobile?: boolean;
+  [key: string]: unknown;
+}
+
+export default function NavbarAuth({ mobile = false }: NavbarAuthProps): React.JSX.Element | null {
   const { user, ready, isLoggedIn, isAdmin, login, logout } = useAuth();
   const { pathname } = useLocation();
   const community = resolveCommunityFromPath(pathname);
@@ -32,6 +38,89 @@ export default function NavbarAuth(): React.JSX.Element | null {
     ? { returnTo: community.basePath, communitySlug: community.slug }
     : undefined;
 
+  // ── Renderização mobile (sidebar hambúrguer) ──────────────────────────────
+  // Usa classes Docusaurus (menu__list-item / menu__link) para manter
+  // consistência visual com os outros itens do sidebar.
+  if (mobile) {
+    if (!isLoggedIn) {
+      return (
+        <li className="menu__list-item">
+          <button
+            type="button"
+            className="menu__link"
+            onClick={() => login(authOptions)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+              background: "none",
+              border: "none",
+              width: "100%",
+              textAlign: "left",
+              font: "inherit",
+            }}
+          >
+            <GitHubIcon style={{ fontSize: 16 }} />
+            Entrar com GitHub
+          </button>
+        </li>
+      );
+    }
+
+    return (
+      <>
+        <li className="menu__list-item">
+          <span
+            style={{
+              display: "block",
+              padding: "var(--ifm-menu-link-padding-vertical) var(--ifm-menu-link-padding-horizontal)",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              color: "var(--ifm-menu-color)",
+            }}
+          >
+            @{user?.handle}
+          </span>
+        </li>
+        <li className="menu__list-item">
+          <a className="menu__link" href="/membro">Meu Perfil</a>
+        </li>
+        {isAdmin && (
+          <li className="menu__list-item">
+            <a className="menu__link" href="/admin">Painel Admin</a>
+          </li>
+        )}
+        <li className="menu__list-item">
+          <a className="menu__link" href="/participe/apoiar">Fazer uma Doação</a>
+        </li>
+        <li className="menu__list-item">
+          <button
+            type="button"
+            className="menu__link"
+            onClick={() => logout(authOptions)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              cursor: "pointer",
+              background: "none",
+              border: "none",
+              width: "100%",
+              textAlign: "left",
+              font: "inherit",
+              color: "var(--ifm-color-danger)",
+            }}
+          >
+            <LogoutIcon style={{ fontSize: 16 }} />
+            Sair
+          </button>
+        </li>
+      </>
+    );
+  }
+
+  // ── Renderização desktop ──────────────────────────────────────────────────
   if (!isLoggedIn) {
     return (
       <Button
