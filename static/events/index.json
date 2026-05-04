@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-04T22:35:14.586Z",
+  "generatedAt": "2026-05-04T22:18:01.260Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-05-04T22:35:14.586Z",
+      "generatedAt": "2026-05-04T22:18:01.260Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-05-04T22:35:14.586Z",
+      "generatedAt": "2026-05-04T22:18:01.260Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 363
@@ -42,10 +42,10 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-05-04T22:35:14.586Z",
-      "sourceKey": "ocgroups:cloud-native-maringa",
-      "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
-      "itemCount": 2
+      "generatedAt": "2026-05-04T22:18:01.260Z",
+      "sourceKey": "bevy:cloud-native-maringa",
+      "indexPath": "/events/bevy/cloud-native-maringa/index.json",
+      "itemCount": 1
     }
   ],
   "events": [
@@ -10828,9 +10828,9 @@
       ],
       "ctaLabel": "Entrar no Discord da Codaqui",
       "featured": false,
-      "status": "scheduled",
+      "status": "completed",
       "entityType": "voice",
-      "userCount": 1,
+      "userCount": 2,
       "creatorName": "Enderson Menezes",
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
@@ -10856,7 +10856,7 @@
       ],
       "ctaLabel": "Entrar no Discord da Codaqui",
       "featured": false,
-      "status": "scheduled",
+      "status": "active",
       "entityType": "voice",
       "userCount": 13,
       "creatorName": "Enderson Menezes",
@@ -10895,7 +10895,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "voice",
-      "userCount": 1,
+      "userCount": 2,
       "creatorName": "Enderson Menezes",
       "creatorId": "265457153257635850",
       "channelId": "836223645143662592",
