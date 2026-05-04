@@ -170,6 +170,9 @@ function mapDiscordEvent(event, config) {
     userCount: event.user_count ?? undefined,
     creatorName,
     creatorId: event.creator_id ?? undefined,
+    organizers: creatorName
+      ? [{ name: creatorName, id: event.creator_id != null ? String(event.creator_id) : undefined }]
+      : [],
     channelId: event.channel_id ?? undefined,
     recurrenceLabel: formatDiscordRecurrence(event.recurrence_rule),
     recurrenceRule,
@@ -239,6 +242,10 @@ const meetupPastQuery = `
               id
               name
             }
+            eventHosts {
+              memberId
+              name
+            }
             venue {
               id
               name
@@ -291,6 +298,10 @@ const meetupUpcomingQuery = `
             }
             creatorMember {
               id
+              name
+            }
+            eventHosts {
+              memberId
               name
             }
             venue {
@@ -463,6 +474,14 @@ function mapMeetupEvent(event, config) {
     userCount: event.going?.totalCount ?? undefined,
     creatorName: event.creatorMember?.name ?? config.defaultHost,
     creatorId: event.creatorMember?.id ?? undefined,
+    organizers: (() => {
+      const hosts = Array.isArray(event.eventHosts) && event.eventHosts.length > 0
+        ? event.eventHosts.map((h) => ({ name: h.name, id: h.memberId != null ? String(h.memberId) : undefined }))
+        : null;
+      if (hosts) return hosts;
+      if (event.creatorMember?.name) return [{ name: event.creatorMember.name, id: event.creatorMember.id != null ? String(event.creatorMember.id) : undefined }];
+      return [];
+    })(),
     imageUrl: event.featuredEventPhoto?.highResUrl ?? undefined,
   };
 }
@@ -563,104 +582,225 @@ async function resolveMeetupEvents(config, existingEvents, fullSync = false) {
   }
 }
 
-// ─── Bevy (CNCF Community Groups) ─────────────────────────────────────────────
+// ─── CNCF Open Community Groups (ocgroups.dev) ────────────────────────────────
 
-function stripHtml(html) {
-  return (html || "")
-    .replaceAll(/<[^>]+>/g, " ")
-    .replaceAll(/&[a-z]+;/gi, " ")
-    .replaceAll(/\s+/g, " ")
-    .trim();
+const OCGROUPS_BROWSER_UA = "Mozilla/5.0 (compatible; Codaqui/1.0; +https://codaqui.dev)";
+
+const OCGROUPS_MONTH_MAP = {
+  January: "01", February: "02", March: "03", April: "04",
+  May: "05", June: "06", July: "07", August: "08",
+  September: "09", October: "10", November: "11", December: "12",
+};
+
+async function fetchOcgroupsHtml(url) {
+  const response = await fetchWithTimeout(url, {
+    headers: {
+      "User-Agent": OCGROUPS_BROWSER_UA,
+      Accept: "text/html,application/xhtml+xml",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`ocgroups.dev request failed for ${url}: ${response.status}`);
+  }
+  return response.text();
 }
 
-function mapBevyStatus(event) {
-  const now = Date.now();
-  const start = Date.parse(event.start_date);
-  const end = Date.parse(event.end_date || event.start_date);
-
-  if (end < now) return "completed";
-  if (start <= now && end >= now) return "active";
-  return "scheduled";
+function extractOcgroupsEventSlugs(html, groupId) {
+  const pattern = new RegExp(`/cncf/group/${groupId}/event/([a-z0-9]+)`, "g");
+  const slugs = new Set();
+  let match;
+  while ((match = pattern.exec(html)) !== null) {
+    slugs.add(match[1]);
+  }
+  return [...slugs];
 }
 
-function mapBevyEvent(event, config) {
-  const summary = truncateText(
-    stripHtml(event.description_short || event.description || ""),
-  ) || `Evento publicado por ${config.defaultHost}.`;
+function parseOcgroupsTime(timePart) {
+  const m = /(\d{1,2}):(\d{2})\s+(AM|PM)/i.exec(timePart.trim());
+  if (!m) return null;
+  let h = parseInt(m[1]);
+  const min = m[2];
+  const ampm = m[3].toUpperCase();
+  if (ampm === "PM" && h !== 12) h += 12;
+  if (ampm === "AM" && h === 12) h = 0;
+  return `${String(h).padStart(2, "0")}:${min}:00`;
+}
+
+function parseOcgroupsDateRange(dateText) {
+  // Matches: "April 25, 2026 09:30 AM - 12:00 PM -03"
+  const match = /([A-Z][a-z]+)\s+(\d{1,2}),\s*(\d{4})\s+(\d{1,2}:\d{2}\s*[AP]M)\s*-\s*(\d{1,2}:\d{2}\s*[AP]M)\s*([-+]\d{2})/i.exec(dateText);
+  if (!match) return { startAt: null, endAt: null };
+
+  const [, monthName, day, year, startTime, endTime, tzRaw] = match;
+  const month = OCGROUPS_MONTH_MAP[monthName];
+  if (!month) return { startAt: null, endAt: null };
+
+  const d = String(day).padStart(2, "0");
+  const tz = `${tzRaw}:00`;
+  const startH = parseOcgroupsTime(startTime);
+  const endH = parseOcgroupsTime(endTime);
 
   return {
-    id: `bevy-${event.id || event.url?.split("/").filter(Boolean).findLast(() => true) || Date.now()}`,
-    title: event.title,
-    summary,
-    startAt: event.start_date,
-    endAt: event.end_date || undefined,
-    timezone: config.timezone || "America/Sao_Paulo",
-    platform: config.defaultPlatform,
-    host: config.defaultHost,
-    location: config.defaultLocation,
-    href: event.url || event.cohost_registration_url || config.ctaHref,
-    tags: ["cncf", config.sourceId, event.event_type_title?.toLowerCase() || "meetup"].filter(Boolean),
-    ctaLabel: config.ctaLabel || "Ver evento",
-    featured: false,
-    status: mapBevyStatus(event),
-    imageUrl: event.cropped_banner_url || event.cropped_picture_url || undefined,
+    startAt: startH ? `${year}-${month}-${d}T${startH}${tz}` : null,
+    endAt: endH ? `${year}-${month}-${d}T${endH}${tz}` : null,
   };
 }
 
-async function fetchBevyEventsPage(chapterId, status, page = 1) {
-  const fields = "id,title,start_date,end_date,url,description_short,description,event_type_title,cropped_picture_url,cropped_banner_url,cohost_registration_url";
-  const order = status === "Completed" ? "-start_date" : "start_date";
-  const url = `https://community.cncf.io/api/chapter/${chapterId}/event/?status=${status}&order=${order}&page=${page}&fields=${fields}`;
-  return fetchJson(url, {
-    headers: { Accept: "application/json" },
-  });
+function mapOcgroupsEventStatus(startAt, endAt) {
+  const now = Date.now();
+  const start = startAt ? Date.parse(startAt) : NaN;
+  const end = endAt ? Date.parse(endAt) : NaN;
+  if (!isNaN(end) && end < now) return "completed";
+  if (!isNaN(start) && start <= now && (isNaN(end) || end >= now)) return "active";
+  return "scheduled";
 }
 
-async function paginateBevyEvents(chapterId, status) {
-  const events = [];
-  let page = 1;
-  let hasNext = true;
+async function scrapeOcgroupsEvent(config, slug) {
+  const url = `https://ocgroups.dev/cncf/group/${config.groupId}/event/${slug}`;
+  const availabilityUrl = `${url}/availability`;
 
-  while (hasNext && page <= 20) {
-    const data = await fetchBevyEventsPage(chapterId, status, page);
-    events.push(...(data.results || []));
-    hasNext = Boolean(data.links?.next);
-    page += 1;
+  const [html, availabilityResult] = await Promise.all([
+    fetchOcgroupsHtml(url),
+    fetchWithTimeout(availabilityUrl, {
+      headers: {
+        "User-Agent": OCGROUPS_BROWSER_UA,
+        "HX-Request": "true",
+        Referer: url,
+      },
+    }).then((r) => r.ok ? r.json() : null).catch(() => null),
+  ]);
+
+  // Internal UUID from HTMX: hx-get="/cncf/event/{uuid}/attend"
+  const uuidMatch = /\/cncf\/event\/([0-9a-f-]{36})\/attend/.exec(html);
+  const uuid = uuidMatch ? uuidMatch[1] : slug;
+
+  // Title from H1 (most reliable)
+  const h1Match = /<h1[^>]*>([^<]+)<\/h1>/i.exec(html);
+  const title = h1Match ? h1Match[1].trim() : slug;
+
+  // Date from "Event date" section header up to "Location"
+  const dateSectionMatch = /Event date[^<]*<\/[^>]+>(.*?)(?=Location)/is.exec(html);
+  let startAt = null, endAt = null;
+  if (dateSectionMatch) {
+    const dateText = dateSectionMatch[1].replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    const parsed = parseOcgroupsDateRange(dateText);
+    startAt = parsed.startAt;
+    endAt = parsed.endAt;
   }
 
-  return events;
+  // Location from the map badge (clean, non-duplicated)
+  const mapBadgeMatch = /pointer-events-none[^>]+>\s*\n\s*([^\n<]+)\s*\n/.exec(html);
+  const location = mapBadgeMatch ? mapBadgeMatch[1].trim() : config.defaultLocation;
+
+  // Description from "About this event" section
+  const descMatch = /About this event[^<]*<\/[^>]+>(.*?)(?=Speakers|Organizers|Copyright)/is.exec(html);
+  let summary = `Evento publicado por ${config.defaultHost}.`;
+  if (descMatch) {
+    const rawDesc = descMatch[1]
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+      .replace(/&[a-z]+;/gi, " ")
+      .replace(/\s+/g, " ").trim();
+    if (rawDesc.length >= 20) {
+      summary = truncateText(rawDesc);
+    }
+  }
+
+  // Organizers from <user-chip user='...'> custom elements (HTML-entity-encoded JSON)
+  const orgIdx = html.indexOf("Organizers");
+  const orgSection = orgIdx >= 0 ? html.slice(orgIdx, orgIdx + 8000) : "";
+  const userChipMatches = [...orgSection.matchAll(/<user-chip\s+user='([^']+)'/g)];
+  const organizers = userChipMatches.flatMap((m) => {
+    try {
+      const decoded = m[1].replace(/&#34;/g, '"').replace(/&amp;/g, "&").replace(/&#39;/g, "'");
+      return [JSON.parse(decoded)];
+    } catch {
+      return [];
+    }
+  });
+  const primaryOrganizer = organizers[0] ?? null;
+
+  // Event format: in-person vs online
+  const isOnline = /\bonline\b/i.test(html) && !/\bin-person\b/i.test(html);
+  const eventType = isOnline ? "online" : "presencial";
+
+  const status = mapOcgroupsEventStatus(startAt, endAt);
+
+  // Attendance count from availability endpoint: capacity - remaining_capacity
+  const registeredCount =
+    availabilityResult?.capacity != null && availabilityResult?.remaining_capacity != null
+      ? availabilityResult.capacity - availabilityResult.remaining_capacity
+      : undefined;
+
+  return {
+    id: `ocgroups-${uuid}`,
+    title,
+    summary,
+    startAt: startAt ?? new Date().toISOString(),
+    endAt: endAt ?? undefined,
+    timezone: config.timezone || "America/Sao_Paulo",
+    platform: config.defaultPlatform,
+    host: config.defaultHost,
+    location,
+    href: url,
+    tags: ["cncf", config.sourceId, eventType].filter(Boolean),
+    ctaLabel: config.ctaLabel || "Ver evento",
+    featured: false,
+    status,
+    entityType: "external",
+    userCount: registeredCount,
+    creatorName: primaryOrganizer?.name ?? config.defaultHost,
+    creatorId: primaryOrganizer?.user_id ?? undefined,
+    organizers: organizers.length > 0
+      ? organizers.map((o) => ({
+          name: o.name,
+          id: o.user_id != null ? String(o.user_id) : undefined,
+          photoUrl: o.photo_url ?? undefined,
+        }))
+      : [],
+  };
 }
 
-async function resolveBevyEvents(config, existingEvents, fullSync = false) {
+async function resolveOcgroupsEvents(config, existingEvents) {
   try {
-    const chapterId = config.chapterId;
-    if (!chapterId) {
-      console.warn(`  ⚠ No chapterId for ${config.sourceId}, using fallback`);
+    const groupId = config.groupId;
+    if (!groupId) {
+      console.warn(`  ⚠ No groupId for ${config.sourceId}, using fallback`);
       return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
     }
 
-    let published, completed;
-    [published, completed] = await Promise.all([
-      paginateBevyEvents(chapterId, "Published"),
-      paginateBevyEvents(chapterId, "Completed"),
-    ]);
+    const groupHtml = await fetchOcgroupsHtml(`https://ocgroups.dev/cncf/group/${groupId}`);
+    const slugs = extractOcgroupsEventSlugs(groupHtml, groupId);
+    console.log(`    found ${slugs.length} event slug(s) on group page`);
 
-    const freshById = new Map();
-    for (const event of [...published, ...completed].map((e) => mapBevyEvent(e, config))) {
-      freshById.set(event.id, event);
+    if (slugs.length === 0) {
+      console.warn(`    ⚠ No event slugs found, using fallback`);
+      return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
     }
 
-    if (!fullSync) {
-      for (const existing of existingEvents) {
-        if (!freshById.has(existing.id)) {
-          freshById.set(existing.id, existing);
-        }
+    const freshById = new Map();
+    for (const slug of slugs) {
+      try {
+        const event = await scrapeOcgroupsEvent(config, slug);
+        freshById.set(event.id, event);
+        console.log(`    ✓ scraped event/${slug}: "${event.title}"`);
+      } catch (err) {
+        console.warn(`    ⚠ Failed to scrape event/${slug}: ${err.message}`);
+      }
+    }
+
+    // Preserve existing events not found on the group page (e.g., very old ones)
+    for (const existing of existingEvents) {
+      if (!freshById.has(existing.id)) {
+        freshById.set(existing.id, existing);
       }
     }
 
     return [...freshById.values()];
   } catch (error) {
-    console.warn(`Skipping Bevy sync for ${config.source}/${config.sourceId}:`, error.message);
+    console.warn(`Skipping ocgroups sync for ${config.source}/${config.sourceId}:`, error.message);
     return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
   }
 }
@@ -680,8 +820,8 @@ async function processSource(sourceConfig, fullSync, generatedAt) {
     events = await resolveDiscordEvents(sourceConfig, existingEvents);
   } else if (sourceConfig.source === "meetup") {
     events = await resolveMeetupEvents(sourceConfig, existingEvents, fullSync);
-  } else if (sourceConfig.source === "bevy") {
-    events = await resolveBevyEvents(sourceConfig, existingEvents, fullSync);
+  } else if (sourceConfig.source === "ocgroups") {
+    events = await resolveOcgroupsEvents(sourceConfig, existingEvents);
   }
 
   await cleanSourceDir(sourceDir);

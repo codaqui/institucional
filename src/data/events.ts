@@ -1,4 +1,4 @@
-export type EventSourceType = "discord" | "meetup" | "bevy" | "internal" | "external";
+export type EventSourceType = "discord" | "meetup" | "bevy" | "ocgroups" | "internal" | "external";
 export type EventStatus = "scheduled" | "active" | "completed" | "canceled";
 export type EventEntityType = "stage_instance" | "voice" | "external";
 
@@ -27,6 +27,12 @@ export interface EventSourceConfig {
   generatedAt?: string;
 }
 
+export interface EventOrganizer {
+  name: string;
+  id?: string;
+  photoUrl?: string;
+}
+
 export interface EventItem {
   id: string;
   title: string;
@@ -44,8 +50,11 @@ export interface EventItem {
   status?: EventStatus;
   entityType?: EventEntityType;
   userCount?: number;
+  /** @deprecated Use `organizers` instead. Kept for backward compatibility with existing snapshots. */
   creatorName?: string;
+  /** @deprecated Use `organizers` instead. Kept for backward compatibility with existing snapshots. */
   creatorId?: string;
+  organizers?: EventOrganizer[];
   channelId?: string;
   recurrenceLabel?: string;
   recurrenceRule?: EventRecurrenceRule;

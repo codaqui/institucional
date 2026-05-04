@@ -148,14 +148,19 @@ function EventCard({
           <Stack direction="row" spacing={1} alignItems="center">
             <ForumIcon color="primary" fontSize="small" />
             <Typography variant="body2">
-              {event.platform} · com {event.creatorName ?? event.host}
+              {event.platform} · com{" "}
+              {event.organizers?.length
+                ? event.organizers.length === 1
+                  ? event.organizers[0].name
+                  : `${event.organizers.slice(0, -1).map((o) => o.name).join(", ")} e ${event.organizers.at(-1)!.name}`
+                : (event.creatorName ?? event.host)}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={1} alignItems="center">
             <PlaceOutlinedIcon color="primary" fontSize="small" />
             <Typography variant="body2">{event.location}</Typography>
           </Stack>
-          {typeof event.userCount === "number" ? (
+          {typeof event.userCount === "number" && event.userCount > 0 ? (
             <Stack direction="row" spacing={1} alignItems="center">
               <GroupsIcon color="primary" fontSize="small" />
               <Typography variant="body2">{event.userCount} pessoa(s) interessadas</Typography>
