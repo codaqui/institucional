@@ -23,6 +23,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../hooks/useAuth";
+import { parseAuthJson } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 import { formatDocument, stripToDigits } from "../../utils/document";
 
@@ -35,6 +36,8 @@ interface Vendor {
   accountId: string;
   account?: { id: string; name: string; type: string };
   createdAt: string;
+  paymentCount?: number;
+  receiptCount?: number;
 }
 
 interface VendorForm {
@@ -64,21 +67,21 @@ export default function FornecedoresPage(): React.JSX.Element {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const fetchVendors = useCallback(() => {
-    authFetch(`${apiUrl}/vendors`)
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((data) => {
-        setVendors(Array.isArray(data) ? data : []);
-        setError("");
+  const fetchVendors = useCallback(async () => {
+    try {
+      const res = await authFetch(`${apiUrl}/vendors/with-counters`);
+      const data = await parseAuthJson<Vendor[]>(res, setError);
+      if (!data) {
         setLoading(false);
-      })
-      .catch(() => {
-        setError("Não foi possível carregar fornecedores.");
-        setLoading(false);
-      });
+        return;
+      }
+      setVendors(data);
+      setError("");
+    } catch {
+      setError("Não foi possível carregar fornecedores.");
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl, authFetch]);
 
   useEffect(() => {
@@ -235,6 +238,23 @@ export default function FornecedoresPage(): React.JSX.Element {
                     <Typography variant="caption" display="block" color="text.secondary" mt={1}>
                       Conta: {v.account.name}
                     </Typography>
+                  )}
+
+                  {(v.paymentCount !== undefined || v.receiptCount !== undefined) && (
+                    <Box sx={{ display: "flex", gap: 0.75, mt: 1.5, flexWrap: "wrap" }}>
+                      <Chip
+                        size="small"
+                        color={(v.paymentCount ?? 0) > 0 ? "secondary" : "default"}
+                        variant="outlined"
+                        label={`${v.paymentCount ?? 0} pagamento${(v.paymentCount ?? 0) === 1 ? "" : "s"}`}
+                      />
+                      <Chip
+                        size="small"
+                        color={(v.receiptCount ?? 0) > 0 ? "success" : "default"}
+                        variant="outlined"
+                        label={`${v.receiptCount ?? 0} recebimento${(v.receiptCount ?? 0) === 1 ? "" : "s"}`}
+                      />
+                    </Box>
                   )}
                 </CardContent>
               </Card>

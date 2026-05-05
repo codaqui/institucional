@@ -9,7 +9,8 @@ import {
 } from './entities/account-transfer-request.entity';
 import { LedgerService } from '../ledger/ledger.service';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 const mockRequest = (overrides = {}): Partial<AccountTransferRequest> => ({
   id: uuid(1),
@@ -158,9 +159,13 @@ describe('TransfersService', () => {
         }),
       };
 
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
-      const result = await service.approveRequest(uuid(1), uuid(9), { reviewNote: 'OK' });
+      const result = await service.approveRequest(uuid(1), uuid(9), {
+        reviewNote: 'OK',
+      });
 
       expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
         uuid(10),
@@ -174,7 +179,9 @@ describe('TransfersService', () => {
 
     it('should throw when request not found', async () => {
       const mockManager = { findOne: jest.fn().mockResolvedValue(null) };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       await expect(
         service.approveRequest(uuid(1), uuid(9), {}),
@@ -184,7 +191,9 @@ describe('TransfersService', () => {
     it('should throw when request is not pending', async () => {
       const request = mockRequest({ status: TransferRequestStatus.APPROVED });
       const mockManager = { findOne: jest.fn().mockResolvedValue(request) };
-      dataSource.transaction.mockImplementation(async (cb: Function) => cb(mockManager));
+      dataSource.transaction.mockImplementation(async (cb: Function) =>
+        cb(mockManager),
+      );
 
       await expect(
         service.approveRequest(uuid(1), uuid(9), {}),
@@ -221,7 +230,9 @@ describe('TransfersService', () => {
     });
 
     it('should throw when request is not pending', async () => {
-      repo.findOne.mockResolvedValue(mockRequest({ status: TransferRequestStatus.APPROVED }));
+      repo.findOne.mockResolvedValue(
+        mockRequest({ status: TransferRequestStatus.APPROVED }),
+      );
 
       await expect(
         service.rejectRequest(uuid(1), uuid(9), { reviewNote: 'No' }),

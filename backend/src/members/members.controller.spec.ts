@@ -50,7 +50,12 @@ describe('MembersController', () => {
 
   describe('findAll (GET /members)', () => {
     it('should return paginated active members with defaults', async () => {
-      const expected = { data: [mockMember()], total: 1, page: 1, totalPages: 1 };
+      const expected = {
+        data: [mockMember()],
+        total: 1,
+        page: 1,
+        totalPages: 1,
+      };
       membersService.findAllActive.mockResolvedValue(expected);
 
       const result = await controller.findAll();
@@ -60,7 +65,12 @@ describe('MembersController', () => {
     });
 
     it('should parse page and limit query params', async () => {
-      membersService.findAllActive.mockResolvedValue({ data: [], total: 0, page: 2, totalPages: 0 });
+      membersService.findAllActive.mockResolvedValue({
+        data: [],
+        total: 0,
+        page: 2,
+        totalPages: 0,
+      });
 
       await controller.findAll(2, 10);
 
@@ -85,7 +95,15 @@ describe('MembersController', () => {
       membersService.findOne.mockResolvedValue(member);
 
       const result = await controller.getMe({
-        user: { sub: member.id, githubId: '12345', handle: 'testuser', name: 'Test', email: 't@t.com', avatarUrl: '', role: 'membro' },
+        user: {
+          sub: member.id,
+          githubId: '12345',
+          handle: 'testuser',
+          name: 'Test',
+          email: 't@t.com',
+          avatarUrl: '',
+          role: 'membro',
+        },
       });
 
       expect(result).toEqual(member);
@@ -96,15 +114,30 @@ describe('MembersController', () => {
   describe('updateMe (PUT /members/me)', () => {
     it('should update the member profile', async () => {
       const member = mockMember();
-      membersService.updateMeById.mockResolvedValue({ ...member, bio: 'New bio' });
+      membersService.updateMeById.mockResolvedValue({
+        ...member,
+        bio: 'New bio',
+      });
 
       const result = await controller.updateMe(
-        { user: { sub: member.id, githubId: '12345', handle: 'testuser', name: 'Test', email: 't@t.com', avatarUrl: '', role: 'membro' } },
+        {
+          user: {
+            sub: member.id,
+            githubId: '12345',
+            handle: 'testuser',
+            name: 'Test',
+            email: 't@t.com',
+            avatarUrl: '',
+            role: 'membro',
+          },
+        },
         { bio: 'New bio' },
       );
 
       expect(result.bio).toBe('New bio');
-      expect(membersService.updateMeById).toHaveBeenCalledWith(member.id, { bio: 'New bio' });
+      expect(membersService.updateMeById).toHaveBeenCalledWith(member.id, {
+        bio: 'New bio',
+      });
     });
   });
 
@@ -119,12 +152,16 @@ describe('MembersController', () => {
     });
 
     it('should throw BadRequestException for invalid handle', async () => {
-      await expect(controller.findByHandle('invalid handle!')).rejects.toThrow(BadRequestException);
+      await expect(controller.findByHandle('invalid handle!')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {
       membersService.findByHandle.mockResolvedValue(null);
-      await expect(controller.findByHandle('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(controller.findByHandle('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -140,7 +177,9 @@ describe('MembersController', () => {
 
     it('should throw NotFoundException when not found', async () => {
       membersService.findOne.mockResolvedValue(null);
-      await expect(controller.findOne('nonexistent-id')).rejects.toThrow(NotFoundException);
+      await expect(controller.findOne('nonexistent-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -157,7 +196,9 @@ describe('MembersController', () => {
 
     it('should throw NotFoundException when member not found', async () => {
       membersService.findOne.mockResolvedValue(null);
-      await expect(controller.findMemberDonations('bad-id')).rejects.toThrow(NotFoundException);
+      await expect(controller.findMemberDonations('bad-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -174,7 +215,15 @@ describe('MembersController', () => {
 
   describe('adminUpdate (PATCH /admin/members/:id)', () => {
     const req = {
-      user: { sub: 'admin-id', githubId: '99', handle: 'admin', name: 'Admin', email: 'a@a.com', avatarUrl: '', role: 'admin' },
+      user: {
+        sub: 'admin-id',
+        githubId: '99',
+        handle: 'admin',
+        name: 'Admin',
+        email: 'a@a.com',
+        avatarUrl: '',
+        role: 'admin',
+      },
     };
 
     it('should update role and log audit', async () => {
@@ -183,7 +232,9 @@ describe('MembersController', () => {
 
       await controller.adminUpdate(member.id, req, { role: MemberRole.ADMIN });
 
-      expect(membersService.adminUpdate).toHaveBeenCalledWith(member.id, { role: MemberRole.ADMIN });
+      expect(membersService.adminUpdate).toHaveBeenCalledWith(member.id, {
+        role: MemberRole.ADMIN,
+      });
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'member.role_change' }),
       );

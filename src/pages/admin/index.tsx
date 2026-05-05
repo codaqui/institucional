@@ -26,8 +26,10 @@ import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import PaymentIcon from "@mui/icons-material/Payment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import ModalConfirm from "../../components/ModalConfirm";
 import { useAuth } from "../../hooks/useAuth";
+import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 
 type Role = "membro" | "finance-analyzer" | "admin";
 
@@ -74,11 +76,21 @@ export default function AdminPage(): React.JSX.Element {
   // Confirmação de toggle ativo/inativo
   const [activeTarget, setActiveTarget] = useState<Member | null>(null);
 
-  const fetchMembers = useCallback(() => {
-    authFetch(`${apiUrl}/admin/members`)
-      .then((r) => r.json())
-      .then((data) => { setMembers(Array.isArray(data) ? data : []); setLoading(false); })
-      .catch(() => { setError("Não foi possível carregar os membros."); setLoading(false); });
+  const fetchMembers = useCallback(async () => {
+    try {
+      const res = await authFetch(`${apiUrl}/admin/members`);
+      const data = await parseAuthJson<Member[]>(res, setError);
+      if (!data) {
+        setLoading(false);
+        return;
+      }
+      setMembers(data);
+      setError("");
+    } catch {
+      setError("Não foi possível carregar os membros.");
+    } finally {
+      setLoading(false);
+    }
   }, [apiUrl, authFetch]);
 
   useEffect(() => {
@@ -99,8 +111,7 @@ export default function AdminPage(): React.JSX.Element {
         body: JSON.stringify({ role: roleTarget.nextRole }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao alterar role.");
+        setActionError(await extractErrorMessage(res, "Erro ao alterar role."));
         return;
       }
       setRoleTarget(null);
@@ -122,8 +133,7 @@ export default function AdminPage(): React.JSX.Element {
         body: JSON.stringify({ isActive: !activeTarget.isActive }),
       });
       if (!res.ok) {
-        const data = await res.json();
-        setActionError(data.message ?? "Erro ao alterar status.");
+        setActionError(await extractErrorMessage(res, "Erro ao alterar status."));
         return;
       }
       setActiveTarget(null);
@@ -179,6 +189,9 @@ export default function AdminPage(): React.JSX.Element {
             </Button>
             <Button variant="outlined" size="small" startIcon={<PaymentIcon />} href="/admin/pagamentos">
               Pagamentos
+            </Button>
+            <Button variant="outlined" size="small" startIcon={<CallReceivedIcon />} href="/admin/recebimentos">
+              Recebimentos
             </Button>
           </Box>
         </Box>

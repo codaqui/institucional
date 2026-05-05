@@ -136,7 +136,7 @@ export const communities: Community[] = [
       "Projeto que une tecnologia e responsabilidade social, promovendo o acesso à educação digital para comunidades carentes da região de Maringá.",
     location: "Maringá, PR",
     links: [
-      { type: "website", label: "tisocial.org.br", url: "https://tisocial.org.br" },
+      { type: "website", label: "Página da comunidade", url: "/comunidades/tisocial" },
       { type: "instagram", label: "@tisocialmaringa", url: "https://www.instagram.com/tisocialmaringa" }
     ],
     socialProfiles: [

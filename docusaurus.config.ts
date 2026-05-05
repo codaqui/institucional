@@ -1,11 +1,12 @@
 import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
+import { COMMUNITIES_CONFIG } from "./comunidades";
 
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
 const socialCardImage = "img/header.png";
-const socialCardAlt = "Codaqui - Democratizando o ensino de tecnologia para jovens";
+const socialCardAlt = "Codaqui - Uma comunidade de comunidades de tecnologia.";
 const normalizedBaseUrl = requestedBaseUrl.startsWith("/")
   ? requestedBaseUrl
   : `/${requestedBaseUrl}`;
@@ -67,7 +68,7 @@ const classicPresetOptions: Preset.Options = {
     tagsBasePath: "category",
     postsPerPage: 9,
     blogDescription:
-      "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — democratizando o ensino de tecnologia.",
+      "Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — Uma comunidade de comunidades de tecnologia.",
     feedOptions: {
       type: "all",
       title: "Blog da Codaqui",
@@ -91,7 +92,7 @@ const classicPresetOptions: Preset.Options = {
 
 const config: Config = {
   title: "CODAQUI.dev",
-  tagline: "Democratizando o ensino tecnológico para jovens",
+  tagline: "Uma comunidade de comunidades de tecnologia",
   favicon: "img/favicon.png",
 
   url: siteUrl,
@@ -144,6 +145,63 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    /**
+     * Comunidades parceiras — auto-discovery
+     *
+     * Para cada `community.config.ts` listado em `comunidades/index.ts`,
+     * geramos automaticamente:
+     *   - 1 instância de plugin-content-docs em /comunidades/<slug>/docs
+     *   - 1 instância de plugin-content-blog em /comunidades/<slug>/blog
+     *
+     * Para adicionar uma comunidade nova: edite `comunidades/index.ts`
+     * (1 import + 1 entry), crie a pasta `comunidades/<slug>/` e os arquivos
+     * de conteúdo. Os plugins entram no build automaticamente.
+     */
+    ...COMMUNITIES_CONFIG.flatMap((community) => {
+      const entries: Config["plugins"] = [];
+      if (community.features.docs) {
+        entries.push([
+          "@docusaurus/plugin-content-docs",
+          {
+            id: `community-${community.slug}-docs`,
+            path: `comunidades/${community.slug}/docs`,
+            routeBasePath: `comunidades/${community.slug}/docs`,
+            sidebarPath: false,
+            breadcrumbs: true,
+            editUrl: ({ docPath }: { docPath: string }) =>
+              `https://github.com/codaqui/institucional/edit/develop/comunidades/${community.slug}/docs/${docPath}`,
+          },
+        ]);
+      }
+      if (community.features.blog) {
+        entries.push([
+          "@docusaurus/plugin-content-blog",
+          {
+            id: `community-${community.slug}-blog`,
+            path: `comunidades/${community.slug}/blog`,
+            routeBasePath: `comunidades/${community.slug}/blog`,
+            blogTitle: `${community.shortName} — Blog`,
+            blogDescription: `Histórias, prestações de contas e novidades da comunidade ${community.name}.`,
+            blogSidebarTitle: "Posts recentes",
+            blogSidebarCount: 10,
+            showReadingTime: true,
+            onInlineAuthors: "ignore",
+            postsPerPage: 9,
+            feedOptions: {
+              type: "all",
+              title: `${community.shortName} — Blog`,
+              description: `Posts da comunidade ${community.name}`,
+              copyright: `© ${new Date().getFullYear()} ${community.name}`,
+              language: "pt-BR",
+            },
+          },
+        ]);
+      }
+      return entries;
+    }),
+  ],
+
   themeConfig: {
     image: socialCardImage,
     metadata: [
@@ -157,7 +215,7 @@ const config: Config = {
     navbar: {
       title: "",
       logo: {
-        alt: "Codaqui — Democratizando o ensino de tecnologia",
+        alt: "Codaqui — Uma comunidade de comunidades de tecnologia",
         src: "img/logo_principal.svg",
         srcDark: "img/logo_monocromatica.svg",
         width: 122,

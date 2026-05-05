@@ -1,3 +1,19 @@
+<!-- AGENT-INDEX
+purpose: High-level overview of the codaqui/institucional monorepo.
+audience: New contributors, casual readers, AI agents
+sections:
+  - Sobre o Repositório (monorepo: frontend + backend)
+  - Como Contribuir (links to DEVELOPMENT.md sections)
+  - Espaços de Discussão (Discord, WhatsApp, GitHub)
+  - Previews de Branch (gh-pages preview URLs)
+  - Fluxo de Contribuição (mermaid)
+related-docs:
+  - AGENTS.md — main guide for AI agents (rules, patterns, anti-patterns)
+  - DEVELOPMENT.md — setup, env, deploy
+  - backend/README.md — backend-specific
+agent-protocol: README is intentionally short. For implementation details, go to AGENTS.md or DEVELOPMENT.md.
+-->
+
 # CODAQUI
 
 ![Imagem do Header](images/header.png)

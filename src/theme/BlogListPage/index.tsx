@@ -28,6 +28,7 @@ import BlogListPageStructuredData from "@theme/BlogListPage/StructuredData";
 import SearchMetadata from "@theme/SearchMetadata";
 import PageHero from "@site/src/components/PageHero";
 import { DISCORD_URL, GITHUB_ORG } from "@site/src/data/social";
+import { resolveCommunityFromPath } from "@site/src/lib/community-context";
 
 const CATEGORIES = [
   { label: "Todos os posts", href: "/blog" },
@@ -57,11 +58,114 @@ function BlogListPageContent(props: Props): ReactNode {
   const { metadata, items, sidebar } = props;
   const currentPageCount = items.length;
   const hasSidebar = Boolean(sidebar?.items.length);
+  const community = resolveCommunityFromPath(metadata.permalink);
   const metrics = [
     `${metadata.totalCount} publicações`,
     `${currentPageCount} nesta página`,
     `${metadata.totalPages} páginas de conteúdo`,
   ];
+
+  if (community) {
+    return (
+      <Layout>
+        <PageHero
+          eyebrow={`Blog da ${community.shortName}`}
+          title={`Blog da ${community.shortName}`}
+          subtitle={`Histórias, prestações de contas e novidades da comunidade ${community.name}.`}
+        >
+          <Stack
+            direction="row"
+            spacing={1}
+            justifyContent="center"
+            flexWrap="wrap"
+            useFlexGap
+            sx={{ mb: 3 }}
+          >
+            {metrics.map((metric) => (
+              <Chip
+                key={metric}
+                label={metric}
+                sx={{
+                  bgcolor: "rgba(255,255,255,0.18)",
+                  color: "common.white",
+                  fontWeight: 700,
+                }}
+              />
+            ))}
+          </Stack>
+          <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
+            <Button
+              variant="contained"
+              size="large"
+              href="#posts"
+              startIcon={<AutoStoriesRoundedIcon />}
+              sx={{
+                bgcolor: "common.white",
+                color: "primary.dark",
+                fontWeight: 700,
+                "&:hover": { bgcolor: "grey.100" },
+              }}
+            >
+              Explorar publicações
+            </Button>
+            <Button
+              variant="outlined"
+              size="large"
+              href={`${community.basePath}/blog/rss.xml`}
+              startIcon={<RssFeedRoundedIcon />}
+              sx={{
+                color: "common.white",
+                borderColor: "rgba(255,255,255,0.45)",
+                fontWeight: 700,
+                "&:hover": { borderColor: "common.white", bgcolor: "rgba(255,255,255,0.08)" },
+              }}
+            >
+              Assinar RSS
+            </Button>
+          </Stack>
+        </PageHero>
+
+        <div className="container margin-vert--lg">
+          <div className="row">
+            <BlogSidebar sidebar={sidebar} />
+            <main
+              id="posts"
+              className={clsx("col codaqui-blog-list-content", {
+                "col--7": hasSidebar,
+                "col--9 col--offset-1": !hasSidebar,
+              })}
+            >
+              <BlogPostItems items={items} />
+              <BlogListPaginator metadata={metadata} />
+            </main>
+          </div>
+        </div>
+
+        <Box sx={{ py: { xs: 6, md: 8 }, bgcolor: "background.paper" }}>
+          <Container maxWidth="md">
+            <Card variant="outlined">
+              <CardContent sx={{ p: { xs: 3, md: 4 }, textAlign: "center" }}>
+                <Typography variant="h5" fontWeight={800} gutterBottom>
+                  Sobre a {community.shortName}
+                </Typography>
+                <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+                  {community.description}
+                </Typography>
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
+                  <Button variant="contained" href={community.basePath}>
+                    Voltar à home da comunidade
+                  </Button>
+                  <Button variant="outlined" href={`${community.basePath}/apoiar`}>
+                    Apoiar
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Container>
+        </Box>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

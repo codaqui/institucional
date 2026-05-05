@@ -3,7 +3,8 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StripeController } from './stripe.controller';
 import { StripeService } from './stripe.service';
 
-const uuid = (n: number) => `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
+const uuid = (n: number) =>
+  `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
 
 describe('StripeController', () => {
   let controller: StripeController;
@@ -27,7 +28,15 @@ describe('StripeController', () => {
   });
 
   const authedReq = {
-    user: { sub: uuid(5), githubId: '55', handle: 'donor', name: 'Donor', email: 'd@d.com', avatarUrl: '', role: 'membro' },
+    user: {
+      sub: uuid(5),
+      githubId: '55',
+      handle: 'donor',
+      name: 'Donor',
+      email: 'd@d.com',
+      avatarUrl: '',
+      role: 'membro',
+    },
   };
 
   describe('getMyDonations', () => {
@@ -49,7 +58,10 @@ describe('StripeController', () => {
 
   describe('cancelSubscription', () => {
     it('should cancel subscription', async () => {
-      service.cancelSubscription.mockResolvedValue({ cancelAtPeriodEnd: true, currentPeriodEnd: 123 });
+      service.cancelSubscription.mockResolvedValue({
+        cancelAtPeriodEnd: true,
+        currentPeriodEnd: 123,
+      });
       const result = await controller.cancelSubscription('sub_1', authedReq);
       expect(result.cancelAtPeriodEnd).toBe(true);
       expect(service.cancelSubscription).toHaveBeenCalledWith('sub_1', uuid(5));
@@ -59,58 +71,97 @@ describe('StripeController', () => {
   describe('createCheckoutSession', () => {
     it('should throw when amount is missing', async () => {
       await expect(
-        controller.createCheckoutSession({ user: undefined }, { amount: 0, communityId: 'test' }),
+        controller.createCheckoutSession(
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
+          { amount: 0, communityId: 'test' },
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw when communityId is missing', async () => {
       await expect(
-        controller.createCheckoutSession({ user: undefined }, { amount: 1000, communityId: '' }),
+        controller.createCheckoutSession(
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
+          { amount: 1000, communityId: '' },
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw when amount is negative', async () => {
       await expect(
-        controller.createCheckoutSession({ user: undefined }, { amount: -100, communityId: 'test' }),
+        controller.createCheckoutSession(
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
+          { amount: -100, communityId: 'test' },
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw when amount exceeds max (R$ 50.000)', async () => {
       await expect(
-        controller.createCheckoutSession(authedReq, { amount: 5_000_001, communityId: 'test' }),
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          {
+            amount: 5_000_001,
+            communityId: 'test',
+          },
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw UnauthorizedException for anonymous donation > R$100', async () => {
       await expect(
         controller.createCheckoutSession(
-          { user: undefined },
+          { user: undefined, headers: {} },
+          undefined,
+          undefined,
           { amount: 10_001, communityId: 'test' },
         ),
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should allow anonymous donation ≤ R$100', async () => {
-      service.createCheckoutSession.mockResolvedValue({ clientSecret: 'cs_test' });
+      service.createCheckoutSession.mockResolvedValue({
+        clientSecret: 'cs_test',
+      });
 
       const result = await controller.createCheckoutSession(
-        { user: undefined },
+        { user: undefined, headers: {} },
+        undefined,
+        undefined,
         { amount: 10_000, communityId: 'test' },
       );
 
       expect(result).toEqual({ clientSecret: 'cs_test' });
       expect(service.createCheckoutSession).toHaveBeenCalledWith(
-        expect.objectContaining({ memberId: undefined, githubHandle: undefined }),
+        expect.objectContaining({
+          memberId: undefined,
+          githubHandle: undefined,
+        }),
       );
     });
 
     it('should pass memberId for authenticated user', async () => {
-      service.createCheckoutSession.mockResolvedValue({ clientSecret: 'cs_test' });
-
-      await controller.createCheckoutSession(authedReq, {
-        amount: 50_000,
-        communityId: 'devparana',
+      service.createCheckoutSession.mockResolvedValue({
+        clientSecret: 'cs_test',
       });
+
+      await controller.createCheckoutSession(
+        { ...authedReq, headers: {} },
+        undefined,
+        undefined,
+        {
+          amount: 50_000,
+          communityId: 'devparana',
+        },
+      );
 
       expect(service.createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({ memberId: uuid(5), githubHandle: 'donor' }),
@@ -121,7 +172,9 @@ describe('StripeController', () => {
   describe('handleWebhook', () => {
     it('should throw when signature header is missing', async () => {
       await expect(
-        controller.handleWebhook(undefined as any, { rawBody: Buffer.from('body') }),
+        controller.handleWebhook(undefined as any, {
+          rawBody: Buffer.from('body'),
+        }),
       ).rejects.toThrow(BadRequestException);
     });
 

@@ -1,0 +1,25 @@
+# Production wrangler config — T.I. Social
+#
+# Deploy: `npm run worker:deploy:tisocial` (from repo root)
+# OR:     `npx wrangler deploy --config workers/tisocial/wrangler.toml`
+#
+# Local dev: `npm run worker:dev:tisocial` (uses wrangler.dev.toml)
+
+name = "tisocial-proxy"
+main = "../shared/index.js"
+compatibility_date = "2024-09-01"
+
+# Production route — requires the domain to have its NS pointing to Cloudflare.
+# Add the route AFTER the zone is "Active" in the Cloudflare dashboard.
+routes = [
+  { pattern = "tisocial.org.br/*", zone_name = "tisocial.org.br" }
+]
+
+[vars]
+STATIC_ORIGIN = "https://codaqui.dev"
+API_ORIGIN = "https://api.codaqui.dev"
+COMMUNITY_PREFIX = "/comunidades/tisocial"
+
+# Observability — enable basic metrics + logs in CF dashboard.
+[observability]
+enabled = true

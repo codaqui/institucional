@@ -61,10 +61,7 @@ export class MembersController {
 
   @Put('members/me')
   @UseGuards(JwtAuthGuard)
-  updateMe(
-    @Req() req: { user: JwtPayload },
-    @Body() body: UpdateMemberDto,
-  ) {
+  updateMe(@Req() req: { user: JwtPayload }, @Body() body: UpdateMemberDto) {
     return this.membersService.updateMeById(req.user.sub, body);
   }
 

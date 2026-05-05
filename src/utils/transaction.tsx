@@ -1,6 +1,9 @@
 import React from "react";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
@@ -79,33 +82,53 @@ export const formatDate = (iso: string) =>
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "other";
+export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "other";
 
 export function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
   if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
+  if (tx.referenceId?.startsWith("vendor-receipt:")) return "vendor-receipt";
   if (tx.referenceId?.startsWith("transfer:")) return "transfer";
-  if (tx.referenceId?.startsWith("cs_")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("doação")) return "donation";
-  if (tx.description?.toLowerCase().startsWith("pagamento a fornecedor")) return "vendor-payment";
-  if (tx.description?.toLowerCase().startsWith("reembolso")) return "reimbursement";
-  if (tx.description?.toLowerCase().startsWith("transfer")) return "transfer";
+  if (tx.referenceId?.startsWith("stripe-fee:")) return "stripe-fee";
+  // re_ = Stripe Refund (estorno de doação)
+  if (tx.referenceId?.startsWith("re_")) return "refund";
+  // cs_ = Stripe Checkout Session (pagamento único legado)
+  // pi_ = Stripe Payment Intent (pagamento único atual + assinaturas)
+  // in_ = Stripe Invoice (renovação de assinatura sem payment_intent)
+  if (
+    tx.referenceId?.startsWith("cs_") ||
+    tx.referenceId?.startsWith("pi_") ||
+    tx.referenceId?.startsWith("in_")
+  )
+    return "donation";
+  const desc = tx.description?.toLowerCase() ?? "";
+  if (desc.startsWith("estorno")) return "refund";
+  if (desc.startsWith("taxa stripe")) return "stripe-fee";
+  if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
+  if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
+  if (desc.startsWith("recebimento de fornecedor")) return "vendor-receipt";
+  if (desc.startsWith("reembolso")) return "reimbursement";
+  if (desc.startsWith("transfer")) return "transfer";
   return "other";
 }
 
 export const TX_TYPE_CONFIG: Record<
   TxType,
-  { label: string; color: "success" | "warning" | "info" | "default" | "secondary"; icon: React.ReactElement }
+  { label: string; color: "success" | "warning" | "info" | "default" | "secondary" | "error"; icon: React.ReactElement }
 > = {
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
   "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
+  "vendor-receipt": { label: "Recebimento de Fornecedor", color: "success", icon: <CallReceivedIcon fontSize="small" /> },
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
+  refund: { label: "Estorno de Doação", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
+  "stripe-fee": { label: "Taxa Stripe", color: "warning", icon: <MoneyOffIcon fontSize="small" /> },
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
 };
 
 export const extractDonorHandle = (description: string) => {
-  const match = /Doação de (@[\w.-]+)/.exec(description);
+  // Matches both "Doação de @handle" and "Assinatura mensal/anual de @handle"
+  const match = /(?:Doação|Assinatura\s+\w+)\s+de\s+(@[\w.-]+)/.exec(description);
   return match?.[1] || null;
 };
 
@@ -121,7 +144,10 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   const isSubscription = tx.description?.toLowerCase().includes("assinatura");
   const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
   const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
-  const isTestMode = tx.description?.includes("cs_test_") || tx.referenceId?.startsWith("pi_test_");
+  const isTestMode =
+    tx.description?.includes("cs_test_") ||
+    tx.description?.includes("pi_test_") ||
+    tx.referenceId?.startsWith("pi_test_");
   const stripeModePath = isTestMode ? "test/" : "";
   const stripeDashboardUrl = paymentIntentId
     ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
@@ -132,8 +158,26 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
     ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
     : null;
 
+  // Stripe fee parsing — referenceId: "stripe-fee:txn_xxx"
+  // description: "Taxa Stripe — Charge ch_xxx (referente a pi_xxx)"
+  let stripeFeeBalanceTransactionId: string | null = null;
+  let stripeFeeChargeId: string | null = null;
+  let stripeFeeOriginalPaymentIntentId: string | null = null;
+  let stripeFeeOriginalDashboardUrl: string | null = null;
+  if (type === "stripe-fee") {
+    stripeFeeBalanceTransactionId = tx.referenceId?.replace(/^stripe-fee:/, "") ?? null;
+    stripeFeeChargeId = /Charge\s+(ch_[A-Za-z0-9_]+)/.exec(tx.description)?.[1] ?? null;
+    stripeFeeOriginalPaymentIntentId =
+      /referente a\s+(pi_[A-Za-z0-9_]+)/.exec(tx.description)?.[1] ?? null;
+    if (stripeFeeOriginalPaymentIntentId) {
+      stripeFeeOriginalDashboardUrl = `https://dashboard.stripe.com/${stripeModePath}payments/${stripeFeeOriginalPaymentIntentId}`;
+    }
+  }
+
   return {
     type, config, isCredit, donorHandle, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
+    stripeFeeBalanceTransactionId, stripeFeeChargeId,
+    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,
   };
 }

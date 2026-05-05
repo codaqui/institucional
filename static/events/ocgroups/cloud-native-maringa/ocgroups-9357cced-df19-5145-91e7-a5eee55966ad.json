@@ -1,0 +1,51 @@
+{
+  "generatedAt": "2026-05-05T01:31:35.164Z",
+  "source": {
+    "source": "ocgroups",
+    "sourceId": "cloud-native-maringa",
+    "type": "ocgroups",
+    "label": "Cloud Native Maringá",
+    "emoji": "☁️",
+    "description": "Eventos do chapter oficial CNCF em Maringá — Kubernetes, containers, cloud-native e SRE.",
+    "ctaLabel": "Ver no CNCF Open Community Groups",
+    "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-05-05T01:31:35.164Z"
+  },
+  "event": {
+    "id": "ocgroups-9357cced-df19-5145-91e7-a5eee55966ad",
+    "title": "Cloud Native Maringá #1 - Inauguração, Artefatos e DDD",
+    "summary": "Olá comunidade de Maringá! Estamos entusiasmados em lançar o Cloud Native de Maringá, um ambiente dedicado à conexão entre universitários e profissionais da área de tecnologia e inovação. Este evento visa promover o con…",
+    "startAt": "2026-04-25T09:30:00-03:00",
+    "endAt": "2026-04-25T12:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "CNCF Open Community Groups",
+    "host": "Cloud Native Maringá",
+    "location": "UniCV Maringá, Maringá",
+    "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/ac5gv7u",
+    "tags": [
+      "cncf",
+      "cloud-native-maringa",
+      "presencial"
+    ],
+    "ctaLabel": "Ver no CNCF Open Community Groups",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "userCount": 52,
+    "creatorName": "Isadora Marcondes",
+    "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+    "organizers": [
+      {
+        "name": "Isadora Marcondes",
+        "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+        "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+      },
+      {
+        "name": "Enderson Menezes",
+        "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+        "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+      }
+    ]
+  }
+}

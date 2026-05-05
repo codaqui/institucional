@@ -12,63 +12,7 @@
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "defaultHost": "Comunidade Codaqui",
       "defaultLocation": "Servidor da Codaqui no Discord",
-      "defaultPlatform": "Discord",
-      "fallbackEvents": [
-        {
-          "id": "educacao-financeira-aula-1",
-          "title": "Educacao Financeira - Aula 1",
-          "summary": "Primeiro encontro do curso com Valnaire Nascimento, abordando comportamento financeiro e crencas que influenciam decisoes.",
-          "startAt": "2026-04-13T19:30:00-03:00",
-          "timezone": "America/Sao_Paulo",
-          "platform": "Discord",
-          "host": "Valnaire Nascimento",
-          "location": "Servidor da Codaqui no Discord",
-          "href": "/blog/2026/03/30/curso-educacao-financeira",
-          "tags": ["curso", "financas", "discord"],
-          "ctaLabel": "Ver detalhes do curso",
-          "featured": true
-        },
-        {
-          "id": "educacao-financeira-aula-2",
-          "title": "Educacao Financeira - Aula 2",
-          "summary": "Encontro sobre controle de receitas e despesas, metas e orcamento pessoal, sempre com foco em aplicacao pratica.",
-          "startAt": "2026-04-20T19:30:00-03:00",
-          "timezone": "America/Sao_Paulo",
-          "platform": "Discord",
-          "host": "Valnaire Nascimento",
-          "location": "Servidor da Codaqui no Discord",
-          "href": "/blog/2026/03/30/curso-educacao-financeira",
-          "tags": ["curso", "educacao financeira", "discord"],
-          "ctaLabel": "Ver detalhes do curso"
-        },
-        {
-          "id": "educacao-financeira-aula-3",
-          "title": "Educacao Financeira - Aula 3",
-          "summary": "Aula sobre juros, credito e investimentos com consistencia, incluindo orientacao para identificar perfil de investidor.",
-          "startAt": "2026-04-27T19:30:00-03:00",
-          "timezone": "America/Sao_Paulo",
-          "platform": "Discord",
-          "host": "Valnaire Nascimento",
-          "location": "Servidor da Codaqui no Discord",
-          "href": "/blog/2026/03/30/curso-educacao-financeira",
-          "tags": ["investimentos", "curso", "discord"],
-          "ctaLabel": "Ver detalhes do curso"
-        },
-        {
-          "id": "logica-python-aula-1",
-          "title": "Logica de Programacao com Python - Aula 1",
-          "summary": "Primeiro encontro do curso introdutorio de Python com Paulinea, voltado para quem esta comecando em programacao.",
-          "startAt": "2026-04-20T20:30:00-03:00",
-          "timezone": "America/Sao_Paulo",
-          "platform": "Discord",
-          "host": "Paulinea",
-          "location": "Servidor da Codaqui no Discord",
-          "href": "/blog/2026/03/30/curso-introducao-python",
-          "tags": ["python", "iniciantes", "discord"],
-          "ctaLabel": "Ver detalhes do curso",
-          "featured": true
-        }
-      ]
+      "defaultPlatform": "Discord"
     },
     {
       "source": "meetup",
@@ -86,17 +30,17 @@
       "fallbackEvents": []
     },
     {
-      "source": "bevy",
+      "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
-      "chapterId": 749,
+      "groupId": "sq5vsqs",
       "label": "Cloud Native Maringá",
       "emoji": "☁️",
       "description": "Eventos do chapter oficial CNCF em Maringá — Kubernetes, containers, cloud-native e SRE.",
-      "ctaLabel": "Ver no CNCF Community",
-      "ctaHref": "https://community.cncf.io/cloud-native-maringa/",
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "defaultHost": "Cloud Native Maringá",
       "defaultLocation": "Maringá, PR",
-      "defaultPlatform": "CNCF Community",
+      "defaultPlatform": "CNCF Open Community Groups",
       "timezone": "America/Sao_Paulo",
       "fallbackEvents": []
     }

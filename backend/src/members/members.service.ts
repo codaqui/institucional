@@ -298,9 +298,7 @@ export class MembersService {
    * Lista doações públicas de um membro específico.
    * Retorna comunidade destino, valor, data e tipo.
    */
-  async findMemberDonations(
-    memberId: string,
-  ): Promise<
+  async findMemberDonations(memberId: string): Promise<
     Array<{
       id: string;
       amount: number;
@@ -321,8 +319,10 @@ export class MembersService {
 
     return rows.map((tx) => {
       let type = 'Doação única';
-      if (tx.description.includes('Assinatura mensal')) type = 'Assinatura mensal';
-      else if (tx.description.includes('Assinatura anual')) type = 'Assinatura anual';
+      if (tx.description.includes('Assinatura mensal'))
+        type = 'Assinatura mensal';
+      else if (tx.description.includes('Assinatura anual'))
+        type = 'Assinatura anual';
 
       return {
         id: tx.id,

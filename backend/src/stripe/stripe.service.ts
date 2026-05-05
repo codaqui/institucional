@@ -15,6 +15,14 @@ export interface CreateCheckoutDto {
   memberId?: string;
   githubHandle?: string;
   email?: string;
+  /** Origem (scheme://host) já validada pelo controller; usada para montar return_url/cancel_url. */
+  originUrl?: string;
+  /**
+   * Caminho relativo (ex: `/comunidades/tisocial/apoiar`) onde o Stripe
+   * redireciona o usuário. Default: `/participe/apoiar`. Importante para
+   * deploys whitelabel — preserva o contexto da comunidade no retorno.
+   */
+  returnPath?: string;
   /** 'embedded_page' renderiza na página; 'hosted' redireciona para Stripe (legado) */
   uiMode?: CheckoutUiMode;
   /** Se definido, cria uma assinatura recorrente */
@@ -32,6 +40,53 @@ export class StripeService {
     private readonly txRepo: Repository<Transaction>,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
+  }
+
+  /**
+   * Sanitiza returnPath: tem que ser caminho relativo começando em `/` e
+   * não pode ser protocol-relative (`//host`) — evita open redirect.
+   */
+  private sanitizeReturnPath(returnPath: string | undefined): string {
+    if (!returnPath) return '/participe/apoiar';
+    if (!returnPath.startsWith('/')) return '/participe/apoiar';
+    if (returnPath.startsWith('//')) return '/participe/apoiar';
+    return returnPath;
+  }
+
+  private buildLineItem(
+    amountCents: number,
+    productName: string,
+    productDescription: string,
+    isSubscription: boolean,
+    recurring: CreateCheckoutDto['recurring'],
+  ): Stripe.Checkout.SessionCreateParams.LineItem {
+    return {
+      quantity: 1,
+      price_data: {
+        currency: 'brl',
+        product_data: { name: productName, description: productDescription },
+        unit_amount: amountCents,
+        ...(isSubscription &&
+          recurring && {
+            recurring: { interval: recurring.interval },
+          }),
+      },
+    };
+  }
+
+  private buildCheckoutMetadata(
+    dto: CreateCheckoutDto,
+    isSubscription: boolean,
+  ): Record<string, string> {
+    const { amountCents, communityId, memberId, githubHandle, recurring } = dto;
+    return {
+      communityId,
+      amountCents: String(amountCents),
+      isSubscription: String(isSubscription),
+      ...(recurring && { interval: recurring.interval }),
+      ...(memberId && { memberId }),
+      ...(githubHandle && { githubHandle }),
+    };
   }
 
   /**
@@ -58,14 +113,18 @@ export class StripeService {
       uiMode = 'embedded_page',
       recurring,
       email,
+      originUrl,
+      returnPath,
     } = dto;
 
     if (amountCents <= 0)
       throw new BadRequestException('Amount must be positive');
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const returnUrl = `${frontendUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${frontendUrl}/participe/apoiar?status=cancelled`;
+    const baseUrl =
+      originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const safePath = this.sanitizeReturnPath(returnPath);
+    const returnUrl = `${baseUrl}${safePath}?status=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${baseUrl}${safePath}?status=cancelled`;
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
@@ -81,26 +140,15 @@ export class StripeService {
       ? `${typeDescription} de ${displayName} via Portal Codaqui`
       : 'Doação anônima via Portal Codaqui';
 
-    const lineItem: Stripe.Checkout.SessionCreateParams.LineItem = {
-      quantity: 1,
-      price_data: {
-        currency: 'brl',
-        product_data: { name: productName, description: productDescription },
-        unit_amount: amountCents,
-        ...(isSubscription && {
-          recurring: { interval: recurring.interval },
-        }),
-      },
-    };
+    const lineItem = this.buildLineItem(
+      amountCents,
+      productName,
+      productDescription,
+      isSubscription,
+      recurring,
+    );
 
-    const metadata: Record<string, string> = {
-      communityId,
-      amountCents: String(amountCents),
-      isSubscription: String(isSubscription),
-      ...(recurring && { interval: recurring.interval }),
-      ...(memberId && { memberId }),
-      ...(githubHandle && { githubHandle }),
-    };
+    const metadata = this.buildCheckoutMetadata(dto, isSubscription);
 
     const sessionParams = {
       line_items: [lineItem],
@@ -159,6 +207,13 @@ export class StripeService {
         break;
       case 'invoice.payment_succeeded':
         await this.handleInvoicePaymentSucceeded(event.data.object);
+        break;
+      case 'charge.refunded':
+        await this.handleChargeRefunded(event.data.object);
+        break;
+      case 'charge.succeeded':
+      case 'charge.updated':
+        await this.handleChargeFinalized(event.data.object);
         break;
       case 'customer.subscription.deleted':
         this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
@@ -222,6 +277,10 @@ export class StripeService {
         isSubscription,
         interval: session.metadata?.interval as CheckoutInterval | undefined,
       });
+      // Captura inline da taxa Stripe (resolve race com charge.succeeded)
+      if (typeof session.payment_intent === 'string') {
+        await this.captureFeeFromPaymentIntent(session.payment_intent);
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -273,10 +332,270 @@ export class StripeService {
           | CheckoutInterval
           | undefined,
       });
+      // Captura inline da taxa Stripe (resolve race com charge.succeeded)
+      if (paymentIntentId.startsWith('pi_')) {
+        await this.captureFeeFromPaymentIntent(paymentIntentId);
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
       this.logger.error(`Falha ao registrar renovação no Ledger: ${message}`);
+    }
+  }
+
+  /**
+   * charge.refunded — disparado quando um reembolso (parcial ou total) é
+   * processado no Stripe. Cria uma transação reversa no ledger (débito da
+   * comunidade → crédito da conta externa Stripe), preservando histórico e
+   * partidas dobradas. Não modifica nem deleta a doação original.
+   *
+   * Idempotência: usa o `refund.id` (re_xxx) como referenceId. Reembolsos
+   * múltiplos no mesmo charge geram transações distintas (cada refund tem id único).
+   */
+  private async handleChargeRefunded(charge: Stripe.Charge) {
+    const refunds = charge.refunds?.data ?? [];
+    if (refunds.length === 0) {
+      this.logger.warn(
+        `charge.refunded sem refunds[]: ${charge.id} — ignorando`,
+      );
+      return;
+    }
+
+    // Localiza tx original pelo payment_intent (referenceId padrão das doações)
+    const paymentIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+
+    if (!paymentIntentId) {
+      this.logger.warn(
+        `charge.refunded sem payment_intent: ${charge.id} — não é possível localizar doação original`,
+      );
+      return;
+    }
+
+    const originalTx = await this.txRepo.findOne({
+      where: { referenceId: paymentIntentId },
+      relations: ['sourceAccount', 'destinationAccount'],
+    });
+
+    if (!originalTx) {
+      this.logger.warn(
+        `charge.refunded: doação original não encontrada para ${paymentIntentId} — ignorando`,
+      );
+      return;
+    }
+
+    for (const refund of refunds) {
+      // Idempotência: ignora se este refund já foi registrado
+      const existing = await this.txRepo.findOneBy({ referenceId: refund.id });
+      if (existing) {
+        this.logger.debug(
+          `Webhook idempotente: refund ${refund.id} já registrado, ignorando.`,
+        );
+        continue;
+      }
+
+      const amountReais = (refund.amount ?? 0) / 100;
+      if (amountReais <= 0) {
+        this.logger.warn(`Refund ${refund.id} com valor inválido — ignorando`);
+        continue;
+      }
+
+      // Reversa: source = destino original (comunidade), destino = origem original (stripe_income)
+      const description = `Estorno de doação — Refund ${refund.id} (referente a ${paymentIntentId})`;
+
+      try {
+        await this.ledgerService.recordTransaction(
+          originalTx.destinationAccount.id,
+          originalTx.sourceAccount.id,
+          amountReais,
+          description,
+          refund.id,
+        );
+        this.logger.log(
+          `↩️  Estorno R$ ${amountReais.toFixed(2)} ← ${originalTx.destinationAccount.name} | refund: ${refund.id}`,
+        );
+      } catch (error: unknown) {
+        const message =
+          error instanceof Error ? error.message : 'Erro desconhecido';
+        this.logger.error(
+          `Falha ao registrar estorno ${refund.id}: ${message}`,
+        );
+      }
+    }
+  }
+
+  /**
+   * charge.succeeded / charge.updated — fallback para registrar a taxa Stripe
+   * caso a captura inline (em handleCheckoutCompleted / handleInvoicePaymentSucceeded)
+   * tenha falhado (ex: BT ainda não pronto naquele instante).
+   *
+   * Idempotência: `stripe-fee:<txn_id>` garante que múltiplas execuções não dupliquem.
+   */
+  private async handleChargeFinalized(charge: Stripe.Charge) {
+    const btId =
+      typeof charge.balance_transaction === 'string'
+        ? charge.balance_transaction
+        : charge.balance_transaction?.id;
+
+    if (!btId) {
+      this.logger.debug(
+        `charge ${charge.id} sem balance_transaction (ainda pendente) — ignorando`,
+      );
+      return;
+    }
+
+    // Idempotency check ANTES do retrieve (economiza API call em duplicatas)
+    const feeReferenceId = `stripe-fee:${btId}`;
+    const existingFee = await this.txRepo.findOneBy({
+      referenceId: feeReferenceId,
+    });
+    if (existingFee) {
+      this.logger.debug(
+        `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
+    const paymentIntentId =
+      typeof charge.payment_intent === 'string'
+        ? charge.payment_intent
+        : charge.payment_intent?.id;
+
+    if (!paymentIntentId) {
+      this.logger.warn(
+        `charge ${charge.id} sem payment_intent — não é possível localizar doação`,
+      );
+      return;
+    }
+
+    let bt: Stripe.BalanceTransaction;
+    try {
+      bt = await this.stripe.balanceTransactions.retrieve(btId);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Falha ao recuperar BalanceTransaction ${btId}: ${message}`,
+      );
+      return;
+    }
+
+    await this.recordStripeFee(charge.id, paymentIntentId, bt);
+  }
+
+  /**
+   * Captura inline a taxa Stripe a partir de um payment_intent ID.
+   * Faz retrieve do PI com expand do latest_charge e seu balance_transaction.
+   * Best-effort: se BT ainda não estiver pronto, loga e ignora — o
+   * handler `charge.succeeded`/`charge.updated` cuidará como fallback.
+   */
+  private async captureFeeFromPaymentIntent(paymentIntentId: string) {
+    let pi: Stripe.PaymentIntent;
+    try {
+      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {
+        expand: ['latest_charge.balance_transaction'],
+      });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.warn(
+        `captureFee: falha ao recuperar PI ${paymentIntentId}: ${message}`,
+      );
+      return;
+    }
+
+    const latestCharge = pi.latest_charge as Stripe.Charge | string | null;
+    if (!latestCharge || typeof latestCharge === 'string') {
+      this.logger.debug(
+        `captureFee: PI ${paymentIntentId} sem latest_charge expandido — fallback aguardando charge.succeeded`,
+      );
+      return;
+    }
+
+    const bt = latestCharge.balance_transaction as
+      | Stripe.BalanceTransaction
+      | string
+      | null;
+    if (!bt || typeof bt === 'string') {
+      this.logger.debug(
+        `captureFee: charge ${latestCharge.id} sem balance_transaction expandido — fallback aguardando charge.succeeded`,
+      );
+      return;
+    }
+
+    await this.recordStripeFee(latestCharge.id, paymentIntentId, bt);
+  }
+
+  /**
+   * Core idempotente do registro da taxa no ledger.
+   * Idempotência: `stripe-fee:<txn_id>`.
+   */
+  private async recordStripeFee(
+    chargeId: string,
+    paymentIntentId: string,
+    bt: Stripe.BalanceTransaction,
+  ) {
+    const feeReferenceId = `stripe-fee:${bt.id}`;
+    const existingFee = await this.txRepo.findOneBy({
+      referenceId: feeReferenceId,
+    });
+    if (existingFee) {
+      this.logger.debug(
+        `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
+    const originalTx = await this.txRepo.findOne({
+      where: { referenceId: paymentIntentId },
+      relations: ['sourceAccount', 'destinationAccount'],
+    });
+
+    if (!originalTx) {
+      this.logger.warn(
+        `recordStripeFee: doação original não encontrada para ${paymentIntentId} (charge ${chargeId}) — ignorando taxa`,
+      );
+      return;
+    }
+
+    const feeCents = bt.fee ?? 0;
+    if (feeCents <= 0) {
+      this.logger.debug(
+        `recordStripeFee: charge ${chargeId} sem taxa (fee=${feeCents}) — ignorando`,
+      );
+      return;
+    }
+
+    const feeReais = feeCents / 100;
+
+    const stripeFeesAccount =
+      await this.ledgerService.getOrCreateCommunityAccount(
+        'stripe_fees',
+        'Stripe Fees (External)',
+        AccountType.EXTERNAL,
+      );
+
+    const description = `Taxa Stripe — Charge ${chargeId} (referente a ${paymentIntentId})`;
+
+    try {
+      await this.ledgerService.recordTransaction(
+        originalTx.destinationAccount.id,
+        stripeFeesAccount.id,
+        feeReais,
+        description,
+        feeReferenceId,
+      );
+      this.logger.log(
+        `💸 Taxa Stripe R$ ${feeReais.toFixed(2)} ← ${originalTx.destinationAccount.name} | bt: ${bt.id} | pi: ${paymentIntentId}`,
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Falha ao registrar taxa Stripe ${feeReferenceId}: ${message}`,
+      );
     }
   }
 
@@ -415,7 +734,11 @@ export class StripeService {
   > {
     // Sanitize UUID to prevent Stripe Search API injection
     const safeMemberId = memberId.replaceAll(/[^a-f0-9-]/gi, '');
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(safeMemberId)) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        safeMemberId,
+      )
+    ) {
       throw new BadRequestException('ID de membro inválido.');
     }
 

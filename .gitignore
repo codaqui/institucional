@@ -45,6 +45,7 @@ temp/
 *.backup
 *.orig
 *.tmp
+pg_dump
 
 # ─────────────────────────────────────────────────────
 # Docker / Podman
@@ -113,3 +114,6 @@ site/
 mkdocs-material/
 venv/
 sql-commands
+
+# Cloudflare Workers local state
+workers/**/.wrangler/

@@ -1,4 +1,12 @@
-import { IsString, IsInt, IsOptional, IsUUID, MaxLength, Min } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsOptional,
+  IsUUID,
+  IsIn,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class CreateTemplateDto {
   @IsString()
@@ -17,6 +25,11 @@ export class CreateTemplateDto {
 
   @IsString()
   description: string;
+
+  /** 'payment' (default) ou 'receipt'. Define a direção do template. */
+  @IsOptional()
+  @IsIn(['payment', 'receipt'])
+  direction?: 'payment' | 'receipt';
 }
 
 export class UpdateTemplateDto {
@@ -41,4 +54,8 @@ export class UpdateTemplateDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsIn(['payment', 'receipt'])
+  direction?: 'payment' | 'receipt';
 }

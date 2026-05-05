@@ -33,8 +33,7 @@ export class StorageService {
       }
       const isTrusted = this.trustedHostnames.some(
         (domain) =>
-          parsed.hostname === domain ||
-          parsed.hostname.endsWith(`.${domain}`),
+          parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`),
       );
       if (!isTrusted) {
         throw new Error(

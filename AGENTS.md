@@ -1,6 +1,48 @@
+<!-- AGENT-INDEX
+purpose: Master guide for AI agents and contributors working on this monorepo.
+audience: AI agents, maintainers
+read-first: true
+sections:
+  - Tech Stack (frontend + backend)
+  - Directory Structure (full tree, monorepo layout)
+  - Commands (typecheck/build — references DEVELOPMENT.md for setup)
+  - Critical Architecture Decisions (1.MUI v7 Grid · 2.Dark Mode SSR · 3.Data Layer · 4.Blog URL · 5.Trilhas · 6.Giscus · 7.Events · 8.Legacy Redirects · 9.Backend Financial Modules)
+  - MUI Theme & Component/Page patterns
+  - Common Anti-Patterns
+  - Git Workflow & SonarCloud (PR review)
+  - PR Checklist
+  - File Naming Conventions
+  - About Codaqui (branding, communities, social)
+  - Insights & Social Stats (sync workflow + manual baselines)
+related-docs:
+  - DEVELOPMENT.md — setup, env vars, migrations, deploy
+  - README.md — repo overview (high level)
+  - CLUB_PLAN.md — Clube Codaqui SortCoins plan
+  - EVENT_PLAN.md — events override plan
+agent-protocol:
+  - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
+  - Each .md in this repo has its own AGENT-INDEX header. Trust it as the doc's TLDR.
+-->
+
 # AGENTS.md — Codaqui Institutional Site
 
 > Instructions for AI agents, contributors, and maintainers.
+
+## 📑 Document index protocol (read first)
+
+Every `.md` in this repo (and in `backend/`) starts with an `<!-- AGENT-INDEX -->` HTML comment block. **Always read it before searching the body of the file** — it's a TLDR with:
+
+- `purpose`, `audience`, `status` (when applicable)
+- `sections` — high-level outline so you can jump to the right part
+- `related-docs` — cross-references to avoid duplication
+- `agent-protocol` — explicit hints for AI agents
+
+Use this protocol to save tokens: read the header, then `view_range` only the section you need. Do **not** dump the full file unless the header tells you everything is essential.
+
+When creating new `.md` files in this repo, **always include an `<!-- AGENT-INDEX -->` header at the top** following the same shape (see `AGENTS.md`, `DEVELOPMENT.md`, `README.md` as templates).
+
+---
+
 
 ## Tech Stack
 
@@ -24,13 +66,19 @@
 
 | Layer | Technology |
 |-------|-----------|
-| **Framework** | NestJS (TypeScript) |
-| **ORM** | TypeORM + PostgreSQL 15 |
-| **Autenticação** | Keycloak 22 (via `KC_DB` postgres) |
-| **Storage** | MinIO (S3-compatible) |
-| **Pagamentos** | Stripe (Checkout Sessions + Webhooks) |
-| **Reverse Proxy** | Traefik v2.10 |
-| **Container** | Podman Compose |
+| **Framework** | NestJS 11 (`@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`) |
+| **Language** | TypeScript 5.7 |
+| **ORM** | TypeORM 0.3.28 + `@nestjs/typeorm` 11 |
+| **Database** | PostgreSQL 18 (`postgres:18-alpine`) |
+| **Autenticação** | GitHub OAuth + JWT (Passport.js — `passport-github2` + `passport-jwt`, `@nestjs/passport`, `@nestjs/jwt`), httpOnly cookie |
+| **Validação** | `class-validator` 0.14 + `class-transformer` (ValidationPipe global, whitelist + transform) |
+| **Rate Limiting** | `@nestjs/throttler` 6.5 |
+| **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
+| **Storage** | ⚠ **Sem upload pelo backend**: comprovantes/recibos são **links externos** que o time sobe manualmente em serviços confiáveis. O `StorageModule` valida URLs (`POST /storage/validate-receipt-url`) — exige HTTPS e hostname numa allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. **Não há S3/MinIO conectado**; o backend não escreve em disco local nem em bucket. |
+| **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
+| **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
+| **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
+| **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
 
 **Site**: https://codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
 
@@ -38,17 +86,17 @@
 
 ## Commands
 
-> Setup completo, variáveis de ambiente e guia de deploy em [DEVELOPMENT.md](./DEVELOPMENT.md).
+> Setup completo, variáveis de ambiente, migrations e guia de deploy: **[DEVELOPMENT.md](./DEVELOPMENT.md)**. Não duplique aqui.
 
-Comandos que agentes devem rodar antes de submeter mudanças:
+Antes de submeter mudanças, rode:
 
 ```bash
-# Frontend — verificar antes de qualquer PR
+# Frontend (sempre)
 npm run typecheck   # TypeScript (exclui /backend)
 npm run build       # Build completo igual ao CI
 
-# Backend — verificar antes de PR que altere o backend
-cd backend && npm run build
+# Backend (se mexeu em backend/)
+cd backend && npm run build && npx jest --silent
 ```
 
 
@@ -62,16 +110,23 @@ Este repositório é um **monorepo**: o frontend Docusaurus fica na raiz e o bac
 institucional/
 ├── backend/                     # 🖥️ API REST NestJS (NÃO vai para GitHub Pages)
 │   ├── src/
-│   │   ├── ledger/              # Contabilidade dupla partida
+│   │   ├── auth/                # GitHub OAuth + JWT (GithubStrategy + JwtStrategy)
+│   │   ├── members/             # Membros da Codaqui (papéis, autorização)
+│   │   ├── ledger/              # ⭐ Contabilidade dupla partida (núcleo financeiro)
 │   │   │   ├── entities/        # Account, Transaction (TypeORM)
-│   │   │   ├── ledger.controller.ts  # GET /ledger/community-balances, etc.
-│   │   │   └── ledger.service.ts     # getOrCreateCommunityAccount, getCommunityBalances
-│   │   ├── stripe/              # Integração Stripe
-│   │   │   ├── stripe.controller.ts  # POST /stripe/checkout-session, POST /stripe/webhook
-│   │   │   └── stripe.service.ts     # createCheckoutSession, handleWebhookEvent
-│   │   ├── auth/                # Autenticação (Keycloak)
-│   │   ├── expenses/            # Gestão de despesas
-│   │   └── storage/             # Armazenamento MinIO
+│   │   │   ├── ledger.controller.ts  # GET /ledger/community-balances, /transactions
+│   │   │   └── ledger.service.ts     # recordTransaction, getCommunityBalances
+│   │   ├── stripe/              # Stripe Checkout + webhooks (donations, refunds)
+│   │   ├── expenses/            # Despesas (lançamento direto: ↓ debit pra fora)
+│   │   ├── transfers/           # Transferências entre contas internas
+│   │   ├── reimbursements/      # Reembolsos a membros (request → approve → pay)
+│   │   ├── vendors/             # ⭐ Fornecedores: payments + receipts (bidirecional)
+│   │   │   ├── entities/        # AbstractVendorTransaction (base) + VendorPayment + VendorReceipt + Vendor + TransactionTemplate
+│   │   │   ├── dto/             # Base DTOs reutilizados por payment/receipt
+│   │   │   └── vendors.service.ts  # Helpers genéricos (persistWithLedger c/ factory, resolveByReference, etc.)
+│   │   ├── audit/               # Audit log de ações sensíveis
+│   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
+│   │   └── migrations/          # TypeORM migrations (Migration001..005)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── blog/                        # Blog posts (Markdown/MDX)
 │   ├── authors.yml              # Blog author definitions
@@ -81,12 +136,32 @@ institucional/
 │   └── github/                  # GitHub 101 (index.md + page-1..page-8.md)
 ├── src/
 │   ├── components/              # Shared React components
+│   │   ├── ApiHealthBanner/     # Sinaliza backend offline
 │   │   ├── Badge/
+│   │   ├── CommunityPresenceCard/
+│   │   ├── DiscordServerWidget/
 │   │   ├── GiscusComponent/     # Giscus wrapper (reads config from themeConfig)
+│   │   ├── InfoCard/
 │   │   ├── LessonCard/
+│   │   ├── MembersWall/         # Mural de membros (avatares + papéis)
+│   │   ├── ModalConfirm/        # Modal genérico de confirmação destrutiva
+│   │   ├── NavbarAuth/          # Botão GitHub login no navbar (admin)
+│   │   ├── PageHero.tsx
+│   │   ├── SelectableCard/
+│   │   ├── SiteAnalytics/
+│   │   ├── StatCard/
 │   │   ├── StripeDonateSection/ # ⭐ Formulário de doação por comunidade via Stripe
+│   │   ├── TransactionDetailDialog/ # ⭐ Detalhe rico de qualquer transação do ledger
+│   │   ├── TransactionTable/    # Tabela genérica de histórico (filtro/sort)
 │   │   ├── VideoEmbed/
 │   │   └── index.ts             # Barrel exports
+│   ├── hooks/                   # ⭐ React hooks compartilhados
+│   │   ├── useAuth.ts           # GitHub OAuth + JWT, authFetch (401 → logout)
+│   │   ├── authFetchHelpers.ts  # parseAuthJson<T>, extractErrorMessage
+│   │   └── useSocialStatsSnapshot.ts
+│   ├── utils/
+│   │   ├── transaction.tsx      # ⭐ Tipos + TX_TYPE_CONFIG + deriveTransactionMeta + formatBRL
+│   │   └── document.ts          # formatDocument (CPF/CNPJ)
 │   ├── data/                    # ⭐ Centralized data layer (see below)
 │   │   ├── social.ts            # DISCORD_URL, WHATSAPP_URL, EMAIL, GITHUB_ORG, socialChannels[]
 │   │   ├── team.ts              # diretoria[], membros[], alumni[], mentores[]
@@ -100,6 +175,14 @@ institucional/
 │   │   ├── projetos.tsx         # Projects page
 │   │   ├── transparencia.tsx    # ⭐ Portal de transparência financeira (consome /ledger/community-balances)
 │   │   ├── regex.md             # Regex learning page
+│   │   ├── admin/               # ⭐ Painel administrativo (GitHub OAuth + JWT, role-based)
+│   │   │   ├── index.tsx        # Hub: lista membros + atalhos
+│   │   │   ├── lancamento.tsx   # Lançamento direto de despesa (one-shot)
+│   │   │   ├── transferencias.tsx # Transferências internas
+│   │   │   ├── reembolsos.tsx   # Aprovar/rejeitar/pagar reembolsos
+│   │   │   ├── fornecedores.tsx # CRUD vendors + chips contadores (pagamentos/recebimentos)
+│   │   │   ├── pagamentos.tsx   # Lançar pagamento a fornecedor + histórico
+│   │   │   └── recebimentos.tsx # ⭐ Lançar recebimento de fornecedor + histórico
 │   │   ├── participe/           # Participation pages (TSX)
 │   │   │   ├── apoiar.tsx       # ⭐ Doação (OpenCollective + Stripe por comunidade)
 │   │   │   ├── estudar.tsx
@@ -398,6 +481,11 @@ For Discord sources add `"guildId"` and `"widgetUrl"` instead of Meetup fields.
 - Meetup sources use CSRF token extracted from the public Meetup page — **no API key needed**
 - After sync, commits updated `static/events/` with message `chore: sync event snapshots`
 
+#### Integration details
+
+- **Meetup:** internal GraphQL endpoint `https://www.meetup.com/gql2`, queries `getPastGroupEvents` / `getUpcomingGroupEvents` with cursor pagination. Safe pagination limit: 50 requests per kind (covers 2500+ events).
+- **Discord:** `GET /guilds/<id>/scheduled-events?with_user_count=true` (API v10), requires `GUILD_SCHEDULED_EVENTS` intent on the bot. Falls back to `fallbackEvents` in `events.config.json` if token absent or API fails.
+
 #### Status values (`EventStatus`)
 
 | Value | Meaning |
@@ -438,7 +526,64 @@ export default function RedirectX() {
 
 ---
 
-## MUI Theme
+### 9. Backend Financial Modules (Ledger-centric)
+
+Todo movimento financeiro passa pelo `ledger` (Account + Transaction com double-entry). Os módulos especializados gravam suas próprias entidades (com receipts, status, fluxo de aprovação) **e** registram a transação no ledger via `LedgerService.recordTransaction(source, destination, amount, description, referenceId)`.
+
+#### Convenção de `referenceId`
+
+O `referenceId` da transação no ledger identifica a origem do movimento:
+
+| Módulo | Padrão | Reversal |
+|--------|--------|----------|
+| Stripe donation | `stripe-pi:<paymentIntentId>` | `stripe-refund:<paymentIntentId>:<refundId>` |
+| Reimbursement | `reimbursement:<id>` | `reimbursement-reversal:<id>:<ts>` |
+| Transfer | `transfer:<id>` | — |
+| Vendor payment | `vendor-payment:<id>` | `vendor-payment-reversal:<id>:<ts>` |
+| Vendor receipt | `vendor-receipt:<id>` | `vendor-receipt-reversal:<id>:<ts>` |
+| Expense (lançamento direto) | `expense:<id>` | `expense-reversal:<id>:<ts>` |
+
+> O frontend usa o **prefixo** do `referenceId` (em `src/utils/transaction.tsx`) para classificar a transação (`donation`, `reimbursement`, `vendor-payment`, `vendor-receipt`, `transfer`, `other`) e renderizar o cartão correto.
+
+#### Padrão `persistWithLedger` (vendors module)
+
+Para garantir atomicidade entre o save da entidade especializada e o registro no ledger:
+
+```ts
+const saved = await this.persistWithLedger(repo, entity, (s) => ({
+  sourceAccountId, destinationAccountId, amountBrl,
+  description, referenceId: `<prefix>:${s.id}`,  // ← s.id já existe (UUID gerado pelo PG)
+}));
+```
+
+> ⚠️ **Use a factory `(saved) => ledgerArgs`**, NÃO um objeto literal. O UUID só é gerado depois do save — usar `entity.id` antes resulta em `referenceId: "...:undefined"` (bug latente que quebra o resolver no frontend).
+
+#### Vendors: pagamentos + recebimentos (bidirecional)
+
+A entidade `Vendor` tem uma `Account` interna do tipo `EXTERNAL` que serve como **balanço bidirecional**:
+
+- **Pagamento**: `community → vendor.account` (saldo do vendor sobe = devemos a ele)
+- **Recebimento**: `vendor.account → community` (saldo do vendor desce; pode ficar negativo = ele nos deve)
+
+`VendorPayment` e `VendorReceipt` estendem `AbstractVendorTransaction` (mappedSuperclass TypeORM). Compartilham campos comuns (vendor, amount, description, receipt, internalReceipt, registeredByUserId, occurredAt) e diferem só em qual conta extra-vendor é envolvida (`sourceAccountId` no payment, `destinationAccountId` no receipt).
+
+`TransactionTemplate` tem coluna `direction: 'payment' | 'receipt'` para autocomplete do formulário.
+
+#### Padrão de tela admin
+
+Toda página em `src/pages/admin/*` segue:
+
+1. Guarda `useEffect([isLoggedIn])` que redireciona para `/` se não logado.
+2. `authFetch` do `useAuth` faz `setUser(null)` em 401 → trigger automático do redirect.
+3. Helpers em `src/hooks/authFetchHelpers.ts`:
+   - `parseAuthJson<T>(res, onError)` — para GETs (retorna `null` em erro, não throw).
+   - `extractErrorMessage(res, fallback)` — para POST/PATCH/DELETE.
+4. Estado `loadError` + `<Alert severity="error">` no header da página.
+5. Cards/tabelas usam `<TransactionDetailDialog>` para detalhe rico ao clicar.
+
+---
+
+
 
 Defined in `src/theme/muiTheme.ts`:
 
@@ -529,6 +674,9 @@ export default function MyPage(): React.JSX.Element {
 |----------|-------|
 | `<Grid item xs={12}>` | `<Grid size={{ xs: 12 }}>` (MUI v7) |
 | `useColorMode()` in `Root.tsx` | Read `data-theme` via MutationObserver |
+| `referenceId: \`prefix:${entity.id}\`` antes do `repo.save()` | Use factory `persistWithLedger(repo, e, (s) => ({ referenceId: \`prefix:${s.id}\` }))` |
+| `fetch(...)` direto em página admin | `authFetch` do `useAuth` (trata 401 → logout automático) |
+| Inline `() => {}` silenciando erros de fetch admin | `parseAuthJson<T>` + `setLoadError` + `<Alert>` |
 | Hardcode Discord/WhatsApp URLs | Import from `src/data/social.ts` |
 | Inline team/community arrays in pages | Import from `src/data/*.ts` |
 | `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
@@ -767,108 +915,141 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 
 ## Events System
 
-The `/eventos` page is powered by **static JSON snapshots** generated by a workflow — no hardcoded arrays in page components.
+> Visão completa em **§7. Events System** (acima). Esta seção foi consolidada para evitar duplicação.
 
-### Architecture
+---
 
-```
-static/events/
-├── index.json                          ← UI reads only this (merged, light)
-├── discord/
-│   └── codaqui/
-│       ├── index.json                  ← per-source shard
-│       └── <event_id>.json             ← one file per event (detail + cache)
-└── meetup/
-    └── devparana/
-        ├── index.json
-        └── <event_id>.json
-```
+## Multi-tenant communities (D1 — single Docusaurus)
 
-- The UI fetches **only** `/events/index.json` (aggregated, all sources merged, sorted by `startAt`).
-- Per-source indexes (`/events/<source>/<sourceId>/index.json`) are available for source-specific queries.
-- Per-event files (`/events/<source>/<sourceId>/<id>.json`) hold full detail and serve as immutable cache.
+> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Plano completo em **`MULTISITE_PLAN.md`**. T.I. Social é o piloto.
 
-### Event contract (`EventItem`)
+### Arquitetura — onde vive cada peça
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `id` | `string` | ✅ | Unique within source |
-| `title` | `string` | ✅ | |
-| `summary` | `string` | ✅ | Max ~220 chars, no Markdown |
-| `startAt` | ISO 8601 | ✅ | With timezone offset |
-| `endAt` | ISO 8601 | — | |
-| `timezone` | IANA | ✅ | e.g. `America/Sao_Paulo` |
-| `platform` | `string` | ✅ | e.g. `Discord`, `Meetup` |
-| `host` | `string` | ✅ | Organizer name |
-| `location` | `string` | ✅ | Venue or `Online via Discord` |
-| `href` | `string` | ✅ | Link to event page |
-| `tags` | `string[]` | ✅ | Lowercase slugs |
-| `ctaLabel` | `string` | ✅ | Button label |
-| `status` | `scheduled \| active \| completed \| canceled` | — | |
-| `entityType` | `stage_instance \| voice \| external` | — | Discord-specific |
-| `featured` | `boolean` | — | Highlights in hero |
-| `userCount` | `number` | — | Attendees/interested |
-| `creatorName` | `string` | — | |
-| `imageUrl` | `string` | — | High-res cover |
-| `recurrenceLabel` | `string` | — | Human-readable (Discord only) |
-| `recurrenceRule` | `EventRecurrenceRule` | — | Structured (Discord only) |
+| Item | Caminho | Responsabilidade |
+|------|---------|------------------|
+| **Config da comunidade** | `comunidades/<slug>/community.config.ts` | Branding, slug Stripe, navMenu, features, hero, impact stats |
+| **Páginas** | `src/pages/comunidades/<slug>/*.tsx` | `index.tsx`, `apoiar.tsx`, `transparencia.tsx`, `membro/index.tsx` (TSX, NÃO em `comunidades/`) |
+| **Blog da comunidade** | `comunidades/<slug>/blog/*.mdx` | Plugin `plugin-content-blog` instanciado com `id=community-<slug>-blog` |
+| **Docs da comunidade** | `comunidades/<slug>/docs/*.md` | Plugin `plugin-content-docs` instanciado com `id=community-<slug>-docs` |
+| **Resolver de tenant** | `src/lib/community-context.ts` | `resolveCommunityFromPath(pathname)` mapeia `/comunidades/<slug>/*` → config |
+| **Navbar whitelabel** | `src/theme/Navbar/Content/index.tsx` | Função `buildCommunityItems()` substitui itens do navbar quando dentro de comunidade |
+| **Auth callback whitelabel** | `src/pages/auth/callback.tsx` | Renderiza logo + cor da comunidade durante spinner OAuth |
+| **DonationFlow reusável** | `src/components/DonationFlow/index.tsx` | Aceita `lockedTargetId`, `accentColor`, `accentColorDark`, `authCommunitySlug` |
 
-> TypeScript types live in `src/data/events.ts`. The JSON files follow the same shape.
+### Como criar uma nova comunidade — checklist
 
-### Adding a new event source
+> Onboarding ideal: **criar pasta + adicionar páginas + registrar no resolver**. Sem mexer em backend.
 
-1. Add entry to `events.config.json`:
-   ```json
-   {
-     "source": "meetup",
-     "sourceId": "my-group",
-     "urlname": "my-meetup-group",
-     "locale": "pt-BR",
-     "label": "Nome do Grupo",
-     "emoji": "📍",
-     "description": "Descrição curta da comunidade.",
-     "ctaLabel": "Abrir no Meetup",
-     "ctaHref": "https://www.meetup.com/pt-BR/my-meetup-group/",
-     "defaultHost": "Nome do Grupo",
-     "defaultLocation": "Meetup",
-     "defaultPlatform": "Meetup",
-     "fallbackEvents": []
-   }
+1. **Criar pasta `comunidades/<slug>/`** (kebab-case, exatamente igual ao `metadata.communityId` que vai ser usado no Stripe).
+
+2. **Criar `comunidades/<slug>/community.config.ts`** seguindo a interface `CommunitySiteConfig` (ver `comunidades/tisocial/community.config.ts` como referência viva). Campos obrigatórios:
+   - `slug`, `name`, `shortName`, `tagline`, `description`
+   - `logoUrl` (caminho em `/static/img/...` ou URL absoluta), `logoUrlDark` opcional
+   - `theme.{primary, primaryDark, primaryLight, accent, footerBg}`
+   - `basePath` = `/comunidades/<slug>` (sem barra final)
+   - `navMenu[]` — lista de itens do navbar quando o usuário está dentro da comunidade
+   - `features.{donations, transparency, events, blog, docs}` — controla quais páginas/sections aparecem
+   - `hero.{title, subtitle, ctaPrimary, ctaSecondary?}`
+   - `impact?` — cards de números na home (ex: "+350 animais beneficiados")
+   - `exploreSection?`, `channelsSection?` — texto das seções da home
+
+3. **Criar conteúdo Markdown**:
+   - `comunidades/<slug>/blog/YYYY-MM-DD-slug-do-post.mdx` (use `.mdx` se for usar componentes MUI no post)
+   - `comunidades/<slug>/docs/index.md` (ao menos um placeholder)
+   - Frontmatter padrão Docusaurus (mesmo do blog principal)
+
+4. **Registrar no resolver** em `comunidades/index.ts` — fonte única de verdade:
+   ```typescript
+   import myCommunityConfig from "./<slug>/community.config";
+   export const COMMUNITIES_CONFIG: CommunitySiteConfig[] = [
+     tisocialConfig,
+     myCommunityConfig,  // ← adicionar
+   ];
    ```
-2. Implement `resolve<Source>Events(config, existingEvents)` in `scripts/sync-events.mjs`.
-3. Add a branch in `main()` for the new `source` value.
-4. Run `node scripts/sync-events.mjs` to generate initial snapshots.
-5. Add a community card in `src/pages/eventos.tsx`.
+   `docusaurus.config.ts` lê esse array e **gera os plugins de blog/docs automaticamente** (respeitando `community.features.{blog,docs}`).
 
-### Sync workflow
+5. **Criar páginas TSX** em `src/pages/comunidades/<slug>/`:
+   - `index.tsx` — home da comunidade (use `tisocial/index.tsx` como template; ele já lê tudo do `community.config.ts`)
+   - `apoiar.tsx` — usa `<DonationFlow lockedTargetId={community.slug} hideWallets authCommunitySlug={community.slug} accentColor={...} accentColorDark={...} />`
+   - `transparencia.tsx` — fetch `GET /ledger/community-balances`, filtra por `b.projectKey === community.slug`, renderiza `<TransactionTable accountId={balance.id} ... />`
+   - `membro/index.tsx` — opcional (painel pessoal whitelabel)
 
-**File:** `.github/workflows/sync-event-snapshots.yml`
-**Schedule:** every hour (`0 * * * *`) + manual dispatch
-**Secret required:** `DISCORD_BOT_TOKEN` (repo secret) — for Discord scheduled events API.
+6. **Conteúdo de blog/docs** — basta criar arquivos. Plugins **já estão registrados** automaticamente.
 
-The workflow:
-1. Runs `node scripts/sync-events.mjs`
-2. Commits only `static/events/` if any file changed
+7. **Backend (Stripe)** — confirmar que `metadata.communityId === '<slug>'` no checkout. O ledger cria/usa a conta automaticamente baseado nesse valor.
 
-**To run locally:**
-```bash
-DISCORD_BOT_TOKEN=<token> node scripts/sync-events.mjs
+8. **Validar**:
+   - `npm run typecheck`
+   - `npm run build` — confirmar que rotas `/comunidades/<slug>/*` aparecem
+   - Smoke local: navegar para a home da comunidade e verificar que o navbar trocou de cor, o chip "← Codaqui" aparece, e doações vão pro Stripe com o `communityId` certo
+
+### Padrões obrigatórios em páginas de comunidade
+
+- ✅ **Importar `community` do `community.config.ts` local** — nunca hardcode strings da comunidade em TSX
+- ✅ **Cores via `community.theme.primary` / `accent`** — nunca hex inline em página de comunidade
+- ✅ **`<DonationFlow>` para doação** — não usar `<StripeDonateSection>` (legacy/simples); o flow rico tem login encouraged, mensal/anual, presets, etc.
+- ✅ **Logos em modo claro/escuro** — usar `useColorMode()` para alternar `community.logoUrl` ↔ `community.logoUrlDark` quando relevante
+- ✅ **`Layout` do Docusaurus** — usar normal; o Navbar swizzled detecta a comunidade via `useLocation()`
+
+### Anti-patterns
+
+| ❌ Don't | ✅ Do |
+|----------|-------|
+| Hardcode `"T.I. Social"` em página | `community.shortName` |
+| Hardcode cor `#0ea5e9` | `community.theme.primary` |
+| Path `/comunidades/tisocial/blog` literal | ``${community.basePath}/blog`` |
+| Filtrar ledger por `b.id === slug` | `b.projectKey === community.slug` (id é UUID) |
+| Criar página de comunidade dentro de `comunidades/<slug>/pages/` | Páginas TSX vão em `src/pages/comunidades/<slug>/` (Docusaurus convention) |
+| Adicionar item de auth no `community.navMenu` | Auth fica oculto em comunidades hoje (decisão de domínio próprio incerto) |
+
+### Estado atual da Fase 1 (T.I. Social piloto)
+
+- ✅ Estrutura completa: config, páginas (`index`, `apoiar`, `transparencia`, `membro`), 1 post de blog (AUMIGO)
+- ✅ Navbar whitelabel + chip "← Codaqui"
+- ✅ DonationFlow reusável com gate de login encouraged
+- ✅ Transparência com `<TransactionTable>` real (drill-down + filtros)
+- ✅ Auth callback whitelabel (logo + cor durante spinner)
+- ⚠️ `features.events: false` (sem dados de eventos próprios ainda)
+- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver MULTISITE_PLAN.md §6)
+
+### Domínio próprio via Cloudflare Worker (`workers/`)
+
+> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `MULTISITE_PLAN.md §6`.
+
+| Caminho | Conteúdo |
+|---------|----------|
+| `workers/shared/index.js` | Código do Worker — **reusável**, lê env vars `STATIC_ORIGIN`, `API_ORIGIN`, `COMMUNITY_PREFIX` |
+| `workers/<slug>/wrangler.toml` | Config produção (route + vars) |
+| `workers/<slug>/wrangler.dev.toml` | Config local (`*.localhost`) |
+
+**Comandos:**
+
+| Comando | O que faz |
+|---------|-----------|
+| `make worker-dev-tisocial` | Sobe Worker local em `http://tisocial.localhost:8787` (precisa de `make up-build` rodando) |
+| `make worker-deploy-tisocial` | Deploy em produção (route `tisocial.org.br/*`) |
+
+**Whitelist de origens (backend) para domínio próprio:**
+
+A lista de origens autorizadas a receber redirects pós-OAuth e pós-Stripe vive em **`backend/src/common/allowed-origins.config.ts`** (TypeScript commitado, sem env var). Adicionar comunidade com domínio próprio é PR adicionando uma entrada em `ALLOWED_ORIGINS_PROD`.
+
+```ts
+// backend/src/common/allowed-origins.config.ts
+export const ALLOWED_ORIGINS_PROD = [
+  'https://codaqui.dev',
+  'https://tisocial.org.br', // ← nova comunidade
+];
 ```
 
-### Meetup integration details
+O middleware `ReturnToMiddleware` (`backend/src/auth/return-to.middleware.ts`) captura `?returnTo=<url>` em `/auth/github` e `/auth/logout`, valida contra a whitelist e persiste em cookie httpOnly de 5min. O callback (`/auth/github/callback`) e o logout leem o cookie e redirecionam para a comunidade certa em vez do `FRONTEND_URL` global. O Stripe usa o header `Origin` validado para montar `success_url`/`cancel_url` (`backend/src/common/allowed-origins.ts`).
 
-- Uses the internal GraphQL endpoint `https://www.meetup.com/gql2`
-- Queries `getPastGroupEvents` and `getUpcomingGroupEvents` with cursor pagination
-- CSRF token is extracted from the public HTML page — no Meetup API key needed
-- Safe pagination limit: 50 requests per kind (covers 2500+ events)
+**Adicionar nova comunidade com domínio:**
 
-### Discord integration details
-
-- Uses `GET /guilds/<id>/scheduled-events?with_user_count=true` (Discord API v10)
-- Requires `DISCORD_BOT_TOKEN` secret with `GUILD_SCHEDULED_EVENTS` intent
-- Falls back to `fallbackEvents` in `events.config.json` if token is absent or API fails
-
-
+1. Criar `workers/<slug>/wrangler.toml` e `wrangler.dev.toml` (copiar de `tisocial/`)
+2. Adicionar scripts `worker:dev:<slug>` / `worker:deploy:<slug>` em `package.json`
+3. Adicionar targets `worker-dev-<slug>` / `worker-deploy-<slug>` em `Makefile`
+4. Adicionar a origem em `ALLOWED_ORIGINS_PROD` em `backend/src/common/allowed-origins.config.ts`
+5. Configurar GitHub OAuth callback URL para `https://<dominio>/auth/github/callback` (próximo passo da Fase 3 — multi-OAuth-app ou broker)
 
 ---
 

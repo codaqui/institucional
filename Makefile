@@ -38,12 +38,13 @@ RED    := \033[31m
 .PHONY: help \
         setup env-check \
         up up-build down restart ps logs \
-        db-up db-shell db-wait \
+        db-up db-shell db-wait db-restore-prod \
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
         frontend-start frontend-build frontend-typecheck frontend-serve \
         sync sync-events sync-events-full sync-social sync-analytics \
+        worker-dev-tisocial worker-deploy-tisocial \
         clean clean-volumes
 
 # Target padrão
@@ -150,6 +151,9 @@ db-wait: ## Aguarda o PostgreSQL estar pronto para aceitar conexões
 db-shell: ## Abre um shell psql no container do PostgreSQL
 	podman compose -f $(COMPOSE_FILE) exec postgres psql -U $${DB_USER:-codaqui} $${DB_NAME:-codaqui_db}
 
+db-restore-prod: env-check ## Restaura dump de produção (pg_dump/*.dmp); use DUMP=path para específico
+	@./scripts/db-restore-prod.sh
+
 # =============================================================================
 ##@ 🔄 Migrations (TypeORM — backend)
 # =============================================================================
@@ -236,6 +240,19 @@ sync-social: ## Sincroniza contagem de membros/seguidores → static/social-stat
 
 sync-analytics: ## Sincroniza analytics → static/analytics/
 	npm run sync:analytics
+
+# =============================================================================
+##@ 🌍 Workers (Cloudflare) — domínios próprios das comunidades
+# =============================================================================
+# Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
+# Código do Worker é compartilhado em `workers/shared/index.js`.
+# Ver workers/README.md e MULTISITE_PLAN.md §6.
+
+worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
+	npm run worker:dev:tisocial
+
+worker-deploy-tisocial: ## Deploy do Worker da T.I. Social em produção (route tisocial.org.br/*)
+	npm run worker:deploy:tisocial
 
 # =============================================================================
 ##@ 🧹 Limpeza

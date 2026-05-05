@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-01T07:03:23.886Z",
+  "generatedAt": "2026-05-04T07:12:44.661Z",
   "totalEvents": 376,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 745,
+      "count": 744,
       "channelCount": 41,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 192,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6495,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 164,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -143,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
+      "fetchedAt": "2026-05-04T07:12:44.661Z",
       "isFallback": false
     },
     {
@@ -165,8 +165,8 @@
       "countLabel": "membros",
       "baselineCount": 3,
       "count": 45,
-      "fetchedAt": "2026-05-01T07:03:23.886Z",
-      "isFallback": false
+      "fetchedAt": "2026-05-03T06:59:03.231Z",
+      "isFallback": true
     }
   ]
 }

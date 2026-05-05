@@ -1,0 +1,26 @@
+# Local dev wrangler config — T.I. Social
+#
+# Run: `npm run worker:dev:tisocial`
+# (assumes you started the stack with `make up-build` first)
+#
+# Open: http://tisocial.localhost:8787
+# (browsers resolve *.localhost to 127.0.0.1 automatically — RFC 6761)
+#
+# Stack ports (from compose.yaml):
+#   - localhost:3000 → Docusaurus container (STATIC_ORIGIN)
+#   - localhost:3001 → Backend NestJS (API_ORIGIN)
+#
+# ⚠️ Known limitation in dev: the backend container has FRONTEND_URL pinned to
+# http://localhost:3000 (compose.yaml), so OAuth/Stripe callbacks land on the
+# Docusaurus origin instead of tisocial.localhost:8787. To exercise the full
+# whitelabel flow locally you need the backend changes from MULTISITE_PLAN §6
+# (OAuthState with returnTo + ALLOWED_AUTH_RETURN_HOSTS).
+
+name = "tisocial-proxy-local"
+main = "../shared/index.js"
+compatibility_date = "2024-09-01"
+
+[vars]
+STATIC_ORIGIN = "http://localhost:3000"
+API_ORIGIN = "http://localhost:3001"
+COMMUNITY_PREFIX = "/comunidades/tisocial"
