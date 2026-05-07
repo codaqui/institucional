@@ -43,9 +43,9 @@
       "url": "https://www.instagram.com/codaqui.dev/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 393,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 416,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     },
     {
       "entityId": "codaqui",
@@ -87,9 +87,9 @@
       "url": "https://www.instagram.com/devparana",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 5002,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 5191,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     },
     {
       "entityId": "elasnocodigo",
@@ -98,9 +98,9 @@
       "url": "https://www.instagram.com/elasnocodigo/",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 194,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 237,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     },
     {
       "entityId": "elasnocodigo",
@@ -131,9 +131,9 @@
       "url": "https://www.instagram.com/campostechpg",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 1350,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 1351,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     },
     {
       "entityId": "campostechpg",
@@ -153,20 +153,53 @@
       "url": "https://www.instagram.com/tisocialmaringa",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 198,
-      "fetchedAt": "2026-04-02T16:10:01.034Z",
-      "isFallback": true
+      "count": 196,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     },
     {
       "entityId": "cloudnativemaringa",
       "platform": "cncf",
-      "handle": "cloud-native-maringa",
-      "url": "https://community.cncf.io/cloud-native-maringa/",
+      "handle": "sq5vsqs",
+      "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
-      "baselineCount": 3,
+      "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-03T06:59:03.231Z",
-      "isFallback": true
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "github",
+      "handle": "cumbucadev",
+      "url": "https://github.com/cumbucadev",
+      "countLabel": "seguidores",
+      "baselineCount": 211,
+      "count": 211,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "instagram",
+      "handle": "@cumbucadev",
+      "url": "https://www.instagram.com/cumbucadev/",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 1408,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "youtube",
+      "handle": "@CumbucaDev",
+      "url": "https://www.youtube.com/@CumbucaDev",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 312,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": false
     }
   ]
 }
