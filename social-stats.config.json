@@ -40,7 +40,15 @@
     {
       "entityId": "cloudnativemaringa",
       "fetchProfiles": [
-        { "platform": "cncf", "fetchId": "cloud-native-maringa" }
+        { "platform": "cncf", "fetchId": "sq5vsqs" }
+      ]
+    },
+    {
+      "entityId": "cumbucadev",
+      "fetchProfiles": [
+        { "platform": "github",    "fetchId": "cumbucadev" },
+        { "platform": "instagram", "fetchId": "cumbucadev" },
+        { "platform": "youtube",   "fetchId": "@CumbucaDev" }
       ]
     }
   ]
