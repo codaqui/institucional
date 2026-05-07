@@ -3,7 +3,7 @@ import type { SocialProfile } from "./social-stats";
 export type { SocialProfile };
 
 export interface CommunityLink {
-  type: "website" | "instagram" | "whatsapp" | "github" | "youtube";
+  type: "website" | "instagram" | "whatsapp" | "github" | "youtube" | "linkedin";
   label: string;
   url: string;
 }
@@ -156,21 +156,62 @@ export const communities: Community[] = [
     emoji: "☁️",
     logo: "https://avatars.githubusercontent.com/u/13455738?v=4",
     description:
-      "Grupo de Meetup oficial da Cloud Native Computing Foundation (CNCF) em Maringá. Fomenta o aprendizado de tecnologias cloud-native, organiza grupos de estudo para certificações (KCNA, CKA, CKAD) e promove encontros entre estudantes e profissionais de SRE, DevOps e arquitetura de software.",
+      "Comunidade oficial da Cloud Native Computing Foundation (CNCF) em Maringá. Fomenta o aprendizado de tecnologias cloud-native, organiza grupos de estudo para certificações (KCNA, CKA, CKAD) e promove encontros entre estudantes e profissionais de SRE, DevOps e arquitetura de software.",
     location: "Maringá, PR",
     links: [
-      { type: "website", label: "community.cncf.io", url: "https://community.cncf.io/cloud-native-maringa/" },
+      { type: "website", label: "ocgroups.dev", url: "https://ocgroups.dev/cncf/group/sq5vsqs" },
       { type: "whatsapp", label: "WhatsApp", url: "https://chat.whatsapp.com/DJeegYRE1SC1zQuW64Hmzn" },
     ],
     socialProfiles: [
       {
         platform: "cncf",
-        handle: "cloud-native-maringa",
-        url: "https://community.cncf.io/cloud-native-maringa/",
+        handle: "sq5vsqs",
+        url: "https://ocgroups.dev/cncf/group/sq5vsqs",
         countLabel: "membros",
-        baselineCount: 3,
+        baselineCount: 45,
       },
     ],
     tags: ["cloud-native", "devops", "sre", "certificações"],
+  },
+  {
+    id: "cumbucadev",
+    name: "Cumbuca Dev",
+    emoji: "🥥",
+    logo: "https://avatars.githubusercontent.com/u/146448842?v=4",
+    description:
+      "Comunidade open source inclusiva dedicada a empoderar pessoas historicamente sub-representadas na tecnologia. Promove contribuições abertas, colaboração e pertencimento, tornando o desenvolvimento de software mais diverso e acessível.",
+    location: "Brasil",
+    founded: 2023,
+    links: [
+      { type: "website", label: "cumbuca.dev", url: "https://cumbuca.dev/" },
+      { type: "github", label: "GitHub", url: "https://github.com/cumbucadev" },
+      { type: "instagram", label: "@cumbucadev", url: "https://www.instagram.com/cumbucadev/" },
+      { type: "youtube", label: "YouTube", url: "https://www.youtube.com/@CumbucaDev" },
+      { type: "linkedin", label: "LinkedIn", url: "https://www.linkedin.com/company/cumbucadev/" },
+    ],
+    socialProfiles: [
+      {
+        platform: "github",
+        handle: "cumbucadev",
+        url: "https://github.com/cumbucadev",
+        countLabel: "seguidores",
+        baselineCount: 211,
+      },
+      {
+        platform: "instagram",
+        handle: "@cumbucadev",
+        url: "https://www.instagram.com/cumbucadev/",
+        countLabel: "seguidores",
+        baselineCount: 1408,
+      },
+      {
+        platform: "youtube",
+        handle: "@CumbucaDev",
+        url: "https://www.youtube.com/@CumbucaDev",
+        countLabel: "inscritos",
+        baselineCount: 312,
+      },
+    ],
+    tags: ["diversidade", "open-source", "educação", "inclusão", "empoderamento"],
   },
 ];
