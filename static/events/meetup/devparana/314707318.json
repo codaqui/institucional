@@ -13,16 +13,16 @@
     "generatedAt": "2026-05-10T20:12:07.281Z"
   },
   "event": {
-    "id": "268765209",
-    "title": "#13 Maringá Agile - Matera",
-    "summary": "Começando mais um ano com a décima terceira edição do meetup sobre agilidade de Maringá. Para isto, convidamos Altieres de Matos e o Rodrigo Nonose [PROGRAMAÇÃO] 19:00hrs: Recepção 19:20hrs: A Maioridade Ágil: decisões,…",
-    "startAt": "2020-02-19T19:00:00-03:00",
-    "endAt": "2020-02-19T21:00:00-03:00",
+    "id": "314707318",
+    "title": "11° Meetup Dev Paraná Cascavel",
+    "summary": "O Dev Paraná mantém o pé no acelerador em Cascavel com um encontro que une o futuro do desenvolvimento assistido por IA e o reconhecimento do talento local. Prepare-se para uma noite de imersão técnica, troca de experiê…",
+    "startAt": "2026-05-14T19:00:00-03:00",
+    "endAt": "2026-05-14T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "MATERA Systems · Av. Carneiro Leão, 833 · Maringá · PR",
-    "href": "https://www.meetup.com/developerparana/events/268765209/",
+    "location": "UNIPAR - Universidade Paranaense - Cascavel · R. Rui Barbosa, 611 · Cascavel · PR",
+    "href": "https://www.meetup.com/developerparana/events/314707318/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,11 +30,17 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 61,
-    "creatorName": "Kelly Garcia",
-    "creatorId": "249252072",
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg"
+    "userCount": 1,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "organizers": [
+      {
+        "name": "Everton Tavares",
+        "id": "188896297"
+      }
+    ],
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/b/2/a/2/highres_534165730.jpeg"
   }
 }
