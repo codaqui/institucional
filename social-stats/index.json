@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-09T06:51:07.407Z",
+  "generatedAt": "2026-05-10T07:02:43.199Z",
   "totalEvents": 377,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 753,
+      "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 193,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6496,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 164,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -143,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 212,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "count": 213,
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     },
     {
@@ -197,8 +197,8 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 318,
-      "fetchedAt": "2026-05-09T06:51:07.407Z",
+      "count": 327,
+      "fetchedAt": "2026-05-10T07:02:43.199Z",
       "isFallback": false
     }
   ]
