@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-11T07:24:37.882Z",
-  "totalEvents": 378,
+  "generatedAt": "2026-05-07T07:09:49.019Z",
+  "totalEvents": 377,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 753,
+      "count": 752,
       "channelCount": 41,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -45,7 +45,7 @@
       "baselineCount": 0,
       "count": 416,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "codaqui",
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 193,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "count": 192,
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6496,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -89,7 +89,7 @@
       "baselineCount": 0,
       "count": 5191,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "elasnocodigo",
@@ -100,7 +100,7 @@
       "baselineCount": 0,
       "count": 237,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "elasnocodigo",
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 164,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -133,7 +133,7 @@
       "baselineCount": 0,
       "count": 1351,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "campostechpg",
@@ -143,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T07:09:49.019Z",
       "isFallback": false
     },
     {
@@ -155,7 +155,7 @@
       "baselineCount": 0,
       "count": 196,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "cloudnativemaringa",
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 214,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "count": 211,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
       "isFallback": false
     },
     {
@@ -185,10 +185,10 @@
       "handle": "@cumbucadev",
       "url": "https://www.instagram.com/cumbucadev/",
       "countLabel": "seguidores",
-      "baselineCount": 1408,
+      "baselineCount": 0,
       "count": 1408,
       "fetchedAt": "2026-05-07T17:13:10.067Z",
-      "isFallback": true
+      "isFallback": false
     },
     {
       "entityId": "cumbucadev",
@@ -196,9 +196,9 @@
       "handle": "@CumbucaDev",
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
-      "baselineCount": 312,
-      "count": 329,
-      "fetchedAt": "2026-05-11T07:24:37.882Z",
+      "baselineCount": 0,
+      "count": 312,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
       "isFallback": false
     }
   ]
