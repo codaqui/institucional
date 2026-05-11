@@ -35,6 +35,7 @@ const config: Config = {
     "^@docusaurus/router$": "<rootDir>/src/__mocks__/docusaurus/router",
     "^@docusaurus/theme-common/internal$":
       "<rootDir>/src/__mocks__/docusaurus/theme-common-internal",
+    "^@docusaurus/theme-common$": "<rootDir>/src/__mocks__/docusaurus/theme-common",
     "\\.module\\.(css|less|scss|sass)$": "<rootDir>/src/__mocks__/fileMock.js",
   },
   testPathIgnorePatterns: [
