@@ -34,7 +34,7 @@ export default function FooterWrapper(): React.JSX.Element | null {
             <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
               <Box
                 component="img"
-                src={community.logoUrl}
+                src={community.logoUrlDark}
                 alt={community.name}
                 sx={{ height: 48, display: "block" }}
               />

@@ -10,6 +10,10 @@ interface PageHeroProps {
   readonly children?: React.ReactNode;
   /** Alinhamento do conteúdo — padrão "center" */
   readonly align?: "center" | "left";
+  /** Cor de fundo customizada — padrão slate-900 (#111827) */
+  readonly bgcolor?: string | ((theme: any) => string);
+  /** Desabilita os gradientes radiais do ::before — útil para heróis com cor sólida de comunidade */
+  readonly disableGradient?: boolean;
 }
 
 /**
@@ -25,28 +29,34 @@ export default function PageHero({
   subtitle,
   children,
   align = "center",
+  bgcolor,
+  disableGradient = false,
 }: PageHeroProps): React.JSX.Element {
+  const defaultBg = "#111827";
+
   return (
     <Box
       component="section"
       sx={{
         position: "relative",
-        bgcolor: "#111827",          // slate-900 — funciona em qualquer mode
+        bgcolor: bgcolor ?? defaultBg,
         color: "common.white",
         py: { xs: 7, md: 11 },
         textAlign: align,
         overflow: "hidden",
 
         // Efeito de grade fina (noise) — puro CSS, sem imagens
-        "&::before": {
-          content: '""',
-          position: "absolute",
-          inset: 0,
-          backgroundImage:
-            "radial-gradient(circle at 60% 40%, rgba(34,197,94,0.08) 0%, transparent 55%)," +
-            "radial-gradient(circle at 20% 80%, rgba(14,165,233,0.06) 0%, transparent 50%)",
-          pointerEvents: "none",
-        },
+        ...(!disableGradient && {
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "radial-gradient(circle at 60% 40%, rgba(34,197,94,0.08) 0%, transparent 55%)," +
+              "radial-gradient(circle at 20% 80%, rgba(14,165,233,0.06) 0%, transparent 50%)",
+            pointerEvents: "none",
+          },
+        }),
 
         // Linha de acento na parte inferior
         "&::after": {

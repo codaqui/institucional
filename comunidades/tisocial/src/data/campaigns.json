@@ -1,0 +1,112 @@
+[
+  {
+    "slug": "pascoa-2025",
+    "date": "04/2025",
+    "action": "Páscoa 2025",
+    "details": "632 caixas de bombom. Entidades: APAE, Associação Oriental e Lar Escola.",
+    "raised": 7584.00,
+    "peopleImpacted": 632,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "level-up-careers-2025",
+    "date": "05/2025",
+    "action": "Level Up Careers",
+    "details": "133 Inscritos, 11 palestras, 9 temas. +25 mil views.",
+    "raised": 0,
+    "peopleImpacted": 133,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "batalha-contra-o-frio-2025",
+    "date": "07/2025",
+    "action": "A batalha contra o frio",
+    "details": "15 mil peças doadas, + 600Kg, +40 instituições apoiadas",
+    "raised": 0,
+    "peopleImpacted": 2500,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "cestou-2025",
+    "date": "07/2025",
+    "action": "Cestou",
+    "details": "100 cestas arrecadadas via venda de camisetas. 3 instituições apoiadas.",
+    "raised": 6990.00,
+    "peopleImpacted": 400,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "workshop-seguranca-digital-2025",
+    "date": "10/2025",
+    "action": "Workshop Educação e Segurança Digital",
+    "details": "Foco em terceira idade. Noticiado em CBN, RPC e RIC.",
+    "raised": 0,
+    "peopleImpacted": 50,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "dia-mundial-limpeza-2025",
+    "date": "09/2025",
+    "action": "Dia Mundial da Limpeza",
+    "details": "200 mudas nativas plantadas e ações de reciclagem.",
+    "raised": 0,
+    "peopleImpacted": 100,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "dia-das-criancas-2025",
+    "date": "10/2025",
+    "action": "Dia das Crianças",
+    "details": "Ação na ONG Pescadores de Vidas.",
+    "raised": 0,
+    "peopleImpacted": 90,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "no-shave-november-2025",
+    "date": "11/2025",
+    "action": "No Shave November",
+    "details": "6 cestas básicas arrecadadas para o Natal.",
+    "raised": 0,
+    "peopleImpacted": 24,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "pet-fevereiro-2026",
+    "date": "02/2026",
+    "action": "PET fev/2026",
+    "details": "Ração (417kg) e medicamentos. 4 projetos apoiados.",
+    "raised": 2859.45,
+    "peopleImpacted": 4,
+    "animalsImpacted": 350,
+    "status": "Finalizada",
+    "isFinalized": true
+  },
+  {
+    "slug": "pascoa-2026",
+    "date": "03/2026",
+    "action": "Páscoa 2026",
+    "details": "464 caixas arrecadadas. APAE e Conjunto Oriental.",
+    "raised": 0,
+    "peopleImpacted": 464,
+    "animalsImpacted": 0,
+    "status": "Finalizada",
+    "isFinalized": true
+  }
+]
