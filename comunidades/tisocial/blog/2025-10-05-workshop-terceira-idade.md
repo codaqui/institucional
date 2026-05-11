@@ -8,7 +8,12 @@ date: 2025-10-05
 
 A inclusão digital não tem idade. Realizamos um workshop focado em segurança e uso consciente da tecnologia para idosos.
 
-## Impacto
+## Impacto e Temas
 
 - **Participantes:** 50 idosos
-- **Foco:** Prevenção de golpes digitais e uso de aplicativos essenciais.
+- **Temas abordados:** 
+  - Uso de smartphones no dia a dia
+  - Segurança digital e prevenção de golpes
+  - Aplicativos de comunicação e relacionamento
+  - Configurações essenciais para mais autonomia
+- **Cobertura:** Evento noticiado pela CBN, RICTV e RPC.

@@ -8,10 +8,12 @@ date: 2025-07-10
 
 Nossa maior campanha de arrecadação de agasalhos e mantimentos para o inverno de 2025.
 
-## Números Impressionantes
+## Números e Alcance
 
-- **Arrecadação:** Mais de 15 mil peças de roupa
-- **Alimentos:** Mais de 600kg coletados
-- **Alcance:** Mais de 40 instituições apoiadas
+- **Peças de Roupa:** 15.000 itens arrecadados e doados
+- **Alimentos:** +600kg coletados
+- **Instituições Apoiadas:** Mais de 40 entidades da região de Maringá
+
+Com 15 mil peças entregues, estimamos que milhares de pessoas foram aquecidas em uma das maiores mobilizações do setor de TI da cidade.
 
 Obrigado a todos que ajudaram a aquecer o inverno de quem mais precisava.

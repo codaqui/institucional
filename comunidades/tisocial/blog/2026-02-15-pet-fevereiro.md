@@ -11,9 +11,13 @@ Em fevereiro, nossos amigos de quatro patas foram o foco da nossa missão. Unimo
 ## Resultados da Ação
 
 - **Total Arrecadado:** R$ 2.859,45
-- **Impacto Animal:** 350 animais ajudados
-- **Impacto Humano:** 4 tutores/famílias apoiadas
-- **Recursos:** Ração, medicamentos e acessórios adquiridos através da venda de cookies e doações.
+- **Impacto Animal:** +350 animais beneficiados
+- **Ração Arrecadada:** 417,5 kg
+- **Projetos Apoiados:**
+  - Dona Maura
+  - Amor Sem Raça Definida
+  - Santuário Felino
+  - Projeto Ronronar
 
 ## Transparência
 
