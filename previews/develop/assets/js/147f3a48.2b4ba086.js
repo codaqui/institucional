@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[3971],{5004(i){i.exports=JSON.parse('{"authors":[{"name":"TI Social","title":"Equipe de Impacto","url":"https://www.instagram.com/tisocialmaringa","imageURL":"/previews/develop/img/tisocial.png","key":"tisocial","page":null,"count":10}]}')}}]);

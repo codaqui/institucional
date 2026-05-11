@@ -2,57 +2,285 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog</id>
     <title>T.I. Social — Blog</title>
-    <updated>2026-03-26T00:00:00.000Z</updated>
+    <updated>2026-03-15T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog"/>
     <subtitle>Posts da comunidade T.I. Social Maringá</subtitle>
     <icon>https://codaqui.dev/previews/develop/img/favicon.png</icon>
     <rights>© 2026 T.I. Social Maringá</rights>
     <entry>
-        <title type="html"><![CDATA[T.I. Social em ação 🐾🍫 — Prestação de contas da AUMIGO e da Páscoa Solidária]]></title>
-        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas</id>
-        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas"/>
-        <updated>2026-03-26T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[🎉 Encerramos a primeira ação do ano da T.I. Social em apoio aos animais! A campanha AUMIGO reuniu conscientização, mobilização e muita solidariedade para ajudar protetores e projetos da nossa região.]]></summary>
-        <content type="html"><![CDATA[<p>🎉 <strong>Encerramos a primeira ação do ano da T.I. Social em apoio aos animais!</strong> A campanha <strong>AUMIGO</strong> reuniu conscientização, mobilização e muita solidariedade para ajudar protetores e projetos da nossa região.</p>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="-sobre-a-campanha">🐶 Sobre a campanha<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas#-sobre-a-campanha" class="hash-link" aria-label="Link direto para 🐶 Sobre a campanha" title="Link direto para 🐶 Sobre a campanha" translate="no">​</a></h2>
-<p>Mais do que arrecadar recursos, a AUMIGO foi sobre <strong>gente cuidando de gente — e de bichos</strong>. Além da cartilha com orientações sobre como agir em situações envolvendo animais, realizamos uma <strong>campanha de doação e venda de cookies</strong>, que ajudou a garantir alimento para muitos pets resgatados. 🐱</p>
-<blockquote>
-<p>💚 Cada cookie vendido, cada real doado e cada compartilhamento se transformou em ração, medicamento e cuidado para quem mais precisa.</p>
-</blockquote>
-<hr>
-<!-- -->
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="-o-impacto-que-conseguimos-juntos">📊 O impacto que conseguimos juntos<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas#-o-impacto-que-conseguimos-juntos" class="hash-link" aria-label="Link direto para 📊 O impacto que conseguimos juntos" title="Link direto para 📊 O impacto que conseguimos juntos" translate="no">​</a></h2>
-<style data-emotion="css csl15p">.css-csl15p{--Grid-columns:12;--Grid-columnSpacing:16px;--Grid-rowSpacing:16px;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;min-width:0;box-sizing:border-box;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-flex-wrap:wrap;-webkit-flex-wrap:wrap;-ms-flex-wrap:wrap;flex-wrap:wrap;gap:var(--Grid-rowSpacing) var(--Grid-columnSpacing);margin-top:16px;margin-bottom:16px;}.css-csl15p >*{--Grid-parent-columns:12;}.css-csl15p >*{--Grid-parent-columnSpacing:16px;}.css-csl15p >*{--Grid-parent-rowSpacing:16px;}</style><div class="MuiGrid-root MuiGrid-container MuiGrid-direction-xs-row MuiGrid-spacing-xs-2 css-csl15p"><style data-emotion="css lscdn3">.css-lscdn3{-webkit-box-flex:0;-webkit-flex-grow:0;-ms-flex-positive:0;flex-grow:0;-webkit-flex-basis:auto;-ms-flex-preferred-size:auto;flex-basis:auto;width:calc(100% * 12 / var(--Grid-parent-columns) - (var(--Grid-parent-columns) - 12) * (var(--Grid-parent-columnSpacing) / var(--Grid-parent-columns)));min-width:0;box-sizing:border-box;}@media (min-width:600px){.css-lscdn3{-webkit-box-flex:0;-webkit-flex-grow:0;-ms-flex-positive:0;flex-grow:0;-webkit-flex-basis:auto;-ms-flex-preferred-size:auto;flex-basis:auto;width:calc(100% * 6 / var(--Grid-parent-columns) - (var(--Grid-parent-columns) - 6) * (var(--Grid-parent-columnSpacing) / var(--Grid-parent-columns)));}}</style><div class="MuiGrid-root MuiGrid-direction-xs-row MuiGrid-grid-xs-12 MuiGrid-grid-sm-6 css-lscdn3"><style data-emotion="css vy6x2r">.css-vy6x2r{overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#2e7d32;}</style><style data-emotion="css ar1lks">.css-ar1lks{background-color:#FFFFFF;color:rgba(0, 0, 0, 0.87);-webkit-transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;border-radius:8px;box-shadow:var(--Paper-shadow);background-image:var(--Paper-overlay);overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#2e7d32;}</style><div class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-ar1lks" style="--Paper-shadow:0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)"><style data-emotion="css 15q2cw4">.css-15q2cw4{padding:16px;}.css-15q2cw4:last-child{padding-bottom:24px;}</style><div class="MuiCardContent-root css-15q2cw4"><style data-emotion="css x2jivo">.css-x2jivo{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;-webkit-align-items:center;-webkit-box-align:center;-ms-flex-align:center;align-items:center;margin-bottom:8px;}.css-x2jivo>:not(style):not(style){margin:0;}.css-x2jivo>:not(style)~:not(style){margin-left:12px;}</style><div class="MuiStack-root css-x2jivo"><style data-emotion="css 1hqks0z">.css-1hqks0z{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;width:1em;height:1em;display:inline-block;-webkit-flex-shrink:0;-ms-flex-negative:0;flex-shrink:0;-webkit-transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;fill:currentColor;font-size:1.5rem;color:#2e7d32;}</style><svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1hqks0z" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M1 11h4v11H1zm15-7.75C16.65 2.49 17.66 2 18.7 2 20.55 2 22 3.45 22 5.3c0 2.27-2.91 4.9-6 7.7-3.09-2.81-6-5.44-6-7.7C10 3.45 11.45 2 13.3 2c1.04 0 2.05.49 2.7 1.25M20 17h-7l-2.09-.73.33-.94L13 16h2.82c.65 0 1.18-.53 1.18-1.18 0-.49-.31-.93-.77-1.11L8.97 11H7v9.02L14 22l8.01-3c-.01-1.1-.9-2-2.01-2"></path></svg><style data-emotion="css 1qf2bao">.css-1qf2bao{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:0.75rem;line-height:2.66;text-transform:uppercase;color:rgba(0, 0, 0, 0.6);}</style><span class="MuiTypography-root MuiTypography-overline css-1qf2bao">Arrecadação total</span></div><style data-emotion="css 108dof3">.css-108dof3{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:2.125rem;line-height:1.235;font-weight:800;color:#2e7d32;}</style><h4 class="MuiTypography-root MuiTypography-h4 css-108dof3">R$ 2.859,45</h4><style data-emotion="css 1wpunic">.css-1wpunic{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:0.875rem;line-height:1.43;color:rgba(0, 0, 0, 0.6);}</style><p class="MuiTypography-root MuiTypography-body2 css-1wpunic">Doações + venda de cookies</p></div></div></div><div class="MuiGrid-root MuiGrid-direction-xs-row MuiGrid-grid-xs-12 MuiGrid-grid-sm-6 css-lscdn3"><style data-emotion="css k351sn">.css-k351sn{overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#ed6c02;}</style><style data-emotion="css fmr4dt">.css-fmr4dt{background-color:#FFFFFF;color:rgba(0, 0, 0, 0.87);-webkit-transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;border-radius:8px;box-shadow:var(--Paper-shadow);background-image:var(--Paper-overlay);overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#ed6c02;}</style><div class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-fmr4dt" style="--Paper-shadow:0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)"><div class="MuiCardContent-root css-15q2cw4"><div class="MuiStack-root css-x2jivo"><style data-emotion="css 2yi6s6">.css-2yi6s6{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;width:1em;height:1em;display:inline-block;-webkit-flex-shrink:0;-ms-flex-negative:0;flex-shrink:0;-webkit-transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;fill:currentColor;font-size:1.5rem;color:#ed6c02;}</style><svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-2yi6s6" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 9H9V2H7v7H5V2H3v7c0 2.12 1.66 3.84 3.75 3.97V22h2.5v-9.03C11.34 12.84 13 11.12 13 9V2h-2zm5-3v8h2.5v8H21V2c-2.76 0-5 2.24-5 4"></path></svg><span class="MuiTypography-root MuiTypography-overline css-1qf2bao">Ração adquirida</span></div><style data-emotion="css 49khsn">.css-49khsn{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:2.125rem;line-height:1.235;font-weight:800;color:#ed6c02;}</style><h4 class="MuiTypography-root MuiTypography-h4 css-49khsn">417,5 kg</h4><p class="MuiTypography-root MuiTypography-body2 css-1wpunic">Distribuídos entre protetores</p></div></div></div><div class="MuiGrid-root MuiGrid-direction-xs-row MuiGrid-grid-xs-12 MuiGrid-grid-sm-6 css-lscdn3"><style data-emotion="css ugfluv">.css-ugfluv{overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#57B593;}</style><style data-emotion="css 1ajiyfe">.css-1ajiyfe{background-color:#FFFFFF;color:rgba(0, 0, 0, 0.87);-webkit-transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;border-radius:8px;box-shadow:var(--Paper-shadow);background-image:var(--Paper-overlay);overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#57B593;}</style><div class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1ajiyfe" style="--Paper-shadow:0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)"><div class="MuiCardContent-root css-15q2cw4"><div class="MuiStack-root css-x2jivo"><style data-emotion="css 1q5hgty">.css-1q5hgty{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;width:1em;height:1em;display:inline-block;-webkit-flex-shrink:0;-ms-flex-negative:0;flex-shrink:0;-webkit-transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;fill:currentColor;font-size:1.5rem;color:#57B593;}</style><svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1q5hgty" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><circle cx="4.5" cy="9.5" r="2.5"></circle><circle cx="9" cy="5.5" r="2.5"></circle><circle cx="15" cy="5.5" r="2.5"></circle><circle cx="19.5" cy="9.5" r="2.5"></circle><path d="M17.34 14.86c-.87-1.02-1.6-1.89-2.48-2.91-.46-.54-1.05-1.08-1.75-1.32q-.165-.06-.33-.09c-.25-.04-.52-.04-.78-.04s-.53 0-.79.05q-.165.03-.33.09c-.7.24-1.28.78-1.75 1.32-.87 1.02-1.6 1.89-2.48 2.91-1.31 1.31-2.92 2.76-2.62 4.79.29 1.02 1.02 2.03 2.33 2.32.73.15 3.06-.44 5.54-.44h.18c2.48 0 4.81.58 5.54.44 1.31-.29 2.04-1.31 2.33-2.32.31-2.04-1.3-3.49-2.61-4.8"></path></svg><span class="MuiTypography-root MuiTypography-overline css-1qf2bao">Animais beneficiados</span></div><style data-emotion="css 1hc643x">.css-1hc643x{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:2.125rem;line-height:1.235;font-weight:800;color:#57B593;}</style><h4 class="MuiTypography-root MuiTypography-h4 css-1hc643x">+ de 350</h4><p class="MuiTypography-root MuiTypography-body2 css-1wpunic">Cães e gatos resgatados</p></div></div></div><div class="MuiGrid-root MuiGrid-direction-xs-row MuiGrid-grid-xs-12 MuiGrid-grid-sm-6 css-lscdn3"><style data-emotion="css vjdfsm">.css-vjdfsm{overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#87D2B7;}</style><style data-emotion="css 1eu7uaq">.css-1eu7uaq{background-color:#FFFFFF;color:rgba(0, 0, 0, 0.87);-webkit-transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;border-radius:8px;box-shadow:var(--Paper-shadow);background-image:var(--Paper-overlay);overflow:hidden;background-image:none;height:100%;border-left:4px solid;border-color:#87D2B7;}</style><div class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1eu7uaq" style="--Paper-shadow:0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12)"><div class="MuiCardContent-root css-15q2cw4"><div class="MuiStack-root css-x2jivo"><style data-emotion="css nipt02">.css-nipt02{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;width:1em;height:1em;display:inline-block;-webkit-flex-shrink:0;-ms-flex-negative:0;flex-shrink:0;-webkit-transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;transition:fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;fill:currentColor;font-size:1.5rem;color:#87D2B7;}</style><svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-nipt02" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M6 3h12v2H6zm11 3H7c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2m-1 9h-2.5v2.5h-3V15H8v-3h2.5V9.5h3V12H16z"></path></svg><span class="MuiTypography-root MuiTypography-overline css-1qf2bao">Itens adicionais</span></div><style data-emotion="css 1auxaaz">.css-1auxaaz{margin:0;font-family:var(--ifm-font-family-base, system-ui, -apple-system, sans-serif);font-weight:400;font-size:2.125rem;line-height:1.235;font-weight:800;color:#87D2B7;}</style><h4 class="MuiTypography-root MuiTypography-h4 css-1auxaaz">Medicamentos</h4><p class="MuiTypography-root MuiTypography-body2 css-1wpunic">+ acessórios para os pets</p></div></div></div></div>
-<div class="theme-admonition theme-admonition-tip admonition_xJq3 alert alert--success"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 12 16"><path fill-rule="evenodd" d="M6.5 0C3.48 0 1 2.19 1 5c0 .92.55 2.25 1 3 1.34 2.25 1.78 2.78 2 4v1h5v-1c.22-1.22.66-1.75 2-4 .45-.75 1-2.08 1-3 0-2.81-2.48-5-5.5-5zm3.64 7.48c-.25.44-.47.8-.67 1.11-.86 1.41-1.25 2.06-1.45 3.23-.02.05-.02.11-.02.17H5c0-.06 0-.13-.02-.17-.2-1.17-.59-1.83-1.45-3.23-.2-.31-.42-.67-.67-1.11C2.44 6.78 2 5.65 2 5c0-2.2 2.02-4 4.5-4 1.22 0 2.36.42 3.22 1.19C10.55 2.94 11 3.94 11 5c0 .66-.44 1.78-.86 2.48zM4 14h5c-.23 1.14-1.3 2-2.5 2s-2.27-.86-2.5-2z"></path></svg></span>Transparência</div><div class="admonitionContent_BuS1"><p>Toda a arrecadação foi convertida em insumos para protetores e projetos parceiros — <strong>nenhum centavo ficou pelo caminho</strong>.</p></div></div>
-<hr>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="-para-quem-foram-as-doações">🤝 Para quem foram as doações<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas#-para-quem-foram-as-doa%C3%A7%C3%B5es" class="hash-link" aria-label="Link direto para 🤝 Para quem foram as doações" title="Link direto para 🤝 Para quem foram as doações" translate="no">​</a></h2>
-<p>As doações foram destinadas a projetos e protetores da região que fazem um trabalho incrível pelos animais:</p>
+        <title type="html"><![CDATA[Páscoa Solidária 2026: Missão Cumprida!]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2026</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2026"/>
+        <updated>2026-03-15T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Nossa campanha de Páscoa 2026 foi um sucesso absoluto! Graças à colaboração de todos, conseguimos levar doçura e alegria para centenas de pessoas.]]></summary>
+        <content type="html"><![CDATA[<p>Nossa campanha de Páscoa 2026 foi um sucesso absoluto! Graças à colaboração de todos, conseguimos levar doçura e alegria para centenas de pessoas.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados-finais">Resultados Finais<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2026#resultados-finais" class="hash-link" aria-label="Link direto para Resultados Finais" title="Link direto para Resultados Finais" translate="no">​</a></h2>
 <ul>
-<li class="">🐾 <a href="https://www.instagram.com/maurinha_dos_cachorrinhos/" target="_blank" rel="noopener noreferrer" class="">@maurinha_dos_cachorrinhos</a></li>
-<li class="">🐾 <a href="https://www.instagram.com/amorsemracadefinida/" target="_blank" rel="noopener noreferrer" class="">@amorsemracadefinida</a></li>
-<li class="">🐾 <a href="https://www.instagram.com/santuariofelinomga/" target="_blank" rel="noopener noreferrer" class="">@santuariofelinomga</a></li>
-<li class="">🐾 <a href="https://www.instagram.com/projetoronronarmga/" target="_blank" rel="noopener noreferrer" class="">@projetoronronarmga</a></li>
+<li class=""><strong>Total de Arrecadação:</strong> 464 caixas de bombons.</li>
+<li class=""><strong>Entidades Beneficiadas:</strong>
+<ul>
+<li class=""><strong>APAE de Maringá</strong></li>
+<li class=""><strong>Conjunto Oriental de Maringá</strong></li>
 </ul>
-<hr>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="-páscoa-solidária--partilhar-é-o-verdadeiro-sabor">🍫 Páscoa Solidária — partilhar é o verdadeiro sabor<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas#-p%C3%A1scoa-solid%C3%A1ria--partilhar-%C3%A9-o-verdadeiro-sabor" class="hash-link" aria-label="Link direto para 🍫 Páscoa Solidária — partilhar é o verdadeiro sabor" title="Link direto para 🍫 Páscoa Solidária — partilhar é o verdadeiro sabor" translate="no">​</a></h2>
-<p>Uma Páscoa <strong>mais doce e cheia de propósito</strong>! ❤️</p>
-<p>Neste ano, o Projeto T.I. Social arrecadou:</p>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>Páscoa Solidária 2026</div><div class="admonitionContent_BuS1"><p>🍫 <strong>464 caixas de bombons</strong> entregues para a <strong>APAE</strong> e a <strong>Associação Oriental de Maringá</strong>, levando mais alegria para muitas crianças.</p></div></div>
-<p>Porque partilhar é o verdadeiro sabor dessa data.</p>
-<hr>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="-obrigado">💚 Obrigado!<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/2026/03/26/aumigo-prestacao-de-contas#-obrigado" class="hash-link" aria-label="Link direto para 💚 Obrigado!" title="Link direto para 💚 Obrigado!" translate="no">​</a></h2>
-<p>Obrigado a todos que contribuíram, compraram cookies, doaram ração, compartilharam a campanha e ajudaram a fortalecer essa rede de cuidado pelos animais e pelas pessoas da nossa comunidade.</p>
-<p>🌐 Conheça mais sobre o trabalho da comunidade no site oficial: <strong><a href="https://www.tisocial.org.br/" target="_blank" rel="noopener noreferrer" class="">tisocial.org.br</a></strong></p>]]></content>
+</li>
+</ul>
+<p>A T.I. Social agradece a cada um que doou, compartilhou e ajudou a tornar esse impacto possível. Juntos, a tecnologia e a solidariedade transformam realidades!</p>]]></content>
         <author>
-            <name>Renan Ceratto</name>
-            <uri>https://github.com/renanceratto</uri>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
         </author>
-        <category label="prestacao-de-contas" term="prestacao-de-contas"/>
-        <category label="ti-social" term="ti-social"/>
-        <category label="aumigo" term="aumigo"/>
-        <category label="animais" term="animais"/>
-        <category label="solidariedade" term="solidariedade"/>
-        <category label="comunidade" term="comunidade"/>
+        <category label="campanhas" term="campanhas"/>
+        <category label="resultados" term="resultados"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Ação PET Fevereiro 2026: Impacto e Transparência]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pet-fevereiro-2026</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pet-fevereiro-2026"/>
+        <updated>2026-02-15T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Em fevereiro, nossos amigos de quatro patas foram o foco da nossa missão. Unimos forças com a comunidade para garantir cuidado e saúde para animais em situação de vulnerabilidade.]]></summary>
+        <content type="html"><![CDATA[<p>Em fevereiro, nossos amigos de quatro patas foram o foco da nossa missão. Unimos forças com a comunidade para garantir cuidado e saúde para animais em situação de vulnerabilidade.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados-da-ação">Resultados da Ação<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pet-fevereiro-2026#resultados-da-a%C3%A7%C3%A3o" class="hash-link" aria-label="Link direto para Resultados da Ação" title="Link direto para Resultados da Ação" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Total Arrecadado:</strong> R$ 2.859,45</li>
+<li class=""><strong>Impacto Animal:</strong> +350 animais beneficiados</li>
+<li class=""><strong>Ração Arrecadada:</strong> 417,5 kg</li>
+<li class=""><strong>Projetos Apoiados:</strong>
+<ul>
+<li class="">Dona Maura</li>
+<li class="">Amor Sem Raça Definida</li>
+<li class="">Santuário Felino</li>
+<li class="">Projeto Ronronar</li>
+</ul>
+</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="transparência">Transparência<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pet-fevereiro-2026#transpar%C3%AAncia" class="hash-link" aria-label="Link direto para Transparência" title="Link direto para Transparência" translate="no">​</a></h2>
+<p>Acreditamos que a tecnologia deve servir para gerar confiança. Todo o recurso arrecadado foi destinado à compra de insumos básicos e cuidados veterinários.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th style="text-align:left">Destino</th><th style="text-align:left">Valor</th><th style="text-align:left">Status</th></tr></thead><tbody><tr><td style="text-align:left">Ração e Insumos</td><td style="text-align:left">R$ 2.859,45</td><td style="text-align:left">Concluído</td></tr><tr><td style="text-align:left">Logística</td><td style="text-align:left">R$ 0,00</td><td style="text-align:left">Voluntariado</td></tr><tr><td style="text-align:left">Fundo de Reserva</td><td style="text-align:left">R$ 0,00</td><td style="text-align:left">-</td></tr></tbody></table>
+<hr>
+<p><em>Obrigado a todos os voluntários e doadores que fizeram este mês possível!</em></p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="pet" term="pet"/>
+        <category label="impacto" term="impacto"/>
+        <category label="transparencia" term="transparencia"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[No Shave November: Investindo na Generosidade]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/no-shave-november-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/no-shave-november-2025"/>
+        <updated>2025-11-30T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Sob o mote "Economize no estilo e invista na generosidade", incentivamos nossa comunidade a converter pequenos gastos pessoais em doações para o Natal.]]></summary>
+        <content type="html"><![CDATA[<p>Sob o mote "Economize no estilo e invista na generosidade", incentivamos nossa comunidade a converter pequenos gastos pessoais em doações para o Natal.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados">Resultados<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/no-shave-november-2025#resultados" class="hash-link" aria-label="Link direto para Resultados" title="Link direto para Resultados" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Instituição Assistida:</strong> 1 entidade local</li>
+<li class=""><strong>Impacto:</strong> 6 cestas básicas arrecadadas e entregues</li>
+</ul>
+<p>A proposta foi converter o valor economizado com barbearia, unhas ou sobrancelhas em ajuda real para famílias que precisavam de um Natal mais digno.</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="impacto" term="impacto"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Dia das Crianças: Sorrisos que Transformam]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-das-criancas-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-das-criancas-2025"/>
+        <updated>2025-10-11T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Celebramos o Dia das Crianças com uma ação especial focada em levar alegria e diversão para pequenos em situação de vulnerabilidade.]]></summary>
+        <content type="html"><![CDATA[<p>Celebramos o Dia das Crianças com uma ação especial focada em levar alegria e diversão para pequenos em situação de vulnerabilidade.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados-e-atividades">Resultados e Atividades<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-das-criancas-2025#resultados-e-atividades" class="hash-link" aria-label="Link direto para Resultados e Atividades" title="Link direto para Resultados e Atividades" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Entidade Assistida:</strong> ONG Pescadores de Vidas</li>
+<li class=""><strong>Impacto:</strong> Mais de 90 crianças beneficiadas</li>
+<li class=""><strong>Atividades Realizadas:</strong>
+<ul>
+<li class="">Recreação e brincadeiras</li>
+<li class="">Alimentação especial</li>
+<li class="">Pintura e dança</li>
+</ul>
+</li>
+</ul>
+<p>Ver o brilho nos olhos de cada criança reforça nosso compromisso de que "juntos vamos mais longe".</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="impacto" term="impacto"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Workshop: Educação e Segurança Digital para Terceira Idade]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/workshop-seguranca-digital-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/workshop-seguranca-digital-2025"/>
+        <updated>2025-10-05T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[A inclusão digital não tem idade. Realizamos um workshop focado em segurança e uso consciente da tecnologia para idosos.]]></summary>
+        <content type="html"><![CDATA[<p>A inclusão digital não tem idade. Realizamos um workshop focado em segurança e uso consciente da tecnologia para idosos.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="impacto-e-temas">Impacto e Temas<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/workshop-seguranca-digital-2025#impacto-e-temas" class="hash-link" aria-label="Link direto para Impacto e Temas" title="Link direto para Impacto e Temas" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Participantes:</strong> 50 idosos</li>
+<li class=""><strong>Temas abordados:</strong>
+<ul>
+<li class="">Uso de smartphones no dia a dia</li>
+<li class="">Segurança digital e prevenção de golpes</li>
+<li class="">Aplicativos de comunicação e relacionamento</li>
+<li class="">Configurações essenciais para mais autonomia</li>
+</ul>
+</li>
+<li class=""><strong>Cobertura:</strong> Evento noticiado pela CBN, RICTV e RPC.</li>
+</ul>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="educacao" term="educacao"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Dia Mundial da Limpeza: Sustentabilidade na Prática]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-mundial-limpeza-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-mundial-limpeza-2025"/>
+        <updated>2025-09-20T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Em setembro, a T.I. Social se uniu ao movimento global pelo meio ambiente, realizando ações de plantio e conscientização sobre reciclagem.]]></summary>
+        <content type="html"><![CDATA[<p>Em setembro, a T.I. Social se uniu ao movimento global pelo meio ambiente, realizando ações de plantio e conscientização sobre reciclagem.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados">Resultados<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/dia-mundial-limpeza-2025#resultados" class="hash-link" aria-label="Link direto para Resultados" title="Link direto para Resultados" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Plantio:</strong> 200 mudas de árvores nativas plantadas.</li>
+<li class=""><strong>Ações:</strong> Mutirão de limpeza e separação de materiais recicláveis.</li>
+</ul>
+<p>Cuidar do nosso ecossistema local é parte fundamental da nossa missão de sustentabilidade.</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="sustentabilidade" term="sustentabilidade"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Campanha Cestou: Segurança Alimentar]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/cestou-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/cestou-2025"/>
+        <updated>2025-07-25T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Focada em garantir o alimento na mesa de famílias em situação de vulnerabilidade.]]></summary>
+        <content type="html"><![CDATA[<p>Focada em garantir o alimento na mesa de famílias em situação de vulnerabilidade.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados-da-ação">Resultados da Ação<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/cestou-2025#resultados-da-a%C3%A7%C3%A3o" class="hash-link" aria-label="Link direto para Resultados da Ação" title="Link direto para Resultados da Ação" translate="no">​</a></h2>
+<p>Esta campanha foi viabilizada através da <strong>venda de camisetas exclusivas</strong>, onde a cada 2 camisetas vendidas, conseguimos doar 1 cesta básica.</p>
+<ul>
+<li class=""><strong>Impacto:</strong> 100 famílias impactadas com as 100 cestas básicas arrecadadas</li>
+<li class=""><strong>Instituições Apoiadas:</strong>
+<ul>
+<li class="">Cáritas</li>
+<li class="">Pescadores de Vida</li>
+<li class="">Paróquia São Paulo Apóstolo</li>
+</ul>
+</li>
+</ul>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="transparencia" term="transparencia"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[A Batalha Contra o Frio]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/batalha-contra-o-frio-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/batalha-contra-o-frio-2025"/>
+        <updated>2025-07-10T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Nossa maior campanha de arrecadação de agasalhos e mantimentos para o inverno de 2025.]]></summary>
+        <content type="html"><![CDATA[<p>Nossa maior campanha de arrecadação de agasalhos e mantimentos para o inverno de 2025.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="números-e-alcance">Números e Alcance<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/batalha-contra-o-frio-2025#n%C3%BAmeros-e-alcance" class="hash-link" aria-label="Link direto para Números e Alcance" title="Link direto para Números e Alcance" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Peças de Roupa:</strong> 15.000 itens arrecadados e doados</li>
+<li class=""><strong>Alimentos:</strong> +600kg coletados</li>
+<li class=""><strong>Instituições Apoiadas:</strong> Mais de 40 entidades da região de Maringá</li>
+</ul>
+<p>Com 15 mil peças entregues, estimamos que milhares de pessoas foram aquecidas em uma das maiores mobilizações do setor de TI da cidade.</p>
+<p>Obrigado a todos que ajudaram a aquecer o inverno de quem mais precisava.</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="impacto" term="impacto"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Level Up Careers: Educação e Tecnologia]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/level-up-careers-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/level-up-careers-2025"/>
+        <updated>2025-05-20T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Um evento focado em impulsionar carreiras através do conhecimento técnico e networking.]]></summary>
+        <content type="html"><![CDATA[<p>Um evento focado em impulsionar carreiras através do conhecimento técnico e networking.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resultados-e-alcance">Resultados e Alcance<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/level-up-careers-2025#resultados-e-alcance" class="hash-link" aria-label="Link direto para Resultados e Alcance" title="Link direto para Resultados e Alcance" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Inscritos:</strong> 133 pessoas</li>
+<li class=""><strong>Alcance Digital:</strong> +25 mil visualizações</li>
+<li class=""><strong>Capilaridade:</strong> Estudantes de +20 universidades distintas</li>
+<li class=""><strong>Conteúdo:</strong> 11 palestras abordando 9 temas de empregabilidade</li>
+<li class=""><strong>Satisfação:</strong> Nota 4,93 / 5,00</li>
+</ul>
+<p>A educação é a base da transformação social que buscamos.</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="educacao" term="educacao"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Páscoa 2025: 632 Sorrisos]]></title>
+        <id>https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2025</id>
+        <link href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2025"/>
+        <updated>2025-04-15T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Nossa primeira grande ação de 2025 foi um sucesso absoluto. Com o apoio da comunidade, conseguimos levar a magia da Páscoa para centenas de crianças.]]></summary>
+        <content type="html"><![CDATA[<p>Nossa primeira grande ação de 2025 foi um sucesso absoluto. Com o apoio da comunidade, conseguimos levar a magia da Páscoa para centenas de crianças.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="impacto-da-ação">Impacto da Ação<a href="https://codaqui.dev/previews/develop/comunidades/tisocial/blog/pascoa-2025#impacto-da-a%C3%A7%C3%A3o" class="hash-link" aria-label="Link direto para Impacto da Ação" title="Link direto para Impacto da Ação" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Meta Inicial:</strong> 300 caixas</li>
+<li class=""><strong>Total Arrecadado:</strong> 632 caixas de bombom</li>
+<li class=""><strong>Instituições Beneficiadas:</strong></li>
+<li class=""><strong>APAE:</strong> 305 unidades</li>
+<li class=""><strong>Associação Oriental:</strong> 227 unidades</li>
+<li class=""><strong>Lar Escola:</strong> 100 unidades</li>
+<li class=""><strong>Pessoas Impactadas:</strong> 632 crianças</li>
+</ul>
+<p>Agradecemos a cada um que doou e ajudou na logística de entrega. A tecnologia nos uniu para fazer o bem!</p>]]></content>
+        <author>
+            <name>TI Social</name>
+            <uri>https://www.instagram.com/tisocialmaringa</uri>
+        </author>
+        <category label="campanhas" term="campanhas"/>
+        <category label="impacto" term="impacto"/>
     </entry>
 </feed>
