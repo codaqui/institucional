@@ -69,8 +69,8 @@ function BlogListPageContent(props: Props): ReactNode {
     return (
       <Layout>
         <PageHero
-          eyebrow={`Campanhas da ${community.shortName}`}
-          title={`Campanhas da ${community.shortName}`}
+          eyebrow={`Blog da ${community.shortName}`}
+          title={`Blog da ${community.shortName}`}
           subtitle={`Histórias, prestações de contas e novidades da comunidade ${community.name}.`}
           bgcolor={(t: any) =>
             t.palette.mode === "dark" ? community.theme.primaryDark : community.theme.primary
