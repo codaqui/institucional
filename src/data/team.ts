@@ -121,6 +121,8 @@ export const mentores: Member[] = [
     name: "Renan Ceratto",
     role: "Mentor",
     specialty: "Empreendedorismo",
-    avatar: "https://github.com/ghost.png",
+    avatar: "https://github.com/renanceratto.png",
+    linkedin: "https://www.linkedin.com/in/renanceratto",
+    github: "https://github.com/renanceratto",
   },
 ];

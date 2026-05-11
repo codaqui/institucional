@@ -1,16 +1,23 @@
 import React from "react";
 import { useLocation } from "@docusaurus/router";
+import { useColorMode } from "@docusaurus/theme-common";
 import OriginalLogo from "@theme-original/Navbar/Logo";
 import Link from "@docusaurus/Link";
 import { resolveCommunityFromPath } from "@site/src/lib/community-context";
 
 export default function LogoWrapper(props: React.ComponentProps<typeof OriginalLogo>): React.JSX.Element {
   const { pathname } = useLocation();
+  const { colorMode } = useColorMode();
   const community = resolveCommunityFromPath(pathname);
 
   if (!community) {
     return <OriginalLogo {...props} />;
   }
+
+  const logoSrc =
+    colorMode === "dark" && community.logoUrlDark
+      ? community.logoUrlDark
+      : community.logoUrl;
 
   return (
     <Link
@@ -19,7 +26,7 @@ export default function LogoWrapper(props: React.ComponentProps<typeof OriginalL
       style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}
     >
       <img
-        src={community.logoUrl}
+        src={logoSrc}
         alt={`${community.name} — comunidade parceira da Codaqui`}
         height={36}
         style={{ display: "block" }}
