@@ -24,6 +24,7 @@ import upcoming from "@site/comunidades/tisocial/src/data/upcoming.json";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
+const accentLight = community.theme.primaryLight;
 
 interface FeatureCard {
   icon: React.ReactElement;
@@ -38,7 +39,7 @@ function buildFeatureCards(): FeatureCard[] {
   if (community.features.blog) {
     cards.push({
       icon: <ArticleIcon fontSize="large" />,
-      title: "Blog",
+      title: "Campanhas",
       description:
         "Prestações de contas, histórias e novidades das ações sociais da comunidade.",
       to: `${base}/blog`,
@@ -83,7 +84,7 @@ export default function TiSocialHome(): React.JSX.Element {
     >
       <Box
         sx={{
-          bgcolor: accent,
+          bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
           color: "#fff",
           py: { xs: 6, md: 10 },
         }}
@@ -112,9 +113,11 @@ export default function TiSocialHome(): React.JSX.Element {
                 variant="contained"
                 size="large"
                 sx={{
-                  bgcolor: "#fff",
-                  color: accentDark,
-                  "&:hover": { bgcolor: "#f1f5f9" },
+                  bgcolor: (t) => (t.palette.mode === "dark" ? accent : "#fff"),
+                  color: (t) => (t.palette.mode === "dark" ? "#fff" : accentDark),
+                  "&:hover": {
+                    bgcolor: (t) => (t.palette.mode === "dark" ? accentLight : "#f1f5f9"),
+                  },
                 }}
                 startIcon={<VolunteerActivismIcon />}
               >

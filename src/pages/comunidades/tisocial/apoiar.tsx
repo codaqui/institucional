@@ -26,7 +26,7 @@ export default function TiSocialApoiar(): React.JSX.Element {
     >
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${accent} 0%, ${accentDark} 100%)`,
+          bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
           color: "#fff",
           py: { xs: 6, md: 8 },
         }}

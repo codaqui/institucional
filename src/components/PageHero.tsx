@@ -10,6 +10,8 @@ interface PageHeroProps {
   readonly children?: React.ReactNode;
   /** Alinhamento do conteúdo — padrão "center" */
   readonly align?: "center" | "left";
+  /** Cor de fundo customizada — padrão slate-900 (#111827) */
+  readonly bgcolor?: string | ((theme: any) => string);
 }
 
 /**
@@ -25,13 +27,16 @@ export default function PageHero({
   subtitle,
   children,
   align = "center",
+  bgcolor,
 }: PageHeroProps): React.JSX.Element {
+  const defaultBg = "#111827";
+
   return (
     <Box
       component="section"
       sx={{
         position: "relative",
-        bgcolor: "#111827",          // slate-900 — funciona em qualquer mode
+        bgcolor: bgcolor ?? defaultBg,
         color: "common.white",
         py: { xs: 7, md: 11 },
         textAlign: align,
