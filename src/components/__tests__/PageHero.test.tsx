@@ -43,4 +43,25 @@ describe("PageHero", () => {
     // Children Box should not exist when children is undefined
     expect(container.querySelector("button")).not.toBeInTheDocument();
   });
+
+  it("renders correctly with disableGradient=true", () => {
+    render(<PageHero title="Sem Gradiente" disableGradient />);
+    expect(screen.getByText("Sem Gradiente")).toBeInTheDocument();
+  });
+
+  it("renders correctly with disableGradient=false (default)", () => {
+    render(<PageHero title="Com Gradiente" disableGradient={false} />);
+    expect(screen.getByText("Com Gradiente")).toBeInTheDocument();
+  });
+
+  it("preserves all props alongside disableGradient", () => {
+    render(
+      <PageHero title="Título" eyebrow="Eyebrow" subtitle="Sub" disableGradient>
+        <button>Ação</button>
+      </PageHero>
+    );
+    expect(screen.getByText("Eyebrow")).toBeInTheDocument();
+    expect(screen.getByText("Sub")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ação" })).toBeInTheDocument();
+  });
 });

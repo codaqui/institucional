@@ -1,13 +1,15 @@
 <!-- AGENT-INDEX
 purpose: Plan for storing event override metadata in this repo as the source of truth (GitHub-as-Database pattern).
 audience: Devs extending the events sync pipeline, AI agents adding new sources/overrides.
-status: planning + partial implementation — actual sync lives in scripts/sync-events.mjs and static/events/.
+status: design confirmed — always-PR model with codaqui-bot auto-merge. Implementation pending.
 sections:
   - Visão Geral
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
-  - GitHub-as-Database: Fluxo do Commit
-  - GitHub Action: Validação de Overrides
+  - CRUD de Overrides (GitHub-as-Database)
+  - Dois Caminhos para Editar
+  - GitHub App: codaqui-bot (validação + auto-merge)
+  - GitHub Action: Validação e Auto-Merge de Overrides
   - Backend: Variáveis de Ambiente
   - Padrão Reutilizável: GitHub-as-Database
   - UI da Página de Evento: Dados Máximos
@@ -160,84 +162,216 @@ Exemplo: `static/events/meetup/devparana/226163759.override.json`
 
 ---
 
-## GitHub-as-Database: Fluxo do Commit
+## CRUD de Overrides (GitHub-as-Database)
 
-O override usa um **GitHub App** (token de instalação) para commitar, não o token pessoal do organizador.
-O token pessoal com `public_repo` **não garante acesso write** a repositórios que o usuário
-não tem como colaborador — a scope limita mas não concede. Usar GitHub App evita esse problema
-e mantém o repo com controle centralizado de acesso.
+Toda operação de override — criar, atualizar ou deletar — é tratada como uma
+**operação de banco de dados via Git**: cada operação gera uma branch + PR,
+que é validado e auto-mergeado pelo `codaqui-bot`. Nunca há commit direto em `main`.
 
-A **autoria do organizador** é preservada no commit message e no arquivo override (campo `ownerHandle`).
+| Operação | O que acontece no arquivo | Branch criada? | PR criado? |
+|---|---|---|---|
+| **Create** | Novo arquivo `.override.json` | ✅ | ✅ |
+| **Read** | Leitura direta do arquivo em `main` | ❌ | ❌ |
+| **Update** | Atualiza conteúdo do `.override.json` | ✅ | ✅ |
+| **Delete** | Remove o arquivo `.override.json` | ✅ | ✅ |
 
-### Pré-requisito: GitHub App
+### Convenção de branch
 
-Criar GitHub App `codaqui-bot` com permissão `Contents: write` no repositório `codaqui/institucional`.
-O backend usa `APP_ID` + `PRIVATE_KEY` para gerar tokens de instalação via
-`POST /app/installations/:id/access_tokens`.
+```
+event-override/<sourceKey>-<eventId>-<timestamp>
+Exemplo: event-override/meetup-devparana-226163759-1746823200000
+```
 
-### Validação obrigatória no backend antes do commit
+### Ciclo de vida do PR
+
+```
+[Operação disparada]
+        │
+        ├── Backend cria branch → commita mudança no arquivo → abre PR
+        │   ou owner cria branch diretamente no GitHub → edita arquivo → abre PR
+        │
+        ▼
+[PR aberto com label "event-override"]
+        │
+        ▼
+[codaqui-bot recebe webhook do PR]
+        ├── Valida JSON do diff (campos proibidos, tipos, limites)
+        ├── Se inválido → "Request changes" com comentário explicando o erro
+        └── Se válido → Aprova PR → Habilita auto-merge (squash) → GitHub mergeia → deleta branch
+```
+
+---
+
+## Dois Caminhos para Editar
+
+O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo fluxo de PR + bot.
+
+### Caminho A: Painel Admin (site)
+
+1. `event_organizer` autenticado acessa `/admin/eventos`
+2. Seleciona o evento e preenche o formulário de override
+3. Clica em "Salvar" → backend:
+   a. Valida os campos **antes** de qualquer chamada à GitHub API
+   b. Cria branch `event-override/<sourceKey>-<eventId>-<ts>` via GitHub App token
+   c. Commita o `.override.json` (create/update) ou deleta o arquivo (delete) na branch
+   d. Abre PR com label `event-override`, título: `event: override <eventId> by @<handle> — <reason>`
+4. `codaqui-bot` processa o PR (veja seção abaixo)
+5. PR auto-mergeado em segundos; frontend vê o override na próxima requisição
+
+### Caminho B: GitHub diretamente (web editor ou clone local)
+
+1. `event_organizer` (ou qualquer membro autorizado) cria branch `event-override/<slug>-<ts>`
+2. Cria, edita ou deleta o arquivo `.override.json` no caminho correto:
+   `static/events/<source>/<sourceId>/<eventId>.override.json`
+3. Abre PR com label `event-override` contra `main`
+4. `codaqui-bot` valida o diff e auto-mergeia (mesmo fluxo do Caminho A)
+
+> **Regra de segurança:** O `codaqui-bot` rejeita PRs que contenham alterações fora de
+> `static/events/**/*.override.json`. PRs mistos (override + outro arquivo) são bloqueados.
+
+---
+
+## GitHub App: codaqui-bot (validação + auto-merge)
+
+### Permissões necessárias
+
+| Permissão | Nível | Para quê |
+|---|---|---|
+| `Contents` | Write | Criar branches e commitar arquivos (Caminho A) |
+| `Pull requests` | Write | Criar PRs, aprovar, habilitar auto-merge |
+| `Workflows` | Read | Ler status de checks antes de mergear |
+
+> O repositório precisa ter **auto-merge habilitado** nas configurações:
+> _Settings → General → Allow auto-merge_
+
+### Lógica de validação do bot
 
 ```typescript
-// Antes de chamar GitHub API, o backend valida o conteúdo:
-function validateOverride(data: unknown): asserts data is EventOverride {
-  // 1. Verificar campos proibidos (startAt, endAt, id, source, status, href)
-  // 2. Verificar tipos de cada campo de extendData
-  // 3. Limitar summary a 500 chars
-  // 4. Limitar tags a 10 itens
-  // 5. Limitar speakers a 10 itens
-  if (!isValid) throw new BadRequestException('Override inválido: ' + reason);
+// Pseudocódigo do webhook handler do codaqui-bot
+async function onPullRequestOpened(pr: PullRequest) {
+  // 1. Verificar que todos os arquivos modificados são *.override.json
+  const files = await listPRFiles(pr.number);
+  const invalidFiles = files.filter(f => !f.filename.match(
+    /^static\/events\/[^/]+\/[^/]+\/[^/]+\.override\.json$/
+  ));
+  if (invalidFiles.length > 0) {
+    await requestChanges(pr.number, `PR contém arquivos fora do escopo permitido: ${invalidFiles.map(f => f.filename).join(', ')}`);
+    return;
+  }
+
+  // 2. Para cada arquivo modificado (exceto deletions): validar JSON
+  for (const file of files) {
+    if (file.status === 'removed') continue;
+    const content = await getFileContent(pr.head.sha, file.filename);
+    const result = validateOverrideSchema(JSON.parse(content));
+    if (!result.ok) {
+      await requestChanges(pr.number, `JSON inválido em ${file.filename}: ${result.reason}`);
+      return;
+    }
+  }
+
+  // 3. Tudo válido: aprovar + habilitar auto-merge
+  await approvePR(pr.number, '✅ Override validado automaticamente pelo codaqui-bot.');
+  await enableAutoMerge(pr.number, 'SQUASH');
+  // Após merge: GitHub deleta a branch automaticamente (configurar em Settings → Delete head branches)
 }
 ```
 
-> Nunca commitar dados não validados — o arquivo vai direto para `main` (ou para um PR).
+### Validação do schema de override
 
-### Fluxo do commit (todos os modos)
-
-```
-[Organizer] → PUT /events/override/:sourceKey/:eventId
-    │
-    ├── Backend: JWT válido + roles.includes('event_organizer') + scope cobre o evento
-    ├── Backend: valida campos de extendData (ANTES de qualquer commit)
-    │
-    ├── GitHubDBService (GitHub App token):
-    │   ├── GET /repos/codaqui/institucional/contents/...override.json  (sha atual)
-    │   └── PUT /repos/.../contents/...
-    │         commit message = "event: override <eventId> by @handle — <reason>"
-    │         committer = GitHub App (bot)
-    │         author name/email preservado nos metadados do override JSON
-    │
-    │   Se GITHUB_CREATE_PR=true:
-    │   ├── Cria branch: event-override/<eventId>-<timestamp>
-    │   └── Cria PR draft, label "event-override"
-    │
-    └── Retorna: { sha, htmlUrl/prUrl, status: 'committed' | 'pr_open' }
+```typescript
+function validateOverrideSchema(data: unknown): { ok: boolean; reason?: string } {
+  // Campos proibidos (nunca sobrescrevíveis)
+  const forbidden = ['id', 'startAt', 'endAt', 'href', 'source', 'sourceId', 'status'];
+  for (const key of forbidden) {
+    if (key in (data as Record<string, unknown>).extendData ?? {}) {
+      return { ok: false, reason: `Campo proibido: extendData.${key}` };
+    }
+  }
+  // Limites
+  if ((data as EventOverride).extendData?.summary?.length > 500)
+    return { ok: false, reason: 'summary excede 500 caracteres' };
+  if ((data as EventOverride).extendData?.tags?.length > 10)
+    return { ok: false, reason: 'tags excede 10 itens' };
+  if ((data as EventOverride).extendData?.speakers?.length > 10)
+    return { ok: false, reason: 'speakers excede 10 itens' };
+  return { ok: true };
+}
 ```
 
-### Modo de dev (PR visível, sem auto-merge)
+---
 
-```bash
-# .env (dev)
-GITHUB_CREATE_PR=true        # true = cria PR aberto (dev); false = commit direto main (prod)
-GITHUB_COMMIT_DISABLED=true  # true = 100% local, sem chamar GitHub API (offline)
-GITHUB_APP_ID=
-GITHUB_APP_PRIVATE_KEY_BASE64=
-GITHUB_INSTALLATION_ID=
-GITHUB_REPO_OWNER=codaqui
-GITHUB_REPO_NAME=institucional
+## GitHub Action: Validação e Auto-Merge de Overrides
+
+A GitHub Action abaixo é o ponto de entrada para o `codaqui-bot` processar PRs de override.
+Ela é disparada em `pull_request` (não em push para `main`), garantindo validação **antes** do merge.
+
+```yaml
+# .github/workflows/validate-event-overrides.yml
+name: Validate & auto-merge event overrides
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'static/events/**/*.override.json'
+
+jobs:
+  validate-and-merge:
+    name: Validate override + auto-merge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ steps.app-token.outputs.token }}
+
+      - uses: actions/setup-node@v6
+        with: { node-version: '24' }
+
+      - name: Validate override files
+        run: node scripts/validate-overrides.mjs
+        # Sai com código 1 se qualquer *.override.json for inválido
+
+      - name: Approve PR (codaqui-bot)
+        if: success()
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh pr review ${{ github.event.pull_request.number }} \
+            --approve \
+            --body "✅ Override validado automaticamente pelo codaqui-bot."
+
+      - name: Enable auto-merge
+        if: success()
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --squash \
+            --auto \
+            --delete-branch
 ```
 
-O PR de dev fica aberto no GitHub — inspecionar o diff do JSON, fechar se inválido,
-mesclar manualmente após validação. Em produção (`GITHUB_CREATE_PR=false`), commit direto.
+> **Branch deletion automática:** o flag `--delete-branch` garante que a branch é deletada
+> após o merge, mesmo para PRs criados pelo Caminho B (edição direta no GitHub).
 
-> Pasta `.gitignore`d `static/events/_dev-overrides/` só é usada quando
-> `GITHUB_COMMIT_DISABLED=true` (modo completamente offline).
+---
 
-
+## UI da Página de Evento: Dados Máximos
 
 A página `/eventos/[sourceKey]/[id]` (ou `/eventos?source=X&id=Y`) precisa mesclar:
-
-1. Dados do snapshot: `static/events/<source>/<sourceId>/<id>.json`
-2. Override (se existir): `static/events/<source>/<sourceId>/<id>.override.json`
 
 ```typescript
 // src/utils/event-override.ts
@@ -282,86 +416,41 @@ A página exibe um badge **"Metadados verificados por @handle"** quando override
 
 ---
 
-## GitHub Action: Validação de Overrides
-
-O commit é feito pelo backend usando o token do **GitHub App `codaqui-bot`** (committer
-preservado nos metadados do JSON, autor lógico no `ownerHandle`). Como o backend valida o
-schema antes de commitar e o GitHub App tem permissão `Contents: write`, o arquivo vai
-direto para `main` sem necessidade de auto-merge.
-
-A GitHub Action abaixo é uma **defesa em profundidade**: revalida o schema em cada push,
-caso alguém edite os arquivos override fora do fluxo do backend (ex.: PR manual):
-
-```yaml
-# .github/workflows/validate-overrides.yml
-name: Validate event overrides
-
-on:
-  push:
-    branches: [main]
-    paths:
-      - 'static/events/**/*.override.json'
-
-jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
-        with: { node-version: '24' }
-      - name: Validate override schema
-        run: node scripts/validate-overrides.mjs
-```
-
-```javascript
-// scripts/validate-overrides.mjs — valida todos os *.override.json
-// Verifica: campos obrigatórios, tipos, campos proibidos (startAt, status, etc.)
-```
-
----
-
 ## Backend: Variáveis de Ambiente
 
 ```
 # .env.example — adicionar:
-GITHUB_COMMIT_DISABLED=false    # true = modo 100% local, grava em _dev-overrides/
-GITHUB_CREATE_PR=false          # true = cria PR aberto (dev); false = commit direto (prod)
 GITHUB_REPO_OWNER=codaqui
 GITHUB_REPO_NAME=institucional
 
-# GitHub App — usado para commits no repositório (NUNCA token pessoal de membro):
+# GitHub App — usado para criar branches + PRs (NUNCA token pessoal de membro):
 GITHUB_APP_ID=                  # ID numérico do GitHub App `codaqui-bot`
 GITHUB_APP_INSTALLATION_ID=     # ID da instalação no org `codaqui`
 GITHUB_APP_PRIVATE_KEY=         # Chave privada PEM do GitHub App (multiline; usar base64 se necessário)
 ```
 
-> **Combinações práticas:**
-> - Dev inspeção: `GITHUB_CREATE_PR=true` → cria PR real, visível no GitHub, não auto-merge
-> - Dev offline: `GITHUB_COMMIT_DISABLED=true` → grava localmente em `_dev-overrides/`
-> - Produção: ambos `false` (padrão) → commit direto em `main`
+> ⚠️ **Não há `GITHUB_CREATE_PR` nem `GITHUB_COMMIT_DISABLED`** — o modelo é sempre-PR.
+> O backend nunca commita direto em `main`. A autoria do organizador é registrada no campo
+> `ownerHandle` do JSON override e no commit message — o committer real é sempre o GitHub App.
 
-> ⚠️ **Não há `MEMBER_TOKEN_ENCRYPTION_KEY`**: o backend não armazena tokens pessoais do
-> GitHub. A autoria do organizador é registrada no campo `ownerHandle` do JSON override e
-> repetida na commit message — o committer real é sempre o GitHub App.
-
-
+### Endpoints do módulo `event-organizer`
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | `GET` | `/events/organizers` | Admin | Lista mapeamento de ownership |
 | `POST` | `/events/organizers` | Admin | Atribui eventos a um organizer |
 | `DELETE` | `/events/organizers/:memberId` | Admin | Remove ownership |
-| `PUT` | `/events/override/:sourceKey/:eventId` | event_organizer | Cria/atualiza override via GitHub |
-| `DELETE` | `/events/override/:sourceKey/:eventId` | event_organizer | Remove override via GitHub delete file API |
+| `PUT` | `/events/override/:sourceKey/:eventId` | event_organizer | Cria/atualiza override (abre PR) |
+| `DELETE` | `/events/override/:sourceKey/:eventId` | event_organizer | Remove override (abre PR de delete) |
 | `GET` | `/events/override/:sourceKey/:eventId` | Público | Retorna override atual (cache 5min) |
-
----
+| `GET` | `/events/override/:sourceKey/:eventId/pr` | event_organizer | Retorna PR em aberto para o override |
 
 ---
 
 ## Padrão Reutilizável: GitHub-as-Database
 
-Este fluxo (backend valida → **GitHub App** commita em `main` → autoria do membro preservada nos metadados/commit message) é reutilizável para:
+Este fluxo (backend valida → **GitHub App** cria branch + PR → `codaqui-bot` auto-mergeia →
+branch deletada) é reutilizável para qualquer dado que vive no repositório:
 
 | Caso de uso | Arquivo alvo | Quem dispara (role) |
 |---|---|---|
@@ -383,29 +472,42 @@ Este fluxo (backend valida → **GitHub App** commita em `main` → autoria do m
 @Injectable()
 export class GitHubDBService {
   /**
-   * Commita um arquivo no repositório usando o token de instalação do GitHub App.
-   * O `actorHandle` é apenas para a commit message — não é usado como autenticação.
-   * Em modo dev (GITHUB_COMMIT_DISABLED=true), grava localmente em static/events/_dev-overrides/.
+   * Cria uma branch, commita a mudança e abre um PR.
+   * O `actorHandle` é preservado no commit message e no título do PR.
+   * O bot (`codaqui-bot`) valida e auto-mergeia o PR após aprovação.
    */
-  async commitFile(opts: {
-    path: string;           // caminho no repositório
-    content: string;        // conteúdo em UTF-8
-    message: string;        // commit message (inclui "by @<actorHandle>")
-    actorHandle: string;    // handle GitHub do membro que disparou a ação (auditoria)
-  }): Promise<{ sha: string; htmlUrl: string }>;
+  async createPRWithFile(opts: {
+    branch: string;         // nome da branch (ex: "event-override/meetup-devparana-123-ts")
+    path: string;           // caminho do arquivo no repositório
+    content: string;        // conteúdo em UTF-8 (undefined para deletar)
+    commitMessage: string;  // "event: override <eventId> by @<actorHandle> — <reason>"
+    prTitle: string;        // título do PR
+    actorHandle: string;    // handle GitHub do membro (auditoria)
+    labels?: string[];      // ex.: ["event-override"]
+  }): Promise<{ prNumber: number; prUrl: string }>;
 
   async readFile(path: string): Promise<string | null>;
 
-  async deleteFile(opts: {
+  /**
+   * Cria branch + PR de delete (remove o arquivo override).
+   * Mesmo fluxo: bot valida que só *.override.json está sendo removido e auto-mergeia.
+   */
+  async createPRDeleteFile(opts: {
+    branch: string;
     path: string;
-    message: string;
+    commitMessage: string;
+    prTitle: string;
     actorHandle: string;
-  }): Promise<void>;
+  }): Promise<{ prNumber: number; prUrl: string }>;
+
+  /** Retorna o PR aberto para uma branch (útil para polling de status) */
+  async getPRForBranch(branch: string): Promise<{ number: number; state: string; mergedAt: string | null } | null>;
 }
 ```
 
 > Internamente o service usa `GITHUB_APP_ID` + `GITHUB_APP_INSTALLATION_ID` + `GITHUB_APP_PRIVATE_KEY`
 > para gerar tokens de instalação de curta duração via `POST /app/installations/:id/access_tokens`.
+> Nunca há `commitFile()` direto em `main` — todo write passa por branch + PR.
 
 ---
 
@@ -595,26 +697,36 @@ export default function EventOverrideBadge({ override }: Props) {
 - Mock de `fetch` para `.override.json` retornando 404 (sem override) e 200 (com override)
 
 ### GitHub Action
-- `validate-override-signature.mjs` — testes com HMAC válido/inválido
+- `scripts/validate-overrides.mjs` — valida todos os `*.override.json` modificados no PR:
+  - Campos proibidos (startAt, endAt, id, source, status, href)
+  - Tipos de cada campo de `extendData`
+  - Limites (summary ≤ 500 chars, tags ≤ 10, speakers ≤ 10)
+  - PRs mistos (override + outro arquivo) devem falhar
 
 ---
 
 ## Checklist de Implementação
 
-- [ ] Criar GitHub App `codaqui-bot` com permissão `Contents: write` em `codaqui/institucional`
+- [ ] Criar GitHub App `codaqui-bot`:
+  - Permissão `Contents: write` + `Pull requests: write`
+  - Habilitar auto-merge no repositório (_Settings → General → Allow auto-merge_)
+  - Habilitar delete automático de branches após merge (_Settings → General → Automatically delete head branches_)
 - [ ] Migrar `MemberRole` de enum single-value para `text[]` + `RolesGuard` update
 - [ ] Adicionar `EVENT_ORGANIZER` em `MemberRole` + migration Postgres
 - [ ] Criar `static/events/organizers.json` com estrutura inicial vazia
-- [ ] Criar módulo `backend/src/github-db/` com `GitHubDBService` (GitHub App token + PR mode + local mode)
+- [ ] Criar módulo `backend/src/github-db/` com `GitHubDBService`:
+  - `createPRWithFile()` — cria branch + commita + abre PR
+  - `createPRDeleteFile()` — cria branch + remove arquivo + abre PR
+  - `readFile()` — lê arquivo de `main`
+  - `getPRForBranch()` — retorna estado do PR aberto
 - [ ] Criar módulo `backend/src/event-organizer/` com endpoints de ownership e override
-- [ ] Adicionar validação de override no backend (campos proibidos, tipos, limites) antes do commit
-- [ ] Adicionar `GITHUB_COMMIT_DISABLED`, `GITHUB_CREATE_PR`, `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY_BASE64`, `GITHUB_INSTALLATION_ID`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME` em `.env.example`
-- [ ] Adicionar `static/events/_dev-overrides/` ao `.gitignore`
-- [ ] Criar workflow `.github/workflows/validate-overrides.yml`
+- [ ] Adicionar validação de override no backend (campos proibidos, tipos, limites) **antes** de criar branch
+- [ ] Adicionar `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME` em `.env.example`
+- [ ] Criar workflow `.github/workflows/validate-event-overrides.yml` (on: pull_request → validate + approve + auto-merge)
 - [ ] Criar script `scripts/validate-overrides.mjs`
-- [ ] Atualizar script `scripts/sync-events.mjs` para incluir `hasOverride` no `index.json`
+- [ ] Atualizar script `scripts/sync-events.mjs` para incluir `hasOverride: boolean` no `index.json`
 - [ ] Criar `src/utils/event-override.ts` com `loadEventWithOverride()`
 - [ ] Criar `src/components/EventOverrideBadge/`
 - [ ] Atualizar página de eventos para usar merge e badge
-- [ ] Testes unitários (backend + frontend)
-- [ ] Atualizar `AGENTS.md` com novo role e padrão GitHub-as-DB
+- [ ] Testes unitários (backend + frontend + validate-overrides.mjs)
+- [ ] Atualizar `AGENTS.md` com novo role e padrão GitHub-as-DB (sempre-PR, sem commit direto)

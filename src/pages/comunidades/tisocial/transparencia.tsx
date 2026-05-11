@@ -69,7 +69,7 @@ export default function TiSocialTransparencia(): React.JSX.Element {
       {/* Hero */}
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${accent} 0%, ${accentDark} 100%)`,
+          bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
           color: "#fff",
           py: { xs: 6, md: 8 },
         }}
@@ -116,7 +116,7 @@ export default function TiSocialTransparencia(): React.JSX.Element {
                 borderColor: accent,
                 borderWidth: 2,
                 height: "100%",
-                background: `linear-gradient(135deg, ${accent}10 0%, ${accent}05 100%)`,
+                bgcolor: "action.hover",
               }}
             >
               <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>

@@ -79,7 +79,6 @@ describe("em página de comunidade", () => {
     const links = screen.getAllByRole("link");
     expect(links.length).toBe(5);
   });
-});
 
   it("dispara toggle do sidebar ao clicar em item do navMenu", () => {
     mockUseLocation.mockReturnValue({ pathname: "/comunidades/tisocial" });
@@ -90,6 +89,7 @@ describe("em página de comunidade", () => {
     // O onClick de cada NavbarItem chama mobileSidebar.toggle()
     expect(mockToggle).toHaveBeenCalled();
   });
+});
 
 describe("fora de contexto de comunidade", () => {
   const defaultPaths = [

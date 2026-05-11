@@ -55,6 +55,25 @@ export interface CommunitySiteConfig {
   };
 }
 
+import campaigns from "./src/data/campaigns.json";
+
+// Cálculos dinâmicos baseados no campaigns.json
+const totalActions = campaigns.length;
+const totalImpact = campaigns.reduce(
+  (acc, c) => acc + (c.peopleImpacted || 0) + (c.animalsImpacted || 0),
+  0
+);
+const totalRaised = campaigns.reduce((acc, c) => acc + (c.raised || 0), 0);
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
+
+const formatNumber = (value: number) =>
+  new Intl.NumberFormat("pt-BR").format(value);
+
 const config: CommunitySiteConfig = {
   slug: "tisocial",
   name: "T.I. Social Maringá",
@@ -66,11 +85,11 @@ const config: CommunitySiteConfig = {
   logoUrl: "/img/tisocial.png",
   logoUrlDark: "/img/tisocial-white.png",
   theme: {
-    primary: "#0ea5e9",
-    primaryDark: "#0284c7",
-    primaryLight: "#38bdf8",
-    accent: "#f97316",
-    footerBg: "#0c4a6e",
+    primary: "#8DC044",
+    primaryDark: "#424143",
+    primaryLight: "#a6d16a",
+    accent: "#424143",
+    footerBg: "#424143",
   },
   basePath: "/comunidades/tisocial",
   externalLinks: [
@@ -78,7 +97,7 @@ const config: CommunitySiteConfig = {
   ],
   navMenu: [
     { label: "Início",        to: "/comunidades/tisocial" },
-    { label: "Blog",          to: "/comunidades/tisocial/blog" },
+    { label: "Campanhas",     to: "/comunidades/tisocial/blog" },
     { label: "Docs",          to: "/comunidades/tisocial/docs" },
     { label: "Apoiar",        to: "/comunidades/tisocial/apoiar" },
     { label: "Transparência", to: "/comunidades/tisocial/transparencia" },
@@ -93,19 +112,17 @@ const config: CommunitySiteConfig = {
   hero: {
     title: "T.I. Social Maringá",
     subtitle:
-      "Unindo tecnologia e responsabilidade social para transformar a comunidade. "
-      + "Páscoa Solidária, AUMIGO, mentoria e educação digital — tudo num só lugar.",
+      "Transformando comunidades através da tecnologia.",
     ctaPrimary: { label: "Apoiar a comunidade", to: "/comunidades/tisocial/apoiar" },
     ctaSecondary: { label: "Ver no Instagram", href: "https://www.instagram.com/tisocialmaringa" },
   },
   impact: {
-    title: "Impacto recente",
-    subtitle: "Resultado consolidado da AUMIGO e Páscoa Solidária 2025.",
+    title: "Impacto da comunidade",
+    subtitle: "Consolidado histórico das campanhas realizadas pela T.I. Social.",
     stats: [
-      { value: "R$ 2.859,45", label: "Arrecadados na AUMIGO" },
-      { value: "417,5 kg",     label: "Ração distribuída" },
-      { value: "+350",         label: "Animais beneficiados" },
-      { value: "464",          label: "Caixas de bombons (Páscoa)" },
+      { value: formatNumber(totalActions), label: "Ações realizadas" },
+      { value: formatNumber(totalImpact),  label: "Pessoas e animais impactados" },
+      { value: formatCurrency(totalRaised), label: "Total arrecadado" },
     ],
   },
   exploreSection: {

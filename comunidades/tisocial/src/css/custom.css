@@ -1,0 +1,256 @@
+/**
+ * TI Social - Custom CSS
+ * 
+ * Based on the logo colors:
+ * Primary Green: #22C55E (Approx from logo)
+ * Contrast: White / Dark Gray
+ */
+
+:root {
+  /* Primary color: Green from logo */
+  --ifm-color-primary: #22c55e;
+  --ifm-color-primary-dark: #1eb155;
+  --ifm-color-primary-darker: #1ca750;
+  --ifm-color-primary-darkest: #178a42;
+  --ifm-color-primary-light: #39cc73;
+  --ifm-color-primary-lighter: #46d17e;
+  --ifm-color-primary-lightest: #6bdc96;
+
+  /* Layout colors */
+  --ifm-background-color: #ffffff;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #111827; /* Dark charcoal for contrast */
+  
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(34, 197, 94, 0.1);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #4ade80;
+  --ifm-color-primary-dark: #22c55e;
+  --ifm-color-primary-darker: #16a34a;
+  --ifm-color-primary-darkest: #15803d;
+  --ifm-color-primary-light: #86efac;
+  --ifm-color-primary-lighter: #bbf7d0;
+  --ifm-color-primary-lightest: #f0fdf4;
+
+  --ifm-background-color: #0f172a;
+  --ifm-background-surface-color: #1e293b;
+}
+
+/* Custom Hero for TI Social - Clean White variant */
+.hero--tisocial {
+  background-color: #ffffff;
+  color: #111827;
+  padding: 5rem 2rem;
+  text-align: center;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.hero--tisocial h1 {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--ifm-color-primary);
+  margin-bottom: 1rem;
+}
+
+.hero__logo {
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 2rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.hero--tisocial p {
+  font-size: 1.5rem;
+  color: #4b5563;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Custom Cards */
+.tisocial-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 1.5rem;
+  padding: 2.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: #ffffff;
+  height: 100%;
+}
+
+.tisocial-card:hover {
+  transform: translateY(-8px);
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+.tisocial-card h3 {
+  color: var(--ifm-color-primary);
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+}
+
+.tisocial-card p {
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+[data-theme='dark'] .hero--tisocial {
+  background-color: var(--ifm-background-color);
+  color: #f3f4f6;
+  border-bottom: 1px solid #1e293b;
+}
+
+[data-theme='dark'] .hero--tisocial p {
+  color: #9ca3af;
+}
+
+/* Featured Campaign Section */
+.featured-campaign {
+  background-color: #f9fafb;
+  padding: 4rem 0;
+  border-radius: 2rem;
+  margin: 2rem 0;
+}
+
+.featured-campaign__card {
+  background: white;
+  border-left: 5px solid var(--ifm-color-primary);
+  padding: 2.5rem;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.featured-campaign__badge {
+  display: inline-block;
+  background-color: var(--ifm-color-primary);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.featured-campaign__title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.button--tisocial-outline {
+  border: 2px solid var(--ifm-color-primary);
+  color: var(--ifm-color-primary);
+  font-weight: 700;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+/* Stats Section */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 2rem;
+  margin: 4rem 0;
+  text-align: center;
+}
+
+.stat-item {
+  padding: 2rem;
+  background: white;
+  border-bottom: 4px solid var(--ifm-color-primary);
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.stat-value {
+  display: block;
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--ifm-color-primary);
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Upcoming Campaigns Section */
+.upcoming-section {
+  padding: 4rem 0;
+}
+
+.upcoming-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #f3f4f6;
+  transition: all 0.2s;
+}
+
+.upcoming-item:hover {
+  border-color: var(--ifm-color-primary);
+  background: #f0fdf4;
+}
+
+.upcoming-date {
+  background: var(--ifm-color-primary);
+  color: white;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  min-width: 80px;
+  text-align: center;
+}
+
+.upcoming-title {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+[data-theme='dark'] .upcoming-item {
+  background: var(--ifm-background-surface-color);
+  border-color: #1e293b;
+}
+
+[data-theme='dark'] .upcoming-title {
+  color: #f3f4f6;
+}
+
+/* Blog/Campaign Sidebar Styling - Full Column Contrast */
+aside.col--3 {
+  background-color: #e2e8f0 !important; /* Cinza um pouco mais escuro para contraste nítido */
+  border-right: 1px solid #cbd5e1 !important;
+  padding: 2rem 1.5rem !important;
+  min-height: 100vh;
+}
+
+[data-theme='dark'] aside.col--3 {
+  background-color: #0f172a !important; /* Mais escuro no dark mode também */
+  border-right-color: #1e293b !important;
+}
+
+/* Clear any inherited backgrounds from internal elements */
+aside.col--3 nav,
+aside.col--3 [class*='sidebar_'] {
+  background: transparent !important;
+}

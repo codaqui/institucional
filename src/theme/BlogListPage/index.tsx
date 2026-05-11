@@ -72,7 +72,12 @@ function BlogListPageContent(props: Props): ReactNode {
           eyebrow={`Blog da ${community.shortName}`}
           title={`Blog da ${community.shortName}`}
           subtitle={`Histórias, prestações de contas e novidades da comunidade ${community.name}.`}
+          bgcolor={(t: any) =>
+            t.palette.mode === "dark" ? community.theme.primaryDark : community.theme.primary
+          }
+          disableGradient={true}
         >
+
           <Stack
             direction="row"
             spacing={1}
@@ -100,10 +105,13 @@ function BlogListPageContent(props: Props): ReactNode {
               href="#posts"
               startIcon={<AutoStoriesRoundedIcon />}
               sx={{
-                bgcolor: "common.white",
-                color: "primary.dark",
+                bgcolor: (t) => (t.palette.mode === "dark" ? community.theme.primary : "common.white"),
+                color: (t) => (t.palette.mode === "dark" ? "#fff" : "primary.dark"),
                 fontWeight: 700,
-                "&:hover": { bgcolor: "grey.100" },
+                "&:hover": {
+                  bgcolor: (t) =>
+                    t.palette.mode === "dark" ? community.theme.primaryLight : "grey.100",
+                },
               }}
             >
               Explorar publicações
