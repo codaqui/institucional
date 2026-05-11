@@ -18,7 +18,9 @@ import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ArticleIcon from "@mui/icons-material/Article";
 import PaidIcon from "@mui/icons-material/Paid";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import community from "@site/comunidades/tisocial/community.config";
+import upcoming from "@site/comunidades/tisocial/src/data/upcoming.json";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
@@ -81,7 +83,7 @@ export default function TiSocialHome(): React.JSX.Element {
     >
       <Box
         sx={{
-          background: `linear-gradient(135deg, ${accent} 0%, ${accentDark} 100%)`,
+          bgcolor: accent,
           color: "#fff",
           py: { xs: 6, md: 10 },
         }}
@@ -152,7 +154,7 @@ export default function TiSocialHome(): React.JSX.Element {
         )}
         <Grid container spacing={3}>
           {stats.map((stat) => (
-            <Grid key={stat.label} size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid key={stat.label} size={{ xs: 12, sm: 6, md: 4 }}>
               <Card sx={{ height: "100%", textAlign: "center", py: 3 }}>
                 <CardContent>
                   <Typography
@@ -164,6 +166,45 @@ export default function TiSocialHome(): React.JSX.Element {
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     {stat.label}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+
+      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 }, borderTop: 1, borderColor: "divider" }}>
+        <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+          Próximas Campanhas
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+          Confira o cronograma de ações sociais planejadas para os próximos meses.
+        </Typography>
+        <Grid container spacing={2}>
+          {upcoming.map((item) => (
+            <Grid key={item.action} size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                variant="outlined"
+                sx={{
+                  height: "100%",
+                  transition: "transform 0.2s",
+                  "&:hover": { transform: "translateY(-4px)", borderColor: accent },
+                }}
+              >
+                <CardContent>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5, color: accent }}>
+                    <CalendarMonthIcon fontSize="small" />
+                    <Typography
+                      variant="overline"
+                      fontWeight={700}
+                      sx={{ lineHeight: 1, mt: 0.5 }}
+                    >
+                      {item.date}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body1" fontWeight={700} sx={{ lineHeight: 1.3 }}>
+                    {item.action}
                   </Typography>
                 </CardContent>
               </Card>
