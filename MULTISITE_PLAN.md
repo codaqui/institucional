@@ -31,9 +31,10 @@ agent-protocol:
 ## 0. TL;DR — onde estamos
 
 - ✅ **Decidida**: Opção D1 (single Docusaurus + multi-instance + swizzle de Navbar/Layout)
-- 🚧 **Em execução**: Fase 3 — login + doação cross-domain via Cloudflare Worker (~95% pronto, validado em dev local com `tisocial.localhost:8787`)
-- ⏳ **Próximo**: provisionar zona `tisocial.org.br` no Cloudflare e cadastrar callback URL no GitHub OAuth App (ou broker)
-- 💸 **Custo extra esperado**: R$ 0/mês (GitHub Pages free + Cloudflare Worker free, ou alternativa equivalente)
+- ✅ **Fase 3 em produção**: `tisocial.org.br` live via Cloudflare Worker — login, doação Stripe e transparência funcionando cross-domain
+- 🟡 **Fase 1 quase fechada**: faltam link em `/sobre/ong` e smoke test final com domínio próprio
+- ⏳ **Próximo**: fechar Fase 1 → iniciar Fase 2 (DevParaná, Elas no Código, CamposTech, Cloud Native Maringá)
+- 💸 **Custo extra**: R$ 0/mês (GitHub Pages free + Cloudflare Worker free)
 
 ---
 
@@ -102,12 +103,12 @@ O **resolver** `resolveCommunityFromPath(pathname)` em `src/lib/community-contex
 - [ ] **Link em `/sobre/ong`** apontando para `/comunidades/tisocial`
 - [x] ~~Documentar onboarding em AGENTS.md~~ — feito (seção "Multi-tenant communities")
 - [ ] `/sobre/ong` ganhar lista de comunidades com link para o portal whitelabel quando existir
-- [ ] Smoke test final em build de produção (não só dev)
+- [x] ~~Smoke test final em build de produção~~ — **`tisocial.org.br` em produção via Cloudflare Worker ✅**
 
 ### 🔵 Fora do escopo da Fase 1 (decidido)
 
 - ❌ **Página de eventos da T.I. Social** — `features.events: false`. T.I. Social não tem base de eventos próprios; reativar quando houver fonte de dados.
-- ❌ **Auth dentro do navbar da comunidade** — removido pois domínio próprio é incerto na Fase 1. Login só dentro do `<DonationFlow>` (gate). Reavaliar depois da Fase 3.
+- ❌ **Auth dentro do navbar da comunidade** — removido (auth oculto no mobile de comunidades, documentado em AGENTS.md). Login disponível via `<DonationFlow>` gate e NavbarAuth no desktop.
 
 ---
 
@@ -438,8 +439,8 @@ Caso a Fase 2 prove muito bem-sucedida e tenhamos 5+ comunidades com domínio pr
 - [x] Targets Make: `worker-dev-tisocial`, `worker-deploy-tisocial`
 - [x] `wrangler` em devDependencies
 - [x] Documentação em `workers/README.md`
-- [ ] Provisionar zona Cloudflare para `tisocial.org.br` (NS troca no registrar)
-- [ ] Configurar GitHub OAuth app (callback URL em `https://api.codaqui.dev/auth/github/callback`) — funciona como callback único multi-domínio porque o `returnTo` viaja no state JWT
+- [x] Provisionar zona Cloudflare para `tisocial.org.br` (NS troca no registrar) — **produção ativa**
+- [x] Configurar GitHub OAuth app (callback URL em `https://api.codaqui.dev/auth/github/callback`) — funciona como callback único multi-domínio porque o `returnTo` viaja no state JWT
 
 **Frontend:**
 - [x] `useAuth.login()`/`logout()` mandam `returnTo` absoluto baseado em `globalThis.location.origin`

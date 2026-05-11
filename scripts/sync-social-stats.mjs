@@ -131,20 +131,16 @@ async function fetchMeetupMemberCount(urlname) {
 
 // ─── CNCF Community (Bevy) ───────────────────────────────────────────────────
 
-async function fetchCncfMemberCount(chapterSlug) {
+async function fetchOcgroupsMemberCount(groupId) {
   try {
-    const res = await fetchWithTimeout(`https://community.cncf.io/${chapterSlug}/`, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+    const res = await fetchWithTimeout(`https://ocgroups.dev/cncf/group/${groupId}`, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; Codaqui/1.0; +https://codaqui.dev)" },
     });
     const html = await fetchSafeText(res);
-    // Safer match with restricted range
-    const match = /<script id="__NEXT_DATA__"[^>]*>([\s\S]{1,200000}?)<\/script>/.exec(html);
-    if (!match) return null;
-
-    const data = JSON.parse(match[1]);
-    return data?.props?.pageProps?.chapterData?.members_count ?? null;
+    const match = /<span class="text-sm">(\d+) members<\/span>/.exec(html);
+    return match ? Number.parseInt(match[1], 10) : null;
   } catch (err) {
-    console.warn(`CNCF member count error for ${chapterSlug}:`, err.message);
+    console.warn(`ocgroups member count error for ${groupId}:`, err.message);
     return null;
   }
 }
@@ -270,7 +266,7 @@ async function fetchByPlatform(platform, fetchId) {
     case "github": return fetchGitHubFollowers(fetchId);
     case "youtube": return fetchYouTubeSubscribers(fetchId);
     case "instagram": return fetchInstagramFollowers(fetchId);
-    case "cncf": return fetchCncfMemberCount(fetchId);
+    case "cncf": return fetchOcgroupsMemberCount(fetchId);
     default:
       console.warn(`No auto-fetch for platform "${platform}" (fetchId: ${fetchId})`);
       return null;

@@ -13,16 +13,16 @@
     "generatedAt": "2026-05-11T16:04:08.762Z"
   },
   "event": {
-    "id": "259762584",
-    "title": "DevGirls #5",
-    "summary": "Neste DevGirls iremos ir um pouco para o lado da qualidade com duas talks. 19h às 19h15min - Homenageadora do mês; 19h20min 1ª talk - Automação d testes com Testleft com Viviane Furtado 19h40min - Coffee Break 20h 2ª ta…",
-    "startAt": "2019-03-21T19:00:00-03:00",
-    "endAt": "2019-03-21T20:30:00-03:00",
+    "id": "314707318",
+    "title": "11° Meetup Dev Paraná Cascavel",
+    "summary": "O Dev Paraná mantém o pé no acelerador em Cascavel com um encontro que une o futuro do desenvolvimento assistido por IA e o reconhecimento do talento local. Prepare-se para uma noite de imersão técnica, troca de experiê…",
+    "startAt": "2026-05-14T19:00:00-03:00",
+    "endAt": "2026-05-14T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Benner Technology and Health Systems · Av. Alziro Zarur, 73 · Maringá · PR",
-    "href": "https://www.meetup.com/developerparana/events/259762584/",
+    "location": "UNIPAR - Universidade Paranaense - Cascavel · R. Rui Barbosa, 611 · Cascavel · PR",
+    "href": "https://www.meetup.com/developerparana/events/314707318/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,11 +30,17 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 28,
-    "creatorName": "Eloisa Potrich",
-    "creatorId": "225304255",
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/7/4/d/highres_479470061.jpeg"
+    "userCount": 3,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
+    "organizers": [
+      {
+        "name": "Everton Tavares",
+        "id": "188896297"
+      }
+    ],
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/b/2/a/2/highres_534165730.jpeg"
   }
 }
