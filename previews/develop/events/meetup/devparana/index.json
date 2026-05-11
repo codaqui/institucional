@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-07T17:31:30.691Z",
+  "generatedAt": "2026-05-11T19:30:37.244Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-07T17:31:30.691Z",
+    "generatedAt": "2026-05-11T19:30:37.244Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 363
+    "itemCount": 364
   },
   "events": [
     {
@@ -10598,6 +10598,41 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/313962761.json"
+    },
+    {
+      "id": "314707318",
+      "title": "11° Meetup Dev Paraná Cascavel",
+      "summary": "O Dev Paraná mantém o pé no acelerador em Cascavel com um encontro que une o futuro do desenvolvimento assistido por IA e o reconhecimento do talento local. Prepare-se para uma noite de imersão técnica, troca de experiê…",
+      "startAt": "2026-05-14T19:00:00-03:00",
+      "endAt": "2026-05-14T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "UNIPAR - Universidade Paranaense - Cascavel · R. Rui Barbosa, 611 · Cascavel · PR",
+      "href": "https://www.meetup.com/developerparana/events/314707318/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 5,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "Everton Tavares",
+          "id": "188896297"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/b/2/a/2/highres_534165730.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/314707318.json"
     }
   ]
 }
