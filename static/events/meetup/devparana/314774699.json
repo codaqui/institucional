@@ -13,16 +13,16 @@
     "generatedAt": "2026-05-13T22:23:46.728Z"
   },
   "event": {
-    "id": "313962722",
-    "title": "DevPR na Estrada - Cascavel",
-    "summary": "DevParaná na Estrada 2026 chega a Cascavel com um conjunto de palestras incríveis! Palestras: Papel do engenheiro de software na nova era Gabriel Prando (https://www.linkedin.com/in/prandogabriel/) - Senior Software Eng…",
-    "startAt": "2026-04-10T19:00:00-03:00",
-    "endAt": "2026-04-10T21:00:00-03:00",
+    "id": "314774699",
+    "title": "[DevPR Guarapuava] Meetup 21/05",
+    "summary": "No dia 21 de maio, às 19h, a comunidade de desenvolvedores de Guarapuava se reúne na Unicentro para mais um encontro do DevParaná, trazendo conteúdos práticos e discussões relevantes sobre tecnologia aplicada ao mundo r…",
+    "startAt": "2026-05-21T19:00:00-03:00",
+    "endAt": "2026-05-21T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "ACICLABS Aceleradora e Hub de Inovação · Acic - R. Pernambuco, 1800 - 2º Andar · Cascavel · PR",
-    "href": "https://www.meetup.com/developerparana/events/313962722/",
+    "location": "Prédio PDE · Alameda Elio Antônio Dalla Vecchia, 838 - Vila Carli, Guarapuava - PR, 85040-167 · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/314774699/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,17 +30,32 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 78,
+    "userCount": 5,
     "creatorName": "Luiz Schons",
     "creatorId": "370720313",
     "organizers": [
       {
         "name": "Luiz Schons",
         "id": "370720313"
+      },
+      {
+        "name": "leonardo tosin",
+        "id": "478507140"
+      },
+      {
+        "name": "Nestor Hugo",
+        "id": "428326789"
+      },
+      {
+        "name": "Eliezer Buczak Boeira ",
+        "id": "428102696"
+      },
+      {
+        "name": "João Paulo Vasconcelos",
+        "id": "429772464"
       }
-    ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/a/a/highres_533391882.jpeg"
+    ]
   }
 }
