@@ -31,13 +31,9 @@ O evento será uma transmissão ao vivo, focada em compartilhar realidades e sup
 ### 📅 Cronograma
 
 * **Abertura e Conexão:** Boas-vindas e apresentação do Movimento Elas No Código.
-
 * **Bloco 1:** Antes e Depois da Maternidade (Impactos na produtividade, concentração e liderança).
-
 * **Bloco 2:** A Realidade Sem Filtro (Desafios de conciliação, licença-maternidade e o retorno ao mercado).
-
 * **Bloco 3:** Rede de Apoio e Futuro (O papel das empresas e o legado para as próximas gerações).
-
 * **Encerramento:** Bate-pronto final com conselhos práticos.
 
 ## Sobre as Convidadas
@@ -57,7 +53,6 @@ Formada em Engenharia Física pela UFSCar, possui 8 anos de experiência em dese
 ## Hosts da Roda
 
 * **Maria Luiza Pontes:** Engenheira de Software Sênior na Stone, com 13 anos de experiência na área de desenvolvimento.
-
 * **Karoline Farias:** Analista de Machine Learning e Cientista de Dados.
 
 ## Tópicos que serão abordados
@@ -65,13 +60,9 @@ Formada em Engenharia Física pela UFSCar, possui 8 anos de experiência em dese
 Durante a live, vamos mergulhar nos seguintes temas:
 
 * **Produtividade e Foco:** Como a maternidade redefine a forma de encarar o raciocínio constante e a profundidade técnica.
-
 * **Carga Mental:** O equilíbrio entre a alta responsabilidade da tecnologia (como Segurança e Arquitetura) e o cuidado com os filhos.
-
 * **Mercado de Trabalho:** A percepção do mercado sobre mulheres mães e a necessidade de provar competência.
-
 * **Retorno da Licença:** O enfrentamento da culpa, do medo de ficar "para trás" e a importância do acolhimento das equipes.
-
 * **Cultura Corporativa:** O que as empresas podem fazer na prática para humanizar o ambiente para as mães.
 
 
@@ -80,9 +71,7 @@ Durante a live, vamos mergulhar nos seguintes temas:
 Acompanhe a transmissão ao vivo no dia **16/05 (Sábado) às 14:00**:
 
 * 🎥 **[YouTube](https://www.youtube.com/watch?v=YZj46bOuCJM)** 
-
 * 🎟️ **[Inscrição (Sympla)](https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888)**
-
 
 
 ## Mais Informações
@@ -91,8 +80,6 @@ O **Elas No Código** é uma comunidade que acredita que o lugar de mãe é onde
 
 * 📱 **Instagram:** [@elasnocodigo](https://instagram.com/elasnocodigo) 
 
-
-
 ---
 
 ## Reflexão
@@ -100,14 +87,8 @@ O **Elas No Código** é uma comunidade que acredita que o lugar de mãe é onde
 Antes de participar, pense:
 
 * Qual habilidade a maternidade fortaleceu em você que a tornou uma profissional melhor? 
-
-
 * O que você diria hoje para a sua versão que estava prestes a voltar da licença-maternidade? 
-
-
 * Que exemplo você espera deixar para seus filhos ao continuar construindo sua carreira tech? 
-
-
 
 ---
 
