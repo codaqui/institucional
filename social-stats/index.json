@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-12T07:08:42.380Z",
+  "generatedAt": "2026-05-13T07:12:42.967Z",
   "totalEvents": 378,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 753,
+      "count": 752,
       "channelCount": 41,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 193,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6496,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 6498,
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 164,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -143,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 215,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-05-13T07:12:42.967Z",
       "isFallback": false
     },
     {
@@ -199,7 +199,7 @@
       "baselineCount": 312,
       "count": 331,
       "fetchedAt": "2026-05-12T07:08:42.380Z",
-      "isFallback": false
+      "isFallback": true
     }
   ]
 }
