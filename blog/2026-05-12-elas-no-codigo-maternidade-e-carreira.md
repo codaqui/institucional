@@ -18,7 +18,6 @@ authors:
 
 ![Roda de Conversa: Maternidade e Carreira](./img/2026-05-12-elas-no-codigo-maternidade-e-carreira/banner.png)
 
-
 Neste mês de maio de 2026, em celebração ao **Mês das Mães**, a **Elas No Código** promove uma roda de conversa acolhedora e necessária.
 
 Sabemos que equilibrar o "build" da carreira com a rotina da maternidade exige força, estratégia e, acima de tudo, rede de apoio. Vamos reunir especialistas que são referência no mercado para debater como a maternidade e a tecnologia podem ser potências que se somam.
