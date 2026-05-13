@@ -2,12 +2,84 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://codaqui.dev/previews/develop/blog</id>
     <title>Blog da Codaqui</title>
-    <updated>2026-03-30T00:00:00.000Z</updated>
+    <updated>2026-05-12T00:00:00.000Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://codaqui.dev/previews/develop/blog"/>
     <subtitle>Tutoriais, projetos e novidades da comunidade Codaqui</subtitle>
     <icon>https://codaqui.dev/previews/develop/img/favicon.png</icon>
     <rights>© 2026 Associação Codaqui</rights>
+    <entry>
+        <title type="html"><![CDATA[Roda de Conversa: Maternidade e Carreira]]></title>
+        <id>https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira</id>
+        <link href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira"/>
+        <updated>2026-05-12T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Roda de Conversa: Maternidade e Carreira]]></summary>
+        <content type="html"><![CDATA[<p><img decoding="async" loading="lazy" alt="Roda de Conversa: Maternidade e Carreira" src="https://codaqui.dev/previews/develop/assets/images/banner-1cddad1a3d81e828d87d2aba93e936b4.png" width="2560" height="1440" class="img_ev3q"></p>
+<p>Neste mês de maio de 2026, em celebração ao <strong>Mês das Mães</strong>, a <strong>Elas no Código</strong> promove uma roda de conversa acolhedora e necessária.</p>
+<p>Sabemos que equilibrar o "build" da carreira com a rotina da maternidade exige força, estratégia e, acima de tudo, rede de apoio. Vamos reunir especialistas que são referência no mercado para debater como a maternidade e a tecnologia podem ser potências que se somam.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="sobre-a-roda-de-conversa">Sobre a Roda de Conversa<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#sobre-a-roda-de-conversa" class="hash-link" aria-label="Link direto para Sobre a Roda de Conversa" title="Link direto para Sobre a Roda de Conversa" translate="no">​</a></h2>
+<p>O evento será uma transmissão ao vivo, focada em compartilhar realidades e superações sem romantização. Um espaço para discutirmos como estamos construindo o futuro da tecnologia juntas, equilibrando o amor e as linhas de código.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="-cronograma">📅 Cronograma<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#-cronograma" class="hash-link" aria-label="Link direto para 📅 Cronograma" title="Link direto para 📅 Cronograma" translate="no">​</a></h3>
+<ul>
+<li class=""><strong>Abertura e Conexão:</strong> Boas-vindas e apresentação do Movimento Elas no Código.</li>
+<li class=""><strong>Bloco 1:</strong> Antes e Depois da Maternidade (Impactos na produtividade, concentração e liderança).</li>
+<li class=""><strong>Bloco 2:</strong> A Realidade Sem Filtro (Desafios de conciliação, licença-maternidade e o retorno ao mercado).</li>
+<li class=""><strong>Bloco 3:</strong> Rede de Apoio e Futuro (O papel das empresas e o legado para as próximas gerações).</li>
+<li class=""><strong>Encerramento:</strong> Bate-pronto final com conselhos práticos.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="sobre-as-convidadas">Sobre as Convidadas<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#sobre-as-convidadas" class="hash-link" aria-label="Link direto para Sobre as Convidadas" title="Link direto para Sobre as Convidadas" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="raquel-silva">Raquel Silva<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#raquel-silva" class="hash-link" aria-label="Link direto para Raquel Silva" title="Link direto para Raquel Silva" translate="no">​</a></h3>
+<p>Matemática formada pelo IME-USP, com aperfeiçoamento em Mineração de Dados Complexos pela Unicamp. Atua há 10 anos com análise de dados, <em>machine learning</em> e modelagem estatística. É uma entusiasta das descobertas e avanços da ciência.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="poliane-pio-de-oliveira">Poliane Pio de Oliveira<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#poliane-pio-de-oliveira" class="hash-link" aria-label="Link direto para Poliane Pio de Oliveira" title="Link direto para Poliane Pio de Oliveira" translate="no">​</a></h3>
+<p>Profissional de TI com 9 anos de experiência, graduada em Sistemas de Informação e pós-graduada em Segurança da Informação pela PUC Minas. Atualmente atua na área de Segurança da Informação com foco em Gestão de Acessos.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="carim-tho">Carim Tho<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#carim-tho" class="hash-link" aria-label="Link direto para Carim Tho" title="Link direto para Carim Tho" translate="no">​</a></h3>
+<p>Formada em Engenharia Física pela UFSCar, possui 8 anos de experiência em desenvolvimento Java. Atualmente exerce o papel de Arquiteta de Software na Ambev.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="hosts-da-roda">Hosts da Roda<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#hosts-da-roda" class="hash-link" aria-label="Link direto para Hosts da Roda" title="Link direto para Hosts da Roda" translate="no">​</a></h2>
+<ul>
+<li class=""><strong>Maria Luiza Pontes:</strong> Engenheira de Software Sênior na Stone, com 13 anos de experiência na área de desenvolvimento.</li>
+<li class=""><strong>Karoline Farias:</strong> Analista de Machine Learning e Cientista de Dados.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="tópicos-que-serão-abordados">Tópicos que serão abordados<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#t%C3%B3picos-que-ser%C3%A3o-abordados" class="hash-link" aria-label="Link direto para Tópicos que serão abordados" title="Link direto para Tópicos que serão abordados" translate="no">​</a></h2>
+<p>Durante a live, vamos mergulhar nos seguintes temas:</p>
+<ul>
+<li class=""><strong>Produtividade e Foco:</strong> Como a maternidade redefine a forma de encarar o raciocínio constante e a profundidade técnica.</li>
+<li class=""><strong>Carga Mental:</strong> O equilíbrio entre a alta responsabilidade da tecnologia (como Segurança e Arquitetura) e o cuidado com os filhos.</li>
+<li class=""><strong>Mercado de Trabalho:</strong> A percepção do mercado sobre mulheres mães e a necessidade de provar competência.</li>
+<li class=""><strong>Retorno da Licença:</strong> O enfrentamento da culpa, do medo de ficar "para trás" e a importância do acolhimento das equipes.</li>
+<li class=""><strong>Cultura Corporativa:</strong> O que as empresas podem fazer na prática para humanizar o ambiente para as mães.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="como-participar">Como Participar?<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#como-participar" class="hash-link" aria-label="Link direto para Como Participar?" title="Link direto para Como Participar?" translate="no">​</a></h2>
+<p>Acompanhe a transmissão ao vivo no dia <strong>16/05 (Sábado) às 14:00</strong>:</p>
+<ul>
+<li class="">🎥 <strong><a href="https://www.youtube.com/watch?v=YZj46bOuCJM" target="_blank" rel="noopener noreferrer" class="">YouTube</a></strong></li>
+<li class="">🎟️ <strong><a href="https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888" target="_blank" rel="noopener noreferrer" class="">Inscrição (Sympla)</a></strong></li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mais-informações">Mais Informações<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#mais-informa%C3%A7%C3%B5es" class="hash-link" aria-label="Link direto para Mais Informações" title="Link direto para Mais Informações" translate="no">​</a></h2>
+<p>O <strong>Elas no Código</strong> é uma comunidade que acredita que o lugar de mãe é onde ela quiser — inclusive dominando o código. Nossa missão é fortalecer o protagonismo feminino através de uma rede de apoio que discute carreira e vida real.</p>
+<ul>
+<li class="">📱 <strong>Instagram:</strong> <a href="https://instagram.com/elasnocodigo" target="_blank" rel="noopener noreferrer" class="">@elasnocodigo</a></li>
+</ul>
+<hr>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="reflexão">Reflexão<a href="https://codaqui.dev/previews/develop/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira#reflex%C3%A3o" class="hash-link" aria-label="Link direto para Reflexão" title="Link direto para Reflexão" translate="no">​</a></h2>
+<p>Antes de participar, pense:</p>
+<ul>
+<li class="">Qual habilidade a maternidade fortaleceu em você que a tornou uma profissional melhor?</li>
+<li class="">O que você diria hoje para a sua versão que estava prestes a voltar da licença-maternidade?</li>
+<li class="">Que exemplo você espera deixar para seus filhos ao continuar construindo sua carreira tech?</li>
+</ul>
+<hr>
+<p><em>Maternidade e carreira na tecnologia não deveriam ser caminhos opostos, mas sim potências que se somam.</em></p>]]></content>
+        <author>
+            <name>Thainara Furforo</name>
+            <uri>https://github.com/thaifurforo</uri>
+        </author>
+        <category label="comunidade" term="comunidade"/>
+        <category label="tecnologia" term="tecnologia"/>
+        <category label="carreira" term="carreira"/>
+        <category label="mulheres na tech" term="mulheres na tech"/>
+        <category label="inclusão" term="inclusão"/>
+        <category label="eventos" term="eventos"/>
+    </entry>
     <entry>
         <title type="html"><![CDATA[Curso de Educação Financeira com Valnaire Nascimento]]></title>
         <id>https://codaqui.dev/previews/develop/blog/2026/03/30/curso-educacao-financeira</id>
@@ -1249,94 +1321,5 @@ Para inscrição do seu ou sua dependente, acesse o <a href="https://www.sympla.
         <category label="história" term="história"/>
         <category label="comunidade" term="comunidade"/>
         <category label="devparaná" term="devparaná"/>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Codaqui no Benfeitoria.com]]></title>
-        <id>https://codaqui.dev/previews/develop/blog/2022/11/18/codaqui-no-benfeitoriacom</id>
-        <link href="https://codaqui.dev/previews/develop/blog/2022/11/18/codaqui-no-benfeitoriacom"/>
-        <updated>2022-11-18T00:00:00.000Z</updated>
-        <summary type="html"><![CDATA[Com o objetivo de escalar o número de alunos e mentores envolvidos no projeto, estamos lançando a nossa campanha de arrecadação através da plataforma Benfeitoria.]]></summary>
-        <content type="html"><![CDATA[<p>Com o objetivo de escalar o número de alunos e mentores envolvidos no projeto, estamos lançando a nossa campanha de arrecadação através da plataforma Benfeitoria.</p>
-<p><a href="https://benfeitoria.com/pagamento/codaqui/contribuicao/valor?ctx=FixedContributeButton" target="_blank" rel="noopener noreferrer" class=""><img decoding="async" loading="lazy" alt="Clique para doar" src="https://codaqui.dev/previews/develop/assets/images/doar-e81f59ead00f004d1d7021e044bf8b93.png" width="1080" height="1080" class="img_ev3q"></a></p>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="resumo">Resumo<a href="https://codaqui.dev/previews/develop/blog/2022/11/18/codaqui-no-benfeitoriacom#resumo" class="hash-link" aria-label="Link direto para Resumo" title="Link direto para Resumo" translate="no">​</a></h2>
-<p>A Codaqui é uma escola de tecnologia sem fins lucrativos, que visa alcançar jovens e adolescentes de forma acessível, com aulas e atividades completamente digitais, que podem ser acompanhadas através de computador, tablet ou aparelho celular. Desta forma, conseguimos atingir alunos de todos os lugares do Brasil e de maior vulnerabilidade social.</p>
-<p>Os alunos percorrem o conteúdo de forma autônoma, e recebem mentoria semanal, aplicando o conteúdo aprendido. Dessa forma, atuamos para desenvolver competências de autonomia, organização e aprendizado de conteúdo prático de desenvolvimento de software.</p>
-<p>Baseados em Maria Montessori, adotamos um elemento importante de valorização dos alunos através de uma bolsa de estudos. Esta bolsa é uma contrapartida por 100% de presença nos encontros e aulas ou, se houver falta, esta deve ser justificada pelo responsável. A adoção desse conceito reforça nossos valores de responsabilidade, autonomia e comprometimento do aluno, além do vínculo com sua família.</p>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="metas">Metas<a href="https://codaqui.dev/previews/develop/blog/2022/11/18/codaqui-no-benfeitoriacom#metas" class="hash-link" aria-label="Link direto para Metas" title="Link direto para Metas" translate="no">​</a></h2>
-<p>Entenda nossas metas para 2023:</p>
-<p><img decoding="async" loading="lazy" alt="Metas - Benfeitoria" src="https://codaqui.dev/previews/develop/assets/images/metas-322af3cbe9bf5246fa994c4970b6e2dc.png" width="800" height="768" class="img_ev3q"></p>
-<p>Contamos com o seu apoio para conseguir alcançar as metas e impactar ainda mais jovens e adolescentes com nosso projeto, visando reduzir uma desigualdade social que só cresce, através da educação e do ensino de tecnologia, já que o mundo do trabalho se torna cada vez mais tecnológico, sem que as oportunidades de emprego e renda cheguem até a população de maior vulnerabilidade social.</p>
-<p>Confira as contribuições e recompensas disponíveis na campanha:</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<table><thead><tr><th>Categoria</th><th>Valor da contribuição</th><th>Recompensas</th></tr></thead><tbody><tr><td>Trainee</td><td>R$ 10,00</td><td>E-mail de agradecimento + Inserção no site</td></tr><tr><td>Júnior</td><td>R$ 50,00 + frete</td><td>Anteriores + Adesivo</td></tr><tr><td>Pleno</td><td>R$ 100,00 + frete</td><td>Anteriores + Bloco de notas + Pôster virtual</td></tr><tr><td>Sênior</td><td>R$ 150,00 + frete</td><td>Anteriores + Cordão para crachá personalizado da Codaqui</td></tr><tr><td>Sênior + Pair Programming</td><td>R$ 250,00 + frete</td><td>Anteriores + Camiseta</td></tr><tr><td>Tech Lead</td><td>R$ 500,00 + frete</td><td>Anteriores + 1 Camiseta + Adote um aluno e acompanhe seus rendimentos, além de poder, sob mediação da equipe pedagógica, fornecer mentoria e acompanhamento durante o projeto</td></tr><tr><td>Company</td><td>R$ 1.000,00 + frete</td><td>Anteriores + Bate papo com a equipe para se envolver e ajudar de forma ativa no projeto</td></tr><tr><td>Gr3eat Place to Work</td><td>R$ 5.000,00 + frete</td><td>Anteriores + Possibilidade de acordo com autorização dos responsáveis de realizar uma entrevista com os participantes ao fim do projeto com foco em jovem aprendiz e estagiários</td></tr></tbody></table>
-<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="como-apoiar">Como apoiar?<a href="https://codaqui.dev/previews/develop/blog/2022/11/18/codaqui-no-benfeitoriacom#como-apoiar" class="hash-link" aria-label="Link direto para Como apoiar?" title="Link direto para Como apoiar?" translate="no">​</a></h2>
-<p>Para apoiar nossa campanha e receber suas recompensas, acesse: <a href="https://benfeitoria.com/projeto/codaqui" target="_blank" rel="noopener noreferrer" class="">https://benfeitoria.com/projeto/codaqui</a>.</p>
-<div class="theme-admonition theme-admonition-info admonition_xJq3 alert alert--info"><div class="admonitionHeading_Gvgb"><span class="admonitionIcon_Rf37"><svg viewBox="0 0 14 16"><path fill-rule="evenodd" d="M7 2.3c3.14 0 5.7 2.56 5.7 5.7s-2.56 5.7-5.7 5.7A5.71 5.71 0 0 1 1.3 8c0-3.14 2.56-5.7 5.7-5.7zM7 1C3.14 1 0 4.14 0 8s3.14 7 7 7 7-3.14 7-7-3.14-7-7-7zm1 3H6v5h2V4zm0 6H6v2h2v-2z"></path></svg></span>Você sabia?</div><div class="admonitionContent_BuS1"><p>Você sabia que se cada pessoa que visitou esse site doasse R$10,00, nós já teriamos mudado a vida de muitos jovens?
-<strong>Qualquer doação ajuda! COLABORE!</strong></p></div></div>
-<p><strong>Aproveite essa oportunidade de apoiar um projeto que muda vidas, e ainda receber mimos!</strong>
-<strong>Mas corra: é só até o dia 17/01/2023.</strong></p>]]></content>
-        <author>
-            <name>Thainara Furforo</name>
-            <uri>https://github.com/thaifurforo</uri>
-        </author>
-        <author>
-            <name>Enderson Menezes</name>
-            <uri>https://github.com/endersonmenezes</uri>
-        </author>
-        <category label="Institucional" term="Institucional"/>
-        <category label="financiamento coletivo" term="financiamento coletivo"/>
-        <category label="quero ajudar" term="quero ajudar"/>
-        <category label="doação" term="doação"/>
-        <category label="ajuda" term="ajuda"/>
-        <category label="financeira" term="financeira"/>
     </entry>
 </feed>
