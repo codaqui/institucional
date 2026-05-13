@@ -18,7 +18,7 @@ authors:
 
 ![Roda de Conversa: Maternidade e Carreira](./img/2026-05-12-elas-no-codigo-maternidade-e-carreira/banner.png)
 
-Neste mês de maio de 2026, em celebração ao **Mês das Mães**, a **Elas No Código** promove uma roda de conversa acolhedora e necessária.
+Neste mês de maio de 2026, em celebração ao **Mês das Mães**, a **Elas no Código** promove uma roda de conversa acolhedora e necessária.
 
 Sabemos que equilibrar o "build" da carreira com a rotina da maternidade exige força, estratégia e, acima de tudo, rede de apoio. Vamos reunir especialistas que são referência no mercado para debater como a maternidade e a tecnologia podem ser potências que se somam.
 
@@ -30,7 +30,7 @@ O evento será uma transmissão ao vivo, focada em compartilhar realidades e sup
 
 ### 📅 Cronograma
 
-* **Abertura e Conexão:** Boas-vindas e apresentação do Movimento Elas No Código.
+* **Abertura e Conexão:** Boas-vindas e apresentação do Movimento Elas no Código.
 * **Bloco 1:** Antes e Depois da Maternidade (Impactos na produtividade, concentração e liderança).
 * **Bloco 2:** A Realidade Sem Filtro (Desafios de conciliação, licença-maternidade e o retorno ao mercado).
 * **Bloco 3:** Rede de Apoio e Futuro (O papel das empresas e o legado para as próximas gerações).
@@ -76,7 +76,7 @@ Acompanhe a transmissão ao vivo no dia **16/05 (Sábado) às 14:00**:
 
 ## Mais Informações
 
-O **Elas No Código** é uma comunidade que acredita que o lugar de mãe é onde ela quiser — inclusive dominando o código. Nossa missão é fortalecer o protagonismo feminino através de uma rede de apoio que discute carreira e vida real.
+O **Elas no Código** é uma comunidade que acredita que o lugar de mãe é onde ela quiser — inclusive dominando o código. Nossa missão é fortalecer o protagonismo feminino através de uma rede de apoio que discute carreira e vida real.
 
 * 📱 **Instagram:** [@elasnocodigo](https://instagram.com/elasnocodigo) 
 
