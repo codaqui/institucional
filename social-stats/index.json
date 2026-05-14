@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-13T07:12:42.967Z",
-  "totalEvents": 378,
+  "generatedAt": "2026-05-14T07:10:10.084Z",
+  "totalEvents": 379,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 752,
+      "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 193,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6498,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "count": 6526,
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -109,8 +109,8 @@
       "url": "https://www.youtube.com/@elasnocodigo",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 164,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "count": 165,
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -143,7 +143,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 215,
-      "fetchedAt": "2026-05-13T07:12:42.967Z",
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
       "isFallback": false
     },
     {
@@ -197,9 +197,9 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 331,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
-      "isFallback": true
+      "count": 342,
+      "fetchedAt": "2026-05-14T07:10:10.084Z",
+      "isFallback": false
     }
   ]
 }
