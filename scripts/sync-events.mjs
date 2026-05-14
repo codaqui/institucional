@@ -610,7 +610,7 @@ function parseSymplaDateText(text, defaultStatus = "scheduled") {
   }
 
   // Card format with day-of-week: "sab, 28 mar · 14:00" or "28 mar · 14:00" or plain "16 mai"
-  m = /(?:[a-z]{3},\s+)?(\d{1,2})\s+([a-z]{3})(?:\s*[·\-]\s*(\d{2}:\d{2}))?/.exec(norm);
+  m = /(?:[a-z]{3},\s+)?(\d{1,2})\s+([a-z]{3})(?:\s*[·-]\s*(\d{2}:\d{2}))?/.exec(norm);
   if (!m) return null;
 
   const day = m[1].padStart(2, "0");
@@ -665,17 +665,20 @@ async function fetchSymplaEventDetail(page, href) {
       const body = document.body.innerText ?? "";
 
       // Date line: "12 mai - 2026 • 13:05 > 16 mai - 2026 • 21:00"
-      const dateLineMatch = /(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})\s*>\s*(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})/i.exec(body);
+      const datePart = String.raw`\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2}`;
+      const dateLineMatch = new RegExp(`(${datePart})\\s*>\\s*(${datePart})`, "i").exec(body);
       const startDateRaw = dateLineMatch?.[1]?.trim() ?? null;
       const endDateRaw = dateLineMatch?.[2]?.trim() ?? null;
 
       // Single date (no range): "12 mai - 2026 • 13:05"
-      const singleDateMatch = !dateLineMatch
-        ? /(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})/i.exec(body)
-        : null;
+      const singleDateMatch = dateLineMatch
+        ? null
+        : /(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})/i.exec(body);
 
       // Location: first line after the date line that's not a UI label
-      const locationMatch = /(?:Evento Online(?:\s+via\s+[^\n]+)?|[A-Z][^•\n]{5,80}(?:,\s*[A-Z][^•\n]{2,40})?)\s*\n/m.exec(body);
+      const onlinePattern = String.raw`Evento Online(?:\s+via\s+[^\n]+)?`;
+      const venuePattern = String.raw`[A-Z][^•\n]{5,80}(?:,\s*[A-Z][^•\n]{2,40})?`;
+      const locationMatch = new RegExp(`(?:${onlinePattern}|${venuePattern})\\s*\\n`, "m").exec(body);
       const location = locationMatch?.[0]?.trim() ?? null;
 
       // Description: extract text between "Descrição do evento" heading and next heading
@@ -735,17 +738,20 @@ function mapSymplaEvent(raw, config) {
   // Try to extract location from card allText: last element that isn't a date and isn't the title
   const dateLike = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
   const cardLocation = (raw.allText ?? [])
-    .filter((t) => !dateLike.test(t) && t !== raw.title && t.length > 3)
-    .at(-1) ?? null;
+    .findLast((t) => !dateLike.test(t) && t !== raw.title && t.length > 3) ?? null;
 
   // Use detail location only when it looks like a real place, not Sympla placeholder text
   const detailLocationOk = detail?.location
     && !/fale com o produtor|a definir|a confirmar/i.test(detail.location);
-  const location = detailLocationOk
-    ? detail.location
-    : cardLocation && !isOnline
-      ? cardLocation
-      : isOnline ? "Evento Online" : (config.defaultLocation ?? "Sympla");
+
+  let location;
+  if (detailLocationOk) {
+    location = detail.location;
+  } else if (cardLocation && !isOnline) {
+    location = cardLocation;
+  } else {
+    location = isOnline ? "Evento Online" : (config.defaultLocation ?? "Sympla");
+  }
 
   const summary = detail?.description
     ? truncateText(detail.description)
