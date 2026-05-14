@@ -582,6 +582,307 @@ async function resolveMeetupEvents(config, existingEvents, fullSync = false) {
   }
 }
 
+// ─── Sympla (Playwright) ──────────────────────────────────────────────────────
+
+const SYMPLA_MONTH_MAP = {
+  jan: "01", fev: "02", mar: "03", abr: "04",
+  mai: "05", jun: "06", jul: "07", ago: "08",
+  set: "09", out: "10", nov: "11", dez: "12",
+};
+
+/**
+ * Parses a rich Sympla date string from the event page body text:
+ *   "12 mai - 2026 • 13:05"  → "2026-05-12T13:05:00-03:00"
+ *   "Sab, 28 Mar · 14:00"   → "2026-03-28T14:00:00-03:00" (year inferred)
+ *   "16 Mai"                 → "2026-05-16T00:00:00-03:00" (time+year inferred)
+ */
+function parseSymplaDateText(text, defaultStatus = "scheduled") {
+  if (!text) return null;
+  // Normalise: strip accents, lower-case, collapse whitespace
+  const norm = text.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
+
+  // Rich format with explicit year: "12 mai - 2026 • 13:05" or "12 mai - 2026 13:05"
+  let m = /(\d{1,2})\s+([a-z]{3})\s*-\s*(\d{4})\s*[•·]?\s*(\d{2}:\d{2})/.exec(norm);
+  if (m) {
+    const [, d, mo, yr, ti] = m;
+    const month = SYMPLA_MONTH_MAP[mo];
+    if (month) return `${yr}-${month}-${d.padStart(2, "0")}T${ti}:00-03:00`;
+  }
+
+  // Card format with day-of-week: "sab, 28 mar · 14:00" or "28 mar · 14:00" or plain "16 mai"
+  m = /(?:[a-z]{3},\s+)?(\d{1,2})\s+([a-z]{3})(?:\s*[·-]\s*(\d{2}:\d{2}))?/.exec(norm);
+  if (!m) return null;
+
+  const day = m[1].padStart(2, "0");
+  const month = SYMPLA_MONTH_MAP[m[2]];
+  if (!month) return null;
+  const time = m[3] ?? "00:00";
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const candidate = new Date(`${currentYear}-${month}-${day}T${time}:00-03:00`);
+
+  let year = currentYear;
+  if (defaultStatus === "completed" && candidate > now) {
+    year = currentYear - 1;
+  } else if (defaultStatus !== "completed" && candidate < now) {
+    year = currentYear + 1;
+  }
+
+  return `${year}-${month}-${day}T${time}:00-03:00`;
+}
+
+function mapSymplaEventStatus(startAt, isEnded) {
+  if (isEnded) return "completed";
+  const now = Date.now();
+  const start = startAt ? Date.parse(startAt) : Number.NaN;
+  if (!Number.isNaN(start) && start < now) return "completed";
+  return "scheduled";
+}
+
+/**
+ * Fetches precise dates, description, and location from an individual Sympla event page.
+ * The `evento-online` URL format renders without queue-it protection.
+ */
+async function fetchSymplaEventDetail(page, href) {
+  try {
+    // Ensure we use the evento-online variant (doesn't trigger queue-it)
+    const detailUrl = href.replace(/\/evento\//, "/evento-online/");
+    await page.goto(detailUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+    await page.waitForTimeout(2000);
+
+    // If Sympla redirected away ("event ended / see similar events"), the final URL
+    // will have a different numeric ID — skip enrichment to avoid picking up wrong data.
+    const finalUrl = page.url();
+    const expectedId = /\/(\d+)(?:[?#].*)?$/.exec(detailUrl)?.[1];
+    const finalId = /\/(\d+)(?:[?#].*)?$/.exec(finalUrl)?.[1];
+    if (expectedId && finalId && expectedId !== finalId) {
+      console.warn(`    ⚠ Sympla redirected event ${expectedId} → ${finalId}, skipping detail`);
+      return null;
+    }
+
+    return await page.evaluate((monthMap) => {
+      const body = document.body.innerText ?? "";
+
+      // Date line: "12 mai - 2026 • 13:05 > 16 mai - 2026 • 21:00"
+      const datePart = String.raw`\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2}`;
+      const dateLineSep = String.raw`\s*>\s*`;
+      const dateLineMatch = new RegExp(String.raw`(${datePart})${dateLineSep}(${datePart})`, "i").exec(body);
+      const startDateRaw = dateLineMatch?.[1]?.trim() ?? null;
+      const endDateRaw = dateLineMatch?.[2]?.trim() ?? null;
+
+      // Single date (no range): "12 mai - 2026 • 13:05"
+      const singleDateMatch = dateLineMatch
+        ? null
+        : /(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})/i.exec(body);
+
+      // Location: first line after the date line that's not a UI label
+      const onlinePattern = String.raw`Evento Online(?:\s+via\s+[^\n]+)?`;
+      const venuePattern = String.raw`[A-Z][^•\n]{5,80}(?:,\s*[A-Z][^•\n]{2,40})?`;
+      const locationMatch = new RegExp(String.raw`(?:${onlinePattern}|${venuePattern})\s*\n`, "m").exec(body);
+      const location = locationMatch?.[0]?.trim() ?? null;
+
+      // Description: extract text between "Descrição do evento" heading and next heading
+      const descStart = body.indexOf("Descrição do evento");
+      const descEnd = body.indexOf("Política do evento");
+      let description = null;
+      if (descStart >= 0) {
+        const raw = body
+          .slice(descStart + "Descrição do evento".length, descEnd > descStart ? descEnd : descStart + 2000)
+          .trim();
+        if (raw.length >= 20) description = raw;
+      }
+
+      // Participant count: "X inscritos" or "X participantes"
+      const countMatch = /(\d+)\s*(?:inscritos?|participantes?)/i.exec(body);
+      const userCount = countMatch ? Number.parseInt(countMatch[1]) : undefined;
+
+      return {
+        startDateRaw: startDateRaw ?? singleDateMatch?.[1]?.trim() ?? null,
+        endDateRaw,
+        location,
+        description,
+        userCount,
+      };
+    }, SYMPLA_MONTH_MAP);
+  } catch (err) {
+    console.warn(`    ⚠ Could not fetch detail for ${href}: ${err.message}`);
+    return null;
+  }
+}
+
+function mapSymplaEvent(raw, config) {
+  const detail = raw.detail;
+
+  // Prefer precise date from the event detail page; fall back to card date
+  const isEnded = raw.isEnded;
+  const defaultStatus = isEnded ? "completed" : "scheduled";
+
+  const startAt = (detail?.startDateRaw ? parseSymplaDateText(detail.startDateRaw, defaultStatus) : null)
+    ?? (() => {
+      // Card dates: take last date-looking text (avoids registration-opening date)
+      const datePat = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
+      const dateTexts = (raw.allText ?? []).filter((t) => datePat.test(t));
+      return parseSymplaDateText(dateTexts.at(-1) ?? "", defaultStatus);
+    })()
+    ?? new Date().toISOString();
+
+  const endAt = detail?.endDateRaw
+    ? parseSymplaDateText(detail.endDateRaw, defaultStatus) ?? undefined
+    : undefined;
+
+  const status = mapSymplaEventStatus(startAt, isEnded);
+
+  const isOnline = (raw.allText ?? []).some((t) => /online/i.test(t))
+    || /online/i.test(detail?.location ?? "");
+
+  // Try to extract location from card allText: last element that isn't a date and isn't the title
+  const dateLike = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
+  const cardLocation = (raw.allText ?? [])
+    .findLast((t) => !dateLike.test(t) && t !== raw.title && t.length > 3) ?? null;
+
+  // Use detail location only when it looks like a real place, not Sympla placeholder text
+  const detailLocationOk = detail?.location
+    && !/fale com o produtor|a definir|a confirmar/i.test(detail.location);
+
+  let location;
+  if (detailLocationOk) {
+    location = detail.location;
+  } else if (cardLocation && !isOnline) {
+    location = cardLocation;
+  } else {
+    location = isOnline ? "Evento Online" : (config.defaultLocation ?? "Sympla");
+  }
+
+  const summary = detail?.description
+    ? truncateText(detail.description)
+    : truncateText(`Evento organizado pelo ${config.defaultHost} na Sympla.`);
+
+  return {
+    id: raw.id,
+    title: raw.title ?? `Evento Sympla ${raw.id}`,
+    summary,
+    startAt,
+    endAt,
+    timezone: "America/Sao_Paulo",
+    platform: config.defaultPlatform ?? "Sympla",
+    host: config.defaultHost,
+    location,
+    href: raw.href,
+    tags: [config.sourceId, "sympla", isOnline ? "online" : "presencial"],
+    ctaLabel: "Ver evento na Sympla",
+    featured: false,
+    status,
+    entityType: "external",
+    userCount: detail?.userCount ?? undefined,
+    creatorName: config.defaultHost,
+    creatorId: undefined,
+    organizers: [],
+    imageUrl: raw.imageUrl ?? undefined,
+  };
+}
+
+async function scrapeSymplaTab(page) {
+  return page.evaluate(() => {
+    const eventLinks = Array.from(document.querySelectorAll("a[href*=\"/evento\"]"))
+      .filter((a) => /\/evento(?:-online)?\/[^/]+\/\d+/.test(a.href));
+
+    return eventLinks.map((link) => {
+      let card = link;
+      for (let i = 0; i < 8; i++) {
+        const p = card.parentElement;
+        if (!p || p === document.body) break;
+        if (p.querySelector("h2, h3, h4") && p.querySelector("img")) { card = p; break; }
+        card = p;
+      }
+
+      const allText = Array.from(card.querySelectorAll("*"))
+        .filter((el) => el.children.length === 0 && !["SCRIPT", "STYLE", "IMG"].includes(el.tagName))
+        .map((el) => el.textContent?.trim())
+        .filter(Boolean);
+
+      const idMatch = link.href.match(/\/(\d+)(?:[?#].*)?$/);
+      return {
+        id: idMatch ? `sympla-${idMatch[1]}` : `sympla-${Date.now()}`,
+        href: link.href,
+        title: card.querySelector("h2, h3, h4")?.textContent?.trim(),
+        imageUrl: card.querySelector("img")?.src ?? undefined,
+        allText,
+      };
+    });
+  });
+}
+
+async function resolveSymplaEvents(config, existingEvents) {
+  let browser;
+  try {
+    const { chromium } = await import("playwright");
+    browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+
+    // ── Step 1: list all events from the producer page ──
+    const listPage = await browser.newPage();
+    await listPage.setViewportSize({ width: 1280, height: 900 });
+    await listPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
+
+    const producerUrl = `https://www.sympla.com.br/produtor/${config.producerSlug}`;
+    console.log(`    opening ${producerUrl} with Playwright...`);
+    await listPage.goto(producerUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    // Wait for event cards to render (Sympla SPA)
+    try {
+      await listPage.waitForSelector("a[href*=\"/evento\"]", { timeout: 20_000 });
+    } catch {
+      // No events yet on the available tab — may still have "Encerrados"
+    }
+    await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    await listPage.waitForTimeout(1500);
+
+    const availableRaw = await scrapeSymplaTab(listPage);
+    console.log(`    found ${availableRaw.length} available event(s)`);
+
+    const encerradosBtn = listPage.locator("button", { hasText: "Encerrados" });
+    await encerradosBtn.click();
+    await listPage.waitForTimeout(4000);
+
+    const endedRaw = await scrapeSymplaTab(listPage);
+    console.log(`    found ${endedRaw.length} ended event(s)`);
+    await listPage.close();
+
+    // ── Step 2: fetch rich detail for each event ──
+    const detailPage = await browser.newPage();
+    await detailPage.setViewportSize({ width: 1280, height: 900 });
+    await detailPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
+
+    const allRaw = [
+      ...availableRaw.map((r) => ({ ...r, isEnded: false })),
+      ...endedRaw.map((r) => ({ ...r, isEnded: true })),
+    ];
+
+    const freshById = new Map();
+    for (const raw of allRaw) {
+      const isOnlineUrl = /\/evento-online\//.test(raw.href);
+      const detail = isOnlineUrl ? await fetchSymplaEventDetail(detailPage, raw.href) : null;
+      const event = mapSymplaEvent({ ...raw, detail }, config);
+      freshById.set(event.id, event);
+      console.log(`    ✓ ${event.id}: "${event.title}" [${event.status}]${isOnlineUrl ? " (detail enriched)" : " (card only)"}`);
+    }
+    await detailPage.close();
+
+    // Preserve existing events not found on the page (very old ones)
+    for (const existing of existingEvents) {
+      if (!freshById.has(existing.id)) {
+        freshById.set(existing.id, existing);
+      }
+    }
+
+    return [...freshById.values()];
+  } catch (error) {
+    console.warn(`Skipping Sympla sync for ${config.source}/${config.sourceId}:`, error.message);
+    return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+  } finally {
+    await browser?.close();
+  }
+}
+
 // ─── CNCF Open Community Groups (ocgroups.dev) ────────────────────────────────
 
 const OCGROUPS_BROWSER_UA = "Mozilla/5.0 (compatible; Codaqui/1.0; +https://codaqui.dev)";
@@ -834,6 +1135,8 @@ async function processSource(sourceConfig, fullSync, generatedAt) {
     events = await resolveMeetupEvents(sourceConfig, existingEvents, fullSync);
   } else if (sourceConfig.source === "ocgroups") {
     events = await resolveOcgroupsEvents(sourceConfig, existingEvents);
+  } else if (sourceConfig.source === "sympla") {
+    events = await resolveSymplaEvents(sourceConfig, existingEvents);
   }
 
   await cleanSourceDir(sourceDir);
