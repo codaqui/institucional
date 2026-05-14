@@ -666,7 +666,8 @@ async function fetchSymplaEventDetail(page, href) {
 
       // Date line: "12 mai - 2026 • 13:05 > 16 mai - 2026 • 21:00"
       const datePart = String.raw`\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2}`;
-      const dateLineMatch = new RegExp(`(${datePart})\\s*>\\s*(${datePart})`, "i").exec(body);
+      const dateLineSep = String.raw`\s*>\s*`;
+      const dateLineMatch = new RegExp(String.raw`(${datePart})${dateLineSep}(${datePart})`, "i").exec(body);
       const startDateRaw = dateLineMatch?.[1]?.trim() ?? null;
       const endDateRaw = dateLineMatch?.[2]?.trim() ?? null;
 
@@ -678,7 +679,7 @@ async function fetchSymplaEventDetail(page, href) {
       // Location: first line after the date line that's not a UI label
       const onlinePattern = String.raw`Evento Online(?:\s+via\s+[^\n]+)?`;
       const venuePattern = String.raw`[A-Z][^•\n]{5,80}(?:,\s*[A-Z][^•\n]{2,40})?`;
-      const locationMatch = new RegExp(`(?:${onlinePattern}|${venuePattern})\\s*\\n`, "m").exec(body);
+      const locationMatch = new RegExp(String.raw`(?:${onlinePattern}|${venuePattern})\s*\n`, "m").exec(body);
       const location = locationMatch?.[0]?.trim() ?? null;
 
       // Description: extract text between "Descrição do evento" heading and next heading
