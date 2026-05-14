@@ -43,6 +43,34 @@
       "defaultPlatform": "CNCF Open Community Groups",
       "timezone": "America/Sao_Paulo",
       "fallbackEvents": []
+    },
+    {
+      "source": "sympla",
+      "sourceId": "elasnocodigo",
+      "producerSlug": "elasnocodigo",
+      "label": "Elas no Código na Sympla",
+      "emoji": "💻",
+      "description": "Eventos organizados pelo Elas no Código na plataforma Sympla.",
+      "ctaLabel": "Ver eventos na Sympla",
+      "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
+      "defaultHost": "Elas no Código",
+      "defaultLocation": "Evento Online",
+      "defaultPlatform": "Sympla",
+      "fallbackEvents": []
+    },
+    {
+      "source": "sympla",
+      "sourceId": "campostech",
+      "producerSlug": "camposvalley",
+      "label": "CamposTech na Sympla",
+      "emoji": "🏙️",
+      "description": "Eventos organizados pelo CamposTech na plataforma Sympla.",
+      "ctaLabel": "Ver eventos na Sympla",
+      "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
+      "defaultHost": "CamposTech",
+      "defaultLocation": "Ponta Grossa, PR",
+      "defaultPlatform": "Sympla",
+      "fallbackEvents": []
     }
   ]
 }

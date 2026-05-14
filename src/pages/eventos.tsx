@@ -394,88 +394,8 @@ export default function EventosPage(): React.JSX.Element {
         </Grid>
       </Container>
 
-      <Box id="agenda" sx={{ bgcolor: "action.hover", py: { xs: 6, md: 8 } }}>
-        <Container maxWidth="lg">
-          <Grid container spacing={3} alignItems="stretch">
-            <Grid size={{ xs: 12, lg: 7 }}>
-              {primaryDiscordSource?.widgetUrl ? (
-                <DiscordServerWidget widgetUrl={primaryDiscordSource.widgetUrl} />
-              ) : (
-                <Alert severity="info" variant="outlined">
-                  Nenhuma fonte Discord configurada nos índices de eventos.
-                </Alert>
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, lg: 5 }}>
-              <Card variant="outlined" sx={{ height: "100%" }}>
-                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-                  <Typography variant="h5" fontWeight={700} gutterBottom>
-                    Fontes de eventos
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                    Eventos agregados de diferentes comunidades e plataformas parceiras da Codaqui.
-                  </Typography>
 
-                  <Stack spacing={1.5} sx={{ mb: 3 }}>
-                    {sources.map((source) => (
-                      <Box
-                        key={source.sourceKey}
-                        sx={{
-                          p: 1.5,
-                          border: "1px solid",
-                          borderColor: "divider",
-                          borderRadius: 2,
-                          bgcolor: "background.default",
-                        }}
-                      >
-                        <Typography variant="body2" fontWeight={700} sx={{ mb: 0.5 }}>
-                          {source.emoji} {source.label}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {source.description}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
-                          {source.itemCount} evento(s)
-                          {source.generatedAt
-                            ? ` · atualizado em ${new Date(source.generatedAt).toLocaleDateString("pt-BR")}`
-                            : null}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Stack>
-
-                  <Stack spacing={1.5}>
-                    {sources
-                      .filter((source) => source.ctaHref && source.ctaLabel)
-                      .map((source) => {
-                        const isExternal = source.ctaHref?.startsWith("http") ?? false;
-                        return (
-                        <Button
-                          key={source.sourceKey}
-                          component={Link}
-                          href={source.ctaHref}
-                          target={isExternal ? "_blank" : undefined}
-                          rel={
-                            isExternal ? "noopener noreferrer" : undefined
-                          }
-                          variant="outlined"
-                          endIcon={
-                            isExternal ? <OpenInNewIcon /> : undefined
-                          }
-                        >
-                          {source.ctaLabel}
-                        </Button>
-                        );
-                      })}
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
-
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+      <Container id="agenda" maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
         {loading ? null : (
           <Card variant="outlined" sx={{ mb: 4 }}>
             <CardContent sx={{ p: { xs: 2, md: 3 } }}>
@@ -597,6 +517,79 @@ export default function EventosPage(): React.JSX.Element {
               Ainda não há eventos passados indexados.
             </Alert>
           )}
+        </Container>
+      </Box>
+
+      <Box sx={{ bgcolor: "background.default", py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Grid container spacing={3} alignItems="stretch">
+            {primaryDiscordSource?.widgetUrl ? (
+              <Grid size={{ xs: 12, lg: 7 }}>
+                <DiscordServerWidget widgetUrl={primaryDiscordSource.widgetUrl} />
+              </Grid>
+            ) : null}
+            <Grid size={{ xs: 12, lg: primaryDiscordSource?.widgetUrl ? 5 : 12 }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+                  <Typography variant="h5" fontWeight={700} gutterBottom>
+                    Fontes de eventos
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                    Eventos agregados de diferentes comunidades e plataformas parceiras da Codaqui.
+                  </Typography>
+
+                  <Stack spacing={1.5} sx={{ mb: 3 }}>
+                    {sources.map((source) => (
+                      <Box
+                        key={source.sourceKey}
+                        sx={{
+                          p: 1.5,
+                          border: "1px solid",
+                          borderColor: "divider",
+                          borderRadius: 2,
+                          bgcolor: "background.paper",
+                        }}
+                      >
+                        <Typography variant="body2" fontWeight={700} sx={{ mb: 0.5 }}>
+                          {source.emoji} {source.label}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {source.description}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 1 }}>
+                          {source.itemCount} evento(s)
+                          {source.generatedAt
+                            ? ` · atualizado em ${new Date(source.generatedAt).toLocaleDateString("pt-BR")}`
+                            : null}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Stack>
+
+                  <Stack spacing={1.5}>
+                    {sources
+                      .filter((source) => source.ctaHref && source.ctaLabel)
+                      .map((source) => {
+                        const isExternal = source.ctaHref?.startsWith("http") ?? false;
+                        return (
+                          <Button
+                            key={source.sourceKey}
+                            component={Link}
+                            href={source.ctaHref}
+                            target={isExternal ? "_blank" : undefined}
+                            rel={isExternal ? "noopener noreferrer" : undefined}
+                            variant="outlined"
+                            endIcon={isExternal ? <OpenInNewIcon /> : undefined}
+                          >
+                            {source.ctaLabel}
+                          </Button>
+                        );
+                      })}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
         </Container>
       </Box>
     </Layout>
