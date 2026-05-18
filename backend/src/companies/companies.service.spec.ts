@@ -770,6 +770,14 @@ describe('CompaniesService', () => {
         balances: { sort_coin: 5 },
         frozenTypes: [],
       });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 5,
+      });
+      dataSource.transaction.mockImplementation(async (cb: any) =>
+        cb({
+          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
+        }),
+      );
 
       await expect(
         service.distributeCoins(

@@ -683,9 +683,17 @@ export class CompaniesService {
 
       if (!wallet) throw new NotFoundException('Carteira não encontrada');
 
+      const currentBalance = wallet.balances[coinType] ?? 0;
+      const nextBalance = currentBalance + amount;
+      if (amount < 0 && nextBalance < 0) {
+        throw new BadRequestException(
+          `Saldo insuficiente: ${currentBalance} ${coinType} disponíveis, ${Math.abs(amount)} solicitados`,
+        );
+      }
+
       wallet.balances = {
         ...wallet.balances,
-        [coinType]: (wallet.balances[coinType] ?? 0) + amount,
+        [coinType]: nextBalance,
       };
       await em.getRepository(CompanyWallet).save(wallet);
       return savedTx;
@@ -775,15 +783,6 @@ export class CompaniesService {
     if (missingMembers.length > 0) {
       throw new BadRequestException(
         `Membro(s) não encontrado(s) ou inativo(s): ${missingMembers.join(', ')}`,
-      );
-    }
-
-    // Verifica saldo suficiente na carteira da empresa
-    const wallet = await this.getOrCreateWallet(companyId);
-    const balance = wallet.balances['sort_coin'] ?? 0;
-    if (balance < totalToDistribute) {
-      throw new BadRequestException(
-        `Saldo insuficiente: ${balance} SortCoins disponíveis, ${totalToDistribute} solicitados`,
       );
     }
 
