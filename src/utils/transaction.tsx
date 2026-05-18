@@ -6,6 +6,7 @@ import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import BusinessIcon from "@mui/icons-material/Business";
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 
 // ---------------------------------------------------------------------------
@@ -82,7 +83,7 @@ export const formatDate = (iso: string) =>
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "other";
+export type TxType = "donation" | "donation-business" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "other";
 
 export function detectTxType(tx: Transaction): TxType {
   if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
@@ -99,11 +100,15 @@ export function detectTxType(tx: Transaction): TxType {
     tx.referenceId?.startsWith("cs_") ||
     tx.referenceId?.startsWith("pi_") ||
     tx.referenceId?.startsWith("in_")
-  )
+  ) {
+    // Doação empresarial: detectada pela descrição
+    if (tx.description?.includes("Empresa:")) return "donation-business";
     return "donation";
+  }
   const desc = tx.description?.toLowerCase() ?? "";
   if (desc.startsWith("estorno")) return "refund";
   if (desc.startsWith("taxa stripe")) return "stripe-fee";
+  if (desc.includes("empresarial")) return "donation-business";
   if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
   if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
   if (desc.startsWith("recebimento de fornecedor")) return "vendor-receipt";
@@ -117,6 +122,7 @@ export const TX_TYPE_CONFIG: Record<
   { label: string; color: "success" | "warning" | "info" | "default" | "secondary" | "error"; icon: React.ReactElement }
 > = {
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
+  "donation-business": { label: "Doação Empresarial", color: "success", icon: <BusinessIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
   "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
   "vendor-receipt": { label: "Recebimento de Fornecedor", color: "success", icon: <CallReceivedIcon fontSize="small" /> },
@@ -136,11 +142,19 @@ export function extractReimbursementDesc(description: string): string {
   return description.replace(/^Reembolso aprovado:\s*/i, "").trim();
 }
 
+export function extractCompanyInfo(description: string): { name: string; id: string } | null {
+  // Formato: "Assinatura mensal empresarial — Empresa: Nome [uuid] — Sessão in_xxx"
+  const match = /Empresa:\s*([^\[]+)\[([^\]]+)\]/.exec(description);
+  if (!match) return null;
+  return { name: match[1].trim(), id: match[2].trim() };
+}
+
 export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   const type = detectTxType(tx);
   const config = TX_TYPE_CONFIG[type];
   const isCredit = tx.destinationAccount?.id === accountId;
   const donorHandle = type === "donation" ? extractDonorHandle(tx.description) : null;
+  const companyInfo = type === "donation-business" ? extractCompanyInfo(tx.description) : null;
   const isSubscription = tx.description?.toLowerCase().includes("assinatura");
   const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
   const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
@@ -175,7 +189,7 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   }
 
   return {
-    type, config, isCredit, donorHandle, isSubscription, subscriptionInterval,
+    type, config, isCredit, donorHandle, companyInfo, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
     stripeFeeBalanceTransactionId, stripeFeeChargeId,
     stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,

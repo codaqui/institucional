@@ -10,7 +10,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
 import Divider from "@mui/material/Divider";
 import InputAdornment from "@mui/material/InputAdornment";
 import MenuItem from "@mui/material/MenuItem";
@@ -27,6 +26,8 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import { useAuth } from "../../hooks/useAuth";
+import AdminNavbar from "../../components/AdminNavbar";
+import AdminPageContainer from "../../components/AdminPageContainer";
 import ModalConfirm from "../../components/ModalConfirm";
 import VendorTransactionCard from "../../components/VendorTransactionCard";
 import VendorTransactionForm, {
@@ -180,20 +181,22 @@ export default function PagamentosPage(): React.JSX.Element {
   if (!ready || loading) {
     return (
       <Layout title="Pagamentos">
-        <Container maxWidth="md" sx={{ py: 6, textAlign: "center" }}>
+        <AdminPageContainer sx={{ textAlign: "center" }}>
           <CircularProgress />
-        </Container>
+        </AdminPageContainer>
       </Layout>
     );
   }
 
   return (
     <Layout title="Pagamentos a Fornecedores" description="Registrar pagamentos a fornecedores">
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <AdminPageContainer sx={{ py: 4 }}>
         <Typography variant="h4" fontWeight={800} gutterBottom>
           <PaymentIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           Pagamentos a Fornecedores
         </Typography>
+
+        <AdminNavbar active="/admin/pagamentos" />
 
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
           <Tab label="Novo Pagamento" />
@@ -489,7 +492,7 @@ export default function PagamentosPage(): React.JSX.Element {
           loading={payDeleteLoading}
         />
 
-      </Container>
+      </AdminPageContainer>
     </Layout>
   );
 }

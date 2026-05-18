@@ -7,12 +7,13 @@ import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import { useAuth } from "../../hooks/useAuth";
+import AdminNavbar from "../../components/AdminNavbar";
+import AdminPageContainer from "../../components/AdminPageContainer";
 import ModalConfirm from "../../components/ModalConfirm";
 import VendorTransactionCard from "../../components/VendorTransactionCard";
 import VendorTransactionForm, {
@@ -134,9 +135,9 @@ export default function RecebimentosPage(): React.JSX.Element {
   if (!ready || loading) {
     return (
       <Layout title="Recebimentos">
-        <Container maxWidth="md" sx={{ py: 6, textAlign: "center" }}>
+        <AdminPageContainer sx={{ textAlign: "center" }}>
           <CircularProgress />
-        </Container>
+        </AdminPageContainer>
       </Layout>
     );
   }
@@ -146,15 +147,17 @@ export default function RecebimentosPage(): React.JSX.Element {
       title="Recebimentos de Fornecedores"
       description="Registrar recebimentos vindos de fornecedores ou parceiros"
     >
-      <Container maxWidth="md" sx={{ py: 4 }}>
+      <AdminPageContainer sx={{ py: 4 }}>
         <Typography variant="h4" fontWeight={800} gutterBottom>
           <CallReceivedIcon sx={{ mr: 1, verticalAlign: "middle", color: "success.main" }} />
           Recebimentos de Fornecedores
         </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Registre repasses vindos de fornecedores/parceiros (ex: Sympla, plataformas de eventos,
           parcerias).
         </Typography>
+
+        <AdminNavbar active="/admin/recebimentos" />
 
         <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
           <Tab label="Novo Recebimento" />
@@ -198,7 +201,7 @@ export default function RecebimentosPage(): React.JSX.Element {
             )}
           </Box>
         )}
-      </Container>
+      </AdminPageContainer>
 
       <ModalConfirm
         open={!!deleteId}

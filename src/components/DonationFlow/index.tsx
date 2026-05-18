@@ -41,6 +41,7 @@ import Typography from "@mui/material/Typography";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import BusinessIcon from "@mui/icons-material/Business";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CloseIcon from "@mui/icons-material/Close";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -291,6 +292,8 @@ export interface DonationFlowProps {
   readonly title?: string;
   /** Subtítulo do formulário. */
   readonly subtitle?: string;
+  /** Callback para acionar a seção de doação empresarial (exibe botão "Apoiar como empresa →"). */
+  readonly onCompanyClick?: () => void;
 }
 
 export default function DonationFlow({
@@ -302,6 +305,7 @@ export default function DonationFlow({
   accentColorDark,
   title = "Fazer uma Doação",
   subtitle,
+  onCompanyClick,
 }: DonationFlowProps): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl =
@@ -516,18 +520,30 @@ export default function DonationFlow({
 
       {/* ── Chip discreto quando logado ── */}
       {!disableAuth && ready && isLoggedIn && user && (
-        <Chip
-          avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-          label={`Doando como @${user.handle}`}
-          variant="outlined"
-          sx={{
-            mb: 3,
-            borderColor: accentColor ?? "primary.main",
-            color: accentColor ?? "primary.main",
-            fontWeight: 600,
-            "& .MuiChip-avatar": { ml: 0.5 },
-          }}
-        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
+          <Chip
+            avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
+            label={`Doando como @${user.handle}`}
+            variant="outlined"
+            sx={{
+              borderColor: accentColor ?? "primary.main",
+              color: accentColor ?? "primary.main",
+              fontWeight: 600,
+              "& .MuiChip-avatar": { ml: 0.5 },
+            }}
+          />
+          {onCompanyClick && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<BusinessIcon />}
+              onClick={onCompanyClick}
+              sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.82rem" }}
+            >
+              Empresa →
+            </Button>
+          )}
+        </Box>
       )}
 
       {/* Destino selecionado */}

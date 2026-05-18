@@ -36,6 +36,31 @@ export default function AuthCallback(): React.JSX.Element {
       return;
     }
 
+    // Guarda: só executa o fluxo de handoff quando vier de um redirect OAuth
+    // real (backend sempre inclui ?status=success). Acesso direto ou refresh
+    // da página sem esse param cai no else abaixo (verifica sessão existente).
+    if (status !== "success") {
+      // Sem status=success → não é um redirect OAuth. Verifica se já há sessão
+      // válida (ex: usuário voltou para esta página via histórico do browser)
+      // e redireciona para o destino ou para a home.
+      refreshUser().then((profile) => {
+        if (profile) {
+          const rawReturnTo =
+            sessionStorage.getItem("codaqui_auth_return") ?? "/membro";
+          sessionStorage.removeItem("codaqui_auth_return");
+          sessionStorage.removeItem("codaqui_auth_community");
+          const isRelativePath =
+            rawReturnTo.startsWith("/") &&
+            !rawReturnTo.startsWith("//") &&
+            !rawReturnTo.includes(":");
+          history.replace(isRelativePath ? rawReturnTo : "/membro");
+        } else {
+          history.replace("/");
+        }
+      });
+      return;
+    }
+
     // Token handoff via fragment: o backend coloca `#token=<JWT>` na URL
     // de redirect. O fragment não vai ao servidor — lemos no client e
     // POSTamos para `/auth/finalize`, que (por passar pelo Worker em deploys
@@ -45,6 +70,17 @@ export default function AuthCallback(): React.JSX.Element {
       : "";
     const hashParams = new URLSearchParams(hash);
     const handoffToken = hashParams.get("token");
+
+    // Limpa o fragment imediatamente — evita que um token stale seja
+    // re-lido se o efeito re-executar (hidratação SSR) ou se o usuário
+    // recarregar a página após uma falha.
+    if (handoffToken) {
+      globalThis.history.replaceState(
+        null,
+        "",
+        globalThis.location.pathname + globalThis.location.search,
+      );
+    }
 
     const finalize = async () => {
       if (handoffToken) {
@@ -63,12 +99,6 @@ export default function AuthCallback(): React.JSX.Element {
             setError(true);
             return;
           }
-          // Limpa o fragment para não persistir o token no histórico do browser.
-          globalThis.history.replaceState(
-            null,
-            "",
-            globalThis.location.pathname + globalThis.location.search,
-          );
         } catch {
           setError(true);
           return;

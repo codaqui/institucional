@@ -58,7 +58,7 @@ export function useAuth() {
 
   /** Inicia o fluxo OAuth do GitHub. Salva contexto para retorno pós-login. */
   const login = useCallback(
-    (options?: { returnTo?: string; communitySlug?: string | null }) => {
+    (options?: { returnTo?: string; communitySlug?: string | null; switchAccount?: boolean }) => {
       const returnPath = options?.returnTo ?? globalThis.location.pathname;
       if (globalThis.sessionStorage) {
         globalThis.sessionStorage.setItem("codaqui_auth_return", returnPath);
@@ -80,8 +80,14 @@ export function useAuth() {
         "/auth/callback",
         globalThis.location.origin,
       ).toString();
-      const returnParam = `?returnTo=${encodeURIComponent(absoluteReturn)}`;
-      globalThis.location.href = `${apiUrl}/auth/github${returnParam}`;
+      const url = new URL(`${apiUrl}/auth/github`);
+      url.searchParams.set("returnTo", absoluteReturn);
+      // `login=` vazio instrui o GitHub a exibir a tela de seleção de conta,
+      // permitindo trocar de conta sem precisar fazer logout no github.com.
+      if (options?.switchAccount) {
+        url.searchParams.set("login", "");
+      }
+      globalThis.location.href = url.toString();
     },
     [apiUrl],
   );
