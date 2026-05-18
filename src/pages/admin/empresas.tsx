@@ -92,7 +92,7 @@ const STATUS_COLORS: Record<string, "warning" | "success" | "error" | "default">
   pending: "warning",
   active: "success",
   suspended: "error",
-  canceled: "default",
+  cancelled: "default",
 };
 
 function formatCnpj(cnpj: string): string {
@@ -117,10 +117,6 @@ export default function AdminEmpresasPage(): React.JSX.Element {
   const [total, setTotal] = useState(0);
   const [limit] = useState(10);
 
-  useEffect(() => {
-    if (ready && !isLoggedIn) history.push("/");
-  }, [ready, isLoggedIn, history]);
-
   const loadCompanies = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
@@ -141,8 +137,13 @@ export default function AdminEmpresasPage(): React.JSX.Element {
   }, [authFetch, apiUrl, page, limit]);
 
   useEffect(() => {
-    if (isLoggedIn && isAdmin) loadCompanies();
-  }, [isLoggedIn, isAdmin, loadCompanies]);
+    if (!ready) return;
+    if (!isLoggedIn || !isAdmin) {
+      history.push("/");
+      return;
+    }
+    loadCompanies();
+  }, [ready, isLoggedIn, isAdmin, history, loadCompanies]);
 
   const toggleExpand = async (company: Company) => {
     if (expandedId === company.id) {
@@ -277,7 +278,7 @@ export default function AdminEmpresasPage(): React.JSX.Element {
                       <MenuItem value="pending">Pendente</MenuItem>
                       <MenuItem value="active">Ativa</MenuItem>
                       <MenuItem value="suspended">Suspensa</MenuItem>
-                      <MenuItem value="canceled">Cancelada</MenuItem>
+                      <MenuItem value="cancelled">Cancelada</MenuItem>
                     </Select>
 
                     <IconButton

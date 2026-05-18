@@ -57,6 +57,7 @@ describe('RaffleService', () => {
   let memberRepo: Record<string, jest.Mock>;
   let clubService: Partial<ClubService>;
   let companiesService: Partial<CompaniesService>;
+  let dataSource: { transaction: jest.Mock };
 
   beforeEach(async () => {
     raffleRepo = {
@@ -71,6 +72,7 @@ describe('RaffleService', () => {
       findOne: jest.fn().mockResolvedValue(null),
       create: jest.fn((d) => ({ ...d })),
       save: jest.fn((e) => Promise.resolve(e)),
+      createQueryBuilder: jest.fn(),
     };
 
     walletRepo = {
@@ -102,6 +104,28 @@ describe('RaffleService', () => {
       refundFromRaffle: jest.fn().mockResolvedValue({}),
     };
 
+    const raffleEntryQueryBuilder = {
+      setLock: jest.fn(),
+      where: jest.fn(),
+      andWhere: jest.fn(),
+      getOne: jest.fn(),
+    };
+    raffleEntryQueryBuilder.setLock.mockReturnValue(raffleEntryQueryBuilder);
+    raffleEntryQueryBuilder.where.mockReturnValue(raffleEntryQueryBuilder);
+    raffleEntryQueryBuilder.andWhere.mockReturnValue(raffleEntryQueryBuilder);
+    raffleEntryQueryBuilder.getOne.mockImplementation(() => entryRepo.findOne());
+    entryRepo.createQueryBuilder.mockReturnValue(raffleEntryQueryBuilder);
+
+    const entityManager = {
+      getRepository: jest.fn((entity) => {
+        if (entity === RaffleEntry) return entryRepo;
+        throw new Error(`Repository mock não configurado para ${entity?.name ?? entity}`);
+      }),
+    };
+    dataSource = {
+      transaction: jest.fn(async (cb) => cb(entityManager)),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RaffleService,
@@ -113,6 +137,7 @@ describe('RaffleService', () => {
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: ClubService, useValue: clubService },
         { provide: CompaniesService, useValue: companiesService },
+        { provide: DataSource, useValue: dataSource },
       ],
     }).compile();
 
@@ -280,6 +305,8 @@ describe('RaffleService', () => {
         WALLET_ID,
         10,
         `raffle:${RAFFLE_ID}`,
+        undefined,
+        expect.any(Object),
       );
       expect(entryRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -328,6 +355,8 @@ describe('RaffleService', () => {
         WALLET_ID,
         10,
         `raffle:${RAFFLE_ID}:entry:entry-001:total:20`,
+        undefined,
+        expect.any(Object),
       );
       expect(updated.coinsSpent).toBe(20);
     });

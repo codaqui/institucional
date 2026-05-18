@@ -65,7 +65,7 @@ describe("/patrocinadores", () => {
     expect(screen.getByText("Empresa B")).toBeInTheDocument();
     expect(screen.getByText(/1\.200,00/)).toBeInTheDocument();
     expect(screen.getByText(/Apoios confirmados/i)).toBeInTheDocument();
-    expect(screen.getByText(/Meses apoiando \(somatório\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Meses apoiando \(página atual\)/i)).toBeInTheDocument();
     expect(screen.getByText(/500,00/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Visitar site/i })).toHaveAttribute(
       "href",

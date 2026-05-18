@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { createHash, randomBytes } from 'crypto';
 import { Raffle, RaffleStatus } from './entities/raffle.entity';
 import { RaffleEntry, RaffleOwnerType } from './entities/raffle-entry.entity';
@@ -43,6 +43,7 @@ export class RaffleService {
     private readonly memberRepo: Repository<Member>,
     private readonly clubService: ClubService,
     private readonly companiesService: CompaniesService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async listOpen(): Promise<Raffle[]> {
@@ -182,42 +183,52 @@ export class RaffleService {
       walletId = wallet.id;
     }
 
-    // permite reforçar participação no mesmo sorteio
-    const alreadyIn = await this.entryRepo.findOne({
-      where: { raffleId, ownerId, ownerType },
+    return this.dataSource.transaction(async (em) => {
+      const alreadyIn = await em
+        .getRepository(RaffleEntry)
+        .createQueryBuilder('entry')
+        .setLock('pessimistic_write')
+        .where('entry."raffleId" = :raffleId', { raffleId })
+        .andWhere('entry."ownerId" = :ownerId', { ownerId })
+        .andWhere('entry."ownerType" = :ownerType', { ownerType })
+        .getOne();
+
+      const raffleReferenceId = alreadyIn
+        ? `raffle:${raffleId}:entry:${alreadyIn.id}:total:${alreadyIn.coinsSpent + raffle.costInCoins}`
+        : `raffle:${raffleId}`;
+
+      if (ownerType === RaffleOwnerType.COMPANY) {
+        await this.companiesService.debitForRaffle(
+          walletId,
+          raffle.costInCoins,
+          raffleReferenceId,
+          undefined,
+          em,
+        );
+      } else {
+        await this.clubService.debitForRaffle(
+          walletId,
+          raffle.costInCoins,
+          raffleReferenceId,
+          undefined,
+          em,
+        );
+      }
+
+      if (alreadyIn) {
+        alreadyIn.coinsSpent += raffle.costInCoins;
+        return em.getRepository(RaffleEntry).save(alreadyIn);
+      }
+
+      return em.getRepository(RaffleEntry).save(
+        em.getRepository(RaffleEntry).create({
+          raffleId,
+          ownerId,
+          ownerType,
+          coinsSpent: raffle.costInCoins,
+        }),
+      );
     });
-    const raffleReferenceId = alreadyIn
-      ? `raffle:${raffleId}:entry:${alreadyIn.id}:total:${alreadyIn.coinsSpent + raffle.costInCoins}`
-      : `raffle:${raffleId}`;
-
-    // débita coins (lança BadRequestException se saldo insuficiente)
-    if (ownerType === RaffleOwnerType.COMPANY) {
-      await this.companiesService.debitForRaffle(
-        walletId,
-        raffle.costInCoins,
-        raffleReferenceId,
-      );
-    } else {
-      await this.clubService.debitForRaffle(
-        walletId,
-        raffle.costInCoins,
-        raffleReferenceId,
-      );
-    }
-
-    if (alreadyIn) {
-      alreadyIn.coinsSpent += raffle.costInCoins;
-      return this.entryRepo.save(alreadyIn);
-    }
-
-    return this.entryRepo.save(
-      this.entryRepo.create({
-        raffleId,
-        ownerId,
-        ownerType,
-        coinsSpent: raffle.costInCoins,
-      }),
-    );
   }
 
   /** Sorteia um vencedor aleatório (crypto.randomInt para auditabilidade) */
@@ -227,7 +238,10 @@ export class RaffleService {
     if (raffle.status !== RaffleStatus.OPEN && raffle.status !== RaffleStatus.CLOSED)
       throw new BadRequestException('Sorteio não pode ser sorteado no status atual');
 
-    const entries = await this.entryRepo.find({ where: { raffleId } });
+    const entries = await this.entryRepo.find({
+      where: { raffleId },
+      order: { enteredAt: 'ASC', id: 'ASC' },
+    });
     if (entries.length === 0)
       throw new BadRequestException('Sem participantes para sortear');
 

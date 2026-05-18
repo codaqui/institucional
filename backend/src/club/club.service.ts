@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, IsNull, Repository } from 'typeorm';
 import { Wallet } from './entities/wallet.entity';
 import {
   WalletTransaction,
@@ -142,8 +142,9 @@ export class ClubService {
     coins: number,
     referenceId: string,
     coinType = DEFAULT_COIN,
+    manager?: EntityManager,
   ): Promise<WalletTransaction> {
-    return this.dataSource.transaction(async (em) => {
+    const run = async (em: EntityManager) => {
       const wallet = await em
         .getRepository(Wallet)
         .createQueryBuilder('w')
@@ -178,7 +179,10 @@ export class ClubService {
         description: 'Inscrição em sorteio',
       });
       return em.getRepository(WalletTransaction).save(tx);
-    });
+    };
+
+    if (manager) return run(manager);
+    return this.dataSource.transaction(run);
   }
 
   /** Estorna coins ao cancelar sorteio */
@@ -284,6 +288,36 @@ export class ClubService {
     description?: string,
   ): Promise<WalletTransaction> {
     return this.dataSource.transaction(async (em) => {
+      const txRepo = em.getRepository(WalletTransaction);
+      if (referenceId) {
+        const existing = await txRepo.findOne({
+          where: { walletId, source, referenceId, coinType },
+        });
+        if (existing) return existing;
+      }
+
+      let savedTx: WalletTransaction;
+      try {
+        savedTx = await txRepo.save(
+          txRepo.create({
+            walletId,
+            coinType,
+            amount,
+            source,
+            referenceId,
+            description: description ?? null,
+          }),
+        );
+      } catch (err: any) {
+        if (err?.code === '23505' && referenceId) {
+          const existing = await txRepo.findOne({
+            where: { walletId, source, referenceId, coinType },
+          });
+          if (existing) return existing;
+        }
+        throw new ConflictException('Transação duplicada ou erro de unicidade');
+      }
+
       const wallet = await em
         .getRepository(Wallet)
         .createQueryBuilder('w')
@@ -298,27 +332,7 @@ export class ClubService {
         [coinType]: (wallet.balances[coinType] ?? 0) + amount,
       };
       await em.getRepository(Wallet).save(wallet);
-
-      try {
-        const tx = em.getRepository(WalletTransaction).create({
-          walletId,
-          coinType,
-          amount,
-          source,
-          referenceId,
-          description: description ?? null,
-        });
-        return await em.getRepository(WalletTransaction).save(tx);
-      } catch (err: any) {
-        if (err?.code === '23505') {
-          // idempotência: transação já registrada, retorna sem erro
-          const existing = await em
-            .getRepository(WalletTransaction)
-            .findOne({ where: { walletId, source, referenceId: referenceId ?? IsNull(), coinType } });
-          if (existing) return existing;
-        }
-        throw new ConflictException('Transação duplicada ou erro de unicidade');
-      }
+      return savedTx;
     });
   }
 

@@ -121,7 +121,7 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="overline" color="text.secondary">
-                      Total apoiado
+                      Total apoiado (página atual)
                     </Typography>
                     <Typography variant="h5" fontWeight={800}>
                       {formatCurrency(totals.totalSupportedReais)}
@@ -133,7 +133,7 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="overline" color="text.secondary">
-                      Apoios confirmados
+                      Apoios confirmados (página atual)
                     </Typography>
                     <Typography variant="h5" fontWeight={800}>
                       {totals.supportCount}
@@ -145,7 +145,7 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                 <Card variant="outlined">
                   <CardContent>
                     <Typography variant="overline" color="text.secondary">
-                      Meses apoiando (somatório)
+                      Meses apoiando (página atual)
                     </Typography>
                     <Typography variant="h5" fontWeight={800}>
                       {totals.monthsSupporting}

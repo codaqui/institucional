@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import {
@@ -490,8 +490,9 @@ export class CompaniesService {
     coins: number,
     referenceId: string,
     coinType = DEFAULT_COIN,
+    manager?: EntityManager,
   ): Promise<CompanyWalletTransaction> {
-    return this.dataSource.transaction(async (em) => {
+    const run = async (em: EntityManager) => {
       const wallet = await em
         .getRepository(CompanyWallet)
         .createQueryBuilder('w')
@@ -519,7 +520,10 @@ export class CompaniesService {
         description: 'Inscrição em sorteio',
       });
       return em.getRepository(CompanyWalletTransaction).save(tx);
-    });
+    };
+
+    if (manager) return run(manager);
+    return this.dataSource.transaction(run);
   }
 
   async refundFromRaffle(
@@ -638,6 +642,36 @@ export class CompaniesService {
     description?: string,
   ): Promise<CompanyWalletTransaction> {
     return this.dataSource.transaction(async (em) => {
+      const txRepo = em.getRepository(CompanyWalletTransaction);
+      if (referenceId) {
+        const existing = await txRepo.findOne({
+          where: { walletId, source, referenceId, coinType },
+        });
+        if (existing) return existing;
+      }
+
+      let savedTx: CompanyWalletTransaction;
+      try {
+        savedTx = await txRepo.save(
+          txRepo.create({
+            walletId,
+            coinType,
+            amount,
+            source,
+            referenceId,
+            description: description ?? null,
+          }),
+        );
+      } catch (err: any) {
+        if (err?.code === '23505' && referenceId) {
+          const existing = await txRepo.findOne({
+            where: { walletId, source, referenceId, coinType },
+          });
+          if (existing) return existing;
+        }
+        throw new ConflictException('Transação duplicada');
+      }
+
       const wallet = await em
         .getRepository(CompanyWallet)
         .createQueryBuilder('w')
@@ -652,26 +686,7 @@ export class CompaniesService {
         [coinType]: (wallet.balances[coinType] ?? 0) + amount,
       };
       await em.getRepository(CompanyWallet).save(wallet);
-
-      try {
-        const tx = em.getRepository(CompanyWalletTransaction).create({
-          walletId,
-          coinType,
-          amount,
-          source,
-          referenceId,
-          description: description ?? null,
-        });
-        return await em.getRepository(CompanyWalletTransaction).save(tx);
-      } catch (err: any) {
-        if (err?.code === '23505') {
-          const existing = await em
-            .getRepository(CompanyWalletTransaction)
-            .findOne({ where: { walletId, source, referenceId: referenceId ?? IsNull(), coinType } });
-          if (existing) return existing;
-        }
-        throw new ConflictException('Transação duplicada');
-      }
+      return savedTx;
     });
   }
 
