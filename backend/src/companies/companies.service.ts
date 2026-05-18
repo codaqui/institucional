@@ -7,7 +7,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, In, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import {
@@ -643,10 +643,14 @@ export class CompaniesService {
   ): Promise<CompanyWalletTransaction> {
     return this.dataSource.transaction(async (em) => {
       const txRepo = em.getRepository(CompanyWalletTransaction);
+      const txWhere: FindOptionsWhere<CompanyWalletTransaction> = {
+        walletId,
+        source,
+        referenceId: referenceId ?? IsNull(),
+        coinType,
+      };
       if (referenceId) {
-        const existing = await txRepo.findOne({
-          where: { walletId, source, referenceId, coinType },
-        });
+        const existing = await txRepo.findOne({ where: txWhere });
         if (existing) return existing;
       }
 
@@ -663,10 +667,8 @@ export class CompaniesService {
           }),
         );
       } catch (err: any) {
-        if (err?.code === '23505' && referenceId) {
-          const existing = await txRepo.findOne({
-            where: { walletId, source, referenceId, coinType },
-          });
+        if (err?.code === '23505') {
+          const existing = await txRepo.findOne({ where: txWhere });
           if (existing) return existing;
         }
         throw new ConflictException('Transação duplicada');
