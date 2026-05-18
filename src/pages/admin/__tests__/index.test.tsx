@@ -1,21 +1,15 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AdminPage from "../index";
-import { useAuth } from "../../../hooks/useAuth";
-
-const replaceMock = jest.fn();
-const historyMock = { replace: replaceMock };
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
+import { resetRouterMocks } from "../../../test-utils/router";
 
 jest.mock("../../../hooks/useAuth");
-jest.mock("@docusaurus/router", () => ({
-  useHistory: () => historyMock,
-}));
-jest.mock("../../../components/AdminNavbar", () => ({
-  __esModule: true,
-  default: () => <div data-testid="admin-navbar" />,
-}));
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
+jest.mock(
+  "../../../components/AdminNavbar",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminNavbarModule,
+);
 
 type MemberRole = "membro" | "finance-analyzer" | "admin";
 
@@ -33,22 +27,16 @@ function buildMember(idx: number, role: MemberRole = "membro") {
 
 describe("/admin (dashboard)", () => {
   beforeEach(() => {
-    replaceMock.mockReset();
+    resetRouterMocks();
   });
 
   it("permite acesso do finance-analyzer sem listar membros", async () => {
     const authFetch = jest.fn();
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      isAdmin: false,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isFinanceAnalyzer: true,
       authFetch: authFetch as any,
       user: { sub: "fa-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-    } as any);
+    }));
 
     render(<AdminPage />);
 
@@ -62,26 +50,16 @@ describe("/admin (dashboard)", () => {
     const members = Array.from({ length: 25 }, (_, i) => buildMember(i + 1));
     const authFetch = jest.fn(async (url: string) => {
       if (url.endsWith("/admin/members")) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => members,
-        };
+        return jsonResponse(members);
       }
-      return { ok: false, status: 404, json: async () => ({}) };
+      return jsonResponse({}, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
-      isFinanceAnalyzer: false,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-    } as any);
+    }));
 
     render(<AdminPage />);
 
@@ -102,33 +80,19 @@ describe("/admin (dashboard)", () => {
   it("abre confirmação e atualiza status ativo/inativo do membro", async () => {
     const authFetch = jest.fn(async (url: string, options?: RequestInit) => {
       if (url.endsWith("/admin/members") && !options) {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => [buildMember(1)],
-        };
+        return jsonResponse([buildMember(1)]);
       }
       if (url.endsWith("/admin/members/m-1") && options?.method === "PATCH") {
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ ok: true }),
-        };
+        return jsonResponse({ ok: true });
       }
-      return { ok: false, status: 404, json: async () => ({}) };
+      return jsonResponse({}, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
-      isFinanceAnalyzer: false,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-    } as any);
+    }));
 
     render(<AdminPage />);
 

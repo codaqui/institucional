@@ -1,59 +1,36 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import LancamentoPage from "../lancamento";
-import { useAuth } from "../../../hooks/useAuth";
-
-const replaceMock = jest.fn();
-const historyMock = { replace: replaceMock };
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
+import { mockHistory, resetRouterMocks } from "../../../test-utils/router";
 
 jest.mock("../../../hooks/useAuth");
-jest.mock("@docusaurus/router", () => ({
-  useHistory: () => historyMock,
-}));
-jest.mock("../../../components/AdminNavbar", () => ({
-  __esModule: true,
-  default: () => <div data-testid="admin-navbar" />,
-}));
-jest.mock("../../../components/AdminPageContainer", () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-type MockResponse = Pick<Response, "ok" | "status" | "json">;
-
-function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
-  return {
-    ok,
-    status,
-    json: async () => data,
-  };
-}
+jest.mock(
+  "../../../components/AdminNavbar",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminNavbarModule,
+);
+jest.mock(
+  "../../../components/AdminPageContainer",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminPageContainerModule,
+);
 
 describe("/admin/lancamento", () => {
   beforeEach(() => {
-    replaceMock.mockReset();
+    resetRouterMocks();
     globalThis.window.history.pushState({}, "", "/admin/lancamento");
   });
 
   it("redireciona quando usuário não é admin", async () => {
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      isAdmin: false,
+    mockUseAuth.mockReturnValue(buildAuthState({
       authFetch: jest.fn() as any,
       user: { sub: "u1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<LancamentoPage />);
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith("/");
+      expect(mockHistory.replace).toHaveBeenCalledWith("/");
     });
   });
 
@@ -61,20 +38,14 @@ describe("/admin/lancamento", () => {
     const authFetch = jest.fn(async (url: string) => {
       if (url.endsWith("/ledger/accounts")) return jsonResponse([]);
       if (url.endsWith("/account-transfers")) return jsonResponse({ data: [] });
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<LancamentoPage />);
 
@@ -121,20 +92,14 @@ describe("/admin/lancamento", () => {
       if (url.endsWith("/account-transfers/t-1/approve") && options?.method === "PATCH") {
         return jsonResponse({ ok: true });
       }
-      return jsonResponse(null, false, 404);
+        return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<LancamentoPage />);
 

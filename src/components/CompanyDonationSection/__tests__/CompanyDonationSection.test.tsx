@@ -1,7 +1,8 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import CompanyDonationSection from "../index";
-import { useAuth } from "../../../hooks/useAuth";
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
 
 jest.mock("../../../hooks/useAuth");
 jest.mock("@stripe/stripe-js", () => ({
@@ -14,17 +15,7 @@ jest.mock("@stripe/react-stripe-js", () => ({
   EmbeddedCheckout: () => <div data-testid="embedded-checkout" />,
 }));
 
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-type MockResponse = Pick<Response, "ok" | "status" | "json">;
-
-function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
-  return {
-    ok,
-    status,
-    json: async () => data,
-  };
-}
+const companyUser = { sub: "u-1", handle: "mentoriacodaqui", name: "Mentoria Codaqui" } as const;
 
 describe("CompanyDonationSection", () => {
   it("envia o valor customizado atualizado no checkout empresarial", async () => {
@@ -40,20 +31,13 @@ describe("CompanyDonationSection", () => {
       if (url === "/stripe/checkout-session/company" && options?.method === "POST") {
         return jsonResponse({ clientSecret: "cs_test_123" });
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      user: { sub: "u-1", handle: "mentoriacodaqui", name: "Mentoria Codaqui" } as any,
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: companyUser as any,
       authFetch: authFetch as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<CompanyDonationSection onBack={jest.fn()} />);
 
@@ -92,20 +76,13 @@ describe("CompanyDonationSection", () => {
           status: "active",
         });
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      user: { sub: "u-1", handle: "mentoriacodaqui", name: "Mentoria Codaqui" } as any,
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: companyUser as any,
       authFetch: authFetch as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<CompanyDonationSection onBack={jest.fn()} />);
 
@@ -136,20 +113,13 @@ describe("CompanyDonationSection", () => {
       if (url === "/stripe/checkout-session/company" && options?.method === "POST") {
         return jsonResponse({ clientSecret: "cs_test_123" });
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      user: { sub: "u-1", handle: "mentoriacodaqui", name: "Mentoria Codaqui" } as any,
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: companyUser as any,
       authFetch: authFetch as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<CompanyDonationSection onBack={jest.fn()} />);
 

@@ -22,14 +22,12 @@ import TextField from "@mui/material/TextField";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Pagination from "@mui/material/Pagination";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import EditIcon from "@mui/icons-material/Edit";
+import AdminDataTable from "../../components/AdminDataTable";
 import ModalConfirm from "../../components/ModalConfirm";
 import AdminNavbar from "../../components/AdminNavbar";
 import { useAuth } from "../../hooks/useAuth";
@@ -270,113 +268,108 @@ export default function AdminPage(): React.JSX.Element {
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </Box>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Membro</TableCell>
-                    <TableCell>GitHub</TableCell>
-                    <TableCell>Role atual</TableCell>
-                    <TableCell>Desde</TableCell>
-                    <TableCell align="center">Ativo</TableCell>
-                    <TableCell align="center">Ações</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pagedMembers.map((m) => (
-                    <TableRow key={m.id} sx={{ opacity: m.isActive ? 1 : 0.5 }}>
-                      <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                          <Avatar src={m.avatarUrl} alt={m.name} sx={{ width: 32, height: 32 }} />
-                          <Typography variant="body2" fontWeight={600}>{m.name}</Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">@{m.githubHandle}</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={ROLE_LABEL[m.role]}
-                          size="small"
-                          color={roleChipColor(m.role)}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="caption" color="text.secondary">
-                          {new Date(m.joinedAt).toLocaleDateString("pt-BR")}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title={m.isActive ? "Desativar membro" : "Reativar membro"}>
-                          <Switch
-                            checked={m.isActive}
-                            onChange={() => { setActiveTarget(m); setActionError(""); }}
+            <AdminDataTable
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              table={(
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Membro</TableCell>
+                      <TableCell>GitHub</TableCell>
+                      <TableCell>Role atual</TableCell>
+                      <TableCell>Desde</TableCell>
+                      <TableCell align="center">Ativo</TableCell>
+                      <TableCell align="center">Ações</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {pagedMembers.map((m) => (
+                      <TableRow key={m.id} sx={{ opacity: m.isActive ? 1 : 0.5 }}>
+                        <TableCell>
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                            <Avatar src={m.avatarUrl} alt={m.name} sx={{ width: 32, height: 32 }} />
+                            <Typography variant="body2" fontWeight={600}>{m.name}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">@{m.githubHandle}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={ROLE_LABEL[m.role]}
                             size="small"
-                            color={m.isActive ? "success" : "default"}
+                            color={roleChipColor(m.role)}
+                            variant="outlined"
                           />
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Tooltip title="Editar nome / bio / LinkedIn">
-                          <IconButton
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" color="text.secondary">
+                            {new Date(m.joinedAt).toLocaleDateString("pt-BR")}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Tooltip title={m.isActive ? "Desativar membro" : "Reativar membro"}>
+                            <Switch
+                              checked={m.isActive}
+                              onChange={() => { setActiveTarget(m); setActionError(""); }}
+                              size="small"
+                              color={m.isActive ? "success" : "default"}
+                            />
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell align="center">
+                          <Tooltip title="Editar nome / bio / LinkedIn">
+                            <IconButton
+                              size="small"
+                              aria-label="editar membro"
+                              onClick={() => {
+                                setEditTarget(m);
+                                setEditName(m.name ?? "");
+                                setEditBio("");
+                                setEditLinkedin("");
+                                setEditError("");
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell align="right" sx={{ minWidth: 180 }}>
+                          <Select
+                            value={m.role}
                             size="small"
-                            aria-label="editar membro"
-                            onClick={() => {
-                              setEditTarget(m);
-                              setEditName(m.name ?? "");
-                              setEditBio("");
-                              setEditLinkedin("");
-                              setEditError("");
+                            variant="outlined"
+                            sx={{ fontSize: "0.8rem", minWidth: 160 }}
+                            onChange={(e) => {
+                              const next = e.target.value as Role;
+                              if (next !== m.role) {
+                                setRoleTarget({ member: m, nextRole: next });
+                                setActionError("");
+                              }
                             }}
                           >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell align="right" sx={{ minWidth: 180 }}>
-                        <Select
-                          value={m.role}
-                          size="small"
-                          variant="outlined"
-                          sx={{ fontSize: "0.8rem", minWidth: 160 }}
-                          onChange={(e) => {
-                            const next = e.target.value as Role;
-                            if (next !== m.role) {
-                              setRoleTarget({ member: m, nextRole: next });
-                              setActionError("");
-                            }
-                          }}
-                        >
-                          {ALL_ROLES.map((r) => (
-                            <MenuItem key={r} value={r}>
-                              {ROLE_LABEL[r]}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {pagedMembers.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4, color: "text.secondary" }}>
-                        Nenhum membro encontrado para o filtro atual.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            {totalPages > 1 && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Pagination
-                  count={totalPages}
-                  page={page}
-                  onChange={(_, value) => setPage(value)}
-                  color="primary"
-                />
-              </Box>
-            )}
+                            {ALL_ROLES.map((r) => (
+                              <MenuItem key={r} value={r}>
+                                {ROLE_LABEL[r]}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {pagedMembers.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center" sx={{ py: 4, color: "text.secondary" }}>
+                          Nenhum membro encontrado para o filtro atual.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              )}
+            />
           </>
         )}
       </Container>

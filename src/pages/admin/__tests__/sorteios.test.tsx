@@ -1,78 +1,49 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AdminSorteiosPage from "../sorteios";
-import { useAuth } from "../../../hooks/useAuth";
-
-const replaceMock = jest.fn();
-const historyMock = { replace: replaceMock };
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
+import { mockHistory, resetRouterMocks } from "../../../test-utils/router";
 
 jest.mock("../../../hooks/useAuth");
-jest.mock("@docusaurus/router", () => ({
-  useHistory: () => historyMock,
-}));
-jest.mock("../../../components/AdminNavbar", () => ({
-  __esModule: true,
-  default: () => <div data-testid="admin-navbar" />,
-}));
-jest.mock("../../../components/AdminPageContainer", () => ({
-  __esModule: true,
-  default: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-type MockResponse = Pick<Response, "ok" | "status" | "json">;
-
-function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
-  return {
-    ok,
-    status,
-    json: async () => data,
-  };
-}
+jest.mock(
+  "../../../components/AdminNavbar",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminNavbarModule,
+);
+jest.mock(
+  "../../../components/AdminPageContainer",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminPageContainerModule,
+);
 
 describe("/admin/sorteios", () => {
   beforeEach(() => {
-    replaceMock.mockReset();
+    resetRouterMocks();
   });
 
   it("redireciona para home quando não autenticado como admin", async () => {
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
-      isAdmin: false,
+    mockUseAuth.mockReturnValue(buildAuthState({
       authFetch: jest.fn() as any,
       user: { sub: "u-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminSorteiosPage />);
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith("/");
+      expect(mockHistory.replace).toHaveBeenCalledWith("/");
     });
   });
 
   it("valida criação de sorteio quando faltam campos obrigatórios", async () => {
     const authFetch = jest.fn(async (url: string) => {
       if (url.endsWith("/club/raffles/all")) return jsonResponse([]);
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminSorteiosPage />);
 
@@ -107,20 +78,14 @@ describe("/admin/sorteios", () => {
       if (url.endsWith("/club/raffles/raffle-1/entries")) {
         return jsonResponse([]);
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminSorteiosPage />);
 
@@ -145,4 +110,3 @@ describe("/admin/sorteios", () => {
     });
   });
 });
-

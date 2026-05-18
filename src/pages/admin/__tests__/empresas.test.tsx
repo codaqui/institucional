@@ -1,30 +1,15 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import AdminEmpresasPage from "../empresas";
-import { useAuth } from "../../../hooks/useAuth";
-
-const pushMock = jest.fn();
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
+import { mockHistory, resetRouterMocks } from "../../../test-utils/router";
 
 jest.mock("../../../hooks/useAuth");
-jest.mock("@docusaurus/router", () => ({
-  useHistory: () => ({ push: pushMock }),
-}));
-jest.mock("../../../components/AdminNavbar", () => ({
-  __esModule: true,
-  default: () => <div data-testid="admin-navbar" />,
-}));
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-type MockResponse = Pick<Response, "ok" | "status" | "json">;
-
-function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
-  return {
-    ok,
-    status,
-    json: async () => data,
-  };
-}
+jest.mock(
+  "../../../components/AdminNavbar",
+  () => require("../../../test-utils/admin-component-mocks").mockAdminNavbarModule,
+);
 
 const company = {
   id: "c-1",
@@ -45,26 +30,20 @@ const company = {
 
 describe("/admin/empresas", () => {
   beforeEach(() => {
-    pushMock.mockReset();
+    resetRouterMocks();
   });
 
   it("redireciona para home quando não autenticado", async () => {
-    mockUseAuth.mockReturnValue({
-      ready: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isLoggedIn: false,
-      isAdmin: false,
       authFetch: jest.fn() as any,
       user: null,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminEmpresasPage />);
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith("/");
+      expect(mockHistory.push).toHaveBeenCalledWith("/");
     });
   });
 
@@ -84,20 +63,14 @@ describe("/admin/empresas", () => {
       if (url.includes(`/companies/${company.id}/wallet`)) {
         return jsonResponse({ balances: { sort_coin: 300 }, frozenTypes: [] });
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminEmpresasPage />);
 
@@ -120,20 +93,14 @@ describe("/admin/empresas", () => {
       if (url.includes("/companies/admin/list?page=2&limit=10")) {
         return jsonResponse({ items: [], total: 20, page: 2, limit: 10 });
       }
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
       authFetch: authFetch as any,
       user: { sub: "admin-1" } as any,
-      login: jest.fn(),
-      logout: jest.fn(),
-      refreshUser: jest.fn(),
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     render(<AdminEmpresasPage />);
 
