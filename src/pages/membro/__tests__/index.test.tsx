@@ -1,26 +1,11 @@
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import MembroPage from "../index";
-import { useAuth } from "../../../hooks/useAuth";
-
-const replaceMock = jest.fn();
+import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
+import { jsonResponse } from "../../../test-utils/http";
+import { mockHistory, resetRouterMocks } from "../../../test-utils/router";
 
 jest.mock("../../../hooks/useAuth");
-jest.mock("@docusaurus/router", () => ({
-  useHistory: () => ({ replace: replaceMock }),
-}));
-
-const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
-
-type MockResponse = Pick<Response, "ok" | "status" | "json">;
-
-function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
-  return {
-    ok,
-    status,
-    json: async () => data,
-  };
-}
 
 const loggedUser = {
   sub: "user-1",
@@ -32,29 +17,23 @@ const loggedUser = {
 
 describe("/membro", () => {
   beforeEach(() => {
-    replaceMock.mockReset();
+    resetRouterMocks();
     (global.fetch as jest.Mock | undefined)?.mockReset?.();
   });
 
   it("redireciona quando usuário não está logado", async () => {
-    mockUseAuth.mockReturnValue({
-      ready: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       isLoggedIn: false,
       user: null,
       authFetch: jest.fn() as any,
-      logout: jest.fn(),
-      login: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
     render(<MembroPage />);
 
     await waitFor(() => {
-      expect(replaceMock).toHaveBeenCalledWith("/");
+      expect(mockHistory.replace).toHaveBeenCalledWith("/");
     });
   });
 
@@ -119,20 +98,13 @@ describe("/membro", () => {
         });
       }
       if (url.includes("/reimbursements/my")) return jsonResponse([]);
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       user: loggedUser as any,
       authFetch: authFetch as any,
-      logout: jest.fn(),
-      login: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
@@ -160,20 +132,13 @@ describe("/membro", () => {
         return jsonResponse({ items: [], total: 20, page: 2, limit: 10 });
       }
       if (url.includes("/reimbursements/my")) return jsonResponse([]);
-      return jsonResponse(null, false, 404);
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue({
-      ready: true,
-      isLoggedIn: true,
+    mockUseAuth.mockReturnValue(buildAuthState({
       user: loggedUser as any,
       authFetch: authFetch as any,
-      logout: jest.fn(),
-      login: jest.fn(),
-      refreshUser: jest.fn(),
-      isAdmin: false,
-      isFinanceAnalyzer: false,
-    } as any);
+    }));
 
     (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
@@ -195,4 +160,3 @@ describe("/membro", () => {
     });
   });
 });
-

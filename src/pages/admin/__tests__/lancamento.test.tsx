@@ -15,6 +15,23 @@ jest.mock(
   () => require("../../../test-utils/admin-component-mocks").mockAdminPageContainerModule,
 );
 
+function mockAdminAccess(authFetch: jest.Mock): void {
+  mockUseAuth.mockReturnValue(buildAuthState({
+    isAdmin: true,
+    authFetch: authFetch as any,
+    user: { sub: "admin-1" } as any,
+  }));
+}
+
+async function renderAndWaitForInitialRequests(authFetch: jest.Mock): Promise<void> {
+  render(<LancamentoPage />);
+  await waitFor(() => {
+    expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/ledger/accounts"));
+    expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/account-transfers"));
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+}
+
 describe("/admin/lancamento", () => {
   beforeEach(() => {
     resetRouterMocks();
@@ -41,19 +58,8 @@ describe("/admin/lancamento", () => {
       return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue(buildAuthState({
-      isAdmin: true,
-      authFetch: authFetch as any,
-      user: { sub: "admin-1" } as any,
-    }));
-
-    render(<LancamentoPage />);
-
-    await waitFor(() => {
-      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/ledger/accounts"));
-      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/account-transfers"));
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-    });
+    mockAdminAccess(authFetch);
+    await renderAndWaitForInitialRequests(authFetch);
     fireEvent.click(screen.getByRole("button", { name: /Revisar lançamento/i }));
 
     expect(await screen.findByText(/Preencha os campos obrigatórios/i)).toBeInTheDocument();
@@ -92,22 +98,11 @@ describe("/admin/lancamento", () => {
       if (url.endsWith("/account-transfers/t-1/approve") && options?.method === "PATCH") {
         return jsonResponse({ ok: true });
       }
-        return jsonResponse(null, { ok: false, status: 404 });
+      return jsonResponse(null, { ok: false, status: 404 });
     });
 
-    mockUseAuth.mockReturnValue(buildAuthState({
-      isAdmin: true,
-      authFetch: authFetch as any,
-      user: { sub: "admin-1" } as any,
-    }));
-
-    render(<LancamentoPage />);
-
-    await waitFor(() => {
-      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/ledger/accounts"));
-      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/account-transfers"));
-      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
-    });
+    mockAdminAccess(authFetch);
+    await renderAndWaitForInitialRequests(authFetch);
     fireEvent.click(screen.getByRole("button", { name: /Criar conta externa/i }));
     fireEvent.change(screen.getByLabelText(/Nome da conta/i), {
       target: { value: "Gateway PIX Manual" },

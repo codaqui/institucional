@@ -16,47 +16,62 @@ jest.mock("@stripe/react-stripe-js", () => ({
 }));
 
 const companyUser = { sub: "u-1", handle: "mentoriacodaqui", name: "Mentoria Codaqui" } as const;
+const companyProfile = {
+  id: "company-1",
+  name: "Mentoria Codaqui",
+  cnpj: "44593429000105",
+  status: "active",
+};
+const checkoutPath = "/stripe/checkout-session/company";
+
+function buildCompanyAuthFetch({
+  allowCheckout = true,
+}: {
+  allowCheckout?: boolean;
+} = {}) {
+  return jest.fn(async (url: string, options?: RequestInit) => {
+    if (url === "/companies/me") return jsonResponse(companyProfile);
+    if (allowCheckout && url === checkoutPath && options?.method === "POST") {
+      return jsonResponse({ clientSecret: "cs_test_123" });
+    }
+    return jsonResponse(null, { ok: false, status: 404 });
+  });
+}
+
+function renderWithAuth(authFetch: jest.Mock): void {
+  mockUseAuth.mockReturnValue(buildAuthState({
+    user: companyUser as any,
+    authFetch: authFetch as any,
+  }));
+  render(<CompanyDonationSection onBack={jest.fn()} />);
+}
+
+async function submitCheckout(customValue?: string): Promise<void> {
+  await screen.findByRole("button", { name: /Ir para pagamento/i });
+  if (customValue) {
+    fireEvent.click(screen.getByRole("button", { name: /Personalizado/i }));
+    fireEvent.change(screen.getByLabelText(/Valor personalizado/i), {
+      target: { value: customValue },
+    });
+  }
+  fireEvent.click(screen.getByRole("button", { name: /Ir para pagamento/i }));
+}
 
 describe("CompanyDonationSection", () => {
   it("envia o valor customizado atualizado no checkout empresarial", async () => {
-    const authFetch = jest.fn(async (url: string, options?: RequestInit) => {
-      if (url === "/companies/me") {
-        return jsonResponse({
-          id: "company-1",
-          name: "Mentoria Codaqui",
-          cnpj: "44593429000105",
-          status: "active",
-        });
-      }
-      if (url === "/stripe/checkout-session/company" && options?.method === "POST") {
-        return jsonResponse({ clientSecret: "cs_test_123" });
-      }
-      return jsonResponse(null, { ok: false, status: 404 });
-    });
-
-    mockUseAuth.mockReturnValue(buildAuthState({
-      user: companyUser as any,
-      authFetch: authFetch as any,
-    }));
-
-    render(<CompanyDonationSection onBack={jest.fn()} />);
-
-    await screen.findByRole("button", { name: /Ir para pagamento/i });
-    fireEvent.click(screen.getByRole("button", { name: /Personalizado/i }));
-    fireEvent.change(screen.getByLabelText(/Valor personalizado/i), {
-      target: { value: "500,00" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Ir para pagamento/i }));
+    const authFetch = buildCompanyAuthFetch();
+    renderWithAuth(authFetch);
+    await submitCheckout("500,00");
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(
-        "/stripe/checkout-session/company",
+        checkoutPath,
         expect.objectContaining({ method: "POST" }),
       );
     });
 
     const checkoutCall = authFetch.mock.calls.find(
-      ([url]) => url === "/stripe/checkout-session/company",
+      ([url]) => url === checkoutPath,
     );
     const body = JSON.parse((checkoutCall?.[1] as RequestInit).body as string) as {
       companyId: string;
@@ -67,73 +82,30 @@ describe("CompanyDonationSection", () => {
   });
 
   it("bloqueia custom abaixo de R$ 200 com mensagem de validação", async () => {
-    const authFetch = jest.fn(async (url: string) => {
-      if (url === "/companies/me") {
-        return jsonResponse({
-          id: "company-1",
-          name: "Mentoria Codaqui",
-          cnpj: "44593429000105",
-          status: "active",
-        });
-      }
-      return jsonResponse(null, { ok: false, status: 404 });
-    });
-
-    mockUseAuth.mockReturnValue(buildAuthState({
-      user: companyUser as any,
-      authFetch: authFetch as any,
-    }));
-
-    render(<CompanyDonationSection onBack={jest.fn()} />);
-
-    await screen.findByRole("button", { name: /Ir para pagamento/i });
-    fireEvent.click(screen.getByRole("button", { name: /Personalizado/i }));
-    fireEvent.change(screen.getByLabelText(/Valor personalizado/i), {
-      target: { value: "100,00" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: /Ir para pagamento/i }));
+    const authFetch = buildCompanyAuthFetch({ allowCheckout: false });
+    renderWithAuth(authFetch);
+    await submitCheckout("100,00");
 
     expect(await screen.findByText(/valor mínimo é R\$ 200,00\/mês/i)).toBeInTheDocument();
     expect(authFetch).not.toHaveBeenCalledWith(
-      "/stripe/checkout-session/company",
+      checkoutPath,
       expect.anything(),
     );
   });
 
   it("usa o plano padrão de R$ 200 quando não há customização", async () => {
-    const authFetch = jest.fn(async (url: string, options?: RequestInit) => {
-      if (url === "/companies/me") {
-        return jsonResponse({
-          id: "company-1",
-          name: "Mentoria Codaqui",
-          cnpj: "44593429000105",
-          status: "active",
-        });
-      }
-      if (url === "/stripe/checkout-session/company" && options?.method === "POST") {
-        return jsonResponse({ clientSecret: "cs_test_123" });
-      }
-      return jsonResponse(null, { ok: false, status: 404 });
-    });
-
-    mockUseAuth.mockReturnValue(buildAuthState({
-      user: companyUser as any,
-      authFetch: authFetch as any,
-    }));
-
-    render(<CompanyDonationSection onBack={jest.fn()} />);
-
-    await screen.findByRole("button", { name: /Ir para pagamento/i });
-    fireEvent.click(screen.getByRole("button", { name: /Ir para pagamento/i }));
+    const authFetch = buildCompanyAuthFetch();
+    renderWithAuth(authFetch);
+    await submitCheckout();
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(
-        "/stripe/checkout-session/company",
+        checkoutPath,
         expect.objectContaining({ method: "POST" }),
       );
     });
     const checkoutCall = authFetch.mock.calls.find(
-      ([url]) => url === "/stripe/checkout-session/company",
+      ([url]) => url === checkoutPath,
     );
     const body = JSON.parse((checkoutCall?.[1] as RequestInit).body as string) as {
       subscriptionAmountCents: number;
