@@ -49,6 +49,7 @@ import { communities } from "@site/src/data/communities";
 import { useAuth, type AuthUser } from "@site/src/hooks/useAuth";
 import { resolveApiUrl } from "@site/src/lib/api-url";
 import StripeEmbeddedCheckoutDialog from "../StripeEmbeddedCheckoutDialog";
+import { IdentityHandleChip, SupportPrimaryButton } from "../SupportCheckoutUi";
 import {
   buildCheckoutBody,
   detectWhitelabelDeploy,
@@ -125,12 +126,7 @@ interface IdentityStatusProps {
 function IdentityStatus({ isLoggedIn, user, isRecurring, amount, login }: IdentityStatusProps) {
   if (isLoggedIn && user) {
     return (
-      <Chip
-        avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-        label={`Doando como @${user.handle}`}
-        variant="outlined"
-        color="primary"
-      />
+      <IdentityHandleChip user={user} />
     );
   }
   if (amount > ANONYMOUS_LIMIT_CENTS) {
@@ -185,23 +181,14 @@ function DonateButton({
   else if (isRecurring) icon = <AutorenewIcon />;
 
   return (
-    <Button
-      variant="contained"
-      size="large"
-      fullWidth
-      disabled={loading}
+    <SupportPrimaryButton
+      label={label}
+      loading={loading}
       onClick={handleDonate}
       startIcon={icon}
-      sx={{
-        py: 1.5, fontWeight: 700, fontSize: "1rem", textTransform: "none",
-        ...(accentColor && {
-          bgcolor: accentColor,
-          "&:hover": { bgcolor: accentColorDark ?? accentColor },
-        }),
-      }}
-    >
-      {label}
-    </Button>
+      accentColor={accentColor}
+      accentColorDark={accentColorDark}
+    />
   );
 }
 
@@ -455,10 +442,8 @@ export default function DonationFlow({
       {/* ── Chip discreto quando logado ── */}
       {!disableAuth && ready && isLoggedIn && user && (
         <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
-          <Chip
-            avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-            label={`Doando como @${user.handle}`}
-            variant="outlined"
+          <IdentityHandleChip
+            user={user}
             sx={{
               borderColor: accentColor ?? "primary.main",
               color: accentColor ?? "primary.main",

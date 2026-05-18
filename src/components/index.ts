@@ -14,6 +14,7 @@ export { default as TransactionDetailDialog } from "./TransactionDetailDialog";
 export { default as TransactionTable } from "./TransactionTable";
 export { default as WalletTransactionDetailDialog } from "./WalletTransactionDetailDialog";
 export { default as StripeEmbeddedCheckoutDialog } from "./StripeEmbeddedCheckoutDialog";
+export { IdentityHandleChip, SupportPrimaryButton } from "./SupportCheckoutUi";
 export { default as CommunityPresenceCard } from "./CommunityPresenceCard";
 export type { CommunityPresenceCardProps } from "./CommunityPresenceCard";
 export { SocialStatChip, PLATFORM_META, platformIcon, platformColor, formatCount } from "./CommunityPresenceCard";

@@ -9,7 +9,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Alert from "@mui/material/Alert";
-import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -29,6 +28,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { IdentityHandleChip, SupportPrimaryButton } from "../SupportCheckoutUi";
 import StripeEmbeddedCheckoutDialog from "../StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
@@ -339,17 +339,9 @@ export default function CompanyDonationSection({ onBack }: Readonly<{ onBack?: (
                 )}
 
                 {user && (
-                  <Chip
-                    avatar={(
-                      <Avatar
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        sx={{ width: "22px !important", height: "22px !important" }}
-                      />
-                    )}
-                    label={`Apoiando como @${user.handle}`}
-                    variant="outlined"
-                    color="primary"
+                  <IdentityHandleChip
+                    user={user}
+                    labelPrefix="Apoiando como"
                     sx={{ width: "fit-content" }}
                   />
                 )}
@@ -462,25 +454,15 @@ export default function CompanyDonationSection({ onBack }: Readonly<{ onBack?: (
                   · Cancele a qualquer momento pelo portal Stripe.
                 </Typography>
 
-                <Button
-                  variant="contained"
-                  size="large"
-                  fullWidth
-                  onClick={handleRegisterOrProceed}
-                  disabled={submitting}
-                  startIcon={
-                    submitting ? (
-                      <CircularProgress size={18} color="inherit" />
-                    ) : (
-                      <CreditCardIcon />
-                    )
-                  }
-                  sx={{ py: 1.5, fontWeight: 700, textTransform: "none" }}
-                >
-                  {existingCompany
+                <SupportPrimaryButton
+                  label={existingCompany
                     ? `Apoiar com ${formatBRL(finalAmountCents / 100)}/mês`
                     : `Cadastrar empresa e apoiar com ${formatBRL(finalAmountCents / 100)}/mês`}
-                </Button>
+                  loading={submitting}
+                  disabled={submitting}
+                  onClick={handleRegisterOrProceed}
+                  startIcon={<CreditCardIcon />}
+                />
               </Stack>
             )}
           </>
