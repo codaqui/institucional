@@ -4,6 +4,7 @@ import {
   Post,
   Delete,
   Body,
+  Query,
   Param,
   Req,
   Headers,
@@ -38,8 +39,16 @@ export class StripeController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: '🔒 Minhas doações' })
-  getMyDonations(@Req() req: { user: JwtPayload }) {
-    return this.stripeService.getMyDonations(req.user.sub);
+  getMyDonations(
+    @Req() req: { user: JwtPayload },
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+  ) {
+    return this.stripeService.getMyDonations(
+      req.user.sub,
+      parseInt(page, 10),
+      parseInt(limit, 10),
+    );
   }
 
   /**
@@ -49,8 +58,16 @@ export class StripeController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({ summary: '🔒 Minhas assinaturas recorrentes' })
-  getMySubscriptions(@Req() req: { user: JwtPayload }) {
-    return this.stripeService.getMySubscriptions(req.user.sub);
+  getMySubscriptions(
+    @Req() req: { user: JwtPayload },
+    @Query('page') page = '1',
+    @Query('limit') limit = '20',
+  ) {
+    return this.stripeService.getMySubscriptions(
+      req.user.sub,
+      parseInt(page, 10),
+      parseInt(limit, 10),
+    );
   }
 
   /**
@@ -66,6 +83,31 @@ export class StripeController {
     @Req() req: { user: JwtPayload },
   ) {
     return this.stripeService.cancelSubscription(subscriptionId, req.user.sub);
+  }
+
+  /**
+   * Cria sessão de checkout Stripe para assinatura mensal de empresa (CLUB Business).
+   * Requer autenticação — apenas o responsável pela empresa pode iniciar o checkout.
+   */
+  @Post('checkout-session/company')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Checkout empresa (CLUB Business)' })
+  async createCompanyCheckoutSession(
+    @Req() req: { user: JwtPayload; headers: Record<string, string> },
+    @Headers('origin') originHeader: string | undefined,
+    @Headers('referer') refererHeader: string | undefined,
+    @Body() body: { companyId: string; subscriptionAmountCents?: number },
+  ) {
+    if (!body.companyId) {
+      throw new BadRequestException('companyId é obrigatório.');
+    }
+    return this.stripeService.createCompanyCheckoutSession(
+      body.companyId,
+      req.user.sub,
+      resolveOrigin(undefined, originHeader, refererHeader),
+      body.subscriptionAmountCents,
+    );
   }
 
   /**
