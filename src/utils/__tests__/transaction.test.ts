@@ -4,6 +4,7 @@ import {
   detectTxType,
   deriveTransactionMeta,
   extractDonorHandle,
+  extractCompanyInfo,
   extractReimbursementDesc,
   type Transaction,
 } from "../transaction";
@@ -113,6 +114,30 @@ describe("extractReimbursementDesc", () => {
 });
 
 // ---------------------------------------------------------------------------
+// extractCompanyInfo
+// ---------------------------------------------------------------------------
+
+describe("extractCompanyInfo", () => {
+  it("extracts company name and id from business donation description", () => {
+    expect(
+      extractCompanyInfo(
+        "Assinatura mensal empresarial — Empresa: Codaqui Labs [8a3f8c98-5b0d-4d5b-a4de-2c23ea2e25bc] — Sessão in_xxx",
+      ),
+    ).toEqual({
+      name: "Codaqui Labs",
+      id: "8a3f8c98-5b0d-4d5b-a4de-2c23ea2e25bc",
+    });
+  });
+
+  it("returns null when markers are missing or malformed", () => {
+    expect(extractCompanyInfo("Assinatura empresarial sem metadados")).toBeNull();
+    expect(extractCompanyInfo("Empresa: Nome sem id")).toBeNull();
+    expect(extractCompanyInfo("Empresa: [uuid-vazio]")).toBeNull();
+    expect(extractCompanyInfo("Empresa: Nome [")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
 // deriveTransactionMeta
 // ---------------------------------------------------------------------------
 
@@ -143,6 +168,17 @@ describe("deriveTransactionMeta", () => {
     const meta = deriveTransactionMeta(tx, "dst");
     expect(meta.isSubscription).toBe(true);
     expect(meta.subscriptionInterval).toBe("anual");
+  });
+
+  it("extracts company info for business donations", () => {
+    const tx = makeTx({
+      description:
+        "Assinatura mensal empresarial — Empresa: Mentoria Codaqui [company-123] — Sessão in_xxx",
+      referenceId: "pi_live_business",
+    });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.type).toBe("donation-business");
+    expect(meta.companyInfo).toEqual({ name: "Mentoria Codaqui", id: "company-123" });
   });
 
   it("builds stripe dashboard URL for payment intents", () => {

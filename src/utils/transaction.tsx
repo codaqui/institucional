@@ -144,9 +144,22 @@ export function extractReimbursementDesc(description: string): string {
 
 export function extractCompanyInfo(description: string): { name: string; id: string } | null {
   // Formato: "Assinatura mensal empresarial — Empresa: Nome [uuid] — Sessão in_xxx"
-  const match = /Empresa:\s*([^\[]+)\[([^\]]+)\]/.exec(description);
-  if (!match) return null;
-  return { name: match[1].trim(), id: match[2].trim() };
+  const marker = "Empresa:";
+  const markerIndex = description.indexOf(marker);
+  if (markerIndex < 0) return null;
+
+  const afterMarker = markerIndex + marker.length;
+  const openBracketIndex = description.indexOf("[", afterMarker);
+  if (openBracketIndex < 0) return null;
+
+  const closeBracketIndex = description.indexOf("]", openBracketIndex + 1);
+  if (closeBracketIndex < 0) return null;
+
+  const name = description.slice(afterMarker, openBracketIndex).trim();
+  const id = description.slice(openBracketIndex + 1, closeBracketIndex).trim();
+  if (!name || !id) return null;
+
+  return { name, id };
 }
 
 export function deriveTransactionMeta(tx: Transaction, accountId: string) {
