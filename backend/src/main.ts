@@ -5,6 +5,10 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AuditService } from './audit/audit.service';
+import {
+  ALLOWED_ORIGINS_PROD,
+  ALLOWED_ORIGINS_DEV,
+} from './common/allowed-origins.config';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -36,16 +40,11 @@ async function bootstrap() {
   app.use(cookieParser());
 
   // ── CORS ──────────────────────────────────────────────────────────────────
-  // Em produção, restringe a origem ao frontend oficial.
-  // Em dev, aceita localhost nas portas comuns.
-  const allowedOrigins = isProd
-    ? [process.env.FRONTEND_URL ?? 'https://codaqui.dev']
-    : [
-        'http://localhost:3000',
-        'http://localhost:4000',
-        'http://localhost:8080',
-        /http:\/\/localhost:\d+/,
-      ];
+  // Em produção usa a whitelist completa de origens (inclui domínios whitelabel
+  // como tisocial.org.br). Em dev aceita todos os localhost comuns.
+  const allowedOrigins: Array<string | RegExp> = isProd
+    ? [...ALLOWED_ORIGINS_PROD]
+    : [...ALLOWED_ORIGINS_PROD, ...ALLOWED_ORIGINS_DEV, /http:\/\/localhost:\d+/];
 
   app.enableCors({
     origin: allowedOrigins,

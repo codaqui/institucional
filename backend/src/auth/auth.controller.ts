@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nes
 import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
-import type { Request, Response } from 'express';
+import type { CookieOptions, Request, Response } from 'express';
 import type { Member } from '../members/entities/member.entity';
 import { resolveReturnUrl } from '../common/allowed-origins';
 import {
@@ -13,6 +13,21 @@ import { RETURN_TO_COOKIE } from './return-to.middleware';
 
 const COOKIE_NAME = 'codaqui_token';
 const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
+
+/**
+ * Atributos comuns do cookie de sessão — centralizados para garantir que
+ * `clearCookie` use exatamente os mesmos atributos que `cookie()`.
+ * Browsers (especialmente Safari) ignoram `clearCookie` quando os atributos
+ * não coincidem com os do cookie original.
+ */
+function sessionCookieOptions(isProd: boolean): CookieOptions {
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'strict' : 'lax',
+    path: '/',
+  };
+}
 
 // JWT efêmero usado **apenas** no handoff cross-domain do callback do GitHub:
 // o backend devolve o token no fragment da URL (`#token=...`), o frontend lê
@@ -151,11 +166,8 @@ export class AuthController {
 
     const isProd = process.env.NODE_ENV === 'production';
     res.cookie(COOKIE_NAME, sessionToken, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'strict' : 'lax',
+      ...sessionCookieOptions(isProd),
       maxAge: COOKIE_MAX_AGE_MS,
-      path: '/',
     });
     return res.json({ status: 'ok' });
   }
@@ -208,7 +220,8 @@ export class AuthController {
     description: 'Cookie removido, redirecionado para o frontend.',
   })
   logout(@Req() req: Request, @Res() res: Response) {
-    res.clearCookie(COOKIE_NAME, { path: '/' });
+    const isProd = process.env.NODE_ENV === 'production';
+    res.clearCookie(COOKIE_NAME, sessionCookieOptions(isProd));
     const returnToCookie = (req.cookies as Record<string, string> | undefined)?.[
       RETURN_TO_COOKIE
     ];

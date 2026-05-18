@@ -20,6 +20,9 @@ interface UpdateMeDto {
 interface AdminUpdateDto {
   role?: MemberRole;
   isActive?: boolean;
+  name?: string;
+  bio?: string;
+  linkedinUrl?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -319,7 +322,9 @@ export class MembersService {
 
     return rows.map((tx) => {
       let type = 'Doação única';
-      if (tx.description.includes('Assinatura mensal'))
+      if (tx.description.includes('empresarial'))
+        type = 'Assinatura mensal (Empresa)';
+      else if (tx.description.includes('Assinatura mensal'))
         type = 'Assinatura mensal';
       else if (tx.description.includes('Assinatura anual'))
         type = 'Assinatura anual';

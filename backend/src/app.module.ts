@@ -14,6 +14,8 @@ import { ReimbursementsModule } from './reimbursements/reimbursements.module';
 import { TransfersModule } from './transfers/transfers.module';
 import { AuditModule } from './audit/audit.module';
 import { VendorsModule } from './vendors/vendors.module';
+import { ClubModule } from './club/club.module';
+import { CompaniesModule } from './companies/companies.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { VendorsModule } from './vendors/vendors.module';
     TransfersModule,
     AuditModule,
     VendorsModule,
+    ClubModule,
+    CompaniesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
