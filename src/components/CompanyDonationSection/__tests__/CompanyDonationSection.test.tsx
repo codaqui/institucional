@@ -47,14 +47,15 @@ function renderWithAuth(authFetch: jest.Mock): void {
 }
 
 async function submitCheckout(customValue?: string): Promise<void> {
-  await screen.findByRole("button", { name: /Ir para pagamento/i });
+  const checkoutButtonMatcher = /Apoiar com|Cadastrar empresa e apoiar com/i;
+  await screen.findByRole("button", { name: checkoutButtonMatcher });
   if (customValue) {
     fireEvent.click(screen.getByRole("button", { name: /Personalizado/i }));
     fireEvent.change(screen.getByLabelText(/Valor personalizado/i), {
       target: { value: customValue },
     });
   }
-  fireEvent.click(screen.getByRole("button", { name: /Ir para pagamento/i }));
+  fireEvent.click(screen.getByRole("button", { name: checkoutButtonMatcher }));
 }
 
 describe("CompanyDonationSection", () => {

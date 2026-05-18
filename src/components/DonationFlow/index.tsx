@@ -27,12 +27,8 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Collapse from "@mui/material/Collapse";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import ToggleButton from "@mui/material/ToggleButton";
@@ -43,18 +39,16 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import BusinessIcon from "@mui/icons-material/Business";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CloseIcon from "@mui/icons-material/Close";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LockIcon from "@mui/icons-material/Lock";
 import StarIcon from "@mui/icons-material/Star";
 import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { communities } from "@site/src/data/communities";
 import { useAuth, type AuthUser } from "@site/src/hooks/useAuth";
 import { resolveApiUrl } from "@site/src/lib/api-url";
+import StripeEmbeddedCheckoutDialog from "../StripeEmbeddedCheckoutDialog";
 import {
   buildCheckoutBody,
   detectWhitelabelDeploy,
@@ -117,66 +111,6 @@ interface WalletBalance {
 
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-// ─── Embedded Checkout Dialog ────────────────────────────────────────────────
-
-interface EmbeddedCheckoutDialogProps {
-  readonly open: boolean;
-  readonly clientSecret: string | null;
-  readonly stripeKey: string;
-  readonly onClose: () => void;
-  readonly onSuccess: () => void;
-}
-
-function EmbeddedCheckoutDialog({
-  open,
-  clientSecret,
-  stripeKey,
-  onClose,
-  onSuccess,
-}: EmbeddedCheckoutDialogProps) {
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
-
-  useEffect(() => {
-    if (open && stripeKey && !stripePromise) {
-      setStripePromise(loadStripe(stripeKey));
-    }
-  }, [open, stripeKey, stripePromise]);
-
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      slotProps={{ paper: { sx: { borderTop: 3, borderColor: "primary.main", minHeight: 400 } } }}
-    >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <CreditCardIcon color="primary" />
-          <Typography variant="h6" fontWeight={700}>Finalizar Doação</Typography>
-        </Box>
-        <IconButton onClick={onClose} size="small" aria-label="Fechar checkout">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent sx={{ p: 0, pb: "0 !important", minHeight: 400 }}>
-        {!stripeKey && (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <Alert severity="error">
-              A chave pública do Stripe não está configurada (STRIPE_PUBLISHABLE_KEY indefinida).
-            </Alert>
-          </Box>
-        )}
-        {stripeKey && stripePromise && clientSecret && (
-          <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret, onComplete: onSuccess }}>
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 // ─── Subcomponentes ──────────────────────────────────────────────────────────
 
@@ -883,12 +817,14 @@ export default function DonationFlow({
         <Box sx={{ maxWidth: 720, mx: "auto" }}>{formColumn}</Box>
       )}
 
-      <EmbeddedCheckoutDialog
+      <StripeEmbeddedCheckoutDialog
         open={checkoutOpen}
+        title="Finalizar Doação"
         clientSecret={clientSecret}
         stripeKey={stripeKey}
         onClose={() => setCheckoutOpen(false)}
-        onSuccess={handleCheckoutSuccess}
+        onComplete={handleCheckoutSuccess}
+        missingKeyMessage="A chave pública do Stripe não está configurada (STRIPE_PUBLISHABLE_KEY indefinida)."
       />
     </>
   );
