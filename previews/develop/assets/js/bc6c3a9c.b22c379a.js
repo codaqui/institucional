@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[6931],{8912(a,i,n){n.r(i),n.d(i,{default:()=>c});n(96540);var t=n(56347),u=n(74848);function c(){return(0,u.jsx)(t.rd,{to:"/admin/lancamento?tab=transferencias"})}}}]);
