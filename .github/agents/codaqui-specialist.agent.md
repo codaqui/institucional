@@ -202,6 +202,7 @@ Invoke via ferramenta `skill` quando relevante:
 | `db-migrations` | Adicionar tabela, coluna ou índice (schema público ou tenant) |
 | `ui-components` | Criar/modificar componentes MUI v7, Grid, tokens de tema |
 | `release-management` | Criar release, bumpar versão, escrever CHANGELOG, criar tag git |
+| `community-add` | Adicionar comunidade parceira em `src/data/communities.ts`, `social-stats.config.json` e fluxo multisite opcional |
 
 ---
 

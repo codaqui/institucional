@@ -40,6 +40,8 @@
     "@stripe/react-stripe-js": "^6.1.0",
     "@stripe/stripe-js": "^9.0.1",
     "clsx": "^2.0.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1",
     "prism-react-renderer": "^2.3.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",

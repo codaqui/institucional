@@ -250,6 +250,7 @@ const config: Config = {
             { label: "#QueroEstudar", to: "/participe/estudar" },
             { label: "#QueroApoiar", to: "/participe/apoiar" },
             { label: "#QueroMentoria", to: "/participe/mentoria" },
+            { label: "#ClubCodaqui", to: "/clube" },
           ],
         },
         {
@@ -270,6 +271,11 @@ const config: Config = {
         {
           label: "Projetos",
           to: "/projetos",
+          position: "left",
+        },
+        {
+          label: "Patrocinadores",
+          to: "/patrocinadores",
           position: "left",
         },
         {
