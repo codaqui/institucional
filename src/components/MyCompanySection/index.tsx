@@ -93,6 +93,21 @@ interface Props {
   companyId?: string;
 }
 
+async function parseJsonSafe<T>(res: Response): Promise<T | null> {
+  if (!res.ok) return null;
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeCompanies(rawCollabs: Company[] | { items?: Company[] } | null): Company[] {
+  if (Array.isArray(rawCollabs)) return rawCollabs;
+  if (Array.isArray(rawCollabs?.items)) return rawCollabs.items;
+  return [];
+}
+
 export default function MyCompanySection({ companyId }: Readonly<Props>) {
   const { authFetch, isLoggedIn, ready, user } = useAuth();
   const { siteConfig } = useDocusaurusContext();
@@ -155,15 +170,6 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
     setLoading(true);
     setError(null);
     try {
-      const parseJsonSafe = async <T,>(res: Response): Promise<T | null> => {
-        if (!res.ok) return null;
-        try {
-          return (await res.json()) as T;
-        } catch {
-          return null;
-        }
-      };
-
       let companyData: Company | null = null;
 
       if (companyId) {
@@ -179,11 +185,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
 
         const owned = await parseJsonSafe<Company>(ownedRes);
         const rawCollabs = await parseJsonSafe<Company[] | { items?: Company[] }>(collabRes);
-        const collabs = Array.isArray(rawCollabs)
-          ? rawCollabs
-          : Array.isArray(rawCollabs?.items)
-            ? rawCollabs.items
-            : [];
+        const collabs = normalizeCompanies(rawCollabs);
 
         companyData = owned ?? collabs[0] ?? null;
         if (!ownedRes.ok && ownedRes.status !== 404 && !companyData) {
@@ -328,8 +330,8 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
     try {
       let distributions: { githubHandle: string; amount: number }[];
       if (distribMode === "equal") {
-        const total = parseInt(distribTotal, 10);
-        if (isNaN(total) || total <= 0) {
+        const total = Number.parseInt(distribTotal, 10);
+        if (Number.isNaN(total) || total <= 0) {
           setDistribError("Informe um valor total positivo.");
           return;
         }
@@ -341,7 +343,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         distributions = distribRecipients.map((r) => ({ githubHandle: r.memberId, amount: perPerson }));
       } else {
         distributions = distribRecipients
-          .map((r) => ({ githubHandle: r.memberId, amount: parseInt(distribCustom[r.id] ?? "0", 10) }))
+          .map((r) => ({ githubHandle: r.memberId, amount: Number.parseInt(distribCustom[r.id] ?? "0", 10) }))
           .filter((d) => d.amount > 0);
         if (distributions.length === 0) {
           setDistribError("Informe pelo menos um valor positivo.");
@@ -392,6 +394,10 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
   const isActive = company.status === "active";
   const sortCoins = wallet?.balances?.["sort_coin"] ?? 0;
   const hasConfiguredRecurring = isActive && (company.subscriptionAmountCents ?? 0) > 0;
+  const equalDistributionHint =
+    distribTotal && !Number.isNaN(Number.parseInt(distribTotal, 10)) && distribRecipients.length > 0
+      ? `≈ ${Math.floor(Number.parseInt(distribTotal, 10) / distribRecipients.length)} por pessoa`
+      : undefined;
 
   return (
     <Box>
@@ -604,35 +610,39 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
           <CircularProgress size={20} />
         </Box>
-      ) : transactions.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
-          Nenhuma transação registrada até o momento.
-        </Typography>
       ) : (
-        <Stack spacing={1}>
-          {transactions.map((tx) => (
-            <Card key={tx.id} variant="outlined">
-              <CardContent sx={{ py: "10px !important" }}>
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-                  <Box>
-                    <Typography variant="body2" fontWeight={600}>
-                      {tx.description ?? "Movimentação de carteira"}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {tx.source} · {new Date(tx.createdAt).toLocaleDateString("pt-BR")}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    size="small"
-                    color={tx.amount >= 0 ? "success" : "warning"}
-                    variant="outlined"
-                    label={`${tx.amount >= 0 ? "+" : ""}${tx.amount} ${tx.coinType}`}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
-        </Stack>
+        <>
+          {transactions.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+              Nenhuma transação registrada até o momento.
+            </Typography>
+          ) : (
+            <Stack spacing={1}>
+              {transactions.map((tx) => (
+                <Card key={tx.id} variant="outlined">
+                  <CardContent sx={{ py: "10px !important" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+                      <Box>
+                        <Typography variant="body2" fontWeight={600}>
+                          {tx.description ?? "Movimentação de carteira"}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {tx.source} · {new Date(tx.createdAt).toLocaleDateString("pt-BR")}
+                        </Typography>
+                      </Box>
+                      <Chip
+                        size="small"
+                        color={tx.amount >= 0 ? "success" : "warning"}
+                        variant="outlined"
+                        label={`${tx.amount >= 0 ? "+" : ""}${tx.amount} ${tx.coinType}`}
+                      />
+                    </Box>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          )}
+        </>
       )}
       {transactionsTotal > transactionsLimit && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 1.5 }}>
@@ -684,9 +694,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
                 type="number"
                 placeholder="ex: 100"
                 helperText={
-                  distribTotal && !isNaN(parseInt(distribTotal, 10)) && distribRecipients.length > 0
-                    ? `≈ ${Math.floor(parseInt(distribTotal, 10) / distribRecipients.length)} por pessoa`
-                    : undefined
+                  equalDistributionHint
                 }
                 sx={{ flexGrow: 1 }}
               />

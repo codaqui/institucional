@@ -80,15 +80,19 @@ export async function generateReceiptPdf(
       false;
 
     // Donor line: PJ = "Empresa (CNPJ: XX.XXX/XXXX-XX)" | PF = "Nome (@handle)"
-    const donorLabel = isBusiness
-      ? companyData
-        ? `${companyData.name}${companyData.cnpj ? ` (CNPJ: ${formatDocument(companyData.cnpj)})` : ""}`
-        : meta.companyInfo?.name ?? "Empresa"
-      : donorDisplayName
-      ? `${donorDisplayName} (@${handle})`
-      : handle
-      ? `@${handle}`
-      : "Doação anônima";
+    let donorLabel = "Doação anônima";
+    if (isBusiness) {
+      if (companyData) {
+        const cnpjLabel = companyData.cnpj ? ` (CNPJ: ${formatDocument(companyData.cnpj)})` : "";
+        donorLabel = `${companyData.name}${cnpjLabel}`;
+      } else {
+        donorLabel = meta.companyInfo?.name ?? "Empresa";
+      }
+    } else if (donorDisplayName) {
+      donorLabel = `${donorDisplayName} (@${handle})`;
+    } else if (handle) {
+      donorLabel = `@${handle}`;
+    }
 
     return createElement(
       "div",
@@ -413,6 +417,6 @@ export async function generateReceiptPdf(
     pdf.save(filename);
   } finally {
     root.unmount();
-    document.body.removeChild(container);
+    container.remove();
   }
 }

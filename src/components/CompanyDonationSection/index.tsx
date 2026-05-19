@@ -31,7 +31,6 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { IdentityHandleChip, SupportPrimaryButton } from "../SupportCheckoutUi";
 import StripeEmbeddedCheckoutDialog from "../StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
-import { resolveApiUrl } from "../../lib/api-url";
 
 interface Company {
   id: string;
@@ -84,9 +83,6 @@ function formatCnpj(raw: string) {
 
 export default function CompanyDonationSection({ onBack }: Readonly<{ onBack?: () => void }>) {
   const { siteConfig } = useDocusaurusContext();
-  const configuredApiUrl =
-    (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
-  const apiUrl = resolveApiUrl(configuredApiUrl, siteConfig.url);
   const stripeKey =
     (siteConfig.customFields?.stripePublishableKey as string) ?? "";
 
@@ -102,7 +98,7 @@ export default function CompanyDonationSection({ onBack }: Readonly<{ onBack?: (
   const selectedTier = BUSINESS_TIERS[selectedTierIdx];
   const isCustom = selectedTier.label === "Personalizado";
   const customAmountCents = isCustom
-    ? Math.round(parseFloat(customAmountInput.replace(",", ".")) * 100) || 0
+    ? Math.round(Number.parseFloat(customAmountInput.replace(",", ".")) * 100) || 0
     : 0;
   const finalAmountCents = isCustom
     ? customAmountCents
