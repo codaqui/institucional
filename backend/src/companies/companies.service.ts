@@ -888,7 +888,7 @@ export function validateCnpj(cnpj: string): void {
   const calc = (digits: string, weights: number[]): number => {
     const sum = digits
       .split('')
-      .reduce((acc, d, i) => acc + parseInt(d) * weights[i], 0);
+      .reduce((acc, d, i) => acc + Number.parseInt(d, 10) * weights[i], 0);
     const rem = sum % 11;
     return rem < 2 ? 0 : 11 - rem;
   };
@@ -899,6 +899,6 @@ export function validateCnpj(cnpj: string): void {
   const d1 = calc(cnpj.slice(0, 12), weights1);
   const d2 = calc(cnpj.slice(0, 13), weights2);
 
-  if (d1 !== parseInt(cnpj[12]) || d2 !== parseInt(cnpj[13]))
+  if (d1 !== Number.parseInt(cnpj[12], 10) || d2 !== Number.parseInt(cnpj[13], 10))
     throw new BadRequestException('CNPJ inválido (dígitos verificadores incorretos)');
 }

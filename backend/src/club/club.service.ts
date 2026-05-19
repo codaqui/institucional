@@ -404,7 +404,7 @@ export class ClubService {
 
     return {
       data: rows,
-      total: parseInt(countResult[0]?.total ?? '0', 10),
+      total: Number.parseInt(countResult[0]?.total ?? '0', 10),
     };
   }
 }
