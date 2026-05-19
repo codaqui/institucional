@@ -122,7 +122,8 @@ export default function LancamentoPage(): React.JSX.Element {
       if (accountsData) {
         setAccounts(accountsData);
       }
-      setTransfers(Array.isArray(transfersData?.data) ? transfersData!.data! : []);
+      const nextTransfers = Array.isArray(transfersData?.data) ? transfersData.data : [];
+      setTransfers(nextTransfers);
     } catch {
       setError("Não foi possível carregar os dados de lançamento.");
     } finally {
@@ -503,6 +504,20 @@ export default function LancamentoPage(): React.JSX.Element {
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                     {filteredTransfers.map((transfer) => (
                       <Card key={transfer.id} variant="outlined">
+                        {(() => {
+                          const statusLabel =
+                            transfer.status === "pending"
+                              ? "Pendente"
+                              : transfer.status === "approved"
+                                ? "Aprovada"
+                                : "Rejeitada";
+                          const statusColor =
+                            transfer.status === "pending"
+                              ? "warning"
+                              : transfer.status === "approved"
+                                ? "success"
+                                : "error";
+                          return (
                         <CardContent>
                           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
                             <Box>
@@ -521,9 +536,9 @@ export default function LancamentoPage(): React.JSX.Element {
                             </Box>
                             <Box sx={{ textAlign: "right" }}>
                               <Chip
-                                label={transfer.status === "pending" ? "Pendente" : transfer.status === "approved" ? "Aprovada" : "Rejeitada"}
+                                label={statusLabel}
                                 size="small"
-                                color={transfer.status === "pending" ? "warning" : transfer.status === "approved" ? "success" : "error"}
+                                color={statusColor}
                                 sx={{ mb: 0.5 }}
                               />
                               <Typography variant="body2" fontWeight={700}>
@@ -542,6 +557,8 @@ export default function LancamentoPage(): React.JSX.Element {
                             </Box>
                           </Box>
                         </CardContent>
+                          );
+                        })()}
                       </Card>
                     ))}
                   </Box>
