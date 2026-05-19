@@ -18,7 +18,10 @@ const loggedUser = {
 describe("/membro", () => {
   beforeEach(() => {
     resetRouterMocks();
-    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
+    if (jest.isMockFunction(globalThis.fetch)) {
+      const fetchMock = globalThis.fetch as jest.Mock;
+      fetchMock.mockReset();
+    }
   });
 
   it("redireciona quando usuário não está logado", async () => {

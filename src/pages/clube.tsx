@@ -91,9 +91,9 @@ function raffleActionLabel(args: {
   entered: boolean;
   costInCoins: number;
 }): string {
-  if (!args.isLoggedIn) return "Entrar com GitHub";
+  if (args.isLoggedIn === false) return "Entrar com GitHub";
   if (args.isFrozen) return "Carteira congelada";
-  if (!args.canAfford) return "SortCoins insuficientes";
+  if (args.canAfford === false) return "SortCoins insuficientes";
   if (args.entered) return `Aumentar participação (+${args.costInCoins})`;
   return "Participar";
 }

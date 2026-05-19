@@ -41,7 +41,10 @@ const sponsors = [
 
 describe("/patrocinadores", () => {
   beforeEach(() => {
-    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
+    if (jest.isMockFunction(globalThis.fetch)) {
+      const fetchMock = globalThis.fetch as jest.Mock;
+      fetchMock.mockReset();
+    }
   });
 
   it("renderiza patrocinadores com somatórios e cards", async () => {

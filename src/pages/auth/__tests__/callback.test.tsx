@@ -25,7 +25,10 @@ describe("/auth/callback", () => {
     replaceMock.mockReset();
     sessionStorage.clear();
     globalThis.window.history.replaceState({}, "", "/auth/callback");
-    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
+    if (jest.isMockFunction(globalThis.fetch)) {
+      const fetchMock = globalThis.fetch as jest.Mock;
+      fetchMock.mockReset();
+    }
     mockResolveCommunityFromPath.mockReturnValue(null);
   });
 

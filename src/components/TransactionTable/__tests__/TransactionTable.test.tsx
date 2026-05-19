@@ -25,7 +25,10 @@ function makeTx(id: string, amount: number, description: string) {
 
 describe("TransactionTable", () => {
   beforeEach(() => {
-    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
+    if (jest.isMockFunction(globalThis.fetch)) {
+      const fetchMock = globalThis.fetch as jest.Mock;
+      fetchMock.mockReset();
+    }
   });
 
   it("carrega transações e abre modal inicial por txId", async () => {

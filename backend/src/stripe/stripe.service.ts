@@ -279,14 +279,7 @@ export class StripeService {
 
     // payment_intent (pi_xxx) é o ID que aparece no Stripe Dashboard.
     // Para subscriptions, pode ser null na session — usamos session.id como fallback.
-    let paymentIntentId: string;
-    if (typeof session.payment_intent === 'string') {
-      paymentIntentId = session.payment_intent;
-    } else if (session.subscription) {
-      paymentIntentId = `sub_${(session.subscription as string).slice(4)}_first`; // fallback legível
-    } else {
-      paymentIntentId = session.id;
-    }
+    const paymentIntentId = this.resolveSessionPaymentIntentId(session);
 
     try {
       await this.recordDonationToLedger({
@@ -314,13 +307,7 @@ export class StripeService {
     // A 1ª cobrança (subscription_create) e as subsequentes (subscription_cycle)
     // agora são processadas magicamente aqui.
 
-    // Stripe SDK types for Invoice/Subscription can be tricky depending on version/expansion
-    const invoiceAny = invoice as any;
-    const subscriptionId =
-      typeof invoiceAny.subscription === 'string'
-        ? invoiceAny.subscription
-        : invoiceAny.subscription?.id;
-
+    const subscriptionId = this.resolveInvoiceSubscriptionId(invoice);
     const subscription = subscriptionId
       ? await this.stripe.subscriptions.retrieve(subscriptionId)
       : null;
@@ -329,6 +316,7 @@ export class StripeService {
       this.logger.warn('invoice.payment_succeeded sem subscription');
       return;
     }
+    const resolvedSubscriptionId = subscription.id;
 
     const communityId = subscription.metadata?.communityId ?? 'tesouro-geral';
     const memberId = subscription.metadata?.memberId;
@@ -338,21 +326,10 @@ export class StripeService {
     if (amountCents <= 0) return;
 
     const amountReais = amountCents / 100;
-    const paymentIntentId =
-      (typeof invoiceAny.payment_intent === 'string'
-        ? invoiceAny.payment_intent
-        : invoiceAny.payment_intent?.id) ?? invoice.id;
+    const paymentIntentId = this.resolveInvoicePaymentIntentId(invoice);
 
     // Para empresas, busca o nome para exibição na descrição do ledger
-    let companyName: string | undefined;
-    if (entityType === 'business' && companyId) {
-      try {
-        const company = await this.companiesService.findById(companyId);
-        companyName = company?.name;
-      } catch {
-        // fallback: usa companyId como label
-      }
-    }
+    const companyName = await this.resolveCompanyName(entityType, companyId);
 
     try {
       await this.recordDonationToLedger({
@@ -393,7 +370,7 @@ export class StripeService {
           return;
         }
         await this.companiesService.activateFromInvoice(
-          subscriptionId,
+          resolvedSubscriptionId,
           customerId,
           amountReais,
           `stripe-pi:${paymentIntentId}`,
@@ -448,17 +425,18 @@ export class StripeService {
     subscriptionAmountCents?: number,
   ) {
     const company = await this.companiesService.findById(companyId);
-    if (!company || company.responsibleMemberId !== memberId) {
+    if (company?.responsibleMemberId !== memberId) {
       throw new ForbiddenException('Sem permissão para criar checkout desta empresa');
     }
 
     const MIN_AMOUNT_CENTS = 20_000; // R$ 200,00
-    const amountCents =
-      subscriptionAmountCents && subscriptionAmountCents >= MIN_AMOUNT_CENTS
-        ? subscriptionAmountCents
-        : company.subscriptionAmountCents && company.subscriptionAmountCents >= MIN_AMOUNT_CENTS
-          ? company.subscriptionAmountCents
-          : MIN_AMOUNT_CENTS;
+    const configuredAmount = company.subscriptionAmountCents;
+    let amountCents = MIN_AMOUNT_CENTS;
+    if (subscriptionAmountCents && subscriptionAmountCents >= MIN_AMOUNT_CENTS) {
+      amountCents = subscriptionAmountCents;
+    } else if (configuredAmount && configuredAmount >= MIN_AMOUNT_CENTS) {
+      amountCents = configuredAmount;
+    }
 
     if (company.subscriptionAmountCents !== amountCents) {
       await this.companiesService.setSubscriptionAmount(companyId, amountCents);
@@ -846,12 +824,54 @@ export class StripeService {
       paymentIntentId, // pi_xxx — ID visível no Stripe Dashboard
     );
 
-    const entityLabel = companyId
-      ? ` | empresa: ${companyName ?? companyId}`
-      : memberId ? ` | membro: ${memberId}` : ' (anônimo)';
+    let entityLabel = ' (anônimo)';
+    if (companyId) {
+      entityLabel = ` | empresa: ${companyName ?? companyId}`;
+    } else if (memberId) {
+      entityLabel = ` | membro: ${memberId}`;
+    }
     this.logger.log(
       `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}${entityLabel}`,
     );
+  }
+
+  private resolveSessionPaymentIntentId(session: Stripe.Checkout.Session): string {
+    if (typeof session.payment_intent === 'string') {
+      return session.payment_intent;
+    }
+    if (typeof session.subscription === 'string') {
+      return `sub_${session.subscription.slice(4)}_first`;
+    }
+    return session.id;
+  }
+
+  private resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+    const invoiceAny = invoice as any;
+    if (typeof invoiceAny.subscription === 'string') {
+      return invoiceAny.subscription;
+    }
+    return invoiceAny.subscription?.id ?? null;
+  }
+
+  private resolveInvoicePaymentIntentId(invoice: Stripe.Invoice): string {
+    const invoiceAny = invoice as any;
+    if (typeof invoiceAny.payment_intent === 'string') {
+      return invoiceAny.payment_intent;
+    }
+    return invoiceAny.payment_intent?.id ?? invoice.id;
+  }
+
+  private async resolveCompanyName(
+    entityType: string | undefined,
+    companyId: string | undefined,
+  ): Promise<string | undefined> {
+    if (entityType !== 'business' || !companyId) return undefined;
+    try {
+      const company = await this.companiesService.findById(companyId);
+      return company?.name;
+    } catch {
+      return undefined;
+    }
   }
 
   // ---------------------------------------------------------------------------

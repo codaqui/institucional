@@ -46,7 +46,10 @@ function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
 
 describe("/transparencia", () => {
   beforeEach(() => {
-    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
+    if (jest.isMockFunction(globalThis.fetch)) {
+      const fetchMock = globalThis.fetch as jest.Mock;
+      fetchMock.mockReset();
+    }
   });
 
   it("carrega saldos/estatísticas e troca aba de comunidade mantendo tx inicial", async () => {
