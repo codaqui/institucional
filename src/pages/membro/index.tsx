@@ -17,11 +17,17 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
+import Grid from "@mui/material/Grid";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
+import Stack from "@mui/material/Stack";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
+import Pagination from "@mui/material/Pagination";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import TabPanel from "../../components/TabPanel";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
@@ -74,12 +80,31 @@ interface Subscription {
   amount: number;
   currency: string;
   communityId: string;
+  entityType?: "member" | "business";
+  companyId?: string | null;
   currentPeriodEnd: number;
   cancelAtPeriodEnd: boolean;
 }
 
+interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+
+const getSubscriptionOwnerLabel = (sub: Subscription): "Pessoal" | "Business" =>
+  sub.entityType === "business" || !!sub.companyId ? "Business" : "Pessoal";
+
+const getDonationOwnerLabel = (donation: Donation): "Pessoal" | "Business" => {
+  const description = donation.description.toLowerCase();
+  return description.includes("empresa") || description.includes("business")
+    ? "Business"
+    : "Pessoal";
+};
 
 const reimbursementStatusConfig = {
   pending: { label: "Pendente", color: "warning" as const, icon: <HourglassEmptyIcon fontSize="small" /> },
@@ -192,6 +217,12 @@ function SubscriptionList({ loading, subscriptions, onCancelClick }: Readonly<Su
                     color="info"
                     variant="outlined"
                   />
+                  <Chip
+                    label={getSubscriptionOwnerLabel(sub)}
+                    size="small"
+                    color={getSubscriptionOwnerLabel(sub) === "Business" ? "secondary" : "default"}
+                    variant="outlined"
+                  />
                   {sub.cancelAtPeriodEnd && (
                     <Chip label="Encerra em breve" size="small" color="warning" variant="outlined" />
                   )}
@@ -258,6 +289,12 @@ function DonationList({ loading, donations }: Readonly<DonationListProps>): Reac
               </Typography>
             </Box>
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <Chip
+                label={getDonationOwnerLabel(tx)}
+                size="small"
+                color={getDonationOwnerLabel(tx) === "Business" ? "secondary" : "default"}
+                variant="outlined"
+              />
               <ArrowUpwardIcon fontSize="small" sx={{ color: "success.main" }} />
               <Typography variant="body1" fontWeight={700} color="success.main">
                 {formatBRL(tx.amount)}
@@ -278,8 +315,14 @@ export default function MembroPage(): React.JSX.Element {
 
   const [donations, setDonations] = useState<Donation[]>([]);
   const [txLoading, setTxLoading] = useState(true);
+  const [donationsPage, setDonationsPage] = useState(1);
+  const [donationsTotal, setDonationsTotal] = useState(0);
+  const [donationsLimit] = useState(10);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [subsLoading, setSubsLoading] = useState(true);
+  const [subsPage, setSubsPage] = useState(1);
+  const [subsTotal, setSubsTotal] = useState(0);
+  const [subsLimit] = useState(10);
   const [cancelSubId, setCancelSubId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
   const [reimbursements, setReimbursements] = useState<ReimbursementRequest[]>([]);
@@ -296,6 +339,7 @@ export default function MembroPage(): React.JSX.Element {
   const [submitError, setSubmitError] = useState("");
   const [showQr, setShowQr] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   const origin =
     globalThis.window === undefined
@@ -324,16 +368,32 @@ export default function MembroPage(): React.JSX.Element {
     if (!isLoggedIn) { history.replace("/"); return; }
 
     // Doações via Stripe
-    authFetch(`${apiUrl}/stripe/my-donations`)
+    authFetch(`${apiUrl}/stripe/my-donations?page=${donationsPage}&limit=${donationsLimit}`)
       .then((r) => r.json())
-      .then((data) => setDonations(Array.isArray(data) ? data : []))
+      .then((data: PaginatedResponse<Donation> | Donation[]) => {
+        if (Array.isArray(data)) {
+          setDonations(data);
+          setDonationsTotal(data.length);
+          return;
+        }
+        setDonations(Array.isArray(data.items) ? data.items : []);
+        setDonationsTotal(data.total ?? 0);
+      })
       .catch(() => {})
       .finally(() => setTxLoading(false));
 
     // Assinaturas recorrentes
-    authFetch(`${apiUrl}/stripe/my-subscriptions`)
+    authFetch(`${apiUrl}/stripe/my-subscriptions?page=${subsPage}&limit=${subsLimit}`)
       .then((r) => r.json())
-      .then((data) => setSubscriptions(Array.isArray(data) ? data : []))
+      .then((data: PaginatedResponse<Subscription> | Subscription[]) => {
+        if (Array.isArray(data)) {
+          setSubscriptions(data);
+          setSubsTotal(data.length);
+          return;
+        }
+        setSubscriptions(Array.isArray(data.items) ? data.items : []);
+        setSubsTotal(data.total ?? 0);
+      })
       .catch(() => {})
       .finally(() => setSubsLoading(false));
 
@@ -345,7 +405,18 @@ export default function MembroPage(): React.JSX.Element {
       .then((r) => r.json())
       .then((data) => setAccounts(Array.isArray(data) ? data : []))
       .catch(() => {});
-  }, [ready, isLoggedIn, apiUrl, authFetch, history, fetchReimbursements]);
+  }, [
+    ready,
+    isLoggedIn,
+    apiUrl,
+    authFetch,
+    history,
+    fetchReimbursements,
+    donationsPage,
+    donationsLimit,
+    subsPage,
+    subsLimit,
+  ]);
 
   const handleSubmitReimbursement = async () => {
     setSubmitting(true);
@@ -394,6 +465,14 @@ export default function MembroPage(): React.JSX.Element {
       setCancelSubId(null);
     }
   };
+
+  const activeSubscriptions = subscriptions.filter((s) => !s.cancelAtPeriodEnd);
+  const activePersonalSubscriptions = activeSubscriptions.filter(
+    (s) => getSubscriptionOwnerLabel(s) === "Pessoal",
+  ).length;
+  const activeBusinessSubscriptions = activeSubscriptions.filter(
+    (s) => getSubscriptionOwnerLabel(s) === "Business",
+  ).length;
 
   if (!ready || !isLoggedIn) {
     return (
@@ -505,40 +584,156 @@ export default function MembroPage(): React.JSX.Element {
           </DialogActions>
         </Dialog>
 
-        <Divider sx={{ my: 4 }} />
+        <Divider sx={{ my: 3 }} />
 
-        {/* ── Reembolsos ── */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Typography variant="h6" fontWeight={700}>Minhas Solicitações de Reembolso</Typography>
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<ReceiptLongIcon />}
-            onClick={() => { setReimbDialog(true); setSubmitError(""); }}
-          >
-            Solicitar Reembolso
-          </Button>
-        </Box>
+        {/* ── Tabs ── */}
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          variant="scrollable"
+          allowScrollButtonsMobile
+          sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
+        >
+          <Tab label="Visão Geral" />
+          <Tab label="Histórico de Doações" />
+          <Tab label="Carteira" />
+        </Tabs>
 
-        <ReimbursementList loading={reimbLoading} reimbursements={reimbursements} />
+        <TabPanel value={activeTab} index={0}>
+          <Box>
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Card variant="outlined">
+                  <CardContent sx={{ py: "12px !important" }}>
+                    <Typography variant="overline" color="text.secondary" display="block">
+                      Total doado
+                    </Typography>
+                    {txLoading ? (
+                      <CircularProgress size={18} sx={{ mt: 0.5 }} />
+                    ) : (
+                      <Typography variant="h5" fontWeight={800} color="success.main">
+                        {formatBRL(donations.reduce((s, d) => s + d.amount, 0))}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Card variant="outlined">
+                  <CardContent sx={{ py: "12px !important" }}>
+                    <Typography variant="overline" color="text.secondary" display="block">
+                      Assinaturas ativas
+                    </Typography>
+                    {subsLoading ? (
+                      <CircularProgress size={18} sx={{ mt: 0.5 }} />
+                    ) : (
+                      <>
+                        <Typography variant="h5" fontWeight={800}>
+                          {activeSubscriptions.length}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {activePersonalSubscriptions} pessoal · {activeBusinessSubscriptions} business
+                        </Typography>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                <Card variant="outlined">
+                  <CardContent sx={{ py: "12px !important" }}>
+                    <Typography variant="overline" color="text.secondary" display="block">
+                      Reembolsos pendentes
+                    </Typography>
+                    {reimbLoading ? (
+                      <CircularProgress size={18} sx={{ mt: 0.5 }} />
+                    ) : (
+                      <Typography variant="h5" fontWeight={800}>
+                        {reimbursements.filter((r) => r.status === "pending").length}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
 
-        <Divider sx={{ my: 4 }} />
-
-        {/* ── Assinaturas Recorrentes ── */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <AutorenewIcon color="info" />
-            <Typography variant="h6" fontWeight={700}>Minhas Assinaturas</Typography>
+            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+              <Button variant="outlined" size="small" href="/clube">
+                Minha carteira de moedas
+              </Button>
+              <Button variant="outlined" size="small" onClick={() => setActiveTab(1)}>
+                Ver histórico de doações
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<ReceiptLongIcon />}
+                onClick={() => { setActiveTab(2); setReimbDialog(true); setSubmitError(""); }}
+              >
+                Solicitar Reembolso
+              </Button>
+            </Stack>
           </Box>
-          <Button variant="outlined" size="small" href="/participe/apoiar">
-            + Nova assinatura
-          </Button>
-        </Box>
+        </TabPanel>
 
-        <SubscriptionList loading={subsLoading} subscriptions={subscriptions} onCancelClick={setCancelSubId} />
+        <TabPanel value={activeTab} index={1}>
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <AutorenewIcon color="info" />
+                <Typography variant="h6" fontWeight={700}>Assinaturas Recorrentes</Typography>
+              </Box>
+              <Button variant="outlined" size="small" href="/participe/apoiar">
+                + Nova assinatura
+              </Button>
+            </Box>
+            <SubscriptionList loading={subsLoading} subscriptions={subscriptions} onCancelClick={setCancelSubId} />
+            {subsTotal > subsLimit && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Pagination
+                  page={subsPage}
+                  count={Math.max(1, Math.ceil(subsTotal / subsLimit))}
+                  onChange={(_, value) => setSubsPage(value)}
+                  color="primary"
+                  size="small"
+                />
+              </Box>
+            )}
 
-        <Typography variant="h6" fontWeight={700} gutterBottom>Minhas Doações</Typography>
-        <DonationList loading={txLoading} donations={donations} />
+            <Divider sx={{ my: 3 }} />
+
+            <Typography variant="h6" fontWeight={700} gutterBottom>Doações avulsas</Typography>
+            <DonationList loading={txLoading} donations={donations} />
+            {donationsTotal > donationsLimit && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Pagination
+                  page={donationsPage}
+                  count={Math.max(1, Math.ceil(donationsTotal / donationsLimit))}
+                  onChange={(_, value) => setDonationsPage(value)}
+                  color="primary"
+                  size="small"
+                />
+              </Box>
+            )}
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={2}>
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Typography variant="h6" fontWeight={700}>Minhas Solicitações de Reembolso</Typography>
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<ReceiptLongIcon />}
+                onClick={() => { setReimbDialog(true); setSubmitError(""); }}
+              >
+                Solicitar Reembolso
+              </Button>
+            </Box>
+            <ReimbursementList loading={reimbLoading} reimbursements={reimbursements} />
+          </Box>
+        </TabPanel>
       </Container>
 
       {/* ── Dialog: Confirmar cancelamento de assinatura ── */}

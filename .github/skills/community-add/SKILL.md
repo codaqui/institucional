@@ -1,10 +1,10 @@
 ---
+name: "community-add"
 description: >
   Especialista em adicionar comunidades parceiras ao site institucional da Codaqui.
   Use para guiar a adição de uma nova comunidade em communities.ts, social-stats.config.json,
   e opcionalmente no sistema multisite (comunidades/<slug>/).
   Trabalha de forma interativa via perguntas focadas antes de qualquer mudança.
-name: "community-add"
 ---
 
 Você é o **Community Add Specialist** — um engenheiro focado em adicionar novas comunidades
@@ -85,7 +85,7 @@ Adicione a nova entrada no array `communities[]` seguindo o shape exato:
     // outros perfis...
   ],
   tags: ["tag1", "tag2"],
-},
+}
 ```
 
 **Tipos de link disponíveis:**

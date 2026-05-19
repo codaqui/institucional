@@ -9,7 +9,6 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
-import Container from "@mui/material/Container";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
@@ -23,6 +22,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../hooks/useAuth";
+import AdminNavbar from "../../components/AdminNavbar";
+import AdminPageContainer from "../../components/AdminPageContainer";
 import { parseAuthJson } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 import { formatDocument, stripToDigits } from "../../utils/document";
@@ -163,17 +164,17 @@ export default function FornecedoresPage(): React.JSX.Element {
   if (!ready || loading) {
     return (
       <Layout title="Fornecedores">
-        <Container maxWidth="md" sx={{ py: 6, textAlign: "center" }}>
+        <AdminPageContainer sx={{ textAlign: "center" }}>
           <CircularProgress />
-        </Container>
+        </AdminPageContainer>
       </Layout>
     );
   }
 
   return (
     <Layout title="Fornecedores" description="Gestão de fornecedores da Codaqui">
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+      <AdminPageContainer sx={{ py: 4 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h4" fontWeight={800}>
             <AddBusinessIcon sx={{ mr: 1, verticalAlign: "middle" }} />
             Fornecedores
@@ -182,6 +183,8 @@ export default function FornecedoresPage(): React.JSX.Element {
             Novo Fornecedor
           </Button>
         </Box>
+
+        <AdminNavbar active="/admin/fornecedores" />
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
@@ -320,7 +323,7 @@ export default function FornecedoresPage(): React.JSX.Element {
           onClose={() => setDeleteId(null)}
           loading={deleteLoading}
         />
-      </Container>
+      </AdminPageContainer>
     </Layout>
   );
 }

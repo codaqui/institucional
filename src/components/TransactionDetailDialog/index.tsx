@@ -3,6 +3,7 @@ import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -11,19 +12,24 @@ import IconButton from "@mui/material/IconButton";
 import Skeleton from "@mui/material/Skeleton";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import BusinessIcon from "@mui/icons-material/Business";
 import CloseIcon from "@mui/icons-material/Close";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import DownloadIcon from "@mui/icons-material/Download";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   type Transaction,
   TX_TYPE_CONFIG,
   deriveTransactionMeta,
+  extractReimbursementId,
   formatBRL,
   formatDate,
 } from "../../utils/transaction";
 import { formatDocument } from "../../utils/document";
+import { generateReceiptPdf } from "../DonationReceiptPdf";
 
 // ---------------------------------------------------------------------------
 // Types for enrichment payloads
@@ -91,6 +97,18 @@ export default function TransactionDetailDialog({
   const [reimbLoading, setReimbLoading] = useState(false);
   const [vendorInfo, setVendorInfo] = useState<VendorPaymentPublicInfo | null>(null);
   const [vendorLoading, setVendorLoading] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [companyPublicInfo, setCompanyPublicInfo] = useState<{
+    id: string;
+    name: string;
+    cnpj: string | null;
+    logoUrl: string | null;
+    websiteUrl: string | null;
+    responsibleGithubHandle: string | null;
+  } | null>(null);
+
+  const { siteConfig } = useDocusaurusContext();
+  const siteUrl = siteConfig.url;
 
   const meta = tx ? deriveTransactionMeta(tx, accountId) : null;
   const type = meta?.type ?? "other";
@@ -100,7 +118,7 @@ export default function TransactionDetailDialog({
     if (!tx) { setReimbInfo(null); return; }
     if (type !== "reimbursement") { setReimbInfo(null); return; }
 
-    const reimbId = tx.referenceId?.replace("reimbursement:", "");
+    const reimbId = extractReimbursementId(tx.referenceId);
     if (!reimbId) return;
 
     setReimbLoading(true);
@@ -130,14 +148,47 @@ export default function TransactionDetailDialog({
       .finally(() => setVendorLoading(false));
   }, [tx, type, apiUrl]);
 
+  useEffect(() => {
+    if (!tx) { setCompanyPublicInfo(null); return; }
+    const meta = tx ? deriveTransactionMeta(tx, accountId) : null;
+    if (meta?.type !== "donation-business") { setCompanyPublicInfo(null); return; }
+    const id = meta.companyInfo?.id;
+    if (!id) { setCompanyPublicInfo(null); return; }
+    fetch(`${apiUrl}/companies/${id}/public`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setCompanyPublicInfo(data))
+      .catch(() => setCompanyPublicInfo(null));
+  }, [tx, accountId, apiUrl]);
+
   if (!tx || !meta) return null;
 
   const {
-    isCredit, donorHandle, isSubscription, subscriptionInterval,
+    isCredit, donorHandle, companyInfo, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
     stripeFeeBalanceTransactionId, stripeFeeChargeId,
     stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,
   } = meta;
+
+  const isDonation = type === "donation" || type === "donation-business";
+
+  const handleDownloadPdf = async () => {
+    if (!tx) return;
+    setGeneratingPdf(true);
+    try {
+      await generateReceiptPdf({
+        tx,
+        accountId,
+        siteUrl,
+        apiUrl,
+        companyData: companyPublicInfo
+          ? { name: companyPublicInfo.name, cnpj: companyPublicInfo.cnpj }
+          : null,
+        donorHandle: donorHandle ?? undefined,
+      });
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   return (
     <Dialog
@@ -154,7 +205,7 @@ export default function TransactionDetailDialog({
       <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <Chip icon={config.icon} label={config.label} color={config.color} size="small" variant="outlined" />
-          {isSubscription && type === "donation" && (
+          {isSubscription && isDonation && (
             <Chip label={`Recorrente ${subscriptionInterval}`} size="small" color="info" variant="outlined" />
           )}
           <Typography variant="h6" fontWeight={700}>
@@ -234,6 +285,81 @@ export default function TransactionDetailDialog({
                 {isSubscription
                   ? `Assinatura recorrente (${subscriptionInterval})`
                   : "Pagamento único"}
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.disabled">Intermediário</Typography>
+              <Typography variant="body2" fontWeight={600} sx={{ mt: 0.5 }}>
+                Stripe Payments
+              </Typography>
+            </Box>
+          </>
+        )}
+
+        {/* Business donation details */}
+        {type === "donation-business" && (
+          <>
+            {/* Company info card */}
+            <Box sx={{ mb: 2, p: 1.5, borderRadius: 2, bgcolor: "action.hover", display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+              {companyPublicInfo?.logoUrl ? (
+                <Avatar src={companyPublicInfo.logoUrl} alt={companyPublicInfo.name} sx={{ width: 40, height: 40, borderRadius: 1 }} />
+              ) : (
+                <Avatar sx={{ width: 40, height: 40, bgcolor: "success.main", borderRadius: 1 }}>
+                  <BusinessIcon fontSize="small" />
+                </Avatar>
+              )}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="caption" color="text.disabled">Empresa Doadora</Typography>
+                <Typography variant="body2" fontWeight={700}>
+                  {companyPublicInfo?.name ?? companyInfo?.name ?? "Empresa"}
+                </Typography>
+                {companyPublicInfo?.websiteUrl && (
+                  <Button
+                    size="small" variant="text" color="success"
+                    endIcon={<OpenInNewIcon fontSize="inherit" />}
+                    href={companyPublicInfo.websiteUrl}
+                    target="_blank" rel="noopener noreferrer"
+                    sx={{ textTransform: "none", fontSize: "0.75rem", p: 0, minWidth: 0, mt: 0.25 }}
+                  >
+                    {companyPublicInfo.websiteUrl.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+                  </Button>
+                )}
+              </Box>
+            </Box>
+
+            {/* Responsible owner GitHub */}
+            {companyPublicInfo?.responsibleGithubHandle && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Responsável</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                  <Avatar
+                    src={`https://github.com/${companyPublicInfo.responsibleGithubHandle}.png?size=32`}
+                    alt={companyPublicInfo.responsibleGithubHandle}
+                    sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
+                  />
+                  <Button
+                    size="small" variant="text" color="inherit"
+                    endIcon={<OpenInNewIcon fontSize="small" />}
+                    href={`https://github.com/${companyPublicInfo.responsibleGithubHandle}`}
+                    target="_blank" rel="noopener noreferrer"
+                    sx={{ fontWeight: 700, textTransform: "none" }}
+                  >
+                    @{companyPublicInfo.responsibleGithubHandle}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.disabled">Tipo</Typography>
+              <Typography variant="body2" sx={{ mt: 0.5 }}>
+                Assinatura recorrente mensal (CLUB Business)
+              </Typography>
+            </Box>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.disabled">Intermediário</Typography>
+              <Typography variant="body2" fontWeight={600} sx={{ mt: 0.5 }}>
+                Stripe Payments
               </Typography>
             </Box>
           </>
@@ -636,6 +762,21 @@ export default function TransactionDetailDialog({
           )}
           {!tx.referenceId && (
             <Typography variant="caption" color="text.disabled">Sem referência externa vinculada.</Typography>
+          )}
+          {isDonation && (
+            <Box sx={{ ml: "auto" }}>
+              <Button
+                size="small"
+                variant="outlined"
+                color="success"
+                startIcon={generatingPdf ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon fontSize="small" />}
+                disabled={generatingPdf}
+                onClick={handleDownloadPdf}
+                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+              >
+                {generatingPdf ? "Gerando…" : "Baixar comprovante PDF"}
+              </Button>
+            </Box>
           )}
         </Box>
       </DialogContent>

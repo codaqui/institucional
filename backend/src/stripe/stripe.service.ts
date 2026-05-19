@@ -1,10 +1,12 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
+import { ClubService } from '../club/club.service';
+import { CompaniesService } from '../companies/companies.service';
 
 export type CheckoutInterval = 'month' | 'year';
 export type CheckoutUiMode = 'embedded_page' | 'hosted';
@@ -38,6 +40,8 @@ export class StripeService {
     private readonly ledgerService: LedgerService,
     @InjectRepository(Transaction)
     private readonly txRepo: Repository<Transaction>,
+    private readonly clubService: ClubService,
+    private readonly companiesService: CompaniesService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
   }
@@ -216,7 +220,7 @@ export class StripeService {
         await this.handleChargeFinalized(event.data.object);
         break;
       case 'customer.subscription.deleted':
-        this.logger.log(`Assinatura cancelada: ${event.data.object.id}`);
+        await this.handleSubscriptionDeleted(event.data.object);
         break;
       default:
         this.logger.debug(`Evento ignorado: ${event.type}`);
@@ -233,7 +237,11 @@ export class StripeService {
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const isSubscription = session.metadata?.isSubscription === 'true';
 
-    // Evita duplicata: para assinaturas, ignoramos o Checkout Session e
+    if (await this.processBusinessSubscriptionCheckout(session, isSubscription)) {
+      return;
+    }
+
+    // Evita duplicata: para assinaturas PF, ignoramos o Checkout Session e
     // registramos a doação apenas quando a Fatura (Invoice) for paga.
     if (isSubscription) {
       this.logger.debug(
@@ -242,41 +250,18 @@ export class StripeService {
       return;
     }
 
-    const communityId = session.metadata?.communityId ?? 'tesouro-geral';
-    const memberId = session.metadata?.memberId;
-
-    const amountCents = session.amount_total ?? 0;
-    if (amountCents <= 0) {
+    const amountReais = this.resolveCheckoutAmountReais(session.amount_total);
+    if (amountReais === null) {
       this.logger.warn(
-        `Webhook recebido com amount_total inválido: ${amountCents}`,
+        `Webhook recebido com amount_total inválido: ${session.amount_total ?? 0}`,
       );
       return;
     }
 
-    const amountReais = amountCents / 100;
-
-    // payment_intent (pi_xxx) é o ID que aparece no Stripe Dashboard.
-    // Para subscriptions, pode ser null na session — usamos session.id como fallback.
-    let paymentIntentId: string;
-    if (typeof session.payment_intent === 'string') {
-      paymentIntentId = session.payment_intent;
-    } else if (session.subscription) {
-      paymentIntentId = `sub_${(session.subscription as string).slice(4)}_first`; // fallback legível
-    } else {
-      paymentIntentId = session.id;
-    }
+    const checkoutMetadata = this.resolveCheckoutDonationMetadata(session, amountReais, isSubscription);
 
     try {
-      await this.recordDonationToLedger({
-        communityId,
-        memberId,
-        githubHandle: session.metadata?.githubHandle,
-        amountReais,
-        sessionId: session.id,
-        paymentIntentId,
-        isSubscription,
-        interval: session.metadata?.interval as CheckoutInterval | undefined,
-      });
+      await this.recordDonationToLedger(checkoutMetadata);
       // Captura inline da taxa Stripe (resolve race com charge.succeeded)
       if (typeof session.payment_intent === 'string') {
         await this.captureFeeFromPaymentIntent(session.payment_intent);
@@ -292,13 +277,7 @@ export class StripeService {
     // A 1ª cobrança (subscription_create) e as subsequentes (subscription_cycle)
     // agora são processadas magicamente aqui.
 
-    // Stripe SDK types for Invoice/Subscription can be tricky depending on version/expansion
-    const invoiceAny = invoice as any;
-    const subscriptionId =
-      typeof invoiceAny.subscription === 'string'
-        ? invoiceAny.subscription
-        : invoiceAny.subscription?.id;
-
+    const subscriptionId = this.resolveInvoiceSubscriptionId(invoice);
     const subscription = subscriptionId
       ? await this.stripe.subscriptions.retrieve(subscriptionId)
       : null;
@@ -307,23 +286,28 @@ export class StripeService {
       this.logger.warn('invoice.payment_succeeded sem subscription');
       return;
     }
+    const resolvedSubscriptionId = subscription.id;
 
     const communityId = subscription.metadata?.communityId ?? 'tesouro-geral';
     const memberId = subscription.metadata?.memberId;
+    const companyId = subscription.metadata?.companyId;
+    const entityType = subscription.metadata?.entityType;
     const amountCents = invoice.amount_paid;
     if (amountCents <= 0) return;
 
     const amountReais = amountCents / 100;
-    const paymentIntentId =
-      (typeof invoiceAny.payment_intent === 'string'
-        ? invoiceAny.payment_intent
-        : invoiceAny.payment_intent?.id) ?? invoice.id;
+    const paymentIntentId = this.resolveInvoicePaymentIntentId(invoice);
+
+    // Para empresas, busca o nome para exibição na descrição do ledger
+    const companyName = await this.resolveCompanyName(entityType, companyId);
 
     try {
       await this.recordDonationToLedger({
         communityId,
         memberId,
         githubHandle: subscription.metadata?.githubHandle,
+        companyId: entityType === 'business' ? companyId : undefined,
+        companyName,
         amountReais,
         sessionId: invoice.id,
         paymentIntentId,
@@ -341,11 +325,122 @@ export class StripeService {
         error instanceof Error ? error.message : 'Erro desconhecido';
       this.logger.error(`Falha ao registrar renovação no Ledger: ${message}`);
     }
+
+    // Crédito de SortCoins roda mesmo se o ledger falhar (evita perder benefício ao apoiador).
+    try {
+      await this.processInvoiceCoinCredit({
+        entityType,
+        subscription,
+        subscriptionId,
+        resolvedSubscriptionId,
+        amountReais,
+        paymentIntentId,
+        companyId,
+        memberId,
+      });
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(`Falha ao creditar SortCoins da invoice: ${message}`);
+    }
   }
 
   /**
-   * charge.refunded — disparado quando um reembolso (parcial ou total) é
-   * processado no Stripe. Cria uma transação reversa no ledger (débito da
+   * customer.subscription.deleted — assinatura cancelada.
+   * Para empresas: suspende a empresa e congela a carteira.
+   * Para membros PF: congela os SortCoins da carteira.
+   */
+  private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+    this.logger.log(`Assinatura cancelada: ${subscription.id}`);
+
+    const entityType = subscription.metadata?.entityType;
+    const memberId = subscription.metadata?.memberId;
+
+    try {
+      if (entityType === 'business') {
+        await this.companiesService.suspendFromSubscriptionDeleted(subscription.id);
+      } else if (memberId) {
+        await this.clubService.freezeCoin(memberId);
+      }
+    } catch (err) {
+      this.logger.error(
+        `Erro ao processar cancelamento de assinatura ${subscription.id}: ${err}`,
+      );
+    }
+  }
+
+  /**
+   * Cria sessão de checkout Stripe para assinatura mensal de empresa (CLUB Business).
+   * Requer que o membro seja o responsável pela empresa.
+   */
+  async createCompanyCheckoutSession(
+    companyId: string,
+    memberId: string,
+    originUrl?: string,
+    subscriptionAmountCents?: number,
+  ) {
+    const company = await this.companiesService.findById(companyId);
+    if (company?.responsibleMemberId !== memberId) {
+      throw new ForbiddenException('Sem permissão para criar checkout desta empresa');
+    }
+
+    const MIN_AMOUNT_CENTS = 20_000; // R$ 200,00
+    const configuredAmount = company.subscriptionAmountCents;
+    let amountCents = MIN_AMOUNT_CENTS;
+    if (subscriptionAmountCents && subscriptionAmountCents >= MIN_AMOUNT_CENTS) {
+      amountCents = subscriptionAmountCents;
+    } else if (configuredAmount && configuredAmount >= MIN_AMOUNT_CENTS) {
+      amountCents = configuredAmount;
+    }
+
+    if (company.subscriptionAmountCents !== amountCents) {
+      await this.companiesService.setSubscriptionAmount(companyId, amountCents);
+    }
+
+    const baseUrl = originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const returnUrl = `${baseUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      mode: 'subscription',
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: `CLUB Business — ${company.name}`,
+              description: `Assinatura mensal Codaqui Business para ${company.name}`,
+            },
+            unit_amount: amountCents,
+            recurring: { interval: 'month' },
+          },
+        },
+      ],
+      metadata: {
+        entityType: 'business',
+        companyId,
+        memberId,
+        isSubscription: 'true',
+      },
+      subscription_data: {
+        metadata: {
+          entityType: 'business',
+          companyId,
+          memberId,
+          isSubscription: 'true',
+        },
+      },
+      ...(company.stripeCustomerId ? { customer: company.stripeCustomerId } : {}),
+      ui_mode: 'embedded_page' as const,
+      return_url: returnUrl,
+    };
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
+    return { clientSecret: session.client_secret };
+  }
+
+  /**
+   * Registra reembolso no ledger como transação reversa (conta da
    * comunidade → crédito da conta externa Stripe), preservando histórico e
    * partidas dobradas. Não modifica nem deleta a doação original.
    *
@@ -607,6 +702,8 @@ export class StripeService {
     communityId: string;
     memberId?: string;
     githubHandle?: string;
+    companyId?: string;
+    companyName?: string;
     amountReais: number;
     sessionId: string;
     paymentIntentId: string;
@@ -617,6 +714,8 @@ export class StripeService {
       communityId,
       memberId,
       githubHandle,
+      companyId,
+      companyName,
       amountReais,
       sessionId,
       paymentIntentId,
@@ -647,21 +746,30 @@ export class StripeService {
       return;
     }
 
-    const displayName = githubHandle
-      ? `@${githubHandle}`
-      : (memberId ?? 'anônimo');
-
     let typeLabel: string;
-    if (isSubscription) {
+    if (companyId) {
+      // Doação empresarial — prefixo detectável pelo frontend
+      typeLabel = `Assinatura mensal empresarial`;
+    } else if (isSubscription) {
       typeLabel = `Assinatura ${interval === 'year' ? 'anual' : 'mensal'}`;
     } else {
       typeLabel = 'Doação';
     }
 
     // description inclui sessionId (cs_test/in_xxx) para detectar modo test/live no frontend
-    const description = memberId
-      ? `${typeLabel} de ${displayName} [${memberId}] — Sessão ${sessionId}`
-      : `${typeLabel} anônima — Sessão ${sessionId}`;
+    let description: string;
+    if (companyId) {
+      // formato: "Assinatura mensal empresarial — Empresa: Nome [companyId] — Sessão in_xxx"
+      const nameLabel = companyName ?? companyId;
+      description = `${typeLabel} — Empresa: ${nameLabel} [${companyId}] — Sessão ${sessionId}`;
+    } else {
+      const displayName = githubHandle
+        ? `@${githubHandle}`
+        : (memberId ?? 'anônimo');
+      description = memberId
+        ? `${typeLabel} de ${displayName} [${memberId}] — Sessão ${sessionId}`
+        : `${typeLabel} anônima — Sessão ${sessionId}`;
+    }
 
     await this.ledgerService.recordTransaction(
       stripeIncomeAccount.id,
@@ -671,10 +779,150 @@ export class StripeService {
       paymentIntentId, // pi_xxx — ID visível no Stripe Dashboard
     );
 
-    const memberLabel = memberId ? ` | membro: ${memberId}` : ' (anônimo)';
+    let entityLabel = ' (anônimo)';
+    if (companyId) {
+      entityLabel = ` | empresa: ${companyName ?? companyId}`;
+    } else if (memberId) {
+      entityLabel = ` | membro: ${memberId}`;
+    }
     this.logger.log(
-      `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}${memberLabel}`,
+      `✅ ${typeLabel} R$ ${amountReais.toFixed(2)} → ${communityId} | pi: ${paymentIntentId}${entityLabel}`,
     );
+  }
+
+  private resolveSessionPaymentIntentId(session: Stripe.Checkout.Session): string {
+    if (typeof session.payment_intent === 'string') {
+      return session.payment_intent;
+    }
+    if (typeof session.subscription === 'string') {
+      return `sub_${session.subscription.slice(4)}_first`;
+    }
+    return session.id;
+  }
+
+  private resolveCheckoutAmountReais(amountTotal: number | null): number | null {
+    if (!amountTotal || amountTotal <= 0) return null;
+    return amountTotal / 100;
+  }
+
+  private resolveCheckoutDonationMetadata(
+    session: Stripe.Checkout.Session,
+    amountReais: number,
+    isSubscription: boolean,
+  ): {
+    communityId: string;
+    memberId?: string;
+    githubHandle?: string;
+    amountReais: number;
+    sessionId: string;
+    paymentIntentId: string;
+    isSubscription: boolean;
+    interval?: CheckoutInterval;
+  } {
+    return {
+      communityId: session.metadata?.communityId ?? 'tesouro-geral',
+      memberId: session.metadata?.memberId,
+      githubHandle: session.metadata?.githubHandle,
+      amountReais,
+      sessionId: session.id,
+      paymentIntentId: this.resolveSessionPaymentIntentId(session),
+      isSubscription,
+      interval: session.metadata?.interval as CheckoutInterval | undefined,
+    };
+  }
+
+  private resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
+    const invoiceAny = invoice as any;
+    if (typeof invoiceAny.subscription === 'string') {
+      return invoiceAny.subscription;
+    }
+    return invoiceAny.subscription?.id ?? null;
+  }
+
+  private resolveInvoicePaymentIntentId(invoice: Stripe.Invoice): string {
+    const invoiceAny = invoice as any;
+    if (typeof invoiceAny.payment_intent === 'string') {
+      return invoiceAny.payment_intent;
+    }
+    return invoiceAny.payment_intent?.id ?? invoice.id;
+  }
+
+  private async resolveCompanyName(
+    entityType: string | undefined,
+    companyId: string | undefined,
+  ): Promise<string | undefined> {
+    if (entityType !== 'business' || !companyId) return undefined;
+    try {
+      const company = await this.companiesService.findById(companyId);
+      return company?.name;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async processBusinessSubscriptionCheckout(
+    session: Stripe.Checkout.Session,
+    isSubscription: boolean,
+  ): Promise<boolean> {
+    if (!(isSubscription && session.metadata?.entityType === 'business')) {
+      return false;
+    }
+
+    const companyId = session.metadata?.companyId;
+    const customerId = typeof session.customer === 'string' ? session.customer : null;
+    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+    if (companyId && customerId) {
+      await this.companiesService.setStripeCustomer(companyId, customerId);
+    }
+    if (companyId && subscriptionId) {
+      await this.companiesService.setStripeSubscription(companyId, subscriptionId);
+    }
+    this.logger.debug(
+      `checkout.session.completed (business subscription): customer=${customerId} sub=${subscriptionId} salvos para company=${companyId}`,
+    );
+    return true;
+  }
+
+  private async processInvoiceCoinCredit(args: {
+    entityType: string | undefined;
+    subscription: Stripe.Subscription;
+    subscriptionId: string | null;
+    resolvedSubscriptionId: string;
+    amountReais: number;
+    paymentIntentId: string;
+    companyId: string | undefined;
+    memberId: string | undefined;
+  }): Promise<void> {
+    if (args.entityType === 'business') {
+      const customerId = this.resolveSubscriptionCustomerId(args.subscription);
+      if (!customerId) {
+        this.logger.warn(
+          `invoice.payment_succeeded sem customer para assinatura empresarial ${args.subscriptionId}`,
+        );
+        return;
+      }
+      await this.companiesService.activateFromInvoice(
+        args.resolvedSubscriptionId,
+        customerId,
+        args.amountReais,
+        `stripe-pi:${args.paymentIntentId}`,
+        args.companyId,
+      );
+      return;
+    }
+
+    if (args.memberId) {
+      await this.clubService.creditFromInvoice(
+        args.memberId,
+        args.amountReais,
+        `stripe-pi:${args.paymentIntentId}`,
+      );
+    }
+  }
+
+  private resolveSubscriptionCustomerId(subscription: Stripe.Subscription): string | null {
+    if (typeof subscription.customer === 'string') return subscription.customer;
+    return subscription.customer?.id ?? null;
   }
 
   // ---------------------------------------------------------------------------
@@ -685,32 +933,58 @@ export class StripeService {
    * Lista doações do membro logado (pagamentos únicos + assinaturas).
    * Busca por memberId na description (sempre presente quando logado).
    */
-  async getMyDonations(memberId: string): Promise<
+  async getMyDonations(
+    memberId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<
     {
-      id: string;
-      amount: number;
-      description: string;
-      community: string;
-      referenceId: string;
-      createdAt: Date;
-    }[]
+      items: {
+        id: string;
+        amount: number;
+        description: string;
+        community: string;
+        referenceId: string;
+        createdAt: Date;
+      }[];
+      total: number;
+      page: number;
+      limit: number;
+    }
   > {
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const requestedLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
+    const safeLimit = Math.min(requestedLimit, 100);
+    const skip = (safePage - 1) * safeLimit;
+
     const rows = await this.txRepo
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
       .leftJoinAndSelect('tx.destinationAccount', 'dst')
       .where('tx.description LIKE :pattern', { pattern: `%[${memberId}]%` })
       .orderBy('tx.createdAt', 'DESC')
+      .skip(skip)
+      .take(safeLimit)
       .getMany();
 
-    return rows.map((tx) => ({
-      id: tx.id,
-      amount: Number.parseFloat(String(tx.amount)),
-      description: tx.description,
-      community: tx.destinationAccount?.name ?? 'Comunidade',
-      referenceId: tx.referenceId ?? '',
-      createdAt: tx.createdAt,
-    }));
+    const total = await this.txRepo
+      .createQueryBuilder('tx')
+      .where('tx.description LIKE :pattern', { pattern: `%[${memberId}]%` })
+      .getCount();
+
+    return {
+      items: rows.map((tx) => ({
+        id: tx.id,
+        amount: Number.parseFloat(String(tx.amount)),
+        description: tx.description,
+        community: tx.destinationAccount?.name ?? 'Comunidade',
+        referenceId: tx.referenceId ?? '',
+        createdAt: tx.createdAt,
+      })),
+      total,
+      page: safePage,
+      limit: safeLimit,
+    };
   }
 
   /**
@@ -720,18 +994,27 @@ export class StripeService {
    * Retorna apenas assinaturas com status active ou past_due (cobráveis).
    * Usando search API do Stripe (disponível no API versão 2022-11-15+).
    */
-  async getMySubscriptions(memberId: string): Promise<
-    {
+  async getMySubscriptions(
+    memberId: string,
+    page = 1,
+    limit = 20,
+  ): Promise<{
+    items: {
       id: string;
       status: string;
       interval: string;
       amount: number;
       currency: string;
       communityId: string;
+      entityType: 'member' | 'business';
+      companyId: string | null;
       currentPeriodEnd: number;
       cancelAtPeriodEnd: boolean;
-    }[]
-  > {
+    }[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     // Sanitize UUID to prevent Stripe Search API injection
     const safeMemberId = memberId.replaceAll(/[^a-f0-9-]/gi, '');
     if (
@@ -755,8 +1038,15 @@ export class StripeService {
     });
 
     const all = [...result.data, ...pastDue.data];
+    const deduped = Array.from(new Map(all.map((sub) => [sub.id, sub])).values());
+    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
+    const requestedLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
+    const safeLimit = Math.min(requestedLimit, 100);
+    const start = (safePage - 1) * safeLimit;
+    const paged = deduped.slice(start, start + safeLimit);
 
-    return all.map((sub) => {
+    return {
+      items: paged.map((sub) => {
       const item = sub.items.data[0];
       return {
         id: sub.id,
@@ -765,10 +1055,19 @@ export class StripeService {
         amount: item?.price?.unit_amount ?? 0,
         currency: item?.price?.currency ?? 'brl',
         communityId: sub.metadata?.communityId ?? 'tesouro-geral',
+        entityType:
+          sub.metadata?.entityType === 'business' || !!sub.metadata?.companyId
+            ? 'business'
+            : 'member',
+        companyId: sub.metadata?.companyId ?? null,
         currentPeriodEnd: item?.current_period_end ?? 0,
         cancelAtPeriodEnd: sub.cancel_at_period_end,
       };
-    });
+      }),
+      total: deduped.length,
+      page: safePage,
+      limit: safeLimit,
+    };
   }
 
   /**

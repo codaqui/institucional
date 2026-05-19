@@ -29,6 +29,7 @@ import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import DeleteIcon from "@mui/icons-material/Delete";
 import UndoIcon from "@mui/icons-material/Undo";
 import { useAuth } from "../../hooks/useAuth";
+import AdminNavbar from "../../components/AdminNavbar";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 
@@ -327,7 +328,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                       <Button
                         variant="text"
                         size="small"
-                        href="/admin/transferencias"
+                        href="/admin/lancamento?tab=transferencias"
                       >
                         Solicitar transferência →
                       </Button>
@@ -370,7 +371,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
   return (
     <Layout title="Gestão de Reembolsos" description="Aprovar ou rejeitar solicitações de reembolso">
       <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 4, flexWrap: "wrap", gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 2 }}>
           <Box>
             <Typography variant="h4" fontWeight={800}>
               Reembolsos
@@ -390,6 +391,8 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
             Pasta de Comprovantes
           </Button>
         </Box>
+
+        <AdminNavbar active="/admin/reembolsos" />
 
         <Alert severity="info" sx={{ mb: 3 }}>
           <strong>Responsabilidade do aprovador:</strong> ao aprovar, copie o comprovante original para a{" "}

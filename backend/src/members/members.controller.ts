@@ -109,7 +109,7 @@ export class MembersController {
   async adminUpdate(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
-    @Body() body: { role?: MemberRole; isActive?: boolean },
+    @Body() body: { role?: MemberRole; isActive?: boolean; name?: string; bio?: string; linkedinUrl?: string },
   ) {
     const result = await this.membersService.adminUpdate(id, body);
 

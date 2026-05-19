@@ -7,6 +7,7 @@ import {
   Query,
   UseGuards,
   ParseUUIDPipe,
+  NotFoundException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -222,6 +223,14 @@ export class LedgerController {
   @ApiResponse({ status: 403, description: 'Role insuficiente.' })
   getAccountBalance(@Param('id', ParseUUIDPipe) id: string) {
     return this.ledgerService.getAccountBalance(id);
+  }
+
+  @Get('transactions/:txId')
+  @ApiOperation({ summary: 'Detalhes de uma transação por ID (público)' })
+  async getTransactionById(@Param('txId', ParseUUIDPipe) txId: string) {
+    const tx = await this.ledgerService.getTransactionById(txId);
+    if (!tx) throw new NotFoundException('Transação não encontrada');
+    return tx;
   }
 
   @Get('accounts/:id/transactions')

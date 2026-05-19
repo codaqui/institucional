@@ -208,6 +208,13 @@ export class LedgerService {
     return result;
   }
 
+  async getTransactionById(txId: string): Promise<Transaction | null> {
+    return this.txRepo.findOne({
+      where: { id: txId },
+      relations: ['sourceAccount', 'destinationAccount'],
+    });
+  }
+
   async getTransparencyStats(): Promise<{
     totalReceived: number;
     totalExpenses: number;

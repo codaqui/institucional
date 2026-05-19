@@ -4,7 +4,10 @@ import {
   detectTxType,
   deriveTransactionMeta,
   extractDonorHandle,
+  extractCompanyInfo,
+  extractReimbursementId,
   extractReimbursementDesc,
+  extractStripePaymentIntentId,
   type Transaction,
 } from "../transaction";
 
@@ -62,6 +65,7 @@ describe("detectTxType", () => {
     ["detects donation by Stripe checkout session referenceId", { referenceId: "cs_live_abc" }, "donation"],
     ["detects donation by Stripe payment intent referenceId (pi_)", { referenceId: "pi_live_abc" }, "donation"],
     ["detects donation by Stripe invoice referenceId (in_)", { referenceId: "in_live_abc" }, "donation"],
+    ["detects donation by prefixed Stripe payment intent referenceId", { referenceId: "stripe-pi:pi_live_abc" }, "donation"],
     ["detects donation by description", { description: "Doação de @user" }, "donation"],
     ["detects monthly subscription as donation by description", { description: "Assinatura mensal de @user [id] — Sessão in_xxx" }, "donation"],
     ["detects annual subscription as donation by description", { description: "Assinatura anual de @user [id] — Sessão in_xxx" }, "donation"],
@@ -69,6 +73,7 @@ describe("detectTxType", () => {
     ["detects reimbursement by description", { description: "Reembolso aprovado: compra" }, "reimbursement"],
     ["detects transfer by description", { description: "Transferência interna aprovada: teste" }, "transfer"],
     ["detects refund by referenceId (re_)", { referenceId: "re_3TSH3JFtPCSoiGky18dl80ut" }, "refund"],
+    ["detects refund by prefixed Stripe refund referenceId", { referenceId: "stripe-refund:pi_live_abc:re_123" }, "refund"],
     ["detects refund by description (Estorno)", { description: "Estorno de doação — Refund re_xxx" }, "refund"],
     ["returns other for unknown transactions", { description: "Something else" }, "other"],
   ])("%s", (_label, overrides, expected) => {
@@ -112,6 +117,57 @@ describe("extractReimbursementDesc", () => {
   });
 });
 
+describe("extractReimbursementId", () => {
+  it("extracts reimbursement id from referenceId with timestamp suffix", () => {
+    expect(extractReimbursementId("reimbursement:request-123:1738362000")).toBe("request-123");
+  });
+
+  it("returns null when referenceId is missing or malformed", () => {
+    expect(extractReimbursementId(undefined)).toBeNull();
+    expect(extractReimbursementId("reimbursement")).toBeNull();
+    expect(extractReimbursementId("transfer:123")).toBeNull();
+  });
+});
+
+describe("extractStripePaymentIntentId", () => {
+  it("extracts payment intent id from prefixed referenceId", () => {
+    expect(extractStripePaymentIntentId("stripe-pi:pi_123")).toBe("pi_123");
+  });
+
+  it("keeps legacy payment intent referenceId", () => {
+    expect(extractStripePaymentIntentId("pi_123")).toBe("pi_123");
+  });
+
+  it("returns null for non-payment-intent references", () => {
+    expect(extractStripePaymentIntentId("stripe-refund:pi_123:re_456")).toBeNull();
+    expect(extractStripePaymentIntentId("cs_123")).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// extractCompanyInfo
+// ---------------------------------------------------------------------------
+
+describe("extractCompanyInfo", () => {
+  it("extracts company name and id from business donation description", () => {
+    expect(
+      extractCompanyInfo(
+        "Assinatura mensal empresarial — Empresa: Codaqui Labs [8a3f8c98-5b0d-4d5b-a4de-2c23ea2e25bc] — Sessão in_xxx",
+      ),
+    ).toEqual({
+      name: "Codaqui Labs",
+      id: "8a3f8c98-5b0d-4d5b-a4de-2c23ea2e25bc",
+    });
+  });
+
+  it("returns null when markers are missing or malformed", () => {
+    expect(extractCompanyInfo("Assinatura empresarial sem metadados")).toBeNull();
+    expect(extractCompanyInfo("Empresa: Nome sem id")).toBeNull();
+    expect(extractCompanyInfo("Empresa: [uuid-vazio]")).toBeNull();
+    expect(extractCompanyInfo("Empresa: Nome [")).toBeNull();
+  });
+});
+
 // ---------------------------------------------------------------------------
 // deriveTransactionMeta
 // ---------------------------------------------------------------------------
@@ -145,8 +201,25 @@ describe("deriveTransactionMeta", () => {
     expect(meta.subscriptionInterval).toBe("anual");
   });
 
+  it("extracts company info for business donations", () => {
+    const tx = makeTx({
+      description:
+        "Assinatura mensal empresarial — Empresa: Mentoria Codaqui [company-123] — Sessão in_xxx",
+      referenceId: "pi_live_business",
+    });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.type).toBe("donation-business");
+    expect(meta.companyInfo).toEqual({ name: "Mentoria Codaqui", id: "company-123" });
+  });
+
   it("builds stripe dashboard URL for payment intents", () => {
     const tx = makeTx({ referenceId: "pi_abc123", description: "Doação de @user" });
+    const meta = deriveTransactionMeta(tx, "dst");
+    expect(meta.stripeDashboardUrl).toBe("https://dashboard.stripe.com/payments/pi_abc123");
+  });
+
+  it("builds stripe dashboard URL for prefixed payment intents", () => {
+    const tx = makeTx({ referenceId: "stripe-pi:pi_abc123", description: "Doação de @user" });
     const meta = deriveTransactionMeta(tx, "dst");
     expect(meta.stripeDashboardUrl).toBe("https://dashboard.stripe.com/payments/pi_abc123");
   });

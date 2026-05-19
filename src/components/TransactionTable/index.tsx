@@ -59,12 +59,15 @@ interface TransactionTableProps {
   accountId: string;
   accountName: string;
   apiUrl: string;
+  /** Se fornecido, busca e abre o modal para esta transação ao montar */
+  initialTxId?: string;
 }
 
 export default function TransactionTable({
   accountId,
   accountName,
   apiUrl,
+  initialTxId,
 }: Readonly<TransactionTableProps>) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -72,6 +75,15 @@ export default function TransactionTable({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+
+  // Auto-open modal when initialTxId is provided
+  useEffect(() => {
+    if (!initialTxId) return;
+    fetch(`${apiUrl}/ledger/transactions/${initialTxId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((tx: Transaction | null) => { if (tx) setSelectedTx(tx); })
+      .catch(() => null);
+  }, [initialTxId, apiUrl]);
 
   // Filters
   const [typeFilter, setTypeFilter] = useState("");

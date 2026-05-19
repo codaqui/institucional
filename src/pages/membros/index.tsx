@@ -13,6 +13,7 @@ import {
   Link,
   Skeleton,
   Stack,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
@@ -51,7 +52,7 @@ interface PaginatedResponse<T> {
   totalPages: number;
 }
 
-type FilterValue = "todos" | "doadores" | "organizacao";
+type FilterValue = "todos" | "club" | "club-business";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -71,9 +72,11 @@ function formatDate(iso: string): string {
 function MemberCard({
   member,
   donorInfo,
+  isClubBusiness,
 }: Readonly<{
   member: Member;
   donorInfo?: DonorInfo;
+  isClubBusiness?: boolean;
 }>) {
   return (
     <Card
@@ -110,20 +113,20 @@ function MemberCard({
               <Typography variant="subtitle1" fontWeight={700} noWrap>
                 {member.name}
               </Typography>
-              {member.role === "admin" && (
-                <Chip
-                  label="Organização"
-                  size="small"
-                  color="primary"
-                  variant="outlined"
-                />
-              )}
               {donorInfo && (
                 <Chip
                   icon={<FavoriteIcon sx={{ fontSize: 14 }} />}
-                  label="Doador(a)"
+                  label="CLUB"
                   size="small"
                   color="success"
+                  variant="outlined"
+                />
+              )}
+              {isClubBusiness && (
+                <Chip
+                  label="CLUB Business"
+                  size="small"
+                  color="primary"
                   variant="outlined"
                 />
               )}
@@ -239,9 +242,11 @@ export default function MembrosPage(): React.JSX.Element {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [donorMap, setDonorMap] = useState<Map<string, DonorInfo>>(new Map());
+  const [clubBusinessMemberIds, setClubBusinessMemberIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [filter, setFilter] = useState<FilterValue>("todos");
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     Promise.all([
@@ -264,6 +269,14 @@ export default function MembrosPage(): React.JSX.Element {
             });
           }
           setDonorMap(map);
+          fetch(`${apiUrl}/companies/business-members`)
+            .then((res) => (res.ok ? res.json() : []))
+            .then((businessMemberIds: string[]) => {
+              setClubBusinessMemberIds(
+                new Set((businessMemberIds ?? []).filter(Boolean)),
+              );
+            })
+            .catch(() => setClubBusinessMemberIds(new Set()));
           setLoading(false);
         },
       )
@@ -276,10 +289,21 @@ export default function MembrosPage(): React.JSX.Element {
   const filtered = useMemo(() => {
     let list = [...members];
 
-    if (filter === "doadores") {
+    if (filter === "club") {
       list = list.filter((m) => donorMap.has(m.id));
-    } else if (filter === "organizacao") {
-      list = list.filter((m) => m.role === "admin");
+    } else if (filter === "club-business") {
+      list = list.filter((m) => clubBusinessMemberIds.has(m.id));
+    }
+
+    const normalizedSearch = searchTerm.trim().toLowerCase();
+    if (normalizedSearch) {
+      list = list.filter((member) => {
+        return (
+          member.name.toLowerCase().includes(normalizedSearch) ||
+          member.githubHandle.toLowerCase().includes(normalizedSearch) ||
+          (member.bio ?? "").toLowerCase().includes(normalizedSearch)
+        );
+      });
     }
 
     // Doadores primeiro (por total doado DESC), depois membros por joinedAt ASC
@@ -293,9 +317,10 @@ export default function MembrosPage(): React.JSX.Element {
     });
 
     return list;
-  }, [members, donorMap, filter]);
+  }, [members, donorMap, filter, searchTerm, clubBusinessMemberIds]);
 
-  const donorCount = donorMap.size;
+  const clubCount = donorMap.size;
+  const clubBusinessCount = members.filter((member) => clubBusinessMemberIds.has(member.id)).length;
   const totalMembers = members.length;
 
   return (
@@ -324,14 +349,27 @@ export default function MembrosPage(): React.JSX.Element {
             </Typography>
           </Box>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FavoriteIcon color="success" />
+              <FavoriteIcon color="success" />
+              <Typography variant="body1" fontWeight={600}>
+                {clubCount} CLUB
+              </Typography>
+            </Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
             <Typography variant="body1" fontWeight={600}>
-              {donorCount} doadores
+              {clubBusinessCount} CLUB Business
             </Typography>
           </Box>
         </Stack>
 
         {/* Filtros */}
+        <TextField
+          size="small"
+          fullWidth
+          placeholder="Buscar por nome, @github ou bio"
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
+          sx={{ mb: 2 }}
+        />
         <ToggleButtonGroup
           value={filter}
           exclusive
@@ -340,10 +378,8 @@ export default function MembrosPage(): React.JSX.Element {
           sx={{ mb: 4 }}
         >
           <ToggleButton value="todos">Todos ({totalMembers})</ToggleButton>
-          <ToggleButton value="doadores">Doadores ({donorCount})</ToggleButton>
-          <ToggleButton value="organizacao">
-            Organização ({members.filter((m) => m.role === "admin").length})
-          </ToggleButton>
+           <ToggleButton value="club">CLUB ({clubCount})</ToggleButton>
+           <ToggleButton value="club-business">CLUB Business ({clubBusinessCount})</ToggleButton>
         </ToggleButtonGroup>
 
         {loading && <MembersSkeleton />}
@@ -364,7 +400,11 @@ export default function MembrosPage(): React.JSX.Element {
           <Grid container spacing={2}>
             {filtered.map((m) => (
               <Grid key={m.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <MemberCard member={m} donorInfo={donorMap.get(m.id)} />
+                <MemberCard
+                  member={m}
+                  donorInfo={donorMap.get(m.id)}
+                  isClubBusiness={clubBusinessMemberIds.has(m.id)}
+                />
               </Grid>
             ))}
           </Grid>

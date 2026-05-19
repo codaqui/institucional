@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "@theme/Layout";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import { useLocation } from "@docusaurus/router";
 import Button from "@mui/material/Button";
 import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
@@ -44,6 +45,8 @@ import {
 export default function TransparenciaPage(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
+  const location = useLocation();
+  const initialTxId = new URLSearchParams(location.search).get("tx") ?? undefined;
 
   const [balances, setBalances] = useState<CommunityBalance[] | null>(null);
   const [stats, setStats] = useState<TransparencyStats | null>(null);
@@ -395,6 +398,7 @@ export default function TransparenciaPage(): React.JSX.Element {
                         accountId={b.id}
                         accountName={meta?.name ?? b.name}
                         apiUrl={apiUrl}
+                        initialTxId={initialTxId}
                       />
                     </>
                   )}

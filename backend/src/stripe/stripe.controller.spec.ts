@@ -44,7 +44,7 @@ describe('StripeController', () => {
       service.getMyDonations.mockResolvedValue([]);
       const result = await controller.getMyDonations(authedReq);
       expect(result).toEqual([]);
-      expect(service.getMyDonations).toHaveBeenCalledWith(uuid(5));
+      expect(service.getMyDonations).toHaveBeenCalledWith(uuid(5), 1, 20);
     });
   });
 
@@ -53,6 +53,7 @@ describe('StripeController', () => {
       service.getMySubscriptions.mockResolvedValue([]);
       const result = await controller.getMySubscriptions(authedReq);
       expect(result).toEqual([]);
+      expect(service.getMySubscriptions).toHaveBeenCalledWith(uuid(5), 1, 20);
     });
   });
 

@@ -4,6 +4,8 @@ import { BadRequestException } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { Transaction } from '../ledger/entities/transaction.entity';
+import { ClubService } from '../club/club.service';
+import { CompaniesService } from '../companies/companies.service';
 
 // Mock the stripe module
 jest.mock('stripe', () => {
@@ -51,11 +53,28 @@ describe('StripeService', () => {
       createQueryBuilder: jest.fn(),
     };
 
+    const clubServiceMock = {
+      creditCoins: jest.fn().mockResolvedValue({}),
+      freezeCoin: jest.fn().mockResolvedValue({}),
+    };
+
+    const companiesServiceMock = {
+      findById: jest.fn().mockResolvedValue(null),
+      creditToWallet: jest.fn().mockResolvedValue({}),
+      setStripeCustomer: jest.fn().mockResolvedValue(undefined),
+      setStripeSubscription: jest.fn().mockResolvedValue(undefined),
+      setSubscriptionAmount: jest.fn().mockResolvedValue(undefined),
+      activateFromInvoice: jest.fn().mockResolvedValue(undefined),
+      suspendFromSubscriptionDeleted: jest.fn().mockResolvedValue({}),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         StripeService,
         { provide: LedgerService, useValue: ledgerService },
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
+        { provide: ClubService, useValue: clubServiceMock },
+        { provide: CompaniesService, useValue: companiesServiceMock },
       ],
     }).compile();
 
@@ -775,10 +794,12 @@ describe('StripeService', () => {
 
   describe('getMyDonations', () => {
     it('should return mapped donation list', async () => {
-      const qb = {
+      const rowsQb = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
           {
             id: 'tx-1',
@@ -791,13 +812,20 @@ describe('StripeService', () => {
           },
         ]),
       };
-      txRepo.createQueryBuilder.mockReturnValue(qb);
+      const countQb = {
+        where: jest.fn().mockReturnThis(),
+        getCount: jest.fn().mockResolvedValue(1),
+      };
+      txRepo.createQueryBuilder
+        .mockReturnValueOnce(rowsQb)
+        .mockReturnValueOnce(countQb);
 
       const result = await service.getMyDonations('member-id');
 
-      expect(result).toHaveLength(1);
-      expect(result[0].community).toBe('DevParaná');
-      expect(result[0].amount).toBe(50);
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].community).toBe('DevParaná');
+      expect(result.items[0].amount).toBe(50);
+      expect(result.total).toBe(1);
     });
   });
 
@@ -832,9 +860,9 @@ describe('StripeService', () => {
 
       const result = await service.getMySubscriptions(uuid(5));
 
-      expect(result).toHaveLength(1);
-      expect(result[0].id).toBe('sub_1');
-      expect(result[0].interval).toBe('month');
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].id).toBe('sub_1');
+      expect(result.items[0].interval).toBe('month');
     });
 
     it('should throw for invalid memberId', async () => {

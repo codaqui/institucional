@@ -28,7 +28,10 @@ const BASE_AUTH = {
   login: jest.fn(),
   logout: jest.fn(),
   refreshUser: jest.fn(),
-  authFetch: jest.fn(),
+  authFetch: jest.fn().mockResolvedValue({
+    ok: false,
+    json: async () => null,
+  }),
 } as const;
 
 const LOGGED_IN_USER = {

@@ -27,12 +27,8 @@ import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Collapse from "@mui/material/Collapse";
-import Dialog from "@mui/material/Dialog";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
 import Divider from "@mui/material/Divider";
 import Grid from "@mui/material/Grid";
-import IconButton from "@mui/material/IconButton";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import ToggleButton from "@mui/material/ToggleButton";
@@ -41,19 +37,19 @@ import Typography from "@mui/material/Typography";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import BusinessIcon from "@mui/icons-material/Business";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import CloseIcon from "@mui/icons-material/Close";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LockIcon from "@mui/icons-material/Lock";
 import StarIcon from "@mui/icons-material/Star";
 import TipsAndUpdatesIcon from "@mui/icons-material/TipsAndUpdates";
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
-import { EmbeddedCheckoutProvider, EmbeddedCheckout } from "@stripe/react-stripe-js";
 import { communities } from "@site/src/data/communities";
 import { useAuth, type AuthUser } from "@site/src/hooks/useAuth";
 import { resolveApiUrl } from "@site/src/lib/api-url";
+import StripeEmbeddedCheckoutDialog from "../StripeEmbeddedCheckoutDialog";
+import { IdentityHandleChip, SupportPrimaryButton } from "../SupportCheckoutUi";
 import {
   buildCheckoutBody,
   detectWhitelabelDeploy,
@@ -117,66 +113,6 @@ interface WalletBalance {
 const formatBRL = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-// ─── Embedded Checkout Dialog ────────────────────────────────────────────────
-
-interface EmbeddedCheckoutDialogProps {
-  readonly open: boolean;
-  readonly clientSecret: string | null;
-  readonly stripeKey: string;
-  readonly onClose: () => void;
-  readonly onSuccess: () => void;
-}
-
-function EmbeddedCheckoutDialog({
-  open,
-  clientSecret,
-  stripeKey,
-  onClose,
-  onSuccess,
-}: EmbeddedCheckoutDialogProps) {
-  const [stripePromise, setStripePromise] = useState<Promise<Stripe | null> | null>(null);
-
-  useEffect(() => {
-    if (open && stripeKey && !stripePromise) {
-      setStripePromise(loadStripe(stripeKey));
-    }
-  }, [open, stripeKey, stripePromise]);
-
-  return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      slotProps={{ paper: { sx: { borderTop: 3, borderColor: "primary.main", minHeight: 400 } } }}
-    >
-      <DialogTitle sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", pb: 1 }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <CreditCardIcon color="primary" />
-          <Typography variant="h6" fontWeight={700}>Finalizar Doação</Typography>
-        </Box>
-        <IconButton onClick={onClose} size="small" aria-label="Fechar checkout">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-      <DialogContent sx={{ p: 0, pb: "0 !important", minHeight: 400 }}>
-        {!stripeKey && (
-          <Box sx={{ p: 4, textAlign: "center" }}>
-            <Alert severity="error">
-              A chave pública do Stripe não está configurada (STRIPE_PUBLISHABLE_KEY indefinida).
-            </Alert>
-          </Box>
-        )}
-        {stripeKey && stripePromise && clientSecret && (
-          <EmbeddedCheckoutProvider stripe={stripePromise} options={{ clientSecret, onComplete: onSuccess }}>
-            <EmbeddedCheckout />
-          </EmbeddedCheckoutProvider>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
 // ─── Subcomponentes ──────────────────────────────────────────────────────────
 
 interface IdentityStatusProps {
@@ -190,12 +126,7 @@ interface IdentityStatusProps {
 function IdentityStatus({ isLoggedIn, user, isRecurring, amount, login }: IdentityStatusProps) {
   if (isLoggedIn && user) {
     return (
-      <Chip
-        avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-        label={`Doando como @${user.handle}`}
-        variant="outlined"
-        color="primary"
-      />
+      <IdentityHandleChip user={user} />
     );
   }
   if (amount > ANONYMOUS_LIMIT_CENTS) {
@@ -250,23 +181,14 @@ function DonateButton({
   else if (isRecurring) icon = <AutorenewIcon />;
 
   return (
-    <Button
-      variant="contained"
-      size="large"
-      fullWidth
-      disabled={loading}
+    <SupportPrimaryButton
+      label={label}
+      loading={loading}
       onClick={handleDonate}
       startIcon={icon}
-      sx={{
-        py: 1.5, fontWeight: 700, fontSize: "1rem", textTransform: "none",
-        ...(accentColor && {
-          bgcolor: accentColor,
-          "&:hover": { bgcolor: accentColorDark ?? accentColor },
-        }),
-      }}
-    >
-      {label}
-    </Button>
+      accentColor={accentColor}
+      accentColorDark={accentColorDark}
+    />
   );
 }
 
@@ -291,6 +213,8 @@ export interface DonationFlowProps {
   readonly title?: string;
   /** Subtítulo do formulário. */
   readonly subtitle?: string;
+  /** Callback para acionar a seção de doação empresarial (exibe botão "Apoiar como empresa →"). */
+  readonly onCompanyClick?: () => void;
 }
 
 export default function DonationFlow({
@@ -302,6 +226,7 @@ export default function DonationFlow({
   accentColorDark,
   title = "Fazer uma Doação",
   subtitle,
+  onCompanyClick,
 }: DonationFlowProps): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl =
@@ -516,18 +441,28 @@ export default function DonationFlow({
 
       {/* ── Chip discreto quando logado ── */}
       {!disableAuth && ready && isLoggedIn && user && (
-        <Chip
-          avatar={<Avatar src={user.avatarUrl} alt={user.name} sx={{ width: "22px !important", height: "22px !important" }} />}
-          label={`Doando como @${user.handle}`}
-          variant="outlined"
-          sx={{
-            mb: 3,
-            borderColor: accentColor ?? "primary.main",
-            color: accentColor ?? "primary.main",
-            fontWeight: 600,
-            "& .MuiChip-avatar": { ml: 0.5 },
-          }}
-        />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
+          <IdentityHandleChip
+            user={user}
+            sx={{
+              borderColor: accentColor ?? "primary.main",
+              color: accentColor ?? "primary.main",
+              fontWeight: 600,
+              "& .MuiChip-avatar": { ml: 0.5 },
+            }}
+          />
+          {onCompanyClick && (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<BusinessIcon />}
+              onClick={onCompanyClick}
+              sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.82rem" }}
+            >
+              Empresa →
+            </Button>
+          )}
+        </Box>
       )}
 
       {/* Destino selecionado */}
@@ -867,12 +802,14 @@ export default function DonationFlow({
         <Box sx={{ maxWidth: 720, mx: "auto" }}>{formColumn}</Box>
       )}
 
-      <EmbeddedCheckoutDialog
+      <StripeEmbeddedCheckoutDialog
         open={checkoutOpen}
+        title="Finalizar Doação"
         clientSecret={clientSecret}
         stripeKey={stripeKey}
         onClose={() => setCheckoutOpen(false)}
-        onSuccess={handleCheckoutSuccess}
+        onComplete={handleCheckoutSuccess}
+        missingKeyMessage="A chave pública do Stripe não está configurada (STRIPE_PUBLISHABLE_KEY indefinida)."
       />
     </>
   );
