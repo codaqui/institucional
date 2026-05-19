@@ -6,7 +6,9 @@ import {
   Min,
   Length,
   Matches,
+  IsEnum,
 } from 'class-validator';
+import { CompanyStatus } from '../entities/company.entity';
 
 export class CreateCompanyDto {
   /** Somente dígitos — o service valida formato CNPJ */
@@ -54,4 +56,9 @@ export class CreateCompanyCheckoutDto {
   @IsOptional()
   @IsString()
   cancelUrl?: string;
+}
+
+export class UpdateCompanyStatusDto {
+  @IsEnum(CompanyStatus)
+  status: CompanyStatus;
 }

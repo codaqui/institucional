@@ -39,7 +39,7 @@ export default function ClubWalletTransactionsTable({
             <TableRow>
               <TableCell>Data</TableCell>
               <TableCell>Origem</TableCell>
-              <TableCell>Descricao</TableCell>
+              <TableCell>Descrição</TableCell>
               <TableCell align="right">Coins</TableCell>
               <TableCell align="right">Detalhe</TableCell>
             </TableRow>
@@ -56,7 +56,7 @@ export default function ClubWalletTransactionsTable({
                   />
                 </TableCell>
                 <TableCell sx={{ maxWidth: 280 }}>
-                  <Tooltip title={tx.description ?? "Sem descricao"}>
+                  <Tooltip title={tx.description ?? "Sem descrição"}>
                     <Typography variant="body2" noWrap color="text.secondary">
                       {tx.description ?? "—"}
                     </Typography>
@@ -76,7 +76,7 @@ export default function ClubWalletTransactionsTable({
                 <TableCell align="right">
                   <IconButton
                     size="small"
-                    aria-label="Ver detalhes da transacao"
+                      aria-label="Ver detalhes da transação"
                     onClick={() => setSelected(tx)}
                   >
                     <VisibilityIcon fontSize="small" />

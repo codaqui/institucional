@@ -21,6 +21,7 @@ import { MemberRole } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
 import {
   CreateCompanyDto,
+  UpdateCompanyStatusDto,
   UpdateCompanyDto,
 } from './dto/company.dto';
 import { DistributeCoinsDto } from './dto/distribute-coins.dto';
@@ -236,7 +237,7 @@ export class CompaniesController {
   @ApiBearerAuth()
   async adminUpdateStatus(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() body: { status: string },
+    @Body() body: UpdateCompanyStatusDto,
   ) {
     return this.companiesService.updateStatus(id, body.status);
   }

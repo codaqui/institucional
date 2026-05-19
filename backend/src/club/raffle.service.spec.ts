@@ -116,8 +116,23 @@ describe('RaffleService', () => {
     raffleEntryQueryBuilder.getOne.mockImplementation(() => entryRepo.findOne());
     entryRepo.createQueryBuilder.mockReturnValue(raffleEntryQueryBuilder);
 
+    let lockedRaffleId = RAFFLE_ID;
+    const raffleQueryBuilder = {
+      setLock: jest.fn().mockReturnThis(),
+      where: jest.fn().mockImplementation((_: string, params: { raffleId: string }) => {
+        lockedRaffleId = params.raffleId;
+        return raffleQueryBuilder;
+      }),
+      getOne: jest.fn().mockImplementation(async () => raffleRepo.findOne({ where: { id: lockedRaffleId } })),
+    };
+    const raffleTxRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue(raffleQueryBuilder),
+      save: jest.fn((entity) => Promise.resolve(entity)),
+    };
+
     const entityManager = {
       getRepository: jest.fn((entity) => {
+        if (entity === Raffle) return raffleTxRepo;
         if (entity === RaffleEntry) return entryRepo;
         throw new Error(`Repository mock não configurado para ${entity?.name ?? entity}`);
       }),

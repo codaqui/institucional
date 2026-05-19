@@ -786,26 +786,56 @@ export class CompaniesService {
       );
     }
 
-    // Débita da empresa com source COMPANY_DISTRIBUTION para rastreabilidade
-    const distRef = `company-dist:${companyId}:${Date.now()}`;
-    await this.creditCoins(
-      companyId,
-      -totalToDistribute,
-      CompanyWalletTxSource.COMPANY_DISTRIBUTION,
-      distRef,
-      DEFAULT_COIN,
-      `Distribuição para ${normalizedDistributions.length} destinatário(s)`,
-    );
+    const distRefTs = Date.now().toString();
+    const distRef = `company-dist:${companyId}:${distRefTs}`;
+    const successfulCredits: Array<{ memberId: string; amount: number }> = [];
+    let companyDebited = false;
 
-    // Credita cada destinatário (resolve githubHandle → memberId UUID)
-    for (const dist of normalizedDistributions) {
-      const member = memberByHandle.get(dist.githubHandle)!;
-      await this.clubService.creditDistribution(
-        member.id,
-        dist.amount,
-        `company-dist:${companyId}:${member.id}:${distRef.split(':')[2]}`,
-        `Distribuição da empresa (${dist.amount} SortCoins)`,
+    try {
+      // Débita da empresa com source COMPANY_DISTRIBUTION para rastreabilidade
+      await this.creditCoins(
+        companyId,
+        -totalToDistribute,
+        CompanyWalletTxSource.COMPANY_DISTRIBUTION,
+        distRef,
+        DEFAULT_COIN,
+        `Distribuição para ${normalizedDistributions.length} destinatário(s)`,
       );
+      companyDebited = true;
+
+      // Credita cada destinatário (resolve githubHandle → memberId UUID)
+      for (const dist of normalizedDistributions) {
+        const member = memberByHandle.get(dist.githubHandle)!;
+        await this.clubService.creditDistribution(
+          member.id,
+          dist.amount,
+          `company-dist:${companyId}:${member.id}:${distRefTs}`,
+          `Distribuição da empresa (${dist.amount} SortCoins)`,
+        );
+        successfulCredits.push({ memberId: member.id, amount: dist.amount });
+      }
+    } catch (error) {
+      for (const credit of successfulCredits) {
+        await this.clubService.creditDistribution(
+          credit.memberId,
+          -credit.amount,
+          `company-dist-reversal:${companyId}:${credit.memberId}:${distRefTs}`,
+          `Reversão de distribuição da empresa (${credit.amount} SortCoins)`,
+        );
+      }
+
+      if (companyDebited) {
+        await this.creditCoins(
+          companyId,
+          totalToDistribute,
+          CompanyWalletTxSource.COMPANY_DISTRIBUTION,
+          `company-dist-reversal:${companyId}:${distRefTs}`,
+          DEFAULT_COIN,
+          `Reversão de distribuição para ${normalizedDistributions.length} destinatário(s)`,
+        );
+      }
+
+      throw error;
     }
 
     return { distributed: totalToDistribute, recipients: normalizedDistributions.length };

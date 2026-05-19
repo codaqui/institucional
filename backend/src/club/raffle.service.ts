@@ -152,13 +152,6 @@ export class RaffleService {
     memberId: string,
     ownerType: RaffleOwnerType = RaffleOwnerType.MEMBER,
   ): Promise<RaffleEntry> {
-    const raffle = await this.findOne(raffleId);
-
-    if (raffle.status !== RaffleStatus.OPEN)
-      throw new BadRequestException('Sorteio não está aberto para inscrições');
-    if (new Date() > raffle.closesAt)
-      throw new BadRequestException('Sorteio já encerrado');
-
     // resolve ownerId + walletId
     let ownerId: string;
     let walletId: string;
@@ -184,6 +177,21 @@ export class RaffleService {
     }
 
     return this.dataSource.transaction(async (em) => {
+      const lockedRaffle = await em
+        .getRepository(Raffle)
+        .createQueryBuilder('raffle')
+        .setLock('pessimistic_write')
+        .where('raffle.id = :raffleId', { raffleId })
+        .getOne();
+
+      if (!lockedRaffle) throw new NotFoundException('Sorteio não encontrado');
+      if (lockedRaffle.status !== RaffleStatus.OPEN) {
+        throw new BadRequestException('Sorteio não está aberto para inscrições');
+      }
+      if (new Date() > lockedRaffle.closesAt) {
+        throw new BadRequestException('Sorteio já encerrado');
+      }
+
       const alreadyIn = await em
         .getRepository(RaffleEntry)
         .createQueryBuilder('entry')
@@ -194,13 +202,13 @@ export class RaffleService {
         .getOne();
 
       const raffleReferenceId = alreadyIn
-        ? `raffle:${raffleId}:entry:${alreadyIn.id}:total:${alreadyIn.coinsSpent + raffle.costInCoins}`
+        ? `raffle:${raffleId}:entry:${alreadyIn.id}:total:${alreadyIn.coinsSpent + lockedRaffle.costInCoins}`
         : `raffle:${raffleId}`;
 
       if (ownerType === RaffleOwnerType.COMPANY) {
         await this.companiesService.debitForRaffle(
           walletId,
-          raffle.costInCoins,
+          lockedRaffle.costInCoins,
           raffleReferenceId,
           undefined,
           em,
@@ -208,7 +216,7 @@ export class RaffleService {
       } else {
         await this.clubService.debitForRaffle(
           walletId,
-          raffle.costInCoins,
+          lockedRaffle.costInCoins,
           raffleReferenceId,
           undefined,
           em,
@@ -216,7 +224,7 @@ export class RaffleService {
       }
 
       if (alreadyIn) {
-        alreadyIn.coinsSpent += raffle.costInCoins;
+        alreadyIn.coinsSpent += lockedRaffle.costInCoins;
         return em.getRepository(RaffleEntry).save(alreadyIn);
       }
 
@@ -225,7 +233,7 @@ export class RaffleService {
           raffleId,
           ownerId,
           ownerType,
-          coinsSpent: raffle.costInCoins,
+          coinsSpent: lockedRaffle.costInCoins,
         }),
       );
     });
@@ -233,46 +241,56 @@ export class RaffleService {
 
   /** Sorteia um vencedor aleatório (crypto.randomInt para auditabilidade) */
   async draw(raffleId: string): Promise<Raffle> {
-    const raffle = await this.findOne(raffleId);
+    return this.dataSource.transaction(async (em) => {
+      const raffle = await em
+        .getRepository(Raffle)
+        .createQueryBuilder('raffle')
+        .setLock('pessimistic_write')
+        .where('raffle.id = :raffleId', { raffleId })
+        .getOne();
 
-    if (raffle.status !== RaffleStatus.OPEN && raffle.status !== RaffleStatus.CLOSED)
-      throw new BadRequestException('Sorteio não pode ser sorteado no status atual');
-
-    const entries = await this.entryRepo.find({
-      where: { raffleId },
-      order: { enteredAt: 'ASC', id: 'ASC' },
-    });
-    if (entries.length === 0)
-      throw new BadRequestException('Sem participantes para sortear');
-
-    const totalCoins = entries.reduce((sum, entry) => sum + entry.coinsSpent, 0);
-    if (totalCoins <= 0)
-      throw new BadRequestException('Sorteio inválido: sem coins investidos');
-    const drawSeed = randomBytes(16).toString('hex');
-    const digest = createHash('sha256')
-      .update(`${drawSeed}:${raffleId}:${totalCoins}`)
-      .digest('hex');
-    const randomCoin = Number(
-      BigInt(`0x${digest}`) % BigInt(totalCoins),
-    );
-    let accumulated = 0;
-    let winner = entries[0];
-    for (const entry of entries) {
-      accumulated += entry.coinsSpent;
-      if (randomCoin < accumulated) {
-        winner = entry;
-        break;
+      if (!raffle) throw new NotFoundException('Sorteio não encontrado');
+      if (raffle.status !== RaffleStatus.OPEN && raffle.status !== RaffleStatus.CLOSED) {
+        throw new BadRequestException('Sorteio não pode ser sorteado no status atual');
       }
-    }
 
-    raffle.status = RaffleStatus.DRAWN;
-    raffle.winnerId = winner.ownerId;
-    raffle.winnerType = winner.ownerType;
-    raffle.drawAt = new Date();
-    raffle.drawSeed = drawSeed;
-    raffle.drawAlgorithm = RaffleService.DRAW_ALGORITHM;
+      const entries = await em.getRepository(RaffleEntry).find({
+        where: { raffleId },
+        order: { enteredAt: 'ASC', id: 'ASC' },
+      });
+      if (entries.length === 0) {
+        throw new BadRequestException('Sem participantes para sortear');
+      }
 
-    return this.raffleRepo.save(raffle);
+      const totalCoins = entries.reduce((sum, entry) => sum + entry.coinsSpent, 0);
+      if (totalCoins <= 0) {
+        throw new BadRequestException('Sorteio inválido: sem coins investidos');
+      }
+
+      const drawSeed = randomBytes(16).toString('hex');
+      const digest = createHash('sha256')
+        .update(`${drawSeed}:${raffleId}:${totalCoins}`)
+        .digest('hex');
+      const randomCoin = Number(BigInt(`0x${digest}`) % BigInt(totalCoins));
+      let accumulated = 0;
+      let winner = entries[0];
+      for (const entry of entries) {
+        accumulated += entry.coinsSpent;
+        if (randomCoin < accumulated) {
+          winner = entry;
+          break;
+        }
+      }
+
+      raffle.status = RaffleStatus.DRAWN;
+      raffle.winnerId = winner.ownerId;
+      raffle.winnerType = winner.ownerType;
+      raffle.drawAt = new Date();
+      raffle.drawSeed = drawSeed;
+      raffle.drawAlgorithm = RaffleService.DRAW_ALGORITHM;
+
+      return em.getRepository(Raffle).save(raffle);
+    });
   }
 
   /**
