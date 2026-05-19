@@ -502,23 +502,22 @@ export default function LancamentoPage(): React.JSX.Element {
                   <Alert severity="info">Nenhuma solicitação nesta aba.</Alert>
                 ) : (
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                    {filteredTransfers.map((transfer) => (
-                      <Card key={transfer.id} variant="outlined">
-                        {(() => {
-                          const statusLabel =
-                            transfer.status === "pending"
-                              ? "Pendente"
-                              : transfer.status === "approved"
-                                ? "Aprovada"
-                                : "Rejeitada";
-                          const statusColor =
-                            transfer.status === "pending"
-                              ? "warning"
-                              : transfer.status === "approved"
-                                ? "success"
-                                : "error";
-                          return (
-                        <CardContent>
+                    {filteredTransfers.map((transfer) => {
+                      const statusLabel =
+                        transfer.status === "pending"
+                          ? "Pendente"
+                          : transfer.status === "approved"
+                            ? "Aprovada"
+                            : "Rejeitada";
+                      const statusColor =
+                        transfer.status === "pending"
+                          ? "warning"
+                          : transfer.status === "approved"
+                            ? "success"
+                            : "error";
+                      return (
+                        <Card key={transfer.id} variant="outlined">
+                          <CardContent>
                           <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, flexWrap: "wrap" }}>
                             <Box>
                               <Typography variant="body2" fontWeight={700}>{transfer.reason}</Typography>
@@ -556,11 +555,10 @@ export default function LancamentoPage(): React.JSX.Element {
                               )}
                             </Box>
                           </Box>
-                        </CardContent>
-                          );
-                        })()}
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </Box>
                 )}
               </Box>
