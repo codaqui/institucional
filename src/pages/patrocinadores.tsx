@@ -156,8 +156,13 @@ export default function PatrocinadoresPage(): React.JSX.Element {
             </Grid>
 
             <Grid container spacing={3}>
-              {sponsors.map((s) => (
-                <Grid key={s.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              {sponsors.map((s) => {
+                const supportCount = s.supportCount ?? 0;
+                const monthsSupporting = s.monthsSupporting ?? 0;
+                const supportLabel = supportCount === 1 ? " apoio" : " apoios";
+                const monthLabel = monthsSupporting === 1 ? " mês" : " meses";
+                return (
+                  <Grid key={s.id} size={{ xs: 12, sm: 6, md: 4 }}>
                   <Card
                     sx={{
                       height: "100%",
@@ -218,10 +223,10 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
                         <strong>{formatCurrency(s.totalSupportedReais ?? 0)}</strong>
                         {" em "}
-                        <strong>{s.supportCount ?? 0}</strong>
-                        {" apoio"}{(s.supportCount ?? 0) !== 1 ? "s" : ""}
-                        {(s.monthsSupporting ?? 0) > 0 && (
-                          <>{" · "}<strong>{s.monthsSupporting}</strong>{" mês"}{s.monthsSupporting !== 1 ? "es" : ""}</>
+                        <strong>{supportCount}</strong>
+                        {supportLabel}
+                        {monthsSupporting > 0 && (
+                          <>{" · "}<strong>{monthsSupporting}</strong>{monthLabel}</>
                         )}
                       </Typography>
                     </CardContent>
@@ -242,8 +247,9 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                       </Box>
                     )}
                   </Card>
-                </Grid>
-              ))}
+                  </Grid>
+                );
+              })}
             </Grid>
             {total > limit && (
               <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
