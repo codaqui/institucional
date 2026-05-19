@@ -78,7 +78,7 @@ describe('ClubController', () => {
   });
 
   it('lists admin all transactions with defaults', async () => {
-    await controller.adminAllTransactions(undefined as any, undefined, undefined);
+    await controller.adminAllTransactions();
     expect(clubService.getAdminAllTransactions).toHaveBeenCalledWith('all', 1, 50);
   });
 
@@ -160,7 +160,7 @@ describe('ClubController', () => {
   });
 
   it('uses default pagination values for my transactions', async () => {
-    await controller.getMyTransactions(req(), undefined, undefined);
+    await controller.getMyTransactions(req());
     expect(clubService.getTransactions).toHaveBeenCalledWith('member-1', 1, 20);
   });
 });
