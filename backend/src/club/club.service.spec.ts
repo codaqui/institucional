@@ -11,7 +11,7 @@ const MEMBER_ID = 'aaaa0000-aaaa-aaaa-aaaa-000000000001';
 const WALLET_ID = 'bbbb0000-bbbb-bbbb-bbbb-000000000001';
 
 const makeWallet = (overrides: Partial<Wallet> = {}): Wallet =>
-  {
+  ({
     id: WALLET_ID,
     memberId: MEMBER_ID,
     balances: { sort_coin: 100 },
@@ -19,10 +19,10 @@ const makeWallet = (overrides: Partial<Wallet> = {}): Wallet =>
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  };
+  });
 
 const makeTx = (overrides: Partial<WalletTransaction> = {}): WalletTransaction =>
-  {
+  ({
     id: 'tx-0001',
     walletId: WALLET_ID,
     coinType: 'sort_coin',
@@ -33,7 +33,7 @@ const makeTx = (overrides: Partial<WalletTransaction> = {}): WalletTransaction =
     createdAt: new Date(),
     wallet: null as any,
     ...overrides,
-  };
+  });
 
 /** Helper: cria mock de EntityManager com SELECT FOR UPDATE stub */
 const makeMockEm = (walletData: Partial<Wallet> = {}) => {

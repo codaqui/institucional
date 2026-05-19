@@ -36,7 +36,7 @@ const makeRaffle = (overrides: Partial<Raffle> = {}): Raffle =>
   } as Raffle);
 
 const makeEntry = (overrides: Partial<RaffleEntry> = {}): RaffleEntry =>
-  {
+  ({
     id: 'entry-001',
     raffleId: RAFFLE_ID,
     ownerId: MEMBER_ID,
@@ -45,7 +45,7 @@ const makeEntry = (overrides: Partial<RaffleEntry> = {}): RaffleEntry =>
     enteredAt: new Date(),
     raffle: null as any,
     ...overrides,
-  };
+  });
 
 describe('RaffleService', () => {
   let service: RaffleService;
