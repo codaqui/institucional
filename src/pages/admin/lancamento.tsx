@@ -503,18 +503,15 @@ export default function LancamentoPage(): React.JSX.Element {
                 ) : (
                   <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                     {filteredTransfers.map((transfer) => {
-                      const statusLabel =
-                        transfer.status === "pending"
-                          ? "Pendente"
-                          : transfer.status === "approved"
-                            ? "Aprovada"
-                            : "Rejeitada";
-                      const statusColor =
-                        transfer.status === "pending"
-                          ? "warning"
-                          : transfer.status === "approved"
-                            ? "success"
-                            : "error";
+                      let statusLabel = "Rejeitada";
+                      let statusColor: "warning" | "success" | "error" = "error";
+                      if (transfer.status === "pending") {
+                        statusLabel = "Pendente";
+                        statusColor = "warning";
+                      } else if (transfer.status === "approved") {
+                        statusLabel = "Aprovada";
+                        statusColor = "success";
+                      }
                       return (
                         <Card key={transfer.id} variant="outlined">
                           <CardContent>
