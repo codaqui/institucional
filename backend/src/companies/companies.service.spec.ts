@@ -21,7 +21,7 @@ const WALLET_ID = 'cccc0000-cccc-cccc-cccc-000000000001';
 const VALID_CNPJ = '11222333000181';
 
 const makeCompany = (overrides: Partial<Company> = {}): Company =>
-  ({
+  {
     id: COMPANY_ID,
     cnpj: VALID_CNPJ,
     name: 'Empresa Teste Ltda',
@@ -36,10 +36,10 @@ const makeCompany = (overrides: Partial<Company> = {}): Company =>
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  } as Company);
+  };
 
 const makeWallet = (): CompanyWallet =>
-  ({
+  {
     id: WALLET_ID,
     companyId: COMPANY_ID,
     balances: { sort_coin: 50 },
@@ -47,11 +47,11 @@ const makeWallet = (): CompanyWallet =>
     createdAt: new Date(),
     updatedAt: new Date(),
     company: null as any,
-  } as CompanyWallet);
+  };
 
-const makeMockEm = (balances: Record<string, number> = { sort_coin: 50 }) => {
+const makeMockEm = (balances?: Record<string, number>) => {
   const wallet = makeWallet();
-  wallet.balances = balances;
+  wallet.balances = balances ?? { sort_coin: 50 };
   const qb = {
     setLock: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
