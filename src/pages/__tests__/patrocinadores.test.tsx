@@ -41,11 +41,11 @@ const sponsors = [
 
 describe("/patrocinadores", () => {
   beforeEach(() => {
-    (global.fetch as jest.Mock | undefined)?.mockReset?.();
+    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
   });
 
   it("renderiza patrocinadores com somatórios e cards", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/companies/sponsors?page=1&limit=12")) {
         return Promise.resolve(
           jsonResponse({
@@ -74,7 +74,7 @@ describe("/patrocinadores", () => {
   });
 
   it("faz nova requisição ao trocar a paginação", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/companies/sponsors?page=1&limit=12")) {
         return Promise.resolve(jsonResponse({ items: sponsors, total: 24, page: 1, limit: 12 }));
       }
@@ -90,14 +90,14 @@ describe("/patrocinadores", () => {
     fireEvent.click(screen.getByRole("button", { name: /go to page 2/i }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/companies/sponsors?page=2&limit=12"),
       );
     });
   });
 
   it("mostra estado vazio quando não há patrocinadores", async () => {
-    (global.fetch as any) = jest.fn(() =>
+    (globalThis.fetch as any) = jest.fn(() =>
       Promise.resolve(jsonResponse({ items: [], total: 0, page: 1, limit: 12 })),
     );
 

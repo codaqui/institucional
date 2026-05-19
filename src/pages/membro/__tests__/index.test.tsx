@@ -18,7 +18,7 @@ const loggedUser = {
 describe("/membro", () => {
   beforeEach(() => {
     resetRouterMocks();
-    (global.fetch as jest.Mock | undefined)?.mockReset?.();
+    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
   });
 
   it("redireciona quando usuário não está logado", async () => {
@@ -28,7 +28,7 @@ describe("/membro", () => {
       authFetch: jest.fn() as any,
     }));
 
-    (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
     render(<MembroPage />);
 
@@ -106,7 +106,7 @@ describe("/membro", () => {
       authFetch: authFetch as any,
     }));
 
-    (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
     render(<MembroPage />);
 
@@ -140,7 +140,7 @@ describe("/membro", () => {
       authFetch: authFetch as any,
     }));
 
-    (global.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
 
     render(<MembroPage />);
 

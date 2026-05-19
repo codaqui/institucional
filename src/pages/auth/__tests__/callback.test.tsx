@@ -25,7 +25,7 @@ describe("/auth/callback", () => {
     replaceMock.mockReset();
     sessionStorage.clear();
     globalThis.window.history.replaceState({}, "", "/auth/callback");
-    (global.fetch as jest.Mock | undefined)?.mockReset?.();
+    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
     mockResolveCommunityFromPath.mockReturnValue(null);
   });
 
@@ -42,7 +42,7 @@ describe("/auth/callback", () => {
       isAdmin: false,
       isFinanceAnalyzer: false,
     } as any);
-    (global.fetch as any) = jest.fn(() =>
+    (globalThis.fetch as any) = jest.fn(() =>
       Promise.resolve({ ok: true, json: async () => ({ ok: true }) }),
     );
 
@@ -57,7 +57,7 @@ describe("/auth/callback", () => {
     render(<AuthCallback />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("/auth/finalize"),
         expect.objectContaining({ method: "POST" }),
       );
@@ -81,7 +81,7 @@ describe("/auth/callback", () => {
       isAdmin: false,
       isFinanceAnalyzer: false,
     } as any);
-    (global.fetch as any) = jest.fn();
+    (globalThis.fetch as any) = jest.fn();
 
     globalThis.window.history.replaceState({}, "", "/auth/callback");
     render(<AuthCallback />);
@@ -90,7 +90,7 @@ describe("/auth/callback", () => {
       expect(refreshUser).toHaveBeenCalled();
       expect(replaceMock).toHaveBeenCalledWith("/");
     });
-    expect(global.fetch).not.toHaveBeenCalled();
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
   it("renderiza estado de erro e volta para comunidade quando status=error", async () => {
@@ -126,4 +126,3 @@ describe("/auth/callback", () => {
     );
   });
 });
-

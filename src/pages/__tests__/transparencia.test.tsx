@@ -46,11 +46,11 @@ function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
 
 describe("/transparencia", () => {
   beforeEach(() => {
-    (global.fetch as jest.Mock | undefined)?.mockReset?.();
+    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
   });
 
   it("carrega saldos/estatísticas e troca aba de comunidade mantendo tx inicial", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/ledger/community-balances")) {
         return Promise.resolve(
           jsonResponse([
@@ -91,7 +91,7 @@ describe("/transparencia", () => {
   });
 
   it("mostra alerta quando backend de saldos falha", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/ledger/community-balances")) {
         return Promise.resolve(jsonResponse({}, false, 500));
       }
@@ -108,4 +108,3 @@ describe("/transparencia", () => {
     ).toBeInTheDocument();
   });
 });
-

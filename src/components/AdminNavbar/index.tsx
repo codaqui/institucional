@@ -29,7 +29,7 @@ const NAV_ITEMS = [
   { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon /> },
 ] as const;
 
-export default function AdminNavbar({ active }: AdminNavbarProps): React.JSX.Element {
+export default function AdminNavbar({ active }: Readonly<AdminNavbarProps>): React.JSX.Element {
   return (
     <Box
       sx={{

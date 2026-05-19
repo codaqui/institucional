@@ -25,11 +25,11 @@ function makeTx(id: string, amount: number, description: string) {
 
 describe("TransactionTable", () => {
   beforeEach(() => {
-    (global.fetch as jest.Mock | undefined)?.mockReset?.();
+    (globalThis.fetch as jest.Mock | undefined)?.mockReset?.();
   });
 
   it("carrega transações e abre modal inicial por txId", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/ledger/transactions/tx-open")) {
         return Promise.resolve({ ok: true, json: async () => makeTx("tx-open", 120, "Detalhe inicial") });
       }
@@ -65,7 +65,7 @@ describe("TransactionTable", () => {
   });
 
   it("aplica busca e troca de página na consulta paginada", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("search=fornecedor") && url.includes("page=1")) {
         return Promise.resolve({
           ok: true,
@@ -96,7 +96,7 @@ describe("TransactionTable", () => {
     fireEvent.click(screen.getByRole("button", { name: /Buscar/i }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("search=fornecedor"),
       );
     });
@@ -104,14 +104,14 @@ describe("TransactionTable", () => {
     fireEvent.click(screen.getByRole("button", { name: /go to next page/i }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(globalThis.fetch).toHaveBeenCalledWith(
         expect.stringContaining("page=2"),
       );
     });
   });
 
   it("exporta CSV da página atual", async () => {
-    (global.fetch as any) = jest.fn((url: string) => {
+    (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/ledger/accounts/acc-1/transactions?page=1&limit=10")) {
         return Promise.resolve({
           ok: true,

@@ -11,7 +11,7 @@ export default function TabPanel({
   children,
   value,
   index,
-}: TabPanelProps): React.JSX.Element {
+}: Readonly<TabPanelProps>): React.JSX.Element {
   return (
     <Box
       role="tabpanel"

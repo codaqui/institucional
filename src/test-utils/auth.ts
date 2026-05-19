@@ -12,7 +12,7 @@ export function buildAuthState(
     isLoggedIn: true,
     isAdmin: false,
     isFinanceAnalyzer: false,
-    authFetch: jest.fn() as UseAuthReturn["authFetch"],
+    authFetch: jest.fn(),
     user: null,
     login: jest.fn(),
     logout: jest.fn(),
