@@ -85,35 +85,42 @@ export const formatDate = (iso: string) =>
 
 export type TxType = "donation" | "donation-business" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "other";
 
+const REFERENCE_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
+  { prefix: "reimbursement:", type: "reimbursement" },
+  { prefix: "vendor-payment:", type: "vendor-payment" },
+  { prefix: "vendor-receipt:", type: "vendor-receipt" },
+  { prefix: "transfer:", type: "transfer" },
+  { prefix: "stripe-fee:", type: "stripe-fee" },
+];
+
+const DESCRIPTION_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
+  { prefix: "estorno", type: "refund" },
+  { prefix: "taxa stripe", type: "stripe-fee" },
+  { prefix: "pagamento a fornecedor", type: "vendor-payment" },
+  { prefix: "recebimento de fornecedor", type: "vendor-receipt" },
+  { prefix: "reembolso", type: "reimbursement" },
+  { prefix: "transfer", type: "transfer" },
+];
+
 export function detectTxType(tx: Transaction): TxType {
-  if (tx.referenceId?.startsWith("reimbursement:")) return "reimbursement";
-  if (tx.referenceId?.startsWith("vendor-payment:")) return "vendor-payment";
-  if (tx.referenceId?.startsWith("vendor-receipt:")) return "vendor-receipt";
-  if (tx.referenceId?.startsWith("transfer:")) return "transfer";
-  if (tx.referenceId?.startsWith("stripe-fee:")) return "stripe-fee";
+  const referenceId = tx.referenceId ?? "";
+  const typeByReferencePrefix = REFERENCE_PREFIX_TYPES.find(({ prefix }) => referenceId.startsWith(prefix));
+  if (typeByReferencePrefix) return typeByReferencePrefix.type;
   // re_ = Stripe Refund (estorno de doação)
-  if (tx.referenceId?.startsWith("re_")) return "refund";
+  if (referenceId.startsWith("re_")) return "refund";
   // cs_ = Stripe Checkout Session (pagamento único legado)
   // pi_ = Stripe Payment Intent (pagamento único atual + assinaturas)
   // in_ = Stripe Invoice (renovação de assinatura sem payment_intent)
-  if (
-    tx.referenceId?.startsWith("cs_") ||
-    tx.referenceId?.startsWith("pi_") ||
-    tx.referenceId?.startsWith("in_")
-  ) {
+  if (referenceId.startsWith("cs_") || referenceId.startsWith("pi_") || referenceId.startsWith("in_")) {
     // Doação empresarial: detectada pela descrição
     if (tx.description?.includes("Empresa:")) return "donation-business";
     return "donation";
   }
   const desc = tx.description?.toLowerCase() ?? "";
-  if (desc.startsWith("estorno")) return "refund";
-  if (desc.startsWith("taxa stripe")) return "stripe-fee";
+  const typeByDescriptionPrefix = DESCRIPTION_PREFIX_TYPES.find(({ prefix }) => desc.startsWith(prefix));
+  if (typeByDescriptionPrefix) return typeByDescriptionPrefix.type;
   if (desc.includes("empresarial")) return "donation-business";
   if (desc.startsWith("doação") || desc.startsWith("assinatura")) return "donation";
-  if (desc.startsWith("pagamento a fornecedor")) return "vendor-payment";
-  if (desc.startsWith("recebimento de fornecedor")) return "vendor-receipt";
-  if (desc.startsWith("reembolso")) return "reimbursement";
-  if (desc.startsWith("transfer")) return "transfer";
   return "other";
 }
 

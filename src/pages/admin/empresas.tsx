@@ -292,11 +292,7 @@ export default function AdminEmpresasPage(): React.JSX.Element {
                   {/* Expanded details */}
                   <Collapse in={isExpanded}>
                     <Divider sx={{ my: 2 }} />
-                    {!detail ? (
-                      <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-                        <CircularProgress size={24} />
-                      </Box>
-                    ) : (
+                    {detail ? (
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700} gutterBottom>
                           Colaboradores ({detail.members.length})
@@ -357,6 +353,10 @@ export default function AdminEmpresasPage(): React.JSX.Element {
                             </TableContainer>
                           </>
                         )}
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+                        <CircularProgress size={24} />
                       </Box>
                     )}
                   </Collapse>

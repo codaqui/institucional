@@ -53,8 +53,8 @@ export class ClubController {
     const user = req.user as JwtPayload;
     return this.clubService.getTransactions(
       user.sub,
-      parseInt(page),
-      parseInt(limit),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 
@@ -63,7 +63,7 @@ export class ClubController {
     @Param('handle') handle: string,
     @Query('limit') limit = '10',
   ) {
-    return this.clubService.getPublicWalletByHandle(handle, parseInt(limit, 10));
+    return this.clubService.getPublicWalletByHandle(handle, Number.parseInt(limit, 10));
   }
 
   // ── Admin: ajuste manual de carteira ─────────────────────────────────────
@@ -94,8 +94,8 @@ export class ClubController {
   ) {
     return this.clubService.getAdminAllTransactions(
       type,
-      parseInt(page),
-      parseInt(limit),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 

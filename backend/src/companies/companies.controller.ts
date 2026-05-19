@@ -75,8 +75,8 @@ export class CompaniesController {
     @Query('limit') limit = '20',
   ) {
     return this.companiesService.listSponsorsPaginated(
-      parseInt(page, 10),
-      parseInt(limit, 10),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 
@@ -158,8 +158,8 @@ export class CompaniesController {
     await this.assertCompanyAccess(id, user);
     return this.companiesService.getTransactions(
       id,
-      parseInt(page, 10),
-      parseInt(limit, 10),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 
@@ -225,8 +225,8 @@ export class CompaniesController {
     @Query('limit') limit = '20',
   ) {
     return this.companiesService.findAllAdminPaginated(
-      parseInt(page, 10),
-      parseInt(limit, 10),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 

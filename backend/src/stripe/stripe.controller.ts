@@ -46,8 +46,8 @@ export class StripeController {
   ) {
     return this.stripeService.getMyDonations(
       req.user.sub,
-      parseInt(page, 10),
-      parseInt(limit, 10),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 
@@ -65,8 +65,8 @@ export class StripeController {
   ) {
     return this.stripeService.getMySubscriptions(
       req.user.sub,
-      parseInt(page, 10),
-      parseInt(limit, 10),
+      Number.parseInt(page, 10),
+      Number.parseInt(limit, 10),
     );
   }
 
