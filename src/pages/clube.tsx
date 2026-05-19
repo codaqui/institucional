@@ -78,6 +78,32 @@ function formatCoinLabel(coinType: string): string {
     .join(" ");
 }
 
+function raffleFilterLabel(filter: "open" | "past" | "all"): string {
+  if (filter === "open") return "Em aberto";
+  if (filter === "past") return "Realizados";
+  return "Todos";
+}
+
+function raffleActionLabel(args: {
+  isLoggedIn: boolean;
+  isFrozen: boolean;
+  canAfford: boolean;
+  entered: boolean;
+  costInCoins: number;
+}): string {
+  if (!args.isLoggedIn) return "Entrar com GitHub";
+  if (args.isFrozen) return "Carteira congelada";
+  if (!args.canAfford) return "SortCoins insuficientes";
+  if (args.entered) return `Aumentar participação (+${args.costInCoins})`;
+  return "Participar";
+}
+
+function pastRaffleStatusLabel(status: PastRaffle["status"]): string {
+  if (status === "drawn") return "Sorteado";
+  if (status === "canceled") return "Cancelado";
+  return "Encerrado";
+}
+
 export default function ClubePage(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl =
@@ -98,36 +124,46 @@ export default function ClubePage(): React.JSX.Element {
   const [raffleFilter, setRaffleFilter] = useState<"open" | "past" | "all">("open");
 
   useEffect(() => {
-    fetch(`${apiUrl}/club/raffles`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data: Raffle[]) => {
-        setRaffles(data ?? []);
+    async function loadRafflesAndStats() {
+      try {
+        const rafflesRes = await fetch(`${apiUrl}/club/raffles`);
+        const data = (rafflesRes.ok ? await rafflesRes.json() : []) as Raffle[];
+        const currentRaffles = data ?? [];
+        setRaffles(currentRaffles);
         setLoading(false);
 
-        const currentRaffles = data ?? [];
         if (currentRaffles.length === 0) {
           setRaffleStats({});
           return;
         }
-        Promise.all(
-          currentRaffles.map((raffle) =>
-            fetch(`${apiUrl}/club/raffles/${raffle.id}/stats`)
-              .then((r) => (r.ok ? r.json() : { participantCount: 0, totalCoins: 0 }))
-              .then((stats: RaffleStats) => ({ raffleId: raffle.id, stats }))
-              .catch(() => ({
+
+        const items = await Promise.all(
+          currentRaffles.map(async (raffle) => {
+            try {
+              const statsRes = await fetch(`${apiUrl}/club/raffles/${raffle.id}/stats`);
+              const stats = (statsRes.ok
+                ? await statsRes.json()
+                : { participantCount: 0, totalCoins: 0 }) as RaffleStats;
+              return { raffleId: raffle.id, stats };
+            } catch {
+              return {
                 raffleId: raffle.id,
                 stats: { participantCount: 0, totalCoins: 0 },
-              })),
-          ),
-        ).then((items) => {
-          const nextStats: Record<string, RaffleStats> = {};
-          for (const item of items) {
-            nextStats[item.raffleId] = item.stats;
-          }
-          setRaffleStats(nextStats);
-        });
-      })
-      .catch(() => setLoading(false));
+              };
+            }
+          }),
+        );
+        const nextStats: Record<string, RaffleStats> = {};
+        for (const item of items) {
+          nextStats[item.raffleId] = item.stats;
+        }
+        setRaffleStats(nextStats);
+      } catch {
+        setLoading(false);
+      }
+    }
+
+    void loadRafflesAndStats();
   }, [apiUrl]);
 
   const loadHistory = async () => {
@@ -329,7 +365,7 @@ export default function ClubePage(): React.JSX.Element {
               {(["open", "past", "all"] as const).map((f) => (
                 <Chip
                   key={f}
-                  label={f === "open" ? "Em aberto" : f === "past" ? "Realizados" : "Todos"}
+                  label={raffleFilterLabel(f)}
                   variant={raffleFilter === f ? "filled" : "outlined"}
                   color={raffleFilter === f ? "primary" : "default"}
                   onClick={() => setRaffleFilter(f)}
@@ -472,15 +508,13 @@ export default function ClubePage(): React.JSX.Element {
                                   ) : undefined
                                 }
                               >
-                                {!isLoggedIn
-                                  ? "Entrar com GitHub"
-                                  : isFrozen
-                                    ? "Carteira congelada"
-                                    : !canAfford
-                                      ? "SortCoins insuficientes"
-                                      : entered
-                                        ? `Aumentar participação (+${raffle.costInCoins})`
-                                        : "Participar"}
+                                {raffleActionLabel({
+                                  isLoggedIn,
+                                  isFrozen,
+                                  canAfford,
+                                  entered,
+                                  costInCoins: raffle.costInCoins,
+                                })}
                               </Button>
                             </Box>
                           </Card>
@@ -510,12 +544,14 @@ export default function ClubePage(): React.JSX.Element {
                   <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
                     <CircularProgress size={22} />
                   </Box>
-                ) : pastRaffles.length === 0 ? (
-                  <Alert severity="info">Nenhum sorteio realizado ainda.</Alert>
                 ) : (
-                  <Stack spacing={2}>
-                    {pastRaffles.map((raffle) => (
-                      <Card key={raffle.id} variant="outlined">
+                  <>
+                    {pastRaffles.length === 0 ? (
+                      <Alert severity="info">Nenhum sorteio realizado ainda.</Alert>
+                    ) : (
+                      <Stack spacing={2}>
+                        {pastRaffles.map((raffle) => (
+                          <Card key={raffle.id} variant="outlined">
                         <CardContent>
                           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 2, flexWrap: "wrap" }}>
                             <Box>
@@ -523,7 +559,7 @@ export default function ClubePage(): React.JSX.Element {
                                 {raffle.title}
                               </Typography>
                               <Typography variant="body2" color="text.secondary">
-                                {raffle.status === "drawn" ? "Sorteado" : raffle.status === "canceled" ? "Cancelado" : "Encerrado"} · {new Date(raffle.closesAt).toLocaleDateString("pt-BR")}
+                                {pastRaffleStatusLabel(raffle.status)} · {new Date(raffle.closesAt).toLocaleDateString("pt-BR")}
                               </Typography>
                               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
                                 {raffle.totalCoinsGenerated} SortCoins no pot
@@ -561,9 +597,11 @@ export default function ClubePage(): React.JSX.Element {
                             </Typography>
                           )}
                         </CardContent>
-                      </Card>
-                    ))}
-                  </Stack>
+                          </Card>
+                        ))}
+                      </Stack>
+                    )}
+                  </>
                 )}
               </Box>
             )}
@@ -600,7 +638,7 @@ export default function ClubePage(): React.JSX.Element {
                             {formatCoinLabel(coinType)}
                           </Typography>
                           <Stack direction="row" spacing={1}>
-                            <Chip label={balance.toLocaleString("pt-BR")} size="small" color="primary" />
+                            <Chip label={Number(balance).toLocaleString("pt-BR")} size="small" color="primary" />
                             {(wallet?.frozenTypes ?? []).includes(coinType) && (
                               <Chip label="Congelada" size="small" color="error" variant="outlined" />
                             )}
