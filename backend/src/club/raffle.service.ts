@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
-import { createHash, randomBytes } from 'crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { Raffle, RaffleStatus } from './entities/raffle.entity';
 import { RaffleEntry, RaffleOwnerType } from './entities/raffle-entry.entity';
 import { Wallet } from './entities/wallet.entity';
@@ -355,10 +355,10 @@ export class RaffleService {
     ]);
 
     const memberMap = new Map(
-      members.map((member) => [
-        member.id,
-        `@${member.githubHandle}${member.name ? ` (${member.name})` : ''}`,
-      ]),
+      members.map((member) => {
+        const nameSuffix = member.name ? ` (${member.name})` : '';
+        return [member.id, `@${member.githubHandle}${nameSuffix}`];
+      }),
     );
     const companyMap = new Map(companies.map((company) => [company.id, company.name]));
 
@@ -404,9 +404,12 @@ export class RaffleService {
           where: { id: raffle.winnerId },
           select: ['githubHandle', 'name'],
         });
-        winnerDisplay = member
-          ? `@${member.githubHandle}${member.name ? ` (${member.name})` : ''}`
-          : raffle.winnerId;
+        if (member) {
+          const nameSuffix = member.name ? ` (${member.name})` : '';
+          winnerDisplay = `@${member.githubHandle}${nameSuffix}`;
+        } else {
+          winnerDisplay = raffle.winnerId;
+        }
       } else {
         const company = await this.companyRepo.findOne({
           where: { id: raffle.winnerId },
