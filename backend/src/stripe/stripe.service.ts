@@ -237,21 +237,7 @@ export class StripeService {
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
     const isSubscription = session.metadata?.isSubscription === 'true';
 
-    // Para assinaturas de empresa: salva stripeCustomerId + stripeSubscriptionId
-    // antes de retornar (a invoice vai registrar o ledger e ativar a empresa).
-    if (isSubscription && session.metadata?.entityType === 'business') {
-      const companyId = session.metadata?.companyId;
-      const customerId = typeof session.customer === 'string' ? session.customer : null;
-      const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
-      if (companyId && customerId) {
-        await this.companiesService.setStripeCustomer(companyId, customerId);
-      }
-      if (companyId && subscriptionId) {
-        await this.companiesService.setStripeSubscription(companyId, subscriptionId);
-      }
-      this.logger.debug(
-        `checkout.session.completed (business subscription): customer=${customerId} sub=${subscriptionId} salvos para company=${companyId}`,
-      );
+    if (await this.processBusinessSubscriptionCheckout(session, isSubscription)) {
       return;
     }
 
@@ -264,34 +250,18 @@ export class StripeService {
       return;
     }
 
-    const communityId = session.metadata?.communityId ?? 'tesouro-geral';
-    const memberId = session.metadata?.memberId;
-
-    const amountCents = session.amount_total ?? 0;
-    if (amountCents <= 0) {
+    const amountReais = this.resolveCheckoutAmountReais(session.amount_total);
+    if (amountReais === null) {
       this.logger.warn(
-        `Webhook recebido com amount_total inválido: ${amountCents}`,
+        `Webhook recebido com amount_total inválido: ${session.amount_total ?? 0}`,
       );
       return;
     }
 
-    const amountReais = amountCents / 100;
-
-    // payment_intent (pi_xxx) é o ID que aparece no Stripe Dashboard.
-    // Para subscriptions, pode ser null na session — usamos session.id como fallback.
-    const paymentIntentId = this.resolveSessionPaymentIntentId(session);
+    const checkoutMetadata = this.resolveCheckoutDonationMetadata(session, amountReais, isSubscription);
 
     try {
-      await this.recordDonationToLedger({
-        communityId,
-        memberId,
-        githubHandle: session.metadata?.githubHandle,
-        amountReais,
-        sessionId: session.id,
-        paymentIntentId,
-        isSubscription,
-        interval: session.metadata?.interval as CheckoutInterval | undefined,
-      });
+      await this.recordDonationToLedger(checkoutMetadata);
       // Captura inline da taxa Stripe (resolve race com charge.succeeded)
       if (typeof session.payment_intent === 'string') {
         await this.captureFeeFromPaymentIntent(session.payment_intent);
@@ -358,31 +328,16 @@ export class StripeService {
 
     // Crédito de SortCoins roda mesmo se o ledger falhar (evita perder benefício ao apoiador).
     try {
-      if (entityType === 'business') {
-        const customerId =
-          typeof subscription.customer === 'string'
-            ? subscription.customer
-            : subscription.customer?.id;
-        if (!customerId) {
-          this.logger.warn(
-            `invoice.payment_succeeded sem customer para assinatura empresarial ${subscriptionId}`,
-          );
-          return;
-        }
-        await this.companiesService.activateFromInvoice(
-          resolvedSubscriptionId,
-          customerId,
-          amountReais,
-          `stripe-pi:${paymentIntentId}`,
-          companyId,
-        );
-      } else if (memberId) {
-        await this.clubService.creditFromInvoice(
-          memberId,
-          amountReais,
-          `stripe-pi:${paymentIntentId}`,
-        );
-      }
+      await this.processInvoiceCoinCredit({
+        entityType,
+        subscription,
+        subscriptionId,
+        resolvedSubscriptionId,
+        amountReais,
+        paymentIntentId,
+        companyId,
+        memberId,
+      });
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -845,6 +800,37 @@ export class StripeService {
     return session.id;
   }
 
+  private resolveCheckoutAmountReais(amountTotal: number | null): number | null {
+    if (!amountTotal || amountTotal <= 0) return null;
+    return amountTotal / 100;
+  }
+
+  private resolveCheckoutDonationMetadata(
+    session: Stripe.Checkout.Session,
+    amountReais: number,
+    isSubscription: boolean,
+  ): {
+    communityId: string;
+    memberId?: string;
+    githubHandle?: string;
+    amountReais: number;
+    sessionId: string;
+    paymentIntentId: string;
+    isSubscription: boolean;
+    interval?: CheckoutInterval;
+  } {
+    return {
+      communityId: session.metadata?.communityId ?? 'tesouro-geral',
+      memberId: session.metadata?.memberId,
+      githubHandle: session.metadata?.githubHandle,
+      amountReais,
+      sessionId: session.id,
+      paymentIntentId: this.resolveSessionPaymentIntentId(session),
+      isSubscription,
+      interval: session.metadata?.interval as CheckoutInterval | undefined,
+    };
+  }
+
   private resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
     const invoiceAny = invoice as any;
     if (typeof invoiceAny.subscription === 'string') {
@@ -872,6 +858,71 @@ export class StripeService {
     } catch {
       return undefined;
     }
+  }
+
+  private async processBusinessSubscriptionCheckout(
+    session: Stripe.Checkout.Session,
+    isSubscription: boolean,
+  ): Promise<boolean> {
+    if (!(isSubscription && session.metadata?.entityType === 'business')) {
+      return false;
+    }
+
+    const companyId = session.metadata?.companyId;
+    const customerId = typeof session.customer === 'string' ? session.customer : null;
+    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+    if (companyId && customerId) {
+      await this.companiesService.setStripeCustomer(companyId, customerId);
+    }
+    if (companyId && subscriptionId) {
+      await this.companiesService.setStripeSubscription(companyId, subscriptionId);
+    }
+    this.logger.debug(
+      `checkout.session.completed (business subscription): customer=${customerId} sub=${subscriptionId} salvos para company=${companyId}`,
+    );
+    return true;
+  }
+
+  private async processInvoiceCoinCredit(args: {
+    entityType: string | undefined;
+    subscription: Stripe.Subscription;
+    subscriptionId: string | null;
+    resolvedSubscriptionId: string;
+    amountReais: number;
+    paymentIntentId: string;
+    companyId: string | undefined;
+    memberId: string | undefined;
+  }): Promise<void> {
+    if (args.entityType === 'business') {
+      const customerId = this.resolveSubscriptionCustomerId(args.subscription);
+      if (!customerId) {
+        this.logger.warn(
+          `invoice.payment_succeeded sem customer para assinatura empresarial ${args.subscriptionId}`,
+        );
+        return;
+      }
+      await this.companiesService.activateFromInvoice(
+        args.resolvedSubscriptionId,
+        customerId,
+        args.amountReais,
+        `stripe-pi:${args.paymentIntentId}`,
+        args.companyId,
+      );
+      return;
+    }
+
+    if (args.memberId) {
+      await this.clubService.creditFromInvoice(
+        args.memberId,
+        args.amountReais,
+        `stripe-pi:${args.paymentIntentId}`,
+      );
+    }
+  }
+
+  private resolveSubscriptionCustomerId(subscription: Stripe.Subscription): string | null {
+    if (typeof subscription.customer === 'string') return subscription.customer;
+    return subscription.customer?.id ?? null;
   }
 
   // ---------------------------------------------------------------------------
