@@ -24,6 +24,7 @@ import {
   type Transaction,
   TX_TYPE_CONFIG,
   deriveTransactionMeta,
+  extractReimbursementId,
   formatBRL,
   formatDate,
 } from "../../utils/transaction";
@@ -117,7 +118,7 @@ export default function TransactionDetailDialog({
     if (!tx) { setReimbInfo(null); return; }
     if (type !== "reimbursement") { setReimbInfo(null); return; }
 
-    const reimbId = tx.referenceId?.replace("reimbursement:", "");
+    const reimbId = extractReimbursementId(tx.referenceId);
     if (!reimbId) return;
 
     setReimbLoading(true);

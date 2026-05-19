@@ -91,7 +91,10 @@ const REFERENCE_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
   { prefix: "vendor-receipt:", type: "vendor-receipt" },
   { prefix: "transfer:", type: "transfer" },
   { prefix: "stripe-fee:", type: "stripe-fee" },
+  { prefix: "stripe-refund:", type: "refund" },
 ];
+
+const DONATION_REFERENCE_PREFIXES = ["cs_", "pi_", "in_", "stripe-pi:"] as const;
 
 const DESCRIPTION_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
   { prefix: "estorno", type: "refund" },
@@ -111,7 +114,7 @@ export function detectTxType(tx: Transaction): TxType {
   // cs_ = Stripe Checkout Session (pagamento único legado)
   // pi_ = Stripe Payment Intent (pagamento único atual + assinaturas)
   // in_ = Stripe Invoice (renovação de assinatura sem payment_intent)
-  if (referenceId.startsWith("cs_") || referenceId.startsWith("pi_") || referenceId.startsWith("in_")) {
+  if (DONATION_REFERENCE_PREFIXES.some((prefix) => referenceId.startsWith(prefix))) {
     // Doação empresarial: detectada pela descrição
     if (tx.description?.includes("Empresa:")) return "donation-business";
     return "donation";
@@ -149,6 +152,21 @@ export function extractReimbursementDesc(description: string): string {
   return description.replace(/^Reembolso aprovado:\s*/i, "").trim();
 }
 
+export function extractReimbursementId(referenceId?: string): string | null {
+  if (!referenceId) return null;
+  const match = /^reimbursement:([^:]+)/.exec(referenceId);
+  return match?.[1] ?? null;
+}
+
+export function extractStripePaymentIntentId(referenceId?: string): string | null {
+  if (!referenceId) return null;
+  if (referenceId.startsWith("stripe-pi:")) {
+    const [, paymentIntentId] = referenceId.split(":");
+    return paymentIntentId ?? null;
+  }
+  return referenceId.startsWith("pi_") ? referenceId : null;
+}
+
 export function extractCompanyInfo(description: string): { name: string; id: string } | null {
   // Formato: "Assinatura mensal empresarial — Empresa: Nome [uuid] — Sessão in_xxx"
   const marker = "Empresa:";
@@ -177,11 +195,11 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
   const companyInfo = type === "donation-business" ? extractCompanyInfo(tx.description) : null;
   const isSubscription = tx.description?.toLowerCase().includes("assinatura");
   const subscriptionInterval = tx.description?.toLowerCase().includes("anual") ? "anual" : "mensal";
-  const paymentIntentId = tx.referenceId?.startsWith("pi_") ? tx.referenceId : null;
+  const paymentIntentId = extractStripePaymentIntentId(tx.referenceId);
   const isTestMode =
     tx.description?.includes("cs_test_") ||
     tx.description?.includes("pi_test_") ||
-    tx.referenceId?.startsWith("pi_test_");
+    paymentIntentId?.startsWith("pi_test_");
   const stripeModePath = isTestMode ? "test/" : "";
   const stripeDashboardUrl = paymentIntentId
     ? `https://dashboard.stripe.com/${stripeModePath}payments/${paymentIntentId}`
