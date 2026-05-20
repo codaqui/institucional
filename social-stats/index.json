@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-19T07:23:51.007Z",
+  "generatedAt": "2026-05-20T07:24:08.445Z",
   "totalEvents": 390,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 193,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6569,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "count": 6576,
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 217,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "count": 220,
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     },
     {
@@ -197,8 +197,8 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 356,
-      "fetchedAt": "2026-05-19T07:23:51.007Z",
+      "count": 360,
+      "fetchedAt": "2026-05-20T07:24:08.445Z",
       "isFallback": false
     }
   ]
