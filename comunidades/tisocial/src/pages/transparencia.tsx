@@ -23,7 +23,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import { type CommunityBalance, formatBRL } from "@site/src/utils/transaction";
 import TransactionTable from "@site/src/components/TransactionTable";
-import community from "@site/comunidades/tisocial/community.config";
+import community from "../../community.config";
 import { resolveApiUrl } from "@site/src/lib/api-url";
 
 const accent = community.theme.primary;

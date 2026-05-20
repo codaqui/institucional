@@ -5,6 +5,12 @@
  * É importado pelas páginas em `src/pages/comunidades/tisocial/`.
  */
 
+export interface NavMenuItem {
+  label: string;
+  to?: string;
+  items?: { label: string; to: string }[];
+}
+
 export interface CommunitySiteConfig {
   slug: string;
   name: string;
@@ -23,7 +29,7 @@ export interface CommunitySiteConfig {
   };
   basePath: string;
   externalLinks: { label: string; href: string }[];
-  navMenu: { label: string; to: string }[];
+  navMenu: NavMenuItem[];
   features: {
     donations: boolean;
     transparency: boolean;
@@ -97,8 +103,14 @@ const config: CommunitySiteConfig = {
   ],
   navMenu: [
     { label: "Início",        to: "/comunidades/tisocial" },
+    {
+      label: "Sobre",
+      items: [
+        { label: "Docs",   to: "/comunidades/tisocial/docs" },
+        { label: "Equipe", to: "/comunidades/tisocial/equipe" },
+      ],
+    },
     { label: "Campanhas",     to: "/comunidades/tisocial/blog" },
-    { label: "Docs",          to: "/comunidades/tisocial/docs" },
     { label: "Apoiar",        to: "/comunidades/tisocial/apoiar" },
     { label: "Transparência", to: "/comunidades/tisocial/transparencia" },
   ],

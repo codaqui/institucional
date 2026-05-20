@@ -88,13 +88,26 @@ function NavbarContentLayout({
 }
 
 function buildCommunityItems(community: CommunitySiteConfig): AnyNavItem[] {
-  const left: AnyNavItem[] = community.navMenu.map((item) => ({
-    label: item.label,
-    to: item.to,
-    position: "left" as const,
-    activeBaseRegex:
-      item.to === community.basePath ? `^${community.basePath}/?$` : undefined,
-  }));
+  const left: AnyNavItem[] = community.navMenu.map((item) => {
+    if ("items" in item && item.items) {
+      return {
+        label: item.label,
+        position: "left" as const,
+        type: "dropdown" as const,
+        items: item.items.map((subItem) => ({
+          label: subItem.label,
+          to: subItem.to,
+        })),
+      };
+    }
+    return {
+      label: item.label,
+      to: item.to,
+      position: "left" as const,
+      activeBaseRegex:
+        item.to === community.basePath ? `^${community.basePath}/?$` : undefined,
+    };
+  });
   // Auth (login/logout) intentionally omitted in community context — preparing
   // for future custom-domain deployments where the auth cookie won't be shared.
   return left;
