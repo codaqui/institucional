@@ -13,7 +13,7 @@ import {
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import DonationFlow from "@site/src/components/DonationFlow";
-import community from "@site/comunidades/tisocial/community.config";
+import community from "../../community.config";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
