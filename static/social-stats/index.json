@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-20T07:24:08.445Z",
+  "generatedAt": "2026-05-21T07:27:30.617Z",
   "totalEvents": 390,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 193,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6576,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "count": 6581,
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 220,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
+      "fetchedAt": "2026-05-21T07:27:30.617Z",
       "isFallback": false
     },
     {
@@ -199,7 +199,7 @@
       "baselineCount": 312,
       "count": 360,
       "fetchedAt": "2026-05-20T07:24:08.445Z",
-      "isFallback": false
+      "isFallback": true
     }
   ]
 }
