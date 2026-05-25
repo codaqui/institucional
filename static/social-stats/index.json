@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-24T07:15:11.317Z",
+  "generatedAt": "2026-05-25T07:45:55.154Z",
   "totalEvents": 390,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 753,
       "channelCount": 41,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 192,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6595,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 45,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 219,
-      "fetchedAt": "2026-05-24T07:15:11.317Z",
+      "fetchedAt": "2026-05-25T07:45:55.154Z",
       "isFallback": false
     },
     {
