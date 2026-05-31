@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-30T07:09:39.531Z",
+  "generatedAt": "2026-05-31T07:27:22.805Z",
   "totalEvents": 390,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 754,
+      "count": 755,
       "channelCount": 41,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 194,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "count": 197,
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6596,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -76,9 +76,9 @@
       "url": "https://www.youtube.com/devparana",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 1570,
-      "fetchedAt": "2026-04-02T06:34:48.357Z",
-      "isFallback": true
+      "count": 1560,
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
+      "isFallback": false
     },
     {
       "entityId": "devparana",
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 46,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 224,
-      "fetchedAt": "2026-05-30T07:09:39.531Z",
+      "count": 228,
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
       "isFallback": false
     },
     {
@@ -197,9 +197,9 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 360,
-      "fetchedAt": "2026-05-20T07:24:08.445Z",
-      "isFallback": true
+      "count": 529,
+      "fetchedAt": "2026-05-31T07:27:22.805Z",
+      "isFallback": false
     }
   ]
 }
