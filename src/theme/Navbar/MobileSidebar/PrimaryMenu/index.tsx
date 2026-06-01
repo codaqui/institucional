@@ -21,18 +21,30 @@ export default function PrimaryMenuWrapper(): React.JSX.Element {
     return <OriginalPrimaryMenu />;
   }
 
-  const items = community.navMenu.map((item) => ({
-    label: item.label,
-    to: item.to,
-    activeBaseRegex:
-      item.to === community.basePath ? `^${community.basePath}/?$` : undefined,
-  }));
+  const items = community.navMenu.map((item) => {
+    if ("items" in item && item.items) {
+      return {
+        label: item.label,
+        type: "dropdown" as const,
+        items: item.items.map((subItem) => ({
+          label: subItem.label,
+          to: subItem.to,
+        })),
+      };
+    }
+    return {
+      label: item.label,
+      to: item.to,
+      activeBaseRegex:
+        item.to === community.basePath ? `^${community.basePath}/?$` : undefined,
+    };
+  });
 
   return (
     <ul className="menu__list">
       {items.map((item) => (
         <NavbarItem
-          key={item.to}
+          key={item.label}
           mobile
           {...item}
           onClick={() => mobileSidebar.toggle()}

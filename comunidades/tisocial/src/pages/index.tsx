@@ -19,8 +19,8 @@ import ArticleIcon from "@mui/icons-material/Article";
 import PaidIcon from "@mui/icons-material/Paid";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import community from "@site/comunidades/tisocial/community.config";
-import upcoming from "@site/comunidades/tisocial/src/data/upcoming.json";
+import community from "../../community.config";
+import upcoming from "../data/upcoming.json";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;

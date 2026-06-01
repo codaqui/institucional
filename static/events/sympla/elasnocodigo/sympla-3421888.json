@@ -1,0 +1,39 @@
+{
+  "generatedAt": "2026-05-20T00:20:55.084Z",
+  "source": {
+    "source": "sympla",
+    "sourceId": "elasnocodigo",
+    "type": "sympla",
+    "label": "Elas no Código na Sympla",
+    "emoji": "💻",
+    "description": "Eventos organizados pelo Elas no Código na plataforma Sympla.",
+    "ctaLabel": "Ver eventos na Sympla",
+    "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-05-20T00:20:55.084Z"
+  },
+  "event": {
+    "id": "sympla-3421888",
+    "title": "Roda de Conversa: Maternidade e Carreira",
+    "summary": "Maternidade e Carreira: o futuro da tecnologia também é feito por mães!\nEste mês celebramos o Dia das Mães e queremos deixar um convite especial para você. Sabemos que equilibrar o \"build\" da carreira com a rotina da ma…",
+    "startAt": "2026-05-16T14:00:00-03:00",
+    "endAt": "2026-05-16T16:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Sympla",
+    "host": "Elas no Código",
+    "location": "Evento Online",
+    "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888",
+    "tags": [
+      "elasnocodigo",
+      "sympla",
+      "online"
+    ],
+    "ctaLabel": "Ver evento na Sympla",
+    "featured": false,
+    "status": "completed",
+    "entityType": "external",
+    "creatorName": "Elas no Código",
+    "organizers": [],
+    "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png"
+  }
+}

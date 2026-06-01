@@ -198,6 +198,15 @@ const config: Config = {
           },
         ]);
       }
+      // Auto-discovery of custom pages in comunidades/<slug>/src/pages/
+      entries.push([
+        "@docusaurus/plugin-content-pages",
+        {
+          id: `community-${community.slug}-pages`,
+          path: `comunidades/${community.slug}/src/pages`,
+          routeBasePath: `comunidades/${community.slug}`,
+        },
+      ]);
       return entries;
     }),
   ],

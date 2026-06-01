@@ -1,0 +1,62 @@
+{
+  "generatedAt": "2026-05-20T00:20:55.084Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-05-20T00:20:55.084Z"
+  },
+  "event": {
+    "id": "314774699",
+    "title": "[DevPR Guarapuava] Meetup 21/05",
+    "summary": "Galera, vai rolar meetup do DevParaná no Cedeteg! Teremos umas palestras bem massa: Produto + IA + OSS + microserviços com Alana Maiumy Gaspar e Júnior Andrade Golang sem enrolação: os segredos que o Google usa, com Ric…",
+    "startAt": "2026-05-21T19:00:00-03:00",
+    "endAt": "2026-05-21T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "Prédio PDE · Alameda Elio Antônio Dalla Vecchia, 838 - Vila Carli, Guarapuava - PR, 85040-167 · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/314774699/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "external",
+    "userCount": 34,
+    "creatorName": "Luiz Schons",
+    "creatorId": "370720313",
+    "organizers": [
+      {
+        "name": "Luiz Schons",
+        "id": "370720313"
+      },
+      {
+        "name": "leonardo tosin",
+        "id": "478507140"
+      },
+      {
+        "name": "Nestor Hugo",
+        "id": "428326789"
+      },
+      {
+        "name": "Eliezer Buczak Boeira ",
+        "id": "428102696"
+      },
+      {
+        "name": "João Paulo Vasconcelos",
+        "id": "429772464"
+      }
+    ],
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/b/1/e/e/highres_534225550.jpeg"
+  }
+}
