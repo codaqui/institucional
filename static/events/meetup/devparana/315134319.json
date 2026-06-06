@@ -13,16 +13,16 @@
     "generatedAt": "2026-06-06T16:21:35.266Z"
   },
   "event": {
-    "id": "285872029",
-    "title": "1º Cascavel IT",
-    "summary": "1º Cascavel IT - Escala no iFood\\, como preparamos seu pedido (Ivan Refatti) - Resiliência em Microsserviços ( Cristopher Zanchetta) Dia 25/05 às 19:00 na Unipar",
-    "startAt": "2022-05-25T19:00:00-03:00",
-    "endAt": "2022-05-25T21:00:00-03:00",
+    "id": "315134319",
+    "title": "DevParaná Toledo - Meetup de Tecnologia",
+    "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Toledo convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca de…",
+    "startAt": "2026-06-18T19:00:00-03:00",
+    "endAt": "2026-06-18T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "UNIPAR - Universidade Paranaense - Cascavel · R. Rui Barbosa, 611 · Cascavel · PR",
-    "href": "https://www.meetup.com/developerparana/events/285872029/",
+    "location": "Unipar Toledo · Av. Parigot de Souza, 3636 · Toledo",
+    "href": "https://www.meetup.com/developerparana/events/315134319/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,17 +30,20 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 11,
+    "userCount": 3,
     "creatorName": "Everton Tavares",
     "creatorId": "188896297",
     "organizers": [
       {
-        "name": "Everton Tavares",
-        "id": "188896297"
+        "name": "João Vitor Sobanski",
+        "id": "370762459"
+      },
+      {
+        "name": "Ricardo Grassi",
+        "id": "201670883"
       }
-    ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/5/1/5/highres_504054549.jpeg"
+    ]
   }
 }
