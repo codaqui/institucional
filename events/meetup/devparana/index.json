@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-06T15:25:36.502Z",
+  "generatedAt": "2026-06-06T16:21:35.266Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-06-06T15:25:36.502Z",
+    "generatedAt": "2026-06-06T16:21:35.266Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 365
+    "itemCount": 366
   },
   "events": [
     {
@@ -14120,6 +14120,44 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/314774699.json"
+    },
+    {
+      "id": "315134319",
+      "title": "DevParaná Toledo - Meetup de Tecnologia",
+      "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Toledo convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca de…",
+      "startAt": "2026-06-18T19:00:00-03:00",
+      "endAt": "2026-06-18T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Unipar Toledo · Av. Parigot de Souza, 3636 · Toledo",
+      "href": "https://www.meetup.com/developerparana/events/315134319/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 3,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "João Vitor Sobanski",
+          "id": "370762459"
+        },
+        {
+          "name": "Ricardo Grassi",
+          "id": "201670883"
+        }
+      ],
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/315134319.json"
     }
   ]
 }
