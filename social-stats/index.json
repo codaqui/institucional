@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-06T07:12:34.371Z",
-  "totalEvents": 390,
+  "generatedAt": "2026-06-07T07:32:41.602Z",
+  "totalEvents": 391,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-06-06T07:12:34.371Z",
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-06-06T07:12:34.371Z",
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
       "isFallback": false
     },
     {
@@ -55,8 +55,8 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 198,
-      "fetchedAt": "2026-06-05T07:39:38.177Z",
-      "isFallback": true
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
+      "isFallback": false
     },
     {
       "entityId": "devparana",
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6596,
-      "fetchedAt": "2026-06-06T07:12:34.371Z",
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-06-06T07:12:34.371Z",
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 46,
-      "fetchedAt": "2026-06-06T07:12:34.371Z",
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
       "isFallback": false
     },
     {
@@ -175,9 +175,9 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 234,
-      "fetchedAt": "2026-06-05T07:39:38.177Z",
-      "isFallback": true
+      "count": 236,
+      "fetchedAt": "2026-06-07T07:32:41.602Z",
+      "isFallback": false
     },
     {
       "entityId": "cumbucadev",
