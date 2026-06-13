@@ -13,15 +13,15 @@
     "generatedAt": "2026-06-13T21:25:10.490Z"
   },
   "event": {
-    "id": "sympla-3031834",
-    "title": "Meetup: Cyber Security",
+    "id": "sympla-3462044",
+    "title": "DIVERSITECH",
     "summary": "Evento organizado pelo CamposTech na Sympla.",
-    "startAt": "2025-08-16T15:00:00-03:00",
+    "startAt": "2026-06-20T08:30:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
-    "location": "Auditório da Unimed Ponta Grossa - Ponta Grossa, PR",
-    "href": "https://www.sympla.com.br/evento/meetup-cyber-security/3031834",
+    "location": "Auditório UniCesumar - Ponta Grossa - PR - Ponta Grossa, PR",
+    "href": "https://www.sympla.com.br/evento/diversitech/3462044",
     "tags": [
       "campostech",
       "sympla",
@@ -29,10 +29,10 @@
     ],
     "ctaLabel": "Ver evento na Sympla",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
     "creatorName": "CamposTech",
     "organizers": [],
-    "imageUrl": "https://images.sympla.com.br/686ec0f249a9e-xs.png"
+    "imageUrl": "https://images.sympla.com.br/6a2b51379753a-xs.jpg"
   }
 }
