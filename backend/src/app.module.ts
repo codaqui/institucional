@@ -33,7 +33,7 @@ import { CompaniesModule } from './companies/companies.module';
           : 'codaqui_pass'),
       database: process.env.DB_NAME || 'codaqui_db',
       autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production', // NEVER synchronize in production — use migrations
+      synchronize: false,
       migrations: ['dist/migrations/*.js'],
       migrationsRun: process.env.NODE_ENV === 'production',
     }),
