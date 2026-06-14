@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-06-13T07:27:23.234Z",
-  "totalEvents": 391,
+  "generatedAt": "2026-06-14T07:45:15.968Z",
+  "totalEvents": 392,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 198,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "count": 199,
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6612,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 170,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 46,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 243,
-      "fetchedAt": "2026-06-13T07:27:23.234Z",
+      "fetchedAt": "2026-06-14T07:45:15.968Z",
       "isFallback": false
     },
     {
@@ -199,7 +199,7 @@
       "baselineCount": 312,
       "count": 763,
       "fetchedAt": "2026-06-13T07:27:23.234Z",
-      "isFallback": false
+      "isFallback": true
     }
   ]
 }
