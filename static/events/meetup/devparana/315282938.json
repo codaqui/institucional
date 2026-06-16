@@ -13,16 +13,16 @@
     "generatedAt": "2026-06-16T12:34:58.781Z"
   },
   "event": {
-    "id": "310654707",
-    "title": "6o DevParaná Cascavel",
-    "summary": "Está chegando o sexto encontro do DevParaná Cascavel , um evento para fazer networking e falar de tecnologia! 📅 Programação: 19:00: Recepção 19:30: Segurança em esteira DevSecOps - Gustavo Esser (CloudScript) 20:00: Na…",
-    "startAt": "2025-08-27T19:00:00-03:00",
-    "endAt": "2025-08-27T21:00:00-03:00",
+    "id": "315282938",
+    "title": "4º Meetup DevParaná Francisco Beltrão",
+    "summary": "Está chegando o 4º Meetup DevParaná Francisco Beltrão , um evento para fazer networking e falar de tecnologia! 🗓️ Programação: 19:00: Recepção e abertura 19:40: IA e suas tendências: novas ferramentas de IA apresentada…",
+    "startAt": "2026-06-30T19:00:00-03:00",
+    "endAt": "2026-06-30T22:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Senac Cascavel · Rua Recife, 2283 - Centro · Cascavel",
-    "href": "https://www.meetup.com/developerparana/events/310654707/",
+    "location": "Auditório UTFPR - FB · Linha Santa Bárbara, s/n - Francisco Beltrão, PR, 85601-970 · Francisco Beltrão",
+    "href": "https://www.meetup.com/developerparana/events/315282938/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,21 +30,21 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 23,
-    "creatorName": "Everton Tavares",
-    "creatorId": "188896297",
+    "userCount": 2,
+    "creatorName": "Gabriel Prando",
+    "creatorId": "370530343",
     "organizers": [
       {
-        "name": "Everton Tavares",
-        "id": "188896297"
+        "name": "Geovane Norbert",
+        "id": "370171009"
       },
       {
-        "name": "Adrielson da Silva",
-        "id": "456814072"
+        "name": "Gabriel Prando",
+        "id": "370530343"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/1/0/1/highres_529768929.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/8/a/5/highres_534775461.jpeg"
   }
 }
