@@ -13,16 +13,16 @@
     "generatedAt": "2026-06-18T01:47:13.981Z"
   },
   "event": {
-    "id": "313962751",
-    "title": "DevPR na Estrada - Curitiba",
-    "summary": "DevParaná na Estrada 2026 chega a Curitiba com um conjunto de palestras incríveis! Palestras: Engenharia de Escolhas: A Soft Skill por trás da Soberania de Dados Frederick Moschkowich (https://www.linkedin.com/in/fredmo…",
-    "startAt": "2026-04-11T09:00:00-03:00",
-    "endAt": "2026-04-11T12:00:00-03:00",
+    "id": "315307199",
+    "title": "[DevPR Guarapuava] Meetup 25/06",
+    "summary": "Dev Paraná Guarapuava Mais uma edição do Dev Paraná Guarapuava reunindo a comunidade de tecnologia para uma noite de aprendizado, networking e troca de experiências. Nesta edição, teremos duas palestras com cases prátic…",
+    "startAt": "2026-06-25T19:00:00-03:00",
+    "endAt": "2026-06-25T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "FESP - Fundação de Estudos Sociais do Paraná · Rua Dr. Faivre, 141 · Curitiba",
-    "href": "https://www.meetup.com/developerparana/events/313962751/",
+    "location": "Centro de Inovação Guarapuava · Rua Nereu Ramos 1909 · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/315307199/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,9 +30,9 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 31,
+    "userCount": 5,
     "creatorName": "Luiz Schons",
     "creatorId": "370720313",
     "organizers": [
@@ -41,10 +41,22 @@
         "id": "370720313"
       },
       {
-        "name": "Welington Oliveira da Silva",
-        "id": "442863629"
+        "name": "leonardo tosin",
+        "id": "478507140"
+      },
+      {
+        "name": "Nestor Hugo",
+        "id": "428326789"
+      },
+      {
+        "name": "Eliezer Buczak Boeira ",
+        "id": "428102696"
+      },
+      {
+        "name": "João Paulo Vasconcelos",
+        "id": "429772464"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/9/highres_533391913.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/4/6/0/1/highres_534797921.jpeg"
   }
 }
