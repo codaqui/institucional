@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-19T08:02:58.222Z",
+  "generatedAt": "2026-06-20T07:29:24.564Z",
   "totalEvents": 394,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6648,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "count": 6649,
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -109,8 +109,8 @@
       "url": "https://www.youtube.com/@elasnocodigo",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 170,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "count": 169,
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 46,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 246,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     },
     {
@@ -197,8 +197,8 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 809,
-      "fetchedAt": "2026-06-19T08:02:58.222Z",
+      "count": 812,
+      "fetchedAt": "2026-06-20T07:29:24.564Z",
       "isFallback": false
     }
   ]
