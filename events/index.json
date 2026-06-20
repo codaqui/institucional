@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T10:55:58.244Z",
+  "generatedAt": "2026-06-20T11:36:14.044Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-06-20T10:55:58.244Z",
+      "generatedAt": "2026-06-20T11:36:14.044Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-06-20T10:55:58.244Z",
+      "generatedAt": "2026-06-20T11:36:14.044Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 368
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-06-20T10:55:58.244Z",
+      "generatedAt": "2026-06-20T11:36:14.044Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 2
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-06-20T10:55:58.244Z",
+      "generatedAt": "2026-06-20T11:36:14.044Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -72,7 +72,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-06-20T10:55:58.244Z",
+      "generatedAt": "2026-06-20T11:36:14.044Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
@@ -14863,7 +14863,7 @@
       "id": "sympla-2582075",
       "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-06-20T10:56:56.952Z",
+      "startAt": "2026-06-20T11:37:15.353Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -14890,7 +14890,7 @@
       "id": "sympla-2452255",
       "title": "Minicurso: DevOps - Uma infraestrutura ágil para automatizar o seu deploy",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-06-20T10:56:56.952Z",
+      "startAt": "2026-06-20T11:37:15.353Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -14917,7 +14917,7 @@
       "id": "sympla-2321587",
       "title": "Minicurso: Teste de API na Prática!",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-06-20T10:56:56.953Z",
+      "startAt": "2026-06-20T11:37:15.353Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -14939,33 +14939,6 @@
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
       "itemPath": "/events/sympla/campostech/sympla-2321587.json"
-    },
-    {
-      "id": "sympla-3462044",
-      "title": "DIVERSITECH Conference",
-      "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-06-20T08:30:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "Auditório UniCesumar - Ponta Grossa - PR - Ponta Grossa, PR",
-      "href": "https://www.sympla.com.br/evento/diversitech-conference/3462044",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/6a2b51379753a-xs.jpg",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3462044.json"
     },
     {
       "id": "1338983526858494053",
@@ -15099,6 +15072,33 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/315282938.json"
+    },
+    {
+      "id": "sympla-3462044",
+      "title": "DIVERSITECH Conference",
+      "summary": "Evento organizado pelo CamposTech na Sympla.",
+      "startAt": "2027-06-20T08:30:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "Auditório UniCesumar - Ponta Grossa - PR - Ponta Grossa, PR",
+      "href": "https://www.sympla.com.br/evento/diversitech-conference/3462044",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/6a2b51379753a-xs.jpg",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-3462044.json"
     }
   ]
 }
