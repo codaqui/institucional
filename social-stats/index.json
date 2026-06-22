@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-21T07:48:14.420Z",
+  "generatedAt": "2026-06-22T08:15:29.201Z",
   "totalEvents": 394,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 754,
+      "count": 755,
       "channelCount": 41,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6651,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 169,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 46,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 246,
-      "fetchedAt": "2026-06-21T07:48:14.420Z",
+      "fetchedAt": "2026-06-22T08:15:29.201Z",
       "isFallback": false
     },
     {
@@ -199,7 +199,7 @@
       "baselineCount": 312,
       "count": 812,
       "fetchedAt": "2026-06-21T07:48:14.420Z",
-      "isFallback": false
+      "isFallback": true
     }
   ]
 }
