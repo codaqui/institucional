@@ -13,16 +13,16 @@
     "generatedAt": "2026-06-26T16:36:17.611Z"
   },
   "event": {
-    "id": "263081237",
-    "title": "#1 Python Maringá",
-    "summary": "Primeiro Python Maringá, evento organizado para a comunidade compartilhar experiências sobre Python entre seus membros. Seja você experiente em desenvolver soluções/análises ou iniciante com interesse em conhecer mais s…",
-    "startAt": "2019-08-08T19:00:00-03:00",
-    "endAt": "2019-08-08T21:00:00-03:00",
+    "id": "315429162",
+    "title": "12° Meetup DevParaná Cascavel",
+    "summary": "O DevParaná vem no mesmo de junho trazer para o nosso encontro muita experiencia de mercado, tanto em carreira quanto a adoção de novas tecnologias. Prepare-se para uma noite de imersão técnica, troca de experiências e…",
+    "startAt": "2026-06-29T19:00:00-03:00",
+    "endAt": "2026-06-29T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "EVOA Accelerator · Maringá · PR",
-    "href": "https://www.meetup.com/developerparana/events/263081237/",
+    "location": "ACIC Labs · Acic - Rua Pernambuco 1800 2o andar · Cascavel",
+    "href": "https://www.meetup.com/developerparana/events/315429162/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,21 +30,17 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 57,
-    "creatorName": "Luis Berns",
-    "creatorId": "223750190",
+    "userCount": 3,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
     "organizers": [
       {
-        "name": "Luis Berns",
-        "id": "223750190"
-      },
-      {
-        "name": "Jose Fernando Tavares",
-        "id": "265700899"
+        "name": "Everton Tavares",
+        "id": "188896297"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/1/f/highres_483180031.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/9/6/5/highres_534931077.jpeg"
   }
 }

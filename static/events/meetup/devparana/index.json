@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T15:42:39.756Z",
+  "generatedAt": "2026-06-26T16:36:17.611Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-06-26T15:42:39.756Z",
+    "generatedAt": "2026-06-26T16:36:17.611Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 368
+    "itemCount": 369
   },
   "events": [
     {
@@ -14212,6 +14212,41 @@
       "itemPath": "/events/meetup/devparana/315307199.json"
     },
     {
+      "id": "315429162",
+      "title": "12° Meetup DevParaná Cascavel",
+      "summary": "O DevParaná vem no mesmo de junho trazer para o nosso encontro muita experiencia de mercado, tanto em carreira quanto a adoção de novas tecnologias. Prepare-se para uma noite de imersão técnica, troca de experiências e…",
+      "startAt": "2026-06-29T19:00:00-03:00",
+      "endAt": "2026-06-29T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "ACIC Labs · Acic - Rua Pernambuco 1800 2o andar · Cascavel",
+      "href": "https://www.meetup.com/developerparana/events/315429162/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 3,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "Everton Tavares",
+          "id": "188896297"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/7/9/6/5/highres_534931077.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/315429162.json"
+    },
+    {
       "id": "315282938",
       "title": "4º Meetup DevParaná Francisco Beltrão",
       "summary": "Está chegando o 4º Meetup DevParaná Francisco Beltrão , um evento para fazer networking e falar de tecnologia! 🗓️ Programação: 19:00: Recepção e abertura 19:40: IA e suas tendências: novas ferramentas de IA apresentada…",
@@ -14231,7 +14266,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 41,
+      "userCount": 42,
       "creatorName": "Gabriel Prando",
       "creatorId": "370530343",
       "organizers": [
