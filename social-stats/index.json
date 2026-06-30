@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-29T07:56:33.014Z",
+  "generatedAt": "2026-06-30T07:27:44.753Z",
   "totalEvents": 395,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 753,
       "channelCount": 41,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6677,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "count": 6681,
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 169,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -164,8 +164,8 @@
       "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
       "baselineCount": 45,
-      "count": 52,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "count": 55,
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 250,
-      "fetchedAt": "2026-06-29T07:56:33.014Z",
+      "fetchedAt": "2026-06-30T07:27:44.753Z",
       "isFallback": false
     },
     {
