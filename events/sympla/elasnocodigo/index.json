@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T11:59:58.567Z",
+  "generatedAt": "2026-07-01T13:09:51.909Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-01T11:59:58.567Z",
+    "generatedAt": "2026-07-01T13:09:51.909Z",
     "sourceKey": "sympla:elasnocodigo",
     "indexPath": "/events/sympla/elasnocodigo/index.json",
     "itemCount": 2
