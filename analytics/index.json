@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-07-01T07:57:19.627Z",
-  "latestPeriod": "2026-05",
+  "updatedAt": "2026-07-02T07:41:39.377Z",
+  "latestPeriod": "2026-06",
   "totals": {
-    "screenPageViews": 264106,
-    "activeUsers": 115500,
-    "sessions": 145351,
+    "screenPageViews": 265819,
+    "activeUsers": 115913,
+    "sessions": 146093,
     "peakMonth": "2024-05",
     "peakViews": 22422
   },
@@ -240,76 +240,78 @@
       "sessions": 1295,
       "averageSessionDuration": 144.6,
       "bounceRate": 0.5529
+    },
+    {
+      "period": "2026-06",
+      "screenPageViews": 1713,
+      "activeUsers": 413,
+      "sessions": 742,
+      "averageSessionDuration": 172.5,
+      "bounceRate": 0.5687
     }
   ],
   "topPages": [
     {
-      "pagePath": "/blog/2026/03/30/curso-introducao-python",
-      "screenPageViews": 241,
-      "activeUsers": 217
+      "pagePath": "/trilhas/python/page-1",
+      "screenPageViews": 154,
+      "activeUsers": 35
     },
     {
-      "pagePath": "/eventos",
-      "screenPageViews": 127,
-      "activeUsers": 58
+      "pagePath": "/trilhas/python",
+      "screenPageViews": 137,
+      "activeUsers": 41
+    },
+    {
+      "pagePath": "/trilhas/python/page-2",
+      "screenPageViews": 117,
+      "activeUsers": 23
     },
     {
       "pagePath": "/participe/apoiar",
-      "screenPageViews": 126,
-      "activeUsers": 58
-    },
-    {
-      "pagePath": "/transparencia",
-      "screenPageViews": 117,
-      "activeUsers": 22
-    },
-    {
-      "pagePath": "/comunidades/tisocial/",
-      "screenPageViews": 102,
-      "activeUsers": 46
+      "screenPageViews": 69,
+      "activeUsers": 23
     },
     {
       "pagePath": "/participe/mentoria",
-      "screenPageViews": 98,
-      "activeUsers": 26
+      "screenPageViews": 63,
+      "activeUsers": 29
+    },
+    {
+      "pagePath": "/clube",
+      "screenPageViews": 58,
+      "activeUsers": 34
+    },
+    {
+      "pagePath": "/eventos",
+      "screenPageViews": 54,
+      "activeUsers": 33
     },
     {
       "pagePath": "/participe/estudar",
-      "screenPageViews": 96,
-      "activeUsers": 54
-    },
-    {
-      "pagePath": "/sobre/ong",
-      "screenPageViews": 88,
-      "activeUsers": 27
+      "screenPageViews": 54,
+      "activeUsers": 29
     }
   ],
   "trafficSources": {
-    "new": 810,
-    "(direct)": 621,
-    "google": 523,
-    "returning": 331,
-    "(not set)": 159,
-    "tisocial.localhost:8787": 18,
-    "github.com": 29,
-    "search.google.com": 16,
-    "tisocial.org.br": 16,
-    "bing": 11,
-    "chatgpt.com": 10,
+    "new": 370,
+    "(direct)": 345,
+    "google": 272,
+    "returning": 229,
+    "(not set)": 148,
+    "RD Station": 23,
+    "bing": 31,
+    "guiadeti.com.br": 18,
     "giscus.app": 10,
-    "linkedin.com": 9,
-    "guiadeti.com.br": 7,
-    "facebook.com": 4,
-    "linktree": 4,
+    "github.com": 12,
+    "chatgpt.com": 7,
+    "(data not available)": 4,
+    "facebook.com": 2,
+    "linktree": 2,
     "youtube.com": 3,
-    "(data not available)": 2,
-    "ig": 2,
-    "phpconference.com.br": 3,
-    "duckduckgo": 1,
-    "l.instagram.com": 1,
-    "nestorhugo.com": 2,
-    "statics.teams.cdn.office.net": 2,
-    "stripe.lightning.force.com": 1,
-    "t.co": 1
+    "br.search.yahoo.com": 3,
+    "tisocial.org.br": 1,
+    "localhost:4200": 2,
+    "perplexity.ai": 1,
+    "staging.agilebrazil.com": 1
   }
 }
