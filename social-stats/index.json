@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T07:40:26.492Z",
+  "generatedAt": "2026-07-02T07:16:04.468Z",
   "totalEvents": 395,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 753,
+      "count": 752,
       "channelCount": 41,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6697,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "count": 6610,
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 169,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 55,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 250,
-      "fetchedAt": "2026-07-01T07:40:26.492Z",
+      "fetchedAt": "2026-07-02T07:16:04.468Z",
       "isFallback": false
     },
     {
