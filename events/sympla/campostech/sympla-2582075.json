@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-04T04:18:50.869Z",
+  "generatedAt": "2026-07-04T06:02:24.311Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
@@ -10,13 +10,13 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-04T04:18:50.869Z"
+    "generatedAt": "2026-07-04T06:02:24.311Z"
   },
   "event": {
     "id": "sympla-2582075",
     "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
     "summary": "Evento organizado pelo CamposTech na Sympla.",
-    "startAt": "2026-07-04T04:19:50.809Z",
+    "startAt": "2026-07-04T06:03:25.776Z",
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
