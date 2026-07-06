@@ -67,14 +67,6 @@ export function createCodaquiTheme(mode: "light" | "dark"): Theme {
           disableElevation: true,
         },
       },
-      MuiChip: {
-        styleOverrides: {
-          colorPrimary: {
-            backgroundColor: mode === "dark" ? BRAND.primaryDarker : BRAND.primary,
-            color: "#ffffff",
-          },
-        },
-      },
     },
   });
 }

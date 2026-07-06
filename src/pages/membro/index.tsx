@@ -596,6 +596,7 @@ export default function MembroPage(): React.JSX.Element {
         >
           <Tab label="Visão Geral" />
           <Tab label="Histórico de Doações" />
+          <Tab label="Assinaturas Recorrentes" />
           <Tab label="Carteira" />
         </Tabs>
 
@@ -664,11 +665,14 @@ export default function MembroPage(): React.JSX.Element {
               <Button variant="outlined" size="small" onClick={() => setActiveTab(1)}>
                 Ver histórico de doações
               </Button>
+              <Button variant="outlined" size="small" onClick={() => setActiveTab(2)}>
+                Ver assinaturas recorrentes
+              </Button>
               <Button
                 variant="outlined"
                 size="small"
                 startIcon={<ReceiptLongIcon />}
-                onClick={() => { setActiveTab(2); setReimbDialog(true); setSubmitError(""); }}
+                onClick={() => { setActiveTab(3); setReimbDialog(true); setSubmitError(""); }}
               >
                 Solicitar Reembolso
               </Button>
@@ -677,6 +681,24 @@ export default function MembroPage(): React.JSX.Element {
         </TabPanel>
 
         <TabPanel value={activeTab} index={1}>
+          <Box>
+            <Typography variant="h6" fontWeight={700} gutterBottom>Doações avulsas</Typography>
+            <DonationList loading={txLoading} donations={donations} />
+            {donationsTotal > donationsLimit && (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                <Pagination
+                  page={donationsPage}
+                  count={Math.max(1, Math.ceil(donationsTotal / donationsLimit))}
+                  onChange={(_, value) => setDonationsPage(value)}
+                  color="primary"
+                  size="small"
+                />
+              </Box>
+            )}
+          </Box>
+        </TabPanel>
+
+        <TabPanel value={activeTab} index={2}>
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -699,26 +721,10 @@ export default function MembroPage(): React.JSX.Element {
                 />
               </Box>
             )}
-
-            <Divider sx={{ my: 3 }} />
-
-            <Typography variant="h6" fontWeight={700} gutterBottom>Doações avulsas</Typography>
-            <DonationList loading={txLoading} donations={donations} />
-            {donationsTotal > donationsLimit && (
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <Pagination
-                  page={donationsPage}
-                  count={Math.max(1, Math.ceil(donationsTotal / donationsLimit))}
-                  onChange={(_, value) => setDonationsPage(value)}
-                  color="primary"
-                  size="small"
-                />
-              </Box>
-            )}
           </Box>
         </TabPanel>
 
-        <TabPanel value={activeTab} index={2}>
+        <TabPanel value={activeTab} index={3}>
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
               <Typography variant="h6" fontWeight={700}>Minhas Solicitações de Reembolso</Typography>

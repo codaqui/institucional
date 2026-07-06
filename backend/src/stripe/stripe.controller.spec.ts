@@ -15,6 +15,8 @@ describe('StripeController', () => {
       createCheckoutSession: jest.fn(),
       handleWebhookEvent: jest.fn(),
       getMyDonations: jest.fn(),
+      getClubMembers: jest.fn(),
+      getBusinessMembers: jest.fn(),
       getMySubscriptions: jest.fn(),
       cancelSubscription: jest.fn(),
     };
@@ -45,6 +47,28 @@ describe('StripeController', () => {
       const result = await controller.getMyDonations(authedReq);
       expect(result).toEqual([]);
       expect(service.getMyDonations).toHaveBeenCalledWith(uuid(5), 1, 20);
+    });
+  });
+
+  describe('getClubMembers', () => {
+    it('should return public club members', async () => {
+      service.getClubMembers.mockResolvedValue({ items: [], total: 0 });
+
+      const result = await controller.getClubMembers();
+
+      expect(result).toEqual({ items: [], total: 0 });
+      expect(service.getClubMembers).toHaveBeenCalled();
+    });
+  });
+
+  describe('getBusinessMembers', () => {
+    it('should return public business members', async () => {
+      service.getBusinessMembers.mockResolvedValue({ items: [], total: 0 });
+
+      const result = await controller.getBusinessMembers();
+
+      expect(result).toEqual({ items: [], total: 0 });
+      expect(service.getBusinessMembers).toHaveBeenCalled();
     });
   });
 

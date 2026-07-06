@@ -31,6 +31,16 @@ export interface CreateCheckoutDto {
   recurring?: { interval: CheckoutInterval };
 }
 
+export interface MemberSummary {
+  memberId: string;
+  githubHandle: string;
+}
+
+/** @deprecated Use MemberSummary */
+export type ClubMemberSummary = MemberSummary;
+/** @deprecated Use MemberSummary */
+export type BusinessMemberSummary = MemberSummary;
+
 @Injectable()
 export class StripeService {
   private readonly stripe: Stripe;
@@ -1068,6 +1078,71 @@ export class StripeService {
       page: safePage,
       limit: safeLimit,
     };
+  }
+
+  /**
+   * Busca todas as subscriptions ativas ou com pagamento pendente no Stripe.
+   */
+  private async fetchActiveSubscriptions(): Promise<Stripe.Subscription[]> {
+    const [active, pastDue] = await Promise.all([
+      this.stripe.subscriptions.list({ status: 'active', limit: 100 }),
+      this.stripe.subscriptions.list({ status: 'past_due', limit: 100 }),
+    ]);
+    return [...active.data, ...pastDue.data];
+  }
+
+  /**
+   * Deduplica subscriptions por chave e converte para MemberSummary.
+   */
+  private mapToMemberSummaries(
+    subscriptions: Stripe.Subscription[],
+    dedupKey: (sub: Stripe.Subscription) => string,
+  ): MemberSummary[] {
+    const deduped = Array.from(
+      new Map(subscriptions.map((sub) => [dedupKey(sub), sub])).values(),
+    );
+    return deduped
+      .map((sub) => {
+        const memberId = sub.metadata?.memberId ?? '';
+        const githubHandle = sub.metadata?.githubHandle ?? '';
+        if (!memberId || !githubHandle) return null;
+        return { memberId, githubHandle };
+      })
+      .filter((row): row is MemberSummary => row !== null);
+  }
+
+  /**
+   * Lista membros com apoio recorrente CLUB ativo (mensal, pessoa física).
+   */
+  async getClubMembers(): Promise<{ items: MemberSummary[]; total: number }> {
+    const subscriptions = await this.fetchActiveSubscriptions();
+    const filtered = subscriptions.filter((sub) => {
+      const metadata = sub.metadata ?? {};
+      const interval = sub.items.data[0]?.price?.recurring?.interval;
+      const isBusiness = metadata.entityType === 'business' || Boolean(metadata.companyId);
+      return !!metadata.memberId && !isBusiness && interval === 'month';
+    });
+    const items = this.mapToMemberSummaries(filtered, (sub) => sub.metadata?.memberId ?? sub.id);
+    return { items, total: items.length };
+  }
+
+  /**
+   * Lista membros com assinatura CLUB Business ativa.
+   */
+  async getBusinessMembers(): Promise<{ items: MemberSummary[]; total: number }> {
+    const subscriptions = await this.fetchActiveSubscriptions();
+    const filtered = subscriptions.filter((sub) => {
+      const metadata = sub.metadata ?? {};
+      const interval = sub.items.data[0]?.price?.recurring?.interval;
+      return (
+        metadata.entityType === 'business' &&
+        !!metadata.memberId &&
+        !!metadata.companyId &&
+        interval === 'month'
+      );
+    });
+    const items = this.mapToMemberSummaries(filtered, (sub) => sub.metadata?.companyId ?? sub.id);
+    return { items, total: items.length };
   }
 
   /**

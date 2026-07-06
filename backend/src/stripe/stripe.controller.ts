@@ -52,6 +52,24 @@ export class StripeController {
   }
 
   /**
+   * Lista membros com assinatura CLUB ativa.
+   */
+  @Get('club-members')
+  @ApiOperation({ summary: 'Membros com assinatura CLUB ativa' })
+  getClubMembers() {
+    return this.stripeService.getClubMembers();
+  }
+
+  /**
+   * Lista membros com assinatura CLUB Business ativa.
+   */
+  @Get('business-members')
+  @ApiOperation({ summary: 'Membros com assinatura CLUB Business ativa' })
+  getBusinessMembers() {
+    return this.stripeService.getBusinessMembers();
+  }
+
+  /**
    * Lista assinaturas recorrentes ativas do membro.
    */
   @Get('my-subscriptions')

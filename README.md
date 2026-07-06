@@ -18,6 +18,8 @@ agent-protocol: README is intentionally short. For implementation details, go to
 
 ![Imagem do Header](images/header.png)
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=codaqui_institucional&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=codaqui_institucional)
+
 Codaqui é uma **associação brasileira sem fins lucrativos** que democratiza educação em tecnologia para jovens, servindo como guarda-chuva para comunidades parceiras de tech.
 
 **Site**: https://codaqui.dev · **CNPJ**: 44.593.429/0001-05

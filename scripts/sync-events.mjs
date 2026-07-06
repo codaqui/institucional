@@ -1085,7 +1085,18 @@ async function resolveOcgroupsEvents(config, existingEvents) {
     }
 
     const groupHtml = await fetchOcgroupsHtml(`https://ocgroups.dev/cncf/group/${groupId}`);
-    const slugs = extractOcgroupsEventSlugs(groupHtml, groupId);
+
+    // The server may redirect short IDs (e.g. "sq5vsqs") to the canonical slug
+    // (e.g. "cloudnativemaringa"). Read it from the canonical <link> tag so that
+    // extractOcgroupsEventSlugs uses the right pattern.
+    const canonicalMatch = /<link[^>]+rel="canonical"[^>]+href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"[^>]*>/.exec(groupHtml)
+      ?? /href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"[^>]+rel="canonical"/.exec(groupHtml);
+    const effectiveGroupSlug = canonicalMatch?.[1] ?? groupId;
+    if (effectiveGroupSlug !== groupId) {
+      console.log(`    ↪ groupId "${groupId}" resolved to canonical slug "${effectiveGroupSlug}"`);
+    }
+
+    const slugs = extractOcgroupsEventSlugs(groupHtml, effectiveGroupSlug);
     console.log(`    found ${slugs.length} event slug(s) on group page`);
 
     if (slugs.length === 0) {
