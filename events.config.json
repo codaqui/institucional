@@ -32,7 +32,7 @@
     {
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
-      "groupId": "sq5vsqs",
+      "groupId": "cloudnativemaringa",
       "label": "Cloud Native Maringá",
       "emoji": "☁️",
       "description": "Eventos do chapter oficial CNCF em Maringá — Kubernetes, containers, cloud-native e SRE.",
