@@ -63,7 +63,13 @@ describe("/membros", () => {
         return jsonResponse({ items: [{ memberId: "member-1" }], total: 1 });
       }
       if (url.includes("/stripe/business-members")) {
-        return jsonResponse({ items: [{ memberId: "member-1" }], total: 1 });
+        return jsonResponse({
+          items: [
+            { memberId: "member-1", membershipType: "owner" },
+            { memberId: "member-2", membershipType: "collaborator" },
+          ],
+          total: 2,
+        });
       }
       return jsonResponse(null, { ok: false, status: 404 });
     });
@@ -79,5 +85,6 @@ describe("/membros", () => {
     expect(screen.getAllByText("Doador(a)")).toHaveLength(2);
     expect(screen.getAllByText("CLUB")).toHaveLength(1);
     expect(screen.getAllByText("CLUB Business")).toHaveLength(1);
+    expect(screen.getAllByText("Business Member")).toHaveLength(1);
   });
 });

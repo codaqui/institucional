@@ -61,6 +61,7 @@ describe('StripeService', () => {
 
     const companiesServiceMock = {
       findById: jest.fn().mockResolvedValue(null),
+      listBusinessMembersForCompanyIds: jest.fn().mockResolvedValue([]),
       creditToWallet: jest.fn().mockResolvedValue({}),
       setStripeCustomer: jest.fn().mockResolvedValue(undefined),
       setStripeSubscription: jest.fn().mockResolvedValue(undefined),
@@ -979,6 +980,12 @@ describe('StripeService', () => {
 
   describe('getBusinessMembers', () => {
     it('should return active business club members only', async () => {
+      const companiesService = (service as any).companiesService;
+      companiesService.listBusinessMembersForCompanyIds.mockResolvedValueOnce([
+        { memberId: uuid(2), role: 'owner' },
+        { memberId: uuid(9), role: 'collaborator' },
+      ]);
+
       stripeInstance.subscriptions.list
         .mockResolvedValueOnce({
           data: [
@@ -1029,11 +1036,16 @@ describe('StripeService', () => {
 
       const result = await service.getBusinessMembers();
 
-      expect(result.total).toBe(1);
+      expect(result.total).toBe(2);
       expect(result.items).toEqual([
         expect.objectContaining({
           memberId: uuid(2),
           githubHandle: 'biz-user',
+          membershipType: 'owner',
+        }),
+        expect.objectContaining({
+          memberId: uuid(9),
+          membershipType: 'collaborator',
         }),
       ]);
       expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
@@ -1042,9 +1054,17 @@ describe('StripeService', () => {
       expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'past_due' }),
       );
+      expect(companiesService.listBusinessMembersForCompanyIds).toHaveBeenCalledWith([
+        uuid(3),
+      ]);
     });
 
     it('should keep business member even when githubHandle is missing in metadata', async () => {
+      const companiesService = (service as any).companiesService;
+      companiesService.listBusinessMembersForCompanyIds.mockResolvedValueOnce([
+        { memberId: uuid(7), role: 'owner' },
+      ]);
+
       stripeInstance.subscriptions.list
         .mockResolvedValueOnce({
           data: [
@@ -1077,6 +1097,7 @@ describe('StripeService', () => {
         {
           memberId: uuid(7),
           githubHandle: '',
+          membershipType: 'owner',
         },
       ]);
     });

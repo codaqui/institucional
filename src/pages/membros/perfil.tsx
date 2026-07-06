@@ -94,6 +94,7 @@ interface PublicAffiliation {
   websiteUrl: string | null;
   responsibleGithubHandle: string | null;
 }
+type BusinessMembershipType = "owner" | "collaborator";
 
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -131,13 +132,13 @@ function Carteirinha({
   member,
   isDonor,
   isClubMember,
-  isBusinessClub,
+  businessMembershipType,
   profileUrl,
 }: Readonly<{
   member: Member;
   isDonor: boolean;
   isClubMember: boolean;
-  isBusinessClub: boolean;
+  businessMembershipType: BusinessMembershipType | null;
   profileUrl: string;
 }>) {
   return (
@@ -223,10 +224,10 @@ function Carteirinha({
                       variant="filled"
                     />
                   )}
-                  {isBusinessClub && (
+                  {businessMembershipType && (
                     <Chip
                       icon={<BusinessIcon sx={{ fontSize: 14 }} />}
-                      label="Business Club"
+                      label={businessMembershipType === "collaborator" ? "Business Member" : "Business Club"}
                       size="small"
                       color="secondary"
                       variant="filled"
@@ -490,7 +491,7 @@ export default function PerfilPage(): React.JSX.Element {
   const [publicWallet, setPublicWallet] = useState<ClubWallet | null>(null);
   const [publicWalletTxs, setPublicWalletTxs] = useState<WalletTransaction[]>([]);
   const [affiliatedCompany, setAffiliatedCompany] = useState<PublicAffiliation | null>(null);
-  const [isBusinessClub, setIsBusinessClub] = useState(false);
+  const [businessMembershipType, setBusinessMembershipType] = useState<BusinessMembershipType | null>(null);
   const [activeTab, setActiveTab] = useState(0);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>
@@ -578,13 +579,13 @@ export default function PerfilPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!member) return;
-    fetch(`${apiUrl}/companies/business-members`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((ids: string[]) => {
-        const hasBusiness = (ids ?? []).includes(member.id);
-        setIsBusinessClub(hasBusiness);
+    fetch(`${apiUrl}/stripe/business-members`)
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((payload: { items?: Array<{ memberId: string; membershipType?: BusinessMembershipType }> }) => {
+        const found = (payload.items ?? []).find((item) => item.memberId === member.id);
+        setBusinessMembershipType(found?.membershipType ?? (found ? "owner" : null));
       })
-      .catch(() => setIsBusinessClub(false));
+      .catch(() => setBusinessMembershipType(null));
   }, [apiUrl, member]);
 
   useEffect(() => {
@@ -674,7 +675,7 @@ export default function PerfilPage(): React.JSX.Element {
               member={member}
               isDonor={isDonor}
               isClubMember={isClubMember}
-              isBusinessClub={isBusinessClub}
+              businessMembershipType={businessMembershipType}
               profileUrl={vanityUrl}
             />
 
@@ -829,7 +830,7 @@ export default function PerfilPage(): React.JSX.Element {
                           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
                             <BusinessIcon sx={{ color: "secondary.main" }} />
                             <Typography variant="h6" fontWeight={700}>
-                              Vinculo CLUB Business
+                              {businessMembershipType === "collaborator" ? "Vinculo Business Member" : "Vinculo CLUB Business"}
                             </Typography>
                           </Box>
                           <Typography variant="body2" color="text.secondary">

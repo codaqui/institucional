@@ -23,6 +23,7 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import TokenIcon from "@mui/icons-material/Token";
+import BusinessIcon from "@mui/icons-material/Business";
 import PeopleIcon from "@mui/icons-material/People";
 import PageHero from "../../components/PageHero";
 import { PLATFORM_COLORS } from "../../data/social";
@@ -54,6 +55,7 @@ interface PaginatedResponse<T> {
 }
 
 type FilterValue = "todos" | "club" | "club-business";
+type BusinessMembershipType = "owner" | "collaborator";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -74,12 +76,12 @@ function MemberCard({
   member,
   donorInfo,
   isClubMember,
-  isClubBusiness,
+  clubBusinessType,
 }: Readonly<{
   member: Member;
   donorInfo?: DonorInfo;
   isClubMember?: boolean;
-  isClubBusiness?: boolean;
+  clubBusinessType?: BusinessMembershipType;
 }>) {
   return (
     <Card
@@ -134,11 +136,12 @@ function MemberCard({
                   variant="outlined"
                 />
               )}
-              {isClubBusiness && (
+              {clubBusinessType && (
                 <Chip
-                  label="CLUB Business"
+                  icon={<BusinessIcon sx={{ fontSize: 14 }} />}
+                  label={clubBusinessType === "collaborator" ? "Business Member" : "CLUB Business"}
                   size="small"
-                  color="primary"
+                  color={clubBusinessType === "collaborator" ? "secondary" : "primary"}
                   variant="outlined"
                 />
               )}
@@ -255,6 +258,7 @@ export default function MembrosPage(): React.JSX.Element {
   const [members, setMembers] = useState<Member[]>([]);
   const [donorMap, setDonorMap] = useState<Map<string, DonorInfo>>(new Map());
   const [clubMemberIds, setClubMemberIds] = useState<Set<string>>(new Set());
+  const [clubBusinessRoleByMemberId, setClubBusinessRoleByMemberId] = useState<Map<string, BusinessMembershipType>>(new Map());
   const [clubBusinessMemberIds, setClubBusinessMemberIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -278,7 +282,7 @@ export default function MembrosPage(): React.JSX.Element {
           PaginatedResponse<Member>,
           PaginatedResponse<Member & DonorInfo>,
           { items?: Array<{ memberId: string }> },
-          { items?: Array<{ memberId: string }> },
+          { items?: Array<{ memberId: string; membershipType?: BusinessMembershipType }> },
         ]) => {
           setMembers(membersRes.data ?? []);
 
@@ -294,9 +298,11 @@ export default function MembrosPage(): React.JSX.Element {
           setClubMemberIds(
             new Set((clubRes.items ?? []).map((item) => item.memberId).filter(Boolean)),
           );
-          setClubBusinessMemberIds(
-            new Set((clubBusinessRes.items ?? []).map((item) => item.memberId).filter(Boolean)),
-          );
+          const businessItems = (clubBusinessRes.items ?? []).filter((item) => !!item.memberId);
+          setClubBusinessMemberIds(new Set(businessItems.map((item) => item.memberId)));
+          setClubBusinessRoleByMemberId(new Map(
+            businessItems.map((item) => [item.memberId, item.membershipType ?? "owner"]),
+          ));
           setLoading(false);
         },
       )
@@ -424,7 +430,7 @@ export default function MembrosPage(): React.JSX.Element {
                   member={m}
                   donorInfo={donorMap.get(m.id)}
                   isClubMember={clubMemberIds.has(m.id)}
-                  isClubBusiness={clubBusinessMemberIds.has(m.id)}
+                  clubBusinessType={clubBusinessRoleByMemberId.get(m.id)}
                 />
               </Grid>
             ))}
