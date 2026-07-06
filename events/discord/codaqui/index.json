@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-06T21:29:22.620Z",
+  "generatedAt": "2026-07-06T22:24:42.298Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-06T21:29:22.620Z",
+    "generatedAt": "2026-07-06T22:24:42.298Z",
     "sourceKey": "discord:codaqui",
     "indexPath": "/events/discord/codaqui/index.json",
     "itemCount": 12
@@ -371,7 +371,7 @@
       ],
       "ctaLabel": "Entrar no Discord da Codaqui",
       "featured": false,
-      "status": "scheduled",
+      "status": "active",
       "entityType": "voice",
       "userCount": 14,
       "creatorName": "Enderson Menezes",
