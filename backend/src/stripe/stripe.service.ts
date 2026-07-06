@@ -31,6 +31,16 @@ export interface CreateCheckoutDto {
   recurring?: { interval: CheckoutInterval };
 }
 
+export interface ClubMemberSummary {
+  memberId: string;
+  githubHandle: string;
+}
+
+export interface BusinessMemberSummary {
+  memberId: string;
+  githubHandle: string;
+}
+
 @Injectable()
 export class StripeService {
   private readonly stripe: Stripe;
@@ -1067,6 +1077,108 @@ export class StripeService {
       total: deduped.length,
       page: safePage,
       limit: safeLimit,
+    };
+  }
+
+  /**
+   * Lista membros com apoio recorrente CLUB.
+   * A fonte pública é o ledger/transações, igual ao perfil público:
+   * qualquer transação recorrente mensal/anual conta como CLUB.
+   */
+  async getClubMembers(): Promise<{
+    items: ClubMemberSummary[];
+    total: number;
+  }> {
+    const active = await this.stripe.subscriptions.list({
+      status: 'active',
+      limit: 100,
+    });
+    const pastDue = await this.stripe.subscriptions.list({
+      status: 'past_due',
+      limit: 100,
+    });
+
+    const subscriptions = [...active.data, ...pastDue.data];
+    const filtered = subscriptions.filter((sub) => {
+      const metadata = sub.metadata ?? {};
+      const item = sub.items.data[0];
+      const interval = item?.price?.recurring?.interval;
+      const isBusiness =
+        metadata.entityType === 'business' || Boolean(metadata.companyId);
+      return (
+        !!metadata.memberId &&
+        !isBusiness &&
+        interval === 'month' &&
+        sub.status !== 'canceled'
+      );
+    });
+
+    const deduped = Array.from(
+      new Map(filtered.map((sub) => [sub.metadata?.memberId ?? sub.id, sub])).values(),
+    );
+
+    const rows = deduped
+      .map((sub) => {
+        const memberId = sub.metadata?.memberId ?? '';
+        const githubHandle = sub.metadata?.githubHandle ?? '';
+        if (!memberId || !githubHandle) return null;
+        return { memberId, githubHandle };
+      })
+      .filter((row): row is { memberId: string; githubHandle: string } => row !== null);
+
+    return {
+      items: rows,
+      total: rows.length,
+    };
+  }
+
+  /**
+   * Lista membros com assinatura CLUB Business ativa.
+   * Usa Stripe como fonte pública para refletir assinaturas reais.
+   */
+  async getBusinessMembers(): Promise<{
+    items: BusinessMemberSummary[];
+    total: number;
+  }> {
+    const active = await this.stripe.subscriptions.list({
+      status: 'active',
+      limit: 100,
+    });
+    const pastDue = await this.stripe.subscriptions.list({
+      status: 'past_due',
+      limit: 100,
+    });
+
+    const subscriptions = [...active.data, ...pastDue.data];
+    const filtered = subscriptions.filter((sub) => {
+      const metadata = sub.metadata ?? {};
+      const item = sub.items.data[0];
+      const interval = item?.price?.recurring?.interval;
+      return (
+        metadata.entityType === 'business' &&
+        !!metadata.memberId &&
+        !!metadata.companyId &&
+        interval === 'month' &&
+        sub.status !== 'canceled'
+      );
+    });
+
+    const deduped = Array.from(
+      new Map(filtered.map((sub) => [sub.metadata?.companyId ?? sub.id, sub])).values(),
+    );
+
+    const rows = deduped
+      .map((sub) => {
+        const memberId = sub.metadata?.memberId ?? '';
+        const githubHandle = sub.metadata?.githubHandle ?? '';
+        if (!memberId || !githubHandle) return null;
+        return { memberId, githubHandle };
+      })
+      .filter((row): row is BusinessMemberSummary => row !== null);
+
+    return {
+      items: rows,
+      total: rows.length,
     };
   }
 

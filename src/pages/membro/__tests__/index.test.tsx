@@ -40,7 +40,7 @@ describe("/membro", () => {
     });
   });
 
-  it("exibe distinção pessoal x business em assinaturas e doações", async () => {
+  it("exibe distinção pessoal x business em doações e assinaturas em abas separadas", async () => {
     const authFetch = jest.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations?page=1&limit=10")) {
         return jsonResponse({
@@ -116,11 +116,17 @@ describe("/membro", () => {
     expect(await screen.findByText(/1 pessoal · 1 business/i)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("tab", { name: /Histórico de Doações/i }));
 
-    expect(await screen.findAllByText("Pessoal")).toHaveLength(2);
-    expect(await screen.findAllByText("Business")).toHaveLength(2);
+    expect(await screen.findAllByText("Pessoal")).toHaveLength(1);
+    expect(await screen.findAllByText("Business")).toHaveLength(1);
+    expect(screen.queryByText("Mensal")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: /Assinaturas Recorrentes/i }));
+    expect(await screen.findAllByText("Mensal")).toHaveLength(2);
+    expect(await screen.findAllByText("Pessoal")).toHaveLength(1);
+    expect(await screen.findAllByText("Business")).toHaveLength(1);
   });
 
-  it("dispara carregamento paginado ao trocar página de assinaturas e doações", async () => {
+  it("dispara carregamento paginado ao trocar página de assinaturas e doações nas abas corretas", async () => {
     const authFetch = jest.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations?page=1&limit=10")) {
         return jsonResponse({ items: [], total: 20, page: 1, limit: 10 });
@@ -148,10 +154,11 @@ describe("/membro", () => {
     render(<MembroPage />);
 
     fireEvent.click(await screen.findByRole("tab", { name: /Histórico de Doações/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /Assinaturas Recorrentes/i }));
 
-    const pageButtons = await screen.findAllByRole("button", { name: /go to page 2/i });
-    fireEvent.click(pageButtons[0]);
-    fireEvent.click(pageButtons[1]);
+    fireEvent.click(await screen.findByRole("button", { name: /go to page 2/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /Histórico de Doações/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /go to page 2/i }));
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(

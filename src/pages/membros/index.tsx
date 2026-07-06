@@ -22,6 +22,7 @@ import {
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import TokenIcon from "@mui/icons-material/Token";
 import PeopleIcon from "@mui/icons-material/People";
 import PageHero from "../../components/PageHero";
 import { PLATFORM_COLORS } from "../../data/social";
@@ -72,10 +73,12 @@ function formatDate(iso: string): string {
 function MemberCard({
   member,
   donorInfo,
+  isClubMember,
   isClubBusiness,
 }: Readonly<{
   member: Member;
   donorInfo?: DonorInfo;
+  isClubMember?: boolean;
   isClubBusiness?: boolean;
 }>) {
   return (
@@ -116,6 +119,15 @@ function MemberCard({
               {donorInfo && (
                 <Chip
                   icon={<FavoriteIcon sx={{ fontSize: 14 }} />}
+                  label="Doador(a)"
+                  size="small"
+                  color="default"
+                  variant="outlined"
+                />
+              )}
+              {isClubMember && (
+                <Chip
+                  icon={<TokenIcon sx={{ fontSize: 14 }} />}
                   label="CLUB"
                   size="small"
                   color="success"
@@ -242,6 +254,7 @@ export default function MembrosPage(): React.JSX.Element {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [donorMap, setDonorMap] = useState<Map<string, DonorInfo>>(new Map());
+  const [clubMemberIds, setClubMemberIds] = useState<Set<string>>(new Set());
   const [clubBusinessMemberIds, setClubBusinessMemberIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -252,11 +265,20 @@ export default function MembrosPage(): React.JSX.Element {
     Promise.all([
       fetch(`${apiUrl}/members?limit=100`).then((r) => r.json()),
       fetch(`${apiUrl}/members/donors?limit=100`).then((r) => r.json()),
+      fetch(`${apiUrl}/stripe/club-members`).then((r) => r.json()),
+      fetch(`${apiUrl}/stripe/business-members`).then((r) => r.json()),
     ])
       .then(
-        ([membersRes, donorsRes]: [
+        ([
+          membersRes,
+          donorsRes,
+          clubRes,
+          clubBusinessRes,
+        ]: [
           PaginatedResponse<Member>,
           PaginatedResponse<Member & DonorInfo>,
+          { items?: Array<{ memberId: string }> },
+          { items?: Array<{ memberId: string }> },
         ]) => {
           setMembers(membersRes.data ?? []);
 
@@ -269,14 +291,12 @@ export default function MembrosPage(): React.JSX.Element {
             });
           }
           setDonorMap(map);
-          fetch(`${apiUrl}/companies/business-members`)
-            .then((res) => (res.ok ? res.json() : []))
-            .then((businessMemberIds: string[]) => {
-              setClubBusinessMemberIds(
-                new Set((businessMemberIds ?? []).filter(Boolean)),
-              );
-            })
-            .catch(() => setClubBusinessMemberIds(new Set()));
+          setClubMemberIds(
+            new Set((clubRes.items ?? []).map((item) => item.memberId).filter(Boolean)),
+          );
+          setClubBusinessMemberIds(
+            new Set((clubBusinessRes.items ?? []).map((item) => item.memberId).filter(Boolean)),
+          );
           setLoading(false);
         },
       )
@@ -290,7 +310,7 @@ export default function MembrosPage(): React.JSX.Element {
     let list = [...members];
 
     if (filter === "club") {
-      list = list.filter((m) => donorMap.has(m.id));
+      list = list.filter((m) => clubMemberIds.has(m.id));
     } else if (filter === "club-business") {
       list = list.filter((m) => clubBusinessMemberIds.has(m.id));
     }
@@ -317,9 +337,9 @@ export default function MembrosPage(): React.JSX.Element {
     });
 
     return list;
-  }, [members, donorMap, filter, searchTerm, clubBusinessMemberIds]);
+  }, [members, donorMap, filter, searchTerm, clubBusinessMemberIds, clubMemberIds]);
 
-  const clubCount = donorMap.size;
+  const clubCount = clubMemberIds.size;
   const clubBusinessCount = members.filter((member) => clubBusinessMemberIds.has(member.id)).length;
   const totalMembers = members.length;
 
@@ -403,6 +423,7 @@ export default function MembrosPage(): React.JSX.Element {
                 <MemberCard
                   member={m}
                   donorInfo={donorMap.get(m.id)}
+                  isClubMember={clubMemberIds.has(m.id)}
                   isClubBusiness={clubBusinessMemberIds.has(m.id)}
                 />
               </Grid>

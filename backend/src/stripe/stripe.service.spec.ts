@@ -19,6 +19,7 @@ jest.mock('stripe', () => {
       constructEvent: jest.fn(),
     },
     subscriptions: {
+      list: jest.fn(),
       retrieve: jest.fn(),
       search: jest.fn(),
       update: jest.fn(),
@@ -868,6 +869,178 @@ describe('StripeService', () => {
     it('should throw for invalid memberId', async () => {
       await expect(service.getMySubscriptions('not-a-uuid')).rejects.toThrow(
         BadRequestException,
+      );
+    });
+  });
+
+  // ─── getClubMembers ───────────────────────────────────────────────────────
+
+  describe('getClubMembers', () => {
+    it('should return active monthly club members only', async () => {
+      stripeInstance.subscriptions.list
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 'sub_member_active',
+              status: 'active',
+              metadata: {
+                memberId: uuid(1),
+                githubHandle: 'member-one',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: 'sub_business_active',
+              status: 'active',
+              metadata: {
+                memberId: uuid(2),
+                githubHandle: 'biz-user',
+                companyId: uuid(3),
+                entityType: 'business',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 'sub_member_past_due',
+              status: 'past_due',
+              metadata: {
+                memberId: uuid(1),
+                githubHandle: 'member-one',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              id: 'sub_member_annual',
+              status: 'past_due',
+              metadata: {
+                memberId: uuid(3),
+                githubHandle: 'annual-user',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'year' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+      const result = await service.getClubMembers();
+
+      expect(result.total).toBe(1);
+      expect(result.items).toEqual([
+        expect.objectContaining({
+          memberId: uuid(1),
+          githubHandle: 'member-one',
+        }),
+      ]);
+      expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'active' }),
+      );
+      expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
+      );
+    });
+  });
+
+  // ─── getBusinessMembers ───────────────────────────────────────────────────
+
+  describe('getBusinessMembers', () => {
+    it('should return active business club members only', async () => {
+      stripeInstance.subscriptions.list
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 'sub_business_active',
+              status: 'active',
+              metadata: {
+                memberId: uuid(2),
+                githubHandle: 'biz-user',
+                companyId: uuid(3),
+                entityType: 'business',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        })
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 'sub_business_past_due',
+              status: 'past_due',
+              metadata: {
+                memberId: uuid(2),
+                githubHandle: 'biz-user',
+                companyId: uuid(3),
+                entityType: 'business',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        });
+
+      const result = await service.getBusinessMembers();
+
+      expect(result.total).toBe(1);
+      expect(result.items).toEqual([
+        expect.objectContaining({
+          memberId: uuid(2),
+          githubHandle: 'biz-user',
+        }),
+      ]);
+      expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'active' }),
+      );
+      expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'past_due' }),
       );
     });
   });
