@@ -1043,6 +1043,43 @@ describe('StripeService', () => {
         expect.objectContaining({ status: 'past_due' }),
       );
     });
+
+    it('should keep business member even when githubHandle is missing in metadata', async () => {
+      stripeInstance.subscriptions.list
+        .mockResolvedValueOnce({
+          data: [
+            {
+              id: 'sub_business_active_no_handle',
+              status: 'active',
+              metadata: {
+                memberId: uuid(7),
+                companyId: uuid(8),
+                entityType: 'business',
+              },
+              items: {
+                data: [
+                  {
+                    price: {
+                      recurring: { interval: 'month' },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        })
+        .mockResolvedValueOnce({ data: [] });
+
+      const result = await service.getBusinessMembers();
+
+      expect(result.total).toBe(1);
+      expect(result.items).toEqual([
+        {
+          memberId: uuid(7),
+          githubHandle: '',
+        },
+      ]);
+    });
   });
 
   // ─── cancelSubscription ───────────────────────────────────────────────────

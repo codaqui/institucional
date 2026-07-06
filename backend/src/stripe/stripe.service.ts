@@ -1104,8 +1104,10 @@ export class StripeService {
     return deduped
       .map((sub) => {
         const memberId = sub.metadata?.memberId ?? '';
+        // CLUB Business antigas não persistiam githubHandle no metadata.
+        // Mantemos o membro no resultado para não zerar contagens públicas.
         const githubHandle = sub.metadata?.githubHandle ?? '';
-        if (!memberId || !githubHandle) return null;
+        if (!memberId) return null;
         return { memberId, githubHandle };
       })
       .filter((row): row is MemberSummary => row !== null);
