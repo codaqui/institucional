@@ -324,24 +324,49 @@ export class CompaniesService {
   async listBusinessMemberIds(): Promise<string[]> {
     const activeCompanies = await this.companyRepo.find({
       where: { status: CompanyStatus.ACTIVE },
-      select: ['id', 'responsibleMemberId'],
+      select: ['id'],
     });
     if (activeCompanies.length === 0) return [];
 
-    const companyIds = activeCompanies.map((company) => company.id);
-    const responsibleIds = activeCompanies
+    const members = await this.listBusinessMembersForCompanyIds(
+      activeCompanies.map((company) => company.id),
+    );
+    return [...new Set(members.map((member) => member.memberId))];
+  }
+
+  /**
+   * Resolve membros CLUB Business (responsáveis + colaboradores) para empresas específicas.
+   * Usado pelo Stripe para retornar badges públicas alinhadas às assinaturas empresariais.
+   */
+  async listBusinessMembersForCompanyIds(companyIds: string[]): Promise<
+    Array<{ memberId: string; role: 'owner' | 'collaborator' }>
+  > {
+    const uniqueCompanyIds = [...new Set(companyIds.filter(Boolean))];
+    if (uniqueCompanyIds.length === 0) return [];
+
+    const companies = await this.companyRepo.find({
+      where: { id: In(uniqueCompanyIds) },
+      select: ['id', 'responsibleMemberId'],
+    });
+    if (companies.length === 0) return [];
+
+    const scopedCompanyIds = companies.map((company) => company.id);
+    const ownerRows = companies
       .map((company) => company.responsibleMemberId)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((memberId) => ({ memberId, role: 'owner' as const }));
 
     const collaboratorLinks = await this.memberRepo.find({
-      where: { companyId: In(companyIds) },
+      where: { companyId: In(scopedCompanyIds) },
       select: ['memberId'],
     });
+    const collaboratorHandles = [...new Set(
+      collaboratorLinks
+        .map((link) => link.memberId)
+        .map((memberId) => memberId.trim().replace(/^@/, '').toLowerCase())
+        .filter(Boolean),
+    )];
 
-    const collaboratorHandles = collaboratorLinks
-      .map((link) => link.memberId)
-      .map((memberId) => memberId.trim().replace(/^@/, '').toLowerCase())
-      .filter(Boolean);
     const collaboratorMembers = collaboratorHandles.length
       ? await this.memberEntityRepo.find({
           where: {
@@ -351,13 +376,20 @@ export class CompaniesService {
           select: ['id'],
         })
       : [];
+    const collaboratorRows = collaboratorMembers.map((member) => ({
+      memberId: member.id,
+      role: 'collaborator' as const,
+    }));
 
-    return [
-      ...new Set([
-        ...responsibleIds,
-        ...collaboratorMembers.map((member) => member.id),
-      ]),
-    ];
+    const byMemberId = new Map<string, { memberId: string; role: 'owner' | 'collaborator' }>();
+    for (const row of [...ownerRows, ...collaboratorRows]) {
+      const previous = byMemberId.get(row.memberId);
+      if (!previous || previous.role !== 'owner') {
+        byMemberId.set(row.memberId, row);
+      }
+    }
+
+    return [...byMemberId.values()];
   }
 
   async getSupportSummary(companyId: string): Promise<{

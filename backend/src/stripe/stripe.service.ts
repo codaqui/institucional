@@ -34,6 +34,7 @@ export interface CreateCheckoutDto {
 export interface MemberSummary {
   memberId: string;
   githubHandle: string;
+  membershipType?: 'owner' | 'collaborator';
 }
 
 /** @deprecated Use MemberSummary */
@@ -1143,7 +1144,37 @@ export class StripeService {
         interval === 'month'
       );
     });
-    const items = this.mapToMemberSummaries(filtered, (sub) => sub.metadata?.companyId ?? sub.id);
+    const ownerItems = this.mapToMemberSummaries(
+      filtered,
+      (sub) => sub.metadata?.companyId ?? sub.id,
+    );
+    const ownerByMemberId = new Map(
+      ownerItems
+        .filter((item) => !!item.memberId)
+        .map((item) => [item.memberId, item]),
+    );
+    const companyIds = [...new Set(filtered.map((sub) => sub.metadata?.companyId ?? '').filter(Boolean))];
+    const scopedMembers = await this.companiesService.listBusinessMembersForCompanyIds(companyIds);
+
+    const byMemberId = new Map<string, MemberSummary>();
+    for (const owner of ownerByMemberId.values()) {
+      byMemberId.set(owner.memberId, {
+        memberId: owner.memberId,
+        githubHandle: owner.githubHandle,
+        membershipType: 'owner',
+      });
+    }
+    for (const member of scopedMembers) {
+      const previous = byMemberId.get(member.memberId);
+      if (previous?.membershipType === 'owner') continue;
+      byMemberId.set(member.memberId, {
+        memberId: member.memberId,
+        githubHandle: previous?.githubHandle ?? '',
+        membershipType: member.role,
+      });
+    }
+
+    const items = [...byMemberId.values()];
     return { items, total: items.length };
   }
 
