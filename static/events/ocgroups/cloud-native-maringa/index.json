@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-05-20T00:20:55.084Z",
   "source": {
     "source": "ocgroups",
     "sourceId": "cloud-native-maringa",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z",
+    "generatedAt": "2026-05-20T00:20:55.084Z",
     "sourceKey": "ocgroups:cloud-native-maringa",
     "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
     "itemCount": 2
@@ -59,7 +59,7 @@
     {
       "id": "ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91",
       "title": "Cloud Native Maringá #2 - To be defined",
-      "summary": "Em breve mais atualizações! Reservem essa data! No menu abaixo você pode enviar sugestão de palestra, ou seja, nosso Call4Papers está oficialmente aberto.",
+      "summary": "Em breve mais atualizações! Reservem essa data! No menu abaixo você pode enviar sugestão de palestra, ou seja, nosso Call4Papers está oficialmente aberto. Agenda 9:30 AM - 10:30 AM -03 Talk 1 - Tema em aberto. in-person…",
       "startAt": "2026-05-23T09:30:00-03:00",
       "endAt": "2026-05-23T12:00:00-03:00",
       "timezone": "America/Sao_Paulo",
@@ -76,7 +76,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 5,
+      "userCount": 8,
       "creatorName": "Isadora Marcondes",
       "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
       "organizers": [

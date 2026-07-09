@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-05-20T00:20:55.084Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,7 +10,7 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z"
+    "generatedAt": "2026-05-20T00:20:55.084Z"
   },
   "event": {
     "id": "256155322",
@@ -35,6 +35,16 @@
     "userCount": 18,
     "creatorName": "Eloisa Potrich",
     "creatorId": "225304255",
+    "organizers": [
+      {
+        "name": "Eloisa Potrich",
+        "id": "225304255"
+      },
+      {
+        "name": "Milena Villalba",
+        "id": "262991874"
+      }
+    ],
     "imageUrl": "https://secure.meetupstatic.com/photos/event/8/3/6/highres_476102102.jpeg"
   }
 }

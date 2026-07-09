@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-05-20T00:20:55.084Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z",
+    "generatedAt": "2026-05-20T00:20:55.084Z",
     "sourceKey": "discord:codaqui",
     "indexPath": "/events/discord/codaqui/index.json",
     "itemCount": 12
@@ -303,7 +303,7 @@
       ],
       "ctaLabel": "Entrar no Discord da Codaqui",
       "featured": false,
-      "status": "scheduled",
+      "status": "completed",
       "entityType": "voice",
       "userCount": 1,
       "creatorName": "Enderson Menezes",
@@ -322,10 +322,44 @@
       "itemPath": "/events/discord/codaqui/1498451178764107797.json"
     },
     {
+      "id": "1498450535655931944",
+      "title": "Educação Financeira #6 (Reposição)",
+      "summary": "Reposição de aula.",
+      "startAt": "2026-05-18T22:30:00+00:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Discord",
+      "host": "Comunidade Codaqui",
+      "location": "Servidor da Codaqui no Discord",
+      "href": "https://discord.com/invite/xuTtxqCPpz",
+      "tags": [
+        "discord",
+        "comunidade"
+      ],
+      "ctaLabel": "Entrar no Discord da Codaqui",
+      "featured": false,
+      "status": "completed",
+      "entityType": "voice",
+      "userCount": 1,
+      "creatorName": "Enderson Menezes",
+      "creatorId": "265457153257635850",
+      "organizers": [
+        {
+          "name": "Enderson Menezes",
+          "id": "265457153257635850"
+        }
+      ],
+      "channelId": "836223645143662592",
+      "imageUrl": "https://cdn.discordapp.com/guild-events/1498450535655931944/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "source": "discord",
+      "sourceId": "codaqui",
+      "sourceKey": "discord:codaqui",
+      "itemPath": "/events/discord/codaqui/1498450535655931944.json"
+    },
+    {
       "id": "1338983526858494053",
       "title": "Reunião Geral da Associação",
       "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-      "startAt": "2026-05-18T21:30:00+00:00",
+      "startAt": "2026-05-25T21:30:00+00:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Discord",
       "host": "Comunidade Codaqui",
@@ -363,40 +397,6 @@
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
       "itemPath": "/events/discord/codaqui/1338983526858494053.json"
-    },
-    {
-      "id": "1498450535655931944",
-      "title": "Educação Financeira #6 (Reposição)",
-      "summary": "Reposição de aula.",
-      "startAt": "2026-05-18T22:30:00+00:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Discord",
-      "host": "Comunidade Codaqui",
-      "location": "Servidor da Codaqui no Discord",
-      "href": "https://discord.com/invite/xuTtxqCPpz",
-      "tags": [
-        "discord",
-        "comunidade"
-      ],
-      "ctaLabel": "Entrar no Discord da Codaqui",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "voice",
-      "userCount": 1,
-      "creatorName": "Enderson Menezes",
-      "creatorId": "265457153257635850",
-      "organizers": [
-        {
-          "name": "Enderson Menezes",
-          "id": "265457153257635850"
-        }
-      ],
-      "channelId": "836223645143662592",
-      "imageUrl": "https://cdn.discordapp.com/guild-events/1498450535655931944/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
-      "source": "discord",
-      "sourceId": "codaqui",
-      "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450535655931944.json"
     }
   ]
 }

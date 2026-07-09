@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-05-20T00:20:55.084Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,7 +10,7 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z"
+    "generatedAt": "2026-05-20T00:20:55.084Z"
   },
   "event": {
     "id": "226163759",
@@ -34,6 +34,12 @@
     "entityType": "external",
     "userCount": 51,
     "creatorName": "Fernando Fabricio dos Santos",
-    "creatorId": "187548010"
+    "creatorId": "187548010",
+    "organizers": [
+      {
+        "name": "Fernando Fabricio dos Santos",
+        "id": "187548010"
+      }
+    ]
   }
 }
