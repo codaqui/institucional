@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-11T09:29:27.398Z",
+  "generatedAt": "2026-07-11T10:24:12.987Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,7 +10,7 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-11T09:29:27.398Z"
+    "generatedAt": "2026-07-11T10:24:12.987Z"
   },
   "event": {
     "id": "301302694",
