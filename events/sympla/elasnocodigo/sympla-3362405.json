@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-14T17:25:26.550Z",
+  "generatedAt": "2026-07-14T18:19:38.838Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-14T17:25:26.550Z"
+    "generatedAt": "2026-07-14T18:19:38.838Z"
   },
   "event": {
     "id": "sympla-3362405",
@@ -21,7 +21,7 @@
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "Elas no Código",
-    "location": "Ativar para ir para o player da Audima",
+    "location": "Ativar para ir para o menu de acessibilidade",
     "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-roda-de-conversa-carreiras-em-tech-trajetorias-femininas-que-transformam/3362405",
     "tags": [
       "elasnocodigo",
