@@ -13,16 +13,16 @@
     "generatedAt": "2026-07-16T01:31:24.802Z"
   },
   "event": {
-    "id": "266019259",
-    "title": "#5 English Meetup Crew feat. Projeto Trava-línguas 🎳",
-    "summary": "Welcome to the 5 English Meetup Crew feat. Projeto Trava-línguas! Hey guys and gals... This is our 1st combined Meetup! The English Meetup Crew will be teaming up with the folks from Projeto Trava-línguas for a nice bow…",
-    "startAt": "2019-10-30T19:00:00-03:00",
-    "endAt": "2019-10-30T21:00:00-03:00",
+    "id": "315702026",
+    "title": "1º Meetup DevParaná Pato Branco",
+    "summary": "Está chegando o 1º Meetup DevParaná Pato Branco, um evento para fazer networking e falar de tecnologia! 📅 22/07/2026 às 19h 📍 ACEPB - R. Xavantes, 315 Centro, Pato Branco - PR, 85501-220 🎤 Palestras Confirmadas Desen…",
+    "startAt": "2026-07-22T19:00:00-03:00",
+    "endAt": "2026-07-22T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Pinos&Beers · Av. Pioneiro Henrique Bula, 4060 · Maringá · PR",
-    "href": "https://www.meetup.com/developerparana/events/266019259/",
+    "location": "ACEPB · R. Xavantes, 315 - Centro, Pato Branco - PR, 85501-220 · PATO BRANCO",
+    "href": "https://www.meetup.com/developerparana/events/315702026/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,21 +30,21 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 4,
-    "creatorName": "Luis Berns",
-    "creatorId": "223750190",
+    "userCount": 2,
+    "creatorName": "Leonardo Zanini Niclote",
+    "creatorId": "476862354",
     "organizers": [
       {
-        "name": "Florencio Vente",
-        "id": "217143428"
+        "name": "Geovane Norbert",
+        "id": "370171009"
       },
       {
-        "name": "Luis Berns",
-        "id": "223750190"
+        "name": "Leonardo Zanini Niclote",
+        "id": "476862354"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/d/0/7/highres_486172487.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/f/4/3/highres_535224387.jpeg"
   }
 }
