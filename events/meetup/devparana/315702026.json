@@ -1,0 +1,50 @@
+{
+  "generatedAt": "2026-07-16T01:31:24.802Z",
+  "source": {
+    "source": "meetup",
+    "sourceId": "devparana",
+    "type": "meetup",
+    "label": "Dev Paraná no Meetup",
+    "emoji": "📍",
+    "description": "Eventos publicados pelo Dev Paraná no Meetup, incluindo histórico e próximos encontros.",
+    "ctaLabel": "Abrir grupo do Dev Paraná",
+    "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-07-16T01:31:24.802Z"
+  },
+  "event": {
+    "id": "315702026",
+    "title": "1º Meetup DevParaná Pato Branco",
+    "summary": "Está chegando o 1º Meetup DevParaná Pato Branco, um evento para fazer networking e falar de tecnologia! 📅 22/07/2026 às 19h 📍 ACEPB - R. Xavantes, 315 Centro, Pato Branco - PR, 85501-220 🎤 Palestras Confirmadas Desen…",
+    "startAt": "2026-07-22T19:00:00-03:00",
+    "endAt": "2026-07-22T21:00:00-03:00",
+    "timezone": "America/Sao_Paulo",
+    "platform": "Meetup",
+    "host": "Dev Paraná",
+    "location": "ACEPB · R. Xavantes, 315 - Centro, Pato Branco - PR, 85501-220 · PATO BRANCO",
+    "href": "https://www.meetup.com/developerparana/events/315702026/",
+    "tags": [
+      "meetup",
+      "devparana",
+      "presencial"
+    ],
+    "ctaLabel": "Ver evento no Meetup",
+    "featured": false,
+    "status": "scheduled",
+    "entityType": "external",
+    "userCount": 2,
+    "creatorName": "Leonardo Zanini Niclote",
+    "creatorId": "476862354",
+    "organizers": [
+      {
+        "name": "Geovane Norbert",
+        "id": "370171009"
+      },
+      {
+        "name": "Leonardo Zanini Niclote",
+        "id": "476862354"
+      }
+    ],
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/f/4/3/highres_535224387.jpeg"
+  }
+}
