@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-20T04:20:45.461Z",
+  "generatedAt": "2026-07-20T06:00:54.101Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,17 +10,18 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-20T04:20:45.461Z"
+    "generatedAt": "2026-07-20T06:00:54.101Z"
   },
   "event": {
     "id": "sympla-3362405",
     "title": "[Roda de Conversa] Roda de Conversa: Carreiras em Tech - Trajetórias Femininas que Transformam",
-    "summary": "Evento organizado pelo Elas no Código na Sympla.",
+    "summary": "Roda de Conversa: Carreiras em Tech \n\nComo é a realidade de uma mulher no mercado de tecnologia em 2026? Da infraestrutura ao mercado internacional, do design à educação inclusiva. O Elas No Código reúne um time de peso…",
     "startAt": "2026-03-28T14:00:00-03:00",
+    "endAt": "2026-03-28T15:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "Elas no Código",
-    "location": "Estamos passando por problemas.",
+    "location": "Ativar para ir para o menu de acessibilidade",
     "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-roda-de-conversa-carreiras-em-tech-trajetorias-femininas-que-transformam/3362405",
     "tags": [
       "elasnocodigo",
