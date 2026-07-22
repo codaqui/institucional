@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-21T23:18:07.127Z",
+  "generatedAt": "2026-07-22T00:15:42.258Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-21T23:18:07.127Z"
+    "generatedAt": "2026-07-22T00:15:42.258Z"
   },
   "event": {
     "id": "sympla-2016945",
