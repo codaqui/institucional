@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T14:42:54.753Z",
+  "generatedAt": "2026-07-23T15:36:52.631Z",
   "source": {
     "source": "ocgroups",
     "sourceId": "cloud-native-maringa",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-23T14:42:54.753Z"
+    "generatedAt": "2026-07-23T15:36:52.631Z"
   },
   "event": {
     "id": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
