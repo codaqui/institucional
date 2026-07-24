@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T06:57:36.071Z",
+  "generatedAt": "2026-07-24T06:58:04.329Z",
   "totalEvents": 401,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 755,
+      "count": 754,
       "channelCount": 41,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6498,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 169,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 55,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 251,
-      "fetchedAt": "2026-07-23T06:57:36.071Z",
+      "count": 252,
+      "fetchedAt": "2026-07-24T06:58:04.329Z",
       "isFallback": false
     },
     {
