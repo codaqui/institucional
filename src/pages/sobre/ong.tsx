@@ -13,9 +13,28 @@ import MembersWall from "../../components/MembersWall";
 import PageHero from "../../components/PageHero";
 import CommunityPresenceCard from "../../components/CommunityPresenceCard";
 import { useSocialStatsSnapshot } from "../../hooks/useSocialStatsSnapshot";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { COMMUNITIES_CONFIG } from "../../../comunidades/index";
 
 export default function OngPage(): React.JSX.Element {
   const { profilesFor } = useSocialStatsSnapshot();
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
+
+  React.useEffect(() => {
+    const getMode = () =>
+      document.documentElement.getAttribute("data-theme") === "dark";
+    setIsDarkMode(getMode());
+    const observer = new MutationObserver(() => setIsDarkMode(getMode()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <Layout
       title="Associação"
@@ -45,6 +64,74 @@ export default function OngPage(): React.JSX.Element {
                 tags={community.tags}
                 links={community.links.map((l) => ({ label: l.label, url: l.url }))}
               />
+            </Grid>
+          ))}
+        </Grid>
+
+        <Divider sx={{ my: 6 }} />
+
+        <Typography variant="h4" component="h2" mb={3} fontWeight={700}>
+          Portais das comunidades
+        </Typography>
+        <Typography variant="body1" mb={3}>
+          Algumas comunidades parceiras têm um espaço próprio dentro do Codaqui,
+          com identidade visual, campanhas, transparência e doação dedicadas.
+        </Typography>
+
+        <Grid container spacing={3}>
+          {COMMUNITIES_CONFIG.map((community) => (
+            <Grid key={community.slug} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  transition: (theme) =>
+                    theme.transitions.create(["box-shadow", "transform"]),
+                  "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
+                }}
+              >
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Box
+                    component="img"
+                    src={
+                      isDarkMode && community.logoUrlDark
+                        ? community.logoUrlDark
+                        : community.logoUrl
+                    }
+                    alt={community.name}
+                    sx={{
+                      height: 64,
+                      width: "auto",
+                      mb: 2,
+                      objectFit: "contain",
+                      display: "block",
+                    }}
+                  />
+                  <Typography variant="h6" fontWeight={700} gutterBottom>
+                    {community.name}
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mb: 1 }}
+                  >
+                    {community.tagline}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {community.description}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    size="small"
+                    href={community.basePath}
+                    endIcon={<ArrowForwardIcon />}
+                  >
+                    Acessar portal
+                  </Button>
+                </CardActions>
+              </Card>
             </Grid>
           ))}
         </Grid>
