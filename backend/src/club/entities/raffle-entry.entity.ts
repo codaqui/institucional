@@ -16,7 +16,8 @@ export enum RaffleOwnerType {
 
 /**
  * Inscrição de um membro ou empresa em um sorteio.
- * Cada owner pode entrar uma única vez por sorteio.
+ * Um owner tem no máximo uma entrada por sorteio, mas pode acumular
+ * múltiplos tickets ao aumentar `coinsSpent` (pagando mais de uma vez).
  */
 @Entity('club_raffle_entries')
 @Unique(['raffleId', 'ownerId', 'ownerType'])
