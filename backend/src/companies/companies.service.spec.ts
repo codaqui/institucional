@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { CompaniesService, validateCnpj } from './companies.service';
+import { CompaniesService, formatCnpj, validateCnpj } from './companies.service';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import { CompanyMember } from './entities/company-member.entity';
@@ -10,6 +10,7 @@ import {
   CompanyWalletTransaction,
   CompanyWalletTxSource,
 } from './entities/company-wallet-transaction.entity';
+import { CompanySubscriptionTracking } from './entities/company-subscription-tracking.entity';
 import { Member } from '../members/entities/member.entity';
 import { ClubService } from '../club/club.service';
 
@@ -25,6 +26,7 @@ const makeCompany = (overrides: Partial<Company> = {}): Company =>
     id: COMPANY_ID,
     cnpj: VALID_CNPJ,
     name: 'Empresa Teste Ltda',
+    tradeName: null,
     logoUrl: null,
     websiteUrl: null,
     status: CompanyStatus.PENDING,
@@ -93,6 +95,18 @@ describe('validateCnpj', () => {
   });
 });
 
+// ─── formatCnpj standalone ───────────────────────────────────────────────────
+
+describe('formatCnpj', () => {
+  it('formats 14 digits', () => {
+    expect(formatCnpj('11222333000181')).toBe('11.222.333/0001-81');
+  });
+
+  it('strips non-digits before formatting', () => {
+    expect(formatCnpj('11.222.333/0001-81')).toBe('11.222.333/0001-81');
+  });
+});
+
 // ─── CompaniesService ────────────────────────────────────────────────────────
 
 describe('CompaniesService', () => {
@@ -102,6 +116,7 @@ describe('CompaniesService', () => {
   let txRepo: Record<string, jest.Mock>;
   let memberRepo: Record<string, jest.Mock>;
   let memberEntityRepo: Record<string, jest.Mock>;
+  let subscriptionTrackingRepo: Record<string, jest.Mock>;
   let dataSource: { transaction: jest.Mock };
   let clubService: { creditDistribution: jest.Mock };
 
@@ -144,6 +159,13 @@ describe('CompaniesService', () => {
       createQueryBuilder: jest.fn(),
     };
 
+    subscriptionTrackingRepo = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn((d) => ({ ...d })),
+      save: jest.fn((e) => Promise.resolve({ ...e, id: 'tracking-1' })),
+    };
+
     dataSource = { transaction: jest.fn() };
     clubService = { creditDistribution: jest.fn().mockResolvedValue(undefined) };
 
@@ -155,6 +177,7 @@ describe('CompaniesService', () => {
         { provide: getRepositoryToken(CompanyWalletTransaction), useValue: txRepo },
         { provide: getRepositoryToken(CompanyMember), useValue: memberRepo },
         { provide: getRepositoryToken(Member), useValue: memberEntityRepo },
+        { provide: getRepositoryToken(CompanySubscriptionTracking), useValue: subscriptionTrackingRepo },
         { provide: DataSource, useValue: dataSource },
         { provide: ClubService, useValue: clubService },
       ],
@@ -175,8 +198,25 @@ describe('CompaniesService', () => {
         expect.objectContaining({
           cnpj: VALID_CNPJ,
           name: 'Empresa',
+          tradeName: null,
           responsibleMemberId: MEMBER_ID,
           status: CompanyStatus.PENDING,
+        }),
+      );
+    });
+
+    it('creates company with tradeName', async () => {
+      companyRepo.findOne.mockResolvedValue(null);
+
+      await service.register(
+        { cnpj: VALID_CNPJ, name: 'Empresa Teste Ltda', tradeName: 'Teste' },
+        MEMBER_ID,
+      );
+
+      expect(companyRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Empresa Teste Ltda',
+          tradeName: 'Teste',
         }),
       );
     });
@@ -277,6 +317,59 @@ describe('CompaniesService', () => {
 
       const result = await service.findPublicInfo(COMPANY_ID);
       expect(result.responsibleGithubHandle).toBeNull();
+    });
+  });
+
+  describe('getReceipt', () => {
+    it('returns receipt data for a paid invoice', async () => {
+      const company = makeCompany({
+        stripeSubscriptionId: 'sub_123',
+        stripeCustomerId: 'cus_123',
+      });
+      companyRepo.findOne.mockResolvedValue(company);
+      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, name: 'João da Silva' });
+
+      const stripeList = jest.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'in_123',
+            amount_paid: 50000,
+            created: 1751328000,
+          },
+        ],
+      });
+      (service as any).stripe = { invoices: { list: stripeList } };
+
+      const result = await service.getReceipt(COMPANY_ID, '2025-07');
+
+      expect(result.company.name).toBe(company.name);
+      expect(result.company.cnpj).toBe(formatCnpj(company.cnpj));
+      expect(result.company.responsibleName).toBe('João da Silva');
+      expect(result.donation.amountBRL).toBe(500);
+      expect(result.donation.stripeInvoiceId).toBe('in_123');
+      expect(stripeList).toHaveBeenCalledWith(
+        expect.objectContaining({
+          subscription: 'sub_123',
+          status: 'paid',
+          created: expect.objectContaining({ gte: expect.any(Number), lt: expect.any(Number) }),
+        }),
+      );
+    });
+
+    it('throws NotFoundException when no paid invoice exists for the month', async () => {
+      const company = makeCompany({ stripeSubscriptionId: 'sub_123' });
+      companyRepo.findOne.mockResolvedValue(company);
+      (service as any).stripe = {
+        invoices: { list: jest.fn().mockResolvedValue({ data: [] }) },
+      };
+
+      await expect(service.getReceipt(COMPANY_ID, '2025-07')).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException when company has no stripe subscription or customer', async () => {
+      companyRepo.findOne.mockResolvedValue(makeCompany());
+
+      await expect(service.getReceipt(COMPANY_ID)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -521,6 +614,109 @@ describe('CompaniesService', () => {
     it('does nothing when subscription not found', async () => {
       companyRepo.findOne.mockResolvedValue(null);
       await service.suspendFromSubscriptionDeleted('sub_unknown');
+      expect(companyRepo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── trackSubscriptionStatus ───────────────────────────────────────────────
+
+  describe('trackSubscriptionStatus', () => {
+    it('creates tracking record when none exists', async () => {
+      subscriptionTrackingRepo.findOne.mockResolvedValue(null);
+
+      await service.trackSubscriptionStatus(COMPANY_ID, 'sub_123', 'past_due');
+
+      expect(subscriptionTrackingRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          companyId: COMPANY_ID,
+          stripeSubscriptionId: 'sub_123',
+          status: 'past_due',
+          frozenAt: null,
+        }),
+      );
+      expect(subscriptionTrackingRepo.save).toHaveBeenCalled();
+    });
+
+    it('unfreezes wallet and degrades company status when subscription becomes active', async () => {
+      const tracking = {
+        id: 'tracking-1',
+        companyId: COMPANY_ID,
+        stripeSubscriptionId: 'sub_old',
+        status: 'past_due',
+        statusChangedAt: new Date(),
+        frozenAt: new Date(),
+      };
+      subscriptionTrackingRepo.findOne.mockResolvedValue(tracking);
+      walletRepo.findOne.mockResolvedValue(makeWallet());
+      companyRepo.findOne.mockResolvedValue(makeCompany({ status: CompanyStatus.PAST_DUE }));
+
+      await service.trackSubscriptionStatus(COMPANY_ID, 'sub_123', 'active');
+
+      expect(tracking.frozenAt).toBeNull();
+      expect(subscriptionTrackingRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'active' }),
+      );
+      expect(companyRepo.update).toHaveBeenCalledWith(
+        COMPANY_ID,
+        expect.objectContaining({ status: CompanyStatus.PENDING }),
+      );
+    });
+
+    it('keeps statusChangedAt unchanged when status did not change', async () => {
+      const changedAt = new Date('2025-01-01');
+      const tracking = {
+        id: 'tracking-1',
+        companyId: COMPANY_ID,
+        status: 'past_due',
+        statusChangedAt: changedAt,
+      };
+      subscriptionTrackingRepo.findOne.mockResolvedValue(tracking);
+
+      await service.trackSubscriptionStatus(COMPANY_ID, 'sub_123', 'past_due');
+
+      expect(tracking.statusChangedAt).toBe(changedAt);
+      expect(subscriptionTrackingRepo.save).toHaveBeenCalled();
+    });
+  });
+
+  // ─── freezePastDueSubscriptions ──────────────────────────────────────────────
+
+  describe('freezePastDueSubscriptions', () => {
+    it('freezes wallet and marks company as past_due after 3 days overdue', async () => {
+      const overdueDate = new Date();
+      overdueDate.setUTCDate(overdueDate.getUTCDate() - 4);
+
+      subscriptionTrackingRepo.find.mockResolvedValue([
+        {
+          id: 'tracking-1',
+          companyId: COMPANY_ID,
+          status: 'past_due',
+          statusChangedAt: overdueDate,
+          frozenAt: null,
+        },
+      ]);
+      walletRepo.findOne.mockResolvedValue(makeWallet());
+
+      await service.freezePastDueSubscriptions();
+
+      expect(walletRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ frozenTypes: ['sort_coin'] }),
+      );
+      expect(subscriptionTrackingRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ frozenAt: expect.any(Date) }),
+      );
+      expect(companyRepo.update).toHaveBeenCalledWith(
+        COMPANY_ID,
+        expect.objectContaining({ status: CompanyStatus.PAST_DUE }),
+      );
+    });
+
+    it('does nothing when there are no overdue subscriptions', async () => {
+      subscriptionTrackingRepo.find.mockResolvedValue([]);
+
+      await service.freezePastDueSubscriptions();
+
+      expect(walletRepo.save).not.toHaveBeenCalled();
       expect(companyRepo.update).not.toHaveBeenCalled();
     });
   });

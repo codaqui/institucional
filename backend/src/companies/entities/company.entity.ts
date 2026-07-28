@@ -30,6 +30,10 @@ export class Company {
   @Column()
   name: string;
 
+  /** Nome fantasia (opcional) — usado no site e no comprovante de doação */
+  @Column({ nullable: true, type: 'varchar' })
+  tradeName: string | null;
+
   @Column({ nullable: true, type: 'varchar' })
   logoUrl: string | null;
 
