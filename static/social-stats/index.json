@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-05-12T07:08:42.380Z",
-  "totalEvents": 378,
+  "generatedAt": "2026-07-28T06:59:36.245Z",
+  "totalEvents": 401,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 753,
       "channelCount": 41,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 193,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 199,
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6496,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 6498,
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -76,8 +76,8 @@
       "url": "https://www.youtube.com/devparana",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 1570,
-      "fetchedAt": "2026-04-02T06:34:48.357Z",
+      "count": 1560,
+      "fetchedAt": "2026-06-23T07:25:07.797Z",
       "isFallback": true
     },
     {
@@ -109,8 +109,8 @@
       "url": "https://www.youtube.com/@elasnocodigo",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 164,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 169,
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -143,8 +143,8 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 111,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
-      "isFallback": false
+      "fetchedAt": "2026-05-18T07:35:13.544Z",
+      "isFallback": true
     },
     {
       "entityId": "tisocial",
@@ -164,8 +164,8 @@
       "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
       "baselineCount": 45,
-      "count": 45,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 55,
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 215,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
+      "count": 252,
+      "fetchedAt": "2026-07-28T06:59:36.245Z",
       "isFallback": false
     },
     {
@@ -197,9 +197,9 @@
       "url": "https://www.youtube.com/@CumbucaDev",
       "countLabel": "inscritos",
       "baselineCount": 312,
-      "count": 331,
-      "fetchedAt": "2026-05-12T07:08:42.380Z",
-      "isFallback": false
+      "count": 818,
+      "fetchedAt": "2026-06-23T07:25:07.797Z",
+      "isFallback": true
     }
   ]
 }
