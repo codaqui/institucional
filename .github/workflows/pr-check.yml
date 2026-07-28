@@ -48,7 +48,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run TypeScript check
         run: npm run typecheck
@@ -70,12 +70,12 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run Frontend Tests with Coverage
         run: |
           set -o pipefail
-          npx jest --config jest.config.ts --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee frontend-coverage.txt
+          ./node_modules/.bin/jest --config jest.config.ts --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee frontend-coverage.txt
 
       - name: Upload frontend coverage
         if: always()
@@ -106,7 +106,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./backend
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Run Backend Build
         working-directory: ./backend
@@ -116,7 +116,7 @@ jobs:
         working-directory: ./backend
         run: |
           set -o pipefail
-          npx jest --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee backend-coverage.txt
+          ./node_modules/.bin/jest --coverage --coverageReporters=json-summary --coverageReporters=text 2>&1 | tee backend-coverage.txt
 
       - name: Upload backend coverage
         if: always()
@@ -286,7 +286,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Build website
         id: build
