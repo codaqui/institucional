@@ -58,8 +58,9 @@ O **Clube Codaqui Business** permite que empresas (Pessoas Jurídicas) apoiem a 
 | Recorrência | Sempre `interval: 'month'` — sem opção de pagamento único |
 | Taxa de conversão | 1 BRL = 1 SortCoin (mesmo padrão do CLUB individual) |
 | Crédito de coins | A cada `invoice.payment_succeeded` com `metadata.entityType: 'business'` |
-| Congelamento | Carteira congelada em `customer.subscription.deleted` ou status `past_due` por >3 dias |
+| Congelamento | Carteira congelada em `customer.subscription.deleted`. Melhoria planejada: congelar automaticamente após >3 dias em `past_due` via cron diário |
 | Descongelamento | Automático em novo `invoice.payment_succeeded` |
+| Ativação da empresa | **Manual por admin** após conferência dos dados (status não muda automaticamente no pagamento) |
 | Nota Fiscal | **Não emitida** — ONG é isenta. Apenas comprovante assinado sob demanda |
 | Benefícios ativos | Visível no site e nos sorteios somente enquanto `status: 'active'` |
 | Saldo negativo | Nunca permitido — validar antes de qualquer débito |
@@ -116,7 +117,10 @@ export class Company {
   cnpj: string;
 
   @Column()
-  name: string;                   // Razão social ou nome fantasia
+  name: string;                   // Razão social
+
+  @Column({ nullable: true, type: 'varchar' })
+  tradeName: string | null;      // Nome fantasia (para site/comprovante)
 
   @Column({ nullable: true, type: 'varchar' })
   logoUrl: string | null;         // URL absoluta ou /static/img/...
@@ -319,8 +323,8 @@ async creditFromInvoice(companyId: string, amountBRL: number, invoiceId: string)
       .execute();
   });
 
-  // Atualiza status da empresa para ACTIVE
-  await this.repo.update({ id: companyId }, { status: CompanyStatus.ACTIVE });
+  // Não altera status da empresa automaticamente. Admin ativa manualmente após
+  // conferência dos dados e aprovação do comprovante de doação.
 }
 ```
 
@@ -342,6 +346,21 @@ async freezeWallet(companyId: string): Promise<void> {
   await this.repo.update({ id: companyId }, { status: CompanyStatus.CANCELLED });
 }
 ```
+
+#### Melhoria: congelamento automático por `past_due > 3 dias`
+
+Implementação planejada para não depender apenas do cancelamento:
+
+1. **Tabela `subscription_status_tracking`** (ou campos na `Company`):
+   - `stripeSubscriptionId`, `status`, `statusChangedAt`, `frozenAt`.
+2. **Webhook `customer.subscription.updated`** atualiza a linha sempre que `status` mudar (`active` → `past_due`, `past_due` → `active`, etc.).
+3. **Cron diário** seleciona assinaturas `past_due` com `statusChangedAt > 3 dias` e `frozenAt IS NULL`;
+   para cada uma, chama `freezeWallet(companyId)` e marca `frozenAt`.
+4. **Descongelamento**: em `creditFromInvoice` (novo `invoice.payment_succeeded`), remove
+   `'sort_coin'` de `frozenTypes` e limpa `frozenAt`.
+
+> Estado atual: congelamento só acontece em `customer.subscription.deleted`. O cron/webhook
+> de `past_due` está na lista de melhorias.
 
 ---
 
@@ -436,7 +455,8 @@ Tabelas criadas:
 CREATE TABLE companies (
   id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   cnpj                    VARCHAR(14) UNIQUE NOT NULL,
-  name                    VARCHAR NOT NULL,
+  name                    VARCHAR NOT NULL,            -- razão social
+  trade_name              VARCHAR,                     -- nome fantasia (pode ser nulo)
   logo_url                VARCHAR,
   website_url             VARCHAR,
   status                  company_status_enum DEFAULT 'pending',
@@ -526,7 +546,7 @@ Lista pública das empresas apoiadoras com `showOnSponsorsPage: true`:
 └────────────────────────────────────────────────────────┘
 ```
 
-Endpoint: `GET /companies/sponsors` → array de `{ name, logoUrl, websiteUrl }`.
+Endpoint: `GET /companies/sponsors` → array de `{ name, tradeName, logoUrl, websiteUrl }`.
 
 ### 4. Badge no perfil do responsável
 
@@ -564,7 +584,8 @@ interface DonationReceiptDto {
   generatedAt: string;          // ISO timestamp
   company: {
     cnpj: string;               // formatado: XX.XXX.XXX/XXXX-XX
-    name: string;
+    name: string;               // razão social
+    tradeName: string | null;   // nome fantasia
     responsibleName: string;    // nome do membro responsável
   };
   beneficiary: {

@@ -35,12 +35,12 @@ Apoiadores com assinatura ativa acumulam moedas a cada cobrança e podem usá-la
 |---|---|
 | Taxa de conversão | 1 BRL = 1 SortCoin |
 | Crédito | Ocorre a cada `invoice.payment_succeeded` |
-| Congelamento | Wallet congelada quando assinatura é cancelada (`customer.subscription.deleted`) |
+| Congelamento | Wallet congelada quando assinatura é cancelada (`customer.subscription.deleted`) e, como melhoria planejada, após >3 dias em `past_due` |
 | Descongelamento | Automático ao reativar assinatura (novo `invoice.payment_succeeded`) |
 | Participação em sorteios | Somente donors com assinatura **ativa** no momento de entrada |
 | Custo do sorteio | Fixo por sorteio, definido pelo admin (em SortCoins) |
 | Dedução | Coins deduzidos no momento da inscrição no sorteio |
-| Vencedor | Selecionado aleatoriamente entre as entradas; admin dispara o sorteio manualmente |
+| Vencedor | Selecionado proporcionalmente aos tickets comprados (cada entrada acumula `coinsSpent`); admin dispara o sorteio manualmente |
 | Saldo negativo | Nunca permitido — validar antes de debitar |
 
 ---
@@ -233,28 +233,40 @@ export enum RaffleStatus {
 #### `RaffleEntry`
 
 ```typescript
+export enum RaffleOwnerType {
+  MEMBER = 'member',
+  COMPANY = 'company',
+}
+
 @Entity('club_raffle_entries')
-@Unique(['raffle', 'memberId'])  // um membro = uma entrada por sorteio (sem duplicatas)
+@Unique(['raffleId', 'ownerId', 'ownerType'])  // um owner = uma entrada por sorteio; tickets acumulam em coinsSpent
 export class RaffleEntry {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @ManyToOne(() => Raffle)
+  @JoinColumn({ name: 'raffleId' })
   raffle: Raffle;
 
   @Column()
-  memberId: string;
+  raffleId: string;
+
+  /** memberId (UUID) ou companyId (UUID) */
+  @Column()
+  ownerId: string;
+
+  @Column({ type: 'enum', enum: RaffleOwnerType })
+  ownerType: RaffleOwnerType;
 
   @Column({ type: 'int' })
-  coinsSpent: number;
+  coinsSpent: number;          // total de tickets acumulados (pode crescer com novas entradas)
 
   @CreateDateColumn()
   enteredAt: Date;
 }
 ```
 
-> Se múltiplos ingressos por membro forem necessários no futuro, adicionar campo `tickets: number`
-> e remover a constraint única — mas decidir explicitamente antes de implementar.
+> Cada owner pode acumular tickets pagando múltiplas vezes; `coinsSpent` representa o total de tickets.
 
 ---
 
@@ -269,10 +281,16 @@ invoice.payment_succeeded
             ├─ DB transaction + SELECT FOR UPDATE: balances['sort_coin'] += Math.floor(amountBRL)
             └─ WalletTransaction com unique check (source=STRIPE_INVOICE, referenceId=invoice.id)
 
-customer.subscription.deleted  |  customer.subscription.updated (status: past_due | unpaid | paused)
+customer.subscription.deleted
   └─ NOVO: clubService.freezeCoinType(memberId, 'sort_coin')
        └─ frozenTypes += 'sort_coin'  (saldo preservado, sem acumular nem gastar)
-```
+
+// Melhoria planejada: cron diário + subscription status tracking
+// Após 3 dias em `past_due`, congela wallet automaticamente;
+// descongelamento ocorre em novo `invoice.payment_succeeded`.
+customer.subscription.updated (status: past_due | unpaid | paused)
+  └─ NOVO: atualizar subscription_status_tracking; cron decide freeze se >3 dias
+       └─ descongelar em `invoice.payment_succeeded````
 
 > **Regra de raffle entry:** verificar `!frozenTypes.includes('sort_coin')` no momento da inscrição —
 > não confiar apenas no evento de freeze anterior (estado pode ter mudado entre webhooks).
@@ -299,19 +317,43 @@ customer.subscription.deleted  |  customer.subscription.updated (status: past_du
 
 ```typescript
 // raffle.service.ts
-async draw(raffleId: string, adminId: string): Promise<Member> {
-  const entries = await this.raffleEntryRepo.find({ where: { raffle: { id: raffleId } } });
+async draw(raffleId: string): Promise<Raffle> {
+  const entries = await this.raffleEntryRepo.find({
+    where: { raffle: { id: raffleId } },
+    order: { enteredAt: 'ASC', id: 'ASC' },
+  });
   if (!entries.length) throw new BadRequestException('Sem participantes');
 
-  // Usar crypto.randomInt para auditabilidade — nunca Math.random()
-  const { randomInt } = await import('crypto');
-  const winnerEntry = entries[randomInt(entries.length)];
-  raffle.status   = RaffleStatus.DRAWN;
-  raffle.winnerId = winnerEntry.memberId;
-  raffle.drawAt   = new Date();
+  const totalCoins = entries.reduce((sum, entry) => sum + entry.coinsSpent, 0);
+  if (totalCoins <= 0) throw new BadRequestException('Sem coins investidos');
+
+  // Algoritmo auditável: sha256 de randomBytes + raffleId + totalCoins,
+  // depois mod totalCoins. Seed salvo para re-verificação.
+  const drawSeed = randomBytes(16).toString('hex');
+  const digest = createHash('sha256')
+    .update(`${drawSeed}:${raffleId}:${totalCoins}`)
+    .digest('hex');
+  const randomCoin = Number(BigInt(`0x${digest}`) % BigInt(totalCoins));
+
+  let accumulated = 0;
+  let winner = entries[0];
+  for (const entry of entries) {
+    accumulated += entry.coinsSpent;
+    if (randomCoin < accumulated) {
+      winner = entry;
+      break;
+    }
+  }
+
+  raffle.status = RaffleStatus.DRAWN;
+  raffle.winnerId = winner.ownerId;
+  raffle.winnerType = winner.ownerType;
+  raffle.drawAt = new Date();
+  raffle.drawSeed = drawSeed;
+  raffle.drawAlgorithm = 'weighted-sha256-mod(totalCoins)';
   await this.raffleRepo.save(raffle);
 
-  return this.membersService.findById(winnerEntry.memberId);
+  return raffle;
 }
 ```
 

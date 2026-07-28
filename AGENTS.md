@@ -569,6 +569,16 @@ A entidade `Vendor` tem uma `Account` interna do tipo `EXTERNAL` que serve como 
 
 `TransactionTemplate` tem coluna `direction: 'payment' | 'receipt'` para autocomplete do formulário.
 
+#### CLUB Business (empresas PJ)
+
+O módulo `companies` segue o mesmo padrão ledger-backed, mas com carteira própria (`company_wallets`) e ativação manual:
+
+- `CompanyStatus` inclui `pending`, `active`, `past_due`, `suspended`, `cancelled`.
+- Ativação (`active`) é **sempre manual por admin**, após conferência dos dados.
+- `trackSubscriptionStatus()` + cron diário `freezePastDueSubscriptions()` congelam a carteira quando assinatura fica `past_due` por mais de 3 dias.
+- `tradeName` (nome fantasia) é salvo em `companies.tradeName` e usado no comprovante de doação e na página `/patrocinadores`.
+- Comprovante de doação PJ: `GET /companies/:id/receipt?month=YYYY-MM` consome faturas Stripe pagas e retorna JSON para renderização/ impressão.
+
 #### Padrão de tela admin
 
 Toda página em `src/pages/admin/*` segue:

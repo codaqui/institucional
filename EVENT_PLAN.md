@@ -38,6 +38,35 @@ e aprovado automaticamente por um bot. O frontend lê e mescla os dois arquivos 
 
 ---
 
+## Expansão futura — Plataforma de Gestão de Eventos
+
+Além dos overrides de metadados, o plano evoluirá para uma **plataforma de gestão de eventos completa**,
+tanto para eventos próprios da Codaqui quanto para eventos externos parceiros.
+
+Escopo em discussão (não implementado):
+
+| Funcionalidade | Descrição |
+|---|---|
+| **Sincronização de participantes** | Integrar inscrições de volta à fonte original (Meetup, Discord, Bevy, etc.) ou manter lista unificada no backend |
+| **Pagamento de ingressos** | Checkout Stripe para ingressos pagos, com ledger e comprovante |
+| **Tipos de ingressos** | Gratuito, pago, early-bird, lote, comunitário, empresa — cada tipo com regras e quotas |
+| **Datas dos ingressos** | Abertura/fechamento de vendas, lotes com preços diferenciados, deadlines por tipo |
+| **Gestão de próprios e externos** | Eventos criados pela Codaqui (próprios) e eventos de comunidades parceiras (externos) sob a mesma plataforma |
+| **Papéis e permissões** | `event_organizer`, `event_finance`, `event_host`, `event_checker` (check-in) |
+| **Check-in e credenciamento** | QR code / lista por ingresso, integração com app/sistema do evento |
+| **Comunicação** | Lembrete, confirmação, certificado, pós-evento (opt-in) |
+| **Relatórios** | Lista de participantes, receita, presença, conversão |
+| **Real Network** | Integração de networking e matchmaking entre participantes — **depende desta plataforma; longo prazo** |
+
+> **Princípio:** a Codaqui pode ser ferramenta de organização de eventos, mas não substitui a fonte
+> original quando a comunidade já tem uma. A sincronização bidirecional é desejável, mas será
+> implementada fonte por fonte, começando pelas que têm API pública de RSVP.
+
+> **Status:** esta fase está em planejamento. O plano atual de overrides (seções abaixo) é a **Fase 1**;
+a plataforma de gestão será **Fase 2** e exigirá novo levantamento de requisitos.
+
+---
+
 ## Fontes de Eventos Atuais e Futuras
 
 | sourceKey | Plataforma | URL | Status |
