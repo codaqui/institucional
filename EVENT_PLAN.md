@@ -1,15 +1,17 @@
 <!-- AGENT-INDEX
 purpose: Plan for storing event override metadata in this repo as the source of truth (GitHub-as-Database pattern).
 audience: Devs extending the events sync pipeline, AI agents adding new sources/overrides.
-status: design confirmed — always-PR model with codaqui-bot auto-merge. Implementation pending.
+status: Fase 1 (overrides) — design confirmed, always-PR model with codaqui-bot auto-merge, implementation pending. Fase 2 (plataforma de gestão de eventos) — desenho detalhado em revisão, nada implementado.
 sections:
   - Visão Geral
+  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, sync de participantes, check-in, relatórios, decisões em aberto)
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
   - CRUD de Overrides (GitHub-as-Database)
   - Dois Caminhos para Editar
   - GitHub App: codaqui-bot (validação + auto-merge)
   - GitHub Action: Validação e Auto-Merge de Overrides
+  - Merge de Dados: Base + Override (frontend)
   - Backend: Variáveis de Ambiente
   - Padrão Reutilizável: GitHub-as-Database
   - UI da Página de Evento: Dados Máximos
@@ -38,32 +40,313 @@ e aprovado automaticamente por um bot. O frontend lê e mescla os dois arquivos 
 
 ---
 
-## Expansão futura — Plataforma de Gestão de Eventos
+## Fase 2 — Plataforma de Gestão de Eventos
 
-Além dos overrides de metadados, o plano evoluirá para uma **plataforma de gestão de eventos completa**,
-tanto para eventos próprios da Codaqui quanto para eventos externos parceiros.
+> **Status:** desenho detalhado em revisão. **Nada desta seção está implementado** (confirmado
+> em 2026-07: não existe `backend/src/events/`, módulo de e-mail, nem página `/admin/eventos`).
+> Itens marcados com ⤴ dependem da Fase 1 (overrides + migração multi-role).
 
-Escopo em discussão (não implementado):
+Além dos overrides de metadados, o plano evolui para uma **plataforma de gestão de eventos completa**,
+tanto para eventos próprios da Codaqui (source `internal` — tipo já previsto em `EventSourceType`
+em `src/data/events.ts`) quanto para eventos externos parceiros.
 
-| Funcionalidade | Descrição |
-|---|---|
-| **Sincronização de participantes** | Integrar inscrições de volta à fonte original (Meetup, Discord, OCGroups, Sympla, etc.) ou manter lista unificada no backend |
-| **Pagamento de ingressos** | Checkout Stripe para ingressos pagos, com ledger e comprovante |
-| **Tipos de ingressos** | Gratuito, pago, early-bird, lote, comunitário, empresa — cada tipo com regras e quotas |
-| **Datas dos ingressos** | Abertura/fechamento de vendas, lotes com preços diferenciados, deadlines por tipo |
-| **Gestão de próprios e externos** | Eventos criados pela Codaqui (próprios) e eventos de comunidades parceiras (externos) sob a mesma plataforma |
-| **Papéis e permissões** | `event_organizer`, `event_finance`, `event_host`, `event_checker` (check-in) |
-| **Check-in e credenciamento** | QR code / lista por ingresso, integração com app/sistema do evento |
-| **Comunicação** | Lembrete, confirmação, certificado, pós-evento (opt-in) |
-| **Relatórios** | Lista de participantes, receita, presença, conversão |
-| **Real Network** | Integração de networking e matchmaking entre participantes — **depende desta plataforma; longo prazo** |
+### Princípios
 
-> **Princípio:** a Codaqui pode ser ferramenta de organização de eventos, mas não substitui a fonte
-> original quando a comunidade já tem uma. A sincronização bidirecional é desejável, mas será
-> implementada fonte por fonte, começando pelas que têm API pública de RSVP.
+1. **A Codaqui não substitui a fonte original** quando a comunidade já tem uma (Meetup, Sympla…).
+   A plataforma gerencia eventos *próprios* e oferece ferramentas opcionais para parceiros.
+2. **Reuso antes de criar** — o desenho abaixo reutiliza deliberadamente o que já existe:
+   - Stripe Checkout + webhook (`backend/src/stripe/`, metadata `entityType` já é o discriminador);
+   - Ledger (`getOrCreateCommunityAccount(projectKey)` + `recordTransaction(...)`);
+   - Padrão de módulo do `companies` (entidade + tracking + `@Cron` via `@nestjs/schedule`);
+   - `GitHubDBService` ⤴ para qualquer escrita no repositório.
+3. **Todo dinheiro passa pelo ledger** com `referenceId` prefixado, como os demais módulos.
+4. **LGPD/opt-in** em toda comunicação com participantes.
+5. **Listagem pública continua 100% estática** — eventos próprios entram no pipeline de
+   snapshots como mais uma fonte (`internal:codaqui`), sem exigir backend no caminho de leitura.
 
-> **Status:** esta fase está em planejamento. O plano atual de overrides (seções abaixo) é a **Fase 1**;
-a plataforma de gestão será **Fase 2** e exigirá novo levantamento de requisitos.
+### Roadmap em sub-fases
+
+| Sub-fase | Escopo | Depende de |
+|---|---|---|
+| **2a — Fundação** | Migração multi-role ⤴, módulo `events` no backend, CRUD de eventos próprios, staff por evento, inscrições gratuitas (RSVP interno), snapshot `internal:codaqui` na listagem | Fase 1 |
+| **2b — Ingressos pagos** | Tipos de ingresso e lotes, checkout Stripe, ledger + comprovante, refunds, controle anti-oversell | 2a |
+| **2c — Check-in e comunicação** | QR code por inscrição, endpoint de check-in (role `event_checker`), e-mails transacionais (confirmação, lembrete D-1) | 2b |
+| **2d — Sync de participantes + relatórios** | Importação de inscritos das fontes externas, relatórios de receita/presença/conversão | 2c |
+| **2e — Real Network** | Networking/matchmaking entre participantes | 2d — longo prazo |
+
+### Papéis e permissões
+
+Novos valores no enum `MemberRole` (além de `EVENT_ORGANIZER` da Fase 1): `EVENT_FINANCE`,
+`EVENT_HOST`, `EVENT_CHECKER`. **Pré-requisito ⤴:** hoje `Member.role` é enum single-value
+(`backend/src/members/entities/member.entity.ts:40`) e o `RolesGuard` faz
+`requiredRoles.includes(user.role)` (`backend/src/auth/guards/roles.guard.ts:27`) — a migração
+para `roles text[]` planejada na Fase 1 precisa estar concluída, pois um mesmo membro
+acumulará papéis (ex.: `['membro', 'event_organizer', 'event_checker']`).
+
+| Papel | Escopo | Permissões |
+|---|---|---|
+| `event_organizer` | Global (atribuído por admin) + staff por evento | Criar/editar/publicar eventos próprios, gerenciar tipos de ingresso, overrides ⤴, ver relatórios |
+| `event_finance` | Global | Relatórios financeiros de eventos, reembolsos de ingressos, exportações |
+| `event_host` | Por evento (tabela `event_staff`) | Editar dados do próprio evento, ver lista de inscritos |
+| `event_checker` | Por evento (tabela `event_staff`) | Somente check-in (endpoint dedicado) |
+
+> Enquanto a Fase 1 usa `static/events/organizers.json` para ownership de eventos **externos**,
+> a Fase 2 usa a tabela `event_staff` (Postgres) para eventos **próprios** — o arquivo JSON
+> não escala para permissões por evento criadas em runtime.
+
+### Modelo de dados (novo módulo `backend/src/events/`)
+
+```typescript
+// managed_events — evento próprio da Codaqui
+@Entity('managed_events')
+export class ManagedEvent {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column({ unique: true }) slug: string;              // usado no snapshot e nas URLs
+  @Column() title: string;
+  @Column('text') summary: string;
+  @Column({ nullable: true }) imageUrl: string | null;
+  @Column() location: string;
+  @Column({ type: 'timestamptz' }) startAt: Date;
+  @Column({ type: 'timestamptz', nullable: true }) endAt: Date | null;
+  @Column({ default: 'America/Sao_Paulo' }) timezone: string;
+  @Column() communityProjectKey: string;               // conta ledger que recebe a receita
+  @Column({ type: 'enum', enum: ManagedEventStatus, default: ManagedEventStatus.DRAFT })
+  status: ManagedEventStatus;                          // draft | published | canceled | completed
+  @Column({ type: 'int', nullable: true }) capacity: number | null;
+  @Column() createdByMemberId: string;
+  @CreateDateColumn() createdAt: Date;
+}
+
+// ticket_types — tipo de ingresso / lote (2b)
+@Entity('ticket_types')
+export class TicketType {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() eventId: string;
+  @Column() name: string;                              // "Lote 1 — Early bird", "Comunitário"
+  @Column({ type: 'enum', enum: TicketKind }) kind: TicketKind; // free | paid | community | company
+  @Column({ type: 'int', default: 0 }) priceCents: number;      // 0 para free
+  @Column({ type: 'int' }) quantityTotal: number;
+  @Column({ type: 'int', default: 0 }) quantitySold: number;
+  @Column({ type: 'timestamptz', nullable: true }) salesStartAt: Date | null; // janela do lote
+  @Column({ type: 'timestamptz', nullable: true }) salesEndAt: Date | null;
+  @Column({ type: 'int', default: 4 }) maxPerOrder: number;
+  @Column({ default: true }) isActive: boolean;
+}
+
+// event_orders — compra (1..n ingressos), espelha o padrão Stripe das doações (2b)
+@Entity('event_orders')
+export class EventOrder {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() eventId: string;
+  @Column({ nullable: true }) memberId: string | null; // null = guest
+  @Column({ type: 'int' }) totalCents: number;
+  @Column({ nullable: true }) stripeSessionId: string | null;
+  @Column({ nullable: true }) stripePaymentIntentId: string | null;
+  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
+  status: OrderStatus;                                 // pending | paid | refunded | expired | cancelled
+  @Column({ type: 'timestamptz' }) expiresAt: Date;    // reserva de quota expira (ex.: 30 min)
+}
+
+// event_registrations — 1 linha por ingresso individual (gratuito ou pago)
+@Entity('event_registrations')
+export class EventRegistration {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() eventId: string;
+  @Column() ticketTypeId: string;
+  @Column({ nullable: true }) orderId: string | null;  // null para RSVP gratuito direto
+  @Column({ nullable: true }) memberId: string | null;
+  @Column() attendeeName: string;
+  @Column() attendeeEmail: string;
+  @Column({ unique: true }) checkinToken: string;      // uuid — vai no QR code
+  @Column({ type: 'timestamptz', nullable: true }) checkedInAt: Date | null;
+  @Column({ nullable: true }) checkedInByMemberId: string | null;
+  @Column({ type: 'enum', enum: RegistrationStatus, default: RegistrationStatus.CONFIRMED })
+  status: RegistrationStatus;                          // confirmed | cancelled | refunded | waitlist
+  @CreateDateColumn() createdAt: Date;
+}
+
+// event_staff — papéis por evento (host/checker/finance delegados)
+@Entity('event_staff')
+export class EventStaff {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column() eventId: string;
+  @Column() memberId: string;
+  @Column({ type: 'enum', enum: EventStaffRole }) staffRole: EventStaffRole; // host | checker | finance
+}
+```
+
+Migration seguindo a convenção atual (`backend/src/migrations/<ts>-Migration010_ManagedEvents.ts`).
+
+### Eventos próprios no pipeline de snapshots
+
+A listagem `/eventos` continua lendo apenas `static/events/index.json`. Eventos próprios entram
+como a fonte `internal:codaqui`:
+
+1. Backend expõe `GET /events/public/managed` (público, somente `status = published`,
+   payload já no shape `EventItem` + `EventSourceConfig`).
+2. `scripts/sync-events.mjs` ganha um resolver `internal` que consome esse endpoint
+   (URL via env `INTERNAL_EVENTS_API_URL`; se o backend estiver fora, usa o último snapshot —
+   mesmo comportamento de fallback das demais fontes).
+3. O workflow de sync grava `static/events/internal/codaqui/*.json` e commita como já faz hoje.
+
+> Alternativa considerada e descartada: backend commita o snapshot via `GitHubDBService` ⤴ a cada
+> publicação. O endpoint público é mais simples, não cria PRs a cada edição e mantém um único
+> pipeline de geração.
+
+### Inscrições gratuitas (2a)
+
+`POST /events/:id/register` com `OptionalJwtAuthGuard` — guest informa `attendeeName` +
+`attendeeEmail`; logado, os dados vêm do JWT (mesmo espírito do DonationFlow: login encouraged,
+não obrigatório). Retorna a `EventRegistration` com `checkinToken`. Regras:
+
+- Respeita `capacity` do evento e quota do `ticket_type` free (mesma reserva atômica do 2b);
+- E-mail de confirmação entra só na 2c — na 2a a confirmação é na tela (token visível ao inscrito);
+- Cancelamento self-service via `DELETE /events/registrations/:id` (dono ou staff).
+
+### Ingressos pagos via Stripe (2b)
+
+Reutiliza o fluxo existente de doações em vez de criar um paralelo:
+
+1. Frontend chama `POST /events/:id/checkout` (`JwtAuthGuard` — ingresso pago exige identidade
+   para o check-in; ver decisão em aberto #2) com `{ ticketTypeId, quantity }`.
+2. Backend valida janela de venda e faz **reserva atômica de quota** (anti-oversell):
+
+   ```sql
+   UPDATE ticket_types
+      SET quantity_sold = quantity_sold + $1
+    WHERE id = $2 AND is_active
+      AND (sales_start_at IS NULL OR sales_start_at <= now())
+      AND (sales_end_at   IS NULL OR sales_end_at   >= now())
+      AND quantity_sold + $1 <= quantity_total
+   RETURNING id;
+   ```
+
+   Se não retornar linha → 409 "lote esgotado". Cria `EventOrder` `pending` com `expiresAt`.
+3. Cria a sessão via `StripeService.createCheckoutSession` com metadata estendida:
+   `{ entityType: 'event-ticket', eventId, orderId, communityId: event.communityProjectKey }`.
+4. Webhook `checkout.session.completed` (handler já existente em
+   `backend/src/stripe/stripe.service.ts:220`) ganha um branch para `entityType === 'event-ticket'`:
+   marca order `paid`, gera as `EventRegistration` (uma por ingresso, com `checkinToken` próprio)
+   e registra no ledger.
+5. **Cron** (padrão `@Cron` do módulo `companies`) a cada 5 min expira orders `pending`
+   vencidas e devolve a quota.
+6. Refund via `charge.refunded` (já tratado): order → `refunded`, registrations → `refunded`,
+   quota devolvida.
+
+**Convenção de `referenceId` (adicionar à tabela da seção 9 do AGENTS.md quando implementar):**
+
+| Módulo | Padrão | Reversal |
+|---|---|---|
+| Event ticket | `event-ticket:<orderId>` | `event-ticket-refund:<orderId>:<ts>` |
+
+**Fluxo no ledger:** origem = conta `EXTERNAL` de pagadores Stripe (a mesma usada nas doações) →
+destino = conta da comunidade dona do evento (`getOrCreateCommunityAccount(communityProjectKey)`).
+O drill-down por evento é feito pelo prefixo do `referenceId` + `description`
+(`"Ingressos — <título do evento>"`), sem criar conta por evento.
+
+> ⚠️ O frontend classifica transações pelo prefixo do `referenceId` em
+> `src/utils/transaction.tsx` (`TX_TYPE_CONFIG`) — adicionar a entrada `event-ticket`
+> para a página de transparência renderizar corretamente.
+
+Comprovante: `GET /events/orders/:id/receipt` (dono da order ou `event_finance`), JSON para
+renderização/impressão — mesmo padrão do comprovante PJ de `companies`.
+
+### Check-in e credenciamento (2c)
+
+- Cada `EventRegistration` tem `checkinToken` (uuid) renderizado como QR code na página
+  "Minhas inscrições" e no e-mail de confirmação.
+- `POST /events/:id/checkin` com body `{ token }`, role `event_checker` (ou staff do evento):
+  - **idempotente** — segunda leitura retorna `{ status: 'already_checked_in', checkedInAt }`
+    com HTTP 200, nunca erro (leituras duplas são o caso normal na porta);
+  - registra `checkedInAt` + `checkedInByMemberId`.
+- Página mobile-first `/admin/eventos/checkin?event=<slug>`: câmera lê o QR, chama o endpoint,
+  feedback verde/âmbar (já conferido)/vermelho (token inválido). Fallback: busca por nome/e-mail.
+- Ação sensível → `audit` module, como os demais módulos financeiros.
+
+### Comunicação (2c)
+
+⚠️ **O backend não tem módulo de e-mail hoje** (nenhum mailer/SES/Resend no código) — esta é a
+maior dependência nova da Fase 2. Criar `backend/src/notifications/` com provider configurável
+(decisão em aberto #1) e templates:
+
+| Template | Gatilho | Opt-in |
+|---|---|---|
+| Confirmação de inscrição (com QR) | order `paid` / RSVP confirmado | transacional (não precisa) |
+| Lembrete D-1 | cron diário (padrão `companies`) | transacional |
+| Certificado / pós-evento | conclusão + presença confirmada | **opt-in obrigatório** |
+
+### Sincronização de participantes — fontes externas (2d)
+
+Bidirecionalidade fonte por fonte, começando pelas com API acessível:
+
+| Fonte | API de RSVP/participantes | Viabilidade |
+|---|---|---|
+| Discord | `GET /guilds/{guildId}/scheduled-events/{eventId}/users` (bot token) | ✅ Alta — já usamos `DISCORD_BOT_TOKEN` no sync de eventos |
+| Sympla | API de participantes por evento (token do produtor) | 🟡 Média — depende de credencial de cada comunidade parceira |
+| Meetup | RSVP via API exige OAuth do organizador | 🟡 Média — depende de credencial do DevParaná |
+| OCGroups/Bevy | Sem API pública documentada de RSVP | ❌ Baixa — manter importação manual (CSV) |
+
+Modelo: importação (fonte → plataforma) primeiro; exportação (plataforma → fonte) só onde a API
+permitir escrita. Participantes importados viram `EventRegistration` com `orderId: null` e
+origem registrada em campo `externalSource`/`externalId` (dedupe por par único).
+
+### Relatórios (2d)
+
+`GET /events/:id/report` (roles `event_organizer`, `event_finance` ou staff do evento):
+
+- Inscritos por tipo de ingresso/lote e por dia (conversão);
+- Receita — ledger filtrado por `referenceId LIKE 'event-ticket:%'` + `description` do evento;
+- Taxa de presença (`checkedInAt IS NOT NULL / confirmados`);
+- Export CSV da lista de participantes (com consentimento de dados).
+
+### Endpoints da Fase 2 (resumo)
+
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `GET` | `/events/public/managed` | Público | Eventos próprios publicados (consumido pelo sync) |
+| `POST` | `/events` | event_organizer | Cria evento próprio (draft) |
+| `PATCH` | `/events/:id` | event_organizer / staff | Edita evento |
+| `POST` | `/events/:id/publish` | event_organizer | Publica (entra no próximo snapshot) |
+| `POST` | `/events/:id/ticket-types` | event_organizer | Cria tipo/lote de ingresso |
+| `POST` | `/events/:id/register` | Opcional (guest ou JWT) | Inscrição gratuita |
+| `DELETE` | `/events/registrations/:id` | Dono ou staff | Cancela inscrição |
+| `POST` | `/events/:id/checkout` | JwtAuthGuard | Checkout de ingressos pagos |
+| `GET` | `/events/my-registrations` | JwtAuthGuard | Minhas inscrições + QR token |
+| `POST` | `/events/:id/checkin` | event_checker / staff | Check-in por token (idempotente) |
+| `GET` | `/events/:id/report` | event_organizer, event_finance | Relatório do evento |
+| `GET` | `/events/orders/:id/receipt` | Dono ou event_finance | Comprovante da compra |
+
+### Frontend da Fase 2
+
+- `src/pages/admin/eventos.tsx` — CRUD de eventos próprios, tipos de ingresso, staff (segue o
+  padrão de tela admin: guarda `useEffect([isLoggedIn])`, `authFetch`, `parseAuthJson`).
+- `src/pages/admin/eventos-checkin.tsx` — tela de check-in mobile-first (câmera + fallback manual).
+- Página pública do evento próprio — detalhe com formulário de inscrição/checkout embutido.
+- `src/utils/transaction.tsx` — adicionar `event-ticket` ao `TX_TYPE_CONFIG` (transparência).
+
+### Decisões em aberto (resolver antes de cada sub-fase)
+
+1. **Provedor de e-mail** (2c): Resend vs Amazon SES vs SMTP transacional. Critérios: custo no
+   volume esperado, domínio `codaqui.dev` já verificado, DX.
+2. **Inscrição gratuita guest vs login** (2a): recomendação do plano é guest com nome+e-mail
+   (login encouraged). Pagos: login obrigatório. Validar com o time.
+3. **Conta ledger por evento?** (2b): recomendação é **não** — conta da comunidade + drill-down
+   por `referenceId`. Criar conta por evento só se a transparência por evento virar requisito.
+4. **Certificados** (2c+): PDF gerado no backend ou página pública de verificação por token?
+5. **Refund parcial** (2b): em compra multi-ingresso, cancelar registrations individuais —
+   confirmar se o fluxo de refund atual do Stripe (por charge) atende ou se precisa granularidade.
+6. **Real Network** (2e): fora de escopo até 2a–2d estarem estáveis.
+
+### Testes da Fase 2
+
+- **Anti-oversell:** N requisições concorrentes disputando 1 vaga → exatamente 1 sucesso;
+- **Idempotência de webhook:** mesmo `checkout.session.completed` entregue 2× → 1 order paga,
+  1 transação no ledger (espelhar teste de doação existente);
+- **Expiração de order:** cron devolve quota de order `pending` vencida;
+- **Check-in:** segunda leitura do mesmo token → `already_checked_in` sem erro; token inválido → 404;
+- **Multi-role:** após migração ⤴, membro com `['membro','event_checker']` acessa check-in mas
+  não relatórios;
+- **Snapshot interno:** evento `draft` não aparece em `/events/public/managed`.
 
 ---
 
@@ -77,7 +360,10 @@ a plataforma de gestão será **Fase 2** e exigirá novo levantamento de requisi
 | `sympla:elasnocodigo` | Sympla | [sympla.com.br/produtor/elasnocodigo](https://www.sympla.com.br/produtor/elasnocodigo) | ✅ Ativo |
 | `sympla:campostech` | Sympla | [sympla.com.br/produtor/camposvalley](https://www.sympla.com.br/produtor/camposvalley) | ✅ Ativo |
 
-
+> As 5 fontes acima conferem com `events.config.json` (verificado em 2026-07). Existem ainda
+> snapshots **legados** de `bevy:cloud-native-maringa` em `static/events/bevy/` — histórico da
+> época da plataforma Bevy, antes da migração do CNCF para ocgroups.dev. A fonte não consta mais
+> em `events.config.json` e não é sincronizada; os arquivos permanecem só para preservar o histórico.
 
 ### Nova role: `event_organizer`
 
@@ -385,7 +671,7 @@ jobs:
 
 ---
 
-## UI da Página de Evento: Dados Máximos
+## Merge de Dados: Base + Override (frontend)
 
 A página `/eventos/[sourceKey]/[id]` (ou `/eventos?source=X&id=Y`) precisa mesclar:
 

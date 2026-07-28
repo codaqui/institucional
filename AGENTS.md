@@ -126,7 +126,7 @@ institucional/
 │   │   │   └── vendors.service.ts  # Helpers genéricos (persistWithLedger c/ factory, resolveByReference, etc.)
 │   │   ├── audit/               # Audit log de ações sensíveis
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
-│   │   └── migrations/          # TypeORM migrations (Migration001..005)
+│   │   └── migrations/          # TypeORM migrations (Migration001..009)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── blog/                        # Blog posts (Markdown/MDX)
 │   ├── authors.yml              # Blog author definitions
@@ -182,7 +182,10 @@ institucional/
 │   │   │   ├── reembolsos.tsx   # Aprovar/rejeitar/pagar reembolsos
 │   │   │   ├── fornecedores.tsx # CRUD vendors + chips contadores (pagamentos/recebimentos)
 │   │   │   ├── pagamentos.tsx   # Lançar pagamento a fornecedor + histórico
-│   │   │   └── recebimentos.tsx # ⭐ Lançar recebimento de fornecedor + histórico
+│   │   │   ├── recebimentos.tsx # ⭐ Lançar recebimento de fornecedor + histórico
+│   │   │   ├── empresas.tsx     # Gestão de empresas (CLUB Business)
+│   │   │   ├── carteiras.tsx    # Histórico unificado de carteiras SortCoins
+│   │   │   └── sorteios.tsx     # Gestão de sorteios do Clube Codaqui
 │   │   ├── participe/           # Participation pages (TSX)
 │   │   │   ├── apoiar.tsx       # ⭐ Doação (OpenCollective + Stripe por comunidade)
 │   │   │   ├── estudar.tsx
@@ -411,10 +414,17 @@ static/events/
 │   └── codaqui/
 │       ├── index.json                 # Source-scoped index + metadata
 │       └── <event_id>.json           # Per-event detail file
-└── meetup/
-    └── devparana/
-        ├── index.json
-        └── <event_id>.json
+├── meetup/
+│   └── devparana/
+│       ├── index.json
+│       └── <event_id>.json
+├── ocgroups/
+│   └── cloud-native-maringa/
+├── sympla/
+│   ├── elasnocodigo/
+│   └── campostech/
+└── bevy/
+    └── cloud-native-maringa/          # legado (pré-migração CNCF); não sincronizado
 ```
 
 #### Root index (`/events/index.json`)
