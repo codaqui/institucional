@@ -19,6 +19,7 @@ import PageHero from "../components/PageHero";
 interface Sponsor {
   id: string;
   name: string;
+  tradeName: string | null;
   logoUrl: string | null;
   websiteUrl: string | null;
   status: string;
@@ -189,7 +190,7 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                         <Box
                           component="img"
                           src={s.logoUrl}
-                          alt={s.name}
+                          alt={s.tradeName ?? s.name}
                           sx={{
                             height: 64,
                             maxWidth: 180,
@@ -205,14 +206,19 @@ export default function PatrocinadoresPage(): React.JSX.Element {
                             mb: 2,
                             bgcolor: "primary.main",
                           }}
-                          alt={s.name}
+                          alt={s.tradeName ?? s.name}
                         >
                           <BusinessIcon />
                         </Avatar>
                       )}
                       <Typography variant="h6" fontWeight={700}>
-                        {s.name}
+                        {s.tradeName ?? s.name}
                       </Typography>
+                      {s.tradeName && (
+                        <Typography variant="body2" color="text.secondary">
+                          {s.name}
+                        </Typography>
+                      )}
                       <Chip
                         label="Patrocinador"
                         color="primary"

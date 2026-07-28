@@ -21,6 +21,11 @@ export class CreateCompanyDto {
   name: string;
 
   @IsOptional()
+  @IsString()
+  @Length(2, 200)
+  tradeName?: string;
+
+  @IsOptional()
   @IsUrl()
   logoUrl?: string;
 
@@ -34,6 +39,11 @@ export class UpdateCompanyDto {
   @IsString()
   @Length(2, 200)
   name?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(2, 200)
+  tradeName?: string;
 
   @IsOptional()
   @IsUrl()

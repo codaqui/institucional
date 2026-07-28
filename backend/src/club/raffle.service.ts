@@ -239,7 +239,12 @@ export class RaffleService {
     });
   }
 
-  /** Sorteia um vencedor aleatório (crypto.randomInt para auditabilidade) */
+  /**
+   * Sorteia um vencedor usando seed aleatória auditável.
+   * Gera 16 bytes via randomBytes, concatena com raffleId e totalCoins,
+   * aplica sha256 e usa o digest mod totalCoins para escolher o ticket.
+   * O drawSeed é salvo para permitir re-verificação.
+   */
   async draw(raffleId: string): Promise<Raffle> {
     return this.dataSource.transaction(async (em) => {
       const raffle = await em

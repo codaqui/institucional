@@ -4,10 +4,13 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, Repository } from 'typeorm';
+import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, LessThan, Repository } from 'typeorm';
+import Stripe from 'stripe';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import {
@@ -15,6 +18,7 @@ import {
   CompanyWalletTxSource,
 } from './entities/company-wallet-transaction.entity';
 import { CompanyMember } from './entities/company-member.entity';
+import { CompanySubscriptionTracking } from './entities/company-subscription-tracking.entity';
 import { Member } from '../members/entities/member.entity';
 import { CreateCompanyDto, UpdateCompanyDto } from './dto/company.dto';
 import { CoinDistributionItemDto } from './dto/distribute-coins.dto';
@@ -29,6 +33,9 @@ const MAX_LIMIT = 100;
 
 @Injectable()
 export class CompaniesService {
+  private readonly stripe: Stripe;
+  private readonly logger = new Logger(CompaniesService.name);
+
   constructor(
     @InjectRepository(Company)
     private readonly companyRepo: Repository<Company>,
@@ -38,12 +45,16 @@ export class CompaniesService {
     private readonly txRepo: Repository<CompanyWalletTransaction>,
     @InjectRepository(CompanyMember)
     private readonly memberRepo: Repository<CompanyMember>,
+    @InjectRepository(CompanySubscriptionTracking)
+    private readonly subscriptionTrackingRepo: Repository<CompanySubscriptionTracking>,
     @InjectRepository(Member)
     private readonly memberEntityRepo: Repository<Member>,
     private readonly dataSource: DataSource,
     @Inject(forwardRef(() => ClubService))
     private readonly clubService: ClubService,
-  ) {}
+  ) {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
+  }
 
   private normalizePagination(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): { page: number; limit: number; skip: number } {
     const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : DEFAULT_PAGE;
@@ -70,6 +81,7 @@ export class CompaniesService {
       this.companyRepo.create({
         cnpj: dto.cnpj,
         name: dto.name,
+        tradeName: dto.tradeName ?? null,
         logoUrl: dto.logoUrl ?? null,
         websiteUrl: dto.websiteUrl ?? null,
         responsibleMemberId,
@@ -86,6 +98,7 @@ export class CompaniesService {
     const company = await this.findOwned(companyId, requestingMemberId);
     Object.assign(company, {
       ...(dto.name !== undefined && { name: dto.name }),
+      ...(dto.tradeName !== undefined && { tradeName: dto.tradeName }),
       ...(dto.logoUrl !== undefined && { logoUrl: dto.logoUrl }),
       ...(dto.websiteUrl !== undefined && { websiteUrl: dto.websiteUrl }),
     });
@@ -124,6 +137,7 @@ export class CompaniesService {
   async findPublicInfo(id: string): Promise<{
     id: string;
     name: string;
+    tradeName: string | null;
     cnpj: string | null;
     logoUrl: string | null;
     websiteUrl: string | null;
@@ -143,6 +157,7 @@ export class CompaniesService {
     return {
       id: c.id,
       name: c.name,
+      tradeName: c.tradeName ?? null,
       cnpj: c.cnpj ?? null,
       logoUrl: c.logoUrl ?? null,
       websiteUrl: c.websiteUrl ?? null,
@@ -407,6 +422,212 @@ export class CompaniesService {
     );
   }
 
+  /**
+   * Gera comprovante de doação para empresa PJ.
+   * `month` deve estar no formato YYYY-MM. Busca a primeira fatura paga
+   * da assinatura da empresa no mês informado.
+   */
+  async getReceipt(
+    companyId: string,
+    month?: string,
+  ): Promise<{
+    generatedAt: string;
+    company: {
+      cnpj: string;
+      name: string;
+      tradeName: string | null;
+      responsibleName: string | null;
+    };
+    beneficiary: {
+      name: string;
+      cnpj: string;
+      address: string;
+    };
+    donation: {
+      month: string;
+      amountBRL: number;
+      stripeInvoiceId: string;
+      paidAt: string;
+    };
+    signatureStatement: string;
+  }> {
+    const company = await this.findById(companyId);
+
+    const targetMonth = month ?? this.formatYearMonth(new Date());
+    if (!/^\d{4}-\d{2}$/.test(targetMonth)) {
+      throw new BadRequestException('month deve estar no formato YYYY-MM');
+    }
+
+    const [year, monthIdx] = targetMonth.split('-').map((v) => Number.parseInt(v, 10));
+    const start = new Date(year, monthIdx - 1, 1);
+    const end = new Date(year, monthIdx, 1);
+    const startUnix = Math.floor(start.getTime() / 1000);
+    const endUnix = Math.floor(end.getTime() / 1000);
+
+    if (!company.stripeSubscriptionId && !company.stripeCustomerId) {
+      throw new BadRequestException('Empresa sem assinatura Stripe vinculada');
+    }
+
+    const listParams: Stripe.InvoiceListParams = {
+      status: 'paid',
+      created: { gte: startUnix, lt: endUnix },
+      limit: 1,
+    };
+    if (company.stripeSubscriptionId) {
+      listParams.subscription = company.stripeSubscriptionId;
+    } else {
+      listParams.customer = company.stripeCustomerId!;
+    }
+
+    let invoice: Stripe.Invoice | undefined;
+    try {
+      const invoices = await this.stripe.invoices.list(listParams);
+      invoice = invoices.data[0];
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      this.logger.error(`Falha ao buscar faturas Stripe para ${companyId}: ${message}`);
+      throw new BadRequestException('Não foi possível consultar faturas Stripe');
+    }
+
+    if (!invoice) {
+      throw new NotFoundException(
+        'Nenhuma fatura paga encontrada para o mês informado',
+      );
+    }
+
+    const responsible = company.responsibleMemberId
+      ? await this.memberEntityRepo.findOne({ where: { id: company.responsibleMemberId } })
+      : null;
+
+    const amountBRL = (invoice.amount_paid ?? 0) / 100;
+    const formattedCnpj = formatCnpj(company.cnpj);
+
+    return {
+      generatedAt: new Date().toISOString(),
+      company: {
+        cnpj: formattedCnpj,
+        name: company.name,
+        tradeName: company.tradeName ?? null,
+        responsibleName: responsible?.name ?? null,
+      },
+      beneficiary: {
+        name: 'Associação Codaqui',
+        cnpj: '44.593.429/0001-05',
+        address: 'Maringá, Paraná, Brasil',
+      },
+      donation: {
+        month: targetMonth,
+        amountBRL,
+        stripeInvoiceId: invoice.id,
+        paidAt: new Date(invoice.created * 1000).toISOString(),
+      },
+      signatureStatement:
+        `A Associação Codaqui (CNPJ 44.593.429/0001-05) declara que ${company.name} ` +
+        `(CNPJ ${formattedCnpj}) efetuou doação no valor de R$ ${amountBRL.toFixed(2)} ` +
+        `em ${targetMonth}, conforme fatura Stripe ${invoice.id}.`,
+    };
+  }
+
+  private formatYearMonth(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  // ── Acompanhamento de assinatura e congelamento por past_due ───────────────
+
+  /**
+   * Atualiza o status de assinatura de uma empresa.
+   * - Se o status mudar, atualiza `statusChangedAt`.
+   * - Se voltar a `active`, descongela a carteira e limpa `frozenAt`.
+   */
+  async trackSubscriptionStatus(
+    companyId: string,
+    stripeSubscriptionId: string | null,
+    status: string,
+  ): Promise<void> {
+    let tracking = await this.subscriptionTrackingRepo.findOne({
+      where: { companyId },
+    });
+
+    const now = new Date();
+    const isActive = status === 'active';
+
+    if (!tracking) {
+      tracking = this.subscriptionTrackingRepo.create({
+        companyId,
+        stripeSubscriptionId,
+        status,
+        statusChangedAt: now,
+        frozenAt: null,
+      });
+    } else if (tracking.status !== status) {
+      tracking.status = status;
+      tracking.statusChangedAt = now;
+      tracking.stripeSubscriptionId = stripeSubscriptionId ?? tracking.stripeSubscriptionId;
+    } else {
+      tracking.stripeSubscriptionId = stripeSubscriptionId ?? tracking.stripeSubscriptionId;
+    }
+
+    if (isActive) {
+      tracking.frozenAt = null;
+      await this.unfreezeWallet(companyId);
+      const company = await this.companyRepo.findOne({ where: { id: companyId } });
+      if (company && company.status !== CompanyStatus.ACTIVE) {
+        // Ativação manual continua sendo a única forma de virar ACTIVE.
+        // Removemos estados degragados deixando a empresa como PENDING.
+        await this.companyRepo.update(companyId, { status: CompanyStatus.PENDING });
+      }
+    }
+
+    await this.subscriptionTrackingRepo.save(tracking);
+  }
+
+  /**
+   * Cron diário: congela carteiras de empresas com status `past_due`
+   * por mais de 3 dias.
+   */
+  @Cron('0 3 * * *') // 03:00 UTC todo dia
+  async freezePastDueSubscriptions(): Promise<void> {
+    const threshold = new Date();
+    threshold.setUTCDate(threshold.getUTCDate() - 3);
+
+    const overdue = await this.subscriptionTrackingRepo.find({
+      where: {
+        status: 'past_due',
+        frozenAt: IsNull(),
+        statusChangedAt: LessThan(threshold),
+      },
+    });
+
+    for (const tracking of overdue) {
+      try {
+        await this.freezeWallet(tracking.companyId, DEFAULT_COIN);
+        tracking.frozenAt = new Date();
+        await this.subscriptionTrackingRepo.save(tracking);
+        await this.companyRepo.update(tracking.companyId, {
+          status: CompanyStatus.PAST_DUE,
+        });
+        this.logger.log(
+          `Carteira congelada por past_due > 3 dias: company=${tracking.companyId}`,
+        );
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Erro desconhecido';
+        this.logger.error(
+          `Falha ao congelar empresa ${tracking.companyId} por past_due: ${message}`,
+        );
+      }
+    }
+  }
+
+  private async unfreezeWallet(companyId: string, coinType = DEFAULT_COIN): Promise<void> {
+    const wallet = await this.getOrCreateWallet(companyId);
+    if (wallet.frozenTypes.includes(coinType)) {
+      wallet.frozenTypes = wallet.frozenTypes.filter((t) => t !== coinType);
+      await this.walletRepo.save(wallet);
+    }
+  }
+
   // ── Stripe lifecycle ──────────────────────────────────────────────────────
 
   /** Chamado após criação de checkout session Stripe (salva customerId) */
@@ -468,6 +689,15 @@ export class CompaniesService {
 
     const coins = Math.floor(amountReais * SORT_COINS_PER_REAL);
     await this.creditCoins(company.id, coins, CompanyWalletTxSource.STRIPE_INVOICE, referenceId);
+
+    // Descongela carteira se o pagamento voltou a ficar em dia; ativação da
+    // empresa continua manual (não alteramos status para ACTIVE aqui).
+    await this.unfreezeWallet(company.id);
+    await this.trackSubscriptionStatus(
+      company.id,
+      company.stripeSubscriptionId,
+      'active',
+    );
   }
 
   /** Suspende empresa ao cancelar assinatura */
@@ -483,6 +713,7 @@ export class CompaniesService {
       subscriptionAmountCents: 0,
     });
     await this.freezeWallet(company.id);
+    await this.trackSubscriptionStatus(company.id, null, 'cancelled');
   }
 
   // ── Wallet ────────────────────────────────────────────────────────────────
@@ -963,4 +1194,12 @@ export function validateCnpj(cnpj: string): void {
 
   if (d1 !== Number.parseInt(cnpj[12], 10) || d2 !== Number.parseInt(cnpj[13], 10))
     throw new BadRequestException('CNPJ inválido (dígitos verificadores incorretos)');
+}
+
+export function formatCnpj(cnpj: string): string {
+  const digits = cnpj.replace(/\D/g, '').padStart(14, '0');
+  return digits.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    '$1.$2.$3/$4-$5',
+  );
 }

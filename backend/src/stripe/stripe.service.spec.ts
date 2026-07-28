@@ -56,6 +56,7 @@ describe('StripeService', () => {
 
     const clubServiceMock = {
       creditCoins: jest.fn().mockResolvedValue({}),
+      creditFromInvoice: jest.fn().mockResolvedValue({}),
       freezeCoin: jest.fn().mockResolvedValue({}),
     };
 
@@ -736,6 +737,13 @@ describe('StripeService', () => {
         chargeId: 'ch_inline_sub',
         btId: 'txn_inline_sub',
       });
+
+      const clubService = (service as any).clubService;
+      expect(clubService.creditFromInvoice).toHaveBeenCalledWith(
+        uuid(8),
+        200,
+        'stripe-pi:pi_inline_sub',
+      );
     });
 
     it('inline capture is best-effort: does not crash if PI retrieve fails', async () => {

@@ -988,9 +988,9 @@ async function scrapeOcgroupsEvent(config, slug) {
   const uuidMatch = /\/cncf\/event\/([0-9a-f-]{36})\/attend/.exec(html);
   const uuid = uuidMatch ? uuidMatch[1] : slug;
 
-  // Title from H1 (most reliable)
+  // Title from H1 (most reliable). OCGroups HTML-encodes characters like < >.
   const h1Match = /<h1[^>]*>([^<]+)<\/h1>/i.exec(html);
-  const title = h1Match ? h1Match[1].trim() : slug;
+  const title = h1Match ? decodeHtmlEntities(h1Match[1].trim()) : slug;
 
   // Date from "Event date" section header up to "Location"
   const dateSectionMatch = /Event date[^<]*<\/[^>]+>(.*?)(?=Location)/is.exec(html);
@@ -1041,6 +1041,22 @@ async function scrapeOcgroupsEvent(config, slug) {
 
   const status = mapOcgroupsEventStatus(startAt, endAt);
 
+  // Event gallery: OCGroups stores associated photos in a custom <images-gallery>
+  // web component. Use the first image as the event cover.
+  const galleryMatch = /<images-gallery[^>]+images="([^"]+)"(?:[^>]*)>/i.exec(html);
+  let imageUrl = undefined;
+  if (galleryMatch) {
+    try {
+      const galleryImages = JSON.parse(decodeHtmlEntities(galleryMatch[1]));
+      const first = Array.isArray(galleryImages) ? galleryImages[0] : undefined;
+      if (first) {
+        imageUrl = first.startsWith("http") ? first : `https://ocgroups.dev${first}`;
+      }
+    } catch {
+      // ignore malformed gallery JSON
+    }
+  }
+
   // Attendance count from availability endpoint: capacity - remaining_capacity
   const registeredCount =
     availabilityResult?.capacity != null && availabilityResult?.remaining_capacity != null
@@ -1064,6 +1080,7 @@ async function scrapeOcgroupsEvent(config, slug) {
     status,
     entityType: "external",
     userCount: registeredCount,
+    imageUrl,
     creatorName: primaryOrganizer?.name ?? config.defaultHost,
     creatorId: primaryOrganizer?.user_id ?? undefined,
     organizers: organizers.length > 0

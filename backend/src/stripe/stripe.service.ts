@@ -233,6 +233,9 @@ export class StripeService {
       case 'customer.subscription.deleted':
         await this.handleSubscriptionDeleted(event.data.object);
         break;
+      case 'customer.subscription.updated':
+        await this.handleSubscriptionUpdated(event.data.object);
+        break;
       default:
         this.logger.debug(`Evento ignorado: ${event.type}`);
     }
@@ -377,6 +380,45 @@ export class StripeService {
       this.logger.error(
         `Erro ao processar cancelamento de assinatura ${subscription.id}: ${err}`,
       );
+    }
+  }
+
+  /**
+   * customer.subscription.updated — registra mudança de status para lógica de
+   * congelamento por `past_due > 3 dias` (empresas) e descongelamento ao voltar
+   * a `active`.
+   */
+  private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+    const status = subscription.status;
+    const metadata = subscription.metadata ?? {};
+    const entityType = metadata.entityType;
+
+    if (entityType === 'business' && metadata.companyId) {
+      try {
+        await this.companiesService.trackSubscriptionStatus(
+          metadata.companyId,
+          subscription.id,
+          status,
+        );
+      } catch (err) {
+        this.logger.error(
+          `Erro ao atualizar status da assinatura ${subscription.id}: ${err}`,
+        );
+      }
+      return;
+    }
+
+    // PF: descongela automaticamente quando assinatura volta a active
+    if (status === 'active' && metadata.memberId) {
+      try {
+        // ClubService.creditFromInvoice descongela; aqui garantimos o unfreeze
+        // caso a assinatura volte sem nova invoice (raro).
+        await this.clubService.unfreezeCoin(metadata.memberId);
+      } catch (err) {
+        this.logger.error(
+          `Erro ao descongelar carteira do membro ${metadata.memberId}: ${err}`,
+        );
+      }
     }
   }
 

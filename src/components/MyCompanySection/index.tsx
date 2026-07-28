@@ -45,6 +45,7 @@ import { resolveApiUrl } from "../../lib/api-url";
 interface Company {
   id: string;
   name: string;
+  tradeName?: string;
   cnpj: string;
   logoUrl?: string;
   websiteUrl?: string;
@@ -254,6 +255,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
   // Edição inline dos dados da empresa
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [editTradeName, setEditTradeName] = useState("");
   const [editLogo, setEditLogo] = useState("");
   const [editWebsite, setEditWebsite] = useState("");
   const [saving, setSaving] = useState(false);
@@ -329,6 +331,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
   const startEdit = () => {
     if (!company) return;
     setEditName(company.name);
+    setEditTradeName(company.tradeName ?? "");
     setEditLogo(company.logoUrl ?? "");
     setEditWebsite(company.websiteUrl ?? "");
     setSaveError(null);
@@ -345,6 +348,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editName || undefined,
+          tradeName: editTradeName || undefined,
           logoUrl: editLogo || undefined,
           websiteUrl: editWebsite || undefined,
         }),
@@ -483,6 +487,11 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         )}
         <Box sx={{ flexGrow: 1 }}>
           <Typography variant="h6" fontWeight={700}>{company.name}</Typography>
+          {company.tradeName && (
+            <Typography variant="body2" color="text.secondary">
+              {company.tradeName}
+            </Typography>
+          )}
           <Typography variant="caption" color="text.secondary">
             CNPJ: {formatCnpj(company.cnpj)} · Status: {company.status}
           </Typography>
@@ -504,6 +513,13 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
             label="Nome da empresa"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
+            size="small"
+            fullWidth
+          />
+          <TextField
+            label="Nome fantasia"
+            value={editTradeName}
+            onChange={(e) => setEditTradeName(e.target.value)}
             size="small"
             fullWidth
           />
@@ -556,6 +572,16 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
               Recorrência configurada: inativa
             </Typography>
           )}
+          <Button
+            size="small"
+            variant="text"
+            href={api(`/companies/${company.id}/receipt`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            sx={{ alignSelf: "flex-start", textTransform: "none", mt: 0.5 }}
+          >
+            Baixar comprovante de doação
+          </Button>
           <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
           <Chip
             size="small"

@@ -32,8 +32,8 @@ agent-protocol:
 
 - ✅ **Decidida**: Opção D1 (single Docusaurus + multi-instance + swizzle de Navbar/Layout)
 - ✅ **Fase 3 em produção**: `tisocial.org.br` live via Cloudflare Worker — login, doação Stripe e transparência funcionando cross-domain
-- 🟡 **Fase 1 quase fechada**: faltam link em `/sobre/ong` e smoke test final com domínio próprio
-- ⏳ **Próximo**: fechar Fase 1 → iniciar Fase 2 (DevParaná, Elas no Código, CamposTech, Cloud Native Maringá)
+- 🟡 **Fase 1 em andamento**: link em `/sobre/ong` + lista de portais whitelabel
+- ⏸️ **Fase 2 em stand-by**: DevParaná, Elas no Código, CamposTech, Cloud Native Maringá (não iniciar antes de fechar Fase 1 e reavaliar)
 - 💸 **Custo extra**: R$ 0/mês (GitHub Pages free + Cloudflare Worker free)
 
 ---
@@ -100,9 +100,9 @@ O **resolver** `resolveCommunityFromPath(pathname)` em `src/lib/community-contex
 ### 🟡 Pendente para fechar Fase 1
 
 - [x] ~~**Auto-discovery de plugins**~~ — feito. `comunidades/index.ts` é a única fonte; `docusaurus.config.ts` faz `flatMap` sobre `COMMUNITIES_CONFIG` e gera plugins de blog/docs automaticamente respeitando `community.features.{blog,docs}`.
-- [ ] **Link em `/sobre/ong`** apontando para `/comunidades/tisocial`
+- [ ] **Link em `/sobre/ong`** apontando para `/comunidades/tisocial` (em andamento)
 - [x] ~~Documentar onboarding em AGENTS.md~~ — feito (seção "Multi-tenant communities")
-- [ ] `/sobre/ong` ganhar lista de comunidades com link para o portal whitelabel quando existir
+- [ ] `/sobre/ong` ganhar lista de comunidades com link para o portal whitelabel quando existir (em andamento)
 - [x] ~~Smoke test final em build de produção~~ — **`tisocial.org.br` em produção via Cloudflare Worker ✅**
 
 ### 🔵 Fora do escopo da Fase 1 (decidido)
@@ -152,9 +152,9 @@ institucional/
 
 ---
 
-## 5. Fase 2 — replicar para outras comunidades
+## 5. Fase 2 — replicar para outras comunidades (stand-by)
 
-> Só começar depois que Fase 1 estiver 100% fechada e validada em produção.
+> **Stand-by.** Não iniciar antes que a Fase 1 esteja 100% fechada e validada em produção, e após reavaliação de prioridade.
 
 **Checklist por comunidade nova** (passo-a-passo está em `AGENTS.md` → seção "Multi-tenant communities"):
 
@@ -560,11 +560,11 @@ Desvantagens reais: escrever app novo do zero, perder SSG/SEO, duplicar componen
 
 ## 12. Resumo executivo
 
-> **Estado:** Opção D1 escolhida. Fase 1 ~95% completa (T.I. Social piloto). Fechando pendências antes de Fase 2.
+> **Estado:** Opção D1 escolhida. Fase 1 em andamento (T.I. Social piloto). Fase 2 em stand-by. Fase 3 (domínio próprio) em produção para T.I. Social.
 >
 > **Próximas decisões abertas:**
-> - Fechar Fase 1 (link em /sobre/ong + smoke test prod) → Fase 2 (replicar para 2ª comunidade)
-> - **OU** pular para Fase 3 (domínio próprio com edge proxy + ajustes mínimos no backend)
+> - Fechar Fase 1 (link em `/sobre/ong` + smoke test prod)
+> - Manter Fase 2 em stand-by até reavaliação
 >
 > **Custo de operação esperado:** R$ 0/mês com Cloudflare free + GH Pages free. Domínio é responsabilidade da comunidade parceira (~R$ 40/ano).
 >

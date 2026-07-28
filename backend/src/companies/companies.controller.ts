@@ -120,6 +120,19 @@ export class CompaniesController {
     return this.companiesService.update(id, dto, user.sub);
   }
 
+  @Get(':id/receipt')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  async getReceipt(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query('month') month: string | undefined,
+    @Req() req: Request,
+  ) {
+    const user = req.user as JwtPayload;
+    await this.assertCompanyAccess(id, user);
+    return this.companiesService.getReceipt(id, month);
+  }
+
   // ── Carteira ──────────────────────────────────────────────────────────────
 
   @Get(':id/wallet')
