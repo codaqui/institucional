@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-07-28T18:25:35.856Z",
   "source": {
     "source": "ocgroups",
     "sourceId": "cloud-native-maringa",
@@ -10,19 +10,19 @@
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z"
+    "generatedAt": "2026-07-28T18:25:35.856Z"
   },
   "event": {
     "id": "ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91",
-    "title": "Cloud Native Maringá #2 - To be defined",
-    "summary": "Em breve mais atualizações! Reservem essa data! No menu abaixo você pode enviar sugestão de palestra, ou seja, nosso Call4Papers está oficialmente aberto.",
-    "startAt": "2026-05-23T09:30:00-03:00",
-    "endAt": "2026-05-23T12:00:00-03:00",
+    "title": "Cloud Native Maringá #2 - Semana Acadêmica do SENAC",
+    "summary": "É com muito orgulho que anunciamos a 2ª Edição do Cloud Native Maringá ! Desta vez, nosso encontro ganha um palco ainda maior: teremos a honra de inaugurar oficialmente a Semana Acadêmica do SENAC Maringá . Mantendo o n…",
+    "startAt": "2026-05-25T19:30:00-03:00",
+    "endAt": "2026-05-25T22:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "CNCF Open Community Groups",
     "host": "Cloud Native Maringá",
     "location": "SENAC Maringá, Av. Colombo, 6225 - Zona 7, Maringá",
-    "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/u6uyhcn",
+    "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/u6uyhcn",
     "tags": [
       "cncf",
       "cloud-native-maringa",
@@ -30,16 +30,16 @@
     ],
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "featured": false,
-    "status": "scheduled",
+    "status": "completed",
     "entityType": "external",
-    "userCount": 5,
+    "userCount": 33,
     "creatorName": "Isadora Marcondes",
     "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
     "organizers": [
       {
         "name": "Isadora Marcondes",
         "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-        "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+        "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
       },
       {
         "name": "Enderson Menezes",

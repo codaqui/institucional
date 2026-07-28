@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-05-13T01:32:49.343Z",
+  "generatedAt": "2026-07-28T18:25:35.856Z",
   "source": {
     "source": "ocgroups",
     "sourceId": "cloud-native-maringa",
@@ -10,10 +10,10 @@
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-05-13T01:32:49.343Z",
+    "generatedAt": "2026-07-28T18:25:35.856Z",
     "sourceKey": "ocgroups:cloud-native-maringa",
     "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
-    "itemCount": 2
+    "itemCount": 7
   },
   "events": [
     {
@@ -26,7 +26,7 @@
       "platform": "CNCF Open Community Groups",
       "host": "Cloud Native Maringá",
       "location": "UniCV Maringá, Maringá",
-      "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/ac5gv7u",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/ac5gv7u",
       "tags": [
         "cncf",
         "cloud-native-maringa",
@@ -43,7 +43,7 @@
         {
           "name": "Isadora Marcondes",
           "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-          "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
         },
         {
           "name": "Enderson Menezes",
@@ -58,15 +58,15 @@
     },
     {
       "id": "ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91",
-      "title": "Cloud Native Maringá #2 - To be defined",
-      "summary": "Em breve mais atualizações! Reservem essa data! No menu abaixo você pode enviar sugestão de palestra, ou seja, nosso Call4Papers está oficialmente aberto.",
-      "startAt": "2026-05-23T09:30:00-03:00",
-      "endAt": "2026-05-23T12:00:00-03:00",
+      "title": "Cloud Native Maringá #2 - Semana Acadêmica do SENAC",
+      "summary": "É com muito orgulho que anunciamos a 2ª Edição do Cloud Native Maringá ! Desta vez, nosso encontro ganha um palco ainda maior: teremos a honra de inaugurar oficialmente a Semana Acadêmica do SENAC Maringá . Mantendo o n…",
+      "startAt": "2026-05-25T19:30:00-03:00",
+      "endAt": "2026-05-25T22:00:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "CNCF Open Community Groups",
       "host": "Cloud Native Maringá",
       "location": "SENAC Maringá, Av. Colombo, 6225 - Zona 7, Maringá",
-      "href": "https://ocgroups.dev/cncf/group/sq5vsqs/event/u6uyhcn",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/u6uyhcn",
       "tags": [
         "cncf",
         "cloud-native-maringa",
@@ -74,16 +74,16 @@
       ],
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "featured": false,
-      "status": "scheduled",
+      "status": "completed",
       "entityType": "external",
-      "userCount": 5,
+      "userCount": 33,
       "creatorName": "Isadora Marcondes",
       "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
       "organizers": [
         {
           "name": "Isadora Marcondes",
           "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-          "photoUrl": "/images/3f6cd7eb017f2f233f58cbbf4c45e06195a93c05f43a2991190eb71d8f2dc631.jpeg"
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
         },
         {
           "name": "Enderson Menezes",
@@ -95,6 +95,206 @@
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json"
+    },
+    {
+      "id": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
+      "title": "Cloud Native Maringá #3 - Esquenta para o AgileBrazil com a Codaqui",
+      "summary": "O cenário de tecnologia está em constante evolução, e a força da nossa região está na colaboração. É com muito orgulho que anunciamos o Cloud Native Maringá #3 , uma edição especial e presencial que servirá como o esque…",
+      "startAt": "2026-08-01T09:30:00-03:00",
+      "endAt": "2026-08-01T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "UniCesumar - Inspira Space, Av. Guedner, 1610 - Jardim Aclimacao",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/xw9tt8t",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 17,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838.json"
+    },
+    {
+      "id": "ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45",
+      "title": "Cloud Native Maringá #4 - &#60;Tema em definição&#62;",
+      "summary": "Cloud Native Maringá #3 - <Tema em definição>",
+      "startAt": "2026-08-29T09:30:00-03:00",
+      "endAt": "2026-08-29T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "UniCIVE - Smart Space, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/qqepq9r",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45.json"
+    },
+    {
+      "id": "ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6",
+      "title": "Cloud Native Maringá #5 - Esquenta para o AgileBrazil com a Codaqui",
+      "summary": "Cloud Native Maringá #3 - <Tema em definição>",
+      "startAt": "2026-09-19T09:30:00-03:00",
+      "endAt": "2026-09-19T19:30:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "Senac, Avenida Colombo, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/rmsye7x",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json"
+    },
+    {
+      "id": "ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d",
+      "title": "Cloud Native Maringá #6 - &#60;Tema em definição&#62;",
+      "summary": "Cloud Native Maringá #6 - <Tema em definição>",
+      "startAt": "2026-10-24T09:30:00-03:00",
+      "endAt": "2026-10-24T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "Centro Universitário Cidade Verde, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/5jejhnq",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json"
+    },
+    {
+      "id": "ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5",
+      "title": "Cloud Native Maringá #7 - &#60;Tema em definição&#62;",
+      "summary": "Cloud Native Maringá #7 - <Tema em definição>",
+      "startAt": "2026-11-14T09:30:00-03:00",
+      "endAt": "2026-11-14T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "UniCesumar - Inspira Space, Unicesumar, Maringá",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/3umvgps",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5.json"
     }
   ]
 }

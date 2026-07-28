@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-05-12T07:27:58.787Z",
-  "latestPeriod": "2026-04",
+  "updatedAt": "2026-07-28T07:24:41.446Z",
+  "latestPeriod": "2026-06",
   "totals": {
-    "screenPageViews": 260963,
-    "activeUsers": 114641,
-    "sessions": 144056,
+    "screenPageViews": 265819,
+    "activeUsers": 115913,
+    "sessions": 146093,
     "peakMonth": "2024-05",
     "peakViews": 22422
   },
@@ -232,76 +232,86 @@
       "sessions": 2579,
       "averageSessionDuration": 179.2,
       "bounceRate": 0.5068
+    },
+    {
+      "period": "2026-05",
+      "screenPageViews": 3143,
+      "activeUsers": 859,
+      "sessions": 1295,
+      "averageSessionDuration": 144.6,
+      "bounceRate": 0.5529
+    },
+    {
+      "period": "2026-06",
+      "screenPageViews": 1713,
+      "activeUsers": 413,
+      "sessions": 742,
+      "averageSessionDuration": 172.5,
+      "bounceRate": 0.5687
     }
   ],
   "topPages": [
     {
-      "pagePath": "/blog/2026/03/30/curso-introducao-python",
-      "screenPageViews": 593,
-      "activeUsers": 486
-    },
-    {
       "pagePath": "/trilhas/python/page-1",
-      "screenPageViews": 408,
-      "activeUsers": 115
+      "screenPageViews": 154,
+      "activeUsers": 35
     },
     {
       "pagePath": "/trilhas/python",
-      "screenPageViews": 388,
-      "activeUsers": 130
-    },
-    {
-      "pagePath": "/trilhas/python/page-3",
-      "screenPageViews": 346,
-      "activeUsers": 71
-    },
-    {
-      "pagePath": "/trilhas/python/",
-      "screenPageViews": 333,
-      "activeUsers": 219
+      "screenPageViews": 137,
+      "activeUsers": 41
     },
     {
       "pagePath": "/trilhas/python/page-2",
-      "screenPageViews": 333,
-      "activeUsers": 83
+      "screenPageViews": 117,
+      "activeUsers": 23
+    },
+    {
+      "pagePath": "/participe/apoiar",
+      "screenPageViews": 69,
+      "activeUsers": 23
+    },
+    {
+      "pagePath": "/participe/mentoria",
+      "screenPageViews": 63,
+      "activeUsers": 29
+    },
+    {
+      "pagePath": "/clube",
+      "screenPageViews": 58,
+      "activeUsers": 34
+    },
+    {
+      "pagePath": "/eventos",
+      "screenPageViews": 54,
+      "activeUsers": 33
     },
     {
       "pagePath": "/participe/estudar",
-      "screenPageViews": 261,
-      "activeUsers": 117
-    },
-    {
-      "pagePath": "/transparencia",
-      "screenPageViews": 238,
+      "screenPageViews": 54,
       "activeUsers": 29
     }
   ],
   "trafficSources": {
-    "new": 1577,
-    "google": 1446,
-    "(direct)": 869,
-    "returning": 648,
-    "(not set)": 363,
-    "bing": 58,
-    "youtube.com": 37,
-    "guiadeti.com.br": 64,
-    "github.com": 33,
-    "facebook.com": 9,
-    "ig": 7,
-    "linktree": 6,
-    "m.facebook.com": 6,
-    "search.google.com": 6,
-    "(data not available)": 7,
-    "medium.com": 4,
-    "ntp.msn.com": 4,
-    "linkedin.com": 3,
-    "fontes.pro.br": 3,
-    "notebooklm.google.com": 2,
-    "cursos.alura.com.br": 1,
-    "edutools.githubapp.com": 1,
-    "instagram.com": 1,
-    "l.instagram.com": 1,
-    "m.baidu.com": 1,
-    "app.guiadeti.com.br": 1
+    "new": 370,
+    "(direct)": 345,
+    "google": 272,
+    "returning": 229,
+    "(not set)": 148,
+    "RD Station": 23,
+    "bing": 31,
+    "guiadeti.com.br": 18,
+    "giscus.app": 10,
+    "github.com": 12,
+    "chatgpt.com": 7,
+    "(data not available)": 4,
+    "facebook.com": 2,
+    "linktree": 2,
+    "youtube.com": 3,
+    "br.search.yahoo.com": 3,
+    "tisocial.org.br": 1,
+    "localhost:4200": 2,
+    "perplexity.ai": 1,
+    "staging.agilebrazil.com": 1
   }
 }
