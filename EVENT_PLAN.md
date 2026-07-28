@@ -4,7 +4,7 @@ audience: Devs extending the events sync pipeline, AI agents adding new sources/
 status: Fase 1 (overrides) — design confirmed, always-PR model with codaqui-bot auto-merge, implementation pending. Fase 2 (plataforma de gestão de eventos) — desenho detalhado em revisão, nada implementado.
 sections:
   - Visão Geral
-  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, participantes: sync nativo interno + CSV à la carte externo, check-in, relatórios, decisões em aberto)
+  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, participantes: sync nativo interno + CSV à la carte externo, check-in, certificados sob demanda, relatórios, decisões de design)
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
   - CRUD de Overrides (GitHub-as-Database)
@@ -52,17 +52,27 @@ em `src/data/events.ts`) quanto para eventos externos parceiros.
 
 ### Princípios
 
-1. **A Codaqui não substitui a fonte original** quando a comunidade já tem uma (Meetup, Sympla…).
-   A plataforma gerencia eventos *próprios* e oferece ferramentas opcionais para parceiros.
-2. **Reuso antes de criar** — o desenho abaixo reutiliza deliberadamente o que já existe:
+1. **Soberania sobre os eventos próprios** — a Codaqui visa **substituir** as plataformas
+   externas e ser a fonte de verdade dos eventos que organiza diretamente. Quando a parceria
+   impede a substituição (comunidade já consolidada no Meetup/Sympla), mantemos uma **cópia
+   atualizada dos dados** na plataforma (snapshots + importação de participantes).
+2. **Reuso com KISS** — o desenho reutiliza deliberadamente o que já existe, sem fluxos
+   paralelos:
    - Stripe Checkout + webhook (`backend/src/stripe/`, metadata `entityType` já é o discriminador);
    - Ledger (`getOrCreateCommunityAccount(projectKey)` + `recordTransaction(...)`);
    - Padrão de módulo do `companies` (entidade + tracking + `@Cron` via `@nestjs/schedule`);
    - `GitHubDBService` ⤴ para qualquer escrita no repositório.
 3. **Todo dinheiro passa pelo ledger** com `referenceId` prefixado, como os demais módulos.
+   Consequência: **todo evento — interno ou externo — é associado a uma comunidade**
+   (`communityProjectKey` obrigatório em `managed_events` e em `external_event_activations`),
+   que é a conta destino da receita.
 4. **LGPD/opt-in** em toda comunicação com participantes.
 5. **Listagem pública continua 100% estática** — eventos próprios entram no pipeline de
    snapshots como mais uma fonte (`internal:codaqui`), sem exigir backend no caminho de leitura.
+   ⚠️ O snapshot funciona como "cache" do backend: ótimo para leitura, mas exige cuidado com a
+   defasagem — o sync roda de hora em hora, então um evento recém-publicado pode levar até 1h
+   para aparecer na listagem (aceitável; se frescor virar problema, a página de detalhe pode
+   consultar o backend direto).
 
 ### Roadmap em sub-fases
 
@@ -138,7 +148,7 @@ export class TicketType {
 export class EventOrder {
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column() eventId: string;
-  @Column({ nullable: true }) memberId: string | null; // null = guest
+  @Column({ nullable: true }) memberId: string | null; // checkout exige login (decisão #2); nullable só por defensividade
   @Column({ type: 'int' }) totalCents: number;
   @Column({ nullable: true }) stripeSessionId: string | null;
   @Column({ nullable: true }) stripePaymentIntentId: string | null;
@@ -161,7 +171,7 @@ export class EventRegistration {
   @Column({ type: 'timestamptz', nullable: true }) checkedInAt: Date | null;
   @Column({ nullable: true }) checkedInByMemberId: string | null;
   @Column({ type: 'enum', enum: RegistrationStatus, default: RegistrationStatus.CONFIRMED })
-  status: RegistrationStatus;                          // confirmed | cancelled | refunded | waitlist
+  status: RegistrationStatus;                          // confirmed | pending_match | cancelled | refunded | waitlist
   @CreateDateColumn() createdAt: Date;
 }
 
@@ -201,9 +211,10 @@ como a fonte `internal:codaqui`:
 
 ### Inscrições gratuitas (2a)
 
-`POST /events/:id/register` com `OptionalJwtAuthGuard` — guest informa `attendeeName` +
-`attendeeEmail`; logado, os dados vêm do JWT (mesmo espírito do DonationFlow: login encouraged,
-não obrigatório). Retorna a `EventRegistration` com `checkinToken`. Regras:
+`POST /events/:id/register` com `JwtAuthGuard` — **conta no site é obrigatória para se inscrever
+e para fazer check-in** (decisão de design #2). Não há RSVP de guest: a identidade do
+participante é sempre um `Member`, o que habilita match de CSV, certificados e histórico no
+perfil. Retorna a `EventRegistration` com `checkinToken`. Regras:
 
 - Respeita `capacity` do evento e quota do `ticket_type` free (mesma reserva atômica do 2b);
 - E-mail de confirmação entra só na 2c — na 2a a confirmação é na tela (token visível ao inscrito);
@@ -214,7 +225,7 @@ não obrigatório). Retorna a `EventRegistration` com `checkinToken`. Regras:
 Reutiliza o fluxo existente de doações em vez de criar um paralelo:
 
 1. Frontend chama `POST /events/:id/checkout` (`JwtAuthGuard` — ingresso pago exige identidade
-   para o check-in; ver decisão em aberto #2) com `{ ticketTypeId, quantity }`.
+   para o check-in; decisão de design #2) com `{ ticketTypeId, quantity }`.
 2. Backend valida janela de venda e faz **reserva atômica de quota** (anti-oversell):
 
    ```sql
@@ -237,7 +248,12 @@ Reutiliza o fluxo existente de doações em vez de criar um paralelo:
 5. **Cron** (padrão `@Cron` do módulo `companies`) a cada 5 min expira orders `pending`
    vencidas e devolve a quota.
 6. Refund via `charge.refunded` (já tratado): order → `refunded`, registrations → `refunded`,
-   quota devolvida.
+   quota devolvida. **Conformidade legal (BR):** a política de reembolso precisa seguir a
+   legislação de eventos no Brasil — CDC art. 49 (arrependimento em até 7 dias corridos para
+   compra online), regras de cancelamento/adiamento do evento — e ser exibida com clareza:
+   **termos de compra e política de reembolso aceitos no checkout**, com a versão do termo
+   registrada na order. Para compra multi-ingresso, usar **refund parcial do Stripe**
+   (`refunds.create` com `amount`), cancelando registrations individuais.
 
 **Convenção de `referenceId` (adicionar à tabela da seção 9 do AGENTS.md quando implementar):**
 
@@ -271,15 +287,35 @@ renderização/impressão — mesmo padrão do comprovante PJ de `companies`.
 
 ### Comunicação (2c)
 
-⚠️ **O backend não tem módulo de e-mail hoje** (nenhum mailer/SES/Resend no código) — esta é a
-maior dependência nova da Fase 2. Criar `backend/src/notifications/` com provider configurável
-(decisão em aberto #1) e templates:
+⚠️ **O backend não tem módulo de e-mail hoje** (nenhum mailer/SES/Resend no código). Decisão de
+design #1: **SMTP via Gmail** (volume baixo hoje) atrás de um `backend/src/notifications/` com
+provider configurável — migrar para SES/Resend no futuro é trocar só o adapter.
+
+Todo envio é registrado em `email_logs` (destinatário, template, evento, status, erro,
+timestamp) alimentando o **painel de e-mails enviados + analytics** (`/admin/emails`):
+enviados/falhas por template e por evento, com reenvio manual de falhas.
 
 | Template | Gatilho | Opt-in |
 |---|---|---|
 | Confirmação de inscrição (com QR) | order `paid` / RSVP confirmado | transacional (não precisa) |
 | Lembrete D-1 | cron diário (padrão `companies`) | transacional |
-| Certificado / pós-evento | conclusão + presença confirmada | **opt-in obrigatório** |
+| Pós-evento (agradecimento, pesquisa) | conclusão do evento | **opt-in obrigatório** |
+
+> Certificados **não** vão por e-mail — ver seção seguinte.
+
+### Certificados sob demanda (2c)
+
+Mesmo sistema dos **comprovantes financeiros**: dados no backend, renderização/impressão no
+frontend, gerado sob demanda — sem PDF armazenado, sem envio de e-mail.
+
+- `GET /events/registrations/:id/certificate` — dono da inscrição, somente com presença
+  confirmada (`checkedInAt IS NOT NULL`); retorna JSON (nome, evento, data, carga horária,
+  código de verificação derivado do `checkinToken`).
+- **Perfil público do membro** ganha o painel **"Histórico de eventos"** (mesmo espírito da
+  página de transparência): eventos inscritos/presentes e botão **"Emitir certificado"** por
+  evento, com verificação pública do código.
+- Opt-in de dados: o nome exibido é o do perfil do membro, que controla se o histórico é
+  público.
 
 ### Participantes: externos (CSV à la carte) vs internos (sync nativo) (2d)
 
@@ -308,7 +344,7 @@ export class ExternalEventActivation {
   @Column({ unique: true }) eventKey: string;  // "<sourceKey>:<eventId>" — ex: "sympla:elasnocodigo:3321444"
   @Column({ type: 'text', array: true, default: '{}' })
   features: string[];                           // subconjunto de ['checkin', 'certificates', 'payments']
-  @Column() communityProjectKey: string;        // conta ledger destino (obrigatório se 'payments')
+  @Column() communityProjectKey: string;        // conta ledger da comunidade organizadora (sempre obrigatório — princípio 3)
   @Column() enabledByMemberId: string;
   @CreateDateColumn() createdAt: Date;
 }
@@ -319,7 +355,7 @@ Comportamento por feature em evento externo:
 | Feature | Como funciona |
 |---|---|
 | `checkin` | Mesmo endpoint/QR da 2c. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Entrega dos QR codes: download de CSV/PDF pelo organizador (envio por e-mail só quando 2c estiver disponível) |
-| `certificates` | Exige presença confirmada (check-in) + módulo de e-mail (2c) + opt-in |
+| `certificates` | Exige presença confirmada (check-in) + match com conta no site. Emissão sob demanda no perfil do membro (sem e-mail) |
 | `payments` | A Codaqui vende ingressos do evento externo pelo próprio Stripe (ex.: comunidade quer cobrar fora da Sympla). `ticket_types` ligados à ativação; receita na conta `communityProjectKey`. Reconciliação com a lista da fonte via CSV (dedupe por e-mail) |
 
 > Overrides (metadados no repositório) e ativação (participantes/features no Postgres) são
@@ -332,12 +368,18 @@ Comportamento por feature em evento externo:
 
 - **Formato canônico:** UTF-8, header obrigatório `name,email,ticket_type,external_id`
   (separador `;` ou `,` detectado automaticamente; `ticket_type` e `external_id` opcionais);
-- **Pipeline:** parse → validação linha a linha (e-mail válido, nome presente) → dedupe →
-  cria `EventRegistration` com `orderId: null`, `externalSource` + `externalId` e
+- **Pipeline:** parse → validação linha a linha (e-mail válido, nome presente) → **match com
+  conta no site** (por e-mail da conta ou `githubHandle`) → dedupe → cria `EventRegistration`
+  com `orderId: null`, `externalSource` + `externalId`, `memberId` (quando matched) e
   `checkinToken` novo;
+- **Match obrigatório para check-in:** linhas sem match ficam com `memberId: null` e
+  `status: pending_match`, sinalizadas **imediatamente ao organizador** no relatório de
+  importação e na lista de participantes. O participante cria a conta no site e o match é
+  refeito por e-mail — sob demanda via `POST /events/external/:eventKey/participants/rematch`
+  ou automaticamente quando o membro se cadastra;
 - **Idempotente:** re-upload do mesmo CSV não duplica — dedupe por `(externalSource, externalId)`
   ou, na ausência de `external_id`, por e-mail normalizado;
-- **Retorno:** relatório `{ imported, skippedDuplicates, errors: [{ line, reason }] }`;
+- **Retorno:** relatório `{ imported, matched, unmatched: [{ line, email }], skippedDuplicates, errors: [{ line, reason }] }`;
 - **Limite:** 5 MB / 10 mil linhas por upload (eventos maiores: múltiplos uploads).
 
 O mesmo endpoint serve para **reconciliação** quando `payments` está ativo: o CSV exportado da
@@ -376,37 +418,49 @@ nenhuma sub-fase.
 | `PATCH` | `/events/:id` | event_organizer / staff | Edita evento |
 | `POST` | `/events/:id/publish` | event_organizer | Publica (entra no próximo snapshot) |
 | `POST` | `/events/:id/ticket-types` | event_organizer | Cria tipo/lote de ingresso |
-| `POST` | `/events/:id/register` | Opcional (guest ou JWT) | Inscrição gratuita |
+| `POST` | `/events/:id/register` | JwtAuthGuard | Inscrição gratuita (conta obrigatória) |
 | `DELETE` | `/events/registrations/:id` | Dono ou staff | Cancela inscrição |
 | `POST` | `/events/:id/checkout` | JwtAuthGuard | Checkout de ingressos pagos |
 | `GET` | `/events/my-registrations` | JwtAuthGuard | Minhas inscrições + QR token |
 | `POST` | `/events/:id/checkin` | event_checker / staff | Check-in por token (idempotente) |
 | `GET` | `/events/:id/report` | event_organizer, event_finance | Relatório do evento |
 | `GET` | `/events/orders/:id/receipt` | Dono ou event_finance | Comprovante da compra |
+| `GET` | `/events/registrations/:id/certificate` | Dono (presença confirmada) | Dados do certificado (sob demanda) |
 | `POST` | `/events/external/:eventKey/activate` | Owner do evento ⤴ ou admin | Ativa features à la carte no evento externo |
-| `POST` | `/events/external/:eventKey/participants/import` | Owner ou admin | Importa CSV de participantes (idempotente) |
+| `POST` | `/events/external/:eventKey/participants/import` | Owner ou admin | Importa CSV de participantes (idempotente, com match) |
+| `POST` | `/events/external/:eventKey/participants/rematch` | Owner ou admin | Refaz match de participantes `pending_match` |
 | `GET` | `/events/external/:eventKey/participants` | Owner, event_finance | Lista participantes importados |
+| `GET` | `/notifications/emails` | admin | Painel de e-mails enviados + analytics |
 
 ### Frontend da Fase 2
 
 - `src/pages/admin/eventos.tsx` — CRUD de eventos próprios, tipos de ingresso, staff (segue o
   padrão de tela admin: guarda `useEffect([isLoggedIn])`, `authFetch`, `parseAuthJson`).
 - `src/pages/admin/eventos-checkin.tsx` — tela de check-in mobile-first (câmera + fallback manual).
+- `src/pages/admin/emails.tsx` — painel de e-mails enviados + analytics (2c).
+- Perfil público do membro — painel **"Histórico de eventos"** com emissão de certificado sob
+  demanda (espelha o padrão da página de transparência).
 - Página pública do evento próprio — detalhe com formulário de inscrição/checkout embutido.
 - `src/utils/transaction.tsx` — adicionar `event-ticket` ao `TX_TYPE_CONFIG` (transparência).
 
-### Decisões em aberto (resolver antes de cada sub-fase)
+### Decisões de design (registradas em 2026-07)
 
-1. **Provedor de e-mail** (2c): Resend vs Amazon SES vs SMTP transacional. Critérios: custo no
-   volume esperado, domínio `codaqui.dev` já verificado, DX.
-2. **Inscrição gratuita guest vs login** (2a): recomendação do plano é guest com nome+e-mail
-   (login encouraged). Pagos: login obrigatório. Validar com o time.
-3. **Conta ledger por evento?** (2b): recomendação é **não** — conta da comunidade + drill-down
-   por `referenceId`. Criar conta por evento só se a transparência por evento virar requisito.
-4. **Certificados** (2c+): PDF gerado no backend ou página pública de verificação por token?
-5. **Refund parcial** (2b): em compra multi-ingresso, cancelar registrations individuais —
-   confirmar se o fluxo de refund atual do Stripe (por charge) atende ou se precisa granularidade.
-6. **Real Network** (2e): fora de escopo até 2a–2d estarem estáveis.
+1. **E-mail (2c):** SMTP via **Gmail** (volume baixo hoje), atrás de adapter configurável.
+   Obrigatório: `email_logs` + painel `/admin/emails` com analytics (enviados, falhas, por
+   template/evento) e reenvio manual de falhas.
+2. **Inscrição e check-in exigem conta no site** — não há guest. O match de participantes
+   importados via CSV é feito por e-mail da conta ou `githubHandle`; linhas sem match ficam
+   `pending_match` e são sinalizadas imediatamente ao organizador.
+3. **Receita na conta da comunidade organizadora** do evento (`communityProjectKey`
+   obrigatório, interno ou externo) — com **filtro por evento** obrigatório nos relatórios e na
+   transparência (drill-down por `referenceId` + `description`).
+4. **Certificados:** mesmo sistema dos comprovantes financeiros — **dados no backend, gerados
+   sob demanda** (sem PDF armazenado, sem e-mail). Emissão no perfil público do membro
+   ("Histórico de eventos"), com opt-in de dados.
+5. **Refunds conforme legislação BR de eventos** — CDC art. 49 (7 dias corridos, compra
+   online), regras de cancelamento/adiamento. Termos e política de reembolso explícitos,
+   aceitos no checkout e versionados na order. Refund parcial do Stripe para multi-ingresso.
+6. **Real Network (2e):** plano futuro, fora de escopo até 2a–2d estáveis.
 
 ### Testes da Fase 2
 
@@ -420,7 +474,10 @@ nenhuma sub-fase.
 - **Snapshot interno:** evento `draft` não aparece em `/events/public/managed`;
 - **Importação CSV (2d):** re-upload do mesmo arquivo não duplica participantes (dedupe por
   `(externalSource, externalId)` ou e-mail); linhas inválidas reportadas por número;
-- **Ativação externa (2d):** não-owner não ativa features; `payments` sem `communityProjectKey` → 400.
+- **Ativação externa (2d):** não-owner não ativa features; ativação sem `communityProjectKey` → 400;
+- **Match CSV (2d):** linha com e-mail de conta existente → `memberId` preenchido; sem conta →
+  `pending_match` e aparece em `unmatched` no relatório; `rematch` resolve após cadastro;
+- **Certificado (2c):** sem `checkedInAt` → 403; com presença → JSON com código de verificação.
 
 ---
 
