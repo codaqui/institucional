@@ -4,7 +4,7 @@ audience: Devs extending the events sync pipeline, AI agents adding new sources/
 status: Fase 1 (overrides) — design confirmed, always-PR model with codaqui-bot auto-merge, implementation pending. Fase 2 (plataforma de gestão de eventos) — desenho detalhado em revisão, nada implementado.
 sections:
   - Visão Geral
-  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, sync de participantes, check-in, relatórios, decisões em aberto)
+  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, participantes: sync nativo interno + CSV à la carte externo, check-in, relatórios, decisões em aberto)
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
   - CRUD de Overrides (GitHub-as-Database)
@@ -71,7 +71,7 @@ em `src/data/events.ts`) quanto para eventos externos parceiros.
 | **2a — Fundação** | Migração multi-role ⤴, módulo `events` no backend, CRUD de eventos próprios, staff por evento, inscrições gratuitas (RSVP interno), snapshot `internal:codaqui` na listagem | Fase 1 |
 | **2b — Ingressos pagos** | Tipos de ingresso e lotes, checkout Stripe, ledger + comprovante, refunds, controle anti-oversell | 2a |
 | **2c — Check-in e comunicação** | QR code por inscrição, endpoint de check-in (role `event_checker`), e-mails transacionais (confirmação, lembrete D-1) | 2b |
-| **2d — Sync de participantes + relatórios** | Importação de inscritos das fontes externas, relatórios de receita/presença/conversão | 2c |
+| **2d — Externos à la carte + relatórios** | Ativação de features por evento externo (check-in, certificados, pagamentos), importação CSV de participantes, sync automático oportunista por fonte, relatórios | 2c |
 | **2e — Real Network** | Networking/matchmaking entre participantes | 2d — longo prazo |
 
 ### Papéis e permissões
@@ -177,6 +177,12 @@ export class EventStaff {
 
 Migration seguindo a convenção atual (`backend/src/migrations/<ts>-Migration010_ManagedEvents.ts`).
 
+> **Generalização para eventos externos (2d):** `event_registrations`, `event_orders` e
+> `ticket_types` passam a referenciar o evento por `managedEventId` (FK nullable) **ou**
+> `externalActivationId` (FK nullable) — CHECK constraint garante exatamente um preenchido.
+> `event_registrations` ganha ainda `externalSource`/`externalId` para dedupe de importações.
+> Ver entidade `external_event_activations` na seção 2d.
+
 ### Eventos próprios no pipeline de snapshots
 
 A listagem `/eventos` continua lendo apenas `static/events/index.json`. Eventos próprios entram
@@ -275,20 +281,82 @@ maior dependência nova da Fase 2. Criar `backend/src/notifications/` com provid
 | Lembrete D-1 | cron diário (padrão `companies`) | transacional |
 | Certificado / pós-evento | conclusão + presença confirmada | **opt-in obrigatório** |
 
-### Sincronização de participantes — fontes externas (2d)
+### Participantes: externos (CSV à la carte) vs internos (sync nativo) (2d)
 
-Bidirecionalidade fonte por fonte, começando pelas com API acessível:
+**Restrição de plataforma:** a sincronização automática de participantes com as fontes externas
+é limitada pelas APIs de cada uma (ver tabela ao final) — Meetup exige OAuth do organizador,
+Sympla exige token do produtor, OCGroups/Bevy não têm API pública de RSVP. O modelo, portanto,
+é **assimétrico**:
+
+| | Eventos **internos** (`internal:*`) | Eventos **externos** (com override) |
+|---|---|---|
+| Inscrições | Nativas na plataforma (RSVP gratuito + Stripe) | **Importadas via CSV** pelo organizador |
+| Features | Plataforma completa, sempre habilitada | **À la carte por evento**: check-in, certificados, pagamentos |
+| Sync de participantes | Nativo — os dados já nascem no Postgres | Sem garantia — **CSV é o baseline**; auto-sync só onde a API permitir (bônus) |
+
+#### Ativação de features em evento externo
+
+Eventos externos não existem no Postgres (são snapshots estáticos). Para habilitar features de
+gestão, o **owner do evento** (conforme `organizers.json` ⤴) ou um admin cria uma **ativação** —
+uma "sombra" do evento externo no banco:
+
+```typescript
+// external_event_activations — sombra no Postgres de um evento externo
+@Entity('external_event_activations')
+export class ExternalEventActivation {
+  @PrimaryGeneratedColumn('uuid') id: string;
+  @Column({ unique: true }) eventKey: string;  // "<sourceKey>:<eventId>" — ex: "sympla:elasnocodigo:3321444"
+  @Column({ type: 'text', array: true, default: '{}' })
+  features: string[];                           // subconjunto de ['checkin', 'certificates', 'payments']
+  @Column() communityProjectKey: string;        // conta ledger destino (obrigatório se 'payments')
+  @Column() enabledByMemberId: string;
+  @CreateDateColumn() createdAt: Date;
+}
+```
+
+Comportamento por feature em evento externo:
+
+| Feature | Como funciona |
+|---|---|
+| `checkin` | Mesmo endpoint/QR da 2c. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Entrega dos QR codes: download de CSV/PDF pelo organizador (envio por e-mail só quando 2c estiver disponível) |
+| `certificates` | Exige presença confirmada (check-in) + módulo de e-mail (2c) + opt-in |
+| `payments` | A Codaqui vende ingressos do evento externo pelo próprio Stripe (ex.: comunidade quer cobrar fora da Sympla). `ticket_types` ligados à ativação; receita na conta `communityProjectKey`. Reconciliação com a lista da fonte via CSV (dedupe por e-mail) |
+
+> Overrides (metadados no repositório) e ativação (participantes/features no Postgres) são
+> **ortogonais**: um evento externo pode ter override sem ativação, ativação sem override,
+> ou ambos.
+
+#### Importação CSV de participantes
+
+`POST /events/external/:eventKey/participants/import` (owner do evento ⤴ ou admin):
+
+- **Formato canônico:** UTF-8, header obrigatório `name,email,ticket_type,external_id`
+  (separador `;` ou `,` detectado automaticamente; `ticket_type` e `external_id` opcionais);
+- **Pipeline:** parse → validação linha a linha (e-mail válido, nome presente) → dedupe →
+  cria `EventRegistration` com `orderId: null`, `externalSource` + `externalId` e
+  `checkinToken` novo;
+- **Idempotente:** re-upload do mesmo CSV não duplica — dedupe por `(externalSource, externalId)`
+  ou, na ausência de `external_id`, por e-mail normalizado;
+- **Retorno:** relatório `{ imported, skippedDuplicates, errors: [{ line, reason }] }`;
+- **Limite:** 5 MB / 10 mil linhas por upload (eventos maiores: múltiplos uploads).
+
+O mesmo endpoint serve para **reconciliação** quando `payments` está ativo: o CSV exportado da
+fonte original (Sympla/Meetup) marca na plataforma quem se inscreveu/pagou por fora.
+
+#### Sync automático por API — bônus oportunista
+
+Onde a API da fonte permitir, a importação CSV é complementada por sync automático (mesmo
+destino: `EventRegistration` com `externalSource`/`externalId`, mesmo dedupe):
 
 | Fonte | API de RSVP/participantes | Viabilidade |
 |---|---|---|
 | Discord | `GET /guilds/{guildId}/scheduled-events/{eventId}/users` (bot token) | ✅ Alta — já usamos `DISCORD_BOT_TOKEN` no sync de eventos |
 | Sympla | API de participantes por evento (token do produtor) | 🟡 Média — depende de credencial de cada comunidade parceira |
 | Meetup | RSVP via API exige OAuth do organizador | 🟡 Média — depende de credencial do DevParaná |
-| OCGroups/Bevy | Sem API pública documentada de RSVP | ❌ Baixa — manter importação manual (CSV) |
+| OCGroups/Bevy | Sem API pública documentada de RSVP | ❌ Baixa — CSV permanece o caminho |
 
-Modelo: importação (fonte → plataforma) primeiro; exportação (plataforma → fonte) só onde a API
-permitir escrita. Participantes importados viram `EventRegistration` com `orderId: null` e
-origem registrada em campo `externalSource`/`externalId` (dedupe por par único).
+Exportação (plataforma → fonte) só onde a API permitir escrita; **não é pré-requisito** de
+nenhuma sub-fase.
 
 ### Relatórios (2d)
 
@@ -315,6 +383,9 @@ origem registrada em campo `externalSource`/`externalId` (dedupe por par único)
 | `POST` | `/events/:id/checkin` | event_checker / staff | Check-in por token (idempotente) |
 | `GET` | `/events/:id/report` | event_organizer, event_finance | Relatório do evento |
 | `GET` | `/events/orders/:id/receipt` | Dono ou event_finance | Comprovante da compra |
+| `POST` | `/events/external/:eventKey/activate` | Owner do evento ⤴ ou admin | Ativa features à la carte no evento externo |
+| `POST` | `/events/external/:eventKey/participants/import` | Owner ou admin | Importa CSV de participantes (idempotente) |
+| `GET` | `/events/external/:eventKey/participants` | Owner, event_finance | Lista participantes importados |
 
 ### Frontend da Fase 2
 
@@ -346,7 +417,10 @@ origem registrada em campo `externalSource`/`externalId` (dedupe por par único)
 - **Check-in:** segunda leitura do mesmo token → `already_checked_in` sem erro; token inválido → 404;
 - **Multi-role:** após migração ⤴, membro com `['membro','event_checker']` acessa check-in mas
   não relatórios;
-- **Snapshot interno:** evento `draft` não aparece em `/events/public/managed`.
+- **Snapshot interno:** evento `draft` não aparece em `/events/public/managed`;
+- **Importação CSV (2d):** re-upload do mesmo arquivo não duplica participantes (dedupe por
+  `(externalSource, externalId)` ou e-mail); linhas inválidas reportadas por número;
+- **Ativação externa (2d):** não-owner não ativa features; `payments` sem `communityProjectKey` → 400.
 
 ---
 
