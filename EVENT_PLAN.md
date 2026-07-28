@@ -29,7 +29,7 @@ usando o próprio repositório GitHub como fonte de verdade (GitHub-as-Database 
 
 ## Visão Geral
 
-Os eventos da Codaqui vêm de fontes externas (Discord, Meetup, Bevy/CNCF) via snapshots JSON gerados automaticamente.
+Os eventos da Codaqui vêm de fontes externas (Discord, Meetup, OCGroups/CNCF, Sympla) via snapshots JSON gerados automaticamente.
 O **Event Organizer** é um membro confiável com permissão de sobrescrever campos desses eventos
 (título, imagem, descrição, localização, tags) sem depender de banco de dados externo.
 
@@ -47,7 +47,7 @@ Escopo em discussão (não implementado):
 
 | Funcionalidade | Descrição |
 |---|---|
-| **Sincronização de participantes** | Integrar inscrições de volta à fonte original (Meetup, Discord, Bevy, etc.) ou manter lista unificada no backend |
+| **Sincronização de participantes** | Integrar inscrições de volta à fonte original (Meetup, Discord, OCGroups, Sympla, etc.) ou manter lista unificada no backend |
 | **Pagamento de ingressos** | Checkout Stripe para ingressos pagos, com ledger e comprovante |
 | **Tipos de ingressos** | Gratuito, pago, early-bird, lote, comunitário, empresa — cada tipo com regras e quotas |
 | **Datas dos ingressos** | Abertura/fechamento de vendas, lotes com preços diferenciados, deadlines por tipo |
@@ -73,22 +73,9 @@ a plataforma de gestão será **Fase 2** e exigirá novo levantamento de requisi
 |---|---|---|---|
 | `discord:codaqui` | Discord | [Server Codaqui](https://discord.com/invite/xuTtxqCPpz) | ✅ Ativo |
 | `meetup:devparana` | Meetup | [DevParaná](https://www.meetup.com/pt-BR/developerparana/) | ✅ Ativo |
-| `bevy:cloud-native-maringa` | CNCF Community (Bevy) | [community.cncf.io/cloud-native-maringa](https://community.cncf.io/cloud-native-maringa/) | ✅ Ativo |
-| `ocgroups:cloud-native-maringa` | OCGroups (futuro CNCF) | [ocgroups.dev](https://ocgroups.dev/) | 🔜 Planejado |
-
-### Migração Bevy → OCGroups
-
-A CNCF está migrando a plataforma de comunidades do **Bevy** para o **[OCGroups](https://ocgroups.dev/)**.
-Quando a migração ocorrer:
-
-1. Adicionar nova fonte `ocgroups:cloud-native-maringa` no `events.config.json`
-2. Implementar `resolveOCGroupsEvents()` em `scripts/sync-events.mjs` (nova API a documentar)
-3. Manter `bevy:cloud-native-maringa` temporariamente para histórico de eventos passados
-4. Os overrides existentes em `static/events/bevy/cloud-native-maringa/` continuam válidos (dados históricos)
-5. Após migração completa, deprecar a fonte Bevy (manter arquivos, parar sync)
-
-> ⚠️ Monitorar [ocgroups.dev](https://ocgroups.dev/) — a API pública ainda não está documentada.
-> Quando disponível, seguir o padrão dos adaptadores existentes em `scripts/sync-events.mjs`.
+| `ocgroups:cloud-native-maringa` | CNCF Open Community Groups | [ocgroups.dev/cncf/group/sq5vsqs](https://ocgroups.dev/cncf/group/sq5vsqs) | ✅ Ativo |
+| `sympla:elasnocodigo` | Sympla | [sympla.com.br/produtor/elasnocodigo](https://www.sympla.com.br/produtor/elasnocodigo) | ✅ Ativo |
+| `sympla:campostech` | Sympla | [sympla.com.br/produtor/camposvalley](https://www.sympla.com.br/produtor/camposvalley) | ✅ Ativo |
 
 
 
