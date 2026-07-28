@@ -4,7 +4,7 @@ WORKDIR /app
 # Application resources are root-owned and read-only for security (S6504)
 # Config files are read-only (444), source and app code are read-execute (555)
 COPY --chown=root:root --chmod=444 package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 COPY --chown=root:root --chmod=555 . .
 

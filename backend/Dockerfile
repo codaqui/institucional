@@ -1,7 +1,7 @@
 FROM node:24-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 COPY . .
 RUN npm run build
 
@@ -15,7 +15,7 @@ ENV NODE_ENV=production
 # Config files are read-only (444), dist/ is read-execute (555)
 COPY --from=builder --chown=root:root --chmod=444 /app/package.json ./package.json
 COPY --from=builder --chown=root:root --chmod=444 /app/package-lock.json ./package-lock.json
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
 COPY --from=builder --chown=root:root --chmod=555 /app/dist ./dist
 
