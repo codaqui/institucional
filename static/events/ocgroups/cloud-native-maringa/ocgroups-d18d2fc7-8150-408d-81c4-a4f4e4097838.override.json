@@ -1,0 +1,26 @@
+{
+  "eventId": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
+  "sourceKey": "ocgroups:cloud-native-maringa",
+  "extendData": {
+    "imageUrl": "https://ocgroups.dev/images/ad774dd2b37ac33daa00f2e24dae1946e1b403a0deb1f5397088ed064bc96ca0.png",
+    "summary": "Isso é um teste.",
+    "location": "Inspira Space - UniCesumar - Maringá",
+    "title": "Cloud Native Maringá #3 - Esquenta para o AgileBrazil com a Codaqui",
+    "tags": [
+      "devops",
+      "cloud-native",
+      "ia"
+    ],
+    "speakers": [
+      {
+        "name": "Enderson Menezes",
+        "handle": "endersonmenezes",
+        "talkTitle": "Teste"
+      }
+    ]
+  },
+  "ownerId": "cb624416-77e3-4f8f-a6be-70e7487eec65",
+  "ownerHandle": "endersonmenezes",
+  "updatedAt": "2026-07-29T16:58:20.805Z",
+  "reason": "Owner do evento."
+}
