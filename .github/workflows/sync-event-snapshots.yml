@@ -51,6 +51,7 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           FULL_CONSOLIDATION: ${{ inputs.full_consolidation || 'false' }}
+          INTERNAL_EVENTS_API_URL: https://api.codaqui.dev
         run: npm run sync:events
 
       - name: Commit updated snapshots
