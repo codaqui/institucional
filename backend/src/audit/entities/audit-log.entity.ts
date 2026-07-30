@@ -43,6 +43,23 @@ export enum AuditAction {
 
   // Stripe
   SUBSCRIPTION_CANCELLED = 'stripe.subscription_cancelled',
+
+  // Events (organizers + overrides via GitHub-as-Database)
+  EVENT_ORGANIZER_GRANTED = 'event.organizer_granted',
+  EVENT_ORGANIZER_REVOKED = 'event.organizer_revoked',
+  EVENT_OVERRIDE_UPSERTED = 'event.override_upserted',
+  EVENT_OVERRIDE_DELETED = 'event.override_deleted',
+
+  // Events (managed events — Fase 2)
+  EVENT_PUBLISHED = 'event.published',
+  EVENT_CANCELED = 'event.canceled',
+  EVENT_ORDER_REFUNDED = 'event.order_refunded',
+
+  // Events (2c/2d — check-in, ativações externas, importações)
+  EVENT_CHECKIN = 'event.checkin',
+  EVENT_ACTIVATION_SAVED = 'event.activation_saved',
+  EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
+  EVENT_INTERNAL_SYNCED = 'event.internal_synced',
 }
 
 @Entity('audit_logs')
