@@ -16,6 +16,10 @@ import { AuditModule } from './audit/audit.module';
 import { VendorsModule } from './vendors/vendors.module';
 import { ClubModule } from './club/club.module';
 import { CompaniesModule } from './companies/companies.module';
+import { GithubDbModule } from './github-db/github-db.module';
+import { EventOrganizerModule } from './event-organizer/event-organizer.module';
+import { EventsModule } from './events/events.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -55,6 +59,10 @@ import { CompaniesModule } from './companies/companies.module';
     VendorsModule,
     ClubModule,
     CompaniesModule,
+    GithubDbModule,
+    EventOrganizerModule,
+    EventsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import express from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AuditService } from './audit/audit.service';
@@ -39,12 +40,21 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
+  // Body parser texto puro para importação CSV de participantes (2d).
+  // rawBody: true já está ativo (Stripe webhooks) e não conflita — os
+  // content-types são distintos do JSON parser padrão.
+  app.use(express.text({ limit: '6mb', type: ['text/csv', 'text/plain'] }));
+
   // ── CORS ──────────────────────────────────────────────────────────────────
   // Em produção usa a whitelist completa de origens (inclui domínios whitelabel
   // como tisocial.org.br). Em dev aceita todos os localhost comuns.
   const allowedOrigins: Array<string | RegExp> = isProd
     ? [...ALLOWED_ORIGINS_PROD]
-    : [...ALLOWED_ORIGINS_PROD, ...ALLOWED_ORIGINS_DEV, /http:\/\/localhost:\d+/];
+    : [
+        ...ALLOWED_ORIGINS_PROD,
+        ...ALLOWED_ORIGINS_DEV,
+        /http:\/\/localhost:\d+/,
+      ];
 
   app.enableCors({
     origin: allowedOrigins,
