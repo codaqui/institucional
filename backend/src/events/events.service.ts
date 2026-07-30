@@ -1902,6 +1902,7 @@ export class EventsService {
     let eventStartAt: Date | null = null;
     let eventEndAt: Date | null = null;
     let workloadMinutes: number | null = null;
+    let communityProjectKey: string | null = null;
     if (registration.eventId) {
       const event = await this.eventRepo.findOneBy({
         id: registration.eventId,
@@ -1910,6 +1911,7 @@ export class EventsService {
       eventTitle = event.title;
       eventStartAt = event.startAt;
       eventEndAt = event.endAt;
+      communityProjectKey = event.communityProjectKey ?? null;
       // Managed: carga horária = duração do evento
       workloadMinutes = eventEndAt
         ? Math.round((eventEndAt.getTime() - eventStartAt.getTime()) / 60_000)
@@ -1929,6 +1931,7 @@ export class EventsService {
         );
       }
       eventTitle = activation.title ?? activation.eventKey;
+      communityProjectKey = activation.communityProjectKey ?? null;
       // Externo: sem datas (frontend esconde); carga horária vem do
       // override do eventKey (extendData.workloadMinutes) quando presente
       workloadMinutes = await this.readExternalWorkloadMinutes(
@@ -1945,6 +1948,7 @@ export class EventsService {
       eventStartAt,
       eventEndAt,
       workloadMinutes,
+      communityProjectKey,
       checkedInAt: registration.checkedInAt,
       issuedAt: new Date().toISOString(),
       verificationCode: EventsService.certificateCode(
@@ -2000,23 +2004,27 @@ export class EventsService {
 
     let eventTitle = '';
     let eventStartAt: Date | null = null;
+    let communityProjectKey: string | null = null;
     if (registration.eventId) {
       const event = await this.eventRepo.findOneBy({
         id: registration.eventId,
       });
       eventTitle = event?.title ?? '';
       eventStartAt = event?.startAt ?? null;
+      communityProjectKey = event?.communityProjectKey ?? null;
     } else if (registration.externalActivationId) {
       const activation = await this.activationRepo.findOneBy({
         id: registration.externalActivationId,
       });
       eventTitle = activation?.title ?? activation?.eventKey ?? '';
+      communityProjectKey = activation?.communityProjectKey ?? null;
     }
     return {
       valid: true as const,
       attendeeName: registration.attendeeName,
       eventTitle,
       eventStartAt,
+      communityProjectKey,
     };
   }
 

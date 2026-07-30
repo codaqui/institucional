@@ -52,6 +52,7 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useAuth } from "../../hooks/useAuth";
 import type { AuthUser } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
+import { communities } from "../../data/communities";
 
 interface Donation {
   id: string;
@@ -173,6 +174,8 @@ interface CertificateData {
   eventEndAt: string | null;
   /** Pode ser null (externo sem carga horária definida). */
   workloadMinutes: number | null;
+  /** Chave da comunidade organizadora (ex.: 'cloudnativemaringa'). */
+  communityProjectKey: string | null;
   verificationCode: string;
   issuedAt: string;
 }
@@ -440,6 +443,14 @@ function CertificateCard({
     typeof certificate.workloadMinutes === "number" && certificate.workloadMinutes > 0
       ? formatWorkload(certificate.workloadMinutes)
       : null;
+  const community = useMemo(
+    () =>
+      certificate.communityProjectKey
+        ? communities.find((c) => c.id === certificate.communityProjectKey) ?? null
+        : null,
+    [certificate.communityProjectKey]
+  );
+  const communityName = community?.name ?? certificate.communityProjectKey ?? "Associação Codaqui";
   const verifyUrl = `${origin}/certificado/verificar?codigo=${encodeURIComponent(
     certificate.verificationCode
   )}`;
@@ -496,19 +507,19 @@ function CertificateCard({
       <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ mb: 1 }}>
         {certificate.eventTitle}
       </Typography>
-      {(startDate || workload) && (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          {startDate
-            ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
-            : "evento da comunidade"}
-          {workload ? (
-            <>
-              , com carga horária de <strong>{workload}</strong>
-            </>
-          ) : null}
-          .
-        </Typography>
-      )}
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+        {startDate
+          ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
+          : "evento da comunidade"}
+        {workload ? (
+          <>
+            , com carga horária de <strong>{workload}</strong>
+          </>
+        ) : null}
+        {", organizado por "}
+        <strong>{communityName}</strong>
+        {", em parceria com a Associação Codaqui."}
+      </Typography>
       <Box
         sx={{
           mt: 4,

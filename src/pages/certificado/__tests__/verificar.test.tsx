@@ -18,6 +18,7 @@ const VALID_RESULT = {
   attendeeName: "Maria Silva",
   eventTitle: "DevParaná MeetUP #42",
   eventStartAt: "2026-05-10T17:00:00Z",
+  communityProjectKey: "devparana",
 };
 
 describe("CertificadoVerificarPage", () => {
@@ -37,6 +38,7 @@ describe("CertificadoVerificarPage", () => {
     });
     expect(screen.getByText("Maria Silva")).toBeInTheDocument();
     expect(screen.getByText("DevParaná MeetUP #42")).toBeInTheDocument();
+    expect(screen.getByText(/DevParaná/)).toBeInTheDocument();
     const fetchMock = globalThis.fetch as unknown as jest.Mock;
     expect(fetchMock.mock.calls[0][0]).toContain("/events/certificates/verify/ABC123");
   });

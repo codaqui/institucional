@@ -33,6 +33,7 @@ const makeEvent = () => ({
   startAt: new Date('2026-08-10T13:00:00Z'),
   endAt: new Date('2026-08-10T17:00:00Z'),
   timezone: 'America/Sao_Paulo',
+  communityProjectKey: 'devparana',
 });
 
 const makeActivation = (overrides: Record<string, unknown> = {}) => ({
@@ -246,6 +247,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(cert.attendeeName).toBe('Ana');
       expect(cert.eventTitle).toBe('Evento X');
       expect(cert.workloadMinutes).toBe(240);
+      expect(cert.communityProjectKey).toBe('devparana');
       expect(cert.verificationCode).toBe('CRT-aaaaaaaa-bbb');
     });
 
@@ -274,6 +276,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(result.valid).toBe(true);
       expect(result.attendeeName).toBe('Ana');
       expect(result.eventTitle).toBe('Evento X');
+      expect(result.communityProjectKey).toBe('devparana');
     });
 
     it('código inexistente → valid: false', async () => {

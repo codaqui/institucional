@@ -20,6 +20,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import { resolveApiUrl } from "../../lib/api-url";
+import { communities } from "../../data/communities";
 
 // ---------------------------------------------------------------------------
 // Verificação pública de certificados (GET /events/certificates/verify/:code)
@@ -30,6 +31,7 @@ interface VerifyResult {
   attendeeName?: string;
   eventTitle?: string;
   eventStartAt?: string;
+  communityProjectKey?: string | null;
 }
 
 /** Formata data ISO de forma defensiva (null quando ausente/inválida). */
@@ -97,6 +99,11 @@ export default function CertificadoVerificarPage(): React.JSX.Element {
   }, [location.search, verify]);
 
   const eventDate = formatDateSafe(result?.eventStartAt);
+  const community = communities.find(
+    (c) => c.id === result?.communityProjectKey
+  );
+  const communityName =
+    community?.name ?? result?.communityProjectKey ?? "Associação Codaqui";
 
   return (
     <Layout
@@ -185,6 +192,9 @@ export default function CertificadoVerificarPage(): React.JSX.Element {
                     realizado em {eventDate}
                   </Typography>
                 )}
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  organizado por <strong>{communityName}</strong>
+                </Typography>
               </CardContent>
             </Card>
           )}
