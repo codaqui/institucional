@@ -1,0 +1,73 @@
+# Valida e auto-mergeia PRs que tocam apenas:
+#   - static/events/**/*.override.json (overrides de metadados — docs/EVENT_PLAN.md)
+#   - static/events/organizers.json (ownerships de organizers)
+#   - static/events/internal/**/*.json + static/events/index.json (snapshot da
+#     fonte internal:codaqui, gerado pelo force-sync POST /events/internal/snapshot)
+#
+# Autenticação: GITHUB_TOKEN padrão do Actions (sem GitHub App). A aprovação
+# e o merge ficam em nome de `github-actions[bot]`; os commits do PR já saem
+# em nome do membro que abriu (token OAuth do próprio membro — ver
+# backend/src/github-db/github-db.service.ts).
+name: Validate & auto-merge event overrides
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'static/events/**/*.override.json'
+      - 'static/events/organizers.json'
+      - 'static/events/overrides-index.json'
+      - 'static/events/internal/**'
+      - 'static/events/index.json'
+
+jobs:
+  validate-and-merge:
+    name: Validate override + auto-merge
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with: { node-version: '24' }
+
+      - name: Validate override files changed in this PR
+        # Valida apenas os arquivos alterados no PR. Qualquer arquivo fora do
+        # padrao (*.override.json, organizers.json, snapshot internal) na lista
+        # falha (PR misto). Delecoes passam.
+        run: |
+          set -euo pipefail
+          CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "Nenhum arquivo alterado no PR."
+            exit 0
+          fi
+          echo "Arquivos alterados no PR:"
+          echo "$CHANGED_FILES"
+          git diff --name-only -z "origin/${{ github.base_ref }}...HEAD" \
+            | xargs -0 node scripts/validate-overrides.mjs
+
+      - name: Approve PR (github-actions[bot])
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr review ${{ github.event.pull_request.number }} \
+            --approve \
+            --body "✅ Override validado automaticamente (github-actions)."
+
+      - name: Enable auto-merge
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} \
+            --squash \
+            --auto \
+            --delete-branch
