@@ -262,6 +262,8 @@ describe('LedgerService', () => {
         totalReceived: 0,
         totalExpenses: 0,
         totalTransactions: 0,
+        totalEventTickets: 0,
+        totalEventTicketRevenue: 0,
         uniqueDonors: 0,
         recentDonors: [],
         communityStats: [],
@@ -282,6 +284,7 @@ describe('LedgerService', () => {
 
       const makeQbRawOne = (value: unknown) => ({
         select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getRawOne: jest.fn().mockResolvedValue(value),
@@ -302,6 +305,7 @@ describe('LedgerService', () => {
         .mockReturnValueOnce(makeQbRawOne({ sum: '1500' })) // totalReceived
         .mockReturnValueOnce(makeQbRawOne({ sum: '500' })) // totalExpenses
         .mockReturnValueOnce(makeQbRawOne({ count: '12' })) // totalTransactions
+        .mockReturnValueOnce(makeQbRawOne({ sum: '300', count: '2' })) // totalEventTickets
         .mockReturnValueOnce(makeQbRawMany([{ handle: '@octocat' }, { handle: '@codaqui' }])) // unique donors
         .mockReturnValueOnce(
           makeQbRawMany([
@@ -326,6 +330,12 @@ describe('LedgerService', () => {
           ]),
         ) // outbound
         .mockReturnValueOnce(
+          makeQbRawMany([
+            { accountId: 'w1', eventTicketIn: '200', eventTicketCount: '1' },
+            { accountId: 'w2', eventTicketIn: '100', eventTicketCount: '1' },
+          ]),
+        ) // event tickets per wallet
+        .mockReturnValueOnce(
           makeQbRawMany([{ accountId: 'w1', selfCount: '1' }]),
         ); // self transfer
 
@@ -333,6 +343,8 @@ describe('LedgerService', () => {
       expect(stats.totalReceived).toBe(1500);
       expect(stats.totalExpenses).toBe(500);
       expect(stats.totalTransactions).toBe(12);
+      expect(stats.totalEventTickets).toBe(2);
+      expect(stats.totalEventTicketRevenue).toBe(300);
       expect(stats.uniqueDonors).toBe(2);
       expect(stats.recentDonors).toHaveLength(1);
       expect(stats.communityStats).toEqual([
@@ -342,6 +354,8 @@ describe('LedgerService', () => {
           totalIn: 900,
           totalOut: 300,
           txCount: 5, // 4 + 2 - 1 self-transfer
+          eventTicketIn: 200,
+          eventTicketCount: 1,
         },
         {
           projectKey: 'tisocial',
@@ -349,6 +363,8 @@ describe('LedgerService', () => {
           totalIn: 600,
           totalOut: 200,
           txCount: 4, // 3 + 1 - 0
+          eventTicketIn: 100,
+          eventTicketCount: 1,
         },
       ]);
     });

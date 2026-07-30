@@ -46,7 +46,7 @@ describe('ReimbursementsController', () => {
       name: 'Admin',
       email: 'a@a.com',
       avatarUrl: '',
-      role: 'admin',
+      roles: ['admin'],
     },
   };
 
@@ -116,7 +116,7 @@ describe('ReimbursementsController', () => {
         uuid(1),
         uuid(9),
         dto,
-        'admin',
+        ['admin'],
       );
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({

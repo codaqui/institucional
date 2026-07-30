@@ -51,6 +51,7 @@ export class LedgerService {
     amount: number,
     description: string,
     referenceId?: string,
+    metadata?: Record<string, unknown>,
   ) {
     if (amount <= 0) {
       throw new BadRequestException('Amount must be strictly positive');
@@ -77,6 +78,7 @@ export class LedgerService {
         amount,
         description,
         referenceId,
+        metadata: metadata ?? null,
       });
 
       return manager.save(tx);
@@ -108,7 +110,14 @@ export class LedgerService {
     accountId: string,
     page = 1,
     limit = 10,
-    filters?: { type?: string; days?: number; search?: string },
+    filters?: {
+      type?: string;
+      days?: number;
+      search?: string;
+      eventId?: string;
+      ticketTypeId?: string;
+      externalActivationId?: string;
+    },
   ): Promise<PaginatedResult<Transaction>> {
     const skip = (page - 1) * limit;
 
@@ -148,6 +157,12 @@ export class LedgerService {
             "(tx.referenceId LIKE 'transfer:%' OR tx.description ILIKE 'transfer%')",
           );
           break;
+        case 'event-ticket':
+          qb.andWhere("tx.referenceId LIKE 'event-ticket:%'");
+          break;
+        case 'event-ticket-refund':
+          qb.andWhere("tx.referenceId LIKE 'event-ticket-refund:%'");
+          break;
       }
     }
 
@@ -165,6 +180,24 @@ export class LedgerService {
       });
     }
 
+    // Event / ticket metadata filters
+    if (filters?.eventId) {
+      qb.andWhere("tx.metadata->>'eventId' = :eventId", {
+        eventId: filters.eventId,
+      });
+    }
+    if (filters?.ticketTypeId) {
+      qb.andWhere("tx.metadata->>'ticketTypeId' = :ticketTypeId", {
+        ticketTypeId: filters.ticketTypeId,
+      });
+    }
+    if (filters?.externalActivationId) {
+      qb.andWhere(
+        "tx.metadata->>'externalActivationId' = :externalActivationId",
+        { externalActivationId: filters.externalActivationId },
+      );
+    }
+
     const [data, total] = await qb
       .orderBy('tx.createdAt', 'DESC')
       .skip(skip)
@@ -178,6 +211,10 @@ export class LedgerService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async getAccountByProjectKey(projectKey: string): Promise<Account | null> {
+    return this.accountRepo.findOneBy({ projectKey, type: AccountType.VIRTUAL_WALLET });
   }
 
   async getAccounts(): Promise<Account[]> {
@@ -219,6 +256,8 @@ export class LedgerService {
     totalReceived: number;
     totalExpenses: number;
     totalTransactions: number;
+    totalEventTickets: number;
+    totalEventTicketRevenue: number;
     uniqueDonors: number;
     recentDonors: Array<{
       handle: string;
@@ -232,6 +271,8 @@ export class LedgerService {
       totalIn: number;
       totalOut: number;
       txCount: number;
+      eventTicketIn: number;
+      eventTicketCount: number;
     }>;
   }> {
     const wallets = await this.accountRepo
@@ -247,6 +288,8 @@ export class LedgerService {
         totalReceived: 0,
         totalExpenses: 0,
         totalTransactions: 0,
+        totalEventTickets: 0,
+        totalEventTicketRevenue: 0,
         uniqueDonors: 0,
         recentDonors: [],
         communityStats: [],
@@ -282,6 +325,17 @@ export class LedgerService {
         { ids: walletIds },
       )
       .getRawOne();
+
+    // Event tickets (revenue + count of ticket transactions)
+    const { sum: totalEventTicketRevenue, count: totalEventTickets } =
+      await this.txRepo
+        .createQueryBuilder('tx')
+        .select('COALESCE(SUM(tx.amount), 0)', 'sum')
+        .addSelect('COUNT(tx.id)', 'count')
+        .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+        .andWhere("tx.referenceId LIKE 'event-ticket:%'")
+        .andWhere("tx.referenceId NOT LIKE 'event-ticket-refund:%'")
+        .getRawOne();
 
     // Unique donors — extract handles from descriptions like "Doação de @handle" or "Assinatura mensal de @handle"
     const donorRows: Array<{ handle: string }> = await this.txRepo
@@ -367,6 +421,31 @@ export class LedgerService {
       ]),
     );
 
+    // Event tickets per community wallet
+    const eventTicketRows: Array<{
+      accountId: string;
+      eventTicketIn: string;
+      eventTicketCount: string;
+    }> = await this.txRepo
+      .createQueryBuilder('tx')
+      .select('tx.destinationAccountId', 'accountId')
+      .addSelect('COALESCE(SUM(tx.amount), 0)', 'eventTicketIn')
+      .addSelect('COUNT(tx.id)', 'eventTicketCount')
+      .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
+      .andWhere("tx.referenceId LIKE 'event-ticket:%'")
+      .andWhere("tx.referenceId NOT LIKE 'event-ticket-refund:%'")
+      .groupBy('tx.destinationAccountId')
+      .getRawMany();
+    const eventTicketByAccount = new Map(
+      eventTicketRows.map((r) => [
+        r.accountId,
+        {
+          eventTicketIn: Number.parseFloat(r.eventTicketIn) || 0,
+          eventTicketCount: Number.parseInt(r.eventTicketCount, 10) || 0,
+        },
+      ]),
+    );
+
     // Count self-transfers to avoid double-counting
     const selfTransferRows: Array<{ accountId: string; selfCount: string }> =
       await this.txRepo
@@ -389,12 +468,15 @@ export class LedgerService {
       const inbound = inboundByAccount.get(id);
       const outbound = outboundByAccount.get(id);
       const selfCount = selfByAccount.get(id) || 0;
+      const eventTicket = eventTicketByAccount.get(id);
       return {
         projectKey: w.projectKey,
         name: w.name,
         totalIn: inbound?.totalIn || 0,
         totalOut: outbound?.totalOut || 0,
         txCount: (inbound?.count || 0) + (outbound?.count || 0) - selfCount,
+        eventTicketIn: eventTicket?.eventTicketIn || 0,
+        eventTicketCount: eventTicket?.eventTicketCount || 0,
       };
     });
 
@@ -402,6 +484,9 @@ export class LedgerService {
       totalReceived: Number.parseFloat(totalReceived) || 0,
       totalExpenses: Number.parseFloat(totalExpenses) || 0,
       totalTransactions: Number.parseInt(totalTransactions, 10) || 0,
+      totalEventTickets: Number.parseInt(totalEventTickets, 10) || 0,
+      totalEventTicketRevenue:
+        Number.parseFloat(totalEventTicketRevenue) || 0,
       uniqueDonors,
       recentDonors,
       communityStats,

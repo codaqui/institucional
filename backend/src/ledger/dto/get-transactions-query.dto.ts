@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 
 export class GetTransactionsQueryDto {
   @ApiPropertyOptional({
@@ -31,7 +31,7 @@ export class GetTransactionsQueryDto {
 
   @ApiPropertyOptional({
     description:
-      'Filtro por tipo (donation, reimbursement, vendor-payment, transfer)',
+      'Filtro por tipo (donation, reimbursement, vendor-payment, transfer, event-ticket, event-ticket-refund)',
     example: 'donation',
   })
   @IsOptional()
@@ -55,4 +55,29 @@ export class GetTransactionsQueryDto {
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtra transações pelo eventId presente nos metadados',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsOptional()
+  @IsUUID()
+  eventId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Filtra transações pelo ticketTypeId presente nos metadados',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsOptional()
+  @IsUUID()
+  ticketTypeId?: string;
+
+  @ApiPropertyOptional({
+    description:
+      'Filtra transações pela ativação de evento externo (externalActivationId) presente nos metadados',
+    example: '550e8400-e29b-41d4-a716-446655440000',
+  })
+  @IsOptional()
+  @IsUUID()
+  externalActivationId?: string;
 }

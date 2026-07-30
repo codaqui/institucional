@@ -59,6 +59,7 @@ describe('LedgerController', () => {
       100,
       'Doação',
       'ref-1',
+      undefined,
     );
   });
 
@@ -73,6 +74,9 @@ describe('LedgerController', () => {
       type: 'donation',
       days: 90,
       search: 'octocat',
+      eventId: 'evt-1',
+      ticketTypeId: 'tt-1',
+      externalActivationId: 'act-1',
     } as any);
 
     expect(service.getAccounts).toHaveBeenCalled();
@@ -83,6 +87,9 @@ describe('LedgerController', () => {
       type: 'donation',
       days: 90,
       search: 'octocat',
+      eventId: 'evt-1',
+      ticketTypeId: 'tt-1',
+      externalActivationId: 'act-1',
     });
   });
 
@@ -92,6 +99,9 @@ describe('LedgerController', () => {
       type: undefined,
       days: undefined,
       search: undefined,
+      eventId: undefined,
+      ticketTypeId: undefined,
+      externalActivationId: undefined,
     });
   });
 

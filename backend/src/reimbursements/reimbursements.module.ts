@@ -14,5 +14,6 @@ import { AuditModule } from '../audit/audit.module';
   ],
   controllers: [ReimbursementsController],
   providers: [ReimbursementsService],
+  exports: [ReimbursementsService],
 })
 export class ReimbursementsModule {}

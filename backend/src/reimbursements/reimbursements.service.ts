@@ -54,9 +54,29 @@ export class ReimbursementsService {
       description: dto.description,
       receiptUrl: dto.receiptUrl,
       status: ReimbursementStatus.PENDING,
+      eventId: dto.eventId ?? null,
+      externalActivationId: dto.externalActivationId ?? null,
+      eventMetadata: dto.eventMetadata ?? null,
     });
 
     return this.repo.save(request);
+  }
+
+  /**
+   * Cria uma solicitação de reembolso vinculada a um evento, com permissão
+   * pré-validada pelo EventsService (organizer/staff/owner). Reutiliza o mesmo
+   * fluxo de aprovação do finance-analyzer/admin.
+   */
+  async createEventReimbursement(
+    memberId: string,
+    dto: CreateReimbursementDto,
+  ): Promise<ReimbursementRequest> {
+    if (!dto.eventId && !dto.externalActivationId) {
+      throw new BadRequestException(
+        'Reembolso de evento requer eventId ou externalActivationId.',
+      );
+    }
+    return this.createRequest(memberId, dto);
   }
 
   /** Membro vê suas próprias solicitações */
@@ -101,7 +121,7 @@ export class ReimbursementsService {
     id: string,
     reviewerId: string,
     dto: ApproveReimbursementDto,
-    reviewerRole?: string,
+    reviewerRoles?: string[],
   ): Promise<ReimbursementRequest> {
     // Validações que não dependem de estado DB: fail-fast antes de abrir transação
     if (!dto.internalReceiptUrl?.trim()) {
@@ -165,12 +185,23 @@ export class ReimbursementsService {
       // Cria transação no ledger: débito da carteira → crédito em Reembolsos Pagos
       // Usa timestamp para permitir re-aprovação após reversão (referenceId é unique)
       const ts = Date.now();
+      let eventMetadata: Record<string, unknown> | undefined;
+      if (request.eventId || request.externalActivationId) {
+        eventMetadata = {
+          reimbursementId: request.id,
+          ...(request.eventId && { eventId: request.eventId }),
+          ...(request.externalActivationId && {
+            externalActivationId: request.externalActivationId,
+          }),
+        };
+      }
       await this.ledgerService.recordTransaction(
         request.accountId,
         reimbursementsAccount.id,
         request.amount,
         `Reembolso aprovado: ${request.description}`,
         `reimbursement:${request.id}:${ts}`,
+        eventMetadata,
       );
 
       request.status = ReimbursementStatus.APPROVED;

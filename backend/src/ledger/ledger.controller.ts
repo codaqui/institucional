@@ -129,6 +129,7 @@ export class LedgerController {
       amount: number;
       description: string;
       referenceId?: string;
+      metadata?: Record<string, unknown>;
     },
   ) {
     return this.ledgerService.recordTransaction(
@@ -137,6 +138,7 @@ export class LedgerController {
       dto.amount,
       dto.description,
       dto.referenceId,
+      dto.metadata,
     );
   }
 
@@ -298,7 +300,48 @@ export class LedgerController {
       id,
       query.page ?? 1,
       query.limit ?? 10,
-      { type: query.type, days: query.days, search: query.search },
+      {
+        type: query.type,
+        days: query.days,
+        search: query.search,
+        eventId: query.eventId,
+        ticketTypeId: query.ticketTypeId,
+        externalActivationId: query.externalActivationId,
+      },
+    );
+  }
+
+  @Get('project/:projectKey/transactions')
+  @ApiOperation({
+    summary: 'Transações da carteira de uma comunidade (por projectKey)',
+    description:
+      'Endpoint público que retorna as transações da carteira virtual de uma comunidade, ' +
+      'identificada pelo projectKey. Útil para painel de caixa de eventos.',
+  })
+  @ApiResponse({ status: 200, description: 'Resultado paginado de transações.' })
+  @ApiResponse({ status: 404, description: 'Carteira da comunidade não encontrada.' })
+  async getProjectTransactions(
+    @Param('projectKey') projectKey: string,
+    @Query() query: GetTransactionsQueryDto,
+  ) {
+    const account = await this.ledgerService.getAccountByProjectKey(projectKey);
+    if (!account) {
+      throw new NotFoundException(
+        `Carteira da comunidade ${projectKey} não encontrada.`,
+      );
+    }
+    return this.ledgerService.getAccountTransactions(
+      account.id,
+      query.page ?? 1,
+      query.limit ?? 10,
+      {
+        type: query.type,
+        days: query.days,
+        search: query.search,
+        eventId: query.eventId,
+        ticketTypeId: query.ticketTypeId,
+        externalActivationId: query.externalActivationId,
+      },
     );
   }
 }
