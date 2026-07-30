@@ -1,0 +1,159 @@
+import type { EventDetailFile } from "../../data/events";
+import {
+  getEventDetailPagePath,
+  getEventOverridePath,
+  loadEventWithOverride,
+  mergeEventWithOverride,
+  type EventOverride,
+} from "../event-override";
+
+const baseDetail: EventDetailFile = {
+  generatedAt: "2026-04-29T00:00:00Z",
+  source: {
+    source: "meetup",
+    sourceId: "devparana",
+    type: "meetup",
+    label: "DevParaná no Meetup",
+    emoji: "📍",
+    description: "Eventos do DevParaná",
+  },
+  event: {
+    id: "226163759",
+    title: "DevParaná MeetUP #42",
+    summary: "Resumo original do sync.",
+    startAt: "2026-05-10T17:00:00Z",
+    timezone: "America/Sao_Paulo",
+    platform: "Meetup",
+    host: "DevParaná",
+    location: "Local original",
+    href: "https://www.meetup.com/devparana/events/226163759/",
+    tags: ["meetup"],
+    ctaLabel: "Abrir no Meetup",
+    status: "scheduled",
+  },
+};
+
+const override: EventOverride = {
+  eventId: "226163759",
+  sourceKey: "meetup:devparana",
+  extendData: {
+    summary: "Resumo corrigido pelo organizador.",
+    imageUrl: "https://res.cloudinary.com/banner.png",
+    featured: true,
+    tags: ["meetup", "presencial"],
+    speakers: [
+      {
+        name: "Fulano",
+        handle: "fulano",
+        talkTitle: "Docker para iniciantes",
+      },
+    ],
+    slidesUrl: "https://slides.example.com/talk",
+    videoUrl: "https://youtube.com/watch?v=abc",
+    discussionUrl: "https://github.com/codaqui/institucional/discussions/1",
+  },
+  ownerHandle: "organizador",
+  updatedAt: "2026-04-29T23:00:00-03:00",
+  reason: "Corrigindo resumo e adicionando banner",
+};
+
+type MockResponse = Pick<Response, "ok" | "status" | "json">;
+
+function jsonResponse(data: unknown, ok = true, status = 200): MockResponse {
+  return { ok, status, json: async () => data };
+}
+
+describe("mergeEventWithOverride", () => {
+  it("sobrescreve campos presentes no extendData", () => {
+    const merged = mergeEventWithOverride(baseDetail.event, override);
+    expect(merged.summary).toBe("Resumo corrigido pelo organizador.");
+    expect(merged.imageUrl).toBe("https://res.cloudinary.com/banner.png");
+    expect(merged.featured).toBe(true);
+    expect(merged.tags).toEqual(["meetup", "presencial"]);
+    expect(merged.speakers).toHaveLength(1);
+    expect(merged.slidesUrl).toBe("https://slides.example.com/talk");
+    expect(merged.videoUrl).toBe("https://youtube.com/watch?v=abc");
+    expect(merged.discussionUrl).toBe(
+      "https://github.com/codaqui/institucional/discussions/1"
+    );
+  });
+
+  it("preserva campos do base ausentes no extendData", () => {
+    const merged = mergeEventWithOverride(baseDetail.event, override);
+    expect(merged.title).toBe("DevParaná MeetUP #42");
+    expect(merged.location).toBe("Local original");
+    expect(merged.startAt).toBe("2026-05-10T17:00:00Z");
+    expect(merged.href).toBe(baseDetail.event.href);
+    expect(merged.status).toBe("scheduled");
+  });
+
+  it("retorna o base inalterado quando override é null", () => {
+    const merged = mergeEventWithOverride(baseDetail.event, null);
+    expect(merged).toEqual(baseDetail.event);
+  });
+});
+
+describe("loadEventWithOverride", () => {
+  beforeEach(() => {
+    (globalThis.fetch as unknown as jest.Mock) = jest.fn();
+  });
+
+  it("busca base e override em paralelo e retorna o evento mesclado", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.endsWith(".override.json")) {
+        return Promise.resolve(jsonResponse(override));
+      }
+      return Promise.resolve(jsonResponse(baseDetail));
+    });
+
+    const result = await loadEventWithOverride("meetup", "devparana", "226163759");
+
+    expect(result.override).toEqual(override);
+    expect(result.event.summary).toBe("Resumo corrigido pelo organizador.");
+    expect(result.event.title).toBe("DevParaná MeetUP #42");
+    expect(result.source.label).toBe("DevParaná no Meetup");
+
+    const fetchMock = globalThis.fetch as unknown as jest.Mock;
+    const urls = fetchMock.mock.calls.map((call) => call[0] as string);
+    expect(urls).toContain("/events/meetup/devparana/226163759.json");
+    expect(urls).toContain("/events/meetup/devparana/226163759.override.json");
+  });
+
+  it("trata override 404 como null e mantém o evento base", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.endsWith(".override.json")) {
+        return Promise.resolve(jsonResponse(null, false, 404));
+      }
+      return Promise.resolve(jsonResponse(baseDetail));
+    });
+
+    const result = await loadEventWithOverride("meetup", "devparana", "226163759");
+
+    expect(result.override).toBeNull();
+    expect(result.event).toEqual(baseDetail.event);
+  });
+
+  it("lança erro quando o evento base não existe", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve(jsonResponse(null, false, 404))
+    );
+
+    await expect(
+      loadEventWithOverride("meetup", "devparana", "inexistente")
+    ).rejects.toThrow("Evento não encontrado");
+  });
+});
+
+describe("paths helpers", () => {
+  it("monta o path do override", () => {
+    expect(getEventOverridePath("meetup", "devparana", "123")).toBe(
+      "/events/meetup/devparana/123.override.json"
+    );
+  });
+
+  it("monta a URL da página de detalhe com query params", () => {
+    expect(getEventDetailPagePath("meetup", "devparana", "123")).toBe(
+      "/eventos/detalhe?source=meetup&sourceId=devparana&id=123"
+    );
+  });
+});

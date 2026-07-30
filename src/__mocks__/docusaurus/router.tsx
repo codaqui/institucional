@@ -6,6 +6,7 @@ interface MockHistory {
 }
 
 let pathname = "/";
+let search = "";
 
 export const __mockHistory: MockHistory = {
   push: jest.fn(),
@@ -16,18 +17,23 @@ export function __setMockPathname(nextPathname: string): void {
   pathname = nextPathname;
 }
 
+export function __setMockSearch(nextSearch: string): void {
+  search = nextSearch;
+}
+
 export function __resetRouterMocks(): void {
   __mockHistory.push.mockReset();
   __mockHistory.replace.mockReset();
   pathname = "/";
+  search = "";
 }
 
 export function Redirect({ to }: Readonly<{ to: string }>) {
   return <div data-testid="redirect" data-to={to} />;
 }
 
-export function useLocation(): { pathname: string } {
-  return { pathname };
+export function useLocation(): { pathname: string; search: string } {
+  return { pathname, search };
 }
 
 export function useHistory(): MockHistory {

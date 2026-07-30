@@ -75,6 +75,8 @@ describe("detectTxType", () => {
     ["detects refund by referenceId (re_)", { referenceId: "re_3TSH3JFtPCSoiGky18dl80ut" }, "refund"],
     ["detects refund by prefixed Stripe refund referenceId", { referenceId: "stripe-refund:pi_live_abc:re_123" }, "refund"],
     ["detects refund by description (Estorno)", { description: "Estorno de doação — Refund re_xxx" }, "refund"],
+    ["detects event-ticket by referenceId", { referenceId: "event-ticket:order-123" }, "event-ticket"],
+    ["detects event-ticket-refund by referenceId", { referenceId: "event-ticket-refund:order-123:1738362000" }, "event-ticket-refund"],
     ["returns other for unknown transactions", { description: "Something else" }, "other"],
   ])("%s", (_label, overrides, expected) => {
     expect(detectTxType(makeTx(overrides))).toBe(expected);

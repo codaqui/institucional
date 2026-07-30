@@ -12,6 +12,8 @@ export function buildAuthState(
     isLoggedIn: true,
     isAdmin: false,
     isFinanceAnalyzer: false,
+    isEventOrganizer: false,
+    isEventFinance: false,
     authFetch: jest.fn(),
     user: null,
     login: jest.fn(),
