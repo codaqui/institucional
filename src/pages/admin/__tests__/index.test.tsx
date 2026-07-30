@@ -11,15 +11,13 @@ jest.mock(
   () => require("../../../test-utils/admin-component-mocks").mockAdminNavbarModule,
 );
 
-type MemberRole = "membro" | "finance-analyzer" | "admin";
-
-function buildMember(idx: number, role: MemberRole = "membro") {
+function buildMember(idx: number, roles: string[] = ["membro"]) {
   return {
     id: `m-${idx}`,
     name: `Member ${idx}`,
     githubHandle: `member${idx}`,
     avatarUrl: `https://example.com/${idx}.png`,
-    role,
+    roles,
     isActive: true,
     joinedAt: "2026-01-10T10:00:00.000Z",
   };
