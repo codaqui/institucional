@@ -37,7 +37,7 @@ export class CompaniesController {
     companyId: string,
     user: JwtPayload,
   ): Promise<void> {
-    if (user.role === MemberRole.ADMIN) return;
+    if (user.roles?.includes(MemberRole.ADMIN)) return;
     const allowed = await this.companiesService.isMemberOfCompany(companyId, user.sub);
     if (!allowed) throw new ForbiddenException('Sem permissão');
   }
