@@ -109,13 +109,33 @@ export class MembersController {
   async adminUpdate(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: { user: JwtPayload },
-    @Body() body: { role?: MemberRole; isActive?: boolean; name?: string; bio?: string; linkedinUrl?: string },
+    @Body()
+    body: {
+      roles?: MemberRole[];
+      isActive?: boolean;
+      name?: string;
+      bio?: string;
+      linkedinUrl?: string;
+    },
   ) {
+    if (body.roles !== undefined) {
+      const validRoles = new Set<string>(Object.values(MemberRole));
+      if (
+        !Array.isArray(body.roles) ||
+        body.roles.length === 0 ||
+        !body.roles.every((role) => validRoles.has(role))
+      ) {
+        throw new BadRequestException(
+          `Roles inválidas. Valores aceitos: ${[...validRoles].join(', ')}.`,
+        );
+      }
+    }
+
     const result = await this.membersService.adminUpdate(id, body);
 
     // Audit trail
     let action: AuditAction | null = null;
-    if (body.role) {
+    if (body.roles) {
       action = AuditAction.ROLE_CHANGE;
     } else if (body.isActive === false) {
       action = AuditAction.MEMBER_DEACTIVATE;
