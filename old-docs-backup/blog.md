@@ -1,3 +1,0 @@
-# Social
-
-Em desenvolvimento.
