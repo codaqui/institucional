@@ -51,7 +51,7 @@ interface Member {
   avatarUrl: string;
   bio: string | null;
   linkedinUrl: string | null;
-  role: "membro" | "admin" | "finance-analyzer";
+  roles: string[];
   joinedAt: string;
 }
 
@@ -96,6 +96,19 @@ interface PublicAffiliation {
 }
 type BusinessMembershipType = "owner" | "collaborator";
 
+/** Inscrição em evento (endpoint público /events/members/:memberId/registrations). */
+interface PublicEventRegistration {
+  id: string;
+  eventTitle: string;
+  eventStartAt: string | null;
+  checkedIn: boolean;
+  status: string;
+  verificationCode?: string | null;
+  memberId?: string | null;
+  payerMemberId?: string | null;
+  attendeeName?: string | null;
+}
+
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -115,12 +128,27 @@ function formatShortId(uuid: string): string {
   return uuid.slice(0, 8).toUpperCase();
 }
 
+/** Formata data ISO de forma defensiva (null quando ausente/inválida). */
+function formatDateSafe(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("pt-BR");
+}
+
 function getRoleLabel(role: string): string {
   switch (role) {
     case "admin":
       return "Organização";
     case "finance-analyzer":
       return "Analista Financeiro";
+    case "event_organizer":
+      return "Organizador(a) de eventos";
+    case "event_finance":
+      return "Financeiro de eventos";
+    case "event_host":
+      return "Anfitrião(ã) de evento";
+    case "event_checker":
+      return "Credenciador(a)";
     default:
       return "Membro";
   }
@@ -199,13 +227,16 @@ function Carteirinha({
                 </Typography>
 
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                  <Chip
-                    icon={<BadgeIcon sx={{ fontSize: 16 }} />}
-                    label={getRoleLabel(member.role)}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
+                  {(member.roles?.length ? member.roles : ["membro"]).map((role, idx) => (
+                    <Chip
+                      key={role}
+                      icon={idx === 0 ? <BadgeIcon sx={{ fontSize: 16 }} /> : undefined}
+                      label={getRoleLabel(role)}
+                      size="small"
+                      color={role === "admin" ? "primary" : "default"}
+                      variant="outlined"
+                    />
+                  ))}
                   {isDonor && (
                     <Chip
                       icon={<FavoriteIcon sx={{ fontSize: 14 }} />}
@@ -459,6 +490,70 @@ function DonationHistory({ donations }: Readonly<{ donations: Donation[] }>) {
   );
 }
 
+// ── Histórico de eventos (público) ─────────────────────────────────────────
+
+function EventHistorySection({
+  registrations,
+}: Readonly<{ registrations: PublicEventRegistration[] }>) {
+  if (registrations.length === 0) return null;
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <CalendarMonthIcon color="primary" />
+        <Typography variant="h6" fontWeight={700}>
+          Histórico de eventos
+        </Typography>
+        <Chip
+          label={`${registrations.length} evento(s)`}
+          size="small"
+          color="primary"
+          variant="outlined"
+        />
+      </Box>
+      <TableContainer component={Paper} variant="outlined">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Situação</TableCell>
+              <TableCell sx={{ fontWeight: 700 }}>Certificado</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {registrations.map((reg) => (
+              <TableRow key={reg.id}>
+                <TableCell>{reg.eventTitle}</TableCell>
+                <TableCell>{formatDateSafe(reg.eventStartAt) ?? "—"}</TableCell>
+                <TableCell>
+                  {reg.checkedIn ? (
+                    <Chip label="Presente" size="small" color="success" variant="outlined" />
+                  ) : (
+                    <Chip label="Inscrito" size="small" variant="outlined" />
+                  )}
+                </TableCell>
+                <TableCell>
+                  {reg.verificationCode ? (
+                    <Link
+                      href={`/certificado/verificar?codigo=${encodeURIComponent(reg.verificationCode)}`}
+                      underline="hover"
+                    >
+                      Verificar
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
+  );
+}
+
 // ── Profile Skeleton ───────────────────────────────────────────────────────
 
 function ProfileSkeleton() {
@@ -492,6 +587,7 @@ export default function PerfilPage(): React.JSX.Element {
   const [publicWalletTxs, setPublicWalletTxs] = useState<WalletTransaction[]>([]);
   const [affiliatedCompany, setAffiliatedCompany] = useState<PublicAffiliation | null>(null);
   const [businessMembershipType, setBusinessMembershipType] = useState<BusinessMembershipType | null>(null);
+  const [eventRegistrations, setEventRegistrations] = useState<PublicEventRegistration[]>([]);
   const [activeTab, setActiveTab] = useState(0);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>
@@ -594,6 +690,20 @@ export default function PerfilPage(): React.JSX.Element {
       .then((r) => (r.ok ? r.json() : null))
       .then((data: PublicAffiliation | null) => setAffiliatedCompany(data))
       .catch(() => setAffiliatedCompany(null));
+  }, [apiUrl, member]);
+
+  // Histórico público de eventos do membro (inscrições + presença).
+  useEffect(() => {
+    if (!member) return;
+    fetch(`${apiUrl}/events/members/${member.id}/registrations`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: PublicEventRegistration[]) => {
+        const list = Array.isArray(data) ? data : [];
+        // Defesa: exibe apenas participações onde o membro é o participante,
+        // nunca ingressos que ele apenas comprou para outrem.
+        setEventRegistrations(list.filter((r) => !r.memberId || r.memberId === member.id));
+      })
+      .catch(() => setEventRegistrations([]));
   }, [apiUrl, member]);
 
   const isDonor = donations.length > 0;
@@ -718,6 +828,9 @@ export default function PerfilPage(): React.JSX.Element {
             </Stack>
 
             <Divider sx={{ my: 3 }} />
+
+            {/* Histórico público de eventos (vazio → seção não renderiza) */}
+            <EventHistorySection registrations={eventRegistrations} />
 
             {/* ── Tabs ── */}
             {(() => {

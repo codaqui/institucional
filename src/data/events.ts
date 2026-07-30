@@ -66,6 +66,8 @@ export interface EventSummary extends EventItem {
   sourceId: string;
   sourceKey: string;
   itemPath: string;
+  /** Indica que existe um `<id>.override.json` para este evento (preenchido pelo sync). */
+  hasOverride?: boolean;
 }
 
 export interface EventSourceSummary extends EventSourceConfig {

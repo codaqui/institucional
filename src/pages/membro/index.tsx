@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Layout from "@theme/Layout";
 import { useHistory } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
@@ -44,7 +44,14 @@ import QrCode2Icon from "@mui/icons-material/QrCode2";
 import PersonIcon from "@mui/icons-material/Person";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import { QRCodeSVG } from "qrcode.react";
+import EventIcon from "@mui/icons-material/Event";
+import PrintIcon from "@mui/icons-material/Print";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { useAuth } from "../../hooks/useAuth";
+import type { AuthUser } from "../../hooks/useAuth";
+import ModalConfirm from "../../components/ModalConfirm";
 
 interface Donation {
   id: string;
@@ -115,14 +122,253 @@ const reimbursementStatusConfig = {
 function getRoleLabel(role: string): string {
   if (role === "admin") return "Organização";
   if (role === "finance-analyzer") return "Finance Analyzer";
-  return "Membro";
+  if (role === "event_organizer") return "Organizador de Eventos";
+  if (role === "event_checker") return "Credenciamento";
+  if (role === "event_finance") return "Financeiro de Eventos";
+  if (role === "membro" || role === "member") return "Membro";
+  return role;
 }
 
-function getRoleColor(role: string): "primary" | "secondary" | "default" {
+function getRoleColor(role: string): "primary" | "secondary" | "info" | "default" {
   if (role === "admin") return "primary";
   if (role === "finance-analyzer") return "secondary";
+  if (role === "event_organizer" || role === "event_checker" || role === "event_finance") return "info";
   return "default";
 }
+
+/** Multi-role: o backend expõe `roles: string[]` na sessão (migração Fase 2). */
+function getUserRoles(u: AuthUser | null): string[] {
+  return u?.roles ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Histórico de eventos (Fase 2 do EVENT_PLAN)
+// ---------------------------------------------------------------------------
+
+type RegistrationStatus = "confirmed" | "pending_match" | "cancelled" | "refunded" | "waitlist";
+
+interface EventRegistration {
+  id: string;
+  status: RegistrationStatus;
+  checkedInAt: string | null;
+  checkinToken: string;
+  attendeeName: string;
+  attendeeEmail?: string;
+  memberId: string | null;
+  payerMemberId: string | null;
+  isPayerOnly?: boolean;
+  /** Evento interno. Null para inscrições externas via activation. */
+  event: { id: string; title: string; startAt: string; location: string | null; status: string } | null;
+  /** Ativação externa (quando event == null). */
+  activation?: { eventKey: string; title: string; startAt?: string | null } | null;
+  ticketType: { name: string; kind: string; priceCents: number } | null;
+}
+
+interface CertificateData {
+  attendeeName: string;
+  attendeeEmail?: string;
+  eventTitle: string;
+  /** Eventos externos podem não ter datas — o backend retorna null. */
+  eventStartAt: string | null;
+  eventEndAt: string | null;
+  /** Pode ser null (externo sem carga horária definida). */
+  workloadMinutes: number | null;
+  verificationCode: string;
+  issuedAt: string;
+}
+
+const registrationStatusConfig: Record<
+  RegistrationStatus,
+  { label: string; color: "success" | "warning" | "error" | "info" | "default" }
+> = {
+  confirmed: { label: "Confirmada", color: "success" },
+  pending_match: { label: "Aguardando vínculo", color: "warning" },
+  cancelled: { label: "Cancelada", color: "error" },
+  refunded: { label: "Reembolsada", color: "default" },
+  waitlist: { label: "Lista de espera", color: "info" },
+};
+
+const formatEventDate = (iso: string) =>
+  new Date(iso).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+const formatWorkload = (minutes: number): string => {
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest}min`;
+  return rest === 0 ? `${hours}h` : `${hours}h${rest}min`;
+};
+
+function isUpcomingEvent(reg: EventRegistration): boolean {
+  const startAt = reg.event?.startAt ?? reg.activation?.startAt ?? null;
+  if (!startAt) return true; // eventos sem data tratamos como próximos
+  const t = new Date(startAt).getTime();
+  return Number.isNaN(t) ? true : t > Date.now();
+}
+
+interface EventRegistrationsListProps {
+  registrations: EventRegistration[];
+  expandedQrId: string | null;
+  setExpandedQrId: (id: string | null) => void;
+  certLoadingId: string | null;
+  onEmitCertificate: (id: string) => void;
+  onCancel: (id: string) => void;
+  emptyMessage: string;
+  mode?: "mine" | "purchased" | "history";
+  userName?: string;
+}
+
+function EventRegistrationsList({
+  registrations,
+  expandedQrId,
+  setExpandedQrId,
+  certLoadingId,
+  onEmitCertificate,
+  onCancel,
+  emptyMessage,
+  mode = "mine",
+  userName,
+}: Readonly<EventRegistrationsListProps>): React.JSX.Element {
+  if (registrations.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+        {emptyMessage}
+      </Typography>
+    );
+  }
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 4 }}>
+      {registrations.map((reg) => {
+        if (!reg) return null;
+        const sc = registrationStatusConfig[reg.status] ?? registrationStatusConfig.confirmed;
+        const eventTitle = reg.event?.title ?? reg.activation?.title ?? "Evento externo";
+        const eventStartAt = reg.event?.startAt ?? reg.activation?.startAt ?? null;
+        const eventLocation = reg.event?.location ?? null;
+        const isFutureEvent = eventStartAt ? new Date(eventStartAt).getTime() > Date.now() : true;
+        const alreadyUsed = !!reg.checkedInAt;
+        const canCancel =
+          mode !== "history" &&
+          isFutureEvent &&
+          !alreadyUsed &&
+          (reg.status === "confirmed" || reg.status === "pending_match" || reg.status === "waitlist");
+        const isPurchasedForOther = mode === "purchased" || reg.isPayerOnly;
+        return (
+          <Card key={reg.id} variant="outlined">
+            <CardContent sx={{ py: "12px !important" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
+                <Box>
+                  <Typography variant="body2" fontWeight={700}>{eventTitle}</Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    {eventStartAt ? formatEventDate(eventStartAt) : "Data a definir"}
+                    {eventLocation ? ` · ${eventLocation}` : ""}
+                  </Typography>
+                  {isPurchasedForOther && (
+                    <Typography variant="caption" color="primary.main" display="block" sx={{ mt: 0.25 }}>
+                      Comprado por {userName ?? "você"} para <strong>{reg.attendeeName}</strong>{" "}
+                      ({reg.attendeeEmail})
+                    </Typography>
+                  )}
+                  <Box sx={{ display: "flex", gap: 1, mt: 0.5, flexWrap: "wrap" }}>
+                    <Chip label={sc.label} color={sc.color} size="small" variant="outlined" />
+                    {reg.ticketType && (
+                      <Chip
+                        label={
+                          reg.ticketType.priceCents > 0
+                            ? `${reg.ticketType.name} · ${formatBRL(reg.ticketType.priceCents / 100)}`
+                            : reg.ticketType.name
+                        }
+                        size="small"
+                        variant="outlined"
+                      />
+                    )}
+                    {alreadyUsed && (
+                      <Chip
+                        icon={<CheckCircleIcon />}
+                        label={`Presente · ${formatEventDate(reg.checkedInAt)}`}
+                        color="success"
+                        size="small"
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: "flex", gap: 1, mt: 1.5, flexWrap: "wrap", alignItems: "center" }}>
+                {reg.status === "confirmed" && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    startIcon={<QrCode2Icon />}
+                    endIcon={expandedQrId === reg.id ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                    onClick={() => setExpandedQrId(expandedQrId === reg.id ? null : reg.id)}
+                  >
+                    QR de check-in
+                  </Button>
+                )}
+                {reg.checkedInAt && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={
+                      certLoadingId === reg.id
+                        ? <CircularProgress size={14} color="inherit" />
+                        : <WorkspacePremiumIcon />
+                    }
+                    disabled={certLoadingId === reg.id}
+                    onClick={() => onEmitCertificate(reg.id)}
+                  >
+                    Emitir certificado
+                  </Button>
+                )}
+                {canCancel && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    color="error"
+                    startIcon={<CancelIcon />}
+                    onClick={() => onCancel(reg.id)}
+                  >
+                    Cancelar inscrição
+                  </Button>
+                )}
+              </Box>
+
+              {expandedQrId === reg.id && (
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1, mt: 2 }}>
+                  <Box sx={{ bgcolor: "white", p: 2, borderRadius: 2, display: "inline-block" }}>
+                    <QRCodeSVG value={reg.checkinToken} size={180} level="M" includeMargin={false} />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" textAlign="center">
+                    Apresente este QR Code na entrada do evento
+                  </Typography>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+    </Box>
+  );
+}
+
+/**
+ * Formata uma data ISO de forma defensiva: retorna null quando o valor é
+ * ausente ou inválido (evita "Invalid Date" na UI — ex.: certificados de
+ * eventos externos, que podem ter datas/workload nulos).
+ */
+const formatDateSafe = (iso: string | null | undefined): string | null => {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("pt-BR");
+};
 
 interface ReimbursementListProps {
   loading: boolean;
@@ -179,12 +425,129 @@ function ReimbursementList({ loading, reimbursements }: Readonly<ReimbursementLi
   );
 }
 
+// ---------------------------------------------------------------------------
+// Certificado de participação (cartão imprimível)
+// ---------------------------------------------------------------------------
+
+function CertificateCard({
+  certificate,
+  origin,
+}: Readonly<{ certificate: CertificateData; origin: string }>): React.JSX.Element {
+  const startDate = formatDateSafe(certificate.eventStartAt);
+  const endDate = formatDateSafe(certificate.eventEndAt);
+  const issuedDate = formatDateSafe(certificate.issuedAt);
+  const workload =
+    typeof certificate.workloadMinutes === "number" && certificate.workloadMinutes > 0
+      ? formatWorkload(certificate.workloadMinutes)
+      : null;
+  const verifyUrl = `${origin}/certificado/verificar?codigo=${encodeURIComponent(
+    certificate.verificationCode
+  )}`;
+
+  return (
+    <Box
+      className="certificate-print-area"
+      sx={{
+        p: 5,
+        textAlign: "center",
+        border: 8,
+        borderColor: "primary.main",
+        borderRadius: 1,
+        bgcolor: "background.paper",
+      }}
+    >
+      <Box
+        component="img"
+        src="/img/logo.png"
+        alt="Codaqui"
+        sx={{ height: 40, mb: 1 }}
+      />
+      <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 3 }}>
+        Associação Codaqui — CNPJ 44.593.429/0001-05
+      </Typography>
+      <Typography variant="overline" fontWeight={800} color="primary.main" display="block">
+        CERTIFICADO DE PARTICIPAÇÃO
+      </Typography>
+      <Typography variant="body1" sx={{ mt: 3 }}>
+        Certificamos que
+      </Typography>
+      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 2 }}>
+        Nome do participante
+      </Typography>
+      <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
+        {certificate.attendeeName}
+      </Typography>
+      {certificate.attendeeEmail && (
+        <>
+          <Typography variant="caption" color="text.secondary" display="block">
+            E-mail
+          </Typography>
+          <Typography variant="body2" fontWeight={500} sx={{ mb: 2 }}>
+            {certificate.attendeeEmail}
+          </Typography>
+        </>
+      )}
+      <Typography variant="body1">
+        participou do evento
+      </Typography>
+      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+        Evento
+      </Typography>
+      <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ mb: 1 }}>
+        {certificate.eventTitle}
+      </Typography>
+      {(startDate || workload) && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          {startDate
+            ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
+            : "evento da comunidade"}
+          {workload ? (
+            <>
+              , com carga horária de <strong>{workload}</strong>
+            </>
+          ) : null}
+          .
+        </Typography>
+      )}
+      <Box
+        sx={{
+          mt: 4,
+          pt: 2,
+          borderTop: 1,
+          borderColor: "divider",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 2,
+          flexWrap: "wrap",
+        }}
+      >
+        <Box sx={{ bgcolor: "white", p: 1, borderRadius: 1, display: "inline-block" }}>
+          <QRCodeSVG value={verifyUrl} size={72} level="M" includeMargin={false} />
+        </Box>
+        <Box sx={{ textAlign: "left" }}>
+          {issuedDate && (
+            <Typography variant="caption" color="text.secondary" display="block">
+              Emitido em {issuedDate}
+            </Typography>
+          )}
+          <Typography variant="caption" fontFamily="monospace" color="text.secondary" display="block">
+            Código de verificação: {certificate.verificationCode}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Verifique a autenticidade pelo QR code ou em {origin}/certificado/verificar
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
+
 interface SubscriptionListProps {
   loading: boolean;
   subscriptions: Subscription[];
   onCancelClick: (id: string) => void;
 }
-
 function SubscriptionList({ loading, subscriptions, onCancelClick }: Readonly<SubscriptionListProps>): React.JSX.Element {
   if (loading) {
     return <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}><CircularProgress size={28} /></Box>;
@@ -341,11 +704,49 @@ export default function MembroPage(): React.JSX.Element {
   const [copied, setCopied] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
+  // Sub-abas da seção Eventos
+  const [eventsSubTab, setEventsSubTab] = useState<"future" | "purchased" | "history">("future");
+  const [purchaseSuccess, setPurchaseSuccess] = useState(false);
+
+  // ── Histórico de eventos (dados sob demanda — só carrega ao abrir a aba) ──
+  const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
+  const [regsLoading, setRegsLoading] = useState(false);
+  const [regsLoaded, setRegsLoaded] = useState(false);
+  const [regsError, setRegsError] = useState("");
+  const [expandedQrId, setExpandedQrId] = useState<string | null>(null);
+  const [cancelRegId, setCancelRegId] = useState<string | null>(null);
+  const [cancelRegLoading, setCancelRegLoading] = useState(false);
+  const [cancelRegError, setCancelRegError] = useState("");
+  const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [certLoadingId, setCertLoadingId] = useState<string | null>(null);
+  const [certError, setCertError] = useState("");
+
   const origin =
     globalThis.window === undefined
       ? ""
       : globalThis.location.origin;
   const vanityUrl = user ? `${origin}/@${user.handle}` : "";
+
+  const groupedRegistrations = useMemo(() => {
+    const future: EventRegistration[] = [];
+    const purchased: EventRegistration[] = [];
+    const history: EventRegistration[] = [];
+    for (const reg of registrations) {
+      if (!reg) continue;
+      const isOwn = reg.memberId === user?.sub;
+      const isPast = !isUpcomingEvent(reg) || reg.checkedInAt || reg.status === "cancelled" || reg.status === "refunded";
+      if (reg.isPayerOnly || (!isOwn && reg.payerMemberId === user?.sub)) {
+        // ingresso comprado pelo usuário para outra pessoa
+        if (isPast) history.push(reg);
+        else purchased.push(reg);
+      } else if (isPast) {
+        history.push(reg);
+      } else {
+        future.push(reg);
+      }
+    }
+    return { future, purchased, history };
+  }, [registrations, user]);
 
   const copyVanityUrl = () => {
     navigator.clipboard.writeText(vanityUrl).then(() => {
@@ -362,6 +763,93 @@ export default function MembroPage(): React.JSX.Element {
       .catch(() => {})
       .finally(() => setReimbLoading(false));
   }, [apiUrl, authFetch]);
+
+  const fetchRegistrations = useCallback(() => {
+    setRegsLoading(true);
+    setRegsError("");
+    authFetch(`${apiUrl}/events/my-registrations`)
+      .then(async (r) => {
+        if (!r.ok) {
+          setRegsError("Não foi possível carregar suas inscrições em eventos.");
+          return;
+        }
+        const data = await r.json();
+        setRegistrations(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setRegsError("Erro inesperado ao carregar inscrições."))
+      .finally(() => {
+        setRegsLoading(false);
+        setRegsLoaded(true);
+      });
+  }, [apiUrl, authFetch]);
+
+  // Carrega o histórico de eventos sob demanda ao abrir a aba pela 1ª vez
+  useEffect(() => {
+    if (activeTab === 4 && !regsLoaded && !regsLoading) fetchRegistrations();
+  }, [activeTab, regsLoaded, regsLoading, fetchRegistrations]);
+
+  // Detecta redirecionamento pós-compra de ingresso
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const search = new URLSearchParams(window.location.search);
+    if (search.get("purchase") === "success") {
+      setPurchaseSuccess(true);
+      setActiveTab(4);
+      setEventsSubTab("future");
+      // limpa o parâmetro da URL sem recarregar
+      const next = new URL(window.location.href);
+      next.searchParams.delete("purchase");
+      window.history.replaceState({}, "", next.toString());
+    }
+    if (search.get("tab") === "future") {
+      setActiveTab(4);
+      setEventsSubTab("future");
+    }
+  }, []);
+
+  const handleCancelRegistration = async () => {
+    if (!cancelRegId) return;
+    setCancelRegLoading(true);
+    setCancelRegError("");
+    try {
+      const res = await authFetch(`${apiUrl}/events/registrations/${cancelRegId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setCancelRegError(data?.message ?? "Erro ao cancelar inscrição.");
+        return;
+      }
+      setCancelRegId(null);
+      fetchRegistrations();
+    } catch {
+      setCancelRegError("Erro inesperado ao cancelar inscrição.");
+    } finally {
+      setCancelRegLoading(false);
+    }
+  };
+
+  const handleEmitCertificate = async (registrationId: string) => {
+    setCertLoadingId(registrationId);
+    setCertError("");
+    try {
+      const res = await authFetch(`${apiUrl}/events/registrations/${registrationId}/certificate`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setCertError(
+          res.status === 403
+            ? "O certificado só pode ser emitido após a confirmação de presença (check-in) no evento."
+            : (data?.message ?? "Erro ao emitir certificado."),
+        );
+        return;
+      }
+      setCertificate((await res.json()) as CertificateData);
+    } catch {
+      setCertError("Erro inesperado ao emitir certificado.");
+    } finally {
+      setCertLoadingId(null);
+    }
+  };
 
   useEffect(() => {
     if (!ready) return;
@@ -494,12 +982,15 @@ export default function MembroPage(): React.JSX.Element {
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5, flexWrap: "wrap" }}>
                 <Typography variant="h5" fontWeight={800}>{user!.name}</Typography>
-                <Chip
-                  label={getRoleLabel(user!.role)}
-                  color={getRoleColor(user!.role)}
-                  size="small"
-                  variant="outlined"
-                />
+                {getUserRoles(user).map((role) => (
+                  <Chip
+                    key={role}
+                    label={getRoleLabel(role)}
+                    color={getRoleColor(role)}
+                    size="small"
+                    variant="outlined"
+                  />
+                ))}
               </Box>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 <GitHubIcon sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }} />
@@ -520,7 +1011,7 @@ export default function MembroPage(): React.JSX.Element {
                     <QrCode2Icon />
                   </IconButton>
                 </Tooltip>
-                {(user!.role === "admin" || user!.role === "finance-analyzer") && (
+                {getUserRoles(user).some((r) => r === "admin" || r === "finance-analyzer") && (
                   <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
                     Painel de Reembolsos
                   </Button>
@@ -598,6 +1089,7 @@ export default function MembroPage(): React.JSX.Element {
           <Tab label="Histórico de Doações" />
           <Tab label="Assinaturas Recorrentes" />
           <Tab label="Carteira" />
+          <Tab label="Eventos" icon={<EventIcon />} iconPosition="start" />
         </Tabs>
 
         <TabPanel value={activeTab} index={0}>
@@ -740,6 +1232,76 @@ export default function MembroPage(): React.JSX.Element {
             <ReimbursementList loading={reimbLoading} reimbursements={reimbursements} />
           </Box>
         </TabPanel>
+
+        <TabPanel value={activeTab} index={4}>
+          <Box>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <EventIcon color="primary" />
+                <Typography variant="h6" fontWeight={700}>Meus eventos</Typography>
+              </Box>
+              <Button variant="outlined" size="small" href="/eventos">
+                Ver próximos eventos
+              </Button>
+            </Box>
+
+            {purchaseSuccess && (
+              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPurchaseSuccess(false)}>
+                Compra aprovada! Seus ingressos já estão disponíveis na aba “Próximos
+                ingressos”.
+              </Alert>
+            )}
+
+            {regsError && <Alert severity="error" sx={{ mb: 2 }}>{regsError}</Alert>}
+            {certError && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setCertError("")}>{certError}</Alert>}
+
+            {regsLoading && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                <CircularProgress size={28} />
+              </Box>
+            )}
+
+            {!regsLoading && regsLoaded && registrations.length === 0 && (
+              <Box sx={{ textAlign: "center", py: 3 }}>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  Você ainda não se inscreveu em nenhum evento.
+                </Typography>
+                <Button variant="contained" href="/eventos">Explorar eventos</Button>
+              </Box>
+            )}
+
+            {!regsLoading && registrations.length > 0 && (
+              <>
+                <Tabs
+                  value={eventsSubTab}
+                  onChange={(_, v) => setEventsSubTab(v as "future" | "purchased" | "history")}
+                  sx={{ mb: 2 }}
+                >
+                  <Tab value="future" label="Próximos ingressos" />
+                  <Tab value="purchased" label="Comprei para outros" />
+                  <Tab value="history" label="Histórico" />
+                </Tabs>
+                <EventRegistrationsList
+                  registrations={groupedRegistrations[eventsSubTab]}
+                  expandedQrId={expandedQrId}
+                  setExpandedQrId={setExpandedQrId}
+                  certLoadingId={certLoadingId}
+                  onEmitCertificate={handleEmitCertificate}
+                  onCancel={(id) => { setCancelRegId(id); setCancelRegError(""); }}
+                  emptyMessage={
+                    eventsSubTab === "future"
+                      ? "Nenhum ingresso próximo."
+                      : eventsSubTab === "purchased"
+                      ? "Você ainda não comprou ingressos para outras pessoas."
+                      : "Nenhum ingresso no histórico."
+                  }
+                  mode={eventsSubTab === "purchased" ? "purchased" : eventsSubTab === "history" ? "history" : "mine"}
+                  userName={user?.name}
+                />
+              </>
+            )}
+          </Box>
+        </TabPanel>
       </Container>
 
       {/* ── Dialog: Confirmar cancelamento de assinatura ── */}
@@ -836,6 +1398,38 @@ export default function MembroPage(): React.JSX.Element {
             startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : <ReceiptLongIcon />}
           >
             Enviar Solicitação
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* ── Cancelar inscrição em evento ── */}
+      <ModalConfirm
+        open={!!cancelRegId}
+        title="Cancelar inscrição?"
+        description="Sua inscrição no evento será cancelada. Se o ingresso foi pago, o estorno segue a política do evento."
+        variant="error"
+        confirmLabel="Cancelar inscrição"
+        loading={cancelRegLoading}
+        error={cancelRegError}
+        onConfirm={handleCancelRegistration}
+        onClose={() => setCancelRegId(null)}
+      />
+
+      {/* ── Certificado de participação (imprimível) ── */}
+      <Dialog open={!!certificate} onClose={() => setCertificate(null)} maxWidth="sm" fullWidth>
+        <DialogContent sx={{ p: 0 }}>
+          {certificate && <CertificateCard certificate={certificate} origin={origin} />}
+        </DialogContent>
+        <DialogActions className="no-print" sx={{ justifyContent: "center", pb: 2, gap: 1 }}>
+          <Button onClick={() => setCertificate(null)} color="inherit">
+            Fechar
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<PrintIcon />}
+            onClick={() => globalThis.print()}
+          >
+            Imprimir
           </Button>
         </DialogActions>
       </Dialog>

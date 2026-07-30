@@ -3,6 +3,8 @@ import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
 import {
   Alert,
+  Avatar,
+  AvatarGroup,
   Box,
   Button,
   Card,
@@ -24,11 +26,14 @@ import RepeatIcon from "@mui/icons-material/Repeat";
 import PageHero from "../components/PageHero";
 import DiscordServerWidget from "../components/DiscordServerWidget";
 import {
-  EVENTS_MANIFEST_URL,
-  type EventIndexFile,
   type EventSourceSummary,
   type EventSummary,
 } from "../data/events";
+import { fetchEventsIndexMerged, type MergedEventSummary } from "../lib/events-api";
+import { getEventDetailPagePath } from "../utils/event-override";
+
+/** Evento da listagem já mesclado com o extendData do override (quando existe). */
+type DisplayEvent = MergedEventSummary;
 
 function formatEventDate(date: string, timeZone: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -77,11 +82,12 @@ function EventCard({
   event,
   sourceMeta,
 }: {
-  readonly event: EventSummary;
+  readonly event: DisplayEvent;
   readonly sourceMeta?: EventSourceSummary;
 }): React.JSX.Element {
   const isExternal = event.href.startsWith("http");
   const statusLabel = getStatusLabel(event.status);
+  const speakers = event.speakers ?? [];
 
   return (
     <Card
@@ -91,6 +97,8 @@ function EventCard({
         display: "flex",
         flexDirection: "column",
         transition: "all 0.2s",
+        borderColor: event.featured ? "success.main" : undefined,
+        borderWidth: event.featured ? 2 : undefined,
         "&:hover": {
           transform: "translateY(-2px)",
           boxShadow: 3,
@@ -169,6 +177,32 @@ function EventCard({
               <Typography variant="body2">{event.userCount} pessoa(s) interessadas</Typography>
             </Stack>
           ) : null}
+          {speakers.length > 0 ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <AvatarGroup
+                max={4}
+                sx={{
+                  "& .MuiAvatar-root": { width: 28, height: 28, fontSize: "0.8rem" },
+                }}
+              >
+                {speakers.map((speaker) => (
+                  <Avatar
+                    key={speaker.name}
+                    alt={speaker.name}
+                    src={
+                      speaker.avatarUrl ??
+                      (speaker.handle
+                        ? `https://avatars.githubusercontent.com/${speaker.handle}?v=4`
+                        : undefined)
+                    }
+                  />
+                ))}
+              </AvatarGroup>
+              <Typography variant="body2">
+                com {speakers.map((speaker) => speaker.name).join(", ")}
+              </Typography>
+            </Stack>
+          ) : null}
         </Stack>
 
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -179,16 +213,31 @@ function EventCard({
       </CardContent>
 
       <CardActions sx={{ px: 2, pb: 2 }}>
-        <Button
-          component={Link}
-          href={event.href}
-          target={isExternal ? "_blank" : undefined}
-          rel={isExternal ? "noopener noreferrer" : undefined}
-          variant="outlined"
-          endIcon={isExternal ? <OpenInNewIcon /> : undefined}
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1}
+          sx={{ width: "100%" }}
         >
-          {event.ctaLabel}
-        </Button>
+          <Button
+            component={Link}
+            href={event.href}
+            target={isExternal ? "_blank" : undefined}
+            rel={isExternal ? "noopener noreferrer" : undefined}
+            variant="outlined"
+            size="small"
+            endIcon={isExternal ? <OpenInNewIcon /> : undefined}
+          >
+            Site original
+          </Button>
+          <Button
+            component={Link}
+            href={getEventDetailPagePath(event.source, event.sourceId, event.id)}
+            variant="contained"
+            size="small"
+          >
+            Ver detalhes
+          </Button>
+        </Stack>
       </CardActions>
     </Card>
   );
@@ -199,7 +248,7 @@ function scrollToAgenda(): void {
 }
 
 export default function EventosPage(): React.JSX.Element {
-  const [events, setEvents] = useState<EventSummary[]>([]);
+  const [events, setEvents] = useState<DisplayEvent[]>([]);
   const [sources, setSources] = useState<EventSourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -211,12 +260,10 @@ export default function EventosPage(): React.JSX.Element {
 
     async function loadEvents(): Promise<void> {
       try {
-        const response = await fetch(EVENTS_MANIFEST_URL);
-        if (!response.ok) {
-          throw new Error("Events index unavailable");
-        }
+        // "Front API" de eventos: sempre retorna o índice já mesclado com os
+        // overrides (via manifesto agregado, com fallback para fetch individual).
+        const payload = await fetchEventsIndexMerged();
 
-        const payload = (await response.json()) as EventIndexFile;
         if (!active) {
           return;
         }
@@ -269,6 +316,22 @@ export default function EventosPage(): React.JSX.Element {
       [...filteredEvents]
         .filter((event) => event.status === "completed")
         .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime()),
+    [filteredEvents]
+  );
+
+  // Destaques (featured via snapshot ou override): futuros primeiro (ASC),
+  // depois passados (DESC).
+  const featuredEvents = useMemo(
+    () =>
+      [...filteredEvents]
+        .filter((event) => event.featured)
+        .sort((a, b) => {
+          const aPast = a.status === "completed" ? 1 : 0;
+          const bPast = b.status === "completed" ? 1 : 0;
+          if (aPast !== bPast) return aPast - bPast;
+          const diff = new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+          return aPast === 0 ? diff : -diff;
+        }),
     [filteredEvents]
   );
 
@@ -427,6 +490,29 @@ export default function EventosPage(): React.JSX.Element {
               </Stack>
             </CardContent>
           </Card>
+        )}
+
+        {!loading && !hasError && featuredEvents.length > 0 && (
+          <Box sx={{ mb: 5 }}>
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              <Typography variant="h4" fontWeight={800}>
+                Em destaque
+              </Typography>
+              <Typography variant="body1" color="text.secondary">
+                Eventos destacados pelos organizadores da comunidade.
+              </Typography>
+            </Stack>
+            <Grid container spacing={3}>
+              {featuredEvents.map((event) => (
+                <Grid
+                  key={`featured-${event.sourceKey}:${event.id}`}
+                  size={{ xs: 12, md: 6, xl: 4 }}
+                >
+                  <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box>
         )}
 
         <Stack spacing={2} sx={{ mb: 4 }}>

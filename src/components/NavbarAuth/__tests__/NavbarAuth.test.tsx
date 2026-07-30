@@ -25,6 +25,8 @@ const BASE_AUTH = {
   isLoggedIn: false,
   isAdmin: false,
   isFinanceAnalyzer: false,
+  isEventOrganizer: false,
+  isEventFinance: false,
   login: jest.fn(),
   logout: jest.fn(),
   refreshUser: jest.fn(),
@@ -40,10 +42,10 @@ const LOGGED_IN_USER = {
   handle: "testuser",
   name: "Test User",
   avatarUrl: "https://example.com/avatar.png",
-  role: "membro" as const,
+  roles: ["membro"],
 };
 
-const ADMIN_USER = { ...LOGGED_IN_USER, handle: "adminuser", role: "admin" as const };
+const ADMIN_USER = { ...LOGGED_IN_USER, handle: "adminuser", roles: ["membro", "admin"] };
 
 beforeEach(() => {
   mockUseLocation.mockReturnValue({ pathname: "/" });

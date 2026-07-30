@@ -382,3 +382,29 @@ table {
 [data-theme="dark"] .MuiAvatar-img.community-logo-img {
   filter: invert(1) brightness(1.8) saturate(0.4);
 }
+
+/* ── Impressão de certificado (dialog em /membro) ──────────────────────────
+   Imprime apenas o cartão do certificado: esconde o chrome da página e as
+   ações do dialog (botões usam a classe utilitária .no-print). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .certificate-print-area,
+  .certificate-print-area * {
+    visibility: visible;
+  }
+
+  .certificate-print-area {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

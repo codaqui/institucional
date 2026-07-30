@@ -22,7 +22,7 @@ interface Member {
   avatarUrl: string;
   bio: string | null;
   linkedinUrl: string | null;
-  role: "membro" | "admin";
+  roles?: string[];
   joinedAt: string;
   totalDonated?: number;
   donationCount?: number;
@@ -139,7 +139,7 @@ export default function MembersWall({
                       {m.name}
                     </Typography>
                   </Link>
-                  {m.role === "admin" && (
+                  {m.roles?.includes("admin") && (
                     <Chip label="Organização" size="small" color="primary" variant="outlined" />
                   )}
                   {isDonorsMode && (

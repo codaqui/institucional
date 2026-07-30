@@ -1,6 +1,7 @@
 import React from "react";
 import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import ConfirmationNumberIcon from "@mui/icons-material/ConfirmationNumber";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 import MoneyOffIcon from "@mui/icons-material/MoneyOff";
@@ -24,6 +25,7 @@ export interface Transaction {
   description: string;
   createdAt: string;
   referenceId?: string;
+  metadata?: Record<string, unknown> | null;
   sourceAccount: TransactionAccount;
   destinationAccount: TransactionAccount;
 }
@@ -47,6 +49,8 @@ export interface TransparencyStats {
   totalReceived: number;
   totalExpenses: number;
   totalTransactions: number;
+  totalEventTickets: number;
+  totalEventTicketRevenue: number;
   uniqueDonors: number;
   recentDonors: Array<{
     handle: string;
@@ -60,6 +64,8 @@ export interface TransparencyStats {
     totalIn: number;
     totalOut: number;
     txCount: number;
+    eventTicketIn: number;
+    eventTicketCount: number;
   }>;
 }
 
@@ -83,7 +89,7 @@ export const formatDate = (iso: string) =>
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "donation-business" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "other";
+export type TxType = "donation" | "donation-business" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "event-ticket" | "event-ticket-refund" | "other";
 
 const REFERENCE_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
   { prefix: "reimbursement:", type: "reimbursement" },
@@ -92,6 +98,9 @@ const REFERENCE_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
   { prefix: "transfer:", type: "transfer" },
   { prefix: "stripe-fee:", type: "stripe-fee" },
   { prefix: "stripe-refund:", type: "refund" },
+  // ⚠️ "event-ticket-refund:" precisa vir ANTES de "event-ticket:" (startsWith)
+  { prefix: "event-ticket-refund:", type: "event-ticket-refund" },
+  { prefix: "event-ticket:", type: "event-ticket" },
 ];
 
 const DONATION_REFERENCE_PREFIXES = ["cs_", "pi_", "in_", "stripe-pi:"] as const;
@@ -139,6 +148,8 @@ export const TX_TYPE_CONFIG: Record<
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
   refund: { label: "Estorno de Doação", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   "stripe-fee": { label: "Taxa Stripe", color: "warning", icon: <MoneyOffIcon fontSize="small" /> },
+  "event-ticket": { label: "Ingresso de Evento", color: "success", icon: <ConfirmationNumberIcon fontSize="small" /> },
+  "event-ticket-refund": { label: "Reembolso de Ingresso", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   other: { label: "Movimentação", color: "default", icon: <InfoOutlinedIcon fontSize="small" /> },
 };
 
@@ -210,6 +221,21 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
     ? tx.description.replace(/^Transferência interna aprovada:\s*/i, "").trim()
     : null;
 
+  // Event ticket metadata (saved in ledger metadata by Stripe webhook)
+  const eventTicketInfo =
+    type === "event-ticket" || type === "event-ticket-refund"
+      ? {
+          eventTitle: (tx.metadata?.eventTitle as string | undefined) ?? null,
+          eventKey: (tx.metadata?.eventKey as string | undefined) ?? null,
+          ticketName: (tx.metadata?.ticketName as string | undefined) ?? null,
+          payerHandle: (tx.metadata?.payerHandle as string | undefined) ?? null,
+          orderId: (tx.metadata?.orderId as string | undefined) ?? null,
+          eventId: (tx.metadata?.eventId as string | undefined) ?? null,
+          ticketTypeId: (tx.metadata?.ticketTypeId as string | undefined) ?? null,
+          externalActivationId: (tx.metadata?.externalActivationId as string | undefined) ?? null,
+        }
+      : null;
+
   // Stripe fee parsing — referenceId: "stripe-fee:txn_xxx"
   // description: "Taxa Stripe — Charge ch_xxx (referente a pi_xxx)"
   let stripeFeeBalanceTransactionId: string | null = null;
@@ -230,6 +256,6 @@ export function deriveTransactionMeta(tx: Transaction, accountId: string) {
     type, config, isCredit, donorHandle, companyInfo, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
     stripeFeeBalanceTransactionId, stripeFeeChargeId,
-    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,
+    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl, eventTicketInfo,
   };
 }
