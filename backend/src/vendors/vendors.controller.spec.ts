@@ -50,7 +50,7 @@ describe('VendorsController', () => {
       name: 'Admin',
       email: 'a@a.com',
       avatarUrl: '',
-      role: 'admin',
+      roles: ['admin'],
     },
   };
 

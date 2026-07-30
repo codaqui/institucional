@@ -42,7 +42,7 @@ describe('TransfersController', () => {
       name: 'Admin',
       email: 'a@a.com',
       avatarUrl: '',
-      role: 'admin',
+      roles: ['admin'],
     },
   };
 

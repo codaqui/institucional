@@ -11,7 +11,7 @@ describe('CompaniesController', () => {
   const req = (overrides: Partial<any> = {}) => ({
     user: {
       sub: 'member-1',
-      role: MemberRole.MEMBER,
+      roles: [MemberRole.MEMBRO],
       ...overrides,
     },
   });
@@ -85,7 +85,7 @@ describe('CompaniesController', () => {
   });
 
   it('allows admin to access company without membership check', async () => {
-    await controller.getCompany('company-1', req({ role: MemberRole.ADMIN }));
+    await controller.getCompany('company-1', req({ roles: [MemberRole.ADMIN] }));
     expect(service.isMemberOfCompany).not.toHaveBeenCalled();
     expect(service.findById).toHaveBeenCalledWith('company-1');
   });

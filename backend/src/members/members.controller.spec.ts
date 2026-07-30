@@ -12,7 +12,7 @@ const mockMember = () => ({
   avatarUrl: 'https://example.com/avatar.png',
   bio: null,
   linkedinUrl: null,
-  role: MemberRole.MEMBRO,
+  roles: [MemberRole.MEMBRO],
   joinedAt: new Date('2024-01-01'),
 });
 
@@ -102,7 +102,7 @@ describe('MembersController', () => {
           name: 'Test',
           email: 't@t.com',
           avatarUrl: '',
-          role: 'membro',
+          roles: ['membro'],
         },
       });
 
@@ -128,7 +128,7 @@ describe('MembersController', () => {
             name: 'Test',
             email: 't@t.com',
             avatarUrl: '',
-            role: 'membro',
+            roles: ['membro'],
           },
         },
         { bio: 'New bio' },
@@ -222,7 +222,7 @@ describe('MembersController', () => {
         name: 'Admin',
         email: 'a@a.com',
         avatarUrl: '',
-        role: 'admin',
+        roles: ['admin'],
       },
     };
 
@@ -230,10 +230,12 @@ describe('MembersController', () => {
       const member = mockMember();
       membersService.adminUpdate.mockResolvedValue(member);
 
-      await controller.adminUpdate(member.id, req, { role: MemberRole.ADMIN });
+      await controller.adminUpdate(member.id, req, {
+        roles: [MemberRole.ADMIN],
+      });
 
       expect(membersService.adminUpdate).toHaveBeenCalledWith(member.id, {
-        role: MemberRole.ADMIN,
+        roles: [MemberRole.ADMIN],
       });
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'member.role_change' }),
