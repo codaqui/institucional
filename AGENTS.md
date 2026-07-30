@@ -6,7 +6,7 @@ sections:
   - Tech Stack (frontend + backend)
   - Directory Structure (full tree, monorepo layout)
   - Commands (typecheck/build — references DEVELOPMENT.md for setup)
-  - Critical Architecture Decisions (1.MUI v7 Grid · 2.Dark Mode SSR · 3.Data Layer · 4.Blog URL · 5.Trilhas · 6.Giscus · 7.Events · 8.Legacy Redirects · 9.Backend Financial Modules)
+  - Critical Architecture Decisions (1.MUI v7 Grid · 2.Dark Mode SSR · 3.Data Layer · 4.Blog URL · 5.Trilhas · 6.Giscus · 7.Events (snapshots + overrides GitHub-as-DB + plataforma internal:codaqui) · 8.Legacy Redirects · 9.Backend Financial Modules)
   - MUI Theme & Component/Page patterns
   - Common Anti-Patterns
   - Git Workflow & SonarCloud (PR review)
@@ -17,8 +17,8 @@ sections:
 related-docs:
   - DEVELOPMENT.md — setup, env vars, migrations, deploy
   - README.md — repo overview (high level)
-  - CLUB_PLAN.md — Clube Codaqui SortCoins plan
-  - EVENT_PLAN.md — events override plan
+  - docs/CLUB_PLAN.md — Clube Codaqui SortCoins plan
+  - docs/EVENT_PLAN.md — plataforma de eventos (Fases 1 + 2a–2d implementadas; ver "Registro de Implementação")
 agent-protocol:
   - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
   - Each .md in this repo has its own AGENT-INDEX header. Trust it as the doc's TLDR.
@@ -76,6 +76,8 @@ When creating new `.md` files in this repo, **always include an `<!-- AGENT-INDE
 | **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
 | **Storage** | ⚠ **Sem upload pelo backend**: comprovantes/recibos são **links externos** que o time sobe manualmente em serviços confiáveis. O `StorageModule` valida URLs (`POST /storage/validate-receipt-url`) — exige HTTPS e hostname numa allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. **Não há S3/MinIO conectado**; o backend não escreve em disco local nem em bucket. |
 | **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
+| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `failed` com `SMTP_NOT_CONFIGURED`) |
+| **GitHub-as-Database** | Token OAuth do próprio membro (scope `public_repo`, criptografado em repouso — `GITHUB_TOKEN_ENCRYPTION_KEY` + `GITHUB_REPO_*` no `.env.example`) — backend cria branch + PR de overrides/organizers **em nome do membro** (canônico se colaborador; fork flow senão); leituras via raw.githubusercontent.com; nunca commit direto em `main` |
 | **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
 | **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
@@ -111,7 +113,11 @@ institucional/
 ├── backend/                     # 🖥️ API REST NestJS (NÃO vai para GitHub Pages)
 │   ├── src/
 │   │   ├── auth/                # GitHub OAuth + JWT (GithubStrategy + JwtStrategy)
-│   │   ├── members/             # Membros da Codaqui (papéis, autorização)
+│   │   ├── members/             # Membros da Codaqui (multi-role `roles: text[]`, autorização)
+│   │   ├── github-db/           # ⭐ GitHub-as-Database: GitHubDBService (branch + PR com o token OAuth do membro; fork flow)
+│   │   ├── event-organizer/     # ⭐ Ownership (organizers.json) + CRUD de overrides de eventos (abre PR)
+│   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios
+│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento)
 │   │   ├── ledger/              # ⭐ Contabilidade dupla partida (núcleo financeiro)
 │   │   │   ├── entities/        # Account, Transaction (TypeORM)
 │   │   │   ├── ledger.controller.ts  # GET /ledger/community-balances, /transactions
@@ -126,7 +132,7 @@ institucional/
 │   │   │   └── vendors.service.ts  # Helpers genéricos (persistWithLedger c/ factory, resolveByReference, etc.)
 │   │   ├── audit/               # Audit log de ações sensíveis
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
-│   │   └── migrations/          # TypeORM migrations (Migration001..009)
+│   │   └── migrations/          # TypeORM migrations (Migration001..012)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── blog/                        # Blog posts (Markdown/MDX)
 │   ├── authors.yml              # Blog author definitions
@@ -140,6 +146,7 @@ institucional/
 │   │   ├── Badge/
 │   │   ├── CommunityPresenceCard/
 │   │   ├── DiscordServerWidget/
+│   │   ├── EventOverrideBadge/  # ⭐ Badge "Verificado por @handle" em evento com override
 │   │   ├── GiscusComponent/     # Giscus wrapper (reads config from themeConfig)
 │   │   ├── InfoCard/
 │   │   ├── LessonCard/
@@ -161,6 +168,7 @@ institucional/
 │   │   └── useSocialStatsSnapshot.ts
 │   ├── utils/
 │   │   ├── transaction.tsx      # ⭐ Tipos + TX_TYPE_CONFIG + deriveTransactionMeta + formatBRL
+│   │   ├── event-override.ts    # ⭐ loadEventWithOverride (merge base + .override.json)
 │   │   └── document.ts          # formatDocument (CPF/CNPJ)
 │   ├── data/                    # ⭐ Centralized data layer (see below)
 │   │   ├── social.ts            # DISCORD_URL, WHATSAPP_URL, EMAIL, GITHUB_ORG, socialChannels[]
@@ -185,7 +193,11 @@ institucional/
 │   │   │   ├── recebimentos.tsx # ⭐ Lançar recebimento de fornecedor + histórico
 │   │   │   ├── empresas.tsx     # Gestão de empresas (CLUB Business)
 │   │   │   ├── carteiras.tsx    # Histórico unificado de carteiras SortCoins
-│   │   │   └── sorteios.tsx     # Gestão de sorteios do Clube Codaqui
+│   │   │   ├── sorteios.tsx     # Gestão de sorteios do Clube Codaqui
+│   │   │   ├── eventos.tsx      # ⭐ Events Hub: lista unificada (internos+externos, badges, filtros) + CRUD de managed + force-sync snapshot
+│   │   │   ├── overrides.tsx    # ⭐ Overrides de metadados (+ histórico de edições) + organizers (ownership) + ativações externas
+│   │   │   ├── eventos-checkin.tsx # ⭐ Check-in mobile-first (QR/câmera + fallback manual; internos E externos ativados)
+│   │   │   └── emails.tsx       # ⭐ Painel de e-mails enviados + analytics (email_logs)
 │   │   ├── participe/           # Participation pages (TSX)
 │   │   │   ├── apoiar.tsx       # ⭐ Doação (OpenCollective + Stripe por comunidade)
 │   │   │   ├── estudar.tsx
@@ -215,11 +227,16 @@ institucional/
 │   ├── img/                     # logo.png, logo_blk.png, community logos
 │   ├── assets/docs/             # PDFs (estatuto.pdf)
 │   ├── events/                  # ⭐ Event snapshots (generated by workflow)
-│   │   ├── index.json           # Aggregated index (all sources, all events)
-│   │   ├── discord/codaqui/     # Per-event JSON + source index
-│   │   └── meetup/devparana/    # Per-event JSON + source index
+│   │   ├── index.json           # Aggregated index (all sources, all events; `hasOverride` por evento)
+│   │   ├── organizers.json      # ⭐ Ownership de organizers (GitHub-as-DB; validado + auto-merge via workflow)
+│   │   ├── internal/codaqui/    # ⭐ Eventos próprios (backend /events/public/managed → sync)
+│   │   ├── discord/codaqui/     # Per-event JSON + source index (+ *.override.json)
+│   │   └── meetup/devparana/    # Per-event JSON + source index (+ *.override.json)
 │   └── social-stats/            # ⭐ Social stats snapshot (generated by workflow)
 │       └── index.json           # Counts: Discord members, Meetup members, GitHub followers
+├── scripts/                     # Node scripts de sync/validação (rodam em workflows e local)
+│   ├── sync-events.mjs          # Gera static/events/ (fontes externas + internal:codaqui + hasOverride)
+│   └── validate-overrides.mjs   # Valida *.override.json + organizers.json + snapshot internal (usado no workflow de auto-merge)
 ├── compose.yaml                 # 🐳 DEV: todos os serviços (Docusaurus + Backend + infra)
 ├── compose.prod.yaml            # 🏭 PROD ARM64: apenas backend + infra (sem Docusaurus)
 ├── Dockerfile                   # DEV-only: container Docusaurus (npm start)
@@ -229,7 +246,8 @@ institucional/
 ├── tsconfig.json                # Exclui /backend para evitar conflito de decorators
 ├── CNAME                        # codaqui.dev
 └── .github/workflows/
-    └── gh-deploy.yml            # CI: npm ci → build → deploy
+    ├── gh-deploy.yml            # CI: npm ci → build → deploy
+    └── validate-event-overrides.yml # PRs de *.override.json/organizers.json/snapshot internal: valida + aprova + auto-merge (GITHUB_TOKEN → github-actions[bot])
 ```
 
 ---
@@ -410,14 +428,18 @@ Events are powered by a **static snapshot pipeline**: a GitHub Actions workflow 
 ```
 static/events/
 ├── index.json                         # Aggregated root index (UI reads only this)
+├── organizers.json                    # Ownership de organizers (GitHub-as-DB — ver "Overrides" abaixo)
 ├── discord/
 │   └── codaqui/
 │       ├── index.json                 # Source-scoped index + metadata
-│       └── <event_id>.json           # Per-event detail file
+│       ├── <event_id>.json           # Per-event detail file
+│       └── <event_id>.override.json  # Override de metadados (opcional, via PR)
 ├── meetup/
 │   └── devparana/
 │       ├── index.json
 │       └── <event_id>.json
+├── internal/
+│   └── codaqui/                       # Eventos próprios (backend /events/public/managed)
 ├── ocgroups/
 │   └── cloud-native-maringa/
 ├── sympla/
@@ -510,6 +532,56 @@ For Discord sources add `"guildId"` and `"widgetUrl"` instead of Meetup fields.
 - `static/events/index.json` → events sorted **ASC by `startAt`** (oldest first)
 - `/eventos` page splits into upcoming (≠ completed, ASC) and past (= completed, DESC) client-side
 
+#### Overrides de metadados (GitHub-as-Database)
+
+Organizadores confiáveis (`event_organizer`) corrigem metadados de eventos externos via
+arquivos `static/events/<source>/<sourceId>/<eventId>.override.json`, **sempre por PR** —
+nunca commit direto em `main`:
+
+1. Backend (`backend/src/event-organizer/` + `backend/src/github-db/`) valida os campos e abre
+   branch + PR **com o token OAuth do próprio membro** (scope `public_repo`, capturado no login
+   e persistido criptografado em `members.githubAccessToken` — env `GITHUB_TOKEN_ENCRYPTION_KEY`;
+   leituras via `raw.githubusercontent.com`, sem token). Colaborador com admin/maintain/write
+   cria branch no repo canônico; demais membros passam pelo fork flow (PR com
+   `head: "<handle>:<branch>"`). O commit sai em nome do membro (atribuição de contributor).
+2. O workflow `.github/workflows/validate-event-overrides.yml` valida os arquivos do PR com
+   `scripts/validate-overrides.mjs` (schema do override + `organizers.json`), aprova e habilita
+   auto-merge (squash + delete branch) usando o `GITHUB_TOKEN` do Actions (aprovador:
+   `github-actions[bot]`). PRs mistos (arquivo fora do padrão) falham.
+3. O frontend mescla base + override em `src/utils/event-override.ts` (`loadEventWithOverride`)
+   e exibe o `<EventOverrideBadge>` ("Verificado por @handle") na página
+   `/eventos/detalhe?source=&sourceId=&id=`.
+
+- **Schema do override:** `extendData` sobrescreve `imageUrl`, `summary` (≤500), `location`,
+  `tags` (≤10, substitui), `featured`, `title`, `speakers` (≤10), `registrationUrl`,
+  `slidesUrl`, `videoUrl`, `discussionUrl`. Nunca sobrescrevíveis: `id`, `startAt`, `endAt`,
+  `href`, `source`, `sourceId`, `status`.
+- **`organizers.json`** (`static/events/organizers.json`): ownership de organizers —
+  `{ version, ownerships: [{ memberId (uuid), githubHandle, scope: ["<source>:<sourceId>:<eventId|*>"] }] }`.
+  Backend lê com cache de 5 min para autorizar overrides. Editado via endpoints
+  `/events/organizers*` (admin) — também por PR auto-mergeado.
+- **`hasOverride`:** o sync marca `hasOverride: true` no `index.json` quando existe
+  `.override.json` para o evento (`EventSummary.hasOverride` em `src/data/events.ts`).
+- Permissão fina por evento: scope exato `<sourceKey>:<eventId>` ou wildcard `<sourceKey>:*`.
+
+#### Fonte `internal:codaqui` (eventos próprios)
+
+Eventos próprios da Codaqui (plataforma `backend/src/events/`) entram na listagem estática
+como mais uma fonte, **sem backend no caminho de leitura**:
+
+1. Backend expõe `GET /events/public/managed` (público, só `status = published`, payload no
+   shape `EventItem` + `EventSourceConfig`).
+2. `scripts/sync-events.mjs` resolve `internal:codaqui` como **etapa extra do pipeline** (fora
+   do `events.config.json`), consumindo esse endpoint via env `INTERNAL_EVENTS_API_URL`
+   (configurada no workflow de sync; fallback: último snapshot em disco).
+3. Snapshots gravados em `static/events/internal/codaqui/*.json` e commitados pelo workflow.
+
+A página `/eventos/detalhe` detecta `source === "internal"` e embute inscrição gratuita /
+checkout Stripe (com aceite obrigatório dos termos de compra, versão `2026-07-v1`).
+
+> Visão completa da plataforma (ingressos, check-in, e-mails, CSV, relatórios, papéis):
+> **docs/EVENT_PLAN.md** — Fases 1 + 2a–2d implementadas (ver "Registro de Implementação (2026-07)").
+
 ---
 
 ### 8. Legacy URL Redirects
@@ -552,6 +624,11 @@ O `referenceId` da transação no ledger identifica a origem do movimento:
 | Vendor payment | `vendor-payment:<id>` | `vendor-payment-reversal:<id>:<ts>` |
 | Vendor receipt | `vendor-receipt:<id>` | `vendor-receipt-reversal:<id>:<ts>` |
 | Expense (lançamento direto) | `expense:<id>` | `expense-reversal:<id>:<ts>` |
+| Event ticket | `event-ticket:<orderId>` | `event-ticket-refund:<orderId>:<ts>` |
+
+> ⚠️ A captura de taxa Stripe (`stripe-fee:*`) **não** se aplica a ingressos de eventos — o
+> handler localiza a doação pelo `referenceId` com prefixo `stripe-pi:`. Fees de eventos ficam
+> fora do ledger por ora (follow-up conhecido).
 
 > O frontend usa o **prefixo** do `referenceId` (em `src/utils/transaction.tsx`) para classificar a transação (`donation`, `reimbursement`, `vendor-payment`, `vendor-receipt`, `transfer`, `other`) e renderizar o cartão correto.
 
@@ -588,6 +665,27 @@ O módulo `companies` segue o mesmo padrão ledger-backed, mas com carteira pró
 - `trackSubscriptionStatus()` + cron diário `freezePastDueSubscriptions()` congelam a carteira quando assinatura fica `past_due` por mais de 3 dias.
 - `tradeName` (nome fantasia) é salvo em `companies.tradeName` e usado no comprovante de doação e na página `/patrocinadores`.
 - Comprovante de doação PJ: `GET /companies/:id/receipt?month=YYYY-MM` consome faturas Stripe pagas e retorna JSON para renderização/ impressão.
+
+#### Papéis (multi-role)
+
+`Member.roles` é um array nativo do Postgres (`text[]`, Migration010) — um membro acumula
+papéis, ex.: `['membro', 'event_organizer', 'event_checker']`. O `RolesGuard` testa
+`user.roles.includes(requiredRole)`; o bootstrap de admin **adiciona** `admin` ao array (não
+sobrescreve). Valores de `MemberRole`:
+
+| Role | Escopo |
+|------|--------|
+| `membro` | Default de todo membro |
+| `admin` | Global |
+| `finance-analyzer` | Global (relatórios financeiros) |
+| `event_organizer` | Global + ownership por evento externo via `static/events/organizers.json` |
+| `event_finance` | Global (relatórios/reembolsos de eventos) |
+| `event_host` | Por evento (tabela `event_staff`, staffRole `host`) |
+| `event_checker` | Por evento (tabela `event_staff`, staffRole `checker` — somente check-in) |
+
+> `event_staff` (Postgres) cobre eventos **próprios**; `organizers.json` (repo) cobre eventos
+> **externos**. `members.eventCommsOptIn` (default `false`) controla e-mails não transacionais
+> de eventos (pós-evento); transacionais ignoram a flag.
 
 #### Padrão de tela admin
 
@@ -854,6 +952,28 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 
 ---
 
+## Documentação do Projeto
+
+Além deste `AGENTS.md`, a pasta `docs/` centraliza todos os planos e manuais técnicos. Os
+arquivos `*_PLAN.md` foram movidos da raiz do repositório para `docs/` (não há mais planos na
+root).
+
+| Documento | Conteúdo |
+|-----------|----------|
+| `docs/ROLES.md` | Mapa de papéis globais e staff de eventos, com matriz de permissões. |
+| `docs/EVENT_PLAN.md` | Plano completo da plataforma de eventos (Fases 1 + 2a–2d implementadas; 2e futuro). Inclui princípios, roadmap, modelo de dados, sincronização de participantes, check-in, certificados, decisões de design e registro de implementação. |
+| `docs/EVENT_PLAN_EXECUTION.md` | Estado de execução do plano de eventos: o que foi implementado, bugs corrigidos e pendências. |
+| `docs/CODE_MANUAL.md` | Manual prático do código para agents trabalharem no módulo de eventos — onde vive cada funcionalidade, fluxos principais, mapa de papéis, anti-patterns e dicas de debug. |
+| `docs/CLUB_PLAN.md` / `docs/CLUB_BUSINESS_PLAN.md` | Planos do Clube Codaqui / empresas PJ. |
+| `docs/MULTISITE_PLAN.md` | Multi-tenant communities (T.I. Social piloto). |
+| `docs/REAL_NETWORK_PLAN.md` | Plano de networking/matchmaking (Fase 2e). |
+| `docs/UPDATE_PLAN.md` | Plano de atualização de dependências e manutenção. |
+
+Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes
+ou corrigir bugs recorrentes.
+
+---
+
 ## Regular Maintenance
 
 | What | When | Where |
@@ -941,7 +1061,7 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 
 ## Multi-tenant communities (D1 — single Docusaurus)
 
-> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Plano completo em **`MULTISITE_PLAN.md`**. T.I. Social é o piloto.
+> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Plano completo em **`docs/MULTISITE_PLAN.md`**. T.I. Social é o piloto.
 
 ### Arquitetura — onde vive cada peça
 
@@ -1030,11 +1150,11 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 - ✅ Transparência com `<TransactionTable>` real (drill-down + filtros)
 - ✅ Auth callback whitelabel (logo + cor durante spinner)
 - ⚠️ `features.events: false` (sem dados de eventos próprios ainda)
-- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver MULTISITE_PLAN.md §6)
+- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver docs/MULTISITE_PLAN.md §6)
 
 ### Domínio próprio via Cloudflare Worker (`workers/`)
 
-> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `MULTISITE_PLAN.md §6`.
+> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `docs/MULTISITE_PLAN.md §6`.
 
 | Caminho | Conteúdo |
 |---------|----------|

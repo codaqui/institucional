@@ -1,25 +1,27 @@
 <!-- AGENT-INDEX
-purpose: Plan for storing event override metadata in this repo as the source of truth (GitHub-as-Database pattern).
-audience: Devs extending the events sync pipeline, AI agents adding new sources/overrides.
-status: Fase 1 (overrides) — design confirmed, always-PR model with codaqui-bot auto-merge, implementation pending. Fase 2 (plataforma de gestão de eventos) — desenho detalhado em revisão, nada implementado.
+purpose: Plano técnico e funcional da Plataforma de Gestão de Eventos da Codaqui (overrides + eventos próprios + externos ativados). Fonte de verdade para escopo implementado e pendente.
+audience: Devs, AI agents e mantenedores trabalhando no módulo de eventos.
+status: Fase 1 (overrides) + Fase 2a–2d IMPLEMENTADAS (2026-07-30). Fase 2e (Real Network) é plano futuro. Divergências reais entre código e desenho original estão no "Registro de Implementação (2026-07)".
 sections:
   - Visão Geral
-  - Fase 2 — Plataforma de Gestão de Eventos (roadmap 2a–2e, papéis, modelo de dados, ingressos Stripe, participantes: sync nativo interno + CSV à la carte externo, check-in, certificados sob demanda, relatórios, decisões de design)
+  - Fase 2 — Plataforma de Gestão de Eventos (princípios, roadmap 2a–2e, mapa detalhado de papéis, modelo de dados, ingressos Stripe, sincronização de participantes, check-in, certificados, relatórios, decisões de design)
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
   - CRUD de Overrides (GitHub-as-Database)
   - Dois Caminhos para Editar
-  - GitHub App: codaqui-bot (validação + auto-merge)
-  - GitHub Action: Validação e Auto-Merge de Overrides
+  - Validação + Auto-Merge (GitHub Actions)
   - Merge de Dados: Base + Override (frontend)
   - Backend: Variáveis de Ambiente
   - Padrão Reutilizável: GitHub-as-Database
-  - UI da Página de Evento: Dados Máximos
+  - UI/UX para Organizadores (hub unificado, plugins, busca, caixa)
   - Testes Necessários
   - Checklist de Implementação
+  - Registro de Implementação (2026-07)
 related-docs:
-  - AGENTS.md §7 Events System — actual implemented events flow (snapshot pipeline)
-agent-protocol: This is the EXTENDED plan. For the currently implemented snapshot pipeline, see AGENTS.md §7 first.
+  - AGENTS.md §7 Events System — fluxo real de snapshots e overrides
+  - docs/CODE_MANUAL.md — manual prático do código do módulo de eventos
+  - docs/ROLES.md — matriz de permissões global e por evento
+agent-protocol: Fases 1 e 2a–2d estão IMPLEMENTADAS. Sempre consulte o "Registro de Implementação (2026-07)" ao final antes de assumir que o desenho textual reflete 100% o código. Para detalhes de implementação (arquivos, métodos, fluxos), use docs/CODE_MANUAL.md.
 -->
 
 # Event Organizer — Metadados via GitHub como Banco de Dados
@@ -42,8 +44,9 @@ e aprovado automaticamente por um bot. O frontend lê e mescla os dois arquivos 
 
 ## Fase 2 — Plataforma de Gestão de Eventos
 
-> **Status:** desenho detalhado em revisão. **Nada desta seção está implementado** (confirmado
-> em 2026-07: não existe `backend/src/events/`, módulo de e-mail, nem página `/admin/eventos`).
+> **Status:** Fases 2a–2d **IMPLEMENTADAS** (2026-07), aguardando revisão/deploy; 2e (Real
+> Network) continua plano futuro. Os desvios e as decisões reais vs. este desenho estão na
+> seção **"Registro de Implementação (2026-07)"** ao final do documento.
 > Itens marcados com ⤴ dependem da Fase 1 (overrides + migração multi-role).
 
 Além dos overrides de metadados, o plano evolui para uma **plataforma de gestão de eventos completa**,
@@ -86,23 +89,35 @@ em `src/data/events.ts`) quanto para eventos externos parceiros.
 
 ### Papéis e permissões
 
-Novos valores no enum `MemberRole` (além de `EVENT_ORGANIZER` da Fase 1): `EVENT_FINANCE`,
-`EVENT_HOST`, `EVENT_CHECKER`. **Pré-requisito ⤴:** hoje `Member.role` é enum single-value
-(`backend/src/members/entities/member.entity.ts:40`) e o `RolesGuard` faz
-`requiredRoles.includes(user.role)` (`backend/src/auth/guards/roles.guard.ts:27`) — a migração
-para `roles text[]` planejada na Fase 1 precisa estar concluída, pois um mesmo membro
-acumulará papéis (ex.: `['membro', 'event_organizer', 'event_checker']`).
+Novos valores no enum `MemberRole` (além de `event_organizer` da Fase 1):
+`event_finance`, `event_host`, `event_checker`. **Pré-requisito ⤴:** a coluna
+`Member.role` foi migrada para `roles text[]` (migration 010) e o `RolesGuard` usa
+`user.roles.includes(requiredRole)`. Um mesmo membro acumula papéis
+(ex.: `['membro', 'event_organizer', 'event_checker']`).
 
-| Papel | Escopo | Permissões |
-|---|---|---|
-| `event_organizer` | Global (atribuído por admin) + staff por evento | Criar/editar/publicar eventos próprios, gerenciar tipos de ingresso, overrides ⤴, ver relatórios |
-| `event_finance` | Global | Relatórios financeiros de eventos, reembolsos de ingressos, exportações |
-| `event_host` | Por evento (tabela `event_staff`) | Editar dados do próprio evento, ver lista de inscritos |
-| `event_checker` | Por evento (tabela `event_staff`) | Somente check-in (endpoint dedicado) |
+#### Mapa de papéis e habilidades
 
-> Enquanto a Fase 1 usa `static/events/organizers.json` para ownership de eventos **externos**,
-> a Fase 2 usa a tabela `event_staff` (Postgres) para eventos **próprios** — o arquivo JSON
-> não escala para permissões por evento criadas em runtime.
+| Papel | Escopo | Quem atribui | Habilidades |
+|---|---|---|---|
+| `admin` | Global | Bootstrap / outro admin | Tudo: CRUD de eventos, todos os overrides, todas as ativações, todos os check-ins, relatórios financeiros, reembolsos, configuração de ownership. |
+| `event_organizer` | Global + ownership de eventos externos + staff por evento próprio | Admin | Criar/editar/publicar eventos próprios; gerenciar tipos de ingresso e lotes; criar overrides de eventos externos que possui (ou todos, se admin delegar); ativar features (`checkin`, `certificates`, `payments`) em eventos externos que possui; gerenciar staff (`event_host`/`event_checker`) dos eventos próprios; ver relatórios e caixa do evento; lançar despesas/reembolsos vinculados ao evento. |
+| `event_finance` | Global | Admin | Ver relatórios financeiros de todos os eventos; aprovar/rejeitar/pagar reembolsos de eventos; exportar CSV de pedidos/participantes; ver caixa consolidado. |
+| `event_host` | Por evento (tabela `event_staff`) | Organizer/admin do evento | Editar metadados do próprio evento; ver lista de inscritos e pedidos; fazer check-in manual (lista + busca); emitir/ver certificados; lançar despesa do evento. |
+| `event_checker` | Por evento (tabela `event_staff`) | Organizer/admin do evento | **Apenas check-in**: ler QR code e fazer busca manual por nome/e-mail. **Não** vê lista completa de inscritos, **não** vê valores financeiros, **não** edita o evento. |
+| `membro` | Global | Automático no cadastro | Ver eventos públicos; comprar/reservar ingressos; ver próprias inscrições; emitir próprio certificado; ver histórico público de participações. |
+
+> **Regra de ouro para eventos externos:** o ownership é definido em
+> `static/events/organizers.json` (escopo exato `<sourceKey>:<eventId>` ou wildcard
+> `<sourceKey>:*`). Um `event_organizer` só ativa features ou edita override de eventos
+> que possui, a menos que também seja `admin`.
+>
+> **Regra de ouro para eventos próprios:** as permissões por evento usam a tabela
+> `event_staff` (Postgres). O arquivo `organizers.json` não escala para permissões criadas
+> em runtime.
+>
+> **Herança:** `admin` e `event_organizer` são papéis globais que já incluem as
+> permissões de `event_host` sobre qualquer evento. `event_host` e `event_checker` são
+> delegações pontuais feitas pelo organizer/admin dentro de cada evento próprio.
 
 ### Modelo de dados (novo módulo `backend/src/events/`)
 
@@ -239,8 +254,10 @@ Reutiliza o fluxo existente de doações em vez de criar um paralelo:
    ```
 
    Se não retornar linha → 409 "lote esgotado". Cria `EventOrder` `pending` com `expiresAt`.
-3. Cria a sessão via `StripeService.createCheckoutSession` com metadata estendida:
+3. Cria a sessão via `StripeService.createEventTicketCheckoutSession` com metadata estendida:
    `{ entityType: 'event-ticket', eventId, orderId, communityId: event.communityProjectKey }`.
+   O endpoint suporta `uiMode: 'hosted'` (redireciona para Stripe) ou `'embedded_page'`
+   (retorna `clientSecret` para renderizar dentro da página do evento).
 4. Webhook `checkout.session.completed` (handler já existente em
    `backend/src/stripe/stripe.service.ts:220`) ganha um branch para `entityType === 'event-ticket'`:
    marca order `paid`, gera as `EventRegistration` (uma por ingresso, com `checkinToken` próprio)
@@ -319,16 +336,35 @@ frontend, gerado sob demanda — sem PDF armazenado, sem envio de e-mail.
 
 ### Participantes: externos (CSV à la carte) vs internos (sync nativo) (2d)
 
-**Restrição de plataforma:** a sincronização automática de participantes com as fontes externas
-é limitada pelas APIs de cada uma (ver tabela ao final) — Meetup exige OAuth do organizador,
-Sympla exige token do produtor, OCGroups/Bevy não têm API pública de RSVP. O modelo, portanto,
-é **assimétrico**:
+A sincronização de participantes é **assimétrica por design**, por limitação das plataformas
+parceiras. Nem toda fonte externa expõe API de RSVP, e quando expõe exige credenciais do
+organizador/produtor. Por isso adotamos duas velocidades:
 
-| | Eventos **internos** (`internal:*`) | Eventos **externos** (com override) |
+| | Eventos **internos** (`internal:*`) | Eventos **externos** (ativados) |
 |---|---|---|
-| Inscrições | Nativas na plataforma (RSVP gratuito + Stripe) | **Importadas via CSV** pelo organizador |
+| Inscrições | Nativas na plataforma (RSVP gratuito + Stripe checkout) | **Importadas via CSV** pelo organizador; auto-sync onde a API permitir |
 | Features | Plataforma completa, sempre habilitada | **À la carte por evento**: check-in, certificados, pagamentos |
-| Sync de participantes | Nativo — os dados já nascem no Postgres | Sem garantia — **CSV é o baseline**; auto-sync só onde a API permitir (bônus) |
+| Fonte de verdade | Postgres + snapshots estáticos | Snapshot estático (metadados) + Postgres (ativação, participantes, pedidos) |
+
+#### Regras do modelo assimétrico
+
+1. **Eventos internos:** toda inscrição nasce na plataforma. Não há importação CSV — o próprio
+   fluxo de `register` (gratuito) ou `checkout` (pago) cria `EventRegistration` vinculada a um
+   `Member`. O sync automático é o snapshot `internal:codaqui`, que exporta metadados para
+   `static/events/` a cada hora.
+2. **Eventos externos ativados:** os metadados continuam vindo do snapshot da fonte original,
+   mas o organizador cria uma **ativação** (`external_event_activations`) no Postgres para
+   habilitar features. A lista de participantes é importada via CSV pelo organizador.
+3. **Match obrigatório:** toda linha do CSV passa por `findMemberByIdentifier`, que casa por
+   `email` (primário ou `secondaryEmails`) ou `githubHandle`. Sem match a inscrição fica
+   `pending_match` e é sinalizada ao organizador. O participante cria conta no site e o match
+   é refeito automaticamente no cadastro ou manualmente via `rematch`.
+4. **Auto-sync oportunista:** quando a API da fonte permitir (Discord bot token é o caso mais
+   viável), o backend pode sincronizar participantes automaticamente no mesmo modelo de
+   `EventRegistration` com `externalSource`/`externalId`. Isso é um **bônus**, não baseline.
+5. **Exportação para a fonte original:** não é suportada. A plataforma é leitura/ingresso
+   próprio; o organizador continua usando a ferramenta original para divulgação e, quando
+   necessário, exporta o CSV dela para importar aqui.
 
 #### Ativação de features em evento externo
 
@@ -354,7 +390,7 @@ Comportamento por feature em evento externo:
 
 | Feature | Como funciona |
 |---|---|
-| `checkin` | Mesmo endpoint/QR da 2c. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Entrega dos QR codes: download de CSV/PDF pelo organizador (envio por e-mail só quando 2c estiver disponível) |
+| `checkin` | Mesmo endpoint/QR da 2c. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Entrega dos QR codes: download de CSV/PDF pelo organizador ou envio por e-mail (2c implementada) |
 | `certificates` | Exige presença confirmada (check-in) + match com conta no site. Emissão sob demanda no perfil do membro (sem e-mail) |
 | `payments` | A Codaqui vende ingressos do evento externo pelo próprio Stripe (ex.: comunidade quer cobrar fora da Sympla). `ticket_types` ligados à ativação; receita na conta `communityProjectKey`. Reconciliação com a lista da fonte via CSV (dedupe por e-mail) |
 
@@ -366,8 +402,8 @@ Comportamento por feature em evento externo:
 
 `POST /events/external/:eventKey/participants/import` (owner do evento ⤴ ou admin):
 
-- **Formato canônico:** UTF-8, header obrigatório `name,email,ticket_type,external_id`
-  (separador `;` ou `,` detectado automaticamente; `ticket_type` e `external_id` opcionais);
+- **Formato canônico:** UTF-8, header obrigatório `name,email,ticket_type,external_id,github`
+  (separador `;` ou `,` detectado automaticamente; `ticket_type`, `external_id` e `github` opcionais);
 - **Pipeline:** parse → validação linha a linha (e-mail válido, nome presente) → **match com
   conta no site** (por e-mail da conta ou `githubHandle`) → dedupe → cria `EventRegistration`
   com `orderId: null`, `externalSource` + `externalId`, `memberId` (quando matched) e
@@ -426,6 +462,8 @@ nenhuma sub-fase.
 | `GET` | `/events/:id/report` | event_organizer, event_finance | Relatório do evento |
 | `GET` | `/events/orders/:id/receipt` | Dono ou event_finance | Comprovante da compra |
 | `GET` | `/events/registrations/:id/certificate` | Dono (presença confirmada) | Dados do certificado (sob demanda) |
+| `POST` | `/events/:id/reimbursements` | Organizer/admin/staff do evento | Lança reembolso/despesa vinculada ao evento próprio |
+| `POST` | `/events/external/:eventKey/reimbursements` | Owner/ativador/admin do evento externo | Lança reembolso/despesa vinculada ao evento externo |
 | `POST` | `/events/external/:eventKey/activate` | Owner do evento ⤴ ou admin | Ativa features à la carte no evento externo |
 | `POST` | `/events/external/:eventKey/participants/import` | Owner ou admin | Importa CSV de participantes (idempotente, com match) |
 | `POST` | `/events/external/:eventKey/participants/rematch` | Owner ou admin | Refaz match de participantes `pending_match` |
@@ -460,9 +498,20 @@ nenhuma sub-fase.
 5. **Refunds conforme legislação BR de eventos** — CDC art. 49 (7 dias corridos, compra
    online), regras de cancelamento/adiamento. Termos e política de reembolso explícitos,
    aceitos no checkout e versionados na order. Refund parcial do Stripe para multi-ingresso.
-6. **Real Network (2e):** plano futuro, fora de escopo até 2a–2d estáveis.
+   Página dedicada `/termos-de-compra` centraliza o texto legal; o checkout linka para ela.
+6. **Checkout embedded** — pagamento de ingressos acontece dentro da página do evento
+   (`StripeEmbeddedCheckoutDialog`), sem redirecionar o participante para o Stripe. Fallback
+   `hosted` mantido para compatibilidade e ambientes sem a chave pública configurada.
+7. **Despesas de evento via reembolso** — toda saída de caixa de um evento (interno ou externo)
+   passa pelo módulo de reembolsos e pelo ledger, vinculada ao evento por `eventId` ou
+   `externalActivationId`. Reaproveita aprovação do finance-analyzer/admin e a conta da
+   comunidade (`communityProjectKey`).
+8. **Real Network (2e):** plano futuro, fora de escopo até 2a–2d estáveis.
 
 ### Testes da Fase 2
+
+> **Status:** implementados — todos os cenários abaixo estão cobertos por specs
+> (580 testes backend verdes em 2026-07-30, mais os testes frontend).
 
 - **Anti-oversell:** N requisições concorrentes disputando 1 vaga → exatamente 1 sucesso;
 - **Idempotência de webhook:** mesmo `checkout.session.completed` entregue 2× → 1 order paga,
@@ -498,32 +547,26 @@ nenhuma sub-fase.
 
 ### Nova role: `event_organizer`
 
-> ⚠️ **`MemberRole` é single-value no schema atual.** Adicionar `event_organizer` diretamente
-> pode sobrescrever `admin` ou `finance-analyzer` na mesma coluna.
-> Antes de implementar, migrar para multi-role com array `text[]`:
+> ✅ **`MemberRole` já foi migrado para `roles text[]`** (migration 010). Um membro pode
+> acumular papéis (`['membro', 'event_organizer', 'event_checker']`) sem sobrescrever
+> `admin`/`finance-analyzer`. O `RolesGuard` usa `user.roles.includes(requiredRole)`.
+>
+> O snippet abaixo permanece como referência do schema atual:
 
 ```typescript
 // backend/src/members/entities/member.entity.ts
-// Novo enum:
 export enum MemberRole {
   MEMBRO           = 'membro',
-  EVENT_ORGANIZER  = 'event_organizer',  // ← novo
+  EVENT_ORGANIZER  = 'event_organizer',
   FINANCE_ANALYZER = 'finance-analyzer',
   ADMIN            = 'admin',
 }
 
-// Coluna migrada de enum para array nativo do Postgres:
-// Antes:   @Column({ type: 'enum', ... }) role: MemberRole;
-// Depois (recomendado — array PG nativo, suporta GIN index e queries com ANY/&&):
 @Column({ type: 'text', array: true, default: () => "ARRAY['membro']::text[]" })
 roles: MemberRole[];   // ex: ['membro'], ['admin'], ['membro','event_organizer']
-
-// ⚠️ Não use `simple-array` aqui: ele serializa em string CSV e perde
-// as garantias de array nativo (queries seguras, indexação, constraints).
 ```
 
-> Atualizar `RolesGuard` para usar `user.roles.includes(requiredRole)` em vez de igualdade.
-> Atribuição: somente um `admin` pode adicionar/remover roles.
+> Atribuição/remoção de roles: somente um `admin` pode fazer.
 
 ### Ownership de evento
 
@@ -598,8 +641,9 @@ Exemplo: `static/events/meetup/devparana/226163759.override.json`
 ## CRUD de Overrides (GitHub-as-Database)
 
 Toda operação de override — criar, atualizar ou deletar — é tratada como uma
-**operação de banco de dados via Git**: cada operação gera uma branch + PR,
-que é validado e auto-mergeado pelo `codaqui-bot`. Nunca há commit direto em `main`.
+**operação de banco de dados via Git**: cada operação gera uma branch + PR **em nome do
+próprio membro** (token OAuth com scope `public_repo`), que é validado e auto-mergeado
+pelo workflow do Actions (`github-actions[bot]`). Nunca há commit direto em `main`.
 
 | Operação | O que acontece no arquivo | Branch criada? | PR criado? |
 |---|---|---|---|
@@ -627,7 +671,7 @@ Exemplo: event-override/meetup-devparana-226163759-1746823200000
 [PR aberto com label "event-override"]
         │
         ▼
-[codaqui-bot recebe webhook do PR]
+[workflow validate-event-overrides roda no PR (github-actions[bot])]
         ├── Valida JSON do diff (campos proibidos, tipos, limites)
         ├── Se inválido → "Request changes" com comentário explicando o erro
         └── Se válido → Aprova PR → Habilita auto-merge (squash) → GitHub mergeia → deleta branch
@@ -645,10 +689,13 @@ O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo flu
 2. Seleciona o evento e preenche o formulário de override
 3. Clica em "Salvar" → backend:
    a. Valida os campos **antes** de qualquer chamada à GitHub API
-   b. Cria branch `event-override/<sourceKey>-<eventId>-<ts>` via GitHub App token
+   b. Cria branch `event-override/<sourceKey>-<eventId>-<ts>` **com o token OAuth do
+      próprio membro** — no repo canônico se ele é colaborador (admin/maintain/write);
+      senão no fork dele (fork flow automático)
    c. Commita o `.override.json` (create/update) ou deleta o arquivo (delete) na branch
+      — o commit sai em nome do membro (atribuição de contributor)
    d. Abre PR com label `event-override`, título: `event: override <eventId> by @<handle> — <reason>`
-4. `codaqui-bot` processa o PR (veja seção abaixo)
+4. O workflow do Actions processa o PR (veja seção abaixo)
 5. PR auto-mergeado em segundos; frontend vê o override na próxima requisição
 
 ### Caminho B: GitHub diretamente (web editor ou clone local)
@@ -657,36 +704,43 @@ O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo flu
 2. Cria, edita ou deleta o arquivo `.override.json` no caminho correto:
    `static/events/<source>/<sourceId>/<eventId>.override.json`
 3. Abre PR com label `event-override` contra `main`
-4. `codaqui-bot` valida o diff e auto-mergeia (mesmo fluxo do Caminho A)
+4. O workflow do Actions valida o diff e auto-mergeia (mesmo fluxo do Caminho A)
 
-> **Regra de segurança:** O `codaqui-bot` rejeita PRs que contenham alterações fora de
-> `static/events/**/*.override.json`. PRs mistos (override + outro arquivo) são bloqueados.
+> **Regra de segurança:** o workflow rejeita PRs que contenham alterações fora de
+> `static/events/**/*.override.json` e `static/events/organizers.json`. PRs mistos
+> (override/organizers + outro arquivo) são bloqueados.
 
 ---
 
-## GitHub App: codaqui-bot (validação + auto-merge)
+## Validação + auto-merge (GitHub Actions — `github-actions[bot]`)
+
+> **Modelo atual (2026-07-29):** não há mais GitHub App. A validação e o auto-merge
+> rodam no workflow `validate-event-overrides.yml` com o `GITHUB_TOKEN` padrão do
+> Actions; a aprovação fica em nome de `github-actions[bot]`. As permissões abaixo
+> são as do job (não de um App).
 
 ### Permissões necessárias
 
-| Permissão | Nível | Para quê |
+| Onde | Permissão | Para quê |
 |---|---|---|
-| `Contents` | Write | Criar branches e commitar arquivos (Caminho A) |
-| `Pull requests` | Write | Criar PRs, aprovar, habilitar auto-merge |
-| `Workflows` | Read | Ler status de checks antes de mergear |
+| Job do workflow (`permissions:`) | `contents: write` | Merge via `gh pr merge` |
+| Job do workflow (`permissions:`) | `pull-requests: write` | Aprovar PRs e habilitar auto-merge |
+| Membro (token OAuth, scope `public_repo`) | — | Criar branch/commits/PR no canônico (colaborador) ou via fork |
 
 > O repositório precisa ter **auto-merge habilitado** nas configurações:
 > _Settings → General → Allow auto-merge_
 
-### Lógica de validação do bot
+### Lógica de validação do workflow
 
 ```typescript
-// Pseudocódigo do webhook handler do codaqui-bot
+// Pseudocódigo do step de validação (scripts/validate-overrides.mjs)
 async function onPullRequestOpened(pr: PullRequest) {
-  // 1. Verificar que todos os arquivos modificados são *.override.json
+  // 1. Verificar que todos os arquivos modificados são *.override.json ou organizers.json
   const files = await listPRFiles(pr.number);
-  const invalidFiles = files.filter(f => !f.filename.match(
-    /^static\/events\/[^/]+\/[^/]+\/[^/]+\.override\.json$/
-  ));
+  const invalidFiles = files.filter(f =>
+    f.filename !== 'static/events/organizers.json' &&
+    !f.filename.match(/^static\/events\/[^/]+\/[^/]+\/[^/]+\.override\.json$/)
+  );
   if (invalidFiles.length > 0) {
     await requestChanges(pr.number, `PR contém arquivos fora do escopo permitido: ${invalidFiles.map(f => f.filename).join(', ')}`);
     return;
@@ -704,7 +758,7 @@ async function onPullRequestOpened(pr: PullRequest) {
   }
 
   // 3. Tudo válido: aprovar + habilitar auto-merge
-  await approvePR(pr.number, '✅ Override validado automaticamente pelo codaqui-bot.');
+  await approvePR(pr.number, '✅ Override validado automaticamente (github-actions).');
   await enableAutoMerge(pr.number, 'SQUASH');
   // Após merge: GitHub deleta a branch automaticamente (configurar em Settings → Delete head branches)
 }
@@ -736,8 +790,9 @@ function validateOverrideSchema(data: unknown): { ok: boolean; reason?: string }
 
 ## GitHub Action: Validação e Auto-Merge de Overrides
 
-A GitHub Action abaixo é o ponto de entrada para o `codaqui-bot` processar PRs de override.
-Ela é disparada em `pull_request` (não em push para `main`), garantindo validação **antes** do merge.
+A GitHub Action abaixo valida e auto-mergeia PRs de override. Ela é disparada em
+`pull_request` (não em push para `main`), garantindo validação **antes** do merge.
+Usa o `GITHUB_TOKEN` padrão do Actions — sem GitHub App.
 
 ```yaml
 # .github/workflows/validate-event-overrides.yml
@@ -748,6 +803,7 @@ on:
     types: [opened, synchronize, reopened]
     paths:
       - 'static/events/**/*.override.json'
+      - 'static/events/organizers.json'
 
 jobs:
   validate-and-merge:
@@ -758,38 +814,41 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.GH_APP_ID }}
-          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
-
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-          token: ${{ steps.app-token.outputs.token }}
+          fetch-depth: 0
 
       - uses: actions/setup-node@v6
         with: { node-version: '24' }
 
-      - name: Validate override files
-        run: node scripts/validate-overrides.mjs
-        # Sai com código 1 se qualquer *.override.json for inválido
+      - name: Validate override files changed in this PR
+        # Valida apenas os arquivos alterados no PR (git diff da base...HEAD).
+        # Qualquer arquivo fora do padrão (*.override.json ou organizers.json)
+        # na lista falha — PR misto. Deleções passam.
+        run: |
+          set -euo pipefail
+          CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "Nenhum arquivo alterado no PR."
+            exit 0
+          fi
+          git diff --name-only -z "origin/${{ github.base_ref }}...HEAD" \
+            | xargs -0 node scripts/validate-overrides.mjs
 
-      - name: Approve PR (codaqui-bot)
+      - name: Approve PR (github-actions[bot])
         if: success()
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr review ${{ github.event.pull_request.number }} \
             --approve \
-            --body "✅ Override validado automaticamente pelo codaqui-bot."
+            --body "✅ Override validado automaticamente (github-actions)."
 
       - name: Enable auto-merge
         if: success()
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr merge ${{ github.event.pull_request.number }} \
             --squash \
@@ -852,19 +911,21 @@ A página exibe um badge **"Metadados verificados por @handle"** quando override
 ## Backend: Variáveis de Ambiente
 
 ```
-# .env.example — adicionar:
+# .env.example — modelo atual:
 GITHUB_REPO_OWNER=codaqui
 GITHUB_REPO_NAME=institucional
 
-# GitHub App — usado para criar branches + PRs (NUNCA token pessoal de membro):
-GITHUB_APP_ID=                  # ID numérico do GitHub App `codaqui-bot`
-GITHUB_APP_INSTALLATION_ID=     # ID da instalação no org `codaqui`
-GITHUB_APP_PRIVATE_KEY=         # Chave privada PEM do GitHub App (multiline; usar base64 se necessário)
+# Criptografia em repouso dos tokens OAuth dos membros (AES-256-GCM, 32 bytes
+# em hex ou base64). OBRIGATÓRIA em produção; em dev, sem ela, os tokens são
+# gravados com prefixo `plain:` (fallback documentado).
+GITHUB_TOKEN_ENCRYPTION_KEY=
 ```
 
 > ⚠️ **Não há `GITHUB_CREATE_PR` nem `GITHUB_COMMIT_DISABLED`** — o modelo é sempre-PR.
-> O backend nunca commita direto em `main`. A autoria do organizador é registrada no campo
-> `ownerHandle` do JSON override e no commit message — o committer real é sempre o GitHub App.
+> O backend nunca commita direto em `main`. A escrita usa o **token OAuth do próprio
+> membro** (scope `public_repo`, capturado no login e persistido criptografado em
+> `members.githubAccessToken`) — o committer é o membro, e a autoria também fica
+> registrada no campo `ownerHandle` do JSON override e no commit message.
 
 ### Endpoints do módulo `event-organizer`
 
@@ -882,8 +943,8 @@ GITHUB_APP_PRIVATE_KEY=         # Chave privada PEM do GitHub App (multiline; us
 
 ## Padrão Reutilizável: GitHub-as-Database
 
-Este fluxo (backend valida → **GitHub App** cria branch + PR → `codaqui-bot` auto-mergeia →
-branch deletada) é reutilizável para qualquer dado que vive no repositório:
+Este fluxo (backend valida → **token OAuth do membro** cria branch + PR → workflow do
+Actions auto-mergeia → branch deletada) é reutilizável para qualquer dado que vive no repositório:
 
 | Caso de uso | Arquivo alvo | Quem dispara (role) |
 |---|---|---|
@@ -892,11 +953,11 @@ branch deletada) é reutilizável para qualquer dado que vive no repositório:
 | Atualização de stats manuais (YouTube, Instagram) | `src/data/social.ts` | admin |
 | Upload de fallback de eventos | `events.config.json` | admin |
 
-> Em todos os casos o **committer é o GitHub App `codaqui-bot`**. O backend nunca usa
-> tokens pessoais do membro para escrita — isso garante que:
-> 1. Não dependemos do membro ser colaborador write do repo (`public_repo` scope OAuth não cobre);
-> 2. Todos os tokens sensíveis ficam no servidor (não trafegam para o browser);
-> 3. A auditoria fica centralizada (commits do bot, autoria lógica em `ownerHandle`).
+> Em todos os casos o **committer é o próprio membro** (dono do token OAuth). O backend
+> guarda o token criptografado em repouso e nunca o expõe — isso garante que:
+> 1. O membro recebe atribuição de contributor no repositório público;
+> 2. Membros sem permissão de escrita passam pelo fork flow (não precisam ser colaboradores);
+> 3. A auditoria fica centralizada (`ownerHandle` no JSON + autoria real do commit).
 
 ### Biblioteca interna: `GitHubDBService`
 
@@ -906,24 +967,28 @@ branch deletada) é reutilizável para qualquer dado que vive no repositório:
 export class GitHubDBService {
   /**
    * Cria uma branch, commita a mudança e abre um PR.
-   * O `actorHandle` é preservado no commit message e no título do PR.
-   * O bot (`codaqui-bot`) valida e auto-mergeia o PR após aprovação.
+   * Escreve com o token OAuth do membro (userToken): branch no repo canônico
+   * se ele é colaborador (admin/maintain/write); senão fork flow
+   * (fork automático + poll, PR com head "<actorHandle>:<branch>").
+   * O commit sai em nome do membro; o workflow do Actions auto-mergeia.
    */
   async createPRWithFile(opts: {
     branch: string;         // nome da branch (ex: "event-override/meetup-devparana-123-ts")
     path: string;           // caminho do arquivo no repositório
-    content: string;        // conteúdo em UTF-8 (undefined para deletar)
+    content: string;        // conteúdo em UTF-8
     commitMessage: string;  // "event: override <eventId> by @<actorHandle> — <reason>"
     prTitle: string;        // título do PR
-    actorHandle: string;    // handle GitHub do membro (auditoria)
+    actorHandle: string;    // handle GitHub do membro (autor do commit)
+    userToken: string;      // token OAuth do membro (scope public_repo)
     labels?: string[];      // ex.: ["event-override"]
   }): Promise<{ prNumber: number; prUrl: string }>;
 
+  /** Lê arquivo de `main` via raw.githubusercontent.com (público, sem token) */
   async readFile(path: string): Promise<string | null>;
 
   /**
    * Cria branch + PR de delete (remove o arquivo override).
-   * Mesmo fluxo: bot valida que só *.override.json está sendo removido e auto-mergeia.
+   * Mesmo fluxo: o workflow valida que só *.override.json foi removido e auto-mergeia.
    */
   async createPRDeleteFile(opts: {
     branch: string;
@@ -931,16 +996,46 @@ export class GitHubDBService {
     commitMessage: string;
     prTitle: string;
     actorHandle: string;
+    userToken: string;
+    labels?: string[];
   }): Promise<{ prNumber: number; prUrl: string }>;
 
   /** Retorna o PR aberto para uma branch (útil para polling de status) */
-  async getPRForBranch(branch: string): Promise<{ number: number; state: string; mergedAt: string | null } | null>;
+  async getPRForBranch(
+    branch: string,
+    userToken: string,
+    headOwner?: string, // handle do membro quando o PR veio de um fork
+  ): Promise<{ number: number; state: string; mergedAt: string | null; prUrl: string } | null>;
+
+  /**
+   * Versão multi-arquivo (2026-07-29): N arquivos em UM PR — commits contents
+   * sequenciais na mesma branch (PUT create/update; DELETE quando content é
+   * null) e um único PR no final. Usada pelo force-sync internal.
+   */
+  async createPRWithFiles(opts: {
+    branch: string;
+    files: Array<{ path: string; content: string | null }>; // null = delete
+    commitMessage: string;
+    prTitle: string;
+    actorHandle: string;
+    userToken: string;
+    labels?: string[];
+  }): Promise<{ prNumber: number; prUrl: string }>;
+
+  /** Lista arquivos de um diretório na branch base (404 → null) */
+  async listDir(path: string, userToken: string): Promise<Array<{ name: string; path: string }> | null>;
+
+  /** Histórico de commits de um arquivo (token opcional — repo público; [] quando vazio) */
+  async getFileHistory(path: string, userToken?: string | null): Promise<FileHistoryEntry[]>;
 }
 ```
 
-> Internamente o service usa `GITHUB_APP_ID` + `GITHUB_APP_INSTALLATION_ID` + `GITHUB_APP_PRIVATE_KEY`
-> para gerar tokens de instalação de curta duração via `POST /app/installations/:id/access_tokens`.
-> Nunca há `commitFile()` direto em `main` — todo write passa por branch + PR.
+> 401/403 do GitHub na escrita → 403 com orientação de re-login (token expirado ou
+> login anterior ao scope `public_repo`). Nunca há `commitFile()` direto na branch base
+> — todo write passa por branch + PR.
+>
+> **Branch base configurável (2026-07-29):** env `GITHUB_BASE_BRANCH` (default `main`;
+> `develop` em dev). Afeta `readFile` (raw), a base dos PRs e a ref de criação de branch.
 
 ---
 
@@ -1117,6 +1212,116 @@ export default function EventOverrideBadge({ override }: Props) {
 
 ---
 
+## Diretrizes de UI/UX para organizadores
+
+A experiência do organizador deve ser centralizada: um único hub de eventos, com ações
+contextuais por evento, em vez de páginas dispersas. As funcionalidades hoje estão divididas
+entre `/admin/eventos` (eventos próprios) e `/admin/overrides` (externos + ativações); o
+objetivo de curto prazo é unificar a navegação mental do organizer sob o menu **Eventos**.
+
+### Hub unificado de eventos
+
+- **Menu principal:** `Eventos` → sub-menu `Gerenciar eventos`.
+- **Tela `/admin/eventos`:** lista **todos** os eventos (próprios + externos ativados),
+  paginados, com filtros por:
+  - Tipo: próprio / externo com override / externo ativado / todos;
+  - Status: draft / published / completed / canceled;
+  - Fonte (sourceKey);
+  - Features ativas (check-in, certificados, pagamentos);
+  - Eventos que eu gerencio (owner/staff).
+- **Card/linha do evento:** mostra título, data, fonte, badge de override, features ativas,
+  contadores rápidos (inscritos, pedidos, check-ins, receita).
+- **Ações por evento (contextuais):**
+  - Ver página pública;
+  - Editar metadados / override (deep-link para `/admin/overrides`);
+  - Gerenciar features/plugins (check-in, certificados, pagamentos);
+  - Gerenciar tipos de ingresso (próprio ou externo com `payments`);
+  - Ver pedidos / participantes;
+  - Check-in;
+  - Lançar despesa/reembolso vinculado ao evento;
+  - Relatório / caixa do evento.
+
+### Plugins/features por evento
+
+Cada evento tem uma tela de "Gestão de features" onde o organizer ativa/desativa plugins.
+A ativação de um evento externo cria a sombra `external_event_activations`; para eventos
+próprios os plugins já estão sempre disponíveis.
+
+| Plugin | Quem ativa | O que abre | Notas |
+|---|---|---|---|
+| `checkin` | admin / event_organizer / owner do externo | Tela de check-in (scanner + lista) | Pré-requisito para `certificates` |
+| `certificates` | admin / event_organizer / owner do externo | Emissão de certificados após check-in | Ativação automática também habilita `checkin` |
+| `payments` | admin / event_organizer / owner do externo | Tipos de ingresso, pedidos, reembolsos | Receita vai para `communityProjectKey` da ativação |
+
+> O plugin `certificates` implica `checkin` (não faz sentido certificar sem presença).
+> A quantidade de horas-aula do certificado vem do campo `workloadMinutes` no override
+> (`extendData.workloadMinutes`, 0–1000) para eventos externos, e de `endAt - startAt` para
+> eventos internos.
+
+### Gerenciamento de tipos de ingresso (lotes)
+
+- Cada tipo de ingresso tem janela de venda (`salesStartAt`/`salesEndAt`), quota total,
+  quota vendida, preço (`free` = 0), `maxPerOrder` e flag `isActive`.
+- A UI deve exibir claramente quando um lote está "indisponível ainda" (antes da data) ou
+  "esgotado" (quota esgotada), com a data/hora de abertura visível.
+- É possível desativar um lote aberto sem cancelar as vendas já feitas.
+- Reembolsos parciais: o organizer seleciona quais registrations serão reembolsadas; o Stripe
+  devolve o valor proporcional.
+
+### Pedidos e participantes
+
+- A tela de pedidos (`EventOrdersDialog`) mostra: comprador, tipo de ingresso, quantidade,
+  total, status, data de pagamento e ações (reembolso, ver comprovante).
+- A tela de participantes (para eventos externos ativados) mostra: nome, e-mail, status
+  (`confirmed`/`pending_match`), tipo de ingresso, check-in e ações (rematch manual).
+- Para eventos próprios, a lista de participantes é a união de registrations de RSVP gratuito
+  + registrations geradas a partir de orders pagas.
+
+### Busca em dropdowns
+
+Dropdowns de seleção de membros/eventos devem usar **autocomplete com busca** (nunca dropdown
+com todos os itens):
+- Seleção de organizador: busca por nome/handle/e-mail (`GET /events/staff-candidates?query=`);
+- Seleção de evento para override/ativação: busca por título/sourceKey
+  (`src/lib/events-api.ts` — index.json + overrides-index.json mergeados).
+
+### Após criar um evento
+
+Ao salvar um evento próprio, o sistema deve:
+1. Exibir toast de sucesso;
+2. Oferecer link direto "Ver página do evento";
+3. Oferecer link "Publicar evento" (se ainda estiver draft);
+4. Oferecer link "Criar primeiro lote de ingressos";
+5. Exibir aviso: "O evento aparecerá na listagem pública após o próximo sync (ou force-sync)."
+
+### Página pública de detalhe
+
+- Banner hero com `imageUrl` (fallback: gradiente com emoji da fonte);
+- Badge "Verificado por @handle" quando override existe;
+- Botões de CTA claros: para eventos externos, separar **"Site original"** e **"Ver detalhes"**;
+- Para eventos próprios ou externos com `payments`: checkout embedded de ingressos dentro da
+  página da Codaqui (não redireciona para fora);
+- Quando o usuário autenticado tem permissão, exibir ação **"Gerenciar este evento"**
+  (deep-link para o hub admin).
+
+### Check-in e funções
+
+- `event_checker` global: só vê o scanner de QR (privacidade máxima).
+- Staff `checker` do evento específico: scanner + busca manual mínima.
+- `event_host` / `event_organizer` / `admin`: scanner + lista completa + busca + relatório.
+
+### Caixa/financeiro do evento
+
+- Toda entrada de ingresso (`event-ticket:*`) cai na conta da comunidade do evento.
+- Toda saída (despesa/reembolso) deve ser lançada via `POST /events/:id/reimbursements`
+  ou `POST /events/external/:eventKey/reimbursements`, aprovada por `finance-analyzer`/admin.
+- O relatório do evento (`GET /events/:id/report`) agrega receita (orders pagas − refunds),
+  despesas aprovadas, saldo e presença.
+- A transparência geral (`/transparencia`) inclui KPI global de ingressos vendidos e receita,
+  além do drill-down por comunidade.
+
+---
+
 ## Testes Necessários
 
 ### Backend
@@ -1140,26 +1345,224 @@ export default function EventOverrideBadge({ override }: Props) {
 
 ## Checklist de Implementação
 
-- [ ] Criar GitHub App `codaqui-bot`:
-  - Permissão `Contents: write` + `Pull requests: write`
-  - Habilitar auto-merge no repositório (_Settings → General → Allow auto-merge_)
+> **Status (2026-07-29):** todo o código está implementado. Restam apenas os pré-requisitos de
+> **infra manual** (configurações do repositório + env de produção). O modelo de escrita é
+> token OAuth do membro — **não é mais necessário criar GitHub App** (ver "Mudança de
+> decisão" no Registro de Implementação).
+
+- [ ] Infra do repositório — **pré-requisito manual**:
+  - Habilitar auto-merge (_Settings → General → Allow auto-merge_)
   - Habilitar delete automático de branches após merge (_Settings → General → Automatically delete head branches_)
-- [ ] Migrar `MemberRole` de enum single-value para `text[]` + `RolesGuard` update
-- [ ] Adicionar `EVENT_ORGANIZER` em `MemberRole` + migration Postgres
-- [ ] Criar `static/events/organizers.json` com estrutura inicial vazia
-- [ ] Criar módulo `backend/src/github-db/` com `GitHubDBService`:
-  - `createPRWithFile()` — cria branch + commita + abre PR
+  - Definir `GITHUB_TOKEN_ENCRYPTION_KEY` (32 bytes, hex/base64) nas envs de produção do backend
+- [x] Migrar `MemberRole` de enum single-value para `text[]` + `RolesGuard` update
+- [x] Adicionar `EVENT_ORGANIZER` em `MemberRole` + migration Postgres
+- [x] Criar `static/events/organizers.json` com estrutura inicial vazia
+- [x] Criar módulo `backend/src/github-db/` com `GitHubDBService`:
+  - `createPRWithFile()` — cria branch + commita + abre PR (canônico ou fork flow)
   - `createPRDeleteFile()` — cria branch + remove arquivo + abre PR
-  - `readFile()` — lê arquivo de `main`
+  - `readFile()` — lê arquivo de `main` via raw.githubusercontent.com (sem token)
   - `getPRForBranch()` — retorna estado do PR aberto
-- [ ] Criar módulo `backend/src/event-organizer/` com endpoints de ownership e override
-- [ ] Adicionar validação de override no backend (campos proibidos, tipos, limites) **antes** de criar branch
-- [ ] Adicionar `GITHUB_APP_ID`, `GITHUB_APP_INSTALLATION_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME` em `.env.example`
-- [ ] Criar workflow `.github/workflows/validate-event-overrides.yml` (on: pull_request → validate + approve + auto-merge)
-- [ ] Criar script `scripts/validate-overrides.mjs`
-- [ ] Atualizar script `scripts/sync-events.mjs` para incluir `hasOverride: boolean` no `index.json`
-- [ ] Criar `src/utils/event-override.ts` com `loadEventWithOverride()`
-- [ ] Criar `src/components/EventOverrideBadge/`
-- [ ] Atualizar página de eventos para usar merge e badge
-- [ ] Testes unitários (backend + frontend + validate-overrides.mjs)
-- [ ] Atualizar `AGENTS.md` com novo role e padrão GitHub-as-DB (sempre-PR, sem commit direto)
+- [x] Criar módulo `backend/src/event-organizer/` com endpoints de ownership e override
+- [x] Adicionar validação de override no backend (campos proibidos, tipos, limites) **antes** de criar branch
+- [x] Adicionar `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `GITHUB_TOKEN_ENCRYPTION_KEY` em `.env.example`
+- [x] Capturar `githubAccessToken` no login OAuth (scope `public_repo`) + criptografia em repouso (migration 013)
+- [x] Criar workflow `.github/workflows/validate-event-overrides.yml` (on: pull_request → validate + approve + auto-merge, via `GITHUB_TOKEN`)
+- [x] Criar script `scripts/validate-overrides.mjs`
+- [x] Atualizar script `scripts/sync-events.mjs` para incluir `hasOverride: boolean` no `index.json`
+- [x] Criar `src/utils/event-override.ts` com `loadEventWithOverride()`
+- [x] Criar `src/components/EventOverrideBadge/`
+- [x] Atualizar página de eventos para usar merge e badge
+- [x] Testes unitários (backend + frontend + validate-overrides.mjs)
+- [x] Atualizar `AGENTS.md` com novo role e padrão GitHub-as-DB (sempre-PR, sem commit direto)
+
+---
+
+## Registro de Implementação (2026-07)
+
+Fases 1 e 2a–2d implementadas. Esta seção registra os **desvios e decisões reais** em relação
+ao desenho acima — em caso de divergência, o que vale é o código + este registro.
+
+### 🔄 Mudança de decisão (2026-07-29): GitHub App → token OAuth do membro
+
+O modelo de escrita no repositório foi **substituído** após a implementação inicial:
+
+- **Antes:** GitHub App `codaqui-bot` (JWT RS256 → installation token) commitava em nome do
+  bot; envs `GITHUB_APP_ID` / `GITHUB_APP_INSTALLATION_ID` / `GITHUB_APP_PRIVATE_KEY`.
+- **Agora:** o backend escreve com o **token OAuth do próprio membro logado** (o App OAuth
+  de login, com scope `public_repo` adicionado). Commits e PRs saem **em nome do membro** —
+  o repo é público e queremos a atribuição como contributor, além de eliminar a infra do App.
+- **Motivos:** atribuição de contributor no repositório público; menos infra (sem App, sem
+  chave privada, sem installation token); o token já existia no fluxo de login.
+- **Detalhes:**
+  - `members.githubAccessToken` (migration 013) — token criptografado em repouso com
+    AES-256-GCM (`v1:`) via `GITHUB_TOKEN_ENCRYPTION_KEY`; em dev sem a env, fallback
+    `plain:` documentado. Coluna com `select: false` — nunca exposta em endpoints.
+  - O scope novo (`public_repo`) exige **re-consentimento**: aparece automaticamente no
+    próximo login de cada usuário; tokens antigos (sem o scope) falham com 403 e a API
+    responde orientando re-login.
+  - `GitHubDBService`: leituras públicas via `raw.githubusercontent.com` (sem token);
+    escritas com o token do membro — colaborador (admin/maintain/write) cria branch no
+    canônico; demais membros passam pelo **fork flow** (fork automático + poll, PR com
+    `head: "<actor>:<branch>"`).
+  - O workflow `validate-event-overrides.yml` deixou de usar
+    `actions/create-github-app-token` e usa o `GITHUB_TOKEN` padrão do Actions — a
+    aprovação/auto-merge ficam em nome de `github-actions[bot]`.
+- As seções do desenho abaixo foram atualizadas para o modelo atual; menções ao App
+  permanecem apenas neste registro, como histórico.
+
+### Desvios numerados (implementação original)
+
+1. **Detalhe de evento:** rota única `/eventos/detalhe?source=&sourceId=&id=` (query params —
+   Docusaurus não tem catch-all). `loadEventWithOverride` retorna também
+   `source: EventSourceConfig`, além de `event` e `override`.
+2. **Inscrição vs. checkout:** decidida por `ticketType.kind === 'free'`; os kinds
+   `community`/`company` seguem o fluxo de checkout (Stripe).
+3. **`scripts/sync-events.mjs`:** `cleanSourceDir` preserva `*.override.json`; o resolver
+   `internal:codaqui` é uma etapa extra do pipeline, FORA do `events.config.json`; o validador
+   roda sobre a lista de arquivos do PR (detecta PR misto) com `fetch-depth: 0` no checkout;
+   validador estendido para `organizers.json` — os PRs de organizers passam a ser auto-mergeados
+   pelo workflow (o backend retornava `requiresManualMerge: true` antes deste ajuste).
+4. **Backend GitHubDB:** `createPRDeleteFile` aceita `labels?`; `getPRForBranch` e
+   `findOpenPRByBranchPrefix` retornam `prUrl`; erros da API do GitHub → 503; envs ausentes →
+   503 lazy no primeiro uso (não derruba o boot).
+5. **Multi-role:** o bootstrap de admin ADICIONA `admin` ao array de roles (não sobrescreve);
+   `stripe.service.ts` não usava `Member.role` (aquela role era de empresa) — não houve
+   derivação de papel único no backend.
+6. **`EventOrder`:** colunas além do sketch — `ticketTypeId`, `quantity`, `termsVersion`,
+   `paidAt`. FKs de `memberId` não foram criadas (defensivo).
+7. **Guards cruzados:** register rejeita ticket pago, checkout rejeita ticket grátis;
+   `updateTicketType` impede `quantityTotal < quantitySold`; `acceptTerms: true` obrigatório
+   no checkout (termos `2026-07-v1`, com checkbox no frontend).
+8. **Taxa Stripe (`stripe-fee:*`):** NÃO se aplica a ingressos — o handler localiza a doação
+   por `referenceId` com prefixo `stripe-pi:`. Fees de eventos ficam fora do ledger por ora
+   (follow-up).
+9. **Generalização 2d SEM renomear colunas:** `eventId` nullable + `externalActivationId`
+   nullable + CHECK de exatamente-um nas 3 tabelas (`registrations`, `orders`, `ticket_types`).
+10. **Receita do relatório:** calculada de `event_orders` (paid − refunded), não de
+    `referenceId LIKE` no ledger.
+11. **Importação CSV:** ticket types find-or-create `Importado` / `Importado — <ticket_type>`
+    (free, quota alta); `certificates` implica `checkin` (auto-adicionado); match por e-mail
+    ou `githubHandle` (valor sem '@' é tentado como handle); rematch automático na CRIAÇÃO de
+    membro (hook no `MembersService`).
+12. **E-mail:** resend atualiza o MESMO log; crons diários com janela (D-1: `startAt` em
+    +12h/+36h; pós-evento: fim em −36h/−12h) com dedupe via `email_logs`; confirmação = 1
+    e-mail por registration; sem credenciais SMTP → log `failed` com `SMTP_NOT_CONFIGURED`;
+    `members.eventCommsOptIn` default `false` (pós-evento só com opt-in; transacionais
+    ignoram a flag) — UI de toggle do opt-in PENDENTE.
+13. **Painel admin dividido em duas páginas:** `/admin/eventos` (eventos próprios) e
+    `/admin/overrides` (overrides + organizers + ativações) — o plano sugeria tudo em
+    `/admin/eventos`.
+14. **Endpoint extra:** `GET /events/staff-candidates?query=` (organizer não tem acesso a
+    `/admin/members`).
+15. **Check-in de eventos EXTERNOS** disponível via API (`POST /events/external/:eventKey/checkin`);
+    a UI da tela de check-in hoje só lista eventos próprios (follow-up).
+16. **`reason` obrigatório na UI** de override (no backend é opcional).
+17. **`GET /events/override/:sk/:id/pr`** pode retornar `{ prNumber, prUrl }` ou
+    `{ number, url }` — o frontend normaliza.
+18. **Migrações criadas:** 010 (roles array), 011 (eventos), 012 (comms + externos), 013
+    (token OAuth do membro — ver "Mudança de decisão" acima).
+19. **`GITHUB_BASE_BRANCH` (2026-07-29):** branch base do GitHub-as-DB configurável
+    (default `main`; em dev `develop`). Causa raiz de 2 bugs: PRs/merges locais iam para
+    `develop`, mas o backend lia `main` fixo — overrides não apareciam na pré-carga do
+    editor. Aplicado em `readFile` (raw), base dos PRs e ref de criação de branch.
+20. **Force-sync internal:** `POST /events/internal/snapshot` [admin | event_organizer]
+    regenera a fonte `internal:codaqui` sem esperar o workflow de hora em hora. Decisão:
+    **um único PR multi-arquivo** (`createPRWithFiles` — commits contents sequenciais na
+    mesma branch + 1 PR; mais simples que Git Trees/Blobs e suficiente para ~dezenas de
+    arquivos). O index.json raiz é patcheado (preserva outras fontes, re-ordena ASC por
+    `startAt`) e `hasOverride` é recomputado só para internal. Sem eventos publicados E
+    sem arquivos no repo → `{ skipped: true }` (não abre PR). O workflow de auto-merge foi
+    estendido (2026-07-29): cobre também `static/events/internal/**` e
+    `static/events/index.json` (validação estrutural leve no
+    `scripts/validate-overrides.mjs`), então os PRs `event-sync/*` **são auto-mergeados**.
+21. **`GET /events/override/:sk/:id/history`:** proxy da commits API do GitHub (20 últimos,
+    na branch base), com token do membro quando disponível (repo público funciona sem);
+    sempre `[]` quando não há commits — nunca 404.
+22. **`GET /events/external/activations`:** lista ativações visíveis — admin vê todas;
+    demais veem `enabledByMemberId = sub` OU eventKey coberto por ownership (scope exato
+    ou `<sourceKey>:*`). Alimenta a tela de check-in de eventos externos.
+23. **`make sync-events`:** passa `INTERNAL_EVENTS_API_URL=http://localhost:3001` para a
+    fonte internal ser resolvida do backend dev (antes apontava para o frontend :3000 e
+    caía sempre no fallback em disco).
+24. **CSV ganha coluna opcional `github` (2026-07-29):** o match tenta primeiro o e-mail da
+    conta; se não houver conta com esse e-mail, a coluna `github` (handle, com ou sem `@`)
+    é usada como alternativa — cobre o caso comum de o e-mail do CSV da plataforma externa
+    não ser o e-mail da conta no site. **Healing:** re-upload de uma linha já importada e
+    `pending_match` que agora traz `github` com match **vincula a inscrição existente**
+    (em vez de só ignorar como duplicado; relatório ganha o contador `healed`). Duplicados
+    já confirmados continuam intocados. Rematch manual continua só por e-mail (o handle não
+    é persistido). Também corrigido: a lista de participantes do painel lia `name`/`email`
+    enquanto a API retorna `attendeeName`/`attendeeEmail`, e passou a exibir o nome do
+    tipo de ingresso (`ticketType.name`, enriquecido no endpoint).
+25. **Ordem de rotas `/events/*` (2026-07-29):** o ciclo `Members → Events` fazia o
+    `EventsModule` ser escaneado antes do `EventOrganizerModule`, e `GET /events/:id`
+    capturava `/events/organizers` (400 "uuid is expected"). Fix: `EventOrganizerController`
+    registrado dentro do `EventsModule`, antes do `EventsController` (ordem travada no
+    array de controllers, com teste de regressão em `events.module.spec.ts`).
+26. **Endpoint extra:** `GET /events/override/:sourceKey/:eventId/can-manage` (autenticado)
+    → `{ canManage }` — a página pública de detalhe usa para exibir "Editar metadados" /
+    "Gerenciar features" (deep-link para `/admin/overrides?tab=&sourceKey=&eventId=`).
+27. **Manifesto `static/events/overrides-index.json` (2026-07-29):** o PUT/DELETE de override
+    escreve o `.override.json` E o manifesto (`{ version, updatedAt, overrides: { "<sourceKey>:<eventId>": { extendData, ownerHandle, updatedAt } } }`)
+    **no mesmo PR** (`createPRWithFiles`). O validador/workflow de auto-merge cobrem o
+    manifesto e o `scripts/sync-events.mjs` o regenera dos `.override.json` em disco
+    (bootstrap/anti-drift). A leitura pública ficou centralizada na **front API**
+    `src/lib/events-api.ts` (`fetchEventsIndexMerged()` — index.json + manifesto, merge por
+    `<sourceKey>:<eventId>`, fallback para o modo `hasOverride` legado) usada por `/eventos`
+    e pelo hub — resolve a defasagem do flag `hasOverride` no index.json entre syncs.
+28. **Multi-emails do membro (2026-07-29):** o login persiste todos os e-mails verificados
+    do GitHub (`GET /user/emails`) em `members.secondaryEmails text[]` (migration 014;
+    falha da API não quebra o login). O match de participantes (`findMemberByIdentifier`)
+    casa por `email` OU qualquer `secondaryEmails` — cobre e-mail público ≠ e-mail primário.
+29. **Ingressos de evento EXTERNO (feature `payments`, 2026-07-29):** `GET
+    /events/external/:eventKey/ticket-types` (público, 404 sem payments), `GET
+    .../ticket-types/manage` + `POST .../ticket-types` + `PATCH /events/external/ticket-types/:id`
+    (owner/admin) e `POST /events/external/:eventKey/checkout` (mesma máquina do checkout
+    interno; ledger na conta `communityProjectKey` da ativação). `GET /events/my-registrations`
+    retorna `activation: { eventKey, title }` para registrations externas. Na UI pública,
+    tipos `free` de eventos externos são escondidos (inscrição gratuita segue na plataforma
+    original — não há endpoint de register para externos).
+30. **Certificado (2026-07-29):** externos emitem com `eventTitle = activation.title`
+    (o form de ativação ganhou campo título, pré-preenchido do snapshot), `workloadMinutes`
+    vem de `extendData.workloadMinutes` do override (novo campo no schema, 0–1000; internos
+    seguem computando de endAt−startAt), datas nulas omitidas. UI: `@media print` imprime só
+    o cartão, título em destaque + código menor + QR para a nova página pública
+    `/certificado/verificar?codigo=` (consome `GET /events/certificates/verify/:code`).
+31. **Histórico público de participações (2026-07-29):** `GET /events/members/:memberId/registrations`
+    (público) → `[{ id, eventTitle, eventStartAt, checkedIn, status, verificationCode }]` —
+    só `confirmed`/`refunded`, sem checkinToken/e-mail/nome; alimenta a seção "Histórico de
+    eventos" do perfil público (`/membros/perfil`).
+32. **Checkout embedded de ingressos (2026-07-30):** `CheckoutDto` ganha `uiMode?: 'hosted' |
+    'embedded'`; `StripeService.createEventTicketCheckoutSession` suporta `ui_mode: 'embedded_page'`,
+    retornando `clientSecret`. A página pública de detalhe (`src/pages/eventos/detalhe.tsx`)
+    abre o pagamento em dialog com `<StripeEmbeddedCheckoutDialog>` ao invés de redirecionar
+    para fora; fallback para `hosted` preservado. O `return_url` volta para a própria página do
+    evento (`/eventos/detalhe?source=...&id=...`).
+33. **Página dedicada de termos de compra (2026-07-30):** criada `src/pages/termos-de-compra.md`
+    com a política de reembolso (CDC art. 49, cancelamento/adiamento, prazos, meio de
+    pagamento). O checkbox dos checkouts (interno e externo) linka para ela; o texto inline
+    continua como resumo, mas a fonte de verdade vive na página dedicada.
+34. **Despesa/reembolso vinculada a evento (2026-07-30):** extensão do módulo existente de
+    reembolsos. `ReimbursementRequest` ganha `eventId` (UUID), `externalActivationId` (UUID) e
+    `eventMetadata` (JSON string). Novos endpoints:
+    - `POST /events/:id/reimbursements` — organizer/admin/staff do evento próprio;
+    - `POST /events/external/:eventKey/reimbursements` — owner/ativador/admin do evento externo.
+    Ambos reaproveitam o fluxo de aprovação do `finance-analyzer`/admin e registram no ledger
+    com metadata do evento (`reimbursement:<id>:<ts>`). UI: botão "Lançar despesa" na página
+    `/admin/eventos` (eventos internos) e na aba de ativação de eventos externos
+    (`/admin/overrides?tab=2`), com dialog reutilizável `EventReimbursementDialog` que busca
+    saldo das contas no `/ledger/community-balances` e pré-seleciona a conta do evento.
+35. **Transparência geral com ingressos vendidos (2026-07-30):** `LedgerService.getTransparencyStats`
+    agrega `totalEventTickets` (quantidade) e `totalEventTicketRevenue` (receita) a partir de
+    transações com `referenceId LIKE 'event-ticket:%'` (excluindo refunds), além de
+    `eventTicketIn`/`eventTicketCount` por comunidade. A página `/transparencia` exibe o KPI
+    global e inclui a linha "Ingressos vendidos" nos cards de cada comunidade.
+36. **Reconciliação ledger de orders pagas (2026-07-30):** endpoint `POST /events/orders/reconcile-ledger`
+    (admin/event_organizer/event_finance) permite reprocessar orders `paid` que não tenham
+    transação correspondente no ledger (ex.: falha transitória no webhook). Usa `referenceId`
+    `event-ticket:<orderId>` e garante idempotência (não duplica transações).
+37. **Teste de DI e correção de assinatura (2026-07-30):** `EventsService` passou a depender de
+    `TransactionRepository` e `ReimbursementsService`. Criado `events.module.spec.ts` para
+    garantir que `EventsModule` compila sem erros de injeção, e ajustados
+    `events.service.spec.ts` e `events-external.spec.ts` para refletir a nova assinatura do
+    construtor. Todos os 580 testes backend passam.

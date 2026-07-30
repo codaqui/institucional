@@ -15,7 +15,7 @@ sections:
   - Extensibilidade
   - Checklist de Implementação
 related-docs:
-  - CLUB_PLAN.md — design do Clube individual (SortCoins, Wallet, Raffle)
+  - docs/CLUB_PLAN.md — design do Clube individual (SortCoins, Wallet, Raffle)
   - AGENTS.md §9 Backend Financial Modules — padrão ledger-backed
   - DEVELOPMENT.md — setup, migrations, deploy
 agent-protocol: >
@@ -421,7 +421,7 @@ independentemente de ser PF ou PJ. A wallet de SortCoins é **separada** do ledg
 
 As carteiras PJ usam o **mesmo pool de sorteios** (`club_raffles`) do CLUB individual.
 
-Para isso, o `raffle.service.ts` (CLUB_PLAN.md) precisa de uma abstração que aceite
+Para isso, o `raffle.service.ts` (docs/CLUB_PLAN.md) precisa de uma abstração que aceite
 tanto `memberId` (wallet PF) quanto `companyId` (wallet PJ):
 
 ```typescript

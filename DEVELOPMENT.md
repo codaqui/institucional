@@ -89,6 +89,11 @@ Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor 
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
 
+> **`make sync-events` (recomendado em dev):** igual ao `npm run sync:events`, mas exporta
+> `INTERNAL_EVENTS_API_URL=http://localhost:3001` para a fonte `internal:codaqui` (eventos
+> próprios publicados no Postgres) ser resolvida do backend dev — sem isso o sync cai no
+> fallback do último snapshot em disco.
+
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
 ---
@@ -236,6 +241,18 @@ Baseie-se no `.env.example`. Variáveis principais:
 | `JWT_SECRET` | Backend | Segredo para assinar tokens JWT — gere com `openssl rand -hex 64` |
 | `STRIPE_SECRET_KEY` | Backend | Chave secreta Stripe (`sk_test_...` em dev, `sk_live_...` em prod) |
 | `STRIPE_WEBHOOK_SECRET` | Backend | Segredo do webhook Stripe (capturado automaticamente pelo `make up`) |
+| `GITHUB_TOKEN_ENCRYPTION_KEY` | Backend | Chave de 32 bytes (hex/base64) para criptografar em repouso os tokens OAuth dos membros (`members.githubAccessToken`, AES-256-GCM). Obrigatória em produção — gere com `openssl rand -hex 32`. Em dev pode ficar vazia (tokens gravados com prefixo `plain:`) |
+| `GITHUB_REPO_OWNER` / `GITHUB_REPO_NAME` | Backend | Repositório alvo do GitHub-as-Database (`codaqui` / `institucional`) — overrides/organizers |
+| `GITHUB_BASE_BRANCH` | Backend | Branch base de leitura/escrita do GitHub-as-Database (default: `main`). Em dev use `develop` — os PRs/merges locais vão para lá, e sem a env o backend não enxerga overrides/snapshots |
+
+> **Nota (GitHub-as-Database):** a escrita no repositório usa o **token OAuth do próprio
+> membro logado** — o código pede o scope `public_repo` no OAuth App existente
+> (`GITHUB_CLIENT_ID`/`GITHUB_CLIENT_SECRET`). Nenhuma mudança é necessária no App OAuth:
+> o novo consentimento aparece automaticamente no próximo login de cada usuário, e o token
+> é persistido criptografado a cada login. Sem o scope (login antigo), os endpoints de
+> escrita respondem 400/403 orientando re-login. Leituras são públicas
+> (`raw.githubusercontent.com`).
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails de eventos (confirmação, lembrete D-1, pós-evento) via SMTP Gmail. Sem credenciais, envios são logados como `failed` com `SMTP_NOT_CONFIGURED` em `email_logs` |
 | `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
 | `FRONTEND_URL` | Backend | URL base do frontend (default: `http://localhost:3000`) |
 

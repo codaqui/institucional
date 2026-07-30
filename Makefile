@@ -219,8 +219,11 @@ frontend-serve: ## Serve o build estático localmente para homologação
 sync: ## Sincroniza eventos, membros e analytics (execução completa)
 	npm run sync
 
-sync-events: ## Sincroniza eventos (Discord + Meetup) → static/events/
-	npm run sync:events
+sync-events: ## Sincroniza eventos (Discord + Meetup + internal) → static/events/
+	# INTERNAL_EVENTS_API_URL aponta para o backend dev: a fonte internal:codaqui
+	# (eventos próprios publicados no Postgres) é resolvida via GET /events/public/managed.
+	# Sem o backend no ar, o script cai no último snapshot em disco (fallback normal).
+	INTERNAL_EVENTS_API_URL=http://localhost:3001 node scripts/sync-events.mjs
 
 sync-events-full: ## Re-pagina todos os eventos passados (mais lento)
 	npm run sync:events:full
@@ -236,7 +239,7 @@ sync-analytics: ## Sincroniza analytics → static/analytics/
 # =============================================================================
 # Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
 # Código do Worker é compartilhado em `workers/shared/index.js`.
-# Ver workers/README.md e MULTISITE_PLAN.md §6.
+# Ver workers/README.md e docs/MULTISITE_PLAN.md §6.
 
 worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
 	npm run worker:dev:tisocial
