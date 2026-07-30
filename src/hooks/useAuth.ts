@@ -8,7 +8,8 @@ export interface AuthUser {
   handle: string;    // githubHandle
   name: string;
   avatarUrl: string;
-  role: "membro" | "finance-analyzer" | "admin";
+  /** Multi-role: ex.: ["membro", "event_organizer", "event_checker"] */
+  roles: string[];
 }
 
 /**
@@ -154,8 +155,10 @@ export function useAuth() {
     user,
     ready,
     isLoggedIn: !!user,
-    isAdmin: user?.role === "admin",
-    isFinanceAnalyzer: user?.role === "finance-analyzer",
+    isAdmin: user?.roles?.includes("admin") ?? false,
+    isFinanceAnalyzer: user?.roles?.includes("finance-analyzer") ?? false,
+    isEventOrganizer: user?.roles?.includes("event_organizer") ?? false,
+    isEventFinance: user?.roles?.includes("event_finance") ?? false,
     login,
     logout,
     refreshUser,

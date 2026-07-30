@@ -73,7 +73,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
 
-  const isFinanceAnalyzer = user?.role === "finance-analyzer";
+  const isFinanceAnalyzer = user?.roles?.includes("finance-analyzer") ?? false;
   const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [tab, setTab] = useState(0);
