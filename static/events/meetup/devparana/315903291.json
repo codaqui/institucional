@@ -13,16 +13,16 @@
     "generatedAt": "2026-07-30T12:29:12.142Z"
   },
   "event": {
-    "id": "313962877",
-    "title": "DevPR na Estrada - Toledo",
-    "summary": "DevParaná na Estrada 2026 chega a Toledo com um conjunto de palestras incríveis! Palestras: BaaS: Construindo um Projeto Open Source em Comunidade Nestor Hugo (https://www.linkedin.com/in/ne) - Software Developer @ BigC…",
-    "startAt": "2026-04-23T19:00:00-03:00",
-    "endAt": "2026-04-23T21:00:00-03:00",
+    "id": "315903291",
+    "title": "[DevPR Guarapuava] Happy Hour 13/08",
+    "summary": "🍻 Happy Hour DevParaná Guarapuava Uma noite para reunir a comunidade de tecnologia, trocar experiências e fazer networking em um ambiente descontraído. Além do bate-papo, teremos um espaço aberto para mini talks! 🎤 Te…",
+    "startAt": "2026-08-13T19:00:00-03:00",
+    "endAt": "2026-08-13T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "PUC - Toledo · Rua Guarani, 4280 - Jardim Coopagro · Toledo",
-    "href": "https://www.meetup.com/developerparana/events/313962877/",
+    "location": "Macedonia Bar · R  Andrade Neves 1854, Trianon · Guarapuava",
+    "href": "https://www.meetup.com/developerparana/events/315903291/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,17 +30,33 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 23,
+    "userCount": 5,
     "creatorName": "Luiz Schons",
     "creatorId": "370720313",
     "organizers": [
       {
         "name": "Luiz Schons",
         "id": "370720313"
+      },
+      {
+        "name": "leonardo tosin",
+        "id": "478507140"
+      },
+      {
+        "name": "Nestor Hugo",
+        "id": "428326789"
+      },
+      {
+        "name": "Eliezer Buczak Boeira ",
+        "id": "428102696"
+      },
+      {
+        "name": "João Paulo Vasconcelos",
+        "id": "429772464"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/9/e/highres_533392126.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/e/c/highres_535437580.jpeg"
   }
 }
