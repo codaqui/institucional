@@ -17,8 +17,9 @@ sections:
 related-docs:
   - DEVELOPMENT.md — setup, env vars, migrations, deploy
   - README.md — repo overview (high level)
-  - docs/CLUB_PLAN.md — Clube Codaqui SortCoins plan
-  - docs/EVENT_PLAN.md — plataforma de eventos (Fases 1 + 2a–2d implementadas; ver "Registro de Implementação")
+  - docs/README.md — índice central da documentação técnica
+  - docs/adrs/001-event-platform.md — plataforma de eventos (Fases 1 + 2a–2d implementadas)
+  - docs/adrs/002-club-sortcoins.md — Clube Codaqui SortCoins
 agent-protocol:
   - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
   - Each .md in this repo has its own AGENT-INDEX header. Trust it as the doc's TLDR.
@@ -580,7 +581,7 @@ A página `/eventos/detalhe` detecta `source === "internal"` e embute inscriçã
 checkout Stripe (com aceite obrigatório dos termos de compra, versão `2026-07-v1`).
 
 > Visão completa da plataforma (ingressos, check-in, e-mails, CSV, relatórios, papéis):
-> **docs/EVENT_PLAN.md** — Fases 1 + 2a–2d implementadas (ver "Registro de Implementação (2026-07)").
+> **docs/adrs/001-event-platform.md** — Fases 1 + 2a–2d implementadas (ver "Registro de Implementação (2026-07)").
 
 ---
 
@@ -954,20 +955,21 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 
 ## Documentação do Projeto
 
-Além deste `AGENTS.md`, a pasta `docs/` centraliza todos os planos e manuais técnicos. Os
-arquivos `*_PLAN.md` foram movidos da raiz do repositório para `docs/` (não há mais planos na
-root).
+Além deste `AGENTS.md`, a pasta `docs/` centraliza a documentação técnica dividida em três
+categorias: **ADRs** (decisões arquiteturais implementadas), **modules/** (documentação viva dos
+módulos) e **plans/** (RFCs e planos futuros). Veja o índice completo em `docs/README.md`.
 
 | Documento | Conteúdo |
 |-----------|----------|
-| `docs/ROLES.md` | Mapa de papéis globais e staff de eventos, com matriz de permissões. |
-| `docs/EVENT_PLAN.md` | Plano completo da plataforma de eventos (Fases 1 + 2a–2d implementadas; 2e futuro). Inclui princípios, roadmap, modelo de dados, sincronização de participantes, check-in, certificados, decisões de design e registro de implementação. |
-| `docs/EVENT_PLAN_EXECUTION.md` | Estado de execução do plano de eventos: o que foi implementado, bugs corrigidos e pendências. |
-| `docs/CODE_MANUAL.md` | Manual prático do código para agents trabalharem no módulo de eventos — onde vive cada funcionalidade, fluxos principais, mapa de papéis, anti-patterns e dicas de debug. |
-| `docs/CLUB_PLAN.md` / `docs/CLUB_BUSINESS_PLAN.md` | Planos do Clube Codaqui / empresas PJ. |
-| `docs/MULTISITE_PLAN.md` | Multi-tenant communities (T.I. Social piloto). |
-| `docs/REAL_NETWORK_PLAN.md` | Plano de networking/matchmaking (Fase 2e). |
-| `docs/UPDATE_PLAN.md` | Plano de atualização de dependências e manutenção. |
+| `docs/adrs/001-event-platform.md` | Plataforma de gestão de eventos (Fases 1 + 2a–2d implementadas; 2e futuro). |
+| `docs/adrs/002-club-sortcoins.md` | Clube Codaqui (SortCoins). |
+| `docs/adrs/003-club-business-pj.md` | Clube Codaqui Business (apoio via Pessoa Jurídica). |
+| `docs/adrs/004-multisite-communities.md` | Multi-tenant frontend para comunidades parceiras. |
+| `docs/modules/events/ROLES.md` | Mapa de papéis globais e staff de eventos, com matriz de permissões. |
+| `docs/modules/events/CODE_MANUAL.md` | Manual prático do código para agents trabalharem no módulo de eventos. |
+| `docs/plans/REAL_NETWORK_PLAN.md` | Plano de networking/matchmaking (Fase 2e). |
+| `docs/plans/UPDATE_PLAN.md` | Plano de atualização de dependências e manutenção. |
+| `docs/plans/EVENT_UIUX_IMPROVEMENTS_PLAN.md` | Melhorias de UI/UX do módulo de eventos. |
 
 Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes
 ou corrigir bugs recorrentes.
@@ -1061,7 +1063,7 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 
 ## Multi-tenant communities (D1 — single Docusaurus)
 
-> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Plano completo em **`docs/MULTISITE_PLAN.md`**. T.I. Social é o piloto.
+> Cada comunidade parceira ganha um espaço próprio em `/comunidades/<slug>/...` com **branding, navbar, blog, docs, doação e transparência próprios**, no mesmo build do site Codaqui. Decisão arquitetural em **`docs/adrs/004-multisite-communities.md`**; detalhes das fases pendentes em **`docs/plans/MULTISITE_PLAN.md`**. T.I. Social é o piloto.
 
 ### Arquitetura — onde vive cada peça
 
@@ -1150,11 +1152,11 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 - ✅ Transparência com `<TransactionTable>` real (drill-down + filtros)
 - ✅ Auth callback whitelabel (logo + cor durante spinner)
 - ⚠️ `features.events: false` (sem dados de eventos próprios ainda)
-- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver docs/MULTISITE_PLAN.md §6)
+- 🟡 Domínio próprio (`tisocial.org.br`) — Worker reusable em `workers/` pronto, falta provisionar zona Cloudflare e configurar OAuth callback do GitHub para o subdomínio (ver docs/plans/MULTISITE_PLAN.md §6)
 
 ### Domínio próprio via Cloudflare Worker (`workers/`)
 
-> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `docs/MULTISITE_PLAN.md §6`.
+> Quando uma comunidade tem domínio próprio (ex: `tisocial.org.br`), um Cloudflare Worker faz o reverse-proxy para `codaqui.dev/comunidades/<slug>/*` (estáticos) e para `api.codaqui.dev` (backend). Isso mantém **cookies first-party** no domínio da comunidade e dá UX whitelabel completa, **sem replicar build**. Detalhes em `workers/README.md` e `docs/plans/MULTISITE_PLAN.md §6`.
 
 | Caminho | Conteúdo |
 |---------|----------|

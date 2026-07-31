@@ -1,33 +1,64 @@
 <!-- AGENT-INDEX
-purpose: Plano técnico e funcional da Plataforma de Gestão de Eventos da Codaqui (overrides + eventos próprios + externos ativados). Fonte de verdade para escopo implementado e pendente.
+purpose: ADR da Plataforma de Gestão de Eventos da Codaqui. Registra decisões arquiteturais de overrides, eventos próprios, ingressos pagos, check-in, certificados e integração com ledger.
 audience: Devs, AI agents e mantenedores trabalhando no módulo de eventos.
-status: Fase 1 (overrides) + Fase 2a–2d IMPLEMENTADAS (2026-07-30). Fase 2e (Real Network) é plano futuro. Divergências reais entre código e desenho original estão no "Registro de Implementação (2026-07)".
+status: Fase 1 (overrides) + Fase 2a–2d IMPLEMENTADAS (2026-07-30). Fase 2e (Real Network) é plano futuro.
 sections:
-  - Visão Geral
+  - Contexto e decisões
   - Fase 2 — Plataforma de Gestão de Eventos (princípios, roadmap 2a–2e, mapa detalhado de papéis, modelo de dados, ingressos Stripe, sincronização de participantes, check-in, certificados, relatórios, decisões de design)
   - Fontes de Eventos Atuais e Futuras
   - Schema do Override
-  - CRUD de Overrides (GitHub-as-Database)
-  - Dois Caminhos para Editar
-  - Validação + Auto-Merge (GitHub Actions)
-  - Merge de Dados: Base + Override (frontend)
+  - CRUD de Overrides (API REST)
+  - Merge de Dados: Base + Override (snapshots)
   - Backend: Variáveis de Ambiente
-  - Padrão Reutilizável: GitHub-as-Database
   - UI/UX para Organizadores (hub unificado, plugins, busca, caixa)
   - Testes Necessários
   - Checklist de Implementação
   - Registro de Implementação (2026-07)
 related-docs:
-  - AGENTS.md §7 Events System — fluxo real de snapshots e overrides
-  - docs/CODE_MANUAL.md — manual prático do código do módulo de eventos
-  - docs/ROLES.md — matriz de permissões global e por evento
-agent-protocol: Fases 1 e 2a–2d estão IMPLEMENTADAS. Sempre consulte o "Registro de Implementação (2026-07)" ao final antes de assumir que o desenho textual reflete 100% o código. Para detalhes de implementação (arquivos, métodos, fluxos), use docs/CODE_MANUAL.md.
+  - ../AGENTS.md §7 Events System — fluxo real de snapshots e overrides
+  - ../modules/events/CODE_MANUAL.md — manual prático do código do módulo de eventos
+  - ../modules/events/ROLES.md — matriz de permissões global e por evento
+agent-protocol: Fases 1 e 2a–2d estão IMPLEMENTADAS. Sempre consulte o "Registro de Implementação (2026-07)" ao final antes de assumir que o desenho textual reflete 100% o código. Para detalhes de implementação (arquivos, métodos, fluxos), use ../modules/events/CODE_MANUAL.md.
 -->
 
-# Event Organizer — Metadados via GitHub como Banco de Dados
+# ADR 001 — Plataforma de Gestão de Eventos
 
-Plano técnico para o sistema de correção de metadados de eventos externos por organizadores confiáveis,
-usando o próprio repositório GitHub como fonte de verdade (GitHub-as-Database pattern).
+- **Data da decisão:** 2024 → 2026-07-30
+- **Status:** Implementado (Fases 1 e 2a–2d)
+- **Escopo:** backend/src/events/, src/pages/eventos/, src/pages/admin/eventos*, scripts/sync-events.mjs
+
+## Contexto
+
+A Codaqui organiza eventos próprios e promove eventos de comunidades parceiras. Precisávamos de uma plataforma unificada para listar eventos, vender ingressos, fazer check-in, emitir certificados e manter transparência financeira, sem depender exclusivamente de plataformas externas.
+
+## Decisões
+
+1. **Soberania sobre eventos próprios** — a plataforma é a fonte de verdade para eventos organizados diretamente pela Codaqui. Para eventos de parceiros, mantemos uma cópia atualizada via snapshots + importação CSV.
+2. **Reuso com KISS** — usamos Stripe Checkout + webhook, ledger existente, padrão de módulo do `companies`, e evitamos fluxos paralelos.
+3. **Todo dinheiro passa pelo ledger** com `referenceId` prefixado (`event-ticket:*`, `event-ticket-refund:*`, `reimbursement:*`). Todo evento é associado a uma comunidade (`communityProjectKey`).
+4. **LGPD/opt-in** em comunicações com participantes.
+5. **Listagem pública 100% estática** — eventos próprios entram no pipeline de snapshots (`internal:codaqui`), sem backend no caminho de leitura.
+6. **Overrides no PostgreSQL** — metadados de eventos externos são corrigidos via API REST (`/events/overrides`) e persistidos na tabela `event_overrides`. O sync aplica esses metadados nos snapshots.
+
+## Consequências
+
+- **Positivas:** plataforma unificada; transparência financeira automática; extensível para novas fontes de eventos; overrides imediatos sem PRs.
+- **Negativas:** snapshot funciona como cache — eventos recém-publicados podem levar até 1h para aparecer na listagem pública; modelo de participantes externos exige importação manual de CSV.
+
+## Visão Geral
+
+Os eventos da Codaqui vêm de fontes externas (Discord, Meetup, OCGroups/CNCF, Sympla) via snapshots JSON gerados automaticamente.
+O **Event Organizer** é um membro confiável com permissão de sobrescrever campos desses eventos
+(título, imagem, descrição, localização, tags, palestrantes, carga horária).
+
+A correção é salva no banco de dados via API REST (`/events/overrides`). O sync de snapshots
+(`scripts/sync-events.mjs`) consome a API pública de overrides e aplica os metadados estendidos
+diretamente nos eventos antes de gerar os arquivos estáticos. O frontend lê o snapshot já mesclado
+em `/events/index.json` e `/events/<source>/<sourceId>/<id>.json`.
+
+> **Histórico:** até 2026-07 os overrides viviam em arquivos `.override.json` no repositório
+> (GitHub-as-Database pattern), versionados por PRs auto-mergeados. A complexidade operacional
+> desse fluxo levou à migração para persistência em banco + API própria.
 
 ---
 
@@ -35,10 +66,16 @@ usando o próprio repositório GitHub como fonte de verdade (GitHub-as-Database 
 
 Os eventos da Codaqui vêm de fontes externas (Discord, Meetup, OCGroups/CNCF, Sympla) via snapshots JSON gerados automaticamente.
 O **Event Organizer** é um membro confiável com permissão de sobrescrever campos desses eventos
-(título, imagem, descrição, localização, tags) sem depender de banco de dados externo.
+(título, imagem, descrição, localização, tags, palestrantes, carga horária).
 
-A correção é persistida como um arquivo `.override.json` commitado no repositório, versionado pelo Git,
-e aprovado automaticamente por um bot. O frontend lê e mescla os dois arquivos na página do evento.
+A correção é salva no banco de dados via API REST (`/events/overrides`). O sync de snapshots
+(`scripts/sync-events.mjs`) consome a API pública de overrides e aplica os metadados estendidos
+diretamente nos eventos antes de gerar os arquivos estáticos. O frontend lê o snapshot já mesclado
+em `/events/index.json` e `/events/<source>/<sourceId>/<id>.json`.
+
+> **Histórico:** até 2026-07 os overrides viviam em arquivos `.override.json` no repositório
+> (GitHub-as-Database pattern), versionados por PRs auto-mergeados. A complexidade operacional
+> desse fluxo levou à migração para persistência em banco + API própria.
 
 ---
 
@@ -601,25 +638,36 @@ O backend lê `organizers.json` em memória (cache de 5 min) para verificar perm
 
 ## Schema do Override
 
-Arquivo: `static/events/<source>/<sourceId>/<eventId>.override.json`
+Overrides são armazenados na tabela `event_overrides`:
 
-Exemplo: `static/events/meetup/devparana/226163759.override.json`
+| Coluna | Tipo | Notas |
+|---|---|---|
+| `id` | `uuid` | PK |
+| `sourceKey` | `varchar` | `"<source>:<sourceId>"` |
+| `eventId` | `varchar` | Identificador do evento na fonte |
+| `ownerMemberId` | `varchar` | FK para `members.id` |
+| `ownerHandle` | `varchar` | Handle GitHub (denormalizado) |
+| `payload` | `text` | JSON do `extendData` |
+| `reason` | `varchar` | Motivo da última edição |
+| `createdByMemberId` | `varchar` | Audit |
+| `updatedByMemberId` | `varchar` | Audit |
+| `createdAt` | `timestamptz` | Audit |
+| `updatedAt` | `timestamptz` | Audit |
+
+Índice único: `(sourceKey, eventId)`.
+
+Exemplo de `payload` (JSON):
 
 ```json
 {
-  "eventId": "226163759",
-  "sourceKey": "meetup:devparana",
   "extendData": {
     "imageUrl": "https://res.cloudinary.com/...",
     "summary": "Resumo corrigido pelo organizador.",
     "location": "Nome correto do local",
     "tags": ["meetup", "devparana", "presencial", "mobile"],
-    "featured": true
-  },
-  "ownerId": "uuid-do-membro",
-  "ownerHandle": "githubHandle",
-  "updatedAt": "2026-04-29T23:00:00-03:00",
-  "reason": "Corrigindo título e adicionando banner do evento"
+    "featured": true,
+    "workloadMinutes": 300
+  }
 }
 ```
 
@@ -638,312 +686,107 @@ Exemplo: `static/events/meetup/devparana/226163759.override.json`
 
 ---
 
-## CRUD de Overrides (GitHub-as-Database)
+## CRUD de Overrides (API REST)
 
-Toda operação de override — criar, atualizar ou deletar — é tratada como uma
-**operação de banco de dados via Git**: cada operação gera uma branch + PR **em nome do
-próprio membro** (token OAuth com scope `public_repo`), que é validado e auto-mergeado
-pelo workflow do Actions (`github-actions[bot]`). Nunca há commit direto em `main`.
+Toda operação de override — criar, atualizar ou deletar — é feita via API REST
+protegida por JWT e ownership (`organizers.json`). Não há mais branch/PR: a
+mudança é persistida imediatamente no banco.
 
-| Operação | O que acontece no arquivo | Branch criada? | PR criado? |
-|---|---|---|---|
-| **Create** | Novo arquivo `.override.json` | ✅ | ✅ |
-| **Read** | Leitura direta do arquivo em `main` | ❌ | ❌ |
-| **Update** | Atualiza conteúdo do `.override.json` | ✅ | ✅ |
-| **Delete** | Remove o arquivo `.override.json` | ✅ | ✅ |
+| Operação | Método | Rota | Auth | Descrição |
+|---|---|---|---|---|
+| **Create** | `POST` | `/events/overrides` | `event_organizer` / `admin` | Cria override |
+| **Read** | `GET` | `/events/overrides/:sourceKey/:eventId` | Público | Retorna override atual |
+| **Read (bulk)** | `GET` | `/events/overrides/public` | Público | Lista todos os overrides (sync) |
+| **Update** | `PUT` | `/events/overrides/:sourceKey/:eventId` | `event_organizer` / `admin` | Atualiza override |
+| **Delete** | `DELETE` | `/events/overrides/:sourceKey/:eventId` | `event_organizer` / `admin` | Remove override |
 
-### Convenção de branch
+### Body
 
-```
-event-override/<sourceKey>-<eventId>-<timestamp>
-Exemplo: event-override/meetup-devparana-226163759-1746823200000
-```
-
-### Ciclo de vida do PR
-
-```
-[Operação disparada]
-        │
-        ├── Backend cria branch → commita mudança no arquivo → abre PR
-        │   ou owner cria branch diretamente no GitHub → edita arquivo → abre PR
-        │
-        ▼
-[PR aberto com label "event-override"]
-        │
-        ▼
-[workflow validate-event-overrides roda no PR (github-actions[bot])]
-        ├── Valida JSON do diff (campos proibidos, tipos, limites)
-        ├── Se inválido → "Request changes" com comentário explicando o erro
-        └── Se válido → Aprova PR → Habilita auto-merge (squash) → GitHub mergeia → deleta branch
-```
-
----
-
-## Dois Caminhos para Editar
-
-O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo fluxo de PR + bot.
-
-### Caminho A: Painel Admin (site)
-
-1. `event_organizer` autenticado acessa `/admin/eventos`
-2. Seleciona o evento e preenche o formulário de override
-3. Clica em "Salvar" → backend:
-   a. Valida os campos **antes** de qualquer chamada à GitHub API
-   b. Cria branch `event-override/<sourceKey>-<eventId>-<ts>` **com o token OAuth do
-      próprio membro** — no repo canônico se ele é colaborador (admin/maintain/write);
-      senão no fork dele (fork flow automático)
-   c. Commita o `.override.json` (create/update) ou deleta o arquivo (delete) na branch
-      — o commit sai em nome do membro (atribuição de contributor)
-   d. Abre PR com label `event-override`, título: `event: override <eventId> by @<handle> — <reason>`
-4. O workflow do Actions processa o PR (veja seção abaixo)
-5. PR auto-mergeado em segundos; frontend vê o override na próxima requisição
-
-### Caminho B: GitHub diretamente (web editor ou clone local)
-
-1. `event_organizer` (ou qualquer membro autorizado) cria branch `event-override/<slug>-<ts>`
-2. Cria, edita ou deleta o arquivo `.override.json` no caminho correto:
-   `static/events/<source>/<sourceId>/<eventId>.override.json`
-3. Abre PR com label `event-override` contra `main`
-4. O workflow do Actions valida o diff e auto-mergeia (mesmo fluxo do Caminho A)
-
-> **Regra de segurança:** o workflow rejeita PRs que contenham alterações fora de
-> `static/events/**/*.override.json` e `static/events/organizers.json`. PRs mistos
-> (override/organizers + outro arquivo) são bloqueados.
-
----
-
-## Validação + auto-merge (GitHub Actions — `github-actions[bot]`)
-
-> **Modelo atual (2026-07-30):** não há mais GitHub App. A validação e o auto-merge
-> rodam no workflow `validate-event-overrides.yml` com o `GITHUB_TOKEN` padrão do
-> Actions; a aprovação fica em nome de `github-actions[bot]`. As permissões abaixo
-> são as do job (não de um App).
->
-> **Mudança de segurança (2026-07-30):** o workflow agora verifica, além do schema,
-> se o autor do PR é o mesmo declarado como `ownerHandle` no override, e se o PR
-> contém exatamente um commit do mesmo autor. `organizers.json` deixa de ser
-> auto-mergeado — exige review manual de um mantenedor.
-
-### Permissões necessárias
-
-| Onde | Permissão | Para quê |
-|---|---|---|
-| Job do workflow (`permissions:`) | `contents: write` | Merge via `gh pr merge` |
-| Job do workflow (`permissions:`) | `pull-requests: write` | Aprovar PRs e habilitar auto-merge |
-| Membro (token OAuth, scope `public_repo`) | — | Criar branch/commits/PR no canônico (colaborador) ou via fork |
-
-> O repositório precisa ter **auto-merge habilitado** nas configurações:
-> _Settings → General → Allow auto-merge_
-
-### Lógica de validação do workflow
-
-```typescript
-// Pseudocódigo dos steps de validação (validate + verify author)
-async function onPullRequestOpened(pr: PullRequest) {
-  // 1. Schema: todos os arquivos devem estar no escopo permitido e serem válidos
-  const files = await listPRFiles(pr.number);
-  const schemaResult = await validateOverrideSchema(files);
-  if (!schemaResult.ok) {
-    await requestChanges(pr.number, schemaResult.reason);
-    return;
-  }
-
-  // 2. Autoria/integridade: só auto-mergeia se for seguro
-  const authorResult = await verifyOverrideAuthor({ prNumber: pr.number });
-  if (!authorResult.ok) {
-    // Não rejeita o PR — apenas não aprova/auto-mergeia. Um mantenedor pode
-    // revisar manualmente se a justificativa for legítima.
-    await commentPR(pr.number, `⚠️ Auto-merge bloqueado: ${authorResult.reason}`);
-    return;
-  }
-
-  // 3. Tudo válido: aprovar + habilitar auto-merge
-  await approvePR(pr.number, '✅ Override validado e autor verificado automaticamente (github-actions).');
-  await enableAutoMerge(pr.number, 'SQUASH');
-  // Após merge: GitHub deleta a branch automaticamente (configurar em Settings → Delete head branches)
-}
-```
-
-### Regras de segurança para auto-merge
-
-O script `scripts/verify-override-author.mjs` implementa as seguintes regras:
-
-1. **`organizers.json` nunca é auto-mergeado**
-   - Qualquer PR que toque `static/events/organizers.json` é comentado e **não** recebe aprovação automática.
-   - Isso evita que um organizer comprometido se auto-conceda scopes adicionais.
-
-2. **Autor do PR deve ser o `ownerHandle` do override**
-   - Cada arquivo `.override.json` alterado deve declarar `ownerHandle` igual ao login GitHub do usuário que abriu o PR.
-   - Se alguém editar o branch de outra pessoa e empurrar um commit extra, o workflow não mergeia.
-
-3. **Apenas 1 commit, do mesmo autor do PR**
-   - PRs com mais de um commit ou com commit de autor divergente não são auto-mergeados.
-   - Isso impede que um branch seja reaproveitado para incluir alterações não autorizadas depois da abertura do PR.
-
-4. **Snapshots `internal`/`index.json` continuam auto-mergeados**
-   - Eles são gerados pelo backend via `POST /events/internal/snapshot`, que já audita quem solicitou.
-   - O script os ignora para fins de verificação de autor.
-
-### Validação do schema de override
-
-```typescript
-function validateOverrideSchema(data: unknown): { ok: boolean; reason?: string } {
-  // Campos proibidos (nunca sobrescrevíveis)
-  const forbidden = ['id', 'startAt', 'endAt', 'href', 'source', 'sourceId', 'status'];
-  for (const key of forbidden) {
-    if (key in (data as Record<string, unknown>).extendData ?? {}) {
-      return { ok: false, reason: `Campo proibido: extendData.${key}` };
+```json
+{
+  "sourceKey": "meetup:devparana",
+  "eventId": "226163759",
+  "payload": {
+    "extendData": {
+      "summary": "Resumo corrigido",
+      "featured": true
     }
-  }
-  // Limites
-  if ((data as EventOverride).extendData?.summary?.length > 500)
-    return { ok: false, reason: 'summary excede 500 caracteres' };
-  if ((data as EventOverride).extendData?.tags?.length > 10)
-    return { ok: false, reason: 'tags excede 10 itens' };
-  if ((data as EventOverride).extendData?.speakers?.length > 10)
-    return { ok: false, reason: 'speakers excede 10 itens' };
-  return { ok: true };
+  },
+  "reason": "Corrigindo titulo"
 }
 ```
 
----
+### Fluxo
 
-## GitHub Action: Validação e Auto-Merge de Overrides
+1. `event_organizer` autenticado acessa `/admin/overrides`
+2. Seleciona o evento e preenche o formulário
+3. Clica em "Salvar" → backend valida campos e permissões (`assertCanManage`) e persiste na tabela
+4. O frontend vê o override na próxima requisição (ou após o próximo sync de snapshots)
 
-A GitHub Action abaixo valida e auto-mergeia PRs de override. Ela é disparada em
-`pull_request` (não em push para `main`), garantindo validação **antes** do merge.
-Usa o `GITHUB_TOKEN` padrão do Actions — sem GitHub App.
+### Permissão
 
-```yaml
-# .github/workflows/validate-event-overrides.yml
-name: Validate & auto-merge event overrides
-
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - 'static/events/**/*.override.json'
-      - 'static/events/organizers.json'
-      - 'static/events/overrides-index.json'
-      - 'static/events/internal/**'
-      - 'static/events/index.json'
-
-jobs:
-  validate-and-merge:
-    name: Validate override + auto-merge
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: 0
-
-      - uses: actions/setup-node@v6
-        with: { node-version: '24' }
-
-      - name: Validate override files changed in this PR
-        # Valida apenas os arquivos alterados no PR (git diff da base...HEAD).
-        # Qualquer arquivo fora do padrão na lista falha (PR misto). Deleções passam.
-        run: |
-          set -euo pipefail
-          CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "Nenhum arquivo alterado no PR."
-            exit 0
-          fi
-          echo "Arquivos alterados no PR:"
-          echo "$CHANGED_FILES"
-          git diff --name-only -z "origin/${{ github.base_ref }}...HEAD" \
-            | xargs -0 node scripts/validate-overrides.mjs
-
-      - name: Verify PR author and commit integrity
-        # Segurança do auto-merge:
-        #   - organizers.json nunca é auto-mergeado (review manual).
-        #   - Cada *.override.json deve ter ownerHandle == autor do PR.
-        #   - PR deve ter exatamente 1 commit, do mesmo autor.
-        # Se falhar, o PR ainda pode ser mergeado manualmente por um mantenedor.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-        run: node scripts/verify-override-author.mjs ${{ github.event.pull_request.number }}
-
-      - name: Approve PR (github-actions[bot])
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr review ${{ github.event.pull_request.number }} \
-            --approve \
-            --body "✅ Override validado e autor verificado automaticamente (github-actions)."
-
-      - name: Enable auto-merge
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr merge ${{ github.event.pull_request.number }} \
-            --squash \
-            --auto \
-            --delete-branch
-```
-
-> **Branch deletion automática:** o flag `--delete-branch` garante que a branch é deletada
-> após o merge, mesmo para PRs criados pelo Caminho B (edição direta no GitHub).
+- `admin` pode editar qualquer override
+- `event_organizer` precisa de ownership no `organizers.json` para o `sourceKey`/`eventId`
 
 ---
 
-## Merge de Dados: Base + Override (frontend)
+## Merge de Dados: Base + Override (snapshots)
 
-A página `/eventos/[sourceKey]/[id]` (ou `/eventos?source=X&id=Y`) precisa mesclar:
+O sync (`scripts/sync-events.mjs`) busca todos os overrides em `GET /events/overrides/public`
+e aplica o `extendData` sobre cada evento antes de gravar os snapshots:
 
 ```typescript
-// src/utils/event-override.ts
-
-export interface EventOverride {
-  eventId: string;
-  sourceKey: string;
-  extendData: Partial<EventItem>;
-  ownerHandle: string;
-  updatedAt: string;
-  reason?: string;
+function applyOverride(event, override) {
+  const extendData = typeof override.payload === "string"
+    ? JSON.parse(override.payload)
+    : override.payload;
+  return {
+    ...event,
+    ...extendData,
+    hasOverride: true,
+    _override: {
+      ownerHandle: override.ownerHandle,
+      updatedAt: override.updatedAt,
+      reason: override.reason,
+    },
+  };
 }
+```
 
+O frontend lê o snapshot já mesclado. A função `loadEventWithOverride` extrai o
+`_override` do evento para exibir o badge:
+
+```typescript
 export async function loadEventWithOverride(
   source: string,
   sourceId: string,
   eventId: string
-): Promise<{ event: EventItem; override: EventOverride | null }> {
-  const basePath = `/events/${source}/${sourceId}/${eventId}.json`;
-  const overridePath = `/events/${source}/${sourceId}/${eventId}.override.json`;
-
-  const [baseRes, overrideRes] = await Promise.allSettled([
-    fetch(basePath).then(r => r.json()),
-    fetch(overridePath).then(r => r.json()),
-  ]);
-
-  const base: EventDetailFile = baseRes.status === 'fulfilled' ? baseRes.value : null;
-  const override: EventOverride | null =
-    overrideRes.status === 'fulfilled' ? overrideRes.value : null;
-
+): Promise<{ event: EventWithOverride; override: EventOverride | null; source: EventSourceConfig }> {
+  const base = await fetchJsonOrNull<EventDetailFile>(`/events/${source}/${sourceId}/${eventId}.json`);
   if (!base) throw new Error(`Evento não encontrado: ${eventId}`);
-
-  const event: EventItem = override
-    ? { ...base.event, ...override.extendData }
-    : base.event;
-
-  return { event, override };
+  const event = base.event as EventWithOverride;
+  return {
+    event,
+    override: event._override ? {
+      sourceKey: "",
+      eventId,
+      payload: {},
+      ...event._override,
+    } : null,
+    source: base.source,
+  };
 }
 ```
 
-A página exibe um badge **"Metadados verificados por @handle"** quando override existe.
+A página exibe um badge **"Metadados verificados por @handle"** quando `_override` existe.
 
 ---
 
 ## Backend: Variáveis de Ambiente
+
+Overrides não exigem mais variáveis de GitHub-as-Database. As envs abaixo continuam
+necessárias apenas para o force-sync do snapshot internal (que ainda usa
+`GitHubDBService` para abrir PR multi-arquivo):
 
 ```
 # .env.example — modelo atual:
@@ -956,43 +799,36 @@ GITHUB_REPO_NAME=institucional
 GITHUB_TOKEN_ENCRYPTION_KEY=
 ```
 
-> ⚠️ **Não há `GITHUB_CREATE_PR` nem `GITHUB_COMMIT_DISABLED`** — o modelo é sempre-PR.
-> O backend nunca commita direto em `main`. A escrita usa o **token OAuth do próprio
-> membro** (scope `public_repo`, capturado no login e persistido criptografado em
-> `members.githubAccessToken`) — o committer é o membro, e a autoria também fica
-> registrada no campo `ownerHandle` do JSON override e no commit message.
+### Endpoints do módulo `event-overrides`
 
-### Endpoints do módulo `event-organizer`
+| Método | Rota | Auth | Descrição |
+|---|---|---|---|
+| `GET` | `/events/overrides` | Admin | Lista overrides por `sourceKey` |
+| `GET` | `/events/overrides/public` | Público | Lista todos os overrides (sync) |
+| `POST` | `/events/overrides` | `event_organizer` / `admin` | Cria override |
+| `GET` | `/events/overrides/:sourceKey/:eventId` | Público | Retorna override atual |
+| `PUT` | `/events/overrides/:sourceKey/:eventId` | `event_organizer` / `admin` | Atualiza override |
+| `DELETE` | `/events/overrides/:sourceKey/:eventId` | `event_organizer` / `admin` | Remove override |
+
+### Endpoints do módulo `event-organizer` (ownership)
 
 | Método | Rota | Auth | Descrição |
 |---|---|---|---|
 | `GET` | `/events/organizers` | Admin | Lista mapeamento de ownership |
-| `POST` | `/events/organizers` | Admin | Atribui eventos a um organizer |
-| `DELETE` | `/events/organizers/:memberId` | Admin | Remove ownership |
-| `PUT` | `/events/override/:sourceKey/:eventId` | event_organizer | Cria/atualiza override (abre PR) |
-| `DELETE` | `/events/override/:sourceKey/:eventId` | event_organizer | Remove override (abre PR de delete) |
-| `GET` | `/events/override/:sourceKey/:eventId` | Público | Retorna override atual (cache 5min) |
-| `GET` | `/events/override/:sourceKey/:eventId/pr` | event_organizer | Retorna PR em aberto para o override |
+| `POST` | `/events/organizers` | Admin | Atribui eventos a um organizer (abre PR) |
+| `DELETE` | `/events/organizers/:memberId` | Admin | Remove ownership (abre PR) |
+
+> Ownership continua em `static/events/organizers.json` (PR + review manual) por
+> enquanto, pois envolve delegação de permissões sensíveis.
 
 ---
 
 ## Padrão Reutilizável: GitHub-as-Database
 
-Este fluxo (backend valida → **token OAuth do membro** cria branch + PR → workflow do
-Actions auto-mergeia → branch deletada) é reutilizável para qualquer dado que vive no repositório:
-
-| Caso de uso | Arquivo alvo | Quem dispara (role) |
-|---|---|---|
-| Override de metadados de evento | `static/events/**/*.override.json` | event_organizer |
-| Atualização de dados da equipe | `src/data/team.ts` | admin |
-| Atualização de stats manuais (YouTube, Instagram) | `src/data/social.ts` | admin |
-| Upload de fallback de eventos | `events.config.json` | admin |
-
-> Em todos os casos o **committer é o próprio membro** (dono do token OAuth). O backend
-> guarda o token criptografado em repouso e nunca o expõe — isso garante que:
-> 1. O membro recebe atribuição de contributor no repositório público;
-> 2. Membros sem permissão de escrita passam pelo fork flow (não precisam ser colaboradores);
-> 3. A auditoria fica centralizada (`ownerHandle` no JSON + autoria real do commit).
+> **Escopo reduzido (2026-07-31):** o GitHub-as-Database continua sendo usado
+> apenas para o force-sync do snapshot `internal:codaqui` (`POST /events/internal/snapshot`)
+> e para edições de `organizers.json` (ownership). Overrides de eventos migraram para
+> o banco PostgreSQL via `/events/overrides`.
 
 ### Biblioteca interna: `GitHubDBService`
 
@@ -1360,50 +1196,39 @@ Ao salvar um evento próprio, o sistema deve:
 ## Testes Necessários
 
 ### Backend
-- `github-db.service.spec.ts` — mock GitHub API, testa create/update/delete
-- `events-override.controller.spec.ts` — permissões por role, validação de scope
+- `event-overrides.service.spec.ts` — CRUD, permissões por role/ownership, validação de payload
+- `event-overrides.controller.spec.ts` — rotas, guards, respostas públicas
 - `organizers.service.spec.ts` — parse de scope glob (`meetup:devparana:*` vs específico)
 
 ### Frontend
-- `event-override.test.ts` — merge de dados (extendData sobrescreve, campos ausentes preservados)
+- `event-override.test.ts` — snapshot já mesclado; `_override` extraído para badge
+- `events-api.test.ts` — `fetchEventsIndexMerged` consome `/events/index.json` diretamente
 - `EventOverrideBadge.test.tsx` — render condicional
-- Mock de `fetch` para `.override.json` retornando 404 (sem override) e 200 (com override)
+- `EventOverrideHistory.test.tsx` — carrega override atual da API pública
 
-### GitHub Action
-- `scripts/validate-overrides.mjs` — valida todos os `*.override.json` modificados no PR:
-  - Campos proibidos (startAt, endAt, id, source, status, href)
-  - Tipos de cada campo de `extendData`
-  - Limites (summary ≤ 500 chars, tags ≤ 10, speakers ≤ 10)
-  - PRs mistos (override + outro arquivo) devem falhar
+### Scripts
+- `scripts/sync-events.mjs` — aplica overrides do backend no snapshot e marca `hasOverride`/`_override`
 
 ---
 
 ## Checklist de Implementação
 
-> **Status (2026-07-29):** todo o código está implementado. Restam apenas os pré-requisitos de
-> **infra manual** (configurações do repositório + env de produção). O modelo de escrita é
-> token OAuth do membro — **não é mais necessário criar GitHub App** (ver "Mudança de
-> decisão" no Registro de Implementação).
+> **Status (2026-07-31):** overrides migrados para o banco PostgreSQL via API REST.
+> GitHub-as-Database continua apenas para force-sync internal e organizers.json.
 
-- [ ] Infra do repositório — **pré-requisito manual**:
-  - Habilitar auto-merge (_Settings → General → Allow auto-merge_)
-  - Habilitar delete automático de branches após merge (_Settings → General → Automatically delete head branches_)
-  - Definir `GITHUB_TOKEN_ENCRYPTION_KEY` (32 bytes, hex/base64) nas envs de produção do backend
 - [x] Migrar `MemberRole` de enum single-value para `text[]` + `RolesGuard` update
 - [x] Adicionar `EVENT_ORGANIZER` em `MemberRole` + migration Postgres
-- [x] Criar `static/events/organizers.json` com estrutura inicial vazia
-- [x] Criar módulo `backend/src/github-db/` com `GitHubDBService`:
-  - `createPRWithFile()` — cria branch + commita + abre PR (canônico ou fork flow)
-  - `createPRDeleteFile()` — cria branch + remove arquivo + abre PR
-  - `readFile()` — lê arquivo de `main` via raw.githubusercontent.com (sem token)
-  - `getPRForBranch()` — retorna estado do PR aberto
-- [x] Criar módulo `backend/src/event-organizer/` com endpoints de ownership e override
-- [x] Adicionar validação de override no backend (campos proibidos, tipos, limites) **antes** de criar branch
-- [x] Adicionar `GITHUB_REPO_OWNER`, `GITHUB_REPO_NAME`, `GITHUB_TOKEN_ENCRYPTION_KEY` em `.env.example`
-- [x] Capturar `githubAccessToken` no login OAuth (scope `public_repo`) + criptografia em repouso (migration 013)
-- [x] Criar workflow `.github/workflows/validate-event-overrides.yml` (on: pull_request → validate + approve + auto-merge, via `GITHUB_TOKEN`)
-- [x] Criar script `scripts/validate-overrides.mjs`
-- [x] Atualizar script `scripts/sync-events.mjs` para incluir `hasOverride: boolean` no `index.json`
+- [x] Manter `static/events/organizers.json` para ownership (PR + review manual)
+- [x] Criar entidade `EventOverride` + migration `Migration020_EventOverride`
+- [x] Criar `EventOverridesService` e `EventOverridesController` (`/events/overrides`)
+- [x] Adicionar endpoint público `GET /events/overrides/public` para o sync
+- [x] Adicionar validação de override no backend (campos proibidos, tipos, limites)
+- [x] Atualizar `scripts/sync-events.mjs` para buscar overrides do backend e aplicar no snapshot
+- [x] Remover geração de `overrides-index.json`
+- [x] Remover workflow `.github/workflows/validate-event-overrides.yml`
+- [x] Atualizar frontend `admin/overrides` para usar a API REST
+- [x] Simplificar `src/lib/events-api.ts` (index.json já vem mesclado)
+- [ ] Migrar overrides existentes em `.override.json` para o banco (passo manual)
 - [x] Criar `src/utils/event-override.ts` com `loadEventWithOverride()`
 - [x] Criar `src/components/EventOverrideBadge/`
 - [x] Atualizar página de eventos para usar merge e badge
@@ -1609,3 +1434,57 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     alterado deve declarar `ownerHandle` igual ao autor do PR; o PR deve ter
     exatamente 1 commit do mesmo autor do PR. O script possui testes próprios
     (`scripts/verify-override-author.test.mjs`).
+39. **Migração de overrides para o banco (2026-07-31):** substituído o GitHub-as-Database
+    de overrides por persistência PostgreSQL via API REST (`/events/overrides`). Criados
+    `EventOverride` (entidade), `Migration020_EventOverride`, `EventOverridesService`,
+    `EventOverridesController` e endpoint público `/events/overrides/public` para o sync.
+    `scripts/sync-events.mjs` aplica overrides do backend diretamente nos snapshots;
+    `overrides-index.json`, o workflow `validate-event-overrides.yml` e os arquivos
+    `.override.json` foram removidos (ou devem ser migrados manualmente para o banco
+    antes da remoção). O frontend `admin/overrides` e `src/lib/events-api.ts` foram
+    simplificados para consumir o snapshot já mesclado. Ownership (`organizers.json`)
+    e force-sync internal continuam usando GitHub-as-Database.
+
+
+---
+
+## Apêndice — Resumo executivo da implementação
+
+> Última atualização: 2026-07-30. Este apêndice consolida o que está funcionando, ressalvas, bugs corrigidos e débitos técnicos do ciclo de implementação.
+
+### O que está implementado
+
+- Eventos próprios (`internal:codaqui`) com CRUD, publicação e snapshot.
+- Eventos externos com overrides de metadados e ativação à la carte de features.
+- Tipos de ingresso / lotes (free, paid, community, company).
+- Checkout Stripe para ingressos pagos (internos e externos), com checkout embedded.
+- Ledger com `referenceId` prefixado (`event-ticket:*`, `event-ticket-refund:*`).
+- Check-in por QR (scanner + lista manual).
+- Importação CSV de participantes para eventos externos.
+- Certificados sob demanda (perfil público + verificação pública).
+- Histórico público de participações.
+- Página dedicada de termos de compra e política de reembolso (`/termos-de-compra`).
+- Reembolso/despesa vinculada a evento (interno ou externo).
+- Transparência geral mostrando receita e quantidade de ingressos vendidos por comunidade.
+
+### Status por sub-fase
+
+| Sub-fase | Status |
+|----------|--------|
+| 2a — Fundação | ✅ Implementado |
+| 2b — Ingressos pagos | ✅ Implementado |
+| 2c — Check-in, comunicação e certificados | ✅ Implementado (ressalvas na UI de opt-in) |
+| 2d — Externos à la carte e relatórios | ✅ Implementado (sync automático parcial) |
+| 2e — Real Network | 🚧 Plano futuro |
+
+### Pendências e débitos técnicos
+
+| # | Item | Prioridade |
+|---|------|------------|
+| 1 | Hub unificado de eventos no admin | Média |
+| 2 | Toggle de opt-in de comunicações pós-evento | Média |
+| 3 | Drill-down financeiro por evento na transparência | Média |
+| 4 | Taxas Stripe de ingressos no ledger | Baixa |
+| 5 | Check-in de eventos externos na UI | Baixa |
+| 6 | Sync automático Discord RSVP | Baixa |
+| 7 | Fase 2e — Real Network | Futuro |

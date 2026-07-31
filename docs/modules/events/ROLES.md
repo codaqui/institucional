@@ -8,8 +8,8 @@ sections:
   - Onde as roles são verificadas no código
 related-docs:
   - AGENTS.md — guia geral do monorepo
-  - docs/EVENT_PLAN_EXECUTION.md — execução do plano de eventos
-  - docs/CODE_MANUAL.md — manual do código para agents
+  - ../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
+  - ./CODE_MANUAL.md — manual do código para agents
 -->
 
 # Mapa de Papéis e Habilidades
