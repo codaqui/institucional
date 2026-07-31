@@ -15,6 +15,8 @@ const rootDir = process.cwd();
 const configPath = path.join(rootDir, "events.config.json");
 const outputDir = path.join(rootDir, "static", "events");
 
+const OVERRIDES_API_URL = process.env.EVENT_OVERRIDES_API_URL || "http://localhost:3000/events/overrides/public";
+
 async function readJson(filePath) {
   const content = await readFile(filePath, "utf8");
   return JSON.parse(content);
@@ -30,6 +32,38 @@ async function fetchJson(url, init) {
 
 function getSourceKey(source, sourceId) {
   return `${source}:${sourceId}`;
+}
+
+async function fetchOverridesFromApi() {
+  try {
+    const response = await fetchWithTimeout(OVERRIDES_API_URL, {}, 30_000);
+    if (!response.ok) {
+      console.warn(`  ⚠ API de overrides indisponivel (${response.status}) — usando snapshot sem overrides.`);
+      return [];
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn(`  ⚠ Falha ao buscar overrides do backend: ${error.message}`);
+    return [];
+  }
+}
+
+function applyOverride(event, override) {
+  if (!override || !override.payload) return event;
+  const extendData = typeof override.payload === "string"
+    ? JSON.parse(override.payload)
+    : override.payload;
+  return {
+    ...event,
+    ...extendData,
+    hasOverride: true,
+    _override: {
+      ownerHandle: override.ownerHandle || "",
+      updatedAt: override.updatedAt || new Date().toISOString(),
+      reason: override.reason || null,
+    },
+  };
 }
 
 function buildSourceDir(source, sourceId) {
@@ -1147,35 +1181,27 @@ async function resolveOcgroupsEvents(config, existingEvents) {
 }
 
 async function cleanSourceDir(sourceDir) {
-  // Preserva arquivos *.override.json: sao metadados curados por organizadores
-  // via PR (GitHub-as-database, ver docs/EVENT_PLAN.md) e nao podem ser apagados pelo sync.
+  // Limpa todos os arquivos JSON (overrides agora ficam no banco, nao mais em disco).
   await mkdir(sourceDir, { recursive: true });
   const entries = await readdir(sourceDir);
   await Promise.all(
     entries
-      .filter((entry) => entry.endsWith(".json") && !entry.endsWith(".override.json"))
+      .filter((entry) => entry.endsWith(".json"))
       .map((entry) => rm(path.join(sourceDir, entry), { force: true }))
   );
 }
 
-async function readOverrideIds(sourceDir) {
-  try {
-    const entries = await readdir(sourceDir);
-    return new Set(
-      entries
-        .filter((entry) => entry.endsWith(".override.json"))
-        .map((entry) => entry.slice(0, -".override.json".length))
-    );
-  } catch {
-    return new Set();
-  }
-}
-
-async function writeSourceOutputs(sourceConfig, events, generatedAt) {
+async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey) {
   const sourceDir = buildSourceDir(sourceConfig.source, sourceConfig.sourceId);
-  const overrideIds = await readOverrideIds(sourceDir);
+  const sourceKey = getSourceKey(sourceConfig.source, sourceConfig.sourceId);
+  const overridesForSource = overridesByKey.get(sourceKey) ?? new Map();
 
   await cleanSourceDir(sourceDir);
+
+  const eventsWithOverrides = events.map((event) => {
+    const override = overridesForSource.get(String(event.id));
+    return override ? applyOverride(event, override) : event;
+  });
 
   const sourceMeta = {
     source: sourceConfig.source,
@@ -1192,14 +1218,14 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
     generatedAt
   };
 
-  const summaries = events
+  const summaries = eventsWithOverrides
     .map((event) => ({
       ...event,
       source: sourceConfig.source,
       sourceId: sourceConfig.sourceId,
       sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
       itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id),
-      hasOverride: overrideIds.has(String(event.id))
+      hasOverride: Boolean(event.hasOverride)
     }))
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
@@ -1210,7 +1236,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
     itemCount: summaries.length
   };
 
-  for (const event of events) {
+  for (const event of eventsWithOverrides) {
     await writeFile(
       path.join(sourceDir, `${event.id}.json`),
       `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`,
@@ -1228,7 +1254,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
   return { sourceSummary, summaries };
 }
 
-async function processSource(sourceConfig, fullSync, generatedAt) {
+async function processSource(sourceConfig, fullSync, generatedAt, overridesByKey) {
   console.log(`  syncing ${sourceConfig.source}/${sourceConfig.sourceId}...`);
   const existingEvents = await readExistingEvents(sourceConfig.source, sourceConfig.sourceId);
 
@@ -1243,7 +1269,7 @@ async function processSource(sourceConfig, fullSync, generatedAt) {
     events = await resolveSymplaEvents(sourceConfig, existingEvents);
   }
 
-  return writeSourceOutputs(sourceConfig, events, generatedAt);
+  return writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
 }
 
 // ─── Internal (backend Codaqui) ─────────────────────────────────────────────
@@ -1295,47 +1321,27 @@ async function processInternalSource(generatedAt) {
   };
   const events = payload ? payload.events : existingEvents;
 
-  const result = await writeSourceOutputs(sourceConfig, events, generatedAt);
+  const result = await writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
   if (!payload) {
     console.log("    ↪ usando snapshot em cache (backend indisponivel)");
   }
   return result;
 }
 
-// ─── Manifesto público de overrides (overrides-index.json) ─────────────────
-// Regenerado a cada sync a partir dos *.override.json em disco — backstop de
-// drift (o PR de cada override já atualiza o manifesto no mesmo PR).
-
-async function buildOverridesIndex(generatedAt) {
-  const overrides = {};
-  let entries = [];
-  try {
-    entries = await readdir(outputDir, { recursive: true, withFileTypes: true });
-  } catch {
-    entries = [];
-  }
-  const files = entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".override.json"))
-    .map((entry) => path.join(entry.parentPath, entry.name))
-    .sort();
-  for (const file of files) {
-    try {
-      const data = await readJson(file);
-      if (typeof data?.sourceKey === "string" && typeof data?.eventId === "string") {
-        overrides[`${data.sourceKey}:${data.eventId}`] = {
-          extendData: data.extendData ?? {},
-          ownerHandle: data.ownerHandle ?? "",
-          updatedAt: data.updatedAt ?? generatedAt
-        };
-      }
-    } catch {
-      console.warn(`  ⚠ override ignorado no manifesto (JSON inválido): ${file}`);
+function buildOverridesMap(overrides) {
+  const map = new Map();
+  for (const override of overrides) {
+    if (!override.sourceKey || !override.eventId) continue;
+    if (!map.has(override.sourceKey)) {
+      map.set(override.sourceKey, new Map());
     }
+    map.get(override.sourceKey).set(override.eventId, override);
   }
-  return { version: 1, updatedAt: generatedAt, overrides };
+  return map;
 }
 
-async function main() {  const fullSync =
+async function main() {
+  const fullSync =
     process.argv.includes("--full") || process.env.FULL_CONSOLIDATION === "true";
 
   const config = await readJson(configPath);
@@ -1349,15 +1355,20 @@ async function main() {  const fullSync =
   console.log(`mode: ${fullSync ? "full consolidation" : "incremental (last 30 days past + all upcoming)"}`);
   await mkdir(outputDir, { recursive: true });
 
+  // Overrides agora vem do banco via API — nao mais de arquivos .override.json.
+  const overrides = await fetchOverridesFromApi();
+  const overridesByKey = buildOverridesMap(overrides);
+  console.log(`  ↪ ${overrides.length} override(s) carregado(s) do backend`);
+
   for (const sourceConfig of config.sources) {
-    const { sourceSummary, summaries } = await processSource(sourceConfig, fullSync, generatedAt);
+    const { sourceSummary, summaries } = await processSource(sourceConfig, fullSync, generatedAt, overridesByKey);
     rootIndex.sources.push(sourceSummary);
     rootIndex.events.push(...summaries);
   }
 
   // Fonte internal:codaqui — dinamica via API do backend (nao esta no
   // events.config.json). Retorna null se a API estiver fora e nao houver cache.
-  const internalResult = await processInternalSource(generatedAt);
+  const internalResult = await processInternalSource(generatedAt, overridesByKey);
   if (internalResult) {
     rootIndex.sources.push(internalResult.sourceSummary);
     rootIndex.events.push(...internalResult.summaries);
@@ -1366,16 +1377,6 @@ async function main() {  const fullSync =
   rootIndex.events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
   await writeFile(path.join(outputDir, "index.json"), `${JSON.stringify(rootIndex, null, 2)}\n`, "utf8");
-
-  // Manifesto público de overrides — regenerado a cada sync a partir dos
-  // *.override.json em disco (bootstrap/correção de drift; os PRs de override
-  // já atualizam o manifesto no mesmo PR, este é o backstop).
-  const overridesIndex = await buildOverridesIndex(generatedAt);
-  await writeFile(
-    path.join(outputDir, "overrides-index.json"),
-    `${JSON.stringify(overridesIndex, null, 2)}\n`,
-    "utf8"
-  );
 
   console.log(`✓ events synced at ${generatedAt}`);
   console.log(`  sources: ${rootIndex.sources.length} | total events: ${rootIndex.events.length}`);
