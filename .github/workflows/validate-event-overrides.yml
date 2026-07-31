@@ -4,9 +4,10 @@
 #   - static/events/internal/**/*.json + static/events/index.json (snapshot da
 #     fonte internal:codaqui, gerado pelo force-sync POST /events/internal/snapshot)
 #
-# Autenticação: GITHUB_TOKEN padrão do Actions (sem GitHub App). A aprovação
-# e o merge ficam em nome de `github-actions[bot]`; os commits do PR já saem
-# em nome do membro que abriu (token OAuth do próprio membro — ver
+# Autenticação: GitHub App (codaqui-overrides-auto-merge) para aprovação e
+# merge. O token de instalação do App pode aprovar PRs, ao contrário do
+# GITHUB_TOKEN nativo do Actions. Os commits do PR continuam saindo em nome do
+# membro que abriu (token OAuth do próprio membro — ver
 # backend/src/github-db/github-db.service.ts).
 name: Validate & auto-merge event overrides
 
@@ -23,12 +24,19 @@ on:
 jobs:
   validate-and-merge:
     name: Validate override + auto-merge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       contents: write
       pull-requests: write
 
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -64,19 +72,19 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: node scripts/verify-override-author.mjs ${{ github.event.pull_request.number }}
 
-      - name: Approve PR (github-actions[bot])
+      - name: Approve PR (codaqui-overrides-auto-merge)
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr review ${{ github.event.pull_request.number }} \
             --approve \
-            --body "✅ Override validado e autor verificado automaticamente (github-actions)."
+            --body "✅ Override validado e autor verificado automaticamente (codaqui-overrides-auto-merge)."
 
       - name: Enable auto-merge
         if: success()
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           gh pr merge ${{ github.event.pull_request.number }} \
             --squash \
