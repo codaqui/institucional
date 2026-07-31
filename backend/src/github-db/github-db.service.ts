@@ -63,6 +63,9 @@ interface WriteTarget {
 const GITHUB_API = 'https://api.github.com';
 const GITHUB_RAW = 'https://raw.githubusercontent.com';
 
+/** Regex de path permitido no repo: sem traversal, sem absoluto, apenas ASCII seguro */
+const REPO_PATH_REGEX = /^[a-zA-Z0-9_.\-~/]+$/;
+
 /** Permissões que autorizam escrever direto no repositório canônico */
 const DIRECT_WRITE_PERMISSIONS = new Set(['admin', 'maintain', 'write']);
 
@@ -117,6 +120,31 @@ export class GitHubDBService {
     return process.env.GITHUB_BASE_BRANCH || 'main';
   }
 
+  /**
+   * Valida que um caminho dentro do repositório não permite path traversal
+   * nem caracteres inseguros. Reutilizado por leituras/escritas públicas.
+   */
+  private validateRepoPath(path: string): void {
+    if (!path || typeof path !== 'string') {
+      throw new ServiceUnavailableException('Caminho do arquivo é obrigatório.');
+    }
+    if (
+      path.startsWith('/') ||
+      path.startsWith('\\') ||
+      path.includes('..') ||
+      path.includes('\0')
+    ) {
+      throw new ServiceUnavailableException(
+        `Caminho do arquivo inválido: ${path}`,
+      );
+    }
+    if (!REPO_PATH_REGEX.test(path)) {
+      throw new ServiceUnavailableException(
+        `Caminho do arquivo contém caracteres não permitidos: ${path}`,
+      );
+    }
+  }
+
   // ── HTTP helpers ─────────────────────────────────────────────────────────
 
   /**
@@ -161,6 +189,7 @@ export class GitHubDBService {
 
   /** Lê um arquivo da branch base. Retorna o conteúdo UTF-8 ou null se não existir. */
   async readFile(path: string): Promise<string | null> {
+    this.validateRepoPath(path);
     const res = await fetch(
       `${GITHUB_RAW}/${this.repoOwner}/${this.repoName}/${this.baseBranch}/${path}`,
     );

@@ -19,66 +19,106 @@ export interface ParsedCsvRow {
 
 export class CsvParseError extends Error {}
 
-function tokenize(text: string, delimiter: string): string[][] {
-  const rows: string[][] = [];
-  let field = '';
-  let record: string[] = [];
-  let inQuotes = false;
-  let i = 0;
-
-  const pushField = () => {
-    record.push(field);
-    field = '';
-  };
-  const pushRecord = () => {
-    pushField();
-    rows.push(record);
-    record = [];
-  };
-
-  while (i < text.length) {
-    const ch = text[i];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i += 2;
-          continue;
-        }
-        inQuotes = false;
-        i += 1;
-        continue;
-      }
-      field += ch;
-      i += 1;
-      continue;
-    }
-    if (ch === '"') {
-      inQuotes = true;
-      i += 1;
-      continue;
-    }
-    if (ch === delimiter) {
-      pushField();
-      i += 1;
-      continue;
-    }
-    if (ch === '\n' || ch === '\r') {
-      // \r\n conta como uma quebra só
-      if (ch === '\r' && text[i + 1] === '\n') i += 1;
-      pushRecord();
-      i += 1;
-      continue;
-    }
-    field += ch;
-    i += 1;
+function assertString(value: unknown): asserts value is string {
+  if (typeof value !== 'string') {
+    throw new CsvParseError('Entrada do CSV deve ser uma string.');
   }
-  if (field.length > 0 || record.length > 0) pushRecord();
+}
+
+interface TokenizerState {
+  i: number;
+  field: string;
+  record: string[];
+  inQuotes: boolean;
+}
+
+function tokenize(text: string, delimiter: string): string[][] {
+  assertString(text);
+  assertString(delimiter);
+
+  const rows: string[][] = [];
+  const state: TokenizerState = {
+    i: 0,
+    field: '',
+    record: [],
+    inQuotes: false,
+  };
+
+  while (state.i < text.length) {
+    processTokenChar(state, text, delimiter, rows);
+  }
+  finalizeTokenRecord(state, rows);
   return rows.filter((r) => r.some((cell) => cell.trim().length > 0));
+}
+
+function processTokenChar(
+  state: TokenizerState,
+  text: string,
+  delimiter: string,
+  rows: string[][],
+): void {
+  const ch = text[state.i];
+  if (state.inQuotes) {
+    handleQuotedChar(state, text, ch);
+    return;
+  }
+  if (ch === '"') {
+    state.inQuotes = true;
+    state.i += 1;
+    return;
+  }
+  if (ch === delimiter) {
+    state.record.push(state.field);
+    state.field = '';
+    state.i += 1;
+    return;
+  }
+  if (ch === '\n' || ch === '\r') {
+    // \r\n conta como uma quebra só
+    if (ch === '\r' && text[state.i + 1] === '\n') state.i += 1;
+    state.record.push(state.field);
+    rows.push(state.record);
+    state.field = '';
+    state.record = [];
+    state.i += 1;
+    return;
+  }
+  state.field += ch;
+  state.i += 1;
+}
+
+function handleQuotedChar(
+  state: TokenizerState,
+  text: string,
+  ch: string,
+): void {
+  if (ch !== '"') {
+    state.field += ch;
+    state.i += 1;
+    return;
+  }
+  if (text[state.i + 1] === '"') {
+    state.field += '"';
+    state.i += 2;
+    return;
+  }
+  state.inQuotes = false;
+  state.i += 1;
+}
+
+function finalizeTokenRecord(
+  state: TokenizerState,
+  rows: string[][],
+): void {
+  if (state.field.length > 0 || state.record.length > 0) {
+    state.record.push(state.field);
+    rows.push(state.record);
+  }
 }
 
 /** Detecta o separador pela primeira linha física (header). */
 function detectDelimiter(text: string): string {
+  assertString(text);
   const firstLineEnd = text.search(/\r?\n/);
   const header = firstLineEnd === -1 ? text : text.slice(0, firstLineEnd);
   const semicolons = (header.match(/;/g) ?? []).length;
@@ -88,9 +128,10 @@ function detectDelimiter(text: string): string {
 
 /** Faz parse do CSV e devolve as linhas tipadas (ou lança CsvParseError). */
 export function parseCsvText(text: string, maxRows = 10_000): ParsedCsvRow[] {
-  if (!text?.trim()) throw new CsvParseError('CSV vazio.');
+  assertString(text);
+  if (!text.trim()) throw new CsvParseError('CSV vazio.');
   // Remove BOM se presente
-  const clean = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  const clean = text.codePointAt(0) === 0xfeff ? text.slice(1) : text;
   const records = tokenize(clean, detectDelimiter(clean));
   if (records.length === 0) throw new CsvParseError('CSV vazio.');
 
