@@ -128,7 +128,7 @@ test("verifyOverrideAuthor: ownerHandle diverge → bloqueado", async () => {
   assert.match(result.reason, /outrapessoa/);
 });
 
-test("verifyOverrideAuthor: mais de 1 commit → bloqueado", async () => {
+test("verifyOverrideAuthor: múltiplos commits do mesmo autor → ok", async () => {
   const { fetchImpl } = makeFetchMock({
     "/pulls/42": { body: { user: { login: "anadev" } } },
     "/pulls/42/files": { body: [{ filename: "static/events/meetup/devparana/123.override.json" }] },
@@ -149,8 +149,32 @@ test("verifyOverrideAuthor: mais de 1 commit → bloqueado", async () => {
     existsImpl: () => true,
   });
 
+  assert.equal(result.ok, true);
+});
+
+test("verifyOverrideAuthor: algum commit de autor divergente → bloqueado", async () => {
+  const { fetchImpl } = makeFetchMock({
+    "/pulls/42": { body: { user: { login: "anadev" } } },
+    "/pulls/42/files": { body: [{ filename: "static/events/meetup/devparana/123.override.json" }] },
+    "/pulls/42/commits": {
+      body: [
+        { author: { login: "anadev" }, commit: { author: { name: "Ana" } } },
+        { author: { login: "outro" }, commit: { author: { name: "Outro" } } },
+      ],
+    },
+  });
+
+  const result = await verifyOverrideAuthor({
+    prNumber: "42",
+    repo: "codaqui/institucional",
+    token: "tk",
+    fetchImpl,
+    readFileImpl: async () => JSON.stringify({ ownerHandle: "anadev" }),
+    existsImpl: () => true,
+  });
+
   assert.equal(result.ok, false);
-  assert.match(result.reason, /1 commit/);
+  assert.match(result.reason, /commit 2 \(@outro\)/);
 });
 
 test("verifyOverrideAuthor: autor do commit diverge → bloqueado", async () => {

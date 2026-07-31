@@ -5,8 +5,9 @@
 //   1. PRs que tocam organizers.json NUNCA passam (review manual obrigatório).
 //   2. Cada arquivo .override.json alterado deve declarar ownerHandle igual ao
 //      login GitHub do autor do PR (quem abriu o PR).
-//   3. O PR deve ter exatamente 1 commit, e esse commit deve ser do mesmo
-//      autor que abriu o PR (impede pushes extras no branch).
+//   3. Todos os commits do PR devem ser do mesmo autor que abriu o PR
+//      (impede pushes extras de terceiros no branch). Múltiplos commits do
+//      mesmo autor são permitidos — comum em ajustes rápidos após revisão.
 //   4. Snapshots internal e index.json são ignorados para fins de autor
 //      (gerados pelo force-sync do backend, que já loga quem solicitou).
 //
@@ -128,29 +129,30 @@ export async function verifyOverrideAuthor({
     }
   }
 
-  // Regra 3: exatamente 1 commit, do mesmo autor do PR.
+  // Regra 3: todos os commits devem ser do autor do PR.
   const commits = await getPrCommits(prNumber, repo, token, fetchImpl);
-  if (commits.length !== 1) {
+  if (commits.length === 0) {
     return {
       ok: false,
-      reason: `PR possui ${commits.length} commit(s). Apenas 1 commit permitido para auto-merge.`,
+      reason: "PR não possui commits — auto-merge bloqueado.",
     };
   }
 
-  const commitAuthor = commits[0].author?.login;
-  if (!commitAuthor) {
+  const divergentCommits = commits
+    .map((c) => c.author?.login)
+    .filter((login) => !login || login.toLowerCase() !== prAuthor.toLowerCase());
+  if (divergentCommits.length > 0) {
+    const offenders = commits
+      .map((c, i) => ({ index: i + 1, login: c.author?.login ?? "desconhecido" }))
+      .filter((c) => c.login.toLowerCase() !== prAuthor.toLowerCase());
+    const list = offenders.map((c) => `commit ${c.index} (@${c.login})`).join(", ");
     return {
       ok: false,
-      reason: "Commit não possui autor associado a uma conta GitHub.",
-    };
-  }
-  if (commitAuthor.toLowerCase() !== prAuthor.toLowerCase()) {
-    return {
-      ok: false,
-      reason: `Autor do commit (@${commitAuthor}) diverge do autor do PR (@${prAuthor}).`,
+      reason: `Autor de commit diverge do autor do PR (@${prAuthor}): ${list}.`,
     };
   }
 
+  const commitAuthor = commits[0].author.login;
   return { ok: true, prAuthor, commitAuthor, changedFiles };
 }
 
