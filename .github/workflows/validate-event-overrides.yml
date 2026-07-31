@@ -24,7 +24,7 @@ on:
 jobs:
   validate-and-merge:
     name: Validate override + auto-merge
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     permissions:
       contents: write
       pull-requests: write
