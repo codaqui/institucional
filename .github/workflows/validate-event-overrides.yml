@@ -53,6 +53,17 @@ jobs:
           git diff --name-only -z "origin/${{ github.base_ref }}...HEAD" \
             | xargs -0 node scripts/validate-overrides.mjs
 
+      - name: Verify PR author and commit integrity
+        # Segurança do auto-merge:
+        #   - organizers.json nunca é auto-mergeado (review manual).
+        #   - Cada *.override.json deve ter ownerHandle == autor do PR.
+        #   - PR deve ter exatamente 1 commit, do mesmo autor.
+        # Se falhar, o PR ainda pode ser mergeado manualmente por um mantenedor.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/verify-override-author.mjs ${{ github.event.pull_request.number }}
+
       - name: Approve PR (github-actions[bot])
         if: success()
         env:
@@ -60,7 +71,7 @@ jobs:
         run: |
           gh pr review ${{ github.event.pull_request.number }} \
             --approve \
-            --body "✅ Override validado automaticamente (github-actions)."
+            --body "✅ Override validado e autor verificado automaticamente (github-actions)."
 
       - name: Enable auto-merge
         if: success()

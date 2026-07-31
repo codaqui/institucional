@@ -714,10 +714,15 @@ O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo flu
 
 ## Validação + auto-merge (GitHub Actions — `github-actions[bot]`)
 
-> **Modelo atual (2026-07-29):** não há mais GitHub App. A validação e o auto-merge
+> **Modelo atual (2026-07-30):** não há mais GitHub App. A validação e o auto-merge
 > rodam no workflow `validate-event-overrides.yml` com o `GITHUB_TOKEN` padrão do
 > Actions; a aprovação fica em nome de `github-actions[bot]`. As permissões abaixo
 > são as do job (não de um App).
+>
+> **Mudança de segurança (2026-07-30):** o workflow agora verifica, além do schema,
+> se o autor do PR é o mesmo declarado como `ownerHandle` no override, e se o PR
+> contém exatamente um commit do mesmo autor. `organizers.json` deixa de ser
+> auto-mergeado — exige review manual de um mantenedor.
 
 ### Permissões necessárias
 
@@ -733,36 +738,51 @@ O sistema suporta dois caminhos igualmente válidos. Ambos terminam no mesmo flu
 ### Lógica de validação do workflow
 
 ```typescript
-// Pseudocódigo do step de validação (scripts/validate-overrides.mjs)
+// Pseudocódigo dos steps de validação (validate + verify author)
 async function onPullRequestOpened(pr: PullRequest) {
-  // 1. Verificar que todos os arquivos modificados são *.override.json ou organizers.json
+  // 1. Schema: todos os arquivos devem estar no escopo permitido e serem válidos
   const files = await listPRFiles(pr.number);
-  const invalidFiles = files.filter(f =>
-    f.filename !== 'static/events/organizers.json' &&
-    !f.filename.match(/^static\/events\/[^/]+\/[^/]+\/[^/]+\.override\.json$/)
-  );
-  if (invalidFiles.length > 0) {
-    await requestChanges(pr.number, `PR contém arquivos fora do escopo permitido: ${invalidFiles.map(f => f.filename).join(', ')}`);
+  const schemaResult = await validateOverrideSchema(files);
+  if (!schemaResult.ok) {
+    await requestChanges(pr.number, schemaResult.reason);
     return;
   }
 
-  // 2. Para cada arquivo modificado (exceto deletions): validar JSON
-  for (const file of files) {
-    if (file.status === 'removed') continue;
-    const content = await getFileContent(pr.head.sha, file.filename);
-    const result = validateOverrideSchema(JSON.parse(content));
-    if (!result.ok) {
-      await requestChanges(pr.number, `JSON inválido em ${file.filename}: ${result.reason}`);
-      return;
-    }
+  // 2. Autoria/integridade: só auto-mergeia se for seguro
+  const authorResult = await verifyOverrideAuthor({ prNumber: pr.number });
+  if (!authorResult.ok) {
+    // Não rejeita o PR — apenas não aprova/auto-mergeia. Um mantenedor pode
+    // revisar manualmente se a justificativa for legítima.
+    await commentPR(pr.number, `⚠️ Auto-merge bloqueado: ${authorResult.reason}`);
+    return;
   }
 
   // 3. Tudo válido: aprovar + habilitar auto-merge
-  await approvePR(pr.number, '✅ Override validado automaticamente (github-actions).');
+  await approvePR(pr.number, '✅ Override validado e autor verificado automaticamente (github-actions).');
   await enableAutoMerge(pr.number, 'SQUASH');
   // Após merge: GitHub deleta a branch automaticamente (configurar em Settings → Delete head branches)
 }
 ```
+
+### Regras de segurança para auto-merge
+
+O script `scripts/verify-override-author.mjs` implementa as seguintes regras:
+
+1. **`organizers.json` nunca é auto-mergeado**
+   - Qualquer PR que toque `static/events/organizers.json` é comentado e **não** recebe aprovação automática.
+   - Isso evita que um organizer comprometido se auto-conceda scopes adicionais.
+
+2. **Autor do PR deve ser o `ownerHandle` do override**
+   - Cada arquivo `.override.json` alterado deve declarar `ownerHandle` igual ao login GitHub do usuário que abriu o PR.
+   - Se alguém editar o branch de outra pessoa e empurrar um commit extra, o workflow não mergeia.
+
+3. **Apenas 1 commit, do mesmo autor do PR**
+   - PRs com mais de um commit ou com commit de autor divergente não são auto-mergeados.
+   - Isso impede que um branch seja reaproveitado para incluir alterações não autorizadas depois da abertura do PR.
+
+4. **Snapshots `internal`/`index.json` continuam auto-mergeados**
+   - Eles são gerados pelo backend via `POST /events/internal/snapshot`, que já audita quem solicitou.
+   - O script os ignora para fins de verificação de autor.
 
 ### Validação do schema de override
 
@@ -804,6 +824,9 @@ on:
     paths:
       - 'static/events/**/*.override.json'
       - 'static/events/organizers.json'
+      - 'static/events/overrides-index.json'
+      - 'static/events/internal/**'
+      - 'static/events/index.json'
 
 jobs:
   validate-and-merge:
@@ -824,8 +847,7 @@ jobs:
 
       - name: Validate override files changed in this PR
         # Valida apenas os arquivos alterados no PR (git diff da base...HEAD).
-        # Qualquer arquivo fora do padrão (*.override.json ou organizers.json)
-        # na lista falha — PR misto. Deleções passam.
+        # Qualquer arquivo fora do padrão na lista falha (PR misto). Deleções passam.
         run: |
           set -euo pipefail
           CHANGED_FILES=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
@@ -833,8 +855,21 @@ jobs:
             echo "Nenhum arquivo alterado no PR."
             exit 0
           fi
+          echo "Arquivos alterados no PR:"
+          echo "$CHANGED_FILES"
           git diff --name-only -z "origin/${{ github.base_ref }}...HEAD" \
             | xargs -0 node scripts/validate-overrides.mjs
+
+      - name: Verify PR author and commit integrity
+        # Segurança do auto-merge:
+        #   - organizers.json nunca é auto-mergeado (review manual).
+        #   - Cada *.override.json deve ter ownerHandle == autor do PR.
+        #   - PR deve ter exatamente 1 commit, do mesmo autor.
+        # Se falhar, o PR ainda pode ser mergeado manualmente por um mantenedor.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/verify-override-author.mjs ${{ github.event.pull_request.number }}
 
       - name: Approve PR (github-actions[bot])
         if: success()
@@ -843,7 +878,7 @@ jobs:
         run: |
           gh pr review ${{ github.event.pull_request.number }} \
             --approve \
-            --body "✅ Override validado automaticamente (github-actions)."
+            --body "✅ Override validado e autor verificado automaticamente (github-actions)."
 
       - name: Enable auto-merge
         if: success()
@@ -1420,8 +1455,9 @@ O modelo de escrita no repositório foi **substituído** após a implementação
 3. **`scripts/sync-events.mjs`:** `cleanSourceDir` preserva `*.override.json`; o resolver
    `internal:codaqui` é uma etapa extra do pipeline, FORA do `events.config.json`; o validador
    roda sobre a lista de arquivos do PR (detecta PR misto) com `fetch-depth: 0` no checkout;
-   validador estendido para `organizers.json` — os PRs de organizers passam a ser auto-mergeados
-   pelo workflow (o backend retornava `requiresManualMerge: true` antes deste ajuste).
+   validador estendido para `organizers.json`. **(2026-07-30) PRs de organizers.json
+   deixaram de ser auto-mergeados** — exigem review manual de mantenedor por
+   segurança (ver seção "Regras de segurança para auto-merge").
 4. **Backend GitHubDB:** `createPRDeleteFile` aceita `labels?`; `getPRForBranch` e
    `findOpenPRByBranchPrefix` retornam `prUrl`; erros da API do GitHub → 503; envs ausentes →
    503 lazy no primeiro uso (não derruba o boot).
@@ -1566,3 +1602,10 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     garantir que `EventsModule` compila sem erros de injeção, e ajustados
     `events.service.spec.ts` e `events-external.spec.ts` para refletir a nova assinatura do
     construtor. Todos os 580 testes backend passam.
+38. **Endurecimento do auto-merge de overrides (2026-07-30):** criado
+    `scripts/verify-override-author.mjs` e integrado ao workflow
+    `.github/workflows/validate-event-overrides.yml`. Regras aplicadas:
+    `organizers.json` nunca é auto-mergeado (review manual); cada `.override.json`
+    alterado deve declarar `ownerHandle` igual ao autor do PR; o PR deve ter
+    exatamente 1 commit do mesmo autor do PR. O script possui testes próprios
+    (`scripts/verify-override-author.test.mjs`).
