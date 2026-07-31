@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "ownerships": [
+    {
+      "memberId": "da65cd67-c7af-4bd7-b5ba-e898111e547b",
+      "githubHandle": "ByIvo",
+      "scope": [
+        "meetup:devparana:*"
+      ]
+    }
+  ]
+}
