@@ -142,6 +142,8 @@ type HubRow =
       hasOverride: boolean;
       canEdit: boolean;
       features: string[];
+      communityProjectKey?: string;
+      ownerHandle?: string;
       event: EventSummary;
     };
 
@@ -225,6 +227,15 @@ function fromDateTimeLocal(value: string): string | undefined {
   return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 
+const DATETIME_LOCAL_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+function isValidDateTimeLocal(value: string): boolean {
+  if (!value) return false;
+  if (!DATETIME_LOCAL_REGEX.test(value)) return false;
+  const d = new Date(value);
+  return !Number.isNaN(d.getTime());
+}
+
 // ── Formulários ──────────────────────────────────────────────────────────────
 
 interface EventForm {
@@ -270,7 +281,7 @@ const EMPTY_TICKET_FORM: TicketForm = {
   quantityTotal: "",
   salesStartAt: "",
   salesEndAt: "",
-  maxPerOrder: "",
+  maxPerOrder: "1",
 };
 
 // ── Página ───────────────────────────────────────────────────────────────────
@@ -284,11 +295,13 @@ export default function AdminEventosPage(): React.JSX.Element {
   const canAccess = isAdmin || isEventOrganizer;
 
   const [events, setEvents] = useState<ManagedEvent[]>([]);
+  const [internalTotal, setInternalTotal] = useState(0);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [actionError, setActionError] = useState("");
   const [publishSuccess, setPublishSuccess] = useState<ManagedEvent | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<{ event: ManagedEvent; mode: "create" | "edit" } | null>(null);
 
   // Dialog de criação/edição de evento
   const [eventDialog, setEventDialog] = useState<{ mode: "create" } | { mode: "edit"; event: ManagedEvent } | null>(null);
@@ -325,6 +338,7 @@ export default function AdminEventosPage(): React.JSX.Element {
   const [onlyOverride, setOnlyOverride] = useState(false);
   const [onlyEditable, setOnlyEditable] = useState(false);
   const [onlyFeatures, setOnlyFeatures] = useState(false);
+  const [communityFilter, setCommunityFilter] = useState<string>("");
   const [page, setPage] = useState(1);
 
   // Snapshot manual de internal:codaqui (via PR auto-mergeado)
@@ -352,14 +366,28 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [members]);
 
-  const fetchEvents = useCallback(async () => {
+  const useBackendPagination = showInternos && !showExternos;
+
+  const fetchEvents = useCallback(async (pageNum = page) => {
     setLoading(true);
     setLoadError("");
-    const res = await authFetch(`${apiUrl}/events`);
-    const data = await parseAuthJson<ManagedEvent[]>(res, setLoadError);
-    if (data) setEvents(data);
+    const url = useBackendPagination
+      ? `${apiUrl}/events?page=${pageNum}&limit=${PAGE_SIZE}`
+      : `${apiUrl}/events`;
+    const res = await authFetch(url);
+    if (useBackendPagination) {
+      const data = await parseAuthJson<{ events: ManagedEvent[]; total: number; page: number; limit: number }>(res, setLoadError);
+      if (data) {
+        setEvents(data.events);
+        setInternalTotal(data.total);
+      }
+    } else {
+      const data = await parseAuthJson<ManagedEvent[]>(res, setLoadError);
+      if (data) setEvents(data);
+      setInternalTotal(0);
+    }
     setLoading(false);
-  }, [apiUrl, authFetch]);
+  }, [apiUrl, authFetch, useBackendPagination, page]);
 
   // Membros para seleção de staff — mesmo endpoint usado em /admin.
   // Falha silenciosa: event_organizer pode não ter acesso; nesse caso o
@@ -434,7 +462,13 @@ export default function AdminEventosPage(): React.JSX.Element {
   // Volta para a primeira página ao mudar busca/filtros.
   useEffect(() => {
     setPage(1);
-  }, [search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures]);
+  }, [search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
+
+  // Em modo "apenas internos", recarrega a página atual do backend.
+  useEffect(() => {
+    if (!canAccess || !useBackendPagination) return;
+    fetchEvents(page);
+  }, [page, useBackendPagination, canAccess, fetchEvents]);
 
   // ── Handlers: evento ──────────────────────────────────────────────────────
 
@@ -468,11 +502,11 @@ export default function AdminEventosPage(): React.JSX.Element {
       setEventError("Preencha slug, título, resumo e local.");
       return;
     }
-    const startIso = fromDateTimeLocal(eventForm.startAt);
-    if (!startIso) {
-      setEventError("Informe a data/hora de início.");
+    if (!isValidDateTimeLocal(eventForm.startAt)) {
+      setEventError("Informe uma data/hora de início válida (incluindo horas e minutos).");
       return;
     }
+    const startIso = fromDateTimeLocal(eventForm.startAt)!;
     const payload: Record<string, unknown> = {
       slug: eventForm.slug.trim(),
       title: eventForm.title.trim(),
@@ -482,6 +516,10 @@ export default function AdminEventosPage(): React.JSX.Element {
       communityProjectKey: eventForm.communityProjectKey,
     };
     if (eventForm.imageUrl.trim()) payload.imageUrl = eventForm.imageUrl.trim();
+    if (eventForm.endAt && !isValidDateTimeLocal(eventForm.endAt)) {
+      setEventError("Data/hora de término inválida. Deixe em branco ou informe data e hora completas.");
+      return;
+    }
     const endIso = fromDateTimeLocal(eventForm.endAt);
     if (endIso) payload.endAt = endIso;
     if (eventForm.timezone.trim()) payload.timezone = eventForm.timezone.trim();
@@ -505,7 +543,9 @@ export default function AdminEventosPage(): React.JSX.Element {
         setEventError(await extractErrorMessage(res, "Erro ao salvar evento."));
         return;
       }
+      const saved = (await res.json()) as ManagedEvent;
       setEventDialog(null);
+      setSaveSuccess({ event: saved, mode: isEdit ? "edit" : "create" });
       fetchEvents();
     } catch {
       setEventError("Erro inesperado.");
@@ -582,10 +622,12 @@ export default function AdminEventosPage(): React.JSX.Element {
     if (salesStart) payload.salesStartAt = salesStart;
     const salesEnd = fromDateTimeLocal(ticketForm.salesEndAt);
     if (salesEnd) payload.salesEndAt = salesEnd;
-    if (ticketForm.maxPerOrder.trim()) {
-      const maxPerOrder = Number.parseInt(ticketForm.maxPerOrder, 10);
-      if (!Number.isNaN(maxPerOrder) && maxPerOrder > 0) payload.maxPerOrder = maxPerOrder;
+    const maxPerOrder = Number.parseInt(ticketForm.maxPerOrder, 10);
+    if (Number.isNaN(maxPerOrder) || maxPerOrder < 1 || maxPerOrder > 10) {
+      setTicketError("Máximo por pedido deve ser entre 1 e 10.");
+      return;
     }
+    payload.maxPerOrder = maxPerOrder;
 
     setTicketSaving(true);
     try {
@@ -667,6 +709,25 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [activations]);
 
+  const activationByEventKey = useMemo(() => {
+    const map = new Map<string, ExternalActivationItem>();
+    for (const a of activations) map.set(a.eventKey, a);
+    return map;
+  }, [activations]);
+
+  // Owner declarado no organizers.json para um evento específico (primeiro match).
+  const ownerByEventKey = useMemo(() => {
+    const map = new Map<string, string>();
+    if (!organizers) return map;
+    for (const o of organizers.ownerships) {
+      for (const scope of o.scope) {
+        if (map.has(scope)) continue;
+        map.set(scope, o.githubHandle);
+      }
+    }
+    return map;
+  }, [organizers]);
+
   // Escopos do usuário logado no organizers.json (match por memberId ou handle).
   const myScopes = useMemo(() => {
     if (!organizers || !user) return [] as string[];
@@ -703,16 +764,22 @@ export default function AdminEventosPage(): React.JSX.Element {
       features: [],
       event,
     }));
-    const externalRows: HubRow[] = externalEvents.map((event) => ({
-      kind: "external",
-      key: `external:${event.sourceKey}:${event.id}`,
-      title: event.title,
-      startAt: event.startAt,
-      hasOverride: !!event.hasOverride,
-      canEdit: canEditExternal(event),
-      features: featuresByEventKey.get(`${event.sourceKey}:${event.id}`) ?? [],
-      event,
-    }));
+    const externalRows: HubRow[] = externalEvents.map((event) => {
+      const eventKey = `${event.sourceKey}:${event.id}`;
+      const activation = activationByEventKey.get(eventKey);
+      return {
+        kind: "external",
+        key: `external:${eventKey}`,
+        title: event.title,
+        startAt: event.startAt,
+        hasOverride: !!event.hasOverride,
+        canEdit: canEditExternal(event),
+        features: featuresByEventKey.get(eventKey) ?? [],
+        communityProjectKey: activation?.communityProjectKey,
+        ownerHandle: ownerByEventKey.get(eventKey),
+        event,
+      };
+    });
     // Mais recentes primeiro (data desc).
     return [...internalRows, ...externalRows].sort((a, b) => b.startAt.localeCompare(a.startAt));
   }, [events, externalEvents, canEditExternal, featuresByEventKey]);
@@ -726,13 +793,22 @@ export default function AdminEventosPage(): React.JSX.Element {
       if (onlyOverride && !row.hasOverride) return false;
       if (onlyEditable && !row.canEdit) return false;
       if (onlyFeatures && row.features.length === 0) return false;
+      if (communityFilter) {
+        const rowCommunity =
+          row.kind === "internal" ? row.event.communityProjectKey : row.communityProjectKey;
+        if (rowCommunity !== communityFilter) return false;
+      }
       return true;
     });
-  }, [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures]);
+  }, [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
 
-  const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
+  const pageCount = useBackendPagination
+    ? Math.max(1, Math.ceil(internalTotal / PAGE_SIZE))
+    : Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
-  const pageRows = filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = useBackendPagination
+    ? filteredRows
+    : filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   // ── Handler: snapshot manual de internal:codaqui ──────────────────────────
 
@@ -871,6 +947,29 @@ export default function AdminEventosPage(): React.JSX.Element {
             Evento <strong>{publishSuccess.title}</strong> publicado com sucesso.
           </Alert>
         )}
+        {saveSuccess && (
+          <Alert
+            severity="success"
+            sx={{ mb: 3 }}
+            onClose={() => setSaveSuccess(null)}
+            action={
+              <Button
+                component={Link}
+                href={publicEventUrl(saveSuccess.event.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                color="inherit"
+                size="small"
+                endIcon={<OpenInNewIcon />}
+              >
+                Ver página do evento
+              </Button>
+            }
+          >
+            Evento <strong>{saveSuccess.event.title}</strong>{" "}
+            {saveSuccess.mode === "create" ? "criado" : "atualizado"} com sucesso.
+          </Alert>
+        )}
 
         {loading || externalLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -889,7 +988,7 @@ export default function AdminEventosPage(): React.JSX.Element {
                   onChange={(e) => setSearch(e.target.value)}
                   sx={{ mb: 1.5 }}
                 />
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
                   <Chip
                     label="Internos"
                     clickable
@@ -925,6 +1024,20 @@ export default function AdminEventosPage(): React.JSX.Element {
                     variant={onlyFeatures ? "filled" : "outlined"}
                     onClick={() => setOnlyFeatures((v) => !v)}
                   />
+                  <FormControl size="small" sx={{ minWidth: 180 }}>
+                    <InputLabel id="community-filter-label">Comunidade</InputLabel>
+                    <Select
+                      labelId="community-filter-label"
+                      value={communityFilter}
+                      label="Comunidade"
+                      onChange={(e) => setCommunityFilter(e.target.value)}
+                    >
+                      <MenuItem value="">Todas</MenuItem>
+                      {COMMUNITY_OPTIONS.map((c) => (
+                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Stack>
               </CardContent>
             </Card>
@@ -970,6 +1083,21 @@ export default function AdminEventosPage(): React.JSX.Element {
                               variant="outlined"
                             />
                           ))}
+                          {row.communityProjectKey && (
+                            <Chip
+                              label={`Comunidade: ${row.communityProjectKey}`}
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                          {row.ownerHandle && (
+                            <Chip
+                              label={`Owner: @${row.ownerHandle}`}
+                              size="small"
+                              color="info"
+                              variant="outlined"
+                            />
+                          )}
                           <Typography variant="body2" color="text.secondary">
                             {formatDateTime(ev.startAt)}
                             {ev.location ? ` · ${ev.location}` : ""}

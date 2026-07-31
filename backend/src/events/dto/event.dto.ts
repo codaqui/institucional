@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsInt,
   IsISO8601,
@@ -7,6 +8,28 @@ import {
   Matches,
   Min,
 } from 'class-validator';
+
+export class ListEventsQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limit?: number;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
+  community?: string;
+}
 
 export class CreateEventDto {
   @IsString()

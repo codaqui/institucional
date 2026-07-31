@@ -97,8 +97,9 @@ describe('EventsController', () => {
 
   describe('gestão', () => {
     it('GET /events delega ao service', async () => {
-      const result = await controller.listEvents({ user });
-      expect(service.listEvents).toHaveBeenCalledWith(user);
+      const query = { page: 1, limit: 10 } as any;
+      const result = await controller.listEvents(query, { user });
+      expect(service.listEvents).toHaveBeenCalledWith(user, query);
       expect(result).toEqual([]);
     });
 

@@ -31,9 +31,23 @@ import {
 } from "../data/events";
 import { fetchEventsIndexMerged, type MergedEventSummary } from "../lib/events-api";
 import { getEventDetailPagePath } from "../utils/event-override";
+import { resolveApiUrl } from "../lib/api-url";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
 /** Evento da listagem já mesclado com o extendData do override (quando existe). */
-type DisplayEvent = MergedEventSummary;
+type DisplayEvent = MergedEventSummary & { features?: string[] };
+
+interface PublicActivation {
+  eventKey: string;
+  features: string[];
+  communityProjectKey: string;
+}
+
+const FEATURE_LABEL: Record<string, string> = {
+  checkin: "Check-in",
+  certificates: "Certificados",
+  payments: "Ingressos",
+};
 
 function formatEventDate(date: string, timeZone: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
@@ -88,6 +102,7 @@ function EventCard({
   const isExternal = event.href.startsWith("http");
   const statusLabel = getStatusLabel(event.status);
   const speakers = event.speakers ?? [];
+  const features = event.features ?? [];
 
   return (
     <Card
@@ -118,6 +133,15 @@ function EventCard({
             <Chip label={statusLabel} size="small" color={getStatusColor(event.status)} />
           ) : null}
           {event.featured ? <Chip label="Destaque" size="small" color="success" /> : null}
+          {features.map((f) => (
+            <Chip
+              key={f}
+              label={FEATURE_LABEL[f] ?? f}
+              size="small"
+              color="secondary"
+              variant="outlined"
+            />
+          ))}
           {event.recurrenceLabel ? (
             <Chip
               icon={<RepeatIcon />}
@@ -218,17 +242,19 @@ function EventCard({
           spacing={1}
           sx={{ width: "100%" }}
         >
-          <Button
-            component={Link}
-            href={event.href}
-            target={isExternal ? "_blank" : undefined}
-            rel={isExternal ? "noopener noreferrer" : undefined}
-            variant="outlined"
-            size="small"
-            endIcon={isExternal ? <OpenInNewIcon /> : undefined}
-          >
-            Site original
-          </Button>
+          {isExternal && (
+            <Button
+              component={Link}
+              href={event.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              size="small"
+              endIcon={<OpenInNewIcon />}
+            >
+              Site original
+            </Button>
+          )}
           <Button
             component={Link}
             href={getEventDetailPagePath(event.source, event.sourceId, event.id)}
@@ -248,6 +274,10 @@ function scrollToAgenda(): void {
 }
 
 export default function EventosPage(): React.JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
+  const configuredApiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
+  const apiUrl = resolveApiUrl(configuredApiUrl, siteConfig.url);
+
   const [events, setEvents] = useState<DisplayEvent[]>([]);
   const [sources, setSources] = useState<EventSourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -262,14 +292,32 @@ export default function EventosPage(): React.JSX.Element {
       try {
         // "Front API" de eventos: sempre retorna o índice já mesclado com os
         // overrides (via manifesto agregado, com fallback para fetch individual).
-        const payload = await fetchEventsIndexMerged();
+        const [payload, activationsRes] = await Promise.all([
+          fetchEventsIndexMerged(),
+          fetch(`${apiUrl}/events/public/activations`).catch(() => null),
+        ]);
+
+        let activations: PublicActivation[] = [];
+        if (activationsRes?.ok) {
+          const data = (await activationsRes.json()) as PublicActivation[];
+          activations = Array.isArray(data) ? data : [];
+        }
+        const activationMap = new Map(activations.map((a) => [a.eventKey, a.features]));
+
+        const eventsWithFeatures = payload.events.map((event) => {
+          if (event.source !== "internal") {
+            const features = activationMap.get(`${event.sourceKey}:${event.id}`) ?? [];
+            return { ...event, features };
+          }
+          return event;
+        });
 
         if (!active) {
           return;
         }
 
         setSources(payload.sources);
-        setEvents(payload.events);
+        setEvents(eventsWithFeatures);
         setLoading(false);
       } catch {
         if (active) {
@@ -284,7 +332,7 @@ export default function EventosPage(): React.JSX.Element {
     return () => {
       active = false;
     };
-  }, []);
+  }, [apiUrl]);
 
   const sourcesById = useMemo(
     () =>

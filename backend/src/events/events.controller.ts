@@ -17,7 +17,11 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { EventsService } from './events.service';
-import { CreateEventDto, UpdateEventDto } from './dto/event.dto';
+import {
+  CreateEventDto,
+  ListEventsQueryDto,
+  UpdateEventDto,
+} from './dto/event.dto';
 import {
   AddStaffDto,
   CheckoutDto,
@@ -164,10 +168,13 @@ export class EventsController {
   @ApiBearerAuth('jwt')
   @ApiOperation({
     summary:
-      '🔒 Listar todos os eventos (qualquer status) [event_organizer | admin]',
+      '🔒 Listar eventos (paginado quando page/limit informados) [event_organizer | admin]',
   })
-  listEvents(@Req() req: { user: JwtPayload }) {
-    return this.eventsService.listEvents(req.user);
+  listEvents(
+    @Query() query: ListEventsQueryDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.listEvents(req.user, query);
   }
 
   @Get('checkin-scope')
@@ -427,6 +434,15 @@ export class EventsController {
   })
   listActivations(@Req() req: { user: JwtPayload }) {
     return this.eventsService.listActivations(req.user);
+  }
+
+  @Get('public/activations')
+  @ApiOperation({
+    summary:
+      'Ativações de features de eventos externos (público; usado na listagem /eventos)',
+  })
+  listPublicActivations() {
+    return this.eventsService.listPublicActivations();
   }
 
   @Get('members/:memberId/registrations')
