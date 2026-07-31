@@ -2,11 +2,12 @@
   "eventId": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
   "sourceKey": "ocgroups:cloud-native-maringa",
   "extendData": {
-    "summary": "Esse é um evento da Cloud Native",
+    "imageUrl": "https://i.ibb.co/TDwfwwFm/ad774dd2b37ac33daa00f2e24dae1946e1b403a0deb1f5397088ed064bc96ca0.png",
+    "summary": "O cenário de tecnologia está em constante evolução, e a força da nossa região está na colaboração. É com muito orgulho que anunciamos o Cloud Native Maringá #3, uma edição especial e presencial que servirá como o esquenta oficial para o AgileBrazil, em uma co-organização com a Codaqui e o apoio do DevParaná e da UniCESUMAR.",
     "workloadMinutes": 300
   },
   "ownerId": "cb624416-77e3-4f8f-a6be-70e7487eec65",
   "ownerHandle": "endersonmenezes",
-  "updatedAt": "2026-07-30T19:57:04.213Z",
-  "reason": "Aumentando carga horária."
+  "updatedAt": "2026-07-31T19:18:53.303Z",
+  "reason": "Alteração da descrição e imagem."
 }
