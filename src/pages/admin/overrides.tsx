@@ -71,7 +71,6 @@ import {
   generateSpeakerId,
   isValidScope,
   type OverrideFormState,
-  type SpeakerFormItem,
 } from "../../utils/event-override-form";
 
 // ─── Tipos locais ────────────────────────────────────────────────────────────

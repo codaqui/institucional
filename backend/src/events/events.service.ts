@@ -142,6 +142,23 @@ function getTimezoneOffsetMinutes(timeZone: string, date: Date): number {
   return (tzMs - utcMs) / 60_000;
 }
 
+interface ImportContext {
+  activation: ExternalEventActivation;
+  sourceKey: string;
+  seenExternal: Set<string>;
+  seenIdentifier: Set<string>;
+  existing: EventRegistration[];
+  ticketCache: Map<string, TicketType>;
+  ticketIncrements: Map<string, number>;
+  toSave: EventRegistration[];
+  unmatched: Array<{ line: number; email: string }>;
+  errors: Array<{ line: number; reason: string }>;
+  matched: number;
+  healed: number;
+  skippedDuplicates: number;
+  user: JwtPayload;
+}
+
 @Injectable()
 export class EventsService {
   private readonly logger = new Logger(EventsService.name);
@@ -2415,82 +2432,28 @@ export class EventsService {
       sourceKey,
     );
 
-    const ticketCache = new Map<string, TicketType>();
-    const ticketIncrements = new Map<string, number>();
-    const toSave: EventRegistration[] = [];
-    const unmatched: Array<{ line: number; email: string }> = [];
-    const errors: Array<{ line: number; reason: string }> = [];
-    let matched = 0;
-    let healed = 0;
-    let skippedDuplicates = 0;
+    const ctx: ImportContext = {
+      activation,
+      sourceKey,
+      seenExternal,
+      seenIdentifier,
+      existing,
+      ticketCache: new Map<string, TicketType>(),
+      ticketIncrements: new Map<string, number>(),
+      toSave: [],
+      unmatched: [],
+      errors: [],
+      matched: 0,
+      healed: 0,
+      skippedDuplicates: 0,
+      user,
+    };
 
     for (const row of rows) {
-      const validationError = this.validateImportRow(row);
-      if (validationError) {
-        errors.push(validationError);
-        continue;
-      }
-
-      const identifier = row.email.toLowerCase();
-      if (
-        row.externalId &&
-        seenExternal.has(`${sourceKey}|${row.externalId}`)
-      ) {
-        skippedDuplicates += 1;
-        continue;
-      }
-
-      if (seenIdentifier.has(identifier)) {
-        const wasHealed = await this.tryHealDuplicateRegistration(
-          row,
-          existing,
-        );
-        if (wasHealed) {
-          healed += 1;
-          continue;
-        }
-        skippedDuplicates += 1;
-        continue;
-      }
-
-      const member = await this.resolveImportMember(row);
-      const ticketType = await this.findOrCreateImportTicketType(
-        activation.id,
-        row.ticketType,
-        ticketCache,
-      );
-
-      toSave.push(
-        this.registrationRepo.create({
-          eventId: null,
-          externalActivationId: activation.id,
-          externalSource: sourceKey,
-          externalId: row.externalId ?? null,
-          ticketTypeId: ticketType.id,
-          orderId: null,
-          memberId: member?.id ?? null,
-          attendeeName: row.name,
-          attendeeEmail: row.email,
-          checkinToken: randomUUID(),
-          status: member
-            ? RegistrationStatus.CONFIRMED
-            : RegistrationStatus.PENDING_MATCH,
-        }),
-      );
-      seenIdentifier.add(identifier);
-      if (row.externalId) seenExternal.add(`${sourceKey}|${row.externalId}`);
-      ticketIncrements.set(
-        ticketType.id,
-        (ticketIncrements.get(ticketType.id) ?? 0) + 1,
-      );
-      if (member) {
-        matched += 1;
-      } else {
-        unmatched.push({ line: row.line, email: row.email });
-      }
+      await this.processImportRow(row, ctx);
     }
 
-    await this.persistImportedRegistrations(toSave, ticketIncrements);
+    await this.persistImportedRegistrations(ctx.toSave, ctx.ticketIncrements);
 
     void this.auditService.log({
       action: AuditAction.EVENT_PARTICIPANTS_IMPORTED,
@@ -2500,22 +2463,91 @@ export class EventsService {
       targetType: 'external-event-activation',
       details: {
         eventKey,
-        imported: toSave.length,
-        matched,
-        healed,
-        skippedDuplicates,
-        errors: errors.length,
+        imported: ctx.toSave.length,
+        matched: ctx.matched,
+        healed: ctx.healed,
+        skippedDuplicates: ctx.skippedDuplicates,
+        errors: ctx.errors.length,
       },
     });
 
     return {
-      imported: toSave.length,
-      matched,
-      healed,
-      unmatched,
-      skippedDuplicates,
-      errors,
+      imported: ctx.toSave.length,
+      matched: ctx.matched,
+      healed: ctx.healed,
+      unmatched: ctx.unmatched,
+      skippedDuplicates: ctx.skippedDuplicates,
+      errors: ctx.errors,
     };
+  }
+
+  private async processImportRow(
+    row: ParsedCsvRow,
+    ctx: ImportContext,
+  ): Promise<void> {
+    const validationError = this.validateImportRow(row);
+    if (validationError) {
+      ctx.errors.push(validationError);
+      return;
+    }
+
+    const identifier = row.email.toLowerCase();
+    if (
+      row.externalId &&
+      ctx.seenExternal.has(`${ctx.sourceKey}|${row.externalId}`)
+    ) {
+      ctx.skippedDuplicates += 1;
+      return;
+    }
+
+    if (ctx.seenIdentifier.has(identifier)) {
+      const wasHealed = await this.tryHealDuplicateRegistration(
+        row,
+        ctx.existing,
+      );
+      if (wasHealed) {
+        ctx.healed += 1;
+        return;
+      }
+      ctx.skippedDuplicates += 1;
+      return;
+    }
+
+    const member = await this.resolveImportMember(row);
+    const ticketType = await this.findOrCreateImportTicketType(
+      ctx.activation.id,
+      row.ticketType,
+      ctx.ticketCache,
+    );
+
+    ctx.toSave.push(
+      this.registrationRepo.create({
+        eventId: null,
+        externalActivationId: ctx.activation.id,
+        externalSource: ctx.sourceKey,
+        externalId: row.externalId ?? null,
+        ticketTypeId: ticketType.id,
+        orderId: null,
+        memberId: member?.id ?? null,
+        attendeeName: row.name,
+        attendeeEmail: row.email,
+        checkinToken: randomUUID(),
+        status: member
+          ? RegistrationStatus.CONFIRMED
+          : RegistrationStatus.PENDING_MATCH,
+      }),
+    );
+    ctx.seenIdentifier.add(identifier);
+    if (row.externalId) ctx.seenExternal.add(`${ctx.sourceKey}|${row.externalId}`);
+    ctx.ticketIncrements.set(
+      ticketType.id,
+      (ctx.ticketIncrements.get(ticketType.id) ?? 0) + 1,
+    );
+    if (member) {
+      ctx.matched += 1;
+    } else {
+      ctx.unmatched.push({ line: row.line, email: row.email });
+    }
   }
 
   private async parseImportCsv(csvText: string): Promise<ParsedCsvRow[]> {

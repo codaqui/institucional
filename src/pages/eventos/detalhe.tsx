@@ -184,8 +184,15 @@ interface AttendeeInput {
   email: string;
 }
 
+let attendeeIdCounter = 0;
+
 function createAttendeeId(): string {
-  return Math.random().toString(36).slice(2, 10);
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const values = new Uint32Array(2);
+    crypto.getRandomValues(values);
+    return Array.from(values, (n) => n.toString(36)).join("");
+  }
+  return `${Date.now().toString(36)}-${(++attendeeIdCounter).toString(36)}`;
 }
 
 function emptyAttendees(quantity: number): AttendeeInput[] {
@@ -346,6 +353,354 @@ function PurchaseTermsBox({
 }
 
 // ---------------------------------------------------------------------------
+// Helpers de checkout / inscrição compartilhados
+// ---------------------------------------------------------------------------
+
+interface CheckoutBody {
+  ticketTypeId: string;
+  quantity: number;
+  acceptTerms: boolean;
+  uiMode: "embedded";
+  attendees?: Array<{ name: string; email: string }>;
+}
+
+function buildCheckoutBody(
+  ticketTypeId: string,
+  quantity: number,
+  needsAttendees: boolean,
+  attendees: AttendeeInput[]
+): CheckoutBody {
+  const body: CheckoutBody = {
+    ticketTypeId,
+    quantity,
+    acceptTerms: true,
+    uiMode: "embedded",
+  };
+  if (needsAttendees && attendeesValid(attendees)) {
+    body.attendees = attendees.map(({ name, email }) => ({ name, email }));
+  }
+  return body;
+}
+
+async function startCheckout(
+  endpoint: string,
+  body: CheckoutBody,
+  authFetch: (url: string, init?: RequestInit) => Promise<Response>
+): Promise<
+  | { ok: true; clientSecret: string | null; url: string | null }
+  | { ok: false; error: string }
+> {
+  try {
+    const res = await authFetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status === 409) {
+      return {
+        ok: false,
+        error:
+          "Você já possui ingresso próprio para este evento. Comprar para outra pessoa? Ative a opção abaixo e informe os dados dela.",
+      };
+    }
+    if (!res.ok) {
+      return { ok: false, error: "Não foi possível iniciar o pagamento. Tente novamente." };
+    }
+    const data = (await res.json()) as {
+      url?: string | null;
+      clientSecret?: string | null;
+    };
+    return { ok: true, clientSecret: data.clientSecret ?? null, url: data.url ?? null };
+  } catch {
+    return { ok: false, error: "Não foi possível iniciar o pagamento. Tente novamente." };
+  }
+}
+
+function applyCheckoutResult(
+  result:
+    | { ok: true; clientSecret: string | null; url: string | null }
+    | { ok: false; error: string },
+  setClientSecret: (value: string | null) => void,
+  setCheckoutOpen: (value: boolean) => void,
+  setActionError: (error: string) => void
+): void {
+  if (result.ok === false) {
+    setActionError(result.error);
+    return;
+  }
+  if (result.clientSecret) {
+    setClientSecret(result.clientSecret);
+    setCheckoutOpen(true);
+  } else if (result.url) {
+    globalThis.location.href = result.url;
+  } else {
+    setActionError("Resposta inesperada do checkout.");
+  }
+}
+
+async function submitFreeRegistration(
+  endpoint: string,
+  ticketTypeId: string,
+  quantity: number,
+  attendees: AttendeeInput[],
+  authFetch: (url: string, init?: RequestInit) => Promise<Response>
+): Promise<{ ok: true; registration: EventRegistration } | { ok: false; error: string }> {
+  const body: Record<string, unknown> = { ticketTypeId };
+  if (quantity > 1 && attendeesValid(attendees)) {
+    body.attendees = attendees.map(({ name, email }) => ({ name, email }));
+  }
+  try {
+    const res = await authFetch(endpoint, {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status === 409) {
+      return {
+        ok: false,
+        error:
+          "Este tipo de ingresso está esgotado ou você já possui ingresso próprio para este evento.",
+      };
+    }
+    if (!res.ok) {
+      return { ok: false, error: "Não foi possível concluir sua inscrição. Tente novamente." };
+    }
+    const registration = (await res.json()) as EventRegistration;
+    return { ok: true, registration };
+  } catch {
+    return { ok: false, error: "Não foi possível concluir sua inscrição. Tente novamente." };
+  }
+}
+
+async function loadInternalTicketTypes(
+  apiUrl: string,
+  eventId: string
+): Promise<
+  { ticketTypes: EventTicketType[]; firstAvailable: EventTicketType | undefined } | null
+> {
+  try {
+    const res = await fetch(`${apiUrl}/events/public/managed/${eventId}`);
+    if (!res.ok) return null;
+    const payload = (await res.json()) as ManagedEventPayload;
+    const ticketTypes = payload.ticketTypes ?? [];
+    const firstAvailable = ticketTypes.find(
+      (t) => getTicketAvailability(t).status === "available"
+    );
+    return { ticketTypes, firstAvailable };
+  } catch {
+    return null;
+  }
+}
+
+function useInternalTicketTypes(apiUrl: string, eventId: string) {
+  const [ticketTypes, setTicketTypes] = useState<EventTicketType[] | null>(null);
+  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string>("");
+
+  useEffect(() => {
+    let active = true;
+    void loadInternalTicketTypes(apiUrl, eventId).then((result) => {
+      if (!active || !result) return;
+      setTicketTypes(result.ticketTypes);
+      if (result.firstAvailable) setSelectedTicketTypeId(result.firstAvailable.id);
+    });
+    return () => {
+      active = false;
+    };
+  }, [apiUrl, eventId]);
+
+  return { ticketTypes, selectedTicketTypeId, setSelectedTicketTypeId };
+}
+
+async function loadExternalTicketTypes(
+  apiUrl: string,
+  eventKey: string
+): Promise<
+  | { ticketTypes: EventTicketType[]; activeTab: "paid" | "free"; selectedId?: string }
+  | null
+> {
+  try {
+    const res = await fetch(
+      `${apiUrl}/events/external/${encodeURIComponent(eventKey)}/ticket-types`
+    );
+    if (!res.ok) return null;
+    const payload = (await res.json()) as EventTicketType[];
+    const list = Array.isArray(payload) ? payload : [];
+    const paidList = list.filter((t) => t.kind !== "free");
+    const freeList = list.filter((t) => t.kind === "free");
+    const firstPaid = paidList.find((t) => getTicketAvailability(t).status === "available");
+    const hasFreeAvailable = freeList.some(
+      (t) => getTicketAvailability(t).status === "available"
+    );
+    if (firstPaid) {
+      return { ticketTypes: list, activeTab: "paid", selectedId: firstPaid.id };
+    }
+    if (hasFreeAvailable) {
+      return { ticketTypes: list, activeTab: "free" };
+    }
+    return { ticketTypes: list, activeTab: "paid" };
+  } catch {
+    return null;
+  }
+}
+
+function useExternalTicketTypes(apiUrl: string, eventKey: string) {
+  const [ticketTypes, setTicketTypes] = useState<EventTicketType[] | null>(null);
+  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<"paid" | "free">("paid");
+
+  useEffect(() => {
+    let active = true;
+    void loadExternalTicketTypes(apiUrl, eventKey).then((result) => {
+      if (!active || !result) return;
+      setTicketTypes(result.ticketTypes);
+      setActiveTab(result.activeTab);
+      if (result.selectedId) setSelectedTicketTypeId(result.selectedId);
+    });
+    return () => {
+      active = false;
+    };
+  }, [apiUrl, eventKey]);
+
+  const paidTypes = useMemo(
+    () => (ticketTypes ?? []).filter((t) => t.kind !== "free"),
+    [ticketTypes]
+  );
+  const freeTypes = useMemo(
+    () => (ticketTypes ?? []).filter((t) => t.kind === "free"),
+    [ticketTypes]
+  );
+
+  return {
+    ticketTypes,
+    paidTypes,
+    freeTypes,
+    selectedTicketTypeId,
+    setSelectedTicketTypeId,
+    activeTab,
+    setActiveTab,
+  };
+}
+
+interface AttendeeSectionProps {
+  readonly ticket: EventTicketType | null;
+  readonly quantity: number;
+  readonly attendees: AttendeeInput[];
+  readonly buyForOther: boolean;
+  readonly maxQuantity: number;
+  readonly submitting: boolean;
+  readonly setQuantity: (quantity: number) => void;
+  readonly setAttendees: (attendees: AttendeeInput[]) => void;
+  readonly setBuyForOther: (value: boolean) => void;
+}
+
+function AttendeeSection({
+  ticket,
+  quantity,
+  attendees,
+  buyForOther,
+  maxQuantity,
+  submitting,
+  setQuantity,
+  setAttendees,
+  setBuyForOther,
+}: AttendeeSectionProps): React.JSX.Element | null {
+  if (!ticket || isFreeFlow(ticket)) return null;
+
+  return (
+    <Stack spacing={1.5} sx={{ mb: 3 }}>
+      <Stack direction="row" spacing={1} alignItems="center">
+        <Typography variant="body2" color="text.secondary">
+          Quantidade:
+        </Typography>
+        <Select
+          size="small"
+          value={quantity}
+          onChange={(e) => {
+            const q = Number(e.target.value);
+            setQuantity(q);
+            setAttendees(emptyAttendees(q));
+          }}
+        >
+          {Array.from({ length: maxQuantity }, (_, i) => i + 1).map((n) => (
+            <MenuItem key={n} value={n}>
+              {n}
+            </MenuItem>
+          ))}
+        </Select>
+      </Stack>
+
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={buyForOther}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setBuyForOther(checked);
+              setAttendees(checked ? emptyAttendees(quantity) : []);
+            }}
+            disabled={submitting}
+          />
+        }
+        label="Comprar ingresso para outra pessoa"
+      />
+
+      {quantity > 1 || buyForOther ? (
+        <AttendeeFields
+          quantity={quantity}
+          attendees={attendees}
+          onChange={setAttendees}
+          disabled={submitting}
+        />
+      ) : null}
+    </Stack>
+  );
+}
+
+interface RegistrationButtonProps {
+  readonly ready: boolean;
+  readonly isLoggedIn: boolean;
+  readonly submitting: boolean;
+  readonly selectedTicketType: EventTicketType | null;
+  readonly termsAccepted: boolean;
+  readonly loginLabel: string;
+  readonly actionLabel: string;
+  readonly onLogin: () => void;
+  readonly onAction: () => void;
+}
+
+function RegistrationButton({
+  ready,
+  isLoggedIn,
+  submitting,
+  selectedTicketType,
+  termsAccepted,
+  loginLabel,
+  actionLabel,
+  onLogin,
+  onAction,
+}: RegistrationButtonProps): React.JSX.Element {
+  if (ready && !isLoggedIn) {
+    return (
+      <Button variant="contained" size="large" startIcon={<GitHubIcon />} onClick={onLogin}>
+        {loginLabel}
+      </Button>
+    );
+  }
+  const free = isFreeFlow(selectedTicketType);
+  return (
+    <Button
+      variant="contained"
+      size="large"
+      startIcon={<HowToRegIcon />}
+      disabled={submitting || !selectedTicketType || (!free && !termsAccepted)}
+      onClick={() => {
+        void onAction();
+      }}
+    >
+      {actionLabel}
+    </Button>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Inscrição em evento interno (backend /events)
 // ---------------------------------------------------------------------------
 
@@ -488,9 +843,9 @@ function InternalEventRegistration({
 }): React.JSX.Element | null {
   const location = useLocation();
   const { ready, isLoggedIn, login, authFetch } = useAuth();
+  const { ticketTypes, selectedTicketTypeId, setSelectedTicketTypeId } =
+    useInternalTicketTypes(apiUrl, eventId);
 
-  const [ticketTypes, setTicketTypes] = useState<EventTicketType[] | null>(null);
-  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -500,31 +855,6 @@ function InternalEventRegistration({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<AttendeeInput[]>([]);
   const [buyForOther, setBuyForOther] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadTicketTypes(): Promise<void> {
-      try {
-        const res = await fetch(`${apiUrl}/events/public/managed/${eventId}`);
-        if (!res.ok) return; // 404 = evento não gerenciado/publicado → esconde a seção
-        const payload = (await res.json()) as ManagedEventPayload;
-        if (!active) return;
-        setTicketTypes(payload.ticketTypes ?? []);
-        const firstAvailable = (payload.ticketTypes ?? []).find(
-          (t) => getTicketAvailability(t).status === "available"
-        );
-        if (firstAvailable) setSelectedTicketTypeId(firstAvailable.id);
-      } catch {
-        // Backend fora do ar → seção de inscrição simplesmente não aparece.
-      }
-    }
-
-    void loadTicketTypes();
-    return () => {
-      active = false;
-    };
-  }, [apiUrl, eventId]);
 
   const selectedTicketType = useMemo(
     () => ticketTypes?.find((t) => t.id === selectedTicketTypeId) ?? null,
@@ -551,29 +881,19 @@ function InternalEventRegistration({
     if (!selectedTicketType) return;
     setSubmitting(true);
     setActionError(null);
-    try {
-      const body: Record<string, unknown> = { ticketTypeId: selectedTicketType.id };
-      if (quantity > 1 && attendeesValid(attendees)) {
-        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
-      }
-      const res = await authFetch(`/events/${eventId}/register`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
-      if (res.status === 409) {
-        setActionError("Este tipo de ingresso está esgotado ou você já possui ingresso próprio para este evento.");
-        return;
-      }
-      if (!res.ok) {
-        setActionError("Não foi possível concluir sua inscrição. Tente novamente.");
-        return;
-      }
-      setRegistration((await res.json()) as EventRegistration);
-    } catch {
-      setActionError("Não foi possível concluir sua inscrição. Tente novamente.");
-    } finally {
-      setSubmitting(false);
+    const result = await submitFreeRegistration(
+      `/events/${eventId}/register`,
+      selectedTicketType.id,
+      quantity,
+      attendees,
+      authFetch
+    );
+    setSubmitting(false);
+    if (result.ok === false) {
+      setActionError(result.error);
+      return;
     }
+    setRegistration(result.registration);
   };
 
   const handleCheckout = async (): Promise<void> => {
@@ -585,45 +905,15 @@ function InternalEventRegistration({
     }
     setSubmitting(true);
     setActionError(null);
-    try {
-      const body: Record<string, unknown> = {
-        ticketTypeId: selectedTicketType.id,
-        quantity,
-        acceptTerms: true,
-        uiMode: "embedded",
-      };
-      if (needsAttendees && attendeesValid(attendees)) {
-        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
-      }
-      const res = await authFetch(`/events/${eventId}/checkout`, {
-        method: "POST",
-        body: JSON.stringify(body),
-      });
-      if (res.status === 409) {
-        setActionError("Você já possui ingresso próprio para este evento. Comprar para outra pessoa? Ative a opção abaixo e informe os dados dela.");
-        return;
-      }
-      if (!res.ok) {
-        setActionError("Não foi possível iniciar o pagamento. Tente novamente.");
-        return;
-      }
-      const data = (await res.json()) as {
-        url?: string | null;
-        clientSecret?: string | null;
-      };
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret);
-        setCheckoutOpen(true);
-      } else if (data.url) {
-        globalThis.location.href = data.url;
-      } else {
-        setActionError("Resposta inesperada do checkout.");
-      }
-    } catch {
-      setActionError("Não foi possível iniciar o pagamento. Tente novamente.");
-    } finally {
-      setSubmitting(false);
-    }
+    const body = buildCheckoutBody(
+      selectedTicketType.id,
+      quantity,
+      needsAttendees,
+      attendees
+    );
+    const result = await startCheckout(`/events/${eventId}/checkout`, body, authFetch);
+    setSubmitting(false);
+    applyCheckoutResult(result, setClientSecret, setCheckoutOpen, setActionError);
   };
 
   const handleCheckoutComplete = (): void => {
@@ -658,8 +948,7 @@ function InternalEventRegistration({
     );
   }
 
-  const singleFreeTicket =
-    ticketTypes.length === 1 && isFreeFlow(ticketTypes[0]);
+  const singleFreeTicket = ticketTypes.length === 1 && isFreeFlow(ticketTypes[0]);
 
   return (
     <Card variant="outlined" sx={{ mb: 4 }}>
@@ -688,96 +977,35 @@ function InternalEventRegistration({
               />
             ))}
 
-            {selectedTicketType && !isFreeFlow(selectedTicketType) ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="body2" color="text.secondary">
-                  Quantidade:
-                </Typography>
-                <Select
-                  size="small"
-                  value={quantity}
-                  onChange={(e) => {
-                    const q = Number(e.target.value);
-                    setQuantity(q);
-                    setAttendees(emptyAttendees(q));
-                  }}
-                >
-                  {Array.from({ length: maxQuantity }, (_, i) => i + 1).map((n) => (
-                    <MenuItem key={n} value={n}>
-                      {n}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </Stack>
-            ) : null}
-
-            {selectedTicketType && !isFreeFlow(selectedTicketType) ? (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={buyForOther}
-                    onChange={(e) => {
-                      const checked = e.target.checked;
-                      setBuyForOther(checked);
-                      if (checked) {
-                        setAttendees(emptyAttendees(quantity));
-                      } else {
-                        setAttendees([]);
-                      }
-                    }}
-                    disabled={submitting}
-                  />
-                }
-                label="Comprar ingresso para outra pessoa"
-              />
-            ) : null}
-
-            {selectedTicketType && !isFreeFlow(selectedTicketType) && (quantity > 1 || buyForOther) ? (
-              <AttendeeFields
-                quantity={quantity}
-                attendees={attendees}
-                onChange={setAttendees}
-                disabled={submitting}
-              />
-            ) : null}
+            <AttendeeSection
+              ticket={selectedTicketType}
+              quantity={quantity}
+              attendees={attendees}
+              buyForOther={buyForOther}
+              maxQuantity={maxQuantity}
+              submitting={submitting}
+              setQuantity={setQuantity}
+              setAttendees={setAttendees}
+              setBuyForOther={setBuyForOther}
+            />
           </Stack>
         ) : null}
 
         {selectedTicketType && !isFreeFlow(selectedTicketType) ? (
-          <PurchaseTermsBox
-            termsAccepted={termsAccepted}
-            onChange={setTermsAccepted}
-          />
+          <PurchaseTermsBox termsAccepted={termsAccepted} onChange={setTermsAccepted} />
         ) : null}
 
-        {ready && !isLoggedIn ? (
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<GitHubIcon />}
-            onClick={handleLogin}
-          >
-            Entrar com GitHub para se inscrever
-          </Button>
-        ) : (
-          <Button
-            variant="contained"
-            size="large"
-            startIcon={<HowToRegIcon />}
-            disabled={
-              submitting ||
-              !selectedTicketType ||
-              (!isFreeFlow(selectedTicketType) && !termsAccepted)
-            }
-            onClick={() => {
-              void (isFreeFlow(selectedTicketType)
-                ? handleFreeRegister()
-                : handleCheckout());
-            }}
-          >
-            {isFreeFlow(selectedTicketType) ? "Inscrever-se" : "Comprar"}
-          </Button>
-        )}
+        <RegistrationButton
+          ready={ready}
+          isLoggedIn={isLoggedIn}
+          submitting={submitting}
+          selectedTicketType={selectedTicketType}
+          termsAccepted={termsAccepted}
+          loginLabel="Entrar com GitHub para se inscrever"
+          actionLabel={isFreeFlow(selectedTicketType) ? "Inscrever-se" : "Comprar"}
+          onLogin={handleLogin}
+          onAction={isFreeFlow(selectedTicketType) ? handleFreeRegister : handleCheckout}
+        />
       </CardContent>
       <StripeEmbeddedCheckoutDialog
         open={checkoutOpen}
@@ -812,66 +1040,24 @@ function ExternalEventRegistration({
 }): React.JSX.Element | null {
   const location = useLocation();
   const { ready, isLoggedIn, login, authFetch } = useAuth();
+  const {
+    ticketTypes,
+    paidTypes,
+    freeTypes,
+    selectedTicketTypeId,
+    setSelectedTicketTypeId,
+    activeTab,
+    setActiveTab,
+  } = useExternalTicketTypes(apiUrl, eventKey);
 
-  const [ticketTypes, setTicketTypes] = useState<EventTicketType[] | null>(null);
-  const [selectedTicketTypeId, setSelectedTicketTypeId] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
-  const [activeTab, setActiveTab] = useState<"paid" | "free">("paid");
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<AttendeeInput[]>([]);
   const [buyForOther, setBuyForOther] = useState(false);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadTicketTypes(): Promise<void> {
-      try {
-        const res = await fetch(
-          `${apiUrl}/events/external/${encodeURIComponent(eventKey)}/ticket-types`
-        );
-        if (!res.ok) return; // 404 = evento sem feature payments → nada renderiza
-        const payload = (await res.json()) as EventTicketType[];
-        if (!active) return;
-        const list = Array.isArray(payload) ? payload : [];
-        setTicketTypes(list);
-        const paidList = list.filter((t) => t.kind !== "free");
-        const freeList = list.filter((t) => t.kind === "free");
-        // Começa na aba que tiver ingressos disponíveis (dentro da janela de vendas).
-        const firstPaid = paidList.find(
-          (t) => getTicketAvailability(t).status === "available"
-        );
-        const hasFreeAvailable = freeList.some(
-          (t) => getTicketAvailability(t).status === "available"
-        );
-        if (firstPaid) {
-          setActiveTab("paid");
-          setSelectedTicketTypeId(firstPaid.id);
-        } else if (hasFreeAvailable) {
-          setActiveTab("free");
-        }
-      } catch {
-        // Backend fora do ar → seção de compra simplesmente não aparece.
-      }
-    }
-
-    void loadTicketTypes();
-    return () => {
-      active = false;
-    };
-  }, [apiUrl, eventKey]);
-
-  const paidTypes = useMemo(
-    () => (ticketTypes ?? []).filter((t) => t.kind !== "free"),
-    [ticketTypes]
-  );
-  const freeTypes = useMemo(
-    () => (ticketTypes ?? []).filter((t) => t.kind === "free"),
-    [ticketTypes]
-  );
 
   const selectedTicketType = useMemo(
     () => paidTypes.find((t) => t.id === selectedTicketTypeId) ?? null,
@@ -904,48 +1090,19 @@ function ExternalEventRegistration({
     }
     setSubmitting(true);
     setActionError(null);
-    try {
-      const body: Record<string, unknown> = {
-        ticketTypeId: selectedTicketType.id,
-        quantity,
-        acceptTerms: true,
-        uiMode: "embedded",
-      };
-      if (needsAttendees && attendeesValid(attendees)) {
-        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
-      }
-      const res = await authFetch(
-        `/events/external/${encodeURIComponent(eventKey)}/checkout`,
-        {
-          method: "POST",
-          body: JSON.stringify(body),
-        }
-      );
-      if (res.status === 409) {
-        setActionError("Você já possui ingresso próprio para este evento. Comprar para outra pessoa? Ative a opção abaixo e informe os dados dela.");
-        return;
-      }
-      if (!res.ok) {
-        setActionError("Não foi possível iniciar o pagamento. Tente novamente.");
-        return;
-      }
-      const data = (await res.json()) as {
-        url?: string | null;
-        clientSecret?: string | null;
-      };
-      if (data.clientSecret) {
-        setClientSecret(data.clientSecret);
-        setCheckoutOpen(true);
-      } else if (data.url) {
-        globalThis.location.href = data.url;
-      } else {
-        setActionError("Resposta inesperada do checkout.");
-      }
-    } catch {
-      setActionError("Não foi possível iniciar o pagamento. Tente novamente.");
-    } finally {
-      setSubmitting(false);
-    }
+    const body = buildCheckoutBody(
+      selectedTicketType.id,
+      quantity,
+      needsAttendees,
+      attendees
+    );
+    const result = await startCheckout(
+      `/events/external/${encodeURIComponent(eventKey)}/checkout`,
+      body,
+      authFetch
+    );
+    setSubmitting(false);
+    applyCheckoutResult(result, setClientSecret, setCheckoutOpen, setActionError);
   };
 
   const handleCheckoutComplete = (): void => {
@@ -965,7 +1122,7 @@ function ExternalEventRegistration({
           </Alert>
         ) : null}
 
-        {(paidTypes.length > 0 && freeTypes.length > 0) && (
+        {paidTypes.length > 0 && freeTypes.length > 0 && (
           <Tabs
             value={activeTab}
             onChange={(_, v) => setActiveTab(v as "paid" | "free")}
@@ -997,58 +1154,17 @@ function ExternalEventRegistration({
                     />
                   ))}
 
-                  {selectedTicketType ? (
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography variant="body2" color="text.secondary">
-                        Quantidade:
-                      </Typography>
-                      <Select
-                        size="small"
-                        value={quantity}
-                        onChange={(e) => {
-                          const q = Number(e.target.value);
-                          setQuantity(q);
-                          setAttendees(emptyAttendees(q));
-                        }}
-                      >
-                        {Array.from({ length: maxQuantity }, (_, i) => i + 1).map((n) => (
-                          <MenuItem key={n} value={n}>
-                            {n}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </Stack>
-                  ) : null}
-
-                  {selectedTicketType ? (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={buyForOther}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setBuyForOther(checked);
-                            if (checked) {
-                              setAttendees(emptyAttendees(quantity));
-                            } else {
-                              setAttendees([]);
-                            }
-                          }}
-                          disabled={submitting}
-                        />
-                      }
-                      label="Comprar ingresso para outra pessoa"
-                    />
-                  ) : null}
-
-                  {selectedTicketType && (quantity > 1 || buyForOther) ? (
-                    <AttendeeFields
-                      quantity={quantity}
-                      attendees={attendees}
-                      onChange={setAttendees}
-                      disabled={submitting}
-                    />
-                  ) : null}
+                  <AttendeeSection
+                    ticket={selectedTicketType}
+                    quantity={quantity}
+                    attendees={attendees}
+                    buyForOther={buyForOther}
+                    maxQuantity={maxQuantity}
+                    submitting={submitting}
+                    setQuantity={setQuantity}
+                    setAttendees={setAttendees}
+                    setBuyForOther={setBuyForOther}
+                  />
                 </Stack>
 
                 {selectedTicketType ? (
@@ -1058,28 +1174,17 @@ function ExternalEventRegistration({
                   />
                 ) : null}
 
-                {ready && !isLoggedIn ? (
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<GitHubIcon />}
-                    onClick={handleLogin}
-                  >
-                    Entrar com GitHub para comprar
-                  </Button>
-                ) : (
-                  <Button
-                    variant="contained"
-                    size="large"
-                    startIcon={<HowToRegIcon />}
-                    disabled={submitting || !selectedTicketType || !termsAccepted}
-                    onClick={() => {
-                      void handleCheckout();
-                    }}
-                  >
-                    Comprar
-                  </Button>
-                )}
+                <RegistrationButton
+                  ready={ready}
+                  isLoggedIn={isLoggedIn}
+                  submitting={submitting}
+                  selectedTicketType={selectedTicketType}
+                  termsAccepted={termsAccepted}
+                  loginLabel="Entrar com GitHub para comprar"
+                  actionLabel="Comprar"
+                  onLogin={handleLogin}
+                  onAction={handleCheckout}
+                />
               </>
             )}
           </>

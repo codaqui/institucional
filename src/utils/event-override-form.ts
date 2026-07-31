@@ -46,11 +46,19 @@ export const EMPTY_OVERRIDE_FORM: OverrideFormState = {
   workloadMinutes: "",
 };
 
+let speakerIdCounter = 0;
+
 export function generateSpeakerId(): string {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    const values = new Uint32Array(2);
+    crypto.getRandomValues(values);
+    return `spk-${Array.from(values, (n) => n.toString(36)).join("")}`;
+  }
+  speakerIdCounter += 1;
+  return `spk-${Date.now().toString(36)}-${speakerIdCounter.toString(36)}`;
 }
 
 /** Converte um `extendData` existente em estado de formulário (pré-preenchimento). */

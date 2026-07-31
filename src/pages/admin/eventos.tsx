@@ -277,6 +277,45 @@ function buildEventPayload(form: EventForm): EventValidationResult {
   return { payload };
 }
 
+interface TicketValidationResult {
+  error?: string;
+  payload?: Record<string, unknown>;
+}
+
+function buildTicketPayload(form: TicketForm): TicketValidationResult {
+  if (!form.name.trim()) {
+    return { error: "Informe o nome do tipo de ingresso." };
+  }
+  const quantityTotal = Number.parseInt(form.quantityTotal, 10);
+  if (Number.isNaN(quantityTotal) || quantityTotal <= 0) {
+    return { error: "Informe a quantidade total (maior que zero)." };
+  }
+  let priceCents = 0;
+  if (form.price.trim()) {
+    const price = Number.parseFloat(form.price.replace(",", "."));
+    if (Number.isNaN(price) || price < 0) {
+      return { error: "Preço inválido." };
+    }
+    priceCents = Math.round(price * 100);
+  }
+  const payload: Record<string, unknown> = {
+    name: form.name.trim(),
+    kind: form.kind,
+    priceCents,
+    quantityTotal,
+  };
+  const salesStart = fromDateTimeLocal(form.salesStartAt);
+  if (salesStart) payload.salesStartAt = salesStart;
+  const salesEnd = fromDateTimeLocal(form.salesEndAt);
+  if (salesEnd) payload.salesEndAt = salesEnd;
+  const maxPerOrder = Number.parseInt(form.maxPerOrder, 10);
+  if (Number.isNaN(maxPerOrder) || maxPerOrder < 1 || maxPerOrder > 10) {
+    return { error: "Máximo por pedido deve ser entre 1 e 10." };
+  }
+  payload.maxPerOrder = maxPerOrder;
+  return { payload };
+}
+
 // ── Formulários ──────────────────────────────────────────────────────────────
 
 interface EventForm {
@@ -347,7 +386,7 @@ function HubAlerts({
   onCloseSnapshotResult,
   onClosePublishSuccess,
   onCloseSaveSuccess,
-}: HubAlertsProps): React.JSX.Element {
+}: Readonly<HubAlertsProps>): React.JSX.Element {
   return (
     <>
       {snapshotError && (
@@ -463,7 +502,7 @@ function HubFilters({
   onToggleEditable,
   onToggleFeatures,
   onCommunityChange,
-}: HubFiltersProps): React.JSX.Element {
+}: Readonly<HubFiltersProps>): React.JSX.Element {
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent sx={{ pb: "16px !important" }}>
@@ -537,7 +576,7 @@ interface ExternalEventCardProps {
   onOrdersClick: (eventKey: string, title: string) => void;
 }
 
-function ExternalEventCard({ row, sourceLabel, onOrdersClick }: ExternalEventCardProps): React.JSX.Element {
+function ExternalEventCard({ row, sourceLabel, onOrdersClick }: Readonly<ExternalEventCardProps>): React.JSX.Element {
   const ev = row.event;
   const eventKey = `${ev.sourceKey}:${ev.id}`;
   const overrideQuery = `sourceKey=${encodeURIComponent(ev.sourceKey)}&eventId=${encodeURIComponent(ev.id)}`;
@@ -668,7 +707,7 @@ function InternalEventAccordion({
   onRemoveStaff,
   onStaffMemberChange,
   onStaffRoleChange,
-}: InternalEventAccordionProps): React.JSX.Element {
+}: Readonly<InternalEventAccordionProps>): React.JSX.Element {
   const event = row.event;
   return (
     <Accordion sx={{ mb: 1 }}>
@@ -880,6 +919,38 @@ function InternalEventAccordion({
       </AccordionDetails>
     </Accordion>
   );
+}
+
+// ── Helpers de filtro do hub ─────────────────────────────────────────────────
+
+function matchesSearch(row: HubRow, search: string): boolean {
+  const q = search.trim().toLowerCase();
+  return !q || row.title.toLowerCase().includes(q);
+}
+
+function matchesKindFilter(row: HubRow, showInternos: boolean, showExternos: boolean): boolean {
+  if (showInternos && !showExternos) return row.kind === "internal";
+  if (showExternos && !showInternos) return row.kind === "external";
+  return true;
+}
+
+function matchesOverrideFilter(row: HubRow, onlyOverride: boolean): boolean {
+  return !onlyOverride || row.hasOverride;
+}
+
+function matchesEditableFilter(row: HubRow, onlyEditable: boolean): boolean {
+  return !onlyEditable || row.canEdit;
+}
+
+function matchesFeaturesFilter(row: HubRow, onlyFeatures: boolean): boolean {
+  return !onlyFeatures || row.features.length > 0;
+}
+
+function matchesCommunityFilter(row: HubRow, communityFilter: string): boolean {
+  if (!communityFilter) return true;
+  const rowCommunity =
+    row.kind === "internal" ? row.event.communityProjectKey : row.communityProjectKey;
+  return rowCommunity === communityFilter;
 }
 
 // ── Página ───────────────────────────────────────────────────────────────────
@@ -1164,46 +1235,17 @@ export default function AdminEventosPage(): React.JSX.Element {
   const handleCreateTicketType = async () => {
     if (!ticketDialog) return;
     setTicketError("");
-    if (!ticketForm.name.trim()) {
-      setTicketError("Informe o nome do tipo de ingresso.");
+    const validation = buildTicketPayload(ticketForm);
+    if (validation.error || !validation.payload) {
+      setTicketError(validation.error ?? "Erro de validação.");
       return;
     }
-    const quantityTotal = Number.parseInt(ticketForm.quantityTotal, 10);
-    if (Number.isNaN(quantityTotal) || quantityTotal <= 0) {
-      setTicketError("Informe a quantidade total (maior que zero).");
-      return;
-    }
-    let priceCents = 0;
-    if (ticketForm.price.trim()) {
-      const price = Number.parseFloat(ticketForm.price.replace(",", "."));
-      if (Number.isNaN(price) || price < 0) {
-        setTicketError("Preço inválido.");
-        return;
-      }
-      priceCents = Math.round(price * 100);
-    }
-    const payload: Record<string, unknown> = {
-      name: ticketForm.name.trim(),
-      kind: ticketForm.kind,
-      priceCents,
-      quantityTotal,
-    };
-    const salesStart = fromDateTimeLocal(ticketForm.salesStartAt);
-    if (salesStart) payload.salesStartAt = salesStart;
-    const salesEnd = fromDateTimeLocal(ticketForm.salesEndAt);
-    if (salesEnd) payload.salesEndAt = salesEnd;
-    const maxPerOrder = Number.parseInt(ticketForm.maxPerOrder, 10);
-    if (Number.isNaN(maxPerOrder) || maxPerOrder < 1 || maxPerOrder > 10) {
-      setTicketError("Máximo por pedido deve ser entre 1 e 10.");
-      return;
-    }
-    payload.maxPerOrder = maxPerOrder;
 
     setTicketSaving(true);
     try {
       const res = await authFetch(`${apiUrl}/events/${ticketDialog.id}/ticket-types`, {
         method: "POST",
-        body: JSON.stringify(payload),
+        body: JSON.stringify(validation.payload),
       });
       if (!res.ok) {
         setTicketError(await extractErrorMessage(res, "Erro ao criar tipo de ingresso."));
@@ -1355,19 +1397,14 @@ export default function AdminEventosPage(): React.JSX.Element {
   }, [events, externalEvents, canEditExternal, featuresByEventKey]);
 
   function matchesFilters(row: HubRow): boolean {
-    const q = search.trim().toLowerCase();
-    if (q && !row.title.toLowerCase().includes(q)) return false;
-    if (showInternos && !showExternos && row.kind !== "internal") return false;
-    if (showExternos && !showInternos && row.kind !== "external") return false;
-    if (onlyOverride && !row.hasOverride) return false;
-    if (onlyEditable && !row.canEdit) return false;
-    if (onlyFeatures && row.features.length === 0) return false;
-    if (communityFilter) {
-      const rowCommunity =
-        row.kind === "internal" ? row.event.communityProjectKey : row.communityProjectKey;
-      if (rowCommunity !== communityFilter) return false;
-    }
-    return true;
+    return (
+      matchesSearch(row, search) &&
+      matchesKindFilter(row, showInternos, showExternos) &&
+      matchesOverrideFilter(row, onlyOverride) &&
+      matchesEditableFilter(row, onlyEditable) &&
+      matchesFeaturesFilter(row, onlyFeatures) &&
+      matchesCommunityFilter(row, communityFilter)
+    );
   }
 
   const filteredRows = useMemo(() => rows.filter(matchesFilters), [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);

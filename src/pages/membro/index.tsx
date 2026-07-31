@@ -208,7 +208,10 @@ const formatWorkload = (minutes: number): string => {
   return rest === 0 ? `${hours}h` : `${hours}h${rest}min`;
 };
 
-function getEventsEmptyMessage(subTab: "future" | "purchased" | "history"): string {
+type EventsSubTab = "future" | "purchased" | "history";
+type EventsListMode = "mine" | "purchased" | "history";
+
+function getEventsEmptyMessage(subTab: EventsSubTab): string {
   switch (subTab) {
     case "future":
       return "Nenhum ingresso próximo.";
@@ -219,7 +222,7 @@ function getEventsEmptyMessage(subTab: "future" | "purchased" | "history"): stri
   }
 }
 
-function getEventsListMode(subTab: "future" | "purchased" | "history"): "mine" | "purchased" | "history" {
+function getEventsListMode(subTab: EventsSubTab): EventsListMode {
   switch (subTab) {
     case "purchased":
       return "purchased";
@@ -279,7 +282,7 @@ interface EventRegistrationsListProps {
   onEmitCertificate: (id: string) => void;
   onCancel: (id: string) => void;
   emptyMessage: string;
-  mode?: "mine" | "purchased" | "history";
+  mode?: EventsListMode;
   userName?: string;
 }
 
@@ -502,9 +505,8 @@ function EventDateWorkloadLine({
   readonly workload: string | null;
   readonly communityName: string;
 }): React.JSX.Element {
-  const datePart = startDate
-    ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
-    : "evento da comunidade";
+  const endPart = endDate ? ` a ${endDate}` : "";
+  const datePart = startDate ? `realizado em ${startDate}${endPart}` : "evento da comunidade";
   return (
     <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
       {datePart}
@@ -917,9 +919,9 @@ interface EventsTabPanelProps {
   readonly regsLoading: boolean;
   readonly regsLoaded: boolean;
   readonly registrations: EventRegistration[];
-  readonly groupedRegistrations: Record<"future" | "purchased" | "history", EventRegistration[]>;
-  readonly eventsSubTab: "future" | "purchased" | "history";
-  readonly setEventsSubTab: (value: "future" | "purchased" | "history") => void;
+  readonly groupedRegistrations: Record<EventsSubTab, EventRegistration[]>;
+  readonly eventsSubTab: EventsSubTab;
+  readonly setEventsSubTab: (value: EventsSubTab) => void;
   readonly expandedQrId: string | null;
   readonly setExpandedQrId: (id: string | null) => void;
   readonly certLoadingId: string | null;
@@ -990,7 +992,7 @@ function EventsTabPanel({
         <>
           <Tabs
             value={eventsSubTab}
-            onChange={(_, v) => setEventsSubTab(v as "future" | "purchased" | "history")}
+            onChange={(_, v) => setEventsSubTab(v as EventsSubTab)}
             sx={{ mb: 2 }}
           >
             <Tab value="future" label="Próximos ingressos" />
@@ -1049,7 +1051,7 @@ export default function MembroPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState(0);
 
   // Sub-abas da seção Eventos
-  const [eventsSubTab, setEventsSubTab] = useState<"future" | "purchased" | "history">("future");
+  const [eventsSubTab, setEventsSubTab] = useState<EventsSubTab>("future");
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
   // ── Histórico de eventos (dados sob demanda — só carrega ao abrir a aba) ──
