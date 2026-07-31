@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
-import { useLocation, useHistory } from "@docusaurus/router";
+import { useLocation } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Alert,
@@ -16,7 +16,6 @@ import {
   Container,
   Divider,
   FormControlLabel,
-  IconButton,
   MenuItem,
   Select,
   Skeleton,
@@ -26,9 +25,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
-import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import ForumIcon from "@mui/icons-material/Forum";
 import GitHubIcon from "@mui/icons-material/GitHub";
@@ -182,12 +179,21 @@ function formatOrganizers(event: EventWithOverride): string {
 }
 
 interface AttendeeInput {
+  id: string;
   name: string;
   email: string;
 }
 
+function createAttendeeId(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 function emptyAttendees(quantity: number): AttendeeInput[] {
-  return Array.from({ length: quantity }, () => ({ name: "", email: "" }));
+  return Array.from({ length: quantity }, () => ({
+    id: createAttendeeId(),
+    name: "",
+    email: "",
+  }));
 }
 
 function AttendeeFields({
@@ -204,7 +210,7 @@ function AttendeeFields({
   useEffect(() => {
     if (attendees.length !== quantity) {
       const next = attendees.slice(0, quantity);
-      while (next.length < quantity) next.push({ name: "", email: "" });
+      while (next.length < quantity) next.push({ id: createAttendeeId(), name: "", email: "" });
       onChange(next);
     }
   }, [quantity, attendees, onChange]);
@@ -220,7 +226,7 @@ function AttendeeFields({
         Participantes ({quantity})
       </Typography>
       {attendees.map((attendee, index) => (
-        <Stack key={index} direction={{ xs: "column", sm: "row" }} spacing={1.5}>
+        <Stack key={attendee.id} direction={{ xs: "column", sm: "row" }} spacing={1.5}>
           <TextField
             label={`Nome ${index + 1}`}
             size="small"
@@ -252,9 +258,220 @@ function attendeesValid(attendees: AttendeeInput[]): boolean {
   return attendees.every((a) => a.name.trim().length > 0 && a.email.trim().includes("@"));
 }
 
+function isFreeFlow(ticket: EventTicketType | null): boolean {
+  return ticket !== null && ticket.kind === "free";
+}
+
+function TicketAvailabilitySuffix({
+  availability,
+  available,
+}: {
+  readonly availability: Availability;
+  readonly available: number;
+}): React.JSX.Element {
+  if (availability.status === "sold_out") {
+    return <> · Esgotado</>;
+  }
+  if (availability.status === "not_yet" || availability.status === "ended") {
+    return <> · {availability.label}</>;
+  }
+  return <> · {available} vaga(s)</>;
+}
+
+function completeCheckout(
+  setCheckoutOpen: (value: boolean) => void,
+  setClientSecret: (value: string | null) => void,
+  onCheckoutSuccess?: () => void
+): void {
+  setCheckoutOpen(false);
+  setClientSecret(null);
+  onCheckoutSuccess?.();
+}
+
+function PurchaseTermsBox({
+  termsAccepted,
+  onChange,
+}: {
+  readonly termsAccepted: boolean;
+  readonly onChange: (accepted: boolean) => void;
+}): React.JSX.Element {
+  return (
+    <Box
+      sx={{
+        mb: 3,
+        p: 2,
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+      }}
+    >
+      <Typography variant="subtitle2" fontWeight={700} gutterBottom>
+        Termos de compra e política de reembolso
+      </Typography>
+      <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 1 }}>
+        <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
+          <li>
+            Você pode se arrepender da compra em até 7 dias corridos, com direito a
+            reembolso integral (CDC, art. 49 — compras online).
+          </li>
+          <li>
+            Em caso de cancelamento ou adiamento do evento, o valor pago é reembolsado
+            integralmente.
+          </li>
+          <li>
+            Reembolsos são processados via Stripe, no mesmo meio de pagamento utilizado
+            na compra.
+          </li>
+          <li>Versão do termo: 2026-07-v1.</li>
+        </ul>
+      </Typography>
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={termsAccepted}
+            onChange={(e) => onChange(e.target.checked)}
+          />
+        }
+        label={
+          <span>
+            Li e aceito os{" "}
+            <Link href="/termos-de-compra" target="_blank" rel="noopener noreferrer">
+              termos de compra e a política de reembolso
+            </Link>
+          </span>
+        }
+      />
+    </Box>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Inscrição em evento interno (backend /events)
 // ---------------------------------------------------------------------------
+
+interface InternalTicketCardProps {
+  readonly ticket: EventTicketType;
+  readonly selectedTicketTypeId: string;
+  readonly onSelect: (ticketId: string) => void;
+}
+
+function InternalTicketCard({
+  ticket,
+  selectedTicketTypeId,
+  onSelect,
+}: InternalTicketCardProps): React.JSX.Element {
+  const available = ticket.quantityTotal - ticket.quantitySold;
+  const availability = getTicketAvailability(ticket);
+  const selectable = availability.status === "available";
+
+  return (
+    <Box
+      key={ticket.id}
+      onClick={() => {
+        if (!selectable) return;
+        onSelect(ticket.id);
+      }}
+      sx={{
+        p: 1.5,
+        border: "1px solid",
+        borderColor: ticket.id === selectedTicketTypeId ? "primary.main" : "divider",
+        borderRadius: 2,
+        cursor: selectable ? "pointer" : "default",
+        opacity: selectable ? 1 : 0.6,
+        bgcolor: ticket.id === selectedTicketTypeId ? "action.hover" : "transparent",
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="body2" fontWeight={700}>
+          {ticket.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {isFreeFlow(ticket) || ticket.priceCents === 0
+            ? "Gratuito"
+            : formatBRL(ticket.priceCents / 100)}
+          <TicketAvailabilitySuffix availability={availability} available={available} />
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}
+
+interface ExternalPaidTicketCardProps {
+  readonly ticket: EventTicketType;
+  readonly selectedTicketTypeId: string;
+  readonly onSelect: (ticketId: string) => void;
+}
+
+function ExternalPaidTicketCard({
+  ticket,
+  selectedTicketTypeId,
+  onSelect,
+}: ExternalPaidTicketCardProps): React.JSX.Element {
+  const available = ticket.quantityTotal - ticket.quantitySold;
+  const availability = getTicketAvailability(ticket);
+  const selectable = availability.status === "available";
+
+  return (
+    <Box
+      key={ticket.id}
+      onClick={() => {
+        if (!selectable) return;
+        onSelect(ticket.id);
+      }}
+      sx={{
+        p: 1.5,
+        border: "1px solid",
+        borderColor: ticket.id === selectedTicketTypeId ? "primary.main" : "divider",
+        borderRadius: 2,
+        cursor: selectable ? "pointer" : "default",
+        opacity: selectable ? 1 : 0.6,
+        bgcolor: ticket.id === selectedTicketTypeId ? "action.hover" : "transparent",
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="body2" fontWeight={700}>
+          {ticket.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {formatBRL(ticket.priceCents / 100)}
+          <TicketAvailabilitySuffix availability={availability} available={available} />
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}
+
+interface FreeTicketCardProps {
+  readonly ticket: EventTicketType;
+}
+
+function FreeTicketCard({ ticket }: FreeTicketCardProps): React.JSX.Element {
+  const available = ticket.quantityTotal - ticket.quantitySold;
+  const availability = getTicketAvailability(ticket);
+
+  return (
+    <Box
+      key={ticket.id}
+      sx={{
+        p: 1.5,
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: 2,
+        opacity: availability.status === "available" ? 1 : 0.6,
+      }}
+    >
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Typography variant="body2" fontWeight={700}>
+          {ticket.name}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Gratuito
+          <TicketAvailabilitySuffix availability={availability} available={available} />
+        </Typography>
+      </Stack>
+    </Box>
+  );
+}
 
 function InternalEventRegistration({
   eventId,
@@ -316,9 +533,6 @@ function InternalEventRegistration({
 
   if (!ticketTypes || ticketTypes.length === 0) return null;
 
-  const isFreeFlow = (ticket: EventTicketType | null): boolean =>
-    ticket !== null && ticket.kind === "free";
-
   const maxQuantity = selectedTicketType
     ? Math.max(
         1,
@@ -340,7 +554,7 @@ function InternalEventRegistration({
     try {
       const body: Record<string, unknown> = { ticketTypeId: selectedTicketType.id };
       if (quantity > 1 && attendeesValid(attendees)) {
-        body.attendees = attendees;
+        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
       }
       const res = await authFetch(`/events/${eventId}/register`, {
         method: "POST",
@@ -379,7 +593,7 @@ function InternalEventRegistration({
         uiMode: "embedded",
       };
       if (needsAttendees && attendeesValid(attendees)) {
-        body.attendees = attendees;
+        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
       }
       const res = await authFetch(`/events/${eventId}/checkout`, {
         method: "POST",
@@ -413,9 +627,7 @@ function InternalEventRegistration({
   };
 
   const handleCheckoutComplete = (): void => {
-    setCheckoutOpen(false);
-    setClientSecret(null);
-    onCheckoutSuccess?.();
+    completeCheckout(setCheckoutOpen, setClientSecret, onCheckoutSuccess);
   };
 
   if (registration) {
@@ -464,50 +676,17 @@ function InternalEventRegistration({
 
         {!singleFreeTicket ? (
           <Stack spacing={1.5} sx={{ mb: 3 }}>
-            {ticketTypes.map((ticket) => {
-              const available = ticket.quantityTotal - ticket.quantitySold;
-              const availability = getTicketAvailability(ticket);
-              const selectable = availability.status === "available";
-              return (
-                <Box
-                  key={ticket.id}
-                  onClick={() => {
-                    if (!selectable) return;
-                    setSelectedTicketTypeId(ticket.id);
-                    setQuantity(1);
-                  }}
-                  sx={{
-                    p: 1.5,
-                    border: "1px solid",
-                    borderColor:
-                      ticket.id === selectedTicketTypeId ? "primary.main" : "divider",
-                    borderRadius: 2,
-                    cursor: selectable ? "pointer" : "default",
-                    opacity: selectable ? 1 : 0.6,
-                    bgcolor:
-                      ticket.id === selectedTicketTypeId ? "action.hover" : "transparent",
-                  }}
-                >
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body2" fontWeight={700}>
-                      {ticket.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {isFreeFlow(ticket) || ticket.priceCents === 0
-                        ? "Gratuito"
-                        : formatBRL(ticket.priceCents / 100)}
-                      {availability.status === "sold_out"
-                        ? " · Esgotado"
-                        : availability.status === "not_yet"
-                        ? ` · ${availability.label}`
-                        : availability.status === "ended"
-                        ? ` · ${availability.label}`
-                        : ` · ${available} vaga(s)`}
-                    </Typography>
-                  </Stack>
-                </Box>
-              );
-            })}
+            {ticketTypes.map((ticket) => (
+              <InternalTicketCard
+                key={ticket.id}
+                ticket={ticket}
+                selectedTicketTypeId={selectedTicketTypeId}
+                onSelect={(ticketId) => {
+                  setSelectedTicketTypeId(ticketId);
+                  setQuantity(1);
+                }}
+              />
+            ))}
 
             {selectedTicketType && !isFreeFlow(selectedTicketType) ? (
               <Stack direction="row" spacing={1} alignItems="center">
@@ -565,52 +744,10 @@ function InternalEventRegistration({
         ) : null}
 
         {selectedTicketType && !isFreeFlow(selectedTicketType) ? (
-          <Box
-            sx={{
-              mb: 3,
-              p: 2,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 2,
-            }}
-          >
-            <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-              Termos de compra e política de reembolso
-            </Typography>
-            <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 1 }}>
-              <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
-                <li>
-                  Você pode se arrepender da compra em até 7 dias corridos, com direito a
-                  reembolso integral (CDC, art. 49 — compras online).
-                </li>
-                <li>
-                  Em caso de cancelamento ou adiamento do evento, o valor pago é reembolsado
-                  integralmente.
-                </li>
-                <li>
-                  Reembolsos são processados via Stripe, no mesmo meio de pagamento utilizado
-                  na compra.
-                </li>
-                <li>Versão do termo: 2026-07-v1.</li>
-              </ul>
-            </Typography>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={termsAccepted}
-                  onChange={(e) => setTermsAccepted(e.target.checked)}
-                />
-              }
-              label={
-                <span>
-                  Li e aceito os{" "}
-                  <Link href="/termos-de-compra" target="_blank" rel="noopener noreferrer">
-                    termos de compra e a política de reembolso
-                  </Link>
-                </span>
-              }
-            />
-          </Box>
+          <PurchaseTermsBox
+            termsAccepted={termsAccepted}
+            onChange={setTermsAccepted}
+          />
         ) : null}
 
         {ready && !isLoggedIn ? (
@@ -707,13 +844,13 @@ function ExternalEventRegistration({
         const firstPaid = paidList.find(
           (t) => getTicketAvailability(t).status === "available"
         );
-        const firstFree = freeList.find(
+        const hasFreeAvailable = freeList.some(
           (t) => getTicketAvailability(t).status === "available"
         );
         if (firstPaid) {
           setActiveTab("paid");
           setSelectedTicketTypeId(firstPaid.id);
-        } else if (firstFree) {
+        } else if (hasFreeAvailable) {
           setActiveTab("free");
         }
       } catch {
@@ -775,7 +912,7 @@ function ExternalEventRegistration({
         uiMode: "embedded",
       };
       if (needsAttendees && attendeesValid(attendees)) {
-        body.attendees = attendees;
+        body.attendees = attendees.map(({ name, email }) => ({ name, email }));
       }
       const res = await authFetch(
         `/events/external/${encodeURIComponent(eventKey)}/checkout`,
@@ -812,9 +949,7 @@ function ExternalEventRegistration({
   };
 
   const handleCheckoutComplete = (): void => {
-    setCheckoutOpen(false);
-    setClientSecret(null);
-    onCheckoutSuccess?.();
+    completeCheckout(setCheckoutOpen, setClientSecret, onCheckoutSuccess);
   };
 
   return (
@@ -850,48 +985,17 @@ function ExternalEventRegistration({
             ) : (
               <>
                 <Stack spacing={1.5} sx={{ mb: 3 }}>
-                  {paidTypes.map((ticket) => {
-                    const available = ticket.quantityTotal - ticket.quantitySold;
-                    const availability = getTicketAvailability(ticket);
-                    const selectable = availability.status === "available";
-                    return (
-                      <Box
-                        key={ticket.id}
-                        onClick={() => {
-                          if (!selectable) return;
-                          setSelectedTicketTypeId(ticket.id);
-                          setQuantity(1);
-                        }}
-                        sx={{
-                          p: 1.5,
-                          border: "1px solid",
-                          borderColor:
-                            ticket.id === selectedTicketTypeId ? "primary.main" : "divider",
-                          borderRadius: 2,
-                          cursor: selectable ? "pointer" : "default",
-                          opacity: selectable ? 1 : 0.6,
-                          bgcolor:
-                            ticket.id === selectedTicketTypeId ? "action.hover" : "transparent",
-                        }}
-                      >
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                          <Typography variant="body2" fontWeight={700}>
-                            {ticket.name}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatBRL(ticket.priceCents / 100)}
-                            {availability.status === "sold_out"
-                              ? " · Esgotado"
-                              : availability.status === "not_yet"
-                              ? ` · ${availability.label}`
-                              : availability.status === "ended"
-                              ? ` · ${availability.label}`
-                              : ` · ${available} vaga(s)`}
-                          </Typography>
-                        </Stack>
-                      </Box>
-                    );
-                  })}
+                  {paidTypes.map((ticket) => (
+                    <ExternalPaidTicketCard
+                      key={ticket.id}
+                      ticket={ticket}
+                      selectedTicketTypeId={selectedTicketTypeId}
+                      onSelect={(ticketId) => {
+                        setSelectedTicketTypeId(ticketId);
+                        setQuantity(1);
+                      }}
+                    />
+                  ))}
 
                   {selectedTicketType ? (
                     <Stack direction="row" spacing={1} alignItems="center">
@@ -948,52 +1052,10 @@ function ExternalEventRegistration({
                 </Stack>
 
                 {selectedTicketType ? (
-                  <Box
-                    sx={{
-                      mb: 3,
-                      p: 2,
-                      border: "1px solid",
-                      borderColor: "divider",
-                      borderRadius: 2,
-                    }}
-                  >
-                    <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-                      Termos de compra e política de reembolso
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 1 }}>
-                      <ul style={{ margin: 0, paddingLeft: "1.25rem" }}>
-                        <li>
-                          Você pode se arrepender da compra em até 7 dias corridos, com direito a
-                          reembolso integral (CDC, art. 49 — compras online).
-                        </li>
-                        <li>
-                          Em caso de cancelamento ou adiamento do evento, o valor pago é reembolsado
-                          integralmente.
-                        </li>
-                        <li>
-                          Reembolsos são processados via Stripe, no mesmo meio de pagamento utilizado
-                          na compra.
-                        </li>
-                        <li>Versão do termo: 2026-07-v1.</li>
-                      </ul>
-                    </Typography>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={termsAccepted}
-                          onChange={(e) => setTermsAccepted(e.target.checked)}
-                        />
-                      }
-                      label={
-                        <span>
-                          Li e aceito os{" "}
-                          <Link href="/termos-de-compra" target="_blank" rel="noopener noreferrer">
-                            termos de compra e a política de reembolso
-                          </Link>
-                        </span>
-                      }
-                    />
-                  </Box>
+                  <PurchaseTermsBox
+                    termsAccepted={termsAccepted}
+                    onChange={setTermsAccepted}
+                  />
                 ) : null}
 
                 {ready && !isLoggedIn ? (
@@ -1031,38 +1093,9 @@ function ExternalEventRegistration({
               </Typography>
             ) : (
               <>
-                {freeTypes.map((ticket) => {
-                  const available = ticket.quantityTotal - ticket.quantitySold;
-                  const availability = getTicketAvailability(ticket);
-                  return (
-                    <Box
-                      key={ticket.id}
-                      sx={{
-                        p: 1.5,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        borderRadius: 2,
-                        opacity: availability.status === "available" ? 1 : 0.6,
-                      }}
-                    >
-                      <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2" fontWeight={700}>
-                          {ticket.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Gratuito
-                          {availability.status === "sold_out"
-                            ? " · Esgotado"
-                            : availability.status === "not_yet"
-                            ? ` · ${availability.label}`
-                            : availability.status === "ended"
-                            ? ` · ${availability.label}`
-                            : ` · ${available} vaga(s)`}
-                        </Typography>
-                      </Stack>
-                    </Box>
-                  );
-                })}
+                {freeTypes.map((ticket) => (
+                  <FreeTicketCard key={ticket.id} ticket={ticket} />
+                ))}
                 <Button
                   variant="contained"
                   size="large"
@@ -1097,6 +1130,290 @@ function ExternalEventRegistration({
 // ---------------------------------------------------------------------------
 // Página de detalhe
 // ---------------------------------------------------------------------------
+
+function buildAdminOverridesHref(
+  source: string,
+  sourceId: string,
+  eventId: string,
+  tab: number
+): string {
+  const sourceKey = `${source}:${sourceId}`;
+  return `/admin/overrides?tab=${tab}&sourceKey=${encodeURIComponent(
+    sourceKey
+  )}&eventId=${encodeURIComponent(eventId)}`;
+}
+
+function EventHero({
+  event,
+  override,
+  sourceEmoji,
+}: {
+  readonly event: EventWithOverride;
+  readonly override: EventOverride | null;
+  readonly sourceEmoji: string;
+}): React.JSX.Element {
+  return (
+    <Box
+      sx={{
+        position: "relative",
+        borderRadius: 3,
+        overflow: "hidden",
+        mb: 4,
+        border: "1px solid",
+        borderColor: "divider",
+      }}
+    >
+      {event.imageUrl ? (
+        <Box
+          component="img"
+          src={event.imageUrl}
+          alt={event.title}
+          sx={{
+            display: "block",
+            width: "100%",
+            aspectRatio: "16 / 9",
+            maxHeight: 420,
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <Box
+          sx={{
+            aspectRatio: "16 / 9",
+            maxHeight: 320,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
+          }}
+        >
+          <Typography sx={{ fontSize: { xs: "4rem", md: "6rem" }, lineHeight: 1 }}>
+            {sourceEmoji}
+          </Typography>
+        </Box>
+      )}
+      {override ? (
+        <Box sx={{ position: "absolute", top: 16, right: 16 }}>
+          <EventOverrideBadge override={override} />
+        </Box>
+      ) : null}
+    </Box>
+  );
+}
+
+function EventHeaderCard({
+  event,
+  source,
+  sourceId,
+  eventId,
+  sourceEmoji,
+  sourceLabel,
+  statusLabel,
+  isInternal,
+  canManage,
+}: {
+  readonly event: EventWithOverride;
+  readonly source: string;
+  readonly sourceId: string;
+  readonly eventId: string;
+  readonly sourceEmoji: string;
+  readonly sourceLabel: string;
+  readonly statusLabel: string | null;
+  readonly isInternal: boolean;
+  readonly canManage: boolean;
+}): React.JSX.Element {
+  return (
+    <Card variant="outlined" sx={{ mb: 4 }}>
+      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+          {statusLabel ? (
+            <Chip label={statusLabel} size="small" color={getStatusColor(event.status)} />
+          ) : null}
+          <Chip label={`${sourceEmoji} ${sourceLabel}`} size="small" variant="outlined" />
+          <Chip label={`📍 ${event.location}`} size="small" variant="outlined" />
+          {event.featured ? <Chip label="Destaque" size="small" color="success" /> : null}
+        </Stack>
+
+        <Typography variant="h4" fontWeight={800} gutterBottom>
+          {event.title}
+        </Typography>
+        <Divider sx={{ my: 2 }} />
+
+        <Stack spacing={1.25} sx={{ mb: 3 }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <CalendarMonthIcon color="primary" fontSize="small" />
+            <Typography variant="body2">
+              {formatEventDate(event.startAt, event.timezone)}
+              {event.endAt ? ` – ${formatEventTime(event.endAt, event.timezone)}` : null} (
+              {event.timezone})
+            </Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <PlaceOutlinedIcon color="primary" fontSize="small" />
+            <Typography variant="body2">{event.location}</Typography>
+          </Stack>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <ForumIcon color="primary" fontSize="small" />
+            <Typography variant="body2">
+              {event.platform} · com {formatOrganizers(event)}
+            </Typography>
+          </Stack>
+          {typeof event.userCount === "number" && event.userCount > 0 ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <GroupsIcon color="primary" fontSize="small" />
+              <Typography variant="body2">{event.userCount} participante(s) confirmado(s)</Typography>
+            </Stack>
+          ) : null}
+          {event.recurrenceLabel ? (
+            <Stack direction="row" spacing={1} alignItems="center">
+              <RepeatIcon color="primary" fontSize="small" />
+              <Typography variant="body2">{event.recurrenceLabel}</Typography>
+            </Stack>
+          ) : null}
+        </Stack>
+
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          {isInternal ? null : (
+            <Button
+              component={Link}
+              href={event.registrationUrl ?? event.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="contained"
+              endIcon={<OpenInNewIcon />}
+            >
+              {event.registrationUrl ? "Inscrever-se" : event.ctaLabel}
+            </Button>
+          )}
+          {!isInternal && event.registrationUrl && event.registrationUrl !== event.href ? (
+            <Button
+              component={Link}
+              href={event.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              endIcon={<OpenInNewIcon />}
+            >
+              {event.ctaLabel}
+            </Button>
+          ) : null}
+          <Button component={Link} href="/eventos" variant="text">
+            ← Voltar para a agenda
+          </Button>
+          {canManage ? (
+            <>
+              <Button
+                component={Link}
+                href={buildAdminOverridesHref(source, sourceId, eventId, 0)}
+                variant="outlined"
+                size="small"
+                startIcon={<EditIcon />}
+              >
+                Editar metadados
+              </Button>
+              <Button
+                component={Link}
+                href={buildAdminOverridesHref(source, sourceId, eventId, 2)}
+                variant="text"
+                size="small"
+              >
+                Gerenciar features
+              </Button>
+            </>
+          ) : null}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EventMaterialsCard({ event }: { readonly event: EventWithOverride }): React.JSX.Element | null {
+  const hasMaterials = Boolean(event.slidesUrl ?? event.videoUrl ?? event.discussionUrl);
+  if (!hasMaterials) return null;
+
+  return (
+    <Card variant="outlined" sx={{ mb: 4 }}>
+      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+        <Typography variant="h5" fontWeight={700} gutterBottom>
+          Materiais
+        </Typography>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          {event.videoUrl ? (
+            <Button
+              component={Link}
+              href={event.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              startIcon={<PlayCircleOutlineIcon />}
+            >
+              Ver gravação
+            </Button>
+          ) : null}
+          {event.slidesUrl ? (
+            <Button
+              component={Link}
+              href={event.slidesUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              startIcon={<SlideshowIcon />}
+            >
+              Ver slides
+            </Button>
+          ) : null}
+          {event.discussionUrl ? (
+            <Button
+              component={Link}
+              href={event.discussionUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outlined"
+              startIcon={<ForumIcon />}
+            >
+              Discussão no GitHub
+            </Button>
+          ) : null}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+function EventOrganizersCard({
+  event,
+  sourceEmoji,
+  sourceLabel,
+}: {
+  readonly event: EventWithOverride;
+  readonly sourceEmoji: string;
+  readonly sourceLabel: string;
+}): React.JSX.Element {
+  return (
+    <Card variant="outlined">
+      <CardContent sx={{ p: { xs: 3, md: 4 } }}>
+        <Typography variant="h5" fontWeight={700} gutterBottom>
+          Organizado por
+        </Typography>
+        <Stack direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
+          <AvatarGroup>
+            <Avatar alt={sourceLabel}>{sourceEmoji}</Avatar>
+          </AvatarGroup>
+          <Typography variant="body1" fontWeight={700}>
+            {sourceLabel}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            · {event.platform}
+          </Typography>
+          <Button component={Link} href="/eventos" size="small" variant="outlined">
+            Ver todos os eventos
+          </Button>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
 
 function EventDetailContent({
   source,
@@ -1194,173 +1511,26 @@ function EventDetailContent({
   }
 
   const statusLabel = getStatusLabel(event.status);
-  const isExternal = event.href.startsWith("http");
   const isInternal = source === "internal";
-  const hasMaterials = Boolean(event.slidesUrl ?? event.videoUrl ?? event.discussionUrl);
   const speakers = event.speakers ?? [];
   const sourceEmoji = sourceMeta?.emoji ?? "📌";
   const sourceLabel = sourceMeta?.label ?? sourceId;
 
   return (
     <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-      {/* ── Banner hero ── */}
-      <Box
-        sx={{
-          position: "relative",
-          borderRadius: 3,
-          overflow: "hidden",
-          mb: 4,
-          border: "1px solid",
-          borderColor: "divider",
-        }}
-      >
-        {event.imageUrl ? (
-          <Box
-            component="img"
-            src={event.imageUrl}
-            alt={event.title}
-            sx={{
-              display: "block",
-              width: "100%",
-              aspectRatio: "16 / 9",
-              maxHeight: 420,
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              aspectRatio: "16 / 9",
-              maxHeight: 320,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: (theme) =>
-                `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.secondary.main} 100%)`,
-            }}
-          >
-            <Typography sx={{ fontSize: { xs: "4rem", md: "6rem" }, lineHeight: 1 }}>
-              {sourceEmoji}
-            </Typography>
-          </Box>
-        )}
-        {override ? (
-          <Box sx={{ position: "absolute", top: 16, right: 16 }}>
-            <EventOverrideBadge override={override} />
-          </Box>
-        ) : null}
-      </Box>
+      <EventHero event={event} override={override} sourceEmoji={sourceEmoji} />
 
-      {/* ── Cabeçalho ── */}
-      <Card variant="outlined" sx={{ mb: 4 }}>
-        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-            {statusLabel ? (
-              <Chip label={statusLabel} size="small" color={getStatusColor(event.status)} />
-            ) : null}
-            <Chip
-              label={`${sourceEmoji} ${sourceLabel}`}
-              size="small"
-              variant="outlined"
-            />
-            <Chip label={`📍 ${event.location}`} size="small" variant="outlined" />
-            {event.featured ? <Chip label="Destaque" size="small" color="success" /> : null}
-          </Stack>
-
-          <Typography variant="h4" fontWeight={800} gutterBottom>
-            {event.title}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-
-          <Stack spacing={1.25} sx={{ mb: 3 }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CalendarMonthIcon color="primary" fontSize="small" />
-              <Typography variant="body2">
-                {formatEventDate(event.startAt, event.timezone)}
-                {event.endAt
-                  ? ` – ${formatEventTime(event.endAt, event.timezone)}`
-                  : null}{" "}
-                ({event.timezone})
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <PlaceOutlinedIcon color="primary" fontSize="small" />
-              <Typography variant="body2">{event.location}</Typography>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ForumIcon color="primary" fontSize="small" />
-              <Typography variant="body2">
-                {event.platform} · com {formatOrganizers(event)}
-              </Typography>
-            </Stack>
-            {typeof event.userCount === "number" && event.userCount > 0 ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <GroupsIcon color="primary" fontSize="small" />
-                <Typography variant="body2">
-                  {event.userCount} participante(s) confirmado(s)
-                </Typography>
-              </Stack>
-            ) : null}
-            {event.recurrenceLabel ? (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <RepeatIcon color="primary" fontSize="small" />
-                <Typography variant="body2">{event.recurrenceLabel}</Typography>
-              </Stack>
-            ) : null}
-          </Stack>
-
-          <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-            {isInternal ? null : (
-              <Button
-                component={Link}
-                href={event.registrationUrl ?? event.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="contained"
-                endIcon={<OpenInNewIcon />}
-              >
-                {event.registrationUrl ? "Inscrever-se" : event.ctaLabel}
-              </Button>
-            )}
-            {!isInternal && event.registrationUrl && event.registrationUrl !== event.href ? (
-              <Button
-                component={Link}
-                href={event.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                variant="outlined"
-                endIcon={<OpenInNewIcon />}
-              >
-                {event.ctaLabel}
-              </Button>
-            ) : null}
-            <Button component={Link} href="/eventos" variant="text">
-              ← Voltar para a agenda
-            </Button>
-            {canManage ? (
-              <>
-                <Button
-                  component={Link}
-                  href={`/admin/overrides?tab=0&sourceKey=${encodeURIComponent(`${source}:${sourceId}`)}&eventId=${encodeURIComponent(eventId)}`}
-                  variant="outlined"
-                  size="small"
-                  startIcon={<EditIcon />}
-                >
-                  Editar metadados
-                </Button>
-                <Button
-                  component={Link}
-                  href={`/admin/overrides?tab=2&sourceKey=${encodeURIComponent(`${source}:${sourceId}`)}&eventId=${encodeURIComponent(eventId)}`}
-                  variant="text"
-                  size="small"
-                >
-                  Gerenciar features
-                </Button>
-              </>
-            ) : null}
-          </Stack>
-        </CardContent>
-      </Card>
+      <EventHeaderCard
+        event={event}
+        source={source}
+        sourceId={sourceId}
+        eventId={eventId}
+        sourceEmoji={sourceEmoji}
+        sourceLabel={sourceLabel}
+        statusLabel={statusLabel}
+        isInternal={isInternal}
+        canManage={canManage}
+      />
 
       {/* ── Inscrição (eventos internos) / Ingressos (externos com payments) ── */}
       {isInternal ? (
@@ -1459,84 +1629,57 @@ function EventDetailContent({
         </Card>
       ) : null}
 
-      {/* ── Materiais (pós-evento) ── */}
-      {hasMaterials ? (
-        <Card variant="outlined" sx={{ mb: 4 }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <Typography variant="h5" fontWeight={700} gutterBottom>
-              Materiais
-            </Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              {event.videoUrl ? (
-                <Button
-                  component={Link}
-                  href={event.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                  startIcon={<PlayCircleOutlineIcon />}
-                >
-                  Ver gravação
-                </Button>
-              ) : null}
-              {event.slidesUrl ? (
-                <Button
-                  component={Link}
-                  href={event.slidesUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                  startIcon={<SlideshowIcon />}
-                >
-                  Ver slides
-                </Button>
-              ) : null}
-              {event.discussionUrl ? (
-                <Button
-                  component={Link}
-                  href={event.discussionUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                  startIcon={<ForumIcon />}
-                >
-                  Discussão no GitHub
-                </Button>
-              ) : null}
-            </Stack>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {/* ── Organizado por ── */}
-      <Card variant="outlined">
-        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Organizado por
-          </Typography>
-          <Stack direction="row" spacing={2} alignItems="center" useFlexGap flexWrap="wrap">
-            <AvatarGroup>
-              <Avatar alt={sourceLabel}>{sourceEmoji}</Avatar>
-            </AvatarGroup>
-            <Typography variant="body1" fontWeight={700}>
-              {sourceLabel}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              · {event.platform}
-            </Typography>
-            <Button component={Link} href="/eventos" size="small" variant="outlined">
-              Ver todos os eventos
-            </Button>
-          </Stack>
-        </CardContent>
-      </Card>
+      <EventMaterialsCard event={event} />
+      <EventOrganizersCard event={event} sourceEmoji={sourceEmoji} sourceLabel={sourceLabel} />
     </Container>
   );
 }
 
+function EventDetailPageContent({
+  source,
+  sourceId,
+  eventId,
+  mounted,
+}: {
+  readonly source: string;
+  readonly sourceId: string;
+  readonly eventId: string;
+  readonly mounted: boolean;
+}): React.JSX.Element {
+  const hasParams = Boolean(source && sourceId && eventId);
+
+  if (!mounted) {
+    return (
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+        <Skeleton variant="rounded" height={320} sx={{ mb: 4 }} />
+        <Skeleton variant="rounded" height={200} />
+      </Container>
+    );
+  }
+
+  if (!hasParams) {
+    return (
+      <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
+        <Alert
+          severity="warning"
+          variant="outlined"
+          action={
+            <Button component={Link} href="/eventos" color="inherit" size="small">
+              Ver todos os eventos
+            </Button>
+          }
+        >
+          Link de evento inválido. Acesse a agenda para escolher um evento.
+        </Alert>
+      </Container>
+    );
+  }
+
+  return <EventDetailContent source={source} sourceId={sourceId} eventId={eventId} />;
+}
+
 export default function EventoDetalhePage(): React.JSX.Element {
   const location = useLocation();
-  const history = useHistory();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -1547,7 +1690,6 @@ export default function EventoDetalhePage(): React.JSX.Element {
   const source = params.get("source") ?? "";
   const sourceId = params.get("sourceId") ?? "";
   const eventId = params.get("id") ?? "";
-  const hasParams = Boolean(source && sourceId && eventId);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1563,30 +1705,12 @@ export default function EventoDetalhePage(): React.JSX.Element {
       title="Detalhes do evento"
       description="Detalhes do evento da comunidade Codaqui."
     >
-      {!mounted || !hasParams ? (
-        mounted && !hasParams ? (
-          <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-            <Alert
-              severity="warning"
-              variant="outlined"
-              action={
-                <Button component={Link} href="/eventos" color="inherit" size="small">
-                  Ver todos os eventos
-                </Button>
-              }
-            >
-              Link de evento inválido. Acesse a agenda para escolher um evento.
-            </Alert>
-          </Container>
-        ) : (
-          <Container maxWidth="lg" sx={{ py: { xs: 4, md: 6 } }}>
-            <Skeleton variant="rounded" height={320} sx={{ mb: 4 }} />
-            <Skeleton variant="rounded" height={200} />
-          </Container>
-        )
-      ) : (
-        <EventDetailContent source={source} sourceId={sourceId} eventId={eventId} />
-      )}
+      <EventDetailPageContent
+        source={source}
+        sourceId={sourceId}
+        eventId={eventId}
+        mounted={mounted}
+      />
     </Layout>
   );
 }

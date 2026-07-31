@@ -208,11 +208,67 @@ const formatWorkload = (minutes: number): string => {
   return rest === 0 ? `${hours}h` : `${hours}h${rest}min`;
 };
 
+function getEventsEmptyMessage(subTab: "future" | "purchased" | "history"): string {
+  switch (subTab) {
+    case "future":
+      return "Nenhum ingresso próximo.";
+    case "purchased":
+      return "Você ainda não comprou ingressos para outras pessoas.";
+    case "history":
+      return "Nenhum ingresso no histórico.";
+  }
+}
+
+function getEventsListMode(subTab: "future" | "purchased" | "history"): "mine" | "purchased" | "history" {
+  switch (subTab) {
+    case "purchased":
+      return "purchased";
+    case "history":
+      return "history";
+    default:
+      return "mine";
+  }
+}
+
 function isUpcomingEvent(reg: EventRegistration): boolean {
   const startAt = reg.event?.startAt ?? reg.activation?.startAt ?? null;
   if (!startAt) return true; // eventos sem data tratamos como próximos
   const t = new Date(startAt).getTime();
   return Number.isNaN(t) ? true : t > Date.now();
+}
+
+function EventTitleLink({
+  registration,
+  children,
+}: {
+  readonly registration: EventRegistration;
+  readonly children: React.ReactNode;
+}): React.JSX.Element {
+  if (registration.event) {
+    return (
+      <Link
+        href={`/eventos/detalhe?source=internal&sourceId=codaqui&id=${registration.event.id}`}
+      >
+        {children}
+      </Link>
+    );
+  }
+  if (registration.activation) {
+    const parts = registration.activation.eventKey.split(":");
+    const source = parts[0] ?? "";
+    const sourceId = parts[1] ?? "";
+    const eventId = parts[2] ?? "";
+    return (
+      <Link
+        href={`/eventos/detalhe?source=${encodeURIComponent(source)}&sourceId=${encodeURIComponent(
+          sourceId
+        )}&id=${encodeURIComponent(eventId)}`}
+      >
+        {children}
+      </Link>
+    );
+  }
+  return <>{children}</>;
 }
 
 interface EventRegistrationsListProps {
@@ -268,17 +324,7 @@ function EventRegistrationsList({
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
                 <Box>
                   <Typography variant="body2" fontWeight={700}>
-                    {reg.event? (
-                      <Link href={`/eventos/detalhe?source=internal&sourceId=codaqui&id=${reg.event.id}`}>
-                        {eventTitle}
-                      </Link>
-                    ) : reg.activation? (
-                      <Link href={`/eventos/detalhe?source=${encodeURIComponent(reg.activation.eventKey.split(":")[0])}&sourceId=${encodeURIComponent(reg.activation.eventKey.split(":")[1] ?? "")}&id=${encodeURIComponent(reg.activation.eventKey.split(":")[2] ?? "")}`}>
-                        {eventTitle}
-                      </Link>
-                    ) : (
-                      eventTitle
-                    )}
+                    <EventTitleLink registration={reg}>{eventTitle}</EventTitleLink>
                   </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
                     {eventStartAt ? formatEventDate(eventStartAt) : "Data a definir"}
@@ -445,6 +491,35 @@ function ReimbursementList({ loading, reimbursements }: Readonly<ReimbursementLi
 // Certificado de participação (cartão imprimível)
 // ---------------------------------------------------------------------------
 
+function EventDateWorkloadLine({
+  startDate,
+  endDate,
+  workload,
+  communityName,
+}: {
+  readonly startDate: string | null;
+  readonly endDate: string | null;
+  readonly workload: string | null;
+  readonly communityName: string;
+}): React.JSX.Element {
+  const datePart = startDate
+    ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
+    : "evento da comunidade";
+  return (
+    <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+      {datePart}
+      {workload ? (
+        <>
+          , com carga horária de <strong>{workload}</strong>
+        </>
+      ) : null}
+      {", organizado por "}
+      <strong>{communityName}</strong>
+      {", em parceria com a Associação Codaqui."}
+    </Typography>
+  );
+}
+
 function CertificateCard({
   certificate,
   origin,
@@ -520,19 +595,12 @@ function CertificateCard({
       <Typography variant="h5" fontWeight={800} color="primary.main" sx={{ mb: 1 }}>
         {certificate.eventTitle}
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-        {startDate
-          ? `realizado em ${startDate}${endDate ? ` a ${endDate}` : ""}`
-          : "evento da comunidade"}
-        {workload ? (
-          <>
-            , com carga horária de <strong>{workload}</strong>
-          </>
-        ) : null}
-        {", organizado por "}
-        <strong>{communityName}</strong>
-        {", em parceria com a Associação Codaqui."}
-      </Typography>
+      <EventDateWorkloadLine
+        startDate={startDate}
+        endDate={endDate}
+        workload={workload}
+        communityName={communityName}
+      />
       <Box
         sx={{
           mt: 4,
@@ -690,6 +758,258 @@ function DonationList({ loading, donations }: Readonly<DonationListProps>): Reac
           </CardContent>
         </Card>
       ))}
+    </Box>
+  );
+}
+
+interface MemberProfileCardProps {
+  readonly user: AuthUser;
+  readonly vanityUrl: string;
+  readonly copied: boolean;
+  readonly onCopy: () => void;
+  readonly onShowQr: () => void;
+  readonly onLogout: () => void;
+}
+
+function MemberProfileCard({
+  user,
+  vanityUrl,
+  copied,
+  onCopy,
+  onShowQr,
+  onLogout,
+}: MemberProfileCardProps): React.JSX.Element {
+  const roles = getUserRoles(user);
+  const canAccessReimbursements = roles.some(
+    (r) => r === "admin" || r === "finance-analyzer"
+  );
+
+  return (
+    <Card variant="outlined" sx={{ mb: 4 }}>
+      <CardContent sx={{ display: "flex", gap: 3, alignItems: "flex-start", flexWrap: "wrap" }}>
+        <Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 80, height: 80 }} />
+        <Box sx={{ flex: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5, flexWrap: "wrap" }}>
+            <Typography variant="h5" fontWeight={800}>
+              {user.name}
+            </Typography>
+            {roles.map((role) => (
+              <Chip
+                key={role}
+                label={getRoleLabel(role)}
+                color={getRoleColor(role)}
+                size="small"
+                variant="outlined"
+              />
+            ))}
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            <GitHubIcon sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }} />
+            @{user.handle}
+          </Typography>
+          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", alignItems: "center" }}>
+            <Button variant="outlined" size="small" startIcon={<EditIcon />} href="/membro/editar">
+              Editar perfil
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PersonIcon />}
+              href={`/@${user.handle}`}
+            >
+              Ver perfil público
+            </Button>
+            <Tooltip title="Exibir QR Code do perfil">
+              <IconButton size="small" onClick={onShowQr} aria-label="Exibir QR Code">
+                <QrCode2Icon />
+              </IconButton>
+            </Tooltip>
+            {canAccessReimbursements && (
+              <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
+                Painel de Reembolsos
+              </Button>
+            )}
+            <Button
+              variant="text"
+              size="small"
+              color="inherit"
+              startIcon={<LogoutIcon />}
+              onClick={onLogout}
+              sx={{ color: "text.secondary" }}
+            >
+              Sair
+            </Button>
+          </Box>
+
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1.5 }}>
+            <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+              {vanityUrl}
+            </Typography>
+            <Tooltip title={copied ? "Copiado!" : "Copiar URL"}>
+              <IconButton size="small" onClick={onCopy} aria-label="Copiar URL do perfil">
+                <ContentCopyIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface MemberQrDialogProps {
+  readonly open: boolean;
+  readonly vanityUrl: string;
+  readonly copied: boolean;
+  readonly onCopy: () => void;
+  readonly onClose: () => void;
+}
+
+function MemberQrDialog({
+  open,
+  vanityUrl,
+  copied,
+  onCopy,
+  onClose,
+}: MemberQrDialogProps): React.JSX.Element {
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>Seu QR Code</DialogTitle>
+      <DialogContent
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, pb: 3 }}
+      >
+        <Box sx={{ bgcolor: "white", p: 2, borderRadius: 2, display: "inline-block" }}>
+          <QRCodeSVG
+            value={vanityUrl}
+            size={200}
+            level="M"
+            includeMargin={false}
+            fgColor="#16a34a"
+          />
+        </Box>
+        <Typography variant="body2" color="text.secondary" textAlign="center">
+          Escaneie para acessar seu perfil público
+        </Typography>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <Typography variant="caption" fontFamily="monospace" color="text.secondary">
+            {vanityUrl}
+          </Typography>
+          <Tooltip title={copied ? "Copiado!" : "Copiar"}>
+            <IconButton size="small" onClick={onCopy} aria-label="Copiar URL">
+              <ContentCopyIcon sx={{ fontSize: 14 }} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
+        <Button onClick={onClose} variant="outlined">
+          Fechar
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+interface EventsTabPanelProps {
+  readonly purchaseSuccess: boolean;
+  readonly setPurchaseSuccess: (value: boolean) => void;
+  readonly regsError: string;
+  readonly regsLoading: boolean;
+  readonly regsLoaded: boolean;
+  readonly registrations: EventRegistration[];
+  readonly groupedRegistrations: Record<"future" | "purchased" | "history", EventRegistration[]>;
+  readonly eventsSubTab: "future" | "purchased" | "history";
+  readonly setEventsSubTab: (value: "future" | "purchased" | "history") => void;
+  readonly expandedQrId: string | null;
+  readonly setExpandedQrId: (id: string | null) => void;
+  readonly certLoadingId: string | null;
+  readonly certError: string;
+  readonly setCertError: (value: string) => void;
+  readonly onEmitCertificate: (id: string) => void;
+  readonly onCancel: (id: string) => void;
+  readonly userName?: string;
+}
+
+function EventsTabPanel({
+  purchaseSuccess,
+  setPurchaseSuccess,
+  regsError,
+  regsLoading,
+  regsLoaded,
+  registrations,
+  groupedRegistrations,
+  eventsSubTab,
+  setEventsSubTab,
+  expandedQrId,
+  setExpandedQrId,
+  certLoadingId,
+  certError,
+  setCertError,
+  onEmitCertificate,
+  onCancel,
+  userName,
+}: EventsTabPanelProps): React.JSX.Element {
+  return (
+    <Box>
+      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <EventIcon color="primary" />
+          <Typography variant="h6" fontWeight={700}>Meus eventos</Typography>
+        </Box>
+        <Button variant="outlined" size="small" href="/eventos">
+          Ver próximos eventos
+        </Button>
+      </Box>
+
+      {purchaseSuccess && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPurchaseSuccess(false)}>
+          Compra aprovada! Seus ingressos já estão disponíveis na aba “Próximos
+          ingressos”.
+        </Alert>
+      )}
+
+      {regsError && <Alert severity="error" sx={{ mb: 2 }}>{regsError}</Alert>}
+      {certError && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setCertError("")}>{certError}</Alert>}
+
+      {regsLoading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+          <CircularProgress size={28} />
+        </Box>
+      )}
+
+      {!regsLoading && regsLoaded && registrations.length === 0 && (
+        <Box sx={{ textAlign: "center", py: 3 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Você ainda não se inscreveu em nenhum evento.
+          </Typography>
+          <Button variant="contained" href="/eventos">Explorar eventos</Button>
+        </Box>
+      )}
+
+      {!regsLoading && registrations.length > 0 && (
+        <>
+          <Tabs
+            value={eventsSubTab}
+            onChange={(_, v) => setEventsSubTab(v as "future" | "purchased" | "history")}
+            sx={{ mb: 2 }}
+          >
+            <Tab value="future" label="Próximos ingressos" />
+            <Tab value="purchased" label="Comprei para outros" />
+            <Tab value="history" label="Histórico" />
+          </Tabs>
+          <EventRegistrationsList
+            registrations={groupedRegistrations[eventsSubTab]}
+            expandedQrId={expandedQrId}
+            setExpandedQrId={setExpandedQrId}
+            certLoadingId={certLoadingId}
+            onEmitCertificate={onEmitCertificate}
+            onCancel={onCancel}
+            emptyMessage={getEventsEmptyMessage(eventsSubTab)}
+            mode={getEventsListMode(eventsSubTab)}
+            userName={userName}
+          />
+        </>
+      )}
     </Box>
   );
 }
@@ -1000,104 +1320,23 @@ export default function MembroPage(): React.JSX.Element {
     <Layout title="Área do Membro" description="Perfil e histórico de doações">
       <Container maxWidth="md" sx={{ py: 6 }}>
         {/* Perfil */}
-        <Card variant="outlined" sx={{ mb: 4 }}>
-          <CardContent sx={{ display: "flex", gap: 3, alignItems: "flex-start", flexWrap: "wrap" }}>
-            <Avatar src={user!.avatarUrl} alt={user!.name} sx={{ width: 80, height: 80 }} />
-            <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5, flexWrap: "wrap" }}>
-                <Typography variant="h5" fontWeight={800}>{user!.name}</Typography>
-                {getUserRoles(user).map((role) => (
-                  <Chip
-                    key={role}
-                    label={getRoleLabel(role)}
-                    color={getRoleColor(role)}
-                    size="small"
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                <GitHubIcon sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }} />
-                @{user!.handle}
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", alignItems: "center" }}>
-                <Button variant="outlined" size="small" startIcon={<EditIcon />} href="/membro/editar">
-                  Editar perfil
-                </Button>
-                <Button
-                  variant="outlined" size="small" startIcon={<PersonIcon />}
-                  href={`/@${user!.handle}`}
-                >
-                  Ver perfil público
-                </Button>
-                <Tooltip title="Exibir QR Code do perfil">
-                  <IconButton size="small" onClick={() => setShowQr(true)} aria-label="Exibir QR Code">
-                    <QrCode2Icon />
-                  </IconButton>
-                </Tooltip>
-                {getUserRoles(user).some((r) => r === "admin" || r === "finance-analyzer") && (
-                  <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
-                    Painel de Reembolsos
-                  </Button>
-                )}
-                <Button
-                  variant="text" size="small" color="inherit" startIcon={<LogoutIcon />}
-                  onClick={() => logout()} sx={{ color: "text.secondary" }}
-                >
-                  Sair
-                </Button>
-              </Box>
-
-              {/* URL pública */}
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1.5 }}>
-                <Typography variant="caption" color="text.secondary" fontFamily="monospace">
-                  {vanityUrl}
-                </Typography>
-                <Tooltip title={copied ? "Copiado!" : "Copiar URL"}>
-                  <IconButton size="small" onClick={copyVanityUrl} aria-label="Copiar URL do perfil">
-                    <ContentCopyIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Box>
-          </CardContent>
-        </Card>
+        <MemberProfileCard
+          user={user!}
+          vanityUrl={vanityUrl}
+          copied={copied}
+          onCopy={copyVanityUrl}
+          onShowQr={() => setShowQr(true)}
+          onLogout={() => logout()}
+        />
 
         {/* ── QR Code Dialog ── */}
-        <Dialog open={showQr} onClose={() => setShowQr(false)} maxWidth="xs" fullWidth>
-          <DialogTitle sx={{ textAlign: "center", fontWeight: 700 }}>
-            Seu QR Code
-          </DialogTitle>
-          <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, pb: 3 }}>
-            <Box sx={{ bgcolor: "white", p: 2, borderRadius: 2, display: "inline-block" }}>
-              <QRCodeSVG
-                value={vanityUrl}
-                size={200}
-                level="M"
-                includeMargin={false}
-                fgColor="#16a34a"
-              />
-            </Box>
-            <Typography variant="body2" color="text.secondary" textAlign="center">
-              Escaneie para acessar seu perfil público
-            </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Typography variant="caption" fontFamily="monospace" color="text.secondary">
-                {vanityUrl}
-              </Typography>
-              <Tooltip title={copied ? "Copiado!" : "Copiar"}>
-                <IconButton size="small" onClick={copyVanityUrl} aria-label="Copiar URL">
-                  <ContentCopyIcon sx={{ fontSize: 14 }} />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ justifyContent: "center", pb: 2 }}>
-            <Button onClick={() => setShowQr(false)} variant="outlined">
-              Fechar
-            </Button>
-          </DialogActions>
-        </Dialog>
+        <MemberQrDialog
+          open={showQr}
+          vanityUrl={vanityUrl}
+          copied={copied}
+          onCopy={copyVanityUrl}
+          onClose={() => setShowQr(false)}
+        />
 
         <Divider sx={{ my: 3 }} />
 
@@ -1258,73 +1497,25 @@ export default function MembroPage(): React.JSX.Element {
         </TabPanel>
 
         <TabPanel value={activeTab} index={4}>
-          <Box>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 2, flexWrap: "wrap", gap: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <EventIcon color="primary" />
-                <Typography variant="h6" fontWeight={700}>Meus eventos</Typography>
-              </Box>
-              <Button variant="outlined" size="small" href="/eventos">
-                Ver próximos eventos
-              </Button>
-            </Box>
-
-            {purchaseSuccess && (
-              <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPurchaseSuccess(false)}>
-                Compra aprovada! Seus ingressos já estão disponíveis na aba “Próximos
-                ingressos”.
-              </Alert>
-            )}
-
-            {regsError && <Alert severity="error" sx={{ mb: 2 }}>{regsError}</Alert>}
-            {certError && <Alert severity="warning" sx={{ mb: 2 }} onClose={() => setCertError("")}>{certError}</Alert>}
-
-            {regsLoading && (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-                <CircularProgress size={28} />
-              </Box>
-            )}
-
-            {!regsLoading && regsLoaded && registrations.length === 0 && (
-              <Box sx={{ textAlign: "center", py: 3 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Você ainda não se inscreveu em nenhum evento.
-                </Typography>
-                <Button variant="contained" href="/eventos">Explorar eventos</Button>
-              </Box>
-            )}
-
-            {!regsLoading && registrations.length > 0 && (
-              <>
-                <Tabs
-                  value={eventsSubTab}
-                  onChange={(_, v) => setEventsSubTab(v as "future" | "purchased" | "history")}
-                  sx={{ mb: 2 }}
-                >
-                  <Tab value="future" label="Próximos ingressos" />
-                  <Tab value="purchased" label="Comprei para outros" />
-                  <Tab value="history" label="Histórico" />
-                </Tabs>
-                <EventRegistrationsList
-                  registrations={groupedRegistrations[eventsSubTab]}
-                  expandedQrId={expandedQrId}
-                  setExpandedQrId={setExpandedQrId}
-                  certLoadingId={certLoadingId}
-                  onEmitCertificate={handleEmitCertificate}
-                  onCancel={(id) => { setCancelRegId(id); setCancelRegError(""); }}
-                  emptyMessage={
-                    eventsSubTab === "future"
-                      ? "Nenhum ingresso próximo."
-                      : eventsSubTab === "purchased"
-                      ? "Você ainda não comprou ingressos para outras pessoas."
-                      : "Nenhum ingresso no histórico."
-                  }
-                  mode={eventsSubTab === "purchased" ? "purchased" : eventsSubTab === "history" ? "history" : "mine"}
-                  userName={user?.name}
-                />
-              </>
-            )}
-          </Box>
+          <EventsTabPanel
+            purchaseSuccess={purchaseSuccess}
+            setPurchaseSuccess={setPurchaseSuccess}
+            regsError={regsError}
+            regsLoading={regsLoading}
+            regsLoaded={regsLoaded}
+            registrations={registrations}
+            groupedRegistrations={groupedRegistrations}
+            eventsSubTab={eventsSubTab}
+            setEventsSubTab={setEventsSubTab}
+            expandedQrId={expandedQrId}
+            setExpandedQrId={setExpandedQrId}
+            certLoadingId={certLoadingId}
+            certError={certError}
+            setCertError={setCertError}
+            onEmitCertificate={handleEmitCertificate}
+            onCancel={(id) => { setCancelRegId(id); setCancelRegError(""); }}
+            userName={user?.name}
+          />
         </TabPanel>
       </Container>
 

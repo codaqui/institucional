@@ -248,6 +248,7 @@ describe("/membro", () => {
             checkedInAt: pastStart,
             checkinToken: "token-xyz",
             attendeeName: "Mentoria Codaqui",
+            memberId: loggedUser.sub,
             event: {
               id: "evt-2",
               title: "Workshop GitHub",
@@ -272,6 +273,14 @@ describe("/membro", () => {
     render(<MembroPage />);
 
     fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
+    });
+
+    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    expect(await screen.findByText("Workshop GitHub")).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole("button", { name: /Emitir certificado/i }));
 

@@ -79,7 +79,7 @@ export function mergeEventWithOverride(
   base: EventItem,
   override: EventOverride | null
 ): EventWithOverride {
-  return { ...base, ...(override?.extendData ?? {}) };
+  return { ...base, ...override?.extendData };
 }
 
 async function fetchJsonOrNull<T>(path: string): Promise<T | null> {

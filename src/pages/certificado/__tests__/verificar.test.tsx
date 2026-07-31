@@ -38,7 +38,7 @@ describe("CertificadoVerificarPage", () => {
     });
     expect(screen.getByText("Maria Silva")).toBeInTheDocument();
     expect(screen.getByText("DevParaná MeetUP #42")).toBeInTheDocument();
-    expect(screen.getByText(/DevParaná/)).toBeInTheDocument();
+    expect(screen.getAllByText(/DevParaná/i).length).toBeGreaterThanOrEqual(1);
     const fetchMock = globalThis.fetch as unknown as jest.Mock;
     expect(fetchMock.mock.calls[0][0]).toContain("/events/certificates/verify/ABC123");
   });
