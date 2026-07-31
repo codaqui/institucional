@@ -5,6 +5,12 @@ on:
     branches:
       - develop
       - main
+    paths-ignore:
+      - 'static/events/**/*.override.json'
+      - 'static/events/organizers.json'
+      - 'static/events/overrides-index.json'
+      - 'static/events/internal/**'
+      - 'static/events/index.json'
 
 concurrency:
   group: pr-check-${{ github.event.pull_request.number }}
