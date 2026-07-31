@@ -510,12 +510,28 @@ export class EventOrganizerService {
     }
     const ext = extendData as Record<string, unknown>;
 
+    this.assertNoForbiddenFields(ext);
+    this.assertStringAndUrlFields(ext);
+    this.assertFeaturedField(ext);
+    this.assertTagsField(ext);
+    this.assertSummaryLength(ext);
+    this.assertWorkloadMinutes(ext);
+    this.assertSpeakersField(ext);
+  }
+
+  private static assertNoForbiddenFields(
+    ext: Record<string, unknown>,
+  ): void {
     for (const key of FORBIDDEN_EXTEND_FIELDS) {
       if (key in ext) {
         throw new BadRequestException(`Campo proibido: extendData.${key}`);
       }
     }
+  }
 
+  private static assertStringAndUrlFields(
+    ext: Record<string, unknown>,
+  ): void {
     for (const field of [...STRING_EXTEND_FIELDS, ...URL_EXTEND_FIELDS]) {
       if (ext[field] !== undefined && typeof ext[field] !== 'string') {
         throw new BadRequestException(
@@ -523,27 +539,32 @@ export class EventOrganizerService {
         );
       }
     }
+  }
 
+  private static assertFeaturedField(ext: Record<string, unknown>): void {
     if (ext.featured !== undefined && typeof ext.featured !== 'boolean') {
       throw new BadRequestException('extendData.featured deve ser um boolean.');
     }
+  }
 
-    if (ext.tags !== undefined) {
-      if (
-        !Array.isArray(ext.tags) ||
-        ext.tags.some((tag) => typeof tag !== 'string')
-      ) {
-        throw new BadRequestException(
-          'extendData.tags deve ser um array de strings.',
-        );
-      }
-      if (ext.tags.length > MAX_TAGS) {
-        throw new BadRequestException(
-          `extendData.tags excede ${MAX_TAGS} itens.`,
-        );
-      }
+  private static assertTagsField(ext: Record<string, unknown>): void {
+    if (ext.tags === undefined) return;
+    if (
+      !Array.isArray(ext.tags) ||
+      ext.tags.some((tag) => typeof tag !== 'string')
+    ) {
+      throw new BadRequestException(
+        'extendData.tags deve ser um array de strings.',
+      );
     }
+    if (ext.tags.length > MAX_TAGS) {
+      throw new BadRequestException(
+        `extendData.tags excede ${MAX_TAGS} itens.`,
+      );
+    }
+  }
 
+  private static assertSummaryLength(ext: Record<string, unknown>): void {
     if (
       typeof ext.summary === 'string' &&
       ext.summary.length > MAX_SUMMARY_LENGTH
@@ -552,29 +573,31 @@ export class EventOrganizerService {
         `extendData.summary excede ${MAX_SUMMARY_LENGTH} caracteres.`,
       );
     }
+  }
 
-    if (ext.workloadMinutes !== undefined) {
-      if (
-        typeof ext.workloadMinutes !== 'number' ||
-        !Number.isInteger(ext.workloadMinutes) ||
-        ext.workloadMinutes < 0 ||
-        ext.workloadMinutes > 2880
-      ) {
-        throw new BadRequestException(
-          'extendData.workloadMinutes deve ser um inteiro entre 0 e 2880 (até 48h).',
-        );
-      }
+  private static assertWorkloadMinutes(ext: Record<string, unknown>): void {
+    if (ext.workloadMinutes === undefined) return;
+    if (
+      typeof ext.workloadMinutes !== 'number' ||
+      !Number.isInteger(ext.workloadMinutes) ||
+      ext.workloadMinutes < 0 ||
+      ext.workloadMinutes > 2880
+    ) {
+      throw new BadRequestException(
+        'extendData.workloadMinutes deve ser um inteiro entre 0 e 2880 (até 48h).',
+      );
     }
+  }
 
-    if (ext.speakers !== undefined) {
-      if (!Array.isArray(ext.speakers)) {
-        throw new BadRequestException('extendData.speakers deve ser um array.');
-      }
-      if (ext.speakers.length > MAX_SPEAKERS) {
-        throw new BadRequestException(
-          `extendData.speakers excede ${MAX_SPEAKERS} itens.`,
-        );
-      }
+  private static assertSpeakersField(ext: Record<string, unknown>): void {
+    if (ext.speakers === undefined) return;
+    if (!Array.isArray(ext.speakers)) {
+      throw new BadRequestException('extendData.speakers deve ser um array.');
+    }
+    if (ext.speakers.length > MAX_SPEAKERS) {
+      throw new BadRequestException(
+        `extendData.speakers excede ${MAX_SPEAKERS} itens.`,
+      );
     }
   }
 

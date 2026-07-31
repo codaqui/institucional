@@ -587,7 +587,7 @@ export class CompaniesService {
    * Cron diário: congela carteiras de empresas com status `past_due`
    * por mais de 3 dias.
    */
-  @Cron('0 3 * * *') // 03:00 UTC todo dia
+  @Cron('0 3 * * *') // 03:00 UTC diariamente
   async freezePastDueSubscriptions(): Promise<void> {
     const threshold = new Date();
     threshold.setUTCDate(threshold.getUTCDate() - 3);

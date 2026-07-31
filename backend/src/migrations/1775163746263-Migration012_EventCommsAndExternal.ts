@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 /**
  * Migration012 — Fases 2c/2d: comunicação (e-mail) + eventos externos à la carte
  *
- *  - email_logs: log de todo envio/tentativa de e-mail (painel /admin/emails)
+ *  - email_logs: log de cada envio ou tentativa de e-mail (painel /admin/emails)
  *  - external_event_activations: sombra de evento externo no Postgres (features à la carte)
  *  - Generalização (2d): event_registrations / event_orders / ticket_types passam a
  *    referenciar `eventId` (managed) OU `externalActivationId` — CHECK garante

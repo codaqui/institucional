@@ -35,7 +35,7 @@ import { AuditAction } from '../audit/entities/audit-log.entity';
 import { EmailService } from '../notifications/email.service';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
 import { GitHubDBService } from '../github-db/github-db.service';
-import { CsvParseError, parseCsvText } from './csv';
+import { CsvParseError, parseCsvText, type ParsedCsvRow } from './csv';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import type { CreateEventDto, UpdateEventDto } from './dto/event.dto';
@@ -536,9 +536,7 @@ export class EventsService {
     }>;
   }> {
     const isManager = EventsService.canManageAll(user);
-    const isGlobalChecker = !!user.roles?.some(
-      (r) => r === MemberRole.EVENT_CHECKER,
-    );
+    const isGlobalChecker = !!user.roles?.includes(MemberRole.EVENT_CHECKER);
 
     // ── Eventos próprios ─────────────────────────────────────────────────────
     let managedEvents: ManagedEvent[];
@@ -1227,7 +1225,7 @@ export class EventsService {
   ): Array<{ name: string; email: string }> {
     const buyerName = buyer.name ?? buyer.githubHandle ?? 'Participante';
     const buyerEmail = buyer.email ?? '';
-    if (dto.attendees && dto.attendees.length === dto.quantity) {
+    if (dto.attendees?.length === dto.quantity) {
       return dto.attendees.map((a) => ({
         name: a.name.trim(),
         email: a.email.trim().toLowerCase(),
@@ -1260,8 +1258,8 @@ export class EventsService {
   /**
    * POST /events/orders/:id/refund
    *
-   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve todo o
-   *   saldo restante do charge), order → refunded.
+   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve toda a
+   *   quantia restante do charge), order → refunded.
    * - Com `registrationIds`: estorno PARCIAL (soma unitária dos ingressos
    *   selecionados). As registrations são marcadas refunded IMEDIATAMENTE e a
    *   quota é devolvida; o webhook `charge.refunded` reconcilia o restante
@@ -1314,7 +1312,7 @@ export class EventsService {
     const refundingAllRemaining = targets.length === confirmedRegs.length;
     const amountCents = targets.length * unitCents;
 
-    // Sem amount → Stripe devolve todo o saldo restante do charge
+    // Sem amount → Stripe devolve toda a quantia restante do charge
     await this.stripeService.createEventTicketRefund(
       order.stripePaymentIntentId,
       refundingAllRemaining ? undefined : amountCents,
@@ -1775,7 +1773,7 @@ export class EventsService {
   async checkin(eventId: string, token: string, user: JwtPayload) {
     const canCheckin =
       EventsService.canManageAll(user) ||
-      !!user.roles?.some((r) => r === MemberRole.EVENT_CHECKER) ||
+      !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
       (await this.isStaff(eventId, user.sub, [
         EventStaffRole.HOST,
         EventStaffRole.CHECKER,
@@ -1929,62 +1927,91 @@ export class EventsService {
       );
     }
 
-    let eventTitle: string;
-    let eventStartAt: Date | null = null;
-    let eventEndAt: Date | null = null;
-    let workloadMinutes: number | null = null;
-    let communityProjectKey: string | null = null;
-    if (registration.eventId) {
-      const event = await this.eventRepo.findOneBy({
-        id: registration.eventId,
-      });
-      if (!event) throw new NotFoundException('Evento não encontrado.');
-      eventTitle = event.title;
-      eventStartAt = event.startAt;
-      eventEndAt = event.endAt;
-      communityProjectKey = event.communityProjectKey ?? null;
-      // Managed: carga horária = duração do evento
-      workloadMinutes = eventEndAt
-        ? Math.round((eventEndAt.getTime() - eventStartAt.getTime()) / 60_000)
-        : null;
-    } else if (registration.externalActivationId) {
-      const activation = await this.activationRepo.findOneBy({
-        id: registration.externalActivationId,
-      });
-      if (!activation) {
-        throw new NotFoundException(
-          'Ativação do evento externo não encontrada.',
-        );
-      }
-      if (!activation.features.includes('certificates')) {
-        throw new ForbiddenException(
-          'Este evento não tem a feature de certificados habilitada.',
-        );
-      }
-      eventTitle = activation.title ?? activation.eventKey;
-      communityProjectKey = activation.communityProjectKey ?? null;
-      // Externo: sem datas (frontend esconde); carga horária vem do
-      // override do eventKey (extendData.workloadMinutes) quando presente
-      workloadMinutes = await this.readExternalWorkloadMinutes(
-        activation.eventKey,
-      );
-    } else {
-      throw new NotFoundException('Evento da inscrição não encontrado.');
-    }
+    const details = await this.resolveCertificateEventDetails(registration);
 
     return {
       attendeeName: registration.attendeeName,
       attendeeEmail: registration.attendeeEmail,
-      eventTitle,
-      eventStartAt,
-      eventEndAt,
-      workloadMinutes,
-      communityProjectKey,
+      ...details,
       checkedInAt: registration.checkedInAt,
       issuedAt: new Date().toISOString(),
       verificationCode: EventsService.certificateCode(
         registration.checkinToken,
       ),
+    };
+  }
+
+  private async resolveCertificateEventDetails(registration: EventRegistration): Promise<{
+    eventTitle: string;
+    eventStartAt: Date | null;
+    eventEndAt: Date | null;
+    workloadMinutes: number | null;
+    communityProjectKey: string | null;
+  }> {
+    if (registration.eventId) {
+      return this.resolveManagedCertificateDetails(registration.eventId);
+    }
+    if (registration.externalActivationId) {
+      return this.resolveExternalCertificateDetails(
+        registration.externalActivationId,
+      );
+    }
+    throw new NotFoundException('Evento da inscrição não encontrado.');
+  }
+
+  private async resolveManagedCertificateDetails(eventId: string): Promise<{
+    eventTitle: string;
+    eventStartAt: Date | null;
+    eventEndAt: Date | null;
+    workloadMinutes: number | null;
+    communityProjectKey: string | null;
+  }> {
+    const event = await this.eventRepo.findOneBy({ id: eventId });
+    if (!event) throw new NotFoundException('Evento não encontrado.');
+    const eventStartAt = event.startAt;
+    const eventEndAt = event.endAt;
+    return {
+      eventTitle: event.title,
+      eventStartAt,
+      eventEndAt,
+      // Managed: carga horária = duração do evento
+      workloadMinutes: eventEndAt
+        ? Math.round((eventEndAt.getTime() - eventStartAt.getTime()) / 60_000)
+        : null,
+      communityProjectKey: event.communityProjectKey ?? null,
+    };
+  }
+
+  private async resolveExternalCertificateDetails(
+    activationId: string,
+  ): Promise<{
+    eventTitle: string;
+    eventStartAt: Date | null;
+    eventEndAt: Date | null;
+    workloadMinutes: number | null;
+    communityProjectKey: string | null;
+  }> {
+    const activation = await this.activationRepo.findOneBy({ id: activationId });
+    if (!activation) {
+      throw new NotFoundException(
+        'Ativação do evento externo não encontrada.',
+      );
+    }
+    if (!activation.features.includes('certificates')) {
+      throw new ForbiddenException(
+        'Este evento não tem a feature de certificados habilitada.',
+      );
+    }
+    return {
+      eventTitle: activation.title ?? activation.eventKey,
+      eventStartAt: null,
+      eventEndAt: null,
+      // Externo: sem datas (frontend esconde); carga horária vem do
+      // override do eventKey (extendData.workloadMinutes) quando presente
+      workloadMinutes: await this.readExternalWorkloadMinutes(
+        activation.eventKey,
+      ),
+      communityProjectKey: activation.communityProjectKey ?? null,
     };
   }
 
@@ -2070,7 +2097,7 @@ export class EventsService {
     await this.findEventOrFail(eventId);
     const allowed =
       EventsService.canManageAll(user) ||
-      !!user.roles?.some((r) => r === MemberRole.EVENT_FINANCE) ||
+      !!user.roles?.includes(MemberRole.EVENT_FINANCE) ||
       (await this.isStaff(eventId, user.sub, [
         EventStaffRole.HOST,
         EventStaffRole.FINANCE,
@@ -2377,29 +2404,15 @@ export class EventsService {
       allowActivator: true,
     });
 
-    let rows;
-    try {
-      rows = parseCsvText(csvText);
-    } catch (error) {
-      if (error instanceof CsvParseError) {
-        throw new BadRequestException(error.message);
-      }
-      throw error;
-    }
-
+    const rows = await this.parseImportCsv(csvText);
     const { sourceKey } = EventsService.parseEventKey(eventKey);
 
-    // Dedupe app-level: pré-carrega identificadores já importados
     const existing = await this.registrationRepo.findBy({
       externalActivationId: activation.id,
     });
-    const seenExternal = new Set(
-      existing
-        .filter((r) => r.externalSource && r.externalId)
-        .map((r) => `${r.externalSource}|${r.externalId}`),
-    );
-    const seenIdentifier = new Set(
-      existing.map((r) => r.attendeeEmail.toLowerCase()),
+    const [seenExternal, seenIdentifier] = this.buildImportDedupeSets(
+      existing,
+      sourceKey,
     );
 
     const ticketCache = new Map<string, TicketType>();
@@ -2412,14 +2425,12 @@ export class EventsService {
     let skippedDuplicates = 0;
 
     for (const row of rows) {
-      if (!row.name) {
-        errors.push({ line: row.line, reason: 'name vazio' });
+      const validationError = this.validateImportRow(row);
+      if (validationError) {
+        errors.push(validationError);
         continue;
       }
-      if (!row.email) {
-        errors.push({ line: row.line, reason: 'email vazio' });
-        continue;
-      }
+
       const identifier = row.email.toLowerCase();
       if (
         row.externalId &&
@@ -2428,58 +2439,44 @@ export class EventsService {
         skippedDuplicates += 1;
         continue;
       }
+
       if (seenIdentifier.has(identifier)) {
-        // Healing: linha já importada e PENDENTE de match — se o novo CSV
-        // trouxer a coluna `github` com match, vincula em vez de só ignorar.
-        if (row.github) {
-          const stuck = existing.find(
-            (r) =>
-              r.attendeeEmail.toLowerCase() === identifier &&
-              r.status === RegistrationStatus.PENDING_MATCH,
-          );
-          if (stuck) {
-            const healer = await this.findMemberByIdentifier(row.github);
-            if (healer) {
-              stuck.memberId = healer.id;
-              stuck.status = RegistrationStatus.CONFIRMED;
-              await this.registrationRepo.save(stuck);
-              healed += 1;
-              continue;
-            }
-          }
+        const wasHealed = await this.tryHealDuplicateRegistration(
+          row,
+          existing,
+        );
+        if (wasHealed) {
+          healed += 1;
+          continue;
         }
         skippedDuplicates += 1;
         continue;
       }
 
-      // Match: e-mail da conta; se não achar, tenta a coluna opcional
-      // `github` (handle) — decisão de design #2 do docs/EVENT_PLAN.md.
-      let member = await this.findMemberByIdentifier(row.email);
-      if (!member && row.github) {
-        member = await this.findMemberByIdentifier(row.github);
-      }
+      const member = await this.resolveImportMember(row);
       const ticketType = await this.findOrCreateImportTicketType(
         activation.id,
         row.ticketType,
         ticketCache,
       );
 
-      const registration = this.registrationRepo.create({
-        eventId: null,
-        externalActivationId: activation.id,
-        externalSource: sourceKey,
-        externalId: row.externalId ?? null,
-        ticketTypeId: ticketType.id,
-        orderId: null,
-        memberId: member?.id ?? null,
-        attendeeName: row.name,
-        attendeeEmail: row.email,
-        checkinToken: randomUUID(),
-        status: member
-          ? RegistrationStatus.CONFIRMED
-          : RegistrationStatus.PENDING_MATCH,
-      });
-      toSave.push(registration);
+      toSave.push(
+        this.registrationRepo.create({
+          eventId: null,
+          externalActivationId: activation.id,
+          externalSource: sourceKey,
+          externalId: row.externalId ?? null,
+          ticketTypeId: ticketType.id,
+          orderId: null,
+          memberId: member?.id ?? null,
+          attendeeName: row.name,
+          attendeeEmail: row.email,
+          checkinToken: randomUUID(),
+          status: member
+            ? RegistrationStatus.CONFIRMED
+            : RegistrationStatus.PENDING_MATCH,
+        }),
+      );
       seenIdentifier.add(identifier);
       if (row.externalId) seenExternal.add(`${sourceKey}|${row.externalId}`);
       ticketIncrements.set(
@@ -2493,16 +2490,7 @@ export class EventsService {
       }
     }
 
-    if (toSave.length > 0) {
-      await this.registrationRepo.save(toSave);
-      // quantitySold += n por ticket type (uma query por tipo)
-      for (const [ticketTypeId, n] of ticketIncrements) {
-        await this.ticketTypeRepo.query(
-          `UPDATE ticket_types SET "quantitySold" = "quantitySold" + $1 WHERE id = $2`,
-          [n, ticketTypeId],
-        );
-      }
-    }
+    await this.persistImportedRegistrations(toSave, ticketIncrements);
 
     void this.auditService.log({
       action: AuditAction.EVENT_PARTICIPANTS_IMPORTED,
@@ -2528,6 +2516,89 @@ export class EventsService {
       skippedDuplicates,
       errors,
     };
+  }
+
+  private async parseImportCsv(csvText: string): Promise<ParsedCsvRow[]> {
+    try {
+      return parseCsvText(csvText);
+    } catch (error) {
+      if (error instanceof CsvParseError) {
+        throw new BadRequestException(error.message);
+      }
+      throw error;
+    }
+  }
+
+  private buildImportDedupeSets(
+    existing: EventRegistration[],
+    sourceKey: string,
+  ): [Set<string>, Set<string>] {
+    const seenExternal = new Set(
+      existing
+        .filter((r) => r.externalSource && r.externalId)
+        .map((r) => `${r.externalSource}|${r.externalId}`),
+    );
+    const seenIdentifier = new Set(
+      existing.map((r) => r.attendeeEmail.toLowerCase()),
+    );
+    return [seenExternal, seenIdentifier];
+  }
+
+  private validateImportRow(
+    row: ParsedCsvRow,
+  ): { line: number; reason: string } | null {
+    if (!row.name) return { line: row.line, reason: 'name vazio' };
+    if (!row.email) return { line: row.line, reason: 'email vazio' };
+    return null;
+  }
+
+  private async tryHealDuplicateRegistration(
+    row: ParsedCsvRow,
+    existing: EventRegistration[],
+  ): Promise<boolean> {
+    // Healing: linha já importada e PENDENTE de match — se o novo CSV
+    // trouxer a coluna `github` com match, vincula em vez de só ignorar.
+    if (!row.github) return false;
+    const identifier = row.email.toLowerCase();
+    const stuck = existing.find(
+      (r) =>
+        r.attendeeEmail.toLowerCase() === identifier &&
+        r.status === RegistrationStatus.PENDING_MATCH,
+    );
+    if (!stuck) return false;
+    const healer = await this.findMemberByIdentifier(row.github);
+    if (!healer) return false;
+    stuck.memberId = healer.id;
+    stuck.status = RegistrationStatus.CONFIRMED;
+    await this.registrationRepo.save(stuck);
+    return true;
+  }
+
+  private async resolveImportMember(
+    row: ParsedCsvRow,
+  ): Promise<Member | null> {
+    // Match: e-mail da conta; se não achar, tenta a coluna opcional
+    // `github` (handle) — decisão de design #2 do docs/EVENT_PLAN.md.
+    let member = await this.findMemberByIdentifier(row.email);
+    if (!member && row.github) {
+      member = await this.findMemberByIdentifier(row.github);
+    }
+    return member;
+  }
+
+  private async persistImportedRegistrations(
+    toSave: EventRegistration[],
+    ticketIncrements: Map<string, number>,
+  ): Promise<void> {
+    if (toSave.length === 0) return;
+    await this.registrationRepo.save(toSave);
+    // quantitySold += n por ticket type (uma query por tipo)
+    for (const [ticketTypeId, n] of ticketIncrements) {
+      await this.ticketTypeRepo.query(
+        `UPDATE ticket_types SET "quantitySold" = "quantitySold" + $1 WHERE id = $2`,
+        [n, ticketTypeId],
+      );
+    }
   }
 
   /**

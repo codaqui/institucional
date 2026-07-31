@@ -301,7 +301,7 @@ export class StripeService {
   }
 
   /**
-   * Estorno de order de evento. Sem `amountCents`, devolve todo o saldo
+   * Estorno de order de evento. Sem `amountCents`, devolve toda a quantia
    * restante do charge (Stripe só permite até o valor não estornado).
    */
   async createEventTicketRefund(
@@ -772,12 +772,32 @@ export class StripeService {
   private async handleEventTicketCheckoutCompleted(
     session: Stripe.Checkout.Session,
   ) {
-    const { orderId, communityId } = session.metadata ?? {};
+    const order = await this.prepareEventOrderForPayment(session);
+    if (!order) return;
+
+    const attendees = this.parseAttendeesFromSession(session, order);
+    const payerId = order.payerMemberId ?? order.memberId;
+    const registrations = await this.saveEventTicketRegistrations(
+      order,
+      attendees,
+      payerId,
+    );
+    await this.sendRegistrationConfirmations(order, registrations);
+
+    // Ledger: conta externa Stripe → conta da comunidade dona do evento
+    const { communityId } = session.metadata ?? {};
+    await this.recordEventTicketTransaction(order, communityId);
+  }
+
+  private async prepareEventOrderForPayment(
+    session: Stripe.Checkout.Session,
+  ): Promise<EventOrder | null> {
+    const orderId = session.metadata?.orderId;
     if (!orderId) {
       this.logger.warn(
         `event-ticket: checkout.session.completed sem orderId (session ${session.id}) — ignorando`,
       );
-      return;
+      return null;
     }
 
     const order = await this.eventOrderRepo.findOneBy({ id: orderId });
@@ -785,30 +805,32 @@ export class StripeService {
       this.logger.warn(
         `event-ticket: order ${orderId} não encontrada — ignorando`,
       );
-      return;
+      return null;
     }
     if (order.status === OrderStatus.PAID) {
       this.logger.debug(
         `Webhook idempotente: order ${orderId} já está paga, ignorando.`,
       );
-      return;
+      return null;
     }
     if (order.status !== OrderStatus.PENDING) {
       this.logger.warn(
         `event-ticket: order ${orderId} com status ${order.status} (esperado pending) — ignorando`,
       );
-      return;
+      return null;
     }
 
     order.status = OrderStatus.PAID;
     order.stripePaymentIntentId = this.resolveSessionPaymentIntentId(session);
     order.paidAt = new Date();
-    await this.eventOrderRepo.save(order);
+    return this.eventOrderRepo.save(order);
+  }
 
-    // 1 registration por ingresso — participantes podem ser diferentes do comprador
-    const attendees = this.parseAttendeesFromSession(session, order);
-    const payerId = order.payerMemberId ?? order.memberId;
-
+  private async saveEventTicketRegistrations(
+    order: EventOrder,
+    attendees: Array<{ name: string; email: string }>,
+    payerId: string | null,
+  ): Promise<EventRegistration[]> {
     const registrations: EventRegistration[] = [];
     for (const attendee of attendees) {
       // Tenta vincular o ingresso a uma conta existente pelo e-mail do participante
@@ -830,31 +852,32 @@ export class StripeService {
         }),
       );
     }
-    await this.eventRegistrationRepo.save(registrations);
+    return this.eventRegistrationRepo.save(registrations);
+  }
 
-    // E-mail transacional de confirmação (1 por ingresso) — nunca derruba o webhook
+  private async sendRegistrationConfirmations(
+    order: EventOrder,
+    registrations: EventRegistration[],
+  ): Promise<void> {
     const eventForEmail = order.eventId
       ? await this.managedEventRepo.findOneBy({ id: order.eventId })
       : null;
-    if (eventForEmail) {
-      for (const registration of registrations) {
-        try {
-          await this.emailService.sendRegistrationConfirmation(
-            registration,
-            eventForEmail,
-          );
-        } catch (error: unknown) {
-          this.logger.warn(
-            `Falha ao enviar confirmação da inscrição ${registration.id}: ${
-              error instanceof Error ? error.message : String(error)
-            }`,
-          );
-        }
+    if (!eventForEmail) return;
+
+    for (const registration of registrations) {
+      try {
+        await this.emailService.sendRegistrationConfirmation(
+          registration,
+          eventForEmail,
+        );
+      } catch (error: unknown) {
+        this.logger.warn(
+          `Falha ao enviar confirmação da inscrição ${registration.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
       }
     }
-
-    // Ledger: conta externa Stripe → conta da comunidade dona do evento
-    await this.recordEventTicketTransaction(order, communityId);
   }
 
   /**

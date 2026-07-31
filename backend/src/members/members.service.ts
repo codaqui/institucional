@@ -87,62 +87,97 @@ export class MembersService {
     let isNew = false;
 
     if (member) {
-      // Atualiza dados públicos que podem ter mudado no GitHub
-      member.githubHandle = profileData.githubHandle;
-      member.name = profileData.name;
-      member.email = profileData.email;
-      member.avatarUrl = profileData.avatarUrl;
-
-      // Garante role admin para bootstrap admins a cada login
-      if (isBootstrapAdmin && !member.roles.includes(MemberRole.ADMIN)) {
-        this.logger.log(
-          `Bootstrap admin restaurado: @${profileData.githubHandle} → role=admin`,
-        );
-        member.roles = [...member.roles, MemberRole.ADMIN];
-      }
+      this.applyExistingMemberUpdates(member, profileData, isBootstrapAdmin);
     } else {
       isNew = true;
-      member = this.repo.create({
-        ...profileData,
-        roles: isBootstrapAdmin ? [MemberRole.ADMIN] : [MemberRole.MEMBRO],
-        isActive: true,
-      });
-
-      if (isBootstrapAdmin) {
-        this.logger.log(
-          `Bootstrap admin criado: @${profileData.githubHandle} → role=admin`,
-        );
-      }
+      member = this.createNewMember(profileData, isBootstrapAdmin);
     }
 
+    this.applyEncryptedToken(member, githubAccessToken);
+    this.applySecondaryEmails(member, secondaryEmails);
+
+    const saved = await this.repo.save(member);
+
+    if (isNew) {
+      await this.safeRematchPendingRegistrations(saved);
+    }
+
+    return saved;
+  }
+
+  private applyExistingMemberUpdates(
+    member: Member,
+    profileData: Omit<GithubProfile, 'githubAccessToken' | 'secondaryEmails'>,
+    isBootstrapAdmin: boolean,
+  ): void {
+    // Atualiza dados públicos que podem ter mudado no GitHub
+    member.githubHandle = profileData.githubHandle;
+    member.name = profileData.name;
+    member.email = profileData.email;
+    member.avatarUrl = profileData.avatarUrl;
+
+    // Garante role admin para bootstrap admins a cada login
+    if (isBootstrapAdmin && !member.roles.includes(MemberRole.ADMIN)) {
+      this.logger.log(
+        `Bootstrap admin restaurado: @${profileData.githubHandle} → role=admin`,
+      );
+      member.roles = [...member.roles, MemberRole.ADMIN];
+    }
+  }
+
+  private createNewMember(
+    profileData: Omit<GithubProfile, 'githubAccessToken' | 'secondaryEmails'>,
+    isBootstrapAdmin: boolean,
+  ): Member {
+    const member = this.repo.create({
+      ...profileData,
+      roles: isBootstrapAdmin ? [MemberRole.ADMIN] : [MemberRole.MEMBRO],
+      isActive: true,
+    });
+
+    if (isBootstrapAdmin) {
+      this.logger.log(
+        `Bootstrap admin criado: @${profileData.githubHandle} → role=admin`,
+      );
+    }
+
+    return member;
+  }
+
+  private applyEncryptedToken(
+    member: Member,
+    githubAccessToken: string | undefined,
+  ): void {
     // Atualiza o token a CADA login (rotação natural do OAuth + garante o
     // novo escopo public_repo assim que o usuário re-consente)
     if (githubAccessToken) {
       member.githubAccessToken = encryptToken(githubAccessToken);
     }
+  }
+
+  private applySecondaryEmails(
+    member: Member,
+    secondaryEmails: string[] | undefined,
+  ): void {
     // E-mails verificados: atualiza a cada login quando a API respondeu
     // (undefined = falha na API → preserva o que já estava gravado)
     if (secondaryEmails) {
       member.secondaryEmails = secondaryEmails;
     }
+  }
 
-    const saved = await this.repo.save(member);
-
+  private async safeRematchPendingRegistrations(member: Member): Promise<void> {
     // Hook 2d: membro NOVO resolve inscrições pending_match de eventos
     // externos (match por e-mail/githubHandle). Nunca quebra o login.
-    if (isNew) {
-      try {
-        await this.eventsService.rematchPendingRegistrationsForMember(saved);
-      } catch (error: unknown) {
-        this.logger.warn(
-          `Falha no rematch de inscrições para @${saved.githubHandle}: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
-        );
-      }
+    try {
+      await this.eventsService.rematchPendingRegistrationsForMember(member);
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Falha no rematch de inscrições para @${member.githubHandle}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     }
-
-    return saved;
   }
 
   /**

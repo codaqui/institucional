@@ -12,7 +12,7 @@ export enum EmailStatus {
 }
 
 /**
- * Log de todo e-mail enviado (ou tentado) pela plataforma.
+ * Log de cada e-mail enviado (ou tentado) pela plataforma.
  * Alimenta o painel /admin/emails (enviados/falhas por template e reenvio).
  */
 @Entity('email_logs')
