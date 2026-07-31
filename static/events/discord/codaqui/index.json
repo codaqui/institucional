@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T18:27:28.292Z",
+  "generatedAt": "2026-07-31T19:28:59.363Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-31T18:27:28.292Z",
+    "generatedAt": "2026-07-31T19:28:59.363Z",
     "sourceKey": "discord:codaqui",
     "indexPath": "/events/discord/codaqui/index.json",
     "itemCount": 12
@@ -43,7 +43,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488598924481527898.json"
+      "itemPath": "/events/discord/codaqui/1488598924481527898.json",
+      "hasOverride": false
     },
     {
       "id": "1488600399492415608",
@@ -71,7 +72,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600399492415608.json"
+      "itemPath": "/events/discord/codaqui/1488600399492415608.json",
+      "hasOverride": false
     },
     {
       "id": "1488600541641576699",
@@ -99,7 +101,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600541641576699.json"
+      "itemPath": "/events/discord/codaqui/1488600541641576699.json",
+      "hasOverride": false
     },
     {
       "id": "1488599076889952267",
@@ -127,7 +130,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599076889952267.json"
+      "itemPath": "/events/discord/codaqui/1488599076889952267.json",
+      "hasOverride": false
     },
     {
       "id": "1488600661410054387",
@@ -155,7 +159,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600661410054387.json"
+      "itemPath": "/events/discord/codaqui/1488600661410054387.json",
+      "hasOverride": false
     },
     {
       "id": "1488600812107202620",
@@ -183,7 +188,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600812107202620.json"
+      "itemPath": "/events/discord/codaqui/1488600812107202620.json",
+      "hasOverride": false
     },
     {
       "id": "1488599694325317784",
@@ -217,7 +223,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599694325317784.json"
+      "itemPath": "/events/discord/codaqui/1488599694325317784.json",
+      "hasOverride": false
     },
     {
       "id": "1498450972551155793",
@@ -251,7 +258,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450972551155793.json"
+      "itemPath": "/events/discord/codaqui/1498450972551155793.json",
+      "hasOverride": false
     },
     {
       "id": "1488599981085429880",
@@ -285,7 +293,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599981085429880.json"
+      "itemPath": "/events/discord/codaqui/1488599981085429880.json",
+      "hasOverride": false
     },
     {
       "id": "1498451178764107797",
@@ -319,7 +328,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498451178764107797.json"
+      "itemPath": "/events/discord/codaqui/1498451178764107797.json",
+      "hasOverride": false
     },
     {
       "id": "1498450535655931944",
@@ -353,7 +363,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450535655931944.json"
+      "itemPath": "/events/discord/codaqui/1498450535655931944.json",
+      "hasOverride": false
     },
     {
       "id": "1338983526858494053",
@@ -396,7 +407,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1338983526858494053.json"
+      "itemPath": "/events/discord/codaqui/1338983526858494053.json",
+      "hasOverride": false
     }
   ]
 }

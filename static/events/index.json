@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T18:27:28.292Z",
+  "generatedAt": "2026-07-31T19:28:59.363Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-31T18:27:28.292Z",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-31T18:27:28.292Z",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 372
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-31T18:27:28.292Z",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 7
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-31T18:27:28.292Z",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -72,10 +72,25 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-31T18:27:28.292Z",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
+    },
+    {
+      "source": "internal",
+      "sourceId": "codaqui",
+      "type": "internal",
+      "label": "Codaqui",
+      "emoji": "🌱",
+      "description": "Eventos organizados pela Associação Codaqui.",
+      "ctaLabel": "Ver eventos",
+      "ctaHref": "/eventos",
+      "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+      "generatedAt": "2026-07-31T19:28:59.363Z",
+      "sourceKey": "internal:codaqui",
+      "indexPath": "/events/internal/codaqui/index.json",
+      "itemCount": 0
     }
   ],
   "events": [
@@ -111,7 +126,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/226163759.json"
+      "itemPath": "/events/meetup/devparana/226163759.json",
+      "hasOverride": false
     },
     {
       "id": "227916195",
@@ -149,7 +165,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/227916195.json"
+      "itemPath": "/events/meetup/devparana/227916195.json",
+      "hasOverride": false
     },
     {
       "id": "228910672",
@@ -183,7 +200,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/228910672.json"
+      "itemPath": "/events/meetup/devparana/228910672.json",
+      "hasOverride": false
     },
     {
       "id": "228785524",
@@ -221,7 +239,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/228785524.json"
+      "itemPath": "/events/meetup/devparana/228785524.json",
+      "hasOverride": false
     },
     {
       "id": "228785576",
@@ -255,7 +274,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/228785576.json"
+      "itemPath": "/events/meetup/devparana/228785576.json",
+      "hasOverride": false
     },
     {
       "id": "230643769",
@@ -289,7 +309,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/230643769.json"
+      "itemPath": "/events/meetup/devparana/230643769.json",
+      "hasOverride": false
     },
     {
       "id": "231049696",
@@ -323,7 +344,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/231049696.json"
+      "itemPath": "/events/meetup/devparana/231049696.json",
+      "hasOverride": false
     },
     {
       "id": "230927469",
@@ -357,7 +379,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/230927469.json"
+      "itemPath": "/events/meetup/devparana/230927469.json",
+      "hasOverride": false
     },
     {
       "id": "231474177",
@@ -391,7 +414,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/231474177.json"
+      "itemPath": "/events/meetup/devparana/231474177.json",
+      "hasOverride": false
     },
     {
       "id": "231902846",
@@ -425,7 +449,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/231902846.json"
+      "itemPath": "/events/meetup/devparana/231902846.json",
+      "hasOverride": false
     },
     {
       "id": "233101924",
@@ -459,7 +484,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/233101924.json"
+      "itemPath": "/events/meetup/devparana/233101924.json",
+      "hasOverride": false
     },
     {
       "id": "232205962",
@@ -497,7 +523,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/232205962.json"
+      "itemPath": "/events/meetup/devparana/232205962.json",
+      "hasOverride": false
     },
     {
       "id": "233035757",
@@ -531,7 +558,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/233035757.json"
+      "itemPath": "/events/meetup/devparana/233035757.json",
+      "hasOverride": false
     },
     {
       "id": "233034754",
@@ -565,7 +593,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/233034754.json"
+      "itemPath": "/events/meetup/devparana/233034754.json",
+      "hasOverride": false
     },
     {
       "id": "232206834",
@@ -599,7 +628,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/232206834.json"
+      "itemPath": "/events/meetup/devparana/232206834.json",
+      "hasOverride": false
     },
     {
       "id": "232918445",
@@ -633,7 +663,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/232918445.json"
+      "itemPath": "/events/meetup/devparana/232918445.json",
+      "hasOverride": false
     },
     {
       "id": "236524652",
@@ -667,7 +698,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/236524652.json"
+      "itemPath": "/events/meetup/devparana/236524652.json",
+      "hasOverride": false
     },
     {
       "id": "236553813",
@@ -701,7 +733,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/236553813.json"
+      "itemPath": "/events/meetup/devparana/236553813.json",
+      "hasOverride": false
     },
     {
       "id": "236262254",
@@ -735,7 +768,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/236262254.json"
+      "itemPath": "/events/meetup/devparana/236262254.json",
+      "hasOverride": false
     },
     {
       "id": "237673203",
@@ -769,7 +803,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/237673203.json"
+      "itemPath": "/events/meetup/devparana/237673203.json",
+      "hasOverride": false
     },
     {
       "id": "237673222",
@@ -811,7 +846,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/237673222.json"
+      "itemPath": "/events/meetup/devparana/237673222.json",
+      "hasOverride": false
     },
     {
       "id": "238808111",
@@ -845,7 +881,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/238808111.json"
+      "itemPath": "/events/meetup/devparana/238808111.json",
+      "hasOverride": false
     },
     {
       "id": "239002266",
@@ -879,7 +916,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/239002266.json"
+      "itemPath": "/events/meetup/devparana/239002266.json",
+      "hasOverride": false
     },
     {
       "id": "240005020",
@@ -913,7 +951,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/240005020.json"
+      "itemPath": "/events/meetup/devparana/240005020.json",
+      "hasOverride": false
     },
     {
       "id": "237673228",
@@ -947,7 +986,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/237673228.json"
+      "itemPath": "/events/meetup/devparana/237673228.json",
+      "hasOverride": false
     },
     {
       "id": "240224111",
@@ -989,7 +1029,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/240224111.json"
+      "itemPath": "/events/meetup/devparana/240224111.json",
+      "hasOverride": false
     },
     {
       "id": "240576814",
@@ -1031,7 +1072,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/240576814.json"
+      "itemPath": "/events/meetup/devparana/240576814.json",
+      "hasOverride": false
     },
     {
       "id": "237673246",
@@ -1065,7 +1107,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/237673246.json"
+      "itemPath": "/events/meetup/devparana/237673246.json",
+      "hasOverride": false
     },
     {
       "id": "237673256",
@@ -1099,7 +1142,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/237673256.json"
+      "itemPath": "/events/meetup/devparana/237673256.json",
+      "hasOverride": false
     },
     {
       "id": "242032082",
@@ -1133,7 +1177,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/242032082.json"
+      "itemPath": "/events/meetup/devparana/242032082.json",
+      "hasOverride": false
     },
     {
       "id": "241989299",
@@ -1167,7 +1212,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/241989299.json"
+      "itemPath": "/events/meetup/devparana/241989299.json",
+      "hasOverride": false
     },
     {
       "id": "243272768",
@@ -1209,7 +1255,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/243272768.json"
+      "itemPath": "/events/meetup/devparana/243272768.json",
+      "hasOverride": false
     },
     {
       "id": "243648170",
@@ -1243,7 +1290,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/243648170.json"
+      "itemPath": "/events/meetup/devparana/243648170.json",
+      "hasOverride": false
     },
     {
       "id": "247356221",
@@ -1278,7 +1326,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/247356221.json"
+      "itemPath": "/events/meetup/devparana/247356221.json",
+      "hasOverride": false
     },
     {
       "id": "247802354",
@@ -1313,7 +1362,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/247802354.json"
+      "itemPath": "/events/meetup/devparana/247802354.json",
+      "hasOverride": false
     },
     {
       "id": "247645322",
@@ -1348,7 +1398,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/247645322.json"
+      "itemPath": "/events/meetup/devparana/247645322.json",
+      "hasOverride": false
     },
     {
       "id": "248446352",
@@ -1387,7 +1438,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/248446352.json"
+      "itemPath": "/events/meetup/devparana/248446352.json",
+      "hasOverride": false
     },
     {
       "id": "248627058",
@@ -1430,7 +1482,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/248627058.json"
+      "itemPath": "/events/meetup/devparana/248627058.json",
+      "hasOverride": false
     },
     {
       "id": "247275963",
@@ -1465,7 +1518,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/247275963.json"
+      "itemPath": "/events/meetup/devparana/247275963.json",
+      "hasOverride": false
     },
     {
       "id": "248957512",
@@ -1508,7 +1562,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/248957512.json"
+      "itemPath": "/events/meetup/devparana/248957512.json",
+      "hasOverride": false
     },
     {
       "id": "249579018",
@@ -1551,7 +1606,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/249579018.json"
+      "itemPath": "/events/meetup/devparana/249579018.json",
+      "hasOverride": false
     },
     {
       "id": "250133057",
@@ -1594,7 +1650,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/250133057.json"
+      "itemPath": "/events/meetup/devparana/250133057.json",
+      "hasOverride": false
     },
     {
       "id": "250908342",
@@ -1629,7 +1686,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/250908342.json"
+      "itemPath": "/events/meetup/devparana/250908342.json",
+      "hasOverride": false
     },
     {
       "id": "250811764",
@@ -1672,7 +1730,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/250811764.json"
+      "itemPath": "/events/meetup/devparana/250811764.json",
+      "hasOverride": false
     },
     {
       "id": "251220539",
@@ -1715,7 +1774,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/251220539.json"
+      "itemPath": "/events/meetup/devparana/251220539.json",
+      "hasOverride": false
     },
     {
       "id": "252166359",
@@ -1758,7 +1818,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/252166359.json"
+      "itemPath": "/events/meetup/devparana/252166359.json",
+      "hasOverride": false
     },
     {
       "id": "252630361",
@@ -1796,7 +1857,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/252630361.json"
+      "itemPath": "/events/meetup/devparana/252630361.json",
+      "hasOverride": false
     },
     {
       "id": "247835620",
@@ -1831,7 +1893,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/247835620.json"
+      "itemPath": "/events/meetup/devparana/247835620.json",
+      "hasOverride": false
     },
     {
       "id": "253306850",
@@ -1874,7 +1937,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253306850.json"
+      "itemPath": "/events/meetup/devparana/253306850.json",
+      "hasOverride": false
     },
     {
       "id": "253321884",
@@ -1916,7 +1980,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253321884.json"
+      "itemPath": "/events/meetup/devparana/253321884.json",
+      "hasOverride": false
     },
     {
       "id": "253951888",
@@ -1959,7 +2024,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253951888.json"
+      "itemPath": "/events/meetup/devparana/253951888.json",
+      "hasOverride": false
     },
     {
       "id": "253902054",
@@ -1994,7 +2060,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253902054.json"
+      "itemPath": "/events/meetup/devparana/253902054.json",
+      "hasOverride": false
     },
     {
       "id": "253384455",
@@ -2033,7 +2100,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253384455.json"
+      "itemPath": "/events/meetup/devparana/253384455.json",
+      "hasOverride": false
     },
     {
       "id": "254036558",
@@ -2076,7 +2144,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/254036558.json"
+      "itemPath": "/events/meetup/devparana/254036558.json",
+      "hasOverride": false
     },
     {
       "id": "254385628",
@@ -2119,7 +2188,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/254385628.json"
+      "itemPath": "/events/meetup/devparana/254385628.json",
+      "hasOverride": false
     },
     {
       "id": "254979519",
@@ -2162,7 +2232,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/254979519.json"
+      "itemPath": "/events/meetup/devparana/254979519.json",
+      "hasOverride": false
     },
     {
       "id": "253550492",
@@ -2197,7 +2268,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/253550492.json"
+      "itemPath": "/events/meetup/devparana/253550492.json",
+      "hasOverride": false
     },
     {
       "id": "255538947",
@@ -2232,7 +2304,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/255538947.json"
+      "itemPath": "/events/meetup/devparana/255538947.json",
+      "hasOverride": false
     },
     {
       "id": "255834978",
@@ -2275,7 +2348,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/255834978.json"
+      "itemPath": "/events/meetup/devparana/255834978.json",
+      "hasOverride": false
     },
     {
       "id": "255798156",
@@ -2310,7 +2384,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/255798156.json"
+      "itemPath": "/events/meetup/devparana/255798156.json",
+      "hasOverride": false
     },
     {
       "id": "256155322",
@@ -2349,7 +2424,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/256155322.json"
+      "itemPath": "/events/meetup/devparana/256155322.json",
+      "hasOverride": false
     },
     {
       "id": "256176598",
@@ -2383,7 +2459,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/256176598.json"
+      "itemPath": "/events/meetup/devparana/256176598.json",
+      "hasOverride": false
     },
     {
       "id": "256545361",
@@ -2418,7 +2495,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/256545361.json"
+      "itemPath": "/events/meetup/devparana/256545361.json",
+      "hasOverride": false
     },
     {
       "id": "256776182",
@@ -2461,7 +2539,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/256776182.json"
+      "itemPath": "/events/meetup/devparana/256776182.json",
+      "hasOverride": false
     },
     {
       "id": "257272020",
@@ -2500,7 +2579,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/257272020.json"
+      "itemPath": "/events/meetup/devparana/257272020.json",
+      "hasOverride": false
     },
     {
       "id": "257864831",
@@ -2543,7 +2623,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/257864831.json"
+      "itemPath": "/events/meetup/devparana/257864831.json",
+      "hasOverride": false
     },
     {
       "id": "258333344",
@@ -2586,7 +2667,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/258333344.json"
+      "itemPath": "/events/meetup/devparana/258333344.json",
+      "hasOverride": false
     },
     {
       "id": "258732396",
@@ -2629,7 +2711,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/258732396.json"
+      "itemPath": "/events/meetup/devparana/258732396.json",
+      "hasOverride": false
     },
     {
       "id": "258668093",
@@ -2668,7 +2751,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/258668093.json"
+      "itemPath": "/events/meetup/devparana/258668093.json",
+      "hasOverride": false
     },
     {
       "id": "258832145",
@@ -2711,7 +2795,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/258832145.json"
+      "itemPath": "/events/meetup/devparana/258832145.json",
+      "hasOverride": false
     },
     {
       "id": "259123604",
@@ -2745,7 +2830,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259123604.json"
+      "itemPath": "/events/meetup/devparana/259123604.json",
+      "hasOverride": false
     },
     {
       "id": "259596504",
@@ -2788,7 +2874,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259596504.json"
+      "itemPath": "/events/meetup/devparana/259596504.json",
+      "hasOverride": false
     },
     {
       "id": "259570471",
@@ -2827,7 +2914,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259570471.json"
+      "itemPath": "/events/meetup/devparana/259570471.json",
+      "hasOverride": false
     },
     {
       "id": "259732717",
@@ -2866,7 +2954,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259732717.json"
+      "itemPath": "/events/meetup/devparana/259732717.json",
+      "hasOverride": false
     },
     {
       "id": "259762584",
@@ -2905,7 +2994,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259762584.json"
+      "itemPath": "/events/meetup/devparana/259762584.json",
+      "hasOverride": false
     },
     {
       "id": "259855187",
@@ -2948,7 +3038,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259855187.json"
+      "itemPath": "/events/meetup/devparana/259855187.json",
+      "hasOverride": false
     },
     {
       "id": "259734484",
@@ -2983,7 +3074,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259734484.json"
+      "itemPath": "/events/meetup/devparana/259734484.json",
+      "hasOverride": false
     },
     {
       "id": "259955292",
@@ -3026,7 +3118,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/259955292.json"
+      "itemPath": "/events/meetup/devparana/259955292.json",
+      "hasOverride": false
     },
     {
       "id": "260054957",
@@ -3065,7 +3158,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260054957.json"
+      "itemPath": "/events/meetup/devparana/260054957.json",
+      "hasOverride": false
     },
     {
       "id": "260473823",
@@ -3103,7 +3197,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260473823.json"
+      "itemPath": "/events/meetup/devparana/260473823.json",
+      "hasOverride": false
     },
     {
       "id": "260827947",
@@ -3142,7 +3237,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260827947.json"
+      "itemPath": "/events/meetup/devparana/260827947.json",
+      "hasOverride": false
     },
     {
       "id": "260866810",
@@ -3185,7 +3281,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260866810.json"
+      "itemPath": "/events/meetup/devparana/260866810.json",
+      "hasOverride": false
     },
     {
       "id": "261040811",
@@ -3220,7 +3317,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261040811.json"
+      "itemPath": "/events/meetup/devparana/261040811.json",
+      "hasOverride": false
     },
     {
       "id": "260476775",
@@ -3259,7 +3357,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260476775.json"
+      "itemPath": "/events/meetup/devparana/260476775.json",
+      "hasOverride": false
     },
     {
       "id": "260484337",
@@ -3298,7 +3397,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260484337.json"
+      "itemPath": "/events/meetup/devparana/260484337.json",
+      "hasOverride": false
     },
     {
       "id": "260484447",
@@ -3337,7 +3437,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260484447.json"
+      "itemPath": "/events/meetup/devparana/260484447.json",
+      "hasOverride": false
     },
     {
       "id": "260538504",
@@ -3376,7 +3477,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260538504.json"
+      "itemPath": "/events/meetup/devparana/260538504.json",
+      "hasOverride": false
     },
     {
       "id": "261173730",
@@ -3419,7 +3521,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261173730.json"
+      "itemPath": "/events/meetup/devparana/261173730.json",
+      "hasOverride": false
     },
     {
       "id": "260506178",
@@ -3454,7 +3557,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260506178.json"
+      "itemPath": "/events/meetup/devparana/260506178.json",
+      "hasOverride": false
     },
     {
       "id": "261483766",
@@ -3493,7 +3597,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261483766.json"
+      "itemPath": "/events/meetup/devparana/261483766.json",
+      "hasOverride": false
     },
     {
       "id": "260484545",
@@ -3532,7 +3637,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260484545.json"
+      "itemPath": "/events/meetup/devparana/260484545.json",
+      "hasOverride": false
     },
     {
       "id": "261448522",
@@ -3571,7 +3677,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261448522.json"
+      "itemPath": "/events/meetup/devparana/261448522.json",
+      "hasOverride": false
     },
     {
       "id": "261632421",
@@ -3614,7 +3721,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261632421.json"
+      "itemPath": "/events/meetup/devparana/261632421.json",
+      "hasOverride": false
     },
     {
       "id": "260506661",
@@ -3657,7 +3765,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260506661.json"
+      "itemPath": "/events/meetup/devparana/260506661.json",
+      "hasOverride": false
     },
     {
       "id": "260511751",
@@ -3696,7 +3805,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260511751.json"
+      "itemPath": "/events/meetup/devparana/260511751.json",
+      "hasOverride": false
     },
     {
       "id": "260669763",
@@ -3739,7 +3849,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260669763.json"
+      "itemPath": "/events/meetup/devparana/260669763.json",
+      "hasOverride": false
     },
     {
       "id": "260511936",
@@ -3782,7 +3893,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/260511936.json"
+      "itemPath": "/events/meetup/devparana/260511936.json",
+      "hasOverride": false
     },
     {
       "id": "261844709",
@@ -3817,7 +3929,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261844709.json"
+      "itemPath": "/events/meetup/devparana/261844709.json",
+      "hasOverride": false
     },
     {
       "id": "261926148",
@@ -3852,7 +3965,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261926148.json"
+      "itemPath": "/events/meetup/devparana/261926148.json",
+      "hasOverride": false
     },
     {
       "id": "262201500",
@@ -3891,7 +4005,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262201500.json"
+      "itemPath": "/events/meetup/devparana/262201500.json",
+      "hasOverride": false
     },
     {
       "id": "262227835",
@@ -3934,7 +4049,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262227835.json"
+      "itemPath": "/events/meetup/devparana/262227835.json",
+      "hasOverride": false
     },
     {
       "id": "262293074",
@@ -3968,7 +4084,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262293074.json"
+      "itemPath": "/events/meetup/devparana/262293074.json",
+      "hasOverride": false
     },
     {
       "id": "262009116",
@@ -4011,7 +4128,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262009116.json"
+      "itemPath": "/events/meetup/devparana/262009116.json",
+      "hasOverride": false
     },
     {
       "id": "262445872",
@@ -4050,7 +4168,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262445872.json"
+      "itemPath": "/events/meetup/devparana/262445872.json",
+      "hasOverride": false
     },
     {
       "id": "262445573",
@@ -4085,7 +4204,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262445573.json"
+      "itemPath": "/events/meetup/devparana/262445573.json",
+      "hasOverride": false
     },
     {
       "id": "262657937",
@@ -4124,7 +4244,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262657937.json"
+      "itemPath": "/events/meetup/devparana/262657937.json",
+      "hasOverride": false
     },
     {
       "id": "262444389",
@@ -4167,7 +4288,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262444389.json"
+      "itemPath": "/events/meetup/devparana/262444389.json",
+      "hasOverride": false
     },
     {
       "id": "262983336",
@@ -4206,7 +4328,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262983336.json"
+      "itemPath": "/events/meetup/devparana/262983336.json",
+      "hasOverride": false
     },
     {
       "id": "263027355",
@@ -4240,7 +4363,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263027355.json"
+      "itemPath": "/events/meetup/devparana/263027355.json",
+      "hasOverride": false
     },
     {
       "id": "262927558",
@@ -4279,7 +4403,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262927558.json"
+      "itemPath": "/events/meetup/devparana/262927558.json",
+      "hasOverride": false
     },
     {
       "id": "263167247",
@@ -4322,7 +4447,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263167247.json"
+      "itemPath": "/events/meetup/devparana/263167247.json",
+      "hasOverride": false
     },
     {
       "id": "262843943",
@@ -4361,7 +4487,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/262843943.json"
+      "itemPath": "/events/meetup/devparana/262843943.json",
+      "hasOverride": false
     },
     {
       "id": "263090833",
@@ -4404,7 +4531,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263090833.json"
+      "itemPath": "/events/meetup/devparana/263090833.json",
+      "hasOverride": false
     },
     {
       "id": "263081237",
@@ -4443,7 +4571,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263081237.json"
+      "itemPath": "/events/meetup/devparana/263081237.json",
+      "hasOverride": false
     },
     {
       "id": "263938162",
@@ -4478,7 +4607,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263938162.json"
+      "itemPath": "/events/meetup/devparana/263938162.json",
+      "hasOverride": false
     },
     {
       "id": "263816095",
@@ -4516,7 +4646,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263816095.json"
+      "itemPath": "/events/meetup/devparana/263816095.json",
+      "hasOverride": false
     },
     {
       "id": "263603263",
@@ -4555,7 +4686,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263603263.json"
+      "itemPath": "/events/meetup/devparana/263603263.json",
+      "hasOverride": false
     },
     {
       "id": "261769010",
@@ -4594,7 +4726,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/261769010.json"
+      "itemPath": "/events/meetup/devparana/261769010.json",
+      "hasOverride": false
     },
     {
       "id": "263966273",
@@ -4637,7 +4770,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263966273.json"
+      "itemPath": "/events/meetup/devparana/263966273.json",
+      "hasOverride": false
     },
     {
       "id": "263969107",
@@ -4680,7 +4814,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263969107.json"
+      "itemPath": "/events/meetup/devparana/263969107.json",
+      "hasOverride": false
     },
     {
       "id": "263956649",
@@ -4723,7 +4858,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263956649.json"
+      "itemPath": "/events/meetup/devparana/263956649.json",
+      "hasOverride": false
     },
     {
       "id": "263662471",
@@ -4766,7 +4902,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263662471.json"
+      "itemPath": "/events/meetup/devparana/263662471.json",
+      "hasOverride": false
     },
     {
       "id": "264249918",
@@ -4800,7 +4937,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264249918.json"
+      "itemPath": "/events/meetup/devparana/264249918.json",
+      "hasOverride": false
     },
     {
       "id": "264547910",
@@ -4835,7 +4973,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264547910.json"
+      "itemPath": "/events/meetup/devparana/264547910.json",
+      "hasOverride": false
     },
     {
       "id": "264537451",
@@ -4882,7 +5021,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264537451.json"
+      "itemPath": "/events/meetup/devparana/264537451.json",
+      "hasOverride": false
     },
     {
       "id": "263071901",
@@ -4925,7 +5065,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/263071901.json"
+      "itemPath": "/events/meetup/devparana/263071901.json",
+      "hasOverride": false
     },
     {
       "id": "264402492",
@@ -4964,7 +5105,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264402492.json"
+      "itemPath": "/events/meetup/devparana/264402492.json",
+      "hasOverride": false
     },
     {
       "id": "264752757",
@@ -5003,7 +5145,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264752757.json"
+      "itemPath": "/events/meetup/devparana/264752757.json",
+      "hasOverride": false
     },
     {
       "id": "264897628",
@@ -5038,7 +5181,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264897628.json"
+      "itemPath": "/events/meetup/devparana/264897628.json",
+      "hasOverride": false
     },
     {
       "id": "264895388",
@@ -5077,7 +5221,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264895388.json"
+      "itemPath": "/events/meetup/devparana/264895388.json",
+      "hasOverride": false
     },
     {
       "id": "265097763",
@@ -5115,7 +5260,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265097763.json"
+      "itemPath": "/events/meetup/devparana/265097763.json",
+      "hasOverride": false
     },
     {
       "id": "264845311",
@@ -5158,7 +5304,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264845311.json"
+      "itemPath": "/events/meetup/devparana/264845311.json",
+      "hasOverride": false
     },
     {
       "id": "265147946",
@@ -5205,7 +5352,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265147946.json"
+      "itemPath": "/events/meetup/devparana/265147946.json",
+      "hasOverride": false
     },
     {
       "id": "265028349",
@@ -5244,7 +5392,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265028349.json"
+      "itemPath": "/events/meetup/devparana/265028349.json",
+      "hasOverride": false
     },
     {
       "id": "265404132",
@@ -5283,7 +5432,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265404132.json"
+      "itemPath": "/events/meetup/devparana/265404132.json",
+      "hasOverride": false
     },
     {
       "id": "265483348",
@@ -5322,7 +5472,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265483348.json"
+      "itemPath": "/events/meetup/devparana/265483348.json",
+      "hasOverride": false
     },
     {
       "id": "265568469",
@@ -5365,7 +5516,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265568469.json"
+      "itemPath": "/events/meetup/devparana/265568469.json",
+      "hasOverride": false
     },
     {
       "id": "264718867",
@@ -5400,7 +5552,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/264718867.json"
+      "itemPath": "/events/meetup/devparana/264718867.json",
+      "hasOverride": false
     },
     {
       "id": "265934143",
@@ -5443,7 +5596,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265934143.json"
+      "itemPath": "/events/meetup/devparana/265934143.json",
+      "hasOverride": false
     },
     {
       "id": "266019259",
@@ -5482,7 +5636,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266019259.json"
+      "itemPath": "/events/meetup/devparana/266019259.json",
+      "hasOverride": false
     },
     {
       "id": "265740015",
@@ -5516,7 +5671,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265740015.json"
+      "itemPath": "/events/meetup/devparana/265740015.json",
+      "hasOverride": false
     },
     {
       "id": "265917991",
@@ -5559,7 +5715,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/265917991.json"
+      "itemPath": "/events/meetup/devparana/265917991.json",
+      "hasOverride": false
     },
     {
       "id": "266216637",
@@ -5594,7 +5751,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266216637.json"
+      "itemPath": "/events/meetup/devparana/266216637.json",
+      "hasOverride": false
     },
     {
       "id": "266056625",
@@ -5637,7 +5795,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266056625.json"
+      "itemPath": "/events/meetup/devparana/266056625.json",
+      "hasOverride": false
     },
     {
       "id": "266120936",
@@ -5684,7 +5843,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266120936.json"
+      "itemPath": "/events/meetup/devparana/266120936.json",
+      "hasOverride": false
     },
     {
       "id": "266300613",
@@ -5727,7 +5887,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266300613.json"
+      "itemPath": "/events/meetup/devparana/266300613.json",
+      "hasOverride": false
     },
     {
       "id": "266314451",
@@ -5766,7 +5927,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266314451.json"
+      "itemPath": "/events/meetup/devparana/266314451.json",
+      "hasOverride": false
     },
     {
       "id": "266782634",
@@ -5809,7 +5971,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266782634.json"
+      "itemPath": "/events/meetup/devparana/266782634.json",
+      "hasOverride": false
     },
     {
       "id": "266314467",
@@ -5848,7 +6011,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266314467.json"
+      "itemPath": "/events/meetup/devparana/266314467.json",
+      "hasOverride": false
     },
     {
       "id": "266917733",
@@ -5891,7 +6055,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/266917733.json"
+      "itemPath": "/events/meetup/devparana/266917733.json",
+      "hasOverride": false
     },
     {
       "id": "267091168",
@@ -5930,7 +6095,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/267091168.json"
+      "itemPath": "/events/meetup/devparana/267091168.json",
+      "hasOverride": false
     },
     {
       "id": "267893685",
@@ -5973,7 +6139,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/267893685.json"
+      "itemPath": "/events/meetup/devparana/267893685.json",
+      "hasOverride": false
     },
     {
       "id": "267895742",
@@ -6008,7 +6175,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/267895742.json"
+      "itemPath": "/events/meetup/devparana/267895742.json",
+      "hasOverride": false
     },
     {
       "id": "268119530",
@@ -6047,7 +6215,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268119530.json"
+      "itemPath": "/events/meetup/devparana/268119530.json",
+      "hasOverride": false
     },
     {
       "id": "268510043",
@@ -6082,7 +6251,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268510043.json"
+      "itemPath": "/events/meetup/devparana/268510043.json",
+      "hasOverride": false
     },
     {
       "id": "268498573",
@@ -6125,7 +6295,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268498573.json"
+      "itemPath": "/events/meetup/devparana/268498573.json",
+      "hasOverride": false
     },
     {
       "id": "268523141",
@@ -6164,7 +6335,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268523141.json"
+      "itemPath": "/events/meetup/devparana/268523141.json",
+      "hasOverride": false
     },
     {
       "id": "268319681",
@@ -6207,7 +6379,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268319681.json"
+      "itemPath": "/events/meetup/devparana/268319681.json",
+      "hasOverride": false
     },
     {
       "id": "268765209",
@@ -6250,7 +6423,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268765209.json"
+      "itemPath": "/events/meetup/devparana/268765209.json",
+      "hasOverride": false
     },
     {
       "id": "268711909",
@@ -6285,7 +6459,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268711909.json"
+      "itemPath": "/events/meetup/devparana/268711909.json",
+      "hasOverride": false
     },
     {
       "id": "268299093",
@@ -6320,7 +6495,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268299093.json"
+      "itemPath": "/events/meetup/devparana/268299093.json",
+      "hasOverride": false
     },
     {
       "id": "269156103",
@@ -6359,7 +6535,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269156103.json"
+      "itemPath": "/events/meetup/devparana/269156103.json",
+      "hasOverride": false
     },
     {
       "id": "269243467",
@@ -6402,7 +6579,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269243467.json"
+      "itemPath": "/events/meetup/devparana/269243467.json",
+      "hasOverride": false
     },
     {
       "id": "269060018",
@@ -6445,7 +6623,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269060018.json"
+      "itemPath": "/events/meetup/devparana/269060018.json",
+      "hasOverride": false
     },
     {
       "id": "269292213",
@@ -6488,7 +6667,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269292213.json"
+      "itemPath": "/events/meetup/devparana/269292213.json",
+      "hasOverride": false
     },
     {
       "id": "268833285",
@@ -6527,7 +6707,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/268833285.json"
+      "itemPath": "/events/meetup/devparana/268833285.json",
+      "hasOverride": false
     },
     {
       "id": "269350601",
@@ -6566,7 +6747,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269350601.json"
+      "itemPath": "/events/meetup/devparana/269350601.json",
+      "hasOverride": false
     },
     {
       "id": "269455004",
@@ -6609,7 +6791,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269455004.json"
+      "itemPath": "/events/meetup/devparana/269455004.json",
+      "hasOverride": false
     },
     {
       "id": "269350459",
@@ -6647,7 +6830,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269350459.json"
+      "itemPath": "/events/meetup/devparana/269350459.json",
+      "hasOverride": false
     },
     {
       "id": "269899480",
@@ -6690,7 +6874,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/269899480.json"
+      "itemPath": "/events/meetup/devparana/269899480.json",
+      "hasOverride": false
     },
     {
       "id": "270164314",
@@ -6733,7 +6918,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/270164314.json"
+      "itemPath": "/events/meetup/devparana/270164314.json",
+      "hasOverride": false
     },
     {
       "id": "270528095",
@@ -6772,7 +6958,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/270528095.json"
+      "itemPath": "/events/meetup/devparana/270528095.json",
+      "hasOverride": false
     },
     {
       "id": "270322864",
@@ -6815,7 +7002,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/270322864.json"
+      "itemPath": "/events/meetup/devparana/270322864.json",
+      "hasOverride": false
     },
     {
       "id": "270884139",
@@ -6866,7 +7054,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/270884139.json"
+      "itemPath": "/events/meetup/devparana/270884139.json",
+      "hasOverride": false
     },
     {
       "id": "271181933",
@@ -6901,7 +7090,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271181933.json"
+      "itemPath": "/events/meetup/devparana/271181933.json",
+      "hasOverride": false
     },
     {
       "id": "271042170",
@@ -6952,7 +7142,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271042170.json"
+      "itemPath": "/events/meetup/devparana/271042170.json",
+      "hasOverride": false
     },
     {
       "id": "271626290",
@@ -6987,7 +7178,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271626290.json"
+      "itemPath": "/events/meetup/devparana/271626290.json",
+      "hasOverride": false
     },
     {
       "id": "271654242",
@@ -7022,7 +7214,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271654242.json"
+      "itemPath": "/events/meetup/devparana/271654242.json",
+      "hasOverride": false
     },
     {
       "id": "271626617",
@@ -7057,7 +7250,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271626617.json"
+      "itemPath": "/events/meetup/devparana/271626617.json",
+      "hasOverride": false
     },
     {
       "id": "271918599",
@@ -7092,7 +7286,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/271918599.json"
+      "itemPath": "/events/meetup/devparana/271918599.json",
+      "hasOverride": false
     },
     {
       "id": "272068722",
@@ -7143,7 +7338,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272068722.json"
+      "itemPath": "/events/meetup/devparana/272068722.json",
+      "hasOverride": false
     },
     {
       "id": "272124396",
@@ -7178,7 +7374,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272124396.json"
+      "itemPath": "/events/meetup/devparana/272124396.json",
+      "hasOverride": false
     },
     {
       "id": "272285452",
@@ -7213,7 +7410,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272285452.json"
+      "itemPath": "/events/meetup/devparana/272285452.json",
+      "hasOverride": false
     },
     {
       "id": "272089052",
@@ -7264,7 +7462,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272089052.json"
+      "itemPath": "/events/meetup/devparana/272089052.json",
+      "hasOverride": false
     },
     {
       "id": "272489538",
@@ -7299,7 +7498,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272489538.json"
+      "itemPath": "/events/meetup/devparana/272489538.json",
+      "hasOverride": false
     },
     {
       "id": "272932445",
@@ -7342,7 +7542,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/272932445.json"
+      "itemPath": "/events/meetup/devparana/272932445.json",
+      "hasOverride": false
     },
     {
       "id": "273114764",
@@ -7393,7 +7594,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273114764.json"
+      "itemPath": "/events/meetup/devparana/273114764.json",
+      "hasOverride": false
     },
     {
       "id": "273707722",
@@ -7436,7 +7638,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273707722.json"
+      "itemPath": "/events/meetup/devparana/273707722.json",
+      "hasOverride": false
     },
     {
       "id": "273738419",
@@ -7471,7 +7674,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273738419.json"
+      "itemPath": "/events/meetup/devparana/273738419.json",
+      "hasOverride": false
     },
     {
       "id": "273738571",
@@ -7506,7 +7710,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273738571.json"
+      "itemPath": "/events/meetup/devparana/273738571.json",
+      "hasOverride": false
     },
     {
       "id": "273738784",
@@ -7541,7 +7746,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273738784.json"
+      "itemPath": "/events/meetup/devparana/273738784.json",
+      "hasOverride": false
     },
     {
       "id": "273738827",
@@ -7576,7 +7782,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273738827.json"
+      "itemPath": "/events/meetup/devparana/273738827.json",
+      "hasOverride": false
     },
     {
       "id": "273738870",
@@ -7615,7 +7822,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273738870.json"
+      "itemPath": "/events/meetup/devparana/273738870.json",
+      "hasOverride": false
     },
     {
       "id": "273746704",
@@ -7650,7 +7858,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273746704.json"
+      "itemPath": "/events/meetup/devparana/273746704.json",
+      "hasOverride": false
     },
     {
       "id": "273739001",
@@ -7685,7 +7894,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739001.json"
+      "itemPath": "/events/meetup/devparana/273739001.json",
+      "hasOverride": false
     },
     {
       "id": "273739034",
@@ -7720,7 +7930,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739034.json"
+      "itemPath": "/events/meetup/devparana/273739034.json",
+      "hasOverride": false
     },
     {
       "id": "273739143",
@@ -7755,7 +7966,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739143.json"
+      "itemPath": "/events/meetup/devparana/273739143.json",
+      "hasOverride": false
     },
     {
       "id": "273739195",
@@ -7790,7 +8002,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739195.json"
+      "itemPath": "/events/meetup/devparana/273739195.json",
+      "hasOverride": false
     },
     {
       "id": "273739275",
@@ -7825,7 +8038,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739275.json"
+      "itemPath": "/events/meetup/devparana/273739275.json",
+      "hasOverride": false
     },
     {
       "id": "273739334",
@@ -7860,7 +8074,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739334.json"
+      "itemPath": "/events/meetup/devparana/273739334.json",
+      "hasOverride": false
     },
     {
       "id": "273739382",
@@ -7895,7 +8110,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739382.json"
+      "itemPath": "/events/meetup/devparana/273739382.json",
+      "hasOverride": false
     },
     {
       "id": "273739467",
@@ -7930,7 +8146,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739467.json"
+      "itemPath": "/events/meetup/devparana/273739467.json",
+      "hasOverride": false
     },
     {
       "id": "273739503",
@@ -7965,7 +8182,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/273739503.json"
+      "itemPath": "/events/meetup/devparana/273739503.json",
+      "hasOverride": false
     },
     {
       "id": "274099565",
@@ -8000,7 +8218,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/274099565.json"
+      "itemPath": "/events/meetup/devparana/274099565.json",
+      "hasOverride": false
     },
     {
       "id": "274634840",
@@ -8039,7 +8258,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/274634840.json"
+      "itemPath": "/events/meetup/devparana/274634840.json",
+      "hasOverride": false
     },
     {
       "id": "276061155",
@@ -8074,7 +8294,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/276061155.json"
+      "itemPath": "/events/meetup/devparana/276061155.json",
+      "hasOverride": false
     },
     {
       "id": "276256013",
@@ -8113,7 +8334,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/276256013.json"
+      "itemPath": "/events/meetup/devparana/276256013.json",
+      "hasOverride": false
     },
     {
       "id": "276421047",
@@ -8148,7 +8370,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/276421047.json"
+      "itemPath": "/events/meetup/devparana/276421047.json",
+      "hasOverride": false
     },
     {
       "id": "276666901",
@@ -8183,7 +8406,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/276666901.json"
+      "itemPath": "/events/meetup/devparana/276666901.json",
+      "hasOverride": false
     },
     {
       "id": "276811488",
@@ -8230,7 +8454,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/276811488.json"
+      "itemPath": "/events/meetup/devparana/276811488.json",
+      "hasOverride": false
     },
     {
       "id": "277387765",
@@ -8277,7 +8502,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277387765.json"
+      "itemPath": "/events/meetup/devparana/277387765.json",
+      "hasOverride": false
     },
     {
       "id": "277469328",
@@ -8324,7 +8550,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277469328.json"
+      "itemPath": "/events/meetup/devparana/277469328.json",
+      "hasOverride": false
     },
     {
       "id": "277542503",
@@ -8359,7 +8586,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277542503.json"
+      "itemPath": "/events/meetup/devparana/277542503.json",
+      "hasOverride": false
     },
     {
       "id": "277663446",
@@ -8394,7 +8622,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277663446.json"
+      "itemPath": "/events/meetup/devparana/277663446.json",
+      "hasOverride": false
     },
     {
       "id": "277835180",
@@ -8429,7 +8658,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277835180.json"
+      "itemPath": "/events/meetup/devparana/277835180.json",
+      "hasOverride": false
     },
     {
       "id": "277992085",
@@ -8480,7 +8710,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/277992085.json"
+      "itemPath": "/events/meetup/devparana/277992085.json",
+      "hasOverride": false
     },
     {
       "id": "278257684",
@@ -8515,7 +8746,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278257684.json"
+      "itemPath": "/events/meetup/devparana/278257684.json",
+      "hasOverride": false
     },
     {
       "id": "278474373",
@@ -8554,7 +8786,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278474373.json"
+      "itemPath": "/events/meetup/devparana/278474373.json",
+      "hasOverride": false
     },
     {
       "id": "278646857",
@@ -8589,7 +8822,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278646857.json"
+      "itemPath": "/events/meetup/devparana/278646857.json",
+      "hasOverride": false
     },
     {
       "id": "278477758",
@@ -8640,7 +8874,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278477758.json"
+      "itemPath": "/events/meetup/devparana/278477758.json",
+      "hasOverride": false
     },
     {
       "id": "278734355",
@@ -8687,7 +8922,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278734355.json"
+      "itemPath": "/events/meetup/devparana/278734355.json",
+      "hasOverride": false
     },
     {
       "id": "278474464",
@@ -8722,7 +8958,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278474464.json"
+      "itemPath": "/events/meetup/devparana/278474464.json",
+      "hasOverride": false
     },
     {
       "id": "278572686",
@@ -8773,7 +9010,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278572686.json"
+      "itemPath": "/events/meetup/devparana/278572686.json",
+      "hasOverride": false
     },
     {
       "id": "278702516",
@@ -8808,7 +9046,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/278702516.json"
+      "itemPath": "/events/meetup/devparana/278702516.json",
+      "hasOverride": false
     },
     {
       "id": "279147015",
@@ -8847,7 +9086,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279147015.json"
+      "itemPath": "/events/meetup/devparana/279147015.json",
+      "hasOverride": false
     },
     {
       "id": "279418406",
@@ -8882,7 +9122,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279418406.json"
+      "itemPath": "/events/meetup/devparana/279418406.json",
+      "hasOverride": false
     },
     {
       "id": "279558799",
@@ -8921,7 +9162,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279558799.json"
+      "itemPath": "/events/meetup/devparana/279558799.json",
+      "hasOverride": false
     },
     {
       "id": "279568094",
@@ -8971,7 +9213,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279568094.json"
+      "itemPath": "/events/meetup/devparana/279568094.json",
+      "hasOverride": false
     },
     {
       "id": "279711029",
@@ -9006,7 +9249,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279711029.json"
+      "itemPath": "/events/meetup/devparana/279711029.json",
+      "hasOverride": false
     },
     {
       "id": "279810645",
@@ -9041,7 +9285,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279810645.json"
+      "itemPath": "/events/meetup/devparana/279810645.json",
+      "hasOverride": false
     },
     {
       "id": "279913166",
@@ -9092,7 +9337,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279913166.json"
+      "itemPath": "/events/meetup/devparana/279913166.json",
+      "hasOverride": false
     },
     {
       "id": "279756790",
@@ -9127,7 +9373,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279756790.json"
+      "itemPath": "/events/meetup/devparana/279756790.json",
+      "hasOverride": false
     },
     {
       "id": "280148538",
@@ -9162,7 +9409,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280148538.json"
+      "itemPath": "/events/meetup/devparana/280148538.json",
+      "hasOverride": false
     },
     {
       "id": "279985301",
@@ -9201,7 +9449,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279985301.json"
+      "itemPath": "/events/meetup/devparana/279985301.json",
+      "hasOverride": false
     },
     {
       "id": "280285602",
@@ -9240,7 +9489,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280285602.json"
+      "itemPath": "/events/meetup/devparana/280285602.json",
+      "hasOverride": false
     },
     {
       "id": "280404304",
@@ -9275,7 +9525,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280404304.json"
+      "itemPath": "/events/meetup/devparana/280404304.json",
+      "hasOverride": false
     },
     {
       "id": "280464690",
@@ -9325,7 +9576,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280464690.json"
+      "itemPath": "/events/meetup/devparana/280464690.json",
+      "hasOverride": false
     },
     {
       "id": "280840202",
@@ -9376,7 +9628,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280840202.json"
+      "itemPath": "/events/meetup/devparana/280840202.json",
+      "hasOverride": false
     },
     {
       "id": "280842945",
@@ -9415,7 +9668,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/280842945.json"
+      "itemPath": "/events/meetup/devparana/280842945.json",
+      "hasOverride": false
     },
     {
       "id": "281411991",
@@ -9466,7 +9720,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/281411991.json"
+      "itemPath": "/events/meetup/devparana/281411991.json",
+      "hasOverride": false
     },
     {
       "id": "281542774",
@@ -9516,7 +9771,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/281542774.json"
+      "itemPath": "/events/meetup/devparana/281542774.json",
+      "hasOverride": false
     },
     {
       "id": "285518756",
@@ -9567,7 +9823,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/285518756.json"
+      "itemPath": "/events/meetup/devparana/285518756.json",
+      "hasOverride": false
     },
     {
       "id": "286114408",
@@ -9610,7 +9867,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/286114408.json"
+      "itemPath": "/events/meetup/devparana/286114408.json",
+      "hasOverride": false
     },
     {
       "id": "285872029",
@@ -9645,7 +9903,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/285872029.json"
+      "itemPath": "/events/meetup/devparana/285872029.json",
+      "hasOverride": false
     },
     {
       "id": "286986622",
@@ -9684,7 +9943,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/286986622.json"
+      "itemPath": "/events/meetup/devparana/286986622.json",
+      "hasOverride": false
     },
     {
       "id": "288145638",
@@ -9727,7 +9987,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145638.json"
+      "itemPath": "/events/meetup/devparana/288145638.json",
+      "hasOverride": false
     },
     {
       "id": "288146231",
@@ -9766,7 +10027,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288146231.json"
+      "itemPath": "/events/meetup/devparana/288146231.json",
+      "hasOverride": false
     },
     {
       "id": "288145858",
@@ -9805,7 +10067,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145858.json"
+      "itemPath": "/events/meetup/devparana/288145858.json",
+      "hasOverride": false
     },
     {
       "id": "288145686",
@@ -9840,7 +10103,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145686.json"
+      "itemPath": "/events/meetup/devparana/288145686.json",
+      "hasOverride": false
     },
     {
       "id": "288146362",
@@ -9875,7 +10139,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288146362.json"
+      "itemPath": "/events/meetup/devparana/288146362.json",
+      "hasOverride": false
     },
     {
       "id": "288145840",
@@ -9914,7 +10179,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145840.json"
+      "itemPath": "/events/meetup/devparana/288145840.json",
+      "hasOverride": false
     },
     {
       "id": "288145719",
@@ -9949,7 +10215,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145719.json"
+      "itemPath": "/events/meetup/devparana/288145719.json",
+      "hasOverride": false
     },
     {
       "id": "288146337",
@@ -9988,7 +10255,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288146337.json"
+      "itemPath": "/events/meetup/devparana/288146337.json",
+      "hasOverride": false
     },
     {
       "id": "288145923",
@@ -10027,7 +10295,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145923.json"
+      "itemPath": "/events/meetup/devparana/288145923.json",
+      "hasOverride": false
     },
     {
       "id": "288145759",
@@ -10062,7 +10331,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288145759.json"
+      "itemPath": "/events/meetup/devparana/288145759.json",
+      "hasOverride": false
     },
     {
       "id": "288146376",
@@ -10101,7 +10371,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288146376.json"
+      "itemPath": "/events/meetup/devparana/288146376.json",
+      "hasOverride": false
     },
     {
       "id": "288146072",
@@ -10140,7 +10411,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288146072.json"
+      "itemPath": "/events/meetup/devparana/288146072.json",
+      "hasOverride": false
     },
     {
       "id": "288760128",
@@ -10179,7 +10451,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/288760128.json"
+      "itemPath": "/events/meetup/devparana/288760128.json",
+      "hasOverride": false
     },
     {
       "id": "296968807",
@@ -10214,7 +10487,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968807.json"
+      "itemPath": "/events/meetup/devparana/296968807.json",
+      "hasOverride": false
     },
     {
       "id": "297068163",
@@ -10253,7 +10527,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/297068163.json"
+      "itemPath": "/events/meetup/devparana/297068163.json",
+      "hasOverride": false
     },
     {
       "id": "296968832",
@@ -10292,7 +10567,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968832.json"
+      "itemPath": "/events/meetup/devparana/296968832.json",
+      "hasOverride": false
     },
     {
       "id": "296968164",
@@ -10327,7 +10603,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968164.json"
+      "itemPath": "/events/meetup/devparana/296968164.json",
+      "hasOverride": false
     },
     {
       "id": "296968150",
@@ -10362,7 +10639,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968150.json"
+      "itemPath": "/events/meetup/devparana/296968150.json",
+      "hasOverride": false
     },
     {
       "id": "296955609",
@@ -10397,7 +10675,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296955609.json"
+      "itemPath": "/events/meetup/devparana/296955609.json",
+      "hasOverride": false
     },
     {
       "id": "296968118",
@@ -10432,7 +10711,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968118.json"
+      "itemPath": "/events/meetup/devparana/296968118.json",
+      "hasOverride": false
     },
     {
       "id": "296968137",
@@ -10467,7 +10747,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968137.json"
+      "itemPath": "/events/meetup/devparana/296968137.json",
+      "hasOverride": false
     },
     {
       "id": "296968789",
@@ -10502,7 +10783,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/296968789.json"
+      "itemPath": "/events/meetup/devparana/296968789.json",
+      "hasOverride": false
     },
     {
       "id": "297494015",
@@ -10541,7 +10823,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/297494015.json"
+      "itemPath": "/events/meetup/devparana/297494015.json",
+      "hasOverride": false
     },
     {
       "id": "298660032",
@@ -10584,7 +10867,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/298660032.json"
+      "itemPath": "/events/meetup/devparana/298660032.json",
+      "hasOverride": false
     },
     {
       "id": "299101276",
@@ -10623,7 +10907,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/299101276.json"
+      "itemPath": "/events/meetup/devparana/299101276.json",
+      "hasOverride": false
     },
     {
       "id": "299812455",
@@ -10662,7 +10947,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/299812455.json"
+      "itemPath": "/events/meetup/devparana/299812455.json",
+      "hasOverride": false
     },
     {
       "id": "299930480",
@@ -10701,7 +10987,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/299930480.json"
+      "itemPath": "/events/meetup/devparana/299930480.json",
+      "hasOverride": false
     },
     {
       "id": "300353757",
@@ -10744,7 +11031,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/300353757.json"
+      "itemPath": "/events/meetup/devparana/300353757.json",
+      "hasOverride": false
     },
     {
       "id": "300994634",
@@ -10783,7 +11071,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/300994634.json"
+      "itemPath": "/events/meetup/devparana/300994634.json",
+      "hasOverride": false
     },
     {
       "id": "301302694",
@@ -10822,7 +11111,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/301302694.json"
+      "itemPath": "/events/meetup/devparana/301302694.json",
+      "hasOverride": false
     },
     {
       "id": "301924416",
@@ -10865,7 +11155,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/301924416.json"
+      "itemPath": "/events/meetup/devparana/301924416.json",
+      "hasOverride": false
     },
     {
       "id": "302029144",
@@ -10904,7 +11195,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302029144.json"
+      "itemPath": "/events/meetup/devparana/302029144.json",
+      "hasOverride": false
     },
     {
       "id": "302180253",
@@ -10943,7 +11235,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302180253.json"
+      "itemPath": "/events/meetup/devparana/302180253.json",
+      "hasOverride": false
     },
     {
       "id": "302289420",
@@ -10982,7 +11275,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302289420.json"
+      "itemPath": "/events/meetup/devparana/302289420.json",
+      "hasOverride": false
     },
     {
       "id": "302278680",
@@ -11021,7 +11315,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302278680.json"
+      "itemPath": "/events/meetup/devparana/302278680.json",
+      "hasOverride": false
     },
     {
       "id": "301906944",
@@ -11064,7 +11359,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/301906944.json"
+      "itemPath": "/events/meetup/devparana/301906944.json",
+      "hasOverride": false
     },
     {
       "id": "302998972",
@@ -11103,7 +11399,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302998972.json"
+      "itemPath": "/events/meetup/devparana/302998972.json",
+      "hasOverride": false
     },
     {
       "id": "302825178",
@@ -11146,7 +11443,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/302825178.json"
+      "itemPath": "/events/meetup/devparana/302825178.json",
+      "hasOverride": false
     },
     {
       "id": "303195366",
@@ -11185,7 +11483,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303195366.json"
+      "itemPath": "/events/meetup/devparana/303195366.json",
+      "hasOverride": false
     },
     {
       "id": "303291212",
@@ -11220,7 +11519,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303291212.json"
+      "itemPath": "/events/meetup/devparana/303291212.json",
+      "hasOverride": false
     },
     {
       "id": "303350733",
@@ -11255,7 +11555,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303350733.json"
+      "itemPath": "/events/meetup/devparana/303350733.json",
+      "hasOverride": false
     },
     {
       "id": "303350462",
@@ -11290,7 +11591,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303350462.json"
+      "itemPath": "/events/meetup/devparana/303350462.json",
+      "hasOverride": false
     },
     {
       "id": "303470907",
@@ -11329,7 +11631,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303470907.json"
+      "itemPath": "/events/meetup/devparana/303470907.json",
+      "hasOverride": false
     },
     {
       "id": "303140853",
@@ -11364,7 +11667,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303140853.json"
+      "itemPath": "/events/meetup/devparana/303140853.json",
+      "hasOverride": false
     },
     {
       "id": "303837677",
@@ -11403,7 +11707,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303837677.json"
+      "itemPath": "/events/meetup/devparana/303837677.json",
+      "hasOverride": false
     },
     {
       "id": "303992597",
@@ -11438,7 +11743,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303992597.json"
+      "itemPath": "/events/meetup/devparana/303992597.json",
+      "hasOverride": false
     },
     {
       "id": "303744539",
@@ -11473,7 +11779,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303744539.json"
+      "itemPath": "/events/meetup/devparana/303744539.json",
+      "hasOverride": false
     },
     {
       "id": "303724164",
@@ -11516,7 +11823,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/303724164.json"
+      "itemPath": "/events/meetup/devparana/303724164.json",
+      "hasOverride": false
     },
     {
       "id": "304169055",
@@ -11555,7 +11863,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304169055.json"
+      "itemPath": "/events/meetup/devparana/304169055.json",
+      "hasOverride": false
     },
     {
       "id": "304327962",
@@ -11590,7 +11899,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304327962.json"
+      "itemPath": "/events/meetup/devparana/304327962.json",
+      "hasOverride": false
     },
     {
       "id": "304413082",
@@ -11625,7 +11935,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304413082.json"
+      "itemPath": "/events/meetup/devparana/304413082.json",
+      "hasOverride": false
     },
     {
       "id": "304384508",
@@ -11660,7 +11971,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304384508.json"
+      "itemPath": "/events/meetup/devparana/304384508.json",
+      "hasOverride": false
     },
     {
       "id": "304689625",
@@ -11695,7 +12007,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304689625.json"
+      "itemPath": "/events/meetup/devparana/304689625.json",
+      "hasOverride": false
     },
     {
       "id": "304586915",
@@ -11730,7 +12043,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304586915.json"
+      "itemPath": "/events/meetup/devparana/304586915.json",
+      "hasOverride": false
     },
     {
       "id": "304671994",
@@ -11765,7 +12079,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/304671994.json"
+      "itemPath": "/events/meetup/devparana/304671994.json",
+      "hasOverride": false
     },
     {
       "id": "305485271",
@@ -11800,7 +12115,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/305485271.json"
+      "itemPath": "/events/meetup/devparana/305485271.json",
+      "hasOverride": false
     },
     {
       "id": "305537216",
@@ -11835,7 +12151,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/305537216.json"
+      "itemPath": "/events/meetup/devparana/305537216.json",
+      "hasOverride": false
     },
     {
       "id": "305610840",
@@ -11870,7 +12187,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/305610840.json"
+      "itemPath": "/events/meetup/devparana/305610840.json",
+      "hasOverride": false
     },
     {
       "id": "305658193",
@@ -11909,7 +12227,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/305658193.json"
+      "itemPath": "/events/meetup/devparana/305658193.json",
+      "hasOverride": false
     },
     {
       "id": "306141325",
@@ -11952,7 +12271,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/306141325.json"
+      "itemPath": "/events/meetup/devparana/306141325.json",
+      "hasOverride": false
     },
     {
       "id": "306241888",
@@ -11987,7 +12307,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/306241888.json"
+      "itemPath": "/events/meetup/devparana/306241888.json",
+      "hasOverride": false
     },
     {
       "id": "306254879",
@@ -12022,7 +12343,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/306254879.json"
+      "itemPath": "/events/meetup/devparana/306254879.json",
+      "hasOverride": false
     },
     {
       "id": "306389960",
@@ -12061,7 +12383,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/306389960.json"
+      "itemPath": "/events/meetup/devparana/306389960.json",
+      "hasOverride": false
     },
     {
       "id": "306743613",
@@ -12096,7 +12419,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/306743613.json"
+      "itemPath": "/events/meetup/devparana/306743613.json",
+      "hasOverride": false
     },
     {
       "id": "307051115",
@@ -12139,7 +12463,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307051115.json"
+      "itemPath": "/events/meetup/devparana/307051115.json",
+      "hasOverride": false
     },
     {
       "id": "307109196",
@@ -12174,7 +12499,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307109196.json"
+      "itemPath": "/events/meetup/devparana/307109196.json",
+      "hasOverride": false
     },
     {
       "id": "307168320",
@@ -12208,7 +12534,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307168320.json"
+      "itemPath": "/events/meetup/devparana/307168320.json",
+      "hasOverride": false
     },
     {
       "id": "307468051",
@@ -12243,7 +12570,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307468051.json"
+      "itemPath": "/events/meetup/devparana/307468051.json",
+      "hasOverride": false
     },
     {
       "id": "307718713",
@@ -12286,7 +12614,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307718713.json"
+      "itemPath": "/events/meetup/devparana/307718713.json",
+      "hasOverride": false
     },
     {
       "id": "307988270",
@@ -12321,7 +12650,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307988270.json"
+      "itemPath": "/events/meetup/devparana/307988270.json",
+      "hasOverride": false
     },
     {
       "id": "307923515",
@@ -12360,7 +12690,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307923515.json"
+      "itemPath": "/events/meetup/devparana/307923515.json",
+      "hasOverride": false
     },
     {
       "id": "307808764",
@@ -12395,7 +12726,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/307808764.json"
+      "itemPath": "/events/meetup/devparana/307808764.json",
+      "hasOverride": false
     },
     {
       "id": "308576550",
@@ -12438,7 +12770,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/308576550.json"
+      "itemPath": "/events/meetup/devparana/308576550.json",
+      "hasOverride": false
     },
     {
       "id": "308543626",
@@ -12473,7 +12806,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/308543626.json"
+      "itemPath": "/events/meetup/devparana/308543626.json",
+      "hasOverride": false
     },
     {
       "id": "308554904",
@@ -12508,7 +12842,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/308554904.json"
+      "itemPath": "/events/meetup/devparana/308554904.json",
+      "hasOverride": false
     },
     {
       "id": "309668386",
@@ -12551,7 +12886,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/309668386.json"
+      "itemPath": "/events/meetup/devparana/309668386.json",
+      "hasOverride": false
     },
     {
       "id": "310092361",
@@ -12585,7 +12921,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310092361.json"
+      "itemPath": "/events/meetup/devparana/310092361.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3031834",
@@ -12612,7 +12949,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3031834.json"
+      "itemPath": "/events/sympla/campostech/sympla-3031834.json",
+      "hasOverride": false
     },
     {
       "id": "310654707",
@@ -12651,7 +12989,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310654707.json"
+      "itemPath": "/events/meetup/devparana/310654707.json",
+      "hasOverride": false
     },
     {
       "id": "310474556",
@@ -12690,7 +13029,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310474556.json"
+      "itemPath": "/events/meetup/devparana/310474556.json",
+      "hasOverride": false
     },
     {
       "id": "310507058",
@@ -12729,7 +13069,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310507058.json"
+      "itemPath": "/events/meetup/devparana/310507058.json",
+      "hasOverride": false
     },
     {
       "id": "310840236",
@@ -12768,7 +13109,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310840236.json"
+      "itemPath": "/events/meetup/devparana/310840236.json",
+      "hasOverride": false
     },
     {
       "id": "310712392",
@@ -12803,7 +13145,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310712392.json"
+      "itemPath": "/events/meetup/devparana/310712392.json",
+      "hasOverride": false
     },
     {
       "id": "311082913",
@@ -12838,7 +13181,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311082913.json"
+      "itemPath": "/events/meetup/devparana/311082913.json",
+      "hasOverride": false
     },
     {
       "id": "311193305",
@@ -12881,7 +13225,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311193305.json"
+      "itemPath": "/events/meetup/devparana/311193305.json",
+      "hasOverride": false
     },
     {
       "id": "311294193",
@@ -12916,7 +13261,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311294193.json"
+      "itemPath": "/events/meetup/devparana/311294193.json",
+      "hasOverride": false
     },
     {
       "id": "310957943",
@@ -12951,7 +13297,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/310957943.json"
+      "itemPath": "/events/meetup/devparana/310957943.json",
+      "hasOverride": false
     },
     {
       "id": "311282867",
@@ -12986,7 +13333,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311282867.json"
+      "itemPath": "/events/meetup/devparana/311282867.json",
+      "hasOverride": false
     },
     {
       "id": "311559390",
@@ -13025,7 +13373,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311559390.json"
+      "itemPath": "/events/meetup/devparana/311559390.json",
+      "hasOverride": false
     },
     {
       "id": "311734308",
@@ -13064,7 +13413,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311734308.json"
+      "itemPath": "/events/meetup/devparana/311734308.json",
+      "hasOverride": false
     },
     {
       "id": "311885573",
@@ -13103,7 +13453,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/311885573.json"
+      "itemPath": "/events/meetup/devparana/311885573.json",
+      "hasOverride": false
     },
     {
       "id": "312251635",
@@ -13138,7 +13489,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/312251635.json"
+      "itemPath": "/events/meetup/devparana/312251635.json",
+      "hasOverride": false
     },
     {
       "id": "312256899",
@@ -13173,7 +13525,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/312256899.json"
+      "itemPath": "/events/meetup/devparana/312256899.json",
+      "hasOverride": false
     },
     {
       "id": "312306398",
@@ -13208,7 +13561,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/312306398.json"
+      "itemPath": "/events/meetup/devparana/312306398.json",
+      "hasOverride": false
     },
     {
       "id": "312854466",
@@ -13243,7 +13597,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/312854466.json"
+      "itemPath": "/events/meetup/devparana/312854466.json",
+      "hasOverride": false
     },
     {
       "id": "313006603",
@@ -13278,7 +13633,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313006603.json"
+      "itemPath": "/events/meetup/devparana/313006603.json",
+      "hasOverride": false
     },
     {
       "id": "313204392",
@@ -13317,7 +13673,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313204392.json"
+      "itemPath": "/events/meetup/devparana/313204392.json",
+      "hasOverride": false
     },
     {
       "id": "313448386",
@@ -13352,7 +13709,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313448386.json"
+      "itemPath": "/events/meetup/devparana/313448386.json",
+      "hasOverride": false
     },
     {
       "id": "313444064",
@@ -13387,7 +13745,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313444064.json"
+      "itemPath": "/events/meetup/devparana/313444064.json",
+      "hasOverride": false
     },
     {
       "id": "313777156",
@@ -13426,7 +13785,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313777156.json"
+      "itemPath": "/events/meetup/devparana/313777156.json",
+      "hasOverride": false
     },
     {
       "id": "313716701",
@@ -13465,7 +13825,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313716701.json"
+      "itemPath": "/events/meetup/devparana/313716701.json",
+      "hasOverride": false
     },
     {
       "id": "313775554",
@@ -13500,7 +13861,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313775554.json"
+      "itemPath": "/events/meetup/devparana/313775554.json",
+      "hasOverride": false
     },
     {
       "id": "313816476",
@@ -13535,7 +13897,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313816476.json"
+      "itemPath": "/events/meetup/devparana/313816476.json",
+      "hasOverride": false
     },
     {
       "id": "313816464",
@@ -13570,7 +13933,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313816464.json"
+      "itemPath": "/events/meetup/devparana/313816464.json",
+      "hasOverride": false
     },
     {
       "id": "313793619",
@@ -13605,7 +13969,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313793619.json"
+      "itemPath": "/events/meetup/devparana/313793619.json",
+      "hasOverride": false
     },
     {
       "id": "313786915",
@@ -13640,7 +14005,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313786915.json"
+      "itemPath": "/events/meetup/devparana/313786915.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2388489",
@@ -13667,7 +14033,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2388489.json"
+      "itemPath": "/events/sympla/campostech/sympla-2388489.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3361245",
@@ -13694,7 +14061,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3361245.json"
+      "itemPath": "/events/sympla/campostech/sympla-3361245.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3362405",
@@ -13722,7 +14090,8 @@
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json",
+      "hasOverride": false
     },
     {
       "id": "313849624",
@@ -13757,7 +14126,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313849624.json"
+      "itemPath": "/events/meetup/devparana/313849624.json",
+      "hasOverride": false
     },
     {
       "id": "313962722",
@@ -13792,7 +14162,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962722.json"
+      "itemPath": "/events/meetup/devparana/313962722.json",
+      "hasOverride": false
     },
     {
       "id": "313849606",
@@ -13827,7 +14198,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313849606.json"
+      "itemPath": "/events/meetup/devparana/313849606.json",
+      "hasOverride": false
     },
     {
       "id": "313962751",
@@ -13866,7 +14238,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962751.json"
+      "itemPath": "/events/meetup/devparana/313962751.json",
+      "hasOverride": false
     },
     {
       "id": "313962830",
@@ -13905,7 +14278,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962830.json"
+      "itemPath": "/events/meetup/devparana/313962830.json",
+      "hasOverride": false
     },
     {
       "id": "313962842",
@@ -13940,7 +14314,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962842.json"
+      "itemPath": "/events/meetup/devparana/313962842.json",
+      "hasOverride": false
     },
     {
       "id": "313962822",
@@ -13975,7 +14350,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962822.json"
+      "itemPath": "/events/meetup/devparana/313962822.json",
+      "hasOverride": false
     },
     {
       "id": "1488598924481527898",
@@ -14003,7 +14379,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488598924481527898.json"
+      "itemPath": "/events/discord/codaqui/1488598924481527898.json",
+      "hasOverride": false
     },
     {
       "id": "1488600399492415608",
@@ -14031,7 +14408,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600399492415608.json"
+      "itemPath": "/events/discord/codaqui/1488600399492415608.json",
+      "hasOverride": false
     },
     {
       "id": "313962851",
@@ -14070,7 +14448,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962851.json"
+      "itemPath": "/events/meetup/devparana/313962851.json",
+      "hasOverride": false
     },
     {
       "id": "1488600541641576699",
@@ -14098,7 +14477,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600541641576699.json"
+      "itemPath": "/events/discord/codaqui/1488600541641576699.json",
+      "hasOverride": false
     },
     {
       "id": "313962877",
@@ -14133,7 +14513,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962877.json"
+      "itemPath": "/events/meetup/devparana/313962877.json",
+      "hasOverride": false
     },
     {
       "id": "313962865",
@@ -14176,7 +14557,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962865.json"
+      "itemPath": "/events/meetup/devparana/313962865.json",
+      "hasOverride": false
     },
     {
       "id": "313962755",
@@ -14219,7 +14601,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962755.json"
+      "itemPath": "/events/meetup/devparana/313962755.json",
+      "hasOverride": false
     },
     {
       "id": "313962810",
@@ -14254,7 +14637,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962810.json"
+      "itemPath": "/events/meetup/devparana/313962810.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-9357cced-df19-5145-91e7-a5eee55966ad",
@@ -14295,7 +14679,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-9357cced-df19-5145-91e7-a5eee55966ad.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-9357cced-df19-5145-91e7-a5eee55966ad.json",
+      "hasOverride": false
     },
     {
       "id": "313962761",
@@ -14330,7 +14715,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/313962761.json"
+      "itemPath": "/events/meetup/devparana/313962761.json",
+      "hasOverride": false
     },
     {
       "id": "1488599076889952267",
@@ -14358,7 +14744,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599076889952267.json"
+      "itemPath": "/events/discord/codaqui/1488599076889952267.json",
+      "hasOverride": false
     },
     {
       "id": "1488600661410054387",
@@ -14386,7 +14773,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600661410054387.json"
+      "itemPath": "/events/discord/codaqui/1488600661410054387.json",
+      "hasOverride": false
     },
     {
       "id": "1488600812107202620",
@@ -14414,7 +14802,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600812107202620.json"
+      "itemPath": "/events/discord/codaqui/1488600812107202620.json",
+      "hasOverride": false
     },
     {
       "id": "1488599694325317784",
@@ -14448,7 +14837,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599694325317784.json"
+      "itemPath": "/events/discord/codaqui/1488599694325317784.json",
+      "hasOverride": false
     },
     {
       "id": "1498450972551155793",
@@ -14482,7 +14872,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450972551155793.json"
+      "itemPath": "/events/discord/codaqui/1498450972551155793.json",
+      "hasOverride": false
     },
     {
       "id": "1488599981085429880",
@@ -14516,7 +14907,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599981085429880.json"
+      "itemPath": "/events/discord/codaqui/1488599981085429880.json",
+      "hasOverride": false
     },
     {
       "id": "1498451178764107797",
@@ -14550,7 +14942,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498451178764107797.json"
+      "itemPath": "/events/discord/codaqui/1498451178764107797.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-1983086",
@@ -14577,7 +14970,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-1983086.json"
+      "itemPath": "/events/sympla/campostech/sympla-1983086.json",
+      "hasOverride": false
     },
     {
       "id": "314707318",
@@ -14612,7 +15006,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/314707318.json"
+      "itemPath": "/events/meetup/devparana/314707318.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3421888",
@@ -14623,7 +15018,7 @@
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "Elas no Código",
-      "location": "Ativar para ir para o menu de acessibilidade",
+      "location": "Ativar para ir para o player da Audima",
       "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888",
       "tags": [
         "elasnocodigo",
@@ -14640,7 +15035,8 @@
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json",
+      "hasOverride": false
     },
     {
       "id": "1498450535655931944",
@@ -14674,7 +15070,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450535655931944.json"
+      "itemPath": "/events/discord/codaqui/1498450535655931944.json",
+      "hasOverride": false
     },
     {
       "id": "314774699",
@@ -14725,7 +15122,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/314774699.json"
+      "itemPath": "/events/meetup/devparana/314774699.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91",
@@ -14766,7 +15164,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2016945",
@@ -14793,7 +15192,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2016945.json"
+      "itemPath": "/events/sympla/campostech/sympla-2016945.json",
+      "hasOverride": false
     },
     {
       "id": "315134319",
@@ -14832,7 +15232,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315134319.json"
+      "itemPath": "/events/meetup/devparana/315134319.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3462044",
@@ -14859,7 +15260,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3462044.json"
+      "itemPath": "/events/sympla/campostech/sympla-3462044.json",
+      "hasOverride": false
     },
     {
       "id": "315307199",
@@ -14910,7 +15312,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315307199.json"
+      "itemPath": "/events/meetup/devparana/315307199.json",
+      "hasOverride": false
     },
     {
       "id": "315429162",
@@ -14945,7 +15348,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315429162.json"
+      "itemPath": "/events/meetup/devparana/315429162.json",
+      "hasOverride": false
     },
     {
       "id": "315282938",
@@ -14984,7 +15388,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315282938.json"
+      "itemPath": "/events/meetup/devparana/315282938.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2054515",
@@ -15011,7 +15416,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2054515.json"
+      "itemPath": "/events/sympla/campostech/sympla-2054515.json",
+      "hasOverride": false
     },
     {
       "id": "315702026",
@@ -15050,13 +15456,14 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315702026.json"
+      "itemPath": "/events/meetup/devparana/315702026.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2582075",
       "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-31T18:28:33.635Z",
+      "startAt": "2026-07-31T19:30:03.508Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15077,13 +15484,14 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2582075.json"
+      "itemPath": "/events/sympla/campostech/sympla-2582075.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2452255",
       "title": "Minicurso: DevOps - Uma infraestrutura ágil para automatizar o seu deploy",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-31T18:28:33.635Z",
+      "startAt": "2026-07-31T19:30:03.508Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15104,13 +15512,14 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2452255.json"
+      "itemPath": "/events/sympla/campostech/sympla-2452255.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2321587",
       "title": "Minicurso: Teste de API na Prática!",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-31T18:28:33.635Z",
+      "startAt": "2026-07-31T19:30:03.509Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15131,7 +15540,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2321587.json"
+      "itemPath": "/events/sympla/campostech/sympla-2321587.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
@@ -15172,7 +15582,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838.json",
+      "hasOverride": true
     },
     {
       "id": "1338983526858494053",
@@ -15215,7 +15626,8 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1338983526858494053.json"
+      "itemPath": "/events/discord/codaqui/1338983526858494053.json",
+      "hasOverride": false
     },
     {
       "id": "279713902",
@@ -15258,7 +15670,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279713902.json"
+      "itemPath": "/events/meetup/devparana/279713902.json",
+      "hasOverride": false
     },
     {
       "id": "315903291",
@@ -15309,7 +15722,8 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315903291.json"
+      "itemPath": "/events/meetup/devparana/315903291.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45",
@@ -15349,7 +15763,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6",
@@ -15389,7 +15804,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d",
@@ -15429,7 +15845,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5",
@@ -15469,7 +15886,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5.json",
+      "hasOverride": false
     }
   ]
 }
