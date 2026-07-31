@@ -68,8 +68,10 @@ import {
   buildSourceWildcardScope,
   computeCompleteness,
   formStateFromExtendData,
+  generateSpeakerId,
   isValidScope,
   type OverrideFormState,
+  type SpeakerFormItem,
 } from "../../utils/event-override-form";
 
 // ─── Tipos locais ────────────────────────────────────────────────────────────
@@ -131,12 +133,12 @@ interface ImportReport {
 }
 
 interface TabCommonProps {
-  apiUrl: string;
-  authFetch: AuthFetch;
-  events: EventSummary[];
-  sourceLabel: (sourceKey: string) => string;
+  readonly apiUrl: string;
+  readonly authFetch: AuthFetch;
+  readonly events: EventSummary[];
+  readonly sourceLabel: (sourceKey: string) => string;
   /** Evento pré-selecionado via query string (?sourceKey=&eventId=) — aplicado uma vez. */
-  initialSelected?: EventSummary | null;
+  readonly initialSelected?: EventSummary | null;
 }
 
 // ─── Helpers locais ──────────────────────────────────────────────────────────
@@ -194,17 +196,19 @@ const PrLink = ({ pr }: { pr: PrInfo }) => (
 const EVENT_SEARCH_MAX_RESULTS = 30;
 const EVENT_DEFAULT_OPTIONS = 10;
 
+interface ExternalEventAutocompleteProps {
+  readonly events: EventSummary[];
+  readonly sourceLabel: (sourceKey: string) => string;
+  readonly value: EventSummary | null;
+  readonly onChange: (event: EventSummary | null) => void;
+}
+
 function ExternalEventAutocomplete({
   events,
   sourceLabel,
   value,
   onChange,
-}: {
-  events: EventSummary[];
-  sourceLabel: (sourceKey: string) => string;
-  value: EventSummary | null;
-  onChange: (event: EventSummary | null) => void;
-}): React.JSX.Element {
+}: ExternalEventAutocompleteProps): React.JSX.Element {
   const [inputValue, setInputValue] = useState("");
 
   const options = useMemo(() => {
@@ -389,10 +393,10 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
     }
   };
 
-  const updateSpeaker = (index: number, patch: Partial<EventSpeaker>) =>
+  const updateSpeaker = (id: string, patch: Partial<EventSpeaker>) =>
     setForm((prev) => ({
       ...prev,
-      speakers: prev.speakers.map((s, i) => (i === index ? { ...s, ...patch } : s)),
+      speakers: prev.speakers.map((s) => (s.id === id ? { ...s, ...patch } : s)),
     }));
 
   return (
@@ -518,7 +522,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                   </Typography>
                   <Stack spacing={2}>
                     {form.speakers.map((speaker, index) => (
-                      <Card key={index} variant="outlined">
+                      <Card key={speaker.id} variant="outlined">
                         <CardContent sx={{ pb: "16px !important" }}>
                           <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
                             <Typography variant="caption" color="text.secondary">
@@ -530,7 +534,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               onClick={() =>
                                 setForm((prev) => ({
                                   ...prev,
-                                  speakers: prev.speakers.filter((_, i) => i !== index),
+                                  speakers: prev.speakers.filter((s) => s.id !== speaker.id),
                                 }))
                               }
                             >
@@ -542,7 +546,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               <TextField
                                 label="Nome *"
                                 value={speaker.name}
-                                onChange={(e) => updateSpeaker(index, { name: e.target.value })}
+                                onChange={(e) => updateSpeaker(speaker.id, { name: e.target.value })}
                                 fullWidth
                                 size="small"
                               />
@@ -551,7 +555,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               <TextField
                                 label="Handle do GitHub"
                                 value={speaker.handle ?? ""}
-                                onChange={(e) => updateSpeaker(index, { handle: e.target.value })}
+                                onChange={(e) => updateSpeaker(speaker.id, { handle: e.target.value })}
                                 fullWidth
                                 size="small"
                               />
@@ -560,7 +564,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               <TextField
                                 label="Título da palestra"
                                 value={speaker.talkTitle ?? ""}
-                                onChange={(e) => updateSpeaker(index, { talkTitle: e.target.value })}
+                                onChange={(e) => updateSpeaker(speaker.id, { talkTitle: e.target.value })}
                                 fullWidth
                                 size="small"
                               />
@@ -569,7 +573,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               <TextField
                                 label="URL do avatar"
                                 value={speaker.avatarUrl ?? ""}
-                                onChange={(e) => updateSpeaker(index, { avatarUrl: e.target.value })}
+                                onChange={(e) => updateSpeaker(speaker.id, { avatarUrl: e.target.value })}
                                 fullWidth
                                 size="small"
                               />
@@ -578,7 +582,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                               <TextField
                                 label="URL do perfil (GitHub, LinkedIn, site)"
                                 value={speaker.profileUrl ?? ""}
-                                onChange={(e) => updateSpeaker(index, { profileUrl: e.target.value })}
+                                onChange={(e) => updateSpeaker(speaker.id, { profileUrl: e.target.value })}
                                 fullWidth
                                 size="small"
                               />
@@ -595,7 +599,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                       onClick={() =>
                         setForm((prev) => ({
                           ...prev,
-                          speakers: [...prev.speakers, { name: "" }],
+                          speakers: [...prev.speakers, { id: generateSpeakerId(), name: "" }],
                         }))
                       }
                       sx={{ alignSelf: "flex-start" }}
@@ -744,15 +748,17 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
 
 // ─── Aba 2: Organizers (somente admin) ───────────────────────────────────────
 
+interface OrganizersTabProps {
+  readonly apiUrl: string;
+  readonly authFetch: AuthFetch;
+  readonly sources: EventSourceSummary[];
+}
+
 function OrganizersTab({
   apiUrl,
   authFetch,
   sources,
-}: {
-  apiUrl: string;
-  authFetch: AuthFetch;
-  sources: EventSourceSummary[];
-}): React.JSX.Element {
+}: OrganizersTabProps): React.JSX.Element {
   const [data, setData] = useState<OrganizersFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -1686,7 +1692,7 @@ function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected
 
                   <Box sx={{ display: "flex", gap: 1, alignItems: "center", mb: 2, flexWrap: "wrap" }}>
                     <Button component="label" variant="outlined" startIcon={<UploadFileIcon />}>
-                      Selecionar arquivo .csv
+                      Selecionar arquivo .csv{" "}
                       <input
                         hidden
                         type="file"

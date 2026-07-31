@@ -10,6 +10,11 @@ export const TAGS_MAX = 10;
 export const SPEAKERS_MAX = 10;
 export const WORKLOAD_MAX_MINUTES = 1000;
 
+/** Palestrante no estado do formulário, com id estável para renderização. */
+export interface SpeakerFormItem extends EventSpeaker {
+  id: string;
+}
+
 /** Estado do formulário de override (todos os campos como strings/listas). */
 export interface OverrideFormState {
   title: string;
@@ -18,7 +23,7 @@ export interface OverrideFormState {
   location: string;
   tags: string[];
   featured: boolean;
-  speakers: EventSpeaker[];
+  speakers: SpeakerFormItem[];
   registrationUrl: string;
   slidesUrl: string;
   videoUrl: string;
@@ -41,6 +46,13 @@ export const EMPTY_OVERRIDE_FORM: OverrideFormState = {
   workloadMinutes: "",
 };
 
+export function generateSpeakerId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
 /** Converte um `extendData` existente em estado de formulário (pré-preenchimento). */
 export function formStateFromExtendData(
   data?: EventExtendData | null
@@ -55,7 +67,7 @@ export function formStateFromExtendData(
     location: data.location ?? "",
     tags: [...(data.tags ?? [])],
     featured: data.featured ?? false,
-    speakers: (data.speakers ?? []).map((s) => ({ ...s })),
+    speakers: (data.speakers ?? []).map((s) => ({ ...s, id: generateSpeakerId() })),
     registrationUrl: data.registrationUrl ?? "",
     slidesUrl: data.slidesUrl ?? "",
     videoUrl: data.videoUrl ?? "",
@@ -103,7 +115,9 @@ export function buildExtendData(form: OverrideFormState): EventExtendData {
 
   if (form.featured) data.featured = true;
 
-  const speakers = form.speakers.map(cleanSpeaker).filter((s) => s.name);
+  const speakers = form.speakers
+    .map((s) => cleanSpeaker(s))
+    .filter((s) => s.name);
   if (speakers.length > 0) data.speakers = speakers;
 
   const registrationUrl = clean(form.registrationUrl);

@@ -236,6 +236,47 @@ function isValidDateTimeLocal(value: string): boolean {
   return !Number.isNaN(d.getTime());
 }
 
+interface EventValidationResult {
+  error?: string;
+  payload?: Record<string, unknown>;
+}
+
+function buildEventPayload(form: EventForm): EventValidationResult {
+  if (!form.slug.trim() || !form.title.trim() || !form.summary.trim() || !form.location.trim()) {
+    return { error: "Preencha slug, título, resumo e local." };
+  }
+  if (!isValidDateTimeLocal(form.startAt)) {
+    return { error: "Informe uma data/hora de início válida (incluindo horas e minutos)." };
+  }
+  const startIso = fromDateTimeLocal(form.startAt);
+  if (!startIso) {
+    return { error: "Data/hora de início inválida." };
+  }
+  const payload: Record<string, unknown> = {
+    slug: form.slug.trim(),
+    title: form.title.trim(),
+    summary: form.summary.trim(),
+    location: form.location.trim(),
+    startAt: startIso,
+    communityProjectKey: form.communityProjectKey,
+  };
+  if (form.imageUrl.trim()) payload.imageUrl = form.imageUrl.trim();
+  if (form.endAt && !isValidDateTimeLocal(form.endAt)) {
+    return { error: "Data/hora de término inválida. Deixe em branco ou informe data e hora completas." };
+  }
+  const endIso = fromDateTimeLocal(form.endAt);
+  if (endIso) payload.endAt = endIso;
+  if (form.timezone.trim()) payload.timezone = form.timezone.trim();
+  if (form.capacity.trim()) {
+    const cap = Number.parseInt(form.capacity, 10);
+    if (Number.isNaN(cap) || cap <= 0) {
+      return { error: "Capacidade inválida." };
+    }
+    payload.capacity = cap;
+  }
+  return { payload };
+}
+
 // ── Formulários ──────────────────────────────────────────────────────────────
 
 interface EventForm {
@@ -283,6 +324,563 @@ const EMPTY_TICKET_FORM: TicketForm = {
   salesEndAt: "",
   maxPerOrder: "1",
 };
+
+// ── Sub-componentes do hub ───────────────────────────────────────────────────
+
+interface HubAlertsProps {
+  snapshotResult: SnapshotResult | null;
+  snapshotError: string;
+  publishSuccess: ManagedEvent | null;
+  saveSuccess: { event: ManagedEvent; mode: "create" | "edit" } | null;
+  onCloseSnapshotError: () => void;
+  onCloseSnapshotResult: () => void;
+  onClosePublishSuccess: () => void;
+  onCloseSaveSuccess: () => void;
+}
+
+function HubAlerts({
+  snapshotResult,
+  snapshotError,
+  publishSuccess,
+  saveSuccess,
+  onCloseSnapshotError,
+  onCloseSnapshotResult,
+  onClosePublishSuccess,
+  onCloseSaveSuccess,
+}: HubAlertsProps): React.JSX.Element {
+  return (
+    <>
+      {snapshotError && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={onCloseSnapshotError}>
+          {snapshotError}
+        </Alert>
+      )}
+      {snapshotResult === "skipped" && (
+        <Alert severity="info" sx={{ mb: 3 }} onClose={onCloseSnapshotResult}>
+          Nada a sincronizar — o snapshot de eventos próprios já está atualizado.
+        </Alert>
+      )}
+      {snapshotResult && snapshotResult !== "skipped" && (
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={onCloseSnapshotResult}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              endIcon={<OpenInNewIcon />}
+              href={snapshotResult.prUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {snapshotResult.prNumber ? `PR #${snapshotResult.prNumber}` : "Abrir PR"}
+            </Button>
+          }
+        >
+          Snapshot enviado via Pull Request — o merge é automático e a página de eventos leva
+          alguns minutos para rebuildar.
+        </Alert>
+      )}
+      {publishSuccess && (
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={onClosePublishSuccess}
+          action={
+            <Button
+              component={Link}
+              href={publicEventUrl(publishSuccess.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              color="inherit"
+              size="small"
+              endIcon={<OpenInNewIcon />}
+            >
+              Ver página pública
+            </Button>
+          }
+        >
+          Evento <strong>{publishSuccess.title}</strong> publicado com sucesso.
+        </Alert>
+      )}
+      {saveSuccess && (
+        <Alert
+          severity="success"
+          sx={{ mb: 3 }}
+          onClose={onCloseSaveSuccess}
+          action={
+            <Button
+              component={Link}
+              href={publicEventUrl(saveSuccess.event.id)}
+              target="_blank"
+              rel="noopener noreferrer"
+              color="inherit"
+              size="small"
+              endIcon={<OpenInNewIcon />}
+            >
+              Ver página do evento
+            </Button>
+          }
+        >
+          Evento <strong>{saveSuccess.event.title}</strong>{" "}
+          {saveSuccess.mode === "create" ? "criado" : "atualizado"} com sucesso.
+        </Alert>
+      )}
+    </>
+  );
+}
+
+interface HubFiltersProps {
+  search: string;
+  showInternos: boolean;
+  showExternos: boolean;
+  onlyOverride: boolean;
+  onlyEditable: boolean;
+  onlyFeatures: boolean;
+  communityFilter: string;
+  onSearchChange: (value: string) => void;
+  onToggleInternos: () => void;
+  onToggleExternos: () => void;
+  onToggleOverride: () => void;
+  onToggleEditable: () => void;
+  onToggleFeatures: () => void;
+  onCommunityChange: (value: string) => void;
+}
+
+function HubFilters({
+  search,
+  showInternos,
+  showExternos,
+  onlyOverride,
+  onlyEditable,
+  onlyFeatures,
+  communityFilter,
+  onSearchChange,
+  onToggleInternos,
+  onToggleExternos,
+  onToggleOverride,
+  onToggleEditable,
+  onToggleFeatures,
+  onCommunityChange,
+}: HubFiltersProps): React.JSX.Element {
+  return (
+    <Card variant="outlined" sx={{ mb: 2 }}>
+      <CardContent sx={{ pb: "16px !important" }}>
+        <TextField
+          size="small"
+          fullWidth
+          label="Buscar por título"
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          sx={{ mb: 1.5 }}
+        />
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
+          <Chip
+            label="Internos"
+            clickable
+            color={showInternos ? "primary" : "default"}
+            variant={showInternos ? "filled" : "outlined"}
+            onClick={onToggleInternos}
+          />
+          <Chip
+            label="Externos"
+            clickable
+            color={showExternos ? "primary" : "default"}
+            variant={showExternos ? "filled" : "outlined"}
+            onClick={onToggleExternos}
+          />
+          <Chip
+            label="Com override"
+            clickable
+            color={onlyOverride ? "primary" : "default"}
+            variant={onlyOverride ? "filled" : "outlined"}
+            onClick={onToggleOverride}
+          />
+          <Chip
+            label="Posso editar"
+            clickable
+            color={onlyEditable ? "primary" : "default"}
+            variant={onlyEditable ? "filled" : "outlined"}
+            onClick={onToggleEditable}
+          />
+          <Chip
+            label="Com features ativas"
+            clickable
+            color={onlyFeatures ? "primary" : "default"}
+            variant={onlyFeatures ? "filled" : "outlined"}
+            onClick={onToggleFeatures}
+          />
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="community-filter-label">Comunidade</InputLabel>
+            <Select
+              labelId="community-filter-label"
+              value={communityFilter}
+              label="Comunidade"
+              onChange={(e) => onCommunityChange(e.target.value)}
+            >
+              <MenuItem value="">Todas</MenuItem>
+              {COMMUNITY_OPTIONS.map((c) => (
+                <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ExternalEventCardProps {
+  row: HubRow & { kind: "external" };
+  sourceLabel: (sourceKey: string) => string;
+  onOrdersClick: (eventKey: string, title: string) => void;
+}
+
+function ExternalEventCard({ row, sourceLabel, onOrdersClick }: ExternalEventCardProps): React.JSX.Element {
+  const ev = row.event;
+  const eventKey = `${ev.sourceKey}:${ev.id}`;
+  const overrideQuery = `sourceKey=${encodeURIComponent(ev.sourceKey)}&eventId=${encodeURIComponent(ev.id)}`;
+  const checkinEventParam = encodeURIComponent(`external:${eventKey}`);
+
+  return (
+    <Card variant="outlined" sx={{ mb: 1 }}>
+      <CardContent sx={{ pb: "16px !important" }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+          <Typography fontWeight={700}>{ev.title}</Typography>
+          <Chip
+            label={`Externo · ${sourceLabel(ev.sourceKey)}`}
+            size="small"
+            variant="outlined"
+          />
+          {row.hasOverride && (
+            <Chip label="Override" size="small" color="primary" variant="outlined" />
+          )}
+          {row.canEdit && (
+            <Chip label="Você pode editar" size="small" color="success" variant="outlined" />
+          )}
+          {row.features.map((f) => (
+            <Chip
+              key={f}
+              label={FEATURE_LABEL[f] ?? f}
+              size="small"
+              color="secondary"
+              variant="outlined"
+            />
+          ))}
+          {row.communityProjectKey && (
+            <Chip
+              label={`Comunidade: ${row.communityProjectKey}`}
+              size="small"
+              variant="outlined"
+            />
+          )}
+          {row.ownerHandle && (
+            <Chip
+              label={`Owner: @${row.ownerHandle}`}
+              size="small"
+              color="info"
+              variant="outlined"
+            />
+          )}
+          <Typography variant="body2" color="text.secondary">
+            {formatDateTime(ev.startAt)}
+            {ev.location ? ` · ${ev.location}` : ""}
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<EditIcon />}
+            component={Link}
+            href={`/admin/overrides?tab=0&${overrideQuery}`}
+          >
+            Editar metadados
+          </Button>
+          <Button
+            size="small"
+            variant="text"
+            startIcon={<ExtensionIcon />}
+            component={Link}
+            href={`/admin/overrides?tab=2&${overrideQuery}`}
+          >
+            Plugins
+          </Button>
+          {row.features.includes("payments") && (
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<ReceiptLongIcon />}
+              onClick={() => onOrdersClick(eventKey, ev.title)}
+            >
+              Pedidos
+            </Button>
+          )}
+          {row.features.includes("checkin") && (
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<HowToRegIcon />}
+              component={Link}
+              href={`/admin/eventos-checkin?event=${checkinEventParam}`}
+            >
+              Check-in
+            </Button>
+          )}
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface InternalEventAccordionProps {
+  row: HubRow & { kind: "internal" };
+  members: MemberOption[];
+  membersById: Map<string, MemberOption>;
+  staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
+  onEdit: (event: ManagedEvent) => void;
+  onPublish: (event: ManagedEvent) => void;
+  onCancel: (event: ManagedEvent) => void;
+  onOrdersClick: (eventId: string, title: string) => void;
+  onReimbursementClick: (event: ManagedEvent) => void;
+  onAddTicketClick: (event: ManagedEvent) => void;
+  onDeactivateTicket: (ticket: TicketType) => void;
+  onAddStaff: (event: ManagedEvent) => void;
+  onRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
+  onStaffMemberChange: (eventId: string, memberId: string) => void;
+  onStaffRoleChange: (eventId: string, staffRole: EventStaffRole) => void;
+}
+
+function InternalEventAccordion({
+  row,
+  members,
+  membersById,
+  staffForm,
+  onEdit,
+  onPublish,
+  onCancel,
+  onOrdersClick,
+  onReimbursementClick,
+  onAddTicketClick,
+  onDeactivateTicket,
+  onAddStaff,
+  onRemoveStaff,
+  onStaffMemberChange,
+  onStaffRoleChange,
+}: InternalEventAccordionProps): React.JSX.Element {
+  const event = row.event;
+  return (
+    <Accordion sx={{ mb: 1 }}>
+      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", width: "100%" }}>
+          <Typography fontWeight={700}>{event.title}</Typography>
+          <Chip label="Interno" size="small" color="primary" variant="outlined" />
+          <Chip label={STATUS_LABEL[event.status]} size="small" color={STATUS_COLOR[event.status]} variant="outlined" />
+          <Chip label="Você pode editar" size="small" color="success" variant="outlined" />
+          <Typography variant="body2" color="text.secondary">
+            {formatDateTime(event.startAt)} · {event.location}
+          </Typography>
+        </Box>
+      </AccordionSummary>
+      <AccordionDetails>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {event.summary}
+        </Typography>
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+          <Chip label={`Comunidade: ${event.communityProjectKey}`} size="small" variant="outlined" />
+          {event.capacity != null && (
+            <Chip label={`Capacidade: ${event.capacity}`} size="small" variant="outlined" />
+          )}
+          <Chip label={`/${event.slug}`} size="small" variant="outlined" />
+        </Stack>
+
+        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
+          {(event.status === "draft" || event.status === "published") && (
+            <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={() => onEdit(event)}>
+              Editar
+            </Button>
+          )}
+          {event.status === "draft" && (
+            <Button size="small" variant="contained" color="success" startIcon={<PublishIcon />} onClick={() => onPublish(event)}>
+              Publicar
+            </Button>
+          )}
+          <Tooltip
+            title={
+              event.status === "draft"
+                ? "Rascunhos não aparecem na página pública — publique o evento primeiro"
+                : ""
+            }
+          >
+            <span>
+              <Button
+                size="small"
+                variant="text"
+                component={Link}
+                href={publicEventUrl(event.id)}
+                target="_blank"
+                rel="noopener noreferrer"
+                endIcon={<OpenInNewIcon />}
+              >
+                Ver página pública
+              </Button>
+            </span>
+          </Tooltip>
+          {(event.status === "draft" || event.status === "published") && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              startIcon={<CancelIcon />}
+              onClick={() => onCancel(event)}
+            >
+              Cancelar evento
+            </Button>
+          )}
+          <Button
+            size="small"
+            variant="text"
+            startIcon={<ReceiptLongIcon />}
+            onClick={() => onOrdersClick(event.id, event.title)}
+          >
+            Pedidos
+          </Button>
+          <Button
+            size="small"
+            variant="text"
+            startIcon={<AddIcon />}
+            onClick={() => onReimbursementClick(event)}
+          >
+            Lançar despesa
+          </Button>
+        </Stack>
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* ── Tipos de ingresso ── */}
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+          <Typography variant="subtitle2" fontWeight={700}>
+            Tipos de ingresso ({event.ticketTypes?.length ?? 0})
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={() => onAddTicketClick(event)}
+          >
+            Adicionar tipo
+          </Button>
+        </Box>
+        {(event.ticketTypes ?? []).length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Nenhum tipo de ingresso cadastrado.
+          </Typography>
+        ) : (
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            {event.ticketTypes.map((ticket) => (
+              <Box
+                key={ticket.id}
+                sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+              >
+                <Typography variant="body2" fontWeight={600}>{ticket.name}</Typography>
+                <Chip label={KIND_LABEL[ticket.kind]} size="small" variant="outlined" />
+                {ticket.priceCents > 0 && (
+                  <Chip label={formatBRLFromCents(ticket.priceCents)} size="small" color="success" variant="outlined" />
+                )}
+                <Chip label={`Vendidos: ${ticket.quantitySold ?? 0}/${ticket.quantityTotal}`} size="small" variant="outlined" />
+                {!ticket.isActive && <Chip label="Inativo" size="small" color="default" />}
+                <Box sx={{ flex: 1 }} />
+                {ticket.isActive && (
+                  <Tooltip title="Desativar tipo de ingresso">
+                    <IconButton size="small" aria-label={`desativar ${ticket.name}`} onClick={() => onDeactivateTicket(ticket)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Box>
+            ))}
+          </Stack>
+        )}
+
+        <Divider sx={{ my: 2 }} />
+
+        {/* ── Staff ── */}
+        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+          Equipe do evento ({event.staff?.length ?? 0})
+        </Typography>
+        {(event.staff ?? []).length === 0 ? (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Nenhum membro na equipe deste evento.
+          </Typography>
+        ) : (
+          <Stack spacing={1} sx={{ mb: 2 }}>
+            {event.staff.map((staff) => {
+              const member = membersById.get(staff.memberId);
+              return (
+                <Box
+                  key={staff.id}
+                  sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
+                >
+                  <Typography variant="body2" fontWeight={600}>
+                    {member ? `${member.name} (@${member.githubHandle})` : staff.memberId}
+                  </Typography>
+                  <Chip label={STAFF_ROLE_LABEL[staff.staffRole]} size="small" color="secondary" variant="outlined" />
+                  <Box sx={{ flex: 1 }} />
+                  <Tooltip title="Remover da equipe">
+                    <IconButton size="small" aria-label="remover staff" onClick={() => onRemoveStaff(event, staff)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              );
+            })}
+          </Stack>
+        )}
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+          <FormControl size="small" sx={{ minWidth: 220 }}>
+            <InputLabel id={`staff-member-label-${event.id}`}>Membro</InputLabel>
+            <Select
+              labelId={`staff-member-label-${event.id}`}
+              label="Membro"
+              value={staffForm[event.id]?.memberId ?? ""}
+              onChange={(e) => onStaffMemberChange(event.id, e.target.value)}
+            >
+              {members.map((m) => (
+                <MenuItem key={m.id} value={m.id}>
+                  {m.name} (@{m.githubHandle})
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 160 }}>
+            <InputLabel id={`staff-role-label-${event.id}`}>Papel</InputLabel>
+            <Select
+              labelId={`staff-role-label-${event.id}`}
+              label="Papel"
+              value={staffForm[event.id]?.staffRole ?? "checker"}
+              onChange={(e) => onStaffRoleChange(event.id, e.target.value as EventStaffRole)}
+            >
+              {(Object.keys(STAFF_ROLE_LABEL) as EventStaffRole[]).map((role) => (
+                <MenuItem key={role} value={role}>
+                  {STAFF_ROLE_LABEL[role]}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<AddIcon />}
+            disabled={!staffForm[event.id]?.memberId}
+            onClick={() => onAddStaff(event)}
+          >
+            Adicionar
+          </Button>
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
+  );
+}
 
 // ── Página ───────────────────────────────────────────────────────────────────
 
@@ -498,38 +1096,10 @@ export default function AdminEventosPage(): React.JSX.Element {
   const handleSaveEvent = async () => {
     if (!eventDialog) return;
     setEventError("");
-    if (!eventForm.slug.trim() || !eventForm.title.trim() || !eventForm.summary.trim() || !eventForm.location.trim()) {
-      setEventError("Preencha slug, título, resumo e local.");
+    const validation = buildEventPayload(eventForm);
+    if (validation.error || !validation.payload) {
+      setEventError(validation.error ?? "Erro de validação.");
       return;
-    }
-    if (!isValidDateTimeLocal(eventForm.startAt)) {
-      setEventError("Informe uma data/hora de início válida (incluindo horas e minutos).");
-      return;
-    }
-    const startIso = fromDateTimeLocal(eventForm.startAt)!;
-    const payload: Record<string, unknown> = {
-      slug: eventForm.slug.trim(),
-      title: eventForm.title.trim(),
-      summary: eventForm.summary.trim(),
-      location: eventForm.location.trim(),
-      startAt: startIso,
-      communityProjectKey: eventForm.communityProjectKey,
-    };
-    if (eventForm.imageUrl.trim()) payload.imageUrl = eventForm.imageUrl.trim();
-    if (eventForm.endAt && !isValidDateTimeLocal(eventForm.endAt)) {
-      setEventError("Data/hora de término inválida. Deixe em branco ou informe data e hora completas.");
-      return;
-    }
-    const endIso = fromDateTimeLocal(eventForm.endAt);
-    if (endIso) payload.endAt = endIso;
-    if (eventForm.timezone.trim()) payload.timezone = eventForm.timezone.trim();
-    if (eventForm.capacity.trim()) {
-      const cap = Number.parseInt(eventForm.capacity, 10);
-      if (Number.isNaN(cap) || cap <= 0) {
-        setEventError("Capacidade inválida.");
-        return;
-      }
-      payload.capacity = cap;
     }
 
     setEventSaving(true);
@@ -537,7 +1107,7 @@ export default function AdminEventosPage(): React.JSX.Element {
       const isEdit = eventDialog.mode === "edit";
       const res = await authFetch(
         isEdit ? `${apiUrl}/events/${eventDialog.event.id}` : `${apiUrl}/events`,
-        { method: isEdit ? "PATCH" : "POST", body: JSON.stringify(payload) },
+        { method: isEdit ? "PATCH" : "POST", body: JSON.stringify(validation.payload) },
       );
       if (!res.ok) {
         setEventError(await extractErrorMessage(res, "Erro ao salvar evento."));
@@ -784,23 +1354,23 @@ export default function AdminEventosPage(): React.JSX.Element {
     return [...internalRows, ...externalRows].sort((a, b) => b.startAt.localeCompare(a.startAt));
   }, [events, externalEvents, canEditExternal, featuresByEventKey]);
 
-  const filteredRows = useMemo(() => {
+  function matchesFilters(row: HubRow): boolean {
     const q = search.trim().toLowerCase();
-    return rows.filter((row) => {
-      if (q && !row.title.toLowerCase().includes(q)) return false;
-      if (showInternos && !showExternos && row.kind !== "internal") return false;
-      if (showExternos && !showInternos && row.kind !== "external") return false;
-      if (onlyOverride && !row.hasOverride) return false;
-      if (onlyEditable && !row.canEdit) return false;
-      if (onlyFeatures && row.features.length === 0) return false;
-      if (communityFilter) {
-        const rowCommunity =
-          row.kind === "internal" ? row.event.communityProjectKey : row.communityProjectKey;
-        if (rowCommunity !== communityFilter) return false;
-      }
-      return true;
-    });
-  }, [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
+    if (q && !row.title.toLowerCase().includes(q)) return false;
+    if (showInternos && !showExternos && row.kind !== "internal") return false;
+    if (showExternos && !showInternos && row.kind !== "external") return false;
+    if (onlyOverride && !row.hasOverride) return false;
+    if (onlyEditable && !row.canEdit) return false;
+    if (onlyFeatures && row.features.length === 0) return false;
+    if (communityFilter) {
+      const rowCommunity =
+        row.kind === "internal" ? row.event.communityProjectKey : row.communityProjectKey;
+      if (rowCommunity !== communityFilter) return false;
+    }
+    return true;
+  }
+
+  const filteredRows = useMemo(() => rows.filter(matchesFilters), [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
 
   const pageCount = useBackendPagination
     ? Math.max(1, Math.ceil(internalTotal / PAGE_SIZE))
@@ -893,83 +1463,16 @@ export default function AdminEventosPage(): React.JSX.Element {
         {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
         {actionError && <Alert severity="error" sx={{ mb: 3 }}>{actionError}</Alert>}
         {externalError && <Alert severity="warning" sx={{ mb: 3 }}>{externalError}</Alert>}
-        {snapshotError && (
-          <Alert severity="error" sx={{ mb: 3 }} onClose={() => setSnapshotError("")}>
-            {snapshotError}
-          </Alert>
-        )}
-        {snapshotResult === "skipped" && (
-          <Alert severity="info" sx={{ mb: 3 }} onClose={() => setSnapshotResult(null)}>
-            Nada a sincronizar — o snapshot de eventos próprios já está atualizado.
-          </Alert>
-        )}
-        {snapshotResult && snapshotResult !== "skipped" && (
-          <Alert
-            severity="success"
-            sx={{ mb: 3 }}
-            onClose={() => setSnapshotResult(null)}
-            action={
-              <Button
-                color="inherit"
-                size="small"
-                endIcon={<OpenInNewIcon />}
-                href={snapshotResult.prUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {snapshotResult.prNumber ? `PR #${snapshotResult.prNumber}` : "Abrir PR"}
-              </Button>
-            }
-          >
-            Snapshot enviado via Pull Request — o merge é automático e a página de eventos leva
-            alguns minutos para rebuildar.
-          </Alert>
-        )}
-        {publishSuccess && (
-          <Alert
-            severity="success"
-            sx={{ mb: 3 }}
-            onClose={() => setPublishSuccess(null)}
-            action={
-              <Button
-                component={Link}
-                href={publicEventUrl(publishSuccess.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                color="inherit"
-                size="small"
-                endIcon={<OpenInNewIcon />}
-              >
-                Ver página pública
-              </Button>
-            }
-          >
-            Evento <strong>{publishSuccess.title}</strong> publicado com sucesso.
-          </Alert>
-        )}
-        {saveSuccess && (
-          <Alert
-            severity="success"
-            sx={{ mb: 3 }}
-            onClose={() => setSaveSuccess(null)}
-            action={
-              <Button
-                component={Link}
-                href={publicEventUrl(saveSuccess.event.id)}
-                target="_blank"
-                rel="noopener noreferrer"
-                color="inherit"
-                size="small"
-                endIcon={<OpenInNewIcon />}
-              >
-                Ver página do evento
-              </Button>
-            }
-          >
-            Evento <strong>{saveSuccess.event.title}</strong>{" "}
-            {saveSuccess.mode === "create" ? "criado" : "atualizado"} com sucesso.
-          </Alert>
-        )}
+        <HubAlerts
+          snapshotResult={snapshotResult}
+          snapshotError={snapshotError}
+          publishSuccess={publishSuccess}
+          saveSuccess={saveSuccess}
+          onCloseSnapshotError={() => setSnapshotError("")}
+          onCloseSnapshotResult={() => setSnapshotResult(null)}
+          onClosePublishSuccess={() => setPublishSuccess(null)}
+          onCloseSaveSuccess={() => setSaveSuccess(null)}
+        />
 
         {loading || externalLoading ? (
           <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
@@ -978,69 +1481,22 @@ export default function AdminEventosPage(): React.JSX.Element {
         ) : (
           <>
             {/* ── Busca e filtros da lista unificada ── */}
-            <Card variant="outlined" sx={{ mb: 2 }}>
-              <CardContent sx={{ pb: "16px !important" }}>
-                <TextField
-                  size="small"
-                  fullWidth
-                  label="Buscar por título"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  sx={{ mb: 1.5 }}
-                />
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
-                  <Chip
-                    label="Internos"
-                    clickable
-                    color={showInternos ? "primary" : "default"}
-                    variant={showInternos ? "filled" : "outlined"}
-                    onClick={() => setShowInternos((v) => !v)}
-                  />
-                  <Chip
-                    label="Externos"
-                    clickable
-                    color={showExternos ? "primary" : "default"}
-                    variant={showExternos ? "filled" : "outlined"}
-                    onClick={() => setShowExternos((v) => !v)}
-                  />
-                  <Chip
-                    label="Com override"
-                    clickable
-                    color={onlyOverride ? "primary" : "default"}
-                    variant={onlyOverride ? "filled" : "outlined"}
-                    onClick={() => setOnlyOverride((v) => !v)}
-                  />
-                  <Chip
-                    label="Posso editar"
-                    clickable
-                    color={onlyEditable ? "primary" : "default"}
-                    variant={onlyEditable ? "filled" : "outlined"}
-                    onClick={() => setOnlyEditable((v) => !v)}
-                  />
-                  <Chip
-                    label="Com features ativas"
-                    clickable
-                    color={onlyFeatures ? "primary" : "default"}
-                    variant={onlyFeatures ? "filled" : "outlined"}
-                    onClick={() => setOnlyFeatures((v) => !v)}
-                  />
-                  <FormControl size="small" sx={{ minWidth: 180 }}>
-                    <InputLabel id="community-filter-label">Comunidade</InputLabel>
-                    <Select
-                      labelId="community-filter-label"
-                      value={communityFilter}
-                      label="Comunidade"
-                      onChange={(e) => setCommunityFilter(e.target.value)}
-                    >
-                      <MenuItem value="">Todas</MenuItem>
-                      {COMMUNITY_OPTIONS.map((c) => (
-                        <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Stack>
-              </CardContent>
-            </Card>
+            <HubFilters
+              search={search}
+              showInternos={showInternos}
+              showExternos={showExternos}
+              onlyOverride={onlyOverride}
+              onlyEditable={onlyEditable}
+              onlyFeatures={onlyFeatures}
+              communityFilter={communityFilter}
+              onSearchChange={setSearch}
+              onToggleInternos={() => setShowInternos((v) => !v)}
+              onToggleExternos={() => setShowExternos((v) => !v)}
+              onToggleOverride={() => setOnlyOverride((v) => !v)}
+              onToggleEditable={() => setOnlyEditable((v) => !v)}
+              onToggleFeatures={() => setOnlyFeatures((v) => !v)}
+              onCommunityChange={setCommunityFilter}
+            />
 
             <Typography variant="h6" fontWeight={700} sx={{ mb: 1.5 }}>
               Todos os eventos ({filteredRows.length})
@@ -1053,335 +1509,65 @@ export default function AdminEventosPage(): React.JSX.Element {
                   : "Nenhum evento encontrado com os filtros atuais."}
               </Alert>
             ) : (
-              pageRows.map((row) => {
-                if (row.kind === "external") {
-                  const ev = row.event;
-                  const eventKey = `${ev.sourceKey}:${ev.id}`;
-                  const overrideQuery = `sourceKey=${encodeURIComponent(ev.sourceKey)}&eventId=${encodeURIComponent(ev.id)}`;
-                  return (
-                    <Card key={row.key} variant="outlined" sx={{ mb: 1 }}>
-                      <CardContent sx={{ pb: "16px !important" }}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
-                          <Typography fontWeight={700}>{ev.title}</Typography>
-                          <Chip
-                            label={`Externo · ${sourceLabel(ev.sourceKey)}`}
-                            size="small"
-                            variant="outlined"
-                          />
-                          {row.hasOverride && (
-                            <Chip label="Override" size="small" color="primary" variant="outlined" />
-                          )}
-                          {row.canEdit && (
-                            <Chip label="Você pode editar" size="small" color="success" variant="outlined" />
-                          )}
-                          {row.features.map((f) => (
-                            <Chip
-                              key={f}
-                              label={FEATURE_LABEL[f] ?? f}
-                              size="small"
-                              color="secondary"
-                              variant="outlined"
-                            />
-                          ))}
-                          {row.communityProjectKey && (
-                            <Chip
-                              label={`Comunidade: ${row.communityProjectKey}`}
-                              size="small"
-                              variant="outlined"
-                            />
-                          )}
-                          {row.ownerHandle && (
-                            <Chip
-                              label={`Owner: @${row.ownerHandle}`}
-                              size="small"
-                              color="info"
-                              variant="outlined"
-                            />
-                          )}
-                          <Typography variant="body2" color="text.secondary">
-                            {formatDateTime(ev.startAt)}
-                            {ev.location ? ` · ${ev.location}` : ""}
-                          </Typography>
-                        </Box>
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<EditIcon />}
-                            component={Link}
-                            href={`/admin/overrides?tab=0&${overrideQuery}`}
-                          >
-                            Editar metadados
-                          </Button>
-                          <Button
-                            size="small"
-                            variant="text"
-                            startIcon={<ExtensionIcon />}
-                            component={Link}
-                            href={`/admin/overrides?tab=2&${overrideQuery}`}
-                          >
-                            Plugins
-                          </Button>
-                          {row.features.includes("payments") && (
-                            <Button
-                              size="small"
-                              variant="text"
-                              startIcon={<ReceiptLongIcon />}
-                              onClick={() =>
-                                setOrdersDialog({
-                                  kind: "external",
-                                  eventKey,
-                                  title: ev.title,
-                                })
-                              }
-                            >
-                              Pedidos
-                            </Button>
-                          )}
-                          {row.features.includes("checkin") && (
-                            <Button
-                              size="small"
-                              variant="text"
-                              startIcon={<HowToRegIcon />}
-                              component={Link}
-                              href={`/admin/eventos-checkin?event=${encodeURIComponent(`external:${eventKey}`)}`}
-                            >
-                              Check-in
-                            </Button>
-                          )}
-                        </Stack>
-                      </CardContent>
-                    </Card>
-                  );
-                }
-                const event = row.event;
-                return (
-            <Accordion key={row.key} sx={{ mb: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", width: "100%" }}>
-                  <Typography fontWeight={700}>{event.title}</Typography>
-                  <Chip label="Interno" size="small" color="primary" variant="outlined" />
-                  <Chip label={STATUS_LABEL[event.status]} size="small" color={STATUS_COLOR[event.status]} variant="outlined" />
-                  <Chip label="Você pode editar" size="small" color="success" variant="outlined" />
-                  <Typography variant="body2" color="text.secondary">
-                    {formatDateTime(event.startAt)} · {event.location}
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  {event.summary}
-                </Typography>
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-                  <Chip label={`Comunidade: ${event.communityProjectKey}`} size="small" variant="outlined" />
-                  {event.capacity != null && (
-                    <Chip label={`Capacidade: ${event.capacity}`} size="small" variant="outlined" />
-                  )}
-                  <Chip label={`/${event.slug}`} size="small" variant="outlined" />
-                </Stack>
-
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-                  {(event.status === "draft" || event.status === "published") && (
-                    <Button size="small" variant="outlined" startIcon={<EditIcon />} onClick={() => openEditDialog(event)}>
-                      Editar
-                    </Button>
-                  )}
-                  {event.status === "draft" && (
-                    <Button size="small" variant="contained" color="success" startIcon={<PublishIcon />} onClick={() => handlePublish(event)}>
-                      Publicar
-                    </Button>
-                  )}
-                  <Tooltip
-                    title={
-                      event.status === "draft"
-                        ? "Rascunhos não aparecem na página pública — publique o evento primeiro"
-                        : ""
+              pageRows.map((row) =>
+                row.kind === "external" ? (
+                  <ExternalEventCard
+                    key={row.key}
+                    row={row}
+                    sourceLabel={sourceLabel}
+                    onOrdersClick={(eventKey, title) =>
+                      setOrdersDialog({ kind: "external", eventKey, title })
                     }
-                  >
-                    <span>
-                      <Button
-                        size="small"
-                        variant="text"
-                        component={Link}
-                        href={publicEventUrl(event.id)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        endIcon={<OpenInNewIcon />}
-                      >
-                        Ver página pública
-                      </Button>
-                    </span>
-                  </Tooltip>
-                  {(event.status === "draft" || event.status === "published") && (
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<CancelIcon />}
-                      onClick={() => { setCancelTarget(event); setCancelError(""); }}
-                    >
-                      Cancelar evento
-                    </Button>
-                  )}
-                  <Button
-                    size="small"
-                    variant="text"
-                    startIcon={<ReceiptLongIcon />}
-                    onClick={() => setOrdersDialog({ kind: "internal", eventId: event.id, title: event.title })}
-                  >
-                    Pedidos
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="text"
-                    startIcon={<AddIcon />}
-                    onClick={() =>
+                  />
+                ) : (
+                  <InternalEventAccordion
+                    key={row.key}
+                    row={row}
+                    members={members}
+                    membersById={membersById}
+                    staffForm={staffForm}
+                    onEdit={openEditDialog}
+                    onPublish={handlePublish}
+                    onCancel={(event) => { setCancelTarget(event); setCancelError(""); }}
+                    onOrdersClick={(eventId, title) =>
+                      setOrdersDialog({ kind: "internal", eventId, title })
+                    }
+                    onReimbursementClick={(event) =>
                       setReimbursementDialog({
                         eventId: event.id,
                         title: event.title,
                         communityProjectKey: event.communityProjectKey,
                       })
                     }
-                  >
-                    Lançar despesa
-                  </Button>
-                </Stack>
-
-                <Divider sx={{ my: 2 }} />
-
-                {/* ── Tipos de ingresso ── */}
-                <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-                  <Typography variant="subtitle2" fontWeight={700}>
-                    Tipos de ingresso ({event.ticketTypes?.length ?? 0})
-                  </Typography>
-                  <Button
-                    size="small"
-                    startIcon={<AddIcon />}
-                    onClick={() => { setTicketForm(EMPTY_TICKET_FORM); setTicketError(""); setTicketDialog(event); }}
-                  >
-                    Adicionar tipo
-                  </Button>
-                </Box>
-                {(event.ticketTypes ?? []).length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Nenhum tipo de ingresso cadastrado.
-                  </Typography>
-                ) : (
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {event.ticketTypes.map((ticket) => (
-                      <Box
-                        key={ticket.id}
-                        sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
-                      >
-                        <Typography variant="body2" fontWeight={600}>{ticket.name}</Typography>
-                        <Chip label={KIND_LABEL[ticket.kind]} size="small" variant="outlined" />
-                        {ticket.priceCents > 0 && (
-                          <Chip label={formatBRLFromCents(ticket.priceCents)} size="small" color="success" variant="outlined" />
-                        )}
-                        <Chip label={`Vendidos: ${ticket.quantitySold ?? 0}/${ticket.quantityTotal}`} size="small" variant="outlined" />
-                        {!ticket.isActive && <Chip label="Inativo" size="small" color="default" />}
-                        <Box sx={{ flex: 1 }} />
-                        {ticket.isActive && (
-                          <Tooltip title="Desativar tipo de ingresso">
-                            <IconButton size="small" aria-label={`desativar ${ticket.name}`} onClick={() => handleDeactivateTicketType(ticket)}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
-                    ))}
-                  </Stack>
-                )}
-
-                <Divider sx={{ my: 2 }} />
-
-                {/* ── Staff ── */}
-                <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
-                  Equipe do evento ({event.staff?.length ?? 0})
-                </Typography>
-                {(event.staff ?? []).length === 0 ? (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                    Nenhum membro na equipe deste evento.
-                  </Typography>
-                ) : (
-                  <Stack spacing={1} sx={{ mb: 2 }}>
-                    {event.staff.map((staff) => {
-                      const member = membersById.get(staff.memberId);
-                      return (
-                        <Box
-                          key={staff.id}
-                          sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap", p: 1, border: "1px solid", borderColor: "divider", borderRadius: 1 }}
-                        >
-                          <Typography variant="body2" fontWeight={600}>
-                            {member ? `${member.name} (@${member.githubHandle})` : staff.memberId}
-                          </Typography>
-                          <Chip label={STAFF_ROLE_LABEL[staff.staffRole]} size="small" color="secondary" variant="outlined" />
-                          <Box sx={{ flex: 1 }} />
-                          <Tooltip title="Remover da equipe">
-                            <IconButton size="small" aria-label="remover staff" onClick={() => handleRemoveStaff(event, staff)}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                )}
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <FormControl size="small" sx={{ minWidth: 220 }}>
-                    <InputLabel id={`staff-member-label-${event.id}`}>Membro</InputLabel>
-                    <Select
-                      labelId={`staff-member-label-${event.id}`}
-                      label="Membro"
-                      value={staffForm[event.id]?.memberId ?? ""}
-                      onChange={(e) =>
-                        setStaffForm((prev) => ({
-                          ...prev,
-                          [event.id]: { memberId: e.target.value, staffRole: prev[event.id]?.staffRole ?? "checker" },
-                        }))
-                      }
-                    >
-                      {members.map((m) => (
-                        <MenuItem key={m.id} value={m.id}>
-                          {m.name} (@{m.githubHandle})
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" sx={{ minWidth: 160 }}>
-                    <InputLabel id={`staff-role-label-${event.id}`}>Papel</InputLabel>
-                    <Select
-                      labelId={`staff-role-label-${event.id}`}
-                      label="Papel"
-                      value={staffForm[event.id]?.staffRole ?? "checker"}
-                      onChange={(e) =>
-                        setStaffForm((prev) => ({
-                          ...prev,
-                          [event.id]: { memberId: prev[event.id]?.memberId ?? "", staffRole: e.target.value as EventStaffRole },
-                        }))
-                      }
-                    >
-                      {(Object.keys(STAFF_ROLE_LABEL) as EventStaffRole[]).map((role) => (
-                        <MenuItem key={role} value={role}>
-                          {STAFF_ROLE_LABEL[role]}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    startIcon={<AddIcon />}
-                    disabled={!staffForm[event.id]?.memberId}
-                    onClick={() => handleAddStaff(event)}
-                  >
-                    Adicionar
-                  </Button>
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-                );
-              })
+                    onAddTicketClick={(event) => {
+                      setTicketForm(EMPTY_TICKET_FORM);
+                      setTicketError("");
+                      setTicketDialog(event);
+                    }}
+                    onDeactivateTicket={handleDeactivateTicketType}
+                    onAddStaff={handleAddStaff}
+                    onRemoveStaff={handleRemoveStaff}
+                    onStaffMemberChange={(eventId, memberId) =>
+                      setStaffForm((prev) => ({
+                        ...prev,
+                        [eventId]: {
+                          memberId,
+                          staffRole: prev[eventId]?.staffRole ?? "checker",
+                        },
+                      }))
+                    }
+                    onStaffRoleChange={(eventId, staffRole) =>
+                      setStaffForm((prev) => ({
+                        ...prev,
+                        [eventId]: {
+                          memberId: prev[eventId]?.memberId ?? "",
+                          staffRole,
+                        },
+                      }))
+                    }
+                  />
+                ),
+              )
             )}
 
             {pageCount > 1 && (

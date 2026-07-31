@@ -163,6 +163,76 @@ export default function EmailsAdminPage(): React.JSX.Element {
   const templateKeys = summary ? Object.keys(summary.byTemplate) : [];
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
+  let logsSection: React.JSX.Element;
+  if (loading) {
+    logsSection = (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress />
+      </Box>
+    );
+  } else if (logs.length === 0) {
+    logsSection = (
+      <Typography color="text.secondary" textAlign="center" py={6}>
+        Nenhum e-mail encontrado com os filtros atuais.
+      </Typography>
+    );
+  } else {
+    logsSection = (
+      <TableContainer component={Card} variant="outlined">
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Destinatário</TableCell>
+              <TableCell>Template</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Data</TableCell>
+              <TableCell align="right">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {logs.map((log) => {
+              const sc = statusConfig[log.status];
+              return (
+                <TableRow key={log.id} hover>
+                  <TableCell sx={{ wordBreak: "break-all" }}>{log.to}</TableCell>
+                  <TableCell>
+                    <Chip label={log.template} size="small" variant="outlined" />
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title={log.error ?? ""} arrow disableHoverListener={!log.error}>
+                      <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDateTime(log.createdAt)}</TableCell>
+                  <TableCell align="right">
+                    {log.status === "failed" && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="warning"
+                        disabled={resendingId === log.id}
+                        onClick={() => handleResend(log)}
+                        startIcon={
+                          resendingId === log.id ? (
+                            <CircularProgress size={14} color="inherit" />
+                          ) : (
+                            <SendIcon />
+                          )
+                        }
+                      >
+                        Reenviar
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
   return (
     <Layout title="E-mails Enviados" description="Painel de e-mails transacionais da plataforma de eventos">
       <AdminPageContainer>
@@ -281,68 +351,7 @@ export default function EmailsAdminPage(): React.JSX.Element {
         </Box>
 
         {/* ── Tabela ── */}
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : logs.length === 0 ? (
-          <Typography color="text.secondary" textAlign="center" py={6}>
-            Nenhum e-mail encontrado com os filtros atuais.
-          </Typography>
-        ) : (
-          <TableContainer component={Card} variant="outlined">
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell>Destinatário</TableCell>
-                  <TableCell>Template</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Data</TableCell>
-                  <TableCell align="right">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {logs.map((log) => {
-                  const sc = statusConfig[log.status];
-                  return (
-                    <TableRow key={log.id} hover>
-                      <TableCell sx={{ wordBreak: "break-all" }}>{log.to}</TableCell>
-                      <TableCell>
-                        <Chip label={log.template} size="small" variant="outlined" />
-                      </TableCell>
-                      <TableCell>
-                        <Tooltip title={log.error ?? ""} arrow disableHoverListener={!log.error}>
-                          <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDateTime(log.createdAt)}</TableCell>
-                      <TableCell align="right">
-                        {log.status === "failed" && (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            color="warning"
-                            disabled={resendingId === log.id}
-                            onClick={() => handleResend(log)}
-                            startIcon={
-                              resendingId === log.id ? (
-                                <CircularProgress size={14} color="inherit" />
-                              ) : (
-                                <SendIcon />
-                              )
-                            }
-                          >
-                            Reenviar
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        {logsSection}
 
         {total > PAGE_SIZE && (
           <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>

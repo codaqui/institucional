@@ -111,7 +111,12 @@ const formatDateTime = (iso: string) =>
     minute: "2-digit",
   });
 
-/** API nativa de leitura de QR — feature-detect (nem todo browser suporta). */
+function formatOrderStatus(status: string): string {
+  if (status === "paid") return "Pago";
+  if (status === "refunded") return "Reembolsado";
+  return status;
+}
+
 const isBarcodeDetectorSupported = () =>
   typeof window !== "undefined" && "BarcodeDetector" in window;
 
@@ -188,9 +193,10 @@ export default function EventosCheckinPage(): React.JSX.Element {
         const params = new URLSearchParams();
         if (query.trim()) params.set("query", query.trim());
         const qs = params.toString();
-        const res = await authFetch(
-          `/events/${selection}/registrations${qs ? `?${qs}` : ""}`,
-        );
+        const registrationsUrl = qs
+          ? `/events/${selection}/registrations?${qs}`
+          : `/events/${selection}/registrations`;
+        const res = await authFetch(registrationsUrl);
         const data = await parseAuthJson<EventRegistration[]>(res, setLoadError);
         if (!data) return;
         setRegistrations(Array.isArray(data) ? data : []);
@@ -234,12 +240,11 @@ export default function EventosCheckinPage(): React.JSX.Element {
         );
         const fromQuery = params.get("event");
         if (fromQuery) {
-          if (
+          const isValidExternal =
             fromQuery.startsWith(EXTERNAL_PREFIX) &&
-            externals.some((a) => a.eventKey === fromQuery.slice(EXTERNAL_PREFIX.length))
-          ) {
-            setSelectedEventId(fromQuery);
-          } else if (manageable.some((e) => e.id === fromQuery)) {
+            externals.some((a) => a.eventKey === fromQuery.slice(EXTERNAL_PREFIX.length));
+          const isValidInternal = manageable.some((e) => e.id === fromQuery);
+          if (isValidExternal || isValidInternal) {
             setSelectedEventId(fromQuery);
           }
         }
@@ -360,7 +365,7 @@ export default function EventosCheckinPage(): React.JSX.Element {
             const last = lastScanRef.current;
             const now = Date.now();
             // Cooldown de 3s por token — leituras duplas são o caso normal na porta
-            if (!last || last.token !== token || now - last.at > 3000) {
+            if (last?.token !== token || now - (last?.at ?? 0) > 3000) {
               lastScanRef.current = { token, at: now };
               handleCheckin(token);
             }
@@ -394,11 +399,11 @@ export default function EventosCheckinPage(): React.JSX.Element {
     );
   }
 
-  const selectedEvent = events.find((e) => e.id === selectedEventId);
+  const hasManagedSelection = events.some((e) => e.id === selectedEventId);
   const selectedExternalKey = selectedEventId.startsWith(EXTERNAL_PREFIX)
     ? selectedEventId.slice(EXTERNAL_PREFIX.length)
     : null;
-  const hasSelection = !!(selectedEvent || selectedExternalKey);
+  const hasSelection = !!(hasManagedSelection || selectedExternalKey);
   const presentCount = registrations.filter((r) => r.checkedInAt).length;
 
   return (
@@ -615,7 +620,8 @@ export default function EventosCheckinPage(): React.JSX.Element {
                               </Typography>
                               <Typography variant="caption" color="text.secondary" display="block">
                                 {reg.ticketType?.name ?? "Ingresso"}
-                                {reg.order && ` · ${reg.order.status === "paid" ? "Pago" : reg.order.status === "refunded" ? "Reembolsado" : reg.order.status} · ${formatDateTime(reg.order.paidAt)}`}
+                                {reg.order &&
+                                  ` · ${formatOrderStatus(reg.order.status)} · ${formatDateTime(reg.order.paidAt)}`}
                               </Typography>
                             </Box>
                             {reg.checkedInAt ? (

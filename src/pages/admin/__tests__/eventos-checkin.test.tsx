@@ -12,6 +12,7 @@ const managedEvent = {
   title: "Encontro DevParaná",
   startAt: "2026-08-10T18:00:00.000Z",
   status: "scheduled",
+  canUseList: true,
 };
 
 const organizerUser = {
@@ -33,9 +34,9 @@ const registration = {
 
 function mockAuthFetchWithEvents(extra?: (url: string, init?: RequestInit) => unknown) {
   return jest.fn(async (url: string, init?: RequestInit) => {
-    if (url === "/events") return jsonResponse([managedEvent]);
     const custom = extra?.(url, init);
     if (custom) return custom;
+    if (url === "/events/checkin-scope") return jsonResponse({ managed: [managedEvent], external: [] });
     return jsonResponse(null, { ok: false, status: 404 });
   });
 }
@@ -143,7 +144,7 @@ describe("/admin/eventos-checkin", () => {
     const encodedKey = encodeURIComponent(extKey);
 
     const authFetch = mockAuthFetchWithEvents((url, init) => {
-      if (url === "/events/external/activations") return jsonResponse([activation]);
+      if (url === "/events/checkin-scope") return jsonResponse({ managed: [], external: [activation] });
       if (url === `/events/external/${encodedKey}/participants`) {
         return jsonResponse([registration]);
       }
@@ -170,6 +171,10 @@ describe("/admin/eventos-checkin", () => {
     window.history.pushState({}, "", `/admin/eventos-checkin?event=external:${extKey}`);
 
     render(<EventosCheckinPage />);
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith("/events/checkin-scope");
+    });
 
     // Lista de participantes veio do endpoint externo
     expect(await screen.findByText(/1 inscrito na lista/i)).toBeInTheDocument();

@@ -17,13 +17,14 @@ const filledForm: OverrideFormState = {
   featured: true,
   speakers: [
     {
+      id: "speaker-1",
       name: "  Ana Silva ",
       handle: " anasilva ",
       avatarUrl: "",
       talkTitle: "React Native na prática",
       profileUrl: "https://github.com/anasilva",
     },
-    { name: "   " }, // descartado: sem nome
+    { id: "speaker-2", name: "   " }, // descartado: sem nome
   ],
   registrationUrl: "https://meetup.com/evento",
   slidesUrl: "",
@@ -48,7 +49,9 @@ describe("formStateFromExtendData", () => {
     expect(form.title).toBe("Título");
     expect(form.tags).toEqual(["a", "b"]);
     expect(form.featured).toBe(true);
-    expect(form.speakers).toEqual([{ name: "Ana" }]);
+    expect(form.speakers).toHaveLength(1);
+    expect(form.speakers[0].name).toBe("Ana");
+    expect(typeof form.speakers[0].id).toBe("string");
     expect(form.summary).toBe("");
   });
 });
