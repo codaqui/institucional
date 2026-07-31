@@ -49,57 +49,87 @@ export function normalizePath(filePath) {
   return filePath.replaceAll("\\", "/").replace(/^\.\//, "");
 }
 
-/** Regras do extendData — compartilhadas entre *.override.json e o manifesto. */
-export function validateExtendData(ext, label) {
+function validateForbiddenFields(ext, label) {
   const errors = [];
   for (const key of FORBIDDEN_EXTEND_FIELDS) {
     if (key in ext) {
       errors.push(`${label}: campo proibido: extendData.${key}`);
     }
   }
+  return errors;
+}
 
+function validateStringFields(ext, label) {
+  const errors = [];
   for (const field of STRING_EXTEND_FIELDS) {
     if (ext[field] !== undefined && typeof ext[field] !== "string") {
       errors.push(`${label}: extendData.${field} deve ser uma string`);
     }
   }
-
-  if (ext.featured !== undefined && typeof ext.featured !== "boolean") {
-    errors.push(`${label}: extendData.featured deve ser um boolean`);
-  }
-
-  if (ext.tags !== undefined) {
-    if (!Array.isArray(ext.tags) || ext.tags.some((tag) => typeof tag !== "string")) {
-      errors.push(`${label}: extendData.tags deve ser um array de strings`);
-    } else if (ext.tags.length > MAX_TAGS) {
-      errors.push(`${label}: extendData.tags excede ${MAX_TAGS} itens (${ext.tags.length})`);
-    }
-  }
-
-  if (typeof ext.summary === "string" && ext.summary.length > MAX_SUMMARY_LENGTH) {
-    errors.push(`${label}: extendData.summary excede ${MAX_SUMMARY_LENGTH} caracteres (${ext.summary.length})`);
-  }
-
-  if (ext.speakers !== undefined) {
-    if (!Array.isArray(ext.speakers)) {
-      errors.push(`${label}: extendData.speakers deve ser um array`);
-    } else if (ext.speakers.length > MAX_SPEAKERS) {
-      errors.push(`${label}: extendData.speakers excede ${MAX_SPEAKERS} itens (${ext.speakers.length})`);
-    }
-  }
-
-  if (ext.workloadMinutes !== undefined) {
-    if (
-      typeof ext.workloadMinutes !== "number" ||
-      !Number.isInteger(ext.workloadMinutes) ||
-      ext.workloadMinutes < 0 ||
-      ext.workloadMinutes > 1000
-    ) {
-      errors.push(`${label}: extendData.workloadMinutes deve ser um inteiro entre 0 e 1000`);
-    }
-  }
-
   return errors;
+}
+
+function validateBooleanField(ext, field, label) {
+  if (ext[field] !== undefined && typeof ext[field] !== "boolean") {
+    return [`${label}: extendData.${field} deve ser um boolean`];
+  }
+  return [];
+}
+
+function validateTags(ext, label) {
+  if (ext.tags === undefined) return [];
+  if (!Array.isArray(ext.tags) || ext.tags.some((tag) => typeof tag !== "string")) {
+    return [`${label}: extendData.tags deve ser um array de strings`];
+  }
+  if (ext.tags.length > MAX_TAGS) {
+    return [`${label}: extendData.tags excede ${MAX_TAGS} itens (${ext.tags.length})`];
+  }
+  return [];
+}
+
+function validateSpeakers(ext, label) {
+  if (ext.speakers === undefined) return [];
+  if (!Array.isArray(ext.speakers)) {
+    return [`${label}: extendData.speakers deve ser um array`];
+  }
+  if (ext.speakers.length > MAX_SPEAKERS) {
+    return [`${label}: extendData.speakers excede ${MAX_SPEAKERS} itens (${ext.speakers.length})`];
+  }
+  return [];
+}
+
+function validateSummaryLength(ext, label) {
+  if (typeof ext.summary === "string" && ext.summary.length > MAX_SUMMARY_LENGTH) {
+    return [`${label}: extendData.summary excede ${MAX_SUMMARY_LENGTH} caracteres (${ext.summary.length})`];
+  }
+  return [];
+}
+
+function validateWorkloadMinutes(ext, label) {
+  if (ext.workloadMinutes === undefined) return [];
+  const value = ext.workloadMinutes;
+  const isValid =
+    typeof value === "number" &&
+    Number.isInteger(value) &&
+    value >= 0 &&
+    value <= 1000;
+  if (!isValid) {
+    return [`${label}: extendData.workloadMinutes deve ser um inteiro entre 0 e 1000`];
+  }
+  return [];
+}
+
+/** Regras do extendData — compartilhadas entre *.override.json e o manifesto. */
+export function validateExtendData(ext, label) {
+  return [
+    ...validateForbiddenFields(ext, label),
+    ...validateStringFields(ext, label),
+    ...validateBooleanField(ext, "featured", label),
+    ...validateTags(ext, label),
+    ...validateSummaryLength(ext, label),
+    ...validateSpeakers(ext, label),
+    ...validateWorkloadMinutes(ext, label),
+  ];
 }
 
 export function validateOverrideData(data, filePath) {
@@ -351,8 +381,10 @@ async function main() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.error(error);
     process.exitCode = 1;
-  });
+  }
 }

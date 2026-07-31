@@ -25,6 +25,13 @@ export const GITHUB_API = "https://api.github.com";
 export const ORGANIZERS_PATH = "static/events/organizers.json";
 export const OVERRIDE_PATH_RE = /^static\/events\/[^/]+\/[^/]+\/[^/]+\.override\.json$/;
 
+/** Sanitiza valores antes de logar, evitando log injection via dados controlados por usuarios. */
+function sanitizeForLog(value, maxLength = 300) {
+  if (value === undefined || value === null) return "";
+  const text = Array.isArray(value) ? value.join(", ") : String(value);
+  return text.replace(/[\x00-\x1F\x7F-\x9F]/g, "").slice(0, maxLength);
+}
+
 export function normalizePath(filePath) {
   return filePath.replaceAll("\\", "/").replace(/^\.\//, "");
 }
@@ -171,20 +178,22 @@ async function main() {
 
   const result = await verifyOverrideAuthor({ prNumber, repo, token });
   if (!result.ok) {
-    console.error(`✗ ${result.reason}`);
+    console.error(`✗ ${sanitizeForLog(result.reason)}`);
     process.exitCode = 1;
     return;
   }
 
-  console.log(`PR #${prNumber} aberto por @${result.prAuthor}`);
-  console.log(`Arquivos alterados: ${result.changedFiles.join(", ") || "nenhum"}`);
-  console.log(`✓ Autor do commit (@${result.commitAuthor}) bate com autor do PR.`);
+  console.log(`PR #${sanitizeForLog(prNumber)} aberto por @${sanitizeForLog(result.prAuthor)}`);
+  console.log(`Arquivos alterados: ${sanitizeForLog(result.changedFiles) || "nenhum"}`);
+  console.log(`✓ Autor do commit (@${sanitizeForLog(result.commitAuthor)}) bate com autor do PR.`);
   console.log("✓ PR pode ser auto-mergeado.");
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch((error) => {
+  try {
+    await main();
+  } catch (error) {
     console.error(error);
     process.exitCode = 1;
-  });
+  }
 }
