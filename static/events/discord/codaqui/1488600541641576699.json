@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T19:28:59.363Z",
+  "generatedAt": "2026-07-31T20:26:46.794Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-31T19:28:59.363Z"
+    "generatedAt": "2026-07-31T20:26:46.794Z"
   },
   "event": {
     "id": "1488600541641576699",
@@ -35,6 +35,7 @@
     "creatorName": "Enderson Menezes",
     "creatorId": "265457153257635850",
     "channelId": "836223700482392075",
-    "imageUrl": "https://cdn.discordapp.com/guild-events/1488600541641576699/8cb696230bf97824fd792c19d4cb4504.png?size=1024"
+    "imageUrl": "https://cdn.discordapp.com/guild-events/1488600541641576699/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+    "hasOverride": false
   }
 }

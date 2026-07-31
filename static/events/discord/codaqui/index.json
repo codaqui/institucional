@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T19:28:59.363Z",
+  "generatedAt": "2026-07-31T20:26:46.794Z",
   "source": {
     "source": "discord",
     "sourceId": "codaqui",
@@ -11,7 +11,7 @@
     "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
     "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-31T19:28:59.363Z",
+    "generatedAt": "2026-07-31T20:26:46.794Z",
     "sourceKey": "discord:codaqui",
     "indexPath": "/events/discord/codaqui/index.json",
     "itemCount": 12
@@ -40,11 +40,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488598924481527898/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488598924481527898.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488598924481527898.json"
     },
     {
       "id": "1488600399492415608",
@@ -69,11 +69,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600399492415608/7342ff2ab4698ea3dcdfca6d39185b71.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600399492415608.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488600399492415608.json"
     },
     {
       "id": "1488600541641576699",
@@ -98,11 +98,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600541641576699/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600541641576699.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488600541641576699.json"
     },
     {
       "id": "1488599076889952267",
@@ -127,11 +127,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599076889952267/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599076889952267.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488599076889952267.json"
     },
     {
       "id": "1488600661410054387",
@@ -156,11 +156,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600661410054387/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600661410054387.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488600661410054387.json"
     },
     {
       "id": "1488600812107202620",
@@ -185,11 +185,11 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600812107202620/7d0144e43d746ed307e21c3e9d7cfb2b.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488600812107202620.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488600812107202620.json"
     },
     {
       "id": "1488599694325317784",
@@ -220,11 +220,11 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599694325317784/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599694325317784.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488599694325317784.json"
     },
     {
       "id": "1498450972551155793",
@@ -255,11 +255,11 @@
       ],
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498450972551155793/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450972551155793.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1498450972551155793.json"
     },
     {
       "id": "1488599981085429880",
@@ -290,11 +290,11 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599981085429880/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1488599981085429880.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1488599981085429880.json"
     },
     {
       "id": "1498451178764107797",
@@ -325,11 +325,11 @@
       ],
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498451178764107797/7342ff2ab4698ea3dcdfca6d39185b71.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498451178764107797.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1498451178764107797.json"
     },
     {
       "id": "1498450535655931944",
@@ -360,11 +360,11 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498450535655931944/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1498450535655931944.json",
-      "hasOverride": false
+      "itemPath": "/events/discord/codaqui/1498450535655931944.json"
     },
     {
       "id": "1338983526858494053",
