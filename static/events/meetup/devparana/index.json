@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T00:18:53.047Z",
+  "generatedAt": "2026-07-31T01:31:23.238Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-07-31T00:18:53.047Z",
+    "generatedAt": "2026-07-31T01:31:23.238Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 371
+    "itemCount": 372
   },
   "events": [
     {
@@ -14323,6 +14323,49 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/315702026.json"
+    },
+    {
+      "id": "279713902",
+      "title": "Esquenta Agile Brazil by devParaná",
+      "summary": "🔥Esquenta Agile Brazil by devParaná O Esquenta Agile Brazil irá aquecer as discussões da Trilha Tech/IA Future Agility do Agile Brazil. Serão duas palestras técnicas sobre decisões que importam muito para qualquer agil…",
+      "startAt": "2026-08-06T19:30:00-03:00",
+      "endAt": "2026-08-06T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "OnSafety · Av. Centenário, 116 - Sl 34 - Vila Christino · Maringá",
+      "href": "https://www.meetup.com/developerparana/events/279713902/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 3,
+      "creatorName": "Kelly Garcia",
+      "creatorId": "249252072",
+      "organizers": [
+        {
+          "name": "Wagner Fusca",
+          "id": "188810094"
+        },
+        {
+          "name": "Ivo Roberto Batistela",
+          "id": "194369232"
+        },
+        {
+          "name": "Misael",
+          "id": "424009229"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/1/4/c/8/highres_535445320.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/279713902.json"
     },
     {
       "id": "315903291",

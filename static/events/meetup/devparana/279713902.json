@@ -13,16 +13,16 @@
     "generatedAt": "2026-07-31T01:31:23.238Z"
   },
   "event": {
-    "id": "269060018",
-    "title": "#3 Python Maringá - Dados abertos com Python",
-    "summary": "3 Python Maringá 🐍 Na terceira edição do Python Maringá o Turicas, do Brasil.io, virá lá de Curitiba pra falar sobre dados abertos. Save the date! --- Workshop - Sprint Python Fica ligado que no sábado após o meetup va…",
-    "startAt": "2020-03-12T19:00:00-03:00",
-    "endAt": "2020-03-12T21:00:00-03:00",
+    "id": "279713902",
+    "title": "Esquenta Agile Brazil by devParaná",
+    "summary": "🔥Esquenta Agile Brazil by devParaná O Esquenta Agile Brazil irá aquecer as discussões da Trilha Tech/IA Future Agility do Agile Brazil. Serão duas palestras técnicas sobre decisões que importam muito para qualquer agil…",
+    "startAt": "2026-08-06T19:30:00-03:00",
+    "endAt": "2026-08-06T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "DB1 · Av. Carneiro Leão, 563 - 2º Andar · Maringá · PR",
-    "href": "https://www.meetup.com/developerparana/events/269060018/",
+    "location": "OnSafety · Av. Centenário, 116 - Sl 34 - Vila Christino · Maringá",
+    "href": "https://www.meetup.com/developerparana/events/279713902/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,25 +30,25 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 56,
-    "creatorName": "Luis Berns",
-    "creatorId": "223750190",
+    "userCount": 3,
+    "creatorName": "Kelly Garcia",
+    "creatorId": "249252072",
     "organizers": [
       {
-        "name": "Luis Berns",
-        "id": "223750190"
+        "name": "Wagner Fusca",
+        "id": "188810094"
       },
       {
-        "name": "Enderson Menezes",
-        "id": "264802809"
+        "name": "Ivo Roberto Batistela",
+        "id": "194369232"
       },
       {
-        "name": "Jose Fernando Tavares",
-        "id": "265700899"
+        "name": "Misael",
+        "id": "424009229"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/6/9/1/0/highres_489386896.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/1/4/c/8/highres_535445320.jpeg"
   }
 }
