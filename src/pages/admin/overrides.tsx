@@ -98,6 +98,7 @@ interface Member {
   name: string;
   githubHandle: string;
   avatarUrl: string;
+  roles?: string[];
 }
 
 interface ExternalActivation {
@@ -107,6 +108,8 @@ interface ExternalActivation {
   communityProjectKey: string;
   /** Título usado em certificados (eventos externos podem ter título ruim no snapshot). */
   title?: string;
+  /** Data/hora de início do evento (copiada do snapshot para certificados/relatórios). */
+  startAt?: string | null;
 }
 
 interface ExternalParticipant {
@@ -1040,6 +1043,13 @@ function OrganizersTab({
               }}
             />
 
+            {selectedMember && !(selectedMember.roles ?? []).includes("event_organizer") && (
+              <Alert severity="warning" sx={{ py: 0.5 }}>
+                Este membro ainda não possui a role <code>event_organizer</code>. Adicione-a em
+                "Administração → Membros" antes de salvar, ou o PR de organizers não terá efeito.
+              </Alert>
+            )}
+
             <TextField
               label="Handle do GitHub"
               value={githubHandle}
@@ -1374,7 +1384,7 @@ function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected
           features,
           communityProjectKey,
           title: title.trim() || undefined,
-          startAt: selected?.startAt ?? undefined,
+          startAt: selected?.startAt ?? activation?.startAt ?? undefined,
         }),
       });
       if (!res.ok) {

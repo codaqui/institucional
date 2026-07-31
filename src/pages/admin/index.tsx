@@ -6,6 +6,9 @@ import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardContent from "@mui/material/CardContent";
 import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -14,6 +17,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
 import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
@@ -28,7 +32,15 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import BusinessIcon from "@mui/icons-material/Business";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import EditIcon from "@mui/icons-material/Edit";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import TokenIcon from "@mui/icons-material/Token";
 import AdminDataTable from "../../components/AdminDataTable";
 import ModalConfirm from "../../components/ModalConfirm";
 import AdminNavbar from "../../components/AdminNavbar";
@@ -84,7 +96,7 @@ const roleChipColor = (role: string): "default" | "secondary" | "primary" => {
 };
 
 export default function AdminPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch, user } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
@@ -250,12 +262,47 @@ export default function AdminPage(): React.JSX.Element {
     modalVariant = "warning";
   }
 
+  const financeLinks = [
+    { href: "/admin/lancamento", label: "Lançamento direto", description: "Registrar despesa ou receita pontual.", icon: <AccountBalanceWalletIcon color="primary" /> },
+    { href: "/admin/transferencias", label: "Transferências", description: "Movimentar valores entre contas internas.", icon: <CallReceivedIcon color="primary" /> },
+    { href: "/admin/reembolsos", label: "Reembolsos", description: "Aprovar, rejeitar e pagar reembolsos de membros.", icon: <ReceiptLongIcon color="primary" /> },
+    { href: "/admin/fornecedores", label: "Fornecedores", description: "Cadastrar fornecedores e acompanhar saldo.", icon: <StorefrontIcon color="primary" /> },
+    { href: "/admin/pagamentos", label: "Pagamentos", description: "Registrar pagamentos a fornecedores.", icon: <PaymentIcon color="primary" /> },
+    { href: "/admin/recebimentos", label: "Recebimentos", description: "Registrar recebimentos de fornecedores.", icon: <CallReceivedIcon color="primary" /> },
+    { href: "/admin/empresas", label: "Empresas PJ", description: "Gerenciar empresas do Clube Codaqui.", icon: <BusinessIcon color="primary" /> },
+    { href: "/admin/carteiras", label: "VirtualCoins", description: "Histórico unificado de carteiras SortCoins.", icon: <TokenIcon color="primary" /> },
+    { href: "/admin/sorteios", label: "Sorteios", description: "Gestão de sorteios do Clube Codaqui.", icon: <EmojiEventsIcon color="primary" /> },
+  ];
+
   let membersSection: React.JSX.Element;
   if (!isAdmin) {
     membersSection = (
-      <Alert severity="info" sx={{ mb: 3 }}>
-        Seu perfil pode acessar os módulos financeiros do painel. A gestão de membros permanece restrita a administradores.
-      </Alert>
+      <Stack spacing={3}>
+        <Alert severity="info" sx={{ mb: 1 }}>
+          Seu perfil pode acessar os módulos financeiros do painel. A gestão de membros permanece restrita a administradores.
+        </Alert>
+        <Grid container spacing={2}>
+          {financeLinks.map((link) => (
+            <Grid key={link.href} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardActionArea href={link.href} sx={{ height: "100%", p: 1 }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                      {link.icon}
+                      <Typography variant="subtitle2" fontWeight={700}>
+                        {link.label}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {link.description}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Stack>
     );
   } else if (loading) {
     membersSection = (
@@ -427,25 +474,46 @@ export default function AdminPage(): React.JSX.Element {
         title={`Alterar roles de @${roleTarget?.member.githubHandle}?`}
         description={
           roleTarget && (
-            <>
-              Roles atuais: <strong>{roleTarget.member.roles.map((r) => roleLabel(r)).join(", ")}</strong>
-              {" → "}
-              Novas roles: <strong>{roleTarget.nextRoles.map((r) => roleLabel(r)).join(", ")}</strong>
-              {roleTarget.nextRoles.includes("finance-analyzer") && (
-                <> — concede acesso ao painel financeiro.</>
-              )}
-              {roleTarget.nextRoles.includes("admin") && (
-                <> — concede acesso administrativo total.</>
-              )}
-              {!roleTarget.nextRoles.includes("admin") &&
-                roleTarget.member.roles.includes("admin") && (
-                <> — remove o acesso administrativo.</>
-              )}
-            </>
+            <Stack spacing={2}>
+              <Alert severity="info" sx={{ py: 0.5 }}>
+                <strong>Role ≠ ownership:</strong> a role concede permissões globais no sistema.
+                Para que um <code>event_organizer</code> edite eventos externos, ainda é necessário
+                mapear o ownership em <strong>Eventos → Organizers</strong>.
+              </Alert>
+              {roleTarget.member.id === user?.sub &&
+                roleTarget.member.roles.includes("admin") &&
+                !roleTarget.nextRoles.includes("admin") && (
+                  <Alert severity="error" sx={{ py: 0.5 }}>
+                    Você não pode remover a própria role de admin. Peça a outro administrador
+                    para realizar essa alteração.
+                  </Alert>
+                )}
+              <Typography variant="body2">
+                Roles atuais: <strong>{roleTarget.member.roles.map((r) => roleLabel(r)).join(", ")}</strong>
+                {" → "}
+                Novas roles: <strong>{roleTarget.nextRoles.map((r) => roleLabel(r)).join(", ")}</strong>
+                {roleTarget.nextRoles.includes("finance-analyzer") && (
+                  <> — concede acesso ao painel financeiro.</>
+                )}
+                {roleTarget.nextRoles.includes("admin") && (
+                  <> — concede acesso administrativo total.</>
+                )}
+                {!roleTarget.nextRoles.includes("admin") &&
+                  roleTarget.member.roles.includes("admin") && (
+                  <> — remove o acesso administrativo.</>
+                )}
+              </Typography>
+            </Stack>
           )
         }
         variant={modalVariant}
         confirmLabel="Alterar roles"
+        confirmDisabled={
+          !!roleTarget &&
+          roleTarget.member.id === user?.sub &&
+          roleTarget.member.roles.includes("admin") &&
+          !roleTarget.nextRoles.includes("admin")
+        }
         loading={actionLoading}
         error={actionError}
         onConfirm={handleConfirmRole}

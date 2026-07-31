@@ -465,11 +465,42 @@ export class EventsService {
   }
 
   /** GET /events — todos os eventos (qualquer status) */
-  async listEvents(user: JwtPayload) {
+  async listEvents(
+    user: JwtPayload,
+    query?: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      community?: string;
+    },
+  ) {
     EventsService.assertGlobalManager(user);
-    const events = await this.eventRepo.find({
-      order: { startAt: 'DESC' },
-    });
+
+    const qb = this.eventRepo.createQueryBuilder('e').orderBy('e."startAt"', 'DESC');
+
+    if (query?.search?.trim()) {
+      const q = `%${query.search.trim().toLowerCase()}%`;
+      qb.andWhere('(lower(e.title) LIKE :q OR lower(e.summary) LIKE :q)', { q });
+    }
+    if (query?.community?.trim()) {
+      qb.andWhere('e."communityProjectKey" = :community', {
+        community: query.community.trim(),
+      });
+    }
+
+    const page = query?.page ?? 0;
+    const limit = query?.limit ?? 0;
+    const isPaginated = page > 0 && limit > 0;
+
+    if (isPaginated) {
+      const total = await qb.getCount();
+      qb.skip((page - 1) * limit).take(limit);
+      const events = await qb.getMany();
+      const data = await Promise.all(events.map((e) => this.withRelations(e)));
+      return { events: data, total, page, limit };
+    }
+
+    const events = await qb.getMany();
     return Promise.all(events.map((e) => this.withRelations(e)));
   }
 
@@ -2121,7 +2152,7 @@ export class EventsService {
     if (!trimmed) return [];
     const members = await this.memberRepo
       .createQueryBuilder('m')
-      .select(['m.id', 'm.name', 'm.githubHandle', 'm.avatarUrl'])
+      .select(['m.id', 'm.name', 'm.githubHandle', 'm.avatarUrl', 'm.roles'])
       .where('m."isActive" = true')
       .andWhere('(m.name ILIKE :q OR m."githubHandle" ILIKE :q)', {
         q: `%${trimmed}%`,
@@ -2134,6 +2165,7 @@ export class EventsService {
       name: m.name,
       githubHandle: m.githubHandle,
       avatarUrl: m.avatarUrl,
+      roles: m.roles ?? [],
     }));
   }
 
@@ -2852,6 +2884,8 @@ export class EventsService {
           verificationCode: r.checkedInAt
             ? EventsService.certificateCode(r.checkinToken)
             : null,
+          eventId: r.eventId,
+          eventKey: r.externalActivationId ? activation?.eventKey : undefined,
           _sortAt: eventStartAt ?? r.createdAt,
         };
       })
@@ -2885,6 +2919,18 @@ export class EventsService {
       communityProjectKey: a.communityProjectKey,
       title: a.title,
       enabledByMemberId: a.enabledByMemberId,
+    }));
+  }
+
+  /** GET /events/public/activations — ativações de features para a página pública. */
+  async listPublicActivations() {
+    const all = await this.activationRepo.find({
+      order: { createdAt: 'DESC' },
+    });
+    return all.map((a) => ({
+      eventKey: a.eventKey,
+      features: a.features,
+      communityProjectKey: a.communityProjectKey,
     }));
   }
 

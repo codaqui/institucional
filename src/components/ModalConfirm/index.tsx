@@ -27,6 +27,9 @@ interface ModalConfirmProps {
   /** Estado de carregamento durante ação async */
   readonly loading?: boolean;
 
+  /** Desabilita o botão de confirmação (ex: auto-remoção de admin) */
+  readonly confirmDisabled?: boolean;
+
   /** Mensagem de erro exibida dentro do modal */
   readonly error?: string;
 
@@ -68,6 +71,7 @@ export default function ModalConfirm({
   cancelLabel = "Cancelar",
   variant = "warning",
   loading = false,
+  confirmDisabled = false,
   error,
   onConfirm,
 }: Readonly<ModalConfirmProps>): React.JSX.Element {
@@ -117,7 +121,7 @@ export default function ModalConfirm({
         <Button
           variant="contained"
           color={color}
-          disabled={loading}
+          disabled={loading || confirmDisabled}
           onClick={onConfirm}
           startIcon={
             loading ? <CircularProgress size={16} color="inherit" /> : undefined
