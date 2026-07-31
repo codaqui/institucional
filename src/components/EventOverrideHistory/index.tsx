@@ -20,10 +20,10 @@ export interface OverrideHistoryEntry {
 }
 
 interface EventOverrideHistoryProps {
-  apiUrl: string;
-  authFetch: (path: string, init?: RequestInit) => Promise<Response>;
-  sourceKey: string;
-  eventId: string;
+  readonly apiUrl: string;
+  readonly authFetch: (path: string, init?: RequestInit) => Promise<Response>;
+  readonly sourceKey: string;
+  readonly eventId: string;
 }
 
 const formatDate = (iso: string): string =>
@@ -34,6 +34,93 @@ const formatDate = (iso: string): string =>
     hour: "2-digit",
     minute: "2-digit",
   });
+
+function HistorySkeletons(): React.JSX.Element {
+  return (
+    <Stack spacing={1.5}>
+      {[0, 1, 2].map((i) => (
+        <Box key={i} sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+          <Skeleton variant="circular" width={28} height={28} />
+          <Box sx={{ flex: 1 }}>
+            <Skeleton variant="text" width="80%" />
+            <Skeleton variant="text" width="50%" />
+          </Box>
+        </Box>
+      ))}
+    </Stack>
+  );
+}
+
+function HistoryError({ message }: { readonly message: string }): React.JSX.Element {
+  return (
+    <Typography variant="body2" color="error">
+      {message}
+    </Typography>
+  );
+}
+
+function HistoryEmpty(): React.JSX.Element {
+  return (
+    <Typography variant="body2" color="text.secondary">
+      Nenhuma edição registrada.
+    </Typography>
+  );
+}
+
+function HistoryList({ items }: { readonly items: OverrideHistoryEntry[] }): React.JSX.Element {
+  return (
+    <Stack spacing={1.5}>
+      {items.map((item) => (
+        <Box key={item.sha} sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+          <Avatar
+            src={item.authorAvatarUrl}
+            alt={item.authorHandle}
+            sx={{ width: 28, height: 28 }}
+          />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography variant="body2" fontWeight={600}>
+              @{item.authorHandle}
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ wordBreak: "break-word" }}
+            >
+              {item.message}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {formatDate(item.date)}
+            </Typography>
+          </Box>
+          <IconButton
+            size="small"
+            aria-label={`Abrir commit ${item.sha.slice(0, 7)}`}
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <OpenInNewIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+    </Stack>
+  );
+}
+
+function HistoryContent({
+  loading,
+  error,
+  items,
+}: {
+  readonly loading: boolean;
+  readonly error: string;
+  readonly items: OverrideHistoryEntry[];
+}): React.JSX.Element {
+  if (loading) return <HistorySkeletons />;
+  if (error) return <HistoryError message={error} />;
+  if (items.length === 0) return <HistoryEmpty />;
+  return <HistoryList items={items} />;
+}
 
 /**
  * Painel "Histórico de edições" do editor de override — lista os commits do
@@ -79,63 +166,7 @@ export default function EventOverrideHistory({
           Histórico de edições
         </Typography>
 
-        {loading ? (
-          <Stack spacing={1.5}>
-            {[0, 1, 2].map((i) => (
-              <Box key={i} sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                <Skeleton variant="circular" width={28} height={28} />
-                <Box sx={{ flex: 1 }}>
-                  <Skeleton variant="text" width="80%" />
-                  <Skeleton variant="text" width="50%" />
-                </Box>
-              </Box>
-            ))}
-          </Stack>
-        ) : error ? (
-          <Typography variant="body2" color="error">
-            {error}
-          </Typography>
-        ) : items.length === 0 ? (
-          <Typography variant="body2" color="text.secondary">
-            Nenhuma edição registrada.
-          </Typography>
-        ) : (
-          <Stack spacing={1.5}>
-            {items.map((item) => (
-              <Box key={item.sha} sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                <Avatar
-                  src={item.authorAvatarUrl}
-                  alt={item.authorHandle}
-                  sx={{ width: 28, height: 28 }}
-                />
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography variant="body2" fontWeight={600}>
-                    @{item.authorHandle}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ wordBreak: "break-word" }}
-                  >
-                    {item.message}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {formatDate(item.date)}
-                  </Typography>
-                </Box>
-                <IconButton
-                  size="small"
-                  aria-label={`Abrir commit ${item.sha.slice(0, 7)}`}
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <OpenInNewIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            ))}
-          </Stack>
-        )}
+        <HistoryContent loading={loading} error={error} items={items} />
       </CardContent>
     </Card>
   );

@@ -24,18 +24,18 @@ interface CommunityBalance {
 }
 
 interface EventReimbursementDialogProps {
-  open: boolean;
-  onClose: () => void;
-  apiUrl: string;
-  authFetch: (path: string, init?: RequestInit) => Promise<Response>;
-  title: string;
+  readonly open: boolean;
+  readonly onClose: () => void;
+  readonly apiUrl: string;
+  readonly authFetch: (path: string, init?: RequestInit) => Promise<Response>;
+  readonly title: string;
   /** Para eventos internos: eventId. Para externos: deixe undefined e passe eventKey. */
-  eventId?: string;
+  readonly eventId?: string;
   /** Para eventos externos: eventKey (source:sourceId:eventId). */
-  eventKey?: string;
+  readonly eventKey?: string;
   /** communityProjectKey sugerida — pré-seleciona a conta correspondente quando encontrada. */
-  communityProjectKey?: string;
-  onCreated?: () => void;
+  readonly communityProjectKey?: string;
+  readonly onCreated?: () => void;
 }
 
 const formatBRL = (v: number) =>

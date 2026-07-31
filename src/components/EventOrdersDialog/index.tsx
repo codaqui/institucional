@@ -110,17 +110,310 @@ const TX_TYPE_FILTER_OPTIONS = [
 ];
 
 // ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
+
+interface OrdersPanelProps {
+  readonly loading: boolean;
+  readonly orders: OrderItem[];
+  readonly totalRevenue: number;
+  readonly onRefresh: () => void;
+  readonly onRefund: (order: OrderItem) => void;
+}
+
+function OrdersPanel({
+  loading,
+  orders,
+  totalRevenue,
+  onRefresh,
+  onRefund,
+}: OrdersPanelProps): React.JSX.Element {
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+        Nenhum pedido encontrado para este evento.
+      </Typography>
+    );
+  }
+
+  return (
+    <>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
+        <Typography variant="body2" color="text.secondary">
+          {orders.length} pedido(s) · Receita confirmada:{" "}
+          <strong>{formatBRLFromCents(totalRevenue)}</strong>
+        </Typography>
+        <Box sx={{ flex: 1 }} />
+        <Button size="small" variant="outlined" startIcon={<RefreshIcon />} onClick={onRefresh}>
+          Atualizar
+        </Button>
+      </Box>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Comprador</TableCell>
+              <TableCell>Participante(s)</TableCell>
+              <TableCell>Ingresso</TableCell>
+              <TableCell align="right">Qtd</TableCell>
+              <TableCell align="right">Total</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Pago em</TableCell>
+              <TableCell>Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {orders.map((order) => (
+              <TableRow key={order.id}>
+                <TableCell>
+                  <Typography variant="body2" fontWeight={600}>
+                    {order.member?.name ?? "—"}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" display="block">
+                    {order.member?.handle
+                      ? `@${order.member.handle}`
+                      : order.member?.email ?? "—"}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  {order.attendees && order.attendees.length > 0 ? (
+                    order.attendees.map((a) => (
+                      <Typography key={a.email} variant="body2">
+                        {a.name}{" "}
+                        <Typography component="span" variant="caption" color="text.secondary">
+                          ({a.email})
+                        </Typography>
+                      </Typography>
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      {order.member?.name ?? "—"}
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">{order.ticketType?.name ?? "—"}</Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {order.ticketType
+                      ? formatBRLFromCents(order.ticketType.priceCents)
+                      : "—"}{" "}
+                    / un
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">{order.quantity}</TableCell>
+                <TableCell align="right">{formatBRLFromCents(order.totalCents)}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={STATUS_CONFIG[order.status].label}
+                    color={STATUS_CONFIG[order.status].color}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell>{formatDateTime(order.paidAt)}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: "flex", gap: 0.5 }}>
+                    {(order.status === "paid" || order.status === "refunded") && (
+                      <IconButton
+                        size="small"
+                        component={Link}
+                        href={`/eventos/comprovante?order=${order.id}`}
+                        aria-label="comprovante"
+                      >
+                        <ReceiptLongIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    {order.status === "paid" && (
+                      <IconButton
+                        size="small"
+                        onClick={() => onRefund(order)}
+                        aria-label="reembolsar"
+                      >
+                        <KeyboardReturnIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </>
+  );
+}
+
+interface LedgerPanelProps {
+  readonly loading: boolean;
+  readonly ledgerResult: PaginatedTransactions | null;
+  readonly ledgerTotalIn: number;
+  readonly ledgerTotalOut: number;
+  readonly ledgerPage: number;
+  readonly ledgerRowsPerPage: number;
+  readonly ledgerTypeFilter: string;
+  readonly ledgerSearchInput: string;
+  readonly onRefresh: () => void;
+  readonly onSelectTx: (tx: Transaction) => void;
+  readonly onTypeFilterChange: (value: string) => void;
+  readonly onSearchInputChange: (value: string) => void;
+  readonly onSearch: () => void;
+  readonly onPageChange: (page: number) => void;
+  readonly onRowsPerPageChange: (rows: number) => void;
+}
+
+function LedgerPanel({
+  loading,
+  ledgerResult,
+  ledgerTotalIn,
+  ledgerTotalOut,
+  ledgerPage,
+  ledgerRowsPerPage,
+  ledgerTypeFilter,
+  ledgerSearchInput,
+  onRefresh,
+  onSelectTx,
+  onTypeFilterChange,
+  onSearchInputChange,
+  onSearch,
+  onPageChange,
+  onRowsPerPageChange,
+}: LedgerPanelProps): React.JSX.Element {
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!ledgerResult || ledgerResult.data.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
+        Nenhuma transação encontrada para este evento.
+      </Typography>
+    );
+  }
+
+  return (
+    <>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2, flexWrap: "wrap" }}>
+        <Typography variant="body2" color="text.secondary">
+          Entradas: <strong>{formatBRL(ledgerTotalIn)}</strong> · Saídas:{" "}
+          <strong>{formatBRL(ledgerTotalOut)}</strong> · Saldo:{" "}
+          <strong>{formatBRL(ledgerTotalIn - ledgerTotalOut)}</strong>
+        </Typography>
+        <Box sx={{ flex: 1 }} />
+        <Select
+          value={ledgerTypeFilter}
+          onChange={(e) => onTypeFilterChange(e.target.value)}
+          size="small"
+          displayEmpty
+          sx={{ minWidth: 170 }}
+        >
+          {TX_TYPE_FILTER_OPTIONS.map((o) => (
+            <MenuItem key={o.value} value={o.value}>
+              {o.label}
+            </MenuItem>
+          ))}
+        </Select>
+        <Box sx={{ display: "flex", gap: 0.5 }}>
+          <TextField
+            size="small"
+            placeholder="Buscar descrição"
+            value={ledgerSearchInput}
+            onChange={(e) => onSearchInputChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSearch();
+            }}
+          />
+          <IconButton onClick={onSearch} aria-label="buscar">
+            <SearchIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<RefreshIcon />}
+          onClick={onRefresh}
+        >
+          Atualizar
+        </Button>
+      </Box>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>Data</TableCell>
+              <TableCell>Tipo</TableCell>
+              <TableCell>Descrição</TableCell>
+              <TableCell align="right">Valor</TableCell>
+              <TableCell align="center">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ledgerResult.data.map((tx) => {
+              const type = detectTxType(tx);
+              const config = TX_TYPE_CONFIG[type];
+              return (
+                <TableRow key={tx.id}>
+                  <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                  <TableCell>
+                    <Chip icon={config.icon} label={config.label} color={config.color} size="small" />
+                  </TableCell>
+                  <TableCell>{tx.description}</TableCell>
+                  <TableCell align="right">{formatBRL(Number(tx.amount))}</TableCell>
+                  <TableCell align="center">
+                    <IconButton
+                      size="small"
+                      onClick={() => onSelectTx(tx)}
+                      aria-label="ver detalhes"
+                    >
+                      <OpenInNewIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={ledgerResult.total}
+        page={ledgerPage}
+        onPageChange={(_, p) => onPageChange(p)}
+        rowsPerPage={ledgerRowsPerPage}
+        onRowsPerPageChange={(e) => {
+          onRowsPerPageChange(Number.parseInt(e.target.value, 10));
+          onPageChange(0);
+        }}
+        rowsPerPageOptions={[5, 10, 25, 50]}
+        labelRowsPerPage="Linhas"
+        labelDisplayedRows={({ from, to, count }) => `${from}–${to} de ${count}`}
+      />
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 interface EventOrdersDialogProps {
-  open: boolean;
-  onClose: () => void;
+  readonly open: boolean;
+  readonly onClose: () => void;
   /** Evento interno: passar eventId. Externo: passar eventKey no formato source:sourceId:eventId. */
-  eventId?: string;
-  eventKey?: string;
-  eventTitle: string;
-  apiUrl: string;
+  readonly eventId?: string;
+  readonly eventKey?: string;
+  readonly eventTitle: string;
+  readonly apiUrl: string;
 }
 
 export default function EventOrdersDialog({
@@ -310,105 +603,16 @@ export default function EventOrdersDialog({
               </Button>
             </Box>
 
-            {ordersLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : orders.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                Nenhum pedido encontrado para este evento.
-              </Typography>
-            ) : (
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Comprador</TableCell>
-                      <TableCell>Participante(s)</TableCell>
-                      <TableCell>Ingresso</TableCell>
-                      <TableCell align="right">Qtd</TableCell>
-                      <TableCell align="right">Total</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Pago em</TableCell>
-                      <TableCell>Ações</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell>
-                          <Typography variant="body2" fontWeight={600}>
-                            {order.member?.name ?? "—"}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            {order.member?.handle
-                              ? `@${order.member.handle}`
-                              : order.member?.email ?? "—"}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          {order.attendees && order.attendees.length > 0 ? (
-                            order.attendees.map((a, i) => (
-                              <Typography key={i} variant="body2">
-                                {a.name} <Typography component="span" variant="caption" color="text.secondary">({a.email})</Typography>
-                              </Typography>
-                            ))
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              {order.member?.name ?? "—"}
-                            </Typography>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">{order.ticketType?.name ?? "—"}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {order.ticketType ? formatBRLFromCents(order.ticketType.priceCents) : "—"} / un
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">{order.quantity}</TableCell>
-                        <TableCell align="right">
-                          {formatBRLFromCents(order.totalCents)}
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={STATUS_CONFIG[order.status].label}
-                            color={STATUS_CONFIG[order.status].color}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>{formatDateTime(order.paidAt)}</TableCell>
-                        <TableCell>
-                          <Box sx={{ display: "flex", gap: 0.5 }}>
-                            {(order.status === "paid" || order.status === "refunded") && (
-                              <IconButton
-                                size="small"
-                                component={Link}
-                                href={`/eventos/comprovante?order=${order.id}`}
-                                aria-label="comprovante"
-                              >
-                                <ReceiptLongIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                            {order.status === "paid" && (
-                              <IconButton
-                                size="small"
-                                onClick={() => {
-                                  setRefundTarget(order);
-                                  setRefundError("");
-                                }}
-                                aria-label="reembolsar"
-                              >
-                                <KeyboardReturnIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
+            <OrdersPanel
+              loading={ordersLoading}
+              orders={orders}
+              totalRevenue={totalRevenue}
+              onRefresh={fetchOrders}
+              onRefund={(order) => {
+                setRefundTarget(order);
+                setRefundError("");
+              }}
+            />
           </>
         )}
 
@@ -459,77 +663,23 @@ export default function EventOrdersDialog({
               </Button>
             </Box>
 
-            {ledgerLoading ? (
-              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-                <CircularProgress />
-              </Box>
-            ) : !ledgerResult || ledgerResult.data.length === 0 ? (
-              <Typography variant="body2" color="text.secondary" textAlign="center" py={4}>
-                Nenhuma transação encontrada para este evento.
-              </Typography>
-            ) : (
-              <>
-                <TableContainer>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Data</TableCell>
-                        <TableCell>Tipo</TableCell>
-                        <TableCell>Descrição</TableCell>
-                        <TableCell align="right">Valor</TableCell>
-                        <TableCell align="center">Ações</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {ledgerResult.data.map((tx) => {
-                        const type = detectTxType(tx);
-                        const config = TX_TYPE_CONFIG[type];
-                        return (
-                          <TableRow key={tx.id}>
-                            <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                            <TableCell>
-                              <Chip
-                                icon={config.icon}
-                                label={config.label}
-                                color={config.color}
-                                size="small"
-                              />
-                            </TableCell>
-                            <TableCell>{tx.description}</TableCell>
-                            <TableCell align="right">{formatBRL(Number(tx.amount))}</TableCell>
-                            <TableCell align="center">
-                              <IconButton
-                                size="small"
-                                onClick={() => setSelectedTx(tx)}
-                                aria-label="ver detalhes"
-                              >
-                                <OpenInNewIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-                <TablePagination
-                  component="div"
-                  count={ledgerResult.total}
-                  page={ledgerPage}
-                  onPageChange={(_, p) => setLedgerPage(p)}
-                  rowsPerPage={ledgerRowsPerPage}
-                  onRowsPerPageChange={(e) => {
-                    setLedgerRowsPerPage(Number.parseInt(e.target.value, 10));
-                    setLedgerPage(0);
-                  }}
-                  rowsPerPageOptions={[5, 10, 25, 50]}
-                  labelRowsPerPage="Linhas"
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}–${to} de ${count}`
-                  }
-                />
-              </>
-            )}
+            <LedgerPanel
+              loading={ledgerLoading}
+              ledgerResult={ledgerResult}
+              ledgerTotalIn={ledgerTotalIn}
+              ledgerTotalOut={ledgerTotalOut}
+              ledgerPage={ledgerPage}
+              ledgerRowsPerPage={ledgerRowsPerPage}
+              ledgerTypeFilter={ledgerTypeFilter}
+              ledgerSearchInput={ledgerSearchInput}
+              onRefresh={fetchLedger}
+              onSelectTx={setSelectedTx}
+              onTypeFilterChange={setLedgerTypeFilter}
+              onSearchInputChange={setLedgerSearchInput}
+              onSearch={() => setLedgerSearchFilter(ledgerSearchInput)}
+              onPageChange={setLedgerPage}
+              onRowsPerPageChange={setLedgerRowsPerPage}
+            />
           </>
         )}
       </DialogContent>
