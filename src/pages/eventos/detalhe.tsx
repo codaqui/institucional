@@ -261,11 +261,13 @@ function InternalEventRegistration({
   apiUrl,
   stripeKey,
   eventTitle,
+  onCheckoutSuccess,
 }: {
   readonly eventId: string;
   readonly apiUrl: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
   const { ready, isLoggedIn, login, authFetch } = useAuth();
@@ -413,6 +415,7 @@ function InternalEventRegistration({
   const handleCheckoutComplete = (): void => {
     setCheckoutOpen(false);
     setClientSecret(null);
+    onCheckoutSuccess?.();
   };
 
   if (registration) {
@@ -661,12 +664,14 @@ function ExternalEventRegistration({
   externalHref,
   stripeKey,
   eventTitle,
+  onCheckoutSuccess,
 }: {
   readonly eventKey: string;
   readonly apiUrl: string;
   readonly externalHref: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
   const { ready, isLoggedIn, login, authFetch } = useAuth();
@@ -809,6 +814,7 @@ function ExternalEventRegistration({
   const handleCheckoutComplete = (): void => {
     setCheckoutOpen(false);
     setClientSecret(null);
+    onCheckoutSuccess?.();
   };
 
   return (
@@ -1363,6 +1369,7 @@ function EventDetailContent({
           apiUrl={apiUrl}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
       {!isInternal ? (
@@ -1372,6 +1379,7 @@ function EventDetailContent({
           externalHref={event.registrationUrl ?? event.href}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
 
