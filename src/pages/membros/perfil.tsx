@@ -3,6 +3,7 @@ import Layout from "@theme/Layout";
 import Head from "@docusaurus/Head";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -107,6 +108,8 @@ interface PublicEventRegistration {
   memberId?: string | null;
   payerMemberId?: string | null;
   attendeeName?: string | null;
+  eventId?: string | null;
+  eventKey?: string | null;
 }
 
 
@@ -492,10 +495,23 @@ function DonationHistory({ donations }: Readonly<{ donations: Donation[] }>) {
 
 // ── Histórico de eventos (público) ─────────────────────────────────────────
 
+function eventDetailHref(reg: PublicEventRegistration): string | null {
+  if (reg.eventId) {
+    return `/eventos/detalhe?source=internal&sourceId=codaqui&id=${encodeURIComponent(reg.eventId)}`;
+  }
+  if (reg.eventKey) {
+    const parts = reg.eventKey.split(":");
+    if (parts.length >= 3) {
+      return `/eventos/detalhe?source=${encodeURIComponent(parts[0])}&sourceId=${encodeURIComponent(parts[1])}&id=${encodeURIComponent(parts.slice(2).join(":"))}`;
+    }
+  }
+  return null;
+}
+
 function EventHistorySection({
   registrations,
 }: Readonly<{ registrations: PublicEventRegistration[] }>) {
-  if (registrations.length === 0) return null;
+  const hasRegistrations = registrations.length > 0;
 
   return (
     <Box sx={{ mt: 4 }}>
@@ -504,52 +520,71 @@ function EventHistorySection({
         <Typography variant="h6" fontWeight={700}>
           Histórico de eventos
         </Typography>
-        <Chip
-          label={`${registrations.length} evento(s)`}
-          size="small"
-          color="primary"
-          variant="outlined"
-        />
+        {hasRegistrations && (
+          <Chip
+            label={`${registrations.length} evento(s)`}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        )}
       </Box>
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Situação</TableCell>
-              <TableCell sx={{ fontWeight: 700 }}>Certificado</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {registrations.map((reg) => (
-              <TableRow key={reg.id}>
-                <TableCell>{reg.eventTitle}</TableCell>
-                <TableCell>{formatDateSafe(reg.eventStartAt) ?? "—"}</TableCell>
-                <TableCell>
-                  {reg.checkedIn ? (
-                    <Chip label="Presente" size="small" color="success" variant="outlined" />
-                  ) : (
-                    <Chip label="Inscrito" size="small" variant="outlined" />
-                  )}
-                </TableCell>
-                <TableCell>
-                  {reg.verificationCode ? (
-                    <Link
-                      href={`/certificado/verificar?codigo=${encodeURIComponent(reg.verificationCode)}`}
-                      underline="hover"
-                    >
-                      Verificar
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </TableCell>
+      {!hasRegistrations ? (
+        <Alert severity="info" variant="outlined">
+          Nenhuma participação registrada ainda.
+        </Alert>
+      ) : (
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Situação</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Certificado</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {registrations.map((reg) => {
+                const href = eventDetailHref(reg);
+                return (
+                  <TableRow key={reg.id}>
+                    <TableCell>
+                      {href ? (
+                        <Link href={href} underline="hover">
+                          {reg.eventTitle}
+                        </Link>
+                      ) : (
+                        reg.eventTitle
+                      )}
+                    </TableCell>
+                    <TableCell>{formatDateSafe(reg.eventStartAt) ?? "—"}</TableCell>
+                    <TableCell>
+                      {reg.checkedIn ? (
+                        <Chip label="Presente" size="small" color="success" variant="outlined" />
+                      ) : (
+                        <Chip label="Inscrito" size="small" variant="outlined" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {reg.verificationCode ? (
+                        <Link
+                          href={`/certificado/verificar?codigo=${encodeURIComponent(reg.verificationCode)}`}
+                          underline="hover"
+                        >
+                          Verificar
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Box>
   );
 }

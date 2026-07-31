@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Layout from "@theme/Layout";
+import Link from "@docusaurus/Link";
 import { useHistory } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import Alert from "@mui/material/Alert";
@@ -266,7 +267,19 @@ function EventRegistrationsList({
             <CardContent sx={{ py: "12px !important" }}>
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 1 }}>
                 <Box>
-                  <Typography variant="body2" fontWeight={700}>{eventTitle}</Typography>
+                  <Typography variant="body2" fontWeight={700}>
+                    {reg.event? (
+                      <Link href={`/eventos/detalhe?source=internal&sourceId=codaqui&id=${reg.event.id}`}>
+                        {eventTitle}
+                      </Link>
+                    ) : reg.activation? (
+                      <Link href={`/eventos/detalhe?source=${encodeURIComponent(reg.activation.eventKey.split(":")[0])}&sourceId=${encodeURIComponent(reg.activation.eventKey.split(":")[1] ?? "")}&id=${encodeURIComponent(reg.activation.eventKey.split(":")[2] ?? "")}`}>
+                        {eventTitle}
+                      </Link>
+                    ) : (
+                      eventTitle
+                    )}
+                  </Typography>
                   <Typography variant="caption" color="text.secondary" display="block">
                     {eventStartAt ? formatEventDate(eventStartAt) : "Data a definir"}
                     {eventLocation ? ` · ${eventLocation}` : ""}
@@ -290,7 +303,7 @@ function EventRegistrationsList({
                         variant="outlined"
                       />
                     )}
-                    {alreadyUsed && (
+                    {alreadyUsed && reg.checkedInAt && (
                       <Chip
                         icon={<CheckCircleIcon />}
                         label={`Presente · ${formatEventDate(reg.checkedInAt)}`}
