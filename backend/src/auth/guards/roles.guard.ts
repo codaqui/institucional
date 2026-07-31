@@ -24,7 +24,9 @@ export class RolesGuard implements CanActivate {
     if (!user) {
       throw new UnauthorizedException('Autenticação requerida.');
     }
-    if (!requiredRoles.includes(user.role)) {
+    // Multi-role: basta haver interseção entre as roles do usuário e as exigidas
+    const userRoles: string[] = user.roles ?? [];
+    if (!requiredRoles.some((role) => userRoles.includes(role))) {
       throw new ForbiddenException('Acesso negado: role insuficiente.');
     }
     return true;

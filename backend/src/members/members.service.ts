@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Member, MemberRole } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
+import { EventsService } from '../events/events.service';
+import { decryptToken, encryptToken } from '../common/crypto.util';
 
 interface GithubProfile {
   githubId: string;
@@ -10,6 +12,10 @@ interface GithubProfile {
   name: string;
   email: string;
   avatarUrl: string;
+  /** Token OAuth do GitHub (scope public_repo) — persistido criptografado */
+  githubAccessToken?: string;
+  /** E-mails verificados da conta GitHub (match de participantes CSV) */
+  secondaryEmails?: string[];
 }
 
 interface UpdateMeDto {
@@ -18,7 +24,7 @@ interface UpdateMeDto {
 }
 
 interface AdminUpdateDto {
-  role?: MemberRole;
+  roles?: MemberRole[];
   isActive?: boolean;
   name?: string;
   bio?: string;
@@ -49,6 +55,8 @@ export class MembersService {
     private readonly repo: Repository<Member>,
     @InjectRepository(Transaction)
     private readonly txRepo: Repository<Transaction>,
+    @Inject(forwardRef(() => EventsService))
+    private readonly eventsService: EventsService,
   ) {}
 
   private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -69,39 +77,123 @@ export class MembersService {
       profile.githubHandle.toLowerCase(),
     );
 
+    // O token NUNCA é persistido em texto puro — separado do spread e
+    // criptografado abaixo (encryptToken; em dev sem a env vira `plain:`).
+    const { githubAccessToken, secondaryEmails, ...profileData } = profile;
+
     let member = await this.repo.findOne({
-      where: { githubId: profile.githubId },
+      where: { githubId: profileData.githubId },
     });
+    let isNew = false;
 
     if (member) {
-      // Atualiza dados públicos que podem ter mudado no GitHub
-      member.githubHandle = profile.githubHandle;
-      member.name = profile.name;
-      member.email = profile.email;
-      member.avatarUrl = profile.avatarUrl;
-
-      // Garante role admin para bootstrap admins a cada login
-      if (isBootstrapAdmin && member.role !== MemberRole.ADMIN) {
-        this.logger.log(
-          `Bootstrap admin restaurado: @${profile.githubHandle} → role=admin`,
-        );
-        member.role = MemberRole.ADMIN;
-      }
+      this.applyExistingMemberUpdates(member, profileData, isBootstrapAdmin);
     } else {
-      member = this.repo.create({
-        ...profile,
-        role: isBootstrapAdmin ? MemberRole.ADMIN : MemberRole.MEMBRO,
-        isActive: true,
-      });
-
-      if (isBootstrapAdmin) {
-        this.logger.log(
-          `Bootstrap admin criado: @${profile.githubHandle} → role=admin`,
-        );
-      }
+      isNew = true;
+      member = this.createNewMember(profileData, isBootstrapAdmin);
     }
 
-    return this.repo.save(member);
+    this.applyEncryptedToken(member, githubAccessToken);
+    this.applySecondaryEmails(member, secondaryEmails);
+
+    const saved = await this.repo.save(member);
+
+    if (isNew) {
+      await this.safeRematchPendingRegistrations(saved);
+    }
+
+    return saved;
+  }
+
+  private applyExistingMemberUpdates(
+    member: Member,
+    profileData: Omit<GithubProfile, 'githubAccessToken' | 'secondaryEmails'>,
+    isBootstrapAdmin: boolean,
+  ): void {
+    // Atualiza dados públicos que podem ter mudado no GitHub
+    member.githubHandle = profileData.githubHandle;
+    member.name = profileData.name;
+    member.email = profileData.email;
+    member.avatarUrl = profileData.avatarUrl;
+
+    // Garante role admin para bootstrap admins a cada login
+    if (isBootstrapAdmin && !member.roles.includes(MemberRole.ADMIN)) {
+      this.logger.log(
+        `Bootstrap admin restaurado: @${profileData.githubHandle} → role=admin`,
+      );
+      member.roles = [...member.roles, MemberRole.ADMIN];
+    }
+  }
+
+  private createNewMember(
+    profileData: Omit<GithubProfile, 'githubAccessToken' | 'secondaryEmails'>,
+    isBootstrapAdmin: boolean,
+  ): Member {
+    const member = this.repo.create({
+      ...profileData,
+      roles: isBootstrapAdmin ? [MemberRole.ADMIN] : [MemberRole.MEMBRO],
+      isActive: true,
+    });
+
+    if (isBootstrapAdmin) {
+      this.logger.log(
+        `Bootstrap admin criado: @${profileData.githubHandle} → role=admin`,
+      );
+    }
+
+    return member;
+  }
+
+  private applyEncryptedToken(
+    member: Member,
+    githubAccessToken: string | undefined,
+  ): void {
+    // Atualiza o token a CADA login (rotação natural do OAuth + garante o
+    // novo escopo public_repo assim que o usuário re-consente)
+    if (githubAccessToken) {
+      member.githubAccessToken = encryptToken(githubAccessToken);
+    }
+  }
+
+  private applySecondaryEmails(
+    member: Member,
+    secondaryEmails: string[] | undefined,
+  ): void {
+    // E-mails verificados: atualiza a cada login quando a API respondeu
+    // (undefined = falha na API → preserva o que já estava gravado)
+    if (secondaryEmails) {
+      member.secondaryEmails = secondaryEmails;
+    }
+  }
+
+  private async safeRematchPendingRegistrations(member: Member): Promise<void> {
+    // Hook 2d: membro NOVO resolve inscrições pending_match de eventos
+    // externos (match por e-mail/githubHandle). Nunca quebra o login.
+    try {
+      await this.eventsService.rematchPendingRegistrationsForMember(member);
+    } catch (error: unknown) {
+      this.logger.warn(
+        `Falha no rematch de inscrições para @${member.githubHandle}: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  }
+
+  /**
+   * Token OAuth do GitHub do membro, DESCRIPTOGRAFADO — uso interno apenas
+   * (GitHubDBService). NUNCA expor em endpoint/DTO. Retorna null se o membro
+   * não existir ou ainda não tiver token gravado (login antigo, pré-scope).
+   */
+  async getGithubAccessToken(memberId: string): Promise<string | null> {
+    // select explícito: a coluna tem select:false na entidade (proteção
+    // contra vazamento acidental em serializações)
+    const member = await this.repo.findOne({
+      where: { id: memberId },
+      select: ['id', 'githubAccessToken'],
+    });
+    if (!member?.githubAccessToken) return null;
+    return decryptToken(member.githubAccessToken);
   }
 
   /** Lista membros ativos (endpoint público, paginado) */
@@ -123,7 +215,7 @@ export class MembersService {
         'avatarUrl',
         'bio',
         'linkedinUrl',
-        'role',
+        'roles',
         'joinedAt',
       ],
       order: { joinedAt: 'ASC' },
@@ -144,7 +236,7 @@ export class MembersService {
         'avatarUrl',
         'bio',
         'linkedinUrl',
-        'role',
+        'roles',
         'joinedAt',
       ],
     });
@@ -161,7 +253,7 @@ export class MembersService {
         'avatarUrl',
         'bio',
         'linkedinUrl',
-        'role',
+        'roles',
         'joinedAt',
       ],
     });
@@ -222,7 +314,7 @@ export class MembersService {
       avatarUrl: string;
       bio: string | null;
       linkedinUrl: string | null;
-      role: string;
+      roles: string[];
       joinedAt: Date;
       totalDonated: number;
       lastDonatedAt: Date;
@@ -248,7 +340,7 @@ export class MembersService {
         'm."avatarUrl" AS "avatarUrl"',
         'm.bio AS bio',
         'm."linkedinUrl" AS "linkedinUrl"',
-        'm.role AS role',
+        'm.roles AS roles',
         'm."joinedAt" AS "joinedAt"',
         'COALESCE(SUM(tx.amount), 0) AS "totalDonated"',
         'MAX(tx."createdAt") AS "lastDonatedAt"',
@@ -260,7 +352,7 @@ export class MembersService {
       .addGroupBy('m."avatarUrl"')
       .addGroupBy('m.bio')
       .addGroupBy('m."linkedinUrl"')
-      .addGroupBy('m.role')
+      .addGroupBy('m.roles')
       .addGroupBy('m."joinedAt"')
       .orderBy('"totalDonated"', 'DESC')
       .offset(offset)
@@ -285,7 +377,7 @@ export class MembersService {
         avatarUrl: r.avatarUrl,
         bio: r.bio,
         linkedinUrl: r.linkedinUrl,
-        role: r.role,
+        roles: r.roles,
         joinedAt: new Date(r.joinedAt),
         totalDonated: Number.parseFloat(r.totalDonated) || 0,
         lastDonatedAt: new Date(r.lastDonatedAt),

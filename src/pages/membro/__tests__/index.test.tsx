@@ -12,7 +12,7 @@ const loggedUser = {
   name: "Mentoria Codaqui",
   handle: "mentoriacodaqui",
   avatarUrl: "https://example.com/avatar.png",
-  role: "member",
+  roles: ["member"],
 };
 
 describe("/membro", () => {
@@ -168,5 +168,124 @@ describe("/membro", () => {
         expect.stringContaining("/stripe/my-donations?page=2&limit=10"),
       );
     });
+  });
+
+  it("carrega histórico de eventos sob demanda ao abrir a aba e expande QR de check-in", async () => {
+    const futureStart = new Date(Date.now() + 86_400_000).toISOString();
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/my-registrations")) {
+        return jsonResponse([
+          {
+            id: "reg-1",
+            status: "confirmed",
+            checkedInAt: null,
+            checkinToken: "token-abc",
+            attendeeName: "Mentoria Codaqui",
+            event: {
+              id: "evt-1",
+              title: "Encontro DevParaná",
+              startAt: futureStart,
+              location: "Maringá",
+              status: "scheduled",
+            },
+            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+          },
+        ]);
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: loggedUser as any,
+      authFetch: authFetch as any,
+    }));
+
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+
+    render(<MembroPage />);
+
+    // Sob demanda: ainda não chamou antes de abrir a aba
+    expect(authFetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("/events/my-registrations"),
+    );
+
+    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+
+    expect(await screen.findByText("Encontro DevParaná")).toBeInTheDocument();
+    expect(screen.getByText("Confirmada")).toBeInTheDocument();
+    expect(screen.getByText("Gratuito")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cancelar inscrição/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /QR de check-in/i }));
+    expect(await screen.findByText(/Apresente este QR Code na entrada do evento/i)).toBeInTheDocument();
+  });
+
+  it("emite certificado somente com presença confirmada e abre dialog imprimível", async () => {
+    const pastStart = new Date(Date.now() - 86_400_000).toISOString();
+    const authFetch = jest.fn(async (url: string, init?: RequestInit) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/registrations/reg-2/certificate")) {
+        return jsonResponse({
+          attendeeName: "Mentoria Codaqui",
+          eventTitle: "Workshop GitHub",
+          eventStartAt: pastStart,
+          eventEndAt: pastStart,
+          workloadMinutes: 240,
+          verificationCode: "ABCD-1234",
+          issuedAt: new Date().toISOString(),
+        });
+      }
+      if (url.includes("/events/my-registrations")) {
+        return jsonResponse([
+          {
+            id: "reg-2",
+            status: "confirmed",
+            checkedInAt: pastStart,
+            checkinToken: "token-xyz",
+            attendeeName: "Mentoria Codaqui",
+            memberId: loggedUser.sub,
+            event: {
+              id: "evt-2",
+              title: "Workshop GitHub",
+              startAt: pastStart,
+              location: null,
+              status: "completed",
+            },
+            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+          },
+        ]);
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: loggedUser as any,
+      authFetch: authFetch as any,
+    }));
+
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+
+    render(<MembroPage />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
+    });
+
+    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    expect(await screen.findByText("Workshop GitHub")).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole("button", { name: /Emitir certificado/i }));
+
+    expect(await screen.findByText("CERTIFICADO DE PARTICIPAÇÃO")).toBeInTheDocument();
+    expect(screen.getByText("ABCD-1234", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Imprimir/i })).toBeInTheDocument();
   });
 });

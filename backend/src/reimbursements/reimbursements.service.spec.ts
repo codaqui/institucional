@@ -191,6 +191,7 @@ describe('ReimbursementsService', () => {
         75,
         expect.stringContaining('Reembolso aprovado'),
         expect.stringContaining('reimbursement:'),
+        undefined,
       );
       expect(result.status).toBe(ReimbursementStatus.APPROVED);
     });

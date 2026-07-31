@@ -39,6 +39,8 @@ import TransactionDetailDialog from "../TransactionDetailDialog";
 const TX_TYPE_FILTER_OPTIONS = [
   { value: "", label: "Todos os tipos" },
   { value: "donation", label: "Doações" },
+  { value: "event-ticket", label: "Ingressos de Evento" },
+  { value: "event-ticket-refund", label: "Reembolsos de Ingresso" },
   { value: "reimbursement", label: "Reembolsos" },
   { value: "vendor-payment", label: "Pagamentos a Fornecedor" },
   { value: "transfer", label: "Transferências" },

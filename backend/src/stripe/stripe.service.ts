@@ -1,12 +1,28 @@
-import { Injectable, Logger, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
+import { randomUUID } from 'node:crypto';
 import Stripe from 'stripe';
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { ClubService } from '../club/club.service';
 import { CompaniesService } from '../companies/companies.service';
+import { EventOrder, OrderStatus } from '../events/entities/event-order.entity';
+import {
+  EventRegistration,
+  RegistrationStatus,
+} from '../events/entities/event-registration.entity';
+import { TicketType } from '../events/entities/ticket-type.entity';
+import { ManagedEvent } from '../events/entities/managed-event.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
+import { Member } from '../members/entities/member.entity';
+import { EmailService } from '../notifications/email.service';
 
 export type CheckoutInterval = 'month' | 'year';
 export type CheckoutUiMode = 'embedded_page' | 'hosted';
@@ -53,6 +69,19 @@ export class StripeService {
     private readonly txRepo: Repository<Transaction>,
     private readonly clubService: ClubService,
     private readonly companiesService: CompaniesService,
+    @InjectRepository(EventOrder)
+    private readonly eventOrderRepo: Repository<EventOrder>,
+    @InjectRepository(EventRegistration)
+    private readonly eventRegistrationRepo: Repository<EventRegistration>,
+    @InjectRepository(TicketType)
+    private readonly ticketTypeRepo: Repository<TicketType>,
+    @InjectRepository(ManagedEvent)
+    private readonly managedEventRepo: Repository<ManagedEvent>,
+    @InjectRepository(ExternalEventActivation)
+    private readonly activationRepo: Repository<ExternalEventActivation>,
+    @InjectRepository(Member)
+    private readonly memberRepo: Repository<Member>,
+    private readonly emailService: EmailService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
   }
@@ -66,6 +95,24 @@ export class StripeService {
     if (!returnPath.startsWith('/')) return '/participe/apoiar';
     if (returnPath.startsWith('//')) return '/participe/apoiar';
     return returnPath;
+  }
+
+  /**
+   * Monta return_url/success_url respeitando query params já presentes no path
+   * (ex.: `/eventos/detalhe?source=internal&id=...&status=success`).
+   */
+  private buildReturnUrl(
+    baseUrl: string,
+    safePath: string,
+    status: 'success' | 'cancelled',
+    withSessionId: boolean,
+  ): string {
+    const separator = safePath.includes('?') ? '&' : '?';
+    let url = `${baseUrl}${safePath}${separator}status=${status}`;
+    if (withSessionId) {
+      url += '&session_id={CHECKOUT_SESSION_ID}';
+    }
+    return url;
   }
 
   private buildLineItem(
@@ -138,8 +185,8 @@ export class StripeService {
     const baseUrl =
       originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
     const safePath = this.sanitizeReturnPath(returnPath);
-    const returnUrl = `${baseUrl}${safePath}?status=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = `${baseUrl}${safePath}?status=cancelled`;
+    const returnUrl = this.buildReturnUrl(baseUrl, safePath, 'success', true);
+    const cancelUrl = this.buildReturnUrl(baseUrl, safePath, 'cancelled', false);
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
@@ -183,6 +230,88 @@ export class StripeService {
       return { clientSecret: session.client_secret };
     }
     return { sessionId: session.id, url: session.url };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Event tickets (Fase 2) — checkout dedicado + refund
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Checkout Session para venda de ingressos de eventos (próprios ou externos).
+   * Metadata obrigatória: { entityType: 'event-ticket', eventId, orderId, communityId }.
+   *
+   * Modos:
+   *  - 'hosted' (padrão): redireciona para a página do Stripe (retorna url).
+   *  - 'embedded_page': renderiza dentro da página do evento (retorna clientSecret).
+   */
+  async createEventTicketCheckoutSession(params: {
+    productName: string;
+    productDescription?: string;
+    unitAmountCents: number;
+    quantity: number;
+    email?: string;
+    metadata: Record<string, string>;
+    returnPath?: string;
+    uiMode?: 'hosted' | 'embedded_page';
+  }): Promise<
+    | { sessionId: string; url: string | null; clientSecret?: undefined }
+    | { sessionId: string; clientSecret: string | null; url?: undefined }
+  > {
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const safePath = this.sanitizeReturnPath(params.returnPath ?? '/eventos');
+    const uiMode = params.uiMode ?? 'hosted';
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      line_items: [
+        {
+          quantity: params.quantity,
+          price_data: {
+            currency: 'brl',
+            product_data: {
+              name: params.productName,
+              ...(params.productDescription && {
+                description: params.productDescription,
+              }),
+            },
+            unit_amount: params.unitAmountCents,
+          },
+        },
+      ],
+      mode: 'payment',
+      metadata: params.metadata,
+      payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
+      ...(params.email && { customer_email: params.email }),
+      ...(uiMode === 'embedded_page'
+        ? {
+            ui_mode: 'embedded_page' as const,
+            return_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
+          }
+        : {
+            success_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
+            cancel_url: this.buildReturnUrl(baseUrl, safePath, 'cancelled', false),
+          }),
+    };
+
+    const session = await this.stripe.checkout.sessions.create(sessionParams);
+
+    if (uiMode === 'embedded_page') {
+      return { sessionId: session.id, clientSecret: session.client_secret };
+    }
+    return { sessionId: session.id, url: session.url };
+  }
+
+  /**
+   * Estorno de order de evento. Sem `amountCents`, devolve toda a quantia
+   * restante do charge (Stripe só permite até o valor não estornado).
+   */
+  async createEventTicketRefund(
+    paymentIntentId: string,
+    amountCents?: number,
+  ): Promise<void> {
+    await this.stripe.refunds.create({
+      payment_intent: paymentIntentId,
+      ...(amountCents !== undefined && { amount: amountCents }),
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -249,9 +378,17 @@ export class StripeService {
    * invoice.payment_succeeded (cobranças seguintes).
    */
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+    // Branch Fase 2: venda de ingressos de eventos próprios
+    if (session.metadata?.entityType === 'event-ticket') {
+      await this.handleEventTicketCheckoutCompleted(session);
+      return;
+    }
+
     const isSubscription = session.metadata?.isSubscription === 'true';
 
-    if (await this.processBusinessSubscriptionCheckout(session, isSubscription)) {
+    if (
+      await this.processBusinessSubscriptionCheckout(session, isSubscription)
+    ) {
       return;
     }
 
@@ -272,7 +409,11 @@ export class StripeService {
       return;
     }
 
-    const checkoutMetadata = this.resolveCheckoutDonationMetadata(session, amountReais, isSubscription);
+    const checkoutMetadata = this.resolveCheckoutDonationMetadata(
+      session,
+      amountReais,
+      isSubscription,
+    );
 
     try {
       await this.recordDonationToLedger(checkoutMetadata);
@@ -364,7 +505,9 @@ export class StripeService {
    * Para empresas: suspende a empresa e congela a carteira.
    * Para membros PF: congela os SortCoins da carteira.
    */
-  private async handleSubscriptionDeleted(subscription: Stripe.Subscription): Promise<void> {
+  private async handleSubscriptionDeleted(
+    subscription: Stripe.Subscription,
+  ): Promise<void> {
     this.logger.log(`Assinatura cancelada: ${subscription.id}`);
 
     const entityType = subscription.metadata?.entityType;
@@ -372,7 +515,9 @@ export class StripeService {
 
     try {
       if (entityType === 'business') {
-        await this.companiesService.suspendFromSubscriptionDeleted(subscription.id);
+        await this.companiesService.suspendFromSubscriptionDeleted(
+          subscription.id,
+        );
       } else if (memberId) {
         await this.clubService.freezeCoin(memberId);
       }
@@ -388,7 +533,9 @@ export class StripeService {
    * congelamento por `past_due > 3 dias` (empresas) e descongelamento ao voltar
    * a `active`.
    */
-  private async handleSubscriptionUpdated(subscription: Stripe.Subscription): Promise<void> {
+  private async handleSubscriptionUpdated(
+    subscription: Stripe.Subscription,
+  ): Promise<void> {
     const status = subscription.status;
     const metadata = subscription.metadata ?? {};
     const entityType = metadata.entityType;
@@ -434,13 +581,18 @@ export class StripeService {
   ) {
     const company = await this.companiesService.findById(companyId);
     if (company?.responsibleMemberId !== memberId) {
-      throw new ForbiddenException('Sem permissão para criar checkout desta empresa');
+      throw new ForbiddenException(
+        'Sem permissão para criar checkout desta empresa',
+      );
     }
 
     const MIN_AMOUNT_CENTS = 20_000; // R$ 200,00
     const configuredAmount = company.subscriptionAmountCents;
     let amountCents = MIN_AMOUNT_CENTS;
-    if (subscriptionAmountCents && subscriptionAmountCents >= MIN_AMOUNT_CENTS) {
+    if (
+      subscriptionAmountCents &&
+      subscriptionAmountCents >= MIN_AMOUNT_CENTS
+    ) {
       amountCents = subscriptionAmountCents;
     } else if (configuredAmount && configuredAmount >= MIN_AMOUNT_CENTS) {
       amountCents = configuredAmount;
@@ -450,7 +602,8 @@ export class StripeService {
       await this.companiesService.setSubscriptionAmount(companyId, amountCents);
     }
 
-    const baseUrl = originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl =
+      originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
     const returnUrl = `${baseUrl}/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}`;
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -483,7 +636,9 @@ export class StripeService {
           isSubscription: 'true',
         },
       },
-      ...(company.stripeCustomerId ? { customer: company.stripeCustomerId } : {}),
+      ...(company.stripeCustomerId
+        ? { customer: company.stripeCustomerId }
+        : {}),
       ui_mode: 'embedded_page' as const,
       return_url: returnUrl,
     };
@@ -519,6 +674,16 @@ export class StripeService {
       this.logger.warn(
         `charge.refunded sem payment_intent: ${charge.id} — não é possível localizar doação original`,
       );
+      return;
+    }
+
+    // Branch Fase 2: estorno de order de evento (reconcilia o refund parcial
+    // do endpoint admin e trata refunds feitos direto no dashboard Stripe)
+    const eventOrder = await this.eventOrderRepo.findOneBy({
+      stripePaymentIntentId: paymentIntentId,
+    });
+    if (eventOrder) {
+      await this.handleEventTicketRefunded(charge, eventOrder);
       return;
     }
 
@@ -572,6 +737,368 @@ export class StripeService {
         );
       }
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Event tickets (Fase 2) — webhook handlers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Busca membro pelo e-mail considerando tanto o e-mail primário quanto os
+   * e-mails verificados (secondaryEmails). Necessário porque TypeORM não
+   * consegue comparar string diretamente com uma coluna array do Postgres.
+   */
+  private async findMemberByEmail(email: string): Promise<Member | null> {
+    const value = email.toLowerCase().trim();
+    if (!value) return null;
+    const rows = await this.memberRepo
+      .createQueryBuilder('m')
+      .where(
+        '(lower(m.email) = :value OR EXISTS (SELECT 1 FROM unnest(m."secondaryEmails") e WHERE lower(e) = :value))',
+        { value },
+      )
+      .andWhere('m."isActive" = true')
+      .getMany();
+    return rows[0] ?? null;
+  }
+
+  /**
+   * checkout.session.completed com entityType=event-ticket:
+   * order → paid, gera N registrations (1 por ingresso, checkinToken próprio)
+   * e registra a receita no ledger (`event-ticket:<orderId>`).
+   *
+   * Idempotente: order já paid → ignora; ledger dedup pelo referenceId.
+   */
+  private async handleEventTicketCheckoutCompleted(
+    session: Stripe.Checkout.Session,
+  ) {
+    const order = await this.prepareEventOrderForPayment(session);
+    if (!order) return;
+
+    const attendees = this.parseAttendeesFromSession(session, order);
+    const payerId = order.payerMemberId ?? order.memberId;
+    const registrations = await this.saveEventTicketRegistrations(
+      order,
+      attendees,
+      payerId,
+    );
+    await this.sendRegistrationConfirmations(order, registrations);
+
+    // Ledger: conta externa Stripe → conta da comunidade dona do evento
+    const { communityId } = session.metadata ?? {};
+    await this.recordEventTicketTransaction(order, communityId);
+  }
+
+  private async prepareEventOrderForPayment(
+    session: Stripe.Checkout.Session,
+  ): Promise<EventOrder | null> {
+    const orderId = session.metadata?.orderId;
+    if (!orderId) {
+      this.logger.warn(
+        `event-ticket: checkout.session.completed sem orderId (session ${session.id}) — ignorando`,
+      );
+      return null;
+    }
+
+    const order = await this.eventOrderRepo.findOneBy({ id: orderId });
+    if (!order) {
+      this.logger.warn(
+        `event-ticket: order ${orderId} não encontrada — ignorando`,
+      );
+      return null;
+    }
+    if (order.status === OrderStatus.PAID) {
+      this.logger.debug(
+        `Webhook idempotente: order ${orderId} já está paga, ignorando.`,
+      );
+      return null;
+    }
+    if (order.status !== OrderStatus.PENDING) {
+      this.logger.warn(
+        `event-ticket: order ${orderId} com status ${order.status} (esperado pending) — ignorando`,
+      );
+      return null;
+    }
+
+    order.status = OrderStatus.PAID;
+    order.stripePaymentIntentId = this.resolveSessionPaymentIntentId(session);
+    order.paidAt = new Date();
+    return this.eventOrderRepo.save(order);
+  }
+
+  private async saveEventTicketRegistrations(
+    order: EventOrder,
+    attendees: Array<{ name: string; email: string }>,
+    payerId: string | null,
+  ): Promise<EventRegistration[]> {
+    const registrations: EventRegistration[] = [];
+    for (const attendee of attendees) {
+      // Tenta vincular o ingresso a uma conta existente pelo e-mail do participante
+      const participant = attendee.email
+        ? await this.findMemberByEmail(attendee.email)
+        : null;
+      registrations.push(
+        this.eventRegistrationRepo.create({
+          eventId: order.eventId,
+          externalActivationId: order.externalActivationId ?? null,
+          ticketTypeId: order.ticketTypeId,
+          orderId: order.id,
+          memberId: participant?.id ?? null,
+          payerMemberId: payerId,
+          attendeeName: attendee.name,
+          attendeeEmail: attendee.email,
+          checkinToken: randomUUID(),
+          status: RegistrationStatus.CONFIRMED,
+        }),
+      );
+    }
+    return this.eventRegistrationRepo.save(registrations);
+  }
+
+  private async sendRegistrationConfirmations(
+    order: EventOrder,
+    registrations: EventRegistration[],
+  ): Promise<void> {
+    const eventForEmail = order.eventId
+      ? await this.managedEventRepo.findOneBy({ id: order.eventId })
+      : null;
+    if (!eventForEmail) return;
+
+    for (const registration of registrations) {
+      try {
+        await this.emailService.sendRegistrationConfirmation(
+          registration,
+          eventForEmail,
+        );
+      } catch (error: unknown) {
+        this.logger.warn(
+          `Falha ao enviar confirmação da inscrição ${registration.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+      }
+    }
+  }
+
+  /**
+   * Recupera a lista de participantes do checkout. Prioridade:
+   * 1. Metadata da sessão Stripe (enviado pelo executePaidCheckout);
+   * 2. Coluna `attendees` da order (fallback se o webhook perder o metadata);
+   * 3. Dados do comprador (fallback final).
+   */
+  private parseAttendeesFromSession(
+    session: Stripe.Checkout.Session,
+    order: EventOrder,
+  ): Array<{ name: string; email: string }> {
+    const raw =
+      session.metadata?.attendees ??
+      (order.attendees ? order.attendees : null);
+    if (raw) {
+      try {
+        const parsed =
+          typeof raw === 'string' ? (JSON.parse(raw) as unknown) : raw;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((a) => ({
+            name: (a.name ?? 'Participante').trim(),
+            email: (a.email ?? '').trim().toLowerCase(),
+          }));
+        }
+      } catch {
+        // fallthrough
+      }
+    }
+    return [
+      {
+        name:
+          session.customer_details?.name ??
+          session.customer_email ??
+          'Participante',
+        email:
+          (session.customer_details?.email ?? session.customer_email ?? '').toLowerCase(),
+      },
+    ];
+  }
+
+  /**
+   * Registra (ou re-registra, idempotente) a transação no ledger para uma order
+   * de ingresso paga. Usado pelo webhook e pelo endpoint de reconciliação admin.
+   */
+  async recordEventTicketTransaction(
+    order: EventOrder,
+    communityId?: string,
+  ): Promise<void> {
+    const referenceId = `event-ticket:${order.id}`;
+    const existing = await this.txRepo.findOneBy({ referenceId });
+    if (existing) {
+      this.logger.debug(
+        `Webhook idempotente: transação ${referenceId} já registrada, ignorando.`,
+      );
+      return;
+    }
+
+    const [event, ticketType, payer, activation] = await Promise.all([
+      order.eventId
+        ? this.managedEventRepo.findOneBy({ id: order.eventId })
+        : Promise.resolve(null),
+      this.ticketTypeRepo.findOneBy({ id: order.ticketTypeId }),
+      order.payerMemberId
+        ? this.memberRepo.findOneBy({ id: order.payerMemberId })
+        : Promise.resolve(null),
+      order.externalActivationId
+        ? this.activationRepo.findOneBy({ id: order.externalActivationId })
+        : Promise.resolve(null),
+    ]);
+    const projectKey =
+      communityId ?? event?.communityProjectKey ?? activation?.communityProjectKey ?? 'tesouro-geral';
+    const stripeIncomeAccount =
+      await this.ledgerService.getOrCreateCommunityAccount(
+        'stripe_income',
+        'Stripe Income (External)',
+        AccountType.EXTERNAL,
+      );
+    const destAccount = await this.ledgerService.getOrCreateCommunityAccount(
+      projectKey,
+      `Comunidade: ${projectKey}`,
+    );
+
+    const eventTitle = event?.title ?? activation?.title ?? order.eventId ?? 'Evento externo';
+    const eventKey = activation?.eventKey ?? null;
+    const ticketName = ticketType?.name ?? 'Ingresso';
+    const payerLabel = payer
+      ? `${payer.name ?? payer.githubHandle} (@${payer.githubHandle ?? order.payerMemberId ?? 'comprador'})`
+      : order.payerMemberId ?? 'comprador';
+    const description = `Ingresso: ${ticketName} — ${eventTitle} (comprador: ${payerLabel})`;
+
+    await this.ledgerService.recordTransaction(
+      stripeIncomeAccount.id,
+      destAccount.id,
+      order.totalCents / 100,
+      description,
+      referenceId,
+      {
+        eventId: order.eventId ?? undefined,
+        eventTitle,
+        eventKey: eventKey ?? undefined,
+        ticketTypeId: order.ticketTypeId,
+        ticketName,
+        orderId: order.id,
+        payerMemberId: order.payerMemberId ?? undefined,
+        payerHandle: payer?.githubHandle ?? undefined,
+        communityProjectKey: projectKey,
+        externalActivationId: order.externalActivationId ?? undefined,
+      },
+    );
+    this.logger.log(
+      `🎟️  Ingressos R$ ${(order.totalCents / 100).toFixed(2)} → ${destAccount.name} | order: ${order.id}`,
+    );
+  }
+
+  /**
+   * charge.refunded para order de evento:
+   * - Refund total (amount_refunded >= totalCents): order → refunded,
+   *   registrations confirmadas → refunded, quota devolvida.
+   * - Ledger: registra apenas a DIFERENÇA ainda não lançada — o endpoint
+   *   admin de refund parcial já lança sua parte com
+   *   `event-ticket-refund:<orderId>:<ts>`; aqui reconciliamos o restante
+   *   (ex.: refund feito direto no dashboard Stripe).
+   */
+  private async handleEventTicketRefunded(
+    charge: Stripe.Charge,
+    order: EventOrder,
+  ) {
+    const refundedCents = charge.amount_refunded ?? 0;
+
+    if (
+      refundedCents >= order.totalCents &&
+      order.status !== OrderStatus.REFUNDED
+    ) {
+      order.status = OrderStatus.REFUNDED;
+      await this.eventOrderRepo.save(order);
+
+      const confirmed = await this.eventRegistrationRepo.findBy({
+        orderId: order.id,
+        status: RegistrationStatus.CONFIRMED,
+      });
+      if (confirmed.length > 0) {
+        await this.eventRegistrationRepo.update(
+          { orderId: order.id, status: RegistrationStatus.CONFIRMED },
+          { status: RegistrationStatus.REFUNDED },
+        );
+        await this.releaseEventTicketQuota(
+          order.ticketTypeId,
+          confirmed.length,
+        );
+      }
+      this.logger.log(
+        `↩️  Order ${order.id} estornada integralmente — ${confirmed.length} registration(s) cancelada(s)`,
+      );
+    }
+
+    // Deduplica o que já foi lançado (parciais via endpoint admin)
+    const reversals = await this.txRepo.find({
+      where: { referenceId: Like(`event-ticket-refund:${order.id}:%`) },
+    });
+    const recordedCents = Math.round(
+      reversals.reduce((sum, tx) => sum + Number(tx.amount), 0) * 100,
+    );
+    const gapCents = refundedCents - recordedCents;
+    if (gapCents <= 0) return;
+
+    try {
+      const event = order.eventId
+        ? await this.managedEventRepo.findOneBy({ id: order.eventId })
+        : null;
+      // Orders de evento EXTERNO (eventId null): a comunidade vem do metadata
+      // da charge (communityId da ativação), quando presente
+      const projectKey =
+        event?.communityProjectKey ??
+        (charge.metadata?.communityId as string | undefined) ??
+        'tesouro-geral';
+      const stripeIncomeAccount =
+        await this.ledgerService.getOrCreateCommunityAccount(
+          'stripe_income',
+          'Stripe Income (External)',
+          AccountType.EXTERNAL,
+        );
+      const communityAccount =
+        await this.ledgerService.getOrCreateCommunityAccount(
+          projectKey,
+          `Comunidade: ${projectKey}`,
+        );
+      await this.ledgerService.recordTransaction(
+        communityAccount.id,
+        stripeIncomeAccount.id,
+        gapCents / 100,
+        `Estorno de ingressos — ${event?.title ?? order.eventId} (charge ${charge.id})`,
+        `event-ticket-refund:${order.id}:${Date.now()}`,
+        {
+          eventId: order.eventId ?? undefined,
+          ticketTypeId: order.ticketTypeId,
+          orderId: order.id,
+          communityProjectKey: projectKey,
+          externalActivationId: order.externalActivationId ?? undefined,
+        },
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `Falha ao registrar estorno de ingressos (order ${order.id}): ${message}`,
+      );
+    }
+  }
+
+  /** Devolução de quota — nunca deixa quantitySold negativo */
+  private async releaseEventTicketQuota(
+    ticketTypeId: string,
+    quantity: number,
+  ): Promise<void> {
+    await this.ticketTypeRepo.query(
+      `UPDATE ticket_types
+          SET "quantitySold" = GREATEST("quantitySold" - $1, 0)
+        WHERE id = $2`,
+      [quantity, ticketTypeId],
+    );
   }
 
   /**
@@ -843,7 +1370,9 @@ export class StripeService {
     );
   }
 
-  private resolveSessionPaymentIntentId(session: Stripe.Checkout.Session): string {
+  private resolveSessionPaymentIntentId(
+    session: Stripe.Checkout.Session,
+  ): string {
     if (typeof session.payment_intent === 'string') {
       return session.payment_intent;
     }
@@ -853,7 +1382,9 @@ export class StripeService {
     return session.id;
   }
 
-  private resolveCheckoutAmountReais(amountTotal: number | null): number | null {
+  private resolveCheckoutAmountReais(
+    amountTotal: number | null,
+  ): number | null {
     if (!amountTotal || amountTotal <= 0) return null;
     return amountTotal / 100;
   }
@@ -922,13 +1453,18 @@ export class StripeService {
     }
 
     const companyId = session.metadata?.companyId;
-    const customerId = typeof session.customer === 'string' ? session.customer : null;
-    const subscriptionId = typeof session.subscription === 'string' ? session.subscription : null;
+    const customerId =
+      typeof session.customer === 'string' ? session.customer : null;
+    const subscriptionId =
+      typeof session.subscription === 'string' ? session.subscription : null;
     if (companyId && customerId) {
       await this.companiesService.setStripeCustomer(companyId, customerId);
     }
     if (companyId && subscriptionId) {
-      await this.companiesService.setStripeSubscription(companyId, subscriptionId);
+      await this.companiesService.setStripeSubscription(
+        companyId,
+        subscriptionId,
+      );
     }
     this.logger.debug(
       `checkout.session.completed (business subscription): customer=${customerId} sub=${subscriptionId} salvos para company=${companyId}`,
@@ -973,7 +1509,9 @@ export class StripeService {
     }
   }
 
-  private resolveSubscriptionCustomerId(subscription: Stripe.Subscription): string | null {
+  private resolveSubscriptionCustomerId(
+    subscription: Stripe.Subscription,
+  ): string | null {
     if (typeof subscription.customer === 'string') return subscription.customer;
     return subscription.customer?.id ?? null;
   }
@@ -990,23 +1528,22 @@ export class StripeService {
     memberId: string,
     page = 1,
     limit = 20,
-  ): Promise<
-    {
-      items: {
-        id: string;
-        amount: number;
-        description: string;
-        community: string;
-        referenceId: string;
-        createdAt: Date;
-      }[];
-      total: number;
-      page: number;
-      limit: number;
-    }
-  > {
+  ): Promise<{
+    items: {
+      id: string;
+      amount: number;
+      description: string;
+      community: string;
+      referenceId: string;
+      createdAt: Date;
+    }[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-    const requestedLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
+    const requestedLimit =
+      Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
     const safeLimit = Math.min(requestedLimit, 100);
     const skip = (safePage - 1) * safeLimit;
 
@@ -1091,31 +1628,34 @@ export class StripeService {
     });
 
     const all = [...result.data, ...pastDue.data];
-    const deduped = Array.from(new Map(all.map((sub) => [sub.id, sub])).values());
+    const deduped = Array.from(
+      new Map(all.map((sub) => [sub.id, sub])).values(),
+    );
     const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : 1;
-    const requestedLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
+    const requestedLimit =
+      Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 20;
     const safeLimit = Math.min(requestedLimit, 100);
     const start = (safePage - 1) * safeLimit;
     const paged = deduped.slice(start, start + safeLimit);
 
     return {
       items: paged.map((sub) => {
-      const item = sub.items.data[0];
-      return {
-        id: sub.id,
-        status: sub.status,
-        interval: item?.price?.recurring?.interval ?? 'month',
-        amount: item?.price?.unit_amount ?? 0,
-        currency: item?.price?.currency ?? 'brl',
-        communityId: sub.metadata?.communityId ?? 'tesouro-geral',
-        entityType:
-          sub.metadata?.entityType === 'business' || !!sub.metadata?.companyId
-            ? 'business'
-            : 'member',
-        companyId: sub.metadata?.companyId ?? null,
-        currentPeriodEnd: item?.current_period_end ?? 0,
-        cancelAtPeriodEnd: sub.cancel_at_period_end,
-      };
+        const item = sub.items.data[0];
+        return {
+          id: sub.id,
+          status: sub.status,
+          interval: item?.price?.recurring?.interval ?? 'month',
+          amount: item?.price?.unit_amount ?? 0,
+          currency: item?.price?.currency ?? 'brl',
+          communityId: sub.metadata?.communityId ?? 'tesouro-geral',
+          entityType:
+            sub.metadata?.entityType === 'business' || !!sub.metadata?.companyId
+              ? 'business'
+              : 'member',
+          companyId: sub.metadata?.companyId ?? null,
+          currentPeriodEnd: item?.current_period_end ?? 0,
+          cancelAtPeriodEnd: sub.cancel_at_period_end,
+        };
       }),
       total: deduped.length,
       page: safePage,
@@ -1164,17 +1704,24 @@ export class StripeService {
     const filtered = subscriptions.filter((sub) => {
       const metadata = sub.metadata ?? {};
       const interval = sub.items.data[0]?.price?.recurring?.interval;
-      const isBusiness = metadata.entityType === 'business' || Boolean(metadata.companyId);
+      const isBusiness =
+        metadata.entityType === 'business' || Boolean(metadata.companyId);
       return !!metadata.memberId && !isBusiness && interval === 'month';
     });
-    const items = this.mapToMemberSummaries(filtered, (sub) => sub.metadata?.memberId ?? sub.id);
+    const items = this.mapToMemberSummaries(
+      filtered,
+      (sub) => sub.metadata?.memberId ?? sub.id,
+    );
     return { items, total: items.length };
   }
 
   /**
    * Lista membros com assinatura CLUB Business ativa.
    */
-  async getBusinessMembers(): Promise<{ items: MemberSummary[]; total: number }> {
+  async getBusinessMembers(): Promise<{
+    items: MemberSummary[];
+    total: number;
+  }> {
     const subscriptions = await this.fetchActiveSubscriptions();
     const filtered = subscriptions.filter((sub) => {
       const metadata = sub.metadata ?? {};
@@ -1195,8 +1742,13 @@ export class StripeService {
         .filter((item) => !!item.memberId)
         .map((item) => [item.memberId, item]),
     );
-    const companyIds = [...new Set(filtered.map((sub) => sub.metadata?.companyId ?? '').filter(Boolean))];
-    const scopedMembers = await this.companiesService.listBusinessMembersForCompanyIds(companyIds);
+    const companyIds = [
+      ...new Set(
+        filtered.map((sub) => sub.metadata?.companyId ?? '').filter(Boolean),
+      ),
+    ];
+    const scopedMembers =
+      await this.companiesService.listBusinessMembersForCompanyIds(companyIds);
 
     const byMemberId = new Map<string, MemberSummary>();
     for (const owner of ownerByMemberId.values()) {

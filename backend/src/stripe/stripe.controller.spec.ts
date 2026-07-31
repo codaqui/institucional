@@ -37,7 +37,7 @@ describe('StripeController', () => {
       name: 'Donor',
       email: 'd@d.com',
       avatarUrl: '',
-      role: 'membro',
+      roles: ['membro'],
     },
   };
 

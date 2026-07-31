@@ -6,6 +6,10 @@ import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActionArea from "@mui/material/CardActionArea";
+import CardContent from "@mui/material/CardContent";
+import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Container from "@mui/material/Container";
@@ -13,7 +17,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Grid from "@mui/material/Grid";
 import IconButton from "@mui/material/IconButton";
+import ListItemText from "@mui/material/ListItemText";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
@@ -26,42 +32,71 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import BusinessIcon from "@mui/icons-material/Business";
+import CallReceivedIcon from "@mui/icons-material/CallReceived";
 import EditIcon from "@mui/icons-material/Edit";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import PaymentIcon from "@mui/icons-material/Payment";
+import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import TokenIcon from "@mui/icons-material/Token";
 import AdminDataTable from "../../components/AdminDataTable";
 import ModalConfirm from "../../components/ModalConfirm";
 import AdminNavbar from "../../components/AdminNavbar";
 import { useAuth } from "../../hooks/useAuth";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 
-type Role = "membro" | "finance-analyzer" | "admin";
+type Role =
+  | "membro"
+  | "finance-analyzer"
+  | "admin"
+  | "event_organizer"
+  | "event_finance"
+  | "event_host"
+  | "event_checker";
 
 interface Member {
   id: string;
   name: string;
   githubHandle: string;
   avatarUrl: string;
-  role: Role;
+  roles: string[];
   isActive: boolean;
   joinedAt: string;
 }
 
-const ALL_ROLES: Role[] = ["membro", "finance-analyzer", "admin"];
+const ALL_ROLES: Role[] = [
+  "membro",
+  "finance-analyzer",
+  "admin",
+  "event_organizer",
+  "event_finance",
+  "event_host",
+  "event_checker",
+];
 const PAGE_SIZE = 20;
 
 const ROLE_LABEL: Record<Role, string> = {
   membro: "Membro",
   "finance-analyzer": "Finance Analyzer",
   admin: "Admin",
+  event_organizer: "Organizador de eventos",
+  event_finance: "Financeiro de eventos",
+  event_host: "Anfitrião de evento",
+  event_checker: "Credenciador",
 };
 
-const roleChipColor = (role: Role): "default" | "secondary" | "primary" => {
+const roleLabel = (role: string): string => ROLE_LABEL[role as Role] ?? role;
+
+const roleChipColor = (role: string): "default" | "secondary" | "primary" => {
   if (role === "admin") return "primary";
   if (role === "finance-analyzer") return "secondary";
   return "default";
 };
 
 export default function AdminPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch, user } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
@@ -76,8 +111,8 @@ export default function AdminPage(): React.JSX.Element {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState("");
 
-  // Confirmação de troca de role
-  const [roleTarget, setRoleTarget] = useState<{ member: Member; nextRole: Role } | null>(null);
+  // Confirmação de troca de roles
+  const [roleTarget, setRoleTarget] = useState<{ member: Member; nextRoles: Role[] } | null>(null);
   // Confirmação de toggle ativo/inativo
   const [activeTarget, setActiveTarget] = useState<Member | null>(null);
   // Edição de dados do membro
@@ -127,10 +162,10 @@ export default function AdminPage(): React.JSX.Element {
     try {
       const res = await authFetch(`${apiUrl}/admin/members/${roleTarget.member.id}`, {
         method: "PATCH",
-        body: JSON.stringify({ role: roleTarget.nextRole }),
+        body: JSON.stringify({ roles: roleTarget.nextRoles }),
       });
       if (!res.ok) {
-        setActionError(await extractErrorMessage(res, "Erro ao alterar role."));
+        setActionError(await extractErrorMessage(res, "Erro ao alterar roles."));
         return;
       }
       setRoleTarget(null);
@@ -195,11 +230,11 @@ export default function AdminPage(): React.JSX.Element {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return members;
     return members.filter((member) => {
-      const roleLabel = ROLE_LABEL[member.role].toLowerCase();
+      const roleLabels = member.roles.map((r) => roleLabel(r).toLowerCase()).join(" ");
       return (
         member.name.toLowerCase().includes(term) ||
         member.githubHandle.toLowerCase().includes(term) ||
-        roleLabel.includes(term)
+        roleLabels.includes(term)
       );
     });
   }, [members, searchTerm]);
@@ -221,18 +256,53 @@ export default function AdminPage(): React.JSX.Element {
   }
 
   let modalVariant: "error" | "warning" | "info" = "info";
-  if (roleTarget?.nextRole === "admin") {
+  if (roleTarget?.nextRoles.includes("admin")) {
     modalVariant = "error";
-  } else if (roleTarget?.nextRole === "finance-analyzer") {
+  } else if (roleTarget?.nextRoles.includes("finance-analyzer")) {
     modalVariant = "warning";
   }
+
+  const financeLinks = [
+    { href: "/admin/lancamento", label: "Lançamento direto", description: "Registrar despesa ou receita pontual.", icon: <AccountBalanceWalletIcon color="primary" /> },
+    { href: "/admin/transferencias", label: "Transferências", description: "Movimentar valores entre contas internas.", icon: <CallReceivedIcon color="primary" /> },
+    { href: "/admin/reembolsos", label: "Reembolsos", description: "Aprovar, rejeitar e pagar reembolsos de membros.", icon: <ReceiptLongIcon color="primary" /> },
+    { href: "/admin/fornecedores", label: "Fornecedores", description: "Cadastrar fornecedores e acompanhar saldo.", icon: <StorefrontIcon color="primary" /> },
+    { href: "/admin/pagamentos", label: "Pagamentos", description: "Registrar pagamentos a fornecedores.", icon: <PaymentIcon color="primary" /> },
+    { href: "/admin/recebimentos", label: "Recebimentos", description: "Registrar recebimentos de fornecedores.", icon: <CallReceivedIcon color="primary" /> },
+    { href: "/admin/empresas", label: "Empresas PJ", description: "Gerenciar empresas do Clube Codaqui.", icon: <BusinessIcon color="primary" /> },
+    { href: "/admin/carteiras", label: "VirtualCoins", description: "Histórico unificado de carteiras SortCoins.", icon: <TokenIcon color="primary" /> },
+    { href: "/admin/sorteios", label: "Sorteios", description: "Gestão de sorteios do Clube Codaqui.", icon: <EmojiEventsIcon color="primary" /> },
+  ];
 
   let membersSection: React.JSX.Element;
   if (!isAdmin) {
     membersSection = (
-      <Alert severity="info" sx={{ mb: 3 }}>
-        Seu perfil pode acessar os módulos financeiros do painel. A gestão de membros permanece restrita a administradores.
-      </Alert>
+      <Stack spacing={3}>
+        <Alert severity="info" sx={{ mb: 1 }}>
+          Seu perfil pode acessar os módulos financeiros do painel. A gestão de membros permanece restrita a administradores.
+        </Alert>
+        <Grid container spacing={2}>
+          {financeLinks.map((link) => (
+            <Grid key={link.href} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Card variant="outlined" sx={{ height: "100%" }}>
+                <CardActionArea href={link.href} sx={{ height: "100%", p: 1 }}>
+                  <CardContent>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 1 }}>
+                      {link.icon}
+                      <Typography variant="subtitle2" fontWeight={700}>
+                        {link.label}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {link.description}
+                    </Typography>
+                  </CardContent>
+                </CardActionArea>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Stack>
     );
   } else if (loading) {
     membersSection = (
@@ -262,7 +332,7 @@ export default function AdminPage(): React.JSX.Element {
                 <TableRow>
                   <TableCell>Membro</TableCell>
                   <TableCell>GitHub</TableCell>
-                  <TableCell>Role atual</TableCell>
+                  <TableCell>Roles</TableCell>
                   <TableCell>Desde</TableCell>
                   <TableCell align="center">Ativo</TableCell>
                   <TableCell align="center">Ações</TableCell>
@@ -281,12 +351,17 @@ export default function AdminPage(): React.JSX.Element {
                       <Typography variant="body2" color="text.secondary">@{m.githubHandle}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={ROLE_LABEL[m.role]}
-                        size="small"
-                        color={roleChipColor(m.role)}
-                        variant="outlined"
-                      />
+                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                        {m.roles.map((r) => (
+                          <Chip
+                            key={r}
+                            label={roleLabel(r)}
+                            size="small"
+                            color={roleChipColor(r)}
+                            variant="outlined"
+                          />
+                        ))}
+                      </Box>
                     </TableCell>
                     <TableCell>
                       <Typography variant="caption" color="text.secondary">
@@ -320,23 +395,32 @@ export default function AdminPage(): React.JSX.Element {
                         </IconButton>
                       </Tooltip>
                     </TableCell>
-                    <TableCell align="right" sx={{ minWidth: 180 }}>
+                    <TableCell align="right" sx={{ minWidth: 200 }}>
                       <Select
-                        value={m.role}
+                        multiple
+                        value={m.roles}
                         size="small"
                         variant="outlined"
-                        sx={{ fontSize: "0.8rem", minWidth: 160 }}
+                        sx={{ fontSize: "0.8rem", minWidth: 180 }}
+                        renderValue={(selected) =>
+                          (selected as string[]).map((r) => roleLabel(r)).join(", ")
+                        }
                         onChange={(e) => {
-                          const next = e.target.value as Role;
-                          if (next !== m.role) {
-                            setRoleTarget({ member: m, nextRole: next });
+                          const raw = e.target.value;
+                          const next = (typeof raw === "string" ? raw.split(",") : raw) as Role[];
+                          const unchanged =
+                            next.length === m.roles.length &&
+                            next.every((r) => m.roles.includes(r));
+                          if (!unchanged && next.length > 0) {
+                            setRoleTarget({ member: m, nextRoles: next });
                             setActionError("");
                           }
                         }}
                       >
                         {ALL_ROLES.map((r) => (
                           <MenuItem key={r} value={r}>
-                            {ROLE_LABEL[r]}
+                            <Checkbox checked={m.roles.includes(r)} size="small" />
+                            <ListItemText primary={ROLE_LABEL[r]} />
                           </MenuItem>
                         ))}
                       </Select>
@@ -383,31 +467,53 @@ export default function AdminPage(): React.JSX.Element {
         {membersSection}
       </Container>
 
-      {/* ── Modal: Alterar Role ── */}
+      {/* ── Modal: Alterar Roles ── */}
       <ModalConfirm
         open={!!roleTarget}
         onClose={() => setRoleTarget(null)}
-        title={`Alterar role de @${roleTarget?.member.githubHandle}?`}
+        title={`Alterar roles de @${roleTarget?.member.githubHandle}?`}
         description={
           roleTarget && (
-            <>
-              Role atual: <strong>{ROLE_LABEL[roleTarget.member.role]}</strong>
-              {" → "}
-              Nova role: <strong>{ROLE_LABEL[roleTarget.nextRole]}</strong>
-              {roleTarget.nextRole === "finance-analyzer" && (
-                <> — concede acesso ao painel financeiro.</>
-              )}
-              {roleTarget.nextRole === "admin" && (
-                <> — concede acesso administrativo total.</>
-              )}
-              {roleTarget.nextRole === "membro" && (
-                <> — remove todos os privilégios administrativos.</>
-              )}
-            </>
+            <Stack spacing={2}>
+              <Alert severity="info" sx={{ py: 0.5 }}>
+                <strong>Role ≠ ownership:</strong> a role concede permissões globais no sistema.
+                Para que um <code>event_organizer</code> edite eventos externos, ainda é necessário
+                mapear o ownership em <strong>Eventos → Organizers</strong>.
+              </Alert>
+              {roleTarget.member.id === user?.sub &&
+                roleTarget.member.roles.includes("admin") &&
+                !roleTarget.nextRoles.includes("admin") && (
+                  <Alert severity="error" sx={{ py: 0.5 }}>
+                    Você não pode remover a própria role de admin. Peça a outro administrador
+                    para realizar essa alteração.
+                  </Alert>
+                )}
+              <Typography variant="body2">
+                Roles atuais: <strong>{roleTarget.member.roles.map((r) => roleLabel(r)).join(", ")}</strong>
+                {" → "}
+                Novas roles: <strong>{roleTarget.nextRoles.map((r) => roleLabel(r)).join(", ")}</strong>
+                {roleTarget.nextRoles.includes("finance-analyzer") && (
+                  <> — concede acesso ao painel financeiro.</>
+                )}
+                {roleTarget.nextRoles.includes("admin") && (
+                  <> — concede acesso administrativo total.</>
+                )}
+                {!roleTarget.nextRoles.includes("admin") &&
+                  roleTarget.member.roles.includes("admin") && (
+                  <> — remove o acesso administrativo.</>
+                )}
+              </Typography>
+            </Stack>
           )
         }
         variant={modalVariant}
-        confirmLabel="Alterar role"
+        confirmLabel="Alterar roles"
+        confirmDisabled={
+          !!roleTarget &&
+          roleTarget.member.id === user?.sub &&
+          roleTarget.member.roles.includes("admin") &&
+          !roleTarget.nextRoles.includes("admin")
+        }
         loading={actionLoading}
         error={actionError}
         onConfirm={handleConfirmRole}

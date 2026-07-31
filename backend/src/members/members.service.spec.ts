@@ -3,6 +3,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { MembersService } from './members.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
+import { EventsService } from '../events/events.service';
+import { resetTokenKeyCache } from '../common/crypto.util';
 
 const mockMember = (): Member => ({
   id: '11111111-1111-1111-1111-111111111111',
@@ -13,8 +15,11 @@ const mockMember = (): Member => ({
   avatarUrl: 'https://avatars.githubusercontent.com/testuser',
   bio: null,
   linkedinUrl: null,
-  role: MemberRole.MEMBRO,
+  roles: [MemberRole.MEMBRO],
   isActive: true,
+  eventCommsOptIn: false,
+  githubAccessToken: null,
+  secondaryEmails: [],
   joinedAt: new Date('2024-01-01'),
 });
 
@@ -22,6 +27,12 @@ describe('MembersService', () => {
   let service: MembersService;
   let memberRepo: Record<string, jest.Mock>;
   let txRepo: Record<string, jest.Mock>;
+
+  beforeEach(() => {
+    // Testes de token usam o fallback de dev (plain:) — env sempre limpa
+    delete process.env.GITHUB_TOKEN_ENCRYPTION_KEY;
+    resetTokenKeyCache();
+  });
 
   beforeEach(async () => {
     memberRepo = {
@@ -48,6 +59,14 @@ describe('MembersService', () => {
         MembersService,
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
+        {
+          provide: EventsService,
+          useValue: {
+            rematchPendingRegistrationsForMember: jest
+              .fn()
+              .mockResolvedValue(0),
+          },
+        },
       ],
     }).compile();
 
@@ -72,7 +91,7 @@ describe('MembersService', () => {
 
       expect(memberRepo.create).toHaveBeenCalledWith({
         ...profile,
-        role: MemberRole.MEMBRO,
+        roles: [MemberRole.MEMBRO],
         isActive: true,
       });
       expect(memberRepo.save).toHaveBeenCalled();
@@ -99,7 +118,7 @@ describe('MembersService', () => {
       await service.upsertByGithub(bootstrapProfile);
 
       expect(memberRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ role: MemberRole.ADMIN }),
+        expect.objectContaining({ roles: [MemberRole.ADMIN] }),
       );
     });
 
@@ -107,7 +126,7 @@ describe('MembersService', () => {
       const existing = {
         ...mockMember(),
         githubHandle: 'endersonmenezes',
-        role: MemberRole.MEMBRO,
+        roles: [MemberRole.MEMBRO],
       };
       memberRepo.findOne.mockResolvedValue(existing);
 
@@ -116,7 +135,7 @@ describe('MembersService', () => {
         githubHandle: 'endersonmenezes',
       });
 
-      expect(existing.role).toBe(MemberRole.ADMIN);
+      expect(existing.roles).toContain(MemberRole.ADMIN);
     });
 
     it('should not change role for non-bootstrap admin', async () => {
@@ -125,7 +144,77 @@ describe('MembersService', () => {
 
       await service.upsertByGithub(profile);
 
-      expect(existing.role).toBe(MemberRole.MEMBRO);
+      expect(existing.roles).toEqual([MemberRole.MEMBRO]);
+    });
+
+    it('persiste o token criptografado (plain: em dev sem a env) e nunca em texto puro', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertByGithub({
+        ...profile,
+        githubAccessToken: 'gho_secreto',
+      });
+
+      // create NÃO recebe o token cru (não vaza no spread do perfil)
+      expect(memberRepo.create).toHaveBeenCalledWith(
+        expect.not.objectContaining({ githubAccessToken: 'gho_secreto' }),
+      );
+      // save recebe o token criptografado (fallback de dev = prefixo plain:)
+      const saved = memberRepo.save.mock.calls[0][0];
+      expect(saved.githubAccessToken).toBe('plain:gho_secreto');
+    });
+
+    it('atualiza o token a cada login (membro existente)', async () => {
+      const existing = mockMember();
+      memberRepo.findOne.mockResolvedValue(existing);
+
+      await service.upsertByGithub({
+        ...profile,
+        githubAccessToken: 'gho_novo',
+      });
+
+      expect(existing.githubAccessToken).toBe('plain:gho_novo');
+      expect(memberRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('não apaga o token quando o login não traz token novo', async () => {
+      const existing = {
+        ...mockMember(),
+        githubAccessToken: 'plain:gho_antigo',
+      };
+      memberRepo.findOne.mockResolvedValue(existing);
+
+      await service.upsertByGithub(profile); // sem githubAccessToken
+
+      expect(existing.githubAccessToken).toBe('plain:gho_antigo');
+    });
+
+    it('persiste os e-mails secundários verificados a cada login', async () => {
+      const existing = mockMember();
+      memberRepo.findOne.mockResolvedValue(existing);
+
+      await service.upsertByGithub({
+        ...profile,
+        secondaryEmails: ['test@example.com', 'enderson@codaqui.dev'],
+      });
+
+      expect(existing.secondaryEmails).toEqual([
+        'test@example.com',
+        'enderson@codaqui.dev',
+      ]);
+      expect(memberRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('preserva os e-mails secundários quando a API do GitHub falha (undefined)', async () => {
+      const existing = {
+        ...mockMember(),
+        secondaryEmails: ['antigo@x.dev'],
+      };
+      memberRepo.findOne.mockResolvedValue(existing);
+
+      await service.upsertByGithub(profile); // sem secondaryEmails
+
+      expect(existing.secondaryEmails).toEqual(['antigo@x.dev']);
     });
 
     it('should throw on invalid handle', async () => {
@@ -235,11 +324,11 @@ describe('MembersService', () => {
       memberRepo.findOneOrFail.mockResolvedValue(member);
 
       const result = await service.adminUpdate(member.id, {
-        role: MemberRole.ADMIN,
+        roles: [MemberRole.ADMIN],
       });
 
       expect(memberRepo.update).toHaveBeenCalledWith(member.id, {
-        role: MemberRole.ADMIN,
+        roles: [MemberRole.ADMIN],
       });
       expect(result).toEqual(member);
     });
@@ -293,7 +382,7 @@ describe('MembersService', () => {
             avatarUrl: 'https://example.com/avatar.png',
             bio: null,
             linkedinUrl: null,
-            role: 'membro',
+            roles: ['membro'],
             joinedAt: '2024-01-01T00:00:00Z',
             totalDonated: '100.00',
             lastDonatedAt: '2024-06-01T00:00:00Z',
@@ -385,6 +474,41 @@ describe('MembersService', () => {
       expect(result[1].type).toBe('Assinatura mensal');
       expect(result[2].type).toBe('Assinatura anual');
       expect(result[2].community).toBe('Comunidade');
+    });
+  });
+
+  // ─── getGithubAccessToken ────────────────────────────────────────────────
+
+  describe('getGithubAccessToken', () => {
+    it('retorna o token descriptografado (formato plain: de dev)', async () => {
+      memberRepo.findOne.mockResolvedValue({
+        id: 'member-1',
+        githubAccessToken: 'plain:gho_secreto',
+      });
+
+      await expect(service.getGithubAccessToken('member-1')).resolves.toBe(
+        'gho_secreto',
+      );
+      // select explícito — a coluna tem select:false na entidade
+      expect(memberRepo.findOne).toHaveBeenCalledWith({
+        where: { id: 'member-1' },
+        select: ['id', 'githubAccessToken'],
+      });
+    });
+
+    it('retorna null quando o membro não tem token gravado', async () => {
+      memberRepo.findOne.mockResolvedValue({
+        id: 'member-1',
+        githubAccessToken: null,
+      });
+      await expect(
+        service.getGithubAccessToken('member-1'),
+      ).resolves.toBeNull();
+    });
+
+    it('retorna null quando o membro não existe', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+      await expect(service.getGithubAccessToken('ghost')).resolves.toBeNull();
     });
   });
 });

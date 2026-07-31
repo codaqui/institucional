@@ -91,6 +91,16 @@ export class ReimbursementRequest {
   @Column({ type: 'timestamp', nullable: true })
   reviewedAt: Date | null;
 
+  // ── Vínculo com evento (extensão para despesas de evento) ─────────────────
+  @Column({ type: 'varchar', nullable: true })
+  eventId: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  externalActivationId: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  eventMetadata: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -127,7 +127,7 @@ export class ReimbursementsController {
       id,
       req.user.sub,
       dto,
-      req.user.role,
+      req.user.roles,
     );
 
     void this.auditService.log({

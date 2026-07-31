@@ -28,6 +28,10 @@ export class Transaction {
   @Column({ nullable: true, unique: true })
   referenceId: string;
 
+  /** Metadados estruturados do movimento (ex.: eventId/ticketTypeId de ingressos). */
+  @Column({ type: 'jsonb', nullable: true })
+  metadata: Record<string, unknown> | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

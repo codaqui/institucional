@@ -46,7 +46,9 @@ export default function TransparenciaPage(): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
   const location = useLocation();
-  const initialTxId = new URLSearchParams(location.search).get("tx") ?? undefined;
+  const query = new URLSearchParams(location.search);
+  const initialTxId = query.get("tx") ?? undefined;
+  const initialProject = query.get("project") ?? undefined;
 
   const [balances, setBalances] = useState<CommunityBalance[] | null>(null);
   const [stats, setStats] = useState<TransparencyStats | null>(null);
@@ -61,7 +63,13 @@ export default function TransparenciaPage(): React.JSX.Element {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
-      .then((data: CommunityBalance[]) => setBalances(data))
+      .then((data: CommunityBalance[]) => {
+        setBalances(data);
+        if (initialProject) {
+          const idx = data.findIndex((b) => b.projectKey === initialProject);
+          if (idx >= 0) setActiveTab(idx);
+        }
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
 
@@ -70,7 +78,7 @@ export default function TransparenciaPage(): React.JSX.Element {
       .then((data: TransparencyStats | null) => setStats(data))
       .catch(() => setStats(null))
       .finally(() => setStatsLoading(false));
-  }, [apiUrl]);
+  }, [apiUrl, initialProject]);
 
   const totalBalance = balances?.reduce((sum, b) => sum + b.balance, 0) ?? 0;
 
@@ -119,6 +127,14 @@ export default function TransparenciaPage(): React.JSX.Element {
               value={statsLoading ? <Skeleton width={40} sx={{ mx: "auto" }} /> : (stats?.uniqueDonors ?? 0)}
               label="Doadores identificados"
               color="secondary.main"
+            />
+          </Grid>
+          <Grid size={{ xs: 6, md: 3 }}>
+            <StatCard
+              icon={<CodeIcon sx={{ fontSize: 36 }} />}
+              value={statsLoading ? <Skeleton width={100} sx={{ mx: "auto" }} /> : formatBRL(stats?.totalEventTicketRevenue ?? 0)}
+              label={`Ingressos vendidos: ${stats?.totalEventTickets ?? 0}`}
+              color="info.main"
             />
           </Grid>
         </Grid>
@@ -182,6 +198,14 @@ export default function TransparenciaPage(): React.JSX.Element {
                             />
                           </Box>
                         </Stack>
+
+                        {cs.eventTicketCount > 0 && (
+                          <Box sx={{ mt: 1.5, mb: 1 }}>
+                            <Typography variant="caption" color="info.main" fontWeight={600}>
+                              🎟️ {cs.eventTicketCount} ingresso(s) vendidos · {formatBRL(cs.eventTicketIn)}
+                            </Typography>
+                          </Box>
+                        )}
 
                         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1.5 }}>
                           <Chip

@@ -83,7 +83,7 @@ export class AuthController {
         name: member.name,
         email: member.email,
         avatarUrl: member.avatarUrl,
-        role: member.role,
+        roles: member.roles,
       },
       { expiresIn: HANDOFF_TOKEN_TTL, audience: HANDOFF_AUDIENCE },
     );
@@ -143,7 +143,7 @@ export class AuthController {
       name: string;
       email: string;
       avatarUrl: string;
-      role: string;
+      roles: string[];
     };
     try {
       payload = this.jwtService.verify(handoff, {
@@ -161,7 +161,7 @@ export class AuthController {
       name: payload.name,
       email: payload.email,
       avatarUrl: payload.avatarUrl,
-      role: payload.role,
+      roles: payload.roles,
     });
 
     const isProd = process.env.NODE_ENV === 'production';
@@ -192,7 +192,11 @@ export class AuthController {
         handle: { type: 'string', example: 'johndoe' },
         name: { type: 'string', example: 'John Doe' },
         avatarUrl: { type: 'string', format: 'uri' },
-        role: { type: 'string', example: 'membro' },
+        roles: {
+          type: 'array',
+          items: { type: 'string' },
+          example: ['membro'],
+        },
       },
     },
   })

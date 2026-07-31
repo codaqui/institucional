@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import type { Request } from 'express';
 import { MembersService } from '../members/members.service';
+import type { MemberRole } from '../members/entities/member.entity';
 
 export interface JwtPayload {
   sub: string; // UUID da tabela members (chave primária) — use para FKs
@@ -11,7 +12,7 @@ export interface JwtPayload {
   name: string;
   email: string; // Email público usado no checkout
   avatarUrl: string;
-  role: string;
+  roles: MemberRole[];
   iat?: number;
   exp?: number;
 }
@@ -49,6 +50,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     if (!member) {
       throw new UnauthorizedException('Usuário inativo ou não encontrado.');
     }
-    return { ...payload, role: member.role };
+    return { ...payload, roles: member.roles };
   }
 }

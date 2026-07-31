@@ -20,6 +20,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
+import Link from "@docusaurus/Link";
 import {
   type Transaction,
   TX_TYPE_CONFIG,
@@ -166,7 +167,7 @@ export default function TransactionDetailDialog({
     isCredit, donorHandle, companyInfo, isSubscription, subscriptionInterval,
     paymentIntentId, stripeDashboardUrl, reimbDesc, isTransfer, transferReason,
     stripeFeeBalanceTransactionId, stripeFeeChargeId,
-    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl,
+    stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl, eventTicketInfo,
   } = meta;
 
   const isDonation = type === "donation" || type === "donation-business";
@@ -623,6 +624,69 @@ export default function TransactionDetailDialog({
               );
             })()}
           </>
+        )}
+
+        {/* Event ticket details */}
+        {(type === "event-ticket" || type === "event-ticket-refund") && (
+          <Box sx={{ mb: 2 }}>
+            {eventTicketInfo?.eventTitle && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Evento</Typography>
+                <Typography variant="body2" fontWeight={700} sx={{ mt: 0.5 }}>
+                  {eventTicketInfo.eventTitle}
+                </Typography>
+                {eventTicketInfo.eventKey && (
+                  <Button
+                    size="small"
+                    variant="text"
+                    component={Link}
+                    href={`/eventos/detalhe?source=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[0])}&sourceId=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[1])}&id=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[2])}`}
+                    endIcon={<OpenInNewIcon fontSize="small" />}
+                    sx={{ textTransform: "none", p: 0, justifyContent: "flex-start" }}
+                  >
+                    {eventTicketInfo.eventKey}
+                  </Button>
+                )}
+              </Box>
+            )}
+            {eventTicketInfo?.ticketName && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Ingresso</Typography>
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  {eventTicketInfo.ticketName}
+                </Typography>
+              </Box>
+            )}
+            {eventTicketInfo?.payerHandle && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Comprador</Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                  <Avatar
+                    src={`https://github.com/${eventTicketInfo.payerHandle}.png?size=32`}
+                    alt={eventTicketInfo.payerHandle}
+                    sx={{ width: 28, height: 28, fontSize: "0.75rem" }}
+                  />
+                  <Button
+                    size="small" variant="text"
+                    endIcon={<OpenInNewIcon fontSize="small" />}
+                    href={`https://github.com/${eventTicketInfo.payerHandle}`}
+                    target="_blank" rel="noopener noreferrer"
+                    sx={{ fontWeight: 700, textTransform: "none" }}
+                  >
+                    @{eventTicketInfo.payerHandle}
+                  </Button>
+                </Box>
+              </Box>
+            )}
+            {eventTicketInfo?.orderId && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.disabled">Pedido</Typography>
+                <Typography variant="body2" sx={{ fontFamily: "monospace", fontSize: "0.78rem", mt: 0.5 }}>
+                  {eventTicketInfo.orderId}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         )}
 
         {/* Stripe fee details */}

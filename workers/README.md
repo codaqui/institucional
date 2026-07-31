@@ -1,6 +1,6 @@
 # `workers/` — Cloudflare Workers para domínios próprios das comunidades
 
-> Cada comunidade parceira que ganha **domínio próprio** (ex: `tisocial.org.br`) usa um Cloudflare Worker como reverse-proxy. Ver **MULTISITE_PLAN.md §6** para o desenho arquitetural completo.
+> Cada comunidade parceira que ganha **domínio próprio** (ex: `tisocial.org.br`) usa um Cloudflare Worker como reverse-proxy. Ver **docs/MULTISITE_PLAN.md §6** para o desenho arquitetural completo.
 
 ## Estrutura
 
@@ -84,7 +84,7 @@ npm run worker:dev:tisocial
 # - /api, /auth, /stripe, /ledger, /members vão pra localhost:3001
 ```
 
-> **⚠️ Limitação atual em dev:** o backend no compose tem `FRONTEND_URL=http://localhost:3000` fixo. OAuth/Stripe callbacks caem no Docusaurus, não no Worker. Pra testar o fluxo whitelabel inteiro localmente, é necessário implementar as mudanças de backend descritas em `MULTISITE_PLAN.md §6` (OAuthState com `returnTo` + `ALLOWED_AUTH_RETURN_HOSTS`).
+> **⚠️ Limitação atual em dev:** o backend no compose tem `FRONTEND_URL=http://localhost:3000` fixo. OAuth/Stripe callbacks caem no Docusaurus, não no Worker. Pra testar o fluxo whitelabel inteiro localmente, é necessário implementar as mudanças de backend descritas em `docs/MULTISITE_PLAN.md §6` (OAuthState com `returnTo` + `ALLOWED_AUTH_RETURN_HOSTS`).
 
 ## Quando NÃO usar Worker
 

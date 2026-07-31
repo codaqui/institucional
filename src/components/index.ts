@@ -25,3 +25,5 @@ export { default as AdminNavbar } from "./AdminNavbar";
 export { default as AdminPageContainer } from "./AdminPageContainer";
 export { default as AdminDataTable } from "./AdminDataTable";
 export { default as TabPanel } from "./TabPanel";
+export { default as EventOverrideBadge } from "./EventOverrideBadge";
+export { default as EventOrdersDialog } from "./EventOrdersDialog";
