@@ -159,7 +159,7 @@ const formatDateTime = (iso: string): string =>
   });
 
 const overrideApiUrl = (apiUrl: string, sourceKey: string, eventId: string): string =>
-  `${apiUrl}/events/override/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`;
+  `${apiUrl}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`;
 
 const externalApiUrl = (apiUrl: string, eventKey: string): string =>
   `${apiUrl}/events/external/${encodeURIComponent(eventKey)}`;
@@ -287,12 +287,11 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
   const [selected, setSelected] = useState<EventSummary | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [override, setOverride] = useState<EventOverride | null>(null);
-  const [openPr, setOpenPr] = useState<PrInfo | null>(null);
   const [form, setForm] = useState<OverrideFormState>(EMPTY_OVERRIDE_FORM);
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [successPr, setSuccessPr] = useState<PrInfo | null>(null);
+  const [successMsg, setSuccessMsg] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -307,9 +306,8 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
     async (ev: EventSummary) => {
       setLoadingEvent(true);
       setError("");
-      setSuccessPr(null);
+      setSuccessMsg("");
       setOverride(null);
-      setOpenPr(null);
       setForm(EMPTY_OVERRIDE_FORM);
       setReason("");
       const base = overrideApiUrl(apiUrl, ev.sourceKey, ev.id);
@@ -319,23 +317,15 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
         if (res.ok) {
           const data = (await res.json()) as EventOverride;
           setOverride(data);
-          setForm(formStateFromExtendData(data.extendData));
+          setForm(formStateFromExtendData(data.payload));
         }
       } catch {
         // Falha de rede ou ausência de override: segue com formulário vazio.
-      }
-      try {
-        const prRes = await authFetch(`${base}/pr`);
-        if (prRes.ok) {
-          setOpenPr(toPrInfo(await prRes.json()));
-        }
-      } catch {
-        // Sem PR aberto ou erro transitório — não bloqueia a edição.
       } finally {
         setLoadingEvent(false);
       }
     },
-    [apiUrl, authFetch]
+    [apiUrl]
   );
 
   // Aplica a pré-seleção via query string (uma única vez, quando o evento é encontrado).
@@ -350,18 +340,30 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
     if (!selected) return;
     setSaving(true);
     setError("");
+    setSuccessMsg("");
     try {
-      const res = await authFetch(overrideApiUrl(apiUrl, selected.sourceKey, selected.id), {
-        method: "PUT",
-        body: JSON.stringify({ extendData: buildExtendData(form), reason: reason.trim() }),
+      const isUpdate = Boolean(override);
+      const url = isUpdate
+        ? overrideApiUrl(apiUrl, selected.sourceKey, selected.id)
+        : `${apiUrl}/events/overrides`;
+      const body = isUpdate
+        ? JSON.stringify({ payload: { extendData: buildExtendData(form) }, reason: reason.trim() })
+        : JSON.stringify({
+            sourceKey: selected.sourceKey,
+            eventId: selected.id,
+            payload: { extendData: buildExtendData(form) },
+            reason: reason.trim(),
+          });
+      const res = await authFetch(url, {
+        method: isUpdate ? "PUT" : "POST",
+        body,
       });
       if (!res.ok) {
         setError(await extractErrorMessage(res, "Erro ao salvar o override."));
         return;
       }
-      const pr = toPrInfo(await res.json());
       await loadEvent(selected);
-      setSuccessPr(pr);
+      setSuccessMsg("Override salvo com sucesso. O site reflete na proxima requisicao.");
     } catch {
       setError("Erro inesperado ao salvar o override.");
     } finally {
@@ -381,10 +383,9 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
         setDeleteError(await extractErrorMessage(res, "Erro ao remover o override."));
         return;
       }
-      const pr = toPrInfo(await res.json());
       setDeleteOpen(false);
       await loadEvent(selected);
-      setSuccessPr(pr);
+      setSuccessMsg("Override removido com sucesso.");
     } catch {
       setDeleteError("Erro inesperado ao remover o override.");
     } finally {
@@ -419,22 +420,11 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
       {selected && !loadingEvent && (
         <>
           <Alert severity="info">
-            A alteração é enviada como <strong>Pull Request</strong> no repositório em seu
-            nome e <strong>auto-mergeada em segundos</strong> (github-actions). O site
-            reflete o override na próxima requisição.
+            A alteração é salva diretamente no banco de dados. O site reflete o override
+            na próxima requisição (ou no próximo sync de snapshots).
           </Alert>
 
-          {openPr && (
-            <Alert severity="warning" action={<PrLink pr={openPr} />}>
-              Já existe um PR aberto para este override.
-            </Alert>
-          )}
-
-          {successPr && (
-            <Alert severity="success" action={<PrLink pr={successPr} />}>
-              Alteração enviada com sucesso — PR aberto para auto-merge.
-            </Alert>
-          )}
+          {successMsg && <Alert severity="success">{successMsg}</Alert>}
 
           {error && <Alert severity="error">{error}</Alert>}
 
@@ -658,7 +648,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                     onClick={handleSave}
                     startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
                   >
-                    Salvar override (abre PR)
+                    Salvar override
                   </Button>
                   {override && (
                     <Button
@@ -720,7 +710,6 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
               <Box sx={{ mt: 3 }}>
                 <EventOverrideHistory
                   apiUrl={apiUrl}
-                  authFetch={authFetch}
                   sourceKey={selected.sourceKey}
                   eventId={selected.id}
                 />
@@ -733,7 +722,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
       <ModalConfirm
         open={deleteOpen}
         title="Remover override?"
-        description="O arquivo de override será removido via Pull Request (auto-mergeado em segundos) e o evento volta a exibir apenas os dados da fonte externa."
+        description="O override será removido do banco de dados e o evento volta a exibir apenas os dados da fonte externa."
         confirmLabel="Remover override"
         variant="error"
         loading={deleting}

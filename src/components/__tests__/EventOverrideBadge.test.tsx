@@ -6,7 +6,7 @@ import type { EventOverride } from "../../utils/event-override";
 const baseOverride: EventOverride = {
   eventId: "123",
   sourceKey: "meetup:devparana",
-  extendData: { featured: true },
+  payload: { featured: true },
   ownerHandle: "organizador",
   updatedAt: "2026-04-29T23:00:00-03:00",
 };
