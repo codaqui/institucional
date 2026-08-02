@@ -23,7 +23,7 @@ export const equipeImpacto: Member[] = [
     linkedin: "https://www.linkedin.com/in/analeticiamania/"
   },
   {
-    name: "Caroline Fiori\n",
+    name: "Caroline Fiori",
     role: "Voluntária",
     specialty: "Especialista em Employer Branding",
     avatar: "https://media.licdn.com/dms/image/v2/D4D03AQGybeuYIn99Wg/profile-displayphoto-crop_800_800/B4DZ203tulHsAI-/0/1776856001511?e=1781136000&v=beta&t=cWxJy8Chp4aXGGQi7BnbP6vpULLur0MuerQ5MjMpO1g",
