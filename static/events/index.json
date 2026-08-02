@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-29T17:26:01.257Z",
+  "generatedAt": "2026-08-02T22:16:10.184Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-29T17:26:01.257Z",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,10 +27,10 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-29T17:26:01.257Z",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
-      "itemCount": 370
+      "itemCount": 372
     },
     {
       "source": "ocgroups",
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-29T17:26:01.257Z",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 7
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-29T17:26:01.257Z",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -72,10 +72,25 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-07-29T17:26:01.257Z",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
+    },
+    {
+      "source": "internal",
+      "sourceId": "codaqui",
+      "type": "internal",
+      "label": "Codaqui",
+      "emoji": "🌱",
+      "description": "Eventos organizados pela Associação Codaqui.",
+      "ctaLabel": "Ver eventos",
+      "ctaHref": "/eventos",
+      "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+      "generatedAt": "2026-08-02T22:16:10.184Z",
+      "sourceKey": "internal:codaqui",
+      "indexPath": "/events/internal/codaqui/index.json",
+      "itemCount": 0
     }
   ],
   "events": [
@@ -108,6 +123,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -146,6 +162,7 @@
           "id": "194331356"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -180,6 +197,7 @@
           "id": "194464939"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -218,6 +236,7 @@
           "id": "194331356"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -252,6 +271,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -286,6 +306,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -320,6 +341,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -354,6 +376,7 @@
           "id": "194331356"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -388,6 +411,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -422,6 +446,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -456,6 +481,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -494,6 +520,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -528,6 +555,7 @@
           "id": "156179012"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -562,6 +590,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -596,6 +625,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -630,6 +660,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -664,6 +695,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -698,6 +730,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -732,6 +765,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -766,6 +800,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -808,6 +843,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -842,6 +878,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -876,6 +913,7 @@
           "id": "152994462"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -910,6 +948,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -944,6 +983,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -986,6 +1026,7 @@
           "id": "194464939"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1028,6 +1069,7 @@
           "id": "194464939"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1062,6 +1104,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1096,6 +1139,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1130,6 +1174,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1164,6 +1209,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1206,6 +1252,7 @@
           "id": "188896297"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1240,6 +1287,7 @@
           "id": "187548010"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1275,6 +1323,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/d/e/4/highres_468280420.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1310,6 +1359,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/9/e/1/highres_468498913.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1345,6 +1395,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/9/9/e/highres_468318846.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1384,6 +1435,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/f/9/7/highres_469013143.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1427,6 +1479,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1462,6 +1515,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/5/5/8/highres_468017752.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1505,6 +1559,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1548,6 +1603,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1591,6 +1647,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1626,6 +1683,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/2/a/b/highres_471205259.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1669,6 +1727,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1712,6 +1771,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1755,6 +1815,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1793,6 +1854,7 @@
           "id": "182647292"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1828,6 +1890,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/c/f/5/highres_468487413.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1871,6 +1934,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1913,6 +1977,7 @@
           "id": "182647292"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1956,6 +2021,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -1991,6 +2057,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/4/7/e/highres_473837534.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2030,6 +2097,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/6/a/4/highres_473614468.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2073,6 +2141,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/e/f/5/highres_473980693.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2116,6 +2185,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2159,6 +2229,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2194,6 +2265,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/d/d/3/highres_475344019.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2229,6 +2301,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/8/3/c/highres_475470780.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2272,6 +2345,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2307,6 +2381,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/3/5/d/highres_475725917.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2346,6 +2421,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/3/6/highres_476102102.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2380,6 +2456,7 @@
           "id": "182647292"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2415,6 +2492,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/6/3/1/highres_476477969.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2458,6 +2536,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/d/0/b/highres_476684299.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2497,6 +2576,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/0/c/1/highres_477157057.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2540,6 +2620,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2583,6 +2664,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/e/5/7/highres_478068727.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2626,6 +2708,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/9/6/e/highres_478454702.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2665,6 +2748,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/b/9/5/highres_478399349.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2708,6 +2792,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/b/0/e/highres_478531502.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2742,6 +2827,7 @@
           "id": "223742833"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2785,6 +2871,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/0/a/3/highres_479292451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2824,6 +2911,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/a/3/9/highres_479275865.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2863,6 +2951,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2902,6 +2991,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/7/4/d/highres_479470061.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2945,6 +3035,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/2/e/1/highres_479648929.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -2980,6 +3071,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/d/9/f/highres_479444447.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3023,6 +3115,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3062,6 +3155,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/highres_479820100.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3100,6 +3194,7 @@
           "id": "160002032"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3139,6 +3234,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3182,6 +3278,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/b/0/e/highres_478531502.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3217,6 +3314,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/4/a/highres_480901098.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3256,6 +3354,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/5/5/e/highres_480669566.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3295,6 +3394,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/b/a/c/highres_480699852.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3334,6 +3434,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/7/0/6/highres_480669990.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3373,6 +3474,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/f/a/a/highres_480668106.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3416,6 +3518,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3451,6 +3554,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/a/c/3/highres_480699619.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3490,6 +3594,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3529,6 +3634,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/8/7/d/highres_480879037.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3568,6 +3674,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/highres_479820100.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3611,6 +3718,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3654,6 +3762,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/e/2/7/highres_480688199.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3693,6 +3802,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/6/9/2/highres_480690354.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3736,6 +3846,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/5/3/3/highres_480694099.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3779,6 +3890,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/5/f/0/highres_480698384.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3814,6 +3926,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/7/a/highres_481763162.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3849,6 +3962,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/e/0/8/highres_481807688.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3888,6 +4002,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3931,6 +4046,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -3965,6 +4081,7 @@
           "id": "184390505"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4008,6 +4125,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4047,6 +4165,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/6/9/1/highres_482390833.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4082,6 +4201,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/5/5/e/highres_482390526.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4121,6 +4241,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/9/c/b/highres_482615275.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4164,6 +4285,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/e/5/7/highres_478068727.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4203,6 +4325,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/highres_479820100.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4237,6 +4360,7 @@
           "id": "184390505"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4276,6 +4400,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4319,6 +4444,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4358,6 +4484,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/a/9/6/highres_483246806.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4401,6 +4528,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4440,6 +4568,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/f/highres_483180031.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4475,6 +4604,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/9/0/0/highres_483947360.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4513,6 +4643,7 @@
           "id": "188896297"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4552,6 +4683,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/d/highres_483963101.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4591,6 +4723,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/9/7/7/highres_484154711.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4634,6 +4767,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/7/e/highres_483971390.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4677,6 +4811,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4720,6 +4855,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4763,6 +4899,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/9/3/b/highres_483647419.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4797,6 +4934,7 @@
           "id": "256689644"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4832,6 +4970,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/7/2/7/highres_484590503.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4879,6 +5018,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4922,6 +5062,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/3/b/9/highres_483033721.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -4961,6 +5102,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/d/e/highres_484943262.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5000,6 +5142,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/9/2/highres_484800402.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5035,6 +5178,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/3/1/highres_484955889.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5074,6 +5218,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/e/a/e/highres_484948334.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5112,6 +5257,7 @@
           "id": "188896297"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5155,6 +5301,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5202,6 +5349,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5241,6 +5389,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/6/e/highres_485462414.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5280,6 +5429,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/a/d/8/highres_485456024.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5319,6 +5469,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/3/3/2/highres_485569970.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5362,6 +5513,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5397,6 +5549,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/e/3/3/highres_485020499.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5440,6 +5593,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/f/7/highres_481371703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5479,6 +5633,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/d/0/7/highres_486172487.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5513,6 +5668,7 @@
           "id": "256689644"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5556,6 +5712,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5591,6 +5748,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/7/6/highres_486383158.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5634,6 +5792,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5681,6 +5840,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/9/3/b/highres_483647419.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5724,6 +5884,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/f/d/highres_486943005.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5763,6 +5924,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/d/d/0/highres_486472688.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5806,6 +5968,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/4/5/highres_469151845.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5845,6 +6008,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/a/5/6/highres_486966742.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5888,6 +6052,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/7/e/highres_483971390.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5927,6 +6092,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/5/0/c/highres_487302252.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -5970,6 +6136,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/f/1/f/highres_488140735.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6005,6 +6172,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6044,6 +6212,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/5/c/f/highres_488374255.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6079,6 +6248,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/c/5/highres_488787589.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6122,6 +6292,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/f/1/f/highres_488140735.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6161,6 +6332,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/0/2/1/highres_488796897.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6204,6 +6376,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/f/d/highres_486943005.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6247,6 +6420,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/d/b/highres_481517371.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6282,6 +6456,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/f/2/highres_489001010.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6317,6 +6492,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/c/6/7/highres_488568231.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6356,6 +6532,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/0/3/2/highres_489512818.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6399,6 +6576,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/e/9/1/highres_489584689.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6442,6 +6620,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/9/1/0/highres_489386896.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6485,6 +6664,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/3/2/highres_489712018.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6524,6 +6704,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/f/d/highres_486943005.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6563,6 +6744,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/f/f/3/highres_489713235.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6606,6 +6788,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/f/1/f/highres_488140735.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6644,6 +6827,7 @@
           "id": "256689644"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6687,6 +6871,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/f/7/5/highres_490040341.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6730,6 +6915,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/e/9/1/highres_489584689.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6769,6 +6955,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/f/3/1/highres_490377137.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6812,6 +6999,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/e/9/1/highres_489584689.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6863,6 +7051,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/6/1/6/highres_490582038.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6898,6 +7087,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/4/e/4/highres_490765828.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6949,6 +7139,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -6984,6 +7175,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/7/d/c/highres_491099356.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7019,6 +7211,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/2/8/4/highres_491117028.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7054,6 +7247,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/8/0/e/highres_491099406.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7089,6 +7283,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/f/e/a/highres_491325034.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7140,6 +7335,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/4/2/6/highres_491442022.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7175,6 +7371,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/e/d/f/highres_491476095.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7210,6 +7407,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/4/7/8/highres_491473432.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7261,6 +7459,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7296,6 +7495,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/a/highres_491760058.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7339,6 +7539,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/f/9/f/highres_492096767.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7390,6 +7591,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7433,6 +7635,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/8/a/8/highres_492798600.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7468,6 +7671,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/3/8/6/highres_492834150.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7503,6 +7707,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/1/2/7/highres_492837639.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7538,6 +7743,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/9/f/highres_492834431.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7573,6 +7779,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/b/8/highres_492834456.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7612,6 +7819,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/5/7/4/highres_492834644.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7647,6 +7855,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/9/0/2/highres_492835554.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7682,6 +7891,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/2/7/5/highres_493017973.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7717,6 +7927,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/d/5/a/highres_492836666.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7752,6 +7963,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/2/3/4/highres_492837908.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7787,6 +7999,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/2/6/3/highres_492837955.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7822,6 +8035,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/5/8/highres_492875928.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7857,6 +8071,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/4/9/c/highres_492838524.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7892,6 +8107,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/6/3/8/highres_492838936.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7927,6 +8143,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/6/5/3/highres_492838963.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7962,6 +8179,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/7/4/8/highres_492839208.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -7997,6 +8215,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/0/2/1/highres_493160513.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8036,6 +8255,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/9/4/8/highres_493570568.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8071,6 +8291,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8110,6 +8331,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/7/b/1/highres_494682929.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8145,6 +8367,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8180,6 +8403,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8227,6 +8451,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8274,6 +8499,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/4/2/6/highres_491442022.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8321,6 +8547,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8356,6 +8583,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8391,6 +8619,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/f/a/e/highres_495808590.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8426,6 +8655,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/5/3/highres_488154355.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8477,6 +8707,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8512,6 +8743,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/1/0/highres_496371472.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8551,6 +8783,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/3/d/f/highres_496558335.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8586,6 +8819,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/e/0/f/highres_496720463.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8637,6 +8871,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/0/5/3/highres_496665139.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8684,6 +8919,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/d/d/1/highres_496815825.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8719,6 +8955,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/2/5/1/highres_496924689.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8770,6 +9007,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8805,6 +9043,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/5/a/highres_496792058.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8844,6 +9083,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/0/7/highres_497220263.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8879,6 +9119,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/b/0/5/highres_497483301.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8918,6 +9159,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/6/6/d/highres_497622605.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -8968,6 +9210,7 @@
           "id": "305680222"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9003,6 +9246,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/6/d/2/highres_497786322.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9038,6 +9282,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/1/6/f/highres_497865423.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9089,6 +9334,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/1/5/c/highres_497997692.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9124,6 +9370,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/1/b/9/highres_497828633.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9159,6 +9406,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/6/7/5/highres_498214421.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9198,6 +9446,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/1/c/f/highres_498101423.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9237,6 +9486,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/5/a/highres_498361626.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9272,6 +9522,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/3/9/d/highres_498453693.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9322,6 +9573,7 @@
           "id": "329598102"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9373,6 +9625,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9412,6 +9665,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/b/7/5/highres_498875701.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9463,6 +9717,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9513,6 +9768,7 @@
           "id": "329598102"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9564,6 +9820,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9607,6 +9864,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/4/9/d/highres_504329853.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9642,6 +9900,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/5/1/5/highres_504054549.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9681,6 +9940,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/0/3/7/highres_505365111.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9724,6 +9984,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/a/7/c/highres_506843164.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9763,6 +10024,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/7/7/2/highres_506678770.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9802,6 +10064,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/b/d/highres_506700957.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9837,6 +10100,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/7/e/highres_506831390.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9872,6 +10136,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/8/1/6/highres_506678934.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9911,6 +10176,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/4/a/e/highres_507005294.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9946,6 +10212,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/9/9/highres_506831417.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -9985,6 +10252,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/7/d/7/highres_506678871.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10024,6 +10292,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/d/7/highres_506700983.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10059,6 +10328,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/5/d/5/highres_506678357.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10098,6 +10368,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/e/3/8/highres_506856408.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10137,6 +10408,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/7/0/c/highres_506678668.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10176,6 +10448,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/c/8/0/highres_507387776.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10211,6 +10484,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/6/c/7/highres_516826791.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10250,6 +10524,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/6/0/c/highres_516965644.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10289,6 +10564,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/6/f/5/highres_516826837.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10324,6 +10600,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/4/c/4/highres_516826276.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10359,6 +10636,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/5/5/2/highres_516826418.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10394,6 +10672,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/4/c/9/highres_516826281.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10429,6 +10708,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/3/1/5/highres_517117653.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10464,6 +10744,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/3/f/f/highres_516826079.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10499,6 +10780,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/6/9/7/highres_516826743.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10538,6 +10820,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/f/2/4/highres_517447972.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10581,6 +10864,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/0/2/8/highres_518588232.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10620,6 +10904,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/3/e/8/highres_519009192.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10659,6 +10944,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/7/6/5/highres_519746469.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10698,6 +10984,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/6/2/3/highres_519890723.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10741,6 +11028,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10780,6 +11068,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/1/6/2/highres_521085410.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10819,6 +11108,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/9/b/6/highres_521371158.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10862,6 +11152,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/6/4/highres_490673860.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10901,6 +11192,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/e/7/5/highres_522116949.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10940,6 +11232,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/d/8/5/highres_522371653.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -10979,6 +11272,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/3/a/highres_522387450.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11018,6 +11312,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/a/e/3/highres_522495075.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11061,6 +11356,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/4/2/3/highres_521990211.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11100,6 +11396,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/4/c/5/highres_523078565.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11143,6 +11440,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/f/6/8/highres_523433096.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11182,6 +11480,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/2/d/2/highres_523281202.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11217,6 +11516,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/6/f/5/highres_523565877.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11252,6 +11552,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/d/3/highres_523431667.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11287,6 +11588,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/5/1/highres_523431537.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11326,6 +11628,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11361,6 +11664,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/2/4/2/highres_523216962.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11400,6 +11704,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/3/b/6/highres_523877334.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11435,6 +11740,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/0/8/c/highres_524048332.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11470,6 +11776,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11513,6 +11820,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/3/1/3/highres_523858131.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11552,6 +11860,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/a/6/d/highres_524267725.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11587,6 +11896,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11622,6 +11932,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/4/4/0/highres_524649280.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11657,6 +11968,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/e/2/9/highres_524796393.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11692,6 +12004,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/2/9/a/highres_524849338.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11727,6 +12040,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/9/1/9/highres_524795097.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11762,6 +12076,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11797,6 +12112,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/9/2/2/highres_525599682.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11832,6 +12148,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/e/2/1/highres_525760481.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11867,6 +12184,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11906,6 +12224,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/b/8/7/highres_525755719.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11949,6 +12268,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/e/8/d/highres_526232397.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -11984,6 +12304,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12019,6 +12340,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/4/d/8/highres_526362200.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12058,6 +12380,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/1/b/b/highres_526520923.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12093,6 +12416,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/1/2/b/highres_523549451.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12136,6 +12460,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/5/2/7/highres_527117703.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12171,6 +12496,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/1/c/b/highres_527373227.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12205,6 +12531,7 @@
           "id": "288803051"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12240,6 +12567,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/c/a/2/highres_527564194.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12283,6 +12611,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/5/2/2/highres_527833602.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12318,6 +12647,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/8/f/highres_526347535.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12357,6 +12687,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/4/b/0/highres_528114448.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12392,6 +12723,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/f/4/a/highres_528196202.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12435,6 +12767,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/a/f/7/0/highres_528644912.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12470,6 +12803,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/8/f/highres_526347535.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12505,6 +12839,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/7/4/1/highres_528618241.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12548,6 +12883,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/2/e/3/highres_529093027.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12582,6 +12918,7 @@
           "id": "288803051"
         }
       ],
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12612,7 +12949,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3031834.json"
+      "itemPath": "/events/sympla/campostech/sympla-3031834.json",
+      "hasOverride": false
     },
     {
       "id": "310654707",
@@ -12648,6 +12986,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/1/0/1/highres_529768929.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12687,6 +13026,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/7/f/highres_529620383.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12726,6 +13066,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/9/f/b/highres_529643035.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12765,6 +13106,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/e/7/7/highres_530107799.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12800,6 +13142,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/9/1/a/highres_529851482.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12835,6 +13178,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/3/8/9/highres_530241385.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12878,6 +13222,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/c/7/a/highres_530367770.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12913,6 +13258,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/6/0/1/highres_530477921.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12948,6 +13294,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/2/d/c/highres_530104828.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -12983,6 +13330,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/b/a/9/highres_530467081.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13022,6 +13370,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/1/c/b/highres_530757803.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13061,6 +13410,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/d/3/4/highres_530988436.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13100,6 +13450,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/5/1/2/highres_531414546.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13135,6 +13486,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/f/9/1/highres_531572657.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13170,6 +13522,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/9/3/b/b/highres_531577819.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13205,6 +13558,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/d/4/b/highres_531623883.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13240,6 +13594,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/d/4/b/highres_532256651.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13275,6 +13630,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/f/5/9/highres_532377177.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13314,6 +13670,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/b/e/8/highres_532583528.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13349,6 +13706,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/d/0/highres_532827600.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13384,6 +13742,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/f/7/c/highres_532824444.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13423,6 +13782,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/c/a/e/highres_533235534.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13462,6 +13822,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/f/9/4/highres_533277236.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13497,6 +13858,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/b/3/highres_533376019.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13532,6 +13894,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/1/highres_533376033.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13567,6 +13930,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/b/e/highres_533376030.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13602,6 +13966,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/3/6/7/a/highres_533233946.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13637,6 +14002,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/7/9/6/highres_533238326.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13667,7 +14033,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2388489.json"
+      "itemPath": "/events/sympla/campostech/sympla-2388489.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3361245",
@@ -13694,7 +14061,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3361245.json"
+      "itemPath": "/events/sympla/campostech/sympla-3361245.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3362405",
@@ -13722,7 +14090,8 @@
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json",
+      "hasOverride": false
     },
     {
       "id": "313849624",
@@ -13754,6 +14123,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/3/highres_533376035.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13789,6 +14159,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/a/a/highres_533391882.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13824,6 +14195,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/c/4/highres_533376036.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13863,6 +14235,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/9/highres_533391913.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13902,6 +14275,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/5/2/highres_533392050.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13937,6 +14311,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/6/6/highres_533392070.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -13972,6 +14347,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/2/b/highres_533392011.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14000,6 +14376,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488598924481527898/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14028,6 +14405,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600399492415608/7342ff2ab4698ea3dcdfca6d39185b71.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14067,6 +14445,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/7/9/highres_533392089.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14095,6 +14474,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600541641576699/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14130,6 +14510,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/9/e/highres_533392126.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14173,6 +14554,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/8/2/highres_533392098.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14216,6 +14598,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/c/e/highres_533391918.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14251,6 +14634,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/b/0/a/highres_533391978.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14295,7 +14679,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-9357cced-df19-5145-91e7-a5eee55966ad.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-9357cced-df19-5145-91e7-a5eee55966ad.json",
+      "hasOverride": false
     },
     {
       "id": "313962761",
@@ -14327,6 +14712,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/c/a/d/0/highres_533391920.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14355,6 +14741,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599076889952267/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14383,6 +14770,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600661410054387/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14411,6 +14799,7 @@
       "creatorId": "265457153257635850",
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488600812107202620/7d0144e43d746ed307e21c3e9d7cfb2b.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14445,6 +14834,7 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599694325317784/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14479,6 +14869,7 @@
       ],
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498450972551155793/8cb696230bf97824fd792c19d4cb4504.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14513,6 +14904,7 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1488599981085429880/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14547,6 +14939,7 @@
       ],
       "channelId": "836223700482392075",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498451178764107797/7342ff2ab4698ea3dcdfca6d39185b71.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14577,7 +14970,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-1983086.json"
+      "itemPath": "/events/sympla/campostech/sympla-1983086.json",
+      "hasOverride": false
     },
     {
       "id": "314707318",
@@ -14609,6 +15003,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/2/a/2/highres_534165730.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14640,7 +15035,8 @@
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json",
+      "hasOverride": false
     },
     {
       "id": "1498450535655931944",
@@ -14671,6 +15067,7 @@
       ],
       "channelId": "836223645143662592",
       "imageUrl": "https://cdn.discordapp.com/guild-events/1498450535655931944/771762f7822266fbcf8aa9523ad3ba82.png?size=1024",
+      "hasOverride": false,
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
@@ -14722,6 +15119,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/1/e/e/highres_534225550.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14766,7 +15164,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d9ef7597-f34a-4531-aac8-57482e3dbf91.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2016945",
@@ -14793,7 +15192,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2016945.json"
+      "itemPath": "/events/sympla/campostech/sympla-2016945.json",
+      "hasOverride": false
     },
     {
       "id": "315134319",
@@ -14829,6 +15229,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/b/3/e/e/highres_534646062.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14859,7 +15260,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3462044.json"
+      "itemPath": "/events/sympla/campostech/sympla-3462044.json",
+      "hasOverride": false
     },
     {
       "id": "315307199",
@@ -14907,6 +15309,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/4/6/0/1/highres_534797921.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14942,6 +15345,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/7/9/6/5/highres_534931077.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -14981,6 +15385,7 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/d/8/a/5/highres_534775461.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
@@ -15011,7 +15416,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2054515.json"
+      "itemPath": "/events/sympla/campostech/sympla-2054515.json",
+      "hasOverride": false
     },
     {
       "id": "315702026",
@@ -15050,13 +15456,56 @@
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315702026.json"
+      "itemPath": "/events/meetup/devparana/315702026.json",
+      "hasOverride": false
+    },
+    {
+      "id": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
+      "title": "Cloud Native Maringá #3 - Esquenta para o AgileBrazil com a Codaqui",
+      "summary": "O cenário de tecnologia está em constante evolução, e a força da nossa região está na colaboração. É com muito orgulho que anunciamos o Cloud Native Maringá #3 , uma edição especial e presencial que servirá como o esque…",
+      "startAt": "2026-08-01T09:30:00-03:00",
+      "endAt": "2026-08-01T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "UniCesumar - Inspira Space, Av. Guedner, 1610 - Jardim Aclimacao",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/xw9tt8t",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 33,
+      "imageUrl": "https://ocgroups.dev/images/ad774dd2b37ac33daa00f2e24dae1946e1b403a0deb1f5397088ed064bc96ca0.png",
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838.json",
+      "hasOverride": true
     },
     {
       "id": "sympla-2582075",
       "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-29T17:27:05.978Z",
+      "startAt": "2026-08-02T22:17:11.031Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15077,13 +15526,14 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2582075.json"
+      "itemPath": "/events/sympla/campostech/sympla-2582075.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2452255",
       "title": "Minicurso: DevOps - Uma infraestrutura ágil para automatizar o seu deploy",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-29T17:27:05.978Z",
+      "startAt": "2026-08-02T22:17:11.031Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15104,13 +15554,14 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2452255.json"
+      "itemPath": "/events/sympla/campostech/sympla-2452255.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2321587",
       "title": "Minicurso: Teste de API na Prática!",
       "summary": "Evento organizado pelo CamposTech na Sympla.",
-      "startAt": "2026-07-29T17:27:05.978Z",
+      "startAt": "2026-08-02T22:17:11.031Z",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
@@ -15131,48 +15582,8 @@
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2321587.json"
-    },
-    {
-      "id": "ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838",
-      "title": "Cloud Native Maringá #3 - Esquenta para o AgileBrazil com a Codaqui",
-      "summary": "O cenário de tecnologia está em constante evolução, e a força da nossa região está na colaboração. É com muito orgulho que anunciamos o Cloud Native Maringá #3 , uma edição especial e presencial que servirá como o esque…",
-      "startAt": "2026-08-01T09:30:00-03:00",
-      "endAt": "2026-08-01T12:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "CNCF Open Community Groups",
-      "host": "Cloud Native Maringá",
-      "location": "UniCesumar - Inspira Space, Av. Guedner, 1610 - Jardim Aclimacao",
-      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/xw9tt8t",
-      "tags": [
-        "cncf",
-        "cloud-native-maringa",
-        "presencial"
-      ],
-      "ctaLabel": "Ver no CNCF Open Community Groups",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "external",
-      "userCount": 23,
-      "imageUrl": "https://ocgroups.dev/images/ad774dd2b37ac33daa00f2e24dae1946e1b403a0deb1f5397088ed064bc96ca0.png",
-      "creatorName": "Isadora Marcondes",
-      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-      "organizers": [
-        {
-          "name": "Isadora Marcondes",
-          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
-        },
-        {
-          "name": "Enderson Menezes",
-          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
-          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
-        }
-      ],
-      "source": "ocgroups",
-      "sourceId": "cloud-native-maringa",
-      "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-d18d2fc7-8150-408d-81c4-a4f4e4097838.json"
+      "itemPath": "/events/sympla/campostech/sympla-2321587.json",
+      "hasOverride": false
     },
     {
       "id": "1338983526858494053",
@@ -15215,7 +15626,104 @@
       "source": "discord",
       "sourceId": "codaqui",
       "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1338983526858494053.json"
+      "itemPath": "/events/discord/codaqui/1338983526858494053.json",
+      "hasOverride": false
+    },
+    {
+      "id": "279713902",
+      "title": "Esquenta Agile Brazil by devParaná",
+      "summary": "🔥Esquenta Agile Brazil by devParaná O Esquenta Agile Brazil irá aquecer as discussões da Trilha Tech/IA Future Agility do Agile Brazil. Serão duas palestras técnicas sobre decisões que importam muito para qualquer agil…",
+      "startAt": "2026-08-06T19:30:00-03:00",
+      "endAt": "2026-08-06T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "OnSafety · Av. Centenário, 116 - Sl 34 - Vila Christino · Maringá",
+      "href": "https://www.meetup.com/developerparana/events/279713902/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 6,
+      "creatorName": "Kelly Garcia",
+      "creatorId": "249252072",
+      "organizers": [
+        {
+          "name": "Wagner Fusca",
+          "id": "188810094"
+        },
+        {
+          "name": "Ivo Roberto Batistela",
+          "id": "194369232"
+        },
+        {
+          "name": "Misael",
+          "id": "424009229"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/1/4/c/8/highres_535445320.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/279713902.json",
+      "hasOverride": false
+    },
+    {
+      "id": "315903291",
+      "title": "[DevPR Guarapuava] Happy Hour 13/08",
+      "summary": "🍻 Happy Hour DevParaná Guarapuava Uma noite para reunir a comunidade de tecnologia, trocar experiências e fazer networking em um ambiente descontraído. Além do bate-papo, teremos um espaço aberto para mini talks! 🎤 Te…",
+      "startAt": "2026-08-13T19:00:00-03:00",
+      "endAt": "2026-08-13T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Macedonia Bar · R  Andrade Neves 1854, Trianon · Guarapuava",
+      "href": "https://www.meetup.com/developerparana/events/315903291/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 9,
+      "creatorName": "Luiz Schons",
+      "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "leonardo tosin",
+          "id": "478507140"
+        },
+        {
+          "name": "Nestor Hugo",
+          "id": "428326789"
+        },
+        {
+          "name": "Eliezer Buczak Boeira ",
+          "id": "428102696"
+        },
+        {
+          "name": "João Paulo Vasconcelos",
+          "id": "429772464"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/e/c/highres_535437580.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/315903291.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45",
@@ -15255,7 +15763,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-23b14546-1de9-4409-b245-eb2babbc7d45.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6",
@@ -15295,7 +15804,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d",
@@ -15335,7 +15845,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json",
+      "hasOverride": false
     },
     {
       "id": "ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5",
@@ -15375,7 +15886,8 @@
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5.json"
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5.json",
+      "hasOverride": false
     }
   ]
 }

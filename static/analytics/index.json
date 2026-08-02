@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-07-29T07:26:46.072Z",
-  "latestPeriod": "2026-06",
+  "updatedAt": "2026-08-02T07:21:41.079Z",
+  "latestPeriod": "2026-07",
   "totals": {
-    "screenPageViews": 265819,
-    "activeUsers": 115913,
-    "sessions": 146093,
+    "screenPageViews": 267664,
+    "activeUsers": 116366,
+    "sessions": 146868,
     "peakMonth": "2024-05",
     "peakViews": 22422
   },
@@ -248,70 +248,81 @@
       "sessions": 742,
       "averageSessionDuration": 172.5,
       "bounceRate": 0.5687
+    },
+    {
+      "period": "2026-07",
+      "screenPageViews": 1845,
+      "activeUsers": 453,
+      "sessions": 775,
+      "averageSessionDuration": 532.9,
+      "bounceRate": 0.6065
     }
   ],
   "topPages": [
     {
-      "pagePath": "/trilhas/python/page-1",
-      "screenPageViews": 154,
-      "activeUsers": 35
-    },
-    {
-      "pagePath": "/trilhas/python",
-      "screenPageViews": 137,
-      "activeUsers": 41
+      "pagePath": "/trilhas/python/page-3",
+      "screenPageViews": 164,
+      "activeUsers": 25
     },
     {
       "pagePath": "/trilhas/python/page-2",
-      "screenPageViews": 117,
-      "activeUsers": 23
+      "screenPageViews": 142,
+      "activeUsers": 31
     },
     {
-      "pagePath": "/participe/apoiar",
-      "screenPageViews": 69,
-      "activeUsers": 23
-    },
-    {
-      "pagePath": "/participe/mentoria",
-      "screenPageViews": 63,
-      "activeUsers": 29
-    },
-    {
-      "pagePath": "/clube",
-      "screenPageViews": 58,
-      "activeUsers": 34
-    },
-    {
-      "pagePath": "/eventos",
-      "screenPageViews": 54,
-      "activeUsers": 33
+      "pagePath": "/trilhas/python",
+      "screenPageViews": 123,
+      "activeUsers": 40
     },
     {
       "pagePath": "/participe/estudar",
+      "screenPageViews": 115,
+      "activeUsers": 38
+    },
+    {
+      "pagePath": "/trilhas/python/page-1",
+      "screenPageViews": 107,
+      "activeUsers": 36
+    },
+    {
+      "pagePath": "/trilhas/python/page-4",
+      "screenPageViews": 65,
+      "activeUsers": 17
+    },
+    {
+      "pagePath": "/trilhas/python/page-5",
       "screenPageViews": 54,
-      "activeUsers": 29
+      "activeUsers": 17
+    },
+    {
+      "pagePath": "/bio",
+      "screenPageViews": 38,
+      "activeUsers": 27
     }
   ],
   "trafficSources": {
-    "new": 370,
-    "(direct)": 345,
-    "google": 272,
-    "returning": 229,
-    "(not set)": 148,
-    "RD Station": 23,
-    "bing": 31,
-    "guiadeti.com.br": 18,
-    "giscus.app": 10,
-    "github.com": 12,
-    "chatgpt.com": 7,
-    "(data not available)": 4,
-    "facebook.com": 2,
-    "linktree": 2,
-    "youtube.com": 3,
-    "br.search.yahoo.com": 3,
-    "tisocial.org.br": 1,
-    "localhost:4200": 2,
-    "perplexity.ai": 1,
-    "staging.agilebrazil.com": 1
+    "new": 410,
+    "(direct)": 428,
+    "google": 223,
+    "returning": 245,
+    "(not set)": 121,
+    "chatgpt.com": 58,
+    "guiadeti.com.br": 22,
+    "ig": 5,
+    "linktree": 6,
+    "giscus.app": 6,
+    "bing": 4,
+    "github.com": 4,
+    "x.com": 3,
+    "linkedin.com": 2,
+    "phpconference.com.br": 2,
+    "teams.public.onecdn.static.microsoft": 2,
+    "staging.agilebrazil.com": 3,
+    "(data not available)": 1,
+    "copilot.com": 1,
+    "facebook.com": 1,
+    "zeyao.net": 1,
+    "nuget.org": 1,
+    "tisocial.org.br": 1
   }
 }

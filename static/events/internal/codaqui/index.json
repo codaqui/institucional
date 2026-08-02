@@ -1,0 +1,19 @@
+{
+  "generatedAt": "2026-08-02T22:16:10.184Z",
+  "source": {
+    "source": "internal",
+    "sourceId": "codaqui",
+    "type": "internal",
+    "label": "Codaqui",
+    "emoji": "🌱",
+    "description": "Eventos organizados pela Associação Codaqui.",
+    "ctaLabel": "Ver eventos",
+    "ctaHref": "/eventos",
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-08-02T22:16:10.184Z",
+    "sourceKey": "internal:codaqui",
+    "indexPath": "/events/internal/codaqui/index.json",
+    "itemCount": 0
+  },
+  "events": []
+}
