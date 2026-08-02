@@ -815,7 +815,7 @@ function OrganizersTab({
     try {
       const res = await authFetch(`${apiUrl}/events/organizers/${encodeURIComponent(memberId)}`, {
         method: "POST",
-        body: JSON.stringify({ memberId, githubHandle: githubHandle.trim(), scope: scopes }),
+        body: JSON.stringify({ githubHandle: githubHandle.trim(), scope: scopes }),
       });
       if (!res.ok) {
         setSaveError(await extractErrorMessage(res, "Erro ao adicionar organizer."));

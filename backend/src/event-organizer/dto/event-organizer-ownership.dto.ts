@@ -11,14 +11,6 @@ import {
 
 export class CreateEventOrganizerOwnershipDto {
   @ApiProperty({
-    description: 'ID do membro que receberá a ownership.',
-    example: '00000000-0000-0000-0000-000000000001',
-  })
-  @IsUUID()
-  @IsNotEmpty()
-  memberId: string;
-
-  @ApiProperty({
     description: 'Handle GitHub do membro (deve bater com o cadastro).',
     example: 'endersonmenezes',
   })
