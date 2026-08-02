@@ -408,3 +408,20 @@ table {
     display: none !important;
   }
 }
+
+/* Community logo light/dark mode toggling (SSR-safe) */
+.community-logo-light {
+  display: block;
+}
+
+.community-logo-dark {
+  display: none;
+}
+
+[data-theme="dark"] .community-logo-light {
+  display: none;
+}
+
+[data-theme="dark"] .community-logo-dark {
+  display: block;
+}
