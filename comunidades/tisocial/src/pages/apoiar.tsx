@@ -13,6 +13,7 @@ import {
 import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import DonationFlow from "@site/src/components/DonationFlow";
+import CommunityLoginCTA from "@site/src/components/CommunityLoginCTA";
 import community from "../../community.config";
 
 const accent = community.theme.primary;
@@ -60,6 +61,11 @@ export default function TiSocialApoiar(): React.JSX.Element {
       </Box>
 
       <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+        <CommunityLoginCTA
+          accentColor={accent}
+          accentColorDark={accentDark}
+          message={`Entre com GitHub para apoiar a ${community.shortName} com recibo e histórico. Você volta automaticamente para esta página.`}
+        />
         <Card variant="outlined" sx={{ borderColor: accent }}>
           <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
             <DonationFlow

@@ -135,7 +135,7 @@ function AuthPromptSection({ accentColor, accentColorDark, triggerLogin, onAnony
           <Typography variant="body1" fontWeight={800}>Como você quer doar?</Typography>
         </Stack>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Doações identificadas geram recibo, histórico no painel e aparecem no Portal de Transparência. Recomendamos entrar com GitHub.
+          Doações identificadas geram recibo, histórico no painel e aparecem no Portal de Transparência. Recomendamos entrar com GitHub — você será redirecionado de volta para esta página após a autenticação.
         </Typography>
         <Stack spacing={1.5}>
           <Button fullWidth variant="contained" size="large" startIcon={<GitHubIcon />} onClick={triggerLogin} sx={{ textTransform: "none", fontWeight: 700, py: 1.2, ...(accentColor && { bgcolor: accentColor, "&:hover": { bgcolor: accentColorDark ?? accentColor } }) }}>
