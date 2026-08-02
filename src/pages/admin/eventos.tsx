@@ -184,8 +184,6 @@ const FEATURE_LABEL: Record<string, string> = {
   payments: "Pagamentos",
 };
 
-/** URL estática do ownership de organizers (GitHub-as-DB). */
-const ORGANIZERS_URL = "/events/organizers.json";
 
 const PAGE_SIZE = 10;
 
@@ -1080,7 +1078,7 @@ export default function AdminEventosPage(): React.JSX.Element {
   const fetchExternalData = useCallback(async () => {
     setExternalLoading(true);
     try {
-      const data = await fetchEventsIndexMerged();
+      const data = await fetchEventsIndexMerged(apiUrl);
       setExternalEvents((data.events ?? []).filter((e) => e.source !== "internal"));
       setExternalSources((data.sources ?? []).filter((s) => s.source !== "internal"));
     } catch {
@@ -1090,16 +1088,16 @@ export default function AdminEventosPage(): React.JSX.Element {
     }
   }, []);
 
-  // Ownership de organizers (estático, público) — base do badge "Você pode editar".
+  // Ownership de organizers (PostgreSQL via API) — base do badge "Você pode editar".
   const fetchOrganizers = useCallback(async () => {
     try {
-      const res = await fetch(ORGANIZERS_URL);
+      const res = await authFetch("/events/organizers");
       if (!res.ok) return;
       setOrganizers((await res.json()) as OrganizersStaticFile);
     } catch {
       /* ownership indisponível — badge "Você pode editar" fica oculto */
     }
-  }, []);
+  }, [authFetch]);
 
   // Ativações de features em eventos externos (admin: todas; demais: próprias + ownership).
   const fetchActivations = useCallback(async () => {
@@ -1327,7 +1325,7 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [activations]);
 
-  // Owner declarado no organizers.json para um evento específico (primeiro match).
+  // Owner declarado no banco (EventOrganizerOwnership) para um evento específico (primeiro match).
   const ownerByEventKey = useMemo(() => {
     const map = new Map<string, string>();
     if (!organizers) return map;
@@ -1340,7 +1338,7 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [organizers]);
 
-  // Escopos do usuário logado no organizers.json (match por memberId ou handle).
+  // Escopos do usuário logado no banco (match por memberId ou handle).
   const myScopes = useMemo(() => {
     if (!organizers || !user) return [] as string[];
     const handle = (user.handle ?? "").toLowerCase();

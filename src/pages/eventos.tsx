@@ -293,7 +293,7 @@ export default function EventosPage(): React.JSX.Element {
         // "Front API" de eventos: sempre retorna o índice já mesclado com os
         // overrides (via manifesto agregado, com fallback para fetch individual).
         const [payload, activationsRes] = await Promise.all([
-          fetchEventsIndexMerged(),
+          fetchEventsIndexMerged(apiUrl),
           fetch(`${apiUrl}/events/public/activations`).catch(() => null),
         ]);
 

@@ -1568,7 +1568,7 @@ function EventDetailContent({
   useEffect(() => {
     let active = true;
 
-    loadEventWithOverride(source, sourceId, eventId)
+    loadEventWithOverride(source, sourceId, eventId, apiUrl)
       .then((result) => {
         if (!active) return;
         setEvent(result.event);

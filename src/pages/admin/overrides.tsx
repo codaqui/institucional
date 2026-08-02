@@ -77,12 +77,6 @@ import {
 
 type AuthFetch = (path: string, init?: RequestInit) => Promise<Response>;
 
-interface PrInfo {
-  number: number | null;
-  url: string;
-  state?: string;
-}
-
 interface Ownership {
   memberId: string;
   githubHandle: string;
@@ -163,32 +157,6 @@ const overrideApiUrl = (apiUrl: string, sourceKey: string, eventId: string): str
 
 const externalApiUrl = (apiUrl: string, eventKey: string): string =>
   `${apiUrl}/events/external/${encodeURIComponent(eventKey)}`;
-
-/** Normaliza a resposta de endpoints que retornam PR ({ prNumber, prUrl } ou { number, url }). */
-const toPrInfo = (data: {
-  prNumber?: number;
-  number?: number;
-  prUrl?: string;
-  url?: string;
-  state?: string;
-}): PrInfo | null => {
-  const url = data.prUrl ?? data.url;
-  if (!url) return null;
-  return { number: data.prNumber ?? data.number ?? null, url, state: data.state };
-};
-
-const PrLink = ({ pr }: { pr: PrInfo }) => (
-  <Button
-    size="small"
-    variant="text"
-    endIcon={<OpenInNewIcon />}
-    href={pr.url}
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    {pr.number === null ? "Abrir PR" : `PR #${pr.number}`}
-  </Button>
-);
 
 // ─── Seletor de evento externo (abas 1 e 3) ──────────────────────────────────
 
@@ -363,7 +331,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
         return;
       }
       await loadEvent(selected);
-      setSuccessMsg("Override salvo com sucesso. O site reflete na proxima requisicao.");
+      setSuccessMsg("Override salvo com sucesso. O snapshot sera atualizado no proximo sync.");
     } catch {
       setError("Erro inesperado ao salvar o override.");
     } finally {
@@ -638,7 +606,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   fullWidth
-                  helperText="Aparece no título do PR e no histórico do override"
+                  helperText="Aparece no historico do override"
                 />
 
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -750,7 +718,7 @@ function OrganizersTab({
   const [data, setData] = useState<OrganizersFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [prNotice, setPrNotice] = useState<PrInfo | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState("");
 
   // Busca server-side de membros (staff-candidates) — sem dump de /admin/members.
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -843,9 +811,9 @@ function OrganizersTab({
   const handleAddOwnership = async () => {
     setSaving(true);
     setSaveError("");
-    setPrNotice(null);
+    setSaveSuccess("");
     try {
-      const res = await authFetch(`${apiUrl}/events/organizers`, {
+      const res = await authFetch(`${apiUrl}/events/organizers/${encodeURIComponent(memberId)}`, {
         method: "POST",
         body: JSON.stringify({ memberId, githubHandle: githubHandle.trim(), scope: scopes }),
       });
@@ -853,7 +821,7 @@ function OrganizersTab({
         setSaveError(await extractErrorMessage(res, "Erro ao adicionar organizer."));
         return;
       }
-      setPrNotice(toPrInfo(await res.json()));
+      setSaveSuccess("Ownership salva com sucesso.");
       setSelectedMember(null);
       setMemberQuery("");
       setMemberOptions([]);
@@ -881,7 +849,6 @@ function OrganizersTab({
         setDeleteError(await extractErrorMessage(res, "Erro ao remover ownership."));
         return;
       }
-      setPrNotice(toPrInfo(await res.json()));
       setDeleteTarget(null);
       fetchAll();
     } catch {
@@ -907,12 +874,7 @@ function OrganizersTab({
         <code>source:sourceId:*</code> (toda a fonte).
       </Alert>
 
-      {prNotice && (
-        <Alert severity="warning" action={<PrLink pr={prNotice} />}>
-          Alteração enviada. Diferente dos overrides, o <strong>PR de organizers pode exigir
-          merge manual</strong>.
-        </Alert>
-      )}
+      {saveSuccess && <Alert severity="success">{saveSuccess}</Alert>}
 
       {loadError && <Alert severity="error">{loadError}</Alert>}
 
@@ -1040,7 +1002,7 @@ function OrganizersTab({
             {selectedMember && !(selectedMember.roles ?? []).includes("event_organizer") && (
               <Alert severity="warning" sx={{ py: 0.5 }}>
                 Este membro ainda não possui a role <code>event_organizer</code>. Adicione-a em
-                "Administração → Membros" antes de salvar, ou o PR de organizers não terá efeito.
+                "Administração → Membros" antes de salvar, ou a ownership não terá efeito.
               </Alert>
             )}
 
@@ -1135,7 +1097,7 @@ function OrganizersTab({
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
               sx={{ alignSelf: "flex-start" }}
             >
-              Salvar organizer (abre PR)
+              Salvar organizer
             </Button>
           </Stack>
         </CardContent>
@@ -1144,7 +1106,7 @@ function OrganizersTab({
       <ModalConfirm
         open={!!deleteTarget}
         title="Remover ownership?"
-        description={`@${deleteTarget?.githubHandle} perderá a permissão de editar os eventos dos escopos mapeados. A remoção é feita via Pull Request.`}
+        description={`@${deleteTarget?.githubHandle} perderá a permissão de editar os eventos dos escopos mapeados. A remoção é imediata.`}
         confirmLabel="Remover ownership"
         variant="error"
         loading={deleting}
@@ -2188,7 +2150,7 @@ export default function AdminEventOverridesPage(): React.JSX.Element {
             Eventos Externos
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Overrides de metadados (via PR no repositório), mapeamento de organizers e ativação
+            Overrides de metadados (salvos no banco de dados), mapeamento de organizers e ativação
             de features em eventos externos
           </Typography>
         </Box>

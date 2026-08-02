@@ -123,15 +123,38 @@ export async function fetchEventOverride(): Promise<null> {
   return null;
 }
 
+async function fetchOverrideFromApi(
+  source: string,
+  sourceId: string,
+  eventId: string,
+  apiUrl?: string
+): Promise<EventOverride | null> {
+  try {
+    const path = `/events/overrides/${encodeURIComponent(source + ":" + sourceId)}/${encodeURIComponent(eventId)}`;
+    const res = await fetch(apiUrl ? `${apiUrl}${path}` : path);
+    if (!res.ok) return null;
+    const data = (await res.json()) as EventOverride;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 /**
- * Carrega o evento do snapshot. O override já está mesclado no arquivo
- * gerado pelo sync; `_override` (se presente) é convertido para o tipo
- * EventOverride para exibição do badge/histórico.
+ * Carrega o evento do snapshot e aplica o override mais recente.
+ *
+ * Estratégia:
+ * 1. Lê o snapshot estático (fonte única de verdade para metadatos base).
+ * 2. Se o snapshot já veio com override aplicado pelo sync (`_override`), usa ele.
+ * 3. Caso contrário, consulta a API pública `/events/overrides/:sourceKey/:eventId`
+ *    para refletir overrides criados após o último sync (experiência imediata
+ *    sem esperar o próximo pipeline).
  */
 export async function loadEventWithOverride(
   source: string,
   sourceId: string,
-  eventId: string
+  eventId: string,
+  apiUrl?: string
 ): Promise<{
   event: EventWithOverride;
   override: EventOverride | null;
@@ -143,9 +166,23 @@ export async function loadEventWithOverride(
   if (!base) throw new Error(`Evento não encontrado: ${eventId}`);
 
   const event = base.event as EventWithOverride;
+  let override = overrideMetaFromEvent(event);
+
+  if (!override) {
+    override = await fetchOverrideFromApi(source, sourceId, eventId, apiUrl);
+    if (override) {
+      Object.assign(event, override.payload);
+      event._override = {
+        ownerHandle: override.ownerHandle,
+        updatedAt: override.updatedAt,
+        reason: override.reason,
+      };
+    }
+  }
+
   return {
     event,
-    override: overrideMetaFromEvent(event),
+    override,
     source: base.source,
   };
 }
