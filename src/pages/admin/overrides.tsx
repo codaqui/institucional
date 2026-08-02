@@ -58,6 +58,7 @@ import {
   type EventSummary,
 } from "../../data/events";
 import type { EventOverride, EventSpeaker } from "../../utils/event-override";
+import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 import {
   EMPTY_OVERRIDE_FORM,
   SCOPE_FORMAT_HINT,
@@ -1167,19 +1168,6 @@ const EMPTY_TICKET_FORM: TicketForm = {
 const formatBRLFromCents = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
-function toDateTimeLocal(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
-}
 
 const FEATURE_OPTIONS = [
   {
