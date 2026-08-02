@@ -691,9 +691,7 @@ function RegistrationButton({
       size="large"
       startIcon={<HowToRegIcon />}
       disabled={submitting || !selectedTicketType || (!free && !termsAccepted)}
-      onClick={() => {
-        void onAction();
-      }}
+      onClick={onAction}
     >
       {actionLabel}
     </Button>
@@ -1568,7 +1566,7 @@ function EventDetailContent({
   useEffect(() => {
     let active = true;
 
-    loadEventWithOverride(source, sourceId, eventId)
+    loadEventWithOverride(source, sourceId, eventId, apiUrl)
       .then((result) => {
         if (!active) return;
         setEvent(result.event);
@@ -1585,7 +1583,7 @@ function EventDetailContent({
     return () => {
       active = false;
     };
-  }, [source, sourceId, eventId]);
+  }, [source, sourceId, eventId, apiUrl]);
 
   if (loading) {
     return (

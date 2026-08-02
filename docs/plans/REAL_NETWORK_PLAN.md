@@ -15,9 +15,9 @@ sections:
   - Riscos e limitações
   - Próximos passos
 related-docs:
-  - AGENTS.md — stack, convenções gerais
-  - docs/MULTISITE_PLAN.md — multisite por comunidade
-  - docs/CLUB_PLAN.md — plano do Clube Codaqui
+  - ../AGENTS.md — stack, convenções gerais
+  - ./MULTISITE_PLAN.md — multisite por comunidade
+  - ../adrs/002-club-sortcoins.md — Clube Codaqui
 agent-protocol:
   - Este é um documento de visão/teoria, NÃO um backlog de sprint.
   - Leia as seções de Arquitetura e Fluxos antes de propor implementação.
@@ -26,7 +26,7 @@ agent-protocol:
 
 # REAL_NETWORK_PLAN.md — Rede Social Local Federada com Identidade GitHub
 
-> **Status:** RFC exploratório · Não implementado · **Longo prazo** — depende da plataforma de gestão de eventos (docs/EVENT_PLAN.md Fase 2) · Data: 2026-05-25
+> **Status:** RFC exploratório · Não implementado · **Longo prazo** — depende da plataforma de gestão de eventos (docs/adrs/001-event-platform.md Fase 2) · Data: 2026-05-25
 >
 > Este documento é um exercício de teoria e arquitetura. Brincamos com a ideia de
 > unir **identidade GitHub**, **federação ActivityPub via Mastodon** e **verificação

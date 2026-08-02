@@ -40,21 +40,32 @@ export interface EventExtendData {
 }
 
 /**
- * Override de metadados de um evento, versionado em
- * `static/events/<source>/<sourceId>/<eventId>.override.json`.
+ * Override de metadados de um evento persistido no banco.
+ * O campo `payload` equivale ao antigo `extendData`.
  */
 export interface EventOverride {
-  eventId: string;
   sourceKey: string;
-  extendData: EventExtendData;
-  ownerId?: string;
+  eventId: string;
+  payload: EventExtendData;
   ownerHandle: string;
   updatedAt: string;
-  reason?: string;
+  reason?: string | null;
+}
+
+/**
+ * Metadados de override anexados ao evento pelo sync de snapshots.
+ * Permite exibir o badge "Verificado por @handle" sem chamada extra.
+ */
+export interface EventOverrideMeta {
+  ownerHandle: string;
+  updatedAt: string;
+  reason?: string | null;
 }
 
 /** Evento base mesclado com o override (quando existente). */
-export type EventWithOverride = EventItem & EventExtendData;
+export type EventWithOverride = EventItem & EventExtendData & {
+  _override?: EventOverrideMeta;
+};
 
 export function getEventOverridePath(
   source: string,
@@ -74,12 +85,12 @@ export function getEventDetailPagePath(
   return `/eventos/detalhe?${params.toString()}`;
 }
 
-/** Mescla o evento base com o `extendData` do override (quando presente). */
+/** Mescla o evento base com o `payload` do override (quando presente). */
 export function mergeEventWithOverride(
   base: EventItem,
   override: EventOverride | null
 ): EventWithOverride {
-  return { ...base, ...override?.extendData };
+  return { ...base, ...override?.payload };
 }
 
 async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
@@ -92,42 +103,85 @@ async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
   }
 }
 
-/** Busca apenas o override de um evento (404/ausente = null). */
-export async function fetchEventOverride(
-  source: string,
-  sourceId: string,
-  eventId: string
-): Promise<EventOverride | null> {
-  return fetchJsonOrNull<EventOverride>(
-    getEventOverridePath(source, sourceId, eventId)
-  );
+function overrideMetaFromEvent(event: EventWithOverride): EventOverride | null {
+  if (!event._override) return null;
+  return {
+    sourceKey: "",
+    eventId: event.id,
+    payload: {},
+    ownerHandle: event._override.ownerHandle,
+    updatedAt: event._override.updatedAt,
+    reason: event._override.reason,
+  };
 }
 
 /**
- * Carrega o evento base + override em paralelo e retorna o evento mesclado.
- * Override ausente (404) é tratado como `null`. Lança erro se o evento base
- * não existir.
+ * @deprecated Overrides agora são aplicados no snapshot pelo sync.
+ * Mantido para compatibilidade — retorna null.
+ */
+export async function fetchEventOverride(): Promise<null> {
+  return null;
+}
+
+async function fetchOverrideFromApi(
+  source: string,
+  sourceId: string,
+  eventId: string,
+  apiUrl?: string
+): Promise<EventOverride | null> {
+  try {
+    const path = `/events/overrides/${encodeURIComponent(source + ":" + sourceId)}/${encodeURIComponent(eventId)}`;
+    const res = await fetch(apiUrl ? `${apiUrl}${path}` : path);
+    if (!res.ok) return null;
+    const data = (await res.json()) as EventOverride;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Carrega o evento do snapshot e aplica o override mais recente.
+ *
+ * Estratégia:
+ * 1. Lê o snapshot estático (fonte única de verdade para metadatos base).
+ * 2. Se o snapshot já veio com override aplicado pelo sync (`_override`), usa ele.
+ * 3. Caso contrário, consulta a API pública `/events/overrides/:sourceKey/:eventId`
+ *    para refletir overrides criados após o último sync (experiência imediata
+ *    sem esperar o próximo pipeline).
  */
 export async function loadEventWithOverride(
   source: string,
   sourceId: string,
-  eventId: string
+  eventId: string,
+  apiUrl?: string
 ): Promise<{
   event: EventWithOverride;
   override: EventOverride | null;
   source: EventDetailFile["source"];
 }> {
   const basePath = `/events/${source}/${sourceId}/${eventId}.json`;
-
-  const [base, override] = await Promise.all([
-    fetchJsonOrNull<EventDetailFile>(basePath),
-    fetchEventOverride(source, sourceId, eventId),
-  ]);
+  const base = await fetchJsonOrNull<EventDetailFile>(basePath);
 
   if (!base) throw new Error(`Evento não encontrado: ${eventId}`);
 
+  const event = base.event as EventWithOverride;
+  let override = overrideMetaFromEvent(event);
+
+  if (!override) {
+    override = await fetchOverrideFromApi(source, sourceId, eventId, apiUrl);
+    if (override) {
+      Object.assign(event, override.payload);
+      event._override = {
+        ownerHandle: override.ownerHandle,
+        updatedAt: override.updatedAt,
+        reason: override.reason,
+      };
+    }
+  }
+
   return {
-    event: mergeEventWithOverride(base.event, override),
+    event,
     override,
     source: base.source,
   };

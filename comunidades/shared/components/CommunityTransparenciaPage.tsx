@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
-import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Box,
   Button,
@@ -21,52 +20,27 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import { type CommunityBalance, formatBRL } from "@site/src/utils/transaction";
+import { formatBRL } from "@site/src/utils/transaction";
 import TransactionTable from "@site/src/components/TransactionTable";
-import community from "@site/comunidades/tisocial/community.config";
-import { resolveApiUrl } from "@site/src/lib/api-url";
+import { useCommunityBalance } from "../hooks/useCommunityBalance";
+import type { CommunitySiteConfig } from "../types";
 
-const accent = community.theme.primary;
-const accentDark = community.theme.primaryDark;
+interface CommunityTransparenciaPageProps {
+  community: CommunitySiteConfig;
+}
 
-export default function TiSocialTransparencia(): React.JSX.Element {
-  const { siteConfig } = useDocusaurusContext();
-  const configuredApiUrl =
-    typeof siteConfig.customFields?.apiUrl === "string"
-      ? siteConfig.customFields.apiUrl
-      : "http://localhost:3001";
-  const apiUrl = resolveApiUrl(configuredApiUrl, siteConfig.url);
-
-  const [balance, setBalance] = useState<CommunityBalance | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`${apiUrl}/ledger/community-balances`)
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
-      .then((data: CommunityBalance[]) => {
-        if (cancelled) return;
-        const found = data.find((b) => b.projectKey === community.slug);
-        setBalance(found ?? null);
-        setLoading(false);
-      })
-      .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Erro ao carregar saldo");
-        setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [apiUrl]);
+export default function CommunityTransparenciaPage({
+  community,
+}: CommunityTransparenciaPageProps): React.JSX.Element {
+  const accent = community.theme.primary;
+  const accentDark = community.theme.primaryDark;
+  const { balance, loading, error, apiUrl } = useCommunityBalance(community.slug);
 
   return (
     <Layout
       title={`Transparência — ${community.shortName}`}
       description={`Saldo e movimentações da conta ${community.name} no ledger Codaqui.`}
     >
-      {/* Hero */}
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
@@ -107,7 +81,6 @@ export default function TiSocialTransparencia(): React.JSX.Element {
           </Alert>
         )}
 
-        {/* Cards superiores: saldo + meta */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid size={{ xs: 12, md: 7 }}>
             <Card
@@ -171,43 +144,28 @@ export default function TiSocialTransparencia(): React.JSX.Element {
                   </Typography>
                 </Stack>
                 <Stack spacing={1.5}>
-                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                    <Chip
-                      label="1"
-                      size="small"
-                      sx={{ bgcolor: accent, color: "#fff", fontWeight: 700, minWidth: 28 }}
-                    />
-                    <Typography variant="body2" color="text.secondary">
-                      Cada doação cria uma transação no ledger (entrada).
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                    <Chip
-                      label="2"
-                      size="small"
-                      sx={{ bgcolor: accent, color: "#fff", fontWeight: 700, minWidth: 28 }}
-                    />
-                    <Typography variant="body2" color="text.secondary">
-                      Pagamentos para fornecedores e reembolsos saem como saídas.
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-                    <Chip
-                      label="3"
-                      size="small"
-                      sx={{ bgcolor: accent, color: "#fff", fontWeight: 700, minWidth: 28 }}
-                    />
-                    <Typography variant="body2" color="text.secondary">
-                      Tudo é público, auditável e detalhado nas movimentações abaixo.
-                    </Typography>
-                  </Box>
+                  {[
+                    "Cada doação cria uma transação no ledger (entrada).",
+                    "Pagamentos para fornecedores e reembolsos saem como saídas.",
+                    "Tudo é público, auditável e detalhado nas movimentações abaixo.",
+                  ].map((text, idx) => (
+                    <Box key={idx} sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+                      <Chip
+                        label={String(idx + 1)}
+                        size="small"
+                        sx={{ bgcolor: accent, color: "#fff", fontWeight: 700, minWidth: 28 }}
+                      />
+                      <Typography variant="body2" color="text.secondary">
+                        {text}
+                      </Typography>
+                    </Box>
+                  ))}
                 </Stack>
               </CardContent>
             </Card>
           </Grid>
         </Grid>
 
-        {/* Movimentações */}
         <Card variant="outlined" sx={{ mb: 4 }}>
           <CardContent sx={{ p: { xs: 2, md: 3 } }}>
             <Stack
@@ -256,7 +214,6 @@ export default function TiSocialTransparencia(): React.JSX.Element {
           </CardContent>
         </Card>
 
-        {/* CTAs finais */}
         <Card variant="outlined" sx={{ bgcolor: "action.hover" }}>
           <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
             <Stack

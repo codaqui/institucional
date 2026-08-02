@@ -24,8 +24,7 @@ export default function OngPage(): React.JSX.Element {
   const [isDarkMode, setIsDarkMode] = React.useState(false);
 
   React.useEffect(() => {
-    const getMode = () =>
-      document.documentElement.getAttribute("data-theme") === "dark";
+    const getMode = () => document.documentElement.dataset.theme === "dark";
     setIsDarkMode(getMode());
     const observer = new MutationObserver(() => setIsDarkMode(getMode()));
     observer.observe(document.documentElement, {

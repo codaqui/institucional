@@ -10,15 +10,27 @@ import {
   Typography,
   Chip,
 } from "@mui/material";
-import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import VerifiedIcon from "@mui/icons-material/Verified";
 import DonationFlow from "@site/src/components/DonationFlow";
-import community from "@site/comunidades/tisocial/community.config";
+import CommunityLoginCTA from "@site/src/components/CommunityLoginCTA";
+import type { CommunitySiteConfig } from "../types";
 
-const accent = community.theme.primary;
-const accentDark = community.theme.primaryDark;
+interface CommunityApoiarPageProps {
+  community: CommunitySiteConfig;
+  heroTitle: string;
+  heroDescription: string;
+  infoCards?: { title: string; body: string }[];
+}
 
-export default function TiSocialApoiar(): React.JSX.Element {
+export default function CommunityApoiarPage({
+  community,
+  heroTitle,
+  heroDescription,
+  infoCards,
+}: CommunityApoiarPageProps): React.JSX.Element {
+  const accent = community.theme.primary;
+  const accentDark = community.theme.primaryDark;
+
   return (
     <Layout
       title={`Apoiar — ${community.shortName}`}
@@ -43,11 +55,10 @@ export default function TiSocialApoiar(): React.JSX.Element {
               }}
             />
             <Typography variant="h2" component="h1" fontWeight={800}>
-              💚 Apoie a {community.shortName}
+              {heroTitle}
             </Typography>
             <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 400 }}>
-              Sua contribuição mantém vivas campanhas como AUMIGO e Páscoa Solidária,
-              além dos programas de educação digital em Maringá.
+              {heroDescription}
             </Typography>
             <Stack direction="row" spacing={1} sx={{ pt: 1 }}>
               <VerifiedIcon sx={{ fontSize: 18 }} />
@@ -60,6 +71,11 @@ export default function TiSocialApoiar(): React.JSX.Element {
       </Box>
 
       <Container maxWidth="md" sx={{ py: { xs: 4, md: 6 } }}>
+        <CommunityLoginCTA
+          accentColor={accent}
+          accentColorDark={accentDark}
+          message={`Entre com GitHub para apoiar a ${community.shortName} com recibo e histórico. Você volta automaticamente para esta página.`}
+        />
         <Card variant="outlined" sx={{ borderColor: accent }}>
           <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
             <DonationFlow
@@ -75,42 +91,28 @@ export default function TiSocialApoiar(): React.JSX.Element {
         </Card>
       </Container>
 
-      <Box sx={{ bgcolor: "action.hover", py: { xs: 5, md: 7 } }}>
-        <Container maxWidth="md">
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card sx={{ height: "100%" }}>
-                <CardContent>
-                  <VolunteerActivismIcon sx={{ color: accent, fontSize: 36, mb: 1 }} />
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
-                    Como sua doação é usada
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    100% direcionada para campanhas e ações da {community.shortName}.
-                    Movimentações contabilizadas no ledger da Associação Codaqui e
-                    auditáveis na página de transparência.
-                  </Typography>
-                </CardContent>
-              </Card>
+      {infoCards && infoCards.length > 0 && (
+        <Box sx={{ bgcolor: "action.hover", py: { xs: 5, md: 7 } }}>
+          <Container maxWidth="md">
+            <Grid container spacing={3}>
+              {infoCards.map((card) => (
+                <Grid key={card.title} size={{ xs: 12, md: 6 }}>
+                  <Card sx={{ height: "100%" }}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight={700} gutterBottom>
+                        {card.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {card.body}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Card sx={{ height: "100%" }}>
-                <CardContent>
-                  <VerifiedIcon sx={{ color: accent, fontSize: 36, mb: 1 }} />
-                  <Typography variant="h6" fontWeight={700} gutterBottom>
-                    Cobertura jurídica
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Pagamentos processados pela Stripe; recibo emitido pela Associação
-                    Codaqui (CNPJ 44.593.429/0001-05). Doações acima de R$ 100 exigem
-                    login com GitHub para conformidade fiscal.
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          </Grid>
-        </Container>
-      </Box>
+          </Container>
+        </Box>
+      )}
     </Layout>
   );
 }

@@ -15,8 +15,8 @@ export type ExternalEventFeature = (typeof EXTERNAL_EVENT_FEATURES)[number];
 
 /**
  * Sombra no Postgres de um evento externo (que existe apenas como snapshot
- * estático). Criada pelo owner do evento (organizers.json) ou admin para
- * habilitar features de gestão (check-in, certificados, pagamentos).
+ * estático). Criada pelo owner do evento (EventOrganizerOwnership) ou admin
+ * para habilitar features de gestão (check-in, certificados, pagamentos).
  */
 @Entity('external_event_activations')
 export class ExternalEventActivation {

@@ -1,5 +1,5 @@
 <!-- AGENT-INDEX
-purpose: Plano de melhorias de UI/UX para o módulo de eventos e administração da Codaqui. Complementa docs/EVENT_PLAN.md e docs/EVENT_PLAN_EXECUTION.md.
+purpose: Plano de melhorias de UI/UX para o módulo de eventos e administração da Codaqui. Complementa o ADR da plataforma de eventos.
 audience: Product owners, designers, devs e AI agents.
 sections:
   - Resumo executivo
@@ -9,10 +9,9 @@ sections:
   - Critérios de aceitação
   - Riscos e dependências
 related-docs:
-  - docs/EVENT_PLAN.md — plano funcional/técnico dos eventos
-  - docs/EVENT_PLAN_EXECUTION.md — estado de execução e pendências
-  - docs/ROLES.md — matriz de papéis
-  - docs/CODE_MANUAL.md — manual do código
+  - ../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
+  - ../modules/events/ROLES.md — matriz de papéis
+  - ../modules/events/CODE_MANUAL.md — manual do código
 -->
 
 # Plano de Melhorias de UI/UX — Módulo de Eventos
@@ -432,6 +431,6 @@ const isInternal = event.source === "internal";
 
 ## 8. Notas sobre documentação
 
-- `docs/EVENT_PLAN.md` continua sendo a fonte de verdade funcional/técnica.
-- `docs/EVENT_PLAN_EXECUTION.md` deve ser atualizado à medida que os itens deste plano forem implementados.
+- `../adrs/001-event-platform.md` é a fonte de verdade das decisões arquiteturais já implementadas.
+- `../modules/events/CODE_MANUAL.md` deve ser atualizado à medida que os itens deste plano forem implementados.
 - Este plano deve ser revisado e aprovado antes do início da implementação. Itens podem ser descartados, reordenados ou detalhados em novos documentos menores.

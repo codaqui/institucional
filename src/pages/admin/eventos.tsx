@@ -52,6 +52,7 @@ import {
   type EventSummary,
 } from "../../data/events";
 import { fetchEventsIndexMerged } from "../../lib/events-api";
+import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -184,8 +185,6 @@ const FEATURE_LABEL: Record<string, string> = {
   payments: "Pagamentos",
 };
 
-/** URL estática do ownership de organizers (GitHub-as-DB). */
-const ORGANIZERS_URL = "/events/organizers.json";
 
 const PAGE_SIZE = 10;
 
@@ -211,20 +210,6 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function toDateTimeLocal(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 
 const DATETIME_LOCAL_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
@@ -953,91 +938,54 @@ function matchesCommunityFilter(row: HubRow, communityFilter: string): boolean {
   return rowCommunity === communityFilter;
 }
 
-// ── Página ───────────────────────────────────────────────────────────────────
+// ── Sub-hooks da página ──────────────────────────────────────────────────────
 
-export default function AdminEventosPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, isEventOrganizer, user, authFetch } = useAuth();
-  const { siteConfig } = useDocusaurusContext();
-  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
-  const history = useHistory();
+interface UseAdminEventosDataReturn {
+  events: ManagedEvent[];
+  setEvents: React.Dispatch<React.SetStateAction<ManagedEvent[]>>;
+  internalTotal: number;
+  setInternalTotal: React.Dispatch<React.SetStateAction<number>>;
+  members: MemberOption[];
+  loading: boolean;
+  loadError: string;
+  setLoadError: React.Dispatch<React.SetStateAction<string>>;
+  externalEvents: EventSummary[];
+  setExternalEvents: React.Dispatch<React.SetStateAction<EventSummary[]>>;
+  externalSources: EventIndexFile["sources"];
+  setExternalSources: React.Dispatch<React.SetStateAction<EventIndexFile["sources"]>>;
+  externalLoading: boolean;
+  externalError: string;
+  setExternalError: React.Dispatch<React.SetStateAction<string>>;
+  organizers: OrganizersStaticFile | null;
+  setOrganizers: React.Dispatch<React.SetStateAction<OrganizersStaticFile | null>>;
+  activations: ExternalActivationItem[];
+  setActivations: React.Dispatch<React.SetStateAction<ExternalActivationItem[]>>;
+  fetchEvents: (pageNum: number, useBackendPagination: boolean) => Promise<void>;
+  fetchMembers: () => Promise<void>;
+  fetchExternalData: () => Promise<void>;
+  fetchOrganizers: () => Promise<void>;
+  fetchActivations: () => Promise<void>;
+}
 
-  const canAccess = isAdmin || isEventOrganizer;
-
+function useAdminEventosData(
+  apiUrl: string,
+  authFetch: ReturnType<typeof useAuth>["authFetch"],
+): UseAdminEventosDataReturn {
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [internalTotal, setInternalTotal] = useState(0);
   const [members, setMembers] = useState<MemberOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [publishSuccess, setPublishSuccess] = useState<ManagedEvent | null>(null);
-  const [saveSuccess, setSaveSuccess] = useState<{ event: ManagedEvent; mode: "create" | "edit" } | null>(null);
 
-  // Dialog de criação/edição de evento
-  const [eventDialog, setEventDialog] = useState<{ mode: "create" } | { mode: "edit"; event: ManagedEvent } | null>(null);
-  const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT_FORM);
-  const [eventSaving, setEventSaving] = useState(false);
-  const [eventError, setEventError] = useState("");
-
-  // Cancelamento de evento
-  const [cancelTarget, setCancelTarget] = useState<ManagedEvent | null>(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelError, setCancelError] = useState("");
-
-  // Dialog de tipo de ingresso
-  const [ticketDialog, setTicketDialog] = useState<ManagedEvent | null>(null);
-  const [ticketForm, setTicketForm] = useState<TicketForm>(EMPTY_TICKET_FORM);
-  const [ticketSaving, setTicketSaving] = useState(false);
-  const [ticketError, setTicketError] = useState("");
-
-  // Adição de staff (por evento)
-  const [staffForm, setStaffForm] = useState<Record<string, { memberId: string; staffRole: EventStaffRole }>>({});
-
-  // Hub: eventos externos (snapshot estático), ownership e ativações de features
   const [externalEvents, setExternalEvents] = useState<EventSummary[]>([]);
   const [externalSources, setExternalSources] = useState<EventIndexFile["sources"]>([]);
   const [externalLoading, setExternalLoading] = useState(true);
   const [externalError, setExternalError] = useState("");
+
   const [organizers, setOrganizers] = useState<OrganizersStaticFile | null>(null);
   const [activations, setActivations] = useState<ExternalActivationItem[]>([]);
 
-  // Busca, filtros e paginação da lista unificada
-  const [search, setSearch] = useState("");
-  const [showInternos, setShowInternos] = useState(false);
-  const [showExternos, setShowExternos] = useState(false);
-  const [onlyOverride, setOnlyOverride] = useState(false);
-  const [onlyEditable, setOnlyEditable] = useState(false);
-  const [onlyFeatures, setOnlyFeatures] = useState(false);
-  const [communityFilter, setCommunityFilter] = useState<string>("");
-  const [page, setPage] = useState(1);
-
-  // Snapshot manual de internal:codaqui (via PR auto-mergeado)
-  const [snapshotLoading, setSnapshotLoading] = useState(false);
-  const [snapshotError, setSnapshotError] = useState("");
-  const [snapshotResult, setSnapshotResult] = useState<SnapshotResult | null>(null);
-
-  // Dialog de pedidos de ingressos
-  const [ordersDialog, setOrdersDialog] = useState<
-    | { kind: "internal"; eventId: string; title: string }
-    | { kind: "external"; eventKey: string; title: string }
-    | null
-  >(null);
-
-  // Dialog de lançamento de despesa vinculada ao evento
-  const [reimbursementDialog, setReimbursementDialog] = useState<{
-    eventId: string;
-    title: string;
-    communityProjectKey: string;
-  } | null>(null);
-
-  const membersById = useMemo(() => {
-    const map = new Map<string, MemberOption>();
-    for (const m of members) map.set(m.id, m);
-    return map;
-  }, [members]);
-
-  const useBackendPagination = showInternos && !showExternos;
-
-  const fetchEvents = useCallback(async (pageNum = page) => {
+  const fetchEvents = useCallback(async (pageNum: number, useBackendPagination: boolean) => {
     setLoading(true);
     setLoadError("");
     const url = useBackendPagination
@@ -1056,11 +1004,8 @@ export default function AdminEventosPage(): React.JSX.Element {
       setInternalTotal(0);
     }
     setLoading(false);
-  }, [apiUrl, authFetch, useBackendPagination, page]);
+  }, [apiUrl, authFetch]);
 
-  // Membros para seleção de staff — mesmo endpoint usado em /admin.
-  // Falha silenciosa: event_organizer pode não ter acesso; nesse caso o
-  // select de staff fica vazio e o ID é exibido cru.
   const fetchMembers = useCallback(async () => {
     try {
       const res = await authFetch(`${apiUrl}/admin/members`);
@@ -1073,14 +1018,10 @@ export default function AdminEventosPage(): React.JSX.Element {
     }
   }, [apiUrl, authFetch]);
 
-  // Snapshot estático de eventos (mesma fonte da página pública /eventos),
-  // já mesclado com os overrides via "front API" — o filtro "Com override"
-  // usa o dado mesclado (não a flag potencialmente desatualizada do index).
-  // Exclui internal para não duplicar os eventos próprios já vindos do backend.
   const fetchExternalData = useCallback(async () => {
     setExternalLoading(true);
     try {
-      const data = await fetchEventsIndexMerged();
+      const data = await fetchEventsIndexMerged(apiUrl);
       setExternalEvents((data.events ?? []).filter((e) => e.source !== "internal"));
       setExternalSources((data.sources ?? []).filter((s) => s.source !== "internal"));
     } catch {
@@ -1088,20 +1029,18 @@ export default function AdminEventosPage(): React.JSX.Element {
     } finally {
       setExternalLoading(false);
     }
-  }, []);
+  }, [apiUrl]);
 
-  // Ownership de organizers (estático, público) — base do badge "Você pode editar".
   const fetchOrganizers = useCallback(async () => {
     try {
-      const res = await fetch(ORGANIZERS_URL);
+      const res = await authFetch("/events/organizers");
       if (!res.ok) return;
       setOrganizers((await res.json()) as OrganizersStaticFile);
     } catch {
-      /* ownership indisponível — badge "Você pode editar" fica oculto */
+      /* ownership indisponível */
     }
-  }, []);
+  }, [authFetch]);
 
-  // Ativações de features em eventos externos (admin: todas; demais: próprias + ownership).
   const fetchActivations = useCallback(async () => {
     try {
       const res = await authFetch(`${apiUrl}/events/external/activations`);
@@ -1109,45 +1048,100 @@ export default function AdminEventosPage(): React.JSX.Element {
       const data = (await res.json()) as ExternalActivationItem[];
       setActivations(Array.isArray(data) ? data : []);
     } catch {
-      /* features externas são um plus do hub — falha não bloqueia a lista */
+      /* features externas são um plus do hub */
     }
   }, [apiUrl, authFetch]);
 
-  useEffect(() => {
-    if (!ready) return;
-    if (!isLoggedIn) {
-      history.replace("/");
-      return;
-    }
-    if (canAccess) {
-      fetchEvents();
-      fetchMembers();
-      fetchExternalData();
-      fetchOrganizers();
-      fetchActivations();
-    }
-  }, [ready, isLoggedIn, canAccess, history, fetchEvents, fetchMembers, fetchExternalData, fetchOrganizers, fetchActivations]);
+  return {
+    events, setEvents,
+    internalTotal, setInternalTotal,
+    members,
+    loading, loadError, setLoadError,
+    externalEvents, setExternalEvents,
+    externalSources, setExternalSources,
+    externalLoading, externalError, setExternalError,
+    organizers, setOrganizers,
+    activations, setActivations,
+    fetchEvents,
+    fetchMembers,
+    fetchExternalData,
+    fetchOrganizers,
+    fetchActivations,
+  };
+}
 
-  // Volta para a primeira página ao mudar busca/filtros.
-  useEffect(() => {
-    setPage(1);
-  }, [search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
+type EventDialogState = { mode: "create" } | { mode: "edit"; event: ManagedEvent } | null;
 
-  // Em modo "apenas internos", recarrega a página atual do backend.
-  useEffect(() => {
-    if (!canAccess || !useBackendPagination) return;
-    fetchEvents(page);
-  }, [page, useBackendPagination, canAccess, fetchEvents]);
+interface UseAdminEventosMutationsReturn {
+  eventDialog: EventDialogState;
+  setEventDialog: React.Dispatch<React.SetStateAction<EventDialogState>>;
+  eventForm: EventForm;
+  setEventForm: React.Dispatch<React.SetStateAction<EventForm>>;
+  eventSaving: boolean;
+  eventError: string;
+  cancelTarget: ManagedEvent | null;
+  setCancelTarget: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
+  cancelLoading: boolean;
+  cancelError: string;
+  ticketDialog: ManagedEvent | null;
+  setTicketDialog: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
+  ticketForm: TicketForm;
+  setTicketForm: React.Dispatch<React.SetStateAction<TicketForm>>;
+  ticketSaving: boolean;
+  ticketError: string;
+  staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
+  setStaffForm: React.Dispatch<React.SetStateAction<Record<string, { memberId: string; staffRole: EventStaffRole }>>>;
+  actionError: string;
+  setActionError: React.Dispatch<React.SetStateAction<string>>;
+  publishSuccess: ManagedEvent | null;
+  setPublishSuccess: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
+  saveSuccess: { event: ManagedEvent; mode: "create" | "edit" } | null;
+  setSaveSuccess: React.Dispatch<React.SetStateAction<{ event: ManagedEvent; mode: "create" | "edit" } | null>>;
+  openCreateDialog: () => void;
+  openEditDialog: (event: ManagedEvent) => void;
+  handleSaveEvent: () => Promise<void>;
+  handlePublish: (event: ManagedEvent) => Promise<void>;
+  handleCancelEvent: () => Promise<void>;
+  handleCreateTicketType: () => Promise<void>;
+  handleDeactivateTicketType: (ticket: TicketType) => Promise<void>;
+  handleAddStaff: (event: ManagedEvent) => Promise<void>;
+  handleRemoveStaff: (event: ManagedEvent, staff: EventStaff) => Promise<void>;
+  setCancelError: React.Dispatch<React.SetStateAction<string>>;
+  setTicketError: React.Dispatch<React.SetStateAction<string>>;
+}
 
-  // ── Handlers: evento ──────────────────────────────────────────────────────
+function useAdminEventosMutations(
+  apiUrl: string,
+  authFetch: ReturnType<typeof useAuth>["authFetch"],
+  fetchEvents: () => Promise<void>,
+): UseAdminEventosMutationsReturn {
+  const [eventDialog, setEventDialog] = useState<EventDialogState>(null);
+  const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT_FORM);
+  const [eventSaving, setEventSaving] = useState(false);
+  const [eventError, setEventError] = useState("");
 
-  const openCreateDialog = () => {
+  const [cancelTarget, setCancelTarget] = useState<ManagedEvent | null>(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState("");
+
+  const [ticketDialog, setTicketDialog] = useState<ManagedEvent | null>(null);
+  const [ticketForm, setTicketForm] = useState<TicketForm>(EMPTY_TICKET_FORM);
+  const [ticketSaving, setTicketSaving] = useState(false);
+  const [ticketError, setTicketError] = useState("");
+
+  const [staffForm, setStaffForm] = useState<Record<string, { memberId: string; staffRole: EventStaffRole }>>({});
+
+  const [actionError, setActionError] = useState("");
+  const [publishSuccess, setPublishSuccess] = useState<ManagedEvent | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<{ event: ManagedEvent; mode: "create" | "edit" } | null>(null);
+
+  const openCreateDialog = useCallback(() => {
     setEventForm(EMPTY_EVENT_FORM);
     setEventError("");
     setEventDialog({ mode: "create" });
-  };
+  }, []);
 
-  const openEditDialog = (event: ManagedEvent) => {
+  const openEditDialog = useCallback((event: ManagedEvent) => {
     setEventForm({
       slug: event.slug,
       title: event.title,
@@ -1162,9 +1156,9 @@ export default function AdminEventosPage(): React.JSX.Element {
     });
     setEventError("");
     setEventDialog({ mode: "edit", event });
-  };
+  }, []);
 
-  const handleSaveEvent = async () => {
+  const handleSaveEvent = useCallback(async () => {
     if (!eventDialog) return;
     setEventError("");
     const validation = buildEventPayload(eventForm);
@@ -1172,7 +1166,6 @@ export default function AdminEventosPage(): React.JSX.Element {
       setEventError(validation.error ?? "Erro de validação.");
       return;
     }
-
     setEventSaving(true);
     try {
       const isEdit = eventDialog.mode === "edit";
@@ -1187,15 +1180,15 @@ export default function AdminEventosPage(): React.JSX.Element {
       const saved = (await res.json()) as ManagedEvent;
       setEventDialog(null);
       setSaveSuccess({ event: saved, mode: isEdit ? "edit" : "create" });
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setEventError("Erro inesperado.");
     } finally {
       setEventSaving(false);
     }
-  };
+  }, [apiUrl, authFetch, eventDialog, eventForm, fetchEvents]);
 
-  const handlePublish = async (event: ManagedEvent) => {
+  const handlePublish = useCallback(async (event: ManagedEvent) => {
     setActionError("");
     setPublishSuccess(null);
     try {
@@ -1205,13 +1198,13 @@ export default function AdminEventosPage(): React.JSX.Element {
         return;
       }
       setPublishSuccess(event);
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao publicar.");
     }
-  };
+  }, [apiUrl, authFetch, fetchEvents]);
 
-  const handleCancelEvent = async () => {
+  const handleCancelEvent = useCallback(async () => {
     if (!cancelTarget) return;
     setCancelLoading(true);
     setCancelError("");
@@ -1222,17 +1215,15 @@ export default function AdminEventosPage(): React.JSX.Element {
         return;
       }
       setCancelTarget(null);
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setCancelError("Erro inesperado.");
     } finally {
       setCancelLoading(false);
     }
-  };
+  }, [apiUrl, authFetch, cancelTarget, fetchEvents]);
 
-  // ── Handlers: tipos de ingresso ───────────────────────────────────────────
-
-  const handleCreateTicketType = async () => {
+  const handleCreateTicketType = useCallback(async () => {
     if (!ticketDialog) return;
     setTicketError("");
     const validation = buildTicketPayload(ticketForm);
@@ -1240,7 +1231,6 @@ export default function AdminEventosPage(): React.JSX.Element {
       setTicketError(validation.error ?? "Erro de validação.");
       return;
     }
-
     setTicketSaving(true);
     try {
       const res = await authFetch(`${apiUrl}/events/${ticketDialog.id}/ticket-types`, {
@@ -1252,15 +1242,15 @@ export default function AdminEventosPage(): React.JSX.Element {
         return;
       }
       setTicketDialog(null);
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setTicketError("Erro inesperado.");
     } finally {
       setTicketSaving(false);
     }
-  };
+  }, [apiUrl, authFetch, ticketDialog, ticketForm, fetchEvents]);
 
-  const handleDeactivateTicketType = async (ticket: TicketType) => {
+  const handleDeactivateTicketType = useCallback(async (ticket: TicketType) => {
     setActionError("");
     try {
       const res = await authFetch(`${apiUrl}/events/ticket-types/${ticket.id}`, {
@@ -1271,15 +1261,13 @@ export default function AdminEventosPage(): React.JSX.Element {
         setActionError(await extractErrorMessage(res, "Erro ao desativar tipo de ingresso."));
         return;
       }
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao desativar tipo de ingresso.");
     }
-  };
+  }, [apiUrl, authFetch, fetchEvents]);
 
-  // ── Handlers: staff ───────────────────────────────────────────────────────
-
-  const handleAddStaff = async (event: ManagedEvent) => {
+  const handleAddStaff = useCallback(async (event: ManagedEvent) => {
     const form = staffForm[event.id];
     if (!form?.memberId) return;
     setActionError("");
@@ -1293,13 +1281,13 @@ export default function AdminEventosPage(): React.JSX.Element {
         return;
       }
       setStaffForm((prev) => ({ ...prev, [event.id]: { memberId: "", staffRole: "checker" } }));
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao adicionar staff.");
     }
-  };
+  }, [apiUrl, authFetch, staffForm, fetchEvents]);
 
-  const handleRemoveStaff = async (event: ManagedEvent, staff: EventStaff) => {
+  const handleRemoveStaff = useCallback(async (event: ManagedEvent, staff: EventStaff) => {
     setActionError("");
     try {
       const res = await authFetch(`${apiUrl}/events/${event.id}/staff/${staff.id}`, { method: "DELETE" });
@@ -1307,13 +1295,100 @@ export default function AdminEventosPage(): React.JSX.Element {
         setActionError(await extractErrorMessage(res, "Erro ao remover staff."));
         return;
       }
-      fetchEvents();
+      await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao remover staff.");
     }
-  };
+  }, [apiUrl, authFetch, fetchEvents]);
 
-  // ── Hub: dados derivados ──────────────────────────────────────────────────
+  return {
+    eventDialog, setEventDialog,
+    eventForm, setEventForm,
+    eventSaving, eventError,
+    cancelTarget, setCancelTarget,
+    cancelLoading, cancelError,
+    ticketDialog, setTicketDialog,
+    ticketForm, setTicketForm,
+    ticketSaving, ticketError,
+    staffForm, setStaffForm,
+    actionError, setActionError,
+    publishSuccess, setPublishSuccess,
+    saveSuccess, setSaveSuccess,
+    openCreateDialog,
+    openEditDialog,
+    handleSaveEvent,
+    handlePublish,
+    handleCancelEvent,
+    handleCreateTicketType,
+    handleDeactivateTicketType,
+    handleAddStaff,
+    handleRemoveStaff,
+    setCancelError,
+    setTicketError,
+  };
+}
+
+interface UseAdminEventosRowsParams {
+  events: ManagedEvent[];
+  externalEvents: EventSummary[];
+  externalSources: EventIndexFile["sources"];
+  activations: ExternalActivationItem[];
+  organizers: OrganizersStaticFile | null;
+  user: ReturnType<typeof useAuth>["user"];
+  isAdmin: boolean;
+  internalTotal: number;
+}
+
+interface UseAdminEventosRowsReturn {
+  search: string;
+  setSearch: React.Dispatch<React.SetStateAction<string>>;
+  showInternos: boolean;
+  setShowInternos: React.Dispatch<React.SetStateAction<boolean>>;
+  showExternos: boolean;
+  setShowExternos: React.Dispatch<React.SetStateAction<boolean>>;
+  onlyOverride: boolean;
+  setOnlyOverride: React.Dispatch<React.SetStateAction<boolean>>;
+  onlyEditable: boolean;
+  setOnlyEditable: React.Dispatch<React.SetStateAction<boolean>>;
+  onlyFeatures: boolean;
+  setOnlyFeatures: React.Dispatch<React.SetStateAction<boolean>>;
+  communityFilter: string;
+  setCommunityFilter: React.Dispatch<React.SetStateAction<string>>;
+  page: number;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  rows: HubRow[];
+  filteredRows: HubRow[];
+  pageCount: number;
+  currentPage: number;
+  pageRows: HubRow[];
+  sourceLabel: (sourceKey: string) => string;
+  useBackendPagination: boolean;
+}
+
+function useAdminEventosRows({
+  events,
+  externalEvents,
+  externalSources,
+  activations,
+  organizers,
+  user,
+  isAdmin,
+  internalTotal,
+}: UseAdminEventosRowsParams): UseAdminEventosRowsReturn {
+  const [search, setSearch] = useState("");
+  const [showInternos, setShowInternos] = useState(false);
+  const [showExternos, setShowExternos] = useState(false);
+  const [onlyOverride, setOnlyOverride] = useState(false);
+  const [onlyEditable, setOnlyEditable] = useState(false);
+  const [onlyFeatures, setOnlyFeatures] = useState(false);
+  const [communityFilter, setCommunityFilter] = useState<string>("");
+  const [page, setPage] = useState(1);
+
+  const useBackendPagination = showInternos && !showExternos;
+
+  useEffect(() => {
+    setPage(1);
+  }, [search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
 
   const featuresByEventKey = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -1327,7 +1402,6 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [activations]);
 
-  // Owner declarado no organizers.json para um evento específico (primeiro match).
   const ownerByEventKey = useMemo(() => {
     const map = new Map<string, string>();
     if (!organizers) return map;
@@ -1340,7 +1414,6 @@ export default function AdminEventosPage(): React.JSX.Element {
     return map;
   }, [organizers]);
 
-  // Escopos do usuário logado no organizers.json (match por memberId ou handle).
   const myScopes = useMemo(() => {
     if (!organizers || !user) return [] as string[];
     const handle = (user.handle ?? "").toLowerCase();
@@ -1392,22 +1465,21 @@ export default function AdminEventosPage(): React.JSX.Element {
         event,
       };
     });
-    // Mais recentes primeiro (data desc).
     return [...internalRows, ...externalRows].sort((a, b) => b.startAt.localeCompare(a.startAt));
-  }, [events, externalEvents, canEditExternal, featuresByEventKey]);
+  }, [events, externalEvents, canEditExternal, featuresByEventKey, activationByEventKey, ownerByEventKey]);
 
-  function matchesFilters(row: HubRow): boolean {
-    return (
+  const matchesFilters = useCallback(
+    (row: HubRow) =>
       matchesSearch(row, search) &&
       matchesKindFilter(row, showInternos, showExternos) &&
       matchesOverrideFilter(row, onlyOverride) &&
       matchesEditableFilter(row, onlyEditable) &&
       matchesFeaturesFilter(row, onlyFeatures) &&
-      matchesCommunityFilter(row, communityFilter)
-    );
-  }
+      matchesCommunityFilter(row, communityFilter),
+    [search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]
+  );
 
-  const filteredRows = useMemo(() => rows.filter(matchesFilters), [rows, search, showInternos, showExternos, onlyOverride, onlyEditable, onlyFeatures, communityFilter]);
+  const filteredRows = useMemo(() => rows.filter(matchesFilters), [rows, matchesFilters]);
 
   const pageCount = useBackendPagination
     ? Math.max(1, Math.ceil(internalTotal / PAGE_SIZE))
@@ -1417,9 +1489,43 @@ export default function AdminEventosPage(): React.JSX.Element {
     ? filteredRows
     : filteredRows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
-  // ── Handler: snapshot manual de internal:codaqui ──────────────────────────
+  return {
+    search, setSearch,
+    showInternos, setShowInternos,
+    showExternos, setShowExternos,
+    onlyOverride, setOnlyOverride,
+    onlyEditable, setOnlyEditable,
+    onlyFeatures, setOnlyFeatures,
+    communityFilter, setCommunityFilter,
+    page, setPage,
+    rows,
+    filteredRows,
+    pageCount,
+    currentPage,
+    pageRows,
+    sourceLabel,
+    useBackendPagination,
+  };
+}
 
-  const handleSnapshot = async () => {
+interface UseAdminEventosSnapshotReturn {
+  snapshotLoading: boolean;
+  snapshotError: string;
+  setSnapshotError: React.Dispatch<React.SetStateAction<string>>;
+  snapshotResult: SnapshotResult | null;
+  setSnapshotResult: React.Dispatch<React.SetStateAction<SnapshotResult | null>>;
+  handleSnapshot: () => Promise<void>;
+}
+
+function useAdminEventosSnapshot(
+  apiUrl: string,
+  authFetch: ReturnType<typeof useAuth>["authFetch"],
+): UseAdminEventosSnapshotReturn {
+  const [snapshotLoading, setSnapshotLoading] = useState(false);
+  const [snapshotError, setSnapshotError] = useState("");
+  const [snapshotResult, setSnapshotResult] = useState<SnapshotResult | null>(null);
+
+  const handleSnapshot = useCallback(async () => {
     setSnapshotLoading(true);
     setSnapshotError("");
     setSnapshotResult(null);
@@ -1440,9 +1546,183 @@ export default function AdminEventosPage(): React.JSX.Element {
     } finally {
       setSnapshotLoading(false);
     }
-  };
+  }, [apiUrl, authFetch]);
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  return {
+    snapshotLoading,
+    snapshotError,
+    setSnapshotError,
+    snapshotResult,
+    setSnapshotResult,
+    handleSnapshot,
+  };
+}
+
+// ── Hook com estado e lógica da página ───────────────────────────────────────
+
+function useAdminEventosPage() {
+  const { ready, isLoggedIn, isAdmin, isEventOrganizer, user, authFetch } = useAuth();
+  const { siteConfig } = useDocusaurusContext();
+  const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
+  const history = useHistory();
+
+  const canAccess = isAdmin || isEventOrganizer;
+
+  const [ordersDialog, setOrdersDialog] = useState<
+    | { kind: "internal"; eventId: string; title: string }
+    | { kind: "external"; eventKey: string; title: string }
+    | null
+  >(null);
+
+  const [reimbursementDialog, setReimbursementDialog] = useState<{
+    eventId: string;
+    title: string;
+    communityProjectKey: string;
+  } | null>(null);
+
+  const data = useAdminEventosData(apiUrl, authFetch);
+
+  const rowsState = useAdminEventosRows({
+    events: data.events,
+    externalEvents: data.externalEvents,
+    externalSources: data.externalSources,
+    activations: data.activations,
+    organizers: data.organizers,
+    user,
+    isAdmin,
+    internalTotal: data.internalTotal,
+  });
+
+  const { page, useBackendPagination } = rowsState;
+  const {
+    fetchEvents,
+    fetchMembers,
+    fetchExternalData,
+    fetchOrganizers,
+    fetchActivations,
+  } = data;
+
+  const refreshEvents = useCallback(
+    () => fetchEvents(page, useBackendPagination),
+    [fetchEvents, page, useBackendPagination]
+  );
+
+  const mutations = useAdminEventosMutations(apiUrl, authFetch, refreshEvents);
+
+  const snapshot = useAdminEventosSnapshot(apiUrl, authFetch);
+
+  const membersById = useMemo(() => {
+    const map = new Map<string, MemberOption>();
+    for (const m of data.members) map.set(m.id, m);
+    return map;
+  }, [data.members]);
+
+  useEffect(() => {
+    if (!ready) return;
+    if (!isLoggedIn) {
+      history.replace("/");
+      return;
+    }
+    if (canAccess) {
+      fetchEvents(page, useBackendPagination);
+      fetchMembers();
+      fetchExternalData();
+      fetchOrganizers();
+      fetchActivations();
+    }
+  }, [ready, isLoggedIn, canAccess, history, fetchEvents, fetchMembers, fetchExternalData, fetchOrganizers, fetchActivations, page, useBackendPagination]);
+
+  return {
+    ready, isLoggedIn, canAccess,
+    apiUrl, authFetch,
+    events: data.events, setEvents: data.setEvents,
+    internalTotal: data.internalTotal, setInternalTotal: data.setInternalTotal,
+    members: data.members,
+    loading: data.loading,
+    loadError: data.loadError, setLoadError: data.setLoadError,
+    actionError: mutations.actionError, setActionError: mutations.setActionError,
+    publishSuccess: mutations.publishSuccess, setPublishSuccess: mutations.setPublishSuccess,
+    saveSuccess: mutations.saveSuccess, setSaveSuccess: mutations.setSaveSuccess,
+    eventDialog: mutations.eventDialog, setEventDialog: mutations.setEventDialog,
+    eventForm: mutations.eventForm, setEventForm: mutations.setEventForm,
+    eventSaving: mutations.eventSaving,
+    eventError: mutations.eventError,
+    cancelTarget: mutations.cancelTarget, setCancelTarget: mutations.setCancelTarget,
+    cancelLoading: mutations.cancelLoading,
+    cancelError: mutations.cancelError,
+    ticketDialog: mutations.ticketDialog, setTicketDialog: mutations.setTicketDialog,
+    ticketForm: mutations.ticketForm, setTicketForm: mutations.setTicketForm,
+    ticketSaving: mutations.ticketSaving,
+    ticketError: mutations.ticketError,
+    staffForm: mutations.staffForm, setStaffForm: mutations.setStaffForm,
+    externalEvents: data.externalEvents, setExternalEvents: data.setExternalEvents,
+    externalSources: data.externalSources, setExternalSources: data.setExternalSources,
+    externalLoading: data.externalLoading,
+    externalError: data.externalError, setExternalError: data.setExternalError,
+    organizers: data.organizers, setOrganizers: data.setOrganizers,
+    activations: data.activations, setActivations: data.setActivations,
+    search: rowsState.search, setSearch: rowsState.setSearch,
+    showInternos: rowsState.showInternos, setShowInternos: rowsState.setShowInternos,
+    showExternos: rowsState.showExternos, setShowExternos: rowsState.setShowExternos,
+    onlyOverride: rowsState.onlyOverride, setOnlyOverride: rowsState.setOnlyOverride,
+    onlyEditable: rowsState.onlyEditable, setOnlyEditable: rowsState.setOnlyEditable,
+    onlyFeatures: rowsState.onlyFeatures, setOnlyFeatures: rowsState.setOnlyFeatures,
+    communityFilter: rowsState.communityFilter, setCommunityFilter: rowsState.setCommunityFilter,
+    page: rowsState.page, setPage: rowsState.setPage,
+    snapshotLoading: snapshot.snapshotLoading,
+    snapshotError: snapshot.snapshotError, setSnapshotError: snapshot.setSnapshotError,
+    snapshotResult: snapshot.snapshotResult, setSnapshotResult: snapshot.setSnapshotResult,
+    ordersDialog, setOrdersDialog,
+    reimbursementDialog, setReimbursementDialog,
+    membersById,
+    useBackendPagination: rowsState.useBackendPagination,
+    fetchEvents: refreshEvents,
+    openCreateDialog: mutations.openCreateDialog,
+    openEditDialog: mutations.openEditDialog,
+    handleSaveEvent: mutations.handleSaveEvent,
+    handlePublish: mutations.handlePublish,
+    handleCancelEvent: mutations.handleCancelEvent,
+    handleCreateTicketType: mutations.handleCreateTicketType,
+    handleDeactivateTicketType: mutations.handleDeactivateTicketType,
+    handleAddStaff: mutations.handleAddStaff,
+    handleRemoveStaff: mutations.handleRemoveStaff,
+    handleSnapshot: snapshot.handleSnapshot,
+    rows: rowsState.rows,
+    filteredRows: rowsState.filteredRows,
+    pageCount: rowsState.pageCount,
+    currentPage: rowsState.currentPage,
+    pageRows: rowsState.pageRows,
+    sourceLabel: rowsState.sourceLabel,
+    setCancelError: mutations.setCancelError,
+    setTicketError: mutations.setTicketError,
+  };
+}
+
+// ── Página ───────────────────────────────────────────────────────────────────
+
+export default function AdminEventosPage(): React.JSX.Element {
+  const page = useAdminEventosPage();
+  const {
+    ready, isLoggedIn, canAccess,
+    apiUrl, authFetch,
+    loading, externalLoading, loadError, actionError, externalError,
+    snapshotLoading, snapshotError, snapshotResult, setSnapshotError, setSnapshotResult,
+    publishSuccess, setPublishSuccess, saveSuccess, setSaveSuccess,
+    search, setSearch, showInternos, setShowInternos, showExternos, setShowExternos,
+    onlyOverride, setOnlyOverride, onlyEditable, setOnlyEditable, onlyFeatures, setOnlyFeatures,
+    communityFilter, setCommunityFilter,
+    pageCount, currentPage, setPage,
+    filteredRows, rows, pageRows,
+    eventDialog, setEventDialog, eventForm, setEventForm, eventSaving, eventError,
+    cancelTarget, setCancelTarget, cancelLoading, cancelError,
+    ticketDialog, setTicketDialog, ticketForm, setTicketForm, ticketSaving, ticketError,
+    members, membersById, staffForm, setStaffForm,
+    ordersDialog, setOrdersDialog,
+    reimbursementDialog, setReimbursementDialog,
+    handleSnapshot, openCreateDialog, openEditDialog, handleSaveEvent, handlePublish, handleCancelEvent,
+    handleCreateTicketType, handleDeactivateTicketType, handleAddStaff, handleRemoveStaff,
+    sourceLabel, setCancelError, setTicketError,
+  } = page;
 
   if (!ready || !isLoggedIn) {
     return (

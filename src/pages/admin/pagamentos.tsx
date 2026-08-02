@@ -116,7 +116,7 @@ export default function PagamentosPage(): React.JSX.Element {
         authFetch(`${apiUrl}/vendors/templates`),
         authFetch(`${apiUrl}/vendors/payments`),
       ]);
-      const unauthorized = [vRes, aRes, tRes, pRes].find((r) => r.status === 401);
+      const unauthorized = [vRes, aRes, tRes, pRes].some((r) => r.status === 401);
       if (unauthorized) {
         setError("Sessão expirada — faça login novamente.");
         return;

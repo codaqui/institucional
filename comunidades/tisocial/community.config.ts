@@ -2,58 +2,10 @@
  * TI Social — configuração da comunidade dentro do site Codaqui.
  *
  * Este arquivo centraliza branding, slug Stripe e itens de menu.
- * É importado pelas páginas em `src/pages/comunidades/tisocial/`.
+ * É importado pelas páginas em `comunidades/tisocial/src/pages/`.
  */
 
-export interface CommunitySiteConfig {
-  slug: string;
-  name: string;
-  shortName: string;
-  tagline: string;
-  description: string;
-  logoUrl: string;
-  logoUrlDark?: string;
-  theme: {
-    primary: string;
-    primaryDark: string;
-    primaryLight: string;
-    accent: string;
-    /** Background color for the community footer */
-    footerBg: string;
-  };
-  basePath: string;
-  externalLinks: { label: string; href: string }[];
-  navMenu: { label: string; to: string }[];
-  features: {
-    donations: boolean;
-    transparency: boolean;
-    events: boolean;
-    blog: boolean;
-    docs: boolean;
-  };
-  hero: {
-    title: string;
-    subtitle: string;
-    ctaPrimary: { label: string; to: string };
-    ctaSecondary?: { label: string; href: string };
-  };
-  /** Cards de destaque na home da comunidade (impacto / números). */
-  impact?: {
-    title: string;
-    subtitle?: string;
-    stats: { value: string; label: string }[];
-  };
-  /** Texto da seção "Explore a comunidade" na home. */
-  exploreSection?: {
-    title: string;
-    subtitle: string;
-  };
-  /** Texto da seção final de canais oficiais. */
-  channelsSection?: {
-    title: string;
-    subtitle: string;
-  };
-}
+import type { CommunitySiteConfig } from "../shared/types";
 
 import campaigns from "./src/data/campaigns.json";
 
@@ -97,8 +49,14 @@ const config: CommunitySiteConfig = {
   ],
   navMenu: [
     { label: "Início",        to: "/comunidades/tisocial" },
+    {
+      label: "Sobre",
+      items: [
+        { label: "Docs",   to: "/comunidades/tisocial/docs" },
+        { label: "Equipe", to: "/comunidades/tisocial/equipe" },
+      ],
+    },
     { label: "Campanhas",     to: "/comunidades/tisocial/blog" },
-    { label: "Docs",          to: "/comunidades/tisocial/docs" },
     { label: "Apoiar",        to: "/comunidades/tisocial/apoiar" },
     { label: "Transparência", to: "/comunidades/tisocial/transparencia" },
   ],

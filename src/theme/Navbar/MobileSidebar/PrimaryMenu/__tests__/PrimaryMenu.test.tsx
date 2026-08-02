@@ -75,9 +75,11 @@ describe("em página de comunidade", () => {
     mockUseLocation.mockReturnValue({ pathname: "/comunidades/tisocial" });
     render(<PrimaryMenuWrapper />);
 
-    // Conforme community.config.ts: Início, Blog, Docs, Apoiar, Transparência
+    // Conforme community.config.ts: Início, Sobre (dropdown), Campanhas, Apoiar, Transparência.
+    // No mobile o dropdown renderiza apenas o rótulo; os sub-itens (Docs, Equipe) são expandidos por interação.
     const links = screen.getAllByRole("link");
-    expect(links.length).toBe(5);
+    expect(links).toHaveLength(4);
+    expect(screen.getByText("Sobre")).toBeInTheDocument();
   });
 
   it("dispara toggle do sidebar ao clicar em item do navMenu", () => {

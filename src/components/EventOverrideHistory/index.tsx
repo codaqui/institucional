@@ -3,25 +3,18 @@ import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import IconButton from "@mui/material/IconButton";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 
-/** Entrada do histórico de edições de um override (GET /events/override/:sk/:id/history). */
-export interface OverrideHistoryEntry {
-  sha: string;
-  message: string;
-  authorHandle: string;
-  authorAvatarUrl: string;
-  date: string;
-  url: string;
+interface EventOverrideCurrent {
+  ownerHandle: string;
+  updatedAt: string;
+  reason?: string | null;
 }
 
 interface EventOverrideHistoryProps {
   readonly apiUrl: string;
-  readonly authFetch: (path: string, init?: RequestInit) => Promise<Response>;
   readonly sourceKey: string;
   readonly eventId: string;
 }
@@ -35,104 +28,31 @@ const formatDate = (iso: string): string =>
     minute: "2-digit",
   });
 
-function HistorySkeletons(): React.JSX.Element {
+function HistorySkeleton(): React.JSX.Element {
   return (
-    <Stack spacing={1.5}>
-      {[0, 1, 2].map((i) => (
-        <Box key={i} sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-          <Skeleton variant="circular" width={28} height={28} />
-          <Box sx={{ flex: 1 }}>
-            <Skeleton variant="text" width="80%" />
-            <Skeleton variant="text" width="50%" />
-          </Box>
-        </Box>
-      ))}
-    </Stack>
+    <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+      <Skeleton variant="circular" width={28} height={28} />
+      <Box sx={{ flex: 1 }}>
+        <Skeleton variant="text" width="80%" />
+        <Skeleton variant="text" width="50%" />
+      </Box>
+    </Box>
   );
-}
-
-function HistoryError({ message }: { readonly message: string }): React.JSX.Element {
-  return (
-    <Typography variant="body2" color="error">
-      {message}
-    </Typography>
-  );
-}
-
-function HistoryEmpty(): React.JSX.Element {
-  return (
-    <Typography variant="body2" color="text.secondary">
-      Nenhuma edição registrada.
-    </Typography>
-  );
-}
-
-function HistoryList({ items }: { readonly items: OverrideHistoryEntry[] }): React.JSX.Element {
-  return (
-    <Stack spacing={1.5}>
-      {items.map((item) => (
-        <Box key={item.sha} sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
-          <Avatar
-            src={item.authorAvatarUrl}
-            alt={item.authorHandle}
-            sx={{ width: 28, height: 28 }}
-          />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="body2" fontWeight={600}>
-              @{item.authorHandle}
-            </Typography>
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ wordBreak: "break-word" }}
-            >
-              {item.message}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {formatDate(item.date)}
-            </Typography>
-          </Box>
-          <IconButton
-            size="small"
-            aria-label={`Abrir commit ${item.sha.slice(0, 7)}`}
-            href={item.url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <OpenInNewIcon fontSize="small" />
-          </IconButton>
-        </Box>
-      ))}
-    </Stack>
-  );
-}
-
-function HistoryContent({
-  loading,
-  error,
-  items,
-}: {
-  readonly loading: boolean;
-  readonly error: string;
-  readonly items: OverrideHistoryEntry[];
-}): React.JSX.Element {
-  if (loading) return <HistorySkeletons />;
-  if (error) return <HistoryError message={error} />;
-  if (items.length === 0) return <HistoryEmpty />;
-  return <HistoryList items={items} />;
 }
 
 /**
- * Painel "Histórico de edições" do editor de override — lista os commits do
- * arquivo `<eventId>.override.json` (autor, mensagem, data e link do commit).
+ * Painel "Override atual" do editor de override.
+ *
+ * Antigamente listava commits do arquivo .override.json no repositorio.
+ * Com a migracao para o banco de dados, exibe o override atual (autor,
+ * data e motivo), buscando o endpoint publico /events/overrides/:sk/:id.
  */
 export default function EventOverrideHistory({
   apiUrl,
-  authFetch,
   sourceKey,
   eventId,
 }: EventOverrideHistoryProps): React.JSX.Element {
-  const [items, setItems] = useState<OverrideHistoryEntry[]>([]);
+  const [override, setOverride] = useState<EventOverrideCurrent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -142,14 +62,20 @@ export default function EventOverrideHistory({
     setError("");
     (async () => {
       try {
-        const res = await authFetch(
-          `${apiUrl}/events/override/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}/history`,
+        const res = await fetch(
+          `${apiUrl}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`,
         );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = (await res.json()) as OverrideHistoryEntry[];
-        if (!cancelled) setItems(Array.isArray(data) ? data : []);
+        if (!res.ok) {
+          if (res.status === 404) {
+            if (!cancelled) setOverride(null);
+            return;
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = (await res.json()) as EventOverrideCurrent;
+        if (!cancelled) setOverride(data);
       } catch {
-        if (!cancelled) setError("Não foi possível carregar o histórico.");
+        if (!cancelled) setError("Não foi possível carregar o override atual.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -157,16 +83,57 @@ export default function EventOverrideHistory({
     return () => {
       cancelled = true;
     };
-  }, [apiUrl, authFetch, sourceKey, eventId]);
+  }, [apiUrl, sourceKey, eventId]);
 
   return (
     <Card variant="outlined">
       <CardContent>
         <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-          Histórico de edições
+          Override atual
         </Typography>
 
-        <HistoryContent loading={loading} error={error} items={items} />
+        {loading && <HistorySkeleton />}
+
+        {!loading && error && (
+          <Typography variant="body2" color="error">
+            {error}
+          </Typography>
+        )}
+
+        {!loading && !error && !override && (
+          <Typography variant="body2" color="text.secondary">
+            Nenhum override ativo para este evento.
+          </Typography>
+        )}
+
+        {!loading && !error && override && (
+          <Stack spacing={1.5}>
+            <Box sx={{ display: "flex", gap: 1.5, alignItems: "flex-start" }}>
+              <Avatar
+                src={`https://avatars.githubusercontent.com/${override.ownerHandle}?v=4`}
+                alt={override.ownerHandle}
+                sx={{ width: 28, height: 28 }}
+              />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography variant="body2" fontWeight={600}>
+                  @{override.ownerHandle}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  Editado em {formatDate(override.updatedAt)}
+                </Typography>
+                {override.reason && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ wordBreak: "break-word", mt: 0.5 }}
+                  >
+                    Motivo: {override.reason}
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Stack>
+        )}
       </CardContent>
     </Card>
   );

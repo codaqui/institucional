@@ -220,7 +220,7 @@ async function fetchInstagramFollowers(username) {
 /** Parses YouTube subscriber text like "17 subscribers", "1.57K subscribers", "2.3M subscribers" */
 function parseYouTubeSubscriberText(text) {
   const clean = text.replaceAll(",", "").toLowerCase();
-  const m = clean.match(/^([\d.]+)\s*([km]?)\s*subscriber/);
+  const m = clean.match(/^([\d.]+)\s?([km]?)\s?subscriber/);
   if (!m) return null;
   const num = Number.parseFloat(m[1]);
   let mult = 1;

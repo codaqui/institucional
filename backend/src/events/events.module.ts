@@ -6,6 +6,7 @@ import { EventOrder } from './entities/event-order.entity';
 import { EventRegistration } from './entities/event-registration.entity';
 import { EventStaff } from './entities/event-staff.entity';
 import { ExternalEventActivation } from './entities/external-event-activation.entity';
+import { EventOverride } from './entities/event-override.entity';
 import { Member } from '../members/entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { LedgerModule } from '../ledger/ledger.module';
@@ -13,10 +14,13 @@ import { AuditModule } from '../audit/audit.module';
 import { StripeModule } from '../stripe/stripe.module';
 import { EventOrganizerModule } from '../event-organizer/event-organizer.module';
 import { EventOrganizerController } from '../event-organizer/event-organizer.controller';
+import { EventOrganizerOwnershipController } from '../event-organizer/event-organizer-ownership.controller';
 import { GithubDbModule } from '../github-db/github-db.module';
 import { ReimbursementsModule } from '../reimbursements/reimbursements.module';
 import { EventsService } from './events.service';
 import { EventsController } from './events.controller';
+import { EventOverridesService } from './event-overrides.service';
+import { EventOverridesController } from './event-overrides.controller';
 
 @Module({
   imports: [
@@ -27,6 +31,7 @@ import { EventsController } from './events.controller';
       EventRegistration,
       EventStaff,
       ExternalEventActivation,
+      EventOverride,
       Member,
       Transaction,
     ]),
@@ -37,14 +42,19 @@ import { EventsController } from './events.controller';
     GithubDbModule,
     ReimbursementsModule,
   ],
-  // ⚠️ Ordem importa: EventOrganizerController ANTES de EventsController —
+  // ⚠️ Ordem importa: controllers de event-organizer ANTES de EventsController —
   // ambos usam @Controller('events') e as rotas estáticas (/events/organizers,
   // /events/override/...) precisam registrar antes de /events/:id.
   // Registrar no nível do controller (e não do módulo) porque o ciclo
   // Members→Events faz o EventsModule ser escaneado antes do EventOrganizerModule,
   // invalidando a ordem dos imports do AppModule.
-  controllers: [EventOrganizerController, EventsController],
-  providers: [EventsService],
-  exports: [EventsService],
+  controllers: [
+    EventOrganizerController,
+    EventOrganizerOwnershipController,
+    EventOverridesController,
+    EventsController,
+  ],
+  providers: [EventsService, EventOverridesService],
+  exports: [EventsService, EventOverridesService],
 })
 export class EventsModule {}

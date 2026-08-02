@@ -15,6 +15,8 @@ const rootDir = process.cwd();
 const configPath = path.join(rootDir, "events.config.json");
 const outputDir = path.join(rootDir, "static", "events");
 
+const OVERRIDES_API_URL = process.env.EVENT_OVERRIDES_API_URL || "http://localhost:3000/events/overrides/public";
+
 async function readJson(filePath) {
   const content = await readFile(filePath, "utf8");
   return JSON.parse(content);
@@ -30,6 +32,38 @@ async function fetchJson(url, init) {
 
 function getSourceKey(source, sourceId) {
   return `${source}:${sourceId}`;
+}
+
+async function fetchOverridesFromApi() {
+  try {
+    const response = await fetchWithTimeout(OVERRIDES_API_URL, {}, 30_000);
+    if (!response.ok) {
+      console.warn(`  ⚠ API de overrides indisponivel (${response.status}) — usando snapshot sem overrides.`);
+      return [];
+    }
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.warn(`  ⚠ Falha ao buscar overrides do backend: ${error.message}`);
+    return [];
+  }
+}
+
+function applyOverride(event, override) {
+  if (!override?.payload) return event;
+  const extendData = typeof override.payload === "string"
+    ? JSON.parse(override.payload)
+    : override.payload;
+  return {
+    ...event,
+    ...extendData,
+    hasOverride: true,
+    _override: {
+      ownerHandle: override.ownerHandle || "",
+      updatedAt: override.updatedAt || new Date().toISOString(),
+      reason: override.reason || null,
+    },
+  };
 }
 
 function buildSourceDir(source, sourceId) {
@@ -497,6 +531,15 @@ async function readExistingEvents(source, sourceId) {
   }
 }
 
+function mergeExistingEvents(freshById, existingEvents) {
+  for (const existing of existingEvents) {
+    if (!freshById.has(existing.id)) {
+      freshById.set(existing.id, existing);
+    }
+  }
+  return freshById;
+}
+
 async function resolveDiscordEvents(config, existingEvents) {
   const token = process.env.DISCORD_BOT_TOKEN;
 
@@ -602,7 +645,7 @@ function parseSymplaDateText(text, defaultStatus = "scheduled") {
   const norm = text.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
 
   // Rich format with explicit year: "12 mai - 2026 • 13:05" or "12 mai - 2026 13:05"
-  let m = /(\d{1,2})\s+([a-z]{3})\s*-\s*(\d{4})\s*[•·]?\s*(\d{2}:\d{2})/.exec(norm);
+  let m = /(\d{1,2})\s+([a-z]{3})\s-\s(\d{4})\s[•·]\s(\d{2}:\d{2})/.exec(norm);
   if (m) {
     const [, d, mo, yr, ti] = m;
     const month = SYMPLA_MONTH_MAP[mo];
@@ -610,7 +653,7 @@ function parseSymplaDateText(text, defaultStatus = "scheduled") {
   }
 
   // Card format with day-of-week: "sab, 28 mar · 14:00" or "28 mar · 14:00" or plain "16 mai"
-  m = /(?:[a-z]{3},\s+)?(\d{1,2})\s+([a-z]{3})(?:\s*[·-]\s*(\d{2}:\d{2}))?/.exec(norm);
+  m = /(?:[a-z]{3},\s)?(\d{1,2})\s+([a-z]{3})(?:\s[·-]\s(\d{2}:\d{2}))?/.exec(norm);
   if (!m) return null;
 
   const day = m[1].padStart(2, "0");
@@ -640,6 +683,48 @@ function mapSymplaEventStatus(startAt, isEnded) {
   return "scheduled";
 }
 
+function extractSymplaDateLine(body) {
+  const datePart = String.raw`\d{1,2} [a-z]{3} - \d{4} [•·] \d{2}:\d{2}`;
+  const rangeMatch = new RegExp(`(${datePart}) > (${datePart})`, "i").exec(body);
+  if (rangeMatch) {
+    return {
+      startDateRaw: rangeMatch[1].trim(),
+      endDateRaw: rangeMatch[2].trim(),
+      singleDateRaw: null,
+    };
+  }
+
+  const singleMatch = /(\d{1,2} [a-z]{3} - \d{4} [•·] \d{2}:\d{2})/i.exec(body);
+  return {
+    startDateRaw: null,
+    endDateRaw: null,
+    singleDateRaw: singleMatch?.[1]?.trim() ?? null,
+  };
+}
+
+function extractSymplaLocation(body) {
+  const onlinePattern = "Evento Online(?: via [^,]+)?";
+  const venuePattern = "[A-Z][^•,]{5,80}(?:, [A-Z][^•,]{2,40})?";
+  const match = new RegExp(`(?:${onlinePattern}|${venuePattern})(?= |$)`, "i").exec(body);
+  return match?.[0]?.trim() ?? null;
+}
+
+function extractSymplaDescription(body) {
+  const descStart = body.indexOf("Descrição do evento");
+  if (descStart < 0) return null;
+
+  const descEnd = body.indexOf("Política do evento");
+  const raw = body
+    .slice(descStart + "Descrição do evento".length, descEnd > descStart ? descEnd : descStart + 2000)
+    .trim();
+  return raw.length >= 20 ? raw : null;
+}
+
+function extractSymplaUserCount(body) {
+  const countMatch = /(\d+)\s*(?:inscritos?|participantes?)/i.exec(body);
+  return countMatch ? Number.parseInt(countMatch[1]) : undefined;
+}
+
 /**
  * Fetches precise dates, description, and location from an individual Sympla event page.
  * The `evento-online` URL format renders without queue-it protection.
@@ -654,89 +739,52 @@ async function fetchSymplaEventDetail(page, href) {
     // If Sympla redirected away ("event ended / see similar events"), the final URL
     // will have a different numeric ID — skip enrichment to avoid picking up wrong data.
     const finalUrl = page.url();
-    const expectedId = /\/(\d+)(?:[?#].*)?$/.exec(detailUrl)?.[1];
-    const finalId = /\/(\d+)(?:[?#].*)?$/.exec(finalUrl)?.[1];
+    const expectedId = /\/(\d+)$/.exec(new URL(detailUrl).pathname)?.[1];
+    const finalId = /\/(\d+)$/.exec(new URL(finalUrl).pathname)?.[1];
     if (expectedId && finalId && expectedId !== finalId) {
       console.warn(`    ⚠ Sympla redirected event ${expectedId} → ${finalId}, skipping detail`);
       return null;
     }
 
-    return await page.evaluate((monthMap) => {
-      const body = document.body.innerText ?? "";
+    const body = await page.evaluate(() => (document.body.innerText ?? "").replace(/\s+/g, " "));
+    const dateLine = extractSymplaDateLine(body);
 
-      // Date line: "12 mai - 2026 • 13:05 > 16 mai - 2026 • 21:00"
-      const datePart = String.raw`\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2}`;
-      const dateLineSep = String.raw`\s*>\s*`;
-      const dateLineMatch = new RegExp(String.raw`(${datePart})${dateLineSep}(${datePart})`, "i").exec(body);
-      const startDateRaw = dateLineMatch?.[1]?.trim() ?? null;
-      const endDateRaw = dateLineMatch?.[2]?.trim() ?? null;
-
-      // Single date (no range): "12 mai - 2026 • 13:05"
-      const singleDateMatch = dateLineMatch
-        ? null
-        : /(\d{1,2}\s+[a-z]{3}\s*-\s*\d{4}\s*[•·]\s*\d{2}:\d{2})/i.exec(body);
-
-      // Location: first line after the date line that's not a UI label
-      const onlinePattern = String.raw`Evento Online(?:\s+via\s+[^\n]+)?`;
-      const venuePattern = String.raw`[A-Z][^•\n]{5,80}(?:,\s*[A-Z][^•\n]{2,40})?`;
-      const locationMatch = new RegExp(String.raw`(?:${onlinePattern}|${venuePattern})\s*\n`, "m").exec(body);
-      const location = locationMatch?.[0]?.trim() ?? null;
-
-      // Description: extract text between "Descrição do evento" heading and next heading
-      const descStart = body.indexOf("Descrição do evento");
-      const descEnd = body.indexOf("Política do evento");
-      let description = null;
-      if (descStart >= 0) {
-        const raw = body
-          .slice(descStart + "Descrição do evento".length, descEnd > descStart ? descEnd : descStart + 2000)
-          .trim();
-        if (raw.length >= 20) description = raw;
-      }
-
-      // Participant count: "X inscritos" or "X participantes"
-      const countMatch = /(\d+)\s*(?:inscritos?|participantes?)/i.exec(body);
-      const userCount = countMatch ? Number.parseInt(countMatch[1]) : undefined;
-
-      return {
-        startDateRaw: startDateRaw ?? singleDateMatch?.[1]?.trim() ?? null,
-        endDateRaw,
-        location,
-        description,
-        userCount,
-      };
-    }, SYMPLA_MONTH_MAP);
+    return {
+      startDateRaw: dateLine.startDateRaw ?? dateLine.singleDateRaw ?? null,
+      endDateRaw: dateLine.endDateRaw,
+      location: extractSymplaLocation(body),
+      description: extractSymplaDescription(body),
+      userCount: extractSymplaUserCount(body),
+    };
   } catch (err) {
     console.warn(`    ⚠ Could not fetch detail for ${href}: ${err.message}`);
     return null;
   }
 }
 
-function mapSymplaEvent(raw, config) {
-  const detail = raw.detail;
+function resolveSymplaStartAt(detail, raw, defaultStatus) {
+  if (detail?.startDateRaw) {
+    const parsed = parseSymplaDateText(detail.startDateRaw, defaultStatus);
+    if (parsed) return parsed;
+  }
 
-  // Prefer precise date from the event detail page; fall back to card date
-  const isEnded = raw.isEnded;
-  const defaultStatus = isEnded ? "completed" : "scheduled";
+  // Card dates: take last date-looking text (avoids registration-opening date)
+  const datePat = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
+  const dateTexts = (raw.allText ?? []).filter((t) => datePat.test(t));
+  return parseSymplaDateText(dateTexts.at(-1) ?? "", defaultStatus) ?? new Date().toISOString();
+}
 
-  const startAt = (detail?.startDateRaw ? parseSymplaDateText(detail.startDateRaw, defaultStatus) : null)
-    ?? (() => {
-      // Card dates: take last date-looking text (avoids registration-opening date)
-      const datePat = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
-      const dateTexts = (raw.allText ?? []).filter((t) => datePat.test(t));
-      return parseSymplaDateText(dateTexts.at(-1) ?? "", defaultStatus);
-    })()
-    ?? new Date().toISOString();
+function resolveSymplaEndAt(detail, defaultStatus) {
+  if (!detail?.endDateRaw) return undefined;
+  return parseSymplaDateText(detail.endDateRaw, defaultStatus) ?? undefined;
+}
 
-  const endAt = detail?.endDateRaw
-    ? parseSymplaDateText(detail.endDateRaw, defaultStatus) ?? undefined
-    : undefined;
-
-  const status = mapSymplaEventStatus(startAt, isEnded);
-
-  const isOnline = (raw.allText ?? []).some((t) => /online/i.test(t))
+function resolveSymplaIsOnline(raw, detail) {
+  return (raw.allText ?? []).some((t) => /online/i.test(t))
     || /online/i.test(detail?.location ?? "");
+}
 
-  // Try to extract location from card allText: last element that isn't a date and isn't the title
+function resolveSymplaLocation(raw, detail, isOnline, config) {
   const dateLike = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
   const cardLocation = (raw.allText ?? [])
     .findLast((t) => !dateLike.test(t) && t !== raw.title && t.length > 3) ?? null;
@@ -745,18 +793,27 @@ function mapSymplaEvent(raw, config) {
   const detailLocationOk = detail?.location
     && !/fale com o produtor|a definir|a confirmar/i.test(detail.location);
 
-  let location;
-  if (detailLocationOk) {
-    location = detail.location;
-  } else if (cardLocation && !isOnline) {
-    location = cardLocation;
-  } else {
-    location = isOnline ? "Evento Online" : (config.defaultLocation ?? "Sympla");
-  }
+  if (detailLocationOk) return detail.location;
+  if (cardLocation && !isOnline) return cardLocation;
+  return isOnline ? "Evento Online" : (config.defaultLocation ?? "Sympla");
+}
 
-  const summary = detail?.description
+function resolveSymplaSummary(detail, config) {
+  return detail?.description
     ? truncateText(detail.description)
     : truncateText(`Evento organizado pelo ${config.defaultHost} na Sympla.`);
+}
+
+function mapSymplaEvent(raw, config) {
+  const detail = raw.detail;
+  const defaultStatus = raw.isEnded ? "completed" : "scheduled";
+
+  const startAt = resolveSymplaStartAt(detail, raw, defaultStatus);
+  const endAt = resolveSymplaEndAt(detail, defaultStatus);
+  const status = mapSymplaEventStatus(startAt, raw.isEnded);
+  const isOnline = resolveSymplaIsOnline(raw, detail);
+  const location = resolveSymplaLocation(raw, detail, isOnline, config);
+  const summary = resolveSymplaSummary(detail, config);
 
   return {
     id: raw.id,
@@ -813,41 +870,58 @@ async function scrapeSymplaTab(page) {
   });
 }
 
+async function scrapeSymplaListPage(listPage, config) {
+  const producerUrl = `https://www.sympla.com.br/produtor/${config.producerSlug}`;
+  console.log(`    opening ${producerUrl} with Playwright...`);
+  await listPage.goto(producerUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+
+  // Wait for event cards to render (Sympla SPA)
+  try {
+    await listPage.waitForSelector("a[href*=\"/evento\"]", { timeout: 20_000 });
+  } catch {
+    // No events yet on the available tab — may still have "Encerrados"
+  }
+  await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await listPage.waitForTimeout(1500);
+
+  const availableRaw = await scrapeSymplaTab(listPage);
+  console.log(`    found ${availableRaw.length} available event(s)`);
+
+  const encerradosBtn = listPage.locator("button", { hasText: "Encerrados" });
+  await encerradosBtn.click();
+  await listPage.waitForTimeout(4000);
+
+  const endedRaw = await scrapeSymplaTab(listPage);
+  console.log(`    found ${endedRaw.length} ended event(s)`);
+
+  return { availableRaw, endedRaw };
+}
+
+async function enrichSymplaEvents(allRaw, detailPage, config) {
+  const freshById = new Map();
+  for (const raw of allRaw) {
+    const isOnlineUrl = /\/evento-online\//.test(raw.href);
+    const detail = isOnlineUrl ? await fetchSymplaEventDetail(detailPage, raw.href) : null;
+    const event = mapSymplaEvent({ ...raw, detail }, config);
+    freshById.set(event.id, event);
+    console.log(`    ✓ ${event.id}: "${event.title}" [${event.status}]${isOnlineUrl ? " (detail enriched)" : " (card only)"}`);
+  }
+  return freshById;
+}
+
 async function resolveSymplaEvents(config, existingEvents) {
   let browser;
   try {
     const { chromium } = await import("playwright");
     browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
 
-    // ── Step 1: list all events from the producer page ──
     const listPage = await browser.newPage();
     await listPage.setViewportSize({ width: 1280, height: 900 });
     await listPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
 
-    const producerUrl = `https://www.sympla.com.br/produtor/${config.producerSlug}`;
-    console.log(`    opening ${producerUrl} with Playwright...`);
-    await listPage.goto(producerUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    // Wait for event cards to render (Sympla SPA)
-    try {
-      await listPage.waitForSelector("a[href*=\"/evento\"]", { timeout: 20_000 });
-    } catch {
-      // No events yet on the available tab — may still have "Encerrados"
-    }
-    await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    await listPage.waitForTimeout(1500);
-
-    const availableRaw = await scrapeSymplaTab(listPage);
-    console.log(`    found ${availableRaw.length} available event(s)`);
-
-    const encerradosBtn = listPage.locator("button", { hasText: "Encerrados" });
-    await encerradosBtn.click();
-    await listPage.waitForTimeout(4000);
-
-    const endedRaw = await scrapeSymplaTab(listPage);
-    console.log(`    found ${endedRaw.length} ended event(s)`);
+    const { availableRaw, endedRaw } = await scrapeSymplaListPage(listPage, config);
     await listPage.close();
 
-    // ── Step 2: fetch rich detail for each event ──
     const detailPage = await browser.newPage();
     await detailPage.setViewportSize({ width: 1280, height: 900 });
     await detailPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
@@ -857,23 +931,10 @@ async function resolveSymplaEvents(config, existingEvents) {
       ...endedRaw.map((r) => ({ ...r, isEnded: true })),
     ];
 
-    const freshById = new Map();
-    for (const raw of allRaw) {
-      const isOnlineUrl = /\/evento-online\//.test(raw.href);
-      const detail = isOnlineUrl ? await fetchSymplaEventDetail(detailPage, raw.href) : null;
-      const event = mapSymplaEvent({ ...raw, detail }, config);
-      freshById.set(event.id, event);
-      console.log(`    ✓ ${event.id}: "${event.title}" [${event.status}]${isOnlineUrl ? " (detail enriched)" : " (card only)"}`);
-    }
+    const freshById = await enrichSymplaEvents(allRaw, detailPage, config);
     await detailPage.close();
 
-    // Preserve existing events not found on the page (very old ones)
-    for (const existing of existingEvents) {
-      if (!freshById.has(existing.id)) {
-        freshById.set(existing.id, existing);
-      }
-    }
-
+    mergeExistingEvents(freshById, existingEvents);
     return [...freshById.values()];
   } catch (error) {
     console.warn(`Skipping Sympla sync for ${config.source}/${config.sourceId}:`, error.message);
@@ -938,6 +999,13 @@ function parseOcgroupsTime(timePart) {
   return `${String(h).padStart(2, "0")}:${min}:00`;
 }
 
+function buildOcgroupsDateTime(year, month, day, timePart, tzRaw) {
+  const d = String(day).padStart(2, "0");
+  const tz = `${tzRaw}:00`;
+  const h = parseOcgroupsTime(timePart);
+  return h ? `${year}-${month}-${d}T${h}${tz}` : null;
+}
+
 function parseOcgroupsDateRange(dateText) {
   // Matches: "April 25, 2026 09:30 AM - 12:00 PM -03"
   // Pre-normalize whitespace to simplify the regex and avoid backtracking
@@ -949,14 +1017,9 @@ function parseOcgroupsDateRange(dateText) {
   const month = OCGROUPS_MONTH_MAP[monthName];
   if (!month) return { startAt: null, endAt: null };
 
-  const d = String(day).padStart(2, "0");
-  const tz = `${tzRaw}:00`;
-  const startH = parseOcgroupsTime(startTime);
-  const endH = parseOcgroupsTime(endTime);
-
   return {
-    startAt: startH ? `${year}-${month}-${d}T${startH}${tz}` : null,
-    endAt: endH ? `${year}-${month}-${d}T${endH}${tz}` : null,
+    startAt: buildOcgroupsDateTime(year, month, day, startTime, tzRaw),
+    endAt: buildOcgroupsDateTime(year, month, day, endTime, tzRaw),
   };
 }
 
@@ -969,95 +1032,124 @@ function mapOcgroupsEventStatus(startAt, endAt) {
   return "scheduled";
 }
 
-async function scrapeOcgroupsEvent(config, slug) {
-  const url = `https://ocgroups.dev/cncf/group/${config.groupId}/event/${slug}`;
-  const availabilityUrl = `${url}/availability`;
-
-  const [html, availabilityResult] = await Promise.all([
-    fetchOcgroupsHtml(url),
-    fetchWithTimeout(availabilityUrl, {
-      headers: {
-        "User-Agent": OCGROUPS_BROWSER_UA,
-        "HX-Request": "true",
-        Referer: url,
-      },
-    }).then((r) => r.ok ? r.json() : null).catch(() => null),
-  ]);
-
-  // Internal UUID from HTMX: hx-get="/cncf/event/{uuid}/attend"
+function extractOcgroupsUuid(html, slug) {
   const uuidMatch = /\/cncf\/event\/([0-9a-f-]{36})\/attend/.exec(html);
-  const uuid = uuidMatch ? uuidMatch[1] : slug;
+  return uuidMatch ? uuidMatch[1] : slug;
+}
 
-  // Title from H1 (most reliable). OCGroups HTML-encodes characters like < >.
-  const h1Match = /<h1[^>]*>([^<]+)<\/h1>/i.exec(html);
-  const title = h1Match ? decodeHtmlEntities(h1Match[1].trim()) : slug;
+function extractOcgroupsTitle(html, slug) {
+  const startIdx = html.search(/<h1\b/i);
+  if (startIdx === -1) return slug;
+  const openEnd = html.indexOf(">", startIdx);
+  if (openEnd === -1) return slug;
+  const closeStart = html.indexOf("</h1>", openEnd);
+  if (closeStart === -1) return slug;
+  const inner = html.slice(openEnd + 1, closeStart);
+  const text = inner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return text ? decodeHtmlEntities(text) : slug;
+}
 
-  // Date from "Event date" section header up to "Location"
-  const dateSectionMatch = /Event date[^<]*<\/[^>]+>(.*?)(?=Location)/is.exec(html);
-  let startAt = null, endAt = null;
-  if (dateSectionMatch) {
-    const dateText = dateSectionMatch[1].replaceAll(/<[^>]+>/g, " ").replaceAll(/\s+/g, " ").trim();
-    const parsed = parseOcgroupsDateRange(dateText);
-    startAt = parsed.startAt;
-    endAt = parsed.endAt;
+function extractOcgroupsDates(html) {
+  const dateSectionMatch = /Event date[\s\S]*?<\/[^>]+>([\s\S]*?)(?=Location)/is.exec(html);
+  if (!dateSectionMatch) return { startAt: null, endAt: null };
+  const dateText = dateSectionMatch[1].replaceAll(/<[^>]+>/g, " ").replaceAll(/\s+/g, " ").trim();
+  return parseOcgroupsDateRange(dateText);
+}
+
+function stripHtmlTags(input) {
+  let current = input;
+  let previous;
+  do {
+    previous = current;
+    current = current.replace(/<[^>]+>/g, "");
+  } while (current !== previous);
+  return current;
+}
+
+function extractOcgroupsLocation(html, config) {
+  const marker = "pointer-events-none";
+  const startIdx = html.indexOf(marker);
+  if (startIdx === -1) return config.defaultLocation;
+  const tagEnd = html.indexOf(">", startIdx);
+  if (tagEnd === -1) return config.defaultLocation;
+  const newlineAfter = html.indexOf("\n", tagEnd);
+  if (newlineAfter === -1) return config.defaultLocation;
+  const nextNewline = html.indexOf("\n", newlineAfter + 1);
+  const line = nextNewline === -1
+    ? html.slice(newlineAfter + 1)
+    : html.slice(newlineAfter + 1, nextNewline);
+  const text = stripHtmlTags(line).trim();
+  return text || config.defaultLocation;
+}
+
+function extractOcgroupsSummary(html, config) {
+  const marker = "About this event";
+  const startIdx = html.indexOf(marker);
+  if (startIdx === -1) return `Evento publicado por ${config.defaultHost}.`;
+  const sectionStart = html.indexOf(">", startIdx);
+  if (sectionStart === -1) return `Evento publicado por ${config.defaultHost}.`;
+  const endMarkers = ["Speakers", "Organizers", "Copyright"];
+  let endIdx = html.length;
+  for (const m of endMarkers) {
+    const idx = html.indexOf(m, sectionStart);
+    if (idx !== -1 && idx < endIdx) endIdx = idx;
   }
+  const section = html.slice(sectionStart + 1, endIdx);
+  const withoutScripts = section.replace(/<script\b[^>]*>[\s\S]*?<\/\s*script\b[^>]*>/gi, " ");
+  const rawDesc = decodeHtmlEntities(
+    withoutScripts
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+  return rawDesc.length >= 20 ? truncateText(rawDesc) : `Evento publicado por ${config.defaultHost}.`;
+}
 
-  // Location from the map badge (clean, non-duplicated)
-  const mapBadgeMatch = /pointer-events-none[^>]+>\s*\n\s*([^\n<]+)\s*\n/.exec(html);
-  const location = mapBadgeMatch ? mapBadgeMatch[1].trim() : config.defaultLocation;
-
-  // Description from "About this event" section
-  const descMatch = /About this event[^<]*<\/[^>]+>(.*?)(?=Speakers|Organizers|Copyright)/is.exec(html);
-  let summary = `Evento publicado por ${config.defaultHost}.`;
-  if (descMatch) {
-    const rawDesc = decodeHtmlEntities(
-      descMatch[1]
-        .replaceAll(/<script[^>]*>[\s\S]*?<\/\s*script[^>]*>/gi, " ")
-        .replaceAll(/<[^>]+>/g, " ")
-        .replaceAll(/\s+/g, " ")
-        .trim()
-    );
-    if (rawDesc.length >= 20) {
-      summary = truncateText(rawDesc);
-    }
-  }
-
-  // Organizers from <user-chip user='...'> custom elements (HTML-entity-encoded JSON)
+function extractOcgroupsOrganizers(html) {
   const orgIdx = html.indexOf("Organizers");
   const orgSection = orgIdx >= 0 ? html.slice(orgIdx, orgIdx + 8000) : "";
   const userChipMatches = [...orgSection.matchAll(/<user-chip\s+user='([^']+)'/g)];
-  const organizers = userChipMatches.flatMap((m) => {
+  return userChipMatches.flatMap((m) => {
     try {
       return [JSON.parse(decodeHtmlEntities(m[1]))];
     } catch {
       return [];
     }
   });
-  const primaryOrganizer = organizers[0] ?? null;
+}
 
-  // Event format: in-person vs online
-  const isOnline = /\bonline\b/i.test(html) && !/\bin-person\b/i.test(html);
-  const eventType = isOnline ? "online" : "presencial";
-
-  const status = mapOcgroupsEventStatus(startAt, endAt);
-
-  // Event gallery: OCGroups stores associated photos in a custom <images-gallery>
-  // web component. Use the first image as the event cover.
-  const galleryMatch = /<images-gallery[^>]+images="([^"]+)"(?:[^>]*)>/i.exec(html);
-  let imageUrl = undefined;
-  if (galleryMatch) {
-    try {
-      const galleryImages = JSON.parse(decodeHtmlEntities(galleryMatch[1]));
-      const first = Array.isArray(galleryImages) ? galleryImages[0] : undefined;
-      if (first) {
-        imageUrl = first.startsWith("http") ? first : `https://ocgroups.dev${first}`;
-      }
-    } catch {
-      // ignore malformed gallery JSON
+function extractOcgroupsImage(html) {
+  const galleryMatch = /<images-gallery\s[\s\S]*?images="([^"]+)"[\s\S]*?>/i.exec(html);
+  if (!galleryMatch) return undefined;
+  try {
+    const galleryImages = JSON.parse(decodeHtmlEntities(galleryMatch[1]));
+    const first = Array.isArray(galleryImages) ? galleryImages[0] : undefined;
+    if (first) {
+      return first.startsWith("http") ? first : `https://ocgroups.dev${first}`;
     }
+  } catch {
+    // ignore malformed gallery JSON
   }
+  return undefined;
+}
 
-  // Attendance count from availability endpoint: capacity - remaining_capacity
+function detectOcgroupsEventType(html) {
+  const isOnline = /\bonline\b/i.test(html) && !/\bin-person\b/i.test(html);
+  return isOnline ? "online" : "presencial";
+}
+
+function buildOcgroupsEvent(config, slug, html, availabilityResult) {
+  const url = `https://ocgroups.dev/cncf/group/${config.groupId}/event/${slug}`;
+  const uuid = extractOcgroupsUuid(html, slug);
+  const title = extractOcgroupsTitle(html, slug);
+  const { startAt, endAt } = extractOcgroupsDates(html);
+  const location = extractOcgroupsLocation(html, config);
+  const summary = extractOcgroupsSummary(html, config);
+  const organizers = extractOcgroupsOrganizers(html);
+  const primaryOrganizer = organizers[0] ?? null;
+  const eventType = detectOcgroupsEventType(html);
+  const status = mapOcgroupsEventStatus(startAt, endAt);
+  const imageUrl = extractOcgroupsImage(html);
   const registeredCount =
     availabilityResult?.capacity != null && availabilityResult?.remaining_capacity != null
       ? availabilityResult.capacity - availabilityResult.remaining_capacity
@@ -1093,6 +1185,48 @@ async function scrapeOcgroupsEvent(config, slug) {
   };
 }
 
+async function scrapeOcgroupsEvent(config, slug) {
+  const url = `https://ocgroups.dev/cncf/group/${config.groupId}/event/${slug}`;
+  const availabilityUrl = `${url}/availability`;
+
+  const [html, availabilityResult] = await Promise.all([
+    fetchOcgroupsHtml(url),
+    fetchWithTimeout(availabilityUrl, {
+      headers: {
+        "User-Agent": OCGROUPS_BROWSER_UA,
+        "HX-Request": "true",
+        Referer: url,
+      },
+    }).then((r) => r.ok ? r.json() : null).catch(() => null),
+  ]);
+
+  return buildOcgroupsEvent(config, slug, html, availabilityResult);
+}
+
+function resolveOcgroupsCanonicalSlug(groupHtml, groupId) {
+  const canonicalMatch = /<link[\s\S]*?rel="canonical"[\s\S]*?href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"/.exec(groupHtml)
+    ?? /<link[\s\S]*?href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"[\s\S]*?rel="canonical"/.exec(groupHtml);
+  const effectiveGroupSlug = canonicalMatch?.[1] ?? groupId;
+  if (effectiveGroupSlug !== groupId) {
+    console.log(`    ↪ groupId "${groupId}" resolved to canonical slug "${effectiveGroupSlug}"`);
+  }
+  return effectiveGroupSlug;
+}
+
+async function scrapeOcgroupsEventList(config, slugs) {
+  const freshById = new Map();
+  for (const slug of slugs) {
+    try {
+      const event = await scrapeOcgroupsEvent(config, slug);
+      freshById.set(event.id, event);
+      console.log(`    ✓ scraped event/${slug}: "${event.title}"`);
+    } catch (err) {
+      console.warn(`    ⚠ Failed to scrape event/${slug}: ${err.message}`);
+    }
+  }
+  return freshById;
+}
+
 async function resolveOcgroupsEvents(config, existingEvents) {
   try {
     const groupId = config.groupId;
@@ -1102,16 +1236,7 @@ async function resolveOcgroupsEvents(config, existingEvents) {
     }
 
     const groupHtml = await fetchOcgroupsHtml(`https://ocgroups.dev/cncf/group/${groupId}`);
-
-    // The server may redirect short IDs (e.g. "sq5vsqs") to the canonical slug
-    // (e.g. "cloudnativemaringa"). Read it from the canonical <link> tag so that
-    // extractOcgroupsEventSlugs uses the right pattern.
-    const canonicalMatch = /<link[^>]+rel="canonical"[^>]+href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"[^>]*>/.exec(groupHtml)
-      ?? /href="https:\/\/ocgroups\.dev\/cncf\/group\/([^"]+)"[^>]+rel="canonical"/.exec(groupHtml);
-    const effectiveGroupSlug = canonicalMatch?.[1] ?? groupId;
-    if (effectiveGroupSlug !== groupId) {
-      console.log(`    ↪ groupId "${groupId}" resolved to canonical slug "${effectiveGroupSlug}"`);
-    }
+    const effectiveGroupSlug = resolveOcgroupsCanonicalSlug(groupHtml, groupId);
 
     const slugs = extractOcgroupsEventSlugs(groupHtml, effectiveGroupSlug);
     console.log(`    found ${slugs.length} event slug(s) on group page`);
@@ -1121,24 +1246,8 @@ async function resolveOcgroupsEvents(config, existingEvents) {
       return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
     }
 
-    const freshById = new Map();
-    for (const slug of slugs) {
-      try {
-        const event = await scrapeOcgroupsEvent(config, slug);
-        freshById.set(event.id, event);
-        console.log(`    ✓ scraped event/${slug}: "${event.title}"`);
-      } catch (err) {
-        console.warn(`    ⚠ Failed to scrape event/${slug}: ${err.message}`);
-      }
-    }
-
-    // Preserve existing events not found on the group page (e.g., very old ones)
-    for (const existing of existingEvents) {
-      if (!freshById.has(existing.id)) {
-        freshById.set(existing.id, existing);
-      }
-    }
-
+    const freshById = await scrapeOcgroupsEventList(config, slugs);
+    mergeExistingEvents(freshById, existingEvents);
     return [...freshById.values()];
   } catch (error) {
     console.warn(`Skipping ocgroups sync for ${config.source}/${config.sourceId}:`, error.message);
@@ -1147,35 +1256,27 @@ async function resolveOcgroupsEvents(config, existingEvents) {
 }
 
 async function cleanSourceDir(sourceDir) {
-  // Preserva arquivos *.override.json: sao metadados curados por organizadores
-  // via PR (GitHub-as-database, ver docs/EVENT_PLAN.md) e nao podem ser apagados pelo sync.
+  // Limpa todos os arquivos JSON (overrides agora ficam no banco, nao mais em disco).
   await mkdir(sourceDir, { recursive: true });
   const entries = await readdir(sourceDir);
   await Promise.all(
     entries
-      .filter((entry) => entry.endsWith(".json") && !entry.endsWith(".override.json"))
+      .filter((entry) => entry.endsWith(".json"))
       .map((entry) => rm(path.join(sourceDir, entry), { force: true }))
   );
 }
 
-async function readOverrideIds(sourceDir) {
-  try {
-    const entries = await readdir(sourceDir);
-    return new Set(
-      entries
-        .filter((entry) => entry.endsWith(".override.json"))
-        .map((entry) => entry.slice(0, -".override.json".length))
-    );
-  } catch {
-    return new Set();
-  }
-}
-
-async function writeSourceOutputs(sourceConfig, events, generatedAt) {
+async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey) {
   const sourceDir = buildSourceDir(sourceConfig.source, sourceConfig.sourceId);
-  const overrideIds = await readOverrideIds(sourceDir);
+  const sourceKey = getSourceKey(sourceConfig.source, sourceConfig.sourceId);
+  const overridesForSource = overridesByKey.get(sourceKey) ?? new Map();
 
   await cleanSourceDir(sourceDir);
+
+  const eventsWithOverrides = events.map((event) => {
+    const override = overridesForSource.get(String(event.id));
+    return override ? applyOverride(event, override) : event;
+  });
 
   const sourceMeta = {
     source: sourceConfig.source,
@@ -1192,14 +1293,14 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
     generatedAt
   };
 
-  const summaries = events
+  const summaries = eventsWithOverrides
     .map((event) => ({
       ...event,
       source: sourceConfig.source,
       sourceId: sourceConfig.sourceId,
       sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
       itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id),
-      hasOverride: overrideIds.has(String(event.id))
+      hasOverride: Boolean(event.hasOverride)
     }))
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
@@ -1210,7 +1311,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
     itemCount: summaries.length
   };
 
-  for (const event of events) {
+  for (const event of eventsWithOverrides) {
     await writeFile(
       path.join(sourceDir, `${event.id}.json`),
       `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`,
@@ -1228,7 +1329,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt) {
   return { sourceSummary, summaries };
 }
 
-async function processSource(sourceConfig, fullSync, generatedAt) {
+async function processSource(sourceConfig, fullSync, generatedAt, overridesByKey) {
   console.log(`  syncing ${sourceConfig.source}/${sourceConfig.sourceId}...`);
   const existingEvents = await readExistingEvents(sourceConfig.source, sourceConfig.sourceId);
 
@@ -1243,7 +1344,7 @@ async function processSource(sourceConfig, fullSync, generatedAt) {
     events = await resolveSymplaEvents(sourceConfig, existingEvents);
   }
 
-  return writeSourceOutputs(sourceConfig, events, generatedAt);
+  return writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
 }
 
 // ─── Internal (backend Codaqui) ─────────────────────────────────────────────
@@ -1295,47 +1396,27 @@ async function processInternalSource(generatedAt) {
   };
   const events = payload ? payload.events : existingEvents;
 
-  const result = await writeSourceOutputs(sourceConfig, events, generatedAt);
+  const result = await writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
   if (!payload) {
     console.log("    ↪ usando snapshot em cache (backend indisponivel)");
   }
   return result;
 }
 
-// ─── Manifesto público de overrides (overrides-index.json) ─────────────────
-// Regenerado a cada sync a partir dos *.override.json em disco — backstop de
-// drift (o PR de cada override já atualiza o manifesto no mesmo PR).
-
-async function buildOverridesIndex(generatedAt) {
-  const overrides = {};
-  let entries = [];
-  try {
-    entries = await readdir(outputDir, { recursive: true, withFileTypes: true });
-  } catch {
-    entries = [];
-  }
-  const files = entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".override.json"))
-    .map((entry) => path.join(entry.parentPath, entry.name))
-    .sort();
-  for (const file of files) {
-    try {
-      const data = await readJson(file);
-      if (typeof data?.sourceKey === "string" && typeof data?.eventId === "string") {
-        overrides[`${data.sourceKey}:${data.eventId}`] = {
-          extendData: data.extendData ?? {},
-          ownerHandle: data.ownerHandle ?? "",
-          updatedAt: data.updatedAt ?? generatedAt
-        };
-      }
-    } catch {
-      console.warn(`  ⚠ override ignorado no manifesto (JSON inválido): ${file}`);
+function buildOverridesMap(overrides) {
+  const map = new Map();
+  for (const override of overrides) {
+    if (!override.sourceKey || !override.eventId) continue;
+    if (!map.has(override.sourceKey)) {
+      map.set(override.sourceKey, new Map());
     }
+    map.get(override.sourceKey).set(override.eventId, override);
   }
-  return { version: 1, updatedAt: generatedAt, overrides };
+  return map;
 }
 
-async function main() {  const fullSync =
+async function main() {
+  const fullSync =
     process.argv.includes("--full") || process.env.FULL_CONSOLIDATION === "true";
 
   const config = await readJson(configPath);
@@ -1349,8 +1430,13 @@ async function main() {  const fullSync =
   console.log(`mode: ${fullSync ? "full consolidation" : "incremental (last 30 days past + all upcoming)"}`);
   await mkdir(outputDir, { recursive: true });
 
+  // Overrides agora vem do banco via API — nao mais de arquivos .override.json.
+  const overrides = await fetchOverridesFromApi();
+  const overridesByKey = buildOverridesMap(overrides);
+  console.log(`  ↪ ${overrides.length} override(s) carregado(s) do backend`);
+
   for (const sourceConfig of config.sources) {
-    const { sourceSummary, summaries } = await processSource(sourceConfig, fullSync, generatedAt);
+    const { sourceSummary, summaries } = await processSource(sourceConfig, fullSync, generatedAt, overridesByKey);
     rootIndex.sources.push(sourceSummary);
     rootIndex.events.push(...summaries);
   }
@@ -1366,16 +1452,6 @@ async function main() {  const fullSync =
   rootIndex.events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
 
   await writeFile(path.join(outputDir, "index.json"), `${JSON.stringify(rootIndex, null, 2)}\n`, "utf8");
-
-  // Manifesto público de overrides — regenerado a cada sync a partir dos
-  // *.override.json em disco (bootstrap/correção de drift; os PRs de override
-  // já atualizam o manifesto no mesmo PR, este é o backstop).
-  const overridesIndex = await buildOverridesIndex(generatedAt);
-  await writeFile(
-    path.join(outputDir, "overrides-index.json"),
-    `${JSON.stringify(overridesIndex, null, 2)}\n`,
-    "utf8"
-  );
 
   console.log(`✓ events synced at ${generatedAt}`);
   console.log(`  sources: ${rootIndex.sources.length} | total events: ${rootIndex.events.length}`);

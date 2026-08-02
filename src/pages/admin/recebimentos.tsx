@@ -76,7 +76,7 @@ export default function RecebimentosPage(): React.JSX.Element {
         authFetch(`${apiUrl}/ledger/accounts`),
         authFetch(`${apiUrl}/vendors/receipts`),
       ]);
-      const unauthorized = [vRes, aRes, rRes].find((r) => r.status === 401);
+      const unauthorized = [vRes, aRes, rRes].some((r) => r.status === 401);
       if (unauthorized) {
         setError("Sessão expirada — faça login novamente.");
         return;

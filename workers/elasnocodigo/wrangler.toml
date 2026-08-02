@@ -1,0 +1,26 @@
+# Production wrangler config — Elas no Código
+#
+# Deploy: `npm run worker:deploy:elasnocodigo` (from repo root)
+# OR:     `npx wrangler deploy --config workers/elasnocodigo/wrangler.toml`
+#
+# Local dev: `npm run worker:dev:elasnocodigo` (uses wrangler.dev.toml)
+
+name = "elasnocodigo-proxy"
+main = "../shared/index.js"
+compatibility_date = "2024-09-01"
+
+# Production route — requires the domain to have its NS pointing to Cloudflare.
+# Add the route AFTER the zone is "Active" in the Cloudflare dashboard.
+routes = [
+  { pattern = "elasnocodigo.com.br/*", zone_name = "elasnocodigo.com.br" },
+  { pattern = "*.elasnocodigo.com.br/*", zone_name = "elasnocodigo.com.br" }
+]
+
+[vars]
+STATIC_ORIGIN = "https://codaqui.dev"
+API_ORIGIN = "https://api.codaqui.dev"
+COMMUNITY_PREFIX = "/comunidades/elasnocodigo"
+
+# Observability — enable basic metrics + logs in CF dashboard.
+[observability]
+enabled = true

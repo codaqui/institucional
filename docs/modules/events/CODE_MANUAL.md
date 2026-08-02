@@ -9,8 +9,8 @@ sections:
   - Dicas de debug
 related-docs:
   - AGENTS.md — guia geral do monorepo
-  - docs/ROLES.md — mapa de papéis
-  - docs/EVENT_PLAN_EXECUTION.md — estado de execução
+  - ./ROLES.md — mapa de papéis
+  - ../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
 -->
 
 # Manual do Código — Módulo de Eventos
@@ -27,7 +27,9 @@ related-docs:
 | Webhook Stripe para ingressos | `stripe/stripe.service.ts` (`handleEventTicketCheckoutCompleted`) |
 | Ledger / transparência | `ledger/ledger.service.ts`, `ledger/ledger.controller.ts` |
 | E-mails transacionais | `notifications/email.service.ts` |
-| GitHub-as-Database | `github-db/github-db.service.ts`, `event-organizer/*.ts` |
+| Overrides de eventos (novo: persistidos no PostgreSQL) | `events/event-overrides.service.ts`, `events/event-overrides.controller.ts` |
+| GitHub-as-Database (apenas snapshots internal:codaqui) | `github-db/github-db.service.ts` |
+| Ownership de eventos externos (PostgreSQL) | `event-organizer/event-organizer-ownership.service.ts` |
 | Match de participantes CSV | `events/events.service.ts` (`importParticipants`, `findMemberByIdentifier`) |
 | Reembolsos vinculados a evento | `reimbursements/reimbursements.service.ts`, `events/events.service.ts` |
 | Papéis e permissões | `members/entities/member.entity.ts`, `auth/guards/roles.guard.ts` |
@@ -54,13 +56,13 @@ related-docs:
 | Papel (role) | Onde é verificado | O que pode fazer no módulo de eventos |
 |---|---|---|
 | `admin` | `RolesGuard` | Tudo em todos os eventos. |
-| `event_organizer` | `EventsService.canManageAll`, ownership em `organizers.json` | Criar/editar/publicar eventos próprios; criar overrides de eventos externos que possui; ativar features em eventos externos que possui; gerenciar staff de eventos próprios; ver relatórios; lançar despesas. |
+| `event_organizer` | `EventsService.canManageAll`, ownership em `event_organizer_ownership` | Criar/editar/publicar eventos próprios; criar overrides de eventos externos que possui; ativar features em eventos externos que possui; gerenciar staff de eventos próprios; ver relatórios; lançar despesas. |
 | `event_finance` | `RolesGuard` | Aprovar reembolsos; ver relatórios financeiros; exportar pedidos. |
 | `event_host` | `event_staff.staffRole === 'host'` | Editar próprio evento; ver inscritos/pedidos; check-in; certificados; despesa. |
 | `event_checker` | `event_staff.staffRole === 'checker'` | **Apenas** check-in (scanner + busca mínima). |
 | `membro` | `JwtAuthGuard` | Comprar/reservar ingressos; ver próprias inscrições; emitir certificado. |
 
-> Para eventos externos, o organizer precisa de **ownership** (`organizers.json`) além do role.
+> Para eventos externos, o organizer precisa de **ownership** (`event_organizer_ownership`) além do role.
 > Para eventos próprios, o organizer/admin usa `event_staff` para delegar `host`/`checker`.
 
 ## 2. Fluxos principais
@@ -109,7 +111,20 @@ related-docs:
    `referenceId: reimbursement:<id>:<ts>` e `eventMetadata` descrevendo o evento.
 5. A transação aparece na transparência geral filtrada pela comunidade.
 
-### 2.6 Checkout embedded de ingressos
+### 2.6 Overrides de metadados (novo: API REST + PostgreSQL)
+
+1. Organizer/admin edita metadados em `/admin/overrides`.
+2. Frontend chama `POST /events/overrides` (criar) ou `PUT /events/overrides/:id`
+   (atualizar) enviando `sourceKey`, `eventId`, `payload.extendData`, `reason` e
+   `ownerMemberId`.
+3. `EventOverridesService` persiste na tabela `event_override` com audit
+   (`createdBy`, `updatedBy`, timestamps).
+4. `scripts/sync-events.mjs` consome `GET /events/overrides/public`, aplica
+   `payload.extendData` nos eventos e marca `hasOverride: true`.
+5. Páginas públicas (`/eventos`, `/eventos/detalhe`) leem o snapshot já mesclado;
+   não fazem mais fetch de `overrides-index.json`.
+
+### 2.7 Checkout embedded de ingressos
 
 1. Na página pública de detalhe (`/eventos/detalhe`), usuário escolhe lote e clica
    "Comprar ingresso".
@@ -148,8 +163,11 @@ npm run typecheck
 
 ## 5. Dicas de debug
 
-- **Override não aparece:** verifique `static/events/overrides-index.json` e o front API
-  `src/lib/events-api.ts` (`fetchEventsIndexMerged`).
+- **Override não aparece:** verifique se `GET /events/overrides/public` retorna o registro
+  (`sourceKey` + `eventId`), depois confira se `scripts/sync-events.mjs` aplicou o
+  `payload.extendData` no snapshot e gerou `hasOverride: true`. O arquivo
+  `overrides-index.json` foi removido — os overrides vivem agora na tabela
+  `event_override` do PostgreSQL.
 - **Ingresso pago não gera registration:** verifique logs do webhook Stripe e se
   `order.status` virou `paid`. Use `POST /events/orders/reconcile-ledger` para reprocessar.
 - **Match CSV falha:** confira `members.secondaryEmails` e o método

@@ -58,6 +58,7 @@ import {
   type EventSummary,
 } from "../../data/events";
 import type { EventOverride, EventSpeaker } from "../../utils/event-override";
+import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 import {
   EMPTY_OVERRIDE_FORM,
   SCOPE_FORMAT_HINT,
@@ -76,12 +77,6 @@ import {
 // ─── Tipos locais ────────────────────────────────────────────────────────────
 
 type AuthFetch = (path: string, init?: RequestInit) => Promise<Response>;
-
-interface PrInfo {
-  number: number | null;
-  url: string;
-  state?: string;
-}
 
 interface Ownership {
   memberId: string;
@@ -159,36 +154,10 @@ const formatDateTime = (iso: string): string =>
   });
 
 const overrideApiUrl = (apiUrl: string, sourceKey: string, eventId: string): string =>
-  `${apiUrl}/events/override/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`;
+  `${apiUrl}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`;
 
 const externalApiUrl = (apiUrl: string, eventKey: string): string =>
   `${apiUrl}/events/external/${encodeURIComponent(eventKey)}`;
-
-/** Normaliza a resposta de endpoints que retornam PR ({ prNumber, prUrl } ou { number, url }). */
-const toPrInfo = (data: {
-  prNumber?: number;
-  number?: number;
-  prUrl?: string;
-  url?: string;
-  state?: string;
-}): PrInfo | null => {
-  const url = data.prUrl ?? data.url;
-  if (!url) return null;
-  return { number: data.prNumber ?? data.number ?? null, url, state: data.state };
-};
-
-const PrLink = ({ pr }: { pr: PrInfo }) => (
-  <Button
-    size="small"
-    variant="text"
-    endIcon={<OpenInNewIcon />}
-    href={pr.url}
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    {pr.number === null ? "Abrir PR" : `PR #${pr.number}`}
-  </Button>
-);
 
 // ─── Seletor de evento externo (abas 1 e 3) ──────────────────────────────────
 
@@ -287,12 +256,11 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
   const [selected, setSelected] = useState<EventSummary | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [override, setOverride] = useState<EventOverride | null>(null);
-  const [openPr, setOpenPr] = useState<PrInfo | null>(null);
   const [form, setForm] = useState<OverrideFormState>(EMPTY_OVERRIDE_FORM);
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [successPr, setSuccessPr] = useState<PrInfo | null>(null);
+  const [successMsg, setSuccessMsg] = useState("");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -307,9 +275,8 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
     async (ev: EventSummary) => {
       setLoadingEvent(true);
       setError("");
-      setSuccessPr(null);
+      setSuccessMsg("");
       setOverride(null);
-      setOpenPr(null);
       setForm(EMPTY_OVERRIDE_FORM);
       setReason("");
       const base = overrideApiUrl(apiUrl, ev.sourceKey, ev.id);
@@ -319,23 +286,15 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
         if (res.ok) {
           const data = (await res.json()) as EventOverride;
           setOverride(data);
-          setForm(formStateFromExtendData(data.extendData));
+          setForm(formStateFromExtendData(data.payload));
         }
       } catch {
         // Falha de rede ou ausência de override: segue com formulário vazio.
-      }
-      try {
-        const prRes = await authFetch(`${base}/pr`);
-        if (prRes.ok) {
-          setOpenPr(toPrInfo(await prRes.json()));
-        }
-      } catch {
-        // Sem PR aberto ou erro transitório — não bloqueia a edição.
       } finally {
         setLoadingEvent(false);
       }
     },
-    [apiUrl, authFetch]
+    [apiUrl]
   );
 
   // Aplica a pré-seleção via query string (uma única vez, quando o evento é encontrado).
@@ -350,18 +309,30 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
     if (!selected) return;
     setSaving(true);
     setError("");
+    setSuccessMsg("");
     try {
-      const res = await authFetch(overrideApiUrl(apiUrl, selected.sourceKey, selected.id), {
-        method: "PUT",
-        body: JSON.stringify({ extendData: buildExtendData(form), reason: reason.trim() }),
+      const isUpdate = Boolean(override);
+      const url = isUpdate
+        ? overrideApiUrl(apiUrl, selected.sourceKey, selected.id)
+        : `${apiUrl}/events/overrides`;
+      const body = isUpdate
+        ? JSON.stringify({ payload: { extendData: buildExtendData(form) }, reason: reason.trim() })
+        : JSON.stringify({
+            sourceKey: selected.sourceKey,
+            eventId: selected.id,
+            payload: { extendData: buildExtendData(form) },
+            reason: reason.trim(),
+          });
+      const res = await authFetch(url, {
+        method: isUpdate ? "PUT" : "POST",
+        body,
       });
       if (!res.ok) {
         setError(await extractErrorMessage(res, "Erro ao salvar o override."));
         return;
       }
-      const pr = toPrInfo(await res.json());
       await loadEvent(selected);
-      setSuccessPr(pr);
+      setSuccessMsg("Override salvo com sucesso. O snapshot sera atualizado no proximo sync.");
     } catch {
       setError("Erro inesperado ao salvar o override.");
     } finally {
@@ -381,10 +352,9 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
         setDeleteError(await extractErrorMessage(res, "Erro ao remover o override."));
         return;
       }
-      const pr = toPrInfo(await res.json());
       setDeleteOpen(false);
       await loadEvent(selected);
-      setSuccessPr(pr);
+      setSuccessMsg("Override removido com sucesso.");
     } catch {
       setDeleteError("Erro inesperado ao remover o override.");
     } finally {
@@ -419,22 +389,11 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
       {selected && !loadingEvent && (
         <>
           <Alert severity="info">
-            A alteração é enviada como <strong>Pull Request</strong> no repositório em seu
-            nome e <strong>auto-mergeada em segundos</strong> (github-actions). O site
-            reflete o override na próxima requisição.
+            A alteração é salva diretamente no banco de dados. O site reflete o override
+            na próxima requisição (ou no próximo sync de snapshots).
           </Alert>
 
-          {openPr && (
-            <Alert severity="warning" action={<PrLink pr={openPr} />}>
-              Já existe um PR aberto para este override.
-            </Alert>
-          )}
-
-          {successPr && (
-            <Alert severity="success" action={<PrLink pr={successPr} />}>
-              Alteração enviada com sucesso — PR aberto para auto-merge.
-            </Alert>
-          )}
+          {successMsg && <Alert severity="success">{successMsg}</Alert>}
 
           {error && <Alert severity="error">{error}</Alert>}
 
@@ -648,7 +607,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
                   fullWidth
-                  helperText="Aparece no título do PR e no histórico do override"
+                  helperText="Aparece no historico do override"
                 />
 
                 <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
@@ -658,7 +617,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
                     onClick={handleSave}
                     startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
                   >
-                    Salvar override (abre PR)
+                    Salvar override
                   </Button>
                   {override && (
                     <Button
@@ -720,7 +679,6 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
               <Box sx={{ mt: 3 }}>
                 <EventOverrideHistory
                   apiUrl={apiUrl}
-                  authFetch={authFetch}
                   sourceKey={selected.sourceKey}
                   eventId={selected.id}
                 />
@@ -733,7 +691,7 @@ function OverrideTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }
       <ModalConfirm
         open={deleteOpen}
         title="Remover override?"
-        description="O arquivo de override será removido via Pull Request (auto-mergeado em segundos) e o evento volta a exibir apenas os dados da fonte externa."
+        description="O override será removido do banco de dados e o evento volta a exibir apenas os dados da fonte externa."
         confirmLabel="Remover override"
         variant="error"
         loading={deleting}
@@ -761,7 +719,7 @@ function OrganizersTab({
   const [data, setData] = useState<OrganizersFile | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [prNotice, setPrNotice] = useState<PrInfo | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState("");
 
   // Busca server-side de membros (staff-candidates) — sem dump de /admin/members.
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
@@ -854,17 +812,17 @@ function OrganizersTab({
   const handleAddOwnership = async () => {
     setSaving(true);
     setSaveError("");
-    setPrNotice(null);
+    setSaveSuccess("");
     try {
-      const res = await authFetch(`${apiUrl}/events/organizers`, {
+      const res = await authFetch(`${apiUrl}/events/organizers/${encodeURIComponent(memberId)}`, {
         method: "POST",
-        body: JSON.stringify({ memberId, githubHandle: githubHandle.trim(), scope: scopes }),
+        body: JSON.stringify({ githubHandle: githubHandle.trim(), scope: scopes }),
       });
       if (!res.ok) {
         setSaveError(await extractErrorMessage(res, "Erro ao adicionar organizer."));
         return;
       }
-      setPrNotice(toPrInfo(await res.json()));
+      setSaveSuccess("Ownership salva com sucesso.");
       setSelectedMember(null);
       setMemberQuery("");
       setMemberOptions([]);
@@ -892,7 +850,6 @@ function OrganizersTab({
         setDeleteError(await extractErrorMessage(res, "Erro ao remover ownership."));
         return;
       }
-      setPrNotice(toPrInfo(await res.json()));
       setDeleteTarget(null);
       fetchAll();
     } catch {
@@ -918,12 +875,7 @@ function OrganizersTab({
         <code>source:sourceId:*</code> (toda a fonte).
       </Alert>
 
-      {prNotice && (
-        <Alert severity="warning" action={<PrLink pr={prNotice} />}>
-          Alteração enviada. Diferente dos overrides, o <strong>PR de organizers pode exigir
-          merge manual</strong>.
-        </Alert>
-      )}
+      {saveSuccess && <Alert severity="success">{saveSuccess}</Alert>}
 
       {loadError && <Alert severity="error">{loadError}</Alert>}
 
@@ -1051,7 +1003,7 @@ function OrganizersTab({
             {selectedMember && !(selectedMember.roles ?? []).includes("event_organizer") && (
               <Alert severity="warning" sx={{ py: 0.5 }}>
                 Este membro ainda não possui a role <code>event_organizer</code>. Adicione-a em
-                "Administração → Membros" antes de salvar, ou o PR de organizers não terá efeito.
+                "Administração → Membros" antes de salvar, ou a ownership não terá efeito.
               </Alert>
             )}
 
@@ -1146,7 +1098,7 @@ function OrganizersTab({
               startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
               sx={{ alignSelf: "flex-start" }}
             >
-              Salvar organizer (abre PR)
+              Salvar organizer
             </Button>
           </Stack>
         </CardContent>
@@ -1155,7 +1107,7 @@ function OrganizersTab({
       <ModalConfirm
         open={!!deleteTarget}
         title="Remover ownership?"
-        description={`@${deleteTarget?.githubHandle} perderá a permissão de editar os eventos dos escopos mapeados. A remoção é feita via Pull Request.`}
+        description={`@${deleteTarget?.githubHandle} perderá a permissão de editar os eventos dos escopos mapeados. A remoção é imediata.`}
         confirmLabel="Remover ownership"
         variant="error"
         loading={deleting}
@@ -1216,19 +1168,6 @@ const EMPTY_TICKET_FORM: TicketForm = {
 const formatBRLFromCents = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
-function toDateTimeLocal(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
-}
 
 const FEATURE_OPTIONS = [
   {
@@ -2199,7 +2138,7 @@ export default function AdminEventOverridesPage(): React.JSX.Element {
             Eventos Externos
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Overrides de metadados (via PR no repositório), mapeamento de organizers e ativação
+            Overrides de metadados (salvos no banco de dados), mapeamento de organizers e ativação
             de features em eventos externos
           </Typography>
         </Box>
