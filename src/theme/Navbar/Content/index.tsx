@@ -155,7 +155,7 @@ export default function NavbarContent(): React.JSX.Element {
   const [leftItems, rightItems] = splitNavbarItems(
     items as Parameters<typeof splitNavbarItems>[0],
   );
-  const searchBarItem = items.find((item) => item.type === "search");
+  const searchBarItem = items.some((item) => item.type === "search");
   return (
     <NavbarContentLayout
       left={

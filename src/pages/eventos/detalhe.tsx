@@ -691,9 +691,7 @@ function RegistrationButton({
       size="large"
       startIcon={<HowToRegIcon />}
       disabled={submitting || !selectedTicketType || (!free && !termsAccepted)}
-      onClick={() => {
-        void onAction();
-      }}
+      onClick={onAction}
     >
       {actionLabel}
     </Button>

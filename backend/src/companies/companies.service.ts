@@ -399,7 +399,7 @@ export class CompaniesService {
     const byMemberId = new Map<string, { memberId: string; role: 'owner' | 'collaborator' }>();
     for (const row of [...ownerRows, ...collaboratorRows]) {
       const previous = byMemberId.get(row.memberId);
-      if (!previous || previous.role !== 'owner') {
+      if (previous?.role !== 'owner') {
         byMemberId.set(row.memberId, row);
       }
     }
