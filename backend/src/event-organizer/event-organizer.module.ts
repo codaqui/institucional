@@ -5,7 +5,6 @@ import { MembersModule } from '../members/members.module';
 import { AuditModule } from '../audit/audit.module';
 import { EventOrganizerService } from './event-organizer.service';
 import { EventOrganizerOwnershipService } from './event-organizer-ownership.service';
-import { EventOrganizerOwnershipController } from './event-organizer-ownership.controller';
 import { EventOrganizerOwnership } from './entities/event-organizer-ownership.entity';
 
 @Module({

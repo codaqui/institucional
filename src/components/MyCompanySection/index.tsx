@@ -896,7 +896,7 @@ function useMyCompanySection({ companyId }: Props) {
 export default function MyCompanySection({ companyId }: Readonly<Props>): React.JSX.Element {
   const {
     ready, isLoggedIn, company, loading, error,
-    wallet, supportSummary, editing, editName, setEditName,
+    supportSummary, editing, editName, setEditName,
     editTradeName, setEditTradeName, editLogo, setEditLogo,
     editWebsite, setEditWebsite, saveError, saving, startEdit, saveEdit, setEditing,
     addHandle, setAddHandle, addError, adding, addCollaborator,

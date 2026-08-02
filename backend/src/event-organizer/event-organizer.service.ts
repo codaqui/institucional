@@ -11,7 +11,6 @@ import { MemberRole } from '../members/entities/member.entity';
 import { EventOrganizerOwnershipService } from './event-organizer-ownership.service';
 import type {
   ExtendDataDto,
-  UpsertOverrideDto,
 } from './dto/upsert-override.dto';
 
 export interface OwnershipEntry {

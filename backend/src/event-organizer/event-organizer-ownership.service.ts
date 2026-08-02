@@ -146,9 +146,7 @@ export class EventOrganizerOwnershipService {
     }
 
     void this.auditService.log({
-      action: ownership
-        ? AuditAction.EVENT_ORGANIZER_GRANTED
-        : AuditAction.EVENT_ORGANIZER_GRANTED,
+      action: AuditAction.EVENT_ORGANIZER_GRANTED,
       actorId: actor.sub,
       actorHandle: actor.handle,
       targetId: memberId,

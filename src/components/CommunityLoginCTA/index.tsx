@@ -7,11 +7,11 @@ import { resolveCommunityFromPath } from "@site/src/lib/community-context";
 
 interface CommunityLoginCTAProps {
   /** Mensagem principal. Default explica retorno automático. */
-  message?: string;
+  readonly message?: string;
   /** Cor do botão (primary/accent). */
-  accentColor?: string;
+  readonly accentColor?: string;
   /** Cor de hover do botão. */
-  accentColorDark?: string;
+  readonly accentColorDark?: string;
 }
 
 /**
@@ -25,7 +25,7 @@ export default function CommunityLoginCTA({
   message = "Entre com GitHub para doar identificado. Você será redirecionado de volta para esta página.",
   accentColor,
   accentColorDark,
-}: CommunityLoginCTAProps): React.JSX.Element | null {
+}: Readonly<CommunityLoginCTAProps>): React.JSX.Element | null {
   const { pathname } = useLocation();
   const { isLoggedIn, ready, login } = useAuth();
   const community = resolveCommunityFromPath(pathname);

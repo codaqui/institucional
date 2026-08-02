@@ -50,7 +50,7 @@ async function fetchOverridesFromApi() {
 }
 
 function applyOverride(event, override) {
-  if (!override || !override.payload) return event;
+  if (!override?.payload) return event;
   const extendData = typeof override.payload === "string"
     ? JSON.parse(override.payload)
     : override.payload;
@@ -684,7 +684,7 @@ function mapSymplaEventStatus(startAt, isEnded) {
 }
 
 function extractSymplaDateLine(body) {
-  const datePart = "\\d{1,2} [a-z]{3} - \\d{4} [•·] \\d{2}:\\d{2}";
+  const datePart = String.raw`\d{1,2} [a-z]{3} - \d{4} [•·] \d{2}:\d{2}`;
   const rangeMatch = new RegExp(`(${datePart}) > (${datePart})`, "i").exec(body);
   if (rangeMatch) {
     return {
@@ -739,8 +739,8 @@ async function fetchSymplaEventDetail(page, href) {
     // If Sympla redirected away ("event ended / see similar events"), the final URL
     // will have a different numeric ID — skip enrichment to avoid picking up wrong data.
     const finalUrl = page.url();
-    const expectedId = new URL(detailUrl).pathname.match(/\/(\d+)$/)?.[1];
-    const finalId = new URL(finalUrl).pathname.match(/\/(\d+)$/)?.[1];
+    const expectedId = /\/(\d+)$/.exec(new URL(detailUrl).pathname)?.[1];
+    const finalId = /\/(\d+)$/.exec(new URL(finalUrl).pathname)?.[1];
     if (expectedId && finalId && expectedId !== finalId) {
       console.warn(`    ⚠ Sympla redirected event ${expectedId} → ${finalId}, skipping detail`);
       return null;
@@ -1038,8 +1038,15 @@ function extractOcgroupsUuid(html, slug) {
 }
 
 function extractOcgroupsTitle(html, slug) {
-  const h1Match = /<h1[\s\S]*?>([\s\S]*?)<\/h1>/i.exec(html);
-  return h1Match ? decodeHtmlEntities(h1Match[1].replace(/<[^>]+>/g, " ").trim()) : slug;
+  const startIdx = html.search(/<h1\b/i);
+  if (startIdx === -1) return slug;
+  const openEnd = html.indexOf(">", startIdx);
+  if (openEnd === -1) return slug;
+  const closeStart = html.indexOf("</h1>", openEnd);
+  if (closeStart === -1) return slug;
+  const inner = html.slice(openEnd + 1, closeStart);
+  const text = inner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  return text ? decodeHtmlEntities(text) : slug;
 }
 
 function extractOcgroupsDates(html) {
@@ -1050,18 +1057,39 @@ function extractOcgroupsDates(html) {
 }
 
 function extractOcgroupsLocation(html, config) {
-  const mapBadgeMatch = /pointer-events-none[\s\S]*?>\s*\n\s*([^\n<]+)\s*\n/.exec(html);
-  return mapBadgeMatch ? mapBadgeMatch[1].trim() : config.defaultLocation;
+  const marker = "pointer-events-none";
+  const startIdx = html.indexOf(marker);
+  if (startIdx === -1) return config.defaultLocation;
+  const tagEnd = html.indexOf(">", startIdx);
+  if (tagEnd === -1) return config.defaultLocation;
+  const newlineAfter = html.indexOf("\n", tagEnd);
+  if (newlineAfter === -1) return config.defaultLocation;
+  const nextNewline = html.indexOf("\n", newlineAfter + 1);
+  const line = nextNewline === -1
+    ? html.slice(newlineAfter + 1)
+    : html.slice(newlineAfter + 1, nextNewline);
+  const text = line.replace(/<[^>]+>/g, "").trim();
+  return text || config.defaultLocation;
 }
 
 function extractOcgroupsSummary(html, config) {
-  const descMatch = /About this event[\s\S]*?<\/[^>]+>([\s\S]*?)(?=Speakers|Organizers|Copyright)/is.exec(html);
-  if (!descMatch) return `Evento publicado por ${config.defaultHost}.`;
+  const marker = "About this event";
+  const startIdx = html.indexOf(marker);
+  if (startIdx === -1) return `Evento publicado por ${config.defaultHost}.`;
+  const sectionStart = html.indexOf(">", startIdx);
+  if (sectionStart === -1) return `Evento publicado por ${config.defaultHost}.`;
+  const endMarkers = ["Speakers", "Organizers", "Copyright"];
+  let endIdx = html.length;
+  for (const m of endMarkers) {
+    const idx = html.indexOf(m, sectionStart);
+    if (idx !== -1 && idx < endIdx) endIdx = idx;
+  }
+  const section = html.slice(sectionStart + 1, endIdx);
+  const withoutScripts = section.replace(/<script[^>]*>[\s\S]*?<\/\s*script>/gi, " ");
   const rawDesc = decodeHtmlEntities(
-    descMatch[1]
-      .replaceAll(/<script[\s\S]*?<\/\s*script>/gi, " ")
-      .replaceAll(/<[^>]+>/g, " ")
-      .replaceAll(/\s+/g, " ")
+    withoutScripts
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
       .trim()
   );
   return rawDesc.length >= 20 ? truncateText(rawDesc) : `Evento publicado por ${config.defaultHost}.`;
@@ -1405,7 +1433,7 @@ async function main() {
 
   // Fonte internal:codaqui — dinamica via API do backend (nao esta no
   // events.config.json). Retorna null se a API estiver fora e nao houver cache.
-  const internalResult = await processInternalSource(generatedAt, overridesByKey);
+  const internalResult = await processInternalSource(generatedAt);
   if (internalResult) {
     rootIndex.sources.push(internalResult.sourceSummary);
     rootIndex.events.push(...internalResult.summaries);

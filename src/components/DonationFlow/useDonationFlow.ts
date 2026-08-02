@@ -6,7 +6,6 @@ import { useAuth } from "@site/src/hooks/useAuth";
 import { resolveApiUrl } from "@site/src/lib/api-url";
 import {
   buildCheckoutBody,
-  detectWhitelabelDeploy,
   requestCheckoutSession,
 } from "./helpers";
 
@@ -163,7 +162,6 @@ export function useDonationFlow({
   const requiresLogin = !disableAuth && amount > ANONYMOUS_LIMIT_CENTS && !isLoggedIn;
   const blockedAnonAmount = disableAuth && amount > ANONYMOUS_LIMIT_CENTS;
 
-  const isWhitelabelDeploy = detectWhitelabelDeploy(apiUrl);
   const codaquiHomeUrl = `${siteConfig.url}${siteConfig.baseUrl}`;
 
   const fetchBalances = useCallback(() => {

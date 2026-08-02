@@ -53,7 +53,6 @@ import {
   formatBRL,
   PRESET_AMOUNTS,
   useDonationFlow,
-  type WalletBalance,
 } from "./useDonationFlow";
 
 export interface DonationFlowProps {
@@ -419,7 +418,7 @@ interface WalletListProps {
 }
 
 function WalletList({ flow, accentColor }: WalletListProps): React.JSX.Element {
-  const { balances, balancesLoading, target, setTarget, getBalance, DONATION_TARGETS } = flow;
+  const { balancesLoading, target, setTarget, getBalance, DONATION_TARGETS } = flow;
 
   return (
     <Box sx={{ position: { md: "sticky" }, top: { md: 24 } }}>

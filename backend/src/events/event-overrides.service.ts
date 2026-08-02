@@ -1,6 +1,4 @@
 import {
-  BadRequestException,
-  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -106,9 +104,7 @@ export class EventOverridesService {
     }
 
     void this.auditService.log({
-      action: existing
-        ? AuditAction.EVENT_OVERRIDE_UPSERTED
-        : AuditAction.EVENT_OVERRIDE_UPSERTED,
+      action: AuditAction.EVENT_OVERRIDE_UPSERTED,
       actorId: user.sub,
       actorHandle: user.handle,
       targetType: 'event-override',
