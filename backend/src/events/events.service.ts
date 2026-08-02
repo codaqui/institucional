@@ -2231,7 +2231,7 @@ export class EventsService {
 
   /**
    * Permissão sobre uma ativação externa: admin/owner do evento (via
-   * organizers.json — EventOrganizerService.assertCanManage) ou, se
+   * EventOrganizerOwnership — EventOrganizerService.assertCanManage) ou, se
    * allowActivator, o membro que ativou o evento (staff operacional).
    */
   private async assertExternalManager(
@@ -2272,8 +2272,8 @@ export class EventsService {
 
   /**
    * POST /events/external/:eventKey/activate — upsert da ativação.
-   * Auth: owner do evento (organizers.json) ou admin. `certificates` implica
-   * `checkin` (adicionado automaticamente — decisão documentada).
+   * Auth: owner do evento (EventOrganizerOwnership) ou admin. `certificates`
+   * implica `checkin` (adicionado automaticamente — decisão documentada).
    */
   async activateExternal(
     eventKey: string,
@@ -2719,7 +2719,7 @@ export class EventsService {
 
   /**
    * POST /events/external/:eventKey/checkin — staff = quem ativou o evento
-   * ou admin/owner (organizers.json). Exige feature "checkin".
+   * ou admin/owner (EventOrganizerOwnership). Exige feature "checkin".
    */
   async checkinExternal(eventKey: string, token: string, user: JwtPayload) {
     const activation = await this.findActivationOrFail(eventKey);
@@ -3000,7 +3000,8 @@ export class EventsService {
 
   /**
    * GET /events/external/activations — admin vê todas; demais membros veem
-   * as que ativaram (enabledByMemberId) ou cobertas por ownership (organizers.json).
+   * as que ativaram (enabledByMemberId) ou cobertas por ownership
+   * (EventOrganizerOwnership).
    */
   async listActivations(user: JwtPayload) {
     const all = await this.activationRepo.find({

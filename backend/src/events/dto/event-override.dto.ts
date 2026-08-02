@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
@@ -5,6 +6,7 @@ import {
   IsOptional,
   IsString,
   MaxLength,
+  ValidateNested,
 } from 'class-validator';
 
 /**
@@ -41,6 +43,8 @@ export class CreateEventOverrideDto {
   eventId: string;
 
   @ApiProperty({ type: EventOverridePayloadDto })
+  @ValidateNested()
+  @Type(() => EventOverridePayloadDto)
   payload: EventOverridePayloadDto;
 
   @ApiPropertyOptional({
@@ -55,6 +59,8 @@ export class CreateEventOverrideDto {
 
 export class UpdateEventOverrideDto {
   @ApiProperty({ type: EventOverridePayloadDto })
+  @ValidateNested()
+  @Type(() => EventOverridePayloadDto)
   payload: EventOverridePayloadDto;
 
   @ApiPropertyOptional({

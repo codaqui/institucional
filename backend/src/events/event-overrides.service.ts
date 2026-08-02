@@ -22,7 +22,7 @@ import type {
  * Substitui o antigo GitHub-as-Database (arquivos *.override.json):
  * - leitura/escrita direta no banco via TypeORM;
  * - payload armazenado como texto JSON (leve, sem schema relacional);
- * - permissões continuam usando organizers.json (ownership) por enquanto.
+ * - permissões usam EventOrganizerOwnership (PostgreSQL) para ownership.
  */
 @Injectable()
 export class EventOverridesService {

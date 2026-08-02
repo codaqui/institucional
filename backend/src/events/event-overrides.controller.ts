@@ -37,11 +37,19 @@ export class EventOverridesController {
 
   @Get(':sourceKey/:eventId')
   @ApiOperation({ summary: 'Override de metadados de um evento (público)' })
-  getOverride(
+  async getOverride(
     @Param('sourceKey') sourceKey: string,
     @Param('eventId') eventId: string,
-  ) {
-    return this.service.findOne(sourceKey, eventId);
+  ): Promise<PublicOverride> {
+    const o = await this.service.findOne(sourceKey, eventId);
+    return {
+      sourceKey: o.sourceKey,
+      eventId: o.eventId,
+      ownerHandle: o.ownerHandle,
+      updatedAt: o.updatedAt,
+      reason: o.reason,
+      payload: JSON.parse(o.payload) as Record<string, unknown>,
+    };
   }
 
   @Get('public')
