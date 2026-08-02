@@ -52,6 +52,7 @@ import {
   type EventSummary,
 } from "../../data/events";
 import { fetchEventsIndexMerged } from "../../lib/events-api";
+import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -209,20 +210,6 @@ function formatDateTime(iso: string): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function toDateTimeLocal(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDateTimeLocal(value: string): string | undefined {
-  if (!value) return undefined;
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
 }
 
 const DATETIME_LOCAL_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
@@ -1083,9 +1070,11 @@ function useAdminEventosData(
   };
 }
 
+type EventDialogState = { mode: "create" } | { mode: "edit"; event: ManagedEvent } | null;
+
 interface UseAdminEventosMutationsReturn {
-  eventDialog: { mode: "create" } | { mode: "edit"; event: ManagedEvent } | null;
-  setEventDialog: React.Dispatch<React.SetStateAction<{ mode: "create" } | { mode: "edit"; event: ManagedEvent } | null>>;
+  eventDialog: EventDialogState;
+  setEventDialog: React.Dispatch<React.SetStateAction<EventDialogState>>;
   eventForm: EventForm;
   setEventForm: React.Dispatch<React.SetStateAction<EventForm>>;
   eventSaving: boolean;
@@ -1126,7 +1115,7 @@ function useAdminEventosMutations(
   authFetch: ReturnType<typeof useAuth>["authFetch"],
   fetchEvents: () => Promise<void>,
 ): UseAdminEventosMutationsReturn {
-  const [eventDialog, setEventDialog] = useState<{ mode: "create" } | { mode: "edit"; event: ManagedEvent } | null>(null);
+  const [eventDialog, setEventDialog] = useState<EventDialogState>(null);
   const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT_FORM);
   const [eventSaving, setEventSaving] = useState(false);
   const [eventError, setEventError] = useState("");
