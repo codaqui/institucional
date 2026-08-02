@@ -1056,6 +1056,16 @@ function extractOcgroupsDates(html) {
   return parseOcgroupsDateRange(dateText);
 }
 
+function stripHtmlTags(input) {
+  let current = input;
+  let previous;
+  do {
+    previous = current;
+    current = current.replace(/<[^>]+>/g, "");
+  } while (current !== previous);
+  return current;
+}
+
 function extractOcgroupsLocation(html, config) {
   const marker = "pointer-events-none";
   const startIdx = html.indexOf(marker);
@@ -1068,7 +1078,7 @@ function extractOcgroupsLocation(html, config) {
   const line = nextNewline === -1
     ? html.slice(newlineAfter + 1)
     : html.slice(newlineAfter + 1, nextNewline);
-  const text = line.replace(/<[^>]+>/g, "").trim();
+  const text = stripHtmlTags(line).trim();
   return text || config.defaultLocation;
 }
 
@@ -1085,7 +1095,7 @@ function extractOcgroupsSummary(html, config) {
     if (idx !== -1 && idx < endIdx) endIdx = idx;
   }
   const section = html.slice(sectionStart + 1, endIdx);
-  const withoutScripts = section.replace(/<script[^>]*>[\s\S]*?<\/\s*script>/gi, " ");
+  const withoutScripts = section.replace(/<script\b[^>]*>[\s\S]*?<\/\s*script\b[^>]*>/gi, " ");
   const rawDesc = decodeHtmlEntities(
     withoutScripts
       .replace(/<[^>]+>/g, " ")
