@@ -34,7 +34,7 @@ export default function FooterWrapper(): React.JSX.Element | null {
             <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
               <Box
                 component="img"
-                src={community.logoUrlDark}
+                src={community.logoUrlDark ?? community.logoUrl}
                 alt={community.name}
                 sx={{ height: 48, display: "block" }}
               />
@@ -64,7 +64,7 @@ export default function FooterWrapper(): React.JSX.Element | null {
                 }, [])
                 .map((item) => (
                   <Link
-                    key={item.to}
+                    key={`${item.label}-${item.to}`}
                     to={item.to}
                     style={{ color: "#cbd5e1", textDecoration: "none", fontSize: "0.9rem" }}
                   >
