@@ -3,36 +3,30 @@ import { render, screen } from "@testing-library/react";
 import VideoEmbed from "../index";
 
 describe("VideoEmbed", () => {
-  describe("YouTube URL parsing", () => {
-    it("extracts video ID from youtube.com/watch?v= URL", () => {
-      render(<VideoEmbed url="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />);
-      expect(screen.getByTitle("Vídeo")).toHaveAttribute(
-        "src",
-        "https://www.youtube.com/embed/dQw4w9WgXcQ"
-      );
-    });
-
-    it("extracts video ID from youtu.be/ short URL", () => {
-      render(<VideoEmbed url="https://youtu.be/dQw4w9WgXcQ" />);
-      expect(screen.getByTitle("Vídeo")).toHaveAttribute(
-        "src",
-        "https://www.youtube.com/embed/dQw4w9WgXcQ"
-      );
-    });
-
-    it("extracts video ID from youtube.com/embed/ URL", () => {
-      render(<VideoEmbed url="https://www.youtube.com/embed/dQw4w9WgXcQ" />);
-      expect(screen.getByTitle("Vídeo")).toHaveAttribute(
-        "src",
-        "https://www.youtube.com/embed/dQw4w9WgXcQ"
-      );
-    });
-
-    it("uses URL as-is when not a recognized YouTube URL", () => {
-      const externalUrl = "https://player.vimeo.com/video/123456";
-      render(<VideoEmbed url={externalUrl} />);
-      expect(screen.getByTitle("Vídeo")).toHaveAttribute("src", externalUrl);
-    });
+  it.each([
+    [
+      "youtube.com/watch?v= URL",
+      "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    ],
+    [
+      "youtu.be/ short URL",
+      "https://youtu.be/dQw4w9WgXcQ",
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    ],
+    [
+      "youtube.com/embed/ URL",
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+      "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    ],
+    [
+      "non-YouTube URL",
+      "https://player.vimeo.com/video/123456",
+      "https://player.vimeo.com/video/123456",
+    ],
+  ])("extracts/embeds correctly for %s", (_, url, expectedSrc) => {
+    render(<VideoEmbed url={url} />);
+    expect(screen.getByTitle("Vídeo")).toHaveAttribute("src", expectedSrc);
   });
 
   describe("title prop", () => {

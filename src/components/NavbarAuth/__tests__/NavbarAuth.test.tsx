@@ -228,8 +228,8 @@ describe("desktop mode (mobile={false} padrão)", () => {
     await screen.findByText("Meu Perfil");
     // Clicar no backdrop do MUI Menu dispara onClose
     const backdrop = document.querySelector(".MuiBackdrop-root") as HTMLElement;
+    expect(backdrop).toBeInTheDocument();
     if (backdrop) fireEvent.click(backdrop);
-    // Apenas verificamos que o callback não lança — comportamento real testado em e2e
   });
 
   it("dispara logout ao clicar em Sair no menu desktop", async () => {
