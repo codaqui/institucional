@@ -14,6 +14,7 @@ import { AuditModule } from '../audit/audit.module';
 import { StripeModule } from '../stripe/stripe.module';
 import { EventOrganizerModule } from '../event-organizer/event-organizer.module';
 import { EventOrganizerController } from '../event-organizer/event-organizer.controller';
+import { EventOrganizerOwnershipController } from '../event-organizer/event-organizer-ownership.controller';
 import { GithubDbModule } from '../github-db/github-db.module';
 import { ReimbursementsModule } from '../reimbursements/reimbursements.module';
 import { EventsService } from './events.service';
@@ -41,13 +42,18 @@ import { EventOverridesController } from './event-overrides.controller';
     GithubDbModule,
     ReimbursementsModule,
   ],
-  // ⚠️ Ordem importa: EventOrganizerController ANTES de EventsController —
+  // ⚠️ Ordem importa: controllers de event-organizer ANTES de EventsController —
   // ambos usam @Controller('events') e as rotas estáticas (/events/organizers,
   // /events/override/...) precisam registrar antes de /events/:id.
   // Registrar no nível do controller (e não do módulo) porque o ciclo
   // Members→Events faz o EventsModule ser escaneado antes do EventOrganizerModule,
   // invalidando a ordem dos imports do AppModule.
-  controllers: [EventOrganizerController, EventOverridesController, EventsController],
+  controllers: [
+    EventOrganizerController,
+    EventOrganizerOwnershipController,
+    EventOverridesController,
+    EventsController,
+  ],
   providers: [EventsService, EventOverridesService],
   exports: [EventsService, EventOverridesService],
 })
