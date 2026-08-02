@@ -12,6 +12,7 @@ compatibility_date = "2024-09-01"
 # Production route — requires the domain to have its NS pointing to Cloudflare.
 # Add the route AFTER the zone is "Active" in the Cloudflare dashboard.
 routes = [
+  { pattern = "elasnocodigo.com.br/*", zone_name = "elasnocodigo.com.br" },
   { pattern = "*.elasnocodigo.com.br/*", zone_name = "elasnocodigo.com.br" }
 ]
 

@@ -1583,7 +1583,7 @@ function EventDetailContent({
     return () => {
       active = false;
     };
-  }, [source, sourceId, eventId]);
+  }, [source, sourceId, eventId, apiUrl]);
 
   if (loading) {
     return (
