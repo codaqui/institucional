@@ -29,7 +29,7 @@ export class EventOverride {
   eventId: string;
 
   /** Membro dono do override (pode editar). */
-  @Column()
+  @Column({ type: 'uuid' })
   ownerMemberId: string;
 
   /** Handle GitHub do dono (denormalizado para exibição pública e sync). */
@@ -48,16 +48,16 @@ export class EventOverride {
   reason: string | null;
 
   /** Membro que criou o override. */
-  @Column()
+  @Column({ type: 'uuid' })
   createdByMemberId: string;
 
   /** Membro que editou o override por último. */
-  @Column()
+  @Column({ type: 'uuid' })
   updatedByMemberId: string;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }
