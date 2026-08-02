@@ -10,7 +10,7 @@
 
 import tisocialConfig from "./tisocial/community.config";
 import elasnocodigoConfig from "./elasnocodigo/community.config";
-import type { CommunitySiteConfig } from "./tisocial/community.config";
+import type { CommunitySiteConfig } from "./shared/types";
 
 export const COMMUNITIES_CONFIG: CommunitySiteConfig[] = [
   tisocialConfig,
@@ -22,4 +22,4 @@ export const COMMUNITIES_CONFIG: CommunitySiteConfig[] = [
   //   4. Criar páginas TSX em comunidades/<slug>/src/pages/.
 ];
 
-export type { CommunitySiteConfig } from "./tisocial/community.config";
+export type { CommunitySiteConfig } from "./shared/types";

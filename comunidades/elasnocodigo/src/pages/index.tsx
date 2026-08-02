@@ -5,7 +5,6 @@ import {
   Box,
   Button,
   Card,
-  CardActionArea,
   CardContent,
   Chip,
   Container,
@@ -19,19 +18,15 @@ import PaidIcon from "@mui/icons-material/Paid";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PodcastsIcon from "@mui/icons-material/Podcasts";
 import GroupsIcon from "@mui/icons-material/Groups";
+import CommunityImpactSection from "@site/comunidades/shared/components/CommunityImpactSection";
+import CommunityExploreSection, { type FeatureCard } from "@site/comunidades/shared/components/CommunityExploreSection";
+import CommunityChannelsSection from "@site/comunidades/shared/components/CommunityChannelsSection";
 import community from "../../community.config";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
 const accentLight = community.theme.primaryLight;
 const highlight = community.theme.accent;
-
-interface FeatureCard {
-  icon: React.ReactElement;
-  title: string;
-  description: string;
-  to: string;
-}
 
 function buildFeatureCards(): FeatureCard[] {
   const base = community.basePath;
@@ -64,7 +59,6 @@ function buildFeatureCards(): FeatureCard[] {
 }
 
 const featureCards = buildFeatureCards();
-const stats = community.impact?.stats ?? [];
 
 const actions = [
   {
@@ -166,11 +160,7 @@ export default function ElasNoCodigoHome(): React.JSX.Element {
                   src={community.logoUrl}
                   alt={`Logo ${community.shortName}`}
                   className="community-logo-light"
-                  sx={{
-                    width: "100%",
-                    height: "auto",
-                    display: "block",
-                  }}
+                  sx={{ width: "100%", height: "auto", display: "block" }}
                 />
                 {community.logoUrlDark && (
                   <Box
@@ -221,98 +211,9 @@ export default function ElasNoCodigoHome(): React.JSX.Element {
         </Grid>
       </Container>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 5, md: 8 }, borderTop: 1, borderColor: "divider" }}>
-        <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
-          {community.impact?.title ?? "Impacto recente"}
-        </Typography>
-        {community.impact?.subtitle && (
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            {community.impact.subtitle}
-          </Typography>
-        )}
-        <Grid container spacing={3}>
-          {stats.map((stat) => (
-            <Grid key={stat.label} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card sx={{ height: "100%", textAlign: "center", py: 3 }}>
-                <CardContent>
-                  <Typography
-                    variant="h3"
-                    fontWeight={800}
-                    sx={{ color: accent, mb: 1 }}
-                  >
-                    {stat.value}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {stat.label}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-
-      <Box sx={{ bgcolor: "action.hover", py: { xs: 5, md: 8 } }}>
-        <Container maxWidth="lg">
-          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
-            {community.exploreSection?.title ?? "Explore a comunidade"}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            {community.exploreSection?.subtitle
-              ?? `Tudo que a ${community.shortName} oferece dentro do portal Codaqui.`}
-          </Typography>
-          <Grid container spacing={3}>
-            {featureCards.map((feature) => (
-              <Grid key={feature.title} size={{ xs: 12, sm: 6, md: 4 }}>
-                <Card
-                  sx={{
-                    height: "100%",
-                    transition: "transform 0.2s, box-shadow 0.2s",
-                    "&:hover": { transform: "translateY(-4px)", boxShadow: 6 },
-                  }}
-                >
-                  <CardActionArea component={Link} to={feature.to} sx={{ height: "100%" }}>
-                    <CardContent>
-                      <Box sx={{ color: accent, mb: 2 }}>{feature.icon}</Box>
-                      <Typography variant="h6" fontWeight={700} gutterBottom>
-                        {feature.title}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {feature.description}
-                      </Typography>
-                    </CardContent>
-                  </CardActionArea>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
-      </Box>
-
-      <Container maxWidth="md" sx={{ py: { xs: 5, md: 8 }, textAlign: "center" }}>
-        <Typography variant="h5" fontWeight={700} gutterBottom>
-          {community.channelsSection?.title ?? "Quer saber mais?"}
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          {community.channelsSection?.subtitle
-            ?? `Acesse os canais oficiais da ${community.name}.`}
-        </Typography>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="center">
-          {community.externalLinks.map((link) => (
-            <Button
-              key={link.href}
-              component="a"
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="outlined"
-              endIcon={<OpenInNewIcon />}
-            >
-              {link.label}
-            </Button>
-          ))}
-        </Stack>
-      </Container>
+      <CommunityImpactSection community={community} />
+      <CommunityExploreSection community={community} featureCards={featureCards} />
+      <CommunityChannelsSection community={community} />
     </Layout>
   );
 }
