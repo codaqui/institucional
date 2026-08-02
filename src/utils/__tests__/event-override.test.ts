@@ -117,9 +117,12 @@ describe("loadEventWithOverride", () => {
   });
 
   it("trata evento sem _override como override null", async () => {
-    (globalThis.fetch as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve({ ok: true, status: 200, json: async () => baseDetail })
-    );
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/")) {
+        return Promise.resolve({ ok: false, status: 404, json: async () => null });
+      }
+      return Promise.resolve({ ok: true, status: 200, json: async () => baseDetail });
+    });
 
     const result = await loadEventWithOverride("meetup", "devparana", "226163759");
 

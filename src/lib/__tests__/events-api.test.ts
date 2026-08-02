@@ -49,7 +49,7 @@ describe("fetchEventsIndexMerged", () => {
     (globalThis.fetch as unknown as jest.Mock) = jest.fn();
   });
 
-  it("retorna o indice ja mesclado pelo sync (um unico fetch)", async () => {
+  it("retorna o indice ja mesclado pelo sync", async () => {
     const mergedPayload: EventIndexFile = {
       ...indexPayload,
       events: [
@@ -63,15 +63,17 @@ describe("fetchEventsIndexMerged", () => {
         }),
       ],
     };
-    (globalThis.fetch as unknown as jest.Mock).mockImplementation(() =>
-      Promise.resolve(jsonResponse(mergedPayload))
-    );
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.resolve(jsonResponse([], false, 404));
+      }
+      return Promise.resolve(jsonResponse(mergedPayload));
+    });
 
     const result = await fetchEventsIndexMerged();
     expect(result.events[0].title).toBe("Titulo Corrigido");
     expect(result.events[0].hasOverride).toBe(true);
     expect(result.events[0]._override?.ownerHandle).toBe("endersonmenezes");
-    expect(globalThis.fetch as unknown as jest.Mock).toHaveBeenCalledTimes(1);
     expect(globalThis.fetch as unknown as jest.Mock).toHaveBeenCalledWith("/events/index.json");
   });
 

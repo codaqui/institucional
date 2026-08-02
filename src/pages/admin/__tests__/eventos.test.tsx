@@ -78,12 +78,26 @@ const externalIndex = {
 const EMPTY_INDEX = { sources: [], events: [] };
 const EMPTY_ORGANIZERS = { version: 1, ownerships: [] };
 
-/** Stub do fetch global para os estáticos (/events/index.json, organizers.json). */
-function stubStaticFetches(index: unknown = EMPTY_INDEX, organizers: unknown = EMPTY_ORGANIZERS) {
+/** Cria um authFetch mockado que responde aos endpoints usados pelo hub. */
+function createAuthFetchMock(
+  index: unknown = EMPTY_INDEX,
+  organizers: unknown = EMPTY_ORGANIZERS,
+  activations: unknown = [],
+) {
+  return jest.fn(async (url: string, options?: RequestInit) => {
+    if (url.includes("/events/organizers")) return jsonResponse(organizers);
+    if (url.includes("/events/external/activations")) return jsonResponse(activations);
+    if (url.endsWith("/events") && !options) return jsonResponse([]);
+    if (url.endsWith("/admin/members")) return jsonResponse([]);
+    return jsonResponse(null, { ok: false, status: 404 });
+  });
+}
+
+/** Stub do fetch global para os estáticos (/events/index.json). */
+function stubStaticFetches(index: unknown = EMPTY_INDEX) {
   (global as Record<string, unknown>).fetch = jest.fn(async (url: unknown) => {
     const href = String(url);
     if (href.includes("/events/index.json")) return jsonResponse(index);
-    if (href.includes("/events/organizers.json")) return jsonResponse(organizers);
     return jsonResponse(null, { ok: false, status: 404 });
   });
 }
@@ -124,7 +138,8 @@ describe("/admin/eventos", () => {
   });
 
   it("lista eventos e publica um rascunho", async () => {
-    const authFetch = jest.fn(async (url: string, options?: RequestInit) => {
+    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
       if (url.endsWith("/events") && !options) {
         return jsonResponse([buildEvent()]);
       }
@@ -172,11 +187,7 @@ describe("/admin/eventos", () => {
   });
 
   it("valida campos obrigatórios ao criar evento", async () => {
-    const authFetch = jest.fn(async (url: string) => {
-      if (url.endsWith("/events")) return jsonResponse([]);
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      return jsonResponse(null, { ok: false, status: 404 });
-    });
+    const authFetch = createAuthFetchMock();
 
     mockUseAuth.mockReturnValue(buildAuthState({
       isAdmin: true,
@@ -195,13 +206,16 @@ describe("/admin/eventos", () => {
   });
 
   it("renderiza lista unificada com badges e ações de evento externo", async () => {
-    stubStaticFetches(externalIndex, {
+    stubStaticFetches(externalIndex);
+    const organizers = {
       version: 1,
       ownerships: [
         { memberId: "org-1", githubHandle: "org", scope: ["meetup:devparana:*"] },
       ],
-    });
-    const authFetch = jest.fn(async (url: string) => {
+    };
+    const authFetch = createAuthFetchMock(externalIndex, organizers);
+    authFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/events/organizers")) return jsonResponse(organizers);
       if (url.endsWith("/events")) return jsonResponse([buildEvent()]);
       if (url.endsWith("/admin/members")) return jsonResponse([]);
       if (url.endsWith("/events/external/activations")) {
@@ -261,13 +275,16 @@ describe("/admin/eventos", () => {
       ],
     };
     // Escopo exato apenas para ext-1
-    stubStaticFetches(index, {
+    stubStaticFetches(index);
+    const organizers = {
       version: 1,
       ownerships: [
         { memberId: "org-1", githubHandle: "org", scope: ["meetup:devparana:ext-1"] },
       ],
-    });
-    const authFetch = jest.fn(async (url: string) => {
+    };
+    const authFetch = createAuthFetchMock(index, organizers);
+    authFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/events/organizers")) return jsonResponse(organizers);
       if (url.endsWith("/events")) return jsonResponse([]);
       if (url.endsWith("/admin/members")) return jsonResponse([]);
       if (url.endsWith("/events/external/activations")) return jsonResponse([]);
