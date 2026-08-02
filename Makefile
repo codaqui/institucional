@@ -45,6 +45,7 @@ RED    := \033[31m
         frontend-start frontend-build frontend-typecheck frontend-serve \
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
+        worker-dev-elasnocodigo worker-deploy-elasnocodigo \
         clean clean-volumes
 
 # Target padrão
@@ -246,6 +247,12 @@ worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.lo
 
 worker-deploy-tisocial: ## Deploy do Worker da T.I. Social em produção (route tisocial.org.br/*)
 	npm run worker:deploy:tisocial
+
+worker-dev-elasnocodigo: ## Sobe o Worker da Elas no Código local em http://elasnocodigo.localhost:8788 (precisa de `make up-build` rodando)
+	npm run worker:dev:elasnocodigo
+
+worker-deploy-elasnocodigo: ## Deploy do Worker da Elas no Código em produção (route elasnocodigo.com.br/*)
+	npm run worker:deploy:elasnocodigo
 
 # =============================================================================
 ##@ 🧹 Limpeza
