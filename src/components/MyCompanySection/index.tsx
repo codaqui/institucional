@@ -18,6 +18,8 @@ import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
@@ -26,8 +28,6 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemAvatar from "@mui/material/ListItemAvatar";
 import ListItemText from "@mui/material/ListItemText";
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Pagination from "@mui/material/Pagination";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -181,13 +181,7 @@ async function fetchCompanyResources(
     : { totalSupportedReais: 0, supportCount: 0, monthsSupporting: 0 };
 
   if (!txRes.ok) {
-    return {
-      wallet,
-      collaborators,
-      supportSummary,
-      transactions: [],
-      transactionsTotal: 0,
-    };
+    return { wallet, collaborators, supportSummary, transactions: [], transactionsTotal: 0 };
   }
 
   const txData = (await txRes.json()) as CompanyTransactionsResponse | CompanyWalletTransaction[];
@@ -226,398 +220,168 @@ function buildDistributions(
   return { distributions, error: null };
 }
 
-export default function MyCompanySection({ companyId }: Readonly<Props>) {
-  const { authFetch, isLoggedIn, ready, user } = useAuth();
-  const { siteConfig } = useDocusaurusContext();
-  const configuredApiUrl = (siteConfig.customFields?.apiUrl as string) ?? "";
+function formatCnpj(cnpj: string): string {
+  if (cnpj.length !== 14) return cnpj;
+  return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
+}
 
-  const api = useCallback(
-    (path: string) => resolveApiUrl(configuredApiUrl, siteConfig.url) + path,
-    [configuredApiUrl, siteConfig.url],
-  );
+// ─── Subcomponentes ──────────────────────────────────────────────────────────
 
-  const [company, setCompany] = useState<Company | null>(null);
-  const [wallet, setWallet] = useState<CompanyWallet | null>(null);
-  const [supportSummary, setSupportSummary] = useState<CompanySupportSummary>({
-    totalSupportedReais: 0,
-    supportCount: 0,
-    monthsSupporting: 0,
-  });
-  const [transactions, setTransactions] = useState<CompanyWalletTransaction[]>([]);
-  const [transactionsTotal, setTransactionsTotal] = useState(0);
-  const [transactionsPage, setTransactionsPage] = useState(1);
-  const [transactionsLimit] = useState(20);
-  const [txLoading, setTxLoading] = useState(false);
-  const [collaborators, setCollaborators] = useState<CompanyMember[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface CompanyHeaderProps {
+  readonly company: Company;
+  readonly sortCoins: number;
+}
 
-  // Edição inline dos dados da empresa
-  const [editing, setEditing] = useState(false);
-  const [editName, setEditName] = useState("");
-  const [editTradeName, setEditTradeName] = useState("");
-  const [editLogo, setEditLogo] = useState("");
-  const [editWebsite, setEditWebsite] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string | null>(null);
-
-  // Adicionar colaborador
-  const [addHandle, setAddHandle] = useState("");
-  const [addError, setAddError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-
-  // Distribuir SortCoins
-  const [distribMode, setDistribMode] = useState<"equal" | "custom">("equal");
-  const [distribTotal, setDistribTotal] = useState("");
-  const [distribCustom, setDistribCustom] = useState<Record<string, string>>({});
-  const [distributing, setDistributing] = useState(false);
-  const [distribError, setDistribError] = useState<string | null>(null);
-  const [distribSuccess, setDistribSuccess] = useState<string | null>(null);
-
-  // Lista de destinatários da distribuição: dono (★) + colaboradores
-  const distribRecipients = useMemo(() => {
-    const ownerHandle = user?.handle ?? null;
-    const isOwnerCurrent = company?.responsibleMemberId === user?.sub;
-    return [
-      ...(isOwnerCurrent && ownerHandle ? [{ id: "__owner__", memberId: ownerHandle, addedAt: "", isOwner: true }] : []),
-      ...collaborators.map((c) => ({ ...c, isOwner: false })),
-    ];
-  }, [company, collaborators, user]);
-
-  const load = useCallback(async () => {
-    if (!isLoggedIn) return;
-    setLoading(true);
-    setError(null);
-    setTxLoading(true);
-    try {
-      const lookup = await resolveCompanyLookup(authFetch, api, companyId);
-      const companyData = lookup.companyData;
-      if (lookup.errorMessage) setError(lookup.errorMessage);
-
-      if (!companyData) {
-        return;
-      }
-
-      setCompany(companyData);
-      const resources = await fetchCompanyResources(
-        authFetch,
-        api,
-        companyData.id,
-        transactionsPage,
-        transactionsLimit,
-      );
-      setWallet(resources.wallet);
-      setCollaborators(resources.collaborators);
-      setSupportSummary(resources.supportSummary);
-      setTransactions(resources.transactions);
-      setTransactionsTotal(resources.transactionsTotal);
-    } catch {
-      setError("Erro de conexão.");
-      setTransactions([]);
-      setTransactionsTotal(0);
-      setWallet(null);
-      setCollaborators([]);
-      setSupportSummary({ totalSupportedReais: 0, supportCount: 0, monthsSupporting: 0 });
-    } finally {
-      setTxLoading(false);
-      setLoading(false);
-    }
-  }, [authFetch, isLoggedIn, companyId, api, transactionsPage, transactionsLimit]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const startEdit = () => {
-    if (!company) return;
-    setEditName(company.name);
-    setEditTradeName(company.tradeName ?? "");
-    setEditLogo(company.logoUrl ?? "");
-    setEditWebsite(company.websiteUrl ?? "");
-    setSaveError(null);
-    setEditing(true);
-  };
-
-  const saveEdit = async () => {
-    if (!company) return;
-    setSaving(true);
-    setSaveError(null);
-    try {
-      const res = await authFetch(api(`/companies/${company.id}`), {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editName || undefined,
-          tradeName: editTradeName || undefined,
-          logoUrl: editLogo || undefined,
-          websiteUrl: editWebsite || undefined,
-        }),
-      });
-      if (res.ok) {
-        setCompany((await res.json()) as Company);
-        setEditing(false);
-      } else {
-        const data = (await res.json()) as { message?: string };
-        setSaveError(data.message ?? "Erro ao salvar.");
-      }
-    } catch {
-      setSaveError("Erro de conexão.");
-    }
-    setSaving(false);
-  };
-
-  const addCollaborator = async () => {
-    if (!company || !addHandle.trim()) return;
-    setAdding(true);
-    setAddError(null);
-    try {
-      const res = await authFetch(api(`/companies/${company.id}/members`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ githubHandle: addHandle.trim() }),
-      });
-      if (res.ok) {
-        setAddHandle("");
-        await load();
-      } else {
-        const data = (await res.json()) as { message?: string };
-        setAddError(data.message ?? "Erro ao adicionar colaborador.");
-      }
-    } catch {
-      setAddError("Erro de conexão.");
-    }
-    setAdding(false);
-  };
-
-  const removeCollaborator = async (memberId: string) => {
-    if (!company) return;
-    try {
-      await authFetch(api(`/companies/${company.id}/members/${memberId}`), {
-        method: "DELETE",
-      });
-      await load();
-    } catch {
-      // silencia — recarrega de qualquer forma
-    }
-  };
-
-  const distributeCoins = async () => {
-    if (!company || distribRecipients.length === 0) return;
-    setDistributing(true);
-    setDistribError(null);
-    setDistribSuccess(null);
-    try {
-      const distributionResult = buildDistributions(
-        distribMode,
-        distribTotal,
-        distribCustom,
-        distribRecipients,
-      );
-      if (distributionResult.error) {
-        setDistribError(distributionResult.error);
-        return;
-      }
-      const res = await authFetch(api(`/companies/${company.id}/wallet/distribute`), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ distributions: distributionResult.distributions }),
-      });
-      if (res.ok) {
-        const data = (await res.json()) as { distributed: number; recipients: number };
-        setDistribSuccess(`${data.distributed} SortCoins distribuídos para ${data.recipients} colaborador(es)!`);
-        setDistribTotal("");
-        setDistribCustom({});
-        await load();
-      } else {
-        const body = await res.json().catch(() => ({})) as { message?: string };
-        setDistribError(body.message ?? "Erro ao distribuir.");
-      }
-    } catch {
-      setDistribError("Erro de conexão.");
-    } finally {
-      setDistributing(false);
-    }
-  };
-
-  if (!ready || loading) {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress size={28} />
-      </Box>
-    );
-  }
-
-  if (!isLoggedIn) return null;
-
-  if (!company) {
-    return (
-      <Alert severity="info">
-        Nenhuma empresa vinculada ao seu perfil no momento. Se você acabou de ser adicionado como colaborador, atualize a página.
-      </Alert>
-    );
-  }
-
-  const isOwner = company.responsibleMemberId === user?.sub;
-  const isActive = company.status === "active";
-  const sortCoins = wallet?.balances?.["sort_coin"] ?? 0;
-  const hasConfiguredRecurring = isActive && (company.subscriptionAmountCents ?? 0) > 0;
-  const equalDistributionHint =
-    distribTotal && !Number.isNaN(Number.parseInt(distribTotal, 10)) && distribRecipients.length > 0
-      ? `≈ ${Math.floor(Number.parseInt(distribTotal, 10) / distribRecipients.length)} por pessoa`
-      : undefined;
-
+function CompanyHeader({ company, sortCoins }: CompanyHeaderProps): React.JSX.Element {
   return (
-    <Box>
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-      {!isActive && (
-        <Alert severity="warning" sx={{ mb: 2 }}>
-          Empresa <strong>{company.status === "pending" ? "aguardando ativação" : company.status}</strong> pelo administrador. Edições e distribuição de SortCoins estarão disponíveis após a ativação.
-        </Alert>
-      )}
-
-      {/* ── Cabeçalho da empresa ── */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
-        {company.logoUrl ? (
-          <Avatar src={company.logoUrl} alt={company.name} sx={{ width: 48, height: 48 }} />
-        ) : (
-          <Avatar sx={{ width: 48, height: 48, bgcolor: "primary.main" }}>
-            <BusinessIcon />
-          </Avatar>
-        )}
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h6" fontWeight={700}>{company.name}</Typography>
-          {company.tradeName && (
-            <Typography variant="body2" color="text.secondary">
-              {company.tradeName}
-            </Typography>
-          )}
-          <Typography variant="caption" color="text.secondary">
-            CNPJ: {formatCnpj(company.cnpj)} · Status: {company.status}
-          </Typography>
-        </Box>
-        <Chip
-          label={`${sortCoins} SortCoins`}
-          color="primary"
-          size="small"
-          sx={{ fontWeight: 700 }}
-        />
-      </Box>
-
-      <Divider sx={{ mb: 2 }} />
-
-      {/* ── Edição dos dados ── */}
-      {editing ? (
-        <Stack spacing={2} sx={{ mb: 3 }}>
-          <TextField
-            label="Nome da empresa"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label="Nome fantasia"
-            value={editTradeName}
-            onChange={(e) => setEditTradeName(e.target.value)}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label="URL do logotipo"
-            value={editLogo}
-            onChange={(e) => setEditLogo(e.target.value)}
-            size="small"
-            fullWidth
-          />
-          <TextField
-            label="Website"
-            value={editWebsite}
-            onChange={(e) => setEditWebsite(e.target.value)}
-            size="small"
-            fullWidth
-          />
-          {saveError && <Alert severity="error">{saveError}</Alert>}
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={saving ? <CircularProgress size={14} /> : <SaveIcon />}
-              onClick={saveEdit}
-              disabled={saving}
-            >
-              Salvar
-            </Button>
-            <Button size="small" onClick={() => setEditing(false)} disabled={saving}>
-              Cancelar
-            </Button>
-          </Box>
-        </Stack>
+    <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
+      {company.logoUrl ? (
+        <Avatar src={company.logoUrl} alt={company.name} sx={{ width: 48, height: 48 }} />
       ) : (
-        <Box sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 0.5 }}>
-          {company.websiteUrl && (
-            <Typography variant="body2">
-              🌐{" "}
-              <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer">
-                {company.websiteUrl}
-              </a>
-            </Typography>
-          )}
-          {hasConfiguredRecurring ? (
-            <Typography variant="body2" color="text.secondary">
-              Recorrência configurada: R$ {(company.subscriptionAmountCents / 100).toFixed(0)}/mês
-            </Typography>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              Recorrência configurada: inativa
-            </Typography>
-          )}
-          <Button
-            size="small"
-            variant="text"
-            href={api(`/companies/${company.id}/receipt`)}
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{ alignSelf: "flex-start", textTransform: "none", mt: 0.5 }}
-          >
-            Baixar comprovante de doação
-          </Button>
-          <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
-          <Chip
-            size="small"
-            variant="outlined"
-            label={`R$ ${supportSummary.totalSupportedReais.toLocaleString("pt-BR")} apoiados`}
-          />
-          <Chip
-            size="small"
-            variant="outlined"
-            label={`${supportSummary.supportCount} apoio${supportSummary.supportCount === 1 ? "" : "s"}`}
-          />
-          <Chip
-            size="small"
-            variant="outlined"
-            label={`${supportSummary.monthsSupporting} mês${supportSummary.monthsSupporting === 1 ? "" : "es"} apoiando`}
-          />
-        </Stack>
-        <Button
-            size="small"
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={startEdit}
-            sx={{ mt: 1, alignSelf: "flex-start", textTransform: "none" }}
-            disabled={!isOwner || !isActive}
-          >
-            Editar dados
-          </Button>
-        </Box>
+        <Avatar sx={{ width: 48, height: 48, bgcolor: "primary.main" }}>
+          <BusinessIcon />
+        </Avatar>
       )}
+      <Box sx={{ flexGrow: 1 }}>
+        <Typography variant="h6" fontWeight={700}>{company.name}</Typography>
+        {company.tradeName && (
+          <Typography variant="body2" color="text.secondary">
+            {company.tradeName}
+          </Typography>
+        )}
+        <Typography variant="caption" color="text.secondary">
+          CNPJ: {formatCnpj(company.cnpj)} · Status: {company.status}
+        </Typography>
+      </Box>
+      <Chip
+        label={`${sortCoins} SortCoins`}
+        color="primary"
+        size="small"
+        sx={{ fontWeight: 700 }}
+      />
+    </Box>
+  );
+}
 
-      <Divider sx={{ mb: 2 }} />
+interface CompanyEditFormProps {
+  readonly editName: string;
+  readonly setEditName: (value: string) => void;
+  readonly editTradeName: string;
+  readonly setEditTradeName: (value: string) => void;
+  readonly editLogo: string;
+  readonly setEditLogo: (value: string) => void;
+  readonly editWebsite: string;
+  readonly setEditWebsite: (value: string) => void;
+  readonly saveError: string | null;
+  readonly saving: boolean;
+  readonly onSave: () => void;
+  readonly onCancel: () => void;
+}
 
-      {/* ── Colaboradores ── */}
-      <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-        Colaboradores
-      </Typography>
+function CompanyEditForm({
+  editName, setEditName,
+  editTradeName, setEditTradeName,
+  editLogo, setEditLogo,
+  editWebsite, setEditWebsite,
+  saveError, saving,
+  onSave, onCancel,
+}: CompanyEditFormProps): React.JSX.Element {
+  return (
+    <Stack spacing={2} sx={{ mb: 3 }}>
+      <TextField label="Nome da empresa" value={editName} onChange={(e) => setEditName(e.target.value)} size="small" fullWidth />
+      <TextField label="Nome fantasia" value={editTradeName} onChange={(e) => setEditTradeName(e.target.value)} size="small" fullWidth />
+      <TextField label="URL do logotipo" value={editLogo} onChange={(e) => setEditLogo(e.target.value)} size="small" fullWidth />
+      <TextField label="Website" value={editWebsite} onChange={(e) => setEditWebsite(e.target.value)} size="small" fullWidth />
+      {saveError && <Alert severity="error">{saveError}</Alert>}
+      <Box sx={{ display: "flex", gap: 1 }}>
+        <Button variant="contained" size="small" startIcon={saving ? <CircularProgress size={14} /> : <SaveIcon />} onClick={onSave} disabled={saving}>
+          Salvar
+        </Button>
+        <Button size="small" onClick={onCancel} disabled={saving}>Cancelar</Button>
+      </Box>
+    </Stack>
+  );
+}
+
+interface CompanyInfoProps {
+  readonly company: Company;
+  readonly supportSummary: CompanySupportSummary;
+  readonly isOwner: boolean;
+  readonly isActive: boolean;
+  readonly api: (path: string) => string;
+  readonly onEdit: () => void;
+}
+
+function CompanyInfo({ company, supportSummary, isOwner, isActive, api, onEdit }: CompanyInfoProps): React.JSX.Element {
+  const hasConfiguredRecurring = isActive && (company.subscriptionAmountCents ?? 0) > 0;
+  return (
+    <Box sx={{ mb: 3, display: "flex", flexDirection: "column", gap: 0.5 }}>
+      {company.websiteUrl && (
+        <Typography variant="body2">
+          🌐{" "}
+          <a href={company.websiteUrl} target="_blank" rel="noopener noreferrer">
+            {company.websiteUrl}
+          </a>
+        </Typography>
+      )}
+      {hasConfiguredRecurring ? (
+        <Typography variant="body2" color="text.secondary">
+          Recorrência configurada: R$ {(company.subscriptionAmountCents / 100).toFixed(0)}/mês
+        </Typography>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Recorrência configurada: inativa
+        </Typography>
+      )}
+      <Button
+        size="small"
+        variant="text"
+        href={api(`/companies/${company.id}/receipt`)}
+        target="_blank"
+        rel="noopener noreferrer"
+        sx={{ alignSelf: "flex-start", textTransform: "none", mt: 0.5 }}
+      >
+        Baixar comprovante de doação
+      </Button>
+      <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
+        <Chip size="small" variant="outlined" label={`R$ ${supportSummary.totalSupportedReais.toLocaleString("pt-BR")} apoiados`} />
+        <Chip size="small" variant="outlined" label={`${supportSummary.supportCount} apoio${supportSummary.supportCount === 1 ? "" : "s"}`} />
+        <Chip size="small" variant="outlined" label={`${supportSummary.monthsSupporting} mês${supportSummary.monthsSupporting === 1 ? "" : "es"} apoiando`} />
+      </Stack>
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<EditIcon />}
+        onClick={onEdit}
+        sx={{ mt: 1, alignSelf: "flex-start", textTransform: "none" }}
+        disabled={!isOwner || !isActive}
+      >
+        Editar dados
+      </Button>
+    </Box>
+  );
+}
+
+interface CollaboratorsSectionProps {
+  readonly company: Company;
+  readonly collaborators: CompanyMember[];
+  readonly isOwner: boolean;
+  readonly isActive: boolean;
+  readonly addHandle: string;
+  readonly setAddHandle: (value: string) => void;
+  readonly addError: string | null;
+  readonly adding: boolean;
+  readonly onAdd: () => void;
+  readonly onRemove: (id: string) => void;
+}
+
+function CollaboratorsSection({
+  company, collaborators, isOwner, isActive,
+  addHandle, setAddHandle, addError, adding, onAdd, onRemove,
+}: CollaboratorsSectionProps): React.JSX.Element {
+  return (
+    <>
+      <Typography variant="subtitle2" fontWeight={700} gutterBottom>Colaboradores</Typography>
       <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: "block" }}>
         Colaboradores podem ver o saldo e o histórico de transações da empresa.
       </Typography>
@@ -635,11 +399,7 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
             sx={{ py: 0.5 }}
             secondaryAction={
               isOwner ? (
-                <IconButton
-                  size="small"
-                  onClick={() => removeCollaborator(c.id)}
-                  aria-label="remover colaborador"
-                >
+                <IconButton size="small" onClick={() => onRemove(c.id)} aria-label="remover colaborador">
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               ) : undefined
@@ -660,7 +420,6 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         ))}
       </List>
 
-      {/* Adicionar colaborador — somente responsável ativo */}
       {isOwner && isActive && (
         <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
           <TextField
@@ -670,15 +429,13 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
             size="small"
             placeholder="ex: octocat"
             sx={{ flexGrow: 1 }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") addCollaborator();
-            }}
+            onKeyDown={(e) => { if (e.key === "Enter") onAdd(); }}
           />
           <Button
             variant="contained"
             size="small"
             startIcon={adding ? <CircularProgress size={14} /> : <PersonAddIcon />}
-            onClick={addCollaborator}
+            onClick={onAdd}
             disabled={adding || !addHandle.trim()}
             sx={{ whiteSpace: "nowrap", mt: 0.5 }}
           >
@@ -687,11 +444,25 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
         </Box>
       )}
       {addError && <Alert severity="error" sx={{ mt: 1 }}>{addError}</Alert>}
+    </>
+  );
+}
 
-      <Divider sx={{ my: 2 }} />
-      <Typography variant="subtitle2" fontWeight={700} gutterBottom>
-        Histórico da carteira da empresa
-      </Typography>
+interface TransactionsSectionProps {
+  readonly transactions: CompanyWalletTransaction[];
+  readonly transactionsTotal: number;
+  readonly transactionsPage: number;
+  readonly transactionsLimit: number;
+  readonly txLoading: boolean;
+  readonly onPageChange: (page: number) => void;
+}
+
+function TransactionsSection({
+  transactions, transactionsTotal, transactionsPage, transactionsLimit, txLoading, onPageChange,
+}: TransactionsSectionProps): React.JSX.Element {
+  return (
+    <>
+      <Typography variant="subtitle2" fontWeight={700} gutterBottom>Histórico da carteira da empresa</Typography>
       <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: "block" }}>
         Últimas 20 movimentações de SortCoins da conta empresarial.
       </Typography>
@@ -738,104 +509,495 @@ export default function MyCompanySection({ companyId }: Readonly<Props>) {
           <Pagination
             page={transactionsPage}
             count={Math.max(1, Math.ceil(transactionsTotal / transactionsLimit))}
-            onChange={(_, value) => setTransactionsPage(value)}
+            onChange={(_, value) => onPageChange(value)}
             color="primary"
             size="small"
           />
         </Box>
       )}
-
-      {/* ── Distribuir SortCoins — somente responsável ativo ── */}
-      {isOwner && isActive && distribRecipients.length > 0 && (
-        <>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            <TokenIcon fontSize="small" color="primary" /> Distribuir SortCoins
-          </Typography>
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: "block" }}>
-            Transfere SortCoins da carteira da empresa para as carteiras pessoais. O dono (você) aparece com ★.
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
-            <Chip
-              label="Dividir igualmente"
-              size="small"
-              color={distribMode === "equal" ? "primary" : "default"}
-              variant={distribMode === "equal" ? "filled" : "outlined"}
-              onClick={() => setDistribMode("equal")}
-              clickable
-            />
-            <Chip
-              label="Valor personalizado"
-              size="small"
-              color={distribMode === "custom" ? "primary" : "default"}
-              variant={distribMode === "custom" ? "filled" : "outlined"}
-              onClick={() => setDistribMode("custom")}
-              clickable
-            />
-          </Stack>
-          {distribMode === "equal" ? (
-            <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-              <TextField
-                label={`Total a dividir (${distribRecipients.length} pessoa(s))`}
-                value={distribTotal}
-                onChange={(e) => setDistribTotal(e.target.value)}
-                size="small"
-                type="number"
-                placeholder="ex: 100"
-                helperText={
-                  equalDistributionHint
-                }
-                sx={{ flexGrow: 1 }}
-              />
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={distributing ? <CircularProgress size={14} /> : <SendIcon />}
-                onClick={distributeCoins}
-                disabled={distributing || !distribTotal.trim() || sortCoins === 0}
-                sx={{ whiteSpace: "nowrap", mt: 0.5 }}
-              >
-                Distribuir
-              </Button>
-            </Box>
-          ) : (
-            <Stack spacing={1}>
-              {distribRecipients.map((r) => (
-                <Box key={r.id} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                  <Typography variant="body2" sx={{ minWidth: 120 }}>
-                    {r.isOwner ? "★ " : ""}@{r.memberId}
-                  </Typography>
-                  <TextField
-                    size="small"
-                    type="number"
-                    placeholder="coins"
-                    value={distribCustom[r.id] ?? ""}
-                    onChange={(e) => setDistribCustom((prev) => ({ ...prev, [r.id]: e.target.value }))}
-                    sx={{ width: 100 }}
-                  />
-                </Box>
-              ))}
-              <Button
-                variant="contained"
-                size="small"
-                startIcon={distributing ? <CircularProgress size={14} /> : <SendIcon />}
-                onClick={distributeCoins}
-                disabled={distributing || sortCoins === 0}
-                sx={{ alignSelf: "flex-start" }}
-              >
-                Distribuir
-              </Button>
-            </Stack>
-          )}
-          {distribError && <Alert severity="error" sx={{ mt: 1 }}>{distribError}</Alert>}
-          {distribSuccess && <Alert severity="success" sx={{ mt: 1 }}>{distribSuccess}</Alert>}
-        </>
-      )}
-    </Box>
+    </>
   );
 }
 
-function formatCnpj(cnpj: string): string {
-  if (cnpj.length !== 14) return cnpj;
-  return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
+interface DistributeSectionProps {
+  readonly recipients: Array<{ id: string; memberId: string; isOwner?: boolean }>;
+  readonly sortCoins: number;
+  readonly distribMode: "equal" | "custom";
+  readonly setDistribMode: (mode: "equal" | "custom") => void;
+  readonly distribTotal: string;
+  readonly setDistribTotal: (value: string) => void;
+  readonly distribCustom: Record<string, string>;
+  readonly setDistribCustom: (value: Record<string, string>) => void;
+  readonly distribError: string | null;
+  readonly distribSuccess: string | null;
+  readonly distributing: boolean;
+  readonly onDistribute: () => void;
+}
+
+function DistributeSection({
+  recipients, sortCoins,
+  distribMode, setDistribMode,
+  distribTotal, setDistribTotal,
+  distribCustom, setDistribCustom,
+  distribError, distribSuccess,
+  distributing, onDistribute,
+}: DistributeSectionProps): React.JSX.Element {
+  const equalHint = useMemo(() => {
+    if (!distribTotal || Number.isNaN(Number.parseInt(distribTotal, 10)) || recipients.length === 0) return undefined;
+    return `≈ ${Math.floor(Number.parseInt(distribTotal, 10) / recipients.length)} por pessoa`;
+  }, [distribTotal, recipients.length]);
+
+  return (
+    <>
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="subtitle2" fontWeight={700} gutterBottom sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <TokenIcon fontSize="small" color="primary" /> Distribuir SortCoins
+      </Typography>
+      <Typography variant="caption" color="text.secondary" sx={{ mb: 1.5, display: "block" }}>
+        Transfere SortCoins da carteira da empresa para as carteiras pessoais. O dono (você) aparece com ★.
+      </Typography>
+      <Stack direction="row" spacing={1} sx={{ mb: 1.5 }}>
+        <Chip
+          label="Dividir igualmente"
+          size="small"
+          color={distribMode === "equal" ? "primary" : "default"}
+          variant={distribMode === "equal" ? "filled" : "outlined"}
+          onClick={() => setDistribMode("equal")}
+          clickable
+        />
+        <Chip
+          label="Valor personalizado"
+          size="small"
+          color={distribMode === "custom" ? "primary" : "default"}
+          variant={distribMode === "custom" ? "filled" : "outlined"}
+          onClick={() => setDistribMode("custom")}
+          clickable
+        />
+      </Stack>
+      {distribMode === "equal" ? (
+        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+          <TextField
+            label={`Total a dividir (${recipients.length} pessoa(s))`}
+            value={distribTotal}
+            onChange={(e) => setDistribTotal(e.target.value)}
+            size="small"
+            type="number"
+            placeholder="ex: 100"
+            helperText={equalHint}
+            sx={{ flexGrow: 1 }}
+          />
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={distributing ? <CircularProgress size={14} /> : <SendIcon />}
+            onClick={onDistribute}
+            disabled={distributing || !distribTotal.trim() || sortCoins === 0}
+            sx={{ whiteSpace: "nowrap", mt: 0.5 }}
+          >
+            Distribuir
+          </Button>
+        </Box>
+      ) : (
+        <Stack spacing={1}>
+          {recipients.map((r) => (
+            <Box key={r.id} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+              <Typography variant="body2" sx={{ minWidth: 120 }}>
+                {r.isOwner ? "★ " : ""}@{r.memberId}
+              </Typography>
+              <TextField
+                size="small"
+                type="number"
+                placeholder="coins"
+                value={distribCustom[r.id] ?? ""}
+                onChange={(e) => setDistribCustom({ ...distribCustom, [r.id]: e.target.value })}
+                sx={{ width: 100 }}
+              />
+            </Box>
+          ))}
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={distributing ? <CircularProgress size={14} /> : <SendIcon />}
+            onClick={onDistribute}
+            disabled={distributing || sortCoins === 0}
+            sx={{ alignSelf: "flex-start" }}
+          >
+            Distribuir
+          </Button>
+        </Stack>
+      )}
+      {distribError && <Alert severity="error" sx={{ mt: 1 }}>{distribError}</Alert>}
+      {distribSuccess && <Alert severity="success" sx={{ mt: 1 }}>{distribSuccess}</Alert>}
+    </>
+  );
+}
+
+// ─── Hook custom ─────────────────────────────────────────────────────────────
+
+function useMyCompanySection({ companyId }: Props) {
+  const { authFetch, isLoggedIn, ready, user } = useAuth();
+  const { siteConfig } = useDocusaurusContext();
+  const configuredApiUrl = (siteConfig.customFields?.apiUrl as string) ?? "";
+
+  const api = useCallback(
+    (path: string) => resolveApiUrl(configuredApiUrl, siteConfig.url) + path,
+    [configuredApiUrl, siteConfig.url],
+  );
+
+  const [company, setCompany] = useState<Company | null>(null);
+  const [wallet, setWallet] = useState<CompanyWallet | null>(null);
+  const [supportSummary, setSupportSummary] = useState<CompanySupportSummary>({
+    totalSupportedReais: 0, supportCount: 0, monthsSupporting: 0,
+  });
+  const [transactions, setTransactions] = useState<CompanyWalletTransaction[]>([]);
+  const [transactionsTotal, setTransactionsTotal] = useState(0);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const [transactionsLimit] = useState(20);
+  const [txLoading, setTxLoading] = useState(false);
+  const [collaborators, setCollaborators] = useState<CompanyMember[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [editing, setEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editTradeName, setEditTradeName] = useState("");
+  const [editLogo, setEditLogo] = useState("");
+  const [editWebsite, setEditWebsite] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const [addHandle, setAddHandle] = useState("");
+  const [addError, setAddError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+
+  const [distribMode, setDistribMode] = useState<"equal" | "custom">("equal");
+  const [distribTotal, setDistribTotal] = useState("");
+  const [distribCustom, setDistribCustom] = useState<Record<string, string>>({});
+  const [distributing, setDistributing] = useState(false);
+  const [distribError, setDistribError] = useState<string | null>(null);
+  const [distribSuccess, setDistribSuccess] = useState<string | null>(null);
+
+  const distribRecipients = useMemo(() => {
+    const ownerHandle = user?.handle ?? null;
+    const isOwnerCurrent = company?.responsibleMemberId === user?.sub;
+    return [
+      ...(isOwnerCurrent && ownerHandle ? [{ id: "__owner__", memberId: ownerHandle, addedAt: "", isOwner: true }] : []),
+      ...collaborators.map((c) => ({ ...c, isOwner: false })),
+    ];
+  }, [company, collaborators, user]);
+
+  const load = useCallback(async () => {
+    if (!isLoggedIn) return;
+    setLoading(true);
+    setError(null);
+    setTxLoading(true);
+    try {
+      const lookup = await resolveCompanyLookup(authFetch, api, companyId);
+      const companyData = lookup.companyData;
+      if (lookup.errorMessage) setError(lookup.errorMessage);
+
+      if (!companyData) {
+        return;
+      }
+
+      setCompany(companyData);
+      const resources = await fetchCompanyResources(
+        authFetch, api, companyData.id, transactionsPage, transactionsLimit,
+      );
+      setWallet(resources.wallet);
+      setCollaborators(resources.collaborators);
+      setSupportSummary(resources.supportSummary);
+      setTransactions(resources.transactions);
+      setTransactionsTotal(resources.transactionsTotal);
+    } catch {
+      setError("Erro de conexão.");
+      setTransactions([]);
+      setTransactionsTotal(0);
+      setWallet(null);
+      setCollaborators([]);
+      setSupportSummary({ totalSupportedReais: 0, supportCount: 0, monthsSupporting: 0 });
+    } finally {
+      setTxLoading(false);
+      setLoading(false);
+    }
+  }, [authFetch, isLoggedIn, companyId, api, transactionsPage, transactionsLimit]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const startEdit = useCallback(() => {
+    if (!company) return;
+    setEditName(company.name);
+    setEditTradeName(company.tradeName ?? "");
+    setEditLogo(company.logoUrl ?? "");
+    setEditWebsite(company.websiteUrl ?? "");
+    setSaveError(null);
+    setEditing(true);
+  }, [company]);
+
+  const saveEdit = useCallback(async () => {
+    if (!company) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await authFetch(api(`/companies/${company.id}`), {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName || undefined,
+          tradeName: editTradeName || undefined,
+          logoUrl: editLogo || undefined,
+          websiteUrl: editWebsite || undefined,
+        }),
+      });
+      if (res.ok) {
+        setCompany((await res.json()) as Company);
+        setEditing(false);
+      } else {
+        const data = (await res.json()) as { message?: string };
+        setSaveError(data.message ?? "Erro ao salvar.");
+      }
+    } catch {
+      setSaveError("Erro de conexão.");
+    } finally {
+      setSaving(false);
+    }
+  }, [company, api, authFetch, editName, editTradeName, editLogo, editWebsite]);
+
+  const addCollaborator = useCallback(async () => {
+    if (!company || !addHandle.trim()) return;
+    setAdding(true);
+    setAddError(null);
+    try {
+      const res = await authFetch(api(`/companies/${company.id}/members`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ githubHandle: addHandle.trim() }),
+      });
+      if (res.ok) {
+        setAddHandle("");
+        await load();
+      } else {
+        const data = (await res.json()) as { message?: string };
+        setAddError(data.message ?? "Erro ao adicionar colaborador.");
+      }
+    } catch {
+      setAddError("Erro de conexão.");
+    } finally {
+      setAdding(false);
+    }
+  }, [company, addHandle, api, authFetch, load]);
+
+  const removeCollaborator = useCallback(async (memberId: string) => {
+    if (!company) return;
+    try {
+      await authFetch(api(`/companies/${company.id}/members/${memberId}`), { method: "DELETE" });
+      await load();
+    } catch {
+      // silencia — recarrega de qualquer forma
+    }
+  }, [company, api, authFetch, load]);
+
+  const distributeCoins = useCallback(async () => {
+    if (!company || distribRecipients.length === 0) return;
+    setDistributing(true);
+    setDistribError(null);
+    setDistribSuccess(null);
+    try {
+      const distributionResult = buildDistributions(distribMode, distribTotal, distribCustom, distribRecipients);
+      if (distributionResult.error) {
+        setDistribError(distributionResult.error);
+        return;
+      }
+      const res = await authFetch(api(`/companies/${company.id}/wallet/distribute`), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ distributions: distributionResult.distributions }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { distributed: number; recipients: number };
+        setDistribSuccess(`${data.distributed} SortCoins distribuídos para ${data.recipients} colaborador(es)!`);
+        setDistribTotal("");
+        setDistribCustom({});
+        await load();
+      } else {
+        const body = await res.json().catch(() => ({})) as { message?: string };
+        setDistribError(body.message ?? "Erro ao distribuir.");
+      }
+    } catch {
+      setDistribError("Erro de conexão.");
+    } finally {
+      setDistributing(false);
+    }
+  }, [company, distribRecipients, distribMode, distribTotal, distribCustom, api, authFetch, load]);
+
+  const isOwner = company?.responsibleMemberId === user?.sub;
+  const isActive = company?.status === "active";
+  const sortCoins = wallet?.balances?.["sort_coin"] ?? 0;
+
+  return {
+    ready,
+    isLoggedIn,
+    user,
+    company,
+    wallet,
+    supportSummary,
+    transactions,
+    transactionsTotal,
+    transactionsPage,
+    transactionsLimit,
+    txLoading,
+    collaborators,
+    loading,
+    error,
+    editing,
+    editName,
+    editTradeName,
+    editLogo,
+    editWebsite,
+    saving,
+    saveError,
+    addHandle,
+    addError,
+    adding,
+    distribMode,
+    distribTotal,
+    distribCustom,
+    distributing,
+    distribError,
+    distribSuccess,
+    distribRecipients,
+    api,
+    setTransactionsPage,
+    setEditing,
+    setEditName,
+    setEditTradeName,
+    setEditLogo,
+    setEditWebsite,
+    setAddHandle,
+    setDistribMode,
+    setDistribTotal,
+    setDistribCustom,
+    startEdit,
+    saveEdit,
+    addCollaborator,
+    removeCollaborator,
+    distributeCoins,
+    isOwner,
+    isActive,
+    sortCoins,
+    load,
+  };
+}
+
+// ─── Componente principal ────────────────────────────────────────────────────
+
+export default function MyCompanySection({ companyId }: Readonly<Props>): React.JSX.Element {
+  const {
+    ready, isLoggedIn, company, loading, error,
+    wallet, supportSummary, editing, editName, setEditName,
+    editTradeName, setEditTradeName, editLogo, setEditLogo,
+    editWebsite, setEditWebsite, saveError, saving, startEdit, saveEdit, setEditing,
+    addHandle, setAddHandle, addError, adding, addCollaborator,
+    collaborators, removeCollaborator,
+    transactions, transactionsTotal, transactionsPage, transactionsLimit, txLoading, setTransactionsPage,
+    distribMode, setDistribMode, distribTotal, setDistribTotal, distribCustom, setDistribCustom,
+    distribError, distribSuccess, distributing, distributeCoins, distribRecipients,
+    isOwner, isActive, sortCoins, api,
+  } = useMyCompanySection({ companyId });
+
+  if (!ready || loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+        <CircularProgress size={28} />
+      </Box>
+    );
+  }
+
+  if (!isLoggedIn) return null;
+
+  if (!company) {
+    return (
+      <Alert severity="info">
+        Nenhuma empresa vinculada ao seu perfil no momento. Se você acabou de ser adicionado como colaborador, atualize a página.
+      </Alert>
+    );
+  }
+
+  return (
+    <Box>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      {!isActive && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          Empresa <strong>{company.status === "pending" ? "aguardando ativação" : company.status}</strong> pelo administrador. Edições e distribuição de SortCoins estarão disponíveis após a ativação.
+        </Alert>
+      )}
+
+      <CompanyHeader company={company} sortCoins={sortCoins} />
+      <Divider sx={{ mb: 2 }} />
+
+      {editing ? (
+        <CompanyEditForm
+          editName={editName} setEditName={setEditName}
+          editTradeName={editTradeName} setEditTradeName={setEditTradeName}
+          editLogo={editLogo} setEditLogo={setEditLogo}
+          editWebsite={editWebsite} setEditWebsite={setEditWebsite}
+          saveError={saveError} saving={saving}
+          onSave={saveEdit} onCancel={() => setEditing(false)}
+        />
+      ) : (
+        <CompanyInfo
+          company={company}
+          supportSummary={supportSummary}
+          isOwner={isOwner}
+          isActive={isActive}
+          api={api}
+          onEdit={startEdit}
+        />
+      )}
+
+      <Divider sx={{ mb: 2 }} />
+      <CollaboratorsSection
+        company={company}
+        collaborators={collaborators}
+        isOwner={isOwner}
+        isActive={isActive}
+        addHandle={addHandle}
+        setAddHandle={setAddHandle}
+        addError={addError}
+        adding={adding}
+        onAdd={addCollaborator}
+        onRemove={removeCollaborator}
+      />
+
+      <Divider sx={{ my: 2 }} />
+      <TransactionsSection
+        transactions={transactions}
+        transactionsTotal={transactionsTotal}
+        transactionsPage={transactionsPage}
+        transactionsLimit={transactionsLimit}
+        txLoading={txLoading}
+        onPageChange={setTransactionsPage}
+      />
+
+      {isOwner && isActive && distribRecipients.length > 0 && (
+        <DistributeSection
+          recipients={distribRecipients}
+          sortCoins={sortCoins}
+          distribMode={distribMode}
+          setDistribMode={setDistribMode}
+          distribTotal={distribTotal}
+          setDistribTotal={setDistribTotal}
+          distribCustom={distribCustom}
+          setDistribCustom={setDistribCustom}
+          distribError={distribError}
+          distribSuccess={distribSuccess}
+          distributing={distributing}
+          onDistribute={distributeCoins}
+        />
+      )}
+    </Box>
+  );
 }
