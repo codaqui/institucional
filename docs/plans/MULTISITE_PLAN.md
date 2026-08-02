@@ -62,7 +62,7 @@ Cada comunidade vira:
 - `comunidades/<slug>/community.config.ts` (branding, navMenu, features, slug Stripe)
 - `comunidades/<slug>/blog/` (instância de `plugin-content-blog`)
 - `comunidades/<slug>/docs/` (instância de `plugin-content-docs`)
-- `src/pages/comunidades/<slug>/*.tsx` (páginas TSX: index, apoiar, transparencia, membro)
+- `comunidades/<slug>/src/pages/*.tsx` (páginas TSX: index, apoiar, transparencia, membro), auto-discovery via `plugin-content-pages`
 
 O **resolver** `resolveCommunityFromPath(pathname)` em `src/lib/community-context.ts` mapeia o prefixo do path → config. O **Navbar swizzled** detecta a comunidade pelo `useLocation()` e troca branding em runtime.
 
@@ -87,10 +87,10 @@ O **resolver** `resolveCommunityFromPath(pathname)` em `src/lib/community-contex
 | Config da comunidade | `comunidades/tisocial/community.config.ts` | Slug, theme, navMenu, features, hero, impact stats, exploreSection, channelsSection |
 | Resolver de path | `src/lib/community-context.ts` | `resolveCommunityFromPath()` + array `COMMUNITIES` |
 | Navbar whitelabel | `src/theme/Navbar/Content/index.tsx` | `buildCommunityItems()` substitui itens; `<CodaquiBackChip>` MUI Chip pra voltar |
-| Página home | `src/pages/comunidades/tisocial/index.tsx` | Tudo derivado do config (textos, cores, cards, links) |
-| Página apoiar | `src/pages/comunidades/tisocial/apoiar.tsx` | Usa `<DonationFlow lockedTargetId hideWallets authCommunitySlug>` |
-| Página transparência | `src/pages/comunidades/tisocial/transparencia.tsx` | Hero + saldo card + `<TransactionTable>` real (filtros/paginação/drill-down) + CTAs |
-| Página membro | `src/pages/comunidades/tisocial/membro/index.tsx` | Painel pessoal whitelabel |
+| Página home | `comunidades/tisocial/src/pages/index.tsx` | Tudo derivado do config (textos, cores, cards, links) |
+| Página apoiar | `comunidades/tisocial/src/pages/apoiar.tsx` | Usa `<DonationFlow lockedTargetId hideWallets authCommunitySlug>` |
+| Página transparência | `comunidades/tisocial/src/pages/transparencia.tsx` | Hero + saldo card + `<TransactionTable>` real (filtros/paginação/drill-down) + CTAs |
+| Página membro | `comunidades/tisocial/src/pages/membro/index.tsx` | Painel pessoal whitelabel |
 | Blog | `comunidades/tisocial/blog/2026-03-26-aumigo-prestacao-de-contas.mdx` | 1 post inicial com cards MUI (impacto AUMIGO + Páscoa) |
 | **DonationFlow reusável** | `src/components/DonationFlow/index.tsx` | Componente unificado entre Codaqui e comunidade. Props: `lockedTargetId`, `hideWallets`, `disableAuth`, `authCommunitySlug`, `accentColor[Dark]`, `title`, `subtitle` |
 | Auth callback whitelabel | `src/pages/auth/callback.tsx` | Lê sessionStorage; renderiza logo + cor da comunidade durante spinner |
@@ -116,22 +116,20 @@ O **resolver** `resolveCommunityFromPath(pathname)` em `src/lib/community-contex
 
 ```
 institucional/
-├── docusaurus.config.ts              # presets + N instâncias de plugin-content-{docs,blog}
+├── docusaurus.config.ts              # presets + N instâncias de plugin-content-{docs,blog,pages}
 ├── comunidades/                      # ⭐ pasta raiz das comunidades
 │   └── tisocial/
 │       ├── community.config.ts       # branding + slug + features + impact + hero
 │       ├── blog/
 │       │   └── 2026-03-26-aumigo-prestacao-de-contas.mdx
 │       ├── docs/                     # placeholder (1 index.md mínimo recomendado)
-│       └── (sidebars.ts opcional)
+│       └── src/pages/                # páginas whitelabel (auto-discovery via plugin-content-pages)
+│           ├── index.tsx              # home da comunidade
+│           ├── apoiar.tsx             # delega para <DonationFlow>
+│           ├── transparencia.tsx      # saldo + <TransactionTable>
+│           └── membro/index.tsx       # painel pessoal whitelabel
 ├── src/
 │   ├── pages/
-│   │   ├── comunidades/
-│   │   │   └── tisocial/
-│   │   │       ├── index.tsx          # home da comunidade
-│   │   │       ├── apoiar.tsx         # delega para <DonationFlow>
-│   │   │       ├── transparencia.tsx  # saldo + <TransactionTable>
-│   │   │       └── membro/index.tsx   # painel pessoal whitelabel
 │   │   ├── participe/apoiar.tsx       # delega para <DonationFlow> (sem comunidade)
 │   │   └── auth/callback.tsx          # callback whitelabel (logo + cor da comunidade)
 │   ├── components/
@@ -160,8 +158,8 @@ institucional/
 
 1. Criar `comunidades/<slug>/community.config.ts`
 2. Adicionar config no array `COMMUNITIES` em `src/lib/community-context.ts`
-3. Criar `src/pages/comunidades/<slug>/{index,apoiar,transparencia}.tsx`
-4. Registrar plugins de blog/docs em `docusaurus.config.ts`
+3. Criar `comunidades/<slug>/src/pages/{index,apoiar,transparencia}.tsx`
+4. `docusaurus.config.ts` descobre plugins de blog/docs/pages automaticamente a partir de `comunidades/index.ts`
 5. Criar `comunidades/<slug>/{blog,docs}/` com pelo menos 1 arquivo cada
 6. Confirmar que `metadata.communityId === '<slug>'` no Stripe checkout
 7. `npm run typecheck && npm run build`
@@ -513,9 +511,9 @@ Durante a Fase 1 surgiram melhorias que valem ser consolidadas:
 **Adicionar uma comunidade nova:**
 1. Criar pasta `comunidades/<slug>/` (kebab-case, igual ao `metadata.communityId` Stripe)
 2. Criar `community.config.ts` (copiar de tisocial e adaptar)
-3. Adicionar config no array `COMMUNITIES` em `src/lib/community-context.ts`
-4. Criar páginas `src/pages/comunidades/<slug>/{index,apoiar,transparencia}.tsx` (templates da tisocial)
-5. Registrar plugins blog/docs em `docusaurus.config.ts`
+3. Adicionar config no array `COMMUNITIES_CONFIG` em `comunidades/index.ts`
+4. Criar páginas `comunidades/<slug>/src/pages/{index,apoiar,transparencia}.tsx` (templates da tisocial)
+5. `docusaurus.config.ts` gera plugins blog/docs/pages automaticamente
 6. Criar `comunidades/<slug>/{blog,docs}/` com pelo menos 1 arquivo
 7. `npm run typecheck && npm run build`
 8. Smoke test: navbar troca de cor, doação vai pro Stripe certo, transparência mostra ledger correto

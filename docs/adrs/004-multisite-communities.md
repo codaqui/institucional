@@ -18,7 +18,7 @@ related-docs:
 
 - **Data da decisão:** 2026-03
 - **Status:** Implementado (Fase 3 em produção)
-- **Escopo:** `comunidades/<slug>/`, `src/pages/comunidades/<slug>/`, `src/theme/Navbar/`, `workers/`
+- **Escopo:** `comunidades/<slug>/`, `src/theme/Navbar/`, `workers/`
 
 ## Contexto
 
@@ -32,7 +32,7 @@ Cada comunidade ganha:
 
 - `comunidades/<slug>/community.config.ts` — branding, navMenu, features, slug Stripe.
 - `comunidades/<slug>/blog/` e `comunidades/<slug>/docs/` — instâncias de blog/docs.
-- `src/pages/comunidades/<slug>/*.tsx` — páginas whitelabel (home, apoiar, transparência, membro).
+- `comunidades/<slug>/src/pages/*.tsx` — páginas whitelabel (home, apoiar, transparência, membro), descobertas automaticamente pelo plugin `@docusaurus/plugin-content-pages`.
 - `resolveCommunityFromPath()` em `src/lib/community-context.ts` — detecta a comunidade pelo path.
 - Navbar swizzled em `src/theme/Navbar/Content/index.tsx` — troca branding em runtime.
 

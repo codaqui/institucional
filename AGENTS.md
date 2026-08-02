@@ -1065,7 +1065,7 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 | Item | Caminho | Responsabilidade |
 |------|---------|------------------|
 | **Config da comunidade** | `comunidades/<slug>/community.config.ts` | Branding, slug Stripe, navMenu, features, hero, impact stats |
-| **Páginas** | `src/pages/comunidades/<slug>/*.tsx` | `index.tsx`, `apoiar.tsx`, `transparencia.tsx`, `membro/index.tsx` (TSX, NÃO em `comunidades/`) |
+| **Páginas** | `comunidades/<slug>/src/pages/*.tsx` | `index.tsx`, `apoiar.tsx`, `transparencia.tsx`, `membro/index.tsx`. Auto-discovery via `@docusaurus/plugin-content-pages` gerado em `docusaurus.config.ts`. |
 | **Blog da comunidade** | `comunidades/<slug>/blog/*.mdx` | Plugin `plugin-content-blog` instanciado com `id=community-<slug>-blog` |
 | **Docs da comunidade** | `comunidades/<slug>/docs/*.md` | Plugin `plugin-content-docs` instanciado com `id=community-<slug>-docs` |
 | **Resolver de tenant** | `src/lib/community-context.ts` | `resolveCommunityFromPath(pathname)` mapeia `/comunidades/<slug>/*` → config |
@@ -1103,15 +1103,15 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
      myCommunityConfig,  // ← adicionar
    ];
    ```
-   `docusaurus.config.ts` lê esse array e **gera os plugins de blog/docs automaticamente** (respeitando `community.features.{blog,docs}`).
+   `docusaurus.config.ts` lê esse array e **gera os plugins de blog/docs/pages automaticamente** (respeitando `community.features.{blog,docs}`).
 
-5. **Criar páginas TSX** em `src/pages/comunidades/<slug>/`:
-   - `index.tsx` — home da comunidade (use `tisocial/index.tsx` como template; ele já lê tudo do `community.config.ts`)
+5. **Criar páginas TSX** em `comunidades/<slug>/src/pages/`:
+   - `index.tsx` — home da comunidade (use `comunidades/tisocial/src/pages/index.tsx` como template; ele já lê tudo do `community.config.ts`)
    - `apoiar.tsx` — usa `<DonationFlow lockedTargetId={community.slug} hideWallets authCommunitySlug={community.slug} accentColor={...} accentColorDark={...} />`
    - `transparencia.tsx` — fetch `GET /ledger/community-balances`, filtra por `b.projectKey === community.slug`, renderiza `<TransactionTable accountId={balance.id} ... />`
    - `membro/index.tsx` — opcional (painel pessoal whitelabel)
 
-6. **Conteúdo de blog/docs** — basta criar arquivos. Plugins **já estão registrados** automaticamente.
+6. **Conteúdo de blog/docs/pages** — basta criar arquivos. Plugins **já estão registrados** automaticamente.
 
 7. **Backend (Stripe)** — confirmar que `metadata.communityId === '<slug>'` no checkout. O ledger cria/usa a conta automaticamente baseado nesse valor.
 
@@ -1136,12 +1136,12 @@ DISCORD_BOT_TOKEN=<token> node scripts/sync-social-stats.mjs
 | Hardcode cor `#0ea5e9` | `community.theme.primary` |
 | Path `/comunidades/tisocial/blog` literal | ``${community.basePath}/blog`` |
 | Filtrar ledger por `b.id === slug` | `b.projectKey === community.slug` (id é UUID) |
-| Criar página de comunidade dentro de `comunidades/<slug>/pages/` | Páginas TSX vão em `src/pages/comunidades/<slug>/` (Docusaurus convention) |
+| Criar página de comunidade em `src/pages/comunidades/<slug>/` | Páginas TSX vão em `comunidades/<slug>/src/pages/` (auto-discovery via plugin-content-pages) |
 | Adicionar item de auth no `community.navMenu` | Auth fica oculto em comunidades hoje (decisão de domínio próprio incerto) |
 
 ### Estado atual da Fase 1 (T.I. Social piloto)
 
-- ✅ Estrutura completa: config, páginas (`index`, `apoiar`, `transparencia`, `membro`), 1 post de blog (AUMIGO)
+- ✅ Estrutura completa: config, páginas (`comunidades/tisocial/src/pages/{index,apoiar,transparencia,membro}`), 1 post de blog (AUMIGO)
 - ✅ Navbar whitelabel + chip "← Codaqui"
 - ✅ DonationFlow reusável com gate de login encouraged
 - ✅ Transparência com `<TransactionTable>` real (drill-down + filtros)

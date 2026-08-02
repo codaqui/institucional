@@ -2,7 +2,7 @@
  * TI Social — configuração da comunidade dentro do site Codaqui.
  *
  * Este arquivo centraliza branding, slug Stripe e itens de menu.
- * É importado pelas páginas em `src/pages/comunidades/tisocial/`.
+ * É importado pelas páginas em `comunidades/tisocial/src/pages/`.
  */
 
 export interface NavMenuItem {

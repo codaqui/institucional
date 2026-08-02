@@ -52,20 +52,25 @@ export default function FooterWrapper(): React.JSX.Element | null {
               Navegar
             </Typography>
             <Stack spacing={1} sx={{ mt: 1.5 }}>
-              {community.navMenu.flatMap((item) => {
-                if ("items" in item && item.items) {
-                  return item.items;
-                }
-                return [item];
-              }).map((item) => (
-                <Link
-                  key={item.to}
-                  to={item.to!}
-                  style={{ color: "#cbd5e1", textDecoration: "none", fontSize: "0.9rem" }}
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {community.navMenu
+                .reduce<{ label: string; to: string }[]>((acc, item) => {
+                  if ("items" in item && item.items) {
+                    return [...acc, ...item.items];
+                  }
+                  if (item.to) {
+                    return [...acc, { label: item.label, to: item.to }];
+                  }
+                  return acc;
+                }, [])
+                .map((item) => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    style={{ color: "#cbd5e1", textDecoration: "none", fontSize: "0.9rem" }}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
             </Stack>
           </Grid>
 
