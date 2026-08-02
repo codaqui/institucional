@@ -28,7 +28,8 @@ related-docs:
 | Ledger / transparência | `ledger/ledger.service.ts`, `ledger/ledger.controller.ts` |
 | E-mails transacionais | `notifications/email.service.ts` |
 | Overrides de eventos (novo: persistidos no PostgreSQL) | `events/event-overrides.service.ts`, `events/event-overrides.controller.ts` |
-| GitHub-as-Database (apenas organizers.json e snapshots) | `github-db/github-db.service.ts`, `event-organizer/*.ts` |
+| GitHub-as-Database (apenas snapshots internal:codaqui) | `github-db/github-db.service.ts` |
+| Ownership de eventos externos (PostgreSQL) | `event-organizer/event-organizer-ownership.service.ts` |
 | Match de participantes CSV | `events/events.service.ts` (`importParticipants`, `findMemberByIdentifier`) |
 | Reembolsos vinculados a evento | `reimbursements/reimbursements.service.ts`, `events/events.service.ts` |
 | Papéis e permissões | `members/entities/member.entity.ts`, `auth/guards/roles.guard.ts` |
@@ -55,13 +56,13 @@ related-docs:
 | Papel (role) | Onde é verificado | O que pode fazer no módulo de eventos |
 |---|---|---|
 | `admin` | `RolesGuard` | Tudo em todos os eventos. |
-| `event_organizer` | `EventsService.canManageAll`, ownership em `organizers.json` | Criar/editar/publicar eventos próprios; criar overrides de eventos externos que possui; ativar features em eventos externos que possui; gerenciar staff de eventos próprios; ver relatórios; lançar despesas. |
+| `event_organizer` | `EventsService.canManageAll`, ownership em `event_organizer_ownership` | Criar/editar/publicar eventos próprios; criar overrides de eventos externos que possui; ativar features em eventos externos que possui; gerenciar staff de eventos próprios; ver relatórios; lançar despesas. |
 | `event_finance` | `RolesGuard` | Aprovar reembolsos; ver relatórios financeiros; exportar pedidos. |
 | `event_host` | `event_staff.staffRole === 'host'` | Editar próprio evento; ver inscritos/pedidos; check-in; certificados; despesa. |
 | `event_checker` | `event_staff.staffRole === 'checker'` | **Apenas** check-in (scanner + busca mínima). |
 | `membro` | `JwtAuthGuard` | Comprar/reservar ingressos; ver próprias inscrições; emitir certificado. |
 
-> Para eventos externos, o organizer precisa de **ownership** (`organizers.json`) além do role.
+> Para eventos externos, o organizer precisa de **ownership** (`event_organizer_ownership`) além do role.
 > Para eventos próprios, o organizer/admin usa `event_staff` para delegar `host`/`checker`.
 
 ## 2. Fluxos principais

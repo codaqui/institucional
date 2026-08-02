@@ -1213,12 +1213,16 @@ Ao salvar um evento próprio, o sistema deve:
 
 ## Checklist de Implementação
 
-> **Status (2026-07-31):** overrides migrados para o banco PostgreSQL via API REST.
-> GitHub-as-Database continua apenas para force-sync internal e organizers.json.
+> **Status (2026-07-31):** overrides e ownership de organizers migrados para o banco
+> PostgreSQL via API REST. GitHub-as-Database continua apenas para force-sync internal:codaqui.
 
 - [x] Migrar `MemberRole` de enum single-value para `text[]` + `RolesGuard` update
 - [x] Adicionar `EVENT_ORGANIZER` em `MemberRole` + migration Postgres
-- [x] Manter `static/events/organizers.json` para ownership (PR + review manual)
+- [x] Criar entidade `EventOrganizerOwnership` + migration `Migration021_EventOrganizerOwnership`
+- [x] Criar API REST `/events/organizers` (CRUD imediato no PostgreSQL)
+- [x] Atualizar `EventOrganizerService` para ler ownership do banco
+- [x] Atualizar frontend `admin/eventos` e `admin/overrides` para usar a API de ownership
+- [x] Remover `static/events/organizers.json` e lógica de PR para ownership
 - [x] Criar entidade `EventOverride` + migration `Migration020_EventOverride`
 - [x] Criar `EventOverridesService` e `EventOverridesController` (`/events/overrides`)
 - [x] Adicionar endpoint público `GET /events/overrides/public` para o sync
@@ -1444,13 +1448,22 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     antes da remoção). O frontend `admin/overrides` e `src/lib/events-api.ts` foram
     simplificados para consumir o snapshot já mesclado. Ownership (`organizers.json`)
     e force-sync internal continuam usando GitHub-as-Database.
+40. **Migração de ownership para o banco (2026-07-31):** substituído o arquivo
+    `static/events/organizers.json` pela tabela `event_organizer_ownership` e pela API
+    REST `/events/organizers` (CRUD imediato, sem PR). Criados `EventOrganizerOwnership`
+    (entidade), `Migration021_EventOrganizerOwnership`,
+    `EventOrganizerOwnershipService` e `EventOrganizerOwnershipController`.
+    `EventOrganizerService` foi reescrito como facade delegando para o novo service.
+    O frontend `admin/eventos` passou a buscar ownership via `authFetch('/events/organizers')`.
+    O arquivo `organizers.json`, o workflow `validate-event-overrides.yml` e os scripts
+    de verificação de PR para ownership foram desativados.
 
 
 ---
 
 ## Apêndice — Resumo executivo da implementação
 
-> Última atualização: 2026-07-30. Este apêndice consolida o que está funcionando, ressalvas, bugs corrigidos e débitos técnicos do ciclo de implementação.
+> Última atualização: 2026-07-31. Este apêndice consolida o que está funcionando, ressalvas, bugs corrigidos e débitos técnicos do ciclo de implementação.
 
 ### O que está implementado
 
