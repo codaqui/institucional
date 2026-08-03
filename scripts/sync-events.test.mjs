@@ -199,6 +199,36 @@ test("mapSymplaEvent: card-only fallback no longer uses sync timestamp", () => {
   assert.equal(event.status, "completed");
 });
 
+test("mapSymplaEvent: card-only fallback for all three CamposTech events", () => {
+  // These events were originally published in 2024. When the detail page is
+  // unreachable, the card text lacks the year, so the parser uses a heuristic
+  // based on the current date. The important invariants are:
+  //   1. startAt is a real ISO datetime (not the sync timestamp fallback);
+  //   2. the day, month and time match the card text;
+  //   3. status is "completed" because they came from the "Encerrados" tab.
+  const cases = [
+    { card: cardUxDesign, expected: "-08-10T13:00:00-03:00" },
+    { card: cardDevOps, expected: "-05-11T13:00:00-03:00" },
+    { card: cardApiTesting, expected: "-02-03T13:00:00-03:00" },
+  ];
+
+  for (const { card, expected } of cases) {
+    const event = mapSymplaEvent({ ...card, isEnded: true, detail: null }, campostechConfig);
+
+    assert.ok(event.startAt, `expected a parsed startAt for ${card.id}, got undefined`);
+    assert.doesNotMatch(
+      event.startAt,
+      /T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+      `sync timestamp fallback detected for ${card.id}`
+    );
+    assert.ok(
+      event.startAt.includes(expected),
+      `expected ${card.id} startAt to include ${expected}, got ${event.startAt}`
+    );
+    assert.equal(event.status, "completed", `expected ${card.id} status to be completed`);
+  }
+});
+
 test("mapSymplaEvent: available event keeps scheduled status even if startAt is missing", () => {
   const raw = {
     id: "sympla-available",
