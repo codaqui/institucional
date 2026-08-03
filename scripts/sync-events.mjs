@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -634,6 +635,58 @@ const SYMPLA_MONTH_MAP = {
   set: "09", out: "10", nov: "11", dez: "12",
 };
 
+function normalizeSymplaDateText(text) {
+  return text
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+function parseSymplaRichDate(norm) {
+  const m = /(\d{1,2})\s+([a-z]{3})\s-\s(\d{4})\s[•·]\s(\d{2}:\d{2})/.exec(norm);
+  if (!m) return null;
+  const month = SYMPLA_MONTH_MAP[m[2]];
+  if (!month) return null;
+  return `${m[3]}-${month}-${m[1].padStart(2, "0")}T${m[4]}:00-03:00`;
+}
+
+function resolveSymplaYear(day, month, time, defaultStatus, referenceDate) {
+  const currentYear = referenceDate.getFullYear();
+  let year = currentYear;
+  let candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+  const minYear = currentYear - 5;
+  const maxYear = currentYear + 2;
+
+  if (defaultStatus === "completed") {
+    while (candidate > referenceDate && year > minYear) {
+      year -= 1;
+      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+    }
+  } else {
+    while (candidate < referenceDate && year < maxYear) {
+      year += 1;
+      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+    }
+  }
+
+  return year;
+}
+
+function parseSymplaCardDate(norm, defaultStatus, referenceDate) {
+  const m = /(?:[a-z]{3},\s)?(\d{1,2})\s+([a-z]{3})(?:\s[·-]\s(\d{2}:\d{2}))?/.exec(norm);
+  if (!m) return null;
+
+  const day = m[1].padStart(2, "0");
+  const month = SYMPLA_MONTH_MAP[m[2]];
+  if (!month) return null;
+  const time = m[3] ?? "00:00";
+  const year = resolveSymplaYear(day, month, time, defaultStatus, referenceDate);
+
+  return `${year}-${month}-${day}T${time}:00-03:00`;
+}
+
 /**
  * Parses a rich Sympla date string from the event page body text:
  *   "12 mai - 2026 • 13:05"  → "2026-05-12T13:05:00-03:00"
@@ -645,45 +698,8 @@ const SYMPLA_MONTH_MAP = {
  */
 function parseSymplaDateText(text, defaultStatus = "scheduled", referenceDate = new Date()) {
   if (!text) return null;
-  // Normalise: strip accents, lower-case, collapse whitespace
-  const norm = text.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
-
-  // Rich format with explicit year: "12 mai - 2026 • 13:05" or "12 mai - 2026 13:05"
-  let m = /(\d{1,2})\s+([a-z]{3})\s-\s(\d{4})\s[•·]\s(\d{2}:\d{2})/.exec(norm);
-  if (m) {
-    const [, d, mo, yr, ti] = m;
-    const month = SYMPLA_MONTH_MAP[mo];
-    if (month) return `${yr}-${month}-${d.padStart(2, "0")}T${ti}:00-03:00`;
-  }
-
-  // Card format with day-of-week: "sab, 28 mar · 14:00" or "28 mar · 14:00" or plain "16 mai"
-  m = /(?:[a-z]{3},\s)?(\d{1,2})\s+([a-z]{3})(?:\s[·-]\s(\d{2}:\d{2}))?/.exec(norm);
-  if (!m) return null;
-
-  const day = m[1].padStart(2, "0");
-  const month = SYMPLA_MONTH_MAP[m[2]];
-  if (!month) return null;
-  const time = m[3] ?? "00:00";
-
-  const currentYear = referenceDate.getFullYear();
-  let year = currentYear;
-  let candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
-
-  // Keep walking the year backwards/forwards until the inferred date matches
-  // the expected tense. Cap at +/- 5 years to avoid runaway loops on bad data.
-  if (defaultStatus === "completed") {
-    while (candidate > referenceDate && year > currentYear - 5) {
-      year -= 1;
-      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
-    }
-  } else {
-    while (candidate < referenceDate && year < currentYear + 2) {
-      year += 1;
-      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
-    }
-  }
-
-  return `${year}-${month}-${day}T${time}:00-03:00`;
+  const norm = normalizeSymplaDateText(text);
+  return parseSymplaRichDate(norm) ?? parseSymplaCardDate(norm, defaultStatus, referenceDate);
 }
 
 function mapSymplaEventStatus(startAt, isEnded) {
@@ -719,7 +735,7 @@ function extractSymplaLocation(body) {
   // Venue names in Sympla look like "312 Coworking, Ponta Grossa - PR" or
   // "Auditório UniCesumar - Ponta Grossa - PR". They contain a comma or a
   // hyphen separating address parts; challenge text does not follow this shape.
-  const venuePattern = "\\b[A-Z][^•,]{3,80}(?:, [A-Z][^•,]{2,40}|-[A-Z][^•,]{2,40})";
+  const venuePattern = String.raw`\b[A-Z][^•,]{3,80}(?:, [A-Z][^•,]{2,40}|-[A-Z][^•,]{2,40})`;
   const match = new RegExp(`(?:${onlinePattern}|${venuePattern})(?= |$)`, "i").exec(body);
   const raw = match?.[0]?.trim() ?? null;
   if (!raw) return null;
@@ -757,7 +773,7 @@ const SYMPLA_USER_AGENTS = [
 ];
 
 function getRandomSymplaUserAgent() {
-  return SYMPLA_USER_AGENTS[Math.floor(Math.random() * SYMPLA_USER_AGENTS.length)];
+  return SYMPLA_USER_AGENTS[randomInt(0, SYMPLA_USER_AGENTS.length)];
 }
 
 function getSymplaBrowserHeaders() {
@@ -775,7 +791,7 @@ function getSymplaBrowserHeaders() {
 
 function symplaDelayMs(baseMs = 1000) {
   // Add +/- 30% jitter to avoid a perfectly regular request pattern.
-  const jitter = 0.7 + Math.random() * 0.6;
+  const jitter = randomInt(700, 1301) / 1000;
   return Math.round(baseMs * jitter);
 }
 
