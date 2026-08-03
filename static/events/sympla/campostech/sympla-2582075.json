@@ -1,26 +1,28 @@
 {
-  "generatedAt": "2026-08-02T22:16:10.184Z",
+  "generatedAt": "2026-08-03T01:56:54.657Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
-    "type": "sympla",
+    "producerSlug": "camposvalley",
     "label": "CamposTech na Sympla",
     "emoji": "🏙️",
     "description": "Eventos organizados pelo CamposTech na plataforma Sympla.",
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
-    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-02T22:16:10.184Z"
+    "defaultHost": "CamposTech",
+    "defaultLocation": "Ponta Grossa, PR",
+    "defaultPlatform": "Sympla",
+    "fallbackEvents": []
   },
   "event": {
     "id": "sympla-2582075",
     "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
     "summary": "Evento organizado pelo CamposTech na Sympla.",
-    "startAt": "2026-08-02T22:17:11.031Z",
+    "startAt": "2025-08-10T13:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
-    "location": "Ponta Grossa, PR",
+    "location": "312 Coworking and Offices - Ponta Grossa, PR",
     "href": "https://www.sympla.com.br/evento/minicurso-ux-design-prototipando-um-app-mobile-na-pratica/2582075",
     "tags": [
       "campostech",

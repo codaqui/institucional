@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 async function fetchWithTimeout(url, init = {}, timeoutMs = 30_000) {
   const controller = new AbortController();
@@ -638,8 +639,11 @@ const SYMPLA_MONTH_MAP = {
  *   "12 mai - 2026 • 13:05"  → "2026-05-12T13:05:00-03:00"
  *   "Sab, 28 Mar · 14:00"   → "2026-03-28T14:00:00-03:00" (year inferred)
  *   "16 Mai"                 → "2026-05-16T00:00:00-03:00" (time+year inferred)
+ *
+ * Year inference supports multi-year gaps: events from 2024 are correctly
+ * placed in the past when they appear in the "Encerrados" tab in 2026.
  */
-function parseSymplaDateText(text, defaultStatus = "scheduled") {
+function parseSymplaDateText(text, defaultStatus = "scheduled", referenceDate = new Date()) {
   if (!text) return null;
   // Normalise: strip accents, lower-case, collapse whitespace
   const norm = text.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ");
@@ -661,15 +665,22 @@ function parseSymplaDateText(text, defaultStatus = "scheduled") {
   if (!month) return null;
   const time = m[3] ?? "00:00";
 
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const candidate = new Date(`${currentYear}-${month}-${day}T${time}:00-03:00`);
-
+  const currentYear = referenceDate.getFullYear();
   let year = currentYear;
-  if (defaultStatus === "completed" && candidate > now) {
-    year = currentYear - 1;
-  } else if (defaultStatus !== "completed" && candidate < now) {
-    year = currentYear + 1;
+  let candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+
+  // Keep walking the year backwards/forwards until the inferred date matches
+  // the expected tense. Cap at +/- 5 years to avoid runaway loops on bad data.
+  if (defaultStatus === "completed") {
+    while (candidate > referenceDate && year > currentYear - 5) {
+      year -= 1;
+      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+    }
+  } else {
+    while (candidate < referenceDate && year < currentYear + 2) {
+      year += 1;
+      candidate = new Date(`${year}-${month}-${day}T${time}:00-03:00`);
+    }
   }
 
   return `${year}-${month}-${day}T${time}:00-03:00`;
@@ -677,8 +688,9 @@ function parseSymplaDateText(text, defaultStatus = "scheduled") {
 
 function mapSymplaEventStatus(startAt, isEnded) {
   if (isEnded) return "completed";
+  if (!startAt) return "scheduled";
   const now = Date.now();
-  const start = startAt ? Date.parse(startAt) : Number.NaN;
+  const start = Date.parse(startAt);
   if (!Number.isNaN(start) && start < now) return "completed";
   return "scheduled";
 }
@@ -704,9 +716,16 @@ function extractSymplaDateLine(body) {
 
 function extractSymplaLocation(body) {
   const onlinePattern = "Evento Online(?: via [^,]+)?";
-  const venuePattern = "[A-Z][^•,]{5,80}(?:, [A-Z][^•,]{2,40})?";
+  // Venue names in Sympla look like "312 Coworking, Ponta Grossa - PR" or
+  // "Auditório UniCesumar - Ponta Grossa - PR". They contain a comma or a
+  // hyphen separating address parts; challenge text does not follow this shape.
+  const venuePattern = "\\b[A-Z][^•,]{3,80}(?:, [A-Z][^•,]{2,40}|-[A-Z][^•,]{2,40})";
   const match = new RegExp(`(?:${onlinePattern}|${venuePattern})(?= |$)`, "i").exec(body);
-  return match?.[0]?.trim() ?? null;
+  const raw = match?.[0]?.trim() ?? null;
+  if (!raw) return null;
+  const forbidden = /verificacao|seguranca|executando|cloudflare|queue-it|checking|please wait/i;
+  if (forbidden.test(raw.normalize("NFD").replace(/[\u0300-\u036f]/g, ""))) return null;
+  return raw;
 }
 
 function extractSymplaDescription(body) {
@@ -725,42 +744,195 @@ function extractSymplaUserCount(body) {
   return countMatch ? Number.parseInt(countMatch[1]) : undefined;
 }
 
+function isSymplaQueueItUrl(url) {
+  return /queue-it\.net|secure\.queue-it\.net/i.test(url);
+}
+
+const SYMPLA_USER_AGENTS = [
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15",
+  "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+];
+
+function getRandomSymplaUserAgent() {
+  return SYMPLA_USER_AGENTS[Math.floor(Math.random() * SYMPLA_USER_AGENTS.length)];
+}
+
+function getSymplaBrowserHeaders() {
+  return {
+    "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Cache-Control": "max-age=0",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+  };
+}
+
+function symplaDelayMs(baseMs = 1000) {
+  // Add +/- 30% jitter to avoid a perfectly regular request pattern.
+  const jitter = 0.7 + Math.random() * 0.6;
+  return Math.round(baseMs * jitter);
+}
+
+async function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+
 /**
- * Fetches precise dates, description, and location from an individual Sympla event page.
- * The `evento-online` URL format renders without queue-it protection.
+ * Warms up the Sympla session by visiting the homepage once. This lets
+ * Playwright pick up basic cookies/TLS fingerprinting before we hit detail
+ * pages, which lowers the chance of an immediate Cloudflare challenge.
  */
-async function fetchSymplaEventDetail(page, href) {
+async function warmupSymplaSession(browser) {
+  const page = await browser.newPage();
   try {
-    // Ensure we use the evento-online variant (doesn't trigger queue-it)
-    const detailUrl = href.replace(/\/evento\//, "/evento-online/");
-    await page.goto(detailUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
-    await page.waitForTimeout(2000);
-
-    // If Sympla redirected away ("event ended / see similar events"), the final URL
-    // will have a different numeric ID — skip enrichment to avoid picking up wrong data.
-    const finalUrl = page.url();
-    const expectedId = /\/(\d+)$/.exec(new URL(detailUrl).pathname)?.[1];
-    const finalId = /\/(\d+)$/.exec(new URL(finalUrl).pathname)?.[1];
-    if (expectedId && finalId && expectedId !== finalId) {
-      console.warn(`    ⚠ Sympla redirected event ${expectedId} → ${finalId}, skipping detail`);
-      return null;
-    }
-
-    const body = await page.evaluate(() => (document.body.innerText ?? "").replace(/\s+/g, " "));
-    const dateLine = extractSymplaDateLine(body);
-
-    return {
-      startDateRaw: dateLine.startDateRaw ?? dateLine.singleDateRaw ?? null,
-      endDateRaw: dateLine.endDateRaw,
-      location: extractSymplaLocation(body),
-      description: extractSymplaDescription(body),
-      userCount: extractSymplaUserCount(body),
-    };
+    await configureSymplaPage(page);
+    await page.setExtraHTTPHeaders({
+      ...getSymplaBrowserHeaders(),
+      "User-Agent": getRandomSymplaUserAgent(),
+    });
+    await page.goto("https://www.sympla.com.br/", {
+      waitUntil: "domcontentloaded",
+      timeout: 20_000,
+    });
+    await page.waitForTimeout(symplaDelayMs(1500));
   } catch (err) {
-    console.warn(`    ⚠ Could not fetch detail for ${href}: ${err.message}`);
-    return null;
+    // Non-fatal: even a failed warm-up still leaves cookies in the context.
+    console.warn(`    ⚠ Sympla warm-up failed: ${err.message}`);
+  } finally {
+    await page.close().catch(() => {});
   }
 }
+
+function isSymplaChallengePage(body) {
+  const challengeMarkers = [
+    "executando verificacao de seguranca",
+    "verificacao de seguranca",
+    "checking your browser",
+    "please wait",
+    "queue-it",
+    "seguranca da cloudflare",
+    "cloudflare",
+    "antes de continuar",
+  ];
+  const normalized = (body || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return challengeMarkers.some((marker) => normalized.includes(marker));
+}
+
+/**
+ * Fetches precise dates, description, and location from an individual Sympla event page.
+ * Tries the canonical URL first; online events may also load via the /evento-online/ variant.
+ * Returns null when the page is behind Queue-it, redirects to a different event, or fails.
+ *
+ * Robustness measures:
+ * - Blocks heavy third-party resources to reduce Cloudflare exposure.
+ * - Visits the Sympla homepage once per browser context to warm up cookies.
+ * - Rotates user-agent and adds jittered delays between attempts.
+ * - Uses exponential backoff with jitter on challenge/failure.
+ * - Waits for an explicit date marker in the page text before extraction.
+ */
+async function fetchSymplaEventDetail(browser, href) {
+  const urlsToTry = [href];
+  if (/\/evento\//.test(href) && !/\/evento-online\//.test(href)) {
+    urlsToTry.push(href.replace(/\/evento\//, "/evento-online/"));
+  }
+
+  const page = await browser.newPage();
+  try {
+    await configureSymplaPage(page);
+
+    for (const detailUrl of urlsToTry) {
+      // Retry a few times with increasing backoff; Cloudflare challenges can be
+      // intermittent and a fresh user-agent + delay sometimes lets the real page
+      // through.
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        try {
+          await page.setExtraHTTPHeaders({
+            ...getSymplaBrowserHeaders(),
+            "User-Agent": getRandomSymplaUserAgent(),
+          });
+
+          // Longer initial delay on later attempts to let any challenge settle.
+          if (attempt > 1) {
+            await sleep(symplaDelayMs(2000 * 2 ** (attempt - 1)));
+          }
+
+          await page.goto(detailUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
+
+          // Wait for the date marker that only appears on real event pages.
+          // If it never shows, the body extraction below will likely hit a
+          // challenge page and we will retry.
+          await page
+            .waitForFunction(
+              () => /\d{1,2} [a-z]{3} - \d{4} [•·] \d{2}:\d{2}/i.test(document.body.innerText),
+              { timeout: 8_000 }
+            )
+            .catch(() => {});
+
+          await page.waitForTimeout(symplaDelayMs(1500));
+
+          const finalUrl = page.url();
+
+          // Queue-it protection serves a waiting page instead of the event content.
+          if (isSymplaQueueItUrl(finalUrl)) {
+            console.warn(`    ⚠ Sympla queued event ${href}, skipping detail`);
+            break;
+          }
+
+          // If Sympla redirected away ("event ended / see similar events"), the final URL
+          // will have a different numeric ID — skip enrichment to avoid picking up wrong data.
+          const expectedId = /\/(\d+)$/.exec(new URL(detailUrl).pathname)?.[1];
+          const finalId = /\/(\d+)$/.exec(new URL(finalUrl).pathname)?.[1];
+          if (expectedId && finalId && expectedId !== finalId) {
+            console.warn(`    ⚠ Sympla redirected event ${expectedId} → ${finalId}, skipping detail`);
+            break;
+          }
+
+          const body = await page.evaluate(() => (document.body.innerText ?? "").replace(/\s+/g, " "));
+
+          // Cloudflare / Sympla challenge pages render generic security text and
+          // no event metadata — discard them so the card data is used instead.
+          if (isSymplaChallengePage(body)) {
+            console.warn(`    ⚠ Sympla challenge page for ${href} (attempt ${attempt}), ${attempt < 3 ? "retrying" : "giving up"}`);
+            if (attempt < 3) {
+              continue;
+            }
+            break;
+          }
+
+          const dateLine = extractSymplaDateLine(body);
+
+          return {
+            startDateRaw: dateLine.startDateRaw ?? dateLine.singleDateRaw ?? null,
+            endDateRaw: dateLine.endDateRaw,
+            location: extractSymplaLocation(body),
+            description: extractSymplaDescription(body),
+            userCount: extractSymplaUserCount(body),
+          };
+        } catch (err) {
+          console.warn(`    ⚠ Could not fetch detail for ${href} via ${detailUrl} (attempt ${attempt}): ${err.message}`);
+          if (attempt < 3) {
+            await sleep(symplaDelayMs(2000 * 2 ** (attempt - 1)));
+          }
+        }
+      }
+    }
+  } finally {
+    await page.close().catch(() => {});
+  }
+
+  return null;
+}
+
+// Sympla card date format: "Sab, 10 Ago · 13:00", "Sex, 27 Mar · 19:00" or "16 Mai".
+// Word boundaries prevent false positives such as "312 Coworking" matching as a date.
+const SYMPLA_CARD_DATE_PATTERN = /\b(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}(?:\s*[·-]\s*\d{2}:\d{2})?\b/i;
 
 function resolveSymplaStartAt(detail, raw, defaultStatus) {
   if (detail?.startDateRaw) {
@@ -769,9 +941,8 @@ function resolveSymplaStartAt(detail, raw, defaultStatus) {
   }
 
   // Card dates: take last date-looking text (avoids registration-opening date)
-  const datePat = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
-  const dateTexts = (raw.allText ?? []).filter((t) => datePat.test(t));
-  return parseSymplaDateText(dateTexts.at(-1) ?? "", defaultStatus) ?? new Date().toISOString();
+  const dateTexts = (raw.allText ?? []).filter((t) => SYMPLA_CARD_DATE_PATTERN.test(t));
+  return parseSymplaDateText(dateTexts.at(-1) ?? "", defaultStatus) ?? undefined;
 }
 
 function resolveSymplaEndAt(detail, defaultStatus) {
@@ -785,9 +956,8 @@ function resolveSymplaIsOnline(raw, detail) {
 }
 
 function resolveSymplaLocation(raw, detail, isOnline, config) {
-  const dateLike = /(?:[a-záéíóúãõ]{3},\s+)?\d{1,2}\s+[a-záéíóúãõ]{3}/i;
   const cardLocation = (raw.allText ?? [])
-    .findLast((t) => !dateLike.test(t) && t !== raw.title && t.length > 3) ?? null;
+    .findLast((t) => !SYMPLA_CARD_DATE_PATTERN.test(t) && t !== raw.title && t.length > 3) ?? null;
 
   // Use detail location only when it looks like a real place, not Sympla placeholder text
   const detailLocationOk = detail?.location
@@ -874,6 +1044,12 @@ async function scrapeSymplaListPage(listPage, config) {
   const producerUrl = `https://www.sympla.com.br/produtor/${config.producerSlug}`;
   console.log(`    opening ${producerUrl} with Playwright...`);
   await listPage.goto(producerUrl, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  await sleep(symplaDelayMs(2500));
+
+  const body = await listPage.evaluate(() => (document.body.innerText ?? "").replace(/\s+/g, " "));
+  if (isSymplaChallengePage(body)) {
+    throw new Error("Sympla producer page is behind a Cloudflare human verification challenge");
+  }
 
   // Wait for event cards to render (Sympla SPA)
   try {
@@ -882,14 +1058,14 @@ async function scrapeSymplaListPage(listPage, config) {
     // No events yet on the available tab — may still have "Encerrados"
   }
   await listPage.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-  await listPage.waitForTimeout(1500);
+  await sleep(symplaDelayMs(1500));
 
   const availableRaw = await scrapeSymplaTab(listPage);
   console.log(`    found ${availableRaw.length} available event(s)`);
 
   const encerradosBtn = listPage.locator("button", { hasText: "Encerrados" });
   await encerradosBtn.click();
-  await listPage.waitForTimeout(4000);
+  await sleep(symplaDelayMs(4500));
 
   const endedRaw = await scrapeSymplaTab(listPage);
   console.log(`    found ${endedRaw.length} ended event(s)`);
@@ -897,16 +1073,68 @@ async function scrapeSymplaListPage(listPage, config) {
   return { availableRaw, endedRaw };
 }
 
-async function enrichSymplaEvents(allRaw, detailPage, config) {
+async function enrichSymplaEvents(allRaw, browser, config) {
   const freshById = new Map();
-  for (const raw of allRaw) {
-    const isOnlineUrl = /\/evento-online\//.test(raw.href);
-    const detail = isOnlineUrl ? await fetchSymplaEventDetail(detailPage, raw.href) : null;
+  for (let i = 0; i < allRaw.length; i += 1) {
+    const raw = allRaw[i];
+    // Fetch details for every event: the detail page contains the full year,
+    // which is required to correctly place past events from previous years.
+    const detail = await fetchSymplaEventDetail(browser, raw.href);
     const event = mapSymplaEvent({ ...raw, detail }, config);
     freshById.set(event.id, event);
-    console.log(`    ✓ ${event.id}: "${event.title}" [${event.status}]${isOnlineUrl ? " (detail enriched)" : " (card only)"}`);
+    const enrichmentLabel = detail?.startDateRaw ? " (detail enriched)" : " (card only)";
+    console.log(`    ✓ ${event.id}: "${event.title}" [${event.status}]${enrichmentLabel}`);
+    // Polite, jittered delay between detail requests to reduce Cloudflare challenges.
+    if (i < allRaw.length - 1) {
+      await sleep(symplaDelayMs(1500));
+    }
   }
   return freshById;
+}
+
+async function configureSymplaPage(page) {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setExtraHTTPHeaders({
+    ...getSymplaBrowserHeaders(),
+    "User-Agent": getRandomSymplaUserAgent(),
+  });
+
+  const blockedResourceTypes = new Set([
+    "image",
+    "stylesheet",
+    "font",
+    "media",
+    "websocket",
+  ]);
+  const blockedUrlPatterns = [
+    /google-analytics\.com/,
+    /googletagmanager\.com/,
+    /googleadservices\.com/,
+    /doubleclick\.net/,
+    /facebook\.net/,
+    /connect\.facebook\.net/,
+    /bat\.bing\.com/,
+    /clarity\.ms/,
+    /hotjar/,
+    /analytics/,
+    /recaptcha/,
+    /gstatic\.com\/recaptcha/,
+    /datadoghq\.com/,
+    /trackjs\.com/,
+    /audima\.co/,
+  ];
+
+  await page.route("**/*", (route) => {
+    const request = route.request();
+    if (blockedResourceTypes.has(request.resourceType())) {
+      return route.abort("blockedbyclient");
+    }
+    const url = request.url();
+    if (blockedUrlPatterns.some((pattern) => pattern.test(url))) {
+      return route.abort("blockedbyclient");
+    }
+    return route.continue();
+  });
 }
 
 async function resolveSymplaEvents(config, existingEvents) {
@@ -916,23 +1144,20 @@ async function resolveSymplaEvents(config, existingEvents) {
     browser = await chromium.launch({ headless: true, args: ["--no-sandbox", "--disable-setuid-sandbox"] });
 
     const listPage = await browser.newPage();
-    await listPage.setViewportSize({ width: 1280, height: 900 });
-    await listPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
+    await configureSymplaPage(listPage);
 
     const { availableRaw, endedRaw } = await scrapeSymplaListPage(listPage, config);
     await listPage.close();
 
-    const detailPage = await browser.newPage();
-    await detailPage.setViewportSize({ width: 1280, height: 900 });
-    await detailPage.setExtraHTTPHeaders({ "Accept-Language": "pt-BR,pt;q=0.9" });
+    // Warm up the browser context once before detail requests.
+    await warmupSymplaSession(browser);
 
     const allRaw = [
       ...availableRaw.map((r) => ({ ...r, isEnded: false })),
       ...endedRaw.map((r) => ({ ...r, isEnded: true })),
     ];
 
-    const freshById = await enrichSymplaEvents(allRaw, detailPage, config);
-    await detailPage.close();
+    const freshById = await enrichSymplaEvents(allRaw, browser, config);
 
     mergeExistingEvents(freshById, existingEvents);
     return [...freshById.values()];
@@ -1366,7 +1591,7 @@ async function readExistingSourceMeta(source, sourceId) {
   }
 }
 
-async function processInternalSource(generatedAt) {
+async function processInternalSource(generatedAt, overridesByKey) {
   console.log(`  syncing ${INTERNAL_SOURCE}/${INTERNAL_SOURCE_ID}...`);
   const apiBaseUrl = process.env.INTERNAL_EVENTS_API_URL || "http://localhost:3000";
   const existingEvents = await readExistingEvents(INTERNAL_SOURCE, INTERNAL_SOURCE_ID);
@@ -1443,7 +1668,7 @@ async function main() {
 
   // Fonte internal:codaqui — dinamica via API do backend (nao esta no
   // events.config.json). Retorna null se a API estiver fora e nao houver cache.
-  const internalResult = await processInternalSource(generatedAt);
+  const internalResult = await processInternalSource(generatedAt, overridesByKey);
   if (internalResult) {
     rootIndex.sources.push(internalResult.sourceSummary);
     rootIndex.events.push(...internalResult.summaries);
@@ -1457,4 +1682,25 @@ async function main() {
   console.log(`  sources: ${rootIndex.sources.length} | total events: ${rootIndex.events.length}`);
 }
 
-await main();
+// Exported for unit testing. The guard keeps `main()` from running when the
+// module is imported by tests.
+export {
+  extractSymplaDateLine,
+  extractSymplaDescription,
+  extractSymplaLocation,
+  extractSymplaUserCount,
+  mapSymplaEvent,
+  mapSymplaEventStatus,
+  parseSymplaDateText,
+  resolveSymplaEndAt,
+  resolveSymplaEvents,
+  resolveSymplaIsOnline,
+  resolveSymplaLocation,
+  resolveSymplaStartAt,
+  resolveSymplaSummary,
+  SYMPLA_CARD_DATE_PATTERN,
+};
+
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+  await main();
+}
