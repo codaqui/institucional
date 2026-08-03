@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T01:29:32.872Z",
+  "generatedAt": "2026-08-03T02:58:41.038Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-03T01:29:32.872Z"
+    "generatedAt": "2026-08-03T02:58:41.038Z"
   },
   "event": {
     "id": "sympla-3421888",
@@ -21,7 +21,7 @@
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "Elas no Código",
-    "location": "Ativar para ir para o player da Audima Ativar para ir para o menu de",
+    "location": "SET · 19:00 O Céu da Língua SALÃO DE ATOS DA PUCRS - Porto Alegre, RS 03 SET 05 SET TIAGO IORC - TURNÊ TROCO",
     "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888",
     "tags": [
       "elasnocodigo",
@@ -34,7 +34,6 @@
     "entityType": "external",
     "creatorName": "Elas no Código",
     "organizers": [],
-    "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png",
-    "hasOverride": false
+    "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png"
   }
 }
