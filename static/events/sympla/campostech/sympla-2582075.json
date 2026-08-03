@@ -1,28 +1,27 @@
 {
-  "generatedAt": "2026-08-03T01:56:54.657Z",
+  "generatedAt": "2026-08-03T02:58:41.038Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
-    "producerSlug": "camposvalley",
+    "type": "sympla",
     "label": "CamposTech na Sympla",
     "emoji": "🏙️",
     "description": "Eventos organizados pelo CamposTech na plataforma Sympla.",
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
-    "defaultHost": "CamposTech",
-    "defaultLocation": "Ponta Grossa, PR",
-    "defaultPlatform": "Sympla",
-    "fallbackEvents": []
+    "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
+    "generatedAt": "2026-08-03T02:58:41.038Z"
   },
   "event": {
     "id": "sympla-2582075",
     "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
-    "summary": "Evento organizado pelo CamposTech na Sympla.",
-    "startAt": "2025-08-10T13:00:00-03:00",
+    "summary": "Bora aprender tecnologia na prática? Sábado, dia 10 de agosto, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, garan…",
+    "startAt": "2024-08-10T13:00:00-03:00",
+    "endAt": "2024-08-10T17:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
-    "location": "312 Coworking and Offices - Ponta Grossa, PR",
+    "location": "SET · 19:00 O Céu da Língua SALÃO DE ATOS DA PUCRS - Porto Alegre, RS 03 SET 05 SET TIAGO IORC - TURNÊ TROCO",
     "href": "https://www.sympla.com.br/evento/minicurso-ux-design-prototipando-um-app-mobile-na-pratica/2582075",
     "tags": [
       "campostech",
