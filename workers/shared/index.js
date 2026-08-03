@@ -61,14 +61,19 @@ export default {
 
     // Route 2: bare root (`/`) redirects to the community prefix so the user
     // lands on the community home with the SPA router seeing the right path.
+    // Use the non-trailing-slash form to match Docusaurus trailingSlash: false.
     if (url.pathname === '/') {
-      const target = `${COMMUNITY_PREFIX}/${url.search}`;
+      const target = `${COMMUNITY_PREFIX}${url.search}`;
       return Response.redirect(`${url.protocol}//${url.host}${target}`, 301);
     }
 
     // Route 3: everything else is pass-through to STATIC_ORIGIN. The pathname
     // is preserved so React Router resolves to the community page.
-    const upstream = new URL(url.pathname + url.search, STATIC_ORIGIN);
+    // GitHub Pages serves Docusaurus clean URLs without a trailing slash
+    // (e.g. /comunidades/elasnocodigo works, /comunidades/elasnocodigo/ 404s),
+    // so normalize the upstream request to the non-trailing-slash variant.
+    const upstreamPath = url.pathname.replace(/\/$/, '') || '/';
+    const upstream = new URL(upstreamPath + url.search, STATIC_ORIGIN);
     return fetch(upstream, req);
   },
 };
