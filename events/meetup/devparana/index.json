@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-04T05:56:27.862Z",
+  "generatedAt": "2026-08-04T06:48:28.220Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,7 +10,7 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-04T05:56:27.862Z",
+    "generatedAt": "2026-08-04T06:48:28.220Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
     "itemCount": 372
@@ -14688,11 +14688,11 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/5/f/4/3/highres_535224387.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315702026.json",
-      "hasOverride": false
+      "itemPath": "/events/meetup/devparana/315702026.json"
     },
     {
       "id": "279713902",
@@ -14732,11 +14732,11 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/1/4/c/8/highres_535445320.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/279713902.json",
-      "hasOverride": false
+      "itemPath": "/events/meetup/devparana/279713902.json"
     },
     {
       "id": "315903291",
@@ -14784,11 +14784,11 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/e/c/highres_535437580.jpeg",
+      "hasOverride": false,
       "source": "meetup",
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
-      "itemPath": "/events/meetup/devparana/315903291.json",
-      "hasOverride": false
+      "itemPath": "/events/meetup/devparana/315903291.json"
     }
   ]
 }
