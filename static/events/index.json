@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T01:29:32.872Z",
+  "generatedAt": "2026-08-05T18:50:02.582Z",
   "sources": [
     {
       "source": "discord",
@@ -87,7 +87,7 @@
       "ctaLabel": "Ver eventos",
       "ctaHref": "/eventos",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-03T01:29:32.872Z",
+      "generatedAt": "2026-08-05T18:50:02.582Z",
       "sourceKey": "internal:codaqui",
       "indexPath": "/events/internal/codaqui/index.json",
       "itemCount": 0
