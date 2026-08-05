@@ -209,11 +209,18 @@ export class EventsService {
     return staff.some((s) => roles.includes(s.staffRole));
   }
 
+  private static canViewEventGlobally(user: JwtPayload): boolean {
+    return (
+      EventsService.canManageAll(user) ||
+      !!user.roles?.includes(MemberRole.EVENT_FINANCE)
+    );
+  }
+
   private async assertCanViewEvent(
     user: JwtPayload,
     eventId: string,
   ): Promise<void> {
-    if (EventsService.canManageAll(user)) return;
+    if (EventsService.canViewEventGlobally(user)) return;
     if (await this.isStaff(eventId, user.sub)) return;
     throw new ForbiddenException('Sem permissão para este evento.');
   }
@@ -491,7 +498,11 @@ export class EventsService {
       community?: string;
     },
   ) {
-    EventsService.assertGlobalManager(user);
+    if (!EventsService.canManageAll(user) && !user.roles?.includes(MemberRole.EVENT_FINANCE)) {
+      throw new ForbiddenException(
+        'Acesso negado: requer role admin, event_organizer ou event_finance.',
+      );
+    }
 
     const qb = this.eventRepo.createQueryBuilder('e').orderBy('e."startAt"', 'DESC');
 

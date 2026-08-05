@@ -51,10 +51,12 @@ interface VendorReceipt {
 }
 
 export default function RecebimentosPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
+
+  const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [tab, setTab] = useState(0);
   const [vendors, setVendors] = useState<Vendor[]>([]);
@@ -97,12 +99,12 @@ export default function RecebimentosPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !isAdmin) {
+    if (!isLoggedIn || !canAccess) {
       history.replace("/");
       return;
     }
     fetchAll();
-  }, [ready, isLoggedIn, isAdmin, history, fetchAll]);
+  }, [ready, isLoggedIn, canAccess, history, fetchAll]);
 
   const reuseReceipt = (r: VendorReceipt) => {
     setReuseSeed({

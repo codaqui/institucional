@@ -159,6 +159,8 @@ export function useAuth() {
     isFinanceAnalyzer: user?.roles?.includes("finance-analyzer") ?? false,
     isEventOrganizer: user?.roles?.includes("event_organizer") ?? false,
     isEventFinance: user?.roles?.includes("event_finance") ?? false,
+    isEventHost: user?.roles?.includes("event_host") ?? false,
+    isEventChecker: user?.roles?.includes("event_checker") ?? false,
     login,
     logout,
     refreshUser,

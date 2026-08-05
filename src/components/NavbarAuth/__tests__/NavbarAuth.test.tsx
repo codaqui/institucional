@@ -27,6 +27,8 @@ const BASE_AUTH = {
   isFinanceAnalyzer: false,
   isEventOrganizer: false,
   isEventFinance: false,
+  isEventHost: false,
+  isEventChecker: false,
   login: jest.fn(),
   logout: jest.fn(),
   refreshUser: jest.fn(),
@@ -116,6 +118,32 @@ describe("mobile mode (mobile={true})", () => {
     expect(screen.getByRole("link", { name: /painel admin/i })).toBeInTheDocument();
   });
 
+  it("exibe link de Painel Admin para organizador de eventos apontando para /admin/eventos", () => {
+    mockUseAuth.mockReturnValue({
+      ...BASE_AUTH,
+      user: { ...LOGGED_IN_USER, roles: ["membro", "event_organizer"] },
+      isLoggedIn: true,
+      isEventOrganizer: true,
+    });
+    render(<NavbarAuth mobile />);
+    const link = screen.getByRole("link", { name: /painel admin/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/admin/eventos");
+  });
+
+  it("exibe link de Painel Admin para credenciador apontando para /admin/eventos-checkin", () => {
+    mockUseAuth.mockReturnValue({
+      ...BASE_AUTH,
+      user: { ...LOGGED_IN_USER, roles: ["membro", "event_checker"] },
+      isLoggedIn: true,
+      isEventChecker: true,
+    });
+    render(<NavbarAuth mobile />);
+    const link = screen.getByRole("link", { name: /painel admin/i });
+    expect(link).toBeInTheDocument();
+    expect(link).toHaveAttribute("href", "/admin/eventos-checkin");
+  });
+
   it("NÃO exibe link de Painel Admin para usuário comum", () => {
     mockUseAuth.mockReturnValue({
       ...BASE_AUTH,
@@ -198,6 +226,22 @@ describe("desktop mode (mobile={false} padrão)", () => {
     const chip = container.querySelector(".MuiChip-root") as HTMLElement;
     fireEvent.click(chip);
     expect(await screen.findByText("Painel Admin")).toBeInTheDocument();
+  });
+
+  it("exibe Painel Admin no desktop para organizador de eventos apontando para /admin/eventos", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    mockUseAuth.mockReturnValue({
+      ...BASE_AUTH,
+      user: { ...LOGGED_IN_USER, roles: ["membro", "event_organizer"] },
+      isLoggedIn: true,
+      isEventOrganizer: true,
+    });
+    const { container } = render(<NavbarAuth />);
+    const chip = container.querySelector(".MuiChip-root") as HTMLElement;
+    fireEvent.click(chip);
+    const item = await screen.findByText("Painel Admin");
+    expect(item).toBeInTheDocument();
+    expect(item.closest("a")).toHaveAttribute("href", "/admin/eventos");
   });
 
   it("NÃO exibe Painel Admin para usuário comum no desktop", async () => {

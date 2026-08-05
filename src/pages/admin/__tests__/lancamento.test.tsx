@@ -38,7 +38,7 @@ describe("/admin/lancamento", () => {
     globalThis.window.history.pushState({}, "", "/admin/lancamento");
   });
 
-  it("redireciona quando usuário não é admin", async () => {
+  it("redireciona quando usuário não tem permissão financeira", async () => {
     mockUseAuth.mockReturnValue(buildAuthState({
       authFetch: jest.fn() as any,
       user: { sub: "u1" } as any,
@@ -49,6 +49,52 @@ describe("/admin/lancamento", () => {
     await waitFor(() => {
       expect(mockHistory.replace).toHaveBeenCalledWith("/");
     });
+  });
+
+  it.each([
+    { role: "event_organizer", label: "organizador de eventos" },
+    { role: "event_finance", label: "financeiro de eventos" },
+    { role: "event_host", label: "anfitrião de evento" },
+    { role: "event_checker", label: "credenciador" },
+  ])("redireciona $label para a home", async ({ role }) => {
+    mockUseAuth.mockReturnValue(buildAuthState({
+      authFetch: jest.fn() as any,
+      user: { sub: "u1", roles: ["membro", role] } as any,
+      isEventOrganizer: role === "event_organizer",
+      isEventFinance: role === "event_finance",
+      isEventHost: role === "event_host",
+      isEventChecker: role === "event_checker",
+    }));
+
+    render(<LancamentoPage />);
+
+    await waitFor(() => {
+      expect(mockHistory.replace).toHaveBeenCalledWith("/");
+    });
+  });
+
+  it("não redireciona finance-analyzer e renderiza a página", async () => {
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.endsWith("/ledger/accounts")) return jsonResponse([]);
+      if (url.endsWith("/account-transfers")) return jsonResponse({ data: [] });
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: false,
+      isFinanceAnalyzer: true,
+      authFetch: authFetch as any,
+      user: { sub: "finance-1" } as any,
+    }));
+
+    render(<LancamentoPage />);
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/ledger/accounts"));
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", { name: /Revisar lançamento/i })).toBeInTheDocument();
   });
 
   it("valida campos obrigatórios no lançamento direto", async () => {

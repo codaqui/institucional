@@ -133,6 +133,7 @@ interface TabCommonProps {
   readonly sourceLabel: (sourceKey: string) => string;
   /** Evento pré-selecionado via query string (?sourceKey=&eventId=) — aplicado uma vez. */
   readonly initialSelected?: EventSummary | null;
+  readonly canReimburse?: boolean;
 }
 
 // ─── Helpers locais ──────────────────────────────────────────────────────────
@@ -1189,7 +1190,7 @@ const FEATURE_OPTIONS = [
   },
 ] as const;
 
-function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected }: TabCommonProps): React.JSX.Element {
+function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected, canReimburse }: TabCommonProps): React.JSX.Element {
   const [selected, setSelected] = useState<EventSummary | null>(null);
   const [loadingEvent, setLoadingEvent] = useState(false);
   const [activation, setActivation] = useState<ExternalActivation | null>(null);
@@ -1804,13 +1805,15 @@ function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected
                         >
                           Caixa
                         </Button>
-                        <Button
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={() => setReimbursementDialogOpen(true)}
-                        >
-                          Lançar despesa
-                        </Button>
+                        {canReimburse && (
+                          <Button
+                            size="small"
+                            startIcon={<AddIcon />}
+                            onClick={() => setReimbursementDialogOpen(true)}
+                          >
+                            Lançar despesa
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           startIcon={<AddIcon />}
@@ -2031,8 +2034,9 @@ function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected
 // ─── Página ──────────────────────────────────────────────────────────────────
 
 export default function AdminEventOverridesPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, isEventOrganizer, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, isEventFinance, isEventOrganizer, authFetch } = useAuth();
   const canAccess = isAdmin || isEventOrganizer;
+  const canReimburse = isAdmin || isFinanceAnalyzer || isEventFinance;
 
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl =
@@ -2186,6 +2190,7 @@ export default function AdminEventOverridesPage(): React.JSX.Element {
                 events={externalEvents}
                 sourceLabel={sourceLabel}
                 initialSelected={preselectedEvent}
+                canReimburse={canReimburse}
               />
             </TabPanel>
           </>

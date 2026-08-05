@@ -50,22 +50,22 @@ type NavEntry = NavItem | NavGroup;
 const isGroup = (entry: NavEntry): entry is NavGroup => "items" in entry;
 
 const NAV_ENTRIES: readonly NavEntry[] = [
-  { label: "Membros", href: "/admin", icon: <DashboardIcon /> },
-  { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon /> },
-  { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon /> },
-  { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon /> },
-  { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon /> },
-  { label: "Empresas", href: "/admin/empresas", icon: <BusinessIcon /> },
-  { label: "Sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon /> },
-  { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon /> },
-  { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon /> },
+  { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+  { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
+  { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
+  { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
+  { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon />, roles: ["admin", "finance-analyzer"] },
+  { label: "Empresas", href: "/admin/empresas", icon: <BusinessIcon />, roles: ["admin"] },
+  { label: "Sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon />, roles: ["admin"] },
+  { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
+  { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
   {
     label: "Eventos",
     icon: <EventIcon />,
     items: [
-      { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer"] },
+      { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
       { label: "Overrides & externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
-      { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker"] },
+      { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
     ],
   },
   { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
@@ -121,7 +121,7 @@ export default function AdminNavbar({ active }: Readonly<AdminNavbarProps>): Rea
         color="text.secondary"
         sx={{ mr: 1, textTransform: "uppercase", letterSpacing: 1 }}
       >
-        Admin
+        Painel
       </Typography>
       {visibleEntries.map((entry) => {
         if (isGroup(entry)) {

@@ -266,7 +266,7 @@ describe("/admin/eventos", () => {
     );
   });
 
-  it("filtro 'Posso editar' esconde externos sem ownership", async () => {
+  it("organizador não-admin vê apenas externos com ownership por padrão", async () => {
     const index = {
       ...externalIndex,
       events: [
@@ -299,12 +299,99 @@ describe("/admin/eventos", () => {
 
     render(<AdminEventosPage />);
 
+    // Filtro "Posso editar" já vem ligado para não-admin
     expect(await screen.findByText("Meetup Externo")).toBeInTheDocument();
-    expect(screen.getByText("Outro Externo")).toBeInTheDocument();
+    expect(screen.queryByText("Outro Externo")).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByText("Posso editar"));
 
-    expect(screen.queryByText("Outro Externo")).not.toBeInTheDocument();
+    expect(screen.getByText("Outro Externo")).toBeInTheDocument();
     expect(screen.getByText("Meetup Externo")).toBeInTheDocument();
+  });
+
+  it("admin vê todos os externos por padrão (filtro 'Posso editar' desligado)", async () => {
+    const index = {
+      ...externalIndex,
+      events: [
+        externalEvent,
+        { ...externalEvent, id: "ext-2", title: "Outro Externo", hasOverride: false },
+      ],
+    };
+    stubStaticFetches(index);
+    const organizers = {
+      version: 1,
+      ownerships: [
+        { memberId: "org-1", githubHandle: "org", scope: ["meetup:devparana:ext-1"] },
+      ],
+    };
+    const authFetch = createAuthFetchMock(index, organizers);
+    authFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/events/organizers")) return jsonResponse(organizers);
+      if (url.endsWith("/events")) return jsonResponse([]);
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", handle: "admin", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    expect(await screen.findByText("Meetup Externo")).toBeInTheDocument();
+    expect(screen.getByText("Outro Externo")).toBeInTheDocument();
+  });
+
+  it("esconde botão Lançar despesa para organizador sem role financeira", async () => {
+    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent()]);
+      }
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse([]);
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isEventOrganizer: true,
+      authFetch: authFetch as any,
+      user: { sub: "org-1", roles: ["membro", "event_organizer"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    expect(await screen.findByText("Evento Teste")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Evento Teste"));
+    expect(screen.queryByRole("button", { name: /Lançar despesa/i })).not.toBeInTheDocument();
+  });
+
+  it("exibe botão Lançar despesa para admin", async () => {
+    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent()]);
+      }
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse([]);
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    expect(await screen.findByText("Evento Teste")).toBeInTheDocument();
+    fireEvent.click(screen.getByText("Evento Teste"));
+    expect(screen.getByRole("button", { name: /Lançar despesa/i })).toBeInTheDocument();
   });
 });

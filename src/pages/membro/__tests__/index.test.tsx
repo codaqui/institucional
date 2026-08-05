@@ -288,4 +288,46 @@ describe("/membro", () => {
     expect(screen.getByText("ABCD-1234", { exact: false })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Imprimir/i })).toBeInTheDocument();
   });
+
+  it.each([
+    { roles: ["member"], visible: false, label: "membro comum" },
+    { roles: ["member", "event_organizer"], visible: false, label: "organizador de eventos" },
+    { roles: ["member", "event_host"], visible: false, label: "anfitrião de evento" },
+    { roles: ["member", "event_checker"], visible: false, label: "credenciador" },
+    { roles: ["member", "event_finance"], visible: false, label: "financeiro de eventos" },
+    { roles: ["member", "finance-analyzer"], visible: true, label: "finance analyzer" },
+    { roles: ["member", "admin"], visible: true, label: "admin" },
+  ])("mostra Painel de Reembolsos apenas para quem tem permissão ($label)", async ({ roles, visible }) => {
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      user: { ...loggedUser, roles } as any,
+      isAdmin: roles.includes("admin"),
+      isFinanceAnalyzer: roles.includes("finance-analyzer"),
+      isEventOrganizer: roles.includes("event_organizer"),
+      isEventFinance: roles.includes("event_finance"),
+      isEventHost: roles.includes("event_host"),
+      isEventChecker: roles.includes("event_checker"),
+      authFetch: authFetch as any,
+    }));
+
+    (globalThis.fetch as any) = jest.fn(() => Promise.resolve(jsonResponse([])));
+
+    render(<MembroPage />);
+
+    await screen.findByText(loggedUser.name);
+
+    const button = screen.queryByRole("link", { name: /Painel de Reembolsos/i });
+    if (visible) {
+      expect(button).toBeInTheDocument();
+      expect(button).toHaveAttribute("href", "/admin/reembolsos");
+    } else {
+      expect(button).not.toBeInTheDocument();
+    }
+  });
 });

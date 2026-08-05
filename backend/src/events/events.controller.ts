@@ -164,11 +164,11 @@ export class EventsController {
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('event_organizer', 'admin')
+  @Roles('event_organizer', 'admin', 'event_finance')
   @ApiBearerAuth('jwt')
   @ApiOperation({
     summary:
-      '🔒 Listar eventos (paginado quando page/limit informados) [event_organizer | admin]',
+      '🔒 Listar eventos (paginado quando page/limit informados) [event_organizer | admin | event_finance]',
   })
   listEvents(
     @Query() query: ListEventsQueryDto,
