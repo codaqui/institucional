@@ -13,16 +13,16 @@
     "generatedAt": "2026-08-05T17:29:41.754Z"
   },
   "event": {
-    "id": "253321884",
-    "title": "1º inga.js - Sumério Cervejas Especiais",
-    "summary": "Eae, primeiro role, bora falar sobre javascript? Vamos trabalhar com talks de 20 minutos o/ P5.js - um jeito JavaScript de fazer um jogo Por: Eloisa Potrich @ello po Mais: https://bit.ly/2OJxqBK Criando seus próprios mó…",
-    "startAt": "2018-08-09T18:30:00-03:00",
-    "endAt": "2018-08-09T21:00:00-03:00",
+    "id": "315991184",
+    "title": "3º Meetup DevParaná Toledo",
+    "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Toledo convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca de…",
+    "startAt": "2026-08-20T19:00:00-03:00",
+    "endAt": "2026-08-20T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Sumério Cervejas Especiais · Avenida Bento Munhoz da Rocha Netto, N° 717 · Maringa",
-    "href": "https://www.meetup.com/developerparana/events/253321884/",
+    "location": "Faculdade Donaduzzi · Biopark · Toledo",
+    "href": "https://www.meetup.com/developerparana/events/315991184/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,25 +30,21 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 48,
-    "creatorName": "Marcos Florencio",
-    "creatorId": "188007973",
+    "userCount": 2,
+    "creatorName": "Ricardo Grassi",
+    "creatorId": "201670883",
     "organizers": [
       {
-        "name": "Marcos Florencio",
-        "id": "188007973"
+        "name": "Ricardo Grassi",
+        "id": "201670883"
       },
       {
-        "name": "Pedro Silva",
-        "id": "246603189"
-      },
-      {
-        "name": "Leonardo Elias",
-        "id": "182647292"
+        "name": "João Vitor Sobanski",
+        "id": "370762459"
       }
     ],
-    "hasOverride": false
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/7/3/4/a/highres_535529514.jpeg"
   }
 }
