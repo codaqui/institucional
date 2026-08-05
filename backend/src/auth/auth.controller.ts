@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtService } from '@nestjs/jwt';
 import type { CookieOptions, Request, Response } from 'express';
@@ -173,6 +174,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @SkipThrottle()
   @ApiOperation({
     summary: 'Retorna dados do usuário logado via cookie',
     description:

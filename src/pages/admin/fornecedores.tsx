@@ -50,10 +50,12 @@ interface VendorForm {
 const emptyForm: VendorForm = { name: "", document: "", website: "" };
 
 export default function FornecedoresPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
+
+  const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [loading, setLoading] = useState(true);
@@ -87,12 +89,12 @@ export default function FornecedoresPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !isAdmin) {
+    if (!isLoggedIn || !canAccess) {
       history.replace("/");
       return;
     }
     fetchVendors();
-  }, [ready, isLoggedIn, isAdmin, history, fetchVendors]);
+  }, [ready, isLoggedIn, canAccess, history, fetchVendors]);
 
   const openCreate = () => {
     setEditingId(null);

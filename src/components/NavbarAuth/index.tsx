@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "@docusaurus/router";
 
 import Avatar from "@mui/material/Avatar";
@@ -26,8 +26,18 @@ interface NavbarAuthProps {
 }
 
 export default function NavbarAuth({ mobile = false }: Readonly<NavbarAuthProps>): React.JSX.Element | null {
-  const { user, ready, isLoggedIn, isAdmin, isFinanceAnalyzer, login, logout, authFetch } = useAuth();
-  const canAccessAdmin = isAdmin || isFinanceAnalyzer;
+  const {
+    user, ready, isLoggedIn,
+    isAdmin, isFinanceAnalyzer, isEventOrganizer, isEventFinance, isEventHost, isEventChecker,
+    login, logout, authFetch,
+  } = useAuth();
+  const canAccessAdmin = isAdmin || isFinanceAnalyzer || isEventOrganizer || isEventFinance || isEventHost || isEventChecker;
+  const adminHref = useMemo(() => {
+    if (isAdmin || isFinanceAnalyzer) return "/admin";
+    if (isEventOrganizer) return "/admin/eventos";
+    if (isEventChecker || isEventHost) return "/admin/eventos-checkin";
+    return "/admin";
+  }, [isAdmin, isFinanceAnalyzer, isEventOrganizer, isEventChecker, isEventHost]);
   const { pathname } = useLocation();
   const community = resolveCommunityFromPath(pathname);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -123,7 +133,7 @@ export default function NavbarAuth({ mobile = false }: Readonly<NavbarAuthProps>
         )}
         {canAccessAdmin && (
           <li className="menu__list-item">
-            <a className="menu__link" href="/admin">Painel Admin</a>
+            <a className="menu__link" href={adminHref}>Painel Admin</a>
           </li>
         )}
         <li className="menu__list-item">
@@ -246,7 +256,7 @@ export default function NavbarAuth({ mobile = false }: Readonly<NavbarAuthProps>
           </MenuItem>
         )}
         {canAccessAdmin && (
-          <MenuItem component="a" href="/admin">
+          <MenuItem component="a" href={adminHref}>
             <ListItemIcon><AdminPanelSettingsIcon fontSize="small" /></ListItemIcon>
             <ListItemText>Painel Admin</ListItemText>
           </MenuItem>

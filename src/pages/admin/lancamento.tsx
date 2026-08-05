@@ -52,10 +52,12 @@ interface TransferRequest {
 }
 
 export default function LancamentoPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
+
+  const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [transfers, setTransfers] = useState<TransferRequest[]>([]);
@@ -133,12 +135,12 @@ export default function LancamentoPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !isAdmin) {
+    if (!isLoggedIn || !canAccess) {
       history.replace("/");
       return;
     }
     fetchData();
-  }, [ready, isLoggedIn, isAdmin, history, fetchData]);
+  }, [ready, isLoggedIn, canAccess, history, fetchData]);
 
   useEffect(() => {
     if (globalThis.window === undefined) return;
@@ -327,7 +329,7 @@ export default function LancamentoPage(): React.JSX.Element {
     }
   };
 
-  if (!ready || !isLoggedIn || !isAdmin) {
+  if (!ready || !isLoggedIn || !canAccess) {
     return <Layout><Box /></Layout>;
   }
 

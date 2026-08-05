@@ -48,10 +48,12 @@ interface WalletTxRow {
 const LIMIT = 50;
 
 export default function AdminCarteirasPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
+
+  const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [rows, setRows] = useState<WalletTxRow[]>([]);
   const [total, setTotal] = useState(0);
@@ -82,9 +84,9 @@ export default function AdminCarteirasPage(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !isAdmin) { history.replace("/"); return; }
+    if (!isLoggedIn || !canAccess) { history.replace("/"); return; }
     fetchData(filterType, page);
-  }, [ready, isLoggedIn, isAdmin, history, fetchData, filterType, page]);
+  }, [ready, isLoggedIn, canAccess, history, fetchData, filterType, page]);
 
   const handleFilterChange = (newType: FilterType) => {
     setFilterType(newType);
@@ -93,7 +95,7 @@ export default function AdminCarteirasPage(): React.JSX.Element {
 
   const totalPages = Math.ceil(total / LIMIT);
 
-  if (!ready || !isLoggedIn || !isAdmin) {
+  if (!ready || !isLoggedIn || !canAccess) {
     return (
       <Layout title="Admin — Carteiras">
         <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>

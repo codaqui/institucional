@@ -68,12 +68,11 @@ const statusConfig = {
 };
 
 export default function ReembolsosAdminPage(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, user, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, user, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
 
-  const isFinanceAnalyzer = user?.roles?.includes("finance-analyzer") ?? false;
   const canAccess = isAdmin || isFinanceAnalyzer;
 
   const [tab, setTab] = useState(0);

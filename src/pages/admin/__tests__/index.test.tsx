@@ -105,4 +105,68 @@ describe("/admin (dashboard)", () => {
       );
     });
   });
+
+  it("filtra membros por permissão", async () => {
+    const members = [
+      buildMember(1, ["membro"]),
+      buildMember(2, ["membro", "event_organizer"]),
+      buildMember(3, ["membro", "finance-analyzer"]),
+    ];
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse(members);
+      }
+      return jsonResponse({}, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1" } as any,
+    }));
+
+    render(<AdminPage />);
+
+    expect(await screen.findByText(/Membros \(3\)/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Organizador de eventos/i }));
+
+    expect(await screen.findByText(/Membros \(1\)/i)).toBeInTheDocument();
+    expect(screen.getByText("Member 2")).toBeInTheDocument();
+    expect(screen.queryByText("Member 1")).not.toBeInTheDocument();
+    expect(screen.queryByText("Member 3")).not.toBeInTheDocument();
+  });
+
+  it("renderiza membro com múltiplas permissões sem quebrar a tabela", async () => {
+    const member = buildMember(1, [
+      "membro",
+      "admin",
+      "finance-analyzer",
+      "event_organizer",
+      "event_finance",
+      "event_host",
+      "event_checker",
+    ]);
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse([member]);
+      }
+      return jsonResponse({}, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1" } as any,
+    }));
+
+    render(<AdminPage />);
+
+    await screen.findByText("Member 1");
+    // Garante que todos os chips de role aparecem (sem quebrar a tabela)
+    const chips = screen.getAllByRole("button", { name: /Admin/i });
+    expect(chips.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole("button", { name: /Credenciador/i })).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toBeInTheDocument();
+  });
 });

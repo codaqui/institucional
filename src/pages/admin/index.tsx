@@ -25,6 +25,8 @@ import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
 import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -105,6 +107,7 @@ export default function AdminPage(): React.JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRoles, setSelectedRoles] = useState<Role[]>([]);
   const [page, setPage] = useState(1);
 
   // ── ModalConfirm state ────────────────────────────────────────────────────
@@ -228,22 +231,24 @@ export default function AdminPage(): React.JSX.Element {
   const canAccess = isAdmin || isFinanceAnalyzer;
   const filteredMembers = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    if (!term) return members;
     return members.filter((member) => {
-      const roleLabels = member.roles.map((r) => roleLabel(r).toLowerCase()).join(" ");
-      return (
+      const matchesTerm =
+        !term ||
         member.name.toLowerCase().includes(term) ||
         member.githubHandle.toLowerCase().includes(term) ||
-        roleLabels.includes(term)
-      );
+        member.roles.some((r) => roleLabel(r).toLowerCase().includes(term));
+      const matchesRoles =
+        selectedRoles.length === 0 ||
+        selectedRoles.every((r) => member.roles.includes(r));
+      return matchesTerm && matchesRoles;
     });
-  }, [members, searchTerm]);
+  }, [members, searchTerm, selectedRoles]);
   const totalPages = Math.max(1, Math.ceil(filteredMembers.length / PAGE_SIZE));
   const pagedMembers = filteredMembers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     setPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, selectedRoles]);
 
   if (!ready || !isLoggedIn || !canAccess) {
     return (
@@ -313,7 +318,7 @@ export default function AdminPage(): React.JSX.Element {
   } else {
     membersSection = (
       <>
-        <Box sx={{ mb: 2 }}>
+        <Stack spacing={2} sx={{ mb: 2 }}>
           <TextField
             fullWidth
             size="small"
@@ -321,7 +326,25 @@ export default function AdminPage(): React.JSX.Element {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
-        </Box>
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 0.5 }}>
+              Filtrar por permissão
+            </Typography>
+            <ToggleButtonGroup
+              value={selectedRoles}
+              onChange={(_, value) => setSelectedRoles(value)}
+              size="small"
+              color="primary"
+              exclusive={false}
+            >
+              {ALL_ROLES.filter((r) => r !== "membro").map((r) => (
+                <ToggleButton key={r} value={r} sx={{ textTransform: "none" }}>
+                  {ROLE_LABEL[r]}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Box>
+        </Stack>
         <AdminDataTable
           page={page}
           totalPages={totalPages}
@@ -332,10 +355,11 @@ export default function AdminPage(): React.JSX.Element {
                 <TableRow>
                   <TableCell>Membro</TableCell>
                   <TableCell>GitHub</TableCell>
-                  <TableCell>Roles</TableCell>
+                  <TableCell sx={{ minWidth: 220 }}>Roles</TableCell>
                   <TableCell>Desde</TableCell>
                   <TableCell align="center">Ativo</TableCell>
                   <TableCell align="center">Ações</TableCell>
+                  <TableCell align="right" sx={{ minWidth: 200 }}>Alterar roles</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -351,7 +375,7 @@ export default function AdminPage(): React.JSX.Element {
                       <Typography variant="body2" color="text.secondary">@{m.githubHandle}</Typography>
                     </TableCell>
                     <TableCell>
-                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+                      <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", maxWidth: 260 }}>
                         {m.roles.map((r) => (
                           <Chip
                             key={r}
@@ -401,6 +425,7 @@ export default function AdminPage(): React.JSX.Element {
                         value={m.roles}
                         size="small"
                         variant="outlined"
+                        aria-label="Alterar roles"
                         sx={{ fontSize: "0.8rem", minWidth: 180 }}
                         renderValue={(selected) =>
                           (selected as string[]).map((r) => roleLabel(r)).join(", ")

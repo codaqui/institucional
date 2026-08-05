@@ -663,6 +663,7 @@ interface InternalEventAccordionProps {
   members: MemberOption[];
   membersById: Map<string, MemberOption>;
   staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
+  canReimburse: boolean;
   onEdit: (event: ManagedEvent) => void;
   onPublish: (event: ManagedEvent) => void;
   onCancel: (event: ManagedEvent) => void;
@@ -681,6 +682,7 @@ function InternalEventAccordion({
   members,
   membersById,
   staffForm,
+  canReimburse,
   onEdit,
   onPublish,
   onCancel,
@@ -770,14 +772,16 @@ function InternalEventAccordion({
           >
             Pedidos
           </Button>
-          <Button
-            size="small"
-            variant="text"
-            startIcon={<AddIcon />}
-            onClick={() => onReimbursementClick(event)}
-          >
-            Lançar despesa
-          </Button>
+          {canReimburse && (
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<AddIcon />}
+              onClick={() => onReimbursementClick(event)}
+            >
+              Lançar despesa
+            </Button>
+          )}
         </Stack>
 
         <Divider sx={{ my: 2 }} />
@@ -1379,7 +1383,7 @@ function useAdminEventosRows({
   const [showInternos, setShowInternos] = useState(false);
   const [showExternos, setShowExternos] = useState(false);
   const [onlyOverride, setOnlyOverride] = useState(false);
-  const [onlyEditable, setOnlyEditable] = useState(false);
+  const [onlyEditable, setOnlyEditable] = useState(!isAdmin);
   const [onlyFeatures, setOnlyFeatures] = useState(false);
   const [communityFilter, setCommunityFilter] = useState<string>("");
   const [page, setPage] = useState(1);
@@ -1561,7 +1565,7 @@ function useAdminEventosSnapshot(
 // ── Hook com estado e lógica da página ───────────────────────────────────────
 
 function useAdminEventosPage() {
-  const { ready, isLoggedIn, isAdmin, isEventOrganizer, user, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, isEventOrganizer, isEventFinance, user, authFetch } = useAuth();
   const { siteConfig } = useDocusaurusContext();
   const apiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
   const history = useHistory();
@@ -1632,8 +1636,10 @@ function useAdminEventosPage() {
     }
   }, [ready, isLoggedIn, canAccess, history, fetchEvents, fetchMembers, fetchExternalData, fetchOrganizers, fetchActivations, page, useBackendPagination]);
 
+  const canReimburse = isAdmin || isFinanceAnalyzer || isEventFinance;
+
   return {
-    ready, isLoggedIn, canAccess,
+    ready, isLoggedIn, canAccess, canReimburse,
     apiUrl, authFetch,
     events: data.events, setEvents: data.setEvents,
     internalTotal: data.internalTotal, setInternalTotal: data.setInternalTotal,
@@ -1703,7 +1709,7 @@ function useAdminEventosPage() {
 export default function AdminEventosPage(): React.JSX.Element {
   const page = useAdminEventosPage();
   const {
-    ready, isLoggedIn, canAccess,
+    ready, isLoggedIn, canAccess, canReimburse,
     apiUrl, authFetch,
     loading, externalLoading, loadError, actionError, externalError,
     snapshotLoading, snapshotError, snapshotResult, setSnapshotError, setSnapshotResult,
@@ -1843,6 +1849,7 @@ export default function AdminEventosPage(): React.JSX.Element {
                     members={members}
                     membersById={membersById}
                     staffForm={staffForm}
+                    canReimburse={canReimburse}
                     onEdit={openEditDialog}
                     onPublish={handlePublish}
                     onCancel={(event) => { setCancelTarget(event); setCancelError(""); }}
