@@ -13,16 +13,16 @@
     "generatedAt": "2026-08-08T14:10:41.131Z"
   },
   "event": {
-    "id": "237673222",
-    "title": "Meetup Ágile",
-    "summary": "\"Estamos descobrindo maneiras melhores de desenvolver software, fazendo-o nós mesmos e ajudando outros a fazerem o mesmo. \" O inicio do manifesto ágil não poderia ter sido melhor escrito. Cada dia mais novos desafios ap…",
-    "startAt": "2017-04-08T14:00:00-03:00",
-    "endAt": "2017-04-08T17:00:00-03:00",
+    "id": "316020847",
+    "title": "2° LondrinaTech Meetup",
+    "summary": "A comunidade tech do Norte do Paraná está se conectando ainda mais! O LondrinaTech Meetup nasce para fortalecer o ecossistema regional de tecnologia, reunindo profissionais, estudantes e entusiastas para compartilhar co…",
+    "startAt": "2026-08-15T09:00:00-03:00",
+    "endAt": "2026-08-15T11:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Objective · Av. Advogado Horácio Raccanello Filho, 5355 - Zona 07, Maringá - PR · Maringá",
-    "href": "https://www.meetup.com/developerparana/events/237673222/",
+    "location": "UNOPAR CATUAÍ · Rua Luis Lerco, 2 - Terra Bonita - Ao lado do Catuaí Shopping Center · Londrina",
+    "href": "https://www.meetup.com/developerparana/events/316020847/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,25 +30,21 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 43,
-    "creatorName": "Fernando Fabricio dos Santos",
-    "creatorId": "187548010",
+    "userCount": 3,
+    "creatorName": "Paulo Cesar Ferreira Mello",
+    "creatorId": "185209798",
     "organizers": [
       {
-        "name": "Fernando Fabricio dos Santos",
-        "id": "187548010"
+        "name": "Paulo Cesar Ferreira Mello",
+        "id": "185209798"
       },
       {
-        "name": "Everton Tavares",
-        "id": "188896297"
-      },
-      {
-        "name": "Junior Conte",
-        "id": "152994462"
+        "name": "Ivo Roberto Batistela",
+        "id": "194369232"
       }
     ],
-    "hasOverride": false
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/8/e/e/highres_535555534.jpeg"
   }
 }
