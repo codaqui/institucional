@@ -13,16 +13,16 @@
     "generatedAt": "2026-08-09T01:29:48.754Z"
   },
   "event": {
-    "id": "237673256",
-    "title": "DevParaná Conference 2017",
-    "summary": "Evento publicado pelo Dev Paraná no Meetup.",
-    "startAt": "2017-07-22T08:00:00-03:00",
-    "endAt": "2017-07-22T19:00:00-03:00",
+    "id": "316038095",
+    "title": "13° Meetup DevParaná Cascavel",
+    "summary": "O DevParaná vem no mesmo de junho trazer para o nosso encontro muita experiencia de mercado, tanto em carreira quanto a adoção de novas tecnologias. Prepare-se para uma noite de imersão técnica, troca de experiências e…",
+    "startAt": "2026-08-14T19:00:00-03:00",
+    "endAt": "2026-08-14T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Sebrae Maringá · Avenida Bento Munhoz da Rocha Neto, 1116 · Maringá",
-    "href": "https://www.meetup.com/developerparana/events/237673256/",
+    "location": "IFPR · Avenida das Pombas 2020 · Cascavel",
+    "href": "https://www.meetup.com/developerparana/events/316038095/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,17 +30,17 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 53,
-    "creatorName": "Fernando Fabricio dos Santos",
-    "creatorId": "187548010",
+    "userCount": 1,
+    "creatorName": "Everton Tavares",
+    "creatorId": "188896297",
     "organizers": [
       {
-        "name": "Fernando Fabricio dos Santos",
-        "id": "187548010"
+        "name": "Everton Tavares",
+        "id": "188896297"
       }
     ],
-    "hasOverride": false
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/2/c/1/a/highres_535571290.jpeg"
   }
 }
