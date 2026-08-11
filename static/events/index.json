@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-11T05:22:47.682Z",
+  "generatedAt": "2026-08-11T06:14:34.520Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 375
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 7
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -72,7 +72,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
@@ -87,7 +87,7 @@
       "ctaLabel": "Ver eventos",
       "ctaHref": "/eventos",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-11T05:22:47.682Z",
+      "generatedAt": "2026-08-11T06:14:34.520Z",
       "sourceKey": "internal:codaqui",
       "indexPath": "/events/internal/codaqui/index.json",
       "itemCount": 0
@@ -15640,50 +15640,6 @@
       "hasOverride": false
     },
     {
-      "id": "1338983526858494053",
-      "title": "Reunião Geral da Associação",
-      "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-      "startAt": "2026-08-10T21:30:00+00:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Discord",
-      "host": "Comunidade Codaqui",
-      "location": "Servidor da Codaqui no Discord",
-      "href": "https://discord.com/invite/xuTtxqCPpz",
-      "tags": [
-        "discord",
-        "comunidade"
-      ],
-      "ctaLabel": "Entrar no Discord da Codaqui",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "voice",
-      "userCount": 15,
-      "creatorName": "Enderson Menezes",
-      "creatorId": "265457153257635850",
-      "organizers": [
-        {
-          "name": "Enderson Menezes",
-          "id": "265457153257635850"
-        }
-      ],
-      "channelId": "836223754156638209",
-      "recurrenceLabel": "semanal · segunda",
-      "recurrenceRule": {
-        "start": "2025-09-22T21:30:00+00:00",
-        "frequency": 2,
-        "interval": 1,
-        "byWeekday": [
-          0
-        ]
-      },
-      "imageUrl": "https://cdn.discordapp.com/guild-events/1338983526858494053/803f9dca5b3692d7653df69edb2f3ee5.png?size=1024",
-      "source": "discord",
-      "sourceId": "codaqui",
-      "sourceKey": "discord:codaqui",
-      "itemPath": "/events/discord/codaqui/1338983526858494053.json",
-      "hasOverride": false
-    },
-    {
       "id": "315903291",
       "title": "[DevPR Guarapuava] Happy Hour 13/08",
       "summary": "🍻 Happy Hour DevParaná Guarapuava Uma noite para reunir a comunidade de tecnologia, trocar experiências e fazer networking em um ambiente descontraído. Além do bate-papo, teremos um espaço aberto para mini talks! 🎤 Te…",
@@ -15809,6 +15765,50 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/316020847.json",
+      "hasOverride": false
+    },
+    {
+      "id": "1338983526858494053",
+      "title": "Reunião Geral da Associação",
+      "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
+      "startAt": "2026-08-17T21:30:00+00:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Discord",
+      "host": "Comunidade Codaqui",
+      "location": "Servidor da Codaqui no Discord",
+      "href": "https://discord.com/invite/xuTtxqCPpz",
+      "tags": [
+        "discord",
+        "comunidade"
+      ],
+      "ctaLabel": "Entrar no Discord da Codaqui",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "voice",
+      "userCount": 15,
+      "creatorName": "Enderson Menezes",
+      "creatorId": "265457153257635850",
+      "organizers": [
+        {
+          "name": "Enderson Menezes",
+          "id": "265457153257635850"
+        }
+      ],
+      "channelId": "836223754156638209",
+      "recurrenceLabel": "semanal · segunda",
+      "recurrenceRule": {
+        "start": "2025-09-22T21:30:00+00:00",
+        "frequency": 2,
+        "interval": 1,
+        "byWeekday": [
+          0
+        ]
+      },
+      "imageUrl": "https://cdn.discordapp.com/guild-events/1338983526858494053/803f9dca5b3692d7653df69edb2f3ee5.png?size=1024",
+      "source": "discord",
+      "sourceId": "codaqui",
+      "sourceKey": "discord:codaqui",
+      "itemPath": "/events/discord/codaqui/1338983526858494053.json",
       "hasOverride": false
     },
     {
