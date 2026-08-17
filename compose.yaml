@@ -80,7 +80,9 @@ services:
   # e encaminham /api, /auth, /stripe, /ledger, /members para o backend.
   worker-tisocial:
     container_name: codaqui_worker_tisocial
-    image: node:24-slim
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
     working_dir: /app
     command: >
       sh -c "npx wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787 --ip 0.0.0.0"
@@ -88,7 +90,7 @@ services:
       - "8787:8787"
     volumes:
       - .:/app
-      - ./node_modules:/app/node_modules:ro
+      - /app/node_modules
       - worker-tisocial-cache:/app/workers/tisocial/.wrangler
     depends_on:
       - docusaurus
@@ -98,7 +100,9 @@ services:
 
   worker-elasnocodigo:
     container_name: codaqui_worker_elasnocodigo
-    image: node:24-slim
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
     working_dir: /app
     command: >
       sh -c "npx wrangler dev --config workers/elasnocodigo/wrangler.dev.toml --local --port 8788 --ip 0.0.0.0"
@@ -106,7 +110,7 @@ services:
       - "8788:8788"
     volumes:
       - .:/app
-      - ./node_modules:/app/node_modules:ro
+      - /app/node_modules
       - worker-elasnocodigo-cache:/app/workers/elasnocodigo/.wrangler
     depends_on:
       - docusaurus
@@ -116,7 +120,9 @@ services:
 
   worker-devparana:
     container_name: codaqui_worker_devparana
-    image: node:24-slim
+    build:
+      context: .
+      dockerfile: workers/Dockerfile
     working_dir: /app
     command: >
       sh -c "npx wrangler dev --config workers/devparana/wrangler.dev.toml --local --port 8789 --ip 0.0.0.0"
@@ -124,7 +130,7 @@ services:
       - "8789:8789"
     volumes:
       - .:/app
-      - ./node_modules:/app/node_modules:ro
+      - /app/node_modules
       - worker-devparana-cache:/app/workers/devparana/.wrangler
     depends_on:
       - docusaurus
