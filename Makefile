@@ -46,6 +46,7 @@ RED    := \033[31m
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
         worker-dev-elasnocodigo worker-deploy-elasnocodigo \
+        worker-dev-devparana worker-deploy-devparana \
         clean clean-volumes
 
 # Target padrão
@@ -253,6 +254,12 @@ worker-dev-elasnocodigo: ## Sobe o Worker da Elas no Código local em http://ela
 
 worker-deploy-elasnocodigo: ## Deploy do Worker da Elas no Código em produção (route elasnocodigo.com.br/*)
 	npm run worker:deploy:elasnocodigo
+
+worker-dev-devparana: ## Sobe o Worker do DevParaná local em http://devparana.localhost:8789 (precisa de `make up-build` rodando)
+	npm run worker:dev:devparana
+
+worker-deploy-devparana: ## Deploy do Worker do DevParaná em produção (route devparana.org/*)
+	npm run worker:deploy:devparana
 
 # =============================================================================
 ##@ 🧹 Limpeza

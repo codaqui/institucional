@@ -25,7 +25,9 @@
     "worker:dev:tisocial": "wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787",
     "worker:deploy:tisocial": "wrangler deploy --config workers/tisocial/wrangler.toml",
     "worker:dev:elasnocodigo": "wrangler dev --config workers/elasnocodigo/wrangler.dev.toml --local --port 8788",
-    "worker:deploy:elasnocodigo": "wrangler deploy --config workers/elasnocodigo/wrangler.toml"
+    "worker:deploy:elasnocodigo": "wrangler deploy --config workers/elasnocodigo/wrangler.toml",
+    "worker:dev:devparana": "wrangler dev --config workers/devparana/wrangler.dev.toml --local --port 8789",
+    "worker:deploy:devparana": "wrangler deploy --config workers/devparana/wrangler.toml"
   },
   "dependencies": {
     "@docusaurus/core": "^3.9.2",

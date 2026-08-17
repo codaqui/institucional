@@ -1,0 +1,26 @@
+# Production wrangler config — DevParaná
+#
+# Deploy: `npm run worker:deploy:devparana` (from repo root)
+# OR:     `npx wrangler deploy --config workers/devparana/wrangler.toml`
+#
+# Local dev: `npm run worker:dev:devparana` (uses wrangler.dev.toml)
+
+name = "devparana-proxy"
+main = "../shared/index.js"
+compatibility_date = "2024-09-01"
+
+# Production route — requires the domain to have its NS pointing to Cloudflare.
+# Add the route AFTER the zone is "Active" in the Cloudflare dashboard.
+routes = [
+  { pattern = "devparana.org/*", zone_name = "devparana.org" },
+  { pattern = "*.devparana.org/*", zone_name = "devparana.org" }
+]
+
+[vars]
+STATIC_ORIGIN = "https://codaqui.dev"
+API_ORIGIN = "https://api.codaqui.dev"
+COMMUNITY_PREFIX = "/comunidades/devparana"
+
+# Observability — enable basic metrics + logs in CF dashboard.
+[observability]
+enabled = true

@@ -75,9 +75,69 @@ services:
     networks:
       - codaqui-network
 
+  # Workers Cloudflare — proxies reversos para domínios próprios das comunidades.
+  # Disponibilizam http://<slug>.localhost:<porta> mapeando para o Docusaurus
+  # e encaminham /api, /auth, /stripe, /ledger, /members para o backend.
+  worker-tisocial:
+    container_name: codaqui_worker_tisocial
+    image: node:24-slim
+    working_dir: /app
+    command: >
+      sh -c "npx wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787 --ip 0.0.0.0"
+    ports:
+      - "8787:8787"
+    volumes:
+      - .:/app
+      - ./node_modules:/app/node_modules:ro
+      - worker-tisocial-cache:/app/workers/tisocial/.wrangler
+    depends_on:
+      - docusaurus
+      - backend
+    networks:
+      - codaqui-network
+
+  worker-elasnocodigo:
+    container_name: codaqui_worker_elasnocodigo
+    image: node:24-slim
+    working_dir: /app
+    command: >
+      sh -c "npx wrangler dev --config workers/elasnocodigo/wrangler.dev.toml --local --port 8788 --ip 0.0.0.0"
+    ports:
+      - "8788:8788"
+    volumes:
+      - .:/app
+      - ./node_modules:/app/node_modules:ro
+      - worker-elasnocodigo-cache:/app/workers/elasnocodigo/.wrangler
+    depends_on:
+      - docusaurus
+      - backend
+    networks:
+      - codaqui-network
+
+  worker-devparana:
+    container_name: codaqui_worker_devparana
+    image: node:24-slim
+    working_dir: /app
+    command: >
+      sh -c "npx wrangler dev --config workers/devparana/wrangler.dev.toml --local --port 8789 --ip 0.0.0.0"
+    ports:
+      - "8789:8789"
+    volumes:
+      - .:/app
+      - ./node_modules:/app/node_modules:ro
+      - worker-devparana-cache:/app/workers/devparana/.wrangler
+    depends_on:
+      - docusaurus
+      - backend
+    networks:
+      - codaqui-network
+
 networks:
   codaqui-network:
     driver: bridge
 
 volumes:
   pgdata:
+  worker-tisocial-cache:
+  worker-elasnocodigo-cache:
+  worker-devparana-cache:

@@ -11,6 +11,12 @@ workers/
 ├── tisocial/
 │   ├── wrangler.toml         # config produção: route + vars
 │   └── wrangler.dev.toml     # config local: vars apontando pra *.localhost
+├── elasnocodigo/
+│   ├── wrangler.toml
+│   └── wrangler.dev.toml
+├── devparana/
+│   ├── wrangler.toml
+│   └── wrangler.dev.toml
 └── README.md                 # este arquivo
 ```
 
