@@ -33,7 +33,7 @@ export const communities: Community[] = [
     location: "Maringá, PR",
     founded: 2015,
     links: [
-      { type: "website", label: "devpr.org", url: "https://devpr.org/" },
+      { type: "website", label: "Página da comunidade", url: "/comunidades/devparana" },
       { type: "github", label: "GitHub", url: "https://github.com/DeveloperParana" },
     ],
     socialProfiles: [
