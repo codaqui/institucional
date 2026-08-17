@@ -10,11 +10,13 @@
 
 import tisocialConfig from "./tisocial/community.config";
 import elasnocodigoConfig from "./elasnocodigo/community.config";
+import devparanaConfig from "./devparana/community.config";
 import type { CommunitySiteConfig } from "./shared/types";
 
 export const COMMUNITIES_CONFIG: CommunitySiteConfig[] = [
   tisocialConfig,
   elasnocodigoConfig,
+  devparanaConfig,
   // Quando adicionar nova comunidade, basta:
   //   1. import myCommunityConfig from "./<slug>/community.config";
   //   2. Acrescentar `myCommunityConfig` neste array.
