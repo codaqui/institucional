@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-16T06:11:47.033Z",
+  "generatedAt": "2026-08-17T06:16:28.925Z",
   "totalEvents": 406,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 757,
       "channelCount": 41,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 199,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6639,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "count": 6640,
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 168,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 55,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 258,
-      "fetchedAt": "2026-08-16T06:11:47.033Z",
+      "count": 260,
+      "fetchedAt": "2026-08-17T06:16:28.925Z",
       "isFallback": false
     },
     {
