@@ -23,4 +23,8 @@ COPY . .
 # Portas padrão usadas pelos workers em dev. O compose pode mapear outras.
 EXPOSE 8787 8788 8789
 
-CMD ["npx", "wrangler", "dev", "--config", "workers/tisocial/wrangler.dev.toml", "--local", "--port", "8787", "--ip", "0.0.0.0"]
+# Default de desenvolvimento (T.I. Social). Cada serviço no compose.yaml
+# sobrescreve este CMD com o wrangler.dev.toml e a porta da sua comunidade.
+ENV WORKER_CONFIG=workers/tisocial/wrangler.dev.toml
+ENV WORKER_PORT=8787
+CMD ["sh", "-c", "npx wrangler dev --config ${WORKER_CONFIG} --local --port ${WORKER_PORT} --ip 0.0.0.0"]
