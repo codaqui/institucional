@@ -10,6 +10,9 @@ const baseDir = join(__dirname, "../comunidades/devparana/src/data");
 const ambassadors = JSON.parse(
   readFileSync(join(baseDir, "ambassadors.json"), "utf8"),
 );
+const naestrada = JSON.parse(
+  readFileSync(join(baseDir, "naestrada.json"), "utf8"),
+);
 
 describe("ambassadors.json", () => {
   it("tem 6 regiões", () => {
@@ -34,5 +37,24 @@ describe("ambassadors.json", () => {
     assert.ok(sudoeste?.ambassador);
     assert.ok(norte.ambassador.email);
     assert.ok(sudoeste.ambassador.email);
+  });
+});
+
+describe("naestrada.json", () => {
+  it("tem edição 2026", () => {
+    assert.equal(naestrada.edition.year, 2026);
+    assert.equal(naestrada.edition.status, "upcoming");
+  });
+
+  it("tem 15 cidades", () => {
+    assert.equal(naestrada.edition.cities.length, 15);
+  });
+
+  it("tem 3 cotas de patrocínio", () => {
+    assert.equal(naestrada.edition.sponsorshipTiers.length, 3);
+    assert.deepEqual(
+      naestrada.edition.sponsorshipTiers.map((t) => t.name),
+      ["Bronze", "Prata", "Ouro"],
+    );
   });
 });

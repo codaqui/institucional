@@ -1,0 +1,22 @@
+{
+  "members": [
+    {
+      "name": "Everton Tavares",
+      "role": "Coordenador",
+      "specialty": "Liderança e Embaixador Norte",
+      "avatar": "https://avatars.githubusercontent.com/u/15199454?s=200&v=4"
+    },
+    {
+      "name": "Luiz Schons",
+      "role": "Organizador",
+      "specialty": "DevParaná na Estrada",
+      "avatar": "https://github.com/ghost.png"
+    },
+    {
+      "name": "Você?",
+      "role": "Voluntário",
+      "specialty": "Organização de meetups",
+      "avatar": "https://github.com/ghost.png"
+    }
+  ]
+}
