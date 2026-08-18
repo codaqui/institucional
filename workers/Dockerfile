@@ -24,10 +24,10 @@ COPY package-lock.json ./
 # Instala dependências sem executar lifecycle scripts (segurança) e limpa cache.
 RUN npm ci --ignore-scripts && npm cache clean --force
 
-# Copia o restante do repo. Em dev o compose sobrescreve /app pelo bind
-# mount, mas /app/node_modules fica como volume anônimo inicializado com o
-# conteúdo desta imagem.
-COPY . .
+# Copia apenas o código necessário para o worker. Em dev o compose sobrescreve
+# /app pelo bind mount, mas /app/node_modules fica como volume anônimo
+# inicializado com o conteúdo desta imagem.
+COPY workers ./workers
 
 # Ajusta permissões para o usuário não-root.
 RUN chown -R worker:worker /app

@@ -46,15 +46,20 @@ function extractGithubHandle(url?: string): string | undefined {
   return match?.[1];
 }
 
+function normalizeHandle(handle?: string): string | undefined {
+  return handle?.toLowerCase().trim();
+}
+
 function findMemberByAmbassador(
   ambassador: Ambassador,
   members: CodaquiMember[]
 ): CodaquiMember | undefined {
-  const handle = ambassador.githubHandle ?? extractGithubHandle(ambassador.github);
+  const handle = normalizeHandle(ambassador.githubHandle ?? extractGithubHandle(ambassador.github));
   const normalizedName = ambassador.name.toLowerCase().trim();
 
   return members.find((member) => {
-    if (handle && member.githubHandle?.toLowerCase() === handle.toLowerCase()) {
+    const memberHandle = normalizeHandle(member.githubHandle);
+    if (handle && memberHandle === handle) {
       return true;
     }
     return member.name?.toLowerCase().trim() === normalizedName;

@@ -100,6 +100,10 @@ function HeroImage({
 }) {
   const isRight = imagePosition === "right";
   const horizontalPosition = isRight ? "right" : "left";
+  const hiddenTranslateX = isRight ? "60px" : "-60px";
+  const transform = isVisible
+    ? `translateY(${offsetY}px) translateX(0)`
+    : `translateY(40px) translateX(${hiddenTranslateX})`;
 
   return (
     <Box
@@ -112,9 +116,7 @@ function HeroImage({
         width: { xs: "100%", sm: "65%", md: "50%", lg: "40%", xl: "35%" },
         height: "100%",
         opacity: isVisible ? { xs: 0.22, sm: 1 } : 0,
-        transform: isVisible
-          ? `translateY(${offsetY}px) translateX(0)`
-          : `translateY(40px) translateX(${isRight ? "60px" : "-60px"})`,
+        transform,
         transition: "opacity 1s cubic-bezier(0.22, 1, 0.36, 1), transform 1s cubic-bezier(0.22, 1, 0.36, 1)",
         zIndex: 1,
         pointerEvents: "none",
