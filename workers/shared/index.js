@@ -47,6 +47,40 @@ function isApiRequest(pathname) {
   return API_PREFIXES.some((p) => pathname.startsWith(p));
 }
 
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Reescreve somente metadados sociais/canonicos no HTML pass-through.
+ *
+ * NAO toca em links de navegacao, assets, scripts ou APIs: o path precisa
+ * permanecer /comunidades/<slug> para que o React Router do Docusaurus continue
+ * resolvendo a pagina correta. A reescrita e cirurgica em og:url e canonical,
+ * trocando STATIC_ORIGIN pelo dominio proprio da comunidade.
+ */
+function rewriteSocialUrls(html, host, staticOrigin) {
+  const originPattern = escapeRegExp(staticOrigin);
+
+  let rewritten = html.replace(
+    new RegExp(
+      `<meta\\s+([^>]*?)property=["']og:url["']\\s+([^>]*?)content=["']${originPattern}`,
+      'gi'
+    ),
+    `<meta $1property="og:url" $2content="https://${host}`
+  );
+
+  rewritten = rewritten.replace(
+    new RegExp(
+      `<link\\s+([^>]*?)rel=["']canonical["']\\s+([^>]*?)href=["']${originPattern}`,
+      'gi'
+    ),
+    `<link $1rel="canonical" $2href="https://${host}`
+  );
+
+  return rewritten;
+}
+
 export default {
   async fetch(req, env) {
     const { STATIC_ORIGIN, API_ORIGIN, COMMUNITY_PREFIX } = env;
@@ -74,6 +108,23 @@ export default {
     // so normalize the upstream request to the non-trailing-slash variant.
     const upstreamPath = url.pathname.replace(/\/$/, '') || '/';
     const upstream = new URL(upstreamPath + url.search, STATIC_ORIGIN);
-    return fetch(upstream, req);
+    const res = await fetch(upstream, req);
+
+    // Route 3a: para crawlers sociais, reescreve og:url e canonical para o
+    // dominio proprio da comunidade, reforcando a identidade do site whitelabel.
+    const contentType = res.headers.get('content-type') || '';
+    if (res.status === 200 && contentType.includes('text/html')) {
+      const html = await res.text();
+      const rewritten = rewriteSocialUrls(html, url.host, STATIC_ORIGIN);
+      const newHeaders = new Headers(res.headers);
+      newHeaders.delete('content-length');
+      return new Response(rewritten, {
+        status: res.status,
+        statusText: res.statusText,
+        headers: newHeaders,
+      });
+    }
+
+    return res;
   },
 };
