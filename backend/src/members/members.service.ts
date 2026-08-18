@@ -259,6 +259,46 @@ export class MembersService {
     });
   }
 
+  /**
+   * Busca múltiplos membros ativos por handles do GitHub e/ou e-mails.
+   * Útil para sites de comunidades enriquecerem cards de equipe/embaixadores
+   * sem precisar carregar todos os membros.
+   */
+  async findByHandlesOrEmails(handles: string[], emails: string[]): Promise<Member[]> {
+    const normalizedHandles = handles
+      .map((h) => h.trim().toLowerCase())
+      .filter((h) => MembersService.HANDLE_REGEX.test(h));
+    const normalizedEmails = emails.map((e) => e.trim().toLowerCase()).filter(Boolean);
+
+    if (normalizedHandles.length === 0 && normalizedEmails.length === 0) {
+      return [];
+    }
+
+    const query = this.repo.createQueryBuilder('m').where('m.isActive = true').select([
+      'm.id',
+      'm.githubHandle',
+      'm.name',
+      'm.avatarUrl',
+      'm.bio',
+      'm.linkedinUrl',
+      'm.roles',
+      'm.joinedAt',
+    ]);
+
+    const conditions: string[] = [];
+    if (normalizedHandles.length > 0) {
+      conditions.push('LOWER(m.githubHandle) IN (:...handles)');
+      query.setParameter('handles', normalizedHandles);
+    }
+    if (normalizedEmails.length > 0) {
+      conditions.push('LOWER(m.email) IN (:...emails)');
+      query.setParameter('emails', normalizedEmails);
+    }
+
+    query.andWhere(`(${conditions.join(' OR ')})`);
+    return query.orderBy('m.name', 'ASC').getMany();
+  }
+
   /** Perfil completo do usuário logado */
   findByGithubId(githubId: string): Promise<Member | null> {
     return this.repo.findOne({ where: { githubId } });

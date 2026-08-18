@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Patch,
   Param,
@@ -19,6 +20,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from './entities/member.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { FindMembersBatchDto } from './dto/find-members-batch.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 
@@ -39,6 +41,14 @@ export class MembersController {
       page ? Number.parseInt(String(page), 10) : 1,
       limit ? Number.parseInt(String(limit), 10) : 50,
     );
+  }
+
+  @Post('members/batch')
+  async findBatch(@Body() dto: FindMembersBatchDto) {
+    const handles = dto.handles ?? [];
+    const emails = dto.emails ?? [];
+    const data = await this.membersService.findByHandlesOrEmails(handles, emails);
+    return { data };
   }
 
   @Get('members/donors')
