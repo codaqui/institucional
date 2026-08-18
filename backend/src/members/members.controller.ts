@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Put,
   Patch,
   Param,
@@ -12,6 +13,7 @@ import {
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MembersService } from './members.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -19,6 +21,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from './entities/member.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
+import { FindMembersBatchDto } from './dto/find-members-batch.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 
@@ -39,6 +42,14 @@ export class MembersController {
       page ? Number.parseInt(String(page), 10) : 1,
       limit ? Number.parseInt(String(limit), 10) : 50,
     );
+  }
+
+  @Post('members/batch')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  async findBatch(@Body() dto: FindMembersBatchDto) {
+    const handles = dto.handles ?? [];
+    const data = await this.membersService.findByHandles(handles);
+    return { data };
   }
 
   @Get('members/donors')

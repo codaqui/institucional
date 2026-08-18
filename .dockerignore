@@ -30,11 +30,21 @@ build/
 .env
 .env.local
 .env.*.local
+backend/.env
+backend/.env.local
+backend/.env.*.local
 
 # ─── Dados/backups locais desnecessários ────────────────
 old-docs-backup/
 images/
 tmp/
+temp/
+temp-devparana-rfcs/
+pg_dump/
+pgdata/
+minio-data/
+docker-data/
+keycloak-data/
 
 # ─── IDE e macOS ───────────────────────────────────────
 .DS_Store

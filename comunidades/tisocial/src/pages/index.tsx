@@ -1,13 +1,8 @@
 import React from "react";
 import Layout from "@theme/Layout";
-import Link from "@docusaurus/Link";
 import {
-  Box,
-  Button,
   Card,
-  CardActionArea,
   CardContent,
-  Chip,
   Container,
   Grid,
   Stack,
@@ -17,11 +12,11 @@ import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import ArticleIcon from "@mui/icons-material/Article";
 import PaidIcon from "@mui/icons-material/Paid";
-import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import CommunityImpactSection from "@site/comunidades/shared/components/CommunityImpactSection";
 import CommunityExploreSection, { type FeatureCard } from "@site/comunidades/shared/components/CommunityExploreSection";
 import CommunityChannelsSection from "@site/comunidades/shared/components/CommunityChannelsSection";
+import CommunityTextHero from "@site/comunidades/shared/components/CommunityTextHero";
 import community from "../../community.config";
 import upcoming from "../data/upcoming.json";
 
@@ -76,69 +71,7 @@ export default function TiSocialHome(): React.JSX.Element {
       title={`${community.shortName} — Comunidade parceira`}
       description={community.description}
     >
-      <Box
-        sx={{
-          bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
-          color: "#fff",
-          py: { xs: 6, md: 10 },
-        }}
-      >
-        <Container maxWidth="lg">
-          <Stack spacing={3} maxWidth={760}>
-            <Chip
-              label="Comunidade parceira da Codaqui"
-              sx={{
-                bgcolor: "rgba(255,255,255,0.15)",
-                color: "#fff",
-                width: "fit-content",
-                fontWeight: 600,
-              }}
-            />
-            <Typography variant="h2" component="h1" fontWeight={800}>
-              {community.hero.title}
-            </Typography>
-            <Typography variant="h6" sx={{ opacity: 0.95, fontWeight: 400 }}>
-              {community.hero.subtitle}
-            </Typography>
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <Button
-                component={Link}
-                to={community.hero.ctaPrimary.to}
-                variant="contained"
-                size="large"
-                sx={{
-                  bgcolor: (t) => (t.palette.mode === "dark" ? accent : "#fff"),
-                  color: (t) => (t.palette.mode === "dark" ? "#fff" : accentDark),
-                  "&:hover": {
-                    bgcolor: (t) => (t.palette.mode === "dark" ? community.theme.primaryLight : "#f1f5f9"),
-                  },
-                }}
-                startIcon={<VolunteerActivismIcon />}
-              >
-                {community.hero.ctaPrimary.label}
-              </Button>
-              {community.hero.ctaSecondary && (
-                <Button
-                  component="a"
-                  href={community.hero.ctaSecondary.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  variant="outlined"
-                  size="large"
-                  sx={{
-                    color: "#fff",
-                    borderColor: "rgba(255,255,255,0.6)",
-                    "&:hover": { borderColor: "#fff", bgcolor: "rgba(255,255,255,0.08)" },
-                  }}
-                  endIcon={<OpenInNewIcon />}
-                >
-                  {community.hero.ctaSecondary.label}
-                </Button>
-              )}
-            </Stack>
-          </Stack>
-        </Container>
-      </Box>
+      <CommunityTextHero community={community} />
 
       <CommunityImpactSection community={community} />
 

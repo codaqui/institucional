@@ -1,0 +1,47 @@
+{
+  "regions": [
+    {
+      "id": "norte",
+      "name": "Norte",
+      "cities": ["Maringá", "Apucarana", "Paranavaí", "Londrina"],
+      "ambassador": {
+        "name": "Everton Tavares",
+        "email": "ivo@devpr.org",
+        "role": "Embaixador da Região Norte",
+        "avatar": "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
+        "github": "https://github.com/DeveloperParana",
+        "githubHandle": "DeveloperParana"
+      }
+    },
+    {
+      "id": "sudoeste",
+      "name": "Sudoeste",
+      "cities": ["Dois Vizinhos", "Pato Branco", "Francisco Beltrão"],
+      "ambassador": {
+        "name": "Geovane Norbert",
+        "email": "geovane@codaqui.dev",
+        "role": "Embaixador da Região Sudoeste"
+      }
+    },
+    {
+      "id": "noroeste",
+      "name": "Noroeste",
+      "cities": ["Cianorte", "Umuarama", "Campo Mourão", "Ivaiporã"]
+    },
+    {
+      "id": "oeste",
+      "name": "Oeste",
+      "cities": ["Cascavel", "Toledo", "Medianeira", "Foz do Iguaçu"]
+    },
+    {
+      "id": "leste",
+      "name": "Leste",
+      "cities": ["Curitiba", "Campo Largo", "Ponta Grossa", "Castro"]
+    },
+    {
+      "id": "centro",
+      "name": "Centro",
+      "cities": ["Guarapuava"]
+    }
+  ]
+}

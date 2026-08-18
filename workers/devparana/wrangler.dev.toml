@@ -1,0 +1,28 @@
+# Local dev wrangler config — DevParaná
+#
+# Run: `npm run worker:dev:devparana`
+# (assumes you started the stack with `make up-build` first)
+#
+# Open: http://devparana.localhost:8789
+# (browsers resolve *.localhost to 127.0.0.1 automatically — RFC 6761)
+#
+# Stack services (from compose.yaml):
+#   - http://docusaurus:3000 → Docusaurus container (STATIC_ORIGIN)
+#   - http://backend:3000    → Backend NestJS (API_ORIGIN)
+# Host ports (localhost:3000 / localhost:3001) do not resolve from inside the
+# worker container; use the Compose service names on the codaqui-network.
+#
+# ⚠️ Known limitation in dev: the backend container has FRONTEND_URL pinned to
+# http://localhost:3000 (compose.yaml), so OAuth/Stripe callbacks land on the
+# Docusaurus origin instead of devparana.localhost:8789. To exercise the full
+# whitelabel flow locally you need the backend changes from MULTISITE_PLAN §6
+# (OAuthState with returnTo + ALLOWED_AUTH_RETURN_HOSTS).
+
+name = "devparana-proxy-local"
+main = "../shared/index.js"
+compatibility_date = "2024-09-01"
+
+[vars]
+STATIC_ORIGIN = "http://docusaurus:3000"
+API_ORIGIN = "http://backend:3000"
+COMMUNITY_PREFIX = "/comunidades/devparana"

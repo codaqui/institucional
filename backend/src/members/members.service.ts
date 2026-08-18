@@ -259,6 +259,41 @@ export class MembersService {
     });
   }
 
+  /**
+   * Busca múltiplos membros ativos por handles do GitHub.
+   * Útil para sites de comunidades enriquecerem cards de equipe/embaixadores
+   * sem precisar carregar todos os membros.
+   *
+   * Não expõe busca por e-mail para evitar enumeração de endereços.
+   * O tamanho do batch é validado no DTO.
+   */
+  async findByHandles(handles: string[]): Promise<Member[]> {
+    const normalizedHandles = handles
+      .map((h) => h.trim().toLowerCase())
+      .filter((h) => MembersService.HANDLE_REGEX.test(h));
+
+    if (normalizedHandles.length === 0) {
+      return [];
+    }
+
+    return this.repo
+      .createQueryBuilder('m')
+      .where('m.isActive = true')
+      .andWhere('LOWER(m.githubHandle) IN (:...handles)', { handles: normalizedHandles })
+      .select([
+        'm.id',
+        'm.githubHandle',
+        'm.name',
+        'm.avatarUrl',
+        'm.bio',
+        'm.linkedinUrl',
+        'm.roles',
+        'm.joinedAt',
+      ])
+      .orderBy('m.name', 'ASC')
+      .getMany();
+  }
+
   /** Perfil completo do usuário logado */
   findByGithubId(githubId: string): Promise<Member | null> {
     return this.repo.findOne({ where: { githubId } });

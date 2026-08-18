@@ -13,12 +13,16 @@ export const ALLOWED_ORIGINS_PROD: string[] = [
   'https://codaqui.dev',
   'https://tisocial.org.br',
   'https://elasnocodigo.com.br',
+  'https://devparana.org',
 ];
 
 export const ALLOWED_ORIGINS_DEV: string[] = [
   'http://localhost:3000',
   'http://localhost:3030',
   'http://localhost:8787',
+  'http://localhost:8788',
+  'http://localhost:8789',
   'http://tisocial.localhost:8787',
   'http://elasnocodigo.localhost:8788',
+  'http://devparana.localhost:8789',
 ];

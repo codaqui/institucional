@@ -43,12 +43,28 @@ export interface CommunitySiteConfig {
     ctaPrimary: { label: string; to: string };
     ctaSecondary?: { label: string; href: string };
   };
+  /**
+   * Configuração visual opcional do hero com imagem de silhueta/background.
+   * Se presente, a home renderiza o `CommunityHero` replicável em vez do hero
+   * padrão de cor sólida.
+   */
+  heroVisual?: {
+    imageSrc: string;
+    imageAlt: string;
+    imagePosition?: "left" | "right";
+    blendColor?: string;
+  };
   /** Cards de destaque na home da comunidade (impacto / números). */
   impact?: {
     title: string;
     subtitle?: string;
     stats: { value: string; label: string }[];
   };
+  /**
+   * SourceKeys de eventos que pertencem à comunidade (ex: ["meetup:devparana"]).
+   * Usado pela home para filtrar e exibir os próximos eventos da comunidade.
+   */
+  eventSources?: string[];
   /** Texto da seção "Explore a comunidade" na home. */
   exploreSection?: {
     title: string;
