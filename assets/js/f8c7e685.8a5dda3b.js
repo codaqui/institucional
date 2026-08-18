@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[1107],{64452(a){a.exports=JSON.parse('{"name":"docusaurus-plugin-content-pages","id":"community-devparana-pages"}')}}]);
