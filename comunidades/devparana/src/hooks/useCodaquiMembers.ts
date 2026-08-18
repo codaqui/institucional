@@ -82,7 +82,6 @@ export function useCodaquiMembers(): UseCodaquiMembersResult {
 
 export function useCodaquiMembersBatch(
   handles: string[],
-  emails: string[] = [],
 ): UseCodaquiMembersBatchResult {
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl = (siteConfig.customFields?.apiUrl as string) ?? "http://localhost:3001";
@@ -92,16 +91,15 @@ export function useCodaquiMembersBatch(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const identifiersKey = [...handles, ...emails].join("|");
+  const identifiersKey = handles.join("|");
 
   useEffect(() => {
     const controller = new AbortController();
     let active = true;
 
     const normalizedHandles = handles.map((h) => h.trim()).filter(Boolean);
-    const normalizedEmails = emails.map((e) => e.trim()).filter(Boolean);
 
-    if (normalizedHandles.length === 0 && normalizedEmails.length === 0) {
+    if (normalizedHandles.length === 0) {
       setMembers([]);
       setLoading(false);
       return;
@@ -112,10 +110,7 @@ export function useCodaquiMembersBatch(
         const res = await fetch(`${apiUrl}/members/batch`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            handles: normalizedHandles,
-            emails: normalizedEmails,
-          }),
+          body: JSON.stringify({ handles: normalizedHandles }),
           signal: controller.signal,
         });
         if (!res.ok) {

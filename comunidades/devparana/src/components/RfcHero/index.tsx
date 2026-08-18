@@ -34,11 +34,8 @@ export default function RfcHero({ frontmatter }: RfcHeroProps): React.JSX.Elemen
   const batchHandles = allPeople
     .map((p) => p.githubHandle?.trim())
     .filter((h): h is string => Boolean(h));
-  const batchEmails = allPeople
-    .map((p) => p.email?.trim())
-    .filter((e): e is string => Boolean(e));
 
-  const { members, loading } = useCodaquiMembersBatch(batchHandles, batchEmails);
+  const { members, loading } = useCodaquiMembersBatch(batchHandles);
 
   const [primaryAuthor] = frontmatter.authors;
   const authorMember = primaryAuthor ? findMember(primaryAuthor, members) : undefined;

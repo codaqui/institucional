@@ -13,6 +13,7 @@ import {
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MembersService } from './members.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -44,10 +45,10 @@ export class MembersController {
   }
 
   @Post('members/batch')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async findBatch(@Body() dto: FindMembersBatchDto) {
     const handles = dto.handles ?? [];
-    const emails = dto.emails ?? [];
-    const data = await this.membersService.findByHandlesOrEmails(handles, emails);
+    const data = await this.membersService.findByHandles(handles);
     return { data };
   }
 

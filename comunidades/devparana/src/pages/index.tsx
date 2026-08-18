@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Alert,
   Box,
@@ -103,9 +104,15 @@ function formatEventDate(date: string, timeZone: string): string {
 }
 
 function UpcomingEventsSection(): React.JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
   const [events, setEvents] = useState<EventSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const eventsHref =
+    COMMUNITY_SOURCE_KEYS.length > 0
+      ? `${siteConfig.url}/eventos?source=${encodeURIComponent(COMMUNITY_SOURCE_KEYS[0])}`
+      : `${siteConfig.url}/eventos`;
 
   useEffect(() => {
     let active = true;
@@ -157,11 +164,7 @@ function UpcomingEventsSection(): React.JSX.Element {
         </Box>
         <Button
           component="a"
-          href={
-            COMMUNITY_SOURCE_KEYS.length > 0
-              ? `https://codaqui.dev/eventos?source=${encodeURIComponent(COMMUNITY_SOURCE_KEYS[0])}`
-              : "https://codaqui.dev/eventos"
-          }
+          href={eventsHref}
           target="_blank"
           rel="noopener noreferrer"
           variant="outlined"

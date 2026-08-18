@@ -232,12 +232,9 @@ function TeamMemberCard({ member }: { readonly member: EnrichedMember }) {
 const teamHandles = team
   .map((m) => m.githubHandle?.trim())
   .filter((h): h is string => Boolean(h));
-const teamEmails = team
-  .map((m) => m.email?.trim())
-  .filter((e): e is string => Boolean(e));
 
 export default function DevParanaEquipePage(): React.JSX.Element {
-  const { members: apiMembers, loading, error } = useCodaquiMembersBatch(teamHandles, teamEmails);
+  const { members: apiMembers, loading, error } = useCodaquiMembersBatch(teamHandles);
   const enriched = team.map((member) => enrichMember(member, apiMembers));
 
   return (

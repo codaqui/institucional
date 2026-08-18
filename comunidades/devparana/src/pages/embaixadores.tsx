@@ -28,9 +28,6 @@ const ambassadorList = regions.map((r) => r.ambassador).filter(Boolean) as Ambas
 const ambassadorHandles = ambassadorList
   .map((a) => a.githubHandle?.trim() ?? extractGithubHandle(a.github))
   .filter((h): h is string => Boolean(h));
-const ambassadorEmails = ambassadorList
-  .map((a) => a.email?.trim())
-  .filter((e): e is string => Boolean(e));
 
 const responsibilities = [
   "Liderar as iniciativas da comunidade na região;",
@@ -168,7 +165,7 @@ function RegionCard({ region, members }: { readonly region: Region; readonly mem
 }
 
 export default function DevParanaEmbaixadores(): React.JSX.Element {
-  const { members, loading, error } = useCodaquiMembersBatch(ambassadorHandles, ambassadorEmails);
+  const { members, loading, error } = useCodaquiMembersBatch(ambassadorHandles);
 
   return (
     <Layout
