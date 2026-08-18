@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-18T19:10:29.110Z",
+  "generatedAt": "2026-08-18T20:03:23.257Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-18T19:10:29.110Z"
+    "generatedAt": "2026-08-18T20:03:23.257Z"
   },
   "event": {
     "id": "sympla-2388489",
@@ -21,7 +21,7 @@
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
-    "location": "Evento presencial em Casa Verde Bar e Petiscaria, Ponta Grossa - PR Evento encerrado",
+    "location": "SET · 19:00 O Céu da Língua SALÃO DE ATOS DA PUCRS - Porto Alegre, RS 03 SET 05 SET TIAGO IORC - TURNÊ TROCO",
     "href": "https://www.sympla.com.br/evento/tech-happy-hour-ia-e-tendencias-de-tecnologia/2388489",
     "tags": [
       "campostech",
