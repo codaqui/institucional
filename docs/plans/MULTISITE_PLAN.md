@@ -225,6 +225,8 @@ A primeira versão do Worker reescrevia `/comunidades/<slug>/foo` → `/foo` no 
 
 Pass-through preserva o pathname original. Trade-off: a URL exibida é `tisocial.org.br/comunidades/tisocial/apoiar` (não `tisocial.org.br/apoiar`). O redirect 301 em `/` garante que o entrypoint principal (`tisocial.org.br`) caia na home da T.I. Social com um clique.
 
+Para reforçar a identidade do domínio próprio em cards sociais e SEO, o Worker também faz uma reescrita cirúrgica no HTML pass-through: substitui `https://codaqui.dev` por `https://tisocial.org.br` apenas dentro de `<meta property="og:url">` e `<link rel="canonical">`. Navegação, assets e scripts permanecem inalterados, então o roteamento do Docusaurus não é afetado.
+
 Se no futuro quisermos URLs realmente limpas, opções: (a) build separado com `baseUrl: '/'` por comunidade (volta para Opção D2 do apêndice), (b) configurar React Router runtime com basename custom via window flag injetado pelo Worker.
 
 #### Implementação A — Cloudflare Worker (recomendado para começar)

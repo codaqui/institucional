@@ -5,7 +5,7 @@ import { COMMUNITIES_CONFIG } from "./comunidades";
 
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
-const socialCardImage = "img/header.png";
+const socialCardImage = "img/og-codaqui.jpg";
 const socialCardAlt = "Codaqui - Uma comunidade de comunidades de tecnologia.";
 const normalizedBaseUrl = requestedBaseUrl.startsWith("/")
   ? requestedBaseUrl

@@ -27,6 +27,7 @@ import ForumIcon from "@mui/icons-material/Forum";
 import CommunityExploreSection, { type FeatureCard } from "@site/comunidades/shared/components/CommunityExploreSection";
 import CommunityChannelsSection from "@site/comunidades/shared/components/CommunityChannelsSection";
 import CommunityTextHero from "@site/comunidades/shared/components/CommunityTextHero";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 import CommunityHero from "@site/comunidades/shared/components/CommunityHero";
 import {
@@ -286,6 +287,11 @@ export default function DevParanaHome(): React.JSX.Element {
       title={`${community.shortName} — Comunidade parceira`}
       description={community.description}
     >
+      <CommunityHead
+        community={community}
+        title={`${community.shortName} — Comunidade parceira`}
+        description={community.description}
+      />
       {community.heroVisual ? (
         <CommunityHero community={community} />
       ) : (

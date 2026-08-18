@@ -13,6 +13,7 @@ import {
 import VerifiedIcon from "@mui/icons-material/Verified";
 import DonationFlow from "@site/src/components/DonationFlow";
 import CommunityLoginCTA from "@site/src/components/CommunityLoginCTA";
+import CommunityHead from "./CommunityHead";
 import type { CommunitySiteConfig } from "../types";
 
 interface CommunityApoiarPageProps {
@@ -36,6 +37,11 @@ export default function CommunityApoiarPage({
       title={`Apoiar — ${community.shortName}`}
       description={`Faça uma doação para a comunidade ${community.name}.`}
     >
+      <CommunityHead
+        community={community}
+        title={`Apoiar — ${community.shortName}`}
+        description={`Faça uma doação para a comunidade ${community.name}.`}
+      />
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),

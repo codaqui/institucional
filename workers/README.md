@@ -34,6 +34,8 @@ Onde `<api-path>` é `/api/*`, `/auth/*`, `/stripe/*`, `/ledger/*`, `/members/*`
 
 **Por que pass-through (e não rewrite de path):** Docusaurus é SPA. O React Router renderiza páginas com base em `window.location.pathname`. Se reescrevêssemos `/comunidades/tisocial/foo` para `/foo` no browser, o roteador procuraria a rota `/foo` (que não existe pra T.I. Social) e renderizaria a home da Codaqui. Pass-through preserva o pathname original, garantindo que o SPA carregue a página correta. O redirect inicial em `/` dá ao usuário um entrypoint limpo (`tisocial.org.br` → home da T.I. Social).
 
+**Reescrita de metadados sociais:** ainda no pass-through, o Worker intercepta respostas `text/html` e troca `https://codaqui.dev` por `https://tisocial.org.br` **somente** dentro de `<meta property="og:url">` e `<link rel="canonical">`. Isso faz os cards do WhatsApp/Twitter/LinkedIn mostrarem o domínio próprio da comunidade, sem alterar links de navegação, assets ou scripts.
+
 Cookies do backend ficam **first-party** em `tisocial.org.br` automaticamente, sem cross-origin blocking.
 
 ## Comandos

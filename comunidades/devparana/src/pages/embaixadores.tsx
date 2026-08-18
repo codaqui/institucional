@@ -17,6 +17,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import EmailIcon from "@mui/icons-material/Email";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 import { regions, type Region, type Ambassador } from "../data/ambassadors";
 import { useCodaquiMembersBatch, type CodaquiMember } from "../hooks/useCodaquiMembers";
@@ -177,6 +178,11 @@ export default function DevParanaEmbaixadores(): React.JSX.Element {
       title={`Embaixadores — ${community.shortName}`}
       description="Conheça as regiões do Paraná e os embaixadores do DevParaná."
     >
+      <CommunityHead
+        community={community}
+        title={`Embaixadores — ${community.shortName}`}
+        description="Conheça as regiões do Paraná e os embaixadores do DevParaná."
+      />
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),
