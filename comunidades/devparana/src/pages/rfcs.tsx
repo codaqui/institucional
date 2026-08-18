@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import ArticleIcon from "@mui/icons-material/Article";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 
 const accent = community.theme.primary;
@@ -60,6 +61,11 @@ export default function DevParanaRfcsPage(): React.JSX.Element {
       title={`RFCs — ${community.shortName}`}
       description="Propostas e decisões da comunidade DevParaná."
     >
+      <CommunityHead
+        community={community}
+        title={`RFCs — ${community.shortName}`}
+        description="Propostas e decisões da comunidade DevParaná."
+      />
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),

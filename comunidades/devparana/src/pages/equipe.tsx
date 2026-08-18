@@ -20,6 +20,7 @@ import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import EmailIcon from "@mui/icons-material/Email";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 import { team, type Member } from "../data/team";
 import { useCodaquiMembersBatch, type CodaquiMember } from "../hooks/useCodaquiMembers";
@@ -242,6 +243,11 @@ export default function DevParanaEquipePage(): React.JSX.Element {
       title={`Equipe — ${community.shortName}`}
       description={`Conheça as pessoas por trás do ${community.name}`}
     >
+      <CommunityHead
+        community={community}
+        title={`Equipe — ${community.shortName}`}
+        description={`Conheça as pessoas por trás do ${community.name}`}
+      />
       <main>
         <Box
           sx={{

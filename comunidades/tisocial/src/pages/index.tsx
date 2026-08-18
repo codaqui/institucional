@@ -17,6 +17,7 @@ import CommunityImpactSection from "@site/comunidades/shared/components/Communit
 import CommunityExploreSection, { type FeatureCard } from "@site/comunidades/shared/components/CommunityExploreSection";
 import CommunityChannelsSection from "@site/comunidades/shared/components/CommunityChannelsSection";
 import CommunityTextHero from "@site/comunidades/shared/components/CommunityTextHero";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 import upcoming from "../data/upcoming.json";
 
@@ -71,6 +72,11 @@ export default function TiSocialHome(): React.JSX.Element {
       title={`${community.shortName} — Comunidade parceira`}
       description={community.description}
     >
+      <CommunityHead
+        community={community}
+        title={`${community.shortName} — Comunidade parceira`}
+        description={community.description}
+      />
       <CommunityTextHero community={community} />
 
       <CommunityImpactSection community={community} />

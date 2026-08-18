@@ -36,6 +36,7 @@ const config: CommunitySiteConfig = {
     + "campanhas de solidariedade e ações comunitárias na região de Maringá.",
   logoUrl: "/img/tisocial.png",
   logoUrlDark: "/img/tisocial-white.png",
+  socialImage: "/img/og-tisocial.jpg",
   theme: {
     primary: "#8DC044",
     primaryDark: "#424143",

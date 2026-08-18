@@ -19,6 +19,12 @@ export interface CommunitySiteConfig {
   description: string;
   logoUrl: string;
   logoUrlDark?: string;
+  /**
+   * Imagem usada nos cards sociais (Open Graph / Twitter) quando a página da
+   * comunidade é compartilhada. Preferir JPG/PNG de ~1200x630px.
+   * Se omitida, fallback para `logoUrl`.
+   */
+  socialImage?: string;
   theme: {
     primary: string;
     primaryDark: string;

@@ -16,6 +16,7 @@ import {
 } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 import { equipeElas, type Member } from "../data/team";
 
@@ -87,6 +88,11 @@ export default function EquipeElasNoCodigoPage(): React.JSX.Element {
       title={`Equipe — ${community.shortName}`}
       description={`Conheça as pessoas por trás da ${community.name}`}
     >
+      <CommunityHead
+        community={community}
+        title={`Equipe — ${community.shortName}`}
+        description={`Conheça as pessoas por trás da ${community.name}`}
+      />
       <main>
         <Box
           sx={{

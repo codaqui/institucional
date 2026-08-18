@@ -16,6 +16,7 @@ const config: CommunitySiteConfig = {
     "Acreditamos que a diversidade é fundamental e, por isso, buscamos promover a inclusão de mulheres no mercado de tecnologia.",
   logoUrl: "/img/elasnocodigo.svg",
   logoUrlDark: "/img/elasnocodigo-white.svg",
+  socialImage: "/img/og-elasnocodigo.jpg",
   theme: {
     primary: "#9c27b0",
     primaryDark: "#2b0945",

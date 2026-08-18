@@ -21,6 +21,7 @@ import GroupsIcon from "@mui/icons-material/Groups";
 import CommunityImpactSection from "@site/comunidades/shared/components/CommunityImpactSection";
 import CommunityExploreSection, { type FeatureCard } from "@site/comunidades/shared/components/CommunityExploreSection";
 import CommunityChannelsSection from "@site/comunidades/shared/components/CommunityChannelsSection";
+import CommunityHead from "@site/comunidades/shared/components/CommunityHead";
 import community from "../../community.config";
 
 const accent = community.theme.primary;
@@ -87,6 +88,11 @@ export default function ElasNoCodigoHome(): React.JSX.Element {
       title={`${community.shortName} — Comunidade parceira`}
       description={community.description}
     >
+      <CommunityHead
+        community={community}
+        title={`${community.shortName} — Comunidade parceira`}
+        description={community.description}
+      />
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),

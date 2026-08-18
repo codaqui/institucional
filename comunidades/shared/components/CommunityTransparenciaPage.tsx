@@ -22,6 +22,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import { formatBRL } from "@site/src/utils/transaction";
 import TransactionTable from "@site/src/components/TransactionTable";
+import CommunityHead from "./CommunityHead";
 import { useCommunityBalance } from "../hooks/useCommunityBalance";
 import type { CommunitySiteConfig } from "../types";
 
@@ -41,6 +42,11 @@ export default function CommunityTransparenciaPage({
       title={`Transparência — ${community.shortName}`}
       description={`Saldo e movimentações da conta ${community.name} no ledger Codaqui.`}
     >
+      <CommunityHead
+        community={community}
+        title={`Transparência — ${community.shortName}`}
+        description={`Saldo e movimentações da conta ${community.name} no ledger Codaqui.`}
+      />
       <Box
         sx={{
           bgcolor: (t) => (t.palette.mode === "dark" ? accentDark : accent),

@@ -17,6 +17,7 @@ const config: CommunitySiteConfig = {
     + "Promove meetups, workshops, hackathons e o evento itinerante DevParaná na Estrada.",
   logoUrl: "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
   logoUrlDark: "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
+  socialImage: "/img/og-devparana.jpg",
   theme: {
     primary: "#1ba250",
     primaryDark: "#147a3b",

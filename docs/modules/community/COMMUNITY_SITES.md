@@ -32,14 +32,17 @@ Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` co
 | **Resolver de tenant** | `src/lib/community-context.ts` | `resolveCommunityFromPath(pathname)` |
 | **Navbar whitelabel** | `src/theme/Navbar/Content/index.tsx` | Troca branding em runtime |
 | **DonationFlow reusável** | `src/components/DonationFlow/index.tsx` | Fluxo de doação whitelabel |
+| **SEO social por comunidade** | `comunidades/shared/components/CommunityHead.tsx` | Sobrescreve `og:*`/`twitter:*` com identidade da comunidade |
 
 ## Checklist para nova comunidade
 
 1. Criar `comunidades/<slug>/` e `community.config.ts` (use `comunidades/tisocial/community.config.ts` como referência).
-2. Criar `blog/`, `docs/` e `src/pages/{index,apoiar,transparencia}.tsx`.
-3. Registrar a config em `comunidades/index.ts`.
-4. Confirmar `metadata.communityId === '<slug>'` no checkout Stripe.
-5. Validar com `npm run typecheck` e `npm run build`.
+2. Preencher `socialImage` (JPG/PNG ~1200×630) para que cards sociais do domínio próprio mostrem a identidade da comunidade.
+3. Criar `blog/`, `docs/` e `src/pages/{index,apoiar,transparencia}.tsx`.
+4. Usar `<CommunityHead community={community} />` dentro das páginas customizadas para sobrescrever `og:image`/`twitter:image`.
+5. Registrar a config em `comunidades/index.ts`.
+6. Confirmar `metadata.communityId === '<slug>'` no checkout Stripe.
+7. Validar com `npm run typecheck` e `npm run build`.
 
 ## Domínio próprio
 
@@ -54,3 +57,4 @@ Para domínio próprio, veja [docs/plans/MULTISITE_PLAN.md §6](../../plans/MULT
 | Path literal `/comunidades/tisocial/blog` | `` `${community.basePath}/blog` `` |
 | Filtrar ledger por `b.id === slug` | `b.projectKey === community.slug` (id é UUID) |
 | Criar página em `src/pages/comunidades/<slug>/` | `comunidades/<slug>/src/pages/` (auto-discovery) |
+| Deixar card social com imagem da Codaqui | Definir `socialImage` e usar `<CommunityHead community={community} />` |
