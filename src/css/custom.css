@@ -425,3 +425,25 @@ table {
 [data-theme="dark"] .community-logo-dark {
   display: block;
 }
+
+/* ── Docs de comunidades parceiras ─────────────────────────────────────────
+   As páginas de docs das comunidades (ex: /comunidades/devparana/docs/rfcs/*)
+   usam layouts MDX customizados com MUI. O layout de docs do Docusaurus, no
+   entanto, reserva espaço para uma sidebar mesmo quando ela não existe
+   (sidebarPath: false), limitando a largura do <main> a partir de 997px.
+   Aqui removemos essa reserva e ampliamos o container apenas nessas páginas. */
+html[class*="plugin-id-community-"].docs-doc-page main {
+  max-width: 100% !important;
+}
+
+html[class*="plugin-id-community-"].docs-doc-page main .container {
+  max-width: 1600px;
+}
+
+/* Remove a restrição de 75% da coluna de conteúdo quando a sidebar está
+   ausente (sidebarPath: false). O Docusaurus reserva 25% para a sidebar
+   mesmo sem ela, deixando a coluna do documento estreita em telas grandes. */
+html[class*="plugin-id-community-"].docs-doc-page .col[class*="docItemCol_"] {
+  max-width: 100% !important;
+  flex-basis: 100% !important;
+}

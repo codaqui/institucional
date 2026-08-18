@@ -40,6 +40,8 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | Módulo | Documentos |
 |--------|-----------|
 | Eventos | [Manual do Código](modules/events/CODE_MANUAL.md) · [Mapa de Papéis](modules/events/ROLES.md) |
+| Comunidades parceiras | [Sites whitelabel](modules/community/COMMUNITY_SITES.md) |
+| Insights / Social Stats | [Estatísticas e presença digital](modules/insights/SOCIAL_STATS.md) |
 
 ### Plans — Planos e RFCs
 
