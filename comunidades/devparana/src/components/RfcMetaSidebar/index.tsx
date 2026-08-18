@@ -13,42 +13,16 @@ import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import community from "../../../community.config";
-import { useCodaquiMembersBatch, type CodaquiMember } from "../../hooks/useCodaquiMembers";
-import type { RfcFrontmatter, RfcPersonRef } from "../../data/rfc-schema";
+import { useCodaquiMembersBatch } from "../../hooks/useCodaquiMembers";
+import type { RfcFrontmatter } from "../../data/rfc-schema";
 import type { RfcRegion } from "../RfcRegionCard";
+import { displayAvatar, displayName, findMember } from "../../utils/rfc-members";
 
 const accent = community.theme.primary;
 
 interface RfcMetaSidebarProps {
-  frontmatter: RfcFrontmatter;
-  regions?: RfcRegion[];
-}
-
-function findMember(ref: RfcPersonRef, members: CodaquiMember[]): CodaquiMember | undefined {
-  const handle = ref.githubHandle?.trim();
-  const name = ref.name?.trim();
-
-  if (handle) {
-    const byHandle = members.find(
-      (m) => m.githubHandle?.toLowerCase() === handle.toLowerCase()
-    );
-    if (byHandle) return byHandle;
-  }
-
-  if (name) {
-    const byName = members.find((m) => m.name?.toLowerCase().trim() === name.toLowerCase());
-    if (byName) return byName;
-  }
-
-  return undefined;
-}
-
-function displayName(ref: RfcPersonRef, member?: CodaquiMember): string {
-  return member?.name ?? ref.name ?? ref.email ?? "—";
-}
-
-function displayAvatar(ref: RfcPersonRef, member?: CodaquiMember): string {
-  return member?.avatarUrl ?? `https://github.com/${ref.githubHandle ?? "ghost"}.png`;
+  readonly frontmatter: RfcFrontmatter;
+  readonly regions?: RfcRegion[];
 }
 
 export default function RfcMetaSidebar({ frontmatter, regions }: RfcMetaSidebarProps): React.JSX.Element {

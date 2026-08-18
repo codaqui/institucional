@@ -40,57 +40,56 @@ const COMMUNITY_SOURCE_KEYS = community.eventSources ?? [];
 
 function buildFeatureCards(): FeatureCard[] {
   const base = community.basePath;
-  const cards: FeatureCard[] = [];
 
-  if (community.features.docs) {
-    cards.push({
+  const allCards: Array<FeatureCard & { readonly required?: boolean }> = [
+    {
       icon: <MenuBookIcon fontSize="large" />,
       title: "Documentação",
       description: "Conheça a história, propósito, RFCs e links do DevParaná.",
       to: `${base}/docs`,
-    });
-  }
-
-  cards.push({
-    icon: <GroupsIcon fontSize="large" />,
-    title: "Equipe",
-    description: "Conheça as pessoas que coordenam a comunidade.",
-    to: `${base}/equipe`,
-  });
-
-  cards.push({
-    icon: <ArticleIcon fontSize="large" />,
-    title: "Embaixadores",
-    description: "Conheça as regiões do Paraná e os embaixadores da comunidade.",
-    to: `${base}/embaixadores`,
-  });
-
-  cards.push({
-    icon: <CalendarMonthIcon fontSize="large" />,
-    title: "Eventos",
-    description: "Veja os próximos encontros do DevParaná e eventos das comunidades parceiras.",
-    to: "/eventos",
-  });
-
-  if (community.features.donations) {
-    cards.push({
+    },
+    {
+      icon: <GroupsIcon fontSize="large" />,
+      title: "Equipe",
+      description: "Conheça as pessoas que coordenam a comunidade.",
+      to: `${base}/equipe`,
+      required: true,
+    },
+    {
+      icon: <ArticleIcon fontSize="large" />,
+      title: "Embaixadores",
+      description: "Conheça as regiões do Paraná e os embaixadores da comunidade.",
+      to: `${base}/embaixadores`,
+      required: true,
+    },
+    {
+      icon: <CalendarMonthIcon fontSize="large" />,
+      title: "Eventos",
+      description: "Veja os próximos encontros do DevParaná e eventos das comunidades parceiras.",
+      to: "/eventos",
+      required: true,
+    },
+    {
       icon: <VolunteerActivismIcon fontSize="large" />,
       title: "Apoiar",
       description: `Contribua com doações para manter os eventos do ${community.shortName}.`,
       to: `${base}/apoiar`,
-    });
-  }
-
-  if (community.features.transparency) {
-    cards.push({
+    },
+    {
       icon: <PaidIcon fontSize="large" />,
       title: "Transparência",
       description: `Veja saldo, entradas e saídas da conta do ${community.shortName} no ledger Codaqui.`,
       to: `${base}/transparencia`,
-    });
-  }
+    },
+  ];
 
-  return cards;
+  return allCards.filter((card) => {
+    if (card.required) return true;
+    if (card.title === "Documentação") return community.features.docs;
+    if (card.title === "Apoiar") return community.features.donations;
+    if (card.title === "Transparência") return community.features.transparency;
+    return true;
+  });
 }
 
 const featureCards = buildFeatureCards();

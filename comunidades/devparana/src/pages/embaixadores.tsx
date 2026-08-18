@@ -45,7 +45,7 @@ const responsibilities = [
 
 function extractGithubHandle(url?: string): string | undefined {
   if (!url) return undefined;
-  const match = url.match(/github\.com\/([^/]+)/);
+  const match = /github\.com\/([^/]+)/.exec(url);
   return match?.[1];
 }
 
@@ -57,14 +57,14 @@ function findMemberByAmbassador(
   const normalizedName = ambassador.name.toLowerCase().trim();
 
   return members.find((member) => {
-    if (handle && member.githubHandle.toLowerCase() === handle.toLowerCase()) {
+    if (handle && member.githubHandle?.toLowerCase() === handle.toLowerCase()) {
       return true;
     }
-    return member.name.toLowerCase().trim() === normalizedName;
+    return member.name?.toLowerCase().trim() === normalizedName;
   });
 }
 
-function AmbassadorCard({ ambassador, members }: { ambassador: Ambassador; members: CodaquiMember[] }) {
+function AmbassadorCard({ ambassador, members }: { readonly ambassador: Ambassador; readonly members: CodaquiMember[] }) {
   const member = findMemberByAmbassador(ambassador, members);
 
   const name = member?.name ?? ambassador.name;
@@ -131,7 +131,7 @@ function AmbassadorCard({ ambassador, members }: { ambassador: Ambassador; membe
   );
 }
 
-function RegionCard({ region, members }: { region: Region; members: CodaquiMember[] }) {
+function RegionCard({ region, members }: { readonly region: Region; readonly members: CodaquiMember[] }) {
   return (
     <Card
       variant="outlined"

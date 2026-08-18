@@ -66,10 +66,10 @@ export function normalizeFrontmatter(raw: Record<string, unknown>): RfcFrontmatt
     : [];
 
   return {
-    rfcId: String(raw.rfcId ?? ""),
-    title: String(raw.title ?? ""),
+    rfcId: typeof raw.rfcId === "string" ? raw.rfcId : "",
+    title: typeof raw.title === "string" ? raw.title : "",
     status: (raw.status as RfcFrontmatter["status"]) ?? "Draft",
-    summary: String(raw.summary ?? ""),
+    summary: typeof raw.summary === "string" ? raw.summary : "",
     authors,
     approvers,
     writtenAt: typeof raw.writtenAt === "string" ? raw.writtenAt : undefined,

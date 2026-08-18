@@ -14,41 +14,15 @@ import ForumIcon from "@mui/icons-material/Forum";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import community from "../../../community.config";
-import { useCodaquiMembersBatch, type CodaquiMember } from "../../hooks/useCodaquiMembers";
-import type { RfcFrontmatter, RfcPersonRef } from "../../data/rfc-schema";
+import { useCodaquiMembersBatch } from "../../hooks/useCodaquiMembers";
+import type { RfcFrontmatter } from "../../data/rfc-schema";
+import { displayAvatar, displayName, findMember } from "../../utils/rfc-members";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
 
 interface RfcHeroProps {
-  frontmatter: RfcFrontmatter;
-}
-
-function findMember(ref: RfcPersonRef, members: CodaquiMember[]): CodaquiMember | undefined {
-  const handle = ref.githubHandle?.trim();
-  const name = ref.name?.trim();
-
-  if (handle) {
-    const byHandle = members.find(
-      (m) => m.githubHandle?.toLowerCase() === handle.toLowerCase()
-    );
-    if (byHandle) return byHandle;
-  }
-
-  if (name) {
-    const byName = members.find((m) => m.name?.toLowerCase().trim() === name.toLowerCase());
-    if (byName) return byName;
-  }
-
-  return undefined;
-}
-
-function displayName(ref: RfcPersonRef, member?: CodaquiMember): string {
-  return member?.name ?? ref.name ?? ref.email ?? "—";
-}
-
-function displayAvatar(member?: CodaquiMember, ref?: RfcPersonRef): string {
-  return member?.avatarUrl ?? `https://github.com/${ref?.githubHandle ?? "ghost"}.png`;
+  readonly frontmatter: RfcFrontmatter;
 }
 
 function AvatarSkeleton() {
@@ -121,7 +95,7 @@ export default function RfcHero({ frontmatter }: RfcHeroProps): React.JSX.Elemen
                       <AvatarSkeleton />
                     ) : (
                       <Avatar
-                        src={displayAvatar(authorMember, primaryAuthor)}
+                        src={displayAvatar(primaryAuthor, authorMember)}
                         alt={displayName(primaryAuthor, authorMember)}
                         sx={{ width: 48, height: 48, border: "2px solid rgba(255,255,255,0.4)" }}
                       />
@@ -181,7 +155,7 @@ export default function RfcHero({ frontmatter }: RfcHeroProps): React.JSX.Elemen
                             <AvatarSkeleton />
                           ) : (
                             <Avatar
-                              src={displayAvatar(member, ref)}
+                              src={displayAvatar(ref, member)}
                               alt={displayName(ref, member)}
                               sx={{ width: 32, height: 32 }}
                             />

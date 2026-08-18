@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Box,
-  Stack,
   Typography,
 } from "@mui/material";
 import community from "../../../community.config";
