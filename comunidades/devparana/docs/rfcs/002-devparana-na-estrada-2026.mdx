@@ -1,0 +1,246 @@
+---
+sidebar_position: 2
+title: "RFC 002 — DevParaná na Estrada 2026"
+slug: devparana-na-estrada-2026
+rfcId: "002"
+status: Ready
+summary: "Planejamento executado da edição 2026 do evento itinerante, com formatos de meetup e workshop+palestras, patrocínios locais, custos e cronograma."
+authors:
+  - name: "Everton Tavares"
+    email: "ivo@devpr.org"
+  - name: "Luiz Schons"
+approvers:
+  - email: "ivo@devpr.org"
+  - email: "geovane@codaqui.dev"
+  - name: "Welington Oliveira da Silva"
+    githubHandle: "WelingtonOliveira"
+  - email: "rafael.barros@devpr.org"
+  - name: "Luiz Schons"
+  - email: "fernando@codaqui.dev"
+  - name: "Enderson Menezes"
+    githubHandle: "endersonmenezes"
+writtenAt: "31 Out 2025"
+publishedAt: "1 Dez 2025"
+timeline:
+  - date: "31 Out 2025"
+    label: "Fechamento da proposta"
+  - date: "1 Dez 2025"
+    label: "Anúncio e publicação"
+---
+
+import { Box, Container, Grid, Typography, Stack } from "@mui/material";
+import RfcHero from "@site/comunidades/devparana/src/components/RfcHero";
+import RfcMetaSidebar from "@site/comunidades/devparana/src/components/RfcMetaSidebar";
+
+export const frontmatter = {
+  rfcId: "002",
+  title: "DevParaná na Estrada 2026",
+  status: "Ready",
+  summary: "Planejamento executado da edição 2026 do evento itinerante, com formatos de meetup e workshop+palestras, patrocínios locais, custos e cronograma.",
+  authors: [
+    { name: "Everton Tavares", email: "ivo@devpr.org" },
+    { name: "Luiz Schons" },
+  ],
+  approvers: [
+    { email: "ivo@devpr.org" },
+    { email: "geovane@codaqui.dev" },
+    { name: "Welington Oliveira da Silva", githubHandle: "WelingtonOliveira" },
+    { email: "rafael.barros@devpr.org" },
+    { name: "Luiz Schons" },
+    { email: "fernando@codaqui.dev" },
+    { name: "Enderson Menezes", githubHandle: "endersonmenezes" },
+  ],
+  writtenAt: "31 Out 2025",
+  publishedAt: "1 Dez 2025",
+  timeline: [
+    { date: "31 Out 2025", label: "Fechamento da proposta" },
+    { date: "1 Dez 2025", label: "Anúncio e publicação" },
+  ],
+};
+
+<RfcHero frontmatter={frontmatter} />
+
+<Container maxWidth="xl" sx={{ pb: { xs: 6, md: 8 } }}>
+  <Grid container spacing={{ xs: 3, md: 5 }}>
+    <Grid size={{ xs: 12, md: 8, lg: 9 }}>
+      <Stack spacing={4}>
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Overview
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            O DevParaná na Estrada iniciou em 2019 para levar o espírito da comunidade a outras
+            cidades. Realizado em 2019, 2022, 2024, 2025 e 2026, o evento itinerante levou meetups
+            e workshops para várias cidades do Paraná. A edição de 2026 já foi executada; o
+            histórico e os próximos encontros podem ser conferidos no{" "}
+            <a href="https://www.meetup.com/pt-BR/developerparana/" target="_blank" rel="noopener noreferrer">Meetup do DevParaná</a>.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Quando
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            A edição de 2026 ocorreu ao longo do fim de março e abril. As datas futuras são
+            divulgadas no Meetup da comunidade.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Formato 2025 (referência)
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Uma semana inteira à noite, paralelo em 15 cidades: Maringá, Londrina, Ivaiporã,
+            Cascavel, Toledo, Foz do Iguaçu, Cianorte, Campo Mourão, Umuarama, Dois Vizinhos,
+            Francisco Beltrão, Pato Branco, Curitiba, Guarapuava e Ponta Grossa.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Formatos 2026
+          </Typography>
+
+          <Typography variant="h6" component="h3" fontWeight={700} gutterBottom>
+            Meetup (cidades sem encontros recorrentes)
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>3 slots de 50 min (45 min palestra + 5 min perguntas);</li>
+            <li>19:00 — Abertura;</li>
+            <li>19:30 — Slot 1 — DevParaná;</li>
+            <li>20:20 — Slot 2 — Local;</li>
+            <li>21:10 — Slot 3 — Externo;</li>
+            <li>22:00 — Encerramento.</li>
+          </Box>
+
+          <Typography variant="h6" component="h3" fontWeight={700} gutterBottom>
+            Workshop + Palestras (cidades com eventos recorrentes)
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Realizado no sábado. Inscrição de R$25,00.
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>08:00 — Credenciamento;</li>
+            <li>08:30 — Workshops;</li>
+            <li>12:00 — Almoço;</li>
+            <li>13:30 — Abertura das palestras;</li>
+            <li>14:00 — Slot 1;</li>
+            <li>14:50 — Slot 2;</li>
+            <li>15:40 — Coffee break;</li>
+            <li>16:30 — Slot 3;</li>
+            <li>17:30 — Encerramento.</li>
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            Workshops de até 3 horas, com no mínimo 3 opções de workshop.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Patrocinadores
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Acesso livre para banner e equipe de recrutamento (sem estrutura fornecida). Segue
+            RFC003 de benefícios.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Patrocínio Local
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>
+              <strong>Bronze — R$300:</strong> Logo nas artes, flyers e brindes;
+            </li>
+            <li>
+              <strong>Prata — R$500:</strong> Benefícios bronze + fala sobre a empresa;
+            </li>
+            <li>
+              <strong>Ouro — R$800:</strong> Benefícios prata + indicar palestrante para slot patrocinador.
+            </li>
+          </Box>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Distribuição das palestras
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>Um palestrante da comunidade;</li>
+            <li>Um slot patrocinador (se não usado, livre para organizador local, prazo de 10 dias antes);</li>
+            <li>Um palestrante local obrigatório.</li>
+          </Box>
+          <Typography variant="body1" color="text.secondary">
+            Call4Papers para palestrantes da comunidade, lançado até uma semana após confirmação
+            das cidades.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Coordenação local
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            A coordenação local deve:
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>Definir local, programação e dia do evento;</li>
+            <li>Alinhar data com a organização geral;</li>
+            <li>Designar responsável por fotos e vídeos;</li>
+            <li>Orçar coffee break;</li>
+            <li>Reservar hotel para staff/palestrante quando necessário.</li>
+          </Box>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Custos
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            A comunidade custeia viagem (ônibus ou combustível) e diária de até R$300,00 para
+            hotel/alimentação. Pagamento via reembolso OpenCollective. A ajuda de custo é destinada
+            ao embaixador da região ou a membro indicado.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Marketing
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>Identidade visual única para toda a edição;</li>
+            <li>
+              Cada cidade envia: local, nomes, cargos, temas, Instagram, LinkedIn e foto dos
+              palestrantes;
+            </li>
+            <li>
+              Fotos e vídeos obrigatórios: início, palestrantes no palco, todos juntos,
+              embaixadores/organizadores, público e ganhadores de brindes;
+            </li>
+            <li>Grupo de comunicação com palestrantes e organizadores.</li>
+          </Box>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Timeline
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            {frontmatter.timeline.map((item) => (
+              <li key={item.date + item.label}>
+                <strong>{item.date}:</strong> {item.label}
+              </li>
+            ))}
+          </Box>
+        </section>
+      </Stack>
+    </Grid>
+
+    <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+      <RfcMetaSidebar frontmatter={frontmatter} />
+    </Grid>
+  </Grid>
+</Container>

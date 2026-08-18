@@ -12,7 +12,7 @@ O DevParaná é uma comunidade sem fins lucrativos que conecta pessoas desenvolv
 ## O que você encontra por aqui
 
 - **Embaixadores** — conheça as regiões do Paraná e os embaixadores que representam a comunidade.
-- **DevParaná na Estrada** — informações sobre o evento itinerante.
+- **RFCs** — propostas e decisões da comunidade estão disponíveis em [/comunidades/devparana/rfcs](/comunidades/devparana/rfcs).
 - **Apoiar** — contribua financeiramente para manter meetups e eventos.
 - **Transparência** — acompanhe saldo e movimentações no ledger da Codaqui.
 
@@ -22,10 +22,9 @@ O [Projeto Embaixadores](/comunidades/devparana/embaixadores) organiza o Paraná
 
 ## DevParaná na Estrada
 
-O [DevParaná na Estrada](/comunidades/devparana/na-estrada) é o evento itinerante da comunidade. A edição de 2026 está prevista para março e abril, com meetups e workshops em 15 cidades do estado.
+O DevParaná na Estrada é o evento itinerante da comunidade. Realizado em 2019, 2022, 2024, 2025 e 2026, o evento levou meetups e workshops para várias cidades do estado. Os próximos encontros e o histórico podem ser conferidos no [Meetup do DevParaná](https://www.meetup.com/pt-BR/developerparana/).
 
 ## Links externos
 
-- Site oficial: https://devpr.org/
 - Meetup: https://www.meetup.com/pt-BR/developerparana/
 - GitHub: https://github.com/DeveloperParana

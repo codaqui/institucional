@@ -5,6 +5,7 @@ export interface Ambassador {
   avatar?: string;
   linkedin?: string;
   github?: string;
+  githubHandle?: string;
   bio?: string;
 }
 

@@ -7,6 +7,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Container,
   Grid,
   Stack,
@@ -18,9 +19,18 @@ import GitHubIcon from "@mui/icons-material/GitHub";
 import EmailIcon from "@mui/icons-material/Email";
 import community from "../../community.config";
 import { regions, type Region, type Ambassador } from "../data/ambassadors";
+import { useCodaquiMembersBatch, type CodaquiMember } from "../hooks/useCodaquiMembers";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
+
+const ambassadorList = regions.map((r) => r.ambassador).filter(Boolean) as Ambassador[];
+const ambassadorHandles = ambassadorList
+  .map((a) => a.githubHandle?.trim() ?? extractGithubHandle(a.github))
+  .filter((h): h is string => Boolean(h));
+const ambassadorEmails = ambassadorList
+  .map((a) => a.email?.trim())
+  .filter((e): e is string => Boolean(e));
 
 const responsibilities = [
   "Liderar as iniciativas da comunidade na região;",
@@ -33,32 +43,85 @@ const responsibilities = [
   "Gerenciar e entregar brindes da associação na região.",
 ];
 
-function AmbassadorCard({ ambassador }: { ambassador: Ambassador }) {
+function extractGithubHandle(url?: string): string | undefined {
+  if (!url) return undefined;
+  const match = url.match(/github\.com\/([^/]+)/);
+  return match?.[1];
+}
+
+function findMemberByAmbassador(
+  ambassador: Ambassador,
+  members: CodaquiMember[]
+): CodaquiMember | undefined {
+  const handle = ambassador.githubHandle ?? extractGithubHandle(ambassador.github);
+  const normalizedName = ambassador.name.toLowerCase().trim();
+
+  return members.find((member) => {
+    if (handle && member.githubHandle.toLowerCase() === handle.toLowerCase()) {
+      return true;
+    }
+    return member.name.toLowerCase().trim() === normalizedName;
+  });
+}
+
+function AmbassadorCard({ ambassador, members }: { ambassador: Ambassador; members: CodaquiMember[] }) {
+  const member = findMemberByAmbassador(ambassador, members);
+
+  const name = member?.name ?? ambassador.name;
+  const role = ambassador.role;
+  const avatar = member?.avatarUrl ?? ambassador.avatar;
+  const linkedin = member?.linkedinUrl ?? ambassador.linkedin;
+  const github = member?.githubHandle
+    ? `https://github.com/${member.githubHandle}`
+    : ambassador.github;
+  const bio = member?.bio ?? ambassador.bio;
+
   return (
     <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
       <Avatar
-        src={ambassador.avatar}
-        alt={ambassador.name}
+        src={avatar}
+        alt={name}
         sx={{ width: 64, height: 64, border: "3px solid", borderColor: "divider" }}
       />
       <Box>
-        <Typography fontWeight={700}>{ambassador.name}</Typography>
+        <Typography fontWeight={700}>{name}</Typography>
         <Typography variant="body2" color="text.secondary">
-          {ambassador.role}
+          {role}
         </Typography>
+        {bio && (
+          <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+            {bio}
+          </Typography>
+        )}
         <Stack direction="row" spacing={0.5} sx={{ mt: 0.5 }}>
           {ambassador.email && (
-            <Box component="a" href={`mailto:${ambassador.email}`} aria-label={`E-mail de ${ambassador.name}`}>
+            <Box
+              component="a"
+              href={`mailto:${ambassador.email}`}
+              aria-label={`E-mail de ${name}`}
+            >
               <EmailIcon fontSize="small" sx={{ color: accent }} />
             </Box>
           )}
-          {ambassador.linkedin && (
-            <Box component="a" href={ambassador.linkedin} target="_blank" rel="noopener noreferrer" aria-label={`LinkedIn de ${ambassador.name}`}>
+          {linkedin && (
+            <Box
+              component="a"
+              href={linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`LinkedIn de ${name}`}
+            >
               <LinkedInIcon fontSize="small" sx={{ color: accent }} />
             </Box>
           )}
-          {ambassador.github && (
-            <Box component="a" href={ambassador.github} target="_blank" rel="noopener noreferrer" aria-label={`GitHub de ${ambassador.name}`}>
+          {github && (
+            <Box
+              component="a"
+              href={github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`GitHub de ${name}`}
+            >
               <GitHubIcon fontSize="small" sx={{ color: accent }} />
             </Box>
           )}
@@ -68,7 +131,7 @@ function AmbassadorCard({ ambassador }: { ambassador: Ambassador }) {
   );
 }
 
-function RegionCard({ region }: { region: Region }) {
+function RegionCard({ region, members }: { region: Region; members: CodaquiMember[] }) {
   return (
     <Card
       variant="outlined"
@@ -84,7 +147,7 @@ function RegionCard({ region }: { region: Region }) {
         </Typography>
 
         {region.ambassador ? (
-          <AmbassadorCard ambassador={region.ambassador} />
+          <AmbassadorCard ambassador={region.ambassador} members={members} />
         ) : (
           <Alert severity="info" sx={{ mb: 2 }}>
             Vaga aberta — entre em contato caso queira representar esta região.
@@ -105,6 +168,8 @@ function RegionCard({ region }: { region: Region }) {
 }
 
 export default function DevParanaEmbaixadores(): React.JSX.Element {
+  const { members, loading, error } = useCodaquiMembersBatch(ambassadorHandles, ambassadorEmails);
+
   return (
     <Layout
       title={`Embaixadores — ${community.shortName}`}
@@ -165,13 +230,28 @@ export default function DevParanaEmbaixadores(): React.JSX.Element {
           O estado está dividido em {regions.length} regiões. Em breve todas terão
           embaixadores confirmados.
         </Typography>
-        <Grid container spacing={3}>
-          {regions.map((region) => (
-            <Grid key={region.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <RegionCard region={region} />
-            </Grid>
-          ))}
-        </Grid>
+
+        {loading && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+            <CircularProgress sx={{ color: accent }} />
+          </Box>
+        )}
+
+        {!loading && error && (
+          <Alert severity="warning" variant="outlined" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        {!loading && (
+          <Grid container spacing={3}>
+            {regions.map((region) => (
+              <Grid key={region.id} size={{ xs: 12, sm: 6, lg: 4 }}>
+                <RegionCard region={region} members={members} />
+              </Grid>
+            ))}
+          </Grid>
+        )}
       </Container>
     </Layout>
   );

@@ -10,9 +10,6 @@ const baseDir = join(__dirname, "../comunidades/devparana/src/data");
 const ambassadors = JSON.parse(
   readFileSync(join(baseDir, "ambassadors.json"), "utf8"),
 );
-const naestrada = JSON.parse(
-  readFileSync(join(baseDir, "naestrada.json"), "utf8"),
-);
 
 describe("ambassadors.json", () => {
   it("tem 6 regiões", () => {
@@ -40,21 +37,18 @@ describe("ambassadors.json", () => {
   });
 });
 
-describe("naestrada.json", () => {
-  it("tem edição 2026", () => {
-    assert.equal(naestrada.edition.year, 2026);
-    assert.equal(naestrada.edition.status, "upcoming");
+describe("team.json", () => {
+  const team = JSON.parse(readFileSync(join(baseDir, "team.json"), "utf8"));
+
+  it("tem pelo menos 1 membro", () => {
+    assert.ok(Array.isArray(team.members) && team.members.length > 0);
   });
 
-  it("tem 15 cidades", () => {
-    assert.equal(naestrada.edition.cities.length, 15);
-  });
-
-  it("tem 3 cotas de patrocínio", () => {
-    assert.equal(naestrada.edition.sponsorshipTiers.length, 3);
-    assert.deepEqual(
-      naestrada.edition.sponsorshipTiers.map((t) => t.name),
-      ["Bronze", "Prata", "Ouro"],
-    );
+  it("cada membro tem name, role e avatar", () => {
+    for (const member of team.members) {
+      assert.ok(member.name, "member.name is required");
+      assert.ok(member.role, "member.role is required");
+      assert.ok(member.avatar, "member.avatar is required");
+    }
   });
 });

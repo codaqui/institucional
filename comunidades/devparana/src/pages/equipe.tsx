@@ -1,28 +1,159 @@
 import React from "react";
 import Layout from "@theme/Layout";
 import {
+  Alert,
   Avatar,
-  Card,
-  CardContent,
-  CardActions,
-  Chip,
-  IconButton,
-  Grid,
   Box,
-  Typography,
-  Divider,
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Chip,
+  CircularProgress,
   Container,
+  Grid,
+  IconButton,
   Stack,
+  Typography,
 } from "@mui/material";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import GitHubIcon from "@mui/icons-material/GitHub";
+import EmailIcon from "@mui/icons-material/Email";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import community from "../../community.config";
 import { team, type Member } from "../data/team";
+import { useCodaquiMembersBatch, type CodaquiMember } from "../hooks/useCodaquiMembers";
 
 const accent = community.theme.primary;
 const accentDark = community.theme.primaryDark;
 
-function MemberCard({ name, role, specialty, avatar, linkedin, github }: Readonly<Member>) {
+function findApiMember(member: Member, apiMembers: CodaquiMember[]): CodaquiMember | undefined {
+  const handle = member.githubHandle?.trim();
+  const normalizedName = member.name.trim().toLowerCase();
+
+  if (handle) {
+    const byHandle = apiMembers.find(
+      (m) => m.githubHandle.toLowerCase() === handle.toLowerCase()
+    );
+    if (byHandle) return byHandle;
+  }
+
+  const byName = apiMembers.find(
+    (m) => m.name.trim().toLowerCase() === normalizedName
+  );
+  if (byName) return byName;
+
+  return undefined;
+}
+
+interface EnrichedMember {
+  name: string;
+  role: string;
+  specialty?: string;
+  avatar: string;
+  bio?: string | null;
+  linkedin?: string;
+  github?: string;
+  email?: string;
+  isVolunteerCTA: boolean;
+}
+
+function enrichMember(member: Member, apiMembers: CodaquiMember[]): EnrichedMember {
+  const api = findApiMember(member, apiMembers);
+  const isVolunteerCTA = member.name === "Você?";
+
+  const githubUrl = api?.githubHandle
+    ? `https://github.com/${api.githubHandle}`
+    : member.github;
+  const linkedinUrl = api?.linkedinUrl ?? member.linkedin;
+
+  return {
+    name: api?.name ?? member.name,
+    role: member.role,
+    specialty: member.specialty,
+    avatar: api?.avatarUrl ?? member.avatar,
+    bio: api?.bio,
+    linkedin: linkedinUrl,
+    github: githubUrl,
+    email: member.email,
+    isVolunteerCTA,
+  };
+}
+
+function TeamMemberCard({ member }: { readonly member: EnrichedMember }) {
+  if (member.isVolunteerCTA) {
+    return (
+      <Card
+        variant="outlined"
+        sx={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          transition: "all 0.2s",
+          borderStyle: "dashed",
+          borderColor: accent,
+          "&:hover": { transform: "translateY(-2px)", boxShadow: 3, borderColor: accent },
+        }}
+      >
+        <CardContent
+          sx={{
+            flexGrow: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            textAlign: "center",
+            gap: 1.5,
+          }}
+        >
+          <Avatar
+            src={member.avatar}
+            alt="Você?"
+            sx={{ width: 80, height: 80, border: "3px solid", borderColor: "divider" }}
+          />
+          <Typography variant="h6" fontWeight={700}>
+            {member.name}
+          </Typography>
+          <Chip variant="outlined" size="small" label={member.role} sx={{ color: accent, borderColor: accent }} />
+          {member.specialty && (
+            <Chip size="small" label={member.specialty} sx={{ bgcolor: `${accent}22`, color: accent }} />
+          )}
+          <Typography variant="body2" color="text.secondary">
+            Quer fazer parte da organização do DevParaná? Entre em contato e ajude a levar a comunidade para mais cidades.
+          </Typography>
+        </CardContent>
+        <CardActions sx={{ justifyContent: "center", pt: 0, pb: 2 }}>
+          <Button
+            component="a"
+            href="mailto:contato@codaqui.dev"
+            size="small"
+            variant="outlined"
+            startIcon={<EmailIcon />}
+            sx={{ borderColor: accent, color: accent, textTransform: "none" }}
+          >
+            Fale com a gente
+          </Button>
+          <Button
+            component="a"
+            href="https://www.meetup.com/pt-BR/developerparana/"
+            target="_blank"
+            rel="noopener noreferrer"
+            size="small"
+            variant="contained"
+            endIcon={<OpenInNewIcon />}
+            sx={{
+              bgcolor: accent,
+              color: "#fff",
+              textTransform: "none",
+              "&:hover": { bgcolor: community.theme.primaryLight },
+            }}
+          >
+            Conheça o Meetup
+          </Button>
+        </CardActions>
+      </Card>
+    );
+  }
+
   return (
     <Card
       variant="outlined"
@@ -34,44 +165,61 @@ function MemberCard({ name, role, specialty, avatar, linkedin, github }: Readonl
         "&:hover": { transform: "translateY(-2px)", boxShadow: 3, borderColor: accent },
       }}
     >
-      <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 1 }}>
+      <CardContent
+        sx={{
+          flexGrow: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          gap: 1,
+        }}
+      >
         <Avatar
-          src={avatar}
-          alt={`Foto de ${name}`}
+          src={member.avatar}
+          alt={`Foto de ${member.name}`}
           sx={{ width: 80, height: 80, border: "3px solid", borderColor: "divider" }}
         />
-        <Typography variant="h6" fontWeight={700}>{name}</Typography>
-        <Chip variant="outlined" size="small" label={role} sx={{ mt: 0.5 }} />
-        {specialty && (
-          <Chip
-            variant="filled"
-            size="small"
-            label={specialty}
-            sx={{ bgcolor: accent, color: "#fff", fontWeight: 600 }}
-          />
+        <Typography variant="h6" fontWeight={700}>
+          {member.name}
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 0.5 }}>
+          <Chip variant="outlined" size="small" label={member.role} />
+          {member.specialty && (
+            <Chip
+              size="small"
+              label={member.specialty}
+              sx={{ bgcolor: `${accent}22`, color: accent }}
+            />
+          )}
+        </Box>
+        {member.bio && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            {member.bio}
+          </Typography>
         )}
       </CardContent>
-      <CardActions sx={{ justifyContent: "center", pt: 0 }}>
-        {linkedin && linkedin !== "#" && (
+      <CardActions sx={{ justifyContent: "center", pt: 0, pb: 2 }}>
+        {member.linkedin && (
           <IconButton
             size="small"
             component="a"
-            href={linkedin}
+            href={member.linkedin}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`LinkedIn de ${name}`}
+            aria-label={`LinkedIn de ${member.name}`}
           >
             <LinkedInIcon sx={{ color: accent }} />
           </IconButton>
         )}
-        {github && github !== "#" && (
+        {member.github && (
           <IconButton
             size="small"
             component="a"
-            href={github}
+            href={member.github}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`GitHub de ${name}`}
+            aria-label={`GitHub de ${member.name}`}
           >
             <GitHubIcon />
           </IconButton>
@@ -81,7 +229,17 @@ function MemberCard({ name, role, specialty, avatar, linkedin, github }: Readonl
   );
 }
 
+const teamHandles = team
+  .map((m) => m.githubHandle?.trim())
+  .filter((h): h is string => Boolean(h));
+const teamEmails = team
+  .map((m) => m.email?.trim())
+  .filter((e): e is string => Boolean(e));
+
 export default function DevParanaEquipePage(): React.JSX.Element {
+  const { members: apiMembers, loading, error } = useCodaquiMembersBatch(teamHandles, teamEmails);
+  const enriched = team.map((member) => enrichMember(member, apiMembers));
+
   return (
     <Layout
       title={`Equipe — ${community.shortName}`}
@@ -125,11 +283,23 @@ export default function DevParanaEquipePage(): React.JSX.Element {
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 700 }}>
               Conheça quem ajuda a manter a comunidade ativa em todo o Paraná.
             </Typography>
-            <Divider sx={{ mb: 4 }} />
+
+            {error && (
+              <Alert severity="warning" variant="outlined" sx={{ mb: 3 }}>
+                {error} Os dados locais estão sendo exibidos enquanto isso.
+              </Alert>
+            )}
+
+            {loading && !error && (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+                <CircularProgress sx={{ color: accent }} />
+              </Box>
+            )}
+
             <Grid container spacing={3}>
-              {team.map((m) => (
-                <Grid key={m.name + m.role} size={{ xs: 12, sm: 6, md: 4 }}>
-                  <MemberCard {...m} />
+              {enriched.map((member) => (
+                <Grid key={member.name} size={{ xs: 12, sm: 6, md: 4 }}>
+                  <TeamMemberCard member={member} />
                 </Grid>
               ))}
             </Grid>

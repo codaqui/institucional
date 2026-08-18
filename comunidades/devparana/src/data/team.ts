@@ -5,6 +5,8 @@ export interface Member {
   avatar: string;
   linkedin?: string;
   github?: string;
+  email?: string;
+  githubHandle?: string;
 }
 
 import data from "./team.json";

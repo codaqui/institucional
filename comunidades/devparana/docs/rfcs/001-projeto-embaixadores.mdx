@@ -1,0 +1,156 @@
+---
+sidebar_position: 1
+title: "RFC 001 — Projeto Embaixadores"
+slug: projeto-embaixadores
+rfcId: "001"
+status: Ready
+summary: "Formaliza a organização do DevParaná por regiões do Paraná, definindo responsabilidades, processo de nomeação e acompanhamento dos embaixadores."
+authors:
+  - name: "Everton Tavares"
+    email: "ivo@devpr.org"
+approvers:
+  - email: "fernando@codaqui.dev"
+  - name: "Enderson Menezes"
+    githubHandle: "endersonmenezes"
+  - email: "geovane@codaqui.dev"
+  - name: "Welington Oliveira da Silva"
+    githubHandle: "WelingtonOliveira"
+  - email: "rafael.barros@devpr.org"
+  - name: "Luiz Schons"
+writtenAt: "31 Out 2025"
+publishedAt: "10 Nov 2025"
+timeline:
+  - date: "31 Out 2025"
+    label: "Fim da escrita e nomeação"
+  - date: "10 Nov 2025"
+    label: "Anúncio e publicação"
+---
+
+import { Box, Container, Grid, Typography, Stack } from "@mui/material";
+import RfcHero from "@site/comunidades/devparana/src/components/RfcHero";
+import RfcRegionCard from "@site/comunidades/devparana/src/components/RfcRegionCard";
+import RfcTimeline from "@site/comunidades/devparana/src/components/RfcTimeline";
+import RfcMetaSidebar from "@site/comunidades/devparana/src/components/RfcMetaSidebar";
+
+export const frontmatter = {
+  rfcId: "001",
+  title: "Projeto Embaixadores",
+  status: "Ready",
+  summary: "Formaliza a organização do DevParaná por regiões do Paraná, definindo responsabilidades, processo de nomeação e acompanhamento dos embaixadores.",
+  authors: [{ name: "Everton Tavares", email: "ivo@devpr.org" }],
+  approvers: [
+    { email: "fernando@codaqui.dev" },
+    { name: "Enderson Menezes", githubHandle: "endersonmenezes" },
+    { email: "geovane@codaqui.dev" },
+    { name: "Welington Oliveira da Silva", githubHandle: "WelingtonOliveira" },
+    { email: "rafael.barros@devpr.org" },
+    { name: "Luiz Schons" },
+  ],
+  writtenAt: "31 Out 2025",
+  publishedAt: "10 Nov 2025",
+  timeline: [
+    { date: "31 Out 2025", label: "Fim da escrita e nomeação" },
+    { date: "10 Nov 2025", label: "Anúncio e publicação" },
+  ],
+};
+
+export const regions = [
+  { name: "Norte", cities: ["Maringá", "Apucarana", "Paranavaí", "Londrina"] },
+  { name: "Sudoeste", cities: ["Dois Vizinhos", "Pato Branco", "Francisco Beltrão"] },
+  { name: "Noroeste", cities: ["Cianorte", "Umuarama", "Campo Mourão", "Ivaiporã"] },
+  { name: "Oeste", cities: ["Cascavel", "Toledo", "Medianeira", "Foz do Iguaçu"] },
+  { name: "Leste", cities: ["Curitiba", "Campo Largo", "Ponta Grossa", "Castro"] },
+  { name: "Centro", cities: ["Guarapuava"] },
+];
+
+<RfcHero frontmatter={frontmatter} />
+
+<Container maxWidth="xl" sx={{ pb: { xs: 6, md: 8 } }}>
+  <Grid container spacing={{ xs: 3, md: 5 }}>
+    <Grid size={{ xs: 12, md: 8, lg: 9 }}>
+      <Stack spacing={4}>
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Overview
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            O DevParaná tem crescido no estado, com meetups em cidades como Francisco Beltrão,
+            Guarapuava, Curitiba e Cascavel. O modelo testado no DevParaná na Estrada 2025 dividiu
+            o estado em regiões com responsáveis, mostrando-se promissor. Esta RFC formaliza a
+            organização por regiões com embaixadores.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Objetivo dos embaixadores
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Ser a pessoa de referência em cada região, facilitar contato em cidades com meetups,
+            identificar novos grupos, gerar parcerias com empresas, centros de ensino e entidades.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Responsabilidades
+          </Typography>
+          <Box component="ul" sx={{ pl: 2, color: "text.secondary" }}>
+            <li>Liderar iniciativas da comunidade na região;</li>
+            <li>Representar a comunidade e seus interesses;</li>
+            <li>Zelar pela boa imagem e reputação da comunidade;</li>
+            <li>Garantir que o código de conduta seja aplicado;</li>
+            <li>Identificar e formar novas lideranças, apoiando eventos locais;</li>
+            <li>Ser o representante principal em eventos de entidades parceiras;</li>
+            <li>Participar das reuniões da associação quando convocado;</li>
+            <li>Gerenciar e entregar brindes da associação na região.</li>
+          </Box>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Processo de nomeação
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            O embaixador é indicado pela diretoria ou por outros embaixadores e aprovado na
+            reunião da associação.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Acompanhamento
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Haverá espaço reservado em cada reunião da associação para o embaixador falar sobre
+            iniciativas e dificuldades da sua região.
+          </Typography>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Regiões
+          </Typography>
+          <Grid container spacing={2}>
+            {regions.map((region) => (
+              <Grid key={region.name} size={{ xs: 12, sm: 6 }}>
+                <RfcRegionCard region={region} />
+              </Grid>
+            ))}
+          </Grid>
+        </section>
+
+        <section>
+          <Typography variant="h4" component="h2" fontWeight={700} gutterBottom>
+            Timeline
+          </Typography>
+          <RfcTimeline items={frontmatter.timeline} />
+        </section>
+      </Stack>
+    </Grid>
+
+    <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+      <RfcMetaSidebar frontmatter={frontmatter} regions={regions} />
+    </Grid>
+  </Grid>
+</Container>
