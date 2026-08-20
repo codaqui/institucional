@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T15:09:17.924Z",
+  "generatedAt": "2026-08-20T16:06:46.135Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,7 +27,7 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
       "itemCount": 375
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 7
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -72,7 +72,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
@@ -87,7 +87,7 @@
       "ctaLabel": "Ver eventos",
       "ctaHref": "/eventos",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-08-20T15:09:17.924Z",
+      "generatedAt": "2026-08-20T16:06:46.135Z",
       "sourceKey": "internal:codaqui",
       "indexPath": "/events/internal/codaqui/index.json",
       "itemCount": 0
@@ -10477,11 +10477,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/64566fc7d3998-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-1983086.json"
+      "itemPath": "/events/sympla/campostech/sympla-1983086.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2016945",
@@ -10506,11 +10506,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/647a4abc14c2f-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2016945.json"
+      "itemPath": "/events/sympla/campostech/sympla-2016945.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-2054515",
@@ -10535,11 +10535,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/6498bca7cfe08-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2054515.json"
+      "itemPath": "/events/sympla/campostech/sympla-2054515.json",
+      "hasOverride": false
     },
     {
       "id": "296968807",
@@ -10980,11 +10980,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/65b3ba83dd44e-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2321587.json"
+      "itemPath": "/events/sympla/campostech/sympla-2321587.json",
+      "hasOverride": false
     },
     {
       "id": "299101276",
@@ -11129,11 +11129,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/65fa38b8f339b-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2388489.json"
+      "itemPath": "/events/sympla/campostech/sympla-2388489.json",
+      "hasOverride": false
     },
     {
       "id": "300353757",
@@ -11202,11 +11202,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/6634e17e87c26-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2452255.json"
+      "itemPath": "/events/sympla/campostech/sympla-2452255.json",
+      "hasOverride": false
     },
     {
       "id": "300994634",
@@ -11559,11 +11559,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/66afbfd82c57b-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2582075.json"
+      "itemPath": "/events/sympla/campostech/sympla-2582075.json",
+      "hasOverride": false
     },
     {
       "id": "302998972",
@@ -13150,11 +13150,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/686ec0f249a9e-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3031834.json"
+      "itemPath": "/events/sympla/campostech/sympla-3031834.json",
+      "hasOverride": false
     },
     {
       "id": "310654707",
@@ -14235,11 +14235,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/69c3ed8c16d64-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3361245.json"
+      "itemPath": "/events/sympla/campostech/sympla-3361245.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3362405",
@@ -14264,11 +14264,11 @@
       "creatorName": "Elas no Código",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/69c47462c3ee2-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json",
+      "hasOverride": false
     },
     {
       "id": "313849624",
@@ -15181,11 +15181,11 @@
       "creatorName": "Elas no Código",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json",
+      "hasOverride": false
     },
     {
       "id": "1498450535655931944",
@@ -15379,11 +15379,11 @@
       "creatorName": "CamposTech",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/6a2b51379753a-xs.jpg",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "campostech",
       "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3462044.json"
+      "itemPath": "/events/sympla/campostech/sympla-3462044.json",
+      "hasOverride": false
     },
     {
       "id": "315307199",
@@ -15787,7 +15787,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 268,
+      "userCount": 269,
       "creatorName": "Ricardo Grassi",
       "creatorId": "201670883",
       "organizers": [
