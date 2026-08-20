@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T15:09:17.924Z",
+  "generatedAt": "2026-08-20T16:06:46.135Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-20T15:09:17.924Z",
+    "generatedAt": "2026-08-20T16:06:46.135Z",
     "sourceKey": "sympla:elasnocodigo",
     "indexPath": "/events/sympla/elasnocodigo/index.json",
     "itemCount": 2
@@ -39,11 +39,11 @@
       "creatorName": "Elas no Código",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/69c47462c3ee2-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3362405.json",
+      "hasOverride": false
     },
     {
       "id": "sympla-3421888",
@@ -68,11 +68,11 @@
       "creatorName": "Elas no Código",
       "organizers": [],
       "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png",
-      "hasOverride": false,
       "source": "sympla",
       "sourceId": "elasnocodigo",
       "sourceKey": "sympla:elasnocodigo",
-      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json"
+      "itemPath": "/events/sympla/elasnocodigo/sympla-3421888.json",
+      "hasOverride": false
     }
   ]
 }
