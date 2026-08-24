@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-24T13:18:58.351Z",
+  "generatedAt": "2026-08-24T14:13:03.095Z",
   "source": {
     "source": "sympla",
     "sourceId": "campostech",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-08-24T13:18:58.351Z"
+    "generatedAt": "2026-08-24T14:13:03.095Z"
   },
   "event": {
     "id": "sympla-3031834",
@@ -21,7 +21,7 @@
     "timezone": "America/Sao_Paulo",
     "platform": "Sympla",
     "host": "CamposTech",
-    "location": "SET · 19:00 O Céu da Língua SALÃO DE ATOS DA PUCRS - Porto Alegre, RS 03 SET 05 SET ALMAMANEIRA - 01/09/26",
+    "location": "Evento presencial em Auditório da Unimed Ponta Grossa, Ponta Grossa - PR Evento encerrado",
     "href": "https://www.sympla.com.br/evento/meetup-cyber-security/3031834",
     "tags": [
       "campostech",
