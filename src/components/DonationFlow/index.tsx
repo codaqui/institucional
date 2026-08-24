@@ -173,8 +173,15 @@ function LoggedInIdentity({ user, accentColor, onCompanyClick }: {
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
       <IdentityHandleChip user={user} sx={{ borderColor: accentColor ?? "primary.main", color: accentColor ?? "primary.main", fontWeight: 600, "& .MuiChip-avatar": { ml: 0.5 } }} />
       {onCompanyClick && (
-        <Button size="small" variant="outlined" startIcon={<BusinessIcon />} onClick={onCompanyClick} sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.82rem" }}>
-          Empresa →
+        <Button
+          size="medium"
+          variant="contained"
+          color="secondary"
+          startIcon={<BusinessIcon />}
+          onClick={onCompanyClick}
+          sx={{ textTransform: "none", fontWeight: 700, boxShadow: 2 }}
+        >
+          Sou empresa e quero apoiar
         </Button>
       )}
     </Box>
