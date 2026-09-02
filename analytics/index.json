@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-09-01T06:49:54.582Z",
-  "latestPeriod": "2026-07",
+  "updatedAt": "2026-09-02T06:52:49.619Z",
+  "latestPeriod": "2026-08",
   "totals": {
-    "screenPageViews": 267664,
-    "activeUsers": 116366,
-    "sessions": 146868,
+    "screenPageViews": 269806,
+    "activeUsers": 117187,
+    "sessions": 147894,
     "peakMonth": "2024-05",
     "peakViews": 22422
   },
@@ -256,73 +256,78 @@
       "sessions": 775,
       "averageSessionDuration": 532.9,
       "bounceRate": 0.6065
+    },
+    {
+      "period": "2026-08",
+      "screenPageViews": 2142,
+      "activeUsers": 821,
+      "sessions": 1026,
+      "averageSessionDuration": 94.8,
+      "bounceRate": 0.6033
     }
   ],
   "topPages": [
     {
-      "pagePath": "/trilhas/python/page-3",
-      "screenPageViews": 164,
-      "activeUsers": 25
-    },
-    {
-      "pagePath": "/trilhas/python/page-2",
-      "screenPageViews": 142,
-      "activeUsers": 31
+      "pagePath": "/participe/apoiar",
+      "screenPageViews": 68,
+      "activeUsers": 20
     },
     {
       "pagePath": "/trilhas/python",
-      "screenPageViews": 123,
-      "activeUsers": 40
+      "screenPageViews": 64,
+      "activeUsers": 24
+    },
+    {
+      "pagePath": "/blog/2026/03/30/curso-introducao-python",
+      "screenPageViews": 62,
+      "activeUsers": 52
+    },
+    {
+      "pagePath": "/projetos",
+      "screenPageViews": 58,
+      "activeUsers": 25
+    },
+    {
+      "pagePath": "/eventos",
+      "screenPageViews": 57,
+      "activeUsers": 19
     },
     {
       "pagePath": "/participe/estudar",
-      "screenPageViews": 115,
-      "activeUsers": 38
+      "screenPageViews": 56,
+      "activeUsers": 45
     },
     {
-      "pagePath": "/trilhas/python/page-1",
-      "screenPageViews": 107,
+      "pagePath": "/comunidades/elasnocodigo",
+      "screenPageViews": 51,
       "activeUsers": 36
     },
     {
-      "pagePath": "/trilhas/python/page-4",
-      "screenPageViews": 65,
-      "activeUsers": 17
-    },
-    {
-      "pagePath": "/trilhas/python/page-5",
-      "screenPageViews": 54,
-      "activeUsers": 17
-    },
-    {
-      "pagePath": "/bio",
-      "screenPageViews": 38,
-      "activeUsers": 27
+      "pagePath": "/comunidades/devparana",
+      "screenPageViews": 43,
+      "activeUsers": 24
     }
   ],
   "trafficSources": {
-    "new": 410,
-    "(direct)": 428,
-    "google": 223,
-    "returning": 245,
-    "(not set)": 121,
-    "chatgpt.com": 58,
-    "guiadeti.com.br": 22,
-    "ig": 5,
-    "linktree": 6,
-    "giscus.app": 6,
-    "bing": 4,
-    "github.com": 4,
-    "x.com": 3,
-    "linkedin.com": 2,
+    "new": 791,
+    "(direct)": 509,
+    "google": 396,
+    "returning": 157,
+    "(not set)": 78,
+    "guiadeti.com.br": 33,
+    "ig": 15,
+    "elasnocodigo.com.br": 12,
+    "github.com": 16,
+    "bing": 7,
+    "(data not available)": 5,
+    "m.facebook.com": 5,
+    "chatgpt.com": 4,
+    "facebook.com": 4,
+    "linkedin.com": 6,
+    "classroom.google.com": 2,
+    "linktree": 2,
     "phpconference.com.br": 2,
-    "teams.public.onecdn.static.microsoft": 2,
-    "staging.agilebrazil.com": 3,
-    "(data not available)": 1,
-    "copilot.com": 1,
-    "facebook.com": 1,
-    "zeyao.net": 1,
-    "nuget.org": 1,
-    "tisocial.org.br": 1
+    "reddit.com": 2,
+    "youtube.com": 2
   }
 }
