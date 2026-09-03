@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-02T06:31:19.553Z",
+  "generatedAt": "2026-09-03T06:25:52.650Z",
   "totalEvents": 406,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 760,
       "channelCount": 41,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 200,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6813,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 168,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 56,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 263,
-      "fetchedAt": "2026-09-02T06:31:19.553Z",
+      "count": 266,
+      "fetchedAt": "2026-09-03T06:25:52.650Z",
       "isFallback": false
     },
     {
