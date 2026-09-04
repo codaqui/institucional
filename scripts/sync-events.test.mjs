@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  applyOverride,
+  buildIndexSummaries,
+  buildInternalSourceConfig,
+  compareByStartAt,
   extractSymplaDateLine,
   mapSymplaEvent,
   mapSymplaEventStatus,
@@ -253,4 +257,98 @@ test("extractSymplaDateLine: rich date range from detail page body", () => {
   const result = extractSymplaDateLine(body);
   assert.equal(result.startDateRaw, "12 ago - 2026 • 13:05");
   assert.equal(result.endDateRaw, "12 ago - 2026 • 17:00");
+});
+
+// ── Overrides (L2-5a / L2-8) ─────────────────────────────────────────────────
+
+test("applyOverride: aplica extendData e marca hasOverride + _override meta", () => {
+  const event = { id: "evt-1", title: "Encontro Codaqui", location: "Online" };
+  const override = {
+    sourceKey: "internal:codaqui",
+    eventId: "evt-1",
+    payload: JSON.stringify({ location: "Auditório Central", extendData: { workloadMinutes: 120 } }),
+    ownerHandle: "anadev",
+    updatedAt: "2026-09-01T12:00:00.000Z",
+    reason: "local confirmado pela organização",
+  };
+
+  const merged = applyOverride(event, override);
+
+  assert.equal(merged.location, "Auditório Central");
+  assert.equal(merged.extendData.workloadMinutes, 120);
+  assert.equal(merged.hasOverride, true);
+  assert.equal(merged._override.ownerHandle, "anadev");
+  assert.equal(merged._override.updatedAt, "2026-09-01T12:00:00.000Z");
+  assert.equal(merged._override.reason, "local confirmado pela organização");
+  assert.equal(merged.title, "Encontro Codaqui");
+});
+
+test("applyOverride: payload JSON invalido segue sem override e sem abortar (L2-5a)", () => {
+  const event = { id: "evt-2", title: "Evento Meetup" };
+  const override = { sourceKey: "meetup:devparana", eventId: "evt-2", payload: "{nao-eh-json" };
+
+  const merged = applyOverride(event, override);
+
+  assert.strictEqual(merged, event);
+  assert.equal(merged.hasOverride, undefined);
+  assert.equal(merged._override, undefined);
+});
+
+// ── Fonte internal:codaqui (L2-8) ────────────────────────────────────────────
+
+test("buildInternalSourceConfig: fixa source internal/codaqui vindo do payload do backend", () => {
+  const config = buildInternalSourceConfig(
+    { source: "managed", sourceId: "db", label: "Codaqui", emoji: "💚" },
+    null
+  );
+
+  assert.equal(config.source, "internal");
+  assert.equal(config.sourceId, "codaqui");
+  assert.equal(config.label, "Codaqui");
+  assert.equal(config.emoji, "💚");
+});
+
+test("buildInternalSourceConfig: em fallback usa o meta cacheado com source internal/codaqui", () => {
+  const config = buildInternalSourceConfig(null, { label: "Codaqui (cache)" });
+
+  assert.equal(config.source, "internal");
+  assert.equal(config.sourceId, "codaqui");
+  assert.equal(config.label, "Codaqui (cache)");
+});
+
+test("buildIndexSummaries: item interno mantem href/platform e carimba source/sourceId/itemPath", () => {
+  const event = {
+    id: "uuid-1",
+    title: "Encontro de Mentoria",
+    href: "https://codaqui.dev/eventos/detalhe?source=internal&sourceId=codaqui&id=uuid-1",
+    platform: "Site Codaqui",
+    startAt: "2026-09-10T19:00:00-03:00",
+  };
+
+  const [item] = buildIndexSummaries({ source: "internal", sourceId: "codaqui" }, [event]);
+
+  assert.equal(item.source, "internal");
+  assert.equal(item.sourceId, "codaqui");
+  assert.equal(item.sourceKey, "internal:codaqui");
+  assert.equal(item.itemPath, "/events/internal/codaqui/uuid-1.json");
+  assert.equal(item.platform, "Site Codaqui");
+  assert.equal(item.href, event.href);
+  assert.equal(item.hasOverride, false);
+});
+
+// ── Ordenação do índice por startAt ASC (L2-8) ───────────────────────────────
+
+test("compareByStartAt: ordena eventos ASC por startAt", () => {
+  const events = [
+    { id: "c", startAt: "2026-09-12T10:00:00-03:00" },
+    { id: "a", startAt: "2026-09-05T10:00:00-03:00" },
+    { id: "b", startAt: "2026-09-08T10:00:00-03:00" },
+  ];
+
+  const sorted = [...events].sort(compareByStartAt);
+  assert.deepEqual(sorted.map((e) => e.id), ["a", "b", "c"]);
+
+  // buildIndexSummaries aplica a mesma ordenação no índice da fonte.
+  const summaries = buildIndexSummaries({ source: "internal", sourceId: "codaqui" }, events);
+  assert.deepEqual(summaries.map((e) => e.id), ["a", "b", "c"]);
 });

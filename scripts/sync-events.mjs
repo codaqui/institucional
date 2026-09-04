@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -53,19 +53,26 @@ async function fetchOverridesFromApi() {
 
 function applyOverride(event, override) {
   if (!override?.payload) return event;
-  const extendData = typeof override.payload === "string"
-    ? JSON.parse(override.payload)
-    : override.payload;
-  return {
-    ...event,
-    ...extendData,
-    hasOverride: true,
-    _override: {
-      ownerHandle: override.ownerHandle || "",
-      updatedAt: override.updatedAt || new Date().toISOString(),
-      reason: override.reason || null,
-    },
-  };
+  try {
+    const extendData = typeof override.payload === "string"
+      ? JSON.parse(override.payload)
+      : override.payload;
+    return {
+      ...event,
+      ...extendData,
+      hasOverride: true,
+      _override: {
+        ownerHandle: override.ownerHandle || "",
+        updatedAt: override.updatedAt || new Date().toISOString(),
+        reason: override.reason || null,
+      },
+    };
+  } catch (error) {
+    console.warn(
+      `    ⚠ override invalido para ${override.sourceKey ?? "?"}:${override.eventId ?? event.id} (${error.message}) — evento gravado sem override`
+    );
+    return event;
+  }
 }
 
 function buildSourceDir(source, sourceId) {
@@ -1496,15 +1503,41 @@ async function resolveOcgroupsEvents(config, existingEvents) {
   }
 }
 
-async function cleanSourceDir(sourceDir) {
-  // Limpa todos os arquivos JSON (overrides agora ficam no banco, nao mais em disco).
-  await mkdir(sourceDir, { recursive: true });
+async function writeFileAtomic(filePath, content) {
+  // Grava em arquivo temporario e renomeia só após a escrita completa — um
+  // processo morto no meio nunca deixa um JSON pela metade no lugar do final.
+  const tmpPath = `${filePath}.tmp`;
+  await writeFile(tmpPath, content, "utf8");
+  await rename(tmpPath, filePath);
+}
+
+async function removeOrphanSnapshots(sourceDir, keepFiles) {
+  // Remove apenas arquivos que nao fazem parte do novo conjunto (incluindo
+  // temporarios residuais de runs anteriores). Overrides agora ficam no banco,
+  // nao mais em disco.
   const entries = await readdir(sourceDir);
   await Promise.all(
     entries
-      .filter((entry) => entry.endsWith(".json"))
+      .filter((entry) => (entry.endsWith(".json") || entry.endsWith(".tmp")) && !keepFiles.has(entry))
       .map((entry) => rm(path.join(sourceDir, entry), { force: true }))
   );
+}
+
+function compareByStartAt(a, b) {
+  return new Date(a.startAt).getTime() - new Date(b.startAt).getTime();
+}
+
+function buildIndexSummaries(sourceConfig, eventsWithOverrides) {
+  return eventsWithOverrides
+    .map((event) => ({
+      ...event,
+      source: sourceConfig.source,
+      sourceId: sourceConfig.sourceId,
+      sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
+      itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id),
+      hasOverride: Boolean(event.hasOverride)
+    }))
+    .sort(compareByStartAt);
 }
 
 async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey) {
@@ -1512,7 +1545,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesBy
   const sourceKey = getSourceKey(sourceConfig.source, sourceConfig.sourceId);
   const overridesForSource = overridesByKey.get(sourceKey) ?? new Map();
 
-  await cleanSourceDir(sourceDir);
+  await mkdir(sourceDir, { recursive: true });
 
   const eventsWithOverrides = events.map((event) => {
     const override = overridesForSource.get(String(event.id));
@@ -1534,16 +1567,7 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesBy
     generatedAt
   };
 
-  const summaries = eventsWithOverrides
-    .map((event) => ({
-      ...event,
-      source: sourceConfig.source,
-      sourceId: sourceConfig.sourceId,
-      sourceKey: getSourceKey(sourceConfig.source, sourceConfig.sourceId),
-      itemPath: buildEventItemPath(sourceConfig.source, sourceConfig.sourceId, event.id),
-      hasOverride: Boolean(event.hasOverride)
-    }))
-    .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  const summaries = buildIndexSummaries(sourceConfig, eventsWithOverrides);
 
   const sourceSummary = {
     ...sourceMeta,
@@ -1552,19 +1576,24 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesBy
     itemCount: summaries.length
   };
 
+  const writtenFiles = new Set(["index.json"]);
   for (const event of eventsWithOverrides) {
-    await writeFile(
-      path.join(sourceDir, `${event.id}.json`),
-      `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`,
-      "utf8"
+    const fileName = `${event.id}.json`;
+    await writeFileAtomic(
+      path.join(sourceDir, fileName),
+      `${JSON.stringify({ generatedAt, source: sourceMeta, event }, null, 2)}\n`
     );
+    writtenFiles.add(fileName);
   }
 
-  await writeFile(
+  await writeFileAtomic(
     path.join(sourceDir, "index.json"),
-    `${JSON.stringify({ generatedAt, source: sourceSummary, events: summaries }, null, 2)}\n`,
-    "utf8"
+    `${JSON.stringify({ generatedAt, source: sourceSummary, events: summaries }, null, 2)}\n`
   );
+
+  // Só depois de gravar todo o novo conjunto remove os órfãos — se o processo
+  // morrer antes deste ponto, o snapshot anterior continua integro em disco.
+  await removeOrphanSnapshots(sourceDir, writtenFiles);
 
   console.log(`    ✓ ${summaries.length} events written`);
   return { sourceSummary, summaries };
@@ -1607,6 +1636,16 @@ async function readExistingSourceMeta(source, sourceId) {
   }
 }
 
+function buildInternalSourceConfig(payloadSource, cachedMeta) {
+  // EventSourceConfig vem do backend; em fallback, reutiliza o meta cacheado.
+  // source/sourceId sao fixados pelo path do snapshot.
+  return {
+    ...(payloadSource ?? cachedMeta),
+    source: INTERNAL_SOURCE,
+    sourceId: INTERNAL_SOURCE_ID,
+  };
+}
+
 async function processInternalSource(generatedAt, overridesByKey) {
   console.log(`  syncing ${INTERNAL_SOURCE}/${INTERNAL_SOURCE_ID}...`);
   const apiBaseUrl = process.env.INTERNAL_EVENTS_API_URL || "http://localhost:3000";
@@ -1628,13 +1667,7 @@ async function processInternalSource(generatedAt, overridesByKey) {
     return null;
   }
 
-  // EventSourceConfig vem do backend; em fallback, reutiliza o meta cacheado.
-  // source/sourceId sao fixados pelo path do snapshot.
-  const sourceConfig = {
-    ...(payload?.source ?? cachedMeta),
-    source: INTERNAL_SOURCE,
-    sourceId: INTERNAL_SOURCE_ID,
-  };
+  const sourceConfig = buildInternalSourceConfig(payload?.source, cachedMeta);
   const events = payload ? payload.events : existingEvents;
 
   const result = await writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
@@ -1690,9 +1723,9 @@ async function main() {
     rootIndex.events.push(...internalResult.summaries);
   }
 
-  rootIndex.events.sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  rootIndex.events.sort(compareByStartAt);
 
-  await writeFile(path.join(outputDir, "index.json"), `${JSON.stringify(rootIndex, null, 2)}\n`, "utf8");
+  await writeFileAtomic(path.join(outputDir, "index.json"), `${JSON.stringify(rootIndex, null, 2)}\n`);
 
   console.log(`✓ events synced at ${generatedAt}`);
   console.log(`  sources: ${rootIndex.sources.length} | total events: ${rootIndex.events.length}`);
@@ -1701,6 +1734,10 @@ async function main() {
 // Exported for unit testing. The guard keeps `main()` from running when the
 // module is imported by tests.
 export {
+  applyOverride,
+  buildIndexSummaries,
+  buildInternalSourceConfig,
+  compareByStartAt,
   extractSymplaDateLine,
   extractSymplaDescription,
   extractSymplaLocation,
