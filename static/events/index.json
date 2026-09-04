@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T12:02:27.033Z",
+  "generatedAt": "2026-09-04T13:01:59.231Z",
   "sources": [
     {
       "source": "discord",
@@ -87,10 +87,10 @@
       "ctaLabel": "Ver eventos",
       "ctaHref": "/eventos",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-04T12:02:27.033Z",
+      "generatedAt": "2026-09-04T13:01:59.231Z",
       "sourceKey": "internal:codaqui",
       "indexPath": "/events/internal/codaqui/index.json",
-      "itemCount": 0
+      "itemCount": 1
     }
   ],
   "events": [
@@ -15931,6 +15931,27 @@
       "sourceId": "cloud-native-maringa",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6.json",
+      "hasOverride": false
+    },
+    {
+      "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
+      "title": "Esquenta DevPR Conf 2026",
+      "summary": "Estamos organizando um esquenta para a DevPR Conf 2026. Mais informações em breve!",
+      "startAt": "2026-09-30T22:30:00.000Z",
+      "endAt": "2026-10-01T01:30:00.000Z",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Site Codaqui",
+      "host": "Codaqui",
+      "location": "Teatro Calil Haddad - Maringá - PR",
+      "href": "/eventos/detalhe?source=internal&sourceId=codaqui&id=f61aad40-8d23-4833-afcf-2ad020027bdf",
+      "tags": [],
+      "ctaLabel": "Inscrever-se",
+      "status": "scheduled",
+      "userCount": 0,
+      "source": "internal",
+      "sourceId": "codaqui",
+      "sourceKey": "internal:codaqui",
+      "itemPath": "/events/internal/codaqui/f61aad40-8d23-4833-afcf-2ad020027bdf.json",
       "hasOverride": false
     },
     {
