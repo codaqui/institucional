@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-04T11:01:34.997Z",
+  "generatedAt": "2026-09-04T12:02:27.033Z",
   "source": {
     "source": "sympla",
     "sourceId": "elasnocodigo",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Sympla",
     "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-04T11:01:34.997Z"
+    "generatedAt": "2026-09-04T12:02:27.033Z"
   },
   "event": {
     "id": "sympla-3362405",
@@ -34,6 +34,7 @@
     "entityType": "external",
     "creatorName": "Elas no Código",
     "organizers": [],
-    "imageUrl": "https://images.sympla.com.br/69c47462c3ee2-xs.png"
+    "imageUrl": "https://images.sympla.com.br/69c47462c3ee2-xs.png",
+    "hasOverride": false
   }
 }
