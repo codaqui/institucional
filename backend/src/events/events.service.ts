@@ -34,6 +34,7 @@ import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { EmailService } from '../notifications/email.service';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
+import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { CsvParseError, parseCsvText, type ParsedCsvRow } from './csv';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
@@ -186,6 +187,7 @@ export class EventsService {
     private readonly emailService: EmailService,
     private readonly eventOrganizerService: EventOrganizerService,
     private readonly githubDb: GitHubDBService,
+    private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
   ) {}
 
@@ -700,6 +702,16 @@ export class EventsService {
     if (dto.timezone !== undefined) event.timezone = dto.timezone;
     if (dto.communityProjectKey !== undefined)
       event.communityProjectKey = dto.communityProjectKey;
+    if (dto.capacity !== undefined && dto.capacity !== null) {
+      // Capacity limita só o RSVP gratuito; com lotes pagos o limite é o
+      // quantityTotal de cada lote (semântica única — ver DTO).
+      const paidTickets = await this.ticketTypeRepo.findBy({ eventId: id });
+      if (paidTickets.some((t) => t.priceCents > 0)) {
+        throw new BadRequestException(
+          'Evento com ingressos pagos não usa capacity — o limite de vagas vem do quantityTotal dos lotes. Envie capacity: null.',
+        );
+      }
+    }
     if (dto.capacity !== undefined) event.capacity = dto.capacity;
 
     await this.eventRepo.save(event);
@@ -770,6 +782,13 @@ export class EventsService {
     const event = await this.findEventOrFail(eventId);
     EventsService.assertGlobalManager(user);
     EventsService.assertPriceMatchesKind(dto.kind, dto.priceCents);
+    if (dto.priceCents > 0 && event.capacity !== null) {
+      // Capacity limita só o RSVP gratuito; evento pago é limitado pelo
+      // quantityTotal dos lotes — capacity deve ser null (semântica única).
+      throw new BadRequestException(
+        'Este evento define capacity (limite do RSVP gratuito) e não pode ter ingresso pago. Remova o capacity do evento ou use apenas lotes gratuitos.',
+      );
+    }
 
     return this.ticketTypeRepo.save(
       this.ticketTypeRepo.create({
@@ -819,6 +838,17 @@ export class EventsService {
       );
     }
     const event = await this.findEventOrFail(ticketType.eventId);
+    if (
+      dto.priceCents !== undefined &&
+      dto.priceCents > 0 &&
+      event.capacity !== null
+    ) {
+      // Mesma regra de createTicketType: capacity (RSVP gratuito) não
+      // combina com lote pago (limite = quantityTotal dos lotes).
+      throw new BadRequestException(
+        'Este evento define capacity (limite do RSVP gratuito) e não pode ter ingresso pago. Remova o capacity do evento ou mantenha o lote gratuito.',
+      );
+    }
     if (dto.salesStartAt !== undefined) {
       ticketType.salesStartAt = dto.salesStartAt
         ? parseDateTimeLocal(dto.salesStartAt, event.timezone)
@@ -2044,24 +2074,28 @@ export class EventsService {
   }
 
   /**
-   * Carga horária de evento externo: lê extendData.workloadMinutes do
-   * override do eventKey (branch base). Ausente/inválido → null (nunca
-   * derruba a emissão do certificado).
+   * Carga horária de evento externo: lê workloadMinutes do override
+   * persistido na tabela event_overrides (o antigo arquivo .override.json
+   * foi descontinuado do repo). Ausente/inválido → null (nunca derruba a
+   * emissão do certificado).
    */
   private async readExternalWorkloadMinutes(
     eventKey: string,
   ): Promise<number | null> {
     try {
       const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
-      const [source, sourceId] = sourceKey.split(':');
-      const raw = await this.githubDb.readFile(
-        `static/events/${source}/${sourceId}/${eventId}.override.json`,
-      );
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as {
+      const [override] = await this.eventOverridesService.findByKeys([
+        { sourceKey, eventId },
+      ]);
+      if (!override) return null;
+      const parsed = JSON.parse(override.payload) as {
+        workloadMinutes?: unknown;
         extendData?: { workloadMinutes?: unknown };
       };
-      const value = parsed?.extendData?.workloadMinutes;
+      // O payload é o antigo extendData (flat). Aceita também o formato
+      // antigo { extendData: {...} } por defensividade.
+      const value =
+        parsed?.workloadMinutes ?? parsed?.extendData?.workloadMinutes;
       return typeof value === 'number' &&
         Number.isInteger(value) &&
         value >= 0 &&
@@ -3078,10 +3112,14 @@ export class EventsService {
     const dirEntries =
       (await this.githubDb.listDir(EventsService.INTERNAL_DIR, userToken)) ??
       [];
+    // hasOverride vem da tabela event_overrides (sourceKey internal:codaqui);
+    // os antigos arquivos *.override.json foram descontinuados do repo.
+    const internalOverrides =
+      await this.eventOverridesService.findBySourceKey(
+        EventsService.INTERNAL_SOURCE_KEY,
+      );
     const overrideIds = new Set(
-      dirEntries
-        .filter((e) => e.name.endsWith('.override.json'))
-        .map((e) => e.name.slice(0, -'.override.json'.length)),
+      internalOverrides.map((override) => override.eventId),
     );
     const existingEventFiles = dirEntries
       .filter(

@@ -82,6 +82,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
   let emailService: Record<string, jest.Mock>;
   let eventOrganizerService: Record<string, jest.Mock>;
   let githubDb: Record<string, jest.Mock>;
+  let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
 
   const mockMemberQb = (members: unknown[]) => {
@@ -160,6 +161,10 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         .fn()
         .mockResolvedValue({ prNumber: 88, prUrl: 'https://pr/88' }),
     };
+    eventOverridesService = {
+      findByKeys: jest.fn().mockResolvedValue([]),
+      findBySourceKey: jest.fn().mockResolvedValue([]),
+    };
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
     };
@@ -179,6 +184,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       emailService as any,
       eventOrganizerService as any,
       githubDb as any,
+      eventOverridesService as any,
       reimbursementsService as any,
     );
   });
@@ -258,6 +264,71 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       await expect(
         service.getCertificate(uuid(40), user({ sub: uuid(99) })),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('externo: carga horária vem do override em event_overrides', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({
+          eventId: null,
+          externalActivationId: uuid(70),
+          checkedInAt: new Date('2026-08-10T13:05:00Z'),
+        }),
+      );
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['certificates'] }),
+      );
+      eventOverridesService.findByKeys.mockResolvedValue([
+        {
+          sourceKey: 'sympla:elasnocodigo',
+          eventId: '3321444',
+          payload: JSON.stringify({ workloadMinutes: 120 }),
+        },
+      ]);
+
+      const cert = await service.getCertificate(uuid(40), user());
+      expect(cert.eventTitle).toBe('Meetup Elas');
+      expect(cert.workloadMinutes).toBe(120);
+      expect(githubDb.readFile).not.toHaveBeenCalled();
+    });
+
+    it('externo: sem override → workloadMinutes null', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({
+          eventId: null,
+          externalActivationId: uuid(70),
+          checkedInAt: new Date(),
+        }),
+      );
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['certificates'] }),
+      );
+      eventOverridesService.findByKeys.mockResolvedValue([]);
+
+      const cert = await service.getCertificate(uuid(40), user());
+      expect(cert.workloadMinutes).toBeNull();
+    });
+
+    it('externo: payload inválido → workloadMinutes null (não derruba emissão)', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({
+          eventId: null,
+          externalActivationId: uuid(70),
+          checkedInAt: new Date(),
+        }),
+      );
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['certificates'] }),
+      );
+      eventOverridesService.findByKeys.mockResolvedValue([
+        {
+          sourceKey: 'sympla:elasnocodigo',
+          eventId: '3321444',
+          payload: '{json-quebrado',
+        },
+      ]);
+
+      const cert = await service.getCertificate(uuid(40), user());
+      expect(cert.workloadMinutes).toBeNull();
     });
   });
 
@@ -750,6 +821,9 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
     it('monta os arquivos, preserva outras fontes no index raiz e abre 1 PR', async () => {
       mockPublicEvents([makeEvent()]);
+      eventOverridesService.findBySourceKey.mockResolvedValue([
+        { sourceKey: 'internal:codaqui', eventId: uuid(10) },
+      ]);
       githubDb.listDir.mockResolvedValue([
         {
           name: 'index.json',
@@ -830,7 +904,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       );
       expect(sourceIndex.source.sourceKey).toBe('internal:codaqui');
       expect(sourceIndex.source.itemCount).toBe(1);
-      expect(sourceIndex.events[0].hasOverride).toBe(true); // tem <id>.override.json
+      expect(sourceIndex.events[0].hasOverride).toBe(true); // override em event_overrides
       expect(sourceIndex.events[0].itemPath).toBe(
         `/events/internal/codaqui/${uuid(10)}.json`,
       );

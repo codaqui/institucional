@@ -37,7 +37,7 @@ export class SpeakerDto {
  * Campos sobrescrevíveis de um evento externo (docs/EVENT_PLAN.md — Schema do Override).
  * Campos nunca sobrescrevíveis (id, startAt, endAt, href, source, sourceId, status)
  * são rejeitados pelo ValidationPipe global (forbidNonWhitelisted) e também pela
- * checagem manual no service (mensagens alinhadas com scripts/validate-overrides.mjs).
+ * checagem manual no service (mensagens alinhadas com a validação do EventOrganizerService).
  */
 export class ExtendDataDto {
   @IsOptional()

@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsUrl,
   Matches,
   Min,
 } from 'class-validator';
@@ -47,7 +48,10 @@ export class CreateEventDto {
   summary: string;
 
   @IsOptional()
-  @IsString()
+  @IsUrl(
+    { require_tld: false },
+    { message: 'imageUrl deve ser uma URL válida (http ou https).' },
+  )
   imageUrl?: string;
 
   @IsString()
@@ -69,6 +73,11 @@ export class CreateEventDto {
   @IsNotEmpty()
   communityProjectKey: string;
 
+  /**
+   * Limite de vagas do RSVP gratuito. Eventos com ingressos pagos devem
+   * usar `null` — o limite de um evento pago vem de `quantityTotal` dos
+   * lotes (ticket types).
+   */
   @IsOptional()
   @IsInt()
   @Min(1)
@@ -87,7 +96,10 @@ export class UpdateEventDto {
   summary?: string;
 
   @IsOptional()
-  @IsString()
+  @IsUrl(
+    { require_tld: false },
+    { message: 'imageUrl deve ser uma URL válida (http ou https).' },
+  )
   imageUrl?: string;
 
   @IsOptional()
@@ -112,6 +124,11 @@ export class UpdateEventDto {
   @IsNotEmpty()
   communityProjectKey?: string;
 
+  /**
+   * Limite de vagas do RSVP gratuito. Eventos com ingressos pagos devem
+   * usar `null` — o limite de um evento pago vem de `quantityTotal` dos
+   * lotes (ticket types).
+   */
   @IsOptional()
   @IsInt()
   @Min(1)

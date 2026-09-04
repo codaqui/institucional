@@ -85,6 +85,7 @@ describe('EventsService', () => {
   let emailService: Record<string, jest.Mock>;
   let eventOrganizerService: Record<string, jest.Mock>;
   let githubDb: Record<string, jest.Mock>;
+  let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
 
   beforeEach(() => {
@@ -161,6 +162,10 @@ describe('EventsService', () => {
       listDir: jest.fn(),
       createPRWithFiles: jest.fn(),
     };
+    eventOverridesService = {
+      findByKeys: jest.fn().mockResolvedValue([]),
+      findBySourceKey: jest.fn().mockResolvedValue([]),
+    };
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
     };
@@ -180,6 +185,7 @@ describe('EventsService', () => {
       emailService as any,
       eventOrganizerService as any,
       githubDb as any,
+      eventOverridesService as any,
       reimbursementsService as any,
     );
   });
@@ -753,6 +759,74 @@ describe('EventsService', () => {
           adminUser,
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('400: ingresso pago em evento com capacity (RSVP gratuito)', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ capacity: 100 }));
+
+      await expect(
+        service.createTicketType(
+          uuid(10),
+          {
+            name: 'Pago',
+            kind: 'paid' as any,
+            priceCents: 5000,
+            quantityTotal: 10,
+          },
+          adminUser,
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('ingresso gratuito em evento com capacity → ok', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ capacity: 100 }));
+
+      await expect(
+        service.createTicketType(
+          uuid(10),
+          {
+            name: 'Gratuito',
+            kind: 'free' as any,
+            priceCents: 0,
+            quantityTotal: 10,
+          },
+          adminUser,
+        ),
+      ).resolves.toBeDefined();
+    });
+  });
+
+  describe('updateEvent — capacity', () => {
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+    });
+
+    it('400: definir capacity com lotes pagos existentes', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([
+        makeTicket({ kind: 'paid', priceCents: 5000 }),
+      ]);
+
+      await expect(
+        service.updateEvent(uuid(10), { capacity: 100 }, adminUser),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('capacity null com lotes pagos existentes → ok', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([
+        makeTicket({ kind: 'paid', priceCents: 5000 }),
+      ]);
+
+      await expect(
+        service.updateEvent(uuid(10), { capacity: null }, adminUser),
+      ).resolves.toBeDefined();
+    });
+
+    it('definir capacity sem lotes pagos → ok', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([makeTicket()]);
+
+      await expect(
+        service.updateEvent(uuid(10), { capacity: 100 }, adminUser),
+      ).resolves.toBeDefined();
     });
   });
 
