@@ -10,7 +10,7 @@ sections:
 related-docs:
   - AGENTS.md — guia geral do monorepo
   - ../../adrs/004-multisite-communities.md — decisão arquitetural do multi-tenant
-  - ../../plans/MULTISITE_PLAN.md — fases pendentes do multisite
+  - ../../plans/multisite/README.md — fases pendentes do multisite
 -->
 
 # Sites de Comunidades Parceiras
@@ -20,7 +20,7 @@ Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` co
 ## Visão geral
 
 - Decisão arquitetural: [docs/adrs/004-multisite-communities.md](../../adrs/004-multisite-communities.md)
-- Fases pendentes: [docs/plans/MULTISITE_PLAN.md](../../plans/MULTISITE_PLAN.md)
+- Fases pendentes: [docs/plans/multisite/README.md](../../plans/multisite/README.md)
 
 ## Onde vive cada peça
 
@@ -46,7 +46,7 @@ Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` co
 
 ## Domínio próprio
 
-Para domínio próprio, veja [docs/plans/MULTISITE_PLAN.md §6](../../plans/MULTISITE_PLAN.md) — envolve Cloudflare Worker (`workers/shared/index.js`), whitelist de origens no backend (`backend/src/common/allowed-origins.config.ts`) e configuração do callback OAuth.
+Para domínio próprio, veja [docs/plans/multisite/README.md §6](../../plans/multisite/README.md) — envolve Cloudflare Worker (`workers/shared/index.js`), whitelist de origens no backend (`backend/src/common/allowed-origins.config.ts`) e configuração do callback OAuth.
 
 ## Anti-patterns
 

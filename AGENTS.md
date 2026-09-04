@@ -29,7 +29,7 @@ related-docs:
   - docs/modules/events/ROLES.md — papéis de eventos
   - docs/modules/community/COMMUNITY_SITES.md — sites whitelabel de comunidades
   - docs/modules/insights/SOCIAL_STATS.md — estatísticas e presença digital
-  - docs/plans/MULTISITE_PLAN.md — detalhes das fases pendentes do multisite
+  - docs/plans/multisite/README.md — detalhes das fases pendentes do multisite
 agent-protocol:
   - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
   - Each .md in this repo has its own AGENT-INDEX header. Trust it as the doc's TLDR.
@@ -78,10 +78,10 @@ Manuais de módulos:
 
 Planos futuros:
 
-- [Multi-tenant — Fases Pendentes](docs/plans/MULTISITE_PLAN.md)
-- [Real Network / Matchmaking](docs/plans/REAL_NETWORK_PLAN.md)
-- [UI/UX de Eventos](docs/plans/EVENT_UIUX_IMPROVEMENTS_PLAN.md)
-- [Plano de Atualização de Dependências](docs/plans/UPDATE_PLAN.md)
+- [Multi-tenant — Fases Pendentes](docs/plans/multisite/README.md)
+- [Real Network / Matchmaking](docs/plans/real-network/README.md)
+- [UI/UX de Eventos](docs/plans/event-uiux-improvements/README.md)
+- [Plano de Atualização de Dependências](docs/plans/update/README.md)
 
 > Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes ou corrigir bugs recorrentes.
 

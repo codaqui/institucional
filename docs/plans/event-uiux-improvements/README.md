@@ -9,9 +9,9 @@ sections:
   - Critérios de aceitação
   - Riscos e dependências
 related-docs:
-  - ../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
-  - ../modules/events/ROLES.md — matriz de papéis
-  - ../modules/events/CODE_MANUAL.md — manual do código
+  - ../../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
+  - ../../modules/events/ROLES.md — matriz de papéis
+  - ../../modules/events/CODE_MANUAL.md — manual do código
 -->
 
 # Plano de Melhorias de UI/UX — Módulo de Eventos
@@ -431,6 +431,6 @@ const isInternal = event.source === "internal";
 
 ## 8. Notas sobre documentação
 
-- `../adrs/001-event-platform.md` é a fonte de verdade das decisões arquiteturais já implementadas.
-- `../modules/events/CODE_MANUAL.md` deve ser atualizado à medida que os itens deste plano forem implementados.
+- `../../adrs/001-event-platform.md` é a fonte de verdade das decisões arquiteturais já implementadas.
+- `../../modules/events/CODE_MANUAL.md` deve ser atualizado à medida que os itens deste plano forem implementados.
 - Este plano deve ser revisado e aprovado antes do início da implementação. Itens podem ser descartados, reordenados ou detalhados em novos documentos menores.

@@ -23,7 +23,7 @@ agent-protocol:
     - Backend (`/backend`): `npm run build && npm run lint && npx jest` (não há `typecheck` separado — o `nest build` já faz a checagem TS)
 -->
 
-# UPDATE_PLAN.md — Major Dependency Upgrades
+# Major Dependency Upgrades (Plano)
 
 Plano consolidado de upgrades majors pendentes no monorepo. Patches semver-minor (ex: 3.10.0 → 3.10.1, 11.1.17 → 11.1.19) já foram aplicados via `npm update` em ambos workspaces — este plano cobre apenas as **mudanças com breaking changes**.
 
@@ -260,7 +260,7 @@ Toda conclusão de major exige:
 3. ✅ `cd backend && npm run build && npx jest --silent` 100% verde (o `nest build` já faz a checagem TS — não há script `typecheck` separado no backend).
 4. ✅ `npm run lint` (backend) sem novos erros.
 5. ✅ Teste manual em homologação cobrindo o módulo afetado.
-6. ✅ Documentação atualizada (AGENTS.md, backend/README.md, este UPDATE_PLAN.md com status).
+6. ✅ Documentação atualizada (AGENTS.md, backend/README.md, este plano com status).
 7. ✅ PR isolado com mensagem `chore(deps): upgrade <pkg> <de> → <para>`.
 8. ✅ Cross-check no SonarCloud Quality Gate.
 

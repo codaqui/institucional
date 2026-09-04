@@ -20,7 +20,7 @@ agent-protocol:
   - Fase 3 (domínio próprio) requer mudanças coordenadas no backend + edge proxy.
 -->
 
-# MULTISITE_PLAN.md — Multi-Tenant Frontend para Comunidades Parceiras
+# Multi-Tenant Frontend para Comunidades Parceiras (Plano)
 
 > **Objetivo:** cada comunidade parceira tem um espaço próprio com identidade visual e conteúdo dedicados, idealmente em domínio próprio (`tisocial.org.br`, etc.), consumindo a mesma API NestJS e a mesma base de dados de Codaqui.
 >
