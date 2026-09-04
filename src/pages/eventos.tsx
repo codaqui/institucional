@@ -351,21 +351,30 @@ export default function EventosPage(): React.JSX.Element {
     [events, selectedSourceKey]
   );
 
-  const upcomingEvents = useMemo(
-    () =>
-      [...filteredEvents]
-        .filter((event) => event.status !== "completed")
-        .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()),
-    [filteredEvents]
-  );
+  const upcomingEvents = useMemo(() => {
+    const now = Date.now();
+    return [...filteredEvents]
+      .filter((event) => {
+        if (event.status === "completed") return false;
+        // Cancelados mantêm o comportamento atual: sempre na agenda.
+        if (event.status === "canceled") return true;
+        // Evento com startAt passado vai pro histórico mesmo sem status "completed"
+        // (defesa caso o sync atrase ou o status não tenha sido atualizado).
+        return new Date(event.startAt).getTime() >= now;
+      })
+      .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
+  }, [filteredEvents]);
 
-  const pastEvents = useMemo(
-    () =>
-      [...filteredEvents]
-        .filter((event) => event.status === "completed")
-        .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime()),
-    [filteredEvents]
-  );
+  const pastEvents = useMemo(() => {
+    const now = Date.now();
+    return [...filteredEvents]
+      .filter((event) => {
+        if (event.status === "completed") return true;
+        if (event.status === "canceled") return false;
+        return new Date(event.startAt).getTime() < now;
+      })
+      .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime());
+  }, [filteredEvents]);
 
   // Destaques (featured via snapshot ou override): futuros primeiro (ASC),
   // depois passados (DESC).

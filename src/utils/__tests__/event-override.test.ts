@@ -2,8 +2,6 @@ import type { EventDetailFile } from "../../data/events";
 import {
   getEventDetailPagePath,
   loadEventWithOverride,
-  mergeEventWithOverride,
-  type EventOverride,
 } from "../event-override";
 
 const baseDetail: EventDetailFile = {
@@ -31,60 +29,6 @@ const baseDetail: EventDetailFile = {
     status: "scheduled",
   },
 };
-
-const override: EventOverride = {
-  sourceKey: "meetup:devparana",
-  eventId: "226163759",
-  payload: {
-    summary: "Resumo corrigido pelo organizador.",
-    imageUrl: "https://res.cloudinary.com/banner.png",
-    featured: true,
-    tags: ["meetup", "presencial"],
-    speakers: [
-      {
-        name: "Fulano",
-        handle: "fulano",
-        talkTitle: "Docker para iniciantes",
-      },
-    ],
-    slidesUrl: "https://slides.example.com/talk",
-    videoUrl: "https://youtube.com/watch?v=abc",
-    discussionUrl: "https://github.com/codaqui/institucional/discussions/1",
-  },
-  ownerHandle: "organizador",
-  updatedAt: "2026-04-29T23:00:00-03:00",
-  reason: "Corrigindo resumo e adicionando banner",
-};
-
-describe("mergeEventWithOverride", () => {
-  it("sobrescreve campos presentes no payload", () => {
-    const merged = mergeEventWithOverride(baseDetail.event, override);
-    expect(merged.summary).toBe("Resumo corrigido pelo organizador.");
-    expect(merged.imageUrl).toBe("https://res.cloudinary.com/banner.png");
-    expect(merged.featured).toBe(true);
-    expect(merged.tags).toEqual(["meetup", "presencial"]);
-    expect(merged.speakers).toHaveLength(1);
-    expect(merged.slidesUrl).toBe("https://slides.example.com/talk");
-    expect(merged.videoUrl).toBe("https://youtube.com/watch?v=abc");
-    expect(merged.discussionUrl).toBe(
-      "https://github.com/codaqui/institucional/discussions/1"
-    );
-  });
-
-  it("preserva campos do base ausentes no payload", () => {
-    const merged = mergeEventWithOverride(baseDetail.event, override);
-    expect(merged.title).toBe("DevParaná MeetUP #42");
-    expect(merged.location).toBe("Local original");
-    expect(merged.startAt).toBe("2026-05-10T17:00:00Z");
-    expect(merged.href).toBe(baseDetail.event.href);
-    expect(merged.status).toBe("scheduled");
-  });
-
-  it("retorna o base inalterado quando override é null", () => {
-    const merged = mergeEventWithOverride(baseDetail.event, null);
-    expect(merged).toEqual(baseDetail.event);
-  });
-});
 
 describe("loadEventWithOverride", () => {
   beforeEach(() => {
@@ -138,6 +82,64 @@ describe("loadEventWithOverride", () => {
     await expect(
       loadEventWithOverride("meetup", "devparana", "inexistente")
     ).rejects.toThrow("Evento não encontrado");
+  });
+
+  it("faz fallback para a API pública quando o snapshot de evento interno não existe", async () => {
+    const startAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const managedEventPayload = {
+      id: "uuid-interno-1",
+      slug: "encontro-codaqui",
+      title: "Encontro Codaqui",
+      summary: "Evento próprio recém-publicado.",
+      imageUrl: null,
+      location: "Maringá, PR",
+      startAt: startAt.toISOString(),
+      endAt: new Date(startAt.getTime() + 3 * 60 * 60 * 1000).toISOString(),
+      timezone: "America/Sao_Paulo",
+      status: "published",
+    };
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/public/managed/")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ event: managedEventPayload, ticketTypes: [] }),
+        });
+      }
+      return Promise.resolve({ ok: false, status: 404, json: async () => null });
+    });
+
+    const result = await loadEventWithOverride("internal", "codaqui", "uuid-interno-1");
+
+    expect(result.event.title).toBe("Encontro Codaqui");
+    expect(result.event.platform).toBe("Site Codaqui");
+    expect(result.event.host).toBe("Codaqui");
+    expect(result.event.status).toBe("scheduled");
+    expect(result.event.href).toBe(
+      "/eventos/detalhe?source=internal&sourceId=codaqui&id=uuid-interno-1"
+    );
+    expect(result.source.label).toBe("Codaqui");
+    expect(result.source.source).toBe("internal");
+
+    const fetchMock = globalThis.fetch as unknown as jest.Mock;
+    expect(fetchMock).toHaveBeenCalledWith("/events/internal/codaqui/uuid-interno-1.json");
+    expect(fetchMock).toHaveBeenCalledWith("/events/public/managed/uuid-interno-1");
+  });
+
+  it("mantém o erro para fonte externa sem snapshot (sem fallback)", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 404, json: async () => null })
+    );
+
+    await expect(
+      loadEventWithOverride("meetup", "devparana", "externo-sem-snapshot")
+    ).rejects.toThrow("Evento não encontrado");
+
+    const fetchMock = globalThis.fetch as unknown as jest.Mock;
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/events/meetup/devparana/externo-sem-snapshot.json"
+    );
   });
 });
 

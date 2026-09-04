@@ -1,4 +1,4 @@
-export type EventSourceType = "discord" | "meetup" | "bevy" | "ocgroups" | "internal" | "external";
+export type EventSourceType = "discord" | "meetup" | "ocgroups" | "internal" | "external";
 export type EventStatus = "scheduled" | "active" | "completed" | "canceled";
 export type EventEntityType = "stage_instance" | "voice" | "external";
 
@@ -66,7 +66,7 @@ export interface EventSummary extends EventItem {
   sourceId: string;
   sourceKey: string;
   itemPath: string;
-  /** Indica que existe um `<id>.override.json` para este evento (preenchido pelo sync). */
+  /** Indica que o sync aplicou override de metadados (tabela event_overrides do backend) a este evento. */
   hasOverride?: boolean;
 }
 
@@ -82,12 +82,6 @@ export interface EventIndexFile {
   events: EventSummary[];
 }
 
-export interface EventSourceIndexFile {
-  generatedAt?: string;
-  source: EventSourceSummary;
-  events: EventSummary[];
-}
-
 export interface EventDetailFile {
   generatedAt?: string;
   source: EventSourceConfig;
@@ -96,14 +90,3 @@ export interface EventDetailFile {
 
 export const EVENTS_MANIFEST_URL = "/events/index.json";
 
-export function getEventSourceKey(source: string, sourceId: string): string {
-  return `${source}:${sourceId}`;
-}
-
-export function getEventSourceIndexPath(source: string, sourceId: string): string {
-  return `/events/${source}/${sourceId}/index.json`;
-}
-
-export function getEventItemPath(source: string, sourceId: string, eventId: string): string {
-  return `/events/${source}/${sourceId}/${eventId}.json`;
-}

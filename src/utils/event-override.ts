@@ -1,4 +1,4 @@
-import type { EventDetailFile, EventItem } from "../data/events";
+import type { EventDetailFile, EventItem, EventSourceConfig } from "../data/events";
 
 /**
  * Palestrante de um evento — campo disponível apenas via override
@@ -67,14 +67,6 @@ export type EventWithOverride = EventItem & EventExtendData & {
   _override?: EventOverrideMeta;
 };
 
-export function getEventOverridePath(
-  source: string,
-  sourceId: string,
-  eventId: string
-): string {
-  return `/events/${source}/${sourceId}/${eventId}.override.json`;
-}
-
 /** URL da página de detalhe do evento (query params). */
 export function getEventDetailPagePath(
   source: string,
@@ -83,14 +75,6 @@ export function getEventDetailPagePath(
 ): string {
   const params = new URLSearchParams({ source, sourceId, id: eventId });
   return `/eventos/detalhe?${params.toString()}`;
-}
-
-/** Mescla o evento base com o `payload` do override (quando presente). */
-export function mergeEventWithOverride(
-  base: EventItem,
-  override: EventOverride | null
-): EventWithOverride {
-  return { ...base, ...override?.payload };
 }
 
 async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
@@ -115,12 +99,81 @@ function overrideMetaFromEvent(event: EventWithOverride): EventOverride | null {
   };
 }
 
+/** Config da fonte interna — espelha o source montado pelo backend em getPublicManagedEvents. */
+const INTERNAL_SOURCE_CONFIG: EventSourceConfig = {
+  source: "internal",
+  sourceId: "codaqui",
+  type: "internal",
+  label: "Codaqui",
+  emoji: "🌱",
+  description: "Eventos organizados pela Associação Codaqui.",
+  ctaLabel: "Ver eventos",
+  ctaHref: "/eventos",
+};
+
+/** Shape de `event` em GET /events/public/managed/:id (serializeEvent do backend). */
+interface PublicManagedEventPayload {
+  id: string;
+  title: string;
+  summary: string;
+  imageUrl?: string | null;
+  location?: string | null;
+  startAt: string;
+  endAt?: string | null;
+  timezone?: string | null;
+  status?: string;
+}
+
 /**
- * @deprecated Overrides agora são aplicados no snapshot pelo sync.
- * Mantido para compatibilidade — retorna null.
+ * Fallback ao vivo para eventos internos: quando o snapshot estático ainda não
+ * existe (sync horário não rodou após a publicação), busca o evento publicado
+ * direto na API pública e mapeia para o shape EventItem — mesma montagem do
+ * backend (`toEventItem` em events.service.ts).
  */
-export async function fetchEventOverride(): Promise<null> {
-  return null;
+async function fetchInternalEventFromApi(
+  eventId: string,
+  apiUrl?: string
+): Promise<EventDetailFile | null> {
+  try {
+    const path = `/events/public/managed/${encodeURIComponent(eventId)}`;
+    const res = await fetch(apiUrl ? `${apiUrl}${path}` : path);
+    if (!res.ok) return null;
+    const data = (await res.json()) as { event: PublicManagedEventPayload };
+    const raw = data.event;
+    const startAt = new Date(raw.startAt);
+    const endAt = raw.endAt ? new Date(raw.endAt) : null;
+    const now = new Date();
+    // Mesma regra de deriveItemStatus do backend (events.service.ts).
+    const status: EventItem["status"] =
+      raw.status === "canceled"
+        ? "canceled"
+        : endAt && now > endAt
+          ? "completed"
+          : now < startAt
+            ? "scheduled"
+            : "active";
+    return {
+      source: INTERNAL_SOURCE_CONFIG,
+      event: {
+        id: raw.id,
+        title: raw.title,
+        summary: raw.summary ?? "",
+        startAt: startAt.toISOString(),
+        ...(endAt && { endAt: endAt.toISOString() }),
+        timezone: raw.timezone ?? "",
+        platform: "Site Codaqui",
+        host: "Codaqui",
+        location: raw.location ?? "",
+        href: getEventDetailPagePath("internal", "codaqui", raw.id),
+        tags: [],
+        ctaLabel: "Inscrever-se",
+        status,
+        ...(raw.imageUrl ? { imageUrl: raw.imageUrl } : {}),
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function fetchOverrideFromApi(
@@ -144,7 +197,10 @@ async function fetchOverrideFromApi(
  * Carrega o evento do snapshot e aplica o override mais recente.
  *
  * Estratégia:
- * 1. Lê o snapshot estático (fonte única de verdade para metadatos base).
+ * 1. Lê o snapshot estático (fonte única de verdade para metadados base).
+ *    Evento interno sem snapshot faz fallback para a API pública do backend
+ *    (`/events/public/managed/:id`), cobrindo o período entre a publicação e
+ *    o próximo sync horário.
  * 2. Se o snapshot já veio com override aplicado pelo sync (`_override`), usa ele.
  * 3. Caso contrário, consulta a API pública `/events/overrides/:sourceKey/:eventId`
  *    para refletir overrides criados após o último sync (experiência imediata
@@ -161,7 +217,14 @@ export async function loadEventWithOverride(
   source: EventDetailFile["source"];
 }> {
   const basePath = `/events/${source}/${sourceId}/${eventId}.json`;
-  const base = await fetchJsonOrNull<EventDetailFile>(basePath);
+  let base = await fetchJsonOrNull<EventDetailFile>(basePath);
+
+  // Fallback ao vivo: evento interno recém-publicado ainda pode não ter
+  // snapshot (o sync horário grava o JSON depois). Fontes externas mantêm
+  // o comportamento atual (erro) — sem fallback.
+  if (!base && source === "internal") {
+    base = await fetchInternalEventFromApi(eventId, apiUrl);
+  }
 
   if (!base) throw new Error(`Evento não encontrado: ${eventId}`);
 
