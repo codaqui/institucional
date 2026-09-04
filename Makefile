@@ -241,7 +241,7 @@ sync-analytics: ## Sincroniza analytics → static/analytics/
 # =============================================================================
 # Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
 # Código do Worker é compartilhado em `workers/shared/index.js`.
-# Ver workers/README.md e docs/MULTISITE_PLAN.md §6.
+# Ver workers/README.md e docs/plans/multisite/README.md §6.
 
 worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
 	npm run worker:dev:tisocial

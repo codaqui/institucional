@@ -5,7 +5,7 @@
  * its own `wrangler.toml` (in `workers/<slug>/`) which sets the env vars and
  * the route binding (e.g. `tisocial.org.br/*`).
  *
- * Architecture (see docs/MULTISITE_PLAN.md §6):
+ * Architecture (see docs/plans/multisite/README.md §6):
  *
  *   tisocial.org.br/                 ──redirect 301──► tisocial.org.br/comunidades/tisocial/
  *   tisocial.org.br/<api-path>       ──proxy──► api.codaqui.dev/<path>

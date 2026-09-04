@@ -24,7 +24,7 @@ export interface OrganizersFile {
   ownerships: OwnershipEntry[];
 }
 
-// Campos nunca sobrescrevíveis (docs/EVENT_PLAN.md — Schema do Override)
+// Campos nunca sobrescrevíveis (docs/adrs/001-event-platform.md — Schema do Override)
 const FORBIDDEN_EXTEND_FIELDS = [
   'id',
   'startAt',

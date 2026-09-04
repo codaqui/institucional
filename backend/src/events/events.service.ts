@@ -1208,7 +1208,7 @@ export class EventsService {
     member: Member,
     user: JwtPayload,
   ): Promise<{ url?: string | null; clientSecret?: string | null }> {
-    // Reserva atômica com janela de vendas (SQL do docs/EVENT_PLAN.md §2b)
+    // Reserva atômica com janela de vendas (SQL do docs/adrs/001-event-platform.md §2b)
     const reserved = await this.reserveQuota(ticketType.id, dto.quantity, true);
     if (!reserved) {
       throw new ConflictException('Lote esgotado ou fora da janela de vendas.');
@@ -2655,7 +2655,7 @@ export class EventsService {
     row: ParsedCsvRow,
   ): Promise<Member | null> {
     // Match: e-mail da conta; se não achar, tenta a coluna opcional
-    // `github` (handle) — decisão de design #2 do docs/EVENT_PLAN.md.
+    // `github` (handle) — decisão de design #2 do docs/adrs/001-event-platform.md.
     let member = await this.findMemberByIdentifier(row.email);
     if (!member && row.github) {
       member = await this.findMemberByIdentifier(row.github);

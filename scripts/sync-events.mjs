@@ -1618,7 +1618,7 @@ async function processSource(sourceConfig, fullSync, generatedAt, overridesByKey
 }
 
 // ─── Internal (backend Codaqui) ─────────────────────────────────────────────
-// Fonte dinamica (docs/EVENT_PLAN.md, Fase 1): o EventSourceConfig e os EventItem[]
+// Fonte dinamica (docs/adrs/001-event-platform.md, Fase 1): o EventSourceConfig e os EventItem[]
 // vem do backend via GET /events/public/managed (URL na env
 // INTERNAL_EVENTS_API_URL). Nao consta no events.config.json porque e resolvida
 // via API; se o backend estiver fora do ar, reutiliza o ultimo snapshot em
