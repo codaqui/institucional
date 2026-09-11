@@ -66,11 +66,10 @@ agent-protocol:
 
 Plano: `docs/plans/event-uiux-improvements/README.md`. Sprints 1–5 confirmadas no código. Pendências verificadas:
 
-**Admin (`src/pages/admin/eventos.tsx` — 2152 linhas, alto risco de conflito; agrupar itens do formulário num PR só):**
-- 3.2.3 Publicar evento sem confirmação (`eventos.tsx:731` chama direto).
+**Admin (`src/pages/admin/eventos.tsx`):**
+- ✅ 2026-09-11: 3.2.3 confirmação na publicação, 3.2.5 edição de tipos de ingresso (PATCH), 3.3.2 select de timezone, 3.3.4 validação de slug, parsing de moeda robusto (falta só a máscara visual de 3.3.3), **bug crítico de edição** (`property slug should not exist` — payload PATCH não envia mais slug) e **campo de descrição longa** end-to-end (entity + Migration023 + snapshot + página pública).
 - 3.2.4 Botão "Ver página pública" não desabilitado em rascunhos (só Tooltip).
-- 3.2.5 Tipos de ingresso: diálogo só cria, sem edição/PATCH.
-- 3.3.2/3.3.3/3.3.4 Formulário: timezone em texto livre, parsing frágil de moeda (`replace(",", ".")`), slug sem validação real. ⚠️ Timezone exige decisão: `Intl.DateTimeFormat` nativo vs. nova dependência (`date-fns-tz` etc.) — frontend não tem nenhuma hoje.
+- 3.3.4 restante: validar `endAt > startAt`.
 
 **Checkout (`src/pages/eventos/detalhe.tsx`):**
 - 3.4.1 Formulário não persiste pré-login (sessionStorage só cobre o return URL).

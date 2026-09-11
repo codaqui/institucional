@@ -70,6 +70,11 @@ related-docs:
 ### 2.1 Criar e publicar um evento próprio
 
 1. `POST /events` (organizer/admin) → `ManagedEvent` status `draft`.
+   Campos: `slug`, `title`, `summary` (texto curto), `description` (opcional,
+   texto longo simples com quebras de linha, máx. 10000 chars), `imageUrl`,
+   `location`, `startAt`/`endAt`, `timezone`, `communityProjectKey`, `capacity`.
+   `description` vai junto no snapshot (`toEventItem`) e no detalhe público
+   (`serializeEvent`) quando preenchida.
 2. `POST /events/:id/ticket-types` → cria lotes.
 3. `POST /events/:id/publish` → status `published`.
 4. Snapshot: workflow horário ou `POST /events/internal/snapshot` gera arquivos em

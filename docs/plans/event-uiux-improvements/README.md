@@ -342,10 +342,12 @@ const isInternal = event.source === "internal";
 - [x] Link "Ver página do evento" após criar/editar evento interno
 - [x] Botões "Site original" / "Ver detalhes" na listagem pública
 - [x] Badges de features nos cards de evento (via `/events/public/activations`)
-- [ ] 3.2.3 Confirmação na publicação (futuro)
+- [x] 3.2.3 Confirmação na publicação ✅ 2026-09-11
 - [ ] 3.2.4 Desabilitar "Ver página pública" para rascunhos (futuro)
-- [ ] 3.3.2 Select de timezone (futuro)
-- [ ] 3.3.3 Máscara de moeda (futuro)
+- [x] 3.2.5 Edição de tipos de ingresso (dialog em modo edit → PATCH) ✅ 2026-09-11
+- [x] Campo de descrição longa no evento interno (form + snapshot + página pública) ✅ 2026-09-11
+- [x] 3.3.2 Select de timezone ✅ 2026-09-11
+- [ ] 3.3.3 Máscara de moeda (parcial ✅ 2026-09-11 — parsing robusto via `parseBrlInput`; falta máscara visual)
 
 ### Sprint 3 — Formulários e checkout ✅
 - [x] Validação de data/hora completa no formulário de evento
@@ -353,7 +355,7 @@ const isInternal = event.source === "internal";
 - [x] Checkout embedded + redirect `/membro?purchase=success` após pagamento
 - [x] Página de termos de compra já existente (`/termos-de-compra`)
 - [ ] 3.3.1 Timezone nos campos de data/hora (futuro)
-- [ ] 3.3.4 Validar `endAt > startAt` e slug (parcial — data validada; slug futuro)
+- [ ] 3.3.4 Validar `endAt > startAt` (parcial ✅ 2026-09-11 — formato de data e slug kebab-case validados; falta comparar endAt > startAt)
 - [ ] 3.3.5 Forçar `priceCents = 0` quando free (futuro)
 - [ ] 3.4.1 Persistir formulário antes do login (futuro)
 - [ ] 3.4.4 Inscrição gratuita para outra pessoa (futuro)
@@ -375,7 +377,7 @@ const isInternal = event.source === "internal";
 - [x] Empty state no histórico de eventos
 - [x] Correção de `startAt` perdido ao editar ativação externa
 - [ ] 3.6.1 Renomear aba "Carteira" (futuro)
-- [ ] 3.6.2 Corrigir cálculo do reembolso (futuro)
+- [x] 3.6.2 Corrigir cálculo do reembolso ✅ 2026-09-10 (`parseBrlInput`)
 - [ ] 3.8.2–3.8.5 Melhorias extras na listagem pública (futuro)
 
 ### Sprint 6 — Hub unificado (médio prazo) 🟡
