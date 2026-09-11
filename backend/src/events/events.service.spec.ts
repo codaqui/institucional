@@ -240,7 +240,7 @@ describe('EventsService', () => {
         id: uuid(10),
         title: 'Evento X',
         platform: 'Site Codaqui',
-        href: `/eventos/detalhe?source=internal&sourceId=codaqui&id=${uuid(10)}`,
+        href: `/eventos/detalhe/internal/codaqui/${uuid(10)}`,
         status: 'scheduled',
         userCount: 3,
       });

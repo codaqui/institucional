@@ -312,7 +312,7 @@ export class EventsService {
       platform: 'Site Codaqui',
       host: 'Codaqui',
       location: event.location,
-      href: `/eventos/detalhe?source=internal&sourceId=codaqui&id=${event.id}`,
+      href: `/eventos/detalhe/internal/codaqui/${encodeURIComponent(event.id)}`,
       tags: [],
       ctaLabel: 'Inscrever-se',
       status: EventsService.deriveItemStatus(event),
