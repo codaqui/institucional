@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[44928],{14315(a){a.exports=JSON.parse('{"name":"codaqui-event-pages","id":"default"}')}}]);

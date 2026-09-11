@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[41028],{49784(c){c.exports=JSON.parse('{"name":"docusaurus-plugin-content-docs","id":"community-campostechpg-docs"}')}}]);
