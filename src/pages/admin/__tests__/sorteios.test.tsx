@@ -94,11 +94,18 @@ describe("/admin/sorteios", () => {
     expect(await screen.findByText(/Nenhum participante até agora/i)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /Sortear/i }));
+
+    // O sorteio exige confirmação via ModalConfirm antes do POST
+    expect(await screen.findByText("Sortear vencedor?")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Sortear agora/i }));
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(
         expect.stringContaining("/club/raffles/raffle-1/draw"),
         expect.objectContaining({ method: "POST" }),
       );
+    });
+    await waitFor(() => {
+      expect(screen.queryByText("Sortear vencedor?")).not.toBeInTheDocument();
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Cancelar/i }));

@@ -49,27 +49,32 @@ async function fetchDiscordGuildData(guildId) {
   }
 
   const headers = { Authorization: `Bot ${token}`, "Content-Type": "application/json" };
-  const [guildRes, channelsRes] = await Promise.all([
-    fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, { headers }),
-    fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}/channels`, { headers }),
-  ]);
+  try {
+    const [guildRes, channelsRes] = await Promise.all([
+      fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, { headers }),
+      fetchWithTimeout(`https://discord.com/api/v10/guilds/${guildId}/channels`, { headers }),
+    ]);
 
-  if (!guildRes.ok) {
-    console.warn(`Discord guild fetch failed: ${guildRes.status}`);
+    if (!guildRes.ok) {
+      console.warn(`Discord guild fetch failed: ${guildRes.status}`);
+      return null;
+    }
+
+    const guild = await guildRes.json();
+    const memberCount = guild.approximate_member_count ?? guild.member_count ?? null;
+
+    let channelCount = null;
+    if (channelsRes.ok) {
+      const channels = await channelsRes.json();
+      // type 4 = GUILD_CATEGORY — exclude categories, count only real channels
+      channelCount = Array.isArray(channels) ? channels.filter((c) => c.type !== 4).length : null;
+    }
+
+    return { memberCount, channelCount };
+  } catch (err) {
+    console.warn(`Discord guild fetch error for ${guildId}:`, err.message);
     return null;
   }
-
-  const guild = await guildRes.json();
-  const memberCount = guild.approximate_member_count ?? guild.member_count ?? null;
-
-  let channelCount = null;
-  if (channelsRes.ok) {
-    const channels = await channelsRes.json();
-    // type 4 = GUILD_CATEGORY — exclude categories, count only real channels
-    channelCount = Array.isArray(channels) ? channels.filter((c) => c.type !== 4).length : null;
-  }
-
-  return { memberCount, channelCount };
 }
 
 // ─── Meetup ───────────────────────────────────────────────────────────────────

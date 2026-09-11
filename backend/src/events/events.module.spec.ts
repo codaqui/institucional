@@ -15,6 +15,7 @@ import { LedgerService } from '../ledger/ledger.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../notifications/email.service';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
+import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
 
@@ -68,6 +69,7 @@ describe('EventsModule DI', () => {
         { provide: EmailService, useValue: dummyService },
         { provide: EventOrganizerService, useValue: dummyService },
         { provide: GitHubDBService, useValue: dummyService },
+        { provide: EventOverridesService, useValue: dummyService },
         { provide: ReimbursementsService, useValue: dummyService },
       ],
     }).compile();

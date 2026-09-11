@@ -53,6 +53,7 @@ import {
 } from "../../data/events";
 import { fetchEventsIndexMerged } from "../../lib/events-api";
 import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
+import { parseBrlInput } from "../../utils/transaction";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -277,8 +278,8 @@ function buildTicketPayload(form: TicketForm): TicketValidationResult {
   }
   let priceCents = 0;
   if (form.price.trim()) {
-    const price = Number.parseFloat(form.price.replace(",", "."));
-    if (Number.isNaN(price) || price < 0) {
+    const price = parseBrlInput(form.price);
+    if (price === null) {
       return { error: "Preço inválido." };
     }
     priceCents = Math.round(price * 100);
@@ -673,6 +674,9 @@ interface InternalEventAccordionProps {
   onDeactivateTicket: (ticket: TicketType) => void;
   onAddStaff: (event: ManagedEvent) => void;
   onRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
+  publishingId: string | null;
+  staffAddingId: string | null;
+  staffRemovingId: string | null;
   onStaffMemberChange: (eventId: string, memberId: string) => void;
   onStaffRoleChange: (eventId: string, staffRole: EventStaffRole) => void;
 }
@@ -692,6 +696,9 @@ function InternalEventAccordion({
   onDeactivateTicket,
   onAddStaff,
   onRemoveStaff,
+  publishingId,
+  staffAddingId,
+  staffRemovingId,
   onStaffMemberChange,
   onStaffRoleChange,
 }: Readonly<InternalEventAccordionProps>): React.JSX.Element {
@@ -728,7 +735,7 @@ function InternalEventAccordion({
             </Button>
           )}
           {event.status === "draft" && (
-            <Button size="small" variant="contained" color="success" startIcon={<PublishIcon />} onClick={() => onPublish(event)}>
+            <Button size="small" variant="contained" color="success" startIcon={<PublishIcon />} disabled={publishingId === event.id} onClick={() => onPublish(event)}>
               Publicar
             </Button>
           )}
@@ -855,7 +862,7 @@ function InternalEventAccordion({
                   <Chip label={STAFF_ROLE_LABEL[staff.staffRole]} size="small" color="secondary" variant="outlined" />
                   <Box sx={{ flex: 1 }} />
                   <Tooltip title="Remover da equipe">
-                    <IconButton size="small" aria-label="remover staff" onClick={() => onRemoveStaff(event, staff)}>
+                    <IconButton size="small" aria-label="remover staff" disabled={staffRemovingId === staff.id} onClick={() => onRemoveStaff(event, staff)}>
                       <DeleteIcon fontSize="small" />
                     </IconButton>
                   </Tooltip>
@@ -899,7 +906,7 @@ function InternalEventAccordion({
             size="small"
             variant="outlined"
             startIcon={<AddIcon />}
-            disabled={!staffForm[event.id]?.memberId}
+            disabled={!staffForm[event.id]?.memberId || staffAddingId === event.id}
             onClick={() => onAddStaff(event)}
           >
             Adicionar
@@ -992,22 +999,27 @@ function useAdminEventosData(
   const fetchEvents = useCallback(async (pageNum: number, useBackendPagination: boolean) => {
     setLoading(true);
     setLoadError("");
-    const url = useBackendPagination
-      ? `${apiUrl}/events?page=${pageNum}&limit=${PAGE_SIZE}`
-      : `${apiUrl}/events`;
-    const res = await authFetch(url);
-    if (useBackendPagination) {
-      const data = await parseAuthJson<{ events: ManagedEvent[]; total: number; page: number; limit: number }>(res, setLoadError);
-      if (data) {
-        setEvents(data.events);
-        setInternalTotal(data.total);
+    try {
+      const url = useBackendPagination
+        ? `${apiUrl}/events?page=${pageNum}&limit=${PAGE_SIZE}`
+        : `${apiUrl}/events`;
+      const res = await authFetch(url);
+      if (useBackendPagination) {
+        const data = await parseAuthJson<{ events: ManagedEvent[]; total: number; page: number; limit: number }>(res, setLoadError);
+        if (data) {
+          setEvents(data.events);
+          setInternalTotal(data.total);
+        }
+      } else {
+        const data = await parseAuthJson<ManagedEvent[]>(res, setLoadError);
+        if (data) setEvents(data);
+        setInternalTotal(0);
       }
-    } else {
-      const data = await parseAuthJson<ManagedEvent[]>(res, setLoadError);
-      if (data) setEvents(data);
-      setInternalTotal(0);
+    } catch {
+      setLoadError("Não foi possível carregar os eventos (backend indisponível).");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [apiUrl, authFetch]);
 
   const fetchMembers = useCallback(async () => {
@@ -1095,6 +1107,9 @@ interface UseAdminEventosMutationsReturn {
   ticketError: string;
   staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
   setStaffForm: React.Dispatch<React.SetStateAction<Record<string, { memberId: string; staffRole: EventStaffRole }>>>;
+  publishingId: string | null;
+  staffAddingId: string | null;
+  staffRemovingId: string | null;
   actionError: string;
   setActionError: React.Dispatch<React.SetStateAction<string>>;
   publishSuccess: ManagedEvent | null;
@@ -1134,6 +1149,10 @@ function useAdminEventosMutations(
   const [ticketError, setTicketError] = useState("");
 
   const [staffForm, setStaffForm] = useState<Record<string, { memberId: string; staffRole: EventStaffRole }>>({});
+
+  const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [staffAddingId, setStaffAddingId] = useState<string | null>(null);
+  const [staffRemovingId, setStaffRemovingId] = useState<string | null>(null);
 
   const [actionError, setActionError] = useState("");
   const [publishSuccess, setPublishSuccess] = useState<ManagedEvent | null>(null);
@@ -1193,6 +1212,8 @@ function useAdminEventosMutations(
   }, [apiUrl, authFetch, eventDialog, eventForm, fetchEvents]);
 
   const handlePublish = useCallback(async (event: ManagedEvent) => {
+    if (publishingId) return;
+    setPublishingId(event.id);
     setActionError("");
     setPublishSuccess(null);
     try {
@@ -1205,8 +1226,10 @@ function useAdminEventosMutations(
       await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao publicar.");
+    } finally {
+      setPublishingId(null);
     }
-  }, [apiUrl, authFetch, fetchEvents]);
+  }, [apiUrl, authFetch, fetchEvents, publishingId]);
 
   const handleCancelEvent = useCallback(async () => {
     if (!cancelTarget) return;
@@ -1273,7 +1296,8 @@ function useAdminEventosMutations(
 
   const handleAddStaff = useCallback(async (event: ManagedEvent) => {
     const form = staffForm[event.id];
-    if (!form?.memberId) return;
+    if (!form?.memberId || staffAddingId) return;
+    setStaffAddingId(event.id);
     setActionError("");
     try {
       const res = await authFetch(`${apiUrl}/events/${event.id}/staff`, {
@@ -1288,10 +1312,14 @@ function useAdminEventosMutations(
       await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao adicionar staff.");
+    } finally {
+      setStaffAddingId(null);
     }
-  }, [apiUrl, authFetch, staffForm, fetchEvents]);
+  }, [apiUrl, authFetch, staffForm, fetchEvents, staffAddingId]);
 
   const handleRemoveStaff = useCallback(async (event: ManagedEvent, staff: EventStaff) => {
+    if (staffRemovingId) return;
+    setStaffRemovingId(staff.id);
     setActionError("");
     try {
       const res = await authFetch(`${apiUrl}/events/${event.id}/staff/${staff.id}`, { method: "DELETE" });
@@ -1302,8 +1330,10 @@ function useAdminEventosMutations(
       await fetchEvents();
     } catch {
       setActionError("Erro inesperado ao remover staff.");
+    } finally {
+      setStaffRemovingId(null);
     }
-  }, [apiUrl, authFetch, fetchEvents]);
+  }, [apiUrl, authFetch, fetchEvents, staffRemovingId]);
 
   return {
     eventDialog, setEventDialog,
@@ -1315,6 +1345,7 @@ function useAdminEventosMutations(
     ticketForm, setTicketForm,
     ticketSaving, ticketError,
     staffForm, setStaffForm,
+    publishingId, staffAddingId, staffRemovingId,
     actionError, setActionError,
     publishSuccess, setPublishSuccess,
     saveSuccess, setSaveSuccess,
@@ -1661,6 +1692,9 @@ function useAdminEventosPage() {
     ticketSaving: mutations.ticketSaving,
     ticketError: mutations.ticketError,
     staffForm: mutations.staffForm, setStaffForm: mutations.setStaffForm,
+    publishingId: mutations.publishingId,
+    staffAddingId: mutations.staffAddingId,
+    staffRemovingId: mutations.staffRemovingId,
     externalEvents: data.externalEvents, setExternalEvents: data.setExternalEvents,
     externalSources: data.externalSources, setExternalSources: data.setExternalSources,
     externalLoading: data.externalLoading,
@@ -1723,6 +1757,7 @@ export default function AdminEventosPage(): React.JSX.Element {
     cancelTarget, setCancelTarget, cancelLoading, cancelError,
     ticketDialog, setTicketDialog, ticketForm, setTicketForm, ticketSaving, ticketError,
     members, membersById, staffForm, setStaffForm,
+    publishingId, staffAddingId, staffRemovingId,
     ordersDialog, setOrdersDialog,
     reimbursementDialog, setReimbursementDialog,
     handleSnapshot, openCreateDialog, openEditDialog, handleSaveEvent, handlePublish, handleCancelEvent,
@@ -1871,6 +1906,9 @@ export default function AdminEventosPage(): React.JSX.Element {
                     onDeactivateTicket={handleDeactivateTicketType}
                     onAddStaff={handleAddStaff}
                     onRemoveStaff={handleRemoveStaff}
+                    publishingId={publishingId}
+                    staffAddingId={staffAddingId}
+                    staffRemovingId={staffRemovingId}
                     onStaffMemberChange={(eventId, memberId) =>
                       setStaffForm((prev) => ({
                         ...prev,

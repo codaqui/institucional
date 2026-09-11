@@ -53,6 +53,8 @@ const PERIOD_FILTER_OPTIONS = [
   { value: 365, label: "Último ano" },
 ];
 
+const escapeCsvField = (value: string) => `"${value.replaceAll('"', '""')}"`;
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -149,13 +151,13 @@ export default function TransactionTable({
       const isCredit = tx.destinationAccount.id === accountId;
       const type = detectTxType(tx);
       return [
-        formatDate(tx.createdAt),
-        TX_TYPE_CONFIG[type].label,
-        `"${tx.description.replaceAll('"', '""')}"`,
-        tx.sourceAccount?.name,
-        tx.destinationAccount?.name,
-        Number(tx.amount).toFixed(2),
-        isCredit ? "Crédito" : "Débito",
+        escapeCsvField(formatDate(tx.createdAt)),
+        escapeCsvField(TX_TYPE_CONFIG[type].label),
+        escapeCsvField(tx.description),
+        escapeCsvField(tx.sourceAccount?.name ?? ""),
+        escapeCsvField(tx.destinationAccount?.name ?? ""),
+        escapeCsvField(Number(tx.amount).toFixed(2)),
+        escapeCsvField(isCredit ? "Crédito" : "Débito"),
       ].join(",");
     });
     const csv = header + rows.join("\n");

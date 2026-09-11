@@ -1,11 +1,19 @@
 import assert from "node:assert/strict";
+import { mkdir, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
 import test from "node:test";
 
 import {
+  applyOverride,
+  buildIndexSummaries,
+  buildInternalSourceConfig,
+  compareByStartAt,
   extractSymplaDateLine,
+  mapMeetupStatus,
   mapSymplaEvent,
   mapSymplaEventStatus,
   parseSymplaDateText,
+  readExistingEvents,
   resolveSymplaStartAt,
   SYMPLA_CARD_DATE_PATTERN,
 } from "./sync-events.mjs";
@@ -253,4 +261,221 @@ test("extractSymplaDateLine: rich date range from detail page body", () => {
   const result = extractSymplaDateLine(body);
   assert.equal(result.startDateRaw, "12 ago - 2026 • 13:05");
   assert.equal(result.endDateRaw, "12 ago - 2026 • 17:00");
+});
+
+// ── Overrides (L2-5a / L2-8) ─────────────────────────────────────────────────
+
+test("applyOverride: aplica extendData e marca hasOverride + _override meta", () => {
+  const event = { id: "evt-1", title: "Encontro Codaqui", location: "Online" };
+  const override = {
+    sourceKey: "internal:codaqui",
+    eventId: "evt-1",
+    payload: JSON.stringify({ location: "Auditório Central", extendData: { workloadMinutes: 120 } }),
+    ownerHandle: "anadev",
+    updatedAt: "2026-09-01T12:00:00.000Z",
+    reason: "local confirmado pela organização",
+  };
+
+  const merged = applyOverride(event, override);
+
+  assert.equal(merged.location, "Auditório Central");
+  assert.equal(merged.extendData.workloadMinutes, 120);
+  assert.equal(merged.hasOverride, true);
+  assert.equal(merged._override.ownerHandle, "anadev");
+  assert.equal(merged._override.updatedAt, "2026-09-01T12:00:00.000Z");
+  assert.equal(merged._override.reason, "local confirmado pela organização");
+  assert.equal(merged.title, "Encontro Codaqui");
+});
+
+test("applyOverride: payload JSON invalido segue sem override e sem abortar (L2-5a)", () => {
+  const event = { id: "evt-2", title: "Evento Meetup" };
+  const override = { sourceKey: "meetup:devparana", eventId: "evt-2", payload: "{nao-eh-json" };
+
+  const merged = applyOverride(event, override);
+
+  assert.strictEqual(merged, event);
+  assert.equal(merged.hasOverride, undefined);
+  assert.equal(merged._override, undefined);
+});
+
+// ── Fonte internal:codaqui (L2-8) ────────────────────────────────────────────
+
+test("buildInternalSourceConfig: fixa source internal/codaqui vindo do payload do backend", () => {
+  const config = buildInternalSourceConfig(
+    { source: "managed", sourceId: "db", label: "Codaqui", emoji: "💚" },
+    null
+  );
+
+  assert.equal(config.source, "internal");
+  assert.equal(config.sourceId, "codaqui");
+  assert.equal(config.label, "Codaqui");
+  assert.equal(config.emoji, "💚");
+});
+
+test("buildInternalSourceConfig: em fallback usa o meta cacheado com source internal/codaqui", () => {
+  const config = buildInternalSourceConfig(null, { label: "Codaqui (cache)" });
+
+  assert.equal(config.source, "internal");
+  assert.equal(config.sourceId, "codaqui");
+  assert.equal(config.label, "Codaqui (cache)");
+});
+
+test("buildIndexSummaries: item interno mantem href/platform e carimba source/sourceId/itemPath", () => {
+  const event = {
+    id: "uuid-1",
+    title: "Encontro de Mentoria",
+    href: "https://codaqui.dev/eventos/detalhe?source=internal&sourceId=codaqui&id=uuid-1",
+    platform: "Site Codaqui",
+    startAt: "2026-09-10T19:00:00-03:00",
+  };
+
+  const [item] = buildIndexSummaries({ source: "internal", sourceId: "codaqui" }, [event]);
+
+  assert.equal(item.source, "internal");
+  assert.equal(item.sourceId, "codaqui");
+  assert.equal(item.sourceKey, "internal:codaqui");
+  assert.equal(item.itemPath, "/events/internal/codaqui/uuid-1.json");
+  assert.equal(item.platform, "Site Codaqui");
+  assert.equal(item.href, event.href);
+  assert.equal(item.hasOverride, false);
+});
+
+// ── Ordenação do índice por startAt ASC (L2-8) ───────────────────────────────
+
+test("compareByStartAt: ordena eventos ASC por startAt", () => {
+  const events = [
+    { id: "c", startAt: "2026-09-12T10:00:00-03:00" },
+    { id: "a", startAt: "2026-09-05T10:00:00-03:00" },
+    { id: "b", startAt: "2026-09-08T10:00:00-03:00" },
+  ];
+
+  const sorted = [...events].sort(compareByStartAt);
+  assert.deepEqual(sorted.map((e) => e.id), ["a", "b", "c"]);
+
+  // buildIndexSummaries aplica a mesma ordenação no índice da fonte.
+  const summaries = buildIndexSummaries({ source: "internal", sourceId: "codaqui" }, events);
+  assert.deepEqual(summaries.map((e) => e.id), ["a", "b", "c"]);
+});
+
+// ── Status de eventos Meetup (item 7) ────────────────────────────────────────
+
+test("mapMeetupStatus: CANCELLED vence data passada (cancelado nao vira completed)", () => {
+  const past = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+  const pastEnd = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+
+  assert.equal(mapMeetupStatus("CANCELLED", past, pastEnd), "canceled");
+  assert.equal(mapMeetupStatus("CANCELLED", past, undefined), "canceled");
+});
+
+test("mapMeetupStatus: CANCELLED futuro continua canceled", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  assert.equal(mapMeetupStatus("CANCELLED", future, undefined), "canceled");
+});
+
+test("mapMeetupStatus: PAST e endTime passado viram completed", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const pastStart = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString();
+  const pastEnd = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  assert.equal(mapMeetupStatus("PAST", future, undefined), "completed");
+  assert.equal(mapMeetupStatus("upcoming", pastStart, pastEnd), "completed");
+});
+
+test("mapMeetupStatus: sem endTime, evento que comecou agora fica active (nao completed)", () => {
+  const startedOneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+  assert.equal(mapMeetupStatus("upcoming", startedOneHourAgo, undefined), "active");
+});
+
+test("mapMeetupStatus: sem endTime, evento alem da duracao default (3h) vira completed", () => {
+  const startedLongAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+
+  assert.equal(mapMeetupStatus("upcoming", startedLongAgo, undefined), "completed");
+});
+
+test("mapMeetupStatus: futuro scheduled e em andamento active com endTime", () => {
+  const future = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  const started = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const endsLater = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+  assert.equal(mapMeetupStatus("upcoming", future, undefined), "scheduled");
+  assert.equal(mapMeetupStatus("upcoming", started, endsLater), "active");
+});
+
+// ── Override "zumbi": readExistingEvents nao carrega campos de override (item 8)
+
+const ZOMBIE_TEST_DIR = path.join(process.cwd(), "static", "events", "discord", "__test_zombie__");
+
+async function writeZombieFixtures({ raw, index }) {
+  await mkdir(ZOMBIE_TEST_DIR, { recursive: true });
+  if (raw) {
+    await writeFile(path.join(ZOMBIE_TEST_DIR, "raw.json"), JSON.stringify(raw), "utf8");
+  }
+  if (index) {
+    await writeFile(path.join(ZOMBIE_TEST_DIR, "index.json"), JSON.stringify(index), "utf8");
+  }
+}
+
+test("readExistingEvents: prefere raw.json e ignora index.json com override mesclado", async (t) => {
+  t.after(() => rm(ZOMBIE_TEST_DIR, { recursive: true, force: true }));
+
+  const rawEvent = { id: "evt-z1", title: "Titulo original da fonte", startAt: "2026-09-01T19:00:00-03:00" };
+  await writeZombieFixtures({
+    raw: { generatedAt: "2026-09-02T00:00:00.000Z", events: [rawEvent] },
+    index: {
+      events: [
+        {
+          ...rawEvent,
+          title: "Titulo editado por override",
+          hasOverride: true,
+          _override: { ownerHandle: "anadev", updatedAt: "2026-09-01T00:00:00.000Z", reason: null },
+          source: "discord",
+          sourceId: "__test_zombie__",
+          sourceKey: "discord:__test_zombie__",
+          itemPath: "/events/discord/__test_zombie__/evt-z1.json",
+        },
+      ],
+    },
+  });
+
+  const events = await readExistingEvents("discord", "__test_zombie__");
+
+  assert.deepEqual(events, [rawEvent]);
+});
+
+test("readExistingEvents: fallback legado (so index.json) remove metadados de override", async (t) => {
+  t.after(() => rm(ZOMBIE_TEST_DIR, { recursive: true, force: true }));
+
+  await writeZombieFixtures({
+    index: {
+      events: [
+        {
+          id: "evt-z2",
+          title: "Evento com override antigo",
+          startAt: "2026-09-01T19:00:00-03:00",
+          hasOverride: true,
+          _override: { ownerHandle: "anadev", updatedAt: "2026-09-01T00:00:00.000Z", reason: null },
+          source: "discord",
+          sourceId: "__test_zombie__",
+          sourceKey: "discord:__test_zombie__",
+          itemPath: "/events/discord/__test_zombie__/evt-z2.json",
+        },
+      ],
+    },
+  });
+
+  const [event] = await readExistingEvents("discord", "__test_zombie__");
+
+  assert.equal(event.id, "evt-z2");
+  assert.equal(event.hasOverride, undefined);
+  assert.equal(event._override, undefined);
+  assert.equal(event.source, undefined);
+  assert.equal(event.sourceKey, undefined);
+  assert.equal(event.itemPath, undefined);
+});
+
+test("readExistingEvents: sem snapshot nenhum retorna lista vazia", async (t) => {
+  t.after(() => rm(ZOMBIE_TEST_DIR, { recursive: true, force: true }));
+
+  assert.deepEqual(await readExistingEvents("discord", "__test_zombie__"), []);
 });

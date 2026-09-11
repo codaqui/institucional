@@ -10,7 +10,7 @@ sections:
   - Consequências
   - Links relacionados
 related-docs:
-  - ../plans/MULTISITE_PLAN.md — detalhes das fases pendentes
+  - ../plans/multisite/README.md — detalhes das fases pendentes
   - AGENTS.md — patterns e arquitetura do monorepo
 -->
 
@@ -59,4 +59,4 @@ Para domínios próprios, um **Cloudflare Worker** reutilizável (`workers/share
 
 - Config piloto: `comunidades/tisocial/community.config.ts`
 - Worker compartilhado: `workers/shared/index.js`
-- Plano detalhado: [../plans/MULTISITE_PLAN.md](../plans/MULTISITE_PLAN.md)
+- Plano detalhado: [../plans/multisite/README.md](../plans/multisite/README.md)

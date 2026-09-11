@@ -119,20 +119,25 @@ export default function AdminEmpresasPage(): React.JSX.Element {
   const loadCompanies = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
-    const data = await parseAuthJson<AdminCompaniesResponse | Company[]>(
-      await authFetch(`${apiUrl}/companies/admin/list?page=${page}&limit=${limit}`),
-      (msg) => setLoadError(msg),
-    );
-    if (data) {
-      if (Array.isArray(data)) {
-        setCompanies(data);
-        setTotal(data.length);
-      } else {
-        setCompanies(Array.isArray(data.items) ? data.items : []);
-        setTotal(data.total ?? 0);
+    try {
+      const data = await parseAuthJson<AdminCompaniesResponse | Company[]>(
+        await authFetch(`${apiUrl}/companies/admin/list?page=${page}&limit=${limit}`),
+        (msg) => setLoadError(msg),
+      );
+      if (data) {
+        if (Array.isArray(data)) {
+          setCompanies(data);
+          setTotal(data.length);
+        } else {
+          setCompanies(Array.isArray(data.items) ? data.items : []);
+          setTotal(data.total ?? 0);
+        }
       }
+    } catch {
+      setLoadError("Não foi possível carregar as empresas.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [authFetch, apiUrl, page, limit]);
 
   useEffect(() => {
@@ -152,25 +157,39 @@ export default function AdminEmpresasPage(): React.JSX.Element {
     setExpandedId(company.id);
     if (detailCache[company.id]) return;
 
-    const [membersRes, walletRes] = await Promise.all([
-      authFetch(`${apiUrl}/companies/${company.id}/members`),
-      authFetch(`${apiUrl}/companies/${company.id}/wallet`),
-    ]);
+    try {
+      const [membersRes, walletRes] = await Promise.all([
+        authFetch(`${apiUrl}/companies/${company.id}/members`),
+        authFetch(`${apiUrl}/companies/${company.id}/wallet`),
+      ]);
 
-    const members = membersRes.ok ? ((await membersRes.json()) as CompanyMember[]) : [];
-    const wallet = walletRes.ok ? ((await walletRes.json()) as CompanyWallet) : null;
-    setDetailCache((prev) => ({ ...prev, [company.id]: { members, wallet } }));
+      const members = membersRes.ok ? ((await membersRes.json()) as CompanyMember[]) : [];
+      const wallet = walletRes.ok ? ((await walletRes.json()) as CompanyWallet) : null;
+      setDetailCache((prev) => ({ ...prev, [company.id]: { members, wallet } }));
+    } catch {
+      setLoadError("Não foi possível carregar os detalhes da empresa.");
+      setExpandedId(null);
+    }
   };
 
   const updateStatus = async (companyId: string, status: string) => {
-    await authFetch(`${apiUrl}/companies/${companyId}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
-    });
-    setCompanies((prev) =>
-      prev.map((c) => (c.id === companyId ? { ...c, status } : c)),
-    );
+    try {
+      const res = await authFetch(`${apiUrl}/companies/${companyId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      if (!res.ok) {
+        setLoadError(`Erro ao atualizar status da empresa (HTTP ${res.status}).`);
+        return;
+      }
+      setLoadError(null);
+      setCompanies((prev) =>
+        prev.map((c) => (c.id === companyId ? { ...c, status } : c)),
+      );
+    } catch {
+      setLoadError("Erro inesperado ao atualizar status da empresa.");
+    }
   };
 
   if (!ready || loading) {

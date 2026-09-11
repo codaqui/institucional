@@ -34,6 +34,7 @@ import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { EmailService } from '../notifications/email.service';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
+import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { CsvParseError, parseCsvText, type ParsedCsvRow } from './csv';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
@@ -61,8 +62,8 @@ import { CreateReimbursementDto } from '../reimbursements/dto/create-reimburseme
  */
 export const EVENT_TICKET_TERMS_VERSION = '2026-07-v1';
 
-/** Reserva de quota de uma order pending expira após 30 minutos */
-const ORDER_EXPIRATION_MINUTES = 30;
+/** Reserva de quota de uma order pending expira após 31 minutos (Stripe exige expires_at da Checkout Session ≥ 30 min) */
+const ORDER_EXPIRATION_MINUTES = 31;
 
 const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -186,6 +187,7 @@ export class EventsService {
     private readonly emailService: EmailService,
     private readonly eventOrganizerService: EventOrganizerService,
     private readonly githubDb: GitHubDBService,
+    private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
   ) {}
 
@@ -700,6 +702,16 @@ export class EventsService {
     if (dto.timezone !== undefined) event.timezone = dto.timezone;
     if (dto.communityProjectKey !== undefined)
       event.communityProjectKey = dto.communityProjectKey;
+    if (dto.capacity !== undefined && dto.capacity !== null) {
+      // Capacity limita só o RSVP gratuito; com lotes pagos o limite é o
+      // quantityTotal de cada lote (semântica única — ver DTO).
+      const paidTickets = await this.ticketTypeRepo.findBy({ eventId: id });
+      if (paidTickets.some((t) => t.priceCents > 0)) {
+        throw new BadRequestException(
+          'Evento com ingressos pagos não usa capacity — o limite de vagas vem do quantityTotal dos lotes. Envie capacity: null.',
+        );
+      }
+    }
     if (dto.capacity !== undefined) event.capacity = dto.capacity;
 
     await this.eventRepo.save(event);
@@ -770,6 +782,13 @@ export class EventsService {
     const event = await this.findEventOrFail(eventId);
     EventsService.assertGlobalManager(user);
     EventsService.assertPriceMatchesKind(dto.kind, dto.priceCents);
+    if (dto.priceCents > 0 && event.capacity !== null) {
+      // Capacity limita só o RSVP gratuito; evento pago é limitado pelo
+      // quantityTotal dos lotes — capacity deve ser null (semântica única).
+      throw new BadRequestException(
+        'Este evento define capacity (limite do RSVP gratuito) e não pode ter ingresso pago. Remova o capacity do evento ou use apenas lotes gratuitos.',
+      );
+    }
 
     return this.ticketTypeRepo.save(
       this.ticketTypeRepo.create({
@@ -819,6 +838,17 @@ export class EventsService {
       );
     }
     const event = await this.findEventOrFail(ticketType.eventId);
+    if (
+      dto.priceCents !== undefined &&
+      dto.priceCents > 0 &&
+      event.capacity !== null
+    ) {
+      // Mesma regra de createTicketType: capacity (RSVP gratuito) não
+      // combina com lote pago (limite = quantityTotal dos lotes).
+      throw new BadRequestException(
+        'Este evento define capacity (limite do RSVP gratuito) e não pode ter ingresso pago. Remova o capacity do evento ou mantenha o lote gratuito.',
+      );
+    }
     if (dto.salesStartAt !== undefined) {
       ticketType.salesStartAt = dto.salesStartAt
         ? parseDateTimeLocal(dto.salesStartAt, event.timezone)
@@ -1008,6 +1038,17 @@ export class EventsService {
       );
     }
 
+    if (registration.orderId) {
+      const order = await this.orderRepo.findOneBy({
+        id: registration.orderId,
+      });
+      if (order?.status === OrderStatus.PAID) {
+        throw new ConflictException(
+          'Inscrição vinculada a pedido pago: use o fluxo de estorno (POST /events/orders/:id/refund) para devolver o valor.',
+        );
+      }
+    }
+
     registration.status = RegistrationStatus.CANCELLED;
     await this.registrationRepo.save(registration);
     // Devolve a quota (GREATEST protege contra negativo)
@@ -1178,7 +1219,7 @@ export class EventsService {
     member: Member,
     user: JwtPayload,
   ): Promise<{ url?: string | null; clientSecret?: string | null }> {
-    // Reserva atômica com janela de vendas (SQL do docs/EVENT_PLAN.md §2b)
+    // Reserva atômica com janela de vendas (SQL do docs/adrs/001-event-platform.md §2b)
     const reserved = await this.reserveQuota(ticketType.id, dto.quantity, true);
     if (!reserved) {
       throw new ConflictException('Lote esgotado ou fora da janela de vendas.');
@@ -1306,15 +1347,18 @@ export class EventsService {
     if (!order.stripePaymentIntentId) {
       throw new BadRequestException('Pedido sem payment intent vinculado.');
     }
-    if (!order.eventId) {
+    if (!order.eventId && !order.externalActivationId) {
       throw new BadRequestException('Pedido sem evento vinculado.');
     }
 
     const ticketType = await this.ticketTypeRepo.findOneBy({
       id: order.ticketTypeId,
     });
+    // Unitário derivado do valor pago na order; preço atual do lote é só fallback
     const unitCents =
-      ticketType?.priceCents ?? Math.round(order.totalCents / order.quantity);
+      order.quantity > 0 && order.totalCents > 0
+        ? Math.round(order.totalCents / order.quantity)
+        : (ticketType?.priceCents ?? 0);
 
     const confirmedRegs = await this.registrationRepo.findBy({
       orderId: order.id,
@@ -1360,7 +1404,16 @@ export class EventsService {
     }
 
     // Reversal no ledger (comunidade → conta externa Stripe)
-    const event = await this.eventRepo.findOneBy({ id: order.eventId });
+    const event = order.eventId
+      ? await this.eventRepo.findOneBy({ id: order.eventId })
+      : null;
+    const activation = order.externalActivationId
+      ? await this.activationRepo.findOneBy({ id: order.externalActivationId })
+      : null;
+    const communityProjectKey =
+      event?.communityProjectKey ??
+      activation?.communityProjectKey ??
+      'tesouro-geral';
     const stripeIncomeAccount =
       await this.ledgerService.getOrCreateCommunityAccount(
         'stripe_income',
@@ -1369,20 +1422,20 @@ export class EventsService {
       );
     const communityAccount =
       await this.ledgerService.getOrCreateCommunityAccount(
-        event?.communityProjectKey ?? 'tesouro-geral',
-        `Comunidade: ${event?.communityProjectKey ?? 'tesouro-geral'}`,
+        communityProjectKey,
+        `Comunidade: ${communityProjectKey}`,
       );
     await this.ledgerService.recordTransaction(
       communityAccount.id,
       stripeIncomeAccount.id,
       amountCents / 100,
-      `Estorno de ingressos — ${event?.title ?? order.eventId}`,
+      `Estorno de ingressos — ${event?.title ?? activation?.title ?? order.eventId ?? order.externalActivationId}`,
       `event-ticket-refund:${order.id}:${Date.now()}`,
       {
         eventId: order.eventId ?? undefined,
         ticketTypeId: order.ticketTypeId,
         orderId: order.id,
-        communityProjectKey: event?.communityProjectKey ?? 'tesouro-geral',
+        communityProjectKey,
         externalActivationId: order.externalActivationId ?? undefined,
       },
     );
@@ -1831,6 +1884,14 @@ export class EventsService {
       attendeeEmail: registration.attendeeEmail,
       checkedInAt: registration.checkedInAt,
     });
+    if (
+      registration.status === RegistrationStatus.REFUNDED ||
+      registration.status === RegistrationStatus.CANCELLED
+    ) {
+      throw new BadRequestException(
+        `Inscrição ${registration.status}: check-in não permitido.`,
+      );
+    }
     if (registration.checkedInAt) {
       return { status: 'already_checked_in' as const, registration: payload() };
     }
@@ -1949,6 +2010,14 @@ export class EventsService {
     if (!isOwner && !EventsService.canManageAll(user)) {
       throw new ForbiddenException('Sem permissão para este certificado.');
     }
+    if (
+      registration.status === RegistrationStatus.REFUNDED ||
+      registration.status === RegistrationStatus.CANCELLED
+    ) {
+      throw new ForbiddenException(
+        'Certificado indisponível: inscrição estornada ou cancelada.',
+      );
+    }
     if (!registration.checkedInAt) {
       throw new ForbiddenException(
         'Certificado disponível apenas após o check-in no evento.',
@@ -2044,24 +2113,28 @@ export class EventsService {
   }
 
   /**
-   * Carga horária de evento externo: lê extendData.workloadMinutes do
-   * override do eventKey (branch base). Ausente/inválido → null (nunca
-   * derruba a emissão do certificado).
+   * Carga horária de evento externo: lê workloadMinutes do override
+   * persistido na tabela event_overrides (o antigo arquivo .override.json
+   * foi descontinuado do repo). Ausente/inválido → null (nunca derruba a
+   * emissão do certificado).
    */
   private async readExternalWorkloadMinutes(
     eventKey: string,
   ): Promise<number | null> {
     try {
       const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
-      const [source, sourceId] = sourceKey.split(':');
-      const raw = await this.githubDb.readFile(
-        `static/events/${source}/${sourceId}/${eventId}.override.json`,
-      );
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as {
+      const [override] = await this.eventOverridesService.findByKeys([
+        { sourceKey, eventId },
+      ]);
+      if (!override) return null;
+      const parsed = JSON.parse(override.payload) as {
+        workloadMinutes?: unknown;
         extendData?: { workloadMinutes?: unknown };
       };
-      const value = parsed?.extendData?.workloadMinutes;
+      // O payload é o antigo extendData (flat). Aceita também o formato
+      // antigo { extendData: {...} } por defensividade.
+      const value =
+        parsed?.workloadMinutes ?? parsed?.extendData?.workloadMinutes;
       return typeof value === 'number' &&
         Number.isInteger(value) &&
         value >= 0 &&
@@ -2621,7 +2694,7 @@ export class EventsService {
     row: ParsedCsvRow,
   ): Promise<Member | null> {
     // Match: e-mail da conta; se não achar, tenta a coluna opcional
-    // `github` (handle) — decisão de design #2 do docs/EVENT_PLAN.md.
+    // `github` (handle) — decisão de design #2 do docs/adrs/001-event-platform.md.
     let member = await this.findMemberByIdentifier(row.email);
     if (!member && row.github) {
       member = await this.findMemberByIdentifier(row.github);
@@ -2989,7 +3062,6 @@ export class EventsService {
           id: r.id,
           memberId: r.memberId,
           payerMemberId: r.payerMemberId,
-          attendeeName: r.attendeeName,
           eventTitle:
             event?.title ?? activation?.title ?? activation?.eventKey ?? '',
           eventStartAt,
@@ -3078,10 +3150,14 @@ export class EventsService {
     const dirEntries =
       (await this.githubDb.listDir(EventsService.INTERNAL_DIR, userToken)) ??
       [];
+    // hasOverride vem da tabela event_overrides (sourceKey internal:codaqui);
+    // os antigos arquivos *.override.json foram descontinuados do repo.
+    const internalOverrides =
+      await this.eventOverridesService.findBySourceKey(
+        EventsService.INTERNAL_SOURCE_KEY,
+      );
     const overrideIds = new Set(
-      dirEntries
-        .filter((e) => e.name.endsWith('.override.json'))
-        .map((e) => e.name.slice(0, -'.override.json'.length)),
+      internalOverrides.map((override) => override.eventId),
     );
     const existingEventFiles = dirEntries
       .filter(

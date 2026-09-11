@@ -8,6 +8,7 @@ import {
   extractReimbursementId,
   extractReimbursementDesc,
   extractStripePaymentIntentId,
+  parseBrlInput,
   type Transaction,
 } from "../transaction";
 
@@ -60,7 +61,12 @@ function makeTx(overrides: Partial<Transaction> = {}): Transaction {
 describe("detectTxType", () => {
   it.each<[string, Partial<Transaction>, ReturnType<typeof detectTxType>]>([
     ["detects reimbursement by referenceId", { referenceId: "reimbursement:123" }, "reimbursement"],
+    ["detects reimbursement reversal by referenceId", { referenceId: "reimbursement-reversal:123:1738362000" }, "reimbursement-reversal"],
+    ["detects reimbursement deletion by referenceId", { referenceId: "reimbursement-deletion:123:1738362000" }, "reimbursement-reversal"],
     ["detects vendor-payment by referenceId", { referenceId: "vendor-payment:456" }, "vendor-payment"],
+    ["detects vendor-payment reversal by referenceId", { referenceId: "vendor-payment-reversal:456:1738362000" }, "vendor-payment-reversal"],
+    ["detects vendor-receipt by referenceId", { referenceId: "vendor-receipt:789" }, "vendor-receipt"],
+    ["detects vendor-receipt reversal by referenceId", { referenceId: "vendor-receipt-reversal:789:1738362000" }, "vendor-receipt-reversal"],
     ["detects transfer by referenceId", { referenceId: "transfer:789" }, "transfer"],
     ["detects donation by Stripe checkout session referenceId", { referenceId: "cs_live_abc" }, "donation"],
     ["detects donation by Stripe payment intent referenceId (pi_)", { referenceId: "pi_live_abc" }, "donation"],
@@ -351,5 +357,44 @@ describe("deriveTransactionMeta — stripe-fee", () => {
     });
     const meta = deriveTransactionMeta(tx, "acc-community");
     expect(meta.isCredit).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// parseBrlInput
+// ---------------------------------------------------------------------------
+
+describe("parseBrlInput", () => {
+  it.each<[string, number]>([
+    ["1234,56", 1234.56],
+    ["1.234,56", 1234.56],
+    ["1.234.567,89", 1234567.89],
+    ["1234.56", 1234.56],
+    ["75", 75],
+    ["0,01", 0.01],
+    [" 75,50 ", 75.5],
+  ])("parses %s as %s", (input, expected) => {
+    expect(parseBrlInput(input)).toBe(expected);
+  });
+
+  it("rounds to 2 decimal places via cents", () => {
+    expect(parseBrlInput("10,999")).toBe(11);
+    expect(parseBrlInput("10.555")).toBe(10.56);
+  });
+
+  it.each<[string]>([
+    [""],
+    ["   "],
+    ["abc"],
+    ["12a34"],
+    ["-10"],
+    ["-10,50"],
+    ["1,2,3"],
+    ["1.2.3"],
+    [".5"],
+    ["5."],
+    ["R$ 100"],
+  ])("returns null for invalid input %s", (input) => {
+    expect(parseBrlInput(input)).toBeNull();
   });
 });

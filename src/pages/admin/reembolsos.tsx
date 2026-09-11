@@ -318,7 +318,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                         color="error"
                         size="small"
                         startIcon={<DeleteIcon />}
-                        onClick={() => setDeleteId(req.id)}
+                        onClick={() => { setDeleteId(req.id); setActionError(""); }}
                       >
                         Excluir
                       </Button>
@@ -343,7 +343,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                         color="warning"
                         size="small"
                         startIcon={<UndoIcon />}
-                        onClick={() => setRevertId(req.id)}
+                        onClick={() => { setRevertId(req.id); setActionError(""); }}
                       >
                         Reverter aprovação
                       </Button>
@@ -353,7 +353,7 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
                       color="error"
                       size="small"
                       startIcon={<DeleteIcon />}
-                      onClick={() => setDeleteId(req.id)}
+                      onClick={() => { setDeleteId(req.id); setActionError(""); }}
                     >
                       Excluir{req.status === "approved" ? " (com estorno)" : ""}
                     </Button>
@@ -491,8 +491,9 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
             setDeleteLoading(false);
           }
         }}
-        onClose={() => setDeleteId(null)}
+        onClose={() => { setDeleteId(null); setActionError(""); }}
         loading={deleteLoading}
+        error={actionError}
       />
 
       {/* ── Revert Confirmation ── */}
@@ -517,8 +518,9 @@ export default function ReembolsosAdminPage(): React.JSX.Element {
             setRevertLoading(false);
           }
         }}
-        onClose={() => setRevertId(null)}
+        onClose={() => { setRevertId(null); setActionError(""); }}
         loading={revertLoading}
+        error={actionError}
       />
 
       {/* ── Reject — ModalConfirm com campo de nota ── */}

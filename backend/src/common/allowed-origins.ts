@@ -26,7 +26,7 @@ function getAllowedOrigins(): string[] {
  * `http://localhost:3000` para evitar redirects acidentais para produção
  * durante desenvolvimento — útil enquanto o OAuth callback URL ainda é fixo
  * no GitHub OAuth App e o cookie returnTo não atravessa domínios (ver
- * docs/MULTISITE_PLAN.md §6.10).
+ * docs/plans/multisite/README.md §6.10).
  */
 function getDefaultOrigin(): string {
   if (process.env.NODE_ENV !== 'production') {

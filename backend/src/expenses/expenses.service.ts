@@ -77,9 +77,9 @@ export class ExpensesService {
     await this.ledgerService.recordTransaction(
       expense.targetProjectId,
       externalAccountId,
-      expense.amount,
+      expense.amount / 100,
       `Payment for expense: ${expense.description}`,
-      expense.id,
+      `expense:${expense.id}`,
     );
 
     expense.status = ExpenseStatus.PAID;

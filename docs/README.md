@@ -45,12 +45,24 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 
 ### Plans — Planos e RFCs
 
-| Documento | Descrição |
-|-----------|-----------|
-| [REAL_NETWORK_PLAN.md](plans/REAL_NETWORK_PLAN.md) | RFC exploratório de rede social local federada. Não implementado. |
-| [MULTISITE_PLAN.md](plans/MULTISITE_PLAN.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
-| [UPDATE_PLAN.md](plans/UPDATE_PLAN.md) | Plano de upgrades majors de dependências. |
-| [EVENT_UIUX_IMPROVEMENTS_PLAN.md](plans/EVENT_UIUX_IMPROVEMENTS_PLAN.md) | Melhorias de UI/UX do módulo de eventos (em implementação). |
+Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, quando o plano é executado por etapas, um `MAP.md` + design docs por camada, como em `events-sync-improvements/`).
+
+| Pasta | Descrição |
+|-------|-----------|
+| [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
+| [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
+| [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
+| [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |
+| [event-uiux-improvements/](plans/event-uiux-improvements/README.md) | Melhorias de UI/UX do módulo de eventos (em implementação). |
+| [events-sync-improvements/](plans/events-sync-improvements/MAP.md) | Melhorias do fluxo banco → sync → Git → site (Camadas 1–2 implementadas; Camada 3 em design). |
+
+### Superpowers — Specs e plans do workflow de desenvolvimento
+
+Arquivos datados gerados pelo processo de specs/plans do superpowers. Servem de histórico/arquivo; o estado corrente sempre está em `adrs/`, `modules/` ou `plans/`.
+
+| Data | Documento |
+|------|-----------|
+| 2026-08-17 | [Spec — site da comunidade DevParaná](superpowers/specs/2026-08-17-devparana-community-site-design.md) · [Plan](superpowers/plans/2026-08-17-devparana-community-site-plan.md) |
 
 ---
 
@@ -58,4 +70,4 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 
 - **ADRs**: use o formato `NNNN-titulo-curto.md`, com header padronizado (contexto, decisão, consequências, data).
 - **Módulos**: agrupe por domínio (`events/`, `club/`, `finance/` etc.). Um módulo pode ter `CODE_MANUAL.md`, `ROLES.md`, `ARCHITECTURE.md` etc.
-- **Plans**: mantenha o status no topo (`RFC`, `em planejamento`, `em implementação`, `congelado`).
+- **Plans**: um diretório por tópico (`plans/<topico>/`) com `README.md` como documento principal. Mantenha o status no topo (`RFC`, `em planejamento`, `em implementação`, `congelado`). Planos grandes podem ter `MAP.md` + design docs por camada dentro da pasta.

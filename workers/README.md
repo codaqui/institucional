@@ -1,6 +1,6 @@
 # `workers/` — Cloudflare Workers para domínios próprios das comunidades
 
-> Cada comunidade parceira que ganha **domínio próprio** (ex: `tisocial.org.br`) usa um Cloudflare Worker como reverse-proxy. Ver **docs/MULTISITE_PLAN.md §6** para o desenho arquitetural completo.
+> Cada comunidade parceira que ganha **domínio próprio** (ex: `tisocial.org.br`) usa um Cloudflare Worker como reverse-proxy. Ver **docs/plans/multisite/README.md §6** para o desenho arquitetural completo.
 
 ## Estrutura
 
@@ -30,7 +30,7 @@ Browser ── tisocial.org.br/<api-path>      ──proxy──► api.codaqui.
 Browser ── tisocial.org.br/<other>         ──proxy──► codaqui.dev/<other>   (pass-through)
 ```
 
-Onde `<api-path>` é `/api/*`, `/auth/*`, `/stripe/*`, `/ledger/*`, `/members/*`.
+Onde `<api-path>` é qualquer rota do backend: `/api/*`, `/auth/github|me|logout|finalize`, `/stripe/*`, `/ledger/*`, `/members/*`, `/events/*`, `/reimbursements/*`, `/companies/*`, `/club/*`, `/vendors/*`, `/account-transfers/*`, `/admin/*`, `/notifications/*` (mais `/health` e `/docs`). A lista vive em `API_PREFIXES`/`API_EXACT_PATHS` em `workers/shared/index.js` e é validada contra os controllers do backend. Nota: `/auth/callback` **não** é proxy — é página do Docusaurus que finaliza o OAuth.
 
 **Por que pass-through (e não rewrite de path):** Docusaurus é SPA. O React Router renderiza páginas com base em `window.location.pathname`. Se reescrevêssemos `/comunidades/tisocial/foo` para `/foo` no browser, o roteador procuraria a rota `/foo` (que não existe pra T.I. Social) e renderizaria a home da Codaqui. Pass-through preserva o pathname original, garantindo que o SPA carregue a página correta. O redirect inicial em `/` dá ao usuário um entrypoint limpo (`tisocial.org.br` → home da T.I. Social).
 
@@ -44,7 +44,7 @@ Cookies do backend ficam **first-party** em `tisocial.org.br` automaticamente, s
 
 | Comando | O que faz |
 |---------|-----------|
-| `npm run worker:dev:tisocial` | Sobe Worker localmente em `http://tisocial.localhost:8787`. Requer Docusaurus em `:3030` e backend em `:3001`. |
+| `npm run worker:dev:tisocial` | Sobe Worker localmente em `http://tisocial.localhost:8787`. **⚠️ Roda wrangler no host**, mas o `wrangler.dev.toml` aponta para os hostnames do compose (`docusaurus:3000`, `backend:3000`), que só resolvem dentro da rede Docker — ver "Testando localmente" abaixo. |
 | `npm run worker:deploy:tisocial` | Faz deploy do Worker em produção (route `tisocial.org.br/*`). Requer credenciais Cloudflare configuradas. |
 
 ## Setup de credenciais Cloudflare
@@ -75,24 +75,28 @@ Token mínimo: `Account → Workers Scripts → Edit` + `Zone → DNS → Edit` 
 
 ## Testando localmente — fluxo completo
 
+**Caminho suportado: via compose.** O `compose.yaml` já inclui um serviço `worker-<slug>` por comunidade (imagem `workers/Dockerfile`), que sobe o wrangler **dentro da rede Docker** — onde os hostnames `docusaurus:3000` / `backend:3000` do `wrangler.dev.toml` resolvem:
+
 ```bash
-# Terminal 1: stack inteira via Podman Compose
 make up-build
 #   → Docusaurus em localhost:3000
 #   → Backend NestJS em localhost:3001
-#   → Postgres + Stripe CLI etc.
-
-# Terminal 2: Worker (proxy reverso)
-npm run worker:dev:tisocial
-#   → http://tisocial.localhost:8787
-
-# Abrir http://tisocial.localhost:8787 no browser:
-# - Home da T.I. Social com URL "limpa" (sem /comunidades/tisocial)
-# - Estáticos vêm de localhost:3000
-# - /api, /auth, /stripe, /ledger, /members vão pra localhost:3001
+#   → Workers: tisocial.localhost:8787, elasnocodigo.localhost:8788, devparana.localhost:8789
 ```
 
-> **⚠️ Limitação atual em dev:** o backend no compose tem `FRONTEND_URL=http://localhost:3000` fixo. OAuth/Stripe callbacks caem no Docusaurus, não no Worker. Pra testar o fluxo whitelabel inteiro localmente, é necessário implementar as mudanças de backend descritas em `docs/MULTISITE_PLAN.md §6` (OAuthState com `returnTo` + `ALLOWED_AUTH_RETURN_HOSTS`).
+Abrir `http://tisocial.localhost:8787` no browser:
+- Home da T.I. Social com URL "limpa" (sem /comunidades/tisocial)
+- Estáticos vêm do container `docusaurus:3000`
+- Rotas de API (`/auth`, `/stripe`, `/ledger`, `/members`, `/events`, etc.) vão para `backend:3000`
+
+**Alternativa no host:** `npm run worker:dev:<slug>` executa o wrangler fora do Docker e, com o `wrangler.dev.toml` atual, falha ao resolver `docusaurus`/`backend`. Para rodar no host, sobrescreva as vars apontando para as portas publicadas pelo compose (`3000` Docusaurus, `3001` backend — ver `compose.yaml`):
+
+```bash
+npx wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787 \
+  --var STATIC_ORIGIN:http://localhost:3000 --var API_ORIGIN:http://localhost:3001
+```
+
+> **⚠️ Limitação atual em dev:** o backend no compose tem `FRONTEND_URL=http://localhost:3000` fixo. OAuth/Stripe callbacks caem no Docusaurus, não no Worker. Pra testar o fluxo whitelabel inteiro localmente, é necessário implementar as mudanças de backend descritas em `docs/plans/multisite/README.md §6` (OAuthState com `returnTo` + `ALLOWED_AUTH_RETURN_HOSTS`).
 
 ## Quando NÃO usar Worker
 

@@ -9,7 +9,8 @@ interface EventOverrideBadgeProps {
 
 /**
  * Chip exibido quando um evento tem metadados verificados/corrigidos
- * por um organizador (override versionado em static/events).
+ * por um organizador (override editado via painel admin e persistido
+ * no backend, tabela event_overrides).
  */
 export default function EventOverrideBadge({
   override,

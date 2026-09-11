@@ -173,8 +173,15 @@ function LoggedInIdentity({ user, accentColor, onCompanyClick }: {
     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 3, flexWrap: "wrap" }}>
       <IdentityHandleChip user={user} sx={{ borderColor: accentColor ?? "primary.main", color: accentColor ?? "primary.main", fontWeight: 600, "& .MuiChip-avatar": { ml: 0.5 } }} />
       {onCompanyClick && (
-        <Button size="small" variant="outlined" startIcon={<BusinessIcon />} onClick={onCompanyClick} sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.82rem" }}>
-          Empresa →
+        <Button
+          size="medium"
+          variant="contained"
+          color="secondary"
+          startIcon={<BusinessIcon />}
+          onClick={onCompanyClick}
+          sx={{ textTransform: "none", fontWeight: 700, boxShadow: 2 }}
+        >
+          Sou empresa e quero apoiar
         </Button>
       )}
     </Box>
@@ -274,8 +281,9 @@ function AmountSection({ amount, setAmount, isLoggedIn, disableAuth, accentColor
   );
 }
 
-function SummaryCard({ selected, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, accentColor, accentColorDark }: {
+function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, accentColor, accentColorDark }: {
   readonly selected: { emoji: string; name: string };
+  readonly mode: DonationMode;
   readonly modeConfig: { label: string };
   readonly isRecurring: boolean;
   readonly amountLabel: string;
@@ -312,7 +320,7 @@ function SummaryCard({ selected, modeConfig, isRecurring, amountLabel, isLoggedI
             requiresLogin={requiresLogin}
             loading={loading}
             isRecurring={isRecurring}
-            mode={modeConfig.label as never}
+            mode={mode}
             amountLabel={amountLabel}
             handleDonate={handleDonate}
             accentColor={accentColor}
@@ -397,7 +405,7 @@ function DonationForm({
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <SummaryCard
-          selected={selected} modeConfig={modeConfig} isRecurring={isRecurring} amountLabel={amountLabel}
+          selected={selected} mode={mode} modeConfig={modeConfig} isRecurring={isRecurring} amountLabel={amountLabel}
           isLoggedIn={isLoggedIn} requiresLogin={requiresLogin} loading={loading} handleDonate={handleDonate}
           accentColor={accentColor} accentColorDark={accentColorDark}
         />

@@ -24,7 +24,7 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../hooks/useAuth";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminPageContainer from "../../components/AdminPageContainer";
-import { parseAuthJson } from "../../hooks/authFetchHelpers";
+import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
 import { formatDocument, stripToDigits } from "../../utils/document";
 
@@ -153,11 +153,15 @@ export default function FornecedoresPage(): React.JSX.Element {
     if (!deleteId) return;
     setDeleteLoading(true);
     try {
-      await authFetch(`${apiUrl}/vendors/${deleteId}`, { method: "DELETE" });
+      const res = await authFetch(`${apiUrl}/vendors/${deleteId}`, { method: "DELETE" });
+      if (!res.ok) {
+        setError(await extractErrorMessage(res, "Erro ao desativar fornecedor."));
+        return;
+      }
       setDeleteId(null);
       fetchVendors();
     } catch {
-      setDeleteId(null);
+      setError("Erro inesperado ao desativar fornecedor.");
     } finally {
       setDeleteLoading(false);
     }
@@ -324,6 +328,7 @@ export default function FornecedoresPage(): React.JSX.Element {
           onConfirm={handleDelete}
           onClose={() => setDeleteId(null)}
           loading={deleteLoading}
+          error={error}
         />
       </AdminPageContainer>
     </Layout>

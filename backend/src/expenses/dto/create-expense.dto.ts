@@ -1,6 +1,6 @@
 import {
   IsString,
-  IsNumber,
+  IsInt,
   IsUUID,
   IsOptional,
   IsUrl,
@@ -13,8 +13,9 @@ export class CreateExpenseDto {
   @MaxLength(500)
   description: string;
 
-  @IsNumber()
-  @Min(0.01)
+  /** valor em centavos (int) — mesma convenção de vendors */
+  @IsInt()
+  @Min(1)
   amount: number;
 
   @IsUUID()

@@ -146,6 +146,7 @@ export default function EventosCheckinPage(): React.JSX.Element {
   const [result, setResult] = useState<CheckinResult | null>(null);
 
   const [cameraActive, setCameraActive] = useState(false);
+  const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraError, setCameraError] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -334,6 +335,8 @@ export default function EventosCheckinPage(): React.JSX.Element {
   }, []);
 
   const startCamera = useCallback(async () => {
+    if (cameraStarting) return;
+    setCameraStarting(true);
     setCameraError("");
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -381,8 +384,10 @@ export default function EventosCheckinPage(): React.JSX.Element {
         "Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a busca manual.",
       );
       stopCamera();
+    } finally {
+      setCameraStarting(false);
     }
-  }, [handleCheckin, stopCamera]);
+  }, [handleCheckin, stopCamera, cameraStarting]);
 
   // Libera a câmera ao desmontar ou trocar de evento
   useEffect(() => stopCamera, [stopCamera, selectedEventId]);
@@ -511,10 +516,11 @@ export default function EventosCheckinPage(): React.JSX.Element {
                     variant={cameraActive ? "outlined" : "contained"}
                     color={cameraActive ? "error" : "primary"}
                     size="large"
+                    disabled={cameraStarting}
                     startIcon={cameraActive ? <StopCircleIcon /> : <VideocamIcon />}
                     onClick={cameraActive ? stopCamera : startCamera}
                   >
-                    {cameraActive ? "Parar câmera" : "Ativar câmera"}
+                    {cameraActive ? "Parar câmera" : cameraStarting ? "Ativando..." : "Ativar câmera"}
                   </Button>
                 </CardContent>
               </Card>
@@ -621,7 +627,7 @@ export default function EventosCheckinPage(): React.JSX.Element {
                               <Typography variant="caption" color="text.secondary" display="block">
                                 {reg.ticketType?.name ?? "Ingresso"}
                                 {reg.order &&
-                                  ` · ${formatOrderStatus(reg.order.status)} · ${formatDateTime(reg.order.paidAt)}`}
+                                  ` · ${formatOrderStatus(reg.order.status)}${reg.order.paidAt ? ` · ${formatDateTime(reg.order.paidAt)}` : ""}`}
                               </Typography>
                             </Box>
                             {reg.checkedInAt ? (

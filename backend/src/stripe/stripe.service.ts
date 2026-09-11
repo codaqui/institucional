@@ -261,6 +261,10 @@ export class StripeService {
     const safePath = this.sanitizeReturnPath(params.returnPath ?? '/eventos');
     const uiMode = params.uiMode ?? 'hosted';
 
+    const expiresAt = await this.resolveEventOrderExpiresAt(
+      params.metadata.orderId,
+    );
+
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       line_items: [
         {
@@ -280,6 +284,7 @@ export class StripeService {
       mode: 'payment',
       metadata: params.metadata,
       payment_method_configuration: process.env.STRIPE_PMC_ID || undefined,
+      ...(expiresAt && { expires_at: expiresAt }),
       ...(params.email && { customer_email: params.email }),
       ...(uiMode === 'embedded_page'
         ? {
@@ -298,6 +303,28 @@ export class StripeService {
       return { sessionId: session.id, clientSecret: session.client_secret };
     }
     return { sessionId: session.id, url: session.url };
+  }
+
+  /**
+   * Alinha a expiração da sessão à da order (janela de reserva de quota):
+   * sem isso a sessão valeria 24h e um pagamento após a expiração da order
+   * viraria dinheiro sem ingresso (webhook ignora order expirada).
+   *
+   * A Stripe exige expires_at entre 30min e 24h após a criação da sessão.
+   * Como a order expira em exatos 30min e a sessão é criada alguns instantes
+   * depois, aplicamos o mínimo aceito quando a janela restante for menor —
+   * divergência residual de segundos, mitigada pelo guard de status do webhook.
+   */
+  private async resolveEventOrderExpiresAt(
+    orderId: string | undefined,
+  ): Promise<number | undefined> {
+    if (!orderId) return undefined;
+    const order = await this.eventOrderRepo.findOneBy({ id: orderId });
+    if (!order?.expiresAt) return undefined;
+    const MIN_SESSION_EXPIRATION_SECONDS = 30 * 60;
+    const minEpoch =
+      Math.floor(Date.now() / 1000) + MIN_SESSION_EXPIRATION_SECONDS;
+    return Math.max(Math.floor(order.expiresAt.getTime() / 1000), minEpoch);
   }
 
   /**
@@ -347,8 +374,18 @@ export class StripeService {
 
     switch (event.type) {
       case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded':
         await this.handleCheckoutCompleted(event.data.object);
         break;
+      case 'checkout.session.async_payment_failed': {
+        const session = event.data.object;
+        this.logger.warn(
+          `Pagamento assíncrono falhou: session ${session.id}${
+            session.metadata?.orderId ? ` | order ${session.metadata.orderId}` : ''
+          }`,
+        );
+        break;
+      }
       case 'invoice.payment_succeeded':
         await this.handleInvoicePaymentSucceeded(event.data.object);
         break;
@@ -378,6 +415,15 @@ export class StripeService {
    * invoice.payment_succeeded (cobranças seguintes).
    */
   private async handleCheckoutCompleted(session: Stripe.Checkout.Session) {
+    // Métodos assíncronos (boleto/Pix) disparam completed ainda sem pagamento;
+    // o registro acontece em checkout.session.async_payment_succeeded.
+    if (session.payment_status === 'unpaid') {
+      this.logger.log(
+        `checkout.session.completed com payment_status=unpaid (session ${session.id}) — aguardando async_payment_succeeded`,
+      );
+      return;
+    }
+
     // Branch Fase 2: venda de ingressos de eventos próprios
     if (session.metadata?.entityType === 'event-ticket') {
       await this.handleEventTicketCheckoutCompleted(session);
@@ -768,6 +814,8 @@ export class StripeService {
    * e registra a receita no ledger (`event-ticket:<orderId>`).
    *
    * Idempotente: order já paid → ignora; ledger dedup pelo referenceId.
+   * Se algum efeito falhar após o claim do status, a order volta para
+   * PENDING — o retry do Stripe reprocessa e completa os efeitos.
    */
   private async handleEventTicketCheckoutCompleted(
     session: Stripe.Checkout.Session,
@@ -775,18 +823,31 @@ export class StripeService {
     const order = await this.prepareEventOrderForPayment(session);
     if (!order) return;
 
-    const attendees = this.parseAttendeesFromSession(session, order);
-    const payerId = order.payerMemberId ?? order.memberId;
-    const registrations = await this.saveEventTicketRegistrations(
-      order,
-      attendees,
-      payerId,
-    );
-    await this.sendRegistrationConfirmations(order, registrations);
+    try {
+      const attendees = this.parseAttendeesFromSession(session, order);
+      const payerId = order.payerMemberId ?? order.memberId;
+      const registrations = await this.saveEventTicketRegistrations(
+        order,
+        attendees,
+        payerId,
+      );
+      await this.sendRegistrationConfirmations(order, registrations);
 
-    // Ledger: conta externa Stripe → conta da comunidade dona do evento
-    const { communityId } = session.metadata ?? {};
-    await this.recordEventTicketTransaction(order, communityId);
+      // Ledger: conta externa Stripe → conta da comunidade dona do evento
+      const { communityId } = session.metadata ?? {};
+      await this.recordEventTicketTransaction(order, communityId);
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.error(
+        `event-ticket: falha nos efeitos pós-pagamento da order ${order.id} — revertendo para pending: ${message}`,
+      );
+      await this.eventOrderRepo.update(
+        { id: order.id, status: OrderStatus.PAID },
+        { status: OrderStatus.PENDING, stripePaymentIntentId: null, paidAt: null },
+      );
+      throw error;
+    }
   }
 
   private async prepareEventOrderForPayment(
@@ -820,10 +881,29 @@ export class StripeService {
       return null;
     }
 
+    // Claim atômico (WHERE status='pending'): entregas concorrentes do webhook
+    // não executam os efeitos em duplicidade — só quem transicionar prossegue.
+    const paymentIntentId = this.resolveSessionPaymentIntentId(session);
+    const paidAt = new Date();
+    const claimed = await this.eventOrderRepo.update(
+      { id: order.id, status: OrderStatus.PENDING },
+      {
+        status: OrderStatus.PAID,
+        stripePaymentIntentId: paymentIntentId,
+        paidAt,
+      },
+    );
+    if (!claimed.affected) {
+      this.logger.debug(
+        `event-ticket: order ${orderId} já reclamada por outra entrega — ignorando`,
+      );
+      return null;
+    }
+
     order.status = OrderStatus.PAID;
-    order.stripePaymentIntentId = this.resolveSessionPaymentIntentId(session);
-    order.paidAt = new Date();
-    return this.eventOrderRepo.save(order);
+    order.stripePaymentIntentId = paymentIntentId;
+    order.paidAt = paidAt;
+    return order;
   }
 
   private async saveEventTicketRegistrations(
@@ -831,6 +911,12 @@ export class StripeService {
     attendees: Array<{ name: string; email: string }>,
     payerId: string | null,
   ): Promise<EventRegistration[]> {
+    // Dedup para o retry pós-falha: se a order já tem registrations, reutiliza
+    const existing = await this.eventRegistrationRepo.findBy({
+      orderId: order.id,
+    });
+    if (existing.length > 0) return existing;
+
     const registrations: EventRegistration[] = [];
     for (const attendee of attendees) {
       // Tenta vincular o ingresso a uma conta existente pelo e-mail do participante
@@ -1416,19 +1502,40 @@ export class StripeService {
   }
 
   private resolveInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
-    const invoiceAny = invoice as any;
-    if (typeof invoiceAny.subscription === 'string') {
-      return invoiceAny.subscription;
-    }
-    return invoiceAny.subscription?.id ?? null;
+    // API dahlia: subscription vive em parent.subscription_details; versões
+    // antigas da API expunham invoice.subscription top-level.
+    const subscription =
+      invoice.parent?.subscription_details?.subscription ??
+      (
+        invoice as unknown as {
+          subscription?: string | Stripe.Subscription | null;
+        }
+      ).subscription;
+    if (typeof subscription === 'string') return subscription;
+    return subscription?.id ?? null;
   }
 
   private resolveInvoicePaymentIntentId(invoice: Stripe.Invoice): string {
-    const invoiceAny = invoice as any;
-    if (typeof invoiceAny.payment_intent === 'string') {
-      return invoiceAny.payment_intent;
+    // API dahlia: PI vive em invoice.payments (InvoicePayment); versões
+    // antigas da API expunham invoice.payment_intent top-level.
+    const legacy = (
+      invoice as unknown as {
+        payment_intent?: string | Stripe.PaymentIntent | null;
+      }
+    ).payment_intent;
+    if (typeof legacy === 'string') return legacy;
+    if (legacy?.id) return legacy.id;
+
+    for (const invoicePayment of invoice.payments?.data ?? []) {
+      const pi = invoicePayment.payment?.payment_intent;
+      if (typeof pi === 'string') return pi;
+      if (pi?.id) return pi.id;
     }
-    return invoiceAny.payment_intent?.id ?? invoice.id;
+
+    this.logger.warn(
+      `invoice ${invoice.id} sem payment_intent resolvível — usando invoice.id como referenceId`,
+    );
+    return invoice.id;
   }
 
   private async resolveCompanyName(

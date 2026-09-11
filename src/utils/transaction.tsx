@@ -85,15 +85,33 @@ export const formatDate = (iso: string) =>
     minute: "2-digit",
   });
 
+// Aceita formatos pt-BR ("1.234,56") e US ("1234.56") e retorna o valor em
+// reais com no máximo 2 casas. Retorna null para vazio/inválido/negativo.
+export function parseBrlInput(raw: string): number | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  const normalized = trimmed.includes(",")
+    ? trimmed.replaceAll(".", "").replace(",", ".")
+    : trimmed;
+  if (!/^\d+(\.\d+)?$/.test(normalized)) return null;
+  return Math.round(Number(normalized) * 100) / 100;
+}
+
 // ---------------------------------------------------------------------------
 // Transaction type detection
 // ---------------------------------------------------------------------------
 
-export type TxType = "donation" | "donation-business" | "reimbursement" | "transfer" | "vendor-payment" | "vendor-receipt" | "refund" | "stripe-fee" | "event-ticket" | "event-ticket-refund" | "other";
+export type TxType = "donation" | "donation-business" | "reimbursement" | "reimbursement-reversal" | "transfer" | "vendor-payment" | "vendor-payment-reversal" | "vendor-receipt" | "vendor-receipt-reversal" | "refund" | "stripe-fee" | "event-ticket" | "event-ticket-refund" | "other";
 
+// ⚠️ Ordenado do mais específico para o menos específico (startsWith):
+// reversals/deletions precisam vir ANTES do prefixo base correspondente.
 const REFERENCE_PREFIX_TYPES: Array<{ prefix: string; type: TxType }> = [
+  { prefix: "reimbursement-reversal:", type: "reimbursement-reversal" },
+  { prefix: "reimbursement-deletion:", type: "reimbursement-reversal" },
   { prefix: "reimbursement:", type: "reimbursement" },
+  { prefix: "vendor-payment-reversal:", type: "vendor-payment-reversal" },
   { prefix: "vendor-payment:", type: "vendor-payment" },
+  { prefix: "vendor-receipt-reversal:", type: "vendor-receipt-reversal" },
   { prefix: "vendor-receipt:", type: "vendor-receipt" },
   { prefix: "transfer:", type: "transfer" },
   { prefix: "stripe-fee:", type: "stripe-fee" },
@@ -143,8 +161,11 @@ export const TX_TYPE_CONFIG: Record<
   donation: { label: "Doação", color: "success", icon: <VolunteerActivismIcon fontSize="small" /> },
   "donation-business": { label: "Doação Empresarial", color: "success", icon: <BusinessIcon fontSize="small" /> },
   reimbursement: { label: "Reembolso", color: "warning", icon: <ReceiptLongIcon fontSize="small" /> },
+  "reimbursement-reversal": { label: "Estorno de Reembolso", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   "vendor-payment": { label: "Pagamento a Fornecedor", color: "secondary", icon: <StorefrontIcon fontSize="small" /> },
+  "vendor-payment-reversal": { label: "Estorno de Pagamento a Fornecedor", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   "vendor-receipt": { label: "Recebimento de Fornecedor", color: "success", icon: <CallReceivedIcon fontSize="small" /> },
+  "vendor-receipt-reversal": { label: "Estorno de Recebimento de Fornecedor", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   transfer: { label: "Transferência Interna", color: "info", icon: <CompareArrowsIcon fontSize="small" /> },
   refund: { label: "Estorno de Doação", color: "error", icon: <KeyboardReturnIcon fontSize="small" /> },
   "stripe-fee": { label: "Taxa Stripe", color: "warning", icon: <MoneyOffIcon fontSize="small" /> },
