@@ -7,6 +7,7 @@ import {
   IsString,
   IsUrl,
   Matches,
+  MaxLength,
   Min,
 } from 'class-validator';
 
@@ -46,6 +47,11 @@ export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   summary: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
+  description?: string;
 
   @IsOptional()
   @IsUrl(
@@ -94,6 +100,11 @@ export class UpdateEventDto {
   @IsString()
   @IsNotEmpty()
   summary?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10000)
+  description?: string;
 
   @IsOptional()
   @IsUrl(

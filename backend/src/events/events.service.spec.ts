@@ -33,6 +33,7 @@ const makeEvent = (overrides: Record<string, unknown> = {}) => ({
   slug: 'evento-x',
   title: 'Evento X',
   summary: 'Resumo',
+  description: null,
   imageUrl: null,
   location: 'Maringá',
   startAt: new Date(Date.now() + 7 * 24 * 3600_000),
@@ -244,6 +245,26 @@ describe('EventsService', () => {
         userCount: 3,
       });
     });
+
+    it('inclui description quando presente e omite quando null', async () => {
+      eventRepo.find.mockResolvedValue([
+        makeEvent({ description: 'Texto longo\ncom quebras' }),
+        makeEvent({ id: uuid(11) }),
+      ]);
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+
+      const { events } = await service.getPublicManagedEvents();
+
+      expect(events[0].description).toBe('Texto longo\ncom quebras');
+      expect(events[1]).not.toHaveProperty('description');
+    });
   });
 
   describe('getPublicManagedEvent', () => {
@@ -255,6 +276,16 @@ describe('EventsService', () => {
       expect(eventRepo.findOneBy).toHaveBeenCalledWith(
         expect.objectContaining({ status: ManagedEventStatus.PUBLISHED }),
       );
+    });
+
+    it('serializa description quando presente', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ description: 'Texto longo do evento' }),
+      );
+
+      const { event } = await service.getPublicManagedEvent(uuid(10));
+
+      expect(event.description).toBe('Texto longo do evento');
     });
   });
 
@@ -929,6 +960,84 @@ describe('EventsService', () => {
       await expect(
         service.updateEvent(uuid(10), { capacity: 100 }, adminUser),
       ).resolves.toBeDefined();
+    });
+  });
+
+  describe('createEvent — description', () => {
+    const baseDto = {
+      slug: 'evento-y',
+      title: 'Evento Y',
+      summary: 'Resumo',
+      location: 'Maringá',
+      startAt: '2026-10-01T19:00',
+      communityProjectKey: 'devparana',
+    };
+
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(null); // slug livre
+    });
+
+    it('persiste description informada', async () => {
+      await service.createEvent(
+        { ...baseDto, description: 'Texto longo\ncom quebras' },
+        adminUser,
+      );
+
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          description: 'Texto longo\ncom quebras',
+        }),
+      );
+    });
+
+    it('description ausente → null', async () => {
+      await service.createEvent(baseDto, adminUser);
+
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ description: null }),
+      );
+    });
+  });
+
+  describe('updateEvent — description', () => {
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+    });
+
+    it('altera description', async () => {
+      await service.updateEvent(
+        uuid(10),
+        { description: 'Novo texto longo' },
+        adminUser,
+      );
+
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ description: 'Novo texto longo' }),
+      );
+    });
+
+    it('string vazia limpa o campo (→ null)', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ description: 'Texto antigo' }),
+      );
+
+      await service.updateEvent(uuid(10), { description: '' }, adminUser);
+
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ description: null }),
+      );
+    });
+
+    it('description omitida no DTO não altera o valor atual', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ description: 'Texto antigo' }),
+      );
+
+      await service.updateEvent(uuid(10), { title: 'Só título' }, adminUser);
+
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ description: 'Texto antigo' }),
+      );
     });
   });
 

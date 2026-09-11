@@ -305,6 +305,7 @@ export class EventsService {
       id: event.id,
       title: event.title,
       summary: event.summary,
+      ...(event.description && { description: event.description }),
       startAt: new Date(event.startAt).toISOString(),
       ...(event.endAt && { endAt: new Date(event.endAt).toISOString() }),
       timezone: event.timezone,
@@ -384,6 +385,7 @@ export class EventsService {
       slug: event.slug,
       title: event.title,
       summary: event.summary,
+      description: event.description,
       imageUrl: event.imageUrl,
       location: event.location,
       startAt: event.startAt,
@@ -669,6 +671,7 @@ export class EventsService {
         slug: dto.slug,
         title: dto.title,
         summary: dto.summary,
+        description: dto.description ?? null,
         imageUrl: dto.imageUrl ?? null,
         location: dto.location,
         startAt: parseDateTimeLocal(dto.startAt, tz),
@@ -690,6 +693,8 @@ export class EventsService {
 
     if (dto.title !== undefined) event.title = dto.title;
     if (dto.summary !== undefined) event.summary = dto.summary;
+    if (dto.description !== undefined)
+      event.description = dto.description || null;
     if (dto.imageUrl !== undefined) event.imageUrl = dto.imageUrl;
     if (dto.location !== undefined) event.location = dto.location;
     const tz = dto.timezone ?? event.timezone;
