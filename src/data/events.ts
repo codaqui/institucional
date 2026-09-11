@@ -37,6 +37,8 @@ export interface EventItem {
   id: string;
   title: string;
   summary: string;
+  /** Descrição longa opcional; presente em eventos internos que a preencham. */
+  description?: string;
   startAt: string;
   endAt?: string;
   timezone: string;

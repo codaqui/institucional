@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import AdminEventosPage from "../eventos";
 import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
 import { jsonResponse } from "../../../test-utils/http";
@@ -165,7 +165,11 @@ describe("/admin/eventos", () => {
 
     // Expande o accordion para revelar as ações
     fireEvent.click(screen.getByText("Evento Teste"));
-    fireEvent.click(await screen.findByRole("button", { name: /Publicar/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Publicar$/i }));
+
+    // Confirma a publicação no modal
+    const dialog = await screen.findByRole("dialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: /^Publicar$/i }));
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(
@@ -176,7 +180,7 @@ describe("/admin/eventos", () => {
 
     // Feedback de sucesso com link para a página pública do evento
     expect(await screen.findByText(/publicado com sucesso/i)).toBeInTheDocument();
-    const publicLinks = screen.getAllByRole("link", { name: /Ver página pública/i });
+    const publicLinks = await screen.findAllByRole("link", { name: /Ver página pública/i });
     expect(publicLinks.length).toBeGreaterThanOrEqual(1);
     for (const link of publicLinks) {
       expect(link).toHaveAttribute(
@@ -202,6 +206,102 @@ describe("/admin/eventos", () => {
 
     expect(
       await screen.findByText(/Preencha slug, título, resumo e local/i),
+    ).toBeInTheDocument();
+  });
+
+  it("edição envia PATCH sem slug no payload e com a descrição", async () => {
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ description: "Texto longo do evento" })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
+        return jsonResponse(buildEvent());
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar$/i }));
+
+    // Slug fica bloqueado no modo edição
+    expect(screen.getByLabelText(/^Slug/)).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    await waitFor(() => {
+      const patchCall = authFetch.mock.calls.find(
+        ([url, options]: [string, RequestInit?]) =>
+          url.endsWith("/events/evt-1") && options?.method === "PATCH",
+      );
+      expect(patchCall).toBeDefined();
+      const body = JSON.parse(patchCall![1]!.body as string);
+      expect(body).not.toHaveProperty("slug");
+      expect(body.description).toBe("Texto longo do evento");
+    });
+  });
+
+  it("rejeita slug inválido no create antes de chamar o backend", async () => {
+    const authFetch = createAuthFetchMock();
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Novo evento/i }));
+    fireEvent.change(screen.getByLabelText(/^Slug/), { target: { value: "Slug Inválido" } });
+    fireEvent.change(screen.getByLabelText(/^Título/), { target: { value: "Evento" } });
+    fireEvent.change(screen.getByLabelText(/^Resumo/), { target: { value: "Resumo" } });
+    fireEvent.change(screen.getByLabelText(/^Local/), { target: { value: "Maringá" } });
+    fireEvent.change(screen.getByLabelText(/^Início/), { target: { value: "2026-08-10T13:00" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    expect(
+      await screen.findByText(/Slug inválido: use letras minúsculas/i),
+    ).toBeInTheDocument();
+    expect(authFetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("/events"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("rejeita fuso horário fora da lista no create", async () => {
+    const authFetch = createAuthFetchMock();
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByRole("button", { name: /Novo evento/i }));
+    fireEvent.change(screen.getByLabelText(/^Slug/), { target: { value: "evento-valido" } });
+    fireEvent.change(screen.getByLabelText(/^Título/), { target: { value: "Evento" } });
+    fireEvent.change(screen.getByLabelText(/^Resumo/), { target: { value: "Resumo" } });
+    fireEvent.change(screen.getByLabelText(/^Local/), { target: { value: "Maringá" } });
+    fireEvent.change(screen.getByLabelText(/^Início/), { target: { value: "2026-08-10T13:00" } });
+    fireEvent.change(screen.getByLabelText(/^Fuso horário/), { target: { value: "Marte/Olympus" } });
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    expect(
+      await screen.findByText(/Fuso horário inválido/i),
     ).toBeInTheDocument();
   });
 

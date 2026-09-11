@@ -1668,6 +1668,16 @@ function EventDetailContent({
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2.5 }}>
             {event.summary}
           </Typography>
+          {event.description ? (
+            <Typography
+              component="div"
+              variant="body1"
+              color="text.secondary"
+              sx={{ whiteSpace: "pre-line", mb: 2.5 }}
+            >
+              {event.description}
+            </Typography>
+          ) : null}
           {event.tags.length > 0 ? (
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {event.tags.map((tag) => (
