@@ -250,6 +250,21 @@ export class EventsController {
     return this.eventsService.cancelEvent(id, req.user);
   }
 
+  @Post(':id/reconcile-quota')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('event_organizer', 'admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({
+    summary:
+      '🔒 Reconciliar quantitySold dos lotes com registrations/orders reais',
+  })
+  reconcileQuota(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.reconcileQuota(id, req.user);
+  }
+
   @Post('orders/reconcile-ledger')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

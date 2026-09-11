@@ -918,6 +918,9 @@ export default function MyCompanySection({ companyId }: Readonly<Props>): React.
   if (!isLoggedIn) return null;
 
   if (!company) {
+    if (error) {
+      return <Alert severity="error">{error}</Alert>;
+    }
     return (
       <Alert severity="info">
         Nenhuma empresa vinculada ao seu perfil no momento. Se você acabou de ser adicionado como colaborador, atualize a página.

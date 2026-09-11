@@ -470,6 +470,157 @@ describe("/admin/eventos", () => {
     expect(screen.queryByRole("button", { name: /Lançar despesa/i })).not.toBeInTheDocument();
   });
 
+  it("editor de descrição insere sintaxe markdown via toolbar", async () => {
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ description: "Texto longo" })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
+        return jsonResponse(buildEvent());
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar$/i }));
+
+    // Sem seleção no textarea, o botão insere o placeholder com a sintaxe
+    fireEvent.click(screen.getByRole("button", { name: "negrito" }));
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    await waitFor(() => {
+      const patchCall = authFetch.mock.calls.find(
+        ([url, options]: [string, RequestInit?]) =>
+          url.endsWith("/events/evt-1") && options?.method === "PATCH",
+      );
+      expect(patchCall).toBeDefined();
+      const body = JSON.parse(patchCall![1]!.body as string);
+      expect(body.description).toContain("**texto em negrito**");
+    });
+  });
+
+  it("pré-visualização da descrição renderiza markdown", async () => {
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ description: "Veja **isto** aqui" })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar$/i }));
+    fireEvent.click(screen.getByRole("tab", { name: "Pré-visualizar" }));
+
+    const strong = await screen.findByText("isto");
+    expect(strong.tagName).toBe("STRONG");
+  });
+
+  it("recalcular vagas chama o endpoint e exibe os ajustes", async () => {
+    jest.spyOn(window, "confirm").mockReturnValue(true);
+    const ticket = {
+      id: "tt-1",
+      name: "Lote 1",
+      kind: "free",
+      priceCents: 0,
+      quantityTotal: 100,
+      quantitySold: 95,
+      salesStartAt: null,
+      salesEndAt: null,
+      maxPerOrder: 4,
+      isActive: true,
+    };
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/evt-1/reconcile-quota") && options?.method === "POST") {
+        return jsonResponse({
+          eventId: "evt-1",
+          results: [
+            { ticketTypeId: "tt-1", name: "Lote 1", before: 95, after: 92, adjusted: true },
+          ],
+        });
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /Recalcular vagas/i }));
+
+    expect(await screen.findByText("Lote 1: 95 → 92")).toBeInTheDocument();
+    expect(window.confirm).toHaveBeenCalled();
+    (window.confirm as jest.Mock).mockRestore?.();
+  });
+
+  it("recalcular vagas informa quando todos os lotes já estão consistentes", async () => {
+    jest.spyOn(window, "confirm").mockReturnValue(true);
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent()]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/evt-1/reconcile-quota") && options?.method === "POST") {
+        return jsonResponse({ eventId: "evt-1", results: [] });
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /Recalcular vagas/i }));
+
+    expect(
+      await screen.findByText("Todos os lotes já estão consistentes."),
+    ).toBeInTheDocument();
+    (window.confirm as jest.Mock).mockRestore?.();
+  });
+
   it("exibe botão Lançar despesa para admin", async () => {
     const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
     authFetch.mockImplementation(async (url: string, options?: RequestInit) => {

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, Repository } from 'typeorm';
+import { EntityManager, In, LessThan, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -251,16 +251,23 @@ export class EventsService {
    * Reserva atômica de quota — uma única instrução UPDATE com todas as
    * condições no WHERE. Se não retornar linha, o lote está esgotado (ou fora
    * da janela de vendas) e NENHUMA vaga foi consumida.
+   *
+   * Aceita um EntityManager transacional: quando chamada dentro de
+   * `repo.manager.transaction`, o UPDATE participa do mesmo commit/rollback
+   * das demais escritas (evita vazamento de quota em falhas intermediárias).
    */
   private async reserveQuota(
     ticketTypeId: string,
     quantity: number,
     enforceSalesWindow: boolean,
+    em?: EntityManager,
   ): Promise<boolean> {
     const windowClause = enforceSalesWindow
       ? 'AND ("salesStartAt" IS NULL OR "salesStartAt" <= now()) AND ("salesEndAt" IS NULL OR "salesEndAt" >= now())'
       : '';
-    const rows: Array<{ id: string }> = await this.ticketTypeRepo.query(
+    const rows: Array<{ id: string }> = await (
+      em ?? this.ticketTypeRepo
+    ).query(
       `UPDATE ticket_types
           SET "quantitySold" = "quantitySold" + $1
         WHERE id = $2 AND "isActive" ${windowClause}
@@ -275,8 +282,9 @@ export class EventsService {
   private async releaseQuota(
     ticketTypeId: string,
     quantity: number,
+    em?: EntityManager,
   ): Promise<void> {
-    await this.ticketTypeRepo.query(
+    await (em ?? this.ticketTypeRepo).query(
       `UPDATE ticket_types
           SET "quantitySold" = GREATEST("quantitySold" - $1, 0)
         WHERE id = $2`,
@@ -300,6 +308,7 @@ export class EventsService {
   private static toEventItem(
     event: ManagedEvent,
     confirmedCount: number,
+    organizers?: Array<{ name: string; id?: string; photoUrl?: string }>,
   ): Record<string, unknown> {
     return {
       id: event.id,
@@ -319,7 +328,45 @@ export class EventsService {
       status: EventsService.deriveItemStatus(event),
       ...(event.imageUrl && { imageUrl: event.imageUrl }),
       userCount: confirmedCount,
+      ...(organizers && organizers.length > 0 && { organizers }),
     };
+  }
+
+  /**
+   * Carrega os organizadores (staff com papel HOST) de vários eventos de uma
+   * vez — 1 query de staffs + 1 de members (sem N+1). Nunca expõe e-mail:
+   * shape compatível com `EventOrganizer` do frontend
+   * ({ name, id = githubHandle, photoUrl = avatarUrl }).
+   */
+  private async loadOrganizersByEvent(
+    eventIds: string[],
+  ): Promise<Map<string, Array<{ name: string; id?: string; photoUrl?: string }>>> {
+    const map = new Map<
+      string,
+      Array<{ name: string; id?: string; photoUrl?: string }>
+    >();
+    if (eventIds.length === 0) return map;
+    const hosts = await this.staffRepo.findBy({
+      eventId: In(eventIds),
+      staffRole: EventStaffRole.HOST,
+    });
+    if (hosts.length === 0) return map;
+    const members = await this.memberRepo.findBy({
+      id: In([...new Set(hosts.map((h) => h.memberId))]),
+    });
+    const memberById = new Map(members.map((m) => [m.id, m]));
+    for (const host of hosts) {
+      const member = memberById.get(host.memberId);
+      if (!member) continue;
+      const list = map.get(host.eventId) ?? [];
+      list.push({
+        name: member.name,
+        id: member.githubHandle,
+        ...(member.avatarUrl && { photoUrl: member.avatarUrl }),
+      });
+      map.set(host.eventId, list);
+    }
+    return map;
   }
 
   /** GET /events/public/managed — somente published, shape EventItem + EventSourceConfig */
@@ -332,6 +379,9 @@ export class EventsService {
       order: { startAt: 'ASC' },
     });
     const counts = await this.countConfirmedByEvent(events.map((e) => e.id));
+    const organizersByEvent = await this.loadOrganizersByEvent(
+      events.map((e) => e.id),
+    );
     return {
       source: {
         source: 'internal',
@@ -344,7 +394,11 @@ export class EventsService {
         ctaHref: '/eventos',
       },
       events: events.map((e) =>
-        EventsService.toEventItem(e, counts.get(e.id) ?? 0),
+        EventsService.toEventItem(
+          e,
+          counts.get(e.id) ?? 0,
+          organizersByEvent.get(e.id),
+        ),
       ),
     };
   }
@@ -364,8 +418,12 @@ export class EventsService {
       where: { eventId: id, isActive: true },
       order: { priceCents: 'ASC' },
     });
+    const organizers = (await this.loadOrganizersByEvent([id])).get(id);
     return {
-      event: EventsService.serializeEvent(event),
+      event: {
+        ...EventsService.serializeEvent(event),
+        ...(organizers && organizers.length > 0 && { organizers }),
+      },
       ticketTypes: ticketTypes.map((t) => ({
         id: t.id,
         name: t.name,
@@ -955,6 +1013,18 @@ export class EventsService {
       isActive: true,
     });
     if (!member) throw new NotFoundException('Membro não encontrado.');
+    // Dados de contato válidos ANTES de reservar quota — um save que falha
+    // por dados ruins não pode vazar vaga.
+    if (!member.email?.trim()) {
+      throw new BadRequestException(
+        'Complete seu e-mail no perfil antes de se inscrever.',
+      );
+    }
+    if (!member.name?.trim()) {
+      throw new BadRequestException(
+        'Complete seu nome no perfil antes de se inscrever.',
+      );
+    }
 
     // Um membro não se inscreve 2× no mesmo evento
     const duplicate = await this.registrationRepo.findOneBy({
@@ -977,23 +1047,27 @@ export class EventsService {
       }
     }
 
-    // Reserva atômica de quota (anti-oversell)
-    const reserved = await this.reserveQuota(ticketType.id, 1, false);
-    if (!reserved) {
-      throw new ConflictException('Lote esgotado.');
-    }
-
-    const registration = await this.registrationRepo.save(
-      this.registrationRepo.create({
-        eventId,
-        ticketTypeId: ticketType.id,
-        orderId: null,
-        memberId: user.sub,
-        attendeeName: member.name,
-        attendeeEmail: member.email,
-        checkinToken: randomUUID(),
-        status: RegistrationStatus.CONFIRMED,
-      }),
+    // Reserva de quota + criação da inscrição na MESMA transação: se o save
+    // falhar, o UPDATE de quota faz rollback junto (sem vazamento de vaga).
+    const registration = await this.registrationRepo.manager.transaction(
+      async (em) => {
+        const reserved = await this.reserveQuota(ticketType.id, 1, false, em);
+        if (!reserved) {
+          throw new ConflictException('Lote esgotado.');
+        }
+        return em.save(
+          em.create(EventRegistration, {
+            eventId,
+            ticketTypeId: ticketType.id,
+            orderId: null,
+            memberId: user.sub,
+            attendeeName: member.name,
+            attendeeEmail: member.email,
+            checkinToken: randomUUID(),
+            status: RegistrationStatus.CONFIRMED,
+          }),
+        );
+      },
     );
     // E-mail transacional de confirmação (nunca derruba a inscrição)
     void this.emailService
@@ -1056,10 +1130,93 @@ export class EventsService {
     }
 
     registration.status = RegistrationStatus.CANCELLED;
-    await this.registrationRepo.save(registration);
-    // Devolve a quota (GREATEST protege contra negativo)
-    await this.releaseQuota(registration.ticketTypeId, 1);
+    // Cancelamento + devolução de quota na MESMA transação: se a liberação
+    // falhar, o cancelamento faz rollback junto (quota nunca diverge).
+    await this.registrationRepo.manager.transaction(async (em) => {
+      await em.save(registration);
+      await this.releaseQuota(registration.ticketTypeId, 1, em);
+    });
     return registration;
+  }
+
+  /**
+   * POST /events/:id/reconcile-quota (event_organizer | admin)
+   *
+   * Rederiva `quantitySold` de cada lote a partir do estado real
+   * (registrations CONFIRMED + orders PENDING) e corrige drifts causados por
+   * falhas históricas fora de transação. Idempotente.
+   */
+  async reconcileQuota(
+    eventId: string,
+    user: JwtPayload,
+  ): Promise<{
+    eventId: string;
+    results: Array<{
+      ticketTypeId: string;
+      name: string;
+      before: number;
+      after: number;
+      adjusted: boolean;
+    }>;
+  }> {
+    await this.findEventOrFail(eventId);
+    EventsService.assertGlobalManager(user);
+
+    const ticketTypes = await this.ticketTypeRepo.findBy({ eventId });
+    const results: Array<{
+      ticketTypeId: string;
+      name: string;
+      before: number;
+      after: number;
+      adjusted: boolean;
+    }> = [];
+
+    for (const ticketType of ticketTypes) {
+      const confirmed = await this.registrationRepo.countBy({
+        ticketTypeId: ticketType.id,
+        status: RegistrationStatus.CONFIRMED,
+      });
+      const pendingOrders = await this.orderRepo.findBy({
+        ticketTypeId: ticketType.id,
+        status: OrderStatus.PENDING,
+      });
+      const pendingQuantity = pendingOrders.reduce(
+        (sum, order) => sum + order.quantity,
+        0,
+      );
+      const expected = confirmed + pendingQuantity;
+      const before = ticketType.quantitySold;
+      const adjusted = before !== expected;
+      if (adjusted) {
+        this.logger.warn(
+          `Quota drift no lote ${ticketType.id} (${ticketType.name}) do evento ${eventId}: quantitySold ${before} → ${expected}.`,
+        );
+        await this.ticketTypeRepo.save({
+          ...ticketType,
+          quantitySold: expected,
+        });
+      }
+      results.push({
+        ticketTypeId: ticketType.id,
+        name: ticketType.name,
+        before,
+        after: expected,
+        adjusted,
+      });
+    }
+
+    const adjustedResults = results.filter((r) => r.adjusted);
+    if (adjustedResults.length > 0) {
+      void this.auditService.log({
+        action: AuditAction.EVENT_QUOTA_RECONCILED,
+        actorId: user.sub,
+        actorHandle: user.handle,
+        targetId: eventId,
+        targetType: 'event',
+        details: { results: adjustedResults },
+      });
+    }
+    return { eventId, results };
   }
 
   /**

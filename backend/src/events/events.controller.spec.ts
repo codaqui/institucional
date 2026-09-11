@@ -66,6 +66,9 @@ describe('EventsController', () => {
       register: jest.fn().mockResolvedValue({ id: 'reg-1' }),
       checkout: jest.fn().mockResolvedValue({ url: 'https://checkout' }),
       reconcilePaidOrdersLedger: jest.fn().mockResolvedValue({ reconciled: 0 }),
+      reconcileQuota: jest
+        .fn()
+        .mockResolvedValue({ eventId: 'evt-1', results: [] }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -143,6 +146,12 @@ describe('EventsController', () => {
     it('POST /events/:id/cancel', async () => {
       const result = await controller.cancelEvent('evt-1', { user });
       expect(service.cancelEvent).toHaveBeenCalledWith('evt-1', user);
+    });
+
+    it('POST /events/:id/reconcile-quota', async () => {
+      const result = await controller.reconcileQuota('evt-1', { user });
+      expect(service.reconcileQuota).toHaveBeenCalledWith('evt-1', user);
+      expect(result).toEqual({ eventId: 'evt-1', results: [] });
     });
 
     it('POST /events/:id/ticket-types', async () => {

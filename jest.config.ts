@@ -48,12 +48,25 @@ const config: Config = {
     "src/components/**/*.{ts,tsx}",
     "src/utils/**/*.{ts,tsx}",
     "src/theme/**/*.{ts,tsx}",
+    "src/hooks/**/*.{ts,tsx}",
+    "src/lib/**/*.{ts,tsx}",
     "!src/__mocks__/**",
     "!src/**/*.d.ts",
     "!src/**/*.test.{ts,tsx}",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   transformIgnorePatterns: ["/node_modules/(?!@mui|@emotion)"],
+  // Ratchet anti-regressão: o CI (pr-check.yml) roda com --coverage e falha
+  // se a cobertura global cair abaixo destes pisos. Suba os valores sempre
+  // que a cobertura real subir (baseline 2026-09: ~66% stmts/lines, ~68% branches).
+  coverageThreshold: {
+    global: {
+      statements: 60,
+      branches: 60,
+      functions: 50,
+      lines: 60,
+    },
+  },
 };
 
 export default config;

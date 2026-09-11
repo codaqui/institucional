@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Layout from "@theme/Layout";
 import Link from "@docusaurus/Link";
 import { useHistory } from "@docusaurus/router";
@@ -26,9 +26,13 @@ import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination";
 import Select from "@mui/material/Select";
 import Stack from "@mui/material/Stack";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -38,10 +42,16 @@ import HowToRegIcon from "@mui/icons-material/HowToReg";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PublishIcon from "@mui/icons-material/Publish";
 import CancelIcon from "@mui/icons-material/Cancel";
+import FormatBoldIcon from "@mui/icons-material/FormatBold";
+import FormatItalicIcon from "@mui/icons-material/FormatItalic";
+import FormatListBulletedIcon from "@mui/icons-material/FormatListBulleted";
+import LinkIcon from "@mui/icons-material/Link";
+import TitleIcon from "@mui/icons-material/Title";
 import SyncIcon from "@mui/icons-material/Sync";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminPageContainer from "../../components/AdminPageContainer";
+import MarkdownLite from "../../components/MarkdownLite";
 import ModalConfirm from "../../components/ModalConfirm";
 import EventOrdersDialog from "../../components/EventOrdersDialog";
 import EventReimbursementDialog from "../../components/EventReimbursementDialog";
@@ -81,6 +91,25 @@ interface EventStaff {
   memberId: string;
   staffRole: EventStaffRole;
 }
+
+interface ReconcileQuotaResultItem {
+  ticketTypeId: string;
+  name: string;
+  before: number;
+  after: number;
+  adjusted: boolean;
+}
+
+interface ReconcileQuotaResponse {
+  eventId: string;
+  results: ReconcileQuotaResultItem[];
+}
+
+type ReconcileQuotaState = {
+  eventId: string;
+  severity: "success" | "error";
+  lines: string[];
+};
 
 interface ManagedEvent {
   id: string;
@@ -487,6 +516,128 @@ function HubAlerts({
   );
 }
 
+// ── Mini-editor de markdown para a descrição do evento ──────────────────────
+
+type MarkdownWrapAction = { prefix: string; suffix: string; placeholder: string };
+
+function applyMarkdownWrap(
+  value: string,
+  selectionStart: number,
+  selectionEnd: number,
+  action: MarkdownWrapAction,
+): { next: string; cursorStart: number; cursorEnd: number } {
+  const selected = value.slice(selectionStart, selectionEnd) || action.placeholder;
+  const next =
+    value.slice(0, selectionStart) + action.prefix + selected + action.suffix + value.slice(selectionEnd);
+  const cursorStart = selectionStart + action.prefix.length;
+  return { next, cursorStart, cursorEnd: cursorStart + selected.length };
+}
+
+const MARKDOWN_ACTIONS = {
+  bold: { prefix: "**", suffix: "**", placeholder: "texto em negrito" },
+  italic: { prefix: "*", suffix: "*", placeholder: "texto em itálico" },
+  link: { prefix: "[", suffix: "](https://exemplo.com)", placeholder: "texto do link" },
+  list: { prefix: "- ", suffix: "", placeholder: "item da lista" },
+  heading: { prefix: "## ", suffix: "", placeholder: "Título da seção" },
+} satisfies Record<string, MarkdownWrapAction>;
+
+function DescriptionMarkdownEditor({
+  value,
+  onChange,
+}: Readonly<{ value: string; onChange: (next: string) => void }>): React.JSX.Element {
+  const [tab, setTab] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const applyAction = useCallback(
+    (action: MarkdownWrapAction) => {
+      const el = textareaRef.current;
+      const start = el?.selectionStart ?? value.length;
+      const end = el?.selectionEnd ?? value.length;
+      const { next, cursorStart, cursorEnd } = applyMarkdownWrap(value, start, end, action);
+      onChange(next);
+      if (el) {
+        requestAnimationFrame(() => {
+          el.focus();
+          el.setSelectionRange(cursorStart, cursorEnd);
+        });
+      }
+    },
+    [value, onChange],
+  );
+
+  return (
+    <Box>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 1, minHeight: 36 }}>
+        <Tab label="Escrever" sx={{ minHeight: 36, py: 0.5, textTransform: "none" }} />
+        <Tab label="Pré-visualizar" sx={{ minHeight: 36, py: 0.5, textTransform: "none" }} />
+      </Tabs>
+      {tab === 0 ? (
+        <>
+          <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
+            <Tooltip title="Negrito">
+              <IconButton size="small" aria-label="negrito" onClick={() => applyAction(MARKDOWN_ACTIONS.bold)}>
+                <FormatBoldIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Itálico">
+              <IconButton size="small" aria-label="itálico" onClick={() => applyAction(MARKDOWN_ACTIONS.italic)}>
+                <FormatItalicIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Link">
+              <IconButton size="small" aria-label="inserir link" onClick={() => applyAction(MARKDOWN_ACTIONS.link)}>
+                <LinkIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Lista">
+              <IconButton size="small" aria-label="lista" onClick={() => applyAction(MARKDOWN_ACTIONS.list)}>
+                <FormatListBulletedIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Título">
+              <IconButton size="small" aria-label="título" onClick={() => applyAction(MARKDOWN_ACTIONS.heading)}>
+                <TitleIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+          <TextField
+            label="Descrição (opcional)"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            size="small"
+            fullWidth
+            multiline
+            minRows={6}
+            inputRef={textareaRef}
+          />
+        </>
+      ) : (
+        <Box
+          sx={{
+            border: "1px solid",
+            borderColor: "divider",
+            borderRadius: 1,
+            p: 2,
+            minHeight: 140,
+          }}
+        >
+          {value.trim() ? (
+            <MarkdownLite text={value} />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              Nada para pré-visualizar.
+            </Typography>
+          )}
+        </Box>
+      )}
+      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.5 }}>
+        Texto longo exibido na página pública do evento. Suporta **negrito**, *itálico*,
+        [links](https://…), listas e títulos ##.
+      </Typography>
+    </Box>
+  );
+}
+
 interface HubFiltersProps {
   search: string;
   showInternos: boolean;
@@ -706,6 +857,10 @@ interface InternalEventAccordionProps {
   onDeactivateTicket: (ticket: TicketType) => void;
   onAddStaff: (event: ManagedEvent) => void;
   onRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
+  onReconcileQuota: (event: ManagedEvent) => void;
+  reconcileLoadingId: string | null;
+  reconcileResult: ReconcileQuotaState | null;
+  onDismissReconcileResult: () => void;
   publishingId: string | null;
   staffAddingId: string | null;
   staffRemovingId: string | null;
@@ -729,6 +884,10 @@ function InternalEventAccordion({
   onDeactivateTicket,
   onAddStaff,
   onRemoveStaff,
+  onReconcileQuota,
+  reconcileLoadingId,
+  reconcileResult,
+  onDismissReconcileResult,
   publishingId,
   staffAddingId,
   staffRemovingId,
@@ -827,18 +986,36 @@ function InternalEventAccordion({
         <Divider sx={{ my: 2 }} />
 
         {/* ── Tipos de ingresso ── */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="subtitle2" fontWeight={700}>
             Tipos de ingresso ({event.ticketTypes?.length ?? 0})
           </Typography>
-          <Button
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={() => onAddTicketClick(event)}
-          >
-            Adicionar tipo
-          </Button>
+          <Stack direction="row" spacing={1}>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={reconcileLoadingId === event.id ? <CircularProgress size={14} /> : <SyncIcon />}
+              disabled={reconcileLoadingId === event.id}
+              onClick={() => onReconcileQuota(event)}
+            >
+              Recalcular vagas
+            </Button>
+            <Button
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => onAddTicketClick(event)}
+            >
+              Adicionar tipo
+            </Button>
+          </Stack>
         </Box>
+        {reconcileResult?.eventId === event.id && (
+          <Alert severity={reconcileResult.severity} sx={{ mb: 1 }} onClose={onDismissReconcileResult}>
+            {reconcileResult.lines.map((line) => (
+              <div key={line}>{line}</div>
+            ))}
+          </Alert>
+        )}
         {(event.ticketTypes ?? []).length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Nenhum tipo de ingresso cadastrado.
@@ -878,8 +1055,11 @@ function InternalEventAccordion({
         <Divider sx={{ my: 2 }} />
 
         {/* ── Staff ── */}
-        <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" fontWeight={700}>
           Equipe do evento ({event.staff?.length ?? 0})
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>
+          Hosts são exibidos como organizadores na página pública do evento.
         </Typography>
         {(event.staff ?? []).length === 0 ? (
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -1820,6 +2000,8 @@ function useAdminEventosPage() {
 
 export default function AdminEventosPage(): React.JSX.Element {
   const page = useAdminEventosPage();
+  const theme = useTheme();
+  const eventDialogFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const {
     ready, isLoggedIn, canAccess, canReimburse,
     apiUrl, authFetch,
@@ -1841,8 +2023,52 @@ export default function AdminEventosPage(): React.JSX.Element {
     reimbursementDialog, setReimbursementDialog,
     handleSnapshot, openCreateDialog, openEditDialog, handleSaveEvent, handlePublish, handleCancelEvent,
     handleCreateTicketType, openEditTicketDialog, handleDeactivateTicketType, handleAddStaff, handleRemoveStaff,
-    sourceLabel, setCancelError, setTicketError,
+    sourceLabel, setCancelError, setTicketError, fetchEvents,
   } = page;
+
+  const [reconcileLoadingId, setReconcileLoadingId] = useState<string | null>(null);
+  const [reconcileResult, setReconcileResult] = useState<ReconcileQuotaState | null>(null);
+
+  const handleReconcileQuota = useCallback(async (event: ManagedEvent) => {
+    const confirmed = window.confirm(
+      `Recalcular as vagas vendidas de "${event.title}"? Isso ajusta a quantidade vendida (quantitySold) dos tipos de ingresso.`,
+    );
+    if (!confirmed) return;
+    setReconcileLoadingId(event.id);
+    setReconcileResult(null);
+    try {
+      const res = await authFetch(`${apiUrl}/events/${event.id}/reconcile-quota`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        setReconcileResult({
+          eventId: event.id,
+          severity: "error",
+          lines: [await extractErrorMessage(res, "Erro ao recalcular vagas.")],
+        });
+        return;
+      }
+      const data = (await res.json()) as ReconcileQuotaResponse;
+      const adjusted = data.results.filter((r) => r.adjusted);
+      setReconcileResult({
+        eventId: event.id,
+        severity: "success",
+        lines:
+          adjusted.length === 0
+            ? ["Todos os lotes já estão consistentes."]
+            : adjusted.map((r) => `${r.name}: ${r.before} → ${r.after}`),
+      });
+      await fetchEvents();
+    } catch {
+      setReconcileResult({
+        eventId: event.id,
+        severity: "error",
+        lines: ["Erro inesperado ao recalcular vagas."],
+      });
+    } finally {
+      setReconcileLoadingId(null);
+    }
+  }, [apiUrl, authFetch, fetchEvents]);
 
   if (!ready || !isLoggedIn) {
     return (
@@ -1986,6 +2212,10 @@ export default function AdminEventosPage(): React.JSX.Element {
                     onDeactivateTicket={handleDeactivateTicketType}
                     onAddStaff={handleAddStaff}
                     onRemoveStaff={handleRemoveStaff}
+                    onReconcileQuota={handleReconcileQuota}
+                    reconcileLoadingId={reconcileLoadingId}
+                    reconcileResult={reconcileResult}
+                    onDismissReconcileResult={() => setReconcileResult(null)}
                     publishingId={publishingId}
                     staffAddingId={staffAddingId}
                     staffRemovingId={staffRemovingId}
@@ -2027,8 +2257,18 @@ export default function AdminEventosPage(): React.JSX.Element {
       </AdminPageContainer>
 
       {/* ── Dialog: Criar / Editar evento ── */}
-      <Dialog open={!!eventDialog} onClose={() => setEventDialog(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>{eventDialog?.mode === "edit" ? "Editar evento" : "Novo evento"}</DialogTitle>
+      <Dialog
+        open={!!eventDialog}
+        onClose={() => setEventDialog(null)}
+        maxWidth="md"
+        fullWidth
+        fullScreen={eventDialogFullScreen}
+      >
+        <DialogTitle>
+          {eventDialog?.mode === "edit"
+            ? `Editar evento — ${eventDialog.event.title}`
+            : "Novo evento"}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -2063,15 +2303,9 @@ export default function AdminEventosPage(): React.JSX.Element {
               multiline
               minRows={2}
             />
-            <TextField
-              label="Descrição (opcional)"
+            <DescriptionMarkdownEditor
               value={eventForm.description}
-              onChange={(e) => setEventForm((f) => ({ ...f, description: e.target.value }))}
-              size="small"
-              fullWidth
-              multiline
-              minRows={4}
-              helperText="Texto longo exibido na página pública do evento. Quebras de linha são preservadas."
+              onChange={(next) => setEventForm((f) => ({ ...f, description: next }))}
             />
             <TextField
               label="URL da imagem (opcional)"
