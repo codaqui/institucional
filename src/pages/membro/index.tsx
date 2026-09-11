@@ -55,7 +55,7 @@ import type { AuthUser } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
 import { communities } from "../../data/communities";
 import { parseBrlInput } from "../../utils/transaction";
-import { buildEventPath } from "../../utils/event-path";
+import { buildEventPath, buildEventPublicPath } from "../../utils/event-path";
 
 interface Donation {
   id: string;
@@ -162,7 +162,7 @@ interface EventRegistration {
   payerMemberId: string | null;
   isPayerOnly?: boolean;
   /** Evento interno. Null para inscrições externas via activation. */
-  event: { id: string; title: string; startAt: string; location: string | null; status: string } | null;
+  event: { id: string; slug?: string | null; title: string; startAt: string; location: string | null; status: string } | null;
   /** Ativação externa (quando event == null). */
   activation?: { eventKey: string; title: string; startAt?: string | null } | null;
   ticketType: { name: string; kind: string; priceCents: number } | null;
@@ -251,7 +251,14 @@ function EventTitleLink({
 }): React.JSX.Element {
   if (registration.event) {
     return (
-      <Link href={buildEventPath("internal", "codaqui", registration.event.id)}>
+      <Link
+        href={buildEventPublicPath({
+          source: "internal",
+          sourceId: "codaqui",
+          id: registration.event.id,
+          slug: registration.event.slug,
+        })}
+      >
         {children}
       </Link>
     );

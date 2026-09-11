@@ -149,8 +149,9 @@ const config: Config = {
   plugins: [
     /**
      * Páginas estáticas de detalhe por evento (OG/JSON-LD corretos para
-     * crawlers que não executam JS). Gera /eventos/detalhe/<source>/<sourceId>/<id>
-     * a partir de static/events/index.json.
+     * crawlers que não executam JS). Gera /eventos/<slug> (internos) e
+     * /eventos/<source>/<sourceId>/<id> (externos) a partir de
+     * static/events/index.json.
      */
     eventPagesPlugin,
     /**

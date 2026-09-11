@@ -5,7 +5,7 @@ import type { EventSummary } from "../../data/events";
 import EventoDetalhePage from "../../pages/eventos/detalhe";
 import {
   buildEventJsonLd,
-  buildEventPath,
+  buildEventPublicPath,
   resolveEventImageUrl,
   truncateEventSummary,
 } from "../../utils/event-path";
@@ -19,7 +19,7 @@ export default function EventDetailRoute({
   content: event,
 }: EventDetailRouteProps): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
-  const path = buildEventPath(event.source, event.sourceId, event.id);
+  const path = buildEventPublicPath(event);
   const absoluteUrl = `${siteConfig.url}${path}`;
   const imageUrl = resolveEventImageUrl(event.imageUrl, siteConfig.url);
   const description = truncateEventSummary(event.summary ?? "");

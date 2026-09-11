@@ -1,16 +1,40 @@
 import type { EventItem, EventStatus } from "../data/events";
 
 /**
- * Path estático da página de detalhe de um evento.
- * Cada segmento é codificado individualmente (encodeURIComponent), pois ids
- * de fontes externas podem conter caracteres especiais (ex.: slug com ":").
+ * Path estático de um evento externo (ou interno legado sem slug):
+ * `/eventos/<source>/<sourceId>/<id>`. Cada segmento é codificado
+ * individualmente (encodeURIComponent), pois ids de fontes externas podem
+ * conter caracteres especiais (ex.: slug com ":").
  */
 export function buildEventPath(
   source: string,
   sourceId: string,
   eventId: string
 ): string {
-  return `/eventos/detalhe/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}/${encodeURIComponent(eventId)}`;
+  return `/eventos/${encodeURIComponent(source)}/${encodeURIComponent(sourceId)}/${encodeURIComponent(eventId)}`;
+}
+
+/** Path estático de um evento interno identificado pela slug (`/eventos/<slug>`). */
+export function buildEventSlugPath(slug: string): string {
+  return `/eventos/${encodeURIComponent(slug)}`;
+}
+
+/**
+ * Path público canônico de um evento: internos com slug usam
+ * `/eventos/<slug>`; demais (externos e internos legados sem slug) usam
+ * `/eventos/<source>/<sourceId>/<id>`.
+ */
+export function buildEventPublicPath(event: {
+  source?: string;
+  sourceId?: string;
+  id: string;
+  slug?: string | null;
+}): string {
+  const source = event.source ?? "internal";
+  if (source === "internal" && event.slug) {
+    return buildEventSlugPath(event.slug);
+  }
+  return buildEventPath(source, event.sourceId ?? "codaqui", event.id);
 }
 
 const DEFAULT_OG_IMAGE = "/img/og-codaqui.jpg";

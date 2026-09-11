@@ -55,7 +55,7 @@ import {
 import { fetchEventsIndexMerged } from "../../lib/events-api";
 import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 import { parseBrlInput } from "../../utils/transaction";
-import { buildEventPath } from "../../utils/event-path";
+import { buildEventSlugPath } from "../../utils/event-path";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -205,8 +205,7 @@ const COMMUNITY_OPTIONS = [
 ];
 
 /** URL pública de detalhe de um evento próprio (fonte internal:codaqui). */
-const publicEventUrl = (eventId: string): string =>
-  buildEventPath("internal", "codaqui", eventId);
+const publicEventUrl = (slug: string): string => buildEventSlugPath(slug);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -447,7 +446,7 @@ function HubAlerts({
           action={
             <Button
               component={Link}
-              href={publicEventUrl(publishSuccess.id)}
+              href={publicEventUrl(publishSuccess.slug)}
               target="_blank"
               rel="noopener noreferrer"
               color="inherit"
@@ -469,7 +468,7 @@ function HubAlerts({
           action={
             <Button
               component={Link}
-              href={publicEventUrl(saveSuccess.event.id)}
+              href={publicEventUrl(saveSuccess.event.slug)}
               target="_blank"
               rel="noopener noreferrer"
               color="inherit"
@@ -785,7 +784,7 @@ function InternalEventAccordion({
                 size="small"
                 variant="text"
                 component={Link}
-                href={publicEventUrl(event.id)}
+                href={publicEventUrl(event.slug)}
                 target="_blank"
                 rel="noopener noreferrer"
                 endIcon={<OpenInNewIcon />}

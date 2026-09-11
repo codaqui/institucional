@@ -1,27 +1,91 @@
 import {
   buildEventJsonLd,
   buildEventPath,
+  buildEventPublicPath,
+  buildEventSlugPath,
   resolveEventImageUrl,
   truncateEventSummary,
 } from "../event-path";
 import type { EventItem } from "../../data/events";
 
 describe("buildEventPath", () => {
-  it("monta a rota estática com os três segmentos", () => {
+  it("monta a rota estática com os três segmentos (sem /detalhe)", () => {
     expect(buildEventPath("meetup", "devparana", "123")).toBe(
-      "/eventos/detalhe/meetup/devparana/123"
+      "/eventos/meetup/devparana/123"
     );
   });
 
   it("codifica cada segmento individualmente", () => {
     expect(buildEventPath("sympla", "campos tech", "evt:123/abc")).toBe(
-      "/eventos/detalhe/sympla/campos%20tech/evt%3A123%2Fabc"
+      "/eventos/sympla/campos%20tech/evt%3A123%2Fabc"
     );
   });
 
   it("codifica caracteres especiais de query no id", () => {
     expect(buildEventPath("discord", "codaqui", "a?b&c=d")).toBe(
-      "/eventos/detalhe/discord/codaqui/a%3Fb%26c%3Dd"
+      "/eventos/discord/codaqui/a%3Fb%26c%3Dd"
+    );
+  });
+});
+
+describe("buildEventSlugPath", () => {
+  it("monta a rota por slug", () => {
+    expect(buildEventSlugPath("esquenta-devpr-conf-2026")).toBe(
+      "/eventos/esquenta-devpr-conf-2026"
+    );
+  });
+
+  it("codifica caracteres especiais", () => {
+    expect(buildEventSlugPath("meu evento")).toBe("/eventos/meu%20evento");
+  });
+});
+
+describe("buildEventPublicPath", () => {
+  it("prefere a slug para eventos internos", () => {
+    expect(
+      buildEventPublicPath({
+        source: "internal",
+        sourceId: "codaqui",
+        id: "uuid-1",
+        slug: "esquenta-devpr-conf-2026",
+      })
+    ).toBe("/eventos/esquenta-devpr-conf-2026");
+  });
+
+  it("interno sem slug cai no formato por id (snapshot legado)", () => {
+    expect(
+      buildEventPublicPath({ source: "internal", sourceId: "codaqui", id: "uuid-1" })
+    ).toBe("/eventos/internal/codaqui/uuid-1");
+  });
+
+  it("interno com slug null cai no formato por id", () => {
+    expect(
+      buildEventPublicPath({
+        source: "internal",
+        sourceId: "codaqui",
+        id: "uuid-1",
+        slug: null,
+      })
+    ).toBe("/eventos/internal/codaqui/uuid-1");
+  });
+
+  it("externo usa o formato por id mesmo com slug presente", () => {
+    expect(
+      buildEventPublicPath({
+        source: "meetup",
+        sourceId: "devparana",
+        id: "226163759",
+        slug: "meetup-42",
+      })
+    ).toBe("/eventos/meetup/devparana/226163759");
+  });
+
+  it("sem source informada assume o evento interno padrão", () => {
+    expect(buildEventPublicPath({ id: "uuid-1" })).toBe(
+      "/eventos/internal/codaqui/uuid-1"
+    );
+    expect(buildEventPublicPath({ id: "uuid-1", slug: "encontro" })).toBe(
+      "/eventos/encontro"
     );
   });
 });
@@ -83,12 +147,12 @@ describe("buildEventJsonLd", () => {
     platform: "Site Codaqui",
     host: "Codaqui",
     location: "Auditório Central",
-    href: "/eventos/detalhe/internal/codaqui/evt-1",
+    href: "/eventos/encontro-codaqui",
     tags: [],
     ctaLabel: "Inscrever-se",
     status: "scheduled",
   };
-  const url = "https://codaqui.dev/eventos/detalhe/internal/codaqui/evt-1";
+  const url = "https://codaqui.dev/eventos/encontro-codaqui";
 
   it("inclui os campos obrigatórios do schema.org/Event", () => {
     const jsonLd = buildEventJsonLd(baseEvent, url);

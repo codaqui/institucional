@@ -155,9 +155,14 @@ Agora cada evento tem uma página estática gerada em build time:
    `contentLoaded`, cria uma rota por evento via `addRoute`, com o
    `EventSummary` injetado em `modules.content` (componente
    `src/components/EventDetailRoute/index.tsx`).
-2. URL canônica: `/eventos/detalhe/<source>/<sourceId>/<id>`, montada por
-   `buildEventPath` em `src/utils/event-path.ts` (cada segmento passa por
-   `encodeURIComponent`). Colisões de path são logadas e o duplicado é pulado.
+2. URL canônica: `/eventos/<slug>` para eventos internos (slug única da
+   `managed_events`, montada por `buildEventSlugPath`) e
+   `/eventos/<source>/<sourceId>/<id>` para externos e internos legados sem
+   slug (`buildEventPath`). Ambas vivem em `src/utils/event-path.ts` (cada
+   segmento passa por `encodeURIComponent`); `buildEventPublicPath` escolhe o
+   formato pela regra `source === "internal" && slug`. Slugs que colidirem com
+   páginas estáticas de `src/pages/eventos/` (`detalhe`, `comprovante`) e
+   colisões de path são logadas e o evento é pulado.
 3. O componente de rota emite `<Head>` com `og:title/description/image/url`,
    `twitter:card=summary_large_image`, canonical e JSON-LD `schema.org/Event`
    (helper puro `buildEventJsonLd` em `src/utils/event-path.ts`), e renderiza o
@@ -173,11 +178,12 @@ Agora cada evento tem uma página estática gerada em build time:
    (`status=success&session_id=...`) **não** redireciona — as URLs de retorno
    do checkout (`buildEventReturnPath` em `events.service.ts`) permanecem na
    página com query.
-5. Todos os geradores de link usam `buildEventPath` (ou
+5. Todos os geradores de link usam `buildEventPublicPath` (ou
    `getEventDetailPagePath`, que delega a ele): listagem `/eventos`,
-   `pages/membro`, `pages/membros/perfil`, `TransactionDetailDialog`,
-   `pages/admin/eventos` e o `href` do snapshot interno no backend
-   (`toEventItem` em `events.service.ts`).
+   `pages/membro`, `pages/membros/perfil`, `TransactionDetailDialog` e o
+   `href` do snapshot interno no backend (`toEventItem` em
+   `events.service.ts`). `pages/admin/eventos` linka direto pela slug
+   (`buildEventSlugPath`), pois tem o `ManagedEvent` completo.
 
 ## 3. Convenções e anti-patterns
 

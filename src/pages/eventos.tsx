@@ -257,7 +257,7 @@ function EventCard({
           )}
           <Button
             component={Link}
-            href={getEventDetailPagePath(event.source, event.sourceId, event.id)}
+            href={getEventDetailPagePath(event)}
             variant="contained"
             size="small"
           >

@@ -47,7 +47,7 @@ import {
   type EventOverride,
   type EventWithOverride,
 } from "../../utils/event-override";
-import { buildEventPath, resolveEventImageUrl, truncateEventSummary } from "../../utils/event-path";
+import { buildEventPublicPath, resolveEventImageUrl, truncateEventSummary } from "../../utils/event-path";
 import { formatBRL } from "../../utils/transaction";
 
 // ---------------------------------------------------------------------------
@@ -1867,19 +1867,22 @@ function EventDetailPageContent({
   );
 }
 
-let knownEventPathsPromise: Promise<Set<string> | null> | null = null;
+let knownEventPathsPromise: Promise<Map<string, string> | null> | null = null;
 
-/** Paths das rotas estáticas geradas no build (cache em módulo). */
-function loadKnownEventPaths(): Promise<Set<string> | null> {
+/**
+ * Mapa `<source>:<sourceId>:<id>` → path da rota estática gerada no build
+ * (cache em módulo). Internos com slug apontam para `/eventos/<slug>`.
+ */
+function loadKnownEventPaths(): Promise<Map<string, string> | null> {
   knownEventPathsPromise ??= fetch("/events/index.json")
     .then(async (res) => {
       if (!res.ok) return null;
       const data = (await res.json()) as EventIndexFile;
-      return new Set(
-        (data.events ?? []).map((e) =>
-          buildEventPath(e.source, e.sourceId, e.id)
-        )
-      );
+      const paths = new Map<string, string>();
+      for (const e of data.events ?? []) {
+        paths.set(`${e.source}:${e.sourceId}:${e.id}`, buildEventPublicPath(e));
+      }
+      return paths;
     })
     .catch(() => null);
   return knownEventPathsPromise;
@@ -1932,8 +1935,8 @@ export default function EventoDetalhePage({
     let active = true;
     loadKnownEventPaths().then((paths) => {
       if (!active || !paths) return;
-      const target = buildEventPath(s, sid, id);
-      if (paths.has(target)) history.replace(target);
+      const target = paths.get(`${s}:${sid}:${id}`);
+      if (target) history.replace(target);
     });
     return () => {
       active = false;

@@ -35,6 +35,8 @@ export interface EventOrganizer {
 
 export interface EventItem {
   id: string;
+  /** Slug pública (kebab-case) — presente em eventos internos; base da URL `/eventos/<slug>`. */
+  slug?: string;
   title: string;
   summary: string;
   /** Descrição longa opcional; presente em eventos internos que a preencham. */

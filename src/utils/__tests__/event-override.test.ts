@@ -116,7 +116,7 @@ describe("loadEventWithOverride", () => {
     expect(result.event.host).toBe("Codaqui");
     expect(result.event.status).toBe("scheduled");
     expect(result.event.href).toBe(
-      "/eventos/detalhe/internal/codaqui/uuid-interno-1"
+      "/eventos/encontro-codaqui"
     );
     expect(result.source.label).toBe("Codaqui");
     expect(result.source.source).toBe("internal");
@@ -144,9 +144,26 @@ describe("loadEventWithOverride", () => {
 });
 
 describe("paths helpers", () => {
-  it("monta a URL da página de detalhe como rota estática", () => {
-    expect(getEventDetailPagePath("meetup", "devparana", "123")).toBe(
-      "/eventos/detalhe/meetup/devparana/123"
-    );
+  it("monta a URL da página de detalhe como rota estática (sem /detalhe)", () => {
+    expect(
+      getEventDetailPagePath({ source: "meetup", sourceId: "devparana", id: "123" })
+    ).toBe("/eventos/meetup/devparana/123");
+  });
+
+  it("prefere a slug para eventos internos", () => {
+    expect(
+      getEventDetailPagePath({
+        source: "internal",
+        sourceId: "codaqui",
+        id: "uuid-1",
+        slug: "encontro-codaqui",
+      })
+    ).toBe("/eventos/encontro-codaqui");
+  });
+
+  it("interno sem slug cai no formato por id", () => {
+    expect(
+      getEventDetailPagePath({ source: "internal", sourceId: "codaqui", id: "uuid-1" })
+    ).toBe("/eventos/internal/codaqui/uuid-1");
   });
 });

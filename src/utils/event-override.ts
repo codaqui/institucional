@@ -1,5 +1,5 @@
 import type { EventDetailFile, EventItem, EventSourceConfig } from "../data/events";
-import { buildEventPath } from "./event-path";
+import { buildEventPublicPath } from "./event-path";
 
 /**
  * Palestrante de um evento — campo disponível apenas via override
@@ -68,13 +68,18 @@ export type EventWithOverride = EventItem & EventExtendData & {
   _override?: EventOverrideMeta;
 };
 
-/** URL da página de detalhe do evento (rota estática por evento). */
-export function getEventDetailPagePath(
-  source: string,
-  sourceId: string,
-  eventId: string
-): string {
-  return buildEventPath(source, sourceId, eventId);
+/**
+ * URL da página pública do evento (rota estática por evento).
+ * Internos com slug usam `/eventos/<slug>`; demais usam
+ * `/eventos/<source>/<sourceId>/<id>`.
+ */
+export function getEventDetailPagePath(event: {
+  source?: string;
+  sourceId?: string;
+  id: string;
+  slug?: string | null;
+}): string {
+  return buildEventPublicPath(event);
 }
 
 async function fetchJsonOrNull<T>(path: string): Promise<T | null> {
@@ -114,6 +119,7 @@ const INTERNAL_SOURCE_CONFIG: EventSourceConfig = {
 /** Shape de `event` em GET /events/public/managed/:id (serializeEvent do backend). */
 interface PublicManagedEventPayload {
   id: string;
+  slug?: string | null;
   title: string;
   summary: string;
   imageUrl?: string | null;
@@ -156,6 +162,7 @@ async function fetchInternalEventFromApi(
       source: INTERNAL_SOURCE_CONFIG,
       event: {
         id: raw.id,
+        ...(raw.slug ? { slug: raw.slug } : {}),
         title: raw.title,
         summary: raw.summary ?? "",
         startAt: startAt.toISOString(),
@@ -164,7 +171,12 @@ async function fetchInternalEventFromApi(
         platform: "Site Codaqui",
         host: "Codaqui",
         location: raw.location ?? "",
-        href: getEventDetailPagePath("internal", "codaqui", raw.id),
+        href: getEventDetailPagePath({
+          source: "internal",
+          sourceId: "codaqui",
+          id: raw.id,
+          slug: raw.slug ?? null,
+        }),
         tags: [],
         ctaLabel: "Inscrever-se",
         status,

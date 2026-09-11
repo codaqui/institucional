@@ -109,6 +109,8 @@ interface PublicEventRegistration {
   payerMemberId?: string | null;
   attendeeName?: string | null;
   eventId?: string | null;
+  /** Slug do evento interno — base da URL `/eventos/<slug>` quando presente. */
+  eventSlug?: string | null;
   eventKey?: string | null;
 }
 
@@ -493,13 +495,18 @@ function DonationHistory({ donations }: Readonly<{ donations: Donation[] }>) {
   );
 }
 
-import { buildEventPath } from "../../utils/event-path";
+import { buildEventPath, buildEventPublicPath } from "../../utils/event-path";
 
 // ── Histórico de eventos (público) ─────────────────────────────────────────
 
 function eventDetailHref(reg: PublicEventRegistration): string | null {
   if (reg.eventId) {
-    return buildEventPath("internal", "codaqui", reg.eventId);
+    return buildEventPublicPath({
+      source: "internal",
+      sourceId: "codaqui",
+      id: reg.eventId,
+      slug: reg.eventSlug,
+    });
   }
   if (reg.eventKey) {
     const parts = reg.eventKey.split(":");
