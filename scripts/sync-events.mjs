@@ -17,7 +17,7 @@ const rootDir = process.cwd();
 const configPath = path.join(rootDir, "events.config.json");
 const outputDir = path.join(rootDir, "static", "events");
 
-const OVERRIDES_API_URL = process.env.EVENT_OVERRIDES_API_URL || "http://localhost:3000/events/overrides/public";
+const OVERRIDES_API_URL = process.env.EVENT_OVERRIDES_API_URL || "http://localhost:3001/events/overrides/public";
 
 async function readJson(filePath) {
   const content = await readFile(filePath, "utf8");
@@ -454,17 +454,21 @@ async function paginateMeetupEvents(config, kind, boundary, session, stopBefore 
   return events;
 }
 
+const MEETUP_DEFAULT_DURATION_MS = 3 * 60 * 60 * 1000;
+
 function mapMeetupStatus(rawStatus, startAt, endAt) {
   const now = Date.now();
   const startTime = Date.parse(startAt);
-  const endTime = Date.parse(endAt || startAt);
-
-  if (rawStatus === "PAST" || endTime < now) {
-    return "completed";
-  }
+  // Sem endTime a API nao informa a duracao: assume uma janela default para
+  // nao marcar "completed" no minuto em que o evento comeca.
+  const endTime = endAt ? Date.parse(endAt) : startTime + MEETUP_DEFAULT_DURATION_MS;
 
   if (rawStatus === "CANCELLED") {
     return "canceled";
+  }
+
+  if (rawStatus === "PAST" || endTime < now) {
+    return "completed";
   }
 
   if (startTime <= now && endTime >= now) {
@@ -530,13 +534,30 @@ function mapMeetupEvent(event, config) {
 }
 
 async function readExistingEvents(source, sourceId) {
+  const sourceDir = buildSourceDir(source, sourceId);
+
+  // Caminho canonico: cache raw (dado cru da fonte, sem override). Eventos
+  // preservados entre runs NUNCA carregam hasOverride/_override nem campos
+  // mesclados do payload — overrides sao reaplicados somente a partir do
+  // banco atual em writeSourceOutputs.
   try {
-    const snapshot = await readJson(path.join(buildSourceDir(source, sourceId), "index.json"));
-    return Array.isArray(snapshot.events)
-      ? snapshot.events.map(({ sourceKey, itemPath, source: _, sourceId: __, ...event }) => event)
-      : [];
+    const raw = await readJson(path.join(sourceDir, "raw.json"));
+    return Array.isArray(raw.events) ? raw.events : [];
   } catch {
-    return [];
+    // Fallback de migracao: snapshots antigos so tem index.json (com override
+    // ja mesclado). Remove os metadados de override para nao manter o badge
+    // "Verificado" de um override que talvez nem exista mais no banco; campos
+    // de payload antigos sao substituidos pelo cache raw no proximo run.
+    try {
+      const snapshot = await readJson(path.join(sourceDir, "index.json"));
+      return Array.isArray(snapshot.events)
+        ? snapshot.events.map(
+            ({ sourceKey, itemPath, source: _, sourceId: __, hasOverride: ___, _override: ____, ...event }) => event
+          )
+        : [];
+    } catch {
+      return [];
+    }
   }
 }
 
@@ -1547,6 +1568,16 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesBy
 
   await mkdir(sourceDir, { recursive: true });
 
+  // Cache raw: dado cru da fonte (pre-override), lido por readExistingEvents
+  // no proximo run. Garante que eventos preservados nunca carregam campos
+  // derivados de override — o override e reaplicado do zero a cada sync,
+  // somente a partir do banco atual.
+  const writtenFiles = new Set(["index.json", "raw.json"]);
+  await writeFileAtomic(
+    path.join(sourceDir, "raw.json"),
+    `${JSON.stringify({ generatedAt, events }, null, 2)}\n`
+  );
+
   const eventsWithOverrides = events.map((event) => {
     const override = overridesForSource.get(String(event.id));
     return override ? applyOverride(event, override) : event;
@@ -1576,7 +1607,6 @@ async function writeSourceOutputs(sourceConfig, events, generatedAt, overridesBy
     itemCount: summaries.length
   };
 
-  const writtenFiles = new Set(["index.json"]);
   for (const event of eventsWithOverrides) {
     const fileName = `${event.id}.json`;
     await writeFileAtomic(
@@ -1648,7 +1678,7 @@ function buildInternalSourceConfig(payloadSource, cachedMeta) {
 
 async function processInternalSource(generatedAt, overridesByKey) {
   console.log(`  syncing ${INTERNAL_SOURCE}/${INTERNAL_SOURCE_ID}...`);
-  const apiBaseUrl = process.env.INTERNAL_EVENTS_API_URL || "http://localhost:3000";
+  const apiBaseUrl = process.env.INTERNAL_EVENTS_API_URL || "http://localhost:3001";
   const existingEvents = await readExistingEvents(INTERNAL_SOURCE, INTERNAL_SOURCE_ID);
   const cachedMeta = await readExistingSourceMeta(INTERNAL_SOURCE, INTERNAL_SOURCE_ID);
 
@@ -1742,9 +1772,11 @@ export {
   extractSymplaDescription,
   extractSymplaLocation,
   extractSymplaUserCount,
+  mapMeetupStatus,
   mapSymplaEvent,
   mapSymplaEventStatus,
   parseSymplaDateText,
+  readExistingEvents,
   resolveSymplaEndAt,
   resolveSymplaEvents,
   resolveSymplaIsOnline,

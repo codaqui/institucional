@@ -30,6 +30,10 @@
 // Paths que vão para o backend (API). Importante: `/auth/callback` é uma
 // página do frontend (Docusaurus) que finaliza o fluxo OAuth — não confundir
 // com `/auth/github/callback` (rota do backend que o GitHub chama).
+// Lista validada contra os controllers do backend (backend/src/**/*.controller.ts)
+// e contra todas as chamadas `${apiUrl}/...` / `authFetch("/...")` do frontend
+// (em dominio whitelabel o frontend usa window.location.origin para TODAS elas).
+// `/auth/callback` continua de fora de proposito: e pagina Docusaurus.
 const API_PREFIXES = [
   '/api/',
   '/auth/github',
@@ -39,12 +43,23 @@ const API_PREFIXES = [
   '/stripe/',
   '/ledger/',
   '/members/',
+  '/events/',
+  '/reimbursements/',
+  '/companies/',
+  '/club/',
+  '/vendors/',
+  '/account-transfers/',
+  '/admin/',
+  '/notifications/',
 ];
-const API_EXACT_PATHS = new Set(['/health', '/auth/me', '/auth/logout', '/auth/finalize']);
+const API_EXACT_PATHS = new Set(['/health', '/docs', '/auth/me', '/auth/logout', '/auth/finalize']);
 
 function isApiRequest(pathname) {
   if (API_EXACT_PATHS.has(pathname)) return true;
-  return API_PREFIXES.some((p) => pathname.startsWith(p));
+  // Prefixos terminam em '/': normaliza para casar chamadas "bare" como
+  // `/vendors` e `/reimbursements` (usadas pelo frontend sem barra final).
+  const normalized = pathname.endsWith('/') ? pathname : `${pathname}/`;
+  return API_PREFIXES.some((p) => normalized.startsWith(p));
 }
 
 function escapeRegExp(string) {
@@ -108,7 +123,17 @@ export default {
     // so normalize the upstream request to the non-trailing-slash variant.
     const upstreamPath = url.pathname.replace(/\/$/, '') || '/';
     const upstream = new URL(upstreamPath + url.search, STATIC_ORIGIN);
-    const res = await fetch(upstream, req);
+
+    // Nunca encaminha credenciais ao estatico: o cookie de sessao (JWT httpOnly)
+    // do dominio da comunidade nao pode vazar para o GitHub Pages/Fastly.
+    const staticHeaders = new Headers(req.headers);
+    staticHeaders.delete('cookie');
+    staticHeaders.delete('authorization');
+    const res = await fetch(upstream, {
+      method: req.method,
+      headers: staticHeaders,
+      redirect: 'follow',
+    });
 
     // Route 3a: para crawlers sociais, reescreve og:url e canonical para o
     // dominio proprio da comunidade, reforcando a identidade do site whitelabel.
@@ -118,6 +143,10 @@ export default {
       const rewritten = rewriteSocialUrls(html, url.host, STATIC_ORIGIN);
       const newHeaders = new Headers(res.headers);
       newHeaders.delete('content-length');
+      // O body foi reescrito: um content-encoding gzip stale quebraria a
+      // resposta em `wrangler dev` (workers-sdk#14419). Em producao a edge
+      // recomprime de qualquer forma.
+      newHeaders.delete('content-encoding');
       return new Response(rewritten, {
         status: res.status,
         statusText: res.statusText,
