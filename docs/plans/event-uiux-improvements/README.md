@@ -359,6 +359,7 @@ const isInternal = event.source === "internal";
 - [ ] 3.3.5 Forçar `priceCents = 0` quando free (futuro)
 - [ ] 3.4.1 Persistir formulário antes do login (futuro)
 - [ ] 3.4.4 Inscrição gratuita para outra pessoa (futuro)
+- [x] Card "Você está inscrito" na página do evento com QR de check-in / emissão de certificado ✅ 2026-09-11
 
 ### Sprint 4 — Check-in e operação no dia ✅
 - [x] Lista de check-in vinculada a orders/pedidos

@@ -37,6 +37,7 @@ import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import SlideshowIcon from "@mui/icons-material/Slideshow";
 import EventOverrideBadge from "../../components/EventOverrideBadge";
+import EventMyRegistration from "../../components/EventMyRegistration";
 import StripeEmbeddedCheckoutDialog from "../../components/StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
@@ -457,7 +458,7 @@ async function submitFreeRegistration(
       return {
         ok: false,
         error:
-          "Este tipo de ingresso está esgotado ou você já possui ingresso próprio para este evento.",
+          "Este ingresso está esgotado ou você já possui inscrição neste evento — nesse caso, seu QR Code de check-in aparece no topo desta página.",
       };
     }
     if (!res.ok) {
@@ -831,12 +832,16 @@ function InternalEventRegistration({
   apiUrl,
   stripeKey,
   eventTitle,
+  eventStartAt,
+  eventEndAt,
   onCheckoutSuccess,
 }: {
   readonly eventId: string;
   readonly apiUrl: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly eventStartAt: string;
+  readonly eventEndAt?: string | null;
   readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
@@ -853,13 +858,24 @@ function InternalEventRegistration({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<AttendeeInput[]>([]);
   const [buyForOther, setBuyForOther] = useState(false);
+  const [hasOwnRegistration, setHasOwnRegistration] = useState(false);
 
   const selectedTicketType = useMemo(
     () => ticketTypes?.find((t) => t.id === selectedTicketTypeId) ?? null,
     [ticketTypes, selectedTicketTypeId]
   );
 
-  if (!ticketTypes || ticketTypes.length === 0) return null;
+  const myRegistrationCard = (
+    <EventMyRegistration
+      apiUrl={apiUrl}
+      eventId={eventId}
+      eventStartAt={eventStartAt}
+      eventEndAt={eventEndAt}
+      onOwnRegistration={setHasOwnRegistration}
+    />
+  );
+
+  if (!ticketTypes || ticketTypes.length === 0) return myRegistrationCard;
 
   const maxQuantity = selectedTicketType
     ? Math.max(
@@ -947,8 +963,17 @@ function InternalEventRegistration({
   }
 
   const singleFreeTicket = ticketTypes.length === 1 && isFreeFlow(ticketTypes[0]);
+  const hasPaidAvailable = ticketTypes.some(
+    (t) => !isFreeFlow(t) && getTicketAvailability(t).status === "available"
+  );
+  // Quem já tem ingresso próprio não precisa do form de inscrição gratuita —
+  // exceto quando ainda há ingresso PAGO disponível (compra para terceiros).
+  const hideForm = hasOwnRegistration && (singleFreeTicket || !hasPaidAvailable);
 
   return (
+    <>
+      {myRegistrationCard}
+      {!hideForm ? (
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -1014,6 +1039,8 @@ function InternalEventRegistration({
         onComplete={handleCheckoutComplete}
       />
     </Card>
+      ) : null}
+    </>
   );
 }
 
@@ -1027,6 +1054,8 @@ function ExternalEventRegistration({
   externalHref,
   stripeKey,
   eventTitle,
+  eventStartAt,
+  eventEndAt,
   onCheckoutSuccess,
 }: {
   readonly eventKey: string;
@@ -1034,6 +1063,8 @@ function ExternalEventRegistration({
   readonly externalHref: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly eventStartAt: string;
+  readonly eventEndAt?: string | null;
   readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
@@ -1062,8 +1093,17 @@ function ExternalEventRegistration({
     [paidTypes, selectedTicketTypeId]
   );
 
-  if (!ticketTypes) return null;
-  if (paidTypes.length === 0 && freeTypes.length === 0) return null;
+  const myRegistrationCard = (
+    <EventMyRegistration
+      apiUrl={apiUrl}
+      eventKey={eventKey}
+      eventStartAt={eventStartAt}
+      eventEndAt={eventEndAt}
+    />
+  );
+
+  if (!ticketTypes) return myRegistrationCard;
+  if (paidTypes.length === 0 && freeTypes.length === 0) return myRegistrationCard;
 
   const maxQuantity = selectedTicketType
     ? Math.max(
@@ -1108,6 +1148,8 @@ function ExternalEventRegistration({
   };
 
   return (
+    <>
+      {myRegistrationCard}
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -1227,6 +1269,7 @@ function ExternalEventRegistration({
         onComplete={handleCheckoutComplete}
       />
     </Card>
+    </>
   );
 }
 
@@ -1645,6 +1688,8 @@ function EventDetailContent({
           apiUrl={apiUrl}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          eventStartAt={event.startAt}
+          eventEndAt={event.endAt ?? null}
           onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
@@ -1655,6 +1700,8 @@ function EventDetailContent({
           externalHref={event.registrationUrl ?? event.href}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          eventStartAt={event.startAt}
+          eventEndAt={event.endAt ?? null}
           onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
