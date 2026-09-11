@@ -144,6 +144,8 @@ npm run build       # Build completo igual ao CI
 cd backend && npm run build && npx jest --silent
 ```
 
+> ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
+
 ---
 
 ## Directory Structure
