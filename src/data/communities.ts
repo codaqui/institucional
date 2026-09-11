@@ -98,6 +98,7 @@ export const communities: Community[] = [
       "Espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa. Fomenta conexões entre participantes, profissionais, organizações e entusiastas.",
     location: "Ponta Grossa, PR",
     links: [
+      { type: "website", label: "Página da comunidade", url: "/comunidades/campostechpg" },
       { type: "website", label: "campostechpg.com.br", url: "https://campostechpg.com.br/" },
       { type: "instagram", label: "@campostechpg", url: "https://www.instagram.com/campostechpg" },
       { type: "youtube", label: "CamposTech no YouTube", url: "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos" },

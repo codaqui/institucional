@@ -15,7 +15,7 @@ related-docs:
 
 # Sites de Comunidades Parceiras
 
-Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` com branding, navbar, blog, docs, doação e transparência próprios, no mesmo build do site Codaqui. T.I. Social é o piloto.
+Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` com branding, navbar, blog, docs, doação e transparência próprios, no mesmo build do site Codaqui. T.I. Social foi o piloto; hoje existem também Elas no Código, DevParaná e CamposTech.
 
 ## Visão geral
 
