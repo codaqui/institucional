@@ -185,7 +185,7 @@ describe("/admin/eventos", () => {
     for (const link of publicLinks) {
       expect(link).toHaveAttribute(
         "href",
-        "/eventos/detalhe?source=internal&sourceId=codaqui&id=evt-1",
+        "/eventos/detalhe/internal/codaqui/evt-1",
       );
     }
   });

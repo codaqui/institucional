@@ -116,7 +116,7 @@ describe("loadEventWithOverride", () => {
     expect(result.event.host).toBe("Codaqui");
     expect(result.event.status).toBe("scheduled");
     expect(result.event.href).toBe(
-      "/eventos/detalhe?source=internal&sourceId=codaqui&id=uuid-interno-1"
+      "/eventos/detalhe/internal/codaqui/uuid-interno-1"
     );
     expect(result.source.label).toBe("Codaqui");
     expect(result.source.source).toBe("internal");
@@ -144,9 +144,9 @@ describe("loadEventWithOverride", () => {
 });
 
 describe("paths helpers", () => {
-  it("monta a URL da página de detalhe com query params", () => {
+  it("monta a URL da página de detalhe como rota estática", () => {
     expect(getEventDetailPagePath("meetup", "devparana", "123")).toBe(
-      "/eventos/detalhe?source=meetup&sourceId=devparana&id=123"
+      "/eventos/detalhe/meetup/devparana/123"
     );
   });
 });

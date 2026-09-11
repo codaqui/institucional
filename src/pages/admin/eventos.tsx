@@ -55,6 +55,7 @@ import {
 import { fetchEventsIndexMerged } from "../../lib/events-api";
 import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 import { parseBrlInput } from "../../utils/transaction";
+import { buildEventPath } from "../../utils/event-path";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -205,7 +206,7 @@ const COMMUNITY_OPTIONS = [
 
 /** URL pública de detalhe de um evento próprio (fonte internal:codaqui). */
 const publicEventUrl = (eventId: string): string =>
-  `/eventos/detalhe?source=internal&sourceId=codaqui&id=${eventId}`;
+  buildEventPath("internal", "codaqui", eventId);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
-import { useLocation } from "@docusaurus/router";
+import { useHistory, useLocation } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Alert,
@@ -41,12 +41,13 @@ import EventMyRegistration from "../../components/EventMyRegistration";
 import StripeEmbeddedCheckoutDialog from "../../components/StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
-import type { EventSourceConfig } from "../../data/events";
+import type { EventIndexFile, EventSourceConfig, EventSummary } from "../../data/events";
 import {
   loadEventWithOverride,
   type EventOverride,
   type EventWithOverride,
 } from "../../utils/event-override";
+import { buildEventPath, resolveEventImageUrl, truncateEventSummary } from "../../utils/event-path";
 import { formatBRL } from "../../utils/transaction";
 
 // ---------------------------------------------------------------------------
@@ -1565,10 +1566,13 @@ function EventDetailContent({
   source,
   sourceId,
   eventId,
+  initialEvent,
 }: {
   readonly source: string;
   readonly sourceId: string;
   readonly eventId: string;
+  /** Evento injetado pela rota estática — evita o skeleton no primeiro render. */
+  readonly initialEvent?: EventSummary;
 }): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl =
@@ -1576,10 +1580,13 @@ function EventDetailContent({
   const apiUrl = resolveApiUrl(configuredApiUrl, siteConfig.url);
   const stripeKey = (siteConfig.customFields?.stripePublishableKey as string) ?? "";
 
-  const [event, setEvent] = useState<EventWithOverride | null>(null);
+  const hasInitialEvent = Boolean(initialEvent && initialEvent.id === eventId);
+  const [event, setEvent] = useState<EventWithOverride | null>(
+    hasInitialEvent ? (initialEvent as EventWithOverride) : null
+  );
   const [override, setOverride] = useState<EventOverride | null>(null);
   const [sourceMeta, setSourceMeta] = useState<EventSourceConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasInitialEvent);
   const [hasError, setHasError] = useState(false);
 
   // Ações de owner (eventos externos): probe can-manage no backend.
@@ -1612,6 +1619,8 @@ function EventDetailContent({
   useEffect(() => {
     let active = true;
 
+    // Com initialEvent (rota estática) o render não depende deste fetch: ele
+    // atua como refresh em background (override mais recente / fallback ao vivo).
     loadEventWithOverride(source, sourceId, eventId, apiUrl)
       .then((result) => {
         if (!active) return;
@@ -1622,14 +1631,14 @@ function EventDetailContent({
       })
       .catch(() => {
         if (!active) return;
-        setHasError(true);
+        if (!hasInitialEvent) setHasError(true);
         setLoading(false);
       });
 
     return () => {
       active = false;
     };
-  }, [source, sourceId, eventId, apiUrl]);
+  }, [source, sourceId, eventId, apiUrl, hasInitialEvent]);
 
   if (loading) {
     return (
@@ -1798,16 +1807,26 @@ function EventDetailContent({
   );
 }
 
+/** Props injetadas pela rota estática gerada pelo plugin event-pages. */
+export interface EventDetailRouteProps {
+  readonly routeSource?: string;
+  readonly routeSourceId?: string;
+  readonly routeEventId?: string;
+  readonly initialEvent?: EventSummary;
+}
+
 function EventDetailPageContent({
   source,
   sourceId,
   eventId,
   mounted,
+  initialEvent,
 }: {
   readonly source: string;
   readonly sourceId: string;
   readonly eventId: string;
   readonly mounted: boolean;
+  readonly initialEvent?: EventSummary;
 }): React.JSX.Element {
   const hasParams = Boolean(source && sourceId && eventId);
 
@@ -1838,41 +1857,107 @@ function EventDetailPageContent({
     );
   }
 
-  return <EventDetailContent source={source} sourceId={sourceId} eventId={eventId} />;
+  return (
+    <EventDetailContent
+      source={source}
+      sourceId={sourceId}
+      eventId={eventId}
+      initialEvent={initialEvent}
+    />
+  );
 }
 
-export default function EventoDetalhePage(): React.JSX.Element {
+let knownEventPathsPromise: Promise<Set<string> | null> | null = null;
+
+/** Paths das rotas estáticas geradas no build (cache em módulo). */
+function loadKnownEventPaths(): Promise<Set<string> | null> {
+  knownEventPathsPromise ??= fetch("/events/index.json")
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const data = (await res.json()) as EventIndexFile;
+      return new Set(
+        (data.events ?? []).map((e) =>
+          buildEventPath(e.source, e.sourceId, e.id)
+        )
+      );
+    })
+    .catch(() => null);
+  return knownEventPathsPromise;
+}
+
+export default function EventoDetalhePage({
+  routeSource,
+  routeSourceId,
+  routeEventId,
+  initialEvent,
+}: EventDetailRouteProps = {}): React.JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
   const location = useLocation();
+  const history = useHistory();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const params = new URLSearchParams(location.search);
-  const source = params.get("source") ?? "";
-  const sourceId = params.get("sourceId") ?? "";
-  const eventId = params.get("id") ?? "";
+  const search = location.search;
+  const params = new URLSearchParams(search);
+  const source = routeSource ?? params.get("source") ?? "";
+  const sourceId = routeSourceId ?? params.get("sourceId") ?? "";
+  const eventId = routeEventId ?? params.get("id") ?? "";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const status = params.get("status");
-    const sessionId = params.get("session_id");
+    const p = new URLSearchParams(search);
+    const status = p.get("status");
+    const sessionId = p.get("session_id");
     if (status === "success" && sessionId) {
       window.location.href = "/membro?tab=future&purchase=success";
     }
-  }, [params]);
+  }, [search]);
+
+  // URL legada (query params): redireciona para a rota estática quando ela
+  // existe no snapshot do build. Sem rota estática (ex.: evento interno
+  // recém-publicado, ainda sem sync/build), segue funcionando via query.
+  // O retorno do Stripe (status/session_id) NÃO redireciona.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (routeEventId) return;
+    const p = new URLSearchParams(search);
+    if (p.get("status") || p.get("session_id")) return;
+    const s = p.get("source");
+    const sid = p.get("sourceId");
+    const id = p.get("id");
+    if (!s || !sid || !id) return;
+    let active = true;
+    loadKnownEventPaths().then((paths) => {
+      if (!active || !paths) return;
+      const target = buildEventPath(s, sid, id);
+      if (paths.has(target)) history.replace(target);
+    });
+    return () => {
+      active = false;
+    };
+  }, [search, routeEventId, history]);
 
   return (
     <Layout
-      title="Detalhes do evento"
-      description="Detalhes do evento da comunidade Codaqui."
+      title={initialEvent?.title ?? "Detalhes do evento"}
+      description={
+        initialEvent
+          ? truncateEventSummary(initialEvent.summary)
+          : "Detalhes do evento da comunidade Codaqui."
+      }
+      {...(initialEvent
+        ? { image: resolveEventImageUrl(initialEvent.imageUrl, siteConfig.url) }
+        : {})}
     >
       <EventDetailPageContent
         source={source}
         sourceId={sourceId}
         eventId={eventId}
         mounted={mounted}
+        initialEvent={initialEvent}
       />
     </Layout>
   );

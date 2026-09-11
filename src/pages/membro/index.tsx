@@ -55,6 +55,7 @@ import type { AuthUser } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
 import { communities } from "../../data/communities";
 import { parseBrlInput } from "../../utils/transaction";
+import { buildEventPath } from "../../utils/event-path";
 
 interface Donation {
   id: string;
@@ -250,9 +251,7 @@ function EventTitleLink({
 }): React.JSX.Element {
   if (registration.event) {
     return (
-      <Link
-        href={`/eventos/detalhe?source=internal&sourceId=codaqui&id=${registration.event.id}`}
-      >
+      <Link href={buildEventPath("internal", "codaqui", registration.event.id)}>
         {children}
       </Link>
     );
@@ -263,11 +262,7 @@ function EventTitleLink({
     const sourceId = parts[1] ?? "";
     const eventId = parts[2] ?? "";
     return (
-      <Link
-        href={`/eventos/detalhe?source=${encodeURIComponent(source)}&sourceId=${encodeURIComponent(
-          sourceId
-        )}&id=${encodeURIComponent(eventId)}`}
-      >
+      <Link href={buildEventPath(source, sourceId, eventId)}>
         {children}
       </Link>
     );

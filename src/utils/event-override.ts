@@ -1,4 +1,5 @@
 import type { EventDetailFile, EventItem, EventSourceConfig } from "../data/events";
+import { buildEventPath } from "./event-path";
 
 /**
  * Palestrante de um evento — campo disponível apenas via override
@@ -67,14 +68,13 @@ export type EventWithOverride = EventItem & EventExtendData & {
   _override?: EventOverrideMeta;
 };
 
-/** URL da página de detalhe do evento (query params). */
+/** URL da página de detalhe do evento (rota estática por evento). */
 export function getEventDetailPagePath(
   source: string,
   sourceId: string,
   eventId: string
 ): string {
-  const params = new URLSearchParams({ source, sourceId, id: eventId });
-  return `/eventos/detalhe?${params.toString()}`;
+  return buildEventPath(source, sourceId, eventId);
 }
 
 async function fetchJsonOrNull<T>(path: string): Promise<T | null> {

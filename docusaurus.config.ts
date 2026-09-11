@@ -2,6 +2,7 @@ import { themes as prismThemes } from "prism-react-renderer";
 import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import { COMMUNITIES_CONFIG } from "./comunidades";
+import eventPagesPlugin from "./src/plugins/event-pages";
 
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
@@ -146,6 +147,12 @@ const config: Config = {
   ],
 
   plugins: [
+    /**
+     * Páginas estáticas de detalhe por evento (OG/JSON-LD corretos para
+     * crawlers que não executam JS). Gera /eventos/detalhe/<source>/<sourceId>/<id>
+     * a partir de static/events/index.json.
+     */
+    eventPagesPlugin,
     /**
      * Comunidades parceiras — auto-discovery
      *

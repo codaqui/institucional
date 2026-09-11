@@ -4,6 +4,7 @@ audience: AI agents, mantenedores
 sections:
   - Onde vive cada funcionalidade
   - Fluxos principais (criar evento, vender ingresso, check-in, certificado)
+  - Páginas estáticas por evento (SEO/OG)
   - Convensões e anti-patterns
   - Testes
   - Dicas de debug
@@ -142,6 +143,41 @@ related-docs:
    (`/eventos/detalhe?source=...&id=...`), onde o webhook já terá processado a order.
 6. Fallback: se o frontend não conseguir usar embedded, `uiMode: 'hosted'` devolve `url` e
    redireciona para a página hospedada do Stripe.
+
+### 2.8 Páginas estáticas por evento (SEO/OG)
+
+Crawlers de preview (WhatsApp, LinkedIn, Twitter) não executam JS, então a
+página `/eventos/detalhe?source=...&id=...` (client-side) gerava OG genérico.
+Agora cada evento tem uma página estática gerada em build time:
+
+1. O plugin local `src/plugins/event-pages.ts` (registrado no
+   `docusaurus.config.ts`) lê `static/events/index.json` no `loadContent` e, no
+   `contentLoaded`, cria uma rota por evento via `addRoute`, com o
+   `EventSummary` injetado em `modules.content` (componente
+   `src/components/EventDetailRoute/index.tsx`).
+2. URL canônica: `/eventos/detalhe/<source>/<sourceId>/<id>`, montada por
+   `buildEventPath` em `src/utils/event-path.ts` (cada segmento passa por
+   `encodeURIComponent`). Colisões de path são logadas e o duplicado é pulado.
+3. O componente de rota emite `<Head>` com `og:title/description/image/url`,
+   `twitter:card=summary_large_image`, canonical e JSON-LD `schema.org/Event`
+   (helper puro `buildEventJsonLd` em `src/utils/event-path.ts`), e renderiza o
+   mesmo conteúdo da página de detalhe — `EventoDetalhePage` aceita props
+   opcionais `{ routeSource, routeSourceId, routeEventId, initialEvent }`;
+   com `initialEvent` o primeiro render não depende de fetch (o fetch vira
+   refresh em background, mantendo override recente e o fallback ao vivo de
+   eventos internos).
+4. A URL legada com query continua existindo: sem `status`/`session_id` e com
+   params válidos, a página faz `history.replace` para a rota estática **se ela
+   existir no snapshot do build** (evento interno recém-publicado, ainda sem
+   sync/build, segue funcionando via query). O retorno do Stripe
+   (`status=success&session_id=...`) **não** redireciona — as URLs de retorno
+   do checkout (`buildEventReturnPath` em `events.service.ts`) permanecem na
+   página com query.
+5. Todos os geradores de link usam `buildEventPath` (ou
+   `getEventDetailPagePath`, que delega a ele): listagem `/eventos`,
+   `pages/membro`, `pages/membros/perfil`, `TransactionDetailDialog`,
+   `pages/admin/eventos` e o `href` do snapshot interno no backend
+   (`toEventItem` em `events.service.ts`).
 
 ## 3. Convenções e anti-patterns
 
