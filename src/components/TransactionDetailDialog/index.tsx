@@ -30,6 +30,7 @@ import {
   formatDate,
 } from "../../utils/transaction";
 import { formatDocument } from "../../utils/document";
+import { buildEventPublicPath } from "../../utils/event-path";
 import { generateReceiptPdf } from "../DonationReceiptPdf";
 
 // ---------------------------------------------------------------------------
@@ -640,7 +641,11 @@ export default function TransactionDetailDialog({
                     size="small"
                     variant="text"
                     component={Link}
-                    href={`/eventos/detalhe?source=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[0])}&sourceId=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[1])}&id=${encodeURIComponent(eventTicketInfo.eventKey.split(':')[2])}`}
+                    href={buildEventPublicPath({
+                      source: eventTicketInfo.eventKey.split(':')[0],
+                      sourceId: eventTicketInfo.eventKey.split(':')[1],
+                      id: eventTicketInfo.eventKey.split(':').slice(2).join(':'),
+                    })}
                     endIcon={<OpenInNewIcon fontSize="small" />}
                     sx={{ textTransform: "none", p: 0, justifyContent: "flex-start" }}
                   >

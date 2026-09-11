@@ -303,15 +303,17 @@ export class EventsService {
   ): Record<string, unknown> {
     return {
       id: event.id,
+      slug: event.slug,
       title: event.title,
       summary: event.summary,
+      ...(event.description && { description: event.description }),
       startAt: new Date(event.startAt).toISOString(),
       ...(event.endAt && { endAt: new Date(event.endAt).toISOString() }),
       timezone: event.timezone,
       platform: 'Site Codaqui',
       host: 'Codaqui',
       location: event.location,
-      href: `/eventos/detalhe?source=internal&sourceId=codaqui&id=${event.id}`,
+      href: `/eventos/${encodeURIComponent(event.slug)}`,
       tags: [],
       ctaLabel: 'Inscrever-se',
       status: EventsService.deriveItemStatus(event),
@@ -384,6 +386,7 @@ export class EventsService {
       slug: event.slug,
       title: event.title,
       summary: event.summary,
+      description: event.description,
       imageUrl: event.imageUrl,
       location: event.location,
       startAt: event.startAt,
@@ -669,6 +672,7 @@ export class EventsService {
         slug: dto.slug,
         title: dto.title,
         summary: dto.summary,
+        description: dto.description ?? null,
         imageUrl: dto.imageUrl ?? null,
         location: dto.location,
         startAt: parseDateTimeLocal(dto.startAt, tz),
@@ -690,6 +694,8 @@ export class EventsService {
 
     if (dto.title !== undefined) event.title = dto.title;
     if (dto.summary !== undefined) event.summary = dto.summary;
+    if (dto.description !== undefined)
+      event.description = dto.description || null;
     if (dto.imageUrl !== undefined) event.imageUrl = dto.imageUrl;
     if (dto.location !== undefined) event.location = dto.location;
     const tz = dto.timezone ?? event.timezone;
@@ -1116,6 +1122,7 @@ export class EventsService {
         event: r.eventId
           ? {
               id: event?.id ?? r.eventId,
+              slug: event?.slug ?? null,
               title: event?.title ?? '',
               startAt: event?.startAt ?? null,
               location: event?.location ?? '',
@@ -3071,6 +3078,7 @@ export class EventsService {
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,
+          eventSlug: event?.slug ?? null,
           eventKey: r.externalActivationId ? activation?.eventKey : undefined,
           _sortAt: eventStartAt ?? r.createdAt,
         };

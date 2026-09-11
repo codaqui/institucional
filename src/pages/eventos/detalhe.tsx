@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "@docusaurus/Link";
 import Layout from "@theme/Layout";
-import { useLocation } from "@docusaurus/router";
+import { useHistory, useLocation } from "@docusaurus/router";
 import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 import {
   Alert,
@@ -37,15 +37,17 @@ import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import RepeatIcon from "@mui/icons-material/Repeat";
 import SlideshowIcon from "@mui/icons-material/Slideshow";
 import EventOverrideBadge from "../../components/EventOverrideBadge";
+import EventMyRegistration from "../../components/EventMyRegistration";
 import StripeEmbeddedCheckoutDialog from "../../components/StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
-import type { EventSourceConfig } from "../../data/events";
+import type { EventIndexFile, EventSourceConfig, EventSummary } from "../../data/events";
 import {
   loadEventWithOverride,
   type EventOverride,
   type EventWithOverride,
 } from "../../utils/event-override";
+import { buildEventPublicPath, resolveEventImageUrl, truncateEventSummary } from "../../utils/event-path";
 import { formatBRL } from "../../utils/transaction";
 
 // ---------------------------------------------------------------------------
@@ -457,7 +459,7 @@ async function submitFreeRegistration(
       return {
         ok: false,
         error:
-          "Este tipo de ingresso está esgotado ou você já possui ingresso próprio para este evento.",
+          "Este ingresso está esgotado ou você já possui inscrição neste evento — nesse caso, seu QR Code de check-in aparece no topo desta página.",
       };
     }
     if (!res.ok) {
@@ -831,12 +833,16 @@ function InternalEventRegistration({
   apiUrl,
   stripeKey,
   eventTitle,
+  eventStartAt,
+  eventEndAt,
   onCheckoutSuccess,
 }: {
   readonly eventId: string;
   readonly apiUrl: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly eventStartAt: string;
+  readonly eventEndAt?: string | null;
   readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
@@ -853,13 +859,24 @@ function InternalEventRegistration({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<AttendeeInput[]>([]);
   const [buyForOther, setBuyForOther] = useState(false);
+  const [hasOwnRegistration, setHasOwnRegistration] = useState(false);
 
   const selectedTicketType = useMemo(
     () => ticketTypes?.find((t) => t.id === selectedTicketTypeId) ?? null,
     [ticketTypes, selectedTicketTypeId]
   );
 
-  if (!ticketTypes || ticketTypes.length === 0) return null;
+  const myRegistrationCard = (
+    <EventMyRegistration
+      apiUrl={apiUrl}
+      eventId={eventId}
+      eventStartAt={eventStartAt}
+      eventEndAt={eventEndAt}
+      onOwnRegistration={setHasOwnRegistration}
+    />
+  );
+
+  if (!ticketTypes || ticketTypes.length === 0) return myRegistrationCard;
 
   const maxQuantity = selectedTicketType
     ? Math.max(
@@ -947,8 +964,17 @@ function InternalEventRegistration({
   }
 
   const singleFreeTicket = ticketTypes.length === 1 && isFreeFlow(ticketTypes[0]);
+  const hasPaidAvailable = ticketTypes.some(
+    (t) => !isFreeFlow(t) && getTicketAvailability(t).status === "available"
+  );
+  // Quem já tem ingresso próprio não precisa do form de inscrição gratuita —
+  // exceto quando ainda há ingresso PAGO disponível (compra para terceiros).
+  const hideForm = hasOwnRegistration && (singleFreeTicket || !hasPaidAvailable);
 
   return (
+    <>
+      {myRegistrationCard}
+      {!hideForm ? (
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -1014,6 +1040,8 @@ function InternalEventRegistration({
         onComplete={handleCheckoutComplete}
       />
     </Card>
+      ) : null}
+    </>
   );
 }
 
@@ -1027,6 +1055,8 @@ function ExternalEventRegistration({
   externalHref,
   stripeKey,
   eventTitle,
+  eventStartAt,
+  eventEndAt,
   onCheckoutSuccess,
 }: {
   readonly eventKey: string;
@@ -1034,6 +1064,8 @@ function ExternalEventRegistration({
   readonly externalHref: string;
   readonly stripeKey: string;
   readonly eventTitle: string;
+  readonly eventStartAt: string;
+  readonly eventEndAt?: string | null;
   readonly onCheckoutSuccess?: () => void;
 }): React.JSX.Element | null {
   const location = useLocation();
@@ -1062,8 +1094,17 @@ function ExternalEventRegistration({
     [paidTypes, selectedTicketTypeId]
   );
 
-  if (!ticketTypes) return null;
-  if (paidTypes.length === 0 && freeTypes.length === 0) return null;
+  const myRegistrationCard = (
+    <EventMyRegistration
+      apiUrl={apiUrl}
+      eventKey={eventKey}
+      eventStartAt={eventStartAt}
+      eventEndAt={eventEndAt}
+    />
+  );
+
+  if (!ticketTypes) return myRegistrationCard;
+  if (paidTypes.length === 0 && freeTypes.length === 0) return myRegistrationCard;
 
   const maxQuantity = selectedTicketType
     ? Math.max(
@@ -1108,6 +1149,8 @@ function ExternalEventRegistration({
   };
 
   return (
+    <>
+      {myRegistrationCard}
     <Card variant="outlined" sx={{ mb: 4 }}>
       <CardContent sx={{ p: { xs: 3, md: 4 } }}>
         <Typography variant="h5" fontWeight={700} gutterBottom>
@@ -1227,6 +1270,7 @@ function ExternalEventRegistration({
         onComplete={handleCheckoutComplete}
       />
     </Card>
+    </>
   );
 }
 
@@ -1522,10 +1566,13 @@ function EventDetailContent({
   source,
   sourceId,
   eventId,
+  initialEvent,
 }: {
   readonly source: string;
   readonly sourceId: string;
   readonly eventId: string;
+  /** Evento injetado pela rota estática — evita o skeleton no primeiro render. */
+  readonly initialEvent?: EventSummary;
 }): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const configuredApiUrl =
@@ -1533,10 +1580,13 @@ function EventDetailContent({
   const apiUrl = resolveApiUrl(configuredApiUrl, siteConfig.url);
   const stripeKey = (siteConfig.customFields?.stripePublishableKey as string) ?? "";
 
-  const [event, setEvent] = useState<EventWithOverride | null>(null);
+  const hasInitialEvent = Boolean(initialEvent && initialEvent.id === eventId);
+  const [event, setEvent] = useState<EventWithOverride | null>(
+    hasInitialEvent ? (initialEvent as EventWithOverride) : null
+  );
   const [override, setOverride] = useState<EventOverride | null>(null);
   const [sourceMeta, setSourceMeta] = useState<EventSourceConfig | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasInitialEvent);
   const [hasError, setHasError] = useState(false);
 
   // Ações de owner (eventos externos): probe can-manage no backend.
@@ -1569,6 +1619,8 @@ function EventDetailContent({
   useEffect(() => {
     let active = true;
 
+    // Com initialEvent (rota estática) o render não depende deste fetch: ele
+    // atua como refresh em background (override mais recente / fallback ao vivo).
     loadEventWithOverride(source, sourceId, eventId, apiUrl)
       .then((result) => {
         if (!active) return;
@@ -1579,14 +1631,14 @@ function EventDetailContent({
       })
       .catch(() => {
         if (!active) return;
-        setHasError(true);
+        if (!hasInitialEvent) setHasError(true);
         setLoading(false);
       });
 
     return () => {
       active = false;
     };
-  }, [source, sourceId, eventId, apiUrl]);
+  }, [source, sourceId, eventId, apiUrl, hasInitialEvent]);
 
   if (loading) {
     return (
@@ -1645,6 +1697,8 @@ function EventDetailContent({
           apiUrl={apiUrl}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          eventStartAt={event.startAt}
+          eventEndAt={event.endAt ?? null}
           onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
@@ -1655,6 +1709,8 @@ function EventDetailContent({
           externalHref={event.registrationUrl ?? event.href}
           stripeKey={stripeKey}
           eventTitle={event.title}
+          eventStartAt={event.startAt}
+          eventEndAt={event.endAt ?? null}
           onCheckoutSuccess={() => { if (typeof window !== "undefined") window.location.href = "/membro?purchase=success"; }}
         />
       ) : null}
@@ -1668,6 +1724,16 @@ function EventDetailContent({
           <Typography variant="body1" color="text.secondary" sx={{ mb: 2.5 }}>
             {event.summary}
           </Typography>
+          {event.description ? (
+            <Typography
+              component="div"
+              variant="body1"
+              color="text.secondary"
+              sx={{ whiteSpace: "pre-line", mb: 2.5 }}
+            >
+              {event.description}
+            </Typography>
+          ) : null}
           {event.tags.length > 0 ? (
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {event.tags.map((tag) => (
@@ -1741,16 +1807,26 @@ function EventDetailContent({
   );
 }
 
+/** Props injetadas pela rota estática gerada pelo plugin event-pages. */
+export interface EventDetailRouteProps {
+  readonly routeSource?: string;
+  readonly routeSourceId?: string;
+  readonly routeEventId?: string;
+  readonly initialEvent?: EventSummary;
+}
+
 function EventDetailPageContent({
   source,
   sourceId,
   eventId,
   mounted,
+  initialEvent,
 }: {
   readonly source: string;
   readonly sourceId: string;
   readonly eventId: string;
   readonly mounted: boolean;
+  readonly initialEvent?: EventSummary;
 }): React.JSX.Element {
   const hasParams = Boolean(source && sourceId && eventId);
 
@@ -1781,41 +1857,110 @@ function EventDetailPageContent({
     );
   }
 
-  return <EventDetailContent source={source} sourceId={sourceId} eventId={eventId} />;
+  return (
+    <EventDetailContent
+      source={source}
+      sourceId={sourceId}
+      eventId={eventId}
+      initialEvent={initialEvent}
+    />
+  );
 }
 
-export default function EventoDetalhePage(): React.JSX.Element {
+let knownEventPathsPromise: Promise<Map<string, string> | null> | null = null;
+
+/**
+ * Mapa `<source>:<sourceId>:<id>` → path da rota estática gerada no build
+ * (cache em módulo). Internos com slug apontam para `/eventos/<slug>`.
+ */
+function loadKnownEventPaths(): Promise<Map<string, string> | null> {
+  knownEventPathsPromise ??= fetch("/events/index.json")
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const data = (await res.json()) as EventIndexFile;
+      const paths = new Map<string, string>();
+      for (const e of data.events ?? []) {
+        paths.set(`${e.source}:${e.sourceId}:${e.id}`, buildEventPublicPath(e));
+      }
+      return paths;
+    })
+    .catch(() => null);
+  return knownEventPathsPromise;
+}
+
+export default function EventoDetalhePage({
+  routeSource,
+  routeSourceId,
+  routeEventId,
+  initialEvent,
+}: EventDetailRouteProps = {}): React.JSX.Element {
+  const { siteConfig } = useDocusaurusContext();
   const location = useLocation();
+  const history = useHistory();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const params = new URLSearchParams(location.search);
-  const source = params.get("source") ?? "";
-  const sourceId = params.get("sourceId") ?? "";
-  const eventId = params.get("id") ?? "";
+  const search = location.search;
+  const params = new URLSearchParams(search);
+  const source = routeSource ?? params.get("source") ?? "";
+  const sourceId = routeSourceId ?? params.get("sourceId") ?? "";
+  const eventId = routeEventId ?? params.get("id") ?? "";
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const status = params.get("status");
-    const sessionId = params.get("session_id");
+    const p = new URLSearchParams(search);
+    const status = p.get("status");
+    const sessionId = p.get("session_id");
     if (status === "success" && sessionId) {
       window.location.href = "/membro?tab=future&purchase=success";
     }
-  }, [params]);
+  }, [search]);
+
+  // URL legada (query params): redireciona para a rota estática quando ela
+  // existe no snapshot do build. Sem rota estática (ex.: evento interno
+  // recém-publicado, ainda sem sync/build), segue funcionando via query.
+  // O retorno do Stripe (status/session_id) NÃO redireciona.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (routeEventId) return;
+    const p = new URLSearchParams(search);
+    if (p.get("status") || p.get("session_id")) return;
+    const s = p.get("source");
+    const sid = p.get("sourceId");
+    const id = p.get("id");
+    if (!s || !sid || !id) return;
+    let active = true;
+    loadKnownEventPaths().then((paths) => {
+      if (!active || !paths) return;
+      const target = paths.get(`${s}:${sid}:${id}`);
+      if (target) history.replace(target);
+    });
+    return () => {
+      active = false;
+    };
+  }, [search, routeEventId, history]);
 
   return (
     <Layout
-      title="Detalhes do evento"
-      description="Detalhes do evento da comunidade Codaqui."
+      title={initialEvent?.title ?? "Detalhes do evento"}
+      description={
+        initialEvent
+          ? truncateEventSummary(initialEvent.summary)
+          : "Detalhes do evento da comunidade Codaqui."
+      }
+      {...(initialEvent
+        ? { image: resolveEventImageUrl(initialEvent.imageUrl, siteConfig.url) }
+        : {})}
     >
       <EventDetailPageContent
         source={source}
         sourceId={sourceId}
         eventId={eventId}
         mounted={mounted}
+        initialEvent={initialEvent}
       />
     </Layout>
   );

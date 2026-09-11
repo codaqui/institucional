@@ -27,6 +27,10 @@ export class ManagedEvent {
   @Column('text')
   summary: string;
 
+  /** descricao longa opcional, texto simples com quebras de linha */
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
   @Column({ type: 'varchar', nullable: true })
   imageUrl: string | null;
 

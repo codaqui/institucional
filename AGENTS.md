@@ -211,6 +211,7 @@ institucional/
 │   ├── utils/
 │   │   ├── transaction.tsx      # ⭐ Tipos + TX_TYPE_CONFIG + deriveTransactionMeta + formatBRL
 │   │   ├── event-override.ts    # ⭐ loadEventWithOverride (snapshot + metadados de event_overrides)
+│   │   ├── event-path.ts        # ⭐ buildEventPath (rota estática do evento) + buildEventJsonLd
 │   │   └── document.ts          # formatDocument (CPF/CNPJ)
 │   ├── data/                    # ⭐ Centralized data layer (see below)
 │   │   ├── social.ts            # DISCORD_URL, WHATSAPP_URL, EMAIL, GITHUB_ORG, socialChannels[]
@@ -490,6 +491,7 @@ static/events/
 - **Ordenação:** `static/events/index.json` é ordenado ASC por `startAt`; a página `/eventos` separa futuros e passados no cliente.
 - **Overrides de metadados:** feitos via API REST do backend (`/events/overrides`) e persistidos no PostgreSQL; o sync aplica os metadados estendidos antes de gravar os snapshots. Veja [ADR 001](docs/adrs/001-event-platform.md) para detalhes de escopo, schema e permissões.
 - **Eventos próprios (`internal:codaqui`):** expostos por `GET /events/public/managed` e incorporados ao pipeline de snapshots. A página `/eventos/detalhe` detecta `source === "internal"` e embute inscrição/checkout.
+- **Páginas estáticas por evento (SEO/OG):** o plugin local `src/plugins/event-pages.ts` gera `/eventos/<slug>` para eventos internos (slug da `managed_events`) e `/eventos/<source>/<sourceId>/<id>` para externos, para cada evento do `static/events/index.json` (componente `src/components/EventDetailRoute/`, helpers em `src/utils/event-path.ts`), com OG/JSON-LD corretos para crawlers. A URL legada `/eventos/detalhe?source=...&id=...` redireciona para a rota estática quando ela existe, exceto no retorno do Stripe (`status=success&session_id=...`). Detalhes em `docs/modules/events/CODE_MANUAL.md` §2.8.
 - **Sync de snapshots:** o caminho normal é o workflow horário [`sync-event-snapshots.yml`](.github/workflows/sync-event-snapshots.yml), que commita direto em `main`. O force-sync manual (`POST /events/internal/snapshot`, botão no admin) ainda existe e abre um PR usando o token do membro (GitHub-as-Database) — **fluxo legado**, será substituído (ver `docs/plans/events-sync-improvements/`, Camada 3).
 
 > O antigo fluxo de arquivos `*.override.json`, `organizers.json` e o workflow `validate-event-overrides.yml` foram substituídos pelas APIs do backend (tabela `event_overrides` no PostgreSQL).

@@ -7,6 +7,7 @@ import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import Alert from "@mui/material/Alert";
+import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -54,6 +55,7 @@ import {
 import { fetchEventsIndexMerged } from "../../lib/events-api";
 import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
 import { parseBrlInput } from "../../utils/transaction";
+import { buildEventSlugPath } from "../../utils/event-path";
 
 // ── Tipos (contrato do backend — módulo events) ─────────────────────────────
 
@@ -85,6 +87,7 @@ interface ManagedEvent {
   slug: string;
   title: string;
   summary: string;
+  description?: string | null;
   imageUrl: string | null;
   location: string;
   startAt: string;
@@ -189,14 +192,20 @@ const FEATURE_LABEL: Record<string, string> = {
 
 const PAGE_SIZE = 10;
 
+const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+const TIMEZONE_OPTIONS: string[] =
+  typeof Intl.supportedValuesOf === "function"
+    ? Intl.supportedValuesOf("timeZone")
+    : ["America/Sao_Paulo"];
+
 const COMMUNITY_OPTIONS = [
   { id: "codaqui", name: "Codaqui (geral)" },
   ...communities.map((c) => ({ id: c.id, name: c.name })),
 ];
 
 /** URL pública de detalhe de um evento próprio (fonte internal:codaqui). */
-const publicEventUrl = (eventId: string): string =>
-  `/eventos/detalhe?source=internal&sourceId=codaqui&id=${eventId}`;
+const publicEventUrl = (slug: string): string => buildEventSlugPath(slug);
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -227,9 +236,12 @@ interface EventValidationResult {
   payload?: Record<string, unknown>;
 }
 
-function buildEventPayload(form: EventForm): EventValidationResult {
-  if (!form.slug.trim() || !form.title.trim() || !form.summary.trim() || !form.location.trim()) {
+function buildEventPayload(form: EventForm, mode: "create" | "edit"): EventValidationResult {
+  if (mode === "create" && !form.slug.trim()) {
     return { error: "Preencha slug, título, resumo e local." };
+  }
+  if (!form.title.trim() || !form.summary.trim() || !form.location.trim()) {
+    return { error: "Preencha título, resumo e local." };
   }
   if (!isValidDateTimeLocal(form.startAt)) {
     return { error: "Informe uma data/hora de início válida (incluindo horas e minutos)." };
@@ -239,20 +251,37 @@ function buildEventPayload(form: EventForm): EventValidationResult {
     return { error: "Data/hora de início inválida." };
   }
   const payload: Record<string, unknown> = {
-    slug: form.slug.trim(),
     title: form.title.trim(),
     summary: form.summary.trim(),
     location: form.location.trim(),
     startAt: startIso,
     communityProjectKey: form.communityProjectKey,
   };
+  if (mode === "create") {
+    const slug = form.slug.trim();
+    if (!SLUG_REGEX.test(slug)) {
+      return { error: "Slug inválido: use letras minúsculas, números e hífens (ex.: devpr-conf-2026)." };
+    }
+    payload.slug = slug;
+  }
   if (form.imageUrl.trim()) payload.imageUrl = form.imageUrl.trim();
+  const description = form.description.trim();
+  if (description) {
+    payload.description = description;
+  } else if (mode === "edit") {
+    payload.description = "";
+  }
   if (form.endAt && !isValidDateTimeLocal(form.endAt)) {
     return { error: "Data/hora de término inválida. Deixe em branco ou informe data e hora completas." };
   }
   const endIso = fromDateTimeLocal(form.endAt);
   if (endIso) payload.endAt = endIso;
-  if (form.timezone.trim()) payload.timezone = form.timezone.trim();
+  if (form.timezone.trim()) {
+    if (!TIMEZONE_OPTIONS.includes(form.timezone.trim())) {
+      return { error: "Fuso horário inválido (ex.: America/Sao_Paulo)." };
+    }
+    payload.timezone = form.timezone.trim();
+  }
   if (form.capacity.trim()) {
     const cap = Number.parseInt(form.capacity, 10);
     if (Number.isNaN(cap) || cap <= 0) {
@@ -268,7 +297,7 @@ interface TicketValidationResult {
   payload?: Record<string, unknown>;
 }
 
-function buildTicketPayload(form: TicketForm): TicketValidationResult {
+function buildTicketPayload(form: TicketForm, mode: "create" | "edit"): TicketValidationResult {
   if (!form.name.trim()) {
     return { error: "Informe o nome do tipo de ingresso." };
   }
@@ -286,10 +315,10 @@ function buildTicketPayload(form: TicketForm): TicketValidationResult {
   }
   const payload: Record<string, unknown> = {
     name: form.name.trim(),
-    kind: form.kind,
     priceCents,
     quantityTotal,
   };
+  if (mode === "create") payload.kind = form.kind;
   const salesStart = fromDateTimeLocal(form.salesStartAt);
   if (salesStart) payload.salesStartAt = salesStart;
   const salesEnd = fromDateTimeLocal(form.salesEndAt);
@@ -308,6 +337,7 @@ interface EventForm {
   slug: string;
   title: string;
   summary: string;
+  description: string;
   imageUrl: string;
   location: string;
   startAt: string;
@@ -321,6 +351,7 @@ const EMPTY_EVENT_FORM: EventForm = {
   slug: "",
   title: "",
   summary: "",
+  description: "",
   imageUrl: "",
   location: "",
   startAt: "",
@@ -415,7 +446,7 @@ function HubAlerts({
           action={
             <Button
               component={Link}
-              href={publicEventUrl(publishSuccess.id)}
+              href={publicEventUrl(publishSuccess.slug)}
               target="_blank"
               rel="noopener noreferrer"
               color="inherit"
@@ -437,7 +468,7 @@ function HubAlerts({
           action={
             <Button
               component={Link}
-              href={publicEventUrl(saveSuccess.event.id)}
+              href={publicEventUrl(saveSuccess.event.slug)}
               target="_blank"
               rel="noopener noreferrer"
               color="inherit"
@@ -671,6 +702,7 @@ interface InternalEventAccordionProps {
   onOrdersClick: (eventId: string, title: string) => void;
   onReimbursementClick: (event: ManagedEvent) => void;
   onAddTicketClick: (event: ManagedEvent) => void;
+  onEditTicket: (event: ManagedEvent, ticket: TicketType) => void;
   onDeactivateTicket: (ticket: TicketType) => void;
   onAddStaff: (event: ManagedEvent) => void;
   onRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
@@ -693,6 +725,7 @@ function InternalEventAccordion({
   onOrdersClick,
   onReimbursementClick,
   onAddTicketClick,
+  onEditTicket,
   onDeactivateTicket,
   onAddStaff,
   onRemoveStaff,
@@ -751,7 +784,7 @@ function InternalEventAccordion({
                 size="small"
                 variant="text"
                 component={Link}
-                href={publicEventUrl(event.id)}
+                href={publicEventUrl(event.slug)}
                 target="_blank"
                 rel="noopener noreferrer"
                 endIcon={<OpenInNewIcon />}
@@ -825,6 +858,11 @@ function InternalEventAccordion({
                 <Chip label={`Vendidos: ${ticket.quantitySold ?? 0}/${ticket.quantityTotal}`} size="small" variant="outlined" />
                 {!ticket.isActive && <Chip label="Inativo" size="small" color="default" />}
                 <Box sx={{ flex: 1 }} />
+                <Tooltip title="Editar tipo de ingresso">
+                  <IconButton size="small" aria-label={`editar ${ticket.name}`} onClick={() => onEditTicket(event, ticket)}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
                 {ticket.isActive && (
                   <Tooltip title="Desativar tipo de ingresso">
                     <IconButton size="small" aria-label={`desativar ${ticket.name}`} onClick={() => onDeactivateTicket(ticket)}>
@@ -1088,6 +1126,11 @@ function useAdminEventosData(
 
 type EventDialogState = { mode: "create" } | { mode: "edit"; event: ManagedEvent } | null;
 
+type TicketDialogState =
+  | { event: ManagedEvent; mode: "create" }
+  | { event: ManagedEvent; mode: "edit"; ticket: TicketType }
+  | null;
+
 interface UseAdminEventosMutationsReturn {
   eventDialog: EventDialogState;
   setEventDialog: React.Dispatch<React.SetStateAction<EventDialogState>>;
@@ -1099,8 +1142,8 @@ interface UseAdminEventosMutationsReturn {
   setCancelTarget: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
   cancelLoading: boolean;
   cancelError: string;
-  ticketDialog: ManagedEvent | null;
-  setTicketDialog: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
+  ticketDialog: TicketDialogState;
+  setTicketDialog: React.Dispatch<React.SetStateAction<TicketDialogState>>;
   ticketForm: TicketForm;
   setTicketForm: React.Dispatch<React.SetStateAction<TicketForm>>;
   ticketSaving: boolean;
@@ -1108,6 +1151,10 @@ interface UseAdminEventosMutationsReturn {
   staffForm: Record<string, { memberId: string; staffRole: EventStaffRole }>;
   setStaffForm: React.Dispatch<React.SetStateAction<Record<string, { memberId: string; staffRole: EventStaffRole }>>>;
   publishingId: string | null;
+  publishTarget: ManagedEvent | null;
+  setPublishTarget: React.Dispatch<React.SetStateAction<ManagedEvent | null>>;
+  publishError: string;
+  setPublishError: React.Dispatch<React.SetStateAction<string>>;
   staffAddingId: string | null;
   staffRemovingId: string | null;
   actionError: string;
@@ -1122,6 +1169,7 @@ interface UseAdminEventosMutationsReturn {
   handlePublish: (event: ManagedEvent) => Promise<void>;
   handleCancelEvent: () => Promise<void>;
   handleCreateTicketType: () => Promise<void>;
+  openEditTicketDialog: (event: ManagedEvent, ticket: TicketType) => void;
   handleDeactivateTicketType: (ticket: TicketType) => Promise<void>;
   handleAddStaff: (event: ManagedEvent) => Promise<void>;
   handleRemoveStaff: (event: ManagedEvent, staff: EventStaff) => Promise<void>;
@@ -1143,7 +1191,7 @@ function useAdminEventosMutations(
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelError, setCancelError] = useState("");
 
-  const [ticketDialog, setTicketDialog] = useState<ManagedEvent | null>(null);
+  const [ticketDialog, setTicketDialog] = useState<TicketDialogState>(null);
   const [ticketForm, setTicketForm] = useState<TicketForm>(EMPTY_TICKET_FORM);
   const [ticketSaving, setTicketSaving] = useState(false);
   const [ticketError, setTicketError] = useState("");
@@ -1151,6 +1199,8 @@ function useAdminEventosMutations(
   const [staffForm, setStaffForm] = useState<Record<string, { memberId: string; staffRole: EventStaffRole }>>({});
 
   const [publishingId, setPublishingId] = useState<string | null>(null);
+  const [publishTarget, setPublishTarget] = useState<ManagedEvent | null>(null);
+  const [publishError, setPublishError] = useState("");
   const [staffAddingId, setStaffAddingId] = useState<string | null>(null);
   const [staffRemovingId, setStaffRemovingId] = useState<string | null>(null);
 
@@ -1169,6 +1219,7 @@ function useAdminEventosMutations(
       slug: event.slug,
       title: event.title,
       summary: event.summary,
+      description: event.description ?? "",
       imageUrl: event.imageUrl ?? "",
       location: event.location,
       startAt: toDateTimeLocal(event.startAt),
@@ -1184,7 +1235,7 @@ function useAdminEventosMutations(
   const handleSaveEvent = useCallback(async () => {
     if (!eventDialog) return;
     setEventError("");
-    const validation = buildEventPayload(eventForm);
+    const validation = buildEventPayload(eventForm, eventDialog.mode);
     if (validation.error || !validation.payload) {
       setEventError(validation.error ?? "Erro de validação.");
       return;
@@ -1214,18 +1265,19 @@ function useAdminEventosMutations(
   const handlePublish = useCallback(async (event: ManagedEvent) => {
     if (publishingId) return;
     setPublishingId(event.id);
-    setActionError("");
+    setPublishError("");
     setPublishSuccess(null);
     try {
       const res = await authFetch(`${apiUrl}/events/${event.id}/publish`, { method: "POST" });
       if (!res.ok) {
-        setActionError(await extractErrorMessage(res, "Erro ao publicar evento."));
+        setPublishError(await extractErrorMessage(res, "Erro ao publicar evento."));
         return;
       }
+      setPublishTarget(null);
       setPublishSuccess(event);
       await fetchEvents();
     } catch {
-      setActionError("Erro inesperado ao publicar.");
+      setPublishError("Erro inesperado ao publicar.");
     } finally {
       setPublishingId(null);
     }
@@ -1253,19 +1305,25 @@ function useAdminEventosMutations(
   const handleCreateTicketType = useCallback(async () => {
     if (!ticketDialog) return;
     setTicketError("");
-    const validation = buildTicketPayload(ticketForm);
+    const validation = buildTicketPayload(ticketForm, ticketDialog.mode);
     if (validation.error || !validation.payload) {
       setTicketError(validation.error ?? "Erro de validação.");
       return;
     }
     setTicketSaving(true);
     try {
-      const res = await authFetch(`${apiUrl}/events/${ticketDialog.id}/ticket-types`, {
-        method: "POST",
-        body: JSON.stringify(validation.payload),
-      });
+      const isEdit = ticketDialog.mode === "edit";
+      const res = await authFetch(
+        isEdit
+          ? `${apiUrl}/events/ticket-types/${ticketDialog.ticket.id}`
+          : `${apiUrl}/events/${ticketDialog.event.id}/ticket-types`,
+        {
+          method: isEdit ? "PATCH" : "POST",
+          body: JSON.stringify(validation.payload),
+        },
+      );
       if (!res.ok) {
-        setTicketError(await extractErrorMessage(res, "Erro ao criar tipo de ingresso."));
+        setTicketError(await extractErrorMessage(res, "Erro ao salvar tipo de ingresso."));
         return;
       }
       setTicketDialog(null);
@@ -1276,6 +1334,20 @@ function useAdminEventosMutations(
       setTicketSaving(false);
     }
   }, [apiUrl, authFetch, ticketDialog, ticketForm, fetchEvents]);
+
+  const openEditTicketDialog = useCallback((event: ManagedEvent, ticket: TicketType) => {
+    setTicketForm({
+      name: ticket.name,
+      kind: ticket.kind,
+      price: (ticket.priceCents / 100).toFixed(2),
+      quantityTotal: String(ticket.quantityTotal),
+      salesStartAt: toDateTimeLocal(ticket.salesStartAt),
+      salesEndAt: toDateTimeLocal(ticket.salesEndAt),
+      maxPerOrder: String(ticket.maxPerOrder),
+    });
+    setTicketError("");
+    setTicketDialog({ event, mode: "edit", ticket });
+  }, []);
 
   const handleDeactivateTicketType = useCallback(async (ticket: TicketType) => {
     setActionError("");
@@ -1346,6 +1418,8 @@ function useAdminEventosMutations(
     ticketSaving, ticketError,
     staffForm, setStaffForm,
     publishingId, staffAddingId, staffRemovingId,
+    publishTarget, setPublishTarget,
+    publishError, setPublishError,
     actionError, setActionError,
     publishSuccess, setPublishSuccess,
     saveSuccess, setSaveSuccess,
@@ -1355,6 +1429,7 @@ function useAdminEventosMutations(
     handlePublish,
     handleCancelEvent,
     handleCreateTicketType,
+    openEditTicketDialog,
     handleDeactivateTicketType,
     handleAddStaff,
     handleRemoveStaff,
@@ -1693,6 +1768,8 @@ function useAdminEventosPage() {
     ticketError: mutations.ticketError,
     staffForm: mutations.staffForm, setStaffForm: mutations.setStaffForm,
     publishingId: mutations.publishingId,
+    publishTarget: mutations.publishTarget, setPublishTarget: mutations.setPublishTarget,
+    publishError: mutations.publishError, setPublishError: mutations.setPublishError,
     staffAddingId: mutations.staffAddingId,
     staffRemovingId: mutations.staffRemovingId,
     externalEvents: data.externalEvents, setExternalEvents: data.setExternalEvents,
@@ -1723,6 +1800,7 @@ function useAdminEventosPage() {
     handlePublish: mutations.handlePublish,
     handleCancelEvent: mutations.handleCancelEvent,
     handleCreateTicketType: mutations.handleCreateTicketType,
+    openEditTicketDialog: mutations.openEditTicketDialog,
     handleDeactivateTicketType: mutations.handleDeactivateTicketType,
     handleAddStaff: mutations.handleAddStaff,
     handleRemoveStaff: mutations.handleRemoveStaff,
@@ -1757,11 +1835,12 @@ export default function AdminEventosPage(): React.JSX.Element {
     cancelTarget, setCancelTarget, cancelLoading, cancelError,
     ticketDialog, setTicketDialog, ticketForm, setTicketForm, ticketSaving, ticketError,
     members, membersById, staffForm, setStaffForm,
-    publishingId, staffAddingId, staffRemovingId,
+    publishingId, publishTarget, setPublishTarget, publishError, setPublishError,
+    staffAddingId, staffRemovingId,
     ordersDialog, setOrdersDialog,
     reimbursementDialog, setReimbursementDialog,
     handleSnapshot, openCreateDialog, openEditDialog, handleSaveEvent, handlePublish, handleCancelEvent,
-    handleCreateTicketType, handleDeactivateTicketType, handleAddStaff, handleRemoveStaff,
+    handleCreateTicketType, openEditTicketDialog, handleDeactivateTicketType, handleAddStaff, handleRemoveStaff,
     sourceLabel, setCancelError, setTicketError,
   } = page;
 
@@ -1886,7 +1965,7 @@ export default function AdminEventosPage(): React.JSX.Element {
                     staffForm={staffForm}
                     canReimburse={canReimburse}
                     onEdit={openEditDialog}
-                    onPublish={handlePublish}
+                    onPublish={(event) => { setPublishTarget(event); setPublishError(""); }}
                     onCancel={(event) => { setCancelTarget(event); setCancelError(""); }}
                     onOrdersClick={(eventId, title) =>
                       setOrdersDialog({ kind: "internal", eventId, title })
@@ -1901,8 +1980,9 @@ export default function AdminEventosPage(): React.JSX.Element {
                     onAddTicketClick={(event) => {
                       setTicketForm(EMPTY_TICKET_FORM);
                       setTicketError("");
-                      setTicketDialog(event);
+                      setTicketDialog({ event, mode: "create" });
                     }}
+                    onEditTicket={openEditTicketDialog}
                     onDeactivateTicket={handleDeactivateTicketType}
                     onAddStaff={handleAddStaff}
                     onRemoveStaff={handleRemoveStaff}
@@ -1958,7 +2038,12 @@ export default function AdminEventosPage(): React.JSX.Element {
               size="small"
               fullWidth
               required
-              helperText="Identificador único usado nas URLs (ex.: devpr-conf-2026)"
+              disabled={eventDialog?.mode === "edit"}
+              helperText={
+                eventDialog?.mode === "edit"
+                  ? "O slug não pode ser alterado após a criação."
+                  : "Identificador único usado nas URLs (ex.: devpr-conf-2026)"
+              }
             />
             <TextField
               label="Título"
@@ -1977,6 +2062,16 @@ export default function AdminEventosPage(): React.JSX.Element {
               required
               multiline
               minRows={2}
+            />
+            <TextField
+              label="Descrição (opcional)"
+              value={eventForm.description}
+              onChange={(e) => setEventForm((f) => ({ ...f, description: e.target.value }))}
+              size="small"
+              fullWidth
+              multiline
+              minRows={4}
+              helperText="Texto longo exibido na página pública do evento. Quebras de linha são preservadas."
             />
             <TextField
               label="URL da imagem (opcional)"
@@ -2012,13 +2107,20 @@ export default function AdminEventosPage(): React.JSX.Element {
               fullWidth
               slotProps={{ inputLabel: { shrink: true } }}
             />
-            <TextField
-              label="Fuso horário"
+            <Autocomplete
+              freeSolo
+              options={TIMEZONE_OPTIONS}
               value={eventForm.timezone}
-              onChange={(e) => setEventForm((f) => ({ ...f, timezone: e.target.value }))}
-              size="small"
-              fullWidth
-              helperText="Padrão: America/Sao_Paulo"
+              onChange={(_, value) => setEventForm((f) => ({ ...f, timezone: value ?? "" }))}
+              onInputChange={(_, value) => setEventForm((f) => ({ ...f, timezone: value }))}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Fuso horário"
+                  size="small"
+                  helperText="Padrão: America/Sao_Paulo"
+                />
+              )}
             />
             <FormControl size="small" fullWidth>
               <InputLabel id="event-community-label">Comunidade</InputLabel>
@@ -2074,9 +2176,28 @@ export default function AdminEventosPage(): React.JSX.Element {
         onConfirm={handleCancelEvent}
       />
 
-      {/* ── Dialog: Novo tipo de ingresso ── */}
+      {/* ── Modal: Publicar evento ── */}
+      <ModalConfirm
+        open={!!publishTarget}
+        onClose={() => setPublishTarget(null)}
+        title="Publicar evento?"
+        description={`O evento "${publishTarget?.title ?? ""}" ficará visível publicamente no site e no checkout de inscrições.`}
+        variant="success"
+        confirmLabel="Publicar"
+        loading={publishingId === publishTarget?.id}
+        error={publishError}
+        onConfirm={() => {
+          if (publishTarget) void handlePublish(publishTarget);
+        }}
+      />
+
+      {/* ── Dialog: Criar / Editar tipo de ingresso ── */}
       <Dialog open={!!ticketDialog} onClose={() => setTicketDialog(null)} maxWidth="sm" fullWidth>
-        <DialogTitle>Novo tipo de ingresso — {ticketDialog?.title}</DialogTitle>
+        <DialogTitle>
+          {ticketDialog?.mode === "edit"
+            ? "Editar tipo de ingresso"
+            : `Novo tipo de ingresso — ${ticketDialog?.event.title ?? ""}`}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
@@ -2094,6 +2215,7 @@ export default function AdminEventosPage(): React.JSX.Element {
                 labelId="ticket-kind-label"
                 label="Tipo"
                 value={ticketForm.kind}
+                disabled={ticketDialog?.mode === "edit"}
                 onChange={(e) => setTicketForm((f) => ({ ...f, kind: e.target.value as TicketKind }))}
               >
                 {(Object.keys(KIND_LABEL) as TicketKind[]).map((kind) => (
@@ -2162,7 +2284,7 @@ export default function AdminEventosPage(): React.JSX.Element {
             disabled={ticketSaving}
             startIcon={ticketSaving ? <CircularProgress size={14} /> : undefined}
           >
-            Criar
+            {ticketDialog?.mode === "edit" ? "Salvar" : "Criar"}
           </Button>
         </DialogActions>
       </Dialog>

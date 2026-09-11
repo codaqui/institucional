@@ -245,7 +245,7 @@ function UpcomingEventsSection(): React.JSX.Element {
                   <Stack direction={{ xs: "column", sm: "row" }} spacing={1} sx={{ width: "100%" }}>
                     <Button
                       component={Link}
-                      to={getEventDetailPagePath(event.source, event.sourceId, event.id)}
+                      to={getEventDetailPagePath(event)}
                       variant="contained"
                       size="small"
                       fullWidth

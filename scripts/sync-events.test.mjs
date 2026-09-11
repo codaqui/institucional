@@ -324,7 +324,7 @@ test("buildIndexSummaries: item interno mantem href/platform e carimba source/so
   const event = {
     id: "uuid-1",
     title: "Encontro de Mentoria",
-    href: "https://codaqui.dev/eventos/detalhe?source=internal&sourceId=codaqui&id=uuid-1",
+    href: "https://codaqui.dev/eventos/encontro-de-mentoria",
     platform: "Site Codaqui",
     startAt: "2026-09-10T19:00:00-03:00",
   };
