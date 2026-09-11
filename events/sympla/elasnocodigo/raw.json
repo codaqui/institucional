@@ -1,0 +1,53 @@
+{
+  "generatedAt": "2026-09-11T03:01:46.006Z",
+  "events": [
+    {
+      "id": "sympla-3421888",
+      "title": "Roda de Conversa: Maternidade e Carreira",
+      "summary": "Maternidade e Carreira: o futuro da tecnologia também é feito por mães! Este mês celebramos o Dia das Mães e queremos deixar um convite especial para você. Sabemos que equilibrar o \"build\" da carreira com a rotina da ma…",
+      "startAt": "2026-05-16T14:00:00-03:00",
+      "endAt": "2026-05-16T16:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "Elas no Código",
+      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888",
+      "tags": [
+        "elasnocodigo",
+        "sympla",
+        "online"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "Elas no Código",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/6a0279e51f32f-xs.png"
+    },
+    {
+      "id": "sympla-3362405",
+      "title": "[Roda de Conversa] Roda de Conversa: Carreiras em Tech - Trajetórias Femininas que Transformam",
+      "summary": "Roda de Conversa: Carreiras em Tech Como é a realidade de uma mulher no mercado de tecnologia em 2026? Da infraestrutura ao mercado internacional, do design à educação inclusiva. O Elas No Código reúne um time de peso p…",
+      "startAt": "2026-03-28T14:00:00-03:00",
+      "endAt": "2026-03-28T15:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "Elas no Código",
+      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-roda-de-conversa-carreiras-em-tech-trajetorias-femininas-que-transformam/3362405",
+      "tags": [
+        "elasnocodigo",
+        "sympla",
+        "online"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "Elas no Código",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/69c47462c3ee2-xs.png"
+    }
+  ]
+}
