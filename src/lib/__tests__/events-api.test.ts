@@ -83,4 +83,111 @@ describe("fetchEventsIndexMerged", () => {
     );
     await expect(fetchEventsIndexMerged()).rejects.toThrow("Events index unavailable");
   });
+
+  it("mescla overrides recentes do backend por cima do snapshot", async () => {
+    const overrides = [
+      {
+        sourceKey: "meetup:devparana",
+        eventId: "evt-1",
+        ownerHandle: "endersonmenezes",
+        updatedAt: "2026-08-15T12:00:00.000Z",
+        reason: "Corrigir titulo",
+        payload: { title: "Titulo via Override", featured: true },
+      },
+    ];
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.resolve(jsonResponse(overrides));
+      }
+      return Promise.resolve(jsonResponse(indexPayload));
+    });
+
+    const result = await fetchEventsIndexMerged();
+
+    expect(result.events[0].title).toBe("Titulo via Override");
+    expect(result.events[0].featured).toBe(true);
+    expect(result.events[0].hasOverride).toBe(true);
+    expect(result.events[0]._override).toEqual({
+      ownerHandle: "endersonmenezes",
+      updatedAt: "2026-08-15T12:00:00.000Z",
+      reason: "Corrigir titulo",
+    });
+  });
+
+  it("normaliza reason ausente para null no _override", async () => {
+    const overrides = [
+      {
+        sourceKey: "meetup:devparana",
+        eventId: "evt-1",
+        ownerHandle: "endersonmenezes",
+        updatedAt: "2026-08-15T12:00:00.000Z",
+        payload: { summary: "Resumo novo" },
+      },
+    ];
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.resolve(jsonResponse(overrides));
+      }
+      return Promise.resolve(jsonResponse(indexPayload));
+    });
+
+    const result = await fetchEventsIndexMerged();
+
+    expect(result.events[0].summary).toBe("Resumo novo");
+    expect(result.events[0]._override?.reason).toBeNull();
+  });
+
+  it("nao altera eventos cujo sourceKey::id nao bate com nenhum override", async () => {
+    const overrides = [
+      {
+        sourceKey: "discord:codaqui",
+        eventId: "outro-evento",
+        ownerHandle: "alguem",
+        updatedAt: "2026-08-15T12:00:00.000Z",
+        payload: { title: "Nao deve aplicar" },
+      },
+    ];
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.resolve(jsonResponse(overrides));
+      }
+      return Promise.resolve(jsonResponse(indexPayload));
+    });
+
+    const result = await fetchEventsIndexMerged();
+
+    expect(result.events[0].title).toBe("Evento Base");
+    expect(result.events[0]._override).toBeUndefined();
+  });
+
+  it("ignora overrides quando a chamada publica falha (rede)", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.reject(new Error("backend down"));
+      }
+      return Promise.resolve(jsonResponse(indexPayload));
+    });
+
+    const result = await fetchEventsIndexMerged();
+
+    expect(result.events).toHaveLength(1);
+    expect(result.events[0].title).toBe("Evento Base");
+  });
+
+  it("prefixa a chamada de overrides com apiUrl quando informada", async () => {
+    (globalThis.fetch as unknown as jest.Mock).mockImplementation((url: string) => {
+      if (url.includes("/events/overrides/public")) {
+        return Promise.resolve(jsonResponse([]));
+      }
+      return Promise.resolve(jsonResponse(indexPayload));
+    });
+
+    await fetchEventsIndexMerged("https://api.codaqui.dev");
+
+    const calls = (globalThis.fetch as unknown as jest.Mock).mock.calls.map(
+      ([url]: [string]) => url,
+    );
+    expect(calls).toContain("https://api.codaqui.dev/events/overrides/public");
+    expect(calls).toContain("/events/index.json");
+  });
 });

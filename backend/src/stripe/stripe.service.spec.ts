@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { StripeService } from './stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { Transaction } from '../ledger/entities/transaction.entity';
@@ -120,6 +120,7 @@ describe('StripeService', () => {
       creditCoins: jest.fn().mockResolvedValue({}),
       creditFromInvoice: jest.fn().mockResolvedValue({}),
       freezeCoin: jest.fn().mockResolvedValue({}),
+      unfreezeCoin: jest.fn().mockResolvedValue({}),
     };
 
     const companiesServiceMock = {
@@ -131,6 +132,7 @@ describe('StripeService', () => {
       setSubscriptionAmount: jest.fn().mockResolvedValue(undefined),
       activateFromInvoice: jest.fn().mockResolvedValue(undefined),
       suspendFromSubscriptionDeleted: jest.fn().mockResolvedValue({}),
+      trackSubscriptionStatus: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -1853,6 +1855,1190 @@ describe('StripeService', () => {
         payment_intent: 'pi_1',
         amount: 2500,
       });
+    });
+
+    it('creates an embedded checkout session returning clientSecret', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        id: 'cs_evt_emb',
+        client_secret: 'cs_evt_emb_secret',
+      });
+
+      const result = await service.createEventTicketCheckoutSession({
+        productName: 'Evento — Lote 1',
+        productDescription: 'Descrição do lote',
+        unitAmountCents: 5000,
+        quantity: 1,
+        uiMode: 'embedded_page',
+        metadata: {
+          entityType: 'event-ticket',
+          orderId: uuid(60),
+          communityId: 'devparana',
+        },
+      });
+
+      expect(result).toEqual({
+        sessionId: 'cs_evt_emb',
+        clientSecret: 'cs_evt_emb_secret',
+      });
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.ui_mode).toBe('embedded_page');
+      expect(params.return_url).toContain('status=success');
+      expect(params.line_items[0].price_data.product_data.description).toBe(
+        'Descrição do lote',
+      );
+    });
+  });
+
+  // ─── Subscription lifecycle webhooks ─────────────────────────────────────
+
+  describe('subscription lifecycle webhooks', () => {
+    const clubService = () => (service as any).clubService;
+    const companiesService = () => (service as any).companiesService;
+
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const webhookEvent = (type: string, object: Record<string, unknown>) => ({
+      type,
+      data: { object },
+    });
+
+    it('customer.subscription.deleted (PF): freezes the member wallet', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.deleted', {
+          id: 'sub_pf_del',
+          metadata: { memberId: uuid(5) },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(clubService().freezeCoin).toHaveBeenCalledWith(uuid(5));
+    });
+
+    it('customer.subscription.deleted (business): suspends the company', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.deleted', {
+          id: 'sub_biz_del',
+          metadata: { entityType: 'business', companyId: uuid(3) },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(
+        companiesService().suspendFromSubscriptionDeleted,
+      ).toHaveBeenCalledWith('sub_biz_del');
+      expect(clubService().freezeCoin).not.toHaveBeenCalled();
+    });
+
+    it('customer.subscription.deleted: handler errors are caught (webhook still acked)', async () => {
+      clubService().freezeCoin.mockRejectedValue(new Error('db down'));
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.deleted', {
+          id: 'sub_err',
+          metadata: { memberId: uuid(5) },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+    });
+
+    it('customer.subscription.deleted without memberId/business: no side effects', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.deleted', {
+          id: 'sub_orphan',
+          metadata: {},
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(clubService().freezeCoin).not.toHaveBeenCalled();
+      expect(
+        companiesService().suspendFromSubscriptionDeleted,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('customer.subscription.updated (business): tracks status for past_due freeze logic', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.updated', {
+          id: 'sub_biz_upd',
+          status: 'past_due',
+          metadata: { entityType: 'business', companyId: uuid(3) },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(companiesService().trackSubscriptionStatus).toHaveBeenCalledWith(
+        uuid(3),
+        'sub_biz_upd',
+        'past_due',
+      );
+    });
+
+    it('customer.subscription.updated (business): tracking errors are caught', async () => {
+      companiesService().trackSubscriptionStatus.mockRejectedValue(
+        new Error('db down'),
+      );
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.updated', {
+          id: 'sub_biz_err',
+          status: 'active',
+          metadata: { entityType: 'business', companyId: uuid(3) },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+    });
+
+    it('customer.subscription.updated (PF active): unfreezes the member wallet', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.updated', {
+          id: 'sub_pf_upd',
+          status: 'active',
+          metadata: { memberId: uuid(5) },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(clubService().unfreezeCoin).toHaveBeenCalledWith(uuid(5));
+    });
+
+    it('customer.subscription.updated (PF not active): does not unfreeze', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.updated', {
+          id: 'sub_pf_past_due',
+          status: 'past_due',
+          metadata: { memberId: uuid(5) },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(clubService().unfreezeCoin).not.toHaveBeenCalled();
+    });
+
+    it('customer.subscription.updated (PF): unfreeze errors are caught', async () => {
+      clubService().unfreezeCoin.mockRejectedValue(new Error('db down'));
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        webhookEvent('customer.subscription.updated', {
+          id: 'sub_pf_err',
+          status: 'active',
+          metadata: { memberId: uuid(5) },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+    });
+  });
+
+  // ─── Business subscription checkout (checkout.session.completed) ────────
+
+  describe('business subscription checkout.session.completed', () => {
+    const companiesService = () => (service as any).companiesService;
+
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    it('persists stripe customer and subscription on the company, skipping the ledger', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_biz_1',
+            metadata: {
+              isSubscription: 'true',
+              entityType: 'business',
+              companyId: uuid(3),
+              memberId: uuid(5),
+            },
+            customer: 'cus_biz_1',
+            subscription: 'sub_biz_1',
+            amount_total: 20000,
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(companiesService().setStripeCustomer).toHaveBeenCalledWith(
+        uuid(3),
+        'cus_biz_1',
+      );
+      expect(companiesService().setStripeSubscription).toHaveBeenCalledWith(
+        uuid(3),
+        'sub_biz_1',
+      );
+      // Cobrança registrada via invoice.payment_succeeded, não aqui
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('skips setters when customer/subscription are not strings', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_biz_2',
+            metadata: {
+              isSubscription: 'true',
+              entityType: 'business',
+              companyId: uuid(3),
+              memberId: uuid(5),
+            },
+            customer: null,
+            subscription: null,
+            amount_total: 20000,
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(companiesService().setStripeCustomer).not.toHaveBeenCalled();
+      expect(companiesService().setStripeSubscription).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─── createCompanyCheckoutSession ────────────────────────────────────────
+
+  describe('createCompanyCheckoutSession', () => {
+    const companiesService = () => (service as any).companiesService;
+
+    const company = (overrides: Record<string, unknown> = {}) => ({
+      id: uuid(3),
+      name: 'Empresa X',
+      responsibleMemberId: uuid(5),
+      subscriptionAmountCents: null,
+      stripeCustomerId: null,
+      ...overrides,
+    });
+
+    it('throws Forbidden when the member is not the company responsible', async () => {
+      companiesService().findById.mockResolvedValue(company());
+
+      await expect(
+        service.createCompanyCheckoutSession(uuid(3), uuid(99)),
+      ).rejects.toThrow(ForbiddenException);
+      expect(stripeInstance.checkout.sessions.create).not.toHaveBeenCalled();
+    });
+
+    it('throws Forbidden when the company does not exist', async () => {
+      companiesService().findById.mockResolvedValue(null);
+
+      await expect(
+        service.createCompanyCheckoutSession(uuid(3), uuid(5)),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('uses the explicit amount when >= min and persists it on the company', async () => {
+      companiesService().findById.mockResolvedValue(
+        company({ stripeCustomerId: 'cus_123' }),
+      );
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        client_secret: 'cs_biz_secret',
+      });
+
+      const result = await service.createCompanyCheckoutSession(
+        uuid(3),
+        uuid(5),
+        'https://codaqui.dev',
+        30000,
+      );
+
+      expect(result).toEqual({ clientSecret: 'cs_biz_secret' });
+      expect(companiesService().setSubscriptionAmount).toHaveBeenCalledWith(
+        uuid(3),
+        30000,
+      );
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.mode).toBe('subscription');
+      expect(params.customer).toBe('cus_123');
+      expect(params.line_items[0].price_data.unit_amount).toBe(30000);
+      expect(params.line_items[0].price_data.product_data.name).toBe(
+        'CLUB Business — Empresa X',
+      );
+      expect(params.metadata).toEqual({
+        entityType: 'business',
+        companyId: uuid(3),
+        memberId: uuid(5),
+        isSubscription: 'true',
+      });
+      expect(params.return_url).toBe(
+        'https://codaqui.dev/participe/apoiar?status=success&session_id={CHECKOUT_SESSION_ID}',
+      );
+    });
+
+    it('falls back to the configured company amount when no explicit amount', async () => {
+      companiesService().findById.mockResolvedValue(
+        company({ subscriptionAmountCents: 50000 }),
+      );
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        client_secret: 'cs_biz_secret',
+      });
+
+      await service.createCompanyCheckoutSession(uuid(3), uuid(5));
+
+      expect(companiesService().setSubscriptionAmount).not.toHaveBeenCalled();
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.line_items[0].price_data.unit_amount).toBe(50000);
+      expect(params.customer).toBeUndefined();
+    });
+
+    it('applies the R$ 200 minimum and updates the company when below it', async () => {
+      companiesService().findById.mockResolvedValue(
+        company({ subscriptionAmountCents: 1000 }),
+      );
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        client_secret: 'cs_biz_secret',
+      });
+
+      await service.createCompanyCheckoutSession(
+        uuid(3),
+        uuid(5),
+        undefined,
+        5000, // abaixo do mínimo → ignorado
+      );
+
+      expect(companiesService().setSubscriptionAmount).toHaveBeenCalledWith(
+        uuid(3),
+        20000,
+      );
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.line_items[0].price_data.unit_amount).toBe(20000);
+    });
+  });
+
+  // ─── charge.refunded (donation flow) edge cases ─────────────────────────
+
+  describe('charge.refunded donation edge cases', () => {
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const refundEvent = (charge: Record<string, unknown>) => ({
+      type: 'charge.refunded',
+      data: { object: charge },
+    });
+
+    it('warns and skips when the charge has no refunds[]', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        refundEvent({ id: 'ch_no_refunds', payment_intent: 'pi_x' }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(eventOrderRepo.findOneBy).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('warns and skips when the charge has no payment_intent', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        refundEvent({
+          id: 'ch_no_pi',
+          payment_intent: null,
+          refunds: { data: [{ id: 're_1', amount: 1000 }] },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('skips refunds with non-positive amounts', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue({
+        id: 'tx-original',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe' },
+        destinationAccount: { id: 'acc-community', name: 'Comunidade' },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        refundEvent({
+          id: 'ch_zero',
+          payment_intent: 'pi_zero',
+          refunds: { data: [{ id: 're_zero', amount: 0 }] },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('catches ledger errors per refund (webhook still acked)', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue({
+        id: 'tx-original',
+        sourceAccount: { id: 'acc-stripe', name: 'Stripe' },
+        destinationAccount: { id: 'acc-community', name: 'Comunidade' },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      ledgerService.recordTransaction.mockRejectedValue(new Error('db down'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        refundEvent({
+          id: 'ch_ledger_err',
+          payment_intent: 'pi_ledger_err',
+          refunds: { data: [{ id: 're_err', amount: 1000 }] },
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+    });
+  });
+
+  // ─── Event ticket prepare/attendees edge cases ──────────────────────────
+
+  describe('event ticket prepare/attendees edge cases', () => {
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const ticketSession = (metadata: Record<string, string>) => ({
+      type: 'checkout.session.completed',
+      data: {
+        object: {
+          id: 'cs_evt_edge',
+          metadata: { entityType: 'event-ticket', ...metadata },
+          amount_total: 10000,
+          payment_intent: 'pi_evt_edge',
+          customer_details: { name: 'Comprador X', email: 'buyer@x.dev' },
+        },
+      },
+    });
+
+    it('ignores event-ticket sessions without orderId', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        ticketSession({ communityId: 'devparana' }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(eventOrderRepo.findOneBy).not.toHaveBeenCalled();
+      expect(eventOrderRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('ignores orders that are neither pending nor paid (e.g. cancelled)', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        status: 'cancelled',
+      });
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        ticketSession({ orderId: uuid(60) }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(eventOrderRepo.update).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('falls back to customer_details when attendees metadata is missing', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        eventId: uuid(50),
+        ticketTypeId: uuid(51),
+        quantity: 1,
+        memberId: uuid(9),
+        payerMemberId: uuid(9),
+        attendees: null,
+        totalCents: 10000,
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        ticketSession({ orderId: uuid(60), communityId: 'devparana' }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(eventRegistrationRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({
+          attendeeName: 'Comprador X',
+          attendeeEmail: 'buyer@x.dev',
+        }),
+      ]);
+    });
+
+    it('falls back to customer_details when attendees JSON is malformed', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        eventId: uuid(50),
+        ticketTypeId: uuid(51),
+        quantity: 1,
+        memberId: uuid(9),
+        payerMemberId: uuid(9),
+        attendees: '{not valid json',
+        totalCents: 10000,
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        ticketSession({ orderId: uuid(60), communityId: 'devparana' }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(eventRegistrationRepo.save).toHaveBeenCalledWith([
+        expect.objectContaining({ attendeeName: 'Comprador X' }),
+      ]);
+    });
+
+    it('continues the flow when a confirmation e-mail fails', async () => {
+      const emailService = (service as any).emailService;
+      emailService.sendRegistrationConfirmation.mockRejectedValue(
+        new Error('smtp down'),
+      );
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        eventId: uuid(50),
+        ticketTypeId: uuid(51),
+        quantity: 1,
+        memberId: uuid(9),
+        payerMemberId: uuid(9),
+        attendees: JSON.stringify([{ name: 'X', email: 'x@x.dev' }]),
+        totalCents: 10000,
+        status: 'pending',
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        ticketSession({ orderId: uuid(60), communityId: 'devparana' }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).toHaveBeenCalled();
+    });
+
+    it('catches ledger errors on event ticket refund reconciliation', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        eventId: uuid(50),
+        ticketTypeId: uuid(51),
+        quantity: 2,
+        memberId: uuid(9),
+        totalCents: 10000,
+        status: 'paid',
+        stripePaymentIntentId: 'pi_evt_ref',
+      });
+      eventRegistrationRepo.findBy.mockResolvedValue([]);
+      txRepo.find.mockResolvedValue([]);
+      ledgerService.recordTransaction.mockRejectedValue(new Error('db down'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.refunded',
+        data: {
+          object: {
+            id: 'ch_evt_ref',
+            payment_intent: 'pi_evt_ref',
+            amount_refunded: 10000,
+            refunds: { data: [{ id: 're_evt_ref', amount: 10000 }] },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      // Order marcada como refunded antes da falha do ledger
+      expect(eventOrderRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'refunded' }),
+      );
+    });
+  });
+
+  // ─── Fee capture — remaining branches ────────────────────────────────────
+
+  describe('fee capture remaining branches', () => {
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+      ledgerService.getOrCreateCommunityAccount.mockImplementation(
+        async (key: string) =>
+          key === 'stripe_fees' ? { id: uuid(99) } : { id: 'acc-community' },
+      );
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const originalDonation = (pi = 'pi_fee_branch') => ({
+      id: 'tx-original',
+      referenceId: pi,
+      sourceAccount: { id: 'acc-stripe', name: 'Stripe' },
+      destinationAccount: { id: 'acc-community', name: 'Comunidade' },
+    });
+
+    it('inline capture: skips when balance_transaction is not expanded (string)', async () => {
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_fee_branch',
+        latest_charge: {
+          id: 'ch_fee_branch',
+          balance_transaction: 'txn_string_only',
+        },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_fee_branch',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 1000,
+            payment_intent: 'pi_fee_branch',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      // Só a doação foi registrada; taxa fica para o fallback charge.succeeded
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('inline capture: skips fee when stripe-fee:<bt> already recorded', async () => {
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_fee_dup',
+        latest_charge: {
+          id: 'ch_fee_dup',
+          balance_transaction: { id: 'txn_dup', fee: 100 },
+        },
+      });
+      txRepo.findOneBy
+        .mockResolvedValueOnce(null) // dedup da doação
+        .mockResolvedValueOnce({ id: 'existing-fee' }); // dedup da taxa
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_fee_dup',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 1000,
+            payment_intent: 'pi_fee_dup',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        10,
+        expect.stringContaining('Doação'),
+        'pi_fee_dup',
+      );
+    });
+
+    it('charge.updated: catches ledger errors when recording the fee', async () => {
+      stripeInstance.balanceTransactions.retrieve.mockResolvedValue({
+        id: 'txn_fee_err',
+        fee: 199,
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      txRepo.findOne.mockResolvedValue(originalDonation());
+      ledgerService.recordTransaction.mockRejectedValue(new Error('db down'));
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'charge.updated',
+        data: {
+          object: {
+            id: 'ch_fee_err',
+            payment_intent: 'pi_fee_branch',
+            balance_transaction: 'txn_fee_err',
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+    });
+  });
+
+  // ─── Donation metadata / payment intent resolution branches ─────────────
+
+  describe('donation metadata resolution branches', () => {
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    it('warns and skips one-time checkout with invalid amount_total', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_no_amount',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: null,
+            payment_intent: 'pi_no_amount',
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('derives a synthetic referenceId from the subscription when payment_intent is absent', async () => {
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_sub_ref',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 2500,
+            payment_intent: null,
+            subscription: 'sub_abc123',
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        25,
+        expect.stringContaining('Doação'),
+        'sub_abc123_first',
+      );
+    });
+
+    it('falls back to the session id as referenceId when neither PI nor subscription exist', async () => {
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_fallback_ref',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 1000,
+            payment_intent: null,
+            subscription: null,
+          },
+        },
+      });
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        10,
+        expect.stringContaining('Doação'),
+        'cs_fallback_ref',
+      );
+    });
+  });
+
+  // ─── invoice.payment_succeeded — resolution branches ────────────────────
+
+  describe('invoice.payment_succeeded resolution branches', () => {
+    const clubService = () => (service as any).clubService;
+    const companiesService = () => (service as any).companiesService;
+
+    beforeEach(() => {
+      process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
+    });
+
+    afterEach(() => {
+      delete process.env.STRIPE_WEBHOOK_SECRET;
+    });
+
+    const invoiceEvent = (invoice: Record<string, unknown>) => ({
+      type: 'invoice.payment_succeeded',
+      data: { object: invoice },
+    });
+
+    it('catches SortCoins credit errors (ledger donation already recorded)', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_coin_err',
+        metadata: { memberId: uuid(5) },
+      });
+      clubService().creditFromInvoice.mockRejectedValue(new Error('db down'));
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_coin_err',
+        latest_charge: null,
+      });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_coin_err',
+          subscription: 'sub_coin_err',
+          amount_paid: 1000,
+          payment_intent: 'pi_coin_err',
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        10,
+        expect.stringContaining('Assinatura'),
+        'pi_coin_err',
+      );
+    });
+
+    it('warns and skips when the invoice has no resolvable subscription', async () => {      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({ id: 'in_no_sub', amount_paid: 1000 }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(stripeInstance.subscriptions.retrieve).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('returns early when amount_paid is not positive', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_zero',
+        metadata: { memberId: uuid(5) },
+      });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_zero',
+          subscription: 'sub_zero',
+          amount_paid: 0,
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(clubService().creditFromInvoice).not.toHaveBeenCalled();
+    });
+
+    it('resolves a legacy subscription object (non-string) reference', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_obj',
+        metadata: { memberId: uuid(5) },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_obj_sub',
+          subscription: { id: 'sub_obj' },
+          amount_paid: 1000,
+          payment_intent: 'pi_obj_sub',
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(stripeInstance.subscriptions.retrieve).toHaveBeenCalledWith(
+        'sub_obj',
+      );
+      expect(ledgerService.recordTransaction).toHaveBeenCalled();
+    });
+
+    it('resolves payment_intent from invoice.payments when it is an object', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_loop',
+        metadata: { memberId: uuid(5) },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_loop_pi',
+          subscription: 'sub_loop',
+          amount_paid: 1000,
+          payments: {
+            data: [
+              { payment: { payment_intent: { id: 'pi_loop_obj' } } },
+            ],
+          },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        10,
+        expect.stringContaining('Assinatura'),
+        'pi_loop_obj',
+      );
+    });
+
+    it('falls back to invoice.id when no payment_intent is resolvable', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_no_pi',
+        metadata: { memberId: uuid(5) },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_no_pi',
+          subscription: 'sub_no_pi',
+          amount_paid: 1000,
+          payments: { data: [] },
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        10,
+        expect.stringContaining('Assinatura'),
+        'in_no_pi',
+      );
+    });
+
+    it('business invoice: records company donation and activates the company', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_biz_inv',
+        customer: { id: 'cus_biz_inv' },
+        metadata: {
+          entityType: 'business',
+          companyId: uuid(3),
+          memberId: uuid(5),
+          communityId: 'tesouro-geral',
+          interval: 'month',
+        },
+      });
+      companiesService().findById.mockResolvedValue({
+        id: uuid(3),
+        name: 'Empresa X',
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_biz_inv',
+        latest_charge: null,
+      });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_biz_inv',
+          subscription: 'sub_biz_inv',
+          amount_paid: 20000,
+          payment_intent: 'pi_biz_inv',
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        200,
+        `Assinatura mensal empresarial — Empresa: Empresa X [${uuid(3)}] — Sessão in_biz_inv`,
+        'pi_biz_inv',
+      );
+      expect(companiesService().activateFromInvoice).toHaveBeenCalledWith(
+        'sub_biz_inv',
+        'cus_biz_inv',
+        200,
+        'stripe-pi:pi_biz_inv',
+        uuid(3),
+      );
+      expect(clubService().creditFromInvoice).not.toHaveBeenCalled();
+    });
+
+    it('business invoice: uses companyId in the description when the company lookup fails', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_biz_lookup_err',
+        customer: 'cus_biz_str',
+        metadata: {
+          entityType: 'business',
+          companyId: uuid(3),
+          memberId: uuid(5),
+        },
+      });
+      companiesService().findById.mockRejectedValue(new Error('db down'));
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_biz_lookup',
+        latest_charge: null,
+      });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_biz_lookup',
+          subscription: 'sub_biz_lookup_err',
+          amount_paid: 20000,
+          payment_intent: 'pi_biz_lookup',
+        }),
+      );
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        200,
+        `Assinatura mensal empresarial — Empresa: ${uuid(3)} [${uuid(3)}] — Sessão in_biz_lookup`,
+        'pi_biz_lookup',
+      );
+      // customer como string também é resolvido
+      expect(companiesService().activateFromInvoice).toHaveBeenCalledWith(
+        'sub_biz_lookup_err',
+        'cus_biz_str',
+        200,
+        'stripe-pi:pi_biz_lookup',
+        uuid(3),
+      );
+    });
+
+    it('business invoice: warns and skips activation when the subscription has no customer', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_biz_no_cus',
+        customer: null,
+        metadata: {
+          entityType: 'business',
+          companyId: uuid(3),
+          memberId: uuid(5),
+        },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_biz_no_cus',
+        latest_charge: null,
+      });
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
+        invoiceEvent({
+          id: 'in_biz_no_cus',
+          subscription: 'sub_biz_no_cus',
+          amount_paid: 20000,
+          payment_intent: 'pi_biz_no_cus',
+        }),
+      );
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(companiesService().activateFromInvoice).not.toHaveBeenCalled();
     });
   });
 });
