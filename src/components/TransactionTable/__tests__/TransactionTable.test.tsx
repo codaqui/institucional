@@ -113,14 +113,17 @@ describe("TransactionTable", () => {
     });
   });
 
-  it("exporta CSV da página atual", async () => {
+  it("exporta CSV da página atual com todos os campos escapados", async () => {
     (globalThis.fetch as any) = jest.fn((url: string) => {
       if (url.includes("/ledger/accounts/acc-1/transactions?page=1&limit=10")) {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            data: [makeTx("tx-1", 100, "Transferência interna aprovada: ajuste")],
-            total: 1,
+            data: [
+              makeTx("tx-1", 100, "Transferência interna aprovada: ajuste"),
+              makeTx("tx-2", 25.5, 'Pagamento de "serviços", etapa 1'),
+            ],
+            total: 2,
             page: 1,
             limit: 10,
             totalPages: 1,
@@ -132,7 +135,7 @@ describe("TransactionTable", () => {
 
     const originalCreateObjectURL = (URL as any).createObjectURL;
     const originalRevokeObjectURL = (URL as any).revokeObjectURL;
-    const createObjectUrlSpy = jest.fn(() => "blob:test-url");
+    const createObjectUrlSpy = jest.fn((_blob: Blob) => "blob:test-url");
     const revokeObjectUrlSpy = jest.fn();
     (URL as any).createObjectURL = createObjectUrlSpy;
     (URL as any).revokeObjectURL = revokeObjectUrlSpy;
@@ -155,6 +158,23 @@ describe("TransactionTable", () => {
     expect(createObjectUrlSpy).toHaveBeenCalled();
     expect(clickSpy).toHaveBeenCalled();
     expect(revokeObjectUrlSpy).toHaveBeenCalledWith("blob:test-url");
+
+    const blob = createObjectUrlSpy.mock.calls[0][0] as Blob;
+    const csvText = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(blob);
+    });
+    const lines = csvText.split("\n");
+    expect(lines[0]).toBe("Data,Tipo,Descrição,De,Para,Valor,Direção");
+    // Data formatada em pt-BR contém vírgula ("18/05/2026, 07:00") e precisa ir entre aspas
+    expect(lines[1]).toMatch(
+      /^"\d{2}\/\d{2}\/\d{4}, \d{2}:\d{2}","Transferência Interna","Transferência interna aprovada: ajuste","Conta Origem","Conta Destino","100\.00","Crédito"$/,
+    );
+    // Aspas internas são dobradas e o campo com vírgula permanece intacto
+    expect(lines[2]).toContain('"Pagamento de ""serviços"", etapa 1"');
+    expect(lines[2]).toContain('"25.50"');
 
     createElementSpy.mockRestore();
     (URL as any).createObjectURL = originalCreateObjectURL;

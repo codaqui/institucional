@@ -29,6 +29,7 @@ import AdminNavbar from "../../components/AdminNavbar";
 import AdminPageContainer from "../../components/AdminPageContainer";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 import ModalConfirm from "../../components/ModalConfirm";
+import { parseBrlInput } from "../../utils/transaction";
 
 interface Account {
   id: string;
@@ -248,8 +249,8 @@ export default function LancamentoPage(): React.JSX.Element {
     setTransferActionLoading(true);
     setTransferActionError("");
     try {
-      const amount = Math.round(Number.parseFloat(transferAmount));
-      if (!transferSourceAccountId || !transferDestinationAccountId || Number.isNaN(amount) || amount <= 0 || !transferReason.trim()) {
+      const amount = parseBrlInput(transferAmount);
+      if (!transferSourceAccountId || !transferDestinationAccountId || amount === null || amount <= 0 || !transferReason.trim()) {
         setTransferActionError("Preencha origem, destino, valor (> 0) e justificativa.");
         setTransferActionLoading(false);
         return;
@@ -649,7 +650,7 @@ export default function LancamentoPage(): React.JSX.Element {
                 type="number"
                 value={transferAmount}
                 onChange={(event) => setTransferAmount(event.target.value)}
-                inputProps={{ min: 1, step: 1 }}
+                inputProps={{ min: 0.01, step: 0.01 }}
               />
               <TextField
                 label="Justificativa"

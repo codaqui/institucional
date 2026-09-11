@@ -1544,7 +1544,10 @@ function EventDetailContent({
   const [canManage, setCanManage] = useState(false);
 
   useEffect(() => {
-    if (!ready || !isLoggedIn || source === "internal") return;
+    if (!ready || !isLoggedIn || source === "internal") {
+      setCanManage(false);
+      return;
+    }
     let active = true;
     const sourceKey = `${source}:${sourceId}`;
     authFetch(

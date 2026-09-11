@@ -59,6 +59,7 @@ import {
 } from "../../data/events";
 import type { EventOverride, EventSpeaker } from "../../utils/event-override";
 import { toDateTimeLocal, fromDateTimeLocal } from "../../utils/datetime";
+import { parseBrlInput } from "../../utils/transaction";
 import {
   EMPTY_OVERRIDE_FORM,
   SCOPE_FORMAT_HINT,
@@ -1359,8 +1360,8 @@ function ActivationTab({ apiUrl, authFetch, events, sourceLabel, initialSelected
     }
     let priceCents = 0;
     if (ticketForm.price.trim()) {
-      const price = Number.parseFloat(ticketForm.price.replace(",", "."));
-      if (Number.isNaN(price) || price < 0) {
+      const price = parseBrlInput(ticketForm.price);
+      if (price === null) {
         setTicketError("Preço inválido.");
         return null;
       }

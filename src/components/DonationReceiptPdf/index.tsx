@@ -42,7 +42,7 @@ export async function generateReceiptPdf(
 
   // Fetch member display name for PF donation
   let donorDisplayName: string | null = null;
-  const handle = donorHandleProp ?? meta.donorHandle?.replace("@", "");
+  const handle = (donorHandleProp ?? meta.donorHandle)?.replace("@", "");
   if (!isBusiness && handle && apiUrl) {
     try {
       const res = await fetch(`${apiUrl}/members/by-handle/${handle}`);

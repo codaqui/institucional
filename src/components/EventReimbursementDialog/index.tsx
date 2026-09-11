@@ -15,6 +15,7 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
+import { parseBrlInput } from "../../utils/transaction";
 
 interface CommunityBalance {
   id: string;
@@ -106,8 +107,8 @@ export default function EventReimbursementDialog({
       setError("Selecione a conta da comunidade.");
       return;
     }
-    const amountValue = Number.parseFloat(amount.replace(",", "."));
-    if (Number.isNaN(amountValue) || amountValue <= 0) {
+    const amountValue = parseBrlInput(amount);
+    if (amountValue === null || amountValue <= 0) {
       setError("Informe um valor maior que zero.");
       return;
     }

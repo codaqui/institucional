@@ -54,6 +54,7 @@ import { useAuth } from "../../hooks/useAuth";
 import type { AuthUser } from "../../hooks/useAuth";
 import ModalConfirm from "../../components/ModalConfirm";
 import { communities } from "../../data/communities";
+import { parseBrlInput } from "../../utils/transaction";
 
 interface Donation {
   id: string;
@@ -1256,11 +1257,16 @@ export default function MembroPage(): React.JSX.Element {
     setSubmitting(true);
     setSubmitError("");
     try {
+      const parsedAmount = parseBrlInput(amount);
+      if (parsedAmount === null || parsedAmount <= 0) {
+        setSubmitError("Informe um valor válido maior que zero.");
+        return;
+      }
       const res = await authFetch(`${apiUrl}/reimbursements`, {
         method: "POST",
         body: JSON.stringify({
           accountId,
-          amount: Math.round(Number.parseFloat(amount)),
+          amount: parsedAmount,
           description,
           receiptUrl,
         }),
@@ -1580,7 +1586,7 @@ export default function MembroPage(): React.JSX.Element {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               required
-              inputProps={{ min: 1, step: 1 }}
+              inputProps={{ min: 0.01, step: 0.01 }}
             />
 
             <TextField

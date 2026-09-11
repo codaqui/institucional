@@ -52,7 +52,8 @@ export async function extractErrorMessage(
 ): Promise<string> {
   if (res.status === 401) return SESSION_EXPIRED_MESSAGE;
   try {
-    const err = (await res.json()) as { message?: string };
+    const err = (await res.json()) as { message?: string | string[] };
+    if (Array.isArray(err.message)) return err.message.join(" ");
     return err.message ?? fallback;
   } catch {
     return fallback;

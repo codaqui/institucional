@@ -17,6 +17,7 @@ import AdminNavbar from "../../components/AdminNavbar";
 import AdminPageContainer from "../../components/AdminPageContainer";
 import { useAuth } from "../../hooks/useAuth";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
+import ModalConfirm from "../../components/ModalConfirm";
 
 type RaffleStatus = "open" | "closed" | "drawn" | "canceled";
 
@@ -89,6 +90,8 @@ export default function AdminSorteiosPage(): React.JSX.Element {
   const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
   const [entriesCache, setEntriesCache] = useState<Record<string, RaffleEntry[]>>({});
   const [entriesLoading, setEntriesLoading] = useState<Record<string, boolean>>({});
+  const [drawTarget, setDrawTarget] = useState<Raffle | null>(null);
+  const [drawing, setDrawing] = useState(false);
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -99,12 +102,17 @@ export default function AdminSorteiosPage(): React.JSX.Element {
   const fetchRaffles = useCallback(async () => {
     setLoading(true);
     setLoadError("");
-    const res = await authFetch(`${apiUrl}/club/raffles/all`);
-    const data = await parseAuthJson<Raffle[]>(res, setLoadError);
-    if (data) {
-      setRaffles(data);
+    try {
+      const res = await authFetch(`${apiUrl}/club/raffles/all`);
+      const data = await parseAuthJson<Raffle[]>(res, setLoadError);
+      if (data) {
+        setRaffles(data);
+      }
+    } catch {
+      setLoadError("Não foi possível carregar os sorteios.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [apiUrl, authFetch]);
 
   useEffect(() => {
@@ -174,32 +182,50 @@ export default function AdminSorteiosPage(): React.JSX.Element {
     if (currentlyOpen || entriesCache[raffleId] || entriesLoading[raffleId]) return;
 
     setEntriesLoading((prev) => ({ ...prev, [raffleId]: true }));
-    const res = await authFetch(`${apiUrl}/club/raffles/${raffleId}/entries`);
-    const data = await parseAuthJson<RaffleEntry[]>(res, setActionError);
-    if (data) {
-      setEntriesCache((prev) => ({ ...prev, [raffleId]: data }));
+    try {
+      const res = await authFetch(`${apiUrl}/club/raffles/${raffleId}/entries`);
+      const data = await parseAuthJson<RaffleEntry[]>(res, setActionError);
+      if (data) {
+        setEntriesCache((prev) => ({ ...prev, [raffleId]: data }));
+      }
+    } catch {
+      setActionError("Não foi possível carregar os participantes.");
+    } finally {
+      setEntriesLoading((prev) => ({ ...prev, [raffleId]: false }));
     }
-    setEntriesLoading((prev) => ({ ...prev, [raffleId]: false }));
   };
 
-  const drawRaffle = async (raffleId: string) => {
+  const drawRaffle = async () => {
+    if (!drawTarget || drawing) return;
+    setDrawing(true);
     setActionError("");
-    const res = await authFetch(`${apiUrl}/club/raffles/${raffleId}/draw`, { method: "POST" });
-    if (!res.ok) {
-      setActionError(await extractErrorMessage(res, "Não foi possível sortear vencedor."));
-      return;
+    try {
+      const res = await authFetch(`${apiUrl}/club/raffles/${drawTarget.id}/draw`, { method: "POST" });
+      if (!res.ok) {
+        setActionError(await extractErrorMessage(res, "Não foi possível sortear vencedor."));
+        return;
+      }
+      setDrawTarget(null);
+      await fetchRaffles();
+    } catch {
+      setActionError("Erro inesperado ao sortear vencedor.");
+    } finally {
+      setDrawing(false);
     }
-    await fetchRaffles();
   };
 
   const cancelRaffle = async (raffleId: string) => {
     setActionError("");
-    const res = await authFetch(`${apiUrl}/club/raffles/${raffleId}`, { method: "DELETE" });
-    if (!res.ok) {
-      setActionError(await extractErrorMessage(res, "Não foi possível cancelar sorteio."));
-      return;
+    try {
+      const res = await authFetch(`${apiUrl}/club/raffles/${raffleId}`, { method: "DELETE" });
+      if (!res.ok) {
+        setActionError(await extractErrorMessage(res, "Não foi possível cancelar sorteio."));
+        return;
+      }
+      await fetchRaffles();
+    } catch {
+      setActionError("Erro inesperado ao cancelar sorteio.");
     }
-    await fetchRaffles();
   };
 
   if (!ready || !isLoggedIn || !isAdmin) {
@@ -335,7 +361,7 @@ export default function AdminSorteiosPage(): React.JSX.Element {
                      )}
                      {(raffle.status === "open" || raffle.status === "closed") && (
                        <>
-                         <Button size="small" variant="contained" onClick={() => drawRaffle(raffle.id)}>
+                         <Button size="small" variant="contained" disabled={drawing} onClick={() => { setDrawTarget(raffle); setActionError(""); }}>
                            Sortear
                          </Button>
                          <Button size="small" variant="outlined" color="error" onClick={() => cancelRaffle(raffle.id)}>
@@ -398,6 +424,22 @@ export default function AdminSorteiosPage(): React.JSX.Element {
           </Stack>
         )}
       </AdminPageContainer>
+
+      <ModalConfirm
+        open={!!drawTarget}
+        title="Sortear vencedor?"
+        description={
+          drawTarget
+            ? `O sorteio de "${drawTarget.title}" será executado agora e não pode ser desfeito. O vencedor e a seed auditável serão registrados.`
+            : undefined
+        }
+        variant="warning"
+        confirmLabel="Sortear agora"
+        onConfirm={drawRaffle}
+        onClose={() => { setDrawTarget(null); setActionError(""); }}
+        loading={drawing}
+        error={actionError}
+      />
     </Layout>
   );
 }

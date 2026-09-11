@@ -281,8 +281,9 @@ function AmountSection({ amount, setAmount, isLoggedIn, disableAuth, accentColor
   );
 }
 
-function SummaryCard({ selected, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, accentColor, accentColorDark }: {
+function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isLoggedIn, requiresLogin, loading, handleDonate, accentColor, accentColorDark }: {
   readonly selected: { emoji: string; name: string };
+  readonly mode: DonationMode;
   readonly modeConfig: { label: string };
   readonly isRecurring: boolean;
   readonly amountLabel: string;
@@ -319,7 +320,7 @@ function SummaryCard({ selected, modeConfig, isRecurring, amountLabel, isLoggedI
             requiresLogin={requiresLogin}
             loading={loading}
             isRecurring={isRecurring}
-            mode={modeConfig.label as never}
+            mode={mode}
             amountLabel={amountLabel}
             handleDonate={handleDonate}
             accentColor={accentColor}
@@ -404,7 +405,7 @@ function DonationForm({
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
         <SummaryCard
-          selected={selected} modeConfig={modeConfig} isRecurring={isRecurring} amountLabel={amountLabel}
+          selected={selected} mode={mode} modeConfig={modeConfig} isRecurring={isRecurring} amountLabel={amountLabel}
           isLoggedIn={isLoggedIn} requiresLogin={requiresLogin} loading={loading} handleDonate={handleDonate}
           accentColor={accentColor} accentColorDark={accentColorDark}
         />

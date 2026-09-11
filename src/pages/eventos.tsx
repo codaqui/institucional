@@ -360,7 +360,9 @@ export default function EventosPage(): React.JSX.Element {
         if (event.status === "canceled") return true;
         // Evento com startAt passado vai pro histórico mesmo sem status "completed"
         // (defesa caso o sync atrase ou o status não tenha sido atualizado).
-        return new Date(event.startAt).getTime() >= now;
+        const start = new Date(event.startAt).getTime();
+        // Data inválida (NaN) fica na agenda — melhor visível do que sumido.
+        return Number.isNaN(start) || start >= now;
       })
       .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime());
   }, [filteredEvents]);
@@ -371,7 +373,8 @@ export default function EventosPage(): React.JSX.Element {
       .filter((event) => {
         if (event.status === "completed") return true;
         if (event.status === "canceled") return false;
-        return new Date(event.startAt).getTime() < now;
+        const start = new Date(event.startAt).getTime();
+        return !Number.isNaN(start) && start < now;
       })
       .sort((a, b) => new Date(b.startAt).getTime() - new Date(a.startAt).getTime());
   }, [filteredEvents]);
