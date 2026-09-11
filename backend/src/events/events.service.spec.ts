@@ -121,6 +121,19 @@ describe('EventsService', () => {
       save: jest.fn((r) => Promise.resolve({ id: uuid(40), ...r })),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(),
+      // EntityManager transacional: delega para os mesmos mocks dos repos,
+      // assim as asserções existentes (ex.: save/query chamados) continuam
+      // valendo dentro de manager.transaction.
+      manager: {
+        transaction: jest.fn((cb: (em: unknown) => unknown) =>
+          cb({
+            query: (...args: unknown[]) => ticketTypeRepo.query(...args),
+            create: (_target: unknown, d: unknown) =>
+              registrationRepo.create(d),
+            save: (...args: unknown[]) => registrationRepo.save(...args),
+          }),
+        ),
+      } as unknown as jest.Mock,
     };
     staffRepo = {
       find: jest.fn().mockResolvedValue([]),
@@ -130,7 +143,10 @@ describe('EventsService', () => {
       save: jest.fn((s) => Promise.resolve({ id: uuid(50), ...s })),
       remove: jest.fn().mockResolvedValue(undefined),
     };
-    memberRepo = { findOneBy: jest.fn().mockResolvedValue(makeMember()) };
+    memberRepo = {
+      findOneBy: jest.fn().mockResolvedValue(makeMember()),
+      findBy: jest.fn().mockResolvedValue([]),
+    };
     txRepo = { find: jest.fn().mockResolvedValue([]) };
     stripeService = {
       createEventTicketCheckoutSession: jest
@@ -266,6 +282,71 @@ describe('EventsService', () => {
       expect(events[0].description).toBe('Texto longo\ncom quebras');
       expect(events[1]).not.toHaveProperty('description');
     });
+
+    it('evento com 2 hosts → organizers com name/id/photoUrl (sem e-mail)', async () => {
+      eventRepo.find.mockResolvedValue([makeEvent()]);
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      staffRepo.findBy.mockResolvedValue([
+        { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
+        { eventId: uuid(10), memberId: uuid(2), staffRole: EventStaffRole.HOST },
+      ]);
+      memberRepo.findBy.mockResolvedValue([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          avatarUrl: 'https://img/ana.png',
+        },
+        {
+          id: uuid(2),
+          githubHandle: 'bia',
+          name: 'Bia',
+          email: 'bia@x.dev',
+          avatarUrl: '',
+        },
+      ]);
+
+      const { events } = await service.getPublicManagedEvents();
+
+      expect(events[0].organizers).toEqual([
+        { name: 'Ana', id: 'ana', photoUrl: 'https://img/ana.png' },
+        { name: 'Bia', id: 'bia' }, // photoUrl omitido quando vazio
+      ]);
+      for (const organizer of events[0].organizers as Array<
+        Record<string, unknown>
+      >) {
+        expect(organizer).not.toHaveProperty('email');
+      }
+      // Uma query de staffs + uma de members (sem N+1)
+      expect(staffRepo.findBy).toHaveBeenCalledTimes(1);
+      expect(memberRepo.findBy).toHaveBeenCalledTimes(1);
+    });
+
+    it('evento sem host → campo organizers omitido', async () => {
+      eventRepo.find.mockResolvedValue([makeEvent()]);
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+      staffRepo.findBy.mockResolvedValue([]);
+
+      const { events } = await service.getPublicManagedEvents();
+
+      expect(events[0]).not.toHaveProperty('organizers');
+      expect(memberRepo.findBy).not.toHaveBeenCalled();
+    });
   });
 
   describe('getPublicManagedEvent', () => {
@@ -287,6 +368,31 @@ describe('EventsService', () => {
       const { event } = await service.getPublicManagedEvent(uuid(10));
 
       expect(event.description).toBe('Texto longo do evento');
+    });
+
+    it('inclui organizers (hosts) no evento single, sem e-mail', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      staffRepo.findBy.mockResolvedValue([
+        { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
+      ]);
+      memberRepo.findBy.mockResolvedValue([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          avatarUrl: 'https://img/ana.png',
+        },
+      ]);
+
+      const { event } = await service.getPublicManagedEvent(uuid(10));
+
+      expect(event.organizers).toEqual([
+        { name: 'Ana', id: 'ana', photoUrl: 'https://img/ana.png' },
+      ]);
+      expect(
+        (event.organizers as Array<Record<string, unknown>>)[0],
+      ).not.toHaveProperty('email');
     });
   });
 
@@ -375,6 +481,65 @@ describe('EventsService', () => {
         service.register(uuid(10), { ticketTypeId: uuid(20) }, user()),
       ).rejects.toThrow(BadRequestException);
     });
+
+    it('400 quando o membro não tem e-mail no perfil — quota nunca é reservada', async () => {
+      memberRepo.findOneBy.mockResolvedValue({ ...makeMember(), email: '  ' });
+
+      await expect(
+        service.register(uuid(10), { ticketTypeId: uuid(20) }, user()),
+      ).rejects.toThrow(
+        new BadRequestException(
+          'Complete seu e-mail no perfil antes de se inscrever.',
+        ),
+      );
+      expect(registrationRepo.manager.transaction).not.toHaveBeenCalled();
+      expect(ticketTypeRepo.query).not.toHaveBeenCalled();
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('400 quando o membro não tem nome no perfil — quota nunca é reservada', async () => {
+      memberRepo.findOneBy.mockResolvedValue({ ...makeMember(), name: '' });
+
+      await expect(
+        service.register(uuid(10), { ticketTypeId: uuid(20) }, user()),
+      ).rejects.toThrow(BadRequestException);
+      expect(registrationRepo.manager.transaction).not.toHaveBeenCalled();
+      expect(ticketTypeRepo.query).not.toHaveBeenCalled();
+    });
+
+    it('reserva quota e salva inscrição na mesma transação', async () => {
+      await service.register(uuid(10), { ticketTypeId: uuid(20) }, user());
+
+      expect(registrationRepo.manager.transaction).toHaveBeenCalledTimes(1);
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('UPDATE ticket_types'),
+        [1, uuid(20)],
+      );
+      expect(registrationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RegistrationStatus.CONFIRMED }),
+      );
+    });
+
+    it('falha no save dentro da transação → rollback (quota não vaza)', async () => {
+      // Simula o EntityManager "staging" da transação: as escritas só valeriam
+      // no commit; como o save falha, nada escapa para os repos reais.
+      const stagingEm = {
+        query: jest.fn().mockResolvedValue([{ id: uuid(20) }]),
+        create: jest.fn((_target: unknown, d: unknown) => ({ ...(d as object) })),
+        save: jest.fn().mockRejectedValue(new Error('db down')),
+      };
+      registrationRepo.manager.transaction.mockImplementationOnce(
+        (cb: (em: unknown) => unknown) => cb(stagingEm),
+      );
+
+      await expect(
+        service.register(uuid(10), { ticketTypeId: uuid(20) }, user()),
+      ).rejects.toThrow('db down');
+      // O UPDATE de quota rodou apenas dentro da transação que falhou.
+      expect(stagingEm.query).toHaveBeenCalled();
+      expect(ticketTypeRepo.query).not.toHaveBeenCalled();
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
   });
 
   describe('cancelRegistration', () => {
@@ -391,6 +556,21 @@ describe('EventsService', () => {
 
       await service.cancelRegistration(uuid(40), user());
 
+      expect(registrationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
+      );
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('GREATEST'),
+        [1, uuid(20)],
+      );
+    });
+
+    it('save de cancelamento e release de quota acontecem na mesma transação', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(registration());
+
+      await service.cancelRegistration(uuid(40), user());
+
+      expect(registrationRepo.manager.transaction).toHaveBeenCalledTimes(1);
       expect(registrationRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
       );
@@ -454,6 +634,83 @@ describe('EventsService', () => {
 
       expect(registrationRepo.save).toHaveBeenCalledWith(
         expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
+      );
+    });
+  });
+
+  // ── Reconciliação de quota ───────────────────────────────────────────────
+
+  describe('reconcileQuota', () => {
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+    });
+
+    it('corrige drift de quantitySold (before 2 → after 1) e registra audit', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 2 })]);
+      registrationRepo.countBy.mockResolvedValue(1); // 1 registration CONFIRMED
+      orderRepo.findBy.mockResolvedValue([]); // sem orders pending
+
+      const result = await service.reconcileQuota(uuid(10), adminUser);
+
+      expect(result).toEqual({
+        eventId: uuid(10),
+        results: [
+          {
+            ticketTypeId: uuid(20),
+            name: 'Gratuito',
+            before: 2,
+            after: 1,
+            adjusted: true,
+          },
+        ],
+      });
+      expect(ticketTypeRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ id: uuid(20), quantitySold: 1 }),
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'event.quota_reconciled',
+          targetId: uuid(10),
+        }),
+      );
+    });
+
+    it('sem drift → adjusted=false, sem save e sem audit', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 1 })]);
+      registrationRepo.countBy.mockResolvedValue(1);
+      orderRepo.findBy.mockResolvedValue([]);
+
+      const result = await service.reconcileQuota(uuid(10), adminUser);
+
+      expect(result.results[0]).toMatchObject({
+        before: 1,
+        after: 1,
+        adjusted: false,
+      });
+      expect(ticketTypeRepo.save).not.toHaveBeenCalled();
+      expect(auditService.log).not.toHaveBeenCalled();
+    });
+
+    it('soma orders PENDING na quota esperada', async () => {
+      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 3 })]);
+      registrationRepo.countBy.mockResolvedValue(1);
+      orderRepo.findBy.mockResolvedValue([
+        { id: uuid(30), quantity: 2, status: OrderStatus.PENDING },
+      ]);
+
+      const result = await service.reconcileQuota(uuid(10), adminUser);
+
+      expect(result.results[0]).toMatchObject({
+        before: 3,
+        after: 3,
+        adjusted: false,
+      });
+      expect(ticketTypeRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('403 para membro sem papel de gestão', async () => {
+      await expect(service.reconcileQuota(uuid(10), user())).rejects.toThrow(
+        ForbiddenException,
       );
     });
   });

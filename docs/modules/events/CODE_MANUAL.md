@@ -3,7 +3,7 @@ purpose: Manual prático do código para futuros agents trabalharem no módulo d
 audience: AI agents, mantenedores
 sections:
   - Onde vive cada funcionalidade
-  - Fluxos principais (criar evento, vender ingresso, check-in, certificado)
+  - Fluxos principais (criar evento, vender ingresso, check-in, certificado, reconciliação de quota)
   - Páginas estáticas por evento (SEO/OG)
   - Convensões e anti-patterns
   - Testes
@@ -184,6 +184,21 @@ Agora cada evento tem uma página estática gerada em build time:
    `href` do snapshot interno no backend (`toEventItem` em
    `events.service.ts`). `pages/admin/eventos` linka direto pela slug
    (`buildEventSlugPath`), pois tem o `ManagedEvent` completo.
+
+### 2.9 RSVP gratuito, reconciliação de quota e organizers
+
+1. RSVP gratuito (`register`) e cancelamento (`cancelRegistration`) executam
+   reserva/liberação de quota e o save da registration **na mesma transação**
+   (`registrationRepo.manager.transaction`), eliminando drifts de
+   `quantitySold` por falhas intermediárias.
+2. Se houver drift histórico, `POST /events/:id/reconcile-quota`
+   (`event_organizer | admin`) rederiva `quantitySold` de cada lote
+   (registrations `confirmed` + orders `pending`) e corrige, com audit
+   (`event.quota_reconciled`). Idempotente.
+3. Os payloads públicos (`getPublicManagedEvents` e `getPublicManagedEvent`)
+   incluem `organizers: [{ name, id, photoUrl? }]` (staff HOST → nome, handle
+   GitHub e avatar do membro; **nunca e-mail**), carregados com 2 queries (sem
+   N+1). O campo é omitido quando o evento não tem hosts.
 
 ## 3. Convenções e anti-patterns
 

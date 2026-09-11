@@ -54,6 +54,7 @@ export enum AuditAction {
   EVENT_PUBLISHED = 'event.published',
   EVENT_CANCELED = 'event.canceled',
   EVENT_ORDER_REFUNDED = 'event.order_refunded',
+  EVENT_QUOTA_RECONCILED = 'event.quota_reconciled',
 
   // Events (2c/2d — check-in, ativações externas, importações)
   EVENT_CHECKIN = 'event.checkin',

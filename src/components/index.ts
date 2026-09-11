@@ -29,3 +29,4 @@ export { default as EventOverrideBadge } from "./EventOverrideBadge";
 export { default as EventMyRegistration } from "./EventMyRegistration";
 export { default as EventOrdersDialog } from "./EventOrdersDialog";
 export { default as CommunityLoginCTA } from "./CommunityLoginCTA";
+export { default as MarkdownLite } from "./MarkdownLite";

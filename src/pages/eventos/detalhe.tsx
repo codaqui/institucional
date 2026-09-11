@@ -38,6 +38,7 @@ import RepeatIcon from "@mui/icons-material/Repeat";
 import SlideshowIcon from "@mui/icons-material/Slideshow";
 import EventOverrideBadge from "../../components/EventOverrideBadge";
 import EventMyRegistration from "../../components/EventMyRegistration";
+import MarkdownLite from "../../components/MarkdownLite";
 import StripeEmbeddedCheckoutDialog from "../../components/StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
@@ -1725,14 +1726,9 @@ function EventDetailContent({
             {event.summary}
           </Typography>
           {event.description ? (
-            <Typography
-              component="div"
-              variant="body1"
-              color="text.secondary"
-              sx={{ whiteSpace: "pre-line", mb: 2.5 }}
-            >
-              {event.description}
-            </Typography>
+            <Box sx={{ mb: 2.5 }}>
+              <MarkdownLite text={event.description} />
+            </Box>
           ) : null}
           {event.tags.length > 0 ? (
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
