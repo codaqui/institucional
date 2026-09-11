@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-11T14:01:39.053Z",
+  "generatedAt": "2026-09-11T16:01:30.053Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-11T14:01:39.053Z",
+    "generatedAt": "2026-09-11T16:01:30.053Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
     "itemCount": 1
@@ -31,7 +31,7 @@
       "tags": [],
       "ctaLabel": "Inscrever-se",
       "status": "scheduled",
-      "userCount": 1,
+      "userCount": 2,
       "source": "internal",
       "sourceId": "codaqui",
       "sourceKey": "internal:codaqui",
