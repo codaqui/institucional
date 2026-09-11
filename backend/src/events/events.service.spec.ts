@@ -238,9 +238,10 @@ describe('EventsService', () => {
       expect(events).toHaveLength(1);
       expect(events[0]).toMatchObject({
         id: uuid(10),
+        slug: 'evento-x',
         title: 'Evento X',
         platform: 'Site Codaqui',
-        href: `/eventos/detalhe/internal/codaqui/${uuid(10)}`,
+        href: '/eventos/evento-x',
         status: 'scheduled',
         userCount: 3,
       });

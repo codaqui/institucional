@@ -303,6 +303,7 @@ export class EventsService {
   ): Record<string, unknown> {
     return {
       id: event.id,
+      slug: event.slug,
       title: event.title,
       summary: event.summary,
       ...(event.description && { description: event.description }),
@@ -312,7 +313,7 @@ export class EventsService {
       platform: 'Site Codaqui',
       host: 'Codaqui',
       location: event.location,
-      href: `/eventos/detalhe/internal/codaqui/${encodeURIComponent(event.id)}`,
+      href: `/eventos/${encodeURIComponent(event.slug)}`,
       tags: [],
       ctaLabel: 'Inscrever-se',
       status: EventsService.deriveItemStatus(event),
@@ -1121,6 +1122,7 @@ export class EventsService {
         event: r.eventId
           ? {
               id: event?.id ?? r.eventId,
+              slug: event?.slug ?? null,
               title: event?.title ?? '',
               startAt: event?.startAt ?? null,
               location: event?.location ?? '',
@@ -3076,6 +3078,7 @@ export class EventsService {
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,
+          eventSlug: event?.slug ?? null,
           eventKey: r.externalActivationId ? activation?.eventKey : undefined,
           _sortAt: eventStartAt ?? r.createdAt,
         };
