@@ -305,15 +305,31 @@ describe("MyCompanySection — carregamento e formatos de resposta", () => {
     ).toBeInTheDocument();
   });
 
-  it("mostra aviso quando a conexão falha no carregamento", async () => {
+  it("mostra alerta de erro quando a conexão falha no carregamento", async () => {
     const authFetch = jest.fn(async () => Promise.reject(new Error("network down")));
     mockOwner(authFetch);
 
     render(<MyCompanySection />);
 
+    expect(await screen.findByText("Erro de conexão.")).toBeInTheDocument();
     expect(
-      await screen.findByText(/Nenhuma empresa vinculada ao seu perfil no momento/i),
-    ).toBeInTheDocument();
+      screen.queryByText(/Nenhuma empresa vinculada ao seu perfil no momento/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("mostra alerta de erro quando /companies/me falha com erro HTTP", async () => {
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.includes("/companies/me")) return jsonResponse(null, false, 500);
+      return jsonResponse(null, false, 404);
+    });
+    mockOwner(authFetch);
+
+    render(<MyCompanySection />);
+
+    expect(await screen.findByText("Erro ao carregar empresa.")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/Nenhuma empresa vinculada ao seu perfil no momento/i),
+    ).not.toBeInTheDocument();
   });
 
   it("renderiza histórico quando transactions vem como array simples", async () => {

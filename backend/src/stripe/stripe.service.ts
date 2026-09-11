@@ -1253,11 +1253,12 @@ export class StripeService {
    * handler `charge.succeeded`/`charge.updated` cuidará como fallback.
    */
   private async captureFeeFromPaymentIntent(paymentIntentId: string) {
-    let pi: Stripe.PaymentIntent;
+    let latestCharge: Stripe.Charge | string | null;
     try {
-      pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {
+      const pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {
         expand: ['latest_charge.balance_transaction'],
       });
+      latestCharge = pi.latest_charge as Stripe.Charge | string | null;
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -1266,8 +1267,6 @@ export class StripeService {
       );
       return;
     }
-
-    const latestCharge = pi.latest_charge as Stripe.Charge | string | null;
     if (!latestCharge || typeof latestCharge === 'string') {
       this.logger.debug(
         `captureFee: PI ${paymentIntentId} sem latest_charge expandido — fallback aguardando charge.succeeded`,

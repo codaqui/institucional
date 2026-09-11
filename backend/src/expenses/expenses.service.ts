@@ -83,6 +83,19 @@ export class ExpensesService {
     );
 
     expense.status = ExpenseStatus.PAID;
-    return this.expenseRepo.save(expense);
+    try {
+      return await this.expenseRepo.save(expense);
+    } catch (error) {
+      // Compensação: se o save falhar após o lançamento no ledger,
+      // registra a reversão para não deixar o débito órfão de status.
+      await this.ledgerService.recordTransaction(
+        externalAccountId,
+        expense.targetProjectId,
+        expense.amount / 100,
+        `Reversal of expense payment: ${expense.description}`,
+        `expense-reversal:${expense.id}:${Date.now()}`,
+      );
+      throw error;
+    }
   }
 }

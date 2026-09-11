@@ -236,5 +236,25 @@ describe('ExpensesService', () => {
         service.markAsPaid('missing', 'ext-account-1'),
       ).rejects.toThrow(NotFoundException);
     });
+
+    it('records a reversal when the save fails after the ledger entry', async () => {
+      expenseRepo.findOneBy.mockResolvedValue(
+        pendingExpense({ status: ExpenseStatus.APPROVED }),
+      );
+      expenseRepo.save.mockRejectedValue(new Error('db down'));
+
+      await expect(
+        service.markAsPaid('expense-1', 'ext-account-1'),
+      ).rejects.toThrow('db down');
+
+      expect(ledgerService.recordTransaction).toHaveBeenNthCalledWith(
+        2,
+        'ext-account-1',
+        'devparana',
+        150,
+        'Reversal of expense payment: Impressão de materiais',
+        expect.stringMatching(/^expense-reversal:expense-1:\d+$/),
+      );
+    });
   });
 });

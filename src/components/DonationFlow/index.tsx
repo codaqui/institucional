@@ -357,7 +357,7 @@ function DonationForm({
       <Typography variant="h5" fontWeight={800} gutterBottom>{title}</Typography>
       {subtitle && <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>{subtitle}</Typography>}
 
-      {!formGated && !disableAuth && ready && !isLoggedIn && !anonymousAcknowledged && (
+      {!disableAuth && ready && !isLoggedIn && !anonymousAcknowledged && (
         <AuthPromptSection accentColor={accentColor} accentColorDark={accentColorDark} triggerLogin={triggerLogin} onAnonymous={() => setAnonymousAcknowledged(true)} />
       )}
 
@@ -550,6 +550,7 @@ export default function DonationFlow({
               accentColor={accentColor}
               accentColorDark={accentColorDark}
               onCompanyClick={onCompanyClick}
+              disableAuth={disableAuth}
               flow={flow}
             />
           </Grid>
@@ -562,6 +563,7 @@ export default function DonationFlow({
             accentColor={accentColor}
             accentColorDark={accentColorDark}
             onCompanyClick={onCompanyClick}
+            disableAuth={disableAuth}
             flow={flow}
           />
         </Box>

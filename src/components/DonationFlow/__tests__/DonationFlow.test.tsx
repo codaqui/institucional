@@ -117,13 +117,7 @@ describe("DonationFlow", () => {
     );
   });
 
-  // BUG conhecido (não corrigido aqui — ver handoff): a condição
-  // `!formGated && !disableAuth && ready && !isLoggedIn && !anonymousAcknowledged`
-  // em DonationForm torna o AuthPromptSection INALCANÇÁVEL para visitantes
-  // (formGated é true exatamente nessas condições). Regressão do refactor
-  // cf1013477fa — antes a condição não incluía `!formGated`. O teste abaixo
-  // documenta o comportamento pretendido e deve ser reativado com a correção.
-  it.skip("visitante vê prompt de auth, opta por anônimo e pode voltar ao login", () => {
+  it("visitante vê prompt de auth, opta por anônimo e pode voltar ao login", () => {
     givenAuth();
     render(<DonationFlow />);
 
@@ -334,12 +328,7 @@ describe("DonationFlow", () => {
     expect(authFetch).not.toHaveBeenCalled();
   });
 
-  // BUG conhecido (não corrigido aqui — ver handoff): DonationFlow não repassa
-  // a prop `disableAuth` ao DonationForm. Com disableAuth=true o prompt de auth
-  // ("Como você quer doar?") aparece mesmo assim e o alerta "Para doações acima
-  // de R$ 100, acesse a página principal" nunca renderiza. O gate de valor em
-  // si funciona (vive no hook) — teste acima. Reativar com a correção.
-  it.skip("disableAuth suprime UI de auth e exibe aviso de limite no formulário", () => {
+  it("disableAuth suprime UI de auth e exibe aviso de limite no formulário", () => {
     givenAuth();
     render(<DonationFlow disableAuth />);
 
