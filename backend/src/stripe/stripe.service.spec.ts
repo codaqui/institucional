@@ -73,6 +73,7 @@ describe('StripeService', () => {
     eventOrderRepo = {
       findOneBy: jest.fn(),
       save: jest.fn((o) => Promise.resolve(o)),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     eventRegistrationRepo = {
       create: jest.fn((data) => data),
@@ -372,6 +373,148 @@ describe('StripeService', () => {
       );
 
       expect(result).toEqual({ received: true });
+    });
+
+    it('should ignore checkout.session.completed with payment_status=unpaid (boleto/Pix)', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.completed',
+        data: {
+          object: {
+            id: 'cs_async_pending',
+            payment_status: 'unpaid',
+            metadata: { communityId: 'tesouro-geral', isSubscription: 'false' },
+            amount_total: 5000,
+            payment_intent: 'pi_async_pending',
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(eventOrderRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('should process checkout.session.async_payment_succeeded like completed', async () => {
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.async_payment_succeeded',
+        data: {
+          object: {
+            id: 'cs_async_ok',
+            payment_status: 'paid',
+            metadata: {
+              communityId: 'tesouro-geral',
+              memberId: uuid(5),
+              isSubscription: 'false',
+            },
+            amount_total: 5000,
+            payment_intent: 'pi_async_ok',
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        50,
+        expect.stringContaining('Doação'),
+        'pi_async_ok',
+      );
+    });
+
+    it('should log and ignore checkout.session.async_payment_failed', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'checkout.session.async_payment_failed',
+        data: {
+          object: {
+            id: 'cs_async_fail',
+            payment_status: 'unpaid',
+            metadata: { entityType: 'event-ticket', orderId: uuid(60) },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(eventOrderRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('should resolve subscription and payment_intent from the dahlia invoice shape', async () => {
+      stripeInstance.subscriptions.retrieve.mockResolvedValue({
+        id: 'sub_dahlia',
+        metadata: { communityId: 'tesouro-geral', memberId: uuid(8) },
+      });
+      txRepo.findOneBy.mockResolvedValue(null);
+
+      stripeInstance.webhooks.constructEvent.mockReturnValue({
+        type: 'invoice.payment_succeeded',
+        data: {
+          object: {
+            id: 'in_dahlia',
+            parent: {
+              type: 'subscription_details',
+              quote_details: null,
+              subscription_details: {
+                subscription: 'sub_dahlia',
+                metadata: null,
+              },
+            },
+            amount_paid: 20000,
+            payments: {
+              object: 'list',
+              data: [
+                {
+                  id: 'inpay_1',
+                  payment: {
+                    type: 'payment_intent',
+                    payment_intent: 'pi_dahlia',
+                  },
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(stripeInstance.subscriptions.retrieve).toHaveBeenCalledWith(
+        'sub_dahlia',
+      );
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        200,
+        expect.stringContaining('Assinatura'),
+        'pi_dahlia',
+      );
+      const clubService = (service as any).clubService;
+      expect(clubService.creditFromInvoice).toHaveBeenCalledWith(
+        uuid(8),
+        200,
+        'stripe-pi:pi_dahlia',
+      );
     });
 
     it('should handle charge.refunded creating reverse transaction', async () => {
@@ -1298,7 +1441,8 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(eventOrderRepo.save).toHaveBeenCalledWith(
+      expect(eventOrderRepo.update).toHaveBeenCalledWith(
+        { id: uuid(60), status: 'pending' },
         expect.objectContaining({
           status: 'paid',
           stripePaymentIntentId: 'pi_evt_123',
@@ -1372,7 +1516,7 @@ describe('StripeService', () => {
       await service.handleWebhookEvent('sig', Buffer.from('body'));
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(eventOrderRepo.save).toHaveBeenCalledTimes(1);
+      expect(eventOrderRepo.update).toHaveBeenCalledTimes(1);
       expect(eventRegistrationRepo.save).toHaveBeenCalledTimes(1);
       expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
     });
@@ -1393,7 +1537,62 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(eventOrderRepo.save).not.toHaveBeenCalled();
+      expect(eventOrderRepo.update).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+    });
+
+    it('reverts order to pending when post-payment effects fail, so the Stripe retry completes them', async () => {
+      // fresh instance por chamada — a entrega anterior muta o objeto para paid
+      eventOrderRepo.findOneBy.mockImplementation(() => Promise.resolve(order()));
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValue(sessionEvent());
+
+      // 1ª entrega: ledger falha → efeitos abortados, order revertida para pending
+      ledgerService.recordTransaction.mockRejectedValueOnce(
+        new Error('db down'),
+      );
+
+      await expect(
+        service.handleWebhookEvent('sig', Buffer.from('body')),
+      ).rejects.toThrow('db down');
+
+      expect(eventOrderRepo.update).toHaveBeenLastCalledWith(
+        { id: uuid(60), status: 'paid' },
+        { status: 'pending', stripePaymentIntentId: null, paidAt: null },
+      );
+
+      // Retry do Stripe: registrations da 1ª tentativa são reutilizadas (dedup)
+      // e o ledger é registrado — nada se perde
+      eventRegistrationRepo.findBy.mockResolvedValue([{ id: uuid(61) }]);
+
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
+
+      expect(result).toEqual({ received: true });
+      expect(eventRegistrationRepo.save).toHaveBeenCalledTimes(1);
+      // 1ª tentativa (rejeitada) + retry (sucesso)
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(2);
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        100,
+        expect.stringContaining('Ingresso'),
+        `event-ticket:${uuid(60)}`,
+        expect.any(Object),
+      );
+    });
+
+    it('loses the race: second concurrent delivery does not duplicate effects', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue(order());
+      eventOrderRepo.update.mockResolvedValue({ affected: 0 }); // claim perdido
+      txRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.webhooks.constructEvent.mockReturnValue(sessionEvent());
+
+      await service.handleWebhookEvent('sig', Buffer.from('body'));
+
+      expect(eventRegistrationRepo.save).not.toHaveBeenCalled();
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
   });
@@ -1569,6 +1768,78 @@ describe('StripeService', () => {
       expect(params.line_items[0].quantity).toBe(2);
       expect(params.line_items[0].price_data.unit_amount).toBe(5000);
       expect(params.customer_email).toBe('buyer@example.com');
+    });
+
+    it('aligns session expires_at with the order expiration', async () => {
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+      eventOrderRepo.findOneBy.mockResolvedValue({ id: uuid(60), expiresAt });
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        id: 'cs_evt_1',
+        url: 'https://checkout.stripe.com/x',
+      });
+
+      await service.createEventTicketCheckoutSession({
+        productName: 'Evento — Lote 1',
+        unitAmountCents: 5000,
+        quantity: 1,
+        metadata: {
+          entityType: 'event-ticket',
+          orderId: uuid(60),
+          communityId: 'devparana',
+        },
+      });
+
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.expires_at).toBe(Math.floor(expiresAt.getTime() / 1000));
+    });
+
+    it('clamps expires_at to the Stripe 30-minute minimum when the order expires sooner', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue({
+        id: uuid(60),
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      });
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        id: 'cs_evt_1',
+        url: 'https://checkout.stripe.com/x',
+      });
+
+      await service.createEventTicketCheckoutSession({
+        productName: 'Evento — Lote 1',
+        unitAmountCents: 5000,
+        quantity: 1,
+        metadata: {
+          entityType: 'event-ticket',
+          orderId: uuid(60),
+          communityId: 'devparana',
+        },
+      });
+
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.expires_at).toBeGreaterThanOrEqual(
+        Math.floor(Date.now() / 1000) + 30 * 60,
+      );
+    });
+
+    it('omits expires_at when the order cannot be resolved', async () => {
+      eventOrderRepo.findOneBy.mockResolvedValue(null);
+      stripeInstance.checkout.sessions.create.mockResolvedValue({
+        id: 'cs_evt_1',
+        url: 'https://checkout.stripe.com/x',
+      });
+
+      await service.createEventTicketCheckoutSession({
+        productName: 'Evento — Lote 1',
+        unitAmountCents: 5000,
+        quantity: 1,
+        metadata: {
+          entityType: 'event-ticket',
+          orderId: uuid(60),
+          communityId: 'devparana',
+        },
+      });
+
+      const params = stripeInstance.checkout.sessions.create.mock.calls[0][0];
+      expect(params.expires_at).toBeUndefined();
     });
 
     it('creates full refund without amount and partial with amount', async () => {

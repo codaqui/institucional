@@ -391,6 +391,39 @@ describe('EventsService', () => {
 
       expect(registrationRepo.save).toHaveBeenCalled();
     });
+
+    it('409 quando a inscrição está vinculada a pedido PAGO (usar fluxo de estorno)', async () => {
+      registrationRepo.findOneBy.mockResolvedValue({
+        ...registration(),
+        orderId: uuid(30),
+      });
+      orderRepo.findOneBy.mockResolvedValue({
+        id: uuid(30),
+        status: OrderStatus.PAID,
+      });
+
+      await expect(
+        service.cancelRegistration(uuid(40), user()),
+      ).rejects.toThrow(ConflictException);
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('cancela normalmente quando a order não está paga (ex.: expirada)', async () => {
+      registrationRepo.findOneBy.mockResolvedValue({
+        ...registration(),
+        orderId: uuid(30),
+      });
+      orderRepo.findOneBy.mockResolvedValue({
+        id: uuid(30),
+        status: OrderStatus.EXPIRED,
+      });
+
+      await service.cancelRegistration(uuid(40), user());
+
+      expect(registrationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
+      );
+    });
   });
 
   // ── Checkout pago ─────────────────────────────────────────────────────────
@@ -630,6 +663,75 @@ describe('EventsService', () => {
           adminUser,
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('evento externo (eventId null): estorna resolvendo conta pela ativação', async () => {
+      orderRepo.findOneBy.mockResolvedValue({
+        ...paidOrder(),
+        eventId: null,
+        externalActivationId: uuid(70),
+      });
+      activationRepo.findOneBy.mockResolvedValue({
+        id: uuid(70),
+        communityProjectKey: 'elasnocodigo',
+        title: 'Meetup Elas',
+      });
+      registrationRepo.findBy.mockResolvedValue([
+        { id: uuid(41) },
+        { id: uuid(42) },
+        { id: uuid(43) },
+      ]);
+
+      const result = await service.refundOrder(uuid(30), {}, adminUser);
+
+      expect(result.full).toBe(true);
+      expect(stripeService.createEventTicketRefund).toHaveBeenCalledWith(
+        'pi_123',
+        undefined,
+      );
+      expect(ledgerService.recordTransaction).toHaveBeenCalledWith(
+        uuid(60),
+        uuid(60),
+        150,
+        expect.stringContaining('Meetup Elas'),
+        expect.stringMatching(/^event-ticket-refund:/),
+        expect.objectContaining({
+          eventId: undefined,
+          communityProjectKey: 'elasnocodigo',
+          externalActivationId: uuid(70),
+        }),
+      );
+    });
+
+    it('400 quando a order não tem evento nem ativação vinculados', async () => {
+      orderRepo.findOneBy.mockResolvedValue({
+        ...paidOrder(),
+        eventId: null,
+        externalActivationId: null,
+      });
+
+      await expect(
+        service.refundOrder(uuid(30), {}, adminUser),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('refund parcial usa o valor pago na order, não o preço atual do lote', async () => {
+      // Lote subiu para R$ 70 após a compra de 3 × R$ 50 (totalCents 15000)
+      ticketTypeRepo.findOneBy.mockResolvedValue(
+        makeTicket({ id: uuid(21), kind: 'paid', priceCents: 7000 }),
+      );
+
+      const result = await service.refundOrder(
+        uuid(30),
+        { registrationIds: [uuid(41), uuid(42)] },
+        adminUser,
+      );
+
+      expect(stripeService.createEventTicketRefund).toHaveBeenCalledWith(
+        'pi_123',
+        10000, // 2 × R$ 50 (valor pago), NÃO 2 × R$ 70
+      );
+      expect(result.amountCents).toBe(10000);
     });
   });
 

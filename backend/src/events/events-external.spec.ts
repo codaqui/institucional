@@ -233,6 +233,25 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         service.checkin(uuid(10), 'qualquer', user()),
       ).rejects.toThrow(ForbiddenException);
     });
+
+    it('inscrição estornada → 400 (check-in não permitido)', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ status: RegistrationStatus.REFUNDED }),
+      );
+      await expect(
+        service.checkin(uuid(10), 'token', checkerUser),
+      ).rejects.toThrow(BadRequestException);
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('inscrição cancelada → 400 (check-in não permitido)', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ status: RegistrationStatus.CANCELLED }),
+      );
+      await expect(
+        service.checkin(uuid(10), 'token', checkerUser),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   // ── Certificados (2c) ─────────────────────────────────────────────────────
@@ -264,6 +283,30 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       await expect(
         service.getCertificate(uuid(40), user({ sub: uuid(99) })),
       ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('inscrição estornada (mesmo com check-in) → 403', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({
+          checkedInAt: new Date(),
+          status: RegistrationStatus.REFUNDED,
+        }),
+      );
+      await expect(service.getCertificate(uuid(40), user())).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('inscrição cancelada (mesmo com check-in) → 403', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({
+          checkedInAt: new Date(),
+          status: RegistrationStatus.CANCELLED,
+        }),
+      );
+      await expect(service.getCertificate(uuid(40), user())).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('externo: carga horária vem do override em event_overrides', async () => {

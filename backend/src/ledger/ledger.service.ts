@@ -14,6 +14,30 @@ export interface PaginatedResult<T> {
 
 @Injectable()
 export class LedgerService {
+  /**
+   * referenceIds de estorno/reversão — excluídos dos totais agregados do
+   * Portal de Transparência (cada operação estornada já conta na ida).
+   * `re_` cobre refunds de doação (referenceId = refund.id do Stripe).
+   */
+  private static readonly REVERSAL_REFERENCE_PREFIXES = [
+    'transfer:',
+    'reimbursement-reversal:',
+    'reimbursement-deletion:',
+    'vendor-payment-reversal:',
+    'vendor-receipt-reversal:',
+    'expense-reversal:',
+    'stripe-refund:',
+    'event-ticket-refund:',
+    're_',
+  ];
+
+  private static reversalExclusionClause(): string {
+    const conditions = LedgerService.REVERSAL_REFERENCE_PREFIXES.map(
+      (prefix) => `tx.referenceId NOT LIKE '${prefix}%'`,
+    ).join(' AND ');
+    return `(tx.referenceId IS NULL OR (${conditions}))`;
+  }
+
   constructor(
     @InjectRepository(Account)
     private readonly accountRepo: Repository<Account>,
@@ -296,24 +320,20 @@ export class LedgerService {
       };
     }
 
-    // Total received (credits to wallets, excluding internal transfers)
+    // Total received (credits to wallets, excluding internal transfers and reversals)
     const { sum: totalReceived } = await this.txRepo
       .createQueryBuilder('tx')
       .select('COALESCE(SUM(tx.amount), 0)', 'sum')
       .where('tx.destinationAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere(
-        "(tx.referenceId IS NULL OR tx.referenceId NOT LIKE 'transfer:%')",
-      )
+      .andWhere(LedgerService.reversalExclusionClause())
       .getRawOne();
 
-    // Total expenses (debits from wallets, excluding internal transfers)
+    // Total expenses (debits from wallets, excluding internal transfers and reversals)
     const { sum: totalExpenses } = await this.txRepo
       .createQueryBuilder('tx')
       .select('COALESCE(SUM(tx.amount), 0)', 'sum')
       .where('tx.sourceAccountId IN (:...ids)', { ids: walletIds })
-      .andWhere(
-        "(tx.referenceId IS NULL OR tx.referenceId NOT LIKE 'transfer:%')",
-      )
+      .andWhere(LedgerService.reversalExclusionClause())
       .getRawOne();
 
     // Total transactions involving wallets
