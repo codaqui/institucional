@@ -3,6 +3,7 @@ import type { Config } from "@docusaurus/types";
 import type * as Preset from "@docusaurus/preset-classic";
 import { COMMUNITIES_CONFIG } from "./comunidades";
 import eventPagesPlugin from "./src/plugins/event-pages";
+import memberPagesPlugin from "./src/plugins/member-pages";
 
 const siteUrl = process.env.SITE_URL || "https://codaqui.dev";
 const requestedBaseUrl = process.env.BASE_URL || "/";
@@ -154,6 +155,8 @@ const config: Config = {
      * static/events/index.json.
      */
     eventPagesPlugin,
+    // Vanity URLs de membro: /@<handle> com OG/JSON-LD (fetch da API em build time, fallback gracioso).
+    memberPagesPlugin,
     /**
      * Comunidades parceiras — auto-discovery
      *

@@ -12,6 +12,9 @@ export default function NotFoundPage(): ReactNode {
     const path = globalThis.location.pathname;
 
     // /@username → /membros/perfil?handle=username
+    // Fallback: membros presentes no último build têm rota estática /@handle
+    // (plugin member-pages); este redirect cobre membros criados depois do
+    // build e links antigos.
     const vanityMatch = /^\/@([a-zA-Z0-9_-]+)\/?$/.exec(path);
     if (vanityMatch) {
       setRedirecting(true);

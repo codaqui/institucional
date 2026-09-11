@@ -42,19 +42,15 @@ import TabPanel from "../../components/TabPanel";
 import ClubWalletTransactionsTable from "../../components/ClubWalletTransactionsTable";
 import { PLATFORM_COLORS } from "../../data/social";
 import { useAuth } from "../../hooks/useAuth";
+import {
+  MEMBER_HANDLE_REGEX,
+  buildMemberPath,
+} from "../../utils/member-path";
+import type { PublicMemberProfile } from "../../utils/member-path";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
-interface Member {
-  id: string;
-  githubHandle: string;
-  name: string;
-  avatarUrl: string;
-  bio: string | null;
-  linkedinUrl: string | null;
-  roles: string[];
-  joinedAt: string;
-}
+type Member = PublicMemberProfile;
 
 interface Donation {
   id: string;
@@ -614,16 +610,24 @@ function ProfileSkeleton() {
 
 // ── Página principal ───────────────────────────────────────────────────────
 
-export default function PerfilPage(): React.JSX.Element {
+export default function PerfilPage({
+  routeHandle,
+  initialMember,
+}: {
+  /** Handle injetado pela rota estática `/@<handle>` (plugin member-pages). */
+  routeHandle?: string;
+  /** Perfil pré-carregado em build time — SSR já sai com o membro renderizado. */
+  initialMember?: PublicMemberProfile;
+}): React.JSX.Element {
   const { siteConfig } = useDocusaurusContext();
   const apiUrl =
     (siteConfig.customFields?.apiUrl as string) ?? "http://api.localhost:8000";
 
   const { user: loggedUser, isLoggedIn, authFetch } = useAuth();
 
-  const [member, setMember] = useState<Member | null>(null);
+  const [member, setMember] = useState<Member | null>(initialMember ?? null);
   const [donations, setDonations] = useState<Donation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialMember);
   const [error, setError] = useState<string | null>(null);
   const [clubWallet, setClubWallet] = useState<ClubWallet | null>(null);
   const [walletTxs, setWalletTxs] = useState<WalletTransaction[]>([]);
@@ -634,13 +638,14 @@ export default function PerfilPage(): React.JSX.Element {
   const [eventRegistrations, setEventRegistrations] = useState<PublicEventRegistration[]>([]);
   const [activeTab, setActiveTab] = useState(0);
 
-  // Suporta ?id=<uuid> ou ?handle=<github_handle>
+  // Suporta ?id=<uuid> ou ?handle=<github_handle>; a rota estática /@<handle>
+  // injeta o handle via prop (routeHandle) e dispensa o query param.
   const isBrowser = globalThis.window !== undefined;
   const params = isBrowser
     ? new URLSearchParams(globalThis.location.search)
     : null;
   const memberId = params?.get("id") ?? null;
-  const memberHandle = params?.get("handle") ?? null;
+  const memberHandle = routeHandle ?? params?.get("handle") ?? null;
 
   useEffect(() => {
     if (!memberId && !memberHandle) {
@@ -650,9 +655,33 @@ export default function PerfilPage(): React.JSX.Element {
     }
 
     // Valida formato do handle para evitar path traversal
-    if (memberHandle && !/^[a-zA-Z0-9_-]+$/.test(memberHandle)) {
+    if (memberHandle && !MEMBER_HANDLE_REGEX.test(memberHandle)) {
       setError("Handle inválido.");
       setLoading(false);
+      return;
+    }
+
+    // Rota estática /@<handle>: o perfil já veio pré-carregado em build time;
+    // pula o fetch inicial do membro e busca só os dados dinâmicos (doações).
+    const initialMemberMatches =
+      initialMember &&
+      (memberId
+        ? initialMember.id === memberId
+        : initialMember.githubHandle.toLowerCase() ===
+          memberHandle?.toLowerCase());
+
+    if (initialMemberMatches) {
+      setMember(initialMember);
+      fetch(`${apiUrl}/members/${initialMember.id}/donations`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((donationsData) => {
+          setDonations(donationsData ?? []);
+          setLoading(false);
+        })
+        .catch(() => {
+          setDonations([]);
+          setLoading(false);
+        });
       return;
     }
 
@@ -684,7 +713,7 @@ export default function PerfilPage(): React.JSX.Element {
         );
         setLoading(false);
       });
-  }, [memberId, memberHandle, apiUrl]);
+  }, [memberId, memberHandle, apiUrl, initialMember]);
 
   // Load SortCoins wallet only when viewing own profile (requires login)
   useEffect(() => {
@@ -755,13 +784,15 @@ export default function PerfilPage(): React.JSX.Element {
     (d) => d.type.includes("mensal") || d.type.includes("anual"),
   );
 
-  // URL canônica (HTTP 200, usada para SEO e QR code)
+  // URL canônica (usada para SEO e QR code). Na rota estática /@<handle> a
+  // vanity URL já é HTTP 200; na rota legada mantemos /membros/perfil?handle=.
   const canonicalHandle = member?.githubHandle ?? memberHandle ?? "";
   const canonicalUrl = isBrowser && canonicalHandle
-    ? `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`
+    ? routeHandle
+      ? `${globalThis.location.origin}${buildMemberPath(canonicalHandle)}`
+      : `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`
     : "";
 
-  // QR code usa URL canônica (não /@handle que retorna HTTP 404 no GitHub Pages)
   const vanityUrl = canonicalUrl;
 
   const seoTitle = member
