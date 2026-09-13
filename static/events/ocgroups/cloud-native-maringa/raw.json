@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T23:01:35.684Z",
+  "generatedAt": "2026-09-13T00:01:49.077Z",
   "events": [
     {
       "id": "ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6",
@@ -21,7 +21,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 7,
+      "userCount": 8,
       "creatorName": "Isadora Marcondes",
       "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
       "organizers": [
