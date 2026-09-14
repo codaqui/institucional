@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-14T18:01:41.532Z",
+  "generatedAt": "2026-09-14T19:01:37.345Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,13 +10,14 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-14T18:01:41.532Z"
+    "generatedAt": "2026-09-14T19:01:37.345Z"
   },
   "event": {
     "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
     "slug": "esquenta-devpr-conf-2026",
     "title": "Esquenta DevPR Conf 2026",
-    "summary": "Estamos organizando um esquenta para a DevPR Conf 2026. Mais informações em breve!",
+    "summary": "Estamos organizando um esquenta para a DevPR Conf 2026. Mais informações em breve! <3",
+    "description": "**Estamos** organizando um esquenta para a DevPR Conf 2026. Mais informações em breve!",
     "startAt": "2026-09-30T22:30:00.000Z",
     "endAt": "2026-10-01T01:30:00.000Z",
     "timezone": "America/Sao_Paulo",
