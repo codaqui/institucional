@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-14T21:01:15.751Z",
+  "generatedAt": "2026-09-14T22:01:29.408Z",
   "events": [
     {
       "id": "1338983526858494053",
@@ -17,7 +17,7 @@
       ],
       "ctaLabel": "Entrar no Discord da Codaqui",
       "featured": false,
-      "status": "scheduled",
+      "status": "active",
       "entityType": "voice",
       "userCount": 15,
       "creatorName": "Enderson Menezes",
