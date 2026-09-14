@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-13T06:27:32.975Z",
+  "generatedAt": "2026-09-14T06:34:17.782Z",
   "totalEvents": 407,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 762,
       "channelCount": 41,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 200,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6816,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 168,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -164,8 +164,8 @@
       "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
       "baselineCount": 45,
-      "count": 56,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "count": 57,
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 268,
-      "fetchedAt": "2026-09-13T06:27:32.975Z",
+      "fetchedAt": "2026-09-14T06:34:17.782Z",
       "isFallback": false
     },
     {
