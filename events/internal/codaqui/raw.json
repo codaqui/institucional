@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T21:01:25.242Z",
+  "generatedAt": "2026-09-15T22:02:08.896Z",
   "events": [
     {
       "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
@@ -17,7 +17,7 @@
       "tags": [],
       "ctaLabel": "Inscrever-se",
       "status": "scheduled",
-      "userCount": 2
+      "userCount": 3
     }
   ]
 }
