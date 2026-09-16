@@ -13,16 +13,16 @@
     "generatedAt": "2026-09-16T00:01:44.792Z"
   },
   "event": {
-    "id": "306389960",
-    "title": "[DevPR] BEMUG #1",
-    "summary": "BEMUG 1 🚀 Meetup da comunidade backend de Maringá A Comunidade BEMUG está de volta com os eventos presenciais! Vamos nos reunir nesse primeiro evento na Elotech 👩‍💻👨‍💻 O público alvo do evento são pessoas que possu…",
-    "startAt": "2025-03-18T19:00:01-03:00",
-    "endAt": "2025-03-18T21:00:01-03:00",
+    "id": "316574270",
+    "title": "14º Meetup DevParaná Cascavel",
+    "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Cascavel convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca d…",
+    "startAt": "2026-09-23T19:00:00-03:00",
+    "endAt": "2026-09-23T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Elotech · R. Tupã, 1643 - Recanto dos Magnatas, Maringá - PR, 87060-510 · Maringá",
-    "href": "https://www.meetup.com/developerparana/events/306389960/",
+    "location": "Estação da Inovação - Hub One - Fundetec · Av. Brasil, 8517 - Bairro Coqueiral, Cascavel - PR, 85807-030, Brazil · Bairro Coqueiral · PR",
+    "href": "https://www.meetup.com/developerparana/events/316574270/",
     "tags": [
       "meetup",
       "devparana",
@@ -30,21 +30,17 @@
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 40,
-    "creatorName": "Renan Delmonico",
-    "creatorId": "288803051",
+    "userCount": 1,
+    "creatorName": "costakauanantonye",
+    "creatorId": "457347446",
     "organizers": [
       {
-        "name": "Renan Delmonico",
-        "id": "288803051"
-      },
-      {
-        "name": "Ivo Roberto Batistela",
-        "id": "194369232"
+        "name": "costakauanantonye",
+        "id": "457347446"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/5/1/b/b/highres_526520923.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/f/b/c/highres_536164028.jpeg"
   }
 }

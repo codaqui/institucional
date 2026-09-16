@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-15T23:01:27.845Z",
+  "generatedAt": "2026-09-16T00:01:44.792Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-15T23:01:27.845Z",
+    "generatedAt": "2026-09-16T00:01:44.792Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 375
+    "itemCount": 377
   },
   "events": [
     {
@@ -14904,6 +14904,93 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/315991184.json",
+      "hasOverride": false
+    },
+    {
+      "id": "316574270",
+      "title": "14º Meetup DevParaná Cascavel",
+      "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Cascavel convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca d…",
+      "startAt": "2026-09-23T19:00:00-03:00",
+      "endAt": "2026-09-23T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Estação da Inovação - Hub One - Fundetec · Av. Brasil, 8517 - Bairro Coqueiral, Cascavel - PR, 85807-030, Brazil · Bairro Coqueiral · PR",
+      "href": "https://www.meetup.com/developerparana/events/316574270/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "costakauanantonye",
+      "creatorId": "457347446",
+      "organizers": [
+        {
+          "name": "costakauanantonye",
+          "id": "457347446"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/f/b/c/highres_536164028.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/316574270.json",
+      "hasOverride": false
+    },
+    {
+      "id": "316573355",
+      "title": "[DevPR Guarapuava] Meetup 29/09",
+      "summary": "No dia 29 de setembro, às 19h, a comunidade Dev Paraná Guarapuava se reúne na Secretaria Municipal de Ciência, Tecnologia e Inovação para mais um encontro, trazendo discussões sobre o futuro da programação e o funcionam…",
+      "startAt": "2026-09-29T19:00:00-03:00",
+      "endAt": "2026-09-29T22:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Rua Senador Nereu Ramos, 1909 · R. Sen. Nereu Ramos, 1909 - Dos Estados, Guarapuava - PR, 85035-300, Brazil · Dos Estados · PR",
+      "href": "https://www.meetup.com/developerparana/events/316573355/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 5,
+      "creatorName": "Luiz Schons",
+      "creatorId": "370720313",
+      "organizers": [
+        {
+          "name": "Luiz Schons",
+          "id": "370720313"
+        },
+        {
+          "name": "leonardo tosin",
+          "id": "478507140"
+        },
+        {
+          "name": "Nestor Hugo",
+          "id": "428326789"
+        },
+        {
+          "name": "Eliezer Buczak Boeira ",
+          "id": "428102696"
+        },
+        {
+          "name": "João Paulo Vasconcelos",
+          "id": "429772464"
+        }
+      ],
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/316573355.json",
       "hasOverride": false
     }
   ]
