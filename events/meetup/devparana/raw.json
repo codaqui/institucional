@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T18:01:38.859Z",
+  "generatedAt": "2026-09-17T19:01:28.569Z",
   "events": [
     {
       "id": "315991184",
@@ -87,7 +87,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 21,
+      "userCount": 24,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "organizers": [
