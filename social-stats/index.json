@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-16T06:26:45.509Z",
+  "generatedAt": "2026-09-17T06:27:02.511Z",
   "totalEvents": 409,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 761,
+      "count": 760,
       "channelCount": 41,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 18,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 200,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6815,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "count": 6819,
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 168,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -164,8 +164,8 @@
       "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
       "baselineCount": 45,
-      "count": 57,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "count": 58,
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 268,
-      "fetchedAt": "2026-09-16T06:26:45.509Z",
+      "fetchedAt": "2026-09-17T06:27:02.511Z",
       "isFallback": false
     },
     {
