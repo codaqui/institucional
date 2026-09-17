@@ -256,6 +256,7 @@ const config: Config = {
             { label: "Equipe", to: "/sobre/equipe" },
             { label: "Membros", to: "/membros" },
             { label: "Associação", to: "/sobre/ong" },
+            { label: "Títulos e Reconhecimentos", to: "/sobre/titulos" },
             { label: "Insights", to: "/sobre/insights" },
             { label: "Transparência", to: "/transparencia" },
             { label: "Pais e Responsáveis", to: "/sobre/pais-responsaveis" },
