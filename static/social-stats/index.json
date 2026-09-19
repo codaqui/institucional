@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-18T06:26:01.511Z",
+  "generatedAt": "2026-09-19T06:23:39.987Z",
   "totalEvents": 409,
   "profiles": [
     {
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 760,
+      "count": 761,
       "channelCount": 41,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -32,8 +32,8 @@
       "url": "https://www.youtube.com/@codaqui",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 18,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "count": 17,
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 200,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6822,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "count": 6823,
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 168,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 59,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 268,
-      "fetchedAt": "2026-09-18T06:26:01.511Z",
+      "fetchedAt": "2026-09-19T06:23:39.987Z",
       "isFallback": false
     },
     {
