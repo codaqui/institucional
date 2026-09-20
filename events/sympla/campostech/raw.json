@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-19T23:01:16.051Z",
+  "generatedAt": "2026-09-20T00:01:50.362Z",
   "events": [
     {
       "id": "sympla-3462044",
@@ -58,7 +58,7 @@
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "location": "Evento presencial em Auditório da Unimed Ponta Grossa, Ponta Grossa - PR Evento encerrado",
       "href": "https://www.sympla.com.br/evento/meetup-cyber-security/3031834",
       "tags": [
         "campostech",
@@ -226,7 +226,7 @@
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
-      "location": "Evento presencial em HIVE Coworking & Offices, Ponta Grossa - PR Evento encerrado",
+      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
       "href": "https://www.sympla.com.br/evento/meetup-desenvolvimento-backend/1983086",
       "tags": [
         "campostech",
