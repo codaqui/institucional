@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcodaqui_institucional=globalThis.webpackChunkcodaqui_institucional||[]).push([[52355],{52355(i,a,c){c.d(a,{createEventModelingServices:()=>e.g});var e=c(82688);c(4954)}}]);
