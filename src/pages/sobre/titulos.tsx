@@ -1,5 +1,6 @@
 import React from "react";
 import Layout from "@theme/Layout";
+import useBaseUrl from "@docusaurus/useBaseUrl";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
@@ -17,7 +18,7 @@ export default function TitulosPage(): React.JSX.Element {
   return (
     <Layout
       title="Títulos e Reconhecimentos"
-      description="Títulos e reconhecimentos oficiais da Associação Codaqui: Selo OSC do IPEA (Mapa das Organizações da Sociedade Civil) e declaração de utilidade pública municipal (Lei nº 12.181/2026, Maringá-PR)."
+      description="Títulos e reconhecimentos oficiais da Associação Codaqui: Selo OSC do IPEA (Mapa das Organizações da Sociedade Civil), declaração de utilidade pública municipal (Lei nº 12.181/2026, Maringá-PR) e marca registrada no INPI."
     >
       <PageHero
         eyebrow="Associação Codaqui"
@@ -63,7 +64,7 @@ export default function TitulosPage(): React.JSX.Element {
                     >
                       <Box
                         component="img"
-                        src={titulo.imagem}
+                        src={useBaseUrl(titulo.imagem)}
                         alt={titulo.imagemAlt ?? titulo.titulo}
                         sx={{ height: 44, width: "auto", display: "block" }}
                       />
@@ -129,7 +130,7 @@ export default function TitulosPage(): React.JSX.Element {
                     <Button
                       key={link.url}
                       size="small"
-                      href={link.url}
+                      href={useBaseUrl(link.url)}
                       {...(link.external
                         ? { target: "_blank", rel: "noopener noreferrer" }
                         : {})}
