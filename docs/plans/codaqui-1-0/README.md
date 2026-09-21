@@ -252,7 +252,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 ## Frontend e snapshots
 
-- **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
+- **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores), snapshot por membro para o perfil público `/@handle` (campos e históricos **já filtrados por visibilidade**) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
 - **Giscus:** categoria "Assembleias" por pathname (configuração por página, igual ao blog).
 - **Admin:** páginas novas seguem o padrão `/admin/*` (guarda de login, authFetch, Alert de erro).
 - **Dados públicos:** páginas leem snapshots; dados privados (filas de aprovação) vão direto à API.
@@ -288,6 +288,7 @@ Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.
 5. Migração de `communities.ts` → tabela deve manter os campos usados por insights/transparência/doações (script de seed auditável).
 6. Discussion 573 mostra comunidades com "representantes" não cadastrados (ex.: Josi) — o modelo exigirá responsável **membro** do site para selo/painel.
 7. **Mentoria:** política de cancelamento/no-show (tolerância, reagendamento) e LGPD básica para mentorandos convidados (e-mail + nome em sessões — consentimento no pedido e remoção sob solicitação).
+8. **Visibilidade do perfil público:** o snapshot por membro é gerado pelo workflow — uma mudança de privacidade leva até o próximo run para refletir em `/@handle` (documentar no painel: "alterações levam até X minutos").
 
 ## Fora de escopo (1.0.0)
 
