@@ -576,8 +576,9 @@ nenhuma sub-fase.
 | `ocgroups:cloud-native-maringa` | CNCF Open Community Groups | [ocgroups.dev/cncf/group/sq5vsqs](https://ocgroups.dev/cncf/group/sq5vsqs) | ✅ Ativo |
 | `sympla:elasnocodigo` | Sympla | [sympla.com.br/produtor/elasnocodigo](https://www.sympla.com.br/produtor/elasnocodigo) | ✅ Ativo |
 | `sympla:campostech` | Sympla | [sympla.com.br/produtor/camposvalley](https://www.sympla.com.br/produtor/camposvalley) | ✅ Ativo |
+| `doity:devpr` | Doity | [doity.com.br/organizador/devpr](https://doity.com.br/organizador/devpr) | ✅ Ativo |
 
-> As 5 fontes acima conferem com `events.config.json` (verificado em 2026-07). Existem ainda
+> As 6 fontes acima conferem com `events.config.json` (verificado em 2026-09). Existem ainda
 > snapshots **legados** de `bevy:cloud-native-maringa` em `static/events/bevy/` — histórico da
 > época da plataforma Bevy, antes da migração do CNCF para ocgroups.dev. A fonte não consta mais
 > em `events.config.json` e não é sincronizada; os arquivos permanecem só para preservar o histórico.

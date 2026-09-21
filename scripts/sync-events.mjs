@@ -1524,6 +1524,253 @@ async function resolveOcgroupsEvents(config, existingEvents) {
   }
 }
 
+// ─── Doity ──────────────────────────────────────────────────────────────────
+// Perfil do organizador (ex.: https://doity.com.br/organizador/devpr) é SSR e
+// lista os eventos em duas seções: <div id="proximos-eventos"> e
+// <div id="eventos-passados" class="pages">. Cada card é um <a href="/slug">
+// com .evento-item (.evento-cidade-estado, .evento-nome, .evento-local,
+// .evento-data b -> DD/MM/YY, .evento-hora b -> HH:MM). A página do evento
+// traz meta tags event:start_time/event:end_time (ISO com fuso) e
+// meta[name=description], usadas para enriquecer o snapshot. Quando o detalhe
+// falha, a data do card é composta com o timezone da config (fallback).
+
+const DOITY_BASE_URL = "https://doity.com.br";
+const DOITY_PLACEHOLDER_IMAGE = `${DOITY_BASE_URL}/img/evento.png`;
+const DOITY_REQUEST_DELAY_MS = 1_000;
+
+async function fetchDoityHtml(url) {
+  const response = await fetchWithTimeout(url, {
+    headers: {
+      "User-Agent": OCGROUPS_BROWSER_UA,
+      Accept: "text/html,application/xhtml+xml",
+    },
+  });
+  if (!response.ok) {
+    throw new Error(`doity.com.br request failed for ${url}: ${response.status}`);
+  }
+  return response.text();
+}
+
+function sliceDoitySectionHtml(html, sectionId, nextSectionIds) {
+  const startMatch = new RegExp(`<div id="${sectionId}"[^>]*>`).exec(html);
+  if (!startMatch) return "";
+  const start = startMatch.index + startMatch[0].length;
+  let end = html.length;
+  for (const nextId of nextSectionIds) {
+    const idx = html.indexOf(`<div id="${nextId}"`, start);
+    if (idx !== -1 && idx < end) end = idx;
+  }
+  return html.slice(start, end);
+}
+
+function extractDoityCardText(body, className) {
+  const match = new RegExp(`class="${className}"[^>]*>([\\s\\S]*?)<\\/`).exec(body);
+  if (!match) return "";
+  return decodeHtmlEntities(match[1].replace(/<[^>]+>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
+function extractDoityCardBold(body, className) {
+  const match = new RegExp(`class="${className}"[^>]*>[\\s\\S]*?<b>([\\s\\S]*?)</b>`).exec(body);
+  return match ? match[1].trim() : "";
+}
+
+function extractDoityCardImage(body) {
+  const match = /<img src="([^"]+)"/.exec(body);
+  return match ? match[1] : null;
+}
+
+function extractDoitySectionCards(html, sectionId, nextSectionIds) {
+  const sectionHtml = sliceDoitySectionHtml(html, sectionId, nextSectionIds);
+  const anchors = [];
+  const anchorPattern = /<a href="(\/[a-z0-9][a-z0-9-]*)"/g;
+  let match;
+  while ((match = anchorPattern.exec(sectionHtml)) !== null) {
+    anchors.push({ path: match[1], start: match.index, bodyStart: anchorPattern.lastIndex });
+  }
+
+  const cards = [];
+  for (let i = 0; i < anchors.length; i++) {
+    const end = i + 1 < anchors.length ? anchors[i].start : sectionHtml.length;
+    const body = sectionHtml.slice(anchors[i].bodyStart, end);
+    // O card da Doity não fecha o <a> explicitamente — o parser do browser
+    // fecha implicitamente no </div> da seção. Por isso o corpo é delimitado
+    // pelo próprio <a> seguinte, e exigimos o marcador do card para descartar
+    // âncoras estranhas que porventura apareçam na seção.
+    if (!body.includes('class="evento-item"')) continue;
+    cards.push({
+      path: anchors[i].path,
+      slug: anchors[i].path.replace(/^\//, ""),
+      section: sectionId,
+      title: extractDoityCardText(body, "evento-nome"),
+      cityState: extractDoityCardText(body, "evento-cidade-estado"),
+      venue: extractDoityCardText(body, "evento-local"),
+      dateText: extractDoityCardBold(body, "evento-data"),
+      timeText: extractDoityCardBold(body, "evento-hora"),
+      image: extractDoityCardImage(body),
+    });
+  }
+  return cards;
+}
+
+function timezoneOffsetMinutes(timezone, year, month, day, hour, minute) {
+  const asUTC = Date.UTC(year, month - 1, day, hour, minute);
+  const dtf = new Intl.DateTimeFormat("en-US", {
+    timeZone: timezone,
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const parts = {};
+  for (const part of dtf.formatToParts(new Date(asUTC))) {
+    parts[part.type] = part.value;
+  }
+  const shifted = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour) % 24,
+    Number(parts.minute),
+  );
+  return (shifted - asUTC) / 60_000;
+}
+
+function formatDoityDateTime(year, month, day, hour, minute, timezone) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const fallback = `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00-03:00`;
+  if (!timezone) return fallback;
+  try {
+    const offset = timezoneOffsetMinutes(timezone, year, month, day, hour, minute);
+    const sign = offset <= 0 ? "-" : "+";
+    const abs = Math.abs(offset);
+    return `${year}-${pad(month)}-${pad(day)}T${pad(hour)}:${pad(minute)}:00${sign}${pad(Math.floor(abs / 60))}:${pad(abs % 60)}`;
+  } catch {
+    return fallback;
+  }
+}
+
+function parseDoityCardDateTime(dateText, timeText, timezone) {
+  const dateMatch = /(\d{2})\/(\d{2})\/(\d{2})/.exec(dateText ?? "");
+  if (!dateMatch) return null;
+  const [, day, month, year2] = dateMatch;
+  const timeMatch = /(\d{1,2}):(\d{2})/.exec(timeText ?? "");
+  const hour = timeMatch ? Number(timeMatch[1]) : 0;
+  const minute = timeMatch ? Number(timeMatch[2]) : 0;
+  return formatDoityDateTime(2000 + Number(year2), Number(month), Number(day), hour, minute, timezone);
+}
+
+function mapDoityEventStatus(startAt, endAt) {
+  const now = Date.now();
+  const start = startAt ? Date.parse(startAt) : Number.NaN;
+  const end = endAt ? Date.parse(endAt) : Number.NaN;
+  if (!Number.isNaN(end) && end < now) return "completed";
+  if (!Number.isNaN(start) && start <= now && (Number.isNaN(end) || end >= now)) return "active";
+  return "scheduled";
+}
+
+function extractDoityMetaContent(html, key) {
+  const tagPattern = new RegExp(`<meta[^>]+(?:property|name)=["']${key}["'][^>]*>`);
+  const tagMatch = tagPattern.exec(html);
+  if (!tagMatch) return null;
+  const contentMatch = /content="([^"]*)"/.exec(tagMatch[0]);
+  return contentMatch ? contentMatch[1] : null;
+}
+
+async function fetchDoityEventDetail(path) {
+  try {
+    const html = await fetchDoityHtml(`${DOITY_BASE_URL}${path}`);
+    const startAt = extractDoityMetaContent(html, "event:start_time");
+    const endAt = extractDoityMetaContent(html, "event:end_time");
+    const rawSummary = extractDoityMetaContent(html, "description");
+    const summary = rawSummary
+      ? truncateText(stripHtmlTags(decodeHtmlEntities(rawSummary)))
+      : null;
+    return { startAt, endAt, summary };
+  } catch (error) {
+    console.warn(`    ⚠ detalhe indisponível para ${path}:`, error.message);
+    return null;
+  }
+}
+
+function mapDoityEvent(card, detail, config) {
+  const timezone = config.timezone || "America/Sao_Paulo";
+  const startAt =
+    detail?.startAt || parseDoityCardDateTime(card.dateText, card.timeText, timezone);
+  const endAt = detail?.endAt || undefined;
+  const location =
+    card.venue && card.cityState
+      ? `${card.venue} — ${card.cityState}`
+      : card.venue || card.cityState || config.defaultLocation;
+  // Cards da aba "eventos-passados" não trazem endAt; sem janela de término a
+  // heurística de datas deixaria o evento eternamente "active". A própria
+  // plataforma já classificou como passado, então forçamos "completed".
+  const computedStatus = mapDoityEventStatus(startAt, endAt);
+  const status =
+    card.section === "eventos-passados" && computedStatus === "active"
+      ? "completed"
+      : computedStatus;
+
+  return {
+    id: card.slug,
+    title: card.title || card.slug,
+    summary: detail?.summary || `Evento publicado por ${config.defaultHost} na Doity.`,
+    startAt: startAt ?? new Date().toISOString(),
+    endAt,
+    timezone,
+    platform: config.defaultPlatform,
+    host: config.defaultHost,
+    location,
+    href: `${DOITY_BASE_URL}${card.path}`,
+    tags: ["doity", config.sourceId],
+    ctaLabel: config.ctaLabel || "Ver evento na Doity",
+    featured: false,
+    status,
+    entityType: "external",
+    imageUrl: card.image && card.image !== DOITY_PLACEHOLDER_IMAGE ? card.image : undefined,
+  };
+}
+
+async function resolveDoityEvents(config, existingEvents) {
+  try {
+    const organizerSlug = config.organizerSlug;
+    if (!organizerSlug) {
+      console.warn(`  ⚠ No organizerSlug for ${config.sourceId}, using fallback`);
+      return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+    }
+
+    const listHtml = await fetchDoityHtml(`${DOITY_BASE_URL}/organizador/${organizerSlug}`);
+    const cards = [
+      ...extractDoitySectionCards(listHtml, "proximos-eventos", [
+        "eventos-passados",
+        "modal_contato_perfil_organizador",
+      ]),
+      ...extractDoitySectionCards(listHtml, "eventos-passados", ["modal_contato_perfil_organizador"]),
+    ];
+    console.log(`    found ${cards.length} event card(s) on organizer page`);
+
+    if (cards.length === 0) {
+      console.warn("    ⚠ No event cards found, using fallback");
+      return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+    }
+
+    const freshById = new Map();
+    for (const [index, card] of cards.entries()) {
+      if (index > 0) await sleep(DOITY_REQUEST_DELAY_MS);
+      const detail = await fetchDoityEventDetail(card.path);
+      const event = mapDoityEvent(card, detail, config);
+      freshById.set(event.id, event);
+    }
+
+    mergeExistingEvents(freshById, existingEvents);
+    return [...freshById.values()];
+  } catch (error) {
+    console.warn(`Skipping doity sync for ${config.source}/${config.sourceId}:`, error.message);
+    return existingEvents.length > 0 ? existingEvents : config.fallbackEvents ?? [];
+  }
+}
+
 async function writeFileAtomic(filePath, content) {
   // Grava em arquivo temporario e renomeia só após a escrita completa — um
   // processo morto no meio nunca deixa um JSON pela metade no lugar do final.
@@ -1642,6 +1889,8 @@ async function processSource(sourceConfig, fullSync, generatedAt, overridesByKey
     events = await resolveOcgroupsEvents(sourceConfig, existingEvents);
   } else if (sourceConfig.source === "sympla") {
     events = await resolveSymplaEvents(sourceConfig, existingEvents);
+  } else if (sourceConfig.source === "doity") {
+    events = await resolveDoityEvents(sourceConfig, existingEvents);
   }
 
   return writeSourceOutputs(sourceConfig, events, generatedAt, overridesByKey);
@@ -1768,6 +2017,11 @@ export {
   buildIndexSummaries,
   buildInternalSourceConfig,
   compareByStartAt,
+  extractDoityMetaContent,
+  extractDoitySectionCards,
+  mapDoityEvent,
+  mapDoityEventStatus,
+  parseDoityCardDateTime,
   extractSymplaDateLine,
   extractSymplaDescription,
   extractSymplaLocation,
@@ -1777,6 +2031,7 @@ export {
   mapSymplaEventStatus,
   parseSymplaDateText,
   readExistingEvents,
+  resolveDoityEvents,
   resolveSymplaEndAt,
   resolveSymplaEvents,
   resolveSymplaIsOnline,

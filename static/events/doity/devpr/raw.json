@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-09-21T19:30:30.327Z",
+  "events": [
+    {
+      "id": "devpr-conf-26",
+      "title": "DevPR Conf 26",
+      "summary": "O DevPR Conf chega na 11ª edição! Um palco. 7 palestras. Zero distrações. Neste ano trocamos as trilhas paralelas por uma trilha única, curada do início ao fim. Sem escolher entre duas palestras boas no mesmo horário, s…",
+      "startAt": "2026-11-07T08:00:00-03:00",
+      "endAt": "2026-11-07T18:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Doity",
+      "host": "DevPR",
+      "location": "Bondam Restaurante - Parque do Japão — Maringá, PR",
+      "href": "https://doity.com.br/devpr-conf-26",
+      "tags": [
+        "doity",
+        "devpr"
+      ],
+      "ctaLabel": "Ver eventos na Doity",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external"
+    },
+    {
+      "id": "devpr-conf-25",
+      "title": "DevPR Conf 25 - Especial 10 anos",
+      "summary": "Siga nossas páginas para receber as novidades do evento:\r\n\r\n Linkedin: https://br.linkedin.com/company/devparana\r\n Instagram: https://www.instagra...",
+      "startAt": "2025-09-13T07:30:00-03:00",
+      "endAt": "2025-09-13T18:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Doity",
+      "host": "DevPR",
+      "location": "Ginásio do Colégio Objetivo — Maringá, PR",
+      "href": "https://doity.com.br/devpr-conf-25",
+      "tags": [
+        "doity",
+        "devpr"
+      ],
+      "ctaLabel": "Ver eventos na Doity",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "imageUrl": "https://grcmlesydpcd.objectstorage.sa-saopaulo-1.oci.customer-oci.com/p/OQwcvnO-c63O08Gc2Kv4OTbJttj5ik60dguiDIyyQ0wuo5SWn-jHOLW9wNbylNqI/n/grcmlesydpcd/b/dtysppobjmntbkp01/o/media/doity/eventos/evento-264385-banner.jpeg"
+    }
+  ]
+}

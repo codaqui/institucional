@@ -472,7 +472,7 @@ const giscusConfig = siteConfig.themeConfig.giscus as Record<string, string>;
 > **Manual prático de código:** [docs/modules/events/CODE_MANUAL.md](docs/modules/events/CODE_MANUAL.md)  
 > **Mapa de papéis/permissões:** [docs/modules/events/ROLES.md](docs/modules/events/ROLES.md)
 
-A listagem pública de eventos é **100% estática**: o workflow [`sync-event-snapshots.yml`](.github/workflows/sync-event-snapshots.yml) gera arquivos JSON em `static/events/` a partir de fontes externas (Discord, Meetup, Sympla, OCGroups) e da fonte própria `internal:codaqui`. O frontend lê apenas esses JSONs.
+A listagem pública de eventos é **100% estática**: o workflow [`sync-event-snapshots.yml`](.github/workflows/sync-event-snapshots.yml) gera arquivos JSON em `static/events/` a partir de fontes externas (Discord, Meetup, Sympla, OCGroups, Doity) e da fonte própria `internal:codaqui`. O frontend lê apenas esses JSONs.
 
 #### Layout essencial
 
@@ -483,6 +483,7 @@ static/events/
 ├── meetup/devparana/
 ├── sympla/{elasnocodigo,campostech}/
 ├── ocgroups/cloud-native-maringa/
+├── doity/devpr/                       # DevPR Conf (organizador devpr na Doity)
 └── internal/codaqui/                  # Eventos próprios (backend /events/public/managed)
 ```
 
