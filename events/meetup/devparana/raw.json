@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-21T16:01:28.448Z",
+  "generatedAt": "2026-09-21T17:01:23.343Z",
   "events": [
     {
       "id": "316574270",
@@ -21,7 +21,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 3,
+      "userCount": 4,
       "creatorName": "costakauanantonye",
       "creatorId": "457347446",
       "organizers": [
