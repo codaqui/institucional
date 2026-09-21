@@ -1,12 +1,16 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria adicionada em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
 sections:
   - Visão e princípios
   - Estado atual revisado
   - Decisões de design (alinhadas com a presidência em 2026-09-21)
   - Subsistemas (A–F)
+  - Sistema de e-mail (melhorias transversais E1/E2)
+  - Arquitetura de menus e navegação (UX)
+  - Relatórios & exportações (R1–R3)
+  - Painel do membro, privacidade e perfil público (UX)
   - Modelo de dados consolidado
   - Papéis e permissões
   - Frontend e snapshots
@@ -49,13 +53,16 @@ Princípios:
 |---|---|
 | `members` com `roles text[]` (membro, admin, finance-analyzer, event_*) | + papéis `diretor`, `voluntario`; vínculos a diretorias/comunidades |
 | Eventos (managed + externos, check-in, certificado por presença) | Fonte de horas automática (`event_checkin`); comunidades integradas mantêm eventos próprios |
-| Ledger financeiro double-entry | Comunidades integradas já têm caixa própria; espelha o pattern no `hour_ledger` |
+| Ledger financeiro double-entry | **Inalterada** — dinheiro apenas, incluindo a caixa das comunidades integradas |
+| Ledger de horas (novo) | `hour_ledger` **tabela separada** (unidade = horas); copia só o *pattern* de auditoria/aprovação da ledger financeira, sem compartilhar dados ou contas |
 | `companies` (ADR 003) | Ganha `tier` (amiga/aliada) + due diligence |
 | Multisite whitelabel (ADR 004, piloto T.I. Social) | Vira privilégio do nível **Integrada** |
 | Giscus (comentários do blog) | Embute a Discussion de cada assembleia |
 | Snapshots estáticos (`static/events/`) | Mesmo pattern para `static/assemblies/` e migração de `communities.ts` |
 | `src/data/communities.ts` (5 parceiras, frontend-only) | Migra para tabela `communities` + snapshot |
 | `/participe/mentoria` (estática, Google Calendar externo, mentores hardcoded) | Vira módulo de mentoria: perfis, disponibilidade, agendamento, sessões, insights (subsistema F) |
+| Perfil público `/@handle` (snapshot em build, campos fixos, sem privacidade) | Controles de visibilidade por campo + redesign com badges, timeline e horas |
+| Menu de perfil (navbar, desktop/mobile) | Reagrupado com identidade e seções (UX — ver seção de menus) |
 | Roles events (ROLES.md) | Base para permissões escopadas (diretor→diretoria, mentor→projeto, responsável→comunidade) |
 
 ## Decisões de design (alinhadas com a presidência em 2026-09-21)
@@ -63,7 +70,7 @@ Princípios:
 1. **Assembleias:** híbrido — Discussion é a ata viva; banco guarda registro fino (tipo, número, data, status, PDF do cartório, metadados de registro).
 2. **Comunidades:** 2 níveis — **Parceira** (listada, apoio pontual) e **Integrada** (site + eventos + caixa) — mais o **Selo Codaqui** (processo formal da diretoria, validade de 1 ano, responsável obrigatório).
 3. **Business:** tiers **Empresa Amiga** (só financeiro = CLUB Business PJ atual) e **Empresa Aliada** (Codaqui valida de forma consultiva; selo próprio com validade).
-4. **Horas:** **ledger único** com aprovação — diretor/mentor lança (pending), presidência/finance-analyzer aprova; check-in em eventos entra automaticamente como approved.
+4. **Horas:** **uma única ledger de horas** (`hour_ledger`, **separada da ledger financeira**) com aprovação — diretor/mentor lança (pending), presidência/finance-analyzer aprova; check-in em eventos entra automaticamente como approved.
 
 ## Subsistemas
 
@@ -154,11 +161,80 @@ Traz o programa de mentoria (hoje página estática com Google Calendar externo)
 
 **Frontend:** `/participe/mentoria` reescrita (mentores com chips de área + disponibilidade semanal real + "Agendar" por mentor, passo a passo, números públicos do programa, CTA de candidatura); painel do mentor (disponibilidade, solicitações, próximas sessões, histórico, marcar realizada/no-show); página do mentorando por token; admin (aprovação de mentores, visão detalhada, insights). Lista pública de mentores também em snapshot estático (`static/mentors/`), como eventos.
 
+## Sistema de e-mail (melhorias transversais)
+
+Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entrar **antes** das fases que dependem de e-mail transacional (Fase 5 mentoria, sobretudo). Duas entregas:
+
+### E1 — Correções (PR próprio no início da Fase 1)
+
+1. **Dashboard com NaN em produção** — contrato quebrado: o frontend (`admin/emails.tsx`) espera `summary.byTemplate[tpl] = { sent, failed }`, mas o backend (`email.service.ts`) envia um total único por template. Correção: backend volta a agrupar por template+status (o frontend já foi construído para o shape dividido).
+2. **Módulo desligado sem credenciais** — hoje, sem `SMTP_USER/PASS`, o provider lança `SMTP_NOT_CONFIGURED` que é gravado como **failed**, gerando falhas em massa nos crons e poluindo métricas. Correção: `EmailService`/crons/`resend` consultam `provider.isConfigured()`; desligado = não tenta SMTP nem cria log de falha — registra com status próprio `skipped` (visível no admin, fora da métrica de falhas) e endpoint de status para banner no dashboard.
+3. **`resend` respeita configuração** e retorna erro amigável quando o módulo está desligado.
+4. **Índice em `email_logs(template, registrationId)`** — a query de dedupe dos crons cresce sem controle; adicionar migration com índice composto.
+5. **E-mail transacional de reembolso/cancelamento** de inscrição (o refund Stripe já existe sem notificação ao participante).
+6. **Retenção de `email_logs`** — política de limpeza (proposta: manter 12 meses) via cron.
+
+### E2 — Templates (antes da Fase 5, mentoria)
+
+1. **Registry de templates** — hoje 3 templates hardcoded em switch; criar registro com metadados (key, nome, descrição, quando dispara, contexto esperado) e endpoint `GET /notifications/templates` + `GET /notifications/templates/:key/preview` (render com dados de exemplo).
+2. **Visualização no admin** — aba "Templates" em `/admin/emails`: lista com descrição, gatilho e preview renderizado.
+3. **Edição de textos segue versionada em código** (PR) — override em banco fica fora de escopo até haver demanda.
+
+## Arquitetura de menus e navegação (UX)
+
+**Problema:** o painel admin navega por uma fileira de botões que quebra linha, com um único grupo (Eventos) em dropdown que some ao clicar e estado ativo fraco; com 1.0.0 serão ~25 páginas. O menu de perfil (foto, desktop/mobile) é uma lista plana sem identidade.
+
+**Admin — app-shell com sidebar esquerda persistente:**
+- Novo `AdminLayout` (sidebar 240px, colapsável; drawer hambúrguer no mobile; topbar com breadcrumb seção › página) substitui o `AdminNavbar` nas ~15 páginas existentes.
+- Sidebar com seções agrupadas por **sistema de valor** (submenus expansíveis, item ativo por prefixo de rota, busca no topo, seção some se o usuário não vê nenhum item):
+  - **Visão geral** (dashboard) · **Pessoas** (Membros, Diretorias, Voluntários, Horas ▸ Aprovações/Saldos/Declarações) · **Financeiro (R$)** (Lançamento, Transferências, Reembolsos, Fornecedores, Pagamentos, Recebimentos, Relatórios) · **Clube & SortCoins** (Carteiras, Sorteios) · **Empresas** (PJ, tiers F6) · **Eventos** (Visão geral, Overrides, Check-in) · **Governança** (Comunidades & Selo, Assembleias, Entidades, Projetos de Extensão, Mentoria) · **Comunicação** (E-mails, Templates)
+- Regras de nome: "SortCoins" é o único nome da moeda virtual (nunca "VirtualCoins"/"Carteira" soltos); "saldo" sempre qualificado (R$, SortCoins, horas); `hour_ledger` nunca chamada de "ledger" na UI.
+- Hub `/admin` vira dashboard (stats + atalhos), eliminando os cards de navegação duplicados.
+
+**Menu de perfil (NavbarAuth, desktop + mobile):**
+- Cabeçalho de identidade no menu: avatar, nome, `@handle`, chips de roles.
+- Agrupado com rótulos: **Conta** (Perfil · Clube · Empresa) · **Gestão** (Painel Admin) · **Sessão** (Trocar conta · Sair) — doação sai do menu de conta.
+- Mobile: mesmo conteúdo com bloco de identidade e rótulos de seção (mantendo as classes do sidebar Docusaurus); item ativo conforme a página.
+
+## Relatórios & exportações (R1–R3)
+
+**Problema:** hoje não há exportação por faixa de datas. O único CSV existente é *importação* de participantes; o `TransactionTable` exporta só a página atual (≤50 linhas) com presets de 30/90/365 dias; a API não tem `from`/`to`.
+
+**R1 — Faixa de datas + exportação server-side (início da Fase 1, junto com E1):**
+- DTO de transações ganha `from`/`to` (ISO, validado); presets mantidos por compat.
+- `GET /ledger/transactions/export` (admin/finance-analyzer): **todas** as linhas do range, `Content-Disposition` + BOM UTF-8 (Excel pt-BR). Utilitário CSV em `src/common/csv.ts`.
+- Visão consolidada "todas as contas" no admin Financeiro (hoje só por carteira).
+- **Variante pública por comunidade** em `/transparencia` (dados já públicos; facilita prestação de contas a parceiros/cartório).
+
+**R2 — Central de relatórios (`/admin/relatorios`):** cards por domínio (Financeiro, Eventos, E-mails, Membros, SortCoins, Horas) → faixa de datas → pré-visualizar + Exportar CSV. Inclui: export no relatório de evento existente, filtro de data + export nos e-mails, export de membros (admin), extrato de horas por membro (Fase 2).
+
+**R3 — `DateRangePicker` compartilhado** (de/até) reusado em todos os admins.
+
+## Painel do membro, privacidade e perfil público (UX)
+
+**Painel `/membro` (monólito de 1.6k linhas, tabs com nomes ambíguos):**
+- Tabs renomeadas pela unidade de valor: **Dashboard** (StatCards clicáveis que navegam: SortCoins, Horas, Próximos eventos, Certificados) · **Financeiro (R$)** (doações + assinaturas unificadas) · **SortCoins** ("moeda virtual do Clube") · **Eventos e certificados** · **Minhas horas** (Fase 2: saldo, extrato, declaração).
+- `maxWidth` md → lg; componentes extraídos para `src/features/member/`.
+
+**"Meus dados" — transparência e consentimento (LGPD):**
+- Nova aba **Meus dados**: inventário de tudo que o sistema coleta (e-mail de login, GitHub handle/nome/avatar, bio, LinkedIn, e-mails secundários, roles, opt-ins, históricos), com fonte e finalidade.
+- **Visibilidade por campo:** `members.profileVisibility` (jsonb) controla o que aparece no perfil público (bio, linkedin, roles, "membro desde", históricos por categoria: eventos, certificados, horas totais, doações). E-mail **nunca** público (dado de autenticação). `PATCH /members/me/visibility` com audit.
+- Endpoint público `/@handle` passa a filtrar por visibilidade (snapshot por membro, gerado por workflow).
+
+**Perfil público `/@handle` — redesign "bem interessante":**
+- Header: avatar, nome, `@handle`, bio, linha de badges (roles, Membro desde, Responsável de comunidade, Mentor).
+- **Faixa de estatísticas**: total de horas (se público), eventos participados, certificados emitidos, comunidades.
+- **Mural de badges** agrupado: Participação (eventos), Formação (certificados/trilhas), Contribuição (marcos de horas: 10h/50h/100h…), Papéis (diretor, mentor, organizador).
+- **Timeline de histórico** (vertical): eventos com certificado (data, carga horária), marcos de horas, entrada na associação, papéis conquistados, doações públicas (opt-in — `/members/donors` já é público).
+- OG/JSON-LD (schema.org/Person) preservados; dados 100% do snapshot estático (SEO + "menos banco").
+
 ## Modelo de dados consolidado
 
 Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
-Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada).
+Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail).
 Migrations numeradas a partir da 024. Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
+
+> **Nota — duas ledgers, zero mistura:** a `hour_ledger` é independente da ledger financeira (`Account`/`Transaction`): unidade horas vs. BRL, sem double-entry, sem contas compartilhadas. O que ela herda é apenas o *padrão* (trilha de auditoria, status de aprovação, convenção de referências). Dinheiro — incluindo a caixa das comunidades integradas — segue exclusivamente na ledger financeira.
 
 ## Papéis e permissões
 
@@ -185,8 +261,8 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
-| **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades atuais |
-| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo |
+| **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios) + AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas; sidebar ativa; visibilidade por campo no endpoint público |
+| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro`** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
