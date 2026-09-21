@@ -135,10 +135,24 @@ Princípios:
 
 **Evolução do ADR 003:** `companies.tier` ('amiga' | 'aliada'), migração com default 'amiga'.
 
-- **Empresa Amiga:** fluxo atual inalterado (CNPJ, R$ 200/mês, ativação manual, visibilidade).
-- **Empresa Aliada (novo):** apoio financeiro + **due diligence consultiva**: formulário (área de atuação, atendimento à comunidade, interesse em projetos) → reunião de alinhamento → validação da diretoria (`validatedAt`, `validatedById`) → selo "Empresa Aliada Codaqui" com validade. Benefícios: vitrine pública em `/empresas`, ponte com parcerias/projetos de extensão, marca validada por período.
+- **Empresa Amiga:** colaboração **puramente financeira** — fluxo atual inalterado (CNPJ, R$ 200/mês, ativação manual, visibilidade).
+- **Empresa Aliada:** apoio financeiro **+ comprovação de pelo menos um** dos critérios de engajamento (decisão da presidência, 2026-09-21):
+  1. **Apoio a workshops** da Codaqui/comunidades;
+  2. **Contratação de membros** da comunidade;
+  3. **Participação em eventos destinados a empresários** (Codaqui Business Events).
+  - Verificação: a empresa declara o critério no formulário + anexa evidência (registro de apoio, declaração de contratação, presença em evento) → due diligence da diretoria (reunião de alinhamento) → validação (`validatedAt`, `validatedById`) → selo "Empresa Aliada Codaqui" com validade. Benefícios: vitrine pública, ponte com parcerias/projetos de extensão, marca validada por período, selo embeddável (README/site).
 
-**Frontend:** `/empresas` vira vitrine pública (duas seções: Amigas, Aliadas — com selo e validade), admin: gestão de tier + due diligence.
+**Codaqui Business Events:** eventos fechados para empresários apoiadores (networking, conteúdo, reconhecimento). **Sem sistema próprio nesta versão** (gestão manual/por eventos existentes) — mas é um benefício divulgado e um dos critérios que qualifica Aliada.
+
+**Hotpage Business (`/empresas`, pública):** página de captação que endereça em sequência:
+1. **Proposta de valor** — o que a Codaqui oferece às empresas (visibilidade, acesso a talentos, ESG/comunidade);
+2. **Os dois níveis** — tabela comparativa Amiga × Aliada (contribuição, critérios, benefícios);
+3. **Benefícios** — vitrine pública, selo com validade, acesso a Business Events, ponte com projetos de extensão, certificado/comprovante de apoio;
+4. **Captação financeira** — fluxo Stripe (assinatura recorrente a partir de R$ 200/mês, como PJ) com CNPJ;
+5. **Jornada para Aliada** — como evoluir do nível financeiro ao selo validado (formulário + reunião);
+6. **Vitrine** — empresas Amigas e Aliadas atuais (selo + validade).
+
+**Admin:** gestão de tier + due diligence + conferência das evidências dos critérios.
 
 ### F. Mentoria (#QueroMentoria)
 
@@ -301,7 +315,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
-| **6. Business tiers** | tier amiga/aliada + due diligence + vitrine + selo embeddável (empresa) | Migração para 'amiga'; fluxo aliada completo com validação e selo; `/empresas` público; badge SVG "Empresa Amiga/Aliada" para README/site |
+| **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 
 Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.11.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
 
@@ -332,3 +346,4 @@ Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.
 - App mobile / PWA.
 - Automação cartorária (o registro é manual: PDF + metadados).
 - Revisão do estatuto/alumni (processo social, registrado nas assembleias mas não automatizado).
+- **Sistema próprio para Codaqui Business Events** (eventos fechados a empresários): nesta versão a gestão é manual/eventos existentes; o módulo é candidato a pós-1.0.0 se o volume justificar.
