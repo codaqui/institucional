@@ -11,6 +11,7 @@ sections:
   - Arquitetura de menus e navegação (UX)
   - Relatórios & exportações (R1–R3)
   - Painel do membro, privacidade e perfil público (UX)
+  - Privacidade, LGPD e Conduta
   - Modelo de dados consolidado
   - Papéis e permissões
   - Frontend e snapshots
@@ -63,6 +64,8 @@ Princípios:
 | `/participe/mentoria` (estática, Google Calendar externo, mentores hardcoded) | Vira módulo de mentoria: perfis, disponibilidade, agendamento, sessões, insights (subsistema F) |
 | Perfil público `/@handle` (snapshot em build, campos fixos, sem privacidade) | Controles de visibilidade por campo + redesign com badges, timeline e horas |
 | Menu de perfil (navbar, desktop/mobile) | Reagrupado com identidade e seções (UX — ver seção de menus) |
+| Política de Privacidade (**inexistente**) | Criar `/sobre/privacidade` + inventário de tratamentos (`docs/modules/privacy/`) |
+| Código de Conduta (`sobre/conduta.md`, markdown puro) | UI/UX renovada sem alterar o texto (TOC, cards, "como reportar" em destaque) |
 | Roles events (ROLES.md) | Base para permissões escopadas (diretor→diretoria, mentor→projeto, responsável→comunidade) |
 
 ## Decisões de design (alinhadas com a presidência em 2026-09-21)
@@ -235,6 +238,31 @@ Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam par
 3. Seção SortCoins do `/@handle`: respeita visibilidade (opt-in) e ganha link "Ver no Clube" → `/clube`.
 4. Transparência global: cards/saldos de comunidades → transparência da comunidade correspondente (mesmo mapa `projectKey`).
 
+## Privacidade, LGPD e Conduta
+
+**Diagnóstico (2026-09-21):** não existe Política de Privacidade no site; as coletas cresceram (OAuth GitHub, Stripe, analytics, e-mails transacionais, dados PJ, e o proposto: mentorandos convidados, snapshots públicos, ledger de horas) sem inventário nem bases formais. A página de Código de Conduta é um markdown longo sem navegação nem destaque para "como reportar".
+
+**P1 — Política de Privacidade (nova página `/sobre/privacidade`, Fase 1):**
+- Cobertura por perfil: **visitante** (Google Analytics, cookies), **membro** (OAuth GitHub: id/handle/nome/e-mail/avatar/e-mails secundários; bio/LinkedIn; roles; opt-ins; carteira SortCoins; inscrições/certificados; e-mails transacionais), **mentorando convidado** (nome/e-mail, F5), **empresa PJ** (CNPJ, responsável, assinatura).
+- Para cada grupo: finalidade, base legal (LGPD), armazenamento, compartilhamento (GitHub, Stripe, Google, SMTP), retenção e direitos do titular (acesso/correção/exclusão/revogação) com canal **contato@codaqui.dev**.
+- A aba **"Meus dados"** do `/membro` (já no plano) vira o self-service de acesso e visibilidade; exclusão sob solicitação via canal.
+- Links no footer e no menu de perfil ("Privacidade e dados").
+- **Inventário de tratamentos** mantido em `docs/modules/privacy/` (dado → fonte → finalidade → quem acessa → retenção), alimentando a política e futuras audits.
+
+**P2 — Revisão das coletas propostas (Fase 1, gates por fase):**
+- Mentoria: consentimento explícito no pedido de sessão (nome/e-mail) + política de retenção de `mentorship_sessions`.
+- Snapshots públicos: só campos/históricos com visibilidade habilitada (risco 8 já registra a latência).
+- `email_logs`: retenção 12 meses (E1) declarada na política.
+
+**P3 — UI/UX do Código de Conduta (Fase 1, sem alterar o conteúdo):**
+- Converter `/sobre/conduta` em página com: hero, resumo em cards, **TOC lateral fixo** das seções numeradas, seção "Como reportar" em destaque com card de contato, design responsivo/print-friendly e link cruzado com a Política de Privacidade. Texto preservado integralmente; URL mantida.
+
+**Selo embeddável para README/website (membro e empresa) — Fase 2 (membro) / Fase 6 (empresa):**
+- Estilo "selo OSC": badge em SVG servido estaticamente (`static/badges/<handle>.svg`, gerado pelo workflow de snapshots) com link para o perfil público — para colar no README do GitHub, site ou blog.
+- Conteúdo: **membro** → "Membro Codaqui" + ano de entrada + (opt-in) total de horas; **empresa** → "Empresa Amiga/Aliada Codaqui" + validade do selo. Só dados públicos (respeita `profileVisibility`); membro pode desligar o selo.
+- Card "Selo para README" no `/membro` (e na página da empresa): preview do badge + botões copiar Markdown/HTML/link.
+- Mesma regra de latência dos snapshots: mudança de visibilidade reflete no próximo run do workflow.
+
 ## Modelo de dados consolidado
 
 Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
@@ -268,12 +296,12 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
-| **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios) + AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas; sidebar ativa; visibilidade por campo no endpoint público |
-| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro`** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade |
+| **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios) + AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas; sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
+| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
-| **6. Business tiers** | tier amiga/aliada + due diligence + vitrine | Migração para 'amiga'; fluxo aliada completo com validação e selo; `/empresas` público |
+| **6. Business tiers** | tier amiga/aliada + due diligence + vitrine + selo embeddável (empresa) | Migração para 'amiga'; fluxo aliada completo com validação e selo; `/empresas` público; badge SVG "Empresa Amiga/Aliada" para README/site |
 
 Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.11.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
 
