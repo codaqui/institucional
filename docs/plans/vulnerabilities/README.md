@@ -1,8 +1,9 @@
 <!-- AGENT-INDEX
 purpose: Plano de correção das vulnerabilidades de dependências (npm audit / Dependabot) tratáveis sem breaking changes.
 audience: Mantenedores e AI agents executando a correção.
-status: ready-to-execute — 2026-09-21 (develop 08c36e8)
+status: EXECUTADO — criado em 2026-09-21 e finalizado em 2026-09-21 (develop: af503a1 backend + b710a36 frontend)
 sections:
+  - Resultado da execução (2026-09-21)
   - Contexto e fonte dos dados
   - Resumo executivo
   - Princípios de execução
@@ -22,6 +23,30 @@ agent-protocol:
 -->
 
 # Plano de Correção de Vulnerabilidades (Dependabot/npm audit)
+
+## Resultado da execução (2026-09-21)
+
+> **Criado em 2026-09-21 e finalizado em 2026-09-21** — mesmo dia. Todos os critérios de pronto abaixo foram cumpridos.
+
+| Item | Resultado |
+|------|-----------|
+| Backend (`/backend`) | **0 vulnerabilidades** (era 14: 8 high, 4 moderate, 2 low) |
+| Frontend (`/`) | **0 vulnerabilidades** (era 32: 2 critical, 13 high, 14 moderate, 3 low) |
+| Onda 1 commit | `af503a1` — `fix(backend): corrige vulnerabilidades do npm audit` + **bump 0.8.0 → 0.8.1** |
+| Onda 2+3 commit | `b710a36` — `fix(deps): corrige 32 vulnerabilidades do npm audit no frontend` |
+| Validações | backend: build ✅ + 735 testes ✅ · frontend: typecheck ✅ + 560 testes ✅ + build ✅ |
+| Ressalva | `npm run lint` do backend tem **807 erros pré-existentes** de type-aware rules (`no-unsafe-*`) — não relacionados a esta mudança (diff não toca eslint nem código-fonte); trilha separada |
+
+**Desvios do plano original (documentados):**
+
+1. **Overrides adicionados** (padrão já usado no repo, ex.: `serialize-javascript`, `path-to-regexp`):
+   - `backend`: `multer@^2.4.0` — o fix real exige `@nestjs/platform-express@12` (**major**, fora de escopo → fica na trilha `docs/plans/update`). O override força multer 2.4.0 (API compatível; backend não usa upload, exposição mínima).
+   - `frontend`: `uuid@^11.1.1` — `sockjs` não tem release com uuid patched; `qs@^6.15.2` — `express@4.22.1` pina `qs@6.14.2`. Ambos dev-only (webpack-dev-server do Docusaurus).
+2. **Onda 2 e 3 unificadas** num único commit frontend — `npm audit fix` corrige o lockfile de uma vez só; separar por severidade seria artificial.
+3. **`npm audit fix` precisou de 2 passes** no frontend (o segundo resolveu a cadeia chevrotain/lodash-es que o primeiro destravou).
+4. Docusaurus subiu de 3.10.1 → 3.10.2 (minor automático do audit fix).
+
+**Pendências fora do escopo deste plano:** upgrades majors (MUI 9, TS 6, ESLint 10, Stripe 22, NestJS 12 — este último remove a necessidade do override de multer) continuam em [`docs/plans/update/README.md`](../update/README.md).
 
 ## Contexto e fonte dos dados
 
