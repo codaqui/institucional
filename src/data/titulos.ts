@@ -50,6 +50,8 @@ export const titulos: Titulo[] = [
     destaque: "Lei nº 12.181/2026",
     descricao:
       "A Câmara Municipal de Maringá reconheceu oficialmente a Associação Codaqui como entidade de utilidade pública municipal, por meio de lei ordinária que destaca o impacto social de seus programas de educação em tecnologia.",
+    imagem: "/img/titulos/prefeitura-maringa.png",
+    imagemAlt: "Brasão da Prefeitura Municipal de Maringá",
     metadados: [
       { label: "Norma", value: "Lei Ordinária nº 12.181, de 21/05/2026" },
       { label: "Município", value: "Maringá, Paraná" },
@@ -67,6 +69,28 @@ export const titulos: Titulo[] = [
         label: "PDF oficial",
         url: "https://sapl.cmm.pr.gov.br/media/sapl/public/normajuridica/2026/15180/2612181lo.pdf",
         external: true,
+      },
+    ],
+  },
+  {
+    id: "marca-registrada-inpi",
+    titulo: "Marca Registrada no INPI",
+    orgao: "INPI — Instituto Nacional da Propriedade Industrial",
+    destaque: "Registro federal",
+    descricao:
+      "O INPI concedeu o registro da marca Codaqui, garantindo à Associação a propriedade e o uso exclusivo da marca por 10 anos, na classe de serviços de educação (NCL 41), em todo o território nacional.",
+    metadados: [
+      { label: "Processo", value: "935098860" },
+      { label: "Titular", value: "Associação Codaqui — CNPJ 44.593.429/0001-05" },
+      { label: "Depósito", value: "23/06/2024" },
+      { label: "Concessão", value: "03/03/2026" },
+      { label: "Vigência", value: "Até 03/03/2036" },
+      { label: "Classe", value: "NCL 41 — Serviços de educação" },
+    ],
+    links: [
+      {
+        label: "Ver certidão (PDF)",
+        url: "/assets/docs/certidao-marca-inpi.pdf",
       },
     ],
   },
