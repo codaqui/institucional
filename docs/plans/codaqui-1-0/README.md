@@ -228,6 +228,13 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 - **Timeline de histórico** (vertical): eventos com certificado (data, carga horária), marcos de horas, entrada na associação, papéis conquistados, doações públicas (opt-in — `/members/donors` já é público).
 - OG/JSON-LD (schema.org/Person) preservados; dados 100% do snapshot estático (SEO + "menos banco").
 
+**Interligação de dados públicos (links entre páginas) — Fase 1 (itens 1, 2, 4) e Fase 2 (item 3, junto ao opt-in de visibilidade):**
+Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam para a página do evento e certificados para `/certificado/verificar`, mas **doações e SortCoins não linkam para lugar nenhum**; nas transparências (global e whitelabel), o `TransactionTable` abre só um dialog local, sem saída para a página do evento/comunidade relacionados.
+1. `TransactionDetailDialog` (usado nas 3 transparências) ganha links contextuais: transação de ingresso → página do evento (`buildEventPath`, via metadata); transação de carteira comunitária → transparência da comunidade.
+2. `DonationTable` do `/@handle`: cada doação → transparência da comunidade beneficiada (mapa `projectKey` → página pública, com fallback para `/transparencia`).
+3. Seção SortCoins do `/@handle`: respeita visibilidade (opt-in) e ganha link "Ver no Clube" → `/clube`.
+4. Transparência global: cards/saldos de comunidades → transparência da comunidade correspondente (mesmo mapa `projectKey`).
+
 ## Modelo de dados consolidado
 
 Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
