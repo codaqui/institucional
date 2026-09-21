@@ -1,12 +1,12 @@
 <!-- AGENT-INDEX
-purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, comunidades com selo, business tiers).
+purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 — aguardando review do documento antes do plano de implementação da Fase 1.
+status: design aprovado em 2026-09-21 (mentoria adicionada em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
 sections:
   - Visão e princípios
   - Estado atual revisado
   - Decisões de design (alinhadas com a presidência em 2026-09-21)
-  - Subsistemas (A–E)
+  - Subsistemas (A–F)
   - Modelo de dados consolidado
   - Papéis e permissões
   - Frontend e snapshots
@@ -34,7 +34,7 @@ agent-protocol:
 
 ## Visão e princípios
 
-Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), ecossistema de comunidades (níveis + selo) e apoio empresarial (tiers).
+Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), mentoria (#QueroMentoria com agendamento e sessões), ecossistema de comunidades (níveis + selo) e apoio empresarial (tiers).
 
 Princípios:
 
@@ -55,6 +55,7 @@ Princípios:
 | Giscus (comentários do blog) | Embute a Discussion de cada assembleia |
 | Snapshots estáticos (`static/events/`) | Mesmo pattern para `static/assemblies/` e migração de `communities.ts` |
 | `src/data/communities.ts` (5 parceiras, frontend-only) | Migra para tabela `communities` + snapshot |
+| `/participe/mentoria` (estática, Google Calendar externo, mentores hardcoded) | Vira módulo de mentoria: perfis, disponibilidade, agendamento, sessões, insights (subsistema F) |
 | Roles events (ROLES.md) | Base para permissões escopadas (diretor→diretoria, mentor→projeto, responsável→comunidade) |
 
 ## Decisões de design (alinhadas com a presidência em 2026-09-21)
@@ -129,10 +130,34 @@ Princípios:
 
 **Frontend:** `/empresas` vira vitrine pública (duas seções: Amigas, Aliadas — com selo e validade), admin: gestão de tier + due diligence.
 
+### F. Mentoria (#QueroMentoria)
+
+Traz o programa de mentoria (hoje página estática com Google Calendar externo) para dentro do sistema: disponibilidade estruturada, agendamento completo, realização registrada e insights.
+
+**Decisões alinhadas (2026-09-21):** agendamento 100% no sistema; mentorando pode ser convidado sem login (nome + e-mail); sessão gera horas para o mentor no ledger + registro de participação para o mentorando; insights agregados públicos, detalhes só no admin.
+
+**Entidades:**
+- `mentor_profiles`: `id`, `memberId` (unique — role `mentor`), `areas` (text[] — tags: "DevOps", "Frontend", ".NET", "Eventos", "Empreendedorismo"), `focus?` (descrição curta), `active`, `approvedById`, `since`. Substitui o array hardcoded `MENTORS` na página e `mentores[]` de `team.ts` (migração dos 5 mentores atuais).
+- `mentor_availability`: `id`, `mentorId`, `weekday` (0–6), `startTime`, `endTime` — padrão semanal editável pelo mentor no painel (substitui o texto livre e o Google Calendar).
+- `mentorship_sessions`: `id`, `mentorId`, `menteeName`, `menteeEmail`, `menteeMemberId?` (vínculo quando o e-mail casa com um membro), `topicTags` (text[]), `scheduledAt`, `durationMin`, `status` ('requested' | 'confirmed' | 'completed' | 'canceled' | 'no_show'), `meetLink?`, `notes?`, `completedAt?`, `rating?` (1–5 do mentorando), `feedback?`, `cancelReason?`, `token` (página do mentorando convidado).
+
+**Fluxo:**
+1. Membro candidata-se a mentor ("Quero ser mentor" → login → candidatura) → diretoria aprova → perfil + disponibilidade.
+2. Mentorando (guest ou membro) escolhe slot na página → informa nome/e-mail/tema → sessão `requested`.
+3. Mentor confirma (`confirmed`) + preenche o link da sessão (Meet/Discord).
+4. E-mails transacionais (pedido, confirmação, lembrete D-1) via módulo `notifications` (mesmo pattern de `email_logs`).
+5. Após o horário: mentor marca `completed` (com notas) ou `no_show`; mentorando avalia.
+6. `completed` gera entrada no `hour_ledger` do mentor — nova fonte `mentorship_session`, horas = duração — seguindo para aprovação da diretoria como as demais.
+7. Mentorando convidado acompanha/cancela pela página com token; ao criar conta com o mesmo e-mail, o histórico vincula via `menteeMemberId`.
+
+**Insights:** agregados públicos (sessões realizadas, mentores ativos, áreas mais demandadas por `topicTags`, taxa de realização e no-show) na `/participe/mentoria` e em `/sobre/insights`; detalhes (nomes, avaliações, históricos) restritos ao admin da diretoria.
+
+**Frontend:** `/participe/mentoria` reescrita (mentores com chips de área + disponibilidade semanal real + "Agendar" por mentor, passo a passo, números públicos do programa, CTA de candidatura); painel do mentor (disponibilidade, solicitações, próximas sessões, histórico, marcar realizada/no-show); página do mentorando por token; admin (aprovação de mentores, visão detalhada, insights). Lista pública de mentores também em snapshot estático (`static/mentors/`), como eventos.
+
 ## Modelo de dados consolidado
 
-Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`.
-Alterações: `members.roles` (+`diretor`, `voluntario`), `companies` (+tier e campos aliada).
+Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
+Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada).
 Migrations numeradas a partir da 024. Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
 
 ## Papéis e permissões
@@ -142,15 +167,16 @@ Migrations numeradas a partir da 024. Padrões: uuid PK, createdAt/updatedAt, í
 | `admin` | global |
 | `diretor` | global leitura + escrita na própria diretoria (voluntários, horas, entidades, parcerias, projetos) |
 | `voluntario` | membro com vínculo a diretoria — sem permissões administrativas |
+| `mentor` | programa #QueroMentoria: própria disponibilidade, confirmação e realização de sessões |
 | `finance-analyzer` | aprovação de horas + visão financeira |
-| mentor (não é role; é vínculo) | lança horas nos próprios projetos |
+| mentor de extensão (não é role; é vínculo) | lança horas nos próprios projetos |
 | responsável de comunidade (vínculo) | painel da própria comunidade |
 
-Decisões de concessão (selo, tier aliada, aprovação de horas) ficam com admin/presidência; `finance-analyzer` aprova horas.
+Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação de horas) ficam com admin/presidência; `finance-analyzer` aprova horas.
 
 ## Frontend e snapshots
 
-- **Snapshots:** `static/assemblies/index.json` e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
+- **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
 - **Giscus:** categoria "Assembleias" por pathname (configuração por página, igual ao blog).
 - **Admin:** páginas novas seguem o padrão `/admin/*` (guarda de login, authFetch, Alert de erro).
 - **Dados públicos:** páginas leem snapshots; dados privados (filas de aprovação) vão direto à API.
@@ -163,9 +189,10 @@ Decisões de concessão (selo, tier aliada, aprovação de horas) ficam com admi
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
-| **5. Business tiers** | tier amiga/aliada + due diligence + vitrine | Migração para 'amiga'; fluxo aliada completo com validação e selo; `/empresas` público |
+| **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
+| **6. Business tiers** | tier amiga/aliada + due diligence + vitrine | Migração para 'amiga'; fluxo aliada completo com validação e selo; `/empresas` público |
 
-Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **1.0.0** (fase 5). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
+Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.11.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
@@ -173,16 +200,18 @@ Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **1.
 - **006 — Diretorias e ledger de horas**
 - **007 — Registro de comunidades, níveis e Selo Codaqui**
 - **008 — Entidades, parcerias e Projetos de Extensão**
-- **009 — Business tiers (Empresa Amiga / Empresa Aliada)**
+- **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
+- **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 
 ## Riscos e pontos abertos
 
 1. **Categoria Giscus "Assembleias"** precisa ser criada no repo (`codaqui/institucional` discussions) — config do giscus é por categoria.
-2. **Critérios objetivos** do Selo Comunitário e da Empresa Aliada (checklists) — definir com a diretoria antes da Fase 5 (proposta inicial no plano de implementação).
+2. **Critérios objetivos** do Selo Comunitário e da Empresa Aliada (checklists) — definir com a diretoria antes da Fase 6 (proposta inicial no plano de implementação).
 3. **Nomenclatura final** "Empresa Aliada Codaqui" e arte do selo — validar marca antes da vitrine pública.
 4. **Validade de 1 ano** (selo comunitário e aliada) é proposta; confirmar periodicidade.
 5. Migração de `communities.ts` → tabela deve manter os campos usados por insights/transparência/doações (script de seed auditável).
 6. Discussion 573 mostra comunidades com "representantes" não cadastrados (ex.: Josi) — o modelo exigirá responsável **membro** do site para selo/painel.
+7. **Mentoria:** política de cancelamento/no-show (tolerância, reagendamento) e LGPD básica para mentorandos convidados (e-mail + nome em sessões — consentimento no pedido e remoção sob solicitação).
 
 ## Fora de escopo (1.0.0)
 
