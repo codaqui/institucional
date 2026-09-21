@@ -8,6 +8,11 @@ import {
   buildIndexSummaries,
   buildInternalSourceConfig,
   compareByStartAt,
+  extractDoityMetaContent,
+  extractDoitySectionCards,
+  mapDoityEvent,
+  mapDoityEventStatus,
+  parseDoityCardDateTime,
   extractSymplaDateLine,
   mapMeetupStatus,
   mapSymplaEvent,
@@ -478,4 +483,221 @@ test("readExistingEvents: sem snapshot nenhum retorna lista vazia", async (t) =>
   t.after(() => rm(ZOMBIE_TEST_DIR, { recursive: true, force: true }));
 
   assert.deepEqual(await readExistingEvents("discord", "__test_zombie__"), []);
+});
+
+
+// ─── Doity ──────────────────────────────────────────────────────────────────
+
+const DOITY_CONFIG = {
+  source: "doity",
+  sourceId: "devpr",
+  organizerSlug: "devpr",
+  label: "DevPR na Doity",
+  emoji: "🎟️",
+  description: "Eventos do DevPR publicados na plataforma Doity.",
+  ctaLabel: "Ver eventos na Doity",
+  ctaHref: "https://doity.com.br/organizador/devpr",
+  defaultHost: "DevPR",
+  defaultLocation: "Maringá, PR",
+  defaultPlatform: "Doity",
+  timezone: "America/Sao_Paulo",
+  fallbackEvents: [],
+};
+
+// Estrutura espelhada do HTML real de https://doity.com.br/organizador/devpr
+const DOITY_ORGANIZER_HTML = `
+<div id="tabs-eventos">
+<ul>
+<li><a href="#proximos-eventos">Próximos eventos</a></li>
+<li><a href="#eventos-passados">Eventos passados</a></li>
+</ul>
+<div id="proximos-eventos">
+<a href="/devpr-conf-26" target="_blank">
+<div class="evento-item">
+<div class="evento-foto">
+<img src="https://doity.com.br/img/evento.png" width="350" height="175" alt="Evento">
+</div>
+<div class="evento-info">
+<span class="evento-cidade-estado">
+Maringá, PR                                                </span>
+<h3 class="evento-nome">
+DevPR Conf 26                                                </h3>
+<span class="evento-local">
+Bondam Restaurante - Parque do Japão                                                </span>
+</div>
+<div class="evento-footer">
+<div class="evento-data">
+<i class="fa fa-calendar-o" aria-hidden="true"></i>
+<b>07/11/26</b>
+</div>
+<div class="evento-hora">
+<i class="fa fa-clock-o" aria-hidden="true"></i>
+<b>08:00</b>
+</div>
+</div>
+</div><!-- ./evento-item -->
+</div>
+<div id="eventos-passados" class="pages">
+<a href="/devpr-conf-25" target="_blank">
+<div class="evento-item">
+<div class="evento-foto">
+<img src="https://grcmlesydpcd.objectstorage.sa-saopaulo-1.oci.customer-oci.com/media/doity/eventos/evento-264385-banner.jpeg" width="350" height="175" alt="Evento">
+</div>
+<div class="evento-info">
+<span class="evento-cidade-estado">
+Maringá, PR                                                </span>
+<h3 class="evento-nome">
+DevPR Conf 25 - Especial 10 anos                                                </h3>
+<span class="evento-local">
+Ginásio do Colégio Objetivo                                                </span>
+</div>
+<div class="evento-footer">
+<div class="evento-data">
+<i class="fa fa-calendar-o" aria-hidden="true"></i>
+<b>13/09/25</b>
+</div>
+<div class="evento-hora">
+<i class="fa fa-clock-o" aria-hidden="true"></i>
+<b>07:30</b>
+</div>
+</div>
+</div><!-- ./evento-item -->
+</div>
+<div id="modal_contato_perfil_organizador">
+<form></form>
+</div>
+`;
+
+test("extractDoitySectionCards: parseia próximos e passados com cidade, local, data e hora", () => {
+  const upcoming = extractDoitySectionCards(DOITY_ORGANIZER_HTML, "proximos-eventos", [
+    "eventos-passados",
+    "modal_contato_perfil_organizador",
+  ]);
+  assert.equal(upcoming.length, 1);
+  assert.equal(upcoming[0].slug, "devpr-conf-26");
+  assert.equal(upcoming[0].title, "DevPR Conf 26");
+  assert.equal(upcoming[0].cityState, "Maringá, PR");
+  assert.equal(upcoming[0].venue, "Bondam Restaurante - Parque do Japão");
+  assert.equal(upcoming[0].dateText, "07/11/26");
+  assert.equal(upcoming[0].timeText, "08:00");
+  assert.equal(upcoming[0].image, "https://doity.com.br/img/evento.png");
+
+  const past = extractDoitySectionCards(DOITY_ORGANIZER_HTML, "eventos-passados", [
+    "modal_contato_perfil_organizador",
+  ]);
+  assert.equal(past.length, 1);
+  assert.equal(past[0].slug, "devpr-conf-25");
+  assert.equal(past[0].title, "DevPR Conf 25 - Especial 10 anos");
+  assert.equal(past[0].dateText, "13/09/25");
+  assert.equal(past[0].timeText, "07:30");
+  assert.match(past[0].image, /evento-264385-banner\.jpeg$/);
+});
+
+test("extractDoitySectionCards: seção inexistente retorna lista vazia", () => {
+  assert.deepEqual(extractDoitySectionCards(DOITY_ORGANIZER_HTML, "outra-secao", []), []);
+});
+
+test("parseDoityCardDateTime: DD/MM/YY compõe ISO com offset do timezone", () => {
+  assert.equal(
+    parseDoityCardDateTime("07/11/26", "08:00", "America/Sao_Paulo"),
+    "2026-11-07T08:00:00-03:00"
+  );
+  assert.equal(
+    parseDoityCardDateTime("13/09/25", "07:30", "America/Sao_Paulo"),
+    "2025-09-13T07:30:00-03:00"
+  );
+});
+
+test("parseDoityCardDateTime: sem horário usa 00:00 e data ausente retorna null", () => {
+  assert.equal(
+    parseDoityCardDateTime("13/09/25", "", "America/Sao_Paulo"),
+    "2025-09-13T00:00:00-03:00"
+  );
+  assert.equal(parseDoityCardDateTime("", "08:00", "America/Sao_Paulo"), null);
+  assert.equal(parseDoityCardDateTime(null, null, "America/Sao_Paulo"), null);
+});
+
+test("mapDoityEventStatus: completed, active e scheduled por janela de datas", () => {
+  const now = Date.now();
+  const past = new Date(now - 3_600_000).toISOString();
+  const ongoing = new Date(now - 1_800_000).toISOString();
+  const future = new Date(now + 3_600_000).toISOString();
+
+  assert.equal(mapDoityEventStatus(future, null), "scheduled");
+  assert.equal(mapDoityEventStatus(ongoing, future), "active");
+  assert.equal(mapDoityEventStatus(past, past), "completed");
+  assert.equal(mapDoityEventStatus(null, null), "scheduled");
+});
+
+test("mapDoityEvent: detalhe enriquece startAt/endAt/summary e placeholder vira imageUrl undefined", () => {
+  const card = {
+    path: "/devpr-conf-26",
+    slug: "devpr-conf-26",
+    section: "proximos-eventos",
+    title: "DevPR Conf 26",
+    cityState: "Maringá, PR",
+    venue: "Bondam Restaurante - Parque do Japão",
+    dateText: "07/11/26",
+    timeText: "08:00",
+    image: "https://doity.com.br/img/evento.png",
+  };
+  const now = Date.now();
+  const detail = {
+    startAt: new Date(now + 86_400_000).toISOString(),
+    endAt: new Date(now + 95_400_000).toISOString(),
+    summary: "O DevPR Conf chega na 11ª edição!",
+  };
+
+  const event = mapDoityEvent(card, detail, DOITY_CONFIG);
+
+  assert.equal(event.id, "devpr-conf-26");
+  assert.equal(event.title, "DevPR Conf 26");
+  assert.equal(event.summary, "O DevPR Conf chega na 11ª edição!");
+  assert.equal(event.startAt, detail.startAt);
+  assert.equal(event.endAt, detail.endAt);
+  assert.equal(event.timezone, "America/Sao_Paulo");
+  assert.equal(event.platform, "Doity");
+  assert.equal(event.host, "DevPR");
+  assert.equal(event.location, "Bondam Restaurante - Parque do Japão — Maringá, PR");
+  assert.equal(event.href, "https://doity.com.br/devpr-conf-26");
+  assert.deepEqual(event.tags, ["doity", "devpr"]);
+  assert.equal(event.ctaLabel, "Ver eventos na Doity");
+  assert.equal(event.status, "scheduled");
+  assert.equal(event.entityType, "external");
+  assert.equal(event.imageUrl, undefined);
+});
+
+test("mapDoityEvent: sem detalhe cai na data do card, ignora imagem ausente e usa summary padrão", () => {
+  const card = {
+    path: "/devpr-conf-25",
+    slug: "devpr-conf-25",
+    section: "eventos-passados",
+    title: "DevPR Conf 25 - Especial 10 anos",
+    cityState: "Maringá, PR",
+    venue: "",
+    dateText: "13/09/25",
+    timeText: "07:30",
+    image: null,
+  };
+
+  const event = mapDoityEvent(card, null, DOITY_CONFIG);
+
+  assert.equal(event.startAt, "2025-09-13T07:30:00-03:00");
+  assert.equal(event.summary, "Evento publicado por DevPR na Doity.");
+  assert.equal(event.location, "Maringá, PR");
+  assert.equal(event.status, "completed");
+  assert.equal(event.imageUrl, undefined);
+});
+
+test("extractDoityMetaContent: lê meta tags e tolera ordem de atributos", () => {
+  const html = `
+    <meta property="og:title" content="DevPR Conf 26">
+    <meta content="2026-11-07T08:00:00-03:00" property="event:start_time">
+    <meta property="event:end_time" content="2026-11-07T18:00:00-03:00">
+    <meta name="description" content="Um palco. 7 palestras.">
+  `;
+  assert.equal(extractDoityMetaContent(html, "event:start_time"), "2026-11-07T08:00:00-03:00");
+  assert.equal(extractDoityMetaContent(html, "event:end_time"), "2026-11-07T18:00:00-03:00");
+  assert.equal(extractDoityMetaContent(html, "description"), "Um palco. 7 palestras.");
+  assert.equal(extractDoityMetaContent(html, "event:missing"), null);
 });

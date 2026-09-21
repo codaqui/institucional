@@ -1,4 +1,4 @@
-export type EventSourceType = "discord" | "meetup" | "ocgroups" | "internal" | "external";
+export type EventSourceType = "discord" | "meetup" | "ocgroups" | "doity" | "internal" | "external";
 export type EventStatus = "scheduled" | "active" | "completed" | "canceled";
 export type EventEntityType = "stage_instance" | "voice" | "external";
 

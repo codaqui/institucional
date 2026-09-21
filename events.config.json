@@ -30,6 +30,21 @@
       "fallbackEvents": []
     },
     {
+      "source": "doity",
+      "sourceId": "devpr",
+      "organizerSlug": "devpr",
+      "label": "DevPR na Doity",
+      "emoji": "🎟️",
+      "description": "Eventos do DevPR publicados na plataforma Doity, incluindo próximos eventos e histórico.",
+      "ctaLabel": "Ver eventos na Doity",
+      "ctaHref": "https://doity.com.br/organizador/devpr",
+      "defaultHost": "DevPR",
+      "defaultLocation": "Maringá, PR",
+      "defaultPlatform": "Doity",
+      "timezone": "America/Sao_Paulo",
+      "fallbackEvents": []
+    },
+    {
       "source": "ocgroups",
       "sourceId": "cloud-native-maringa",
       "groupId": "cloudnativemaringa",
