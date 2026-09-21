@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-02T06:59:18.073Z",
-  "totalEvents": 403,
+  "generatedAt": "2026-09-21T06:34:39.312Z",
+  "totalEvents": 409,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 755,
+      "count": 760,
       "channelCount": 41,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -32,8 +32,8 @@
       "url": "https://www.youtube.com/@codaqui",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 18,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 17,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -54,8 +54,8 @@
       "url": "https://github.com/codaqui",
       "countLabel": "seguidores",
       "baselineCount": 0,
-      "count": 199,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 200,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -65,8 +65,8 @@
       "url": "https://www.meetup.com/pt-BR/developerparana/",
       "countLabel": "membros",
       "baselineCount": 2100,
-      "count": 6499,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 6823,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -109,8 +109,8 @@
       "url": "https://www.youtube.com/@elasnocodigo",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 169,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 168,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -164,8 +164,8 @@
       "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "countLabel": "membros",
       "baselineCount": 45,
-      "count": 55,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 59,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
@@ -175,8 +175,8 @@
       "url": "https://github.com/cumbucadev",
       "countLabel": "seguidores",
       "baselineCount": 211,
-      "count": 253,
-      "fetchedAt": "2026-08-02T06:59:18.073Z",
+      "count": 268,
+      "fetchedAt": "2026-09-21T06:34:39.312Z",
       "isFallback": false
     },
     {
