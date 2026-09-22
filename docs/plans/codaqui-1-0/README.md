@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -27,6 +27,7 @@ related-docs:
   - docs/adrs/003-club-business-pj.md — CLUB Business PJ (vira tier "Empresa Amiga")
   - docs/adrs/004-multisite-communities.md — whitelabel de comunidades
   - docs/modules/events/ROLES.md — papéis atuais
+  - docs/plans/codaqui-1-0/cadastro-projeto-extensao.md — detalhamento do Cadastro de Projeto de Extensão + comprovantes (subsistema C)
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
@@ -116,6 +117,8 @@ Princípios:
 **Fluxo:** diretor cadastra entidade → cria parceria → cadastra projeto de extensão → **designa mentor** → projeto público (`isPublic`) recebe inscrições de membros → mentor lança horas (vai ao ledger, subsistema B) → projeto encerra com relatório-resumo.
 
 **Frontend:** `/projetos` (vitrine pública com entidade, mentor, status — ótimo para transparência e captação), `/projetos/:slug` (detalhe + inscrever-se), admin: CRUD de entidades/parcerias/projetos + designação de mentor.
+
+> **Detalhamento do cadastro de projeto:** formulário (adaptado do modelo acadêmico de "Atividade Extensionista" ao contexto da ONG), validações e restrições de negócio, máquina de estados (com `draft`), inscrição de voluntários, horas e comprovantes com verificação — ver [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md). Extensões ao modelo acima (status `draft`, campos do formulário, tabela `project_certificates`) são consolidadas na ADR 008.
 
 ### D. ONG e Comunidades — níveis + Selo Codaqui
 
@@ -313,7 +316,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios) + AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas; sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
-| **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
+| **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 
