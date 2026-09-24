@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T19:01:15.505Z",
+  "generatedAt": "2026-09-24T20:02:10.734Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-24T19:01:15.505Z",
+    "generatedAt": "2026-09-24T20:02:10.734Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
     "itemCount": 1
@@ -33,7 +33,7 @@
       "ctaLabel": "Inscrever-se",
       "status": "scheduled",
       "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
-      "userCount": 3,
+      "userCount": 6,
       "source": "internal",
       "sourceId": "codaqui",
       "sourceKey": "internal:codaqui",
