@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-24T18:01:16.184Z",
+  "generatedAt": "2026-09-24T18:54:35.770Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-24T18:01:16.184Z",
+    "generatedAt": "2026-09-24T18:54:35.770Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
     "itemCount": 1
@@ -21,7 +21,7 @@
       "slug": "esquenta-devpr-conf-2026",
       "title": "Esquenta DevPR Conf 2026",
       "summary": "O DevPR Conf é o evento anual símbolo de nossa comunidade. Aguardamos a todos para essa celebração em um ponto icônico de Maringá.",
-      "description": "Seja oficialmente bem vindo ao **Esquenta DevPR Conf 2026**!\n\nEstamos felizes de anunciar uma agenda incrível para troca de experiências e preparar para o que teremos logo  no [DevPRConf 2026](https://codaqui.dev/eventos/doity/devpr/devpr-conf-26).\n\nO nosso evento está programado para começar as 19:30 com uma palestra do **Francisco Thiago** intitulada **Rag Night:** Descomplicando busca semântica sobre bases de código.\n\nApós isso teremos uma Mesa Redonda com as profissionais **Carolliny Soares**, **Kelly Moreira**.",
+      "description": "Seja oficialmente bem vindo ao **Esquenta DevPR Conf 2026**!\n\nEstamos felizes de anunciar uma agenda incrível para troca de experiências e preparar para o que teremos logo  no [DevPRConf 2026](https://codaqui.dev/eventos/doity/devpr/devpr-conf-26).\n\nO nosso evento está programado para começar as 19:30 com uma palestra do **Francisco Thiago** intitulada **Rag Night:** Descomplicando busca semântica sobre bases de código.\n\nApós isso teremos uma Mesa Redonda com as profissionais **Carolliny Soares**, **Kelly Moreira** e mais **duas profissionais** para um bate-papo sobre *Mulheres na Tecnologia*.\n\nEstaremos complementando os dados nos próximos dias.",
       "startAt": "2026-09-30T22:30:00.000Z",
       "endAt": "2026-10-01T01:30:00.000Z",
       "timezone": "America/Sao_Paulo",
@@ -32,6 +32,7 @@
       "tags": [],
       "ctaLabel": "Inscrever-se",
       "status": "scheduled",
+      "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
       "userCount": 3,
       "source": "internal",
       "sourceId": "codaqui",
