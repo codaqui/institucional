@@ -32,6 +32,7 @@ export interface EmailTemplateContext {
   eventTimeZone: string;
   ticketTypeName?: string | null;
   checkinToken?: string | null;
+  eventLocation?: string | null;
 }
 
 interface RenderedEmail {
