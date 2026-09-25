@@ -1,9 +1,14 @@
 import type { EmailTemplateContext } from './email.service';
-import {
-  EMAIL_TEMPLATE_POST_EVENT,
-  EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
-  EMAIL_TEMPLATE_REMINDER_D1,
-} from './email.service';
+
+// Os IDs dos templates vivem aqui (e não no email.service) para que este
+// módulo não precise importar valores de runtime de email.service — isso
+// quebraria o ciclo de requires email.service → email-template.service →
+// default-templates → email.service e deixaria DEFAULT_TEMPLATES com chaves
+// undefined quando email.service é carregado primeiro.
+export const EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION =
+  'event-registration-confirmation';
+export const EMAIL_TEMPLATE_REMINDER_D1 = 'event-reminder-d1';
+export const EMAIL_TEMPLATE_POST_EVENT = 'event-post-event';
 
 export interface DefaultTemplateDefinition {
   subject: string;

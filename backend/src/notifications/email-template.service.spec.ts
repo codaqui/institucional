@@ -2,24 +2,8 @@ import { BadRequestException } from '@nestjs/common';
 import { EmailTemplateService } from './email-template.service';
 import { EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION } from './email.service';
 
-// marked v18 e htmlparser2 v12 (dep do sanitize-html) são ESM-only e o
-// runtime CJS do Jest não consegue carregá-los. Como o backend roda em
-// Node 24+, carregamos os pacotes reais via require(esm) nativo do Node,
-// fora do registry do Jest (process.getBuiltinModule contorna o shim que o
-// Jest aplica ao builtin 'module').
-jest.mock('marked', () => {
-  const { createRequire } = process.getBuiltinModule('module');
-  return createRequire(__filename)('marked');
-});
-
-jest.mock('sanitize-html/node_modules/htmlparser2', () => {
-  const { createRequire } = process.getBuiltinModule('module');
-  const nodeRequire = createRequire(
-    require.resolve('sanitize-html/package.json'),
-  );
-  return nodeRequire('htmlparser2');
-});
-
+// Os mocks de 'marked' e 'sanitize-html/node_modules/htmlparser2' (ESM-only
+// sob Jest CJS) vivem em test/jest-setup.ts, carregado via setupFiles do Jest.
 const makeOverride = (overrides: Record<string, unknown> = {}) => ({
   id: EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
   subject: 'Inscrição ok — {{eventTitle}}',

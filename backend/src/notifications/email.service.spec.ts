@@ -3,6 +3,7 @@ import {
   EmailService,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
 } from './email.service';
+import { EmailTemplateService } from './email-template.service';
 import { EmailStatus } from './entities/email-log.entity';
 
 const uuid = (n: number) =>
@@ -32,6 +33,7 @@ describe('EmailService', () => {
   let registrationRepo: Record<string, jest.Mock>;
   let ticketTypeRepo: Record<string, jest.Mock>;
   let provider: Record<string, jest.Mock>;
+  let templateService: EmailTemplateService;
 
   beforeEach(() => {
     emailLogRepo = {
@@ -54,6 +56,9 @@ describe('EmailService', () => {
       findBy: jest.fn().mockResolvedValue([{ id: uuid(20), name: 'Gratuito' }]),
     };
     provider = { send: jest.fn().mockResolvedValue(undefined) };
+    // TemplateService real com repo mockado → cai nos templates padrão.
+    const templateRepo = { findOneBy: jest.fn().mockResolvedValue(null) };
+    templateService = new EmailTemplateService(templateRepo as any);
 
     service = new EmailService(
       emailLogRepo as any,
@@ -61,6 +66,7 @@ describe('EmailService', () => {
       registrationRepo as any,
       ticketTypeRepo as any,
       provider as any,
+      templateService,
     );
   });
 
@@ -78,6 +84,9 @@ describe('EmailService', () => {
         { eventId: uuid(10), registrationId: uuid(40) },
       );
       expect(provider.send).toHaveBeenCalledTimes(1);
+      const sentMessage = provider.send.mock.calls[0][0];
+      expect(sentMessage.html).toContain('<strong>Evento X</strong>');
+      expect(sentMessage.text).toContain('Sua inscrição em');
       expect(log.status).toBe(EmailStatus.SENT);
       expect(log.error).toBeNull();
       expect(emailLogRepo.save).toHaveBeenCalledTimes(1);
