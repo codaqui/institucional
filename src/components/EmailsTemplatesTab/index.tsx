@@ -108,6 +108,8 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
         setError(await extractErrorMessage(res, "Falha ao salvar."));
         return;
       }
+      const updated = (await res.json()) as TemplateDetail | null;
+      if (updated) setDetail(updated);
       setFeedback("Template salvo.");
       await loadList();
     } catch {

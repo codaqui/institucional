@@ -49,9 +49,17 @@ describe("EmailsTemplatesTab", () => {
   });
 
   it("salva o template editado via PUT", async () => {
+    const updatedDetail = {
+      ...DETAIL,
+      subject: "Inscrição ok — {{eventTitle}}",
+      bodyMarkdown: "Olá, **{{attendeeName}}**!",
+      isOverride: true,
+      updatedAt: "2026-09-25T00:00:00.000Z",
+    };
     const authFetch = mockFetch({
       "GET /notifications/templates": LIST,
       "GET /notifications/templates/event-registration-confirmation": DETAIL,
+      "PUT /notifications/templates/event-registration-confirmation": updatedDetail,
     });
     render(<EmailsTemplatesTab />);
 
@@ -66,6 +74,7 @@ describe("EmailsTemplatesTab", () => {
         expect.objectContaining({ method: "PUT" }),
       );
     });
+    expect(await screen.findByRole("button", { name: /restaurar padrão/i })).toBeEnabled();
   });
 
   it("envia e-mail de teste e exibe feedback", async () => {

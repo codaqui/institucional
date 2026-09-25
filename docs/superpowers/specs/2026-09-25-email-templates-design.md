@@ -98,7 +98,7 @@ Allowlist de sanitize (exaustiva): `p, br, hr, strong, em, u, s, a[href], ul, ol
 | Variável | Origem |
 |---|---|
 | `eventLocation` | `managed_event.location*` (quando preenchido) |
-| `checkinUrl` | `FRONTEND_URL` + rota pública de check-in com `checkinToken` |
+| `checkinUrl` | Página `/membro` (área do membro), onde o QR Code de check-in da inscrição é exibido |
 
 Os callers (`events.service.ts`, `stripe.service.ts`, crons) passam a fornecer os novos campos. Os 3 templates padrão são atualizados para usar as novas variáveis onde fizer sentido (ex.: link de check-in clicável no e-mail de confirmação).
 

@@ -77,6 +77,26 @@ describe('EmailTemplateService.render', () => {
     expect(r.subject).toBe('Inscrição confirmada — Evento X');
   });
 
+  it('cai no template padrão quando o pipeline de renderização falha', async () => {
+    repo.findOneBy.mockResolvedValue(makeOverride());
+    const spy = jest
+      .spyOn(service as any, 'markdownToHtml')
+      .mockImplementationOnce(() => {
+        throw new Error('boom');
+      });
+    try {
+      const r = await service.render(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        makeCtx(),
+      );
+      expect(r.subject).toBe('Inscrição confirmada — Evento X');
+      expect(r.html).not.toContain('te esperamos');
+      expect(r.text).toContain('Sua inscrição em');
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it('interpola eventLocation e monta checkinUrl apontando para /membro', async () => {
     const r = await service.render(
       EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,

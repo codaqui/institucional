@@ -142,7 +142,19 @@ export class EmailTemplateService {
         `Falha ao carregar override de ${templateId}; usando padrão: ${(err as Error).message}`,
       );
     }
-    return this.renderSource(source.subject, source.bodyMarkdown, this.contextValues(ctx));
+    try {
+      return this.renderSource(source.subject, source.bodyMarkdown, this.contextValues(ctx));
+    } catch (err) {
+      const fallback = DEFAULT_TEMPLATES[templateId];
+      this.logger.warn(
+        `Falha ao renderizar ${templateId} (${(err as Error).message}); usando padrão`,
+      );
+      return this.renderSource(
+        fallback.subject,
+        fallback.bodyMarkdown,
+        this.contextValues(ctx),
+      );
+    }
   }
 
   async listTemplates(): Promise<TemplateSummary[]> {
