@@ -63,6 +63,7 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
 
   const select = useCallback(
     async (id: string) => {
+      if (previewTimer.current) clearTimeout(previewTimer.current);
       setSelectedId(id);
       setError("");
       setFeedback("");
@@ -98,43 +99,56 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
     setSaving(true);
     setError("");
     setFeedback("");
-    const res = await authFetch(`/notifications/templates/${selectedId}`, {
-      method: "PUT",
-      body: JSON.stringify({ subject, bodyMarkdown: body }),
-    });
-    setSaving(false);
-    if (!res.ok) {
-      setError(await extractErrorMessage(res, "Falha ao salvar."));
-      return;
+    try {
+      const res = await authFetch(`/notifications/templates/${selectedId}`, {
+        method: "PUT",
+        body: JSON.stringify({ subject, bodyMarkdown: body }),
+      });
+      if (!res.ok) {
+        setError(await extractErrorMessage(res, "Falha ao salvar."));
+        return;
+      }
+      setFeedback("Template salvo.");
+      await loadList();
+    } catch {
+      setError("Erro inesperado ao salvar.");
+    } finally {
+      setSaving(false);
     }
-    setFeedback("Template salvo.");
-    await loadList();
   };
 
   const restore = async (): Promise<void> => {
     if (!selectedId) return;
     setConfirmRestore(false);
-    const res = await authFetch(`/notifications/templates/${selectedId}`, { method: "DELETE" });
-    if (!res.ok && res.status !== 204) {
-      setError(await extractErrorMessage(res, "Falha ao restaurar o padrão."));
-      return;
+    try {
+      const res = await authFetch(`/notifications/templates/${selectedId}`, { method: "DELETE" });
+      if (!res.ok && res.status !== 204) {
+        setError(await extractErrorMessage(res, "Falha ao restaurar o padrão."));
+        return;
+      }
+      setFeedback("Template restaurado para o padrão.");
+      await loadList();
+      await select(selectedId);
+    } catch {
+      setError("Erro inesperado ao restaurar o padrão.");
     }
-    setFeedback("Template restaurado para o padrão.");
-    await loadList();
-    await select(selectedId);
   };
 
   const sendTest = async (): Promise<void> => {
     if (!selectedId) return;
     setFeedback("");
     setError("");
-    const res = await authFetch(`/notifications/templates/${selectedId}/test`, { method: "POST" });
-    if (!res.ok) {
-      setError(await extractErrorMessage(res, "Falha ao enviar o teste."));
-      return;
+    try {
+      const res = await authFetch(`/notifications/templates/${selectedId}/test`, { method: "POST" });
+      if (!res.ok) {
+        setError(await extractErrorMessage(res, "Falha ao enviar o teste."));
+        return;
+      }
+      const data = await parseAuthJson<{ emailLogId: string }>(res, () => null);
+      setFeedback(`E-mail de teste enviado (log ${data?.emailLogId ?? ""}).`);
+    } catch {
+      setError("Erro inesperado ao enviar o teste.");
     }
-    const data = await parseAuthJson<{ emailLogId: string }>(res, () => null);
-    setFeedback(`E-mail de teste enviado (log ${data?.emailLogId ?? ""}).`);
   };
 
   if (!list) {
@@ -195,7 +209,7 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
               fullWidth
               multiline
               minRows={10}
-              inputProps={{ sx: { fontFamily: "monospace" } }}
+              slotProps={{ htmlInput: { sx: { fontFamily: "monospace" } } }}
               onChange={(e) => {
                 setBody(e.target.value);
                 requestPreview(subject, e.target.value);

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design spec para tornar os templates de e-mail transacionais editáveis via painel admin (override em PostgreSQL com fallback para templates padrão em código), com edição em Markdown, renderização para HTML sanitizado, preview e envio de teste.
 audience: AI agents, mantenedores
-status: Aprovado (brainstorming) / aguardando plano de implementação
+status: Implementado
 sections:
   - Contexto e estado atual
   - Decisões de design (escolhas do brainstorming)
