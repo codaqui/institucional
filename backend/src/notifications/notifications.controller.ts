@@ -96,4 +96,28 @@ export class NotificationsController {
       actorHandle: req.user.handle,
     });
   }
+
+  @Post('templates/:id/preview')
+  @ApiOperation({
+    summary: '🔒 Renderiza preview do template com variáveis de exemplo [admin]',
+  })
+  previewTemplate(@Param('id') id: string, @Body() dto: EmailTemplateContentDto) {
+    return this.templateService.previewTemplate(id, dto);
+  }
+
+  @Post('templates/:id/test')
+  @ApiOperation({
+    summary: '🔒 Envia e-mail de teste do template para o admin logado [admin]',
+  })
+  async sendTestTemplate(
+    @Param('id') id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    const log = await this.emailService.sendTemplate(
+      id,
+      req.user.email,
+      this.templateService.sampleContext(id),
+    );
+    return { emailLogId: log.id };
+  }
 }

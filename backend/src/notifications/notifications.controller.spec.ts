@@ -14,6 +14,7 @@ describe('NotificationsController', () => {
     emailService = {
       listLogs: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       resend: jest.fn().mockResolvedValue({ success: true }),
+      sendTemplate: jest.fn(),
     };
     templateService = {
       listTemplates: jest.fn().mockResolvedValue([]),
@@ -106,5 +107,36 @@ describe('NotificationsController', () => {
       'event-post-event',
       { actorId: 'm1', actorHandle: 'octocat' },
     );
+  });
+
+  it('renderiza preview com o DTO enviado', async () => {
+    templateService.previewTemplate.mockResolvedValue({
+      subject: 's',
+      text: 't',
+      html: '<p>t</p>',
+    });
+    const dto = { subject: 's', bodyMarkdown: 'b' };
+    const result = await controller.previewTemplate('event-reminder-d1', dto);
+    expect(templateService.previewTemplate).toHaveBeenCalledWith(
+      'event-reminder-d1',
+      dto,
+    );
+    expect(result.html).toBe('<p>t</p>');
+  });
+
+  it('envia e-mail de teste para o e-mail do admin logado', async () => {
+    templateService.sampleContext.mockReturnValue({ attendeeName: 'Maria' });
+    emailService.sendTemplate.mockResolvedValue({ id: 'log-123' });
+    const req = { user: { sub: 'm1', handle: 'octocat', email: 'octo@c.dev' } };
+    const result = await controller.sendTestTemplate('event-reminder-d1', req);
+    expect(templateService.sampleContext).toHaveBeenCalledWith(
+      'event-reminder-d1',
+    );
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'event-reminder-d1',
+      'octo@c.dev',
+      { attendeeName: 'Maria' },
+    );
+    expect(result).toEqual({ emailLogId: 'log-123' });
   });
 });
