@@ -14,6 +14,7 @@ const makeEvent = () => ({
   title: 'Evento X',
   startAt: new Date('2026-08-10T13:00:00Z'),
   timezone: 'America/Sao_Paulo',
+  location: 'Maringá, PR',
 });
 
 const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
@@ -137,6 +138,11 @@ describe('EmailService', () => {
       const result = await service.resend(uuid(80));
 
       expect(provider.send).toHaveBeenCalledTimes(1);
+      const sentMessage = provider.send.mock.calls[0][0];
+      // contextFor popula eventLocation a partir de event.location e o
+      // checkinUrl é derivado pelo template service (FRONTEND_URL + /membro).
+      expect(sentMessage.text).toContain('Local: Maringá, PR');
+      expect(sentMessage.html).toContain('http://localhost:3000/membro');
       expect(result.status).toBe(EmailStatus.SENT);
       expect(result.error).toBeNull();
       expect(result.createdAt.getTime()).toBeGreaterThan(

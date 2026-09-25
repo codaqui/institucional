@@ -95,6 +95,7 @@ export class EmailService {
       eventTimeZone: event.timezone,
       ticketTypeName,
       checkinToken: registration.checkinToken,
+      eventLocation: event.location,
     };
   }
 

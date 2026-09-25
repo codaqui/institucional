@@ -74,4 +74,13 @@ describe('EmailTemplateService.render', () => {
     const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
     expect(r.subject).toBe('Inscrição confirmada — Evento X');
   });
+
+  it('interpola eventLocation e monta checkinUrl apontando para /membro', async () => {
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx({ eventLocation: 'Maringá, PR' }),
+    );
+    expect(r.text).toContain('Local: Maringá, PR');
+    expect(r.html).toContain('http://localhost:3000/membro');
+  });
 });
