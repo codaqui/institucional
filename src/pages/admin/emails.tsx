@@ -14,6 +14,8 @@ import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Pagination from "@mui/material/Pagination";
 import Select from "@mui/material/Select";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -29,6 +31,7 @@ import SendIcon from "@mui/icons-material/Send";
 import { useAuth } from "../../hooks/useAuth";
 import AdminNavbar from "../../components/AdminNavbar";
 import AdminPageContainer from "../../components/AdminPageContainer";
+import EmailsTemplatesTab from "../../components/EmailsTemplatesTab";
 import StatCard from "../../components/StatCard";
 import { parseAuthJson, extractErrorMessage } from "../../hooks/authFetchHelpers";
 
@@ -88,6 +91,7 @@ export default function EmailsAdminPage(): React.JSX.Element {
 
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [resendFeedback, setResendFeedback] = useState<{ kind: "success" | "error"; message: string } | null>(null);
+  const [tab, setTab] = useState<0 | 1>(0);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -247,6 +251,12 @@ export default function EmailsAdminPage(): React.JSX.Element {
 
         <AdminNavbar active="/admin/emails" />
 
+        <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 3 }}>
+          <Tab label="Logs" />
+          <Tab label="Templates" />
+        </Tabs>
+
+        <Box hidden={tab !== 0}>
         {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
         {resendFeedback && (
           <Alert severity={resendFeedback.kind} sx={{ mb: 3 }} onClose={() => setResendFeedback(null)}>
@@ -363,6 +373,11 @@ export default function EmailsAdminPage(): React.JSX.Element {
             />
           </Box>
         )}
+        </Box>
+
+        <Box hidden={tab !== 1}>
+          <EmailsTemplatesTab />
+        </Box>
       </AdminPageContainer>
     </Layout>
   );
