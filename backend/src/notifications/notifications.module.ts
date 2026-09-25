@@ -5,6 +5,7 @@ import { EventRegistration } from '../events/entities/event-registration.entity'
 import { TicketType } from '../events/entities/ticket-type.entity';
 import { SmtpEmailProvider } from './email.provider';
 import { EmailService } from './email.service';
+import { EmailTemplateService } from './email-template.service';
 import { NotificationsController } from './notifications.controller';
 import { EmailLog } from './entities/email-log.entity';
 import { EmailTemplate } from './entities/email-template.entity';
@@ -27,7 +28,7 @@ import { EmailTemplate } from './entities/email-template.entity';
     ]),
   ],
   controllers: [NotificationsController],
-  providers: [SmtpEmailProvider, EmailService],
+  providers: [SmtpEmailProvider, EmailService, EmailTemplateService],
   exports: [EmailService],
 })
 export class NotificationsModule {}
