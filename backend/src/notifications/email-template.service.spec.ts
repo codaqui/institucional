@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EmailTemplateService } from './email-template.service';
 import { EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION } from './email.service';
 
@@ -22,11 +22,13 @@ const makeCtx = (overrides: Record<string, unknown> = {}) => ({
 
 describe('EmailTemplateService.render', () => {
   let repo: Record<string, jest.Mock>;
+  let audit: Record<string, jest.Mock>;
   let service: EmailTemplateService;
 
   beforeEach(() => {
     repo = { findOneBy: jest.fn().mockResolvedValue(null) };
-    service = new EmailTemplateService(repo as any);
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new EmailTemplateService(repo as any, audit as any);
   });
 
   it('renderiza o template padrão quando não há override', async () => {
@@ -82,5 +84,92 @@ describe('EmailTemplateService.render', () => {
     );
     expect(r.text).toContain('Local: Maringá, PR');
     expect(r.html).toContain('http://localhost:3000/membro');
+  });
+});
+
+describe('EmailTemplateService CRUD', () => {
+  let repo: Record<string, jest.Mock>;
+  let audit: Record<string, jest.Mock>;
+  let service: EmailTemplateService;
+
+  beforeEach(() => {
+    repo = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn((t) => Promise.resolve({ ...t, updatedAt: new Date() })),
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new EmailTemplateService(repo as any, audit as any);
+  });
+
+  const actor = { actorId: 'm1', actorHandle: 'octocat' };
+
+  it('lista os 3 templates com isOverride=false quando não há overrides', async () => {
+    const list = await service.listTemplates();
+    expect(list).toHaveLength(3);
+    expect(list.every((t) => t.isOverride === false)).toBe(true);
+  });
+
+  it('getTemplate retorna o padrão com isOverride=false e variáveis documentadas', async () => {
+    const detail = await service.getTemplate('event-registration-confirmation');
+    expect(detail.isOverride).toBe(false);
+    expect(detail.variables).toContain('checkinUrl');
+    expect(detail.bodyMarkdown).toContain('{{attendeeName}}');
+  });
+
+  it('upsertTemplate persiste override e audita', async () => {
+    const dto = { subject: 'Novo subject', bodyMarkdown: 'Novo **corpo**' };
+    const detail = await service.upsertTemplate(
+      'event-registration-confirmation',
+      dto,
+      actor,
+    );
+    expect(repo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'event-registration-confirmation', ...dto }),
+    );
+    expect(detail.isOverride).toBe(true);
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'email.template_upserted',
+        actorId: 'm1',
+        targetType: 'email_template',
+        details: expect.objectContaining({
+          templateId: 'event-registration-confirmation',
+        }),
+      }),
+    );
+    const upsertCallArg = audit.log.mock.calls[0][0];
+    expect(upsertCallArg.targetId).toBeUndefined();
+  });
+
+  it('upsertTemplate rejeita id desconhecido', async () => {
+    await expect(
+      service.upsertTemplate('nope', { subject: 's', bodyMarkdown: 'b' }, actor),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('removeTemplate exclui o override e audita', async () => {
+    await service.removeTemplate('event-registration-confirmation', actor);
+    expect(repo.delete).toHaveBeenCalledWith({ id: 'event-registration-confirmation' });
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'email.template_deleted',
+        targetType: 'email_template',
+        details: expect.objectContaining({
+          templateId: 'event-registration-confirmation',
+        }),
+      }),
+    );
+    const deleteCallArg = audit.log.mock.calls[0][0];
+    expect(deleteCallArg.targetId).toBeUndefined();
+  });
+
+  it('removeTemplate lança NotFound quando não há override', async () => {
+    repo.delete.mockResolvedValue({ affected: 0 });
+    await expect(
+      service.removeTemplate('event-registration-confirmation', actor),
+    ).rejects.toThrow(NotFoundException);
   });
 });

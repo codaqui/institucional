@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { EventRegistration } from '../events/entities/event-registration.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
+import { AuditModule } from '../audit/audit.module';
 import { SmtpEmailProvider } from './email.provider';
 import { EmailService } from './email.service';
 import { EmailTemplateService } from './email-template.service';
@@ -19,6 +20,7 @@ import { EmailTemplate } from './entities/email-template.entity';
 @Global()
 @Module({
   imports: [
+    AuditModule,
     TypeOrmModule.forFeature([
       EmailLog,
       EmailTemplate,
