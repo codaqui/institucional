@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-25T06:01:37.929Z",
+  "generatedAt": "2026-09-25T07:05:14.009Z",
   "source": {
     "source": "doity",
     "sourceId": "devpr",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Doity",
     "ctaHref": "https://doity.com.br/organizador/devpr",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-09-25T06:01:37.929Z",
+    "generatedAt": "2026-09-25T07:05:14.009Z",
     "sourceKey": "doity:devpr",
     "indexPath": "/events/doity/devpr/index.json",
     "itemCount": 2
