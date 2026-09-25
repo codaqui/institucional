@@ -7,6 +7,7 @@ import { SmtpEmailProvider } from './email.provider';
 import { EmailService } from './email.service';
 import { NotificationsController } from './notifications.controller';
 import { EmailLog } from './entities/email-log.entity';
+import { EmailTemplate } from './entities/email-template.entity';
 
 /**
  * Notifications — e-mail transacional/marketing de eventos via SMTP.
@@ -19,6 +20,7 @@ import { EmailLog } from './entities/email-log.entity';
   imports: [
     TypeOrmModule.forFeature([
       EmailLog,
+      EmailTemplate,
       ManagedEvent,
       EventRegistration,
       TicketType,
