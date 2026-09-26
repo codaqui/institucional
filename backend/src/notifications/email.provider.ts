@@ -5,6 +5,8 @@ export interface EmailMessage {
   to: string;
   subject: string;
   text: string;
+  /** HTML sanitizado — enviado como multipart junto com text. */
+  html?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ export class SmtpEmailProvider {
       to: message.to,
       subject: message.subject,
       text: message.text,
+      html: message.html,
     });
   }
 }

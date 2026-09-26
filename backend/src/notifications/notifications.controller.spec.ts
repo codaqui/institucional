@@ -1,22 +1,40 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsController } from './notifications.controller';
 import { EmailService } from './email.service';
+import { EmailTemplateService } from './email-template.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
   let emailService: Record<string, jest.Mock>;
+  let templateService: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     emailService = {
       listLogs: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       resend: jest.fn().mockResolvedValue({ success: true }),
+      sendTemplate: jest.fn(),
+    };
+    templateService = {
+      listTemplates: jest.fn().mockResolvedValue([]),
+      getTemplate: jest
+        .fn()
+        .mockResolvedValue({ id: 'event-registration-confirmation' }),
+      upsertTemplate: jest
+        .fn()
+        .mockResolvedValue({ id: 'event-registration-confirmation' }),
+      removeTemplate: jest.fn().mockResolvedValue(undefined),
+      previewTemplate: jest.fn(),
+      sampleContext: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [NotificationsController],
-      providers: [{ provide: EmailService, useValue: emailService }],
+      providers: [
+        { provide: EmailService, useValue: emailService },
+        { provide: EmailTemplateService, useValue: templateService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -53,5 +71,72 @@ describe('NotificationsController', () => {
       '550e8400-e29b-41d4-a716-446655440000',
     );
     expect(result).toEqual({ success: true });
+  });
+
+  it('lista templates', async () => {
+    templateService.listTemplates.mockResolvedValue([
+      { id: 'event-registration-confirmation' },
+    ]);
+    const result = await controller.listTemplates();
+    expect(templateService.listTemplates).toHaveBeenCalledTimes(1);
+    expect(result).toEqual([{ id: 'event-registration-confirmation' }]);
+  });
+
+  it('detalha template por id', async () => {
+    await controller.getTemplate('event-reminder-d1');
+    expect(templateService.getTemplate).toHaveBeenCalledWith(
+      'event-reminder-d1',
+    );
+  });
+
+  it('faz upsert do template com o ator do JWT', async () => {
+    const dto = { subject: 's', bodyMarkdown: 'b' };
+    const req = { user: { sub: 'm1', handle: 'octocat', email: 'o@c.dev' } };
+    await controller.upsertTemplate('event-post-event', dto, req);
+    expect(templateService.upsertTemplate).toHaveBeenCalledWith(
+      'event-post-event',
+      dto,
+      { actorId: 'm1', actorHandle: 'octocat' },
+    );
+  });
+
+  it('remove override do template', async () => {
+    const req = { user: { sub: 'm1', handle: 'octocat', email: 'o@c.dev' } };
+    await controller.removeTemplate('event-post-event', req);
+    expect(templateService.removeTemplate).toHaveBeenCalledWith(
+      'event-post-event',
+      { actorId: 'm1', actorHandle: 'octocat' },
+    );
+  });
+
+  it('renderiza preview com o DTO enviado', async () => {
+    templateService.previewTemplate.mockResolvedValue({
+      subject: 's',
+      text: 't',
+      html: '<p>t</p>',
+    });
+    const dto = { subject: 's', bodyMarkdown: 'b' };
+    const result = await controller.previewTemplate('event-reminder-d1', dto);
+    expect(templateService.previewTemplate).toHaveBeenCalledWith(
+      'event-reminder-d1',
+      dto,
+    );
+    expect(result.html).toBe('<p>t</p>');
+  });
+
+  it('envia e-mail de teste para o e-mail do admin logado', async () => {
+    templateService.sampleContext.mockReturnValue({ attendeeName: 'Maria' });
+    emailService.sendTemplate.mockResolvedValue({ id: 'log-123' });
+    const req = { user: { sub: 'm1', handle: 'octocat', email: 'octo@c.dev' } };
+    const result = await controller.sendTestTemplate('event-reminder-d1', req);
+    expect(templateService.sampleContext).toHaveBeenCalledWith(
+      'event-reminder-d1',
+    );
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'event-reminder-d1',
+      'octo@c.dev',
+      { attendeeName: 'Maria' },
+    );
+    expect(result).toEqual({ emailLogId: 'log-123' });
   });
 });

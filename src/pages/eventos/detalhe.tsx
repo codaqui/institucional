@@ -39,6 +39,7 @@ import SlideshowIcon from "@mui/icons-material/Slideshow";
 import EventOverrideBadge from "../../components/EventOverrideBadge";
 import EventMyRegistration from "../../components/EventMyRegistration";
 import MarkdownLite from "../../components/MarkdownLite";
+import RegistrationConfirmedCard from "../../components/RegistrationConfirmedCard";
 import StripeEmbeddedCheckoutDialog from "../../components/StripeEmbeddedCheckoutDialog";
 import { useAuth } from "../../hooks/useAuth";
 import { resolveApiUrl } from "../../lib/api-url";
@@ -937,31 +938,7 @@ function InternalEventRegistration({
   };
 
   if (registration) {
-    return (
-      <Card variant="outlined" sx={{ mb: 4, borderColor: "success.main" }}>
-        <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Inscrição confirmada!
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Apresente o código abaixo no check-in do evento.
-          </Typography>
-          <Box
-            sx={{
-              p: 2,
-              borderRadius: 2,
-              bgcolor: "action.hover",
-              fontFamily: "monospace",
-              fontWeight: 700,
-              textAlign: "center",
-              wordBreak: "break-all",
-            }}
-          >
-            {registration.checkinToken}
-          </Box>
-        </CardContent>
-      </Card>
-    );
+    return <RegistrationConfirmedCard checkinToken={registration.checkinToken} />;
   }
 
   const singleFreeTicket = ticketTypes.length === 1 && isFreeFlow(ticketTypes[0]);

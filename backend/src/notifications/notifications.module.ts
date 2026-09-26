@@ -3,10 +3,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { EventRegistration } from '../events/entities/event-registration.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
+import { AuditModule } from '../audit/audit.module';
 import { SmtpEmailProvider } from './email.provider';
 import { EmailService } from './email.service';
+import { EmailTemplateService } from './email-template.service';
 import { NotificationsController } from './notifications.controller';
 import { EmailLog } from './entities/email-log.entity';
+import { EmailTemplate } from './entities/email-template.entity';
 
 /**
  * Notifications — e-mail transacional/marketing de eventos via SMTP.
@@ -17,15 +20,17 @@ import { EmailLog } from './entities/email-log.entity';
 @Global()
 @Module({
   imports: [
+    AuditModule,
     TypeOrmModule.forFeature([
       EmailLog,
+      EmailTemplate,
       ManagedEvent,
       EventRegistration,
       TicketType,
     ]),
   ],
   controllers: [NotificationsController],
-  providers: [SmtpEmailProvider, EmailService],
+  providers: [SmtpEmailProvider, EmailService, EmailTemplateService],
   exports: [EmailService],
 })
 export class NotificationsModule {}
