@@ -161,7 +161,7 @@ institucional/
 │   │   ├── github-db/           # GitHubDBService (branch + PR com o token OAuth do membro) — ⚠️ legado: só force-sync de snapshot interno
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios
-│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento)
+│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento + templates editáveis via /admin/emails — tabela email_templates, pipeline Markdown→HTML sanitizado com fallback p/ padrões)
 │   │   ├── ledger/              # ⭐ Contabilidade dupla partida (núcleo financeiro)
 │   │   │   ├── entities/        # Account, Transaction (TypeORM)
 │   │   │   ├── ledger.controller.ts  # GET /ledger/community-balances, /transactions
