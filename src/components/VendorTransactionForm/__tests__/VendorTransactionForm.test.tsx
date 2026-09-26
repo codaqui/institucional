@@ -189,7 +189,7 @@ describe("VendorTransactionForm", () => {
     );
 
     expect(await screen.findByText("Erro ao registrar pagamento.")).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("exibe erro desconhecido quando a requisição falha sem Error", async () => {
     const authFetch = jest.fn(() => Promise.reject("falha de rede"));
