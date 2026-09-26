@@ -31,7 +31,7 @@ Chegou a vez de novos membros do clube concorrerem! Foram liberados **dois sorte
 - 🎟️ **Sorteio 1 — Ingresso DevPR Conf 2026:** 1 ingresso para a conferência da comunidade DevParaná;
 - 📚 **Sorteio 2 — Python Fluente Vol. 2:** 1 livro para mergulhar ainda mais fundo em Python.
 
-A participação é exclusiva para **membros do Clube Codaqui**: basta trocar seus **SortCoins** por cupons do sorteio que quiser na página do clube — você pode participar de um ou de os dois! Cada SortCoin é conquistado participando da comunidade — em encontros, trilhas e contribuições à Associação.
+A participação é exclusiva para **membros do Clube Codaqui**: basta trocar seus **SortCoins** por cupons do sorteio que quiser na página do clube — você pode participar de um ou pelos dois! Cada SortCoin é conquistado participando da comunidade — em encontros, trilhas e contribuições à Associação.
 
 Todos os sorteios do clube usam um **seed auditável**, com transparência total sobre o resultado — confiança é um dos nossos valores.
 
