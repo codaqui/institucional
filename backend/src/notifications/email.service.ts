@@ -18,12 +18,23 @@ import {
 import { Member } from '../members/entities/member.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
 import { SmtpEmailProvider } from './email.provider';
+import { EmailTemplateService } from './email-template.service';
+import {
+  EMAIL_TEMPLATE_POST_EVENT,
+  EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+  EMAIL_TEMPLATE_REMINDER_D1,
+} from './default-templates';
 import { EmailLog, EmailStatus } from './entities/email-log.entity';
 
-export const EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION =
-  'event-registration-confirmation';
-export const EMAIL_TEMPLATE_REMINDER_D1 = 'event-reminder-d1';
-export const EMAIL_TEMPLATE_POST_EVENT = 'event-post-event';
+export type { RenderedEmail } from './email-template.service';
+
+// Re-exportados de default-templates (fonte canônica) para compatibilidade com
+// consumidores que importam os IDs de email.service.
+export {
+  EMAIL_TEMPLATE_POST_EVENT,
+  EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+  EMAIL_TEMPLATE_REMINDER_D1,
+};
 
 export interface EmailTemplateContext {
   attendeeName: string;
@@ -32,11 +43,7 @@ export interface EmailTemplateContext {
   eventTimeZone: string;
   ticketTypeName?: string | null;
   checkinToken?: string | null;
-}
-
-interface RenderedEmail {
-  subject: string;
-  text: string;
+  eventLocation?: string | null;
 }
 
 export interface ListEmailLogsQuery {
@@ -62,7 +69,6 @@ const CONFIRMED_LIKE: RegistrationStatus[] = [
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly frontendUrl: string;
 
   constructor(
     @InjectRepository(EmailLog)
@@ -74,73 +80,8 @@ export class EmailService {
     @InjectRepository(TicketType)
     private readonly ticketTypeRepo: Repository<TicketType>,
     private readonly provider: SmtpEmailProvider,
-  ) {
-    this.frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
-  }
-
-  private formatDate(date: Date, timeZone: string): string {
-    return date.toLocaleString('pt-BR', {
-      timeZone,
-      dateStyle: 'full',
-      timeStyle: 'short',
-    });
-  }
-
-  private render(template: string, ctx: EmailTemplateContext): RenderedEmail {
-    const when = this.formatDate(ctx.eventStartAt, ctx.eventTimeZone);
-    switch (template) {
-      case EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION: {
-        const lines = [
-          `Olá, ${ctx.attendeeName}!`,
-          '',
-          `Sua inscrição em "${ctx.eventTitle}" está confirmada.`,
-          `Data: ${when}`,
-        ];
-        if (ctx.ticketTypeName) lines.push(`Ingresso: ${ctx.ticketTypeName}`);
-        if (ctx.checkinToken) {
-          lines.push('', `Seu código de check-in: ${ctx.checkinToken}`);
-        }
-        lines.push(
-          '',
-          `Acompanhe suas inscrições e certificados em ${this.frontendUrl}/membro`,
-          '',
-          '— Equipe Codaqui',
-        );
-        return {
-          subject: `Inscrição confirmada — ${ctx.eventTitle}`,
-          text: lines.join('\n'),
-        };
-      }
-      case EMAIL_TEMPLATE_REMINDER_D1:
-        return {
-          subject: `Lembrete: ${ctx.eventTitle} é amanhã`,
-          text: [
-            `Olá, ${ctx.attendeeName}!`,
-            '',
-            `Lembrete: "${ctx.eventTitle}" acontece amanhã, ${when}.`,
-            '',
-            'Nos vemos lá! Qualquer dúvida, fale com a equipe Codaqui.',
-            '',
-            '— Equipe Codaqui',
-          ].join('\n'),
-        };
-      case EMAIL_TEMPLATE_POST_EVENT:
-        return {
-          subject: `Obrigado por participar de ${ctx.eventTitle}`,
-          text: [
-            `Olá, ${ctx.attendeeName}!`,
-            '',
-            `Obrigado por participar de "${ctx.eventTitle}"!`,
-            '',
-            `Seus certificados e inscrições ficam disponíveis em ${this.frontendUrl}/membro.`,
-            '',
-            '— Equipe Codaqui',
-          ].join('\n'),
-        };
-      default:
-        throw new BadRequestException(`Template desconhecido: ${template}`);
-    }
-  }
+    private readonly templateService: EmailTemplateService,
+  ) {}
 
   private contextFor(
     registration: EventRegistration,
@@ -154,6 +95,7 @@ export class EmailService {
       eventTimeZone: event.timezone,
       ticketTypeName,
       checkinToken: registration.checkinToken,
+      eventLocation: event.location,
     };
   }
 
@@ -177,7 +119,7 @@ export class EmailService {
     ctx: EmailTemplateContext,
     refs: { eventId?: string | null; registrationId?: string | null } = {},
   ): Promise<EmailLog> {
-    const rendered = this.render(template, ctx);
+    const rendered = await this.templateService.render(template, ctx);
     const log = this.emailLogRepo.create({
       to,
       template,
@@ -191,6 +133,7 @@ export class EmailService {
         to,
         subject: rendered.subject,
         text: rendered.text,
+        html: rendered.html,
       });
     } catch (error) {
       log.status = EmailStatus.FAILED;
@@ -401,7 +344,7 @@ export class EmailService {
       throw new BadRequestException('Evento vinculado ao log não encontrado.');
     }
     const names = await this.loadTicketTypeNames([registration]);
-    const rendered = this.render(
+    const rendered = await this.templateService.render(
       log.template,
       this.contextFor(
         registration,
@@ -414,6 +357,7 @@ export class EmailService {
         to: log.to,
         subject: rendered.subject,
         text: rendered.text,
+        html: rendered.html,
       });
       log.status = EmailStatus.SENT;
       log.error = null;

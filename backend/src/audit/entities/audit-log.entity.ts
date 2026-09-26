@@ -61,6 +61,10 @@ export enum AuditAction {
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
+
+  // E-mail
+  EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',
+  EMAIL_TEMPLATE_DELETED = 'email.template_deleted',
 }
 
 @Entity('audit_logs')
