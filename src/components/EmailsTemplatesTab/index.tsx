@@ -43,6 +43,9 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
   const [saving, setSaving] = useState(false);
   const [confirmRestore, setConfirmRestore] = useState(false);
   const previewTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Guarda de sequência para o select: garante que uma resposta lenta de uma
+  // seleção anterior não sobrescreva o editor da seleção atual.
+  const selectSeq = useRef(0);
 
   const loadList = useCallback(async () => {
     const res = await authFetch("/notifications/templates");
@@ -63,14 +66,18 @@ export default function EmailsTemplatesTab(): React.JSX.Element {
 
   const select = useCallback(
     async (id: string) => {
+      const seq = ++selectSeq.current;
       if (previewTimer.current) clearTimeout(previewTimer.current);
       setSelectedId(id);
+      setDetail(null);
       setError("");
       setFeedback("");
       setPreview(null);
       const res = await authFetch(`/notifications/templates/${id}`);
-      const data = await parseAuthJson<TemplateDetail>(res, (msg) => setError(msg));
-      if (!data) return;
+      const data = await parseAuthJson<TemplateDetail>(res, (msg) => {
+        if (seq === selectSeq.current) setError(msg);
+      });
+      if (!data || seq !== selectSeq.current) return;
       setDetail(data);
       setSubject(data.subject);
       setBody(data.bodyMarkdown);

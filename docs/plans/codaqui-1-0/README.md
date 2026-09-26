@@ -194,11 +194,11 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 5. **E-mail transacional de reembolso/cancelamento** de inscrição (o refund Stripe já existe sem notificação ao participante).
 6. **Retenção de `email_logs`** — política de limpeza (proposta: manter 12 meses) via cron.
 
-### E2 — Templates (antes da Fase 5, mentoria)
+### E2 — Templates ✅ entregue (2026-09-25, antecipado antes da Fase 5)
 
-1. **Registry de templates** — hoje 3 templates hardcoded em switch; criar registro com metadados (key, nome, descrição, quando dispara, contexto esperado) e endpoint `GET /notifications/templates` + `GET /notifications/templates/:key/preview` (render com dados de exemplo).
-2. **Visualização no admin** — aba "Templates" em `/admin/emails`: lista com descrição, gatilho e preview renderizado.
-3. **Edição de textos segue versionada em código** (PR) — override em banco fica fora de escopo até haver demanda.
+1. **Registry de templates** — ✅ entregue: os 3 templates padrão migraram para `default-templates.ts` (Markdown com variáveis documentadas e contexto de exemplo); `GET /notifications/templates` lista com flag de override; `POST /notifications/templates/:id/preview` renderiza com dados de exemplo.
+2. **Visualização no admin** — ✅ entregue: aba "Templates" em `/admin/emails` com chips Padrão/Personalizado, editor Markdown, preview renderizado lado a lado, variáveis disponíveis e envio de teste.
+3. **Edição com override em banco + fallback em código** — ✅ entregue (supere o "fora de escopo" original após a demanda surgir): tabela `email_templates` (um registro por template); PUT/DELETE em `/notifications/templates/:id`; pipeline único de render (interpolação `{{var}}` → Markdown → HTML sanitizado → texto) com **fallback garantido para o padrão em código** — ausência de registro, erro de BD ou erro de render nunca derruba o envio; e-mails saem multipart (text + html).
 
 ## Arquitetura de menus e navegação (UX)
 

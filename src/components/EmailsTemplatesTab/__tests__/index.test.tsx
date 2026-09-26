@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import EmailsTemplatesTab from "..";
 import { buildAuthState, mockUseAuth } from "../../../test-utils/auth";
 import { jsonResponse } from "../../../test-utils/http";
@@ -75,6 +75,40 @@ describe("EmailsTemplatesTab", () => {
       );
     });
     expect(await screen.findByRole("button", { name: /restaurar padrão/i })).toBeEnabled();
+  });
+
+  it("ignora resposta lenta de seleção anterior (race entre seleções)", async () => {
+    const detailA = { ...DETAIL, subject: "Assunto A", bodyMarkdown: "Corpo A" };
+    const detailB = {
+      ...DETAIL,
+      id: "event-reminder-d1",
+      subject: "Assunto B",
+      bodyMarkdown: "Corpo B",
+    };
+    const authFetch = jest.fn(async (url: string) => {
+      if (url.endsWith("/notifications/templates")) return jsonResponse(LIST);
+      if (url.endsWith("/notifications/templates/event-registration-confirmation")) {
+        await new Promise((r) => setTimeout(r, 60));
+        return jsonResponse(detailA);
+      }
+      if (url.endsWith("/notifications/templates/event-reminder-d1")) {
+        return jsonResponse(detailB);
+      }
+      return jsonResponse({ error: "not mocked" }, { ok: false, status: 404 });
+    });
+    mockUseAuth.mockReturnValue(buildAuthState({ authFetch: authFetch as any }));
+    render(<EmailsTemplatesTab />);
+
+    fireEvent.click(await screen.findByText("event-registration-confirmation"));
+    fireEvent.click(screen.getByText("event-reminder-d1"));
+
+    expect(await screen.findByDisplayValue("Corpo B")).toBeInTheDocument();
+    // a resposta lenta de A chega depois, mas não deve sobrescrever a seleção atual
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    expect(screen.getByDisplayValue("Corpo B")).toBeInTheDocument();
+    expect(screen.queryByDisplayValue("Corpo A")).not.toBeInTheDocument();
   });
 
   it("envia e-mail de teste e exibe feedback", async () => {
