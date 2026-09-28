@@ -13,34 +13,34 @@
     "generatedAt": "2026-09-28T22:01:17.618Z"
   },
   "event": {
-    "id": "273739275",
-    "title": "DevParaná Conference 2020 - GDG Toledo",
-    "summary": "Palestra: Automatizando atendimentos com um Chatbot (Bruno Henrique Pereira Szczuk - Lactobom) Durante a talk será apresentado os conceitos para criação de assistentes virtuais, bem como também será apresentado cenários…",
-    "startAt": "2020-10-26T19:00:00-03:00",
-    "endAt": "2020-10-26T20:00:00-03:00",
+    "id": "316756948",
+    "title": "[DevPR Francisco Beltrão] Happy Hour",
+    "summary": "Um encontro para devs que acreditam que as melhores ideias surgem fora do escritório e longe do Slack. Sem palestras engessadas, sem pitch: só gente de tecnologia trocando experiências, falando de carreira, projetos, er…",
+    "startAt": "2026-10-02T19:00:00-03:00",
+    "endAt": "2026-10-02T21:00:00-03:00",
     "timezone": "America/Sao_Paulo",
     "platform": "Meetup",
     "host": "Dev Paraná",
-    "location": "Online via Meetup",
-    "href": "https://www.meetup.com/developerparana/events/273739275/",
+    "location": "Elch Bier · R. Bela Vista, 417 - Cango, Francisco Beltrão - PR, 85604-060, Brazil · Cango · PR",
+    "href": "https://www.meetup.com/developerparana/events/316756948/",
     "tags": [
       "meetup",
       "devparana",
-      "online"
+      "presencial"
     ],
     "ctaLabel": "Ver evento no Meetup",
     "featured": false,
-    "status": "completed",
+    "status": "scheduled",
     "entityType": "external",
-    "userCount": 21,
-    "creatorName": "Everton Tavares",
-    "creatorId": "188896297",
+    "userCount": 2,
+    "creatorName": "Geovane Norbert",
+    "creatorId": "370171009",
     "organizers": [
       {
-        "name": "Ricardo Grassi",
-        "id": "201670883"
+        "name": "Gabriel Prando",
+        "id": "370530343"
       }
     ],
-    "imageUrl": "https://secure.meetupstatic.com/photos/event/8/c/5/8/highres_492875928.jpeg"
+    "imageUrl": "https://secure.meetupstatic.com/photos/event/d/d/4/b/highres_532256651.jpeg"
   }
 }
