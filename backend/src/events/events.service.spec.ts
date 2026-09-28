@@ -42,6 +42,7 @@ const makeEvent = (overrides: Record<string, unknown> = {}) => ({
   communityProjectKey: 'devparana',
   status: ManagedEventStatus.PUBLISHED,
   capacity: null,
+  workloadMinutes: null,
   createdByMemberId: uuid(90),
   createdAt: new Date(),
   ...overrides,

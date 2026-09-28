@@ -453,6 +453,7 @@ export class EventsService {
       communityProjectKey: event.communityProjectKey,
       status: event.status,
       capacity: event.capacity,
+      workloadMinutes: event.workloadMinutes,
       createdAt: event.createdAt,
     };
   }
@@ -738,6 +739,7 @@ export class EventsService {
         timezone: tz,
         communityProjectKey: dto.communityProjectKey,
         capacity: dto.capacity ?? null,
+        workloadMinutes: dto.workloadMinutes ?? null,
         status: ManagedEventStatus.DRAFT,
         createdByMemberId: user.sub,
       }),
@@ -777,6 +779,10 @@ export class EventsService {
       }
     }
     if (dto.capacity !== undefined) event.capacity = dto.capacity;
+    if (dto.workloadMinutes !== undefined) {
+      // null volta ao cálculo automático pela duração (endAt - startAt).
+      event.workloadMinutes = dto.workloadMinutes ?? null;
+    }
 
     await this.eventRepo.save(event);
     return this.withRelations(event);
@@ -2235,10 +2241,12 @@ export class EventsService {
       eventTitle: event.title,
       eventStartAt,
       eventEndAt,
-      // Managed: carga horária = duração do evento
-      workloadMinutes: eventEndAt
-        ? Math.round((eventEndAt.getTime() - eventStartAt.getTime()) / 60_000)
-        : null,
+      // Carga horária explícita quando definida; senão, duração do evento.
+      workloadMinutes:
+        event.workloadMinutes ??
+        (eventEndAt
+          ? Math.round((eventEndAt.getTime() - eventStartAt.getTime()) / 60_000)
+          : null),
       communityProjectKey: event.communityProjectKey ?? null,
     };
   }

@@ -60,6 +60,13 @@ export class ManagedEvent {
   @Column({ type: 'int', nullable: true })
   capacity: number | null;
 
+  /**
+   * Carga horária (minutos) exibida nos certificados. null = calcula
+   * automaticamente pela duração do evento (endAt - startAt).
+   */
+  @Column({ type: 'int', nullable: true })
+  workloadMinutes: number | null;
+
   @Column()
   createdByMemberId: string;
 
