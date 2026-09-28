@@ -276,6 +276,31 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(cert.verificationCode).toBe('CRT-aaaaaaaa-bbb');
     });
 
+    it('managed: workloadMinutes explícita sobrepõe a duração do evento', async () => {
+      eventRepo.findOneBy.mockResolvedValue({
+        ...makeEvent(),
+        workloadMinutes: 300,
+      });
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ checkedInAt: new Date('2026-08-10T13:05:00Z') }),
+      );
+      const cert = await service.getCertificate(uuid(40), user());
+      expect(cert.workloadMinutes).toBe(300);
+    });
+
+    it('managed: workloadMinutes null cai na duração; sem endAt → null', async () => {
+      eventRepo.findOneBy.mockResolvedValue({
+        ...makeEvent(),
+        workloadMinutes: null,
+        endAt: null,
+      });
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ checkedInAt: new Date('2026-08-10T13:05:00Z') }),
+      );
+      const cert = await service.getCertificate(uuid(40), user());
+      expect(cert.workloadMinutes).toBeNull();
+    });
+
     it('outro membro (não dono, não admin) → 403', async () => {
       registrationRepo.findOneBy.mockResolvedValue(
         makeRegistration({ checkedInAt: new Date() }),

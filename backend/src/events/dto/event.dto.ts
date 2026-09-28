@@ -7,6 +7,7 @@ import {
   IsString,
   IsUrl,
   Matches,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -88,6 +89,17 @@ export class CreateEventDto {
   @IsInt()
   @Min(1)
   capacity?: number;
+
+  /**
+   * Carga horária (minutos) dos certificados. Opcional — omitido/null usa
+   * a duração do evento (endAt - startAt).
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  workloadMinutes?: number | null;
 }
 
 export class UpdateEventDto {
@@ -144,4 +156,15 @@ export class UpdateEventDto {
   @IsInt()
   @Min(1)
   capacity?: number;
+
+  /**
+   * Carga horária (minutos) dos certificados. Envie null para voltar ao
+   * cálculo automático pela duração do evento (endAt - startAt).
+   */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  @Max(1000)
+  workloadMinutes?: number | null;
 }

@@ -125,6 +125,7 @@ interface ManagedEvent {
   communityProjectKey: string;
   status: EventStatus;
   capacity: number | null;
+  workloadMinutes: number | null;
   ticketTypes: TicketType[];
   staff: EventStaff[];
 }
@@ -318,6 +319,16 @@ function buildEventPayload(form: EventForm, mode: "create" | "edit"): EventValid
     }
     payload.capacity = cap;
   }
+  if (form.workloadMinutes.trim()) {
+    const minutes = Number.parseInt(form.workloadMinutes, 10);
+    if (Number.isNaN(minutes) || minutes < 0 || minutes > 1000) {
+      return { error: "Carga horária inválida (0–1000 minutos)." };
+    }
+    payload.workloadMinutes = minutes;
+  } else if (mode === "edit") {
+    // Vazio em edição = voltar ao cálculo automático (duração do evento).
+    payload.workloadMinutes = null;
+  }
   return { payload };
 }
 
@@ -374,6 +385,7 @@ interface EventForm {
   timezone: string;
   communityProjectKey: string;
   capacity: string;
+  workloadMinutes: string;
 }
 
 const EMPTY_EVENT_FORM: EventForm = {
@@ -388,6 +400,7 @@ const EMPTY_EVENT_FORM: EventForm = {
   timezone: "America/Sao_Paulo",
   communityProjectKey: "codaqui",
   capacity: "",
+  workloadMinutes: "",
 };
 
 interface TicketForm {
@@ -1407,6 +1420,7 @@ function useAdminEventosMutations(
       timezone: event.timezone || "America/Sao_Paulo",
       communityProjectKey: event.communityProjectKey,
       capacity: event.capacity != null ? String(event.capacity) : "",
+      workloadMinutes: event.workloadMinutes != null ? String(event.workloadMinutes) : "",
     });
     setEventError("");
     setEventDialog({ mode: "edit", event });
@@ -2378,6 +2392,20 @@ export default function AdminEventosPage(): React.JSX.Element {
               size="small"
               fullWidth
               inputMode="numeric"
+            />
+            <TextField
+              label="Carga horária em minutos (opcional)"
+              value={eventForm.workloadMinutes}
+              onChange={(e) =>
+                setEventForm((f) => ({
+                  ...f,
+                  workloadMinutes: e.target.value.replace(/[^\d]/g, ""),
+                }))
+              }
+              size="small"
+              fullWidth
+              inputMode="numeric"
+              helperText="0–1000. Deixe em branco para calcular automaticamente pela duração do evento (início → fim) — usado nos certificados."
             />
             {eventError && <Alert severity="error">{eventError}</Alert>}
           </Stack>
