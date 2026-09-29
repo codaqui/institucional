@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T21:01:30.857Z",
+  "generatedAt": "2026-09-29T22:01:19.492Z",
   "events": [
     {
       "id": "316574270",
@@ -50,9 +50,9 @@
       ],
       "ctaLabel": "Ver evento no Meetup",
       "featured": false,
-      "status": "scheduled",
+      "status": "active",
       "entityType": "external",
-      "userCount": 67,
+      "userCount": 65,
       "creatorName": "Luiz Schons",
       "creatorId": "370720313",
       "organizers": [
