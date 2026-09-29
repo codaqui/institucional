@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-29T12:01:35.051Z",
+  "generatedAt": "2026-09-29T13:05:37.746Z",
   "events": [
     {
       "id": "316574270",
@@ -99,7 +99,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 5,
+      "userCount": 6,
       "creatorName": "Geovane Norbert",
       "creatorId": "370171009",
       "organizers": [
