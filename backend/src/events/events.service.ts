@@ -2056,7 +2056,9 @@ export class EventsService {
     });
     if (
       registration.status === RegistrationStatus.REFUNDED ||
-      registration.status === RegistrationStatus.CANCELLED
+      registration.status === RegistrationStatus.CANCELLED ||
+      registration.status === RegistrationStatus.PENDING_MATCH ||
+      registration.status === RegistrationStatus.WAITLIST
     ) {
       throw new BadRequestException(
         `Inscrição ${registration.status}: check-in não permitido.`,

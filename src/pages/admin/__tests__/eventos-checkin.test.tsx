@@ -439,7 +439,7 @@ describe("/admin/eventos-checkin", () => {
           registration: {
             attendeeName: "Participante Um",
             attendeeEmail: "um@example.com",
-            checkedInAt: null,
+            checkedInAt: "2026-08-10T18:05:00.000Z",
           },
         });
       }
@@ -474,7 +474,7 @@ describe("/admin/eventos-checkin", () => {
           registration: {
             attendeeName: "Test",
             attendeeEmail: "t@t.com",
-            checkedInAt: null,
+            checkedInAt: "2026-08-10T18:05:00.000Z",
           },
         });
       }

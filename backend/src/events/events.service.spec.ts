@@ -1521,5 +1521,38 @@ describe('EventsService', () => {
         expect.objectContaining({ checkedInByMemberId: checker.sub }),
       );
     });
+
+    it.each([
+      RegistrationStatus.REFUNDED,
+      RegistrationStatus.CANCELLED,
+      RegistrationStatus.PENDING_MATCH,
+      RegistrationStatus.WAITLIST,
+    ])('recusa inscrição com status %s', async (status) => {
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devparana:abc123',
+        features: ['checkin'],
+        enabledByMemberId: uuid(5),
+      };
+      activationRepo.findOneBy.mockResolvedValue(activation);
+      registrationRepo.findOneBy.mockResolvedValue({
+        id: uuid(40),
+        externalActivationId: activation.id,
+        checkinToken: 'token-1',
+        attendeeName: 'Participante',
+        attendeeEmail: 'participante@example.com',
+        checkedInAt: null,
+        status,
+      });
+
+      await expect(
+        service.checkinExternal(
+          activation.eventKey,
+          'token-1',
+          user({ roles: ['admin'] }),
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
   });
 });
