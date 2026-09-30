@@ -55,7 +55,7 @@ const config: Config = {
     "!src/**/*.test.{ts,tsx}",
   ],
   setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
-  transformIgnorePatterns: ["/node_modules/(?!@mui|@emotion)"],
+  transformIgnorePatterns: ["/node_modules/(?!@mui|@emotion|qr-scanner)"],
   // Ratchet anti-regressão: o CI (pr-check.yml) roda com --coverage e falha
   // se a cobertura global cair abaixo destes pisos. Suba os valores sempre
   // que a cobertura real subir (baseline 2026-09: ~66% stmts/lines, ~68% branches).

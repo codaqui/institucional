@@ -33,10 +33,24 @@ async function bootstrap() {
     }
   }
 
-  const app = await NestFactory.create(AppModule, { rawBody: true });
+  let httpsOptions = undefined;
+  if (process.env.HTTPS === 'true' && process.env.SSL_CRT_FILE && process.env.SSL_KEY_FILE) {
+    const fs = require('fs');
+    try {
+      httpsOptions = {
+        key: fs.readFileSync(process.env.SSL_KEY_FILE),
+        cert: fs.readFileSync(process.env.SSL_CRT_FILE),
+      };
+      logger.log('HTTPS configurado no backend com certificados locais');
+    } catch (e) {
+      logger.error('Erro ao carregar certificados HTTPS: ' + e.message);
+    }
+  }
+
+  const app = await NestFactory.create(AppModule, { rawBody: true, httpsOptions });
 
   // ── Security Headers ───────────────────────────────────────────────────────
-  app.use(helmet());
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   app.use(cookieParser());
 
@@ -53,7 +67,7 @@ async function bootstrap() {
     : [
         ...ALLOWED_ORIGINS_PROD,
         ...ALLOWED_ORIGINS_DEV,
-        /http:\/\/localhost:\d+/,
+        /^https?:\/\/(.*?\.)?localhost:\d+$/,
       ];
 
   app.enableCors({

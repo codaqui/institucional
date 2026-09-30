@@ -1103,21 +1103,23 @@ function InternalEventAccordion({
           </Stack>
         )}
         <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <FormControl size="small" sx={{ minWidth: 220 }}>
-            <InputLabel id={`staff-member-label-${event.id}`}>Membro</InputLabel>
-            <Select
-              labelId={`staff-member-label-${event.id}`}
-              label="Membro"
-              value={staffForm[event.id]?.memberId ?? ""}
-              onChange={(e) => onStaffMemberChange(event.id, e.target.value)}
-            >
-              {members.map((m) => (
-                <MenuItem key={m.id} value={m.id}>
-                  {m.name} (@{m.githubHandle})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            size="small"
+            sx={{ minWidth: 260, flex: 1 }}
+            options={members}
+            value={members.find((m) => m.id === staffForm[event.id]?.memberId) ?? null}
+            onChange={(_, v) => onStaffMemberChange(event.id, v?.id ?? "")}
+            getOptionLabel={(m) => `${m.name} (@${m.githubHandle})`}
+            isOptionEqualToValue={(a, b) => a.id === b.id}
+            noOptionsText="Nenhum membro encontrado"
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label="Membro"
+                placeholder="Busque por nome ou @github"
+              />
+            )}
+          />
           <FormControl size="small" sx={{ minWidth: 160 }}>
             <InputLabel id={`staff-role-label-${event.id}`}>Papel</InputLabel>
             <Select

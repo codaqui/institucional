@@ -37,6 +37,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BACKEND_URL=${BACKEND_URL:-http://localhost:3001}
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
+      - HTTPS=${HTTPS:-false}
+      - SSL_CRT_FILE=/app/.certs/localhost.pem
+      - SSL_KEY_FILE=/app/.certs/localhost-key.pem
+    volumes:
+      - ./.certs:/app/.certs:ro
     depends_on:
       - postgres
     networks:
@@ -49,12 +54,18 @@ services:
     container_name: codaqui_docusaurus
     env_file:
       - .env
+    environment:
+      - HTTPS=${HTTPS:-false}
+      - SSL_CRT_FILE=/app/.certs/localhost.pem
+      - SSL_KEY_FILE=/app/.certs/localhost-key.pem
+      - DOCUSAURUS_API_URL=${BACKEND_URL:-http://localhost:3001}
     ports:
-      - "3000:3000" # http://localhost:3000
+      - "3000:3000" # http(s)://localhost:3000
     volumes:
       - .:/app
       - /app/node_modules
       - /app/.docusaurus
+      - ./.certs:/app/.certs:ro
     networks:
       - codaqui-network
 

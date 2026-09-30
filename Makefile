@@ -42,7 +42,7 @@ RED    := \033[31m
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
-        frontend-start frontend-build frontend-typecheck frontend-serve \
+        frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
         worker-dev-elasnocodigo worker-deploy-elasnocodigo \
@@ -109,9 +109,21 @@ up: env-check ## Sobe todos os serviços e captura o STRIPE_WEBHOOK_SECRET autom
 	@printf "$(CYAN)→  Subindo todos os serviços...$(RESET)\n"
 	podman compose -f $(COMPOSE_FILE) up
 
-up-build: env-check ## Reconstrói as imagens e sobe (equivale ao --no-cache)
+up-build: env-check ## Reconstrói as imagens e sobe usando cache local
+	podman compose -f $(COMPOSE_FILE) build
+	$(MAKE) up
+
+up-force-build: env-check ## Reconstrói as imagens e sobe SEM usar o cache (--no-cache)
 	podman compose -f $(COMPOSE_FILE) build --no-cache
 	$(MAKE) up
+
+setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
+	@printf "$(CYAN)→  Verificando mkcert...$(RESET)\n"
+	@which mkcert > /dev/null || (printf "$(RED)✖  mkcert não instalado. No macOS: brew install mkcert nss$(RESET)\n" && exit 1)
+	@mkcert -install
+	@mkdir -p .certs
+	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
+	@printf "$(GREEN)✔  Certificados gerados em .certs/$(RESET)\n"
 
 down: ## Para e remove todos os containers
 	podman compose -f $(COMPOSE_FILE) down
@@ -199,6 +211,10 @@ backend-lint: ## Executa o linter e auto-corrige o backend
 # =============================================================================
 ##@ 🌐 Frontend (Docusaurus)
 # =============================================================================
+
+frontend-clean: ## Limpa o cache do Docusaurus (builds antigos e dependências temporárias)
+	npm run clear
+	rm -rf .docusaurus build
 
 frontend-start: ## Inicia o servidor de desenvolvimento do Docusaurus
 	npm start

@@ -22,10 +22,11 @@ const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
  * não coincidem com os do cookie original.
  */
 function sessionCookieOptions(isProd: boolean): CookieOptions {
+  const isHttpsDev = process.env.HTTPS === 'true' && !isProd;
   return {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'strict' : 'lax',
+    secure: isProd || isHttpsDev,
+    sameSite: isProd ? 'strict' : (isHttpsDev ? 'none' : 'lax'),
     path: '/',
   };
 }

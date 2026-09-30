@@ -48,6 +48,7 @@
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "prism-react-renderer": "^2.3.0",
+    "qr-scanner": "^1.4.2",
     "qrcode.react": "^4.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
