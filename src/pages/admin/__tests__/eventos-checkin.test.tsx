@@ -134,6 +134,11 @@ describe("translateCameraError()", () => {
     expect(translateCameraError(err)).toMatch(/interrompida/i);
   });
 
+  it("traduz CameraTimeoutError (câmera sem resposta)", () => {
+    const err = Object.assign(new Error("x"), { name: "CameraTimeoutError" });
+    expect(translateCameraError(err)).toMatch(/demorou para responder/i);
+  });
+
   it("retorna mensagem genérica para erro desconhecido", () => {
     expect(translateCameraError(new Error("estranhão"))).toMatch(/não foi possível acessar/i);
   });
@@ -468,6 +473,92 @@ describe("/admin/eventos-checkin", () => {
 
     expect(scannerBeforeStop.stop).toHaveBeenCalledTimes(1);
     expect(scannerBeforeStop.destroy).toHaveBeenCalledTimes(1);
+  });
+
+  it("preview: wrapper oculto antes de ativar, visível com câmera ativa, oculto após parar", async () => {
+    mockUseAuth.mockReturnValue(
+      buildAuthState({
+        isAdmin: false,
+        authFetch: mockAuthFetchWithEvents((url) => {
+          if (url.includes("/registrations")) return jsonResponse([]);
+          return null;
+        }) as any,
+        user: organizerUser as any,
+      }),
+    );
+
+    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
+    render(<EventosCheckinPage />);
+
+    await waitFor(() =>
+      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
+    );
+
+    const wrapper = () => document.getElementById("checkin-camera-preview-wrapper")!;
+    const video = () => document.getElementById("checkin-camera-preview") as HTMLVideoElement;
+
+    // Wrapper controla a visibilidade (inicialmente oculto)
+    expect(wrapper()).not.toBeVisible();
+    // O vídeo nunca fica display:none: o qr-scanner zeraria o CSS dele
+    // (width/height/opacity 0) ao detectar vídeo escondido, deixando a
+    // preview invisível mesmo com o stream ativo.
+    expect(video().style.display).toBe("block");
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Parar câmera/i })).toBeInTheDocument(),
+    );
+    expect(wrapper()).toBeVisible();
+
+    fireEvent.click(screen.getByRole("button", { name: /Parar câmera/i }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /Ativar câmera/i })).toBeInTheDocument(),
+    );
+    expect(wrapper()).not.toBeVisible();
+  });
+
+  it("timeout: exibe erro e libera o botão quando a câmera nunca responde", async () => {
+    // Simula ambiente onde enumerateDevices/getUserMedia pendura (reproduzido
+    // em Firefox headless sem câmera): sem timeout a UI travava em "Ativando...".
+    qrState.hasCamera.mockReturnValue(new Promise(() => {}));
+
+    mockUseAuth.mockReturnValue(
+      buildAuthState({
+        isAdmin: false,
+        authFetch: mockAuthFetchWithEvents((url) => {
+          if (url.includes("/registrations")) return jsonResponse([]);
+          return null;
+        }) as any,
+        user: organizerUser as any,
+      }),
+    );
+
+    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
+    render(<EventosCheckinPage />);
+
+    await waitFor(() =>
+      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
+    );
+
+    jest.useFakeTimers();
+    try {
+      await act(async () => {
+        fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(16000);
+      });
+
+      expect(screen.getByText(/demorou para responder/i)).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Ativar câmera/i })).toBeInTheDocument();
+      expect(screen.queryByText(/Ativando/i)).not.toBeInTheDocument();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it("dispara check-in ao receber token via QrScanner (simulateScan)", async () => {

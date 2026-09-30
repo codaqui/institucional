@@ -128,12 +128,45 @@ export const isCameraAvailable = (): boolean =>
   typeof navigator.mediaDevices.getUserMedia === "function";
 
 /**
+ * Timeout defensivo para ativação da câmera. Em alguns navegadores/ambientes
+ * (ex.: Firefox headless sem câmera, drivers quebrados) `getUserMedia` e
+ * `enumerateDevices` nunca resolvem — sem timeout a UI trava em "Ativando...".
+ */
+const CAMERA_START_TIMEOUT_MS = 15000;
+
+/**
+ * Race de uma promise com timeout. A promise original sempre recebe handlers,
+ * então uma resolução tardia (após o timeout) não vira unhandled rejection.
+ */
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(Object.assign(new Error("camera start timeout"), { name: "CameraTimeoutError" })),
+      ms,
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
+/**
  * Traduz erros de câmera (DOMException.name de getUserMedia) em mensagem amigável PT-BR.
  * Exportada para facilitar testes unitários.
  */
 export function translateCameraError(err: unknown): string {
   if (err instanceof Error) {
     const name = (err as DOMException).name ?? "";
+    if (name === "CameraTimeoutError") {
+      return "A câmera demorou para responder. Verifique se outro aplicativo não está usando a câmera e tente novamente.";
+    }
     if (name === "NotAllowedError" || name === "PermissionDeniedError") {
       return "Permissão de câmera negada. Toque no ícone de cadeado na barra de endereços e permita o acesso à câmera.";
     }
@@ -388,7 +421,10 @@ export default function EventosCheckinPage(): React.JSX.Element {
     setCameraError("");
     try {
       // Verifica se o dispositivo tem câmera antes de instanciar
-      const hasCamera = await QrScanner.hasCamera();
+      const hasCamera = await withTimeout(
+        QrScanner.hasCamera(),
+        CAMERA_START_TIMEOUT_MS,
+      );
       if (!hasCamera) {
         setCameraError("Nenhuma câmera encontrada neste dispositivo.");
         return;
@@ -422,7 +458,7 @@ export default function EventosCheckinPage(): React.JSX.Element {
       );
 
       scannerRef.current = scanner;
-      await scanner.start();
+      await withTimeout(scanner.start(), CAMERA_START_TIMEOUT_MS);
       setCameraActive(true);
     } catch (err) {
       setCameraError(translateCameraError(err));
@@ -561,24 +597,32 @@ export default function EventosCheckinPage(): React.JSX.Element {
                 )}
 
                 {/*
-                  O <video> é sempre renderizado (ref estável) para que o qr-scanner
-                  possa atribuir srcObject sem trocar de nó DOM.
-                  A lib injeta o overlay de destaque de região diretamente no elemento pai.
-                  Usamos <video> nativo para garantir que videoRef.current seja o HTMLVideoElement.
+                  O <video> é sempre renderizado (ref estável) e NUNCA fica
+                  `display:none`: o construtor do qr-scanner detecta vídeo
+                  escondido e o zera (width/height/opacity = 0) para "proteger"
+                  o Safari — com isso a preview ficava invisível mesmo com o
+                  stream ativo. A visibilidade é controlada pelo wrapper, e o
+                  vídeo permanece `display:block` para a lib.
+                  A lib injeta o overlay de destaque de região no elemento pai
+                  do vídeo (o wrapper), escondendo-o junto quando inativo.
                 */}
-                <video
-                  id="checkin-camera-preview"
-                  ref={videoRef}
-                  muted
-                  playsInline
-                  style={{
-                    width: "100%",
-                    borderRadius: 8,
-                    backgroundColor: "black",
-                    marginBottom: 12,
-                    display: cameraActive ? "block" : "none",
-                  }}
-                />
+                <div
+                  id="checkin-camera-preview-wrapper"
+                  style={{ display: cameraActive ? "block" : "none", marginBottom: 12 }}
+                >
+                  <video
+                    id="checkin-camera-preview"
+                    ref={videoRef}
+                    muted
+                    playsInline
+                    style={{
+                      width: "100%",
+                      borderRadius: 8,
+                      backgroundColor: "black",
+                      display: "block",
+                    }}
+                  />
+                </div>
 
                 {cameraSupported && (
                   <Button
