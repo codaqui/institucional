@@ -511,6 +511,54 @@ describe("/admin/eventos", () => {
     });
   });
 
+  it("seleciona membro via busca (Autocomplete) e adiciona à equipe do evento", async () => {
+    const members = [
+      { id: "m-1", name: "Maria Silva", githubHandle: "maria" },
+      { id: "m-2", name: "João Souza", githubHandle: "joao" },
+    ];
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) return jsonResponse([buildEvent()]);
+      if (url.endsWith("/admin/members")) return jsonResponse(members);
+      if (url.includes("/events/evt-1/staff") && options?.method === "POST") {
+        return jsonResponse({ id: "st-1", memberId: "m-1", staffRole: "checker" });
+      }
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+
+    mockUseAuth.mockReturnValue(buildAuthState({
+      isAdmin: true,
+      authFetch: authFetch as any,
+      user: { sub: "admin-1", roles: ["admin"] } as any,
+    }));
+
+    render(<AdminEventosPage />);
+
+    fireEvent.click(await screen.findByText("Evento Teste"));
+
+    // Busca filtra as opções do Autocomplete (substituiu o Select grande)
+    const combobox = screen.getByRole("combobox", { name: /Membro/i });
+    fireEvent.change(combobox, { target: { value: "maria" } });
+    fireEvent.click(await screen.findByRole("option", { name: /Maria Silva \(@maria\)/ }));
+
+    // Papel padrão já é "checker" (Credenciador)
+    fireEvent.click(screen.getByRole("button", { name: /^Adicionar$/i }));
+
+    await waitFor(() => {
+      const call = authFetch.mock.calls.find(
+        ([url, options]: [string, RequestInit?]) =>
+          url.includes("/events/evt-1/staff") && options?.method === "POST",
+      );
+      expect(call).toBeDefined();
+      expect(JSON.parse(call![1]!.body as string)).toEqual({
+        memberId: "m-1",
+        staffRole: "checker",
+      });
+    });
+  });
+
   it("pré-visualização da descrição renderiza markdown", async () => {
     const authFetch = createAuthFetchMock();
     authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
