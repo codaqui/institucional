@@ -109,9 +109,21 @@ up: env-check ## Sobe todos os serviços e captura o STRIPE_WEBHOOK_SECRET autom
 	@printf "$(CYAN)→  Subindo todos os serviços...$(RESET)\n"
 	podman compose -f $(COMPOSE_FILE) up
 
-up-build: env-check ## Reconstrói as imagens e sobe (equivale ao --no-cache)
+up-build: env-check ## Reconstrói as imagens e sobe usando cache local
+	podman compose -f $(COMPOSE_FILE) build
+	$(MAKE) up
+
+up-force-build: env-check ## Reconstrói as imagens e sobe SEM usar o cache (--no-cache)
 	podman compose -f $(COMPOSE_FILE) build --no-cache
 	$(MAKE) up
+
+setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
+	@printf "$(CYAN)→  Verificando mkcert...$(RESET)\n"
+	@which mkcert > /dev/null || (printf "$(RED)✖  mkcert não instalado. No macOS: brew install mkcert nss$(RESET)\n" && exit 1)
+	@mkcert -install
+	@mkdir -p .certs
+	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
+	@printf "$(GREEN)✔  Certificados gerados em .certs/$(RESET)\n"
 
 down: ## Para e remove todos os containers
 	podman compose -f $(COMPOSE_FILE) down
