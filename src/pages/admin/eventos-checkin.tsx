@@ -326,12 +326,16 @@ export default function EventosCheckinPage(): React.JSX.Element {
 
   // Carrega a lista completa (contador de presentes) ao trocar de evento
   useEffect(() => {
-    if (!selectedEventId) return;
+    if (!selectedEventId || !canUseList) {
+      setRegistrations([]);
+      setRegsLoading(false);
+      return;
+    }
     setResult(null);
     setRegistrations([]);
     setSearchQuery("");
     fetchRegistrations(selectedEventId, "");
-  }, [selectedEventId, fetchRegistrations]);
+  }, [selectedEventId, canUseList, fetchRegistrations]);
 
   // ── Check-in ─────────────────────────────────────────────────────────────
 
@@ -384,7 +388,9 @@ export default function EventosCheckinPage(): React.JSX.Element {
           });
         }
         // Atualiza a lista (contador de presentes) sem bloquear o fluxo da porta
-        fetchRegistrations(selectedEventId, searchQuery);
+        if (canUseList) {
+          fetchRegistrations(selectedEventId, searchQuery);
+        }
       } catch {
         setResult({ kind: "invalid", message: "Erro inesperado ao confirmar presença." });
       } finally {
@@ -392,7 +398,14 @@ export default function EventosCheckinPage(): React.JSX.Element {
         setManualToken("");
       }
     },
-    [authFetch, selectedEventId, checkinLoading, fetchRegistrations, searchQuery],
+    [
+      authFetch,
+      selectedEventId,
+      checkinLoading,
+      canUseList,
+      fetchRegistrations,
+      searchQuery,
+    ],
   );
 
   // ── Câmera (qr-scanner by Nimiq) ─────────────────────────────────────────
@@ -546,10 +559,12 @@ export default function EventosCheckinPage(): React.JSX.Element {
                 color="success"
                 variant="outlined"
               />
-              <Chip
-                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`}
-                variant="outlined"
-              />
+              {canUseList && (
+                <Chip
+                  label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`}
+                  variant="outlined"
+                />
+              )}
             </Box>
 
             {/* ── Feedback do último check-in ── */}
