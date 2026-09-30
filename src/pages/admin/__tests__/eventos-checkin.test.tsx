@@ -61,7 +61,9 @@ const registration = {
   },
 };
 
-function mockAuthFetchWithEvents(extra?: (url: string, init?: RequestInit) => unknown) {
+type ExtraHandler = (url: string, init?: RequestInit) => unknown;
+
+function mockAuthFetchWithEvents(extra?: ExtraHandler) {
   return jest.fn(async (url: string, init?: RequestInit) => {
     const custom = extra?.(url, init);
     if (custom) return custom;
@@ -70,6 +72,10 @@ function mockAuthFetchWithEvents(extra?: (url: string, init?: RequestInit) => un
     return jsonResponse(null, { ok: false, status: 404 });
   });
 }
+
+/** Handler extra padrão: lista de inscrições vazia. */
+const noRegistrations: ExtraHandler = (url) =>
+  url.includes("/registrations") ? jsonResponse([]) : null;
 
 function mockMediaDevices() {
   Object.defineProperty(navigator, "mediaDevices", {
@@ -83,6 +89,50 @@ function removeMediaDevices() {
     value: undefined,
     configurable: true,
   });
+}
+
+// ---------------------------------------------------------------------------
+// Helpers de setup de página (evitam repetição entre os cenários)
+// ---------------------------------------------------------------------------
+
+function mockAuthFor(user: unknown, authFetch: unknown) {
+  mockUseAuth.mockReturnValue(
+    buildAuthState({
+      isAdmin: false,
+      authFetch: authFetch as any,
+      user: user as any,
+    }),
+  );
+}
+
+function renderAtCheckin(eventId = "evt-1") {
+  window.history.pushState({}, "", `/admin/eventos-checkin?event=${eventId}`);
+  render(<EventosCheckinPage />);
+}
+
+async function waitForRegistrationsList() {
+  await waitFor(() =>
+    expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
+  );
+}
+
+/** Setup padrão: organizador logado, evento pré-selecionado e lista carregada. */
+async function setupOrganizerPage(extra?: ExtraHandler): Promise<jest.Mock> {
+  const authFetch = mockAuthFetchWithEvents(extra ?? noRegistrations);
+  mockAuthFor(organizerUser, authFetch);
+  renderAtCheckin();
+  await waitForRegistrationsList();
+  return authFetch;
+}
+
+/** Clica em "Ativar câmera" e aguarda o scanner ficar ativo. */
+async function activateCamera() {
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
+  });
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: /Parar câmera/i })).toBeInTheDocument(),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -104,39 +154,18 @@ describe("isCameraAvailable()", () => {
 });
 
 describe("translateCameraError()", () => {
-  it("traduz NotAllowedError", () => {
-    const err = Object.assign(new Error("x"), { name: "NotAllowedError" });
-    expect(translateCameraError(err)).toMatch(/permiss/i);
-  });
+  const domError = (name: string) => Object.assign(new Error("x"), { name });
 
-  it("traduz PermissionDeniedError", () => {
-    const err = Object.assign(new Error("x"), { name: "PermissionDeniedError" });
-    expect(translateCameraError(err)).toMatch(/permiss/i);
-  });
-
-  it("traduz NotFoundError", () => {
-    const err = Object.assign(new Error("x"), { name: "NotFoundError" });
-    expect(translateCameraError(err)).toMatch(/nenhuma câmera/i);
-  });
-
-  it("traduz NotReadableError", () => {
-    const err = Object.assign(new Error("x"), { name: "NotReadableError" });
-    expect(translateCameraError(err)).toMatch(/outro aplicativo/i);
-  });
-
-  it("traduz OverconstrainedError", () => {
-    const err = Object.assign(new Error("x"), { name: "OverconstrainedError" });
-    expect(translateCameraError(err)).toMatch(/não pôde ser iniciada/i);
-  });
-
-  it("traduz AbortError", () => {
-    const err = Object.assign(new Error("x"), { name: "AbortError" });
-    expect(translateCameraError(err)).toMatch(/interrompida/i);
-  });
-
-  it("traduz CameraTimeoutError (câmera sem resposta)", () => {
-    const err = Object.assign(new Error("x"), { name: "CameraTimeoutError" });
-    expect(translateCameraError(err)).toMatch(/demorou para responder/i);
+  it.each<[string, RegExp]>([
+    ["NotAllowedError", /permiss/i],
+    ["PermissionDeniedError", /permiss/i],
+    ["NotFoundError", /nenhuma câmera/i],
+    ["NotReadableError", /outro aplicativo/i],
+    ["OverconstrainedError", /não pôde ser iniciada/i],
+    ["AbortError", /interrompida/i],
+    ["CameraTimeoutError", /demorou para responder/i],
+  ])("traduz %s", (name, expected) => {
+    expect(translateCameraError(domError(name))).toMatch(expected);
   });
 
   it("retorna mensagem genérica para erro desconhecido", () => {
@@ -168,13 +197,7 @@ describe("/admin/eventos-checkin", () => {
   // ── Acesso / autorização ─────────────────────────────────────────────────
 
   it("redireciona para home quando usuário não tem role de evento", async () => {
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: jest.fn() as any,
-        user: { sub: "u-1", roles: ["member"] } as any,
-      }),
-    );
+    mockAuthFor({ sub: "u-1", roles: ["member"] }, jest.fn());
 
     render(<EventosCheckinPage />);
 
@@ -184,20 +207,10 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("event_checker tem acesso (role de check-in)", async () => {
-    const authFetch = mockAuthFetchWithEvents((url) => {
-      if (url.includes("/registrations")) return jsonResponse([]);
-      return null;
-    });
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: checkerUser as any,
-      }),
-    );
+    const authFetch = mockAuthFetchWithEvents(noRegistrations);
+    mockAuthFor(checkerUser, authFetch);
 
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
+    renderAtCheckin();
 
     expect(await screen.findByText(/check-in/i)).toBeInTheDocument();
     expect(mockHistory.replace).not.toHaveBeenCalled();
@@ -206,7 +219,7 @@ describe("/admin/eventos-checkin", () => {
   // ── Token manual ─────────────────────────────────────────────────────────
 
   it("carrega eventos, seleciona e confirma presença via token manual", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    const authFetch = await setupOrganizerPage((url, init) => {
       if (url.includes("/events/evt-1/registrations")) return jsonResponse([registration]);
       if (url.includes("/events/evt-1/checkin") && init?.method === "POST") {
         return jsonResponse({
@@ -220,19 +233,6 @@ describe("/admin/eventos-checkin", () => {
       }
       return null;
     });
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    expect(await screen.findByText(/1 inscrito na lista/i)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Token do QR Code"), {
       target: { value: "token-abc" },
@@ -252,24 +252,13 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("exibe feedback vermelho para token inválido (404)", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    await setupOrganizerPage((url, init) => {
       if (url.includes("/events/evt-1/registrations")) return jsonResponse([]);
       if (url.includes("/events/evt-1/checkin") && init?.method === "POST") {
         return jsonResponse({ message: "Not found" }, { ok: false, status: 404 });
       }
       return null;
     });
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
 
     fireEvent.change(await screen.findByLabelText("Token do QR Code"), {
       target: { value: "token-errado" },
@@ -280,7 +269,7 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("exibe feedback laranja para presença já confirmada", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    await setupOrganizerPage((url, init) => {
       if (url.includes("/registrations")) return jsonResponse([registration]);
       if (url.includes("/checkin") && init?.method === "POST") {
         return jsonResponse({
@@ -294,17 +283,6 @@ describe("/admin/eventos-checkin", () => {
       }
       return null;
     });
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
 
     fireEvent.change(await screen.findByLabelText("Token do QR Code"), {
       target: { value: "token-abc" },
@@ -342,21 +320,9 @@ describe("/admin/eventos-checkin", () => {
       }
       return null;
     });
+    mockAuthFor(organizerUser, authFetch);
 
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState(
-      {},
-      "",
-      `/admin/eventos-checkin?event=external:${extKey}`,
-    );
-    render(<EventosCheckinPage />);
+    renderAtCheckin(`external:${extKey}`);
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith("/events/checkin-scope");
@@ -384,85 +350,24 @@ describe("/admin/eventos-checkin", () => {
   // ── Câmera: ativação ─────────────────────────────────────────────────────
 
   it("exibe botão 'Ativar câmera' quando getUserMedia está disponível", async () => {
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     expect(screen.getByRole("button", { name: /Ativar câmera/i })).toBeInTheDocument();
   });
 
   it("ativa câmera: instancia QrScanner e exibe botão 'Parar câmera'", async () => {
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
+    await setupOrganizerPage();
 
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
-    });
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /Parar câmera/i })).toBeInTheDocument(),
-    );
+    await activateCamera();
 
     expect(qrState.instance).not.toBeNull();
     expect(qrState.instance!.start).toHaveBeenCalledTimes(1);
   });
 
   it("para câmera: chama stop() e destroy() no QrScanner", async () => {
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
+    await setupOrganizerPage();
 
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
-    });
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /Parar câmera/i })).toBeInTheDocument(),
-    );
-
+    await activateCamera();
     const scannerBeforeStop = qrState.instance!;
 
     fireEvent.click(screen.getByRole("button", { name: /Parar câmera/i }));
@@ -476,23 +381,7 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("preview: wrapper oculto antes de ativar, visível com câmera ativa, oculto após parar", async () => {
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     const wrapper = () => document.getElementById("checkin-camera-preview-wrapper")!;
     const video = () => document.getElementById("checkin-camera-preview") as HTMLVideoElement;
@@ -504,13 +393,7 @@ describe("/admin/eventos-checkin", () => {
     // preview invisível mesmo com o stream ativo.
     expect(video().style.display).toBe("block");
 
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
-    });
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: /Parar câmera/i })).toBeInTheDocument(),
-    );
+    await activateCamera();
     expect(wrapper()).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: /Parar câmera/i }));
@@ -525,24 +408,7 @@ describe("/admin/eventos-checkin", () => {
     // Simula ambiente onde enumerateDevices/getUserMedia pendura (reproduzido
     // em Firefox headless sem câmera): sem timeout a UI travava em "Ativando...".
     qrState.hasCamera.mockReturnValue(new Promise(() => {}));
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     jest.useFakeTimers();
     try {
@@ -562,7 +428,7 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("dispara check-in ao receber token via QrScanner (simulateScan)", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    const authFetch = await setupOrganizerPage((url, init) => {
       if (url.includes("/registrations")) return jsonResponse([registration]);
       if (url.includes("/checkin") && init?.method === "POST") {
         return jsonResponse({
@@ -577,25 +443,7 @@ describe("/admin/eventos-checkin", () => {
       return null;
     });
 
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
-    });
-
+    await activateCamera();
     await waitFor(() => expect(qrState.instance).not.toBeNull());
 
     await act(async () => {
@@ -615,7 +463,7 @@ describe("/admin/eventos-checkin", () => {
   });
 
   it("cooldown: não dispara check-in duplicado do mesmo token em < 3s", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    const authFetch = await setupOrganizerPage((url, init) => {
       if (url.includes("/registrations")) return jsonResponse([]);
       if (url.includes("/checkin") && init?.method === "POST") {
         return jsonResponse({
@@ -630,25 +478,7 @@ describe("/admin/eventos-checkin", () => {
       return null;
     });
 
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
-
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
-    });
-
+    await activateCamera();
     await waitFor(() => expect(qrState.instance).not.toBeNull());
 
     await act(async () => {
@@ -670,24 +500,7 @@ describe("/admin/eventos-checkin", () => {
 
   it("exibe aviso quando câmera não disponível no navegador", async () => {
     removeMediaDevices();
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     expect(
       screen.getByText(/a câmera não está disponível neste navegador/i),
@@ -699,24 +512,7 @@ describe("/admin/eventos-checkin", () => {
 
   it("exibe erro quando QrScanner.hasCamera() retorna false", async () => {
     qrState.hasCamera.mockResolvedValueOnce(false);
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
@@ -756,23 +552,7 @@ describe("/admin/eventos-checkin", () => {
     ) as unknown as typeof originalDefault;
     originalMock.default.hasCamera = originalHasCamera;
 
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: mockAuthFetchWithEvents((url) => {
-          if (url.includes("/registrations")) return jsonResponse([]);
-          return null;
-        }) as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    await setupOrganizerPage();
 
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: /Ativar câmera/i }));
@@ -787,10 +567,10 @@ describe("/admin/eventos-checkin", () => {
     originalMock.default.hasCamera = originalHasCamera;
   });
 
-  // ── Lista de participantes ────────────────────────────────────────────────
+  // ── Lista de participantes ────────────────────────────────────────────
 
   it("exibe botão 'Confirmar presença' na lista e realiza check-in", async () => {
-    const authFetch = mockAuthFetchWithEvents((url, init) => {
+    const authFetch = await setupOrganizerPage((url, init) => {
       if (url.includes("/registrations")) return jsonResponse([registration]);
       if (url.includes("/checkin") && init?.method === "POST") {
         return jsonResponse({
@@ -804,17 +584,6 @@ describe("/admin/eventos-checkin", () => {
       }
       return null;
     });
-
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: organizerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
 
     expect(await screen.findByText("Participante Um")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /Confirmar presença/i }));
@@ -834,21 +603,10 @@ describe("/admin/eventos-checkin", () => {
       if (url.includes("/registrations")) return jsonResponse([registration]);
       return jsonResponse(null, { ok: false, status: 404 });
     });
+    mockAuthFor(checkerUser, authFetch);
 
-    mockUseAuth.mockReturnValue(
-      buildAuthState({
-        isAdmin: false,
-        authFetch: authFetch as any,
-        user: checkerUser as any,
-      }),
-    );
-
-    window.history.pushState({}, "", "/admin/eventos-checkin?event=evt-1");
-    render(<EventosCheckinPage />);
-
-    await waitFor(() =>
-      expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
-    );
+    renderAtCheckin();
+    await waitForRegistrationsList();
 
     expect(
       screen.queryByRole("button", { name: /Buscar participante/i }),
