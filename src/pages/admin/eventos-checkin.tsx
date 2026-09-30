@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import QrScanner from "qr-scanner";
 import Layout from "@theme/Layout";
 import { useHistory } from "@docusaurus/router";
 import Alert from "@mui/material/Alert";
@@ -100,7 +101,6 @@ function getUserRoles(user: AuthUser | null): string[] {
 }
 
 const CHECKIN_ROLES = ["admin", "event_organizer", "event_checker"];
-const LIST_ROLES = ["admin", "event_organizer", "event_host"];
 
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", {
@@ -117,8 +117,41 @@ function formatOrderStatus(status: string): string {
   return status;
 }
 
-const isBarcodeDetectorSupported = () =>
-  typeof window !== "undefined" && "BarcodeDetector" in window;
+/**
+ * Verifica se a câmera pode ser usada (getUserMedia disponível).
+ * Pode retornar false em HTTP não-seguro ou em ambientes sem câmera.
+ */
+export const isCameraAvailable = (): boolean =>
+  typeof window !== "undefined" &&
+  typeof navigator !== "undefined" &&
+  typeof navigator.mediaDevices !== "undefined" &&
+  typeof navigator.mediaDevices.getUserMedia === "function";
+
+/**
+ * Traduz erros de câmera (DOMException.name de getUserMedia) em mensagem amigável PT-BR.
+ * Exportada para facilitar testes unitários.
+ */
+export function translateCameraError(err: unknown): string {
+  if (err instanceof Error) {
+    const name = (err as DOMException).name ?? "";
+    if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+      return "Permissão de câmera negada. Toque no ícone de cadeado na barra de endereços e permita o acesso à câmera.";
+    }
+    if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+      return "Nenhuma câmera encontrada neste dispositivo.";
+    }
+    if (name === "NotReadableError" || name === "TrackStartError") {
+      return "A câmera está sendo usada por outro aplicativo. Feche-o e tente novamente.";
+    }
+    if (name === "OverconstrainedError" || name === "ConstraintNotSatisfiedError") {
+      return "A câmera não pôde ser iniciada. Tente novamente.";
+    }
+    if (name === "AbortError") {
+      return "A inicialização da câmera foi interrompida. Tente novamente.";
+    }
+  }
+  return "Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a busca manual.";
+}
 
 // ---------------------------------------------------------------------------
 // Page
@@ -148,16 +181,17 @@ export default function EventosCheckinPage(): React.JSX.Element {
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
   const [cameraError, setCameraError] = useState("");
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scanningRef = useRef(false);
-  // Cooldown para não repostar o mesmo token lido em quadros consecutivos
+  // qr-scanner instance — gerencia câmera, WebWorker e BarcodeDetector nativamente
+  const scannerRef = useRef<import("qr-scanner").default | null>(null);
+  // Cooldown: evita repostar o mesmo token em scans consecutivos (3s)
   const lastScanRef = useRef<{ token: string; at: number } | null>(null);
 
-  const barcodeSupported = isBarcodeDetectorSupported();
+  const cameraSupported = isCameraAvailable();
 
   // A lista fica habilitada por evento: admin/organizer/host/owner/ativador podem buscar;
-  // event_checker puro (ou staff checker local) ficam restritos ao scanner.
+  // event_checker puro fica restrito ao scanner.
   const selectedManaged = events.find((e) => e.id === selectedEventId);
   const selectedExternal = externalActivations.find(
     (a) => `${EXTERNAL_PREFIX}${a.eventKey}` === selectedEventId,
@@ -220,10 +254,10 @@ export default function EventosCheckinPage(): React.JSX.Element {
       setEventsLoading(true);
       try {
         const res = await authFetch("/events/checkin-scope");
-        const data = await parseAuthJson<{ managed?: ManagedEvent[]; external?: ExternalActivationItem[] }>(
-          res,
-          setLoadError,
-        );
+        const data = await parseAuthJson<{
+          managed?: ManagedEvent[];
+          external?: ExternalActivationItem[];
+        }>(res, setLoadError);
         if (!data) return;
         const manageable = (Array.isArray(data.managed) ? data.managed : []).filter(
           (e) => e.status !== "canceled" && e.status !== "cancelled",
@@ -295,7 +329,11 @@ export default function EventosCheckinPage(): React.JSX.Element {
         }
         const data = (await res.json()) as {
           status: "checked_in" | "already_checked_in";
-          registration: { attendeeName: string; attendeeEmail: string; checkedInAt: string | null };
+          registration: {
+            attendeeName: string;
+            attendeeEmail: string;
+            checkedInAt: string | null;
+          };
         };
         if (data.status === "already_checked_in") {
           setResult({
@@ -324,73 +362,81 @@ export default function EventosCheckinPage(): React.JSX.Element {
     [authFetch, selectedEventId, checkinLoading, fetchRegistrations, searchQuery],
   );
 
-  // ── Câmera (BarcodeDetector nativo, sem libs) ────────────────────────────
+  // ── Câmera (qr-scanner by Nimiq) ─────────────────────────────────────────
+  //
+  // qr-scanner abstrai toda a complexidade de câmera:
+  //   • Usa BarcodeDetector nativa (Chrome/Android) quando disponível → <1 frame latency
+  //   • Fallback via WebWorker + canvas (Safari/Firefox/Samsung) → não bloqueia a UI
+  //   • Gerencia getUserMedia, loadedmetadata, facingMode e cleanup internamente
+  //
+  // Responsabilidades que ficam aqui:
+  //   • Instanciar/destruir o QrScanner quando o usuário ativa/para a câmera
+  //   • Cooldown de 3s por token para evitar disparos duplos na mesma leitura
 
   const stopCamera = useCallback(() => {
-    scanningRef.current = false;
-    streamRef.current?.getTracks().forEach((t) => t.stop());
-    streamRef.current = null;
-    if (videoRef.current) videoRef.current.srcObject = null;
+    if (scannerRef.current) {
+      scannerRef.current.stop();
+      scannerRef.current.destroy();
+      scannerRef.current = null;
+    }
     setCameraActive(false);
   }, []);
 
   const startCamera = useCallback(async () => {
-    if (cameraStarting) return;
+    if (cameraStarting || !videoRef.current) return;
     setCameraStarting(true);
     setCameraError("");
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      // Verifica se o dispositivo tem câmera antes de instanciar
+      const hasCamera = await QrScanner.hasCamera();
+      if (!hasCamera) {
+        setCameraError("Nenhuma câmera encontrada neste dispositivo.");
+        return;
       }
-      scanningRef.current = true;
-      setCameraActive(true);
 
-      const DetectorCtor = (
-        window as unknown as {
-          BarcodeDetector: new (opts: { formats: string[] }) => {
-            detect: (source: CanvasImageSource) => Promise<Array<{ rawValue: string }>>;
-          };
-        }
-      ).BarcodeDetector;
-      const detector = new DetectorCtor({ formats: ["qr_code"] });
-
-      const scanLoop = async () => {
-        if (!scanningRef.current || !videoRef.current) return;
-        try {
-          const codes = await detector.detect(videoRef.current);
-          const token = codes[0]?.rawValue;
-          if (token) {
-            const last = lastScanRef.current;
-            const now = Date.now();
-            // Cooldown de 3s por token — leituras duplas são o caso normal na porta
-            if (last?.token !== token || now - (last?.at ?? 0) > 3000) {
-              lastScanRef.current = { token, at: now };
-              handleCheckin(token);
-            }
+      const scanner = new QrScanner(
+        videoRef.current,
+        (scanResult) => {
+          const token = scanResult.data;
+          const last = lastScanRef.current;
+          const now = Date.now();
+          // Cooldown de 3s: ignora leitura duplicada do mesmo token
+          if (last?.token !== token || now - (last?.at ?? 0) > 3000) {
+            lastScanRef.current = { token, at: now };
+            handleCheckin(token);
           }
-        } catch {
-          // Quadro sem QR ou detector ocupado — tenta o próximo
-        }
-        if (scanningRef.current) setTimeout(scanLoop, 400);
-      };
-      scanLoop();
-    } catch {
-      setCameraError(
-        "Não foi possível acessar a câmera. Verifique a permissão do navegador ou use a busca manual.",
+        },
+        {
+          // Câmera traseira preferencial (padrão mobile)
+          preferredCamera: "environment",
+          // Destaca visualmente a região de scan e o contorno do QR lido
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          returnDetailedScanResult: true,
+          // Amostragem: até 5 scans/s é suficiente para check-in em porta
+          maxScansPerSecond: 5,
+          onDecodeError: () => {
+            // Silencia erros de frame sem QR — comportamento normal durante o scan
+          },
+        },
       );
+
+      scannerRef.current = scanner;
+      await scanner.start();
+      setCameraActive(true);
+    } catch (err) {
+      setCameraError(translateCameraError(err));
       stopCamera();
     } finally {
       setCameraStarting(false);
     }
   }, [handleCheckin, stopCamera, cameraStarting]);
 
-  // Libera a câmera ao desmontar ou trocar de evento
-  useEffect(() => stopCamera, [stopCamera, selectedEventId]);
+  // Para câmera ao desmontar ou ao trocar de evento
+  useEffect(() => () => stopCamera(), [stopCamera]);
+  useEffect(() => {
+    if (selectedEventId) stopCamera();
+  }, [selectedEventId, stopCamera]);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -464,7 +510,10 @@ export default function EventosCheckinPage(): React.JSX.Element {
                 color="success"
                 variant="outlined"
               />
-              <Chip label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`} variant="outlined" />
+              <Chip
+                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`}
+                variant="outlined"
+              />
             </Box>
 
             {/* ── Feedback do último check-in ── */}
@@ -477,7 +526,8 @@ export default function EventosCheckinPage(): React.JSX.Element {
             {result?.kind === "already_checked_in" && (
               <Alert severity="warning" icon={<WarningAmberIcon />} sx={{ mb: 2 }}>
                 {result.message}
-                {result.checkedInAt && ` Check-in original: ${formatDateTime(result.checkedInAt)}.`}
+                {result.checkedInAt &&
+                  ` Check-in original: ${formatDateTime(result.checkedInAt)}.`}
               </Alert>
             )}
             {result?.kind === "invalid" && (
@@ -487,31 +537,52 @@ export default function EventosCheckinPage(): React.JSX.Element {
             )}
 
             {/* ── Leitura por câmera ── */}
-            {barcodeSupported && (
-              <Card variant="outlined" sx={{ mb: 2 }}>
-                <CardContent>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
-                    <QrCodeScannerIcon color="primary" />
-                    <Typography variant="subtitle1" fontWeight={700}>
-                      Ler QR Code pela câmera
-                    </Typography>
-                  </Box>
-                  {cameraError && <Alert severity="error" sx={{ mb: 1.5 }}>{cameraError}</Alert>}
-                  {/* Elemento único: trocar de nó quebraria o srcObject do stream */}
-                  <Box
-                    component="video"
-                    ref={videoRef}
-                    muted
-                    playsInline
-                    sx={{
-                      width: "100%",
-                      borderRadius: 2,
-                      bgcolor: "black",
-                      mb: 1.5,
-                      display: cameraActive ? "block" : "none",
-                    }}
-                  />
+            <Card variant="outlined" sx={{ mb: 2 }}>
+              <CardContent>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                  <QrCodeScannerIcon color="primary" />
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    Ler QR Code pela câmera
+                  </Typography>
+                </Box>
+
+                {/* Câmera indisponível no contexto (HTTP, iframe sem permissão, etc.) */}
+                {!cameraSupported && (
+                  <Alert severity="info" sx={{ mb: 1.5 }}>
+                    A câmera não está disponível neste navegador. Use o campo de token manual
+                    abaixo ou acesse via Chrome em um dispositivo com câmera.
+                  </Alert>
+                )}
+
+                {cameraError && (
+                  <Alert severity="error" sx={{ mb: 1.5 }}>
+                    {cameraError}
+                  </Alert>
+                )}
+
+                {/*
+                  O <video> é sempre renderizado (ref estável) para que o qr-scanner
+                  possa atribuir srcObject sem trocar de nó DOM.
+                  A lib injeta o overlay de destaque de região diretamente no elemento pai.
+                  Usamos <video> nativo para garantir que videoRef.current seja o HTMLVideoElement.
+                */}
+                <video
+                  id="checkin-camera-preview"
+                  ref={videoRef}
+                  muted
+                  playsInline
+                  style={{
+                    width: "100%",
+                    borderRadius: 8,
+                    backgroundColor: "black",
+                    marginBottom: 12,
+                    display: cameraActive ? "block" : "none",
+                  }}
+                />
+
+                {cameraSupported && (
                   <Button
+                    id="checkin-camera-toggle"
                     fullWidth
                     variant={cameraActive ? "outlined" : "contained"}
                     color={cameraActive ? "error" : "primary"}
@@ -520,11 +591,15 @@ export default function EventosCheckinPage(): React.JSX.Element {
                     startIcon={cameraActive ? <StopCircleIcon /> : <VideocamIcon />}
                     onClick={cameraActive ? stopCamera : startCamera}
                   >
-                    {cameraActive ? "Parar câmera" : cameraStarting ? "Ativando..." : "Ativar câmera"}
+                    {cameraActive
+                      ? "Parar câmera"
+                      : cameraStarting
+                        ? "Ativando..."
+                        : "Ativar câmera"}
                   </Button>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             {/* ── Token manual ── */}
             <Card variant="outlined" sx={{ mb: 2 }}>
@@ -549,7 +624,11 @@ export default function EventosCheckinPage(): React.JSX.Element {
                     disabled={!manualToken.trim() || checkinLoading}
                     onClick={() => handleCheckin(manualToken)}
                   >
-                    {checkinLoading ? <CircularProgress size={20} color="inherit" /> : "Confirmar"}
+                    {checkinLoading ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      "Confirmar"
+                    )}
                   </Button>
                 </Box>
               </CardContent>
@@ -614,20 +693,33 @@ export default function EventosCheckinPage(): React.JSX.Element {
                               <Typography variant="body2" fontWeight={700}>
                                 {reg.attendeeName ?? reg.member?.name ?? reg.attendeeEmail}
                                 {reg.payer && reg.payer.id !== reg.member?.id && (
-                                  <Typography component="span" variant="caption" color="primary.main" sx={{ ml: 1 }}>
+                                  <Typography
+                                    component="span"
+                                    variant="caption"
+                                    color="primary.main"
+                                    sx={{ ml: 1 }}
+                                  >
                                     (comprado por {reg.payer.name ?? reg.payer.githubHandle}
-                                    {reg.payer.githubHandle ? ` @${reg.payer.githubHandle}` : ""})
+                                    {reg.payer.githubHandle
+                                      ? ` @${reg.payer.githubHandle}`
+                                      : ""})
                                   </Typography>
                                 )}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" display="block">
                                 {reg.attendeeEmail}
-                                {reg.member?.githubHandle ? ` · @${reg.member.githubHandle}` : ""}
+                                {reg.member?.githubHandle
+                                  ? ` · @${reg.member.githubHandle}`
+                                  : ""}
                               </Typography>
                               <Typography variant="caption" color="text.secondary" display="block">
                                 {reg.ticketType?.name ?? "Ingresso"}
                                 {reg.order &&
-                                  ` · ${formatOrderStatus(reg.order.status)}${reg.order.paidAt ? ` · ${formatDateTime(reg.order.paidAt)}` : ""}`}
+                                  ` · ${formatOrderStatus(reg.order.status)}${
+                                    reg.order.paidAt
+                                      ? ` · ${formatDateTime(reg.order.paidAt)}`
+                                      : ""
+                                  }`}
                               </Typography>
                             </Box>
                             {reg.checkedInAt ? (
