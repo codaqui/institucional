@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T22:01:22.471Z",
+  "generatedAt": "2026-09-30T23:01:19.441Z",
   "events": [
     {
       "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
@@ -16,9 +16,9 @@
       "href": "/eventos/esquenta-devpr-conf-2026",
       "tags": [],
       "ctaLabel": "Inscrever-se",
-      "status": "scheduled",
+      "status": "active",
       "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
-      "userCount": 79
+      "userCount": 81
     }
   ]
 }
