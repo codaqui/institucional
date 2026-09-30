@@ -15,6 +15,7 @@ const CODAQUI_DEV_URL = "http://localhost:3000";
 export function isCodaquiOrigin(origin: string, siteUrl: string): boolean {
   if (origin === siteUrl) return true;
   if (origin === CODAQUI_DEV_URL) return true;
+  if (origin === "https://localhost:3000") return true;
   if (origin === "http://localhost:3030") return true; // Docusaurus alt port
   return false;
 }

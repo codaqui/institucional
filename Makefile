@@ -42,7 +42,7 @@ RED    := \033[31m
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
-        frontend-start frontend-build frontend-typecheck frontend-serve \
+        frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
         worker-dev-elasnocodigo worker-deploy-elasnocodigo \
@@ -211,6 +211,10 @@ backend-lint: ## Executa o linter e auto-corrige o backend
 # =============================================================================
 ##@ 🌐 Frontend (Docusaurus)
 # =============================================================================
+
+frontend-clean: ## Limpa o cache do Docusaurus (builds antigos e dependências temporárias)
+	npm run clear
+	rm -rf .docusaurus build
 
 frontend-start: ## Inicia o servidor de desenvolvimento do Docusaurus
 	npm start
