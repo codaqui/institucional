@@ -1,29 +1,16 @@
 ---
-
 title: "🐍 10 motivos para você participar da Python Brasil 2026"
-
 date: 2026-10-01
-
 slug: 2026/10/01/10-motivos-python-brasil-2026
-
 tags:
-
   - python
-
   - python brasil
-
   - eventos
-
   - comunidade
-
   - tecnologia
-
   - open source
-
-
 authors:
   - antoniamaia
-
 ---
 
 Há aproximadamente 5 anos atrás, no final da pandemia, comecei a pensar que talvez estudar mais, mudar de área talvez seria uma boa ideia. Foi quando mergulhei de vez no mundo da TI, aprendendo lógica de programação, compreendendo um pouco mais sobre as linguagens de programação e seus superpoderes. Nesta época, tive a sorte grande de ter uma prima muito amada que pegou na minha mão e me ajudou a dar os primeiros passos. Mas este texto não é sobre isso.
