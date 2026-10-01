@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, LessThan, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, LessThan, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -2056,7 +2056,9 @@ export class EventsService {
     });
     if (
       registration.status === RegistrationStatus.REFUNDED ||
-      registration.status === RegistrationStatus.CANCELLED
+      registration.status === RegistrationStatus.CANCELLED ||
+      registration.status === RegistrationStatus.PENDING_MATCH ||
+      registration.status === RegistrationStatus.WAITLIST
     ) {
       throw new BadRequestException(
         `Inscrição ${registration.status}: check-in não permitido.`,
@@ -2065,9 +2067,23 @@ export class EventsService {
     if (registration.checkedInAt) {
       return { status: 'already_checked_in' as const, registration: payload() };
     }
-    registration.checkedInAt = new Date();
+    const checkedInAt = new Date();
+    const updateResult = await this.registrationRepo.update(
+      { id: registration.id, checkedInAt: IsNull() },
+      { checkedInAt, checkedInByMemberId: user.sub },
+    );
+    if (!updateResult.affected) {
+      const current = await this.registrationRepo.findOneBy({
+        id: registration.id,
+      });
+      if (current?.checkedInAt) {
+        registration.checkedInAt = current.checkedInAt;
+        return { status: 'already_checked_in' as const, registration: payload() };
+      }
+      throw new ConflictException('Não foi possível confirmar o check-in.');
+    }
+    registration.checkedInAt = checkedInAt;
     registration.checkedInByMemberId = user.sub;
-    await this.registrationRepo.save(registration);
 
     void this.auditService.log({
       action: AuditAction.EVENT_CHECKIN,
@@ -2980,9 +2996,11 @@ export class EventsService {
   async checkinExternal(eventKey: string, token: string, user: JwtPayload) {
     const activation = await this.findActivationOrFail(eventKey);
     EventsService.assertFeature(activation, 'checkin');
-    await this.assertExternalManager(user, activation, {
-      allowActivator: true,
-    });
+    if (!user.roles?.includes(MemberRole.EVENT_CHECKER)) {
+      await this.assertExternalManager(user, activation, {
+        allowActivator: true,
+      });
+    }
 
     const registration = await this.registrationRepo.findOneBy({
       externalActivationId: activation.id,

@@ -1486,4 +1486,73 @@ describe('EventsService', () => {
       expect(result.external).toHaveLength(0);
     });
   });
+
+  describe('check-in', () => {
+    it('permite event_checker global em evento externo sem liberar a lista', async () => {
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devparana:abc123',
+        features: ['checkin'],
+        enabledByMemberId: uuid(5),
+      };
+      const registration = {
+        id: uuid(40),
+        externalActivationId: activation.id,
+        checkinToken: 'token-1',
+        attendeeName: 'Participante',
+        attendeeEmail: 'participante@example.com',
+        checkedInAt: null,
+        status: RegistrationStatus.CONFIRMED,
+      };
+      const checker = user({ roles: ['membro', 'event_checker'] });
+      activationRepo.findOneBy.mockResolvedValue(activation);
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+
+      const result = await service.checkinExternal(
+        activation.eventKey,
+        'token-1',
+        checker,
+      );
+
+      expect(result.status).toBe('checked_in');
+      expect(eventOrganizerService.assertCanManage).not.toHaveBeenCalled();
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        { id: registration.id, checkedInAt: expect.anything() },
+        expect.objectContaining({ checkedInByMemberId: checker.sub }),
+      );
+    });
+
+    it.each([
+      RegistrationStatus.REFUNDED,
+      RegistrationStatus.CANCELLED,
+      RegistrationStatus.PENDING_MATCH,
+      RegistrationStatus.WAITLIST,
+    ])('recusa inscrição com status %s', async (status) => {
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devparana:abc123',
+        features: ['checkin'],
+        enabledByMemberId: uuid(5),
+      };
+      activationRepo.findOneBy.mockResolvedValue(activation);
+      registrationRepo.findOneBy.mockResolvedValue({
+        id: uuid(40),
+        externalActivationId: activation.id,
+        checkinToken: 'token-1',
+        attendeeName: 'Participante',
+        attendeeEmail: 'participante@example.com',
+        checkedInAt: null,
+        status,
+      });
+
+      await expect(
+        service.checkinExternal(
+          activation.eventKey,
+          'token-1',
+          user({ roles: ['admin'] }),
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
+  });
 });

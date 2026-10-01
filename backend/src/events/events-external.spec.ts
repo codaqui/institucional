@@ -126,6 +126,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       save: jest.fn((r) =>
         Promise.resolve(Array.isArray(r) ? r : { id: uuid(40), ...r }),
       ),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(),
     };
     staffRepo = { findBy: jest.fn().mockResolvedValue([]) };
@@ -796,7 +797,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       const registration = makeRegistration({
         eventId: null,
         externalActivationId: uuid(70),
-        status: RegistrationStatus.PENDING_MATCH,
+        status: RegistrationStatus.CONFIRMED,
         memberId: null,
       });
       registrationRepo.findOneBy.mockResolvedValue(registration);

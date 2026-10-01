@@ -214,6 +214,9 @@ describe("/admin/eventos-checkin", () => {
 
     expect(await screen.findByText(/check-in/i)).toBeInTheDocument();
     expect(mockHistory.replace).not.toHaveBeenCalled();
+    expect(
+      authFetch.mock.calls.some(([url]) => url.includes("/registrations")),
+    ).toBe(false);
   });
 
   // ── Token manual ─────────────────────────────────────────────────────────
@@ -436,7 +439,7 @@ describe("/admin/eventos-checkin", () => {
           registration: {
             attendeeName: "Participante Um",
             attendeeEmail: "um@example.com",
-            checkedInAt: null,
+            checkedInAt: "2026-08-10T18:05:00.000Z",
           },
         });
       }
@@ -471,7 +474,7 @@ describe("/admin/eventos-checkin", () => {
           registration: {
             attendeeName: "Test",
             attendeeEmail: "t@t.com",
-            checkedInAt: null,
+            checkedInAt: "2026-08-10T18:05:00.000Z",
           },
         });
       }
@@ -606,11 +609,14 @@ describe("/admin/eventos-checkin", () => {
     mockAuthFor(checkerUser, authFetch);
 
     renderAtCheckin();
-    await waitForRegistrationsList();
+    expect(await screen.findByText("Ler QR Code pela câmera")).toBeInTheDocument();
 
     expect(
       screen.queryByRole("button", { name: /Buscar participante/i }),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Participante Um")).not.toBeInTheDocument();
+    expect(
+      authFetch.mock.calls.some(([url]) => url.includes("/registrations")),
+    ).toBe(false);
   });
 });
