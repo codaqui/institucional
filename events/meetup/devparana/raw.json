@@ -1,6 +1,37 @@
 {
-  "generatedAt": "2026-10-01T01:29:48.264Z",
+  "generatedAt": "2026-10-01T02:13:10.727Z",
   "events": [
+    {
+      "id": "316756948",
+      "title": "[DevPR Francisco Beltrão] 2º Happy Hour",
+      "summary": "Um encontro para devs que acreditam que as melhores ideias surgem fora do escritório e longe do Slack. Sem palestras engessadas, sem pitch: só gente de tecnologia trocando experiências, falando de carreira, projetos, er…",
+      "startAt": "2026-09-30T19:30:00-03:00",
+      "endAt": "2026-09-30T22:30:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Elch Bier · R. Bela Vista, 417 - Cango, Francisco Beltrão - PR, 85604-060, Brazil · Cango · PR",
+      "href": "https://www.meetup.com/developerparana/events/316756948/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 9,
+      "creatorName": "Geovane Norbert",
+      "creatorId": "370171009",
+      "organizers": [
+        {
+          "name": "Gabriel Prando",
+          "id": "370530343"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/7/d/a/highres_536366586.jpeg"
+    },
     {
       "id": "316573355",
       "title": "[DevPR Guarapuava] Meetup 29/09",
@@ -78,37 +109,6 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/f/b/c/highres_536164028.jpeg"
-    },
-    {
-      "id": "316756948",
-      "title": "[DevPR Francisco Beltrão] 2º Happy Hour",
-      "summary": "Um encontro para devs que acreditam que as melhores ideias surgem fora do escritório e longe do Slack. Sem palestras engessadas, sem pitch: só gente de tecnologia trocando experiências, falando de carreira, projetos, er…",
-      "startAt": "2026-09-30T19:30:00-03:00",
-      "endAt": "2026-09-30T22:30:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Meetup",
-      "host": "Dev Paraná",
-      "location": "Elch Bier · R. Bela Vista, 417 - Cango, Francisco Beltrão - PR, 85604-060, Brazil · Cango · PR",
-      "href": "https://www.meetup.com/developerparana/events/316756948/",
-      "tags": [
-        "meetup",
-        "devparana",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento no Meetup",
-      "featured": false,
-      "status": "active",
-      "entityType": "external",
-      "userCount": 9,
-      "creatorName": "Geovane Norbert",
-      "creatorId": "370171009",
-      "organizers": [
-        {
-          "name": "Gabriel Prando",
-          "id": "370530343"
-        }
-      ],
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/7/d/a/highres_536366586.jpeg"
     },
     {
       "id": "315991184",
