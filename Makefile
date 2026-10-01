@@ -75,8 +75,8 @@ help: ## Exibe esta mensagem de ajuda
 setup: ## Prepara o ambiente: cria .env e instala dependências
 	@if [ ! -f $(ENV_FILE) ]; then \
 	    cp $(ENV_EXAMPLE) $(ENV_FILE); \
-	    DB_PASS=$$(openssl rand -hex 16); \
-	    JWT=$$(openssl rand -hex 64); \
+	    DB_PASS=$$(openssl rand -hex 16 || echo "") && [ -n "$$DB_PASS" ] || { echo "Erro ao gerar DB_PASSWORD com openssl"; exit 1; }; \
+	    JWT=$$(openssl rand -hex 64 || echo "") && [ -n "$$JWT" ] || { echo "Erro ao gerar JWT_SECRET com openssl"; exit 1; }; \
 	    sed -i.bak "s|^DB_PASSWORD=.*|DB_PASSWORD=$$DB_PASS|" $(ENV_FILE); \
 	    sed -i.bak "s|^JWT_SECRET=.*|JWT_SECRET=$$JWT|" $(ENV_FILE); \
 	    rm -f $(ENV_FILE).bak; \
@@ -108,14 +108,14 @@ env-check: ## Valida se o .env existe (usado internamente por outros targets)
 	    printf "$(RED)✖  Arquivo .env não encontrado. Execute: make setup$(RESET)\n"; \
 	    exit 1; \
 	fi
-	@if grep -q "STRIPE_SECRET_KEY=sk_test_COLE_SUA_CHAVE_AQUI" $(ENV_FILE) || ! grep -q "STRIPE_SECRET_KEY=" $(ENV_FILE); then \
+	@if grep -q "STRIPE_SECRET_KEY=sk_test_COLE_SUA_CHAVE_AQUI" $(ENV_FILE) || grep -qE "^STRIPE_SECRET_KEY=$$" $(ENV_FILE) || ! grep -q "STRIPE_SECRET_KEY" $(ENV_FILE); then \
 	    printf "$(YELLOW)⚠  STRIPE_SECRET_KEY ausente ou com valor padrão. O serviço stripe-cli irá falhar/não subir corretamente.$(RESET)\n"; \
 	fi
-	@if grep -q "DISCORD_BOT_TOKEN=COLE_SEU_TOKEN_AQUI" $(ENV_FILE) || ! grep -q "DISCORD_BOT_TOKEN=" $(ENV_FILE); then \
+	@if grep -q "DISCORD_BOT_TOKEN=COLE_SEU_TOKEN_AQUI" $(ENV_FILE) || grep -qE "^DISCORD_BOT_TOKEN=$$" $(ENV_FILE) || ! grep -q "DISCORD_BOT_TOKEN" $(ENV_FILE); then \
 	    printf "$(YELLOW)⚠  DISCORD_BOT_TOKEN ausente. O sync de eventos do Discord usará snapshots.$(RESET)\n"; \
 	fi
-	@if grep -q "GITHUB_CLIENT_ID=COLE_AQUI" $(ENV_FILE) || grep -q "GITHUB_CLIENT_SECRET=COLE_AQUI" $(ENV_FILE); then \
-	    printf "$(YELLOW)⚠  GITHUB_CLIENT_ID/SECRET não configurados. Autenticação via GitHub não funcionará.$(RESET)\n"; \
+	@if grep -q "GITHUB_CLIENT_ID=COLE_AQUI" $(ENV_FILE) || grep -qE "^GITHUB_CLIENT_ID=$$" $(ENV_FILE) || grep -q "GITHUB_CLIENT_SECRET=COLE_AQUI" $(ENV_FILE) || grep -qE "^GITHUB_CLIENT_SECRET=$$" $(ENV_FILE); then \
+	    printf "$(YELLOW)⚠  GITHUB_CLIENT_ID/SECRET não configurados ou com valores padrão. Autenticação via GitHub não funcionará.$(RESET)\n"; \
 	fi
 
 # =============================================================================
@@ -151,10 +151,8 @@ setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
 	@mkdir -p .certs
 	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
 	@sed -i.bak "s|^HTTPS=.*|HTTPS=true|" $(ENV_FILE)
-	@sed -i.bak "s|^BACKEND_URL=http://|BACKEND_URL=https://|" $(ENV_FILE)
-	@sed -i.bak "s|^FRONTEND_URL=http://|FRONTEND_URL=https://|" $(ENV_FILE)
 	@rm -f $(ENV_FILE).bak
-	@printf "$(GREEN)✔  Certificados gerados em .certs/ e .env atualizado para usar HTTPS.$(RESET)\n"
+	@printf "$(GREEN)✔  Certificados gerados em .certs/ e HTTPS ativado no .env.$(RESET)\n"
 
 down: ## Para e remove todos os containers
 	podman compose -f $(COMPOSE_FILE) down
