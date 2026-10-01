@@ -61,7 +61,10 @@ describe('EventsModule DI', () => {
         { provide: getRepositoryToken(EventRegistration), useValue: dummyRepo },
         { provide: getRepositoryToken(EventStaff), useValue: dummyRepo },
         { provide: getRepositoryToken(Member), useValue: dummyRepo },
-        { provide: getRepositoryToken(ExternalEventActivation), useValue: dummyRepo },
+        {
+          provide: getRepositoryToken(ExternalEventActivation),
+          useValue: dummyRepo,
+        },
         { provide: getRepositoryToken(Transaction), useValue: dummyRepo },
         { provide: StripeService, useValue: dummyService },
         { provide: LedgerService, useValue: dummyService },

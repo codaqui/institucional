@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration017ReimbursementEventLink1785370582491
-  implements MigrationInterface
-{
+export class Migration017ReimbursementEventLink1785370582491 implements MigrationInterface {
   name = 'Migration017ReimbursementEventLink1785370582491';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -27,9 +25,7 @@ export class Migration017ReimbursementEventLink1785370582491
     await queryRunner.query(
       `DROP INDEX "IDX_reimbursement_requests_externalActivationId"`,
     );
-    await queryRunner.query(
-      `DROP INDEX "IDX_reimbursement_requests_eventId"`,
-    );
+    await queryRunner.query(`DROP INDEX "IDX_reimbursement_requests_eventId"`);
     await queryRunner.query(
       `ALTER TABLE "reimbursement_requests" DROP COLUMN "eventMetadata"`,
     );

@@ -421,13 +421,17 @@ export class VendorsService {
       registeredByUserId,
     });
 
-    const saved = await this.persistWithLedger(this.paymentRepo, payment, (s) => ({
-      sourceAccountId: dto.sourceAccountId,
-      destinationAccountId: vendor.accountId,
-      amountBrl: dto.amount / 100,
-      description: `Pagamento a fornecedor: ${vendor.name} — ${dto.description}`,
-      referenceId: `vendor-payment:${s.id}`,
-    }));
+    const saved = await this.persistWithLedger(
+      this.paymentRepo,
+      payment,
+      (s) => ({
+        sourceAccountId: dto.sourceAccountId,
+        destinationAccountId: vendor.accountId,
+        amountBrl: dto.amount / 100,
+        description: `Pagamento a fornecedor: ${vendor.name} — ${dto.description}`,
+        referenceId: `vendor-payment:${s.id}`,
+      }),
+    );
 
     return this.paymentRepo.findOneOrFail({ where: { id: saved.id } });
   }
@@ -498,13 +502,17 @@ export class VendorsService {
       registeredByUserId,
     });
 
-    const saved = await this.persistWithLedger(this.receiptRepo, receipt, (s) => ({
-      sourceAccountId: vendor.accountId,
-      destinationAccountId: dto.destinationAccountId,
-      amountBrl: dto.amount / 100,
-      description: `Recebimento de fornecedor: ${vendor.name} — ${dto.description}`,
-      referenceId: `vendor-receipt:${s.id}`,
-    }));
+    const saved = await this.persistWithLedger(
+      this.receiptRepo,
+      receipt,
+      (s) => ({
+        sourceAccountId: vendor.accountId,
+        destinationAccountId: dto.destinationAccountId,
+        amountBrl: dto.amount / 100,
+        description: `Recebimento de fornecedor: ${vendor.name} — ${dto.description}`,
+        referenceId: `vendor-receipt:${s.id}`,
+      }),
+    );
 
     return this.receiptRepo.findOneOrFail({ where: { id: saved.id } });
   }

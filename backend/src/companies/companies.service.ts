@@ -9,7 +9,15 @@ import {
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, LessThan, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  FindOptionsWhere,
+  In,
+  IsNull,
+  LessThan,
+  Repository,
+} from 'typeorm';
 import Stripe from 'stripe';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
@@ -56,26 +64,42 @@ export class CompaniesService {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
   }
 
-  private normalizePagination(page = DEFAULT_PAGE, limit = DEFAULT_LIMIT): { page: number; limit: number; skip: number } {
-    const safePage = Number.isFinite(page) && page > 0 ? Math.floor(page) : DEFAULT_PAGE;
-    const requestedLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : DEFAULT_LIMIT;
+  private normalizePagination(
+    page = DEFAULT_PAGE,
+    limit = DEFAULT_LIMIT,
+  ): { page: number; limit: number; skip: number } {
+    const safePage =
+      Number.isFinite(page) && page > 0 ? Math.floor(page) : DEFAULT_PAGE;
+    const requestedLimit =
+      Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : DEFAULT_LIMIT;
     const safeLimit = Math.min(requestedLimit, MAX_LIMIT);
-    return { page: safePage, limit: safeLimit, skip: (safePage - 1) * safeLimit };
+    return {
+      page: safePage,
+      limit: safeLimit,
+      skip: (safePage - 1) * safeLimit,
+    };
   }
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
-  async register(dto: CreateCompanyDto, responsibleMemberId: string): Promise<Company> {
+  async register(
+    dto: CreateCompanyDto,
+    responsibleMemberId: string,
+  ): Promise<Company> {
     validateCnpj(dto.cnpj);
 
-    const exists = await this.companyRepo.findOne({ where: { cnpj: dto.cnpj } });
+    const exists = await this.companyRepo.findOne({
+      where: { cnpj: dto.cnpj },
+    });
     if (exists) throw new ConflictException('CNPJ já cadastrado');
 
     const alreadyResponsible = await this.companyRepo.findOne({
       where: { responsibleMemberId },
     });
     if (alreadyResponsible)
-      throw new ConflictException('Este membro já é responsável por uma empresa');
+      throw new ConflictException(
+        'Este membro já é responsável por uma empresa',
+      );
 
     return this.companyRepo.save(
       this.companyRepo.create({
@@ -106,12 +130,16 @@ export class CompaniesService {
   }
 
   async findByMember(memberId: string): Promise<Company | null> {
-    return this.companyRepo.findOne({ where: { responsibleMemberId: memberId } });
+    return this.companyRepo.findOne({
+      where: { responsibleMemberId: memberId },
+    });
   }
 
   /** Retorna empresas onde o membro é colaborador (não responsável) */
   async findCollaborations(memberId: string): Promise<Company[]> {
-    const member = await this.memberEntityRepo.findOne({ where: { id: memberId } });
+    const member = await this.memberEntityRepo.findOne({
+      where: { id: memberId },
+    });
     if (!member) return [];
     const memberships = await this.memberRepo
       .createQueryBuilder('membership')
@@ -178,7 +206,9 @@ export class CompaniesService {
 
     const member = await this.memberEntityRepo
       .createQueryBuilder('member')
-      .where('LOWER(member."githubHandle") = :handle', { handle: normalizedHandle })
+      .where('LOWER(member."githubHandle") = :handle', {
+        handle: normalizedHandle,
+      })
       .andWhere('member."isActive" = true')
       .getOne();
     if (!member) return null;
@@ -193,7 +223,9 @@ export class CompaniesService {
 
     const memberships = await this.memberRepo
       .createQueryBuilder('membership')
-      .where('LOWER(LTRIM(membership."memberId", \'@\')) = :handle', { handle: normalizedHandle })
+      .where('LOWER(LTRIM(membership."memberId", \'@\')) = :handle', {
+        handle: normalizedHandle,
+      })
       .getMany();
     if (memberships.length === 0) return null;
 
@@ -215,23 +247,27 @@ export class CompaniesService {
   }
 
   async findAllAdmin(): Promise<
-    (
-      Company & {
-        responsibleGithubHandle: string | null;
-        sortCoinBalance: number;
-        totalSupportedReais: number;
-        supportCount: number;
-        monthsSupporting: number;
-      }
-    )[]
+    (Company & {
+      responsibleGithubHandle: string | null;
+      sortCoinBalance: number;
+      totalSupportedReais: number;
+      supportCount: number;
+      monthsSupporting: number;
+    })[]
   > {
-    const companies = await this.companyRepo.find({ order: { createdAt: 'DESC' } });
-    const metrics = await this.loadSupportMetricsByCompanyIds(companies.map((c) => c.id));
+    const companies = await this.companyRepo.find({
+      order: { createdAt: 'DESC' },
+    });
+    const metrics = await this.loadSupportMetricsByCompanyIds(
+      companies.map((c) => c.id),
+    );
     return Promise.all(
       companies.map(async (c) => {
         const [member, wallet] = await Promise.all([
           c.responsibleMemberId
-            ? this.memberEntityRepo.findOne({ where: { id: c.responsibleMemberId } })
+            ? this.memberEntityRepo.findOne({
+                where: { id: c.responsibleMemberId },
+              })
             : Promise.resolve(null),
           this.walletRepo.findOne({ where: { companyId: c.id } }),
         ]);
@@ -256,21 +292,23 @@ export class CompaniesService {
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
   ): Promise<{
-    items: (
-      Company & {
-        responsibleGithubHandle: string | null;
-        sortCoinBalance: number;
-        totalSupportedReais: number;
-        supportCount: number;
-        monthsSupporting: number;
-      }
-    )[];
+    items: (Company & {
+      responsibleGithubHandle: string | null;
+      sortCoinBalance: number;
+      totalSupportedReais: number;
+      supportCount: number;
+      monthsSupporting: number;
+    })[];
     total: number;
     page: number;
     limit: number;
   }> {
     const all = await this.findAllAdmin();
-    const { page: safePage, limit: safeLimit, skip } = this.normalizePagination(page, limit);
+    const {
+      page: safePage,
+      limit: safeLimit,
+      skip,
+    } = this.normalizePagination(page, limit);
     return {
       items: all.slice(skip, skip + safeLimit),
       total: all.length,
@@ -286,7 +324,15 @@ export class CompaniesService {
     return this.companyRepo.save(company);
   }
 
-  async listSponsors(): Promise<Array<Company & { totalSupportedReais: number; supportCount: number; monthsSupporting: number }>> {
+  async listSponsors(): Promise<
+    Array<
+      Company & {
+        totalSupportedReais: number;
+        supportCount: number;
+        monthsSupporting: number;
+      }
+    >
+  > {
     const sponsors = await this.companyRepo.find({
       where: { status: CompanyStatus.ACTIVE },
       order: { createdAt: 'ASC' },
@@ -317,13 +363,23 @@ export class CompaniesService {
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
   ): Promise<{
-    items: Array<Company & { totalSupportedReais: number; supportCount: number; monthsSupporting: number }>;
+    items: Array<
+      Company & {
+        totalSupportedReais: number;
+        supportCount: number;
+        monthsSupporting: number;
+      }
+    >;
     total: number;
     page: number;
     limit: number;
   }> {
     const all = await this.listSponsors();
-    const { page: safePage, limit: safeLimit, skip } = this.normalizePagination(page, limit);
+    const {
+      page: safePage,
+      limit: safeLimit,
+      skip,
+    } = this.normalizePagination(page, limit);
     return {
       items: all.slice(skip, skip + safeLimit),
       total: all.length,
@@ -353,9 +409,9 @@ export class CompaniesService {
    * Resolve membros CLUB Business (responsáveis + colaboradores) para empresas específicas.
    * Usado pelo Stripe para retornar badges públicas alinhadas às assinaturas empresariais.
    */
-  async listBusinessMembersForCompanyIds(companyIds: string[]): Promise<
-    Array<{ memberId: string; role: 'owner' | 'collaborator' }>
-  > {
+  async listBusinessMembersForCompanyIds(
+    companyIds: string[],
+  ): Promise<Array<{ memberId: string; role: 'owner' | 'collaborator' }>> {
     const uniqueCompanyIds = [...new Set(companyIds.filter(Boolean))];
     if (uniqueCompanyIds.length === 0) return [];
 
@@ -375,12 +431,14 @@ export class CompaniesService {
       where: { companyId: In(scopedCompanyIds) },
       select: ['memberId'],
     });
-    const collaboratorHandles = [...new Set(
-      collaboratorLinks
-        .map((link) => link.memberId)
-        .map((memberId) => memberId.trim().replace(/^@/, '').toLowerCase())
-        .filter(Boolean),
-    )];
+    const collaboratorHandles = [
+      ...new Set(
+        collaboratorLinks
+          .map((link) => link.memberId)
+          .map((memberId) => memberId.trim().replace(/^@/, '').toLowerCase())
+          .filter(Boolean),
+      ),
+    ];
 
     const collaboratorMembers = collaboratorHandles.length
       ? await this.memberEntityRepo.find({
@@ -396,7 +454,10 @@ export class CompaniesService {
       role: 'collaborator' as const,
     }));
 
-    const byMemberId = new Map<string, { memberId: string; role: 'owner' | 'collaborator' }>();
+    const byMemberId = new Map<
+      string,
+      { memberId: string; role: 'owner' | 'collaborator' }
+    >();
     for (const row of [...ownerRows, ...collaboratorRows]) {
       const previous = byMemberId.get(row.memberId);
       if (previous?.role !== 'owner') {
@@ -458,7 +519,9 @@ export class CompaniesService {
       throw new BadRequestException('month deve estar no formato YYYY-MM');
     }
 
-    const [year, monthIdx] = targetMonth.split('-').map((v) => Number.parseInt(v, 10));
+    const [year, monthIdx] = targetMonth
+      .split('-')
+      .map((v) => Number.parseInt(v, 10));
     const start = new Date(year, monthIdx - 1, 1);
     const end = new Date(year, monthIdx, 1);
     const startUnix = Math.floor(start.getTime() / 1000);
@@ -485,8 +548,12 @@ export class CompaniesService {
       invoice = invoices.data[0];
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erro desconhecido';
-      this.logger.error(`Falha ao buscar faturas Stripe para ${companyId}: ${message}`);
-      throw new BadRequestException('Não foi possível consultar faturas Stripe');
+      this.logger.error(
+        `Falha ao buscar faturas Stripe para ${companyId}: ${message}`,
+      );
+      throw new BadRequestException(
+        'Não foi possível consultar faturas Stripe',
+      );
     }
 
     if (!invoice) {
@@ -496,7 +563,9 @@ export class CompaniesService {
     }
 
     const responsible = company.responsibleMemberId
-      ? await this.memberEntityRepo.findOne({ where: { id: company.responsibleMemberId } })
+      ? await this.memberEntityRepo.findOne({
+          where: { id: company.responsibleMemberId },
+        })
       : null;
 
     const amountBRL = (invoice.amount_paid ?? 0) / 100;
@@ -564,19 +633,25 @@ export class CompaniesService {
     } else if (tracking.status !== status) {
       tracking.status = status;
       tracking.statusChangedAt = now;
-      tracking.stripeSubscriptionId = stripeSubscriptionId ?? tracking.stripeSubscriptionId;
+      tracking.stripeSubscriptionId =
+        stripeSubscriptionId ?? tracking.stripeSubscriptionId;
     } else {
-      tracking.stripeSubscriptionId = stripeSubscriptionId ?? tracking.stripeSubscriptionId;
+      tracking.stripeSubscriptionId =
+        stripeSubscriptionId ?? tracking.stripeSubscriptionId;
     }
 
     if (isActive) {
       tracking.frozenAt = null;
       await this.unfreezeWallet(companyId);
-      const company = await this.companyRepo.findOne({ where: { id: companyId } });
+      const company = await this.companyRepo.findOne({
+        where: { id: companyId },
+      });
       if (company && company.status !== CompanyStatus.ACTIVE) {
         // Ativação manual continua sendo a única forma de virar ACTIVE.
         // Removemos estados degragados deixando a empresa como PENDING.
-        await this.companyRepo.update(companyId, { status: CompanyStatus.PENDING });
+        await this.companyRepo.update(companyId, {
+          status: CompanyStatus.PENDING,
+        });
       }
     }
 
@@ -612,7 +687,8 @@ export class CompaniesService {
           `Carteira congelada por past_due > 3 dias: company=${tracking.companyId}`,
         );
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Erro desconhecido';
+        const message =
+          err instanceof Error ? err.message : 'Erro desconhecido';
         this.logger.error(
           `Falha ao congelar empresa ${tracking.companyId} por past_due: ${message}`,
         );
@@ -620,7 +696,10 @@ export class CompaniesService {
     }
   }
 
-  private async unfreezeWallet(companyId: string, coinType = DEFAULT_COIN): Promise<void> {
+  private async unfreezeWallet(
+    companyId: string,
+    coinType = DEFAULT_COIN,
+  ): Promise<void> {
     const wallet = await this.getOrCreateWallet(companyId);
     if (wallet.frozenTypes.includes(coinType)) {
       wallet.frozenTypes = wallet.frozenTypes.filter((t) => t !== coinType);
@@ -631,17 +710,26 @@ export class CompaniesService {
   // ── Stripe lifecycle ──────────────────────────────────────────────────────
 
   /** Chamado após criação de checkout session Stripe (salva customerId) */
-  async setStripeCustomer(companyId: string, stripeCustomerId: string): Promise<void> {
+  async setStripeCustomer(
+    companyId: string,
+    stripeCustomerId: string,
+  ): Promise<void> {
     await this.companyRepo.update(companyId, { stripeCustomerId });
   }
 
   /** Salva o stripeSubscriptionId na empresa */
-  async setStripeSubscription(companyId: string, stripeSubscriptionId: string): Promise<void> {
+  async setStripeSubscription(
+    companyId: string,
+    stripeSubscriptionId: string,
+  ): Promise<void> {
     await this.companyRepo.update(companyId, { stripeSubscriptionId });
   }
 
   /** Persiste o valor configurado da recorrência da empresa (centavos). */
-  async setSubscriptionAmount(companyId: string, subscriptionAmountCents: number): Promise<void> {
+  async setSubscriptionAmount(
+    companyId: string,
+    subscriptionAmountCents: number,
+  ): Promise<void> {
     await this.companyRepo.update(companyId, { subscriptionAmountCents });
   }
 
@@ -688,7 +776,12 @@ export class CompaniesService {
     }
 
     const coins = Math.floor(amountReais * SORT_COINS_PER_REAL);
-    await this.creditCoins(company.id, coins, CompanyWalletTxSource.STRIPE_INVOICE, referenceId);
+    await this.creditCoins(
+      company.id,
+      coins,
+      CompanyWalletTxSource.STRIPE_INVOICE,
+      referenceId,
+    );
 
     // Descongela carteira se o pagamento voltou a ficar em dia; ativação da
     // empresa continua manual (não alteramos status para ACTIVE aqui).
@@ -701,7 +794,9 @@ export class CompaniesService {
   }
 
   /** Suspende empresa ao cancelar assinatura */
-  async suspendFromSubscriptionDeleted(stripeSubscriptionId: string): Promise<void> {
+  async suspendFromSubscriptionDeleted(
+    stripeSubscriptionId: string,
+  ): Promise<void> {
     const company = await this.companyRepo.findOne({
       where: { stripeSubscriptionId },
     });
@@ -728,7 +823,8 @@ export class CompaniesService {
 
   async getWallet(companyId: string): Promise<CompanyWallet> {
     const wallet = await this.walletRepo.findOne({ where: { companyId } });
-    if (!wallet) throw new NotFoundException('Carteira da empresa não encontrada');
+    if (!wallet)
+      throw new NotFoundException('Carteira da empresa não encontrada');
     return wallet;
   }
 
@@ -736,9 +832,18 @@ export class CompaniesService {
     companyId: string,
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
-  ): Promise<{ items: CompanyWalletTransaction[]; total: number; page: number; limit: number }> {
+  ): Promise<{
+    items: CompanyWalletTransaction[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const wallet = await this.getWallet(companyId);
-    const { page: safePage, limit: safeLimit, skip } = this.normalizePagination(page, limit);
+    const {
+      page: safePage,
+      limit: safeLimit,
+      skip,
+    } = this.normalizePagination(page, limit);
     const [items, total] = await this.txRepo.findAndCount({
       where: { walletId: wallet.id },
       order: { createdAt: 'DESC' },
@@ -831,17 +936,26 @@ export class CompaniesService {
   ): Promise<CompanyWalletTransaction> {
     if (amount === 0) throw new BadRequestException('Ajuste não pode ser zero');
     const wallet = await this.getOrCreateWallet(companyId);
-    return this.applyBalance(wallet.id, amount, coinType, CompanyWalletTxSource.MANUAL_ADMIN, null, description);
+    return this.applyBalance(
+      wallet.id,
+      amount,
+      coinType,
+      CompanyWalletTxSource.MANUAL_ADMIN,
+      null,
+      description,
+    );
   }
 
   // ── helpers privados ──────────────────────────────────────────────────────
 
-  private async loadSupportMetricsByCompanyIds(
-    companyIds: string[],
-  ): Promise<
+  private async loadSupportMetricsByCompanyIds(companyIds: string[]): Promise<
     Map<
       string,
-      { totalSupportedReais: number; supportCount: number; monthsSupporting: number }
+      {
+        totalSupportedReais: number;
+        supportCount: number;
+        monthsSupporting: number;
+      }
     >
   > {
     if (companyIds.length === 0) return new Map();
@@ -859,7 +973,9 @@ export class CompaniesService {
       )
       .innerJoin(CompanyWallet, 'w', 'w.id = tx."walletId"')
       .where('w."companyId" IN (:...companyIds)', { companyIds })
-      .andWhere('tx.source = :source', { source: CompanyWalletTxSource.STRIPE_INVOICE })
+      .andWhere('tx.source = :source', {
+        source: CompanyWalletTxSource.STRIPE_INVOICE,
+      })
       .andWhere('tx."coinType" = :coinType', { coinType: DEFAULT_COIN })
       .groupBy('w."companyId"')
       .getRawMany<{
@@ -870,7 +986,10 @@ export class CompaniesService {
 
     return new Map(
       rows.map((row) => {
-        const totalSupportedReais = Number.parseInt(row.totalSupportedReais ?? '0', 10);
+        const totalSupportedReais = Number.parseInt(
+          row.totalSupportedReais ?? '0',
+          10,
+        );
         const supportCount = Number.parseInt(row.supportCount ?? '0', 10);
         return [
           row.companyId,
@@ -893,7 +1012,14 @@ export class CompaniesService {
     description?: string,
   ): Promise<void> {
     const wallet = await this.getOrCreateWallet(companyId);
-    await this.applyBalance(wallet.id, coins, coinType, source, referenceId, description);
+    await this.applyBalance(
+      wallet.id,
+      coins,
+      coinType,
+      source,
+      referenceId,
+      description,
+    );
   }
 
   private async applyBalance(
@@ -963,7 +1089,10 @@ export class CompaniesService {
     });
   }
 
-  private async freezeWallet(companyId: string, coinType = DEFAULT_COIN): Promise<void> {
+  private async freezeWallet(
+    companyId: string,
+    coinType = DEFAULT_COIN,
+  ): Promise<void> {
     const wallet = await this.getOrCreateWallet(companyId);
     if (!wallet.frozenTypes.includes(coinType)) {
       wallet.frozenTypes = [...wallet.frozenTypes, coinType];
@@ -1000,8 +1129,12 @@ export class CompaniesService {
       ([githubHandle, amount]) => ({ githubHandle, amount }),
     );
 
-    const totalToDistribute = normalizedDistributions.reduce((s, d) => s + d.amount, 0);
-    if (totalToDistribute <= 0) throw new BadRequestException('Valor total deve ser positivo');
+    const totalToDistribute = normalizedDistributions.reduce(
+      (s, d) => s + d.amount,
+      0,
+    );
+    if (totalToDistribute <= 0)
+      throw new BadRequestException('Valor total deve ser positivo');
 
     const [responsibleMember, collaborators] = await Promise.all([
       this.memberEntityRepo.findOne({
@@ -1019,7 +1152,9 @@ export class CompaniesService {
 
     const allowedHandles = new Set<string>([
       responsibleMember.githubHandle.toLowerCase(),
-      ...collaborators.map((collaborator) => collaborator.memberId.toLowerCase()),
+      ...collaborators.map((collaborator) =>
+        collaborator.memberId.toLowerCase(),
+      ),
     ]);
     const invalidRecipients = normalizedDistributions
       .map((dist) => dist.githubHandle)
@@ -1101,7 +1236,10 @@ export class CompaniesService {
       throw error;
     }
 
-    return { distributed: totalToDistribute, recipients: normalizedDistributions.length };
+    return {
+      distributed: totalToDistribute,
+      recipients: normalizedDistributions.length,
+    };
   }
 
   // ── Colaboradores ─────────────────────────────────────────────────────────
@@ -1110,7 +1248,11 @@ export class CompaniesService {
     return this.memberRepo.find({ where: { companyId } });
   }
 
-  async addCollaborator(companyId: string, githubHandle: string, requesterMemberId: string): Promise<CompanyMember> {
+  async addCollaborator(
+    companyId: string,
+    githubHandle: string,
+    requesterMemberId: string,
+  ): Promise<CompanyMember> {
     await this.findOwned(companyId, requesterMemberId);
 
     const normalizedHandle = githubHandle.trim().toLowerCase();
@@ -1119,7 +1261,9 @@ export class CompaniesService {
     }
 
     // garante que o responsável não adiciona a si mesmo pelo handle
-    const requester = await this.memberEntityRepo.findOne({ where: { id: requesterMemberId } });
+    const requester = await this.memberEntityRepo.findOne({
+      where: { id: requesterMemberId },
+    });
     if (requester?.githubHandle.toLowerCase() === normalizedHandle) {
       throw new BadRequestException('O responsável já tem acesso à empresa');
     }
@@ -1129,11 +1273,18 @@ export class CompaniesService {
     });
     if (existing) throw new ConflictException('Colaborador já adicionado');
 
-    const entry = this.memberRepo.create({ companyId, memberId: normalizedHandle });
+    const entry = this.memberRepo.create({
+      companyId,
+      memberId: normalizedHandle,
+    });
     return this.memberRepo.save(entry);
   }
 
-  async removeCollaborator(companyId: string, collaboratorId: string, requesterMemberId: string): Promise<void> {
+  async removeCollaborator(
+    companyId: string,
+    collaboratorId: string,
+    requesterMemberId: string,
+  ): Promise<void> {
     await this.findOwned(companyId, requesterMemberId);
     await this.memberRepo.delete({ id: collaboratorId, companyId });
   }
@@ -1141,11 +1292,16 @@ export class CompaniesService {
   /** Retorna true se o membro é responsável ou colaborador da empresa.
    * memberId é o UUID do JWT; colaboradores são armazenados por githubHandle.
    */
-  async isMemberOfCompany(companyId: string, memberId: string): Promise<boolean> {
+  async isMemberOfCompany(
+    companyId: string,
+    memberId: string,
+  ): Promise<boolean> {
     const company = await this.findById(companyId);
     if (company.responsibleMemberId === memberId) return true;
     // resolve UUID → githubHandle para checar na tabela company_members
-    const member = await this.memberEntityRepo.findOne({ where: { id: memberId } });
+    const member = await this.memberEntityRepo.findOne({
+      where: { id: memberId },
+    });
     if (!member) return false;
     const collab = await this.memberRepo
       .createQueryBuilder('membership')
@@ -1161,7 +1317,10 @@ export class CompaniesService {
     return !!collab;
   }
 
-  private async findOwned(companyId: string, memberId: string): Promise<Company> {
+  private async findOwned(
+    companyId: string,
+    memberId: string,
+  ): Promise<Company> {
     const company = await this.findById(companyId);
     if (company.responsibleMemberId !== memberId)
       throw new BadRequestException('Sem permissão para esta empresa');
@@ -1175,8 +1334,7 @@ export function validateCnpj(cnpj: string): void {
     throw new BadRequestException('CNPJ inválido (deve conter 14 dígitos)');
 
   // rejeita sequências como 00000000000000
-  if (/^(\d)\1{13}$/.test(cnpj))
-    throw new BadRequestException('CNPJ inválido');
+  if (/^(\d)\1{13}$/.test(cnpj)) throw new BadRequestException('CNPJ inválido');
 
   const calc = (digits: string, weights: number[]): number => {
     const sum = digits
@@ -1192,8 +1350,13 @@ export function validateCnpj(cnpj: string): void {
   const d1 = calc(cnpj.slice(0, 12), weights1);
   const d2 = calc(cnpj.slice(0, 13), weights2);
 
-  if (d1 !== Number.parseInt(cnpj[12], 10) || d2 !== Number.parseInt(cnpj[13], 10))
-    throw new BadRequestException('CNPJ inválido (dígitos verificadores incorretos)');
+  if (
+    d1 !== Number.parseInt(cnpj[12], 10) ||
+    d2 !== Number.parseInt(cnpj[13], 10)
+  )
+    throw new BadRequestException(
+      'CNPJ inválido (dígitos verificadores incorretos)',
+    );
 }
 
 export function formatCnpj(cnpj: string): string {

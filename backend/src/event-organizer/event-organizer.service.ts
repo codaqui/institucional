@@ -9,9 +9,7 @@ import { MembersService } from '../members/members.service';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from '../members/entities/member.entity';
 import { EventOrganizerOwnershipService } from './event-organizer-ownership.service';
-import type {
-  ExtendDataDto,
-} from './dto/upsert-override.dto';
+import type { ExtendDataDto } from './dto/upsert-override.dto';
 
 export interface OwnershipEntry {
   memberId: string;
@@ -107,9 +105,7 @@ export class EventOrganizerService {
     const scopes = await this.ownershipService.getOwnedScopes(user);
     const exactScope = `${sourceKey}:${eventId}`;
     const wildcardScope = `${sourceKey}:*`;
-    const owned = scopes.some(
-      (s) => s === exactScope || s === wildcardScope,
-    );
+    const owned = scopes.some((s) => s === exactScope || s === wildcardScope);
     if (!owned) {
       throw new ForbiddenException('Sem ownership sobre este evento ou fonte.');
     }
@@ -146,9 +142,7 @@ export class EventOrganizerService {
     this.assertSpeakersField(ext);
   }
 
-  private static assertNoForbiddenFields(
-    ext: Record<string, unknown>,
-  ): void {
+  private static assertNoForbiddenFields(ext: Record<string, unknown>): void {
     for (const key of FORBIDDEN_EXTEND_FIELDS) {
       if (key in ext) {
         throw new BadRequestException(`Campo proibido: extendData.${key}`);
@@ -156,9 +150,7 @@ export class EventOrganizerService {
     }
   }
 
-  private static assertStringAndUrlFields(
-    ext: Record<string, unknown>,
-  ): void {
+  private static assertStringAndUrlFields(ext: Record<string, unknown>): void {
     for (const field of [...STRING_EXTEND_FIELDS, ...URL_EXTEND_FIELDS]) {
       if (ext[field] !== undefined && typeof ext[field] !== 'string') {
         throw new BadRequestException(

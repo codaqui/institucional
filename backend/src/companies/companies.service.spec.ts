@@ -1,8 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { CompaniesService, formatCnpj, validateCnpj } from './companies.service';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CompaniesService,
+  formatCnpj,
+  validateCnpj,
+} from './companies.service';
 import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import { CompanyMember } from './entities/company-member.entity';
@@ -21,35 +29,33 @@ const WALLET_ID = 'cccc0000-cccc-cccc-cccc-000000000001';
 // CNPJ válido para testes (gerado com algoritmo): 11.222.333/0001-81
 const VALID_CNPJ = '11222333000181';
 
-const makeCompany = (overrides: Partial<Company> = {}): Company =>
-  ({
-    id: COMPANY_ID,
-    cnpj: VALID_CNPJ,
-    name: 'Empresa Teste Ltda',
-    tradeName: null,
-    logoUrl: null,
-    websiteUrl: null,
-    status: CompanyStatus.PENDING,
-    responsibleMemberId: MEMBER_ID,
-    stripeCustomerId: null,
-    stripeSubscriptionId: null,
-    subscriptionAmountCents: 20000,
-    showOnSponsorsPage: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  });
+const makeCompany = (overrides: Partial<Company> = {}): Company => ({
+  id: COMPANY_ID,
+  cnpj: VALID_CNPJ,
+  name: 'Empresa Teste Ltda',
+  tradeName: null,
+  logoUrl: null,
+  websiteUrl: null,
+  status: CompanyStatus.PENDING,
+  responsibleMemberId: MEMBER_ID,
+  stripeCustomerId: null,
+  stripeSubscriptionId: null,
+  subscriptionAmountCents: 20000,
+  showOnSponsorsPage: false,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
 
-const makeWallet = (): CompanyWallet =>
-  ({
-    id: WALLET_ID,
-    companyId: COMPANY_ID,
-    balances: { sort_coin: 50 },
-    frozenTypes: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    company: null as any,
-  });
+const makeWallet = (): CompanyWallet => ({
+  id: WALLET_ID,
+  companyId: COMPANY_ID,
+  balances: { sort_coin: 50 },
+  frozenTypes: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  company: null as any,
+});
 
 const makeMockEm = (balances?: Record<string, number>) => {
   const wallet = makeWallet();
@@ -79,7 +85,9 @@ describe('validateCnpj', () => {
   });
 
   it('rejects non-digit string', () => {
-    expect(() => validateCnpj('11.222.333/0001-81')).toThrow(BadRequestException);
+    expect(() => validateCnpj('11.222.333/0001-81')).toThrow(
+      BadRequestException,
+    );
   });
 
   it('rejects all-same digits', () => {
@@ -167,17 +175,25 @@ describe('CompaniesService', () => {
     };
 
     dataSource = { transaction: jest.fn() };
-    clubService = { creditDistribution: jest.fn().mockResolvedValue(undefined) };
+    clubService = {
+      creditDistribution: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CompaniesService,
         { provide: getRepositoryToken(Company), useValue: companyRepo },
         { provide: getRepositoryToken(CompanyWallet), useValue: walletRepo },
-        { provide: getRepositoryToken(CompanyWalletTransaction), useValue: txRepo },
+        {
+          provide: getRepositoryToken(CompanyWalletTransaction),
+          useValue: txRepo,
+        },
         { provide: getRepositoryToken(CompanyMember), useValue: memberRepo },
         { provide: getRepositoryToken(Member), useValue: memberEntityRepo },
-        { provide: getRepositoryToken(CompanySubscriptionTracking), useValue: subscriptionTrackingRepo },
+        {
+          provide: getRepositoryToken(CompanySubscriptionTracking),
+          useValue: subscriptionTrackingRepo,
+        },
         { provide: DataSource, useValue: dataSource },
         { provide: ClubService, useValue: clubService },
       ],
@@ -272,7 +288,10 @@ describe('CompaniesService', () => {
     });
 
     it('returns empty array when member has no memberships', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'octocat' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'octocat',
+      });
       const qb = {
         where: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([]),
@@ -283,7 +302,10 @@ describe('CompaniesService', () => {
     });
 
     it('returns companies for collaborator memberships', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'octocat' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'octocat',
+      });
       const qb = {
         where: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([{ companyId: COMPANY_ID }]),
@@ -300,7 +322,10 @@ describe('CompaniesService', () => {
   describe('findPublicInfo', () => {
     it('returns public info with responsible handle', async () => {
       companyRepo.findOne.mockResolvedValue(makeCompany());
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'owner' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'owner',
+      });
 
       const result = await service.findPublicInfo(COMPANY_ID);
       expect(result).toEqual(
@@ -327,7 +352,10 @@ describe('CompaniesService', () => {
         stripeCustomerId: 'cus_123',
       });
       companyRepo.findOne.mockResolvedValue(company);
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, name: 'João da Silva' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        name: 'João da Silva',
+      });
 
       const stripeList = jest.fn().mockResolvedValue({
         data: [
@@ -351,7 +379,10 @@ describe('CompaniesService', () => {
         expect.objectContaining({
           subscription: 'sub_123',
           status: 'paid',
-          created: expect.objectContaining({ gte: expect.any(Number), lt: expect.any(Number) }),
+          created: expect.objectContaining({
+            gte: expect.any(Number),
+            lt: expect.any(Number),
+          }),
         }),
       );
     });
@@ -363,13 +394,17 @@ describe('CompaniesService', () => {
         invoices: { list: jest.fn().mockResolvedValue({ data: [] }) },
       };
 
-      await expect(service.getReceipt(COMPANY_ID, '2025-07')).rejects.toThrow(NotFoundException);
+      await expect(service.getReceipt(COMPANY_ID, '2025-07')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('throws BadRequestException when company has no stripe subscription or customer', async () => {
       companyRepo.findOne.mockResolvedValue(makeCompany());
 
-      await expect(service.getReceipt(COMPANY_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.getReceipt(COMPANY_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -416,9 +451,7 @@ describe('CompaniesService', () => {
         id: MEMBER_ID,
         githubHandle: 'maintainer',
       });
-      walletRepo.findOne.mockResolvedValue(
-        makeWallet(),
-      );
+      walletRepo.findOne.mockResolvedValue(makeWallet());
 
       const qb = {
         select: jest.fn().mockReturnThis(),
@@ -428,7 +461,11 @@ describe('CompaniesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '500', supportCount: '1' },
+          {
+            companyId: COMPANY_ID,
+            totalSupportedReais: '500',
+            supportCount: '1',
+          },
         ]),
       };
       txRepo.createQueryBuilder.mockReturnValue(qb);
@@ -479,7 +516,9 @@ describe('CompaniesService', () => {
 
   describe('listSponsors', () => {
     it('returns only active companies with support metrics', async () => {
-      const sponsors = [makeCompany({ status: CompanyStatus.ACTIVE, showOnSponsorsPage: true })];
+      const sponsors = [
+        makeCompany({ status: CompanyStatus.ACTIVE, showOnSponsorsPage: true }),
+      ];
       companyRepo.find.mockResolvedValue(sponsors);
       const qb = {
         select: jest.fn().mockReturnThis(),
@@ -489,7 +528,11 @@ describe('CompaniesService', () => {
         andWhere: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '1250', supportCount: '6' },
+          {
+            companyId: COMPANY_ID,
+            totalSupportedReais: '1250',
+            supportCount: '6',
+          },
         ]),
       };
       txRepo.createQueryBuilder.mockReturnValue(qb);
@@ -522,13 +565,24 @@ describe('CompaniesService', () => {
 
   describe('activateFromInvoice', () => {
     it('keeps company status unchanged and credits coins', async () => {
-      const company = makeCompany({ status: CompanyStatus.PENDING, stripeSubscriptionId: null });
-      companyRepo.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(company);
+      const company = makeCompany({
+        status: CompanyStatus.PENDING,
+        stripeSubscriptionId: null,
+      });
+      companyRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(company);
       walletRepo.findOne.mockResolvedValue(null);
-      walletRepo.create.mockReturnValue({ companyId: COMPANY_ID, balances: {}, frozenTypes: [] });
+      walletRepo.create.mockReturnValue({
+        companyId: COMPANY_ID,
+        balances: {},
+        frozenTypes: [],
+      });
       walletRepo.save.mockResolvedValue(makeWallet());
 
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 0,
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
@@ -536,7 +590,12 @@ describe('CompaniesService', () => {
         }),
       );
 
-      await service.activateFromInvoice('sub_123', 'cus_abc', 20, 'stripe-pi:pi_123');
+      await service.activateFromInvoice(
+        'sub_123',
+        'cus_abc',
+        20,
+        'stripe-pi:pi_123',
+      );
 
       expect(companyRepo.update).not.toHaveBeenCalledWith(
         COMPANY_ID,
@@ -552,18 +611,27 @@ describe('CompaniesService', () => {
       const company = makeCompany({ status: CompanyStatus.PENDING });
       companyRepo.findOne.mockResolvedValueOnce(company);
       walletRepo.findOne.mockResolvedValue(null);
-      walletRepo.create.mockReturnValue({ companyId: COMPANY_ID, balances: {}, frozenTypes: [] });
+      walletRepo.create.mockReturnValue({
+        companyId: COMPANY_ID,
+        balances: {},
+        frozenTypes: [],
+      });
       walletRepo.save.mockResolvedValue(makeWallet());
 
       const { txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
-            e === CompanyWallet ? { createQueryBuilder: jest.fn().mockReturnValue({
-              setLock: jest.fn().mockReturnThis(),
-              where: jest.fn().mockReturnThis(),
-              getOne: jest.fn().mockResolvedValue(makeWallet()),
-            }), save: jest.fn((entity) => Promise.resolve(entity)) } : emTxRepo,
+            e === CompanyWallet
+              ? {
+                  createQueryBuilder: jest.fn().mockReturnValue({
+                    setLock: jest.fn().mockReturnThis(),
+                    where: jest.fn().mockReturnThis(),
+                    getOne: jest.fn().mockResolvedValue(makeWallet()),
+                  }),
+                  save: jest.fn((entity) => Promise.resolve(entity)),
+                }
+              : emTxRepo,
         }),
       );
 
@@ -601,14 +669,11 @@ describe('CompaniesService', () => {
 
       await service.suspendFromSubscriptionDeleted('sub_123');
 
-      expect(companyRepo.update).toHaveBeenCalledWith(
-        COMPANY_ID,
-        {
-          status: CompanyStatus.SUSPENDED,
-          stripeSubscriptionId: null,
-          subscriptionAmountCents: 0,
-        },
-      );
+      expect(companyRepo.update).toHaveBeenCalledWith(COMPANY_ID, {
+        status: CompanyStatus.SUSPENDED,
+        stripeSubscriptionId: null,
+        subscriptionAmountCents: 0,
+      });
     });
 
     it('does nothing when subscription not found', async () => {
@@ -648,7 +713,9 @@ describe('CompaniesService', () => {
       };
       subscriptionTrackingRepo.findOne.mockResolvedValue(tracking);
       walletRepo.findOne.mockResolvedValue(makeWallet());
-      companyRepo.findOne.mockResolvedValue(makeCompany({ status: CompanyStatus.PAST_DUE }));
+      companyRepo.findOne.mockResolvedValue(
+        makeCompany({ status: CompanyStatus.PAST_DUE }),
+      );
 
       await service.trackSubscriptionStatus(COMPANY_ID, 'sub_123', 'active');
 
@@ -730,7 +797,9 @@ describe('CompaniesService', () => {
 
     it('throws NotFoundException when wallet does not exist', async () => {
       walletRepo.findOne.mockResolvedValue(null);
-      await expect(service.getWallet(COMPANY_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.getWallet(COMPANY_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('returns paginated company transactions', async () => {
@@ -759,7 +828,9 @@ describe('CompaniesService', () => {
 
   describe('debitForRaffle', () => {
     it('deducts coins and saves transaction', async () => {
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 100 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 100,
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
@@ -781,7 +852,9 @@ describe('CompaniesService', () => {
     });
 
     it('throws when balance insufficient', async () => {
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 5 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 5,
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
@@ -823,12 +896,13 @@ describe('CompaniesService', () => {
         service.debitForRaffle(WALLET_ID, 10, 'raffle-id'),
       ).rejects.toThrow(BadRequestException);
     });
-
   });
 
   describe('refundFromRaffle', () => {
     it('refunds coins and records transaction', async () => {
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 40 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 40,
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
@@ -956,7 +1030,11 @@ describe('CompaniesService', () => {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([
-          { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
+          {
+            id: 'member-collab',
+            githubHandle: 'collaborator',
+            isActive: true,
+          },
         ]),
       };
       memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
@@ -971,7 +1049,8 @@ describe('CompaniesService', () => {
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
+          getRepository: (e: any) =>
+            e === CompanyWallet ? emWalletRepo : emTxRepo,
         }),
       );
 
@@ -1007,7 +1086,8 @@ describe('CompaniesService', () => {
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
+          getRepository: (e: any) =>
+            e === CompanyWallet ? emWalletRepo : emTxRepo,
         }),
       );
 
@@ -1031,7 +1111,10 @@ describe('CompaniesService', () => {
       companyRepo.findOne.mockResolvedValue(
         makeCompany({ id: COMPANY_ID, responsibleMemberId: MEMBER_ID }),
       );
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'owner' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'owner',
+      });
 
       await expect(
         service.addCollaborator(COMPANY_ID, 'owner', MEMBER_ID),
@@ -1042,7 +1125,10 @@ describe('CompaniesService', () => {
       companyRepo.findOne.mockResolvedValue(
         makeCompany({ id: COMPANY_ID, responsibleMemberId: MEMBER_ID }),
       );
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'owner' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'owner',
+      });
       memberRepo.findOne.mockResolvedValue({ id: 'collab-1' });
 
       await expect(
@@ -1054,12 +1140,27 @@ describe('CompaniesService', () => {
       companyRepo.findOne.mockResolvedValue(
         makeCompany({ id: COMPANY_ID, responsibleMemberId: MEMBER_ID }),
       );
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'owner' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'owner',
+      });
       memberRepo.findOne.mockResolvedValue(null);
-      memberRepo.create.mockReturnValue({ id: 'c1', companyId: COMPANY_ID, memberId: 'collab' });
-      memberRepo.save.mockResolvedValue({ id: 'c1', companyId: COMPANY_ID, memberId: 'collab' });
+      memberRepo.create.mockReturnValue({
+        id: 'c1',
+        companyId: COMPANY_ID,
+        memberId: 'collab',
+      });
+      memberRepo.save.mockResolvedValue({
+        id: 'c1',
+        companyId: COMPANY_ID,
+        memberId: 'collab',
+      });
 
-      const result = await service.addCollaborator(COMPANY_ID, 'collab', MEMBER_ID);
+      const result = await service.addCollaborator(
+        COMPANY_ID,
+        'collab',
+        MEMBER_ID,
+      );
       expect(result).toEqual(expect.objectContaining({ memberId: 'collab' }));
     });
 
@@ -1111,7 +1212,10 @@ describe('CompaniesService', () => {
       companyRepo.findOne.mockResolvedValue(
         makeCompany({ id: COMPANY_ID, responsibleMemberId: 'owner-uuid' }),
       );
-      memberEntityRepo.findOne.mockResolvedValue({ id: MEMBER_ID, githubHandle: 'octocat' });
+      memberEntityRepo.findOne.mockResolvedValue({
+        id: MEMBER_ID,
+        githubHandle: 'octocat',
+      });
       const qb = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -1135,10 +1239,16 @@ describe('CompaniesService', () => {
 
     it('creates wallet and credits', async () => {
       walletRepo.findOne.mockResolvedValue(null);
-      walletRepo.create.mockReturnValue({ companyId: COMPANY_ID, balances: {}, frozenTypes: [] });
+      walletRepo.create.mockReturnValue({
+        companyId: COMPANY_ID,
+        balances: {},
+        frozenTypes: [],
+      });
       walletRepo.save.mockResolvedValue(makeWallet());
 
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 0,
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
         cb({
           getRepository: (e: any) =>
@@ -1159,7 +1269,9 @@ describe('CompaniesService', () => {
 
     it('returns existing tx on duplicate key (idempotent path)', async () => {
       walletRepo.findOne.mockResolvedValue(makeWallet());
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 0,
+      });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce({ id: 'existing-company-tx' });
       dataSource.transaction.mockImplementation(async (cb: any) =>
@@ -1169,13 +1281,20 @@ describe('CompaniesService', () => {
         }),
       );
 
-      const result = await service.manualAdjust(COMPANY_ID, 10, 'sort_coin', 'dup');
+      const result = await service.manualAdjust(
+        COMPANY_ID,
+        10,
+        'sort_coin',
+        'dup',
+      );
       expect(result).toEqual({ id: 'existing-company-tx' });
     });
 
     it('throws ConflictException when duplicate has no existing tx', async () => {
       walletRepo.findOne.mockResolvedValue(makeWallet());
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        sort_coin: 0,
+      });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce(null);
       dataSource.transaction.mockImplementation(async (cb: any) =>

@@ -38,7 +38,10 @@ export class CompaniesController {
     user: JwtPayload,
   ): Promise<void> {
     if (user.roles?.includes(MemberRole.ADMIN)) return;
-    const allowed = await this.companiesService.isMemberOfCompany(companyId, user.sub);
+    const allowed = await this.companiesService.isMemberOfCompany(
+      companyId,
+      user.sub,
+    );
     if (!allowed) throw new ForbiddenException('Sem permissão');
   }
 
@@ -71,10 +74,7 @@ export class CompaniesController {
   // ── Pública: patrocinadores (antes das rotas com :id para não ser capturada) ──
 
   @Get('sponsors')
-  async listSponsors(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
+  async listSponsors(@Query('page') page = '1', @Query('limit') limit = '20') {
     return this.companiesService.listSponsorsPaginated(
       Number.parseInt(page, 10),
       Number.parseInt(limit, 10),
@@ -138,10 +138,7 @@ export class CompaniesController {
   @Get(':id/wallet')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  async getWallet(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: Request,
-  ) {
+  async getWallet(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     const user = req.user as JwtPayload;
     await this.assertCompanyAccess(id, user);
     return this.companiesService.getOrCreateWallet(id);
@@ -186,7 +183,11 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
-    return this.companiesService.distributeCoins(id, body.distributions, user.sub);
+    return this.companiesService.distributeCoins(
+      id,
+      body.distributions,
+      user.sub,
+    );
   }
 
   // ── Colaboradores ─────────────────────────────────────────────────────────
@@ -212,7 +213,11 @@ export class CompaniesController {
     @Req() req: Request,
   ) {
     const user = req.user as JwtPayload;
-    return this.companiesService.addCollaborator(id, body.githubHandle, user.sub);
+    return this.companiesService.addCollaborator(
+      id,
+      body.githubHandle,
+      user.sub,
+    );
   }
 
   @Delete(':id/members/:memberId')
@@ -234,10 +239,7 @@ export class CompaniesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(MemberRole.ADMIN)
   @ApiBearerAuth()
-  async adminList(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
+  async adminList(@Query('page') page = '1', @Query('limit') limit = '20') {
     return this.companiesService.findAllAdminPaginated(
       Number.parseInt(page, 10),
       Number.parseInt(limit, 10),

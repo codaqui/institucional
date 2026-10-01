@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration015EventOrderCreatedAt1775163746266
-  implements MigrationInterface
-{
+export class Migration015EventOrderCreatedAt1775163746266 implements MigrationInterface {
   name = 'Migration015EventOrderCreatedAt1775163746266';
 
   async up(queryRunner: QueryRunner): Promise<void> {

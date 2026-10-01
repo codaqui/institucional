@@ -471,7 +471,8 @@ export class EventsController {
 
   @Get('external/:eventKey/ticket-types')
   @ApiOperation({
-    summary: 'Tipos de ingresso ATIVOS do evento externo (público; exige feature payments)',
+    summary:
+      'Tipos de ingresso ATIVOS do evento externo (público; exige feature payments)',
   })
   listExternalTicketTypes(@Param('eventKey') eventKey: string) {
     return this.eventsService.listExternalTicketTypes(eventKey);
@@ -481,7 +482,8 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: '🔒 Todos os tipos de ingresso do evento externo (incl. inativos) [owner/admin]',
+    summary:
+      '🔒 Todos os tipos de ingresso do evento externo (incl. inativos) [owner/admin]',
   })
   listExternalTicketTypesManage(
     @Param('eventKey') eventKey: string,
@@ -494,7 +496,8 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: '🔒 Criar tipo de ingresso no evento externo (exige feature payments) [owner/admin]',
+    summary:
+      '🔒 Criar tipo de ingresso no evento externo (exige feature payments) [owner/admin]',
   })
   createExternalTicketType(
     @Param('eventKey') eventKey: string,
@@ -508,7 +511,8 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: '🔒 Atualizar tipo de ingresso de evento externo (parcial, incl. isActive) [owner/admin]',
+    summary:
+      '🔒 Atualizar tipo de ingresso de evento externo (parcial, incl. isActive) [owner/admin]',
   })
   updateExternalTicketType(
     @Param('id', ParseUUIDPipe) id: string,
@@ -522,7 +526,8 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: 'Checkout de ingressos de evento externo (Stripe — exige acceptTerms e feature payments)',
+    summary:
+      'Checkout de ingressos de evento externo (Stripe — exige acceptTerms e feature payments)',
   })
   checkoutExternal(
     @Param('eventKey') eventKey: string,
