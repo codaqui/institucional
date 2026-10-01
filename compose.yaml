@@ -15,6 +15,11 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - codaqui-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${DB_USER:-codaqui} -d $${DB_NAME:-codaqui_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   backend:
     build:
@@ -43,9 +48,15 @@ services:
     volumes:
       - ./.certs:/app/.certs:ro
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - codaqui-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/ || wget -qO- --no-check-certificate https://localhost:3000/ || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   docusaurus:
     build:
@@ -82,7 +93,8 @@ services:
       STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_DEVICE_NAME: codaqui-dev
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - codaqui-network
 
