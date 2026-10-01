@@ -75,7 +75,13 @@ help: ## Exibe esta mensagem de ajuda
 setup: ## Prepara o ambiente: cria .env e instala dependências
 	@if [ ! -f $(ENV_FILE) ]; then \
 	    cp $(ENV_EXAMPLE) $(ENV_FILE); \
-	    printf "$(YELLOW)⚠  .env criado a partir de .env.example — preencha os segredos antes de subir.$(RESET)\n"; \
+	    DB_PASS=$$(openssl rand -hex 16); \
+	    JWT=$$(openssl rand -hex 64); \
+	    sed -i.bak "s|^DB_PASSWORD=.*|DB_PASSWORD=$$DB_PASS|" $(ENV_FILE); \
+	    sed -i.bak "s|^JWT_SECRET=.*|JWT_SECRET=$$JWT|" $(ENV_FILE); \
+	    rm -f $(ENV_FILE).bak; \
+	    printf "$(YELLOW)⚠  .env criado a partir de .env.example.$(RESET)\n"; \
+	    printf "$(GREEN)✔  DB_PASSWORD e JWT_SECRET gerados automaticamente.$(RESET)\n"; \
 	else \
 	    printf "$(GREEN)✔  .env já existe.$(RESET)\n"; \
 	fi
@@ -83,12 +89,33 @@ setup: ## Prepara o ambiente: cria .env e instala dependências
 	npm install
 	@printf "$(CYAN)→  Instalando dependências do backend...$(RESET)\n"
 	cd $(BACKEND_DIR) && npm install
-	@printf "$(GREEN)✔  Setup concluído. Edite o .env e execute: make up$(RESET)\n"
+	@if which mkcert > /dev/null; then \
+	    printf "$(CYAN)→  mkcert encontrado. Tentando configurar HTTPS automaticamente...$(RESET)\n"; \
+	    $(MAKE) setup-https; \
+	else \
+	    printf "$(YELLOW)⚠  mkcert não encontrado. O ambiente rodará em HTTP.\n    Para HTTPS local, instale mkcert e rode: make setup-https$(RESET)\n"; \
+	fi
+	@printf "\n$(YELLOW)========================================================================$(RESET)\n"
+	@printf "$(YELLOW)⚠  IMPORTANTE: Não se esqueça de preencher os segredos no arquivo .env:$(RESET)\n"
+	@printf "$(YELLOW)   - STRIPE_SECRET_KEY$(RESET)\n"
+	@printf "$(YELLOW)   - DISCORD_BOT_TOKEN$(RESET)\n"
+	@printf "$(YELLOW)   - GITHUB_CLIENT_ID e GITHUB_CLIENT_SECRET$(RESET)\n"
+	@printf "$(YELLOW)========================================================================$(RESET)\n"
+	@printf "$(GREEN)✔  Setup concluído. Preencha os segredos e execute: make up$(RESET)\n"
 
 env-check: ## Valida se o .env existe (usado internamente por outros targets)
 	@if [ ! -f $(ENV_FILE) ]; then \
 	    printf "$(RED)✖  Arquivo .env não encontrado. Execute: make setup$(RESET)\n"; \
 	    exit 1; \
+	fi
+	@if grep -q "STRIPE_SECRET_KEY=sk_test_COLE_SUA_CHAVE_AQUI" $(ENV_FILE) || ! grep -q "STRIPE_SECRET_KEY=" $(ENV_FILE); then \
+	    printf "$(YELLOW)⚠  STRIPE_SECRET_KEY ausente ou com valor padrão. O serviço stripe-cli irá falhar/não subir corretamente.$(RESET)\n"; \
+	fi
+	@if grep -q "DISCORD_BOT_TOKEN=COLE_SEU_TOKEN_AQUI" $(ENV_FILE) || ! grep -q "DISCORD_BOT_TOKEN=" $(ENV_FILE); then \
+	    printf "$(YELLOW)⚠  DISCORD_BOT_TOKEN ausente. O sync de eventos do Discord usará snapshots.$(RESET)\n"; \
+	fi
+	@if grep -q "GITHUB_CLIENT_ID=COLE_AQUI" $(ENV_FILE) || grep -q "GITHUB_CLIENT_SECRET=COLE_AQUI" $(ENV_FILE); then \
+	    printf "$(YELLOW)⚠  GITHUB_CLIENT_ID/SECRET não configurados. Autenticação via GitHub não funcionará.$(RESET)\n"; \
 	fi
 
 # =============================================================================
@@ -123,7 +150,11 @@ setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
 	@mkcert -install
 	@mkdir -p .certs
 	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
-	@printf "$(GREEN)✔  Certificados gerados em .certs/$(RESET)\n"
+	@sed -i.bak "s|^HTTPS=.*|HTTPS=true|" $(ENV_FILE)
+	@sed -i.bak "s|^BACKEND_URL=http://|BACKEND_URL=https://|" $(ENV_FILE)
+	@sed -i.bak "s|^FRONTEND_URL=http://|FRONTEND_URL=https://|" $(ENV_FILE)
+	@rm -f $(ENV_FILE).bak
+	@printf "$(GREEN)✔  Certificados gerados em .certs/ e .env atualizado para usar HTTPS.$(RESET)\n"
 
 down: ## Para e remove todos os containers
 	podman compose -f $(COMPOSE_FILE) down
