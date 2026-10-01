@@ -4,11 +4,136 @@
         <title>Blog da Codaqui</title>
         <link>https://codaqui.dev/previews/develop/blog</link>
         <description>Tutoriais, projetos e novidades da comunidade Codaqui</description>
-        <lastBuildDate>Fri, 25 Sep 2026 00:00:00 GMT</lastBuildDate>
+        <lastBuildDate>Thu, 01 Oct 2026 00:00:00 GMT</lastBuildDate>
         <docs>https://validator.w3.org/feed/docs/rss2.html</docs>
         <generator>https://github.com/jpmonette/feed</generator>
         <language>pt-BR</language>
         <copyright>© 2026 Associação Codaqui</copyright>
+        <item>
+            <title><![CDATA[🐍 10 motivos para você participar da Python Brasil 2026]]></title>
+            <link>https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026</link>
+            <guid>https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026</guid>
+            <pubDate>Thu, 01 Oct 2026 00:00:00 GMT</pubDate>
+            <description><![CDATA[Há aproximadamente 5 anos atrás, no final da pandemia, comecei a pensar que talvez estudar mais, mudar de área talvez seria uma boa ideia. Foi quando mergulhei de vez no mundo da TI, aprendendo lógica de programação, compreendendo um pouco mais sobre as linguagens de programação e seus superpoderes. Nesta época, tive a sorte grande de ter uma prima muito amada que pegou na minha mão e me ajudou a dar os primeiros passos. Mas este texto não é sobre isso.]]></description>
+            <content:encoded><![CDATA[<p>Há aproximadamente 5 anos atrás, no final da pandemia, comecei a pensar que talvez estudar mais, mudar de área talvez seria uma boa ideia. Foi quando mergulhei de vez no mundo da TI, aprendendo lógica de programação, compreendendo um pouco mais sobre as linguagens de programação e seus superpoderes. Nesta época, tive a sorte grande de ter uma prima muito amada que pegou na minha mão e me ajudou a dar os primeiros passos. Mas este texto não é sobre isso.</p>
+<p>Lembro que desde as primeiras conversas ela me dizia: “Você precisa ir para a Python Brasil, aí você vai entender”. Eu, uma mulher iniciante, completamente fora da bolha de TI, sem nenhum amigo ou conhecido pensava: “Ah, deve ser porque ela conhece muitas pessoas…”.</p>
+<p>Me lembro de ter assistido ao evento de 2023, feito em Caxias do Sul (cada ano o evento é feito por pessoas voluntárias em uma região diferente do Brasil) acompanhando as gravações pelo YouTube. Achei diferente, mas não consegui entender o porquê de ser tão especial pra ela. Toda vez que eu me sentia sozinha, com alguma dificuldade ou com vontade de aprender algo novo ela dizia: “Você precisa ir para a Python Brasil, aí você vai entender”.</p>
+<p>O tempo passou, nós construímos juntas a Cumbuca Dev, e em 2024 consegui ir a primeira vez para o evento. E foi transformador. Me senti acolhida, representada e vi muita gente inteligente fazendo coisas incríveis, pessoas diversas sendo celebradas por todo lado. Vi também pessoas que não trabalhavam mais com a linguagem, mas não perdiam um evento. Ali eu pude entender de fato, a grandiosidade e o poder desta comunidade. Saí de lá ainda mais apaixonada pela programação, com energia para fazer mais, estudar mais e fazer mais por e com aquelas pessoas.</p>
+<p>Nunca poderia imaginar que um evento sobre uma linguagem de programação, de proporções grandiosas, com palestrantes internacionais e profissionais do Brasil inteiro estavam ali para aprender com as outras pessoas, não para competir. O lema <strong>Pessoas &gt; Tecnologia</strong> é sentido no dia a dia — não é apenas um slogan para sair bonito na foto. E a partir deste dia, a única certeza que tenho todos os anos é que vou participar do evento, não importa em que parte do Brasil seja. E eu acredito que você também precisa conhecer.</p>
+<p>Segura na mão da prima, vou te trazer alguns motivos (não só meus, afinal, somos uma grande comunidade), pra te convencer a participar do evento!</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="1-você-vai-conhecer-pessoas-e-elas-podem-mudar-a-sua-história">1. Você vai conhecer pessoas (e elas podem mudar a sua história)<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#1-voc%C3%AA-vai-conhecer-pessoas-e-elas-podem-mudar-a-sua-hist%C3%B3ria" class="hash-link" aria-label="Link direto para 1. Você vai conhecer pessoas (e elas podem mudar a sua história)" title="Link direto para 1. Você vai conhecer pessoas (e elas podem mudar a sua história)" translate="no">​</a></h2>
+<p>Quando a gente pensa em ir a uma conferência, é comum imaginar que o principal objetivo é assistir às palestras. Você escolhe uma trilha, coloca algumas sessões na agenda, aprende coisas novas e volta para casa. Só que, na Python Brasil, uma parte enorme da experiência acontece justamente fora do palco.</p>
+<p>Você vai conversar com pessoas no café, na fila, no corredor, durante o almoço, no evento social (o famoso PyBar) e, provavelmente, em algum lugar que não estava no seu planejamento original. E é muito difícil prever quais dessas conversas vão ficar na sua vida depois que o evento acabar.</p>
+<p>Com a Belisa Arnhold, aconteceu exatamente assim:</p>
+<blockquote>
+<p>“Eu fui pra minha primeira Python Brasil, em 2019, sozinha. Conhecia só umas 3 pessoas que estariam lá. No aeroporto, vi dois caras com camisetas dos eventos passados e decidi dar oi.</p>
+<p>Sai de Ribeirão como parte da equipe organizadora do evento do ano seguinte, com uma oferta de estágio e hoje, 7 anos depois, estou à frente da organização da Python Brasil, ao lado de uma das minhas melhores amigas 💚”</p>
+</blockquote>
+<p>É claro que nem toda pessoa que vai à Python Brasil vai acabar organizando uma edição alguns anos depois (ou sim, o lovebombing pela comunidade é real). Mas talvez você conheça alguém que vire uma amizade importante. Talvez encontre uma pessoa que indique uma oportunidade de trabalho. Talvez encontre alguém com quem vá construir um projeto. Talvez encontre alguém que simplesmente torne aquela viagem muito mais divertida.</p>
+<p>E talvez você só descubra que não está tão sozinha quanto imaginava.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="2-você-não-precisa-ser-uma-pessoa-expert-em-python">2. Você não precisa ser uma pessoa expert em Python<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#2-voc%C3%AA-n%C3%A3o-precisa-ser-uma-pessoa-expert-em-python" class="hash-link" aria-label="Link direto para 2. Você não precisa ser uma pessoa expert em Python" title="Link direto para 2. Você não precisa ser uma pessoa expert em Python" translate="no">​</a></h2>
+<p>Quando comecei a estudar programação, eu tinha uma ideia bastante distorcida de como eram os eventos de tecnologia. Imaginava que precisava saber bastante para poder participar, fazer perguntas ou conversar com as pessoas. Como se existisse algum tipo de prova invisível antes da entrada: “Você sabe Python o suficiente para estar aqui?”.</p>
+<p>Não existe.</p>
+<p>A Python Brasil reúne pessoas em momentos muito diferentes da carreira. Tem gente que está começando a estudar, gente procurando o primeiro emprego, pessoas estudantes, pessoas que já trabalham há anos na área, pesquisadoras, pessoas que ensinam, pessoas que mantêm projetos de código aberto e gente que nem trabalha mais diretamente com Python, mas continua participando porque a comunidade se tornou parte da sua vida.</p>
+<p>Você pode assistir a uma palestra e entender tudo. Pode assistir a outra e não entender quase nada. Pode fazer uma pergunta que parece muito básica e descobrir que outras cinco pessoas estavam com a mesma dúvida. Pode sair de uma palestra pensando em uma coisa completamente diferente do que estava no título.</p>
+<p>Não precisa chegar pronta. Pode chegar curiosa. Acho que essa é uma das melhores formas de chegar.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-você-pode-conversar-com-pessoas-que-talvez-parecessem-inalcançáveis">3. Você pode conversar com pessoas que talvez parecessem inalcançáveis<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#3-voc%C3%AA-pode-conversar-com-pessoas-que-talvez-parecessem-inalcan%C3%A7%C3%A1veis" class="hash-link" aria-label="Link direto para 3. Você pode conversar com pessoas que talvez parecessem inalcançáveis" title="Link direto para 3. Você pode conversar com pessoas que talvez parecessem inalcançáveis" translate="no">​</a></h2>
+<p>Uma das coisas que mais me impressionou na minha primeira Python Brasil foi perceber que algumas das pessoas que eu conhecia de livros, vídeos, projetos e palestras estavam simplesmente ali.</p>
+<p>Luciano Ramalho. Melissa Weber. Sebastián Ramirez. E tantas outras pessoas que eu já tinha visto na internet ou ouvido falar por causa do trabalho que fizeram e continuam fazendo na comunidade.</p>
+<p>Só que existe uma diferença enorme entre acompanhar alguém pela internet e encontrar essa pessoa pessoalmente. De repente, você está no mesmo corredor, na mesma fila do café ou sentada na mesma mesa. Você pode fazer uma pergunta, puxar uma conversa, ouvir uma história e descobrir que aquela pessoa que parecia tão distante também está ali como parte da comunidade.</p>
+<p>Existe uma proximidade muito bonita na Python Brasil. Pessoas que têm uma trajetória enorme na tecnologia continuam conversando com quem está começando, aprendendo com outras pessoas e participando da comunidade.</p>
+<p>Para quem está entrando na área, isso pode ser muito importante. Você começa a perceber que as pessoas que hoje parecem muito distantes também tiveram um começo. E que talvez o caminho entre onde você está agora e onde quer chegar não seja tão impossível quanto parecia.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="4-você-vai-descobrir-que-as-melhores-histórias-nem-sempre-estão-na-programação-oficial">4. Você vai descobrir que as melhores histórias nem sempre estão na programação oficial<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#4-voc%C3%AA-vai-descobrir-que-as-melhores-hist%C3%B3rias-nem-sempre-est%C3%A3o-na-programa%C3%A7%C3%A3o-oficial" class="hash-link" aria-label="Link direto para 4. Você vai descobrir que as melhores histórias nem sempre estão na programação oficial" title="Link direto para 4. Você vai descobrir que as melhores histórias nem sempre estão na programação oficial" translate="no">​</a></h2>
+<p>Se existe uma pessoa capaz de provar que Python Brasil é muito mais do que uma grade de palestras, essa pessoa é o professor Fernando Masanori. Pedi para ele compartilhar algumas memórias de diferentes edições e preferi não mexer no texto, porque acho que o jeito como ele conta as histórias faz parte delas.</p>
+<blockquote>
+<p>“1. Python Brasil 2011 São Paulo. a) um gringo apareceu e descobrimos que era mantenedor do GCC, virou um Keynote extra b) dei uma <em><strong>lightning</strong></em> talk onde mostrei como baixar fotos do perfil de amigos, do Facebook, virou um curso que dei na Campus Party (Hackeando o Facebook com Python), que depois virou o Python para Zumbis c) ambiente descolado, tinhas umas palestras extras no corredor, pessoal sentado no chão, foto anexa”</p>
+</blockquote>
+<blockquote>
+<p>“2. Python Brasil 2014 Porto de Galinhas. a) A Jus Brasil alugou um Hostel inteiro, que chamamos carinhosamente de "Consulado da Bahia". O pessoal ia muito lá para confratenizar, e aconteceram alguns episódios épicos como gringo correndo pelado na praia, etc. b) Como era perto das piscinas naturais, algumas pessoas iam cedo para mergulhar, incluindo eu. tem uma foto minha com pé de pato pendurado na mochila, andando pela conferência”</p>
+</blockquote>
+<blockquote>
+<p>“3. Python Brasil 2016 Florianópolis. Onde surgiu pela primeira vez <strong>Pessoas &gt; Tecnologia</strong>. Acredito que seja a primeira vez que houve um time de resposta para o Código de Conduta. Eu fiz parte. Tivemos 6 ocorrências. Foi amplamente comentado depois, como naquela ocasião, fez a diferença. Muitas caras bem conhecidas hoje apareceram lá: Talita, Dunossauro, Letícia Portella, Temporal, Paula Grangeiro, Geisa (Keynote da atual), etc. Naomi Ceder foi Keynote e ficou muito impressionada com a comunidade brasileira, inclusive até hoje diz que temos algo que não existe em nenhum lugar do mundo.”</p>
+</blockquote>
+<blockquote>
+<p>“4. Python Brasil 2018 Natal. No grupo o pessoal começou a comentar que poderíamos estar mais "à vontade" na conferência. Um bom número combinou de ir de bermuda e chinelo, inclusive eu rsrs. Uma garotada do Instituto Federal fez um tipo de canção Cordel, e recitaram numa lightning talk, foi épico.”</p>
+</blockquote>
+<blockquote>
+<p>“5. Python Brasil 2019 Ribeirão Preto. Muita gente sentada no chão em vários momentos. Estava bem quente, mesmo dentro do local do evento. Eu dei minha palestra descalço. Foto abaixo.”</p>
+</blockquote>
+<blockquote>
+<p>“6. Python Brasil Caxias do Sul. Teve um Keynote épico do Jeferson (Badtux). Pessoal no final se abraçando e chorando.”</p>
+</blockquote>
+<p>Depois de ouvir tudo isso, fica difícil imaginar a Python Brasil como apenas uma conferência onde você entra, assiste às palestras e vai embora. As histórias ficam. Algumas são técnicas, outras são engraçadas, outras são importantes para a própria história da comunidade. E muitas delas só existem porque um monte de gente decidiu se encontrar pessoalmente para falar sobre uma linguagem de programação.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="5-você-vai-encontrar-comunidades-dentro-da-comunidade">5. Você vai encontrar comunidades dentro da comunidade<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#5-voc%C3%AA-vai-encontrar-comunidades-dentro-da-comunidade" class="hash-link" aria-label="Link direto para 5. Você vai encontrar comunidades dentro da comunidade" title="Link direto para 5. Você vai encontrar comunidades dentro da comunidade" translate="no">​</a></h2>
+<p>Outra coisa que eu gosto muito na Python Brasil é perceber que ela não é uma comunidade única. Existem vários grupos, projetos e iniciativas que constroem espaços de aprendizagem, apoio e pertencimento dentro dela.</p>
+<p>As PyLadies são um dos exemplos mais conhecidos. A presença das mulheres é muito celebrada na Python Brasil e existe, inclusive, uma campanha anual para viabilizar a participação de mais mulheres no evento. Em 2026, a campanha para a Casa PyLadies ainda está aberta e é majoritariamente apoiada por pessoas da própria comunidade Python brasileira. E isso é lindo.</p>
+<p>A Débora Azevedo guarda uma lembrança muito especial de 2019, quando recebeu uma declaração feita à mão pelas meninas da Casa PyLadies. São esses pequenos gestos que ajudam a explicar por que iniciativas como essa significam tanto para quem participa.</p>
+<p>E elas não estão sozinhas. A Python Brasil também recebe e celebra comunidades como <strong>AfroPython, Cumbuca Dev, Django Girls</strong> e tantas outras iniciativas que ajudam a construir uma comunidade cada vez mais diversa.</p>
+<p>Você pode chegar procurando Python e acabar encontrando pessoas, projetos e comunidades que fazem você se sentir parte daquele lugar.</p>
+<p>E talvez esse seja um dos maiores motivos para ir.</p>
+<p><strong>E se você quiser ajudar a levar mais mulheres para a Python Brasil 2026, a campanha da Casa PyLadies ainda está recebendo doações:</strong> <a href="https://apoia.se/campanha-das-pyladies-na-pybr2026-parte-2" target="_blank" rel="noopener noreferrer" class="">apoia.se/campanha-das-pyladies-na-pybr2026-parte-2</a></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="6-porque-você-vai-descobrir-o-que-acontece-quando-o-evento-acaba">6. Porque você vai descobrir o que acontece quando o evento acaba<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#6-porque-voc%C3%AA-vai-descobrir-o-que-acontece-quando-o-evento-acaba" class="hash-link" aria-label="Link direto para 6. Porque você vai descobrir o que acontece quando o evento acaba" title="Link direto para 6. Porque você vai descobrir o que acontece quando o evento acaba" translate="no">​</a></h2>
+<p>Existe a programação oficial, claro. Mas também existe a parte da Python Brasil que acontece depois. FeliPython me lembrou de como são especiais estes momentos.</p>
+<p>O PyBar, com os famosos karaokês, os encontros para jantar, as pessoas que saem para conhecer a cidade, as conversas que continuam depois da última palestra. Tem gente que combina um passeio com alguém que conheceu naquele mesmo dia. Tem gente que fica horas conversando em uma mesa. Tem gente que descobre um restaurante porque alguém comentou no grupo.</p>
+<p>É uma parte importante da experiência porque é onde você deixa de ser apenas alguém que estava na mesma conferência e começa a conhecer as pessoas de verdade.</p>
+<p>Foi uma das coisas que mais me chamou atenção na primeira vez que fui. Eu cheguei pensando no evento como um lugar onde iria aprender sobre programação e voltei entendendo que a programação era apenas uma parte da experiência.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="7-você-vai-descobrir-que-existem-muitos-caminhos-possíveis-para-trabalhar-com-tecnologia">7. Você vai descobrir que existem muitos caminhos possíveis para trabalhar com tecnologia<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#7-voc%C3%AA-vai-descobrir-que-existem-muitos-caminhos-poss%C3%ADveis-para-trabalhar-com-tecnologia" class="hash-link" aria-label="Link direto para 7. Você vai descobrir que existem muitos caminhos possíveis para trabalhar com tecnologia" title="Link direto para 7. Você vai descobrir que existem muitos caminhos possíveis para trabalhar com tecnologia" translate="no">​</a></h2>
+<p>Uma coisa que gosto na Python Brasil é que ela também amplia nossa ideia sobre o que significa trabalhar com tecnologia.</p>
+<p>Você encontra pessoas desenvolvedoras, pessoas pesquisadoras, educadoras, profissionais de infraestrutura, dados, inteligência artificial, segurança, gestão, documentação, Developer Experience e muitas outras áreas.</p>
+<p>E encontra pessoas que chegaram até ali por caminhos completamente diferentes.</p>
+<p>Quando você está começando, pode parecer que existe um único caminho certo. Só que, quando você ouve de outras pessoas, percebe que quase ninguém tem uma trajetória tão organizada assim.</p>
+<p>Cada pessoa foi construindo seu caminho de um jeito.</p>
+<p>E isso pode ser muito importante para quem ainda está tentando descobrir o próprio. Porque, de repente, a carreira deixa de parecer uma linha reta que outras pessoas conseguiram percorrer e você não. Você começa a perceber que existem muitos caminhos possíveis e que quase ninguém chegou onde está seguindo exatamente o mesmo trajeto.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="8-porque-você-vai-aprender-mesmo-quando-não-estiver-em-uma-palestra">8. Porque você vai aprender mesmo quando não estiver em uma palestra<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#8-porque-voc%C3%AA-vai-aprender-mesmo-quando-n%C3%A3o-estiver-em-uma-palestra" class="hash-link" aria-label="Link direto para 8. Porque você vai aprender mesmo quando não estiver em uma palestra" title="Link direto para 8. Porque você vai aprender mesmo quando não estiver em uma palestra" translate="no">​</a></h2>
+<p>Eu achava que aprender em uma conferência significava escolher uma palestra, sentar em uma sala e prestar atenção. Hoje, acho que essa é apenas uma das formas de aprender.</p>
+<p>Você aprende quando alguém explica uma coisa no corredor. Quando uma pessoa conta como resolveu um problema. Quando descobre um projeto de código aberto que não conhecia. Quando conversa com alguém que trabalha em uma área completamente diferente da sua. Quando uma palestra faz você pensar sobre um assunto que nem estava procurando.</p>
+<p>Às vezes, a pergunta que você faz para alguém durante o café vale mais para a sua trajetória naquele momento do que uma palestra inteira.</p>
+<p>E não existe problema nenhum nisso. Conferência também é lugar para descobrir coisas que você nem sabia que queria aprender.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="9-você-vai-aprender-com-pessoas-muito-boas-tecnicamente">9. Você vai aprender com pessoas muito boas tecnicamente<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#9-voc%C3%AA-vai-aprender-com-pessoas-muito-boas-tecnicamente" class="hash-link" aria-label="Link direto para 9. Você vai aprender com pessoas muito boas tecnicamente" title="Link direto para 9. Você vai aprender com pessoas muito boas tecnicamente" translate="no">​</a></h2>
+<p>No meio de tanta conversa sobre comunidade, amizade e todas as coisas que acontecem fora das salas, não dá para esquecer uma coisa bastante importante: a Python Brasil é uma conferência técnica, e uma conferência técnica enorme: a maior da América Latina.</p>
+<p>A edição de 2026 tem seis dias de atividades, incluindo dois dias de tutoriais gratuitos, nos quais a própria comunidade oferece minicursos. Além dos três dias principais de palestras. A programação reúne assuntos e pessoas de diferentes áreas da tecnologia, com nomes muito conhecidos da comunidade brasileira e internacional.</p>
+<p>E essa é uma oportunidade muito boa para quem quer aprender. Você pode escolher um tutorial para colocar a mão na massa, assistir a uma palestra sobre uma tecnologia que já usa no trabalho ou descobrir um assunto que nunca tinha pensado em estudar.</p>
+<p>Pode ser que provavelmente não vai entender tudo. Ainda bem. Conferência também serve para descobrir o que você quer aprender depois.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="10-porque-você-pode-participar-da-python-brasil-2026-com-25-de-desconto">10. Porque você pode participar da Python Brasil 2026 com 25% de desconto<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#10-porque-voc%C3%AA-pode-participar-da-python-brasil-2026-com-25-de-desconto" class="hash-link" aria-label="Link direto para 10. Porque você pode participar da Python Brasil 2026 com 25% de desconto" title="Link direto para 10. Porque você pode participar da Python Brasil 2026 com 25% de desconto" translate="no">​</a></h2>
+<p>Bom, chegamos ao motivo que talvez seja mais fácil de transformar em ação.</p>
+<p>A Python Brasil 2026 está chegando e você pode participar usando um cupom de 25% de desconto.</p>
+<p>Se você está começando na programação, venha. Se já trabalha com Python há anos, venha. Se não conhece ninguém, venha. Se acha que ainda não sabe o suficiente, venha. Se conhece alguém que está começando e precisa de um empurrão, mande este texto para essa pessoa.</p>
+<p>Talvez você esteja esperando alguém te convidar. Talvez esteja achando que uma conferência de tecnologia não é para você. Talvez esteja pensando que não conhece gente suficiente para ir.</p>
+<p>Eu também pensava isso.</p>
+<p>E talvez seja justamente por isso que minha prima passou anos me dizendo a mesma coisa.</p>
+<p>“Você precisa ir para a Python Brasil, aí você vai entender.”</p>
+<p><strong>Use o cupom CODAQUI e garanta 25% de desconto no seu ingresso para a Python Brasil 2026.</strong></p>
+<p><a href="https://ingressos.python.org.br/pybr/2026/redeem?voucher=CODAQUI" target="_blank" rel="noopener noreferrer" class=""><strong>Quero participar da Python Brasil 2026 →</strong></a></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mas-talvez-o-ricardo-tenha-explicado-melhor-do-que-eu">Mas talvez o Ricardo tenha explicado melhor do que eu…<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#mas-talvez-o-ricardo-tenha-explicado-melhor-do-que-eu" class="hash-link" aria-label="Link direto para Mas talvez o Ricardo tenha explicado melhor do que eu…" title="Link direto para Mas talvez o Ricardo tenha explicado melhor do que eu…" translate="no">​</a></h2>
+<p>Depois de escrever tudo isso, pedi para algumas pessoas da comunidade me contarem o que a Python Brasil significa para elas. Recebi histórias sobre primeiras conferências, amizades, organização, oportunidades, comunidade e memórias de várias edições.</p>
+<p>E o Ricardo me mandou um texto que, para mim, consegue juntar boa parte de tudo o que tentei explicar aqui. Então, vou deixar ele terminar.</p>
+<blockquote>
+<p>“Participar da Python Brasil é uma oportunidade de criar laços afetivos, não só profissionais ou técnicos, com pessoas que compartilham uma ínfima coisa da vida delas e, em seguida, descobrir que existem mais coisas em comuns: gosto musical, filmes, hobbies, senso de humor. Ou descobrir pessoas maravilhosas que não possuem nada em comum com você e isso te despertar a curiosidade em saber mais sobre aquilo. É a chance de sair da toca, de ir além dos <code>list copreehensions</code>, funções wrappers, funções como parâmetros, classes abstratas e estender é melhor que herdar. É sair do aspecto técnico e sério do escritório ou laboratório para sentar na mesa do bar, do quilo que tá com desconto ou do tiozinho da esfirra da madrugada e ter combinado um passeio de turistas numa cidade que você não conhece, com uma pessoa que você acabou de conhecer, pro dia seguinte. A Python Brasil é o melhor lugar para entender que uma comunidade plural e para pessoas é o que torna tudo especial e com propósito.”</p>
+</blockquote>
+<p>Agora eu finalmente entendi o que minha prima queria dizer.</p>
+<p>Talvez você entenda também.</p>
+<p><strong>A gente se encontra na Python Brasil 2026. 💚🐍</strong></p>
+<p><strong>25% OFF com o cupom CODAQUI</strong><br>
+<a href="https://ingressos.python.org.br/pybr/2026/redeem?voucher=CODAQUI" target="_blank" rel="noopener noreferrer" class=""><em>Quero participar →</em></a></p>
+<p><em>Válido para as 20 primeiras utilizações do cupom.</em></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="menções">Menções<a href="https://codaqui.dev/previews/develop/blog/2026/10/01/10-motivos-python-brasil-2026#men%C3%A7%C3%B5es" class="hash-link" aria-label="Link direto para Menções" title="Link direto para Menções" translate="no">​</a></h3>
+<p>Este texto também foi construído a partir das histórias e contribuições de pessoas da comunidade:</p>
+<ul>
+<li class=""><strong><a href="https://www.linkedin.com/in/belisarenata/" target="_blank" rel="noopener noreferrer" class="">Belisa Arnhold</a></strong></li>
+<li class=""><strong><a href="https://www.linkedin.com/in/debora-azevedo-1919b996/" target="_blank" rel="noopener noreferrer" class="">Débora Azevedo</a></strong></li>
+<li class=""><strong><a href="https://www.linkedin.com/in/fmasanori/" target="_blank" rel="noopener noreferrer" class="">Fernando Masanori</a></strong></li>
+<li class=""><strong><a href="https://www.linkedin.com/in/ricardocappellano/" target="_blank" rel="noopener noreferrer" class="">Ricardo</a></strong></li>
+<li class=""><strong><a href="https://www.linkedin.com/in/felipythondev/" target="_blank" rel="noopener noreferrer" class="">FeliPython</a></strong></li>
+</ul>
+<hr>]]></content:encoded>
+            <category>python</category>
+            <category>python brasil</category>
+            <category>eventos</category>
+            <category>comunidade</category>
+            <category>tecnologia</category>
+            <category>open source</category>
+        </item>
         <item>
             <title><![CDATA[🎉 Augusto Viana é o ganhador do primeiro sorteio do Clube Codaqui — e chegam dois novos sorteios: ingresso da DevPR Conf 2026 e Python Fluente Vol. 2]]></title>
             <link>https://codaqui.dev/previews/develop/blog/2026/09/25/clube-codaqui-sorteio-devpr-conf-python-fluente</link>
@@ -1219,39 +1344,6 @@
             <category>Institucional</category>
             <category>apoio</category>
             <category>queroajudar</category>
-        </item>
-        <item>
-            <title><![CDATA[Sucesso na inovação do DevPR 2023]]></title>
-            <link>https://codaqui.dev/previews/develop/blog/2023/03/11/sucesso-na-inovacao-do-devpr-2023</link>
-            <guid>https://codaqui.dev/previews/develop/blog/2023/03/11/sucesso-na-inovacao-do-devpr-2023</guid>
-            <pubDate>Sat, 11 Mar 2023 00:00:00 GMT</pubDate>
-            <description><![CDATA[image]]></description>
-            <content:encoded><![CDATA[<p><img decoding="async" loading="lazy" src="https://user-images.githubusercontent.com/11020807/230798337-a0dd2a79-9d41-468f-a903-3df27fc9d50a.jpeg" alt="image" class="img_ev3q"></p>
-<p>O inédito Espaço Starter cumpriu a missão de introduzir o universo da programação para crianças e adolescentes.</p>
-<p>A conferência anual DevPR, evento de atualização, network, compartilhamento de experiências e troca de conteúdo para programadores e tecnólogos chegou com tudo em 2023 na cidade de Maringá.</p>
-<p>Sediada na Unicesumar, a grande inovação da edição foi o espaço Starter com um cronograma incrível de atividades lúdicas e dinâmicas de introdução à programação direcionado a crianças e adolescentes, parentes diretos dos inscritos na DevPR 2023.</p>
-<p>A ideia surgiu com a organização da Codaqui e seus voluntários, em destaque Enderson Menezes e Ana Elisa Tubino. A Codaqui é uma escola de programação sem fins lucrativos disposta a democratizar o ensino sobre tecnologia e programação a jovens carentes.</p>
-<p>O projeto da Codaqui com a DevPR para introduzir crianças e adolescentes ao universo da programação ganhou força e aconteceu!</p>
-<p><img decoding="async" loading="lazy" src="https://user-images.githubusercontent.com/11020807/230798345-e3edc730-1f2b-4d0b-8b67-55da0c01f9bf.jpeg" alt="image" class="img_ev3q"></p>
-<p>O espaço Starter contou com uma equipe de voluntários preparados para receber toda essa galerinha com um cronograma de workshops e atividades lúdicas para três turmas divididas por idade.</p>
-<p>A manhã começou agitada para a Turma Hopper, nomeada em homenagem à analista de sistemas criadora da linguagem de programação de alto nível, Grace Hopper. As crianças de 6 à 12 anos compreenderam a ideia de comando e algoritmo do computador através de uma atividade lúdica, competitiva e prática do Labirinto.</p>
-<p><img decoding="async" loading="lazy" src="https://user-images.githubusercontent.com/11020807/230798351-99905fe9-09d6-4b4c-ad72-3112b67b8f27.jpeg" alt="image" class="img_ev3q"></p>
-<p>No período da tarde, as crianças puderam aplicar o conhecimento adquirido com o Desafio Scratch, no qual utilizaram a linguagem de programação Scratch para a criação de animações e jogos, com regras e comandos no laboratório de informática da universidade. Depois, as crianças participaram da atividade Programando Carrinhos Autônomos, na qual simularam o funcionamento do programa Arduino no computador e presenciaram o funcionamento dos carrinhos.</p>
-<p><img decoding="async" loading="lazy" src="https://user-images.githubusercontent.com/11020807/230798355-8eabfef6-3432-4eb2-bbde-cb4ff40f8c6d.jpeg" alt="image" class="img_ev3q"></p>
-<p>A Turma Turing, em tributo à Alan Turing, cientista da computação e idealizador dos conceitos de algoritmo e computador, composta por jovens de 13 a 16 anos, iniciou o cronograma com o workshop Caça aos Números com a construção de um algoritmo simples.</p>
-<p>Mais tarde, na oficina de Jornada Criativa, cada participante teve a oportunidade de desenvolver seu primeiro site em linguagem HTML. A finalização da oficina contou como a eleição do site favorito pelos jovens.</p>
-<p>Na Turma Lovelace, crianças de 10 a 15 anos conheceram a história da matemática Ada Lovelace, quem escreveu o primeiro algoritmo processado por uma máquina em 1842, depois, seguiram o cronograma com as atividades do Labirinto e Programando Carrinhos Autônomos e o Desafio Scratch.</p>
-<p>Ao longo da tarde, os participantes contaram com um coffee break, com salgadinhos, bolo, refrigerante e suco, para repor as energias e continuarem com a criatividade a mil.</p>
-<p>Para finalizar o dia de introdução à programação, as crianças e adolescentes das três turmas continuaram no ritmo de aprendizagem com mais conforto no ambiente Inspira com o filme de animação, lúdico e humorístico, Decodificando Emojis, seguido pelo desvendamento do famoso programa online Akinator com a apresentação de Mistérios da Internet.</p>
-<p><img decoding="async" loading="lazy" src="https://user-images.githubusercontent.com/11020807/230798362-bf98faaf-9376-4863-8a19-0093645b1e4b.jpeg" alt="image" class="img_ev3q"></p>
-<p>Além das crianças e adolescentes dependentes diretos dos inscritos na conferência DevPR, o espaço Starter, organizado pela Codaqui, recebeu alunos do projeto comunitário Estrela Mãe de Paiçandu, Paraná.
-O espaço Starters foi sucesso total!</p>
-<p>Ao fechamento do DevPR, algumas crianças ainda subiram ao palco principal da conferência para compartilhar a experiência incrível e inédita que tiveram e sonhos, como “eu quero ser programador”.
-Para sempre se lembrarem do projeto, os aspirantes mirins foram presenteados com o pato para debugar e um certificado online.</p>]]></content:encoded>
-            <category>Institucional</category>
-            <category>eventos</category>
-            <category>comunidade</category>
-            <category>devparaná</category>
         </item>
     </channel>
 </rss>
