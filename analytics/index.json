@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-10-01T06:56:27.214Z",
-  "latestPeriod": "2026-08",
+  "updatedAt": "2026-10-02T06:54:30.736Z",
+  "latestPeriod": "2026-09",
   "totals": {
-    "screenPageViews": 269806,
-    "activeUsers": 117187,
-    "sessions": 147894,
+    "screenPageViews": 273722,
+    "activeUsers": 118263,
+    "sessions": 149431,
     "peakMonth": "2024-05",
     "peakViews": 22422
   },
@@ -264,70 +264,86 @@
       "sessions": 1026,
       "averageSessionDuration": 94.8,
       "bounceRate": 0.6033
+    },
+    {
+      "period": "2026-09",
+      "screenPageViews": 3916,
+      "activeUsers": 1076,
+      "sessions": 1537,
+      "averageSessionDuration": 162.7,
+      "bounceRate": 0.4977
     }
   ],
   "topPages": [
     {
-      "pagePath": "/participe/apoiar",
-      "screenPageViews": 68,
-      "activeUsers": 20
-    },
-    {
-      "pagePath": "/trilhas/python",
-      "screenPageViews": 64,
-      "activeUsers": 24
-    },
-    {
-      "pagePath": "/blog/2026/03/30/curso-introducao-python",
-      "screenPageViews": 62,
-      "activeUsers": 52
-    },
-    {
-      "pagePath": "/projetos",
-      "screenPageViews": 58,
-      "activeUsers": 25
+      "pagePath": "/eventos/esquenta-devpr-conf-2026",
+      "screenPageViews": 739,
+      "activeUsers": 263
     },
     {
       "pagePath": "/eventos",
-      "screenPageViews": 57,
-      "activeUsers": 19
+      "screenPageViews": 326,
+      "activeUsers": 121
     },
     {
-      "pagePath": "/participe/estudar",
-      "screenPageViews": 56,
-      "activeUsers": 45
+      "pagePath": "/trilhas/python",
+      "screenPageViews": 268,
+      "activeUsers": 190
     },
     {
-      "pagePath": "/comunidades/elasnocodigo",
-      "screenPageViews": 51,
-      "activeUsers": 36
+      "pagePath": "/trilhas/python/page-1",
+      "screenPageViews": 158,
+      "activeUsers": 64
     },
     {
       "pagePath": "/comunidades/devparana",
-      "screenPageViews": 43,
-      "activeUsers": 24
+      "screenPageViews": 129,
+      "activeUsers": 74
+    },
+    {
+      "pagePath": "/auth/callback",
+      "screenPageViews": 103,
+      "activeUsers": 94
+    },
+    {
+      "pagePath": "/participe/estudar",
+      "screenPageViews": 84,
+      "activeUsers": 58
+    },
+    {
+      "pagePath": "/blog/2026/03/30/curso-introducao-python",
+      "screenPageViews": 79,
+      "activeUsers": 71
     }
   ],
   "trafficSources": {
-    "new": 791,
-    "(direct)": 509,
-    "google": 396,
-    "returning": 157,
-    "(not set)": 78,
-    "guiadeti.com.br": 33,
-    "ig": 15,
-    "elasnocodigo.com.br": 12,
-    "github.com": 16,
-    "bing": 7,
+    "new": 1022,
+    "google": 619,
+    "(direct)": 784,
+    "returning": 405,
+    "(not set)": 119,
+    "guiadeti.com.br": 20,
+    "ig": 19,
+    "elasnocodigo.com.br": 15,
+    "bing": 15,
+    "l.instagram.com": 9,
+    "devpr.org": 8,
+    "linkedin.com": 10,
+    "facebook.com": 6,
     "(data not available)": 5,
-    "m.facebook.com": 5,
-    "chatgpt.com": 4,
-    "facebook.com": 4,
-    "linkedin.com": 6,
-    "classroom.google.com": 2,
-    "linktree": 2,
-    "phpconference.com.br": 2,
-    "reddit.com": 2,
-    "youtube.com": 2
+    "github.com": 6,
+    "linktree": 5,
+    "m.facebook.com": 4,
+    "chatgpt.com": 2,
+    "blog2026.online": 1,
+    "copilot.com": 1,
+    "lm.facebook.com": 1,
+    "lnkd.in": 1,
+    "sistema.shchat.com.br": 1,
+    "t.co": 1,
+    "teams.public.onecdn.static.microsoft": 1,
+    "webdig.asia": 1,
+    "youtube.com": 2,
+    "ziring.net": 1
   }
 }
