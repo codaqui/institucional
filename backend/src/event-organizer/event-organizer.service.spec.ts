@@ -55,22 +55,28 @@ describe('EventOrganizerService', () => {
         const handle = u.handle?.toLowerCase();
         return ORGANIZERS_DOC.ownerships
           .filter(
-            (o) => o.memberId === u.sub || o.githubHandle.toLowerCase() === handle,
+            (o) =>
+              o.memberId === u.sub || o.githubHandle.toLowerCase() === handle,
           )
           .flatMap((o) => o.scope);
       }),
-      canManage: jest.fn(async (u: JwtPayload, sourceKey: string, eventId: string) => {
-        try {
-          await service.assertCanManage(u, sourceKey, eventId);
-          return { canManage: true };
-        } catch {
-          return { canManage: false };
-        }
-      }),
+      canManage: jest.fn(
+        async (u: JwtPayload, sourceKey: string, eventId: string) => {
+          try {
+            await service.assertCanManage(u, sourceKey, eventId);
+            return { canManage: true };
+          } catch {
+            return { canManage: false };
+          }
+        },
+      ),
     };
     membersService = { findOne: jest.fn() };
 
-    service = new EventOrganizerService(membersService as any, ownershipService as any);
+    service = new EventOrganizerService(
+      membersService as any,
+      ownershipService as any,
+    );
   });
 
   // ── Organizers facade ─────────────────────────────────────────────────────
@@ -87,7 +93,9 @@ describe('EventOrganizerService', () => {
     it('delegates to EventOrganizerOwnershipService', async () => {
       const result = await service.getOwnedScopes(organizerUser);
       expect(result).toEqual(['meetup:devparana:*']);
-      expect(ownershipService.getOwnedScopes).toHaveBeenCalledWith(organizerUser);
+      expect(ownershipService.getOwnedScopes).toHaveBeenCalledWith(
+        organizerUser,
+      );
     });
   });
 

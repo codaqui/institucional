@@ -19,7 +19,9 @@ import {
  * - "<source>:<sourceId>:*"          → todos os eventos da fonte
  */
 @Entity('event_organizer_ownerships')
-@Index('IDX_event_organizer_ownerships_memberId', ['memberId'], { unique: true })
+@Index('IDX_event_organizer_ownerships_memberId', ['memberId'], {
+  unique: true,
+})
 export class EventOrganizerOwnership {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -33,7 +35,7 @@ export class EventOrganizerOwnership {
   githubHandle: string;
 
   /** Scopes de ownership (array nativo do Postgres). */
-  @Column({ type: 'text', array: true, default: () => "ARRAY[]::text[]" })
+  @Column({ type: 'text', array: true, default: () => 'ARRAY[]::text[]' })
   scope: string[];
 
   /** Admin que criou a ownership. */

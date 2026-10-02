@@ -32,7 +32,7 @@ export class Wallet {
    * Congelado quando assinatura cancela ou fica past_due.
    * Ex: ["sort_coin"]
    */
-  @Column({ type: 'text', array: true, default: () => "ARRAY[]::text[]" })
+  @Column({ type: 'text', array: true, default: () => 'ARRAY[]::text[]' })
   frozenTypes: string[];
 
   @CreateDateColumn()

@@ -1,39 +1,46 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ClubService } from './club.service';
 import { Wallet } from './entities/wallet.entity';
-import { WalletTransaction, WalletTxSource } from './entities/wallet-transaction.entity';
+import {
+  WalletTransaction,
+  WalletTxSource,
+} from './entities/wallet-transaction.entity';
 import { Member } from '../members/entities/member.entity';
 
 const MEMBER_ID = 'aaaa0000-aaaa-aaaa-aaaa-000000000001';
 const WALLET_ID = 'bbbb0000-bbbb-bbbb-bbbb-000000000001';
 
-const makeWallet = (overrides: Partial<Wallet> = {}): Wallet =>
-  ({
-    id: WALLET_ID,
-    memberId: MEMBER_ID,
-    balances: { sort_coin: 100 },
-    frozenTypes: [],
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    ...overrides,
-  });
+const makeWallet = (overrides: Partial<Wallet> = {}): Wallet => ({
+  id: WALLET_ID,
+  memberId: MEMBER_ID,
+  balances: { sort_coin: 100 },
+  frozenTypes: [],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  ...overrides,
+});
 
-const makeTx = (overrides: Partial<WalletTransaction> = {}): WalletTransaction =>
-  ({
-    id: 'tx-0001',
-    walletId: WALLET_ID,
-    coinType: 'sort_coin',
-    amount: 50,
-    source: WalletTxSource.STRIPE_INVOICE,
-    referenceId: 'stripe-pi:pi_test',
-    description: null,
-    createdAt: new Date(),
-    wallet: null as any,
-    ...overrides,
-  });
+const makeTx = (
+  overrides: Partial<WalletTransaction> = {},
+): WalletTransaction => ({
+  id: 'tx-0001',
+  walletId: WALLET_ID,
+  coinType: 'sort_coin',
+  amount: 50,
+  source: WalletTxSource.STRIPE_INVOICE,
+  referenceId: 'stripe-pi:pi_test',
+  description: null,
+  createdAt: new Date(),
+  wallet: null as any,
+  ...overrides,
+});
 
 /** Helper: cria mock de EntityManager com SELECT FOR UPDATE stub */
 const makeMockEm = (walletData: Partial<Wallet> = {}) => {
@@ -135,7 +142,9 @@ describe('ClubService', () => {
 
     it('throws NotFoundException when not found', async () => {
       walletRepo.findOne.mockResolvedValue(null);
-      await expect(service.getWallet(MEMBER_ID)).rejects.toThrow(NotFoundException);
+      await expect(service.getWallet(MEMBER_ID)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -166,9 +175,9 @@ describe('ClubService', () => {
     });
 
     it('throws on invalid handle', async () => {
-      await expect(
-        service.getPublicWalletByHandle('../x'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.getPublicWalletByHandle('../x')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -196,7 +205,9 @@ describe('ClubService', () => {
       walletRepo.findOne.mockResolvedValue(makeWallet());
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm();
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await service.creditFromInvoice(MEMBER_ID, 5, 'stripe-pi:pi_abc');
@@ -214,7 +225,9 @@ describe('ClubService', () => {
       walletRepo.findOne.mockResolvedValue(makeWallet());
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm();
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       // R$1.99 = 1.99 → floor → 1 coin
@@ -233,7 +246,9 @@ describe('ClubService', () => {
         balances: { sort_coin: 100 },
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await service.debitForRaffle(WALLET_ID, 30, 'raffle-uuid');
@@ -254,7 +269,9 @@ describe('ClubService', () => {
         balances: { sort_coin: 5 },
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await expect(
@@ -268,7 +285,9 @@ describe('ClubService', () => {
         frozenTypes: ['sort_coin'],
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await expect(
@@ -290,14 +309,15 @@ describe('ClubService', () => {
         save: jest.fn(),
       };
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await expect(
         service.debitForRaffle(WALLET_ID, 10, 'raffle-uuid'),
       ).rejects.toThrow(NotFoundException);
     });
-
   });
 
   // ─── refundFromRaffle ─────────────────────────────────────────────────────
@@ -308,7 +328,9 @@ describe('ClubService', () => {
         balances: { sort_coin: 70 },
       });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await service.refundFromRaffle(WALLET_ID, 30, 'raffle-uuid');
@@ -338,7 +360,9 @@ describe('ClubService', () => {
         save: jest.fn(),
       };
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await expect(
@@ -358,12 +382,20 @@ describe('ClubService', () => {
 
     it('creates wallet and applies balance', async () => {
       walletRepo.findOne.mockResolvedValue(null);
-      walletRepo.create.mockReturnValue({ memberId: MEMBER_ID, balances: {}, frozenTypes: [] });
+      walletRepo.create.mockReturnValue({
+        memberId: MEMBER_ID,
+        balances: {},
+        frozenTypes: [],
+      });
       walletRepo.save.mockResolvedValue(makeWallet({ balances: {} }));
 
-      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ balances: {} });
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
+        balances: {},
+      });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await service.manualAdjust(MEMBER_ID, 50, 'sort_coin', 'Prêmio evento');
@@ -386,10 +418,17 @@ describe('ClubService', () => {
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce({ id: 'existing-manual-tx' });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
-      const result = await service.manualAdjust(MEMBER_ID, 10, 'sort_coin', 'Ajuste duplicado');
+      const result = await service.manualAdjust(
+        MEMBER_ID,
+        10,
+        'sort_coin',
+        'Ajuste duplicado',
+      );
       expect(result).toEqual({ id: 'existing-manual-tx' });
     });
   });
@@ -399,7 +438,9 @@ describe('ClubService', () => {
       walletRepo.findOne.mockResolvedValue(makeWallet());
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm();
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await service.creditDistribution(
@@ -425,7 +466,9 @@ describe('ClubService', () => {
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce({ id: 'existing-tx' });
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       const result = await service.creditDistribution(
@@ -443,7 +486,9 @@ describe('ClubService', () => {
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce(null);
       dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({ getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo) }),
+        cb({
+          getRepository: (e: any) => (e === Wallet ? emWalletRepo : emTxRepo),
+        }),
       );
 
       await expect(
@@ -501,7 +546,10 @@ describe('ClubService', () => {
         .mockResolvedValueOnce([{ id: 'tx1' }, { id: 'tx2' }]);
 
       const result = await service.getAdminAllTransactions('all', 1, 50);
-      expect(result).toEqual({ total: 2, data: [{ id: 'tx1' }, { id: 'tx2' }] });
+      expect(result).toEqual({
+        total: 2,
+        data: [{ id: 'tx1' }, { id: 'tx2' }],
+      });
       expect(String(dataSource.query.mock.calls[0][0])).toContain('UNION ALL');
     });
 

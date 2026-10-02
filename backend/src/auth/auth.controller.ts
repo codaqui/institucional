@@ -1,4 +1,13 @@
-import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { SkipThrottle } from '@nestjs/throttler';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -26,7 +35,7 @@ function sessionCookieOptions(isProd: boolean): CookieOptions {
   return {
     httpOnly: true,
     secure: isProd || isHttpsDev,
-    sameSite: isProd ? 'strict' : (isHttpsDev ? 'none' : 'lax'),
+    sameSite: isProd ? 'strict' : isHttpsDev ? 'none' : 'lax',
     path: '/',
   };
 }
@@ -123,12 +132,16 @@ export class AuthController {
   @Post('finalize')
   @HttpCode(200)
   @ApiOperation({
-    summary: 'Finaliza o login trocando o token de handoff pelo cookie de sessão',
+    summary:
+      'Finaliza o login trocando o token de handoff pelo cookie de sessão',
     description:
       'Recebe o JWT efêmero (audience=auth-handoff) que veio no fragment do callback do GitHub, valida e define o cookie httpOnly de sessão. Necessário para deploys whitelabel onde o cookie precisa ser setado no domínio do Worker.',
   })
   @ApiResponse({ status: 200, description: 'Cookie de sessão definido.' })
-  @ApiResponse({ status: 401, description: 'Token de handoff inválido/expirado.' })
+  @ApiResponse({
+    status: 401,
+    description: 'Token de handoff inválido/expirado.',
+  })
   authFinalize(
     @Body() body: { token?: string },
     @Res() res: Response,
@@ -229,9 +242,9 @@ export class AuthController {
   logout(@Req() req: Request, @Res() res: Response) {
     const isProd = process.env.NODE_ENV === 'production';
     res.clearCookie(COOKIE_NAME, sessionCookieOptions(isProd));
-    const returnToCookie = (req.cookies as Record<string, string> | undefined)?.[
-      RETURN_TO_COOKIE
-    ];
+    const returnToCookie = (
+      req.cookies as Record<string, string> | undefined
+    )?.[RETURN_TO_COOKIE];
     res.clearCookie(RETURN_TO_COOKIE, { path: '/' });
     const target = resolveReturnUrl(returnToCookie, '/');
     const finalUrl = new URL(target);

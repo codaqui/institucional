@@ -106,10 +106,7 @@ function handleQuotedChar(
   state.i += 1;
 }
 
-function finalizeTokenRecord(
-  state: TokenizerState,
-  rows: string[][],
-): void {
+function finalizeTokenRecord(state: TokenizerState, rows: string[][]): void {
   if (state.field.length > 0 || state.record.length > 0) {
     state.record.push(state.field);
     rows.push(state.record);

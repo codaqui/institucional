@@ -34,7 +34,11 @@ async function bootstrap() {
   }
 
   let httpsOptions = undefined;
-  if (process.env.HTTPS === 'true' && process.env.SSL_CRT_FILE && process.env.SSL_KEY_FILE) {
+  if (
+    process.env.HTTPS === 'true' &&
+    process.env.SSL_CRT_FILE &&
+    process.env.SSL_KEY_FILE
+  ) {
     const fs = require('fs');
     try {
       httpsOptions = {
@@ -47,7 +51,10 @@ async function bootstrap() {
     }
   }
 
-  const app = await NestFactory.create(AppModule, { rawBody: true, httpsOptions });
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+    httpsOptions,
+  });
 
   // ── Security Headers ───────────────────────────────────────────────────────
   app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));

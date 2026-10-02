@@ -10,9 +10,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *    exatamente um preenchido. Registrations ganham externalSource/externalId (dedupe CSV).
  *  - members: opt-in de comunicações de evento (pós-evento exige; transacionais ignoram)
  */
-export class Migration012EventCommsAndExternal1775163746263
-  implements MigrationInterface
-{
+export class Migration012EventCommsAndExternal1775163746263 implements MigrationInterface {
   name = 'Migration012EventCommsAndExternal1775163746263';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

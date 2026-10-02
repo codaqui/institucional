@@ -6,9 +6,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * O campo é opcional e será usado no comprovante de doação PJ e na
  * personalização da página de patrocinadores.
  */
-export class Migration008CompanyTradeName1775163746259
-  implements MigrationInterface
-{
+export class Migration008CompanyTradeName1775163746259 implements MigrationInterface {
   name = 'Migration008CompanyTradeName1775163746259';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

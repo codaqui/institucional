@@ -186,7 +186,12 @@ export class StripeService {
       originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
     const safePath = this.sanitizeReturnPath(returnPath);
     const returnUrl = this.buildReturnUrl(baseUrl, safePath, 'success', true);
-    const cancelUrl = this.buildReturnUrl(baseUrl, safePath, 'cancelled', false);
+    const cancelUrl = this.buildReturnUrl(
+      baseUrl,
+      safePath,
+      'cancelled',
+      false,
+    );
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
@@ -292,8 +297,18 @@ export class StripeService {
             return_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
           }
         : {
-            success_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
-            cancel_url: this.buildReturnUrl(baseUrl, safePath, 'cancelled', false),
+            success_url: this.buildReturnUrl(
+              baseUrl,
+              safePath,
+              'success',
+              true,
+            ),
+            cancel_url: this.buildReturnUrl(
+              baseUrl,
+              safePath,
+              'cancelled',
+              false,
+            ),
           }),
     };
 
@@ -381,7 +396,9 @@ export class StripeService {
         const session = event.data.object;
         this.logger.warn(
           `Pagamento assíncrono falhou: session ${session.id}${
-            session.metadata?.orderId ? ` | order ${session.metadata.orderId}` : ''
+            session.metadata?.orderId
+              ? ` | order ${session.metadata.orderId}`
+              : ''
           }`,
         );
         break;
@@ -844,7 +861,11 @@ export class StripeService {
       );
       await this.eventOrderRepo.update(
         { id: order.id, status: OrderStatus.PAID },
-        { status: OrderStatus.PENDING, stripePaymentIntentId: null, paidAt: null },
+        {
+          status: OrderStatus.PENDING,
+          stripePaymentIntentId: null,
+          paidAt: null,
+        },
       );
       throw error;
     }
@@ -977,8 +998,7 @@ export class StripeService {
     order: EventOrder,
   ): Array<{ name: string; email: string }> {
     const raw =
-      session.metadata?.attendees ??
-      (order.attendees ? order.attendees : null);
+      session.metadata?.attendees ?? (order.attendees ? order.attendees : null);
     if (raw) {
       try {
         const parsed =
@@ -999,8 +1019,11 @@ export class StripeService {
           session.customer_details?.name ??
           session.customer_email ??
           'Participante',
-        email:
-          (session.customer_details?.email ?? session.customer_email ?? '').toLowerCase(),
+        email: (
+          session.customer_details?.email ??
+          session.customer_email ??
+          ''
+        ).toLowerCase(),
       },
     ];
   }
@@ -1035,7 +1058,10 @@ export class StripeService {
         : Promise.resolve(null),
     ]);
     const projectKey =
-      communityId ?? event?.communityProjectKey ?? activation?.communityProjectKey ?? 'tesouro-geral';
+      communityId ??
+      event?.communityProjectKey ??
+      activation?.communityProjectKey ??
+      'tesouro-geral';
     const stripeIncomeAccount =
       await this.ledgerService.getOrCreateCommunityAccount(
         'stripe_income',
@@ -1047,12 +1073,13 @@ export class StripeService {
       `Comunidade: ${projectKey}`,
     );
 
-    const eventTitle = event?.title ?? activation?.title ?? order.eventId ?? 'Evento externo';
+    const eventTitle =
+      event?.title ?? activation?.title ?? order.eventId ?? 'Evento externo';
     const eventKey = activation?.eventKey ?? null;
     const ticketName = ticketType?.name ?? 'Ingresso';
     const payerLabel = payer
       ? `${payer.name ?? payer.githubHandle} (@${payer.githubHandle ?? order.payerMemberId ?? 'comprador'})`
-      : order.payerMemberId ?? 'comprador';
+      : (order.payerMemberId ?? 'comprador');
     const description = `Ingresso: ${ticketName} — ${eventTitle} (comprador: ${payerLabel})`;
 
     await this.ledgerService.recordTransaction(
@@ -1138,7 +1165,7 @@ export class StripeService {
       // da charge (communityId da ativação), quando presente
       const projectKey =
         event?.communityProjectKey ??
-        (charge.metadata?.communityId as string | undefined) ??
+        charge.metadata?.communityId ??
         'tesouro-geral';
       const stripeIncomeAccount =
         await this.ledgerService.getOrCreateCommunityAccount(
@@ -1258,7 +1285,7 @@ export class StripeService {
       const pi = await this.stripe.paymentIntents.retrieve(paymentIntentId, {
         expand: ['latest_charge.balance_transaction'],
       });
-      latestCharge = pi.latest_charge as Stripe.Charge | string | null;
+      latestCharge = pi.latest_charge;
     } catch (error: unknown) {
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
@@ -1274,10 +1301,7 @@ export class StripeService {
       return;
     }
 
-    const bt = latestCharge.balance_transaction as
-      | Stripe.BalanceTransaction
-      | string
-      | null;
+    const bt = latestCharge.balance_transaction;
     if (!bt || typeof bt === 'string') {
       this.logger.debug(
         `captureFee: charge ${latestCharge.id} sem balance_transaction expandido — fallback aguardando charge.succeeded`,

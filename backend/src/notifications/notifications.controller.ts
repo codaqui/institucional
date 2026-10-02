@@ -99,9 +99,13 @@ export class NotificationsController {
 
   @Post('templates/:id/preview')
   @ApiOperation({
-    summary: '🔒 Renderiza preview do template com variáveis de exemplo [admin]',
+    summary:
+      '🔒 Renderiza preview do template com variáveis de exemplo [admin]',
   })
-  previewTemplate(@Param('id') id: string, @Body() dto: EmailTemplateContentDto) {
+  previewTemplate(
+    @Param('id') id: string,
+    @Body() dto: EmailTemplateContentDto,
+  ) {
     return this.templateService.previewTemplate(id, dto);
   }
 

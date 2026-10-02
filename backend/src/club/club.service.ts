@@ -5,7 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, FindOptionsWhere, IsNull, Repository } from 'typeorm';
+import {
+  DataSource,
+  EntityManager,
+  FindOptionsWhere,
+  IsNull,
+  Repository,
+} from 'typeorm';
 import { Wallet } from './entities/wallet.entity';
 import {
   WalletTransaction,
@@ -14,7 +20,7 @@ import {
 import { Member } from '../members/entities/member.entity';
 
 /** Quantos SortCoins por real (pode virar config de banco no futuro) */
-const SORT_COINS_PER_REAL = 1;  // 1 real = 1 SortCoin
+const SORT_COINS_PER_REAL = 1; // 1 real = 1 SortCoin
 const DEFAULT_COIN = 'sort_coin';
 
 @Injectable()
@@ -71,7 +77,9 @@ export class ClubService {
       throw new NotFoundException('Membro não encontrado');
     }
 
-    const wallet = await this.walletRepo.findOne({ where: { memberId: member.id } });
+    const wallet = await this.walletRepo.findOne({
+      where: { memberId: member.id },
+    });
     if (!wallet) {
       return {
         member: {
@@ -130,7 +138,13 @@ export class ClubService {
     coinType = DEFAULT_COIN,
   ): Promise<WalletTransaction> {
     const coins = Math.floor(amountReais * SORT_COINS_PER_REAL);
-    return this.credit(memberId, coins, WalletTxSource.STRIPE_INVOICE, referenceId, coinType);
+    return this.credit(
+      memberId,
+      coins,
+      WalletTxSource.STRIPE_INVOICE,
+      referenceId,
+      coinType,
+    );
   }
 
   /**
@@ -232,7 +246,14 @@ export class ClubService {
   ): Promise<WalletTransaction> {
     if (amount === 0) throw new BadRequestException('Ajuste não pode ser zero');
     const wallet = await this.getOrCreateWallet(memberId);
-    return this.applyBalance(wallet.id, amount, coinType, WalletTxSource.MANUAL_ADMIN, null, description);
+    return this.applyBalance(
+      wallet.id,
+      amount,
+      coinType,
+      WalletTxSource.MANUAL_ADMIN,
+      null,
+      description,
+    );
   }
 
   /** Congela um tipo de moeda na carteira */
@@ -265,7 +286,14 @@ export class ClubService {
     coinType = DEFAULT_COIN,
   ): Promise<WalletTransaction> {
     const wallet = await this.getOrCreateWallet(memberId);
-    return this.applyBalance(wallet.id, coins, coinType, WalletTxSource.COMPANY_DISTRIBUTION, referenceId, description);
+    return this.applyBalance(
+      wallet.id,
+      coins,
+      coinType,
+      WalletTxSource.COMPANY_DISTRIBUTION,
+      referenceId,
+      description,
+    );
   }
 
   private async credit(
