@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-02T20:01:51.402Z",
+  "generatedAt": "2026-10-02T21:01:35.218Z",
   "events": [
     {
       "id": "devpr-conf-26",
@@ -24,9 +24,8 @@
     {
       "id": "devpr-conf-25",
       "title": "DevPR Conf 25 - Especial 10 anos",
-      "summary": "Siga nossas páginas para receber as novidades do evento:\r\n\r\n Linkedin: https://br.linkedin.com/company/devparana\r\n Instagram: https://www.instagra...",
+      "summary": "Evento publicado por DevPR na Doity.",
       "startAt": "2025-09-13T07:30:00-03:00",
-      "endAt": "2025-09-13T18:00:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Doity",
       "host": "DevPR",
