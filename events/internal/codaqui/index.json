@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T02:02:47.940Z",
+  "generatedAt": "2026-10-03T03:12:02.491Z",
   "source": {
     "source": "internal",
     "sourceId": "codaqui",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos",
     "ctaHref": "/eventos",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-10-03T02:02:47.940Z",
+    "generatedAt": "2026-10-03T03:12:02.491Z",
     "sourceKey": "internal:codaqui",
     "indexPath": "/events/internal/codaqui/index.json",
     "itemCount": 1
