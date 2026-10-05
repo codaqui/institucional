@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21) — aguardando review do documento antes do plano de implementação da Fase 1.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b — aguardando plano de implementação da Fase 1a.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -55,6 +55,8 @@ Princípios:
 |---|---|
 | `members` com `roles text[]` (membro, admin, finance-analyzer, event_*) | + papéis `diretor`, `voluntario`; vínculos a diretorias/comunidades |
 | Eventos (managed + externos, check-in, certificado por presença) | Fonte de horas automática (`event_checkin`); comunidades integradas mantêm eventos próprios |
+| `managed_events.workloadMinutes` (0.10.0, Migration025 — carga horária explícita do certificado, fallback = duração do evento) | Fonte canônica das horas da entrada `event_checkin` (regra de derivação no subsistema B) |
+| Check-in atômico (0.11.x — update condicional `checkedInAt IS NULL`, rejeição de inscrição inválida, QR/câmera, `EVENT_CHECKER` em eventos externos) | Ponto único e transacional onde o hook exactly-once da `hour_ledger` deve se conectar |
 | Ledger financeiro double-entry | **Inalterada** — dinheiro apenas, incluindo a caixa das comunidades integradas |
 | Ledger de horas (novo) | `hour_ledger` **tabela separada** (unidade = horas); copia só o *pattern* de auditoria/aprovação da ledger financeira, sem compartilhar dados ou contas |
 | `companies` (ADR 003) | Ganha `tier` (amiga/aliada) + due diligence |
@@ -74,7 +76,7 @@ Princípios:
 1. **Assembleias:** híbrido — Discussion é a ata viva; banco guarda registro fino (tipo, número, data, status, PDF do cartório, metadados de registro).
 2. **Comunidades:** 2 níveis — **Parceira** (listada, apoio pontual) e **Integrada** (site + eventos + caixa) — mais o **Selo Codaqui** (processo formal da diretoria, validade de 1 ano, responsável obrigatório).
 3. **Business:** tiers **Empresa Amiga** (só financeiro = CLUB Business PJ atual) e **Empresa Aliada** (Codaqui valida de forma consultiva; selo próprio com validade).
-4. **Horas:** **uma única ledger de horas** (`hour_ledger`, **separada da ledger financeira**) com aprovação — diretor/mentor lança (pending), presidência/finance-analyzer aprova; check-in em eventos entra automaticamente como approved.
+4. **Horas:** **uma única ledger de horas** (`hour_ledger`, **separada da ledger financeira**) com aprovação — diretor/mentor lança (pending), presidência/finance-analyzer aprova; check-in em eventos (internos **e** externos ativados) entra automaticamente como approved. Derivação das horas de evento (decisão 2026-10-05): `workloadMinutes` do evento; se ausente, a duração (`endAt − startAt`); se nenhuma das duas estiver disponível, a carga horária torna-se **obrigatória** no cadastro/ativação do evento.
 
 ## Subsistemas
 
@@ -97,7 +99,7 @@ Princípios:
 - `hour_ledger`: `id`, `memberId`, `sourceType` ('event_checkin' | 'directorate_activity' | 'extension_project'), `sourceId`, `sourceLabel`, `hours` (numeric), `description`, `occurredAt`, `status` ('pending' | 'approved' | 'rejected'), `reportedById`, `approvedById?`, `approvedAt?`, `rejectReason?`. Guarda de unicidade: 1 entrada approved por (`memberId`, `sourceType`, `sourceId`).
 
 **Fluxos:**
-- Evento: check-in aprovado → entrada `event_checkin` **approved** automática (reportedBy = sistema).
+- Evento (interno **ou externo com check-in ativado**): check-in aprovado → entrada `event_checkin` **approved** automática (reportedBy = sistema). Horas derivadas por: `workloadMinutes` do evento → fallback duração (`endAt − startAt`; do banco para internos, dos metadados do snapshot para externos) → se nenhuma disponível, a carga horária é **obrigatória** no cadastro/ativação (evento sem carga horária definida não pode ser criado/ativado). O hook é **exactly-once**: dispara somente na transição atômica `checkedInAt` null→valor (o mesmo update condicional introduzido no check-in 0.11.x), e a guarda de unicidade acima elimina qualquer duplicidade residual.
 - Atividade de diretoria: diretor lança (`directorate_activity`) → pending → presidência/finance-analyzer aprova → saldo.
 - Projeto de extensão: mentor lança (`extension_project`) → mesmo fluxo.
 - Rejeição exige motivo; tudo vai para o `audit`.
@@ -284,7 +286,7 @@ Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam par
 
 Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
 Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail).
-Migrations numeradas a partir da 024. Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
+Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `managed_events.workloadMinutes` já existem). Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
 
 > **Nota — duas ledgers, zero mistura:** a `hour_ledger` é independente da ledger financeira (`Account`/`Transaction`): unidade horas vs. BRL, sem double-entry, sem contas compartilhadas. O que ela herda é apenas o *padrão* (trilha de auditoria, status de aprovação, convenção de referências). Dinheiro — incluindo a caixa das comunidades integradas — segue exclusivamente na ledger financeira.
 
@@ -313,14 +315,15 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
-| **1. Fundações** | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios) + AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas; sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
-| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade |
+| **1a. Fundações de dados** (split 2026-10-05) | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas |
+| **1b. UX e transversal** (split 2026-10-05) | **AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
+| **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 
-Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.11.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
+Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS). Mapa remapeado em 2026-10-05: **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
@@ -341,6 +344,8 @@ Backend: 0.8.1 → **0.9.0** (fases 1–2) → **0.10.0** (fases 3–4) → **0.
 6. Discussion 573 mostra comunidades com "representantes" não cadastrados (ex.: Josi) — o modelo exigirá responsável **membro** do site para selo/painel.
 7. **Mentoria:** política de cancelamento/no-show (tolerância, reagendamento) e LGPD básica para mentorandos convidados (e-mail + nome em sessões — consentimento no pedido e remoção sob solicitação).
 8. **Visibilidade do perfil público:** o snapshot por membro é gerado pelo workflow — uma mudança de privacidade leva até o próximo run para refletir em `/@handle` (documentar no painel: "alterações levam até X minutos").
+9. **Horas pós-cancelamento:** não existe fluxo de desfazer check-in (0.11.x); uma entrada `event_checkin` gerada permanece approved mesmo se a inscrição for cancelada/reembolsada depois — definir com a diretoria se cabe reversão manual na fila de aprovação ou política de "hora registrada não se desfaz".
+10. **Carga horária de eventos externos legados:** ativações externas anteriores à Fase 2 podem não ter duração confiável no snapshot nem `workloadMinutes` — a regra de obrigatoriedade vale para novas ativações; o tratamento de retroativos (backfill manual vs. ignorar) fica para o plano de implementação da Fase 2.
 
 ## Fora de escopo (1.0.0)
 
