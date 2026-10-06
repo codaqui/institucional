@@ -77,32 +77,42 @@ describe('LedgerController', () => {
       eventId: 'evt-1',
       ticketTypeId: 'tt-1',
       externalActivationId: 'act-1',
-    } as any);
+    });
 
     expect(service.getAccounts).toHaveBeenCalled();
     expect(service.getCommunityBalances).toHaveBeenCalled();
     expect(service.getTransparencyStats).toHaveBeenCalled();
     expect(service.getAccountBalance).toHaveBeenCalledWith('acc-1');
-    expect(service.getAccountTransactions).toHaveBeenCalledWith('acc-1', 2, 30, {
-      type: 'donation',
-      days: 90,
-      search: 'octocat',
-      eventId: 'evt-1',
-      ticketTypeId: 'tt-1',
-      externalActivationId: 'act-1',
-    });
+    expect(service.getAccountTransactions).toHaveBeenCalledWith(
+      'acc-1',
+      2,
+      30,
+      {
+        type: 'donation',
+        days: 90,
+        search: 'octocat',
+        eventId: 'evt-1',
+        ticketTypeId: 'tt-1',
+        externalActivationId: 'act-1',
+      },
+    );
   });
 
   it('uses default pagination in account transactions query', async () => {
-    await controller.getAccountTransactions('acc-1', {} as any);
-    expect(service.getAccountTransactions).toHaveBeenCalledWith('acc-1', 1, 10, {
-      type: undefined,
-      days: undefined,
-      search: undefined,
-      eventId: undefined,
-      ticketTypeId: undefined,
-      externalActivationId: undefined,
-    });
+    await controller.getAccountTransactions('acc-1', {});
+    expect(service.getAccountTransactions).toHaveBeenCalledWith(
+      'acc-1',
+      1,
+      10,
+      {
+        type: undefined,
+        days: undefined,
+        search: undefined,
+        eventId: undefined,
+        ticketTypeId: undefined,
+        externalActivationId: undefined,
+      },
+    );
   });
 
   it('returns transaction by id when found', async () => {

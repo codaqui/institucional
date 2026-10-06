@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration025ManagedEventWorkloadMinutes1790600409000
-  implements MigrationInterface
-{
+export class Migration025ManagedEventWorkloadMinutes1790600409000 implements MigrationInterface {
   name = 'Migration025ManagedEventWorkloadMinutes1790600409000';
 
   async up(queryRunner: QueryRunner): Promise<void> {

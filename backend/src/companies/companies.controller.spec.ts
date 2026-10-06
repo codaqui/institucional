@@ -49,7 +49,7 @@ describe('CompaniesController', () => {
   });
 
   it('registers company with authenticated user id', async () => {
-    await controller.register({ cnpj: '11222333000181', name: 'Acme' } as any, req());
+    await controller.register({ cnpj: '11222333000181', name: 'Acme' }, req());
     expect(service.register).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Acme' }),
       'member-1',
@@ -73,7 +73,9 @@ describe('CompaniesController', () => {
   it('gets company public info', async () => {
     await controller.getPublicAffiliationByHandle('octocat');
     await controller.getCompanyPublicInfo('company-1');
-    expect(service.findPublicAffiliationByHandle).toHaveBeenCalledWith('octocat');
+    expect(service.findPublicAffiliationByHandle).toHaveBeenCalledWith(
+      'octocat',
+    );
     expect(service.findPublicInfo).toHaveBeenCalledWith('company-1');
   });
 
@@ -85,7 +87,10 @@ describe('CompaniesController', () => {
   });
 
   it('allows admin to access company without membership check', async () => {
-    await controller.getCompany('company-1', req({ roles: [MemberRole.ADMIN] }));
+    await controller.getCompany(
+      'company-1',
+      req({ roles: [MemberRole.ADMIN] }),
+    );
     expect(service.isMemberOfCompany).not.toHaveBeenCalled();
     expect(service.findById).toHaveBeenCalledWith('company-1');
   });
@@ -96,13 +101,13 @@ describe('CompaniesController', () => {
   });
 
   it('delegates wallet transaction pagination defaults', async () => {
-    await controller.getTransactions('company-1', req(), undefined as any, undefined as any);
+    await controller.getTransactions('company-1', req(), undefined, undefined);
     expect(service.getTransactions).toHaveBeenCalledWith('company-1', 1, 20);
   });
 
   it('updates company with requester id', async () => {
     const dto = { name: 'Updated Co' };
-    await controller.update('company-1', dto as any, req());
+    await controller.update('company-1', dto, req());
     expect(service.update).toHaveBeenCalledWith('company-1', dto, 'member-1');
   });
 
@@ -130,7 +135,7 @@ describe('CompaniesController', () => {
 
   it('delegates distribution using authenticated user', async () => {
     const body = { distributions: [{ githubHandle: 'octocat', amount: 10 }] };
-    await controller.distributeCoins('company-1', body as any, req());
+    await controller.distributeCoins('company-1', body, req());
     expect(service.distributeCoins).toHaveBeenCalledWith(
       'company-1',
       body.distributions,
@@ -155,7 +160,7 @@ describe('CompaniesController', () => {
       amount: 100,
       coinType: 'sort_coin',
       description: 'bonus',
-    } as any);
+    });
     expect(service.manualAdjust).toHaveBeenCalledWith(
       'company-1',
       100,

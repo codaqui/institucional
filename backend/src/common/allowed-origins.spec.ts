@@ -83,9 +83,9 @@ describe('allowed-origins', () => {
       expect(resolveReturnUrl('https://evil.com/phish')).toBe(
         'https://codaqui.dev/',
       );
-      expect(
-        resolveReturnUrl('https://evil.com/phish', '/auth/callback'),
-      ).toBe('https://codaqui.dev/auth/callback');
+      expect(resolveReturnUrl('https://evil.com/phish', '/auth/callback')).toBe(
+        'https://codaqui.dev/auth/callback',
+      );
     });
 
     it('falls back when the candidate is not a valid URL', () => {
@@ -143,9 +143,9 @@ describe('allowed-origins', () => {
     });
 
     it('ignores a Referer whose origin is not whitelisted', () => {
-      expect(
-        resolveOrigin(undefined, undefined, 'https://evil.com/x'),
-      ).toBe('https://codaqui.dev');
+      expect(resolveOrigin(undefined, undefined, 'https://evil.com/x')).toBe(
+        'https://codaqui.dev',
+      );
     });
 
     it('returns the default origin when nothing is allowed', () => {

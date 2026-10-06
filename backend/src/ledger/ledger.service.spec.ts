@@ -46,7 +46,11 @@ describe('LedgerService', () => {
   });
 
   it('creates account', async () => {
-    const result = await service.createAccount('Comunidade', AccountType.VIRTUAL_WALLET, 'devparana');
+    const result = await service.createAccount(
+      'Comunidade',
+      AccountType.VIRTUAL_WALLET,
+      'devparana',
+    );
     expect(accountRepo.create).toHaveBeenCalledWith({
       name: 'Comunidade',
       type: AccountType.VIRTUAL_WALLET,
@@ -59,15 +63,24 @@ describe('LedgerService', () => {
 
   describe('getOrCreateCommunityAccount', () => {
     it('returns existing account', async () => {
-      accountRepo.findOneBy.mockResolvedValue({ id: 'acc-1', projectKey: 'devparana' });
-      const result = await service.getOrCreateCommunityAccount('devparana', 'DevParana');
+      accountRepo.findOneBy.mockResolvedValue({
+        id: 'acc-1',
+        projectKey: 'devparana',
+      });
+      const result = await service.getOrCreateCommunityAccount(
+        'devparana',
+        'DevParana',
+      );
       expect(result).toEqual({ id: 'acc-1', projectKey: 'devparana' });
       expect(accountRepo.save).not.toHaveBeenCalled();
     });
 
     it('creates account when not exists', async () => {
       accountRepo.findOneBy.mockResolvedValueOnce(null);
-      const result = await service.getOrCreateCommunityAccount('tisocial', 'T.I Social');
+      const result = await service.getOrCreateCommunityAccount(
+        'tisocial',
+        'T.I Social',
+      );
       expect(result).toEqual(
         expect.objectContaining({ projectKey: 'tisocial', name: 'T.I Social' }),
       );
@@ -79,7 +92,10 @@ describe('LedgerService', () => {
         .mockResolvedValueOnce({ id: 'acc-race', projectKey: 'devparana' });
       accountRepo.save.mockRejectedValueOnce(new Error('duplicate key'));
 
-      const result = await service.getOrCreateCommunityAccount('devparana', 'DevParana');
+      const result = await service.getOrCreateCommunityAccount(
+        'devparana',
+        'DevParana',
+      );
       expect(result).toEqual({ id: 'acc-race', projectKey: 'devparana' });
     });
 
@@ -120,8 +136,16 @@ describe('LedgerService', () => {
       };
       dataSource.transaction.mockImplementation(async (cb: any) => cb(manager));
 
-      const result = await service.recordTransaction('src', 'dst', 100, 'Doação', 'ref-1');
-      expect(result).toEqual(expect.objectContaining({ id: 'tx-1', amount: 100 }));
+      const result = await service.recordTransaction(
+        'src',
+        'dst',
+        100,
+        'Doação',
+        'ref-1',
+      );
+      expect(result).toEqual(
+        expect.objectContaining({ id: 'tx-1', amount: 100 }),
+      );
     });
 
     it('throws when source or destination account is invalid', async () => {
@@ -144,7 +168,9 @@ describe('LedgerService', () => {
   describe('getAccountBalance', () => {
     it('throws when account does not exist', async () => {
       accountRepo.findOneBy.mockResolvedValue(null);
-      await expect(service.getAccountBalance('missing')).rejects.toThrow(BadRequestException);
+      await expect(service.getAccountBalance('missing')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('returns credits minus debits', async () => {
@@ -217,7 +243,9 @@ describe('LedgerService', () => {
 
       await service.getAccountTransactions('acc-1', 1, 10, { type });
       const andWhereCalls = qb.andWhere.mock.calls.map(([sql]) => String(sql));
-      expect(andWhereCalls.some((sql) => sql.includes(expectedFragment))).toBe(true);
+      expect(andWhereCalls.some((sql) => sql.includes(expectedFragment))).toBe(
+        true,
+      );
     },
   );
 
@@ -243,7 +271,12 @@ describe('LedgerService', () => {
 
     const result = await service.getCommunityBalances();
     expect(result).toEqual([
-      { id: 'acc-1', projectKey: 'devparana', name: 'DevParana', balance: 1000 },
+      {
+        id: 'acc-1',
+        projectKey: 'devparana',
+        name: 'DevParana',
+        balance: 1000,
+      },
       { id: 'acc-2', projectKey: 'tisocial', name: 'TISocial', balance: 250 },
     ]);
   });
@@ -306,7 +339,9 @@ describe('LedgerService', () => {
         .mockReturnValueOnce(makeQbRawOne({ sum: '500' })) // totalExpenses
         .mockReturnValueOnce(makeQbRawOne({ count: '12' })) // totalTransactions
         .mockReturnValueOnce(makeQbRawOne({ sum: '300', count: '2' })) // totalEventTickets
-        .mockReturnValueOnce(makeQbRawMany([{ handle: '@octocat' }, { handle: '@codaqui' }])) // unique donors
+        .mockReturnValueOnce(
+          makeQbRawMany([{ handle: '@octocat' }, { handle: '@codaqui' }]),
+        ) // unique donors
         .mockReturnValueOnce(
           makeQbRawMany([
             {

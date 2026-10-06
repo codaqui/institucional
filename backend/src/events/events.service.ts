@@ -265,9 +265,7 @@ export class EventsService {
     const windowClause = enforceSalesWindow
       ? 'AND ("salesStartAt" IS NULL OR "salesStartAt" <= now()) AND ("salesEndAt" IS NULL OR "salesEndAt" >= now())'
       : '';
-    const rows: Array<{ id: string }> = await (
-      em ?? this.ticketTypeRepo
-    ).query(
+    const rows: Array<{ id: string }> = await (em ?? this.ticketTypeRepo).query(
       `UPDATE ticket_types
           SET "quantitySold" = "quantitySold" + $1
         WHERE id = $2 AND "isActive" ${windowClause}
@@ -340,7 +338,9 @@ export class EventsService {
    */
   private async loadOrganizersByEvent(
     eventIds: string[],
-  ): Promise<Map<string, Array<{ name: string; id?: string; photoUrl?: string }>>> {
+  ): Promise<
+    Map<string, Array<{ name: string; id?: string; photoUrl?: string }>>
+  > {
     const map = new Map<
       string,
       Array<{ name: string; id?: string; photoUrl?: string }>
@@ -520,7 +520,11 @@ export class EventsService {
     const attendeesForSelf = (dto.attendees ?? []).filter(
       (a) => (a.email ?? '').toLowerCase().trim() === buyerEmail,
     );
-    if (dto.attendees && dto.attendees.length > 0 && attendeesForSelf.length === 0) {
+    if (
+      dto.attendees &&
+      dto.attendees.length > 0 &&
+      attendeesForSelf.length === 0
+    ) {
       return;
     }
 
@@ -562,17 +566,24 @@ export class EventsService {
       community?: string;
     },
   ) {
-    if (!EventsService.canManageAll(user) && !user.roles?.includes(MemberRole.EVENT_FINANCE)) {
+    if (
+      !EventsService.canManageAll(user) &&
+      !user.roles?.includes(MemberRole.EVENT_FINANCE)
+    ) {
       throw new ForbiddenException(
         'Acesso negado: requer role admin, event_organizer ou event_finance.',
       );
     }
 
-    const qb = this.eventRepo.createQueryBuilder('e').orderBy('e."startAt"', 'DESC');
+    const qb = this.eventRepo
+      .createQueryBuilder('e')
+      .orderBy('e."startAt"', 'DESC');
 
     if (query?.search?.trim()) {
       const q = `%${query.search.trim().toLowerCase()}%`;
-      qb.andWhere('(lower(e.title) LIKE :q OR lower(e.summary) LIKE :q)', { q });
+      qb.andWhere('(lower(e.title) LIKE :q OR lower(e.summary) LIKE :q)', {
+        q,
+      });
     }
     if (query?.community?.trim()) {
       qb.andWhere('e."communityProjectKey" = :community', {
@@ -640,9 +651,7 @@ export class EventsService {
       const staffEventIds = await this.staffRepo.findBy({ memberId: user.sub });
       const ids = staffEventIds.map((s) => s.eventId);
       managedEvents =
-        ids.length > 0
-          ? await this.eventRepo.findBy({ id: In(ids) })
-          : [];
+        ids.length > 0 ? await this.eventRepo.findBy({ id: In(ids) }) : [];
     }
 
     const staffRows = await this.staffRepo.findBy({ memberId: user.sub });
@@ -652,8 +661,7 @@ export class EventsService {
 
     const managed = managedEvents.map((e) => {
       const staffRole = staffRoleByEventId.get(e.id);
-      const canUseList =
-        isManager || staffRole === EventStaffRole.HOST;
+      const canUseList = isManager || staffRole === EventStaffRole.HOST;
       return {
         id: e.id,
         title: e.title,
@@ -667,7 +675,9 @@ export class EventsService {
     const allActivations = await this.activationRepo.find({
       order: { createdAt: 'DESC' },
     });
-    const ownedScopes = isManager ? [] : await this.eventOrganizerService.getOwnedScopes(user);
+    const ownedScopes = isManager
+      ? []
+      : await this.eventOrganizerService.getOwnedScopes(user);
 
     const external = allActivations
       .filter((a) => a.features.includes('checkin'))
@@ -675,9 +685,7 @@ export class EventsService {
         const { sourceKey } = EventsService.parseEventKey(a.eventKey);
         const isOwner =
           isManager ||
-          ownedScopes.some(
-            (s) => s === a.eventKey || s === `${sourceKey}:*`,
-          );
+          ownedScopes.some((s) => s === a.eventKey || s === `${sourceKey}:*`);
         const isActivator = a.enabledByMemberId === user.sub;
         const canUseList = isOwner || isActivator;
         return {
@@ -762,9 +770,7 @@ export class EventsService {
     if (dto.startAt !== undefined)
       event.startAt = parseDateTimeLocal(dto.startAt, tz);
     if (dto.endAt !== undefined)
-      event.endAt = dto.endAt
-        ? parseDateTimeLocal(dto.endAt, tz)
-        : null;
+      event.endAt = dto.endAt ? parseDateTimeLocal(dto.endAt, tz) : null;
     if (dto.timezone !== undefined) event.timezone = dto.timezone;
     if (dto.communityProjectKey !== undefined)
       event.communityProjectKey = dto.communityProjectKey;
@@ -1639,7 +1645,8 @@ export class EventsService {
     const order = await this.orderRepo.findOneBy({ id: orderId });
     if (!order) throw new NotFoundException('Pedido não encontrado.');
 
-    const isOwner = order.memberId === user.sub || order.payerMemberId === user.sub;
+    const isOwner =
+      order.memberId === user.sub || order.payerMemberId === user.sub;
     const isFinance = !!user.roles?.some(
       (r) => r === MemberRole.ADMIN || r === MemberRole.EVENT_FINANCE,
     );
@@ -1725,7 +1732,9 @@ export class EventsService {
       EventsService.canManageAll(user) ||
       activation.enabledByMemberId === user.sub;
     if (!canView) {
-      throw new ForbiddenException('Sem permissão para ver pedidos deste evento.');
+      throw new ForbiddenException(
+        'Sem permissão para ver pedidos deste evento.',
+      );
     }
 
     const orders = await this.orderRepo.find({
@@ -1738,10 +1747,14 @@ export class EventsService {
 
   private async buildOrderList(orders: EventOrder[]) {
     const memberIds = [
-      ...new Set(orders.map((o) => o.memberId).filter((id): id is string => !!id)),
+      ...new Set(
+        orders.map((o) => o.memberId).filter((id): id is string => !!id),
+      ),
     ];
     const ticketTypeIds = [
-      ...new Set(orders.map((o) => o.ticketTypeId).filter((id): id is string => !!id)),
+      ...new Set(
+        orders.map((o) => o.ticketTypeId).filter((id): id is string => !!id),
+      ),
     ];
 
     const [members, ticketTypes] = await Promise.all([
@@ -1891,7 +1904,13 @@ export class EventsService {
       event.communityProjectKey ?? 'tesouro-geral',
     );
     if (!account) {
-      return { data: [], total: 0, page: query.page ?? 1, limit: query.limit ?? 10, totalPages: 0 };
+      return {
+        data: [],
+        total: 0,
+        page: query.page ?? 1,
+        limit: query.limit ?? 10,
+        totalPages: 0,
+      };
     }
 
     return this.ledgerService.getAccountTransactions(
@@ -1928,13 +1947,21 @@ export class EventsService {
     user: JwtPayload,
   ) {
     const activation = await this.findActivationOrFail(eventKey);
-    await this.assertExternalManager(user, activation, { allowActivator: true });
+    await this.assertExternalManager(user, activation, {
+      allowActivator: true,
+    });
 
     const account = await this.ledgerService.getAccountByProjectKey(
       activation.communityProjectKey ?? 'tesouro-geral',
     );
     if (!account) {
-      return { data: [], total: 0, page: query.page ?? 1, limit: query.limit ?? 10, totalPages: 0 };
+      return {
+        data: [],
+        total: 0,
+        page: query.page ?? 1,
+        limit: query.limit ?? 10,
+        totalPages: 0,
+      };
     }
 
     return this.ledgerService.getAccountTransactions(
@@ -1997,7 +2024,9 @@ export class EventsService {
     user: JwtPayload,
   ): Promise<{ id: string; status: string }> {
     const activation = await this.findActivationOrFail(eventKey);
-    await this.assertExternalManager(user, activation, { allowActivator: true });
+    await this.assertExternalManager(user, activation, {
+      allowActivator: true,
+    });
 
     const request = await this.reimbursementsService.createEventReimbursement(
       user.sub,
@@ -2125,7 +2154,9 @@ export class EventsService {
   private async enrichRegistrations(registrations: EventRegistration[]) {
     const ticketIds = [...new Set(registrations.map((r) => r.ticketTypeId))];
     const orderIds = [
-      ...new Set(registrations.map((r) => r.orderId).filter((id): id is string => !!id)),
+      ...new Set(
+        registrations.map((r) => r.orderId).filter((id): id is string => !!id),
+      ),
     ];
     const memberIds = [
       ...new Set(
@@ -2135,9 +2166,15 @@ export class EventsService {
       ),
     ];
     const [tickets, orders, members] = await Promise.all([
-      ticketIds.length ? this.ticketTypeRepo.findBy({ id: In(ticketIds) }) : Promise.resolve([]),
-      orderIds.length ? this.orderRepo.findBy({ id: In(orderIds) }) : Promise.resolve([]),
-      memberIds.length ? this.memberRepo.findBy({ id: In(memberIds) }) : Promise.resolve([]),
+      ticketIds.length
+        ? this.ticketTypeRepo.findBy({ id: In(ticketIds) })
+        : Promise.resolve([]),
+      orderIds.length
+        ? this.orderRepo.findBy({ id: In(orderIds) })
+        : Promise.resolve([]),
+      memberIds.length
+        ? this.memberRepo.findBy({ id: In(memberIds) })
+        : Promise.resolve([]),
     ]);
     const nameById = new Map(tickets.map((t) => [t.id, t.name]));
     const orderById = new Map(orders.map((o) => [o.id, o]));
@@ -2145,7 +2182,9 @@ export class EventsService {
     return registrations.map((r) => {
       const order = r.orderId ? orderById.get(r.orderId) : undefined;
       const member = r.memberId ? memberById.get(r.memberId) : undefined;
-      const payer = r.payerMemberId ? memberById.get(r.payerMemberId) : undefined;
+      const payer = r.payerMemberId
+        ? memberById.get(r.payerMemberId)
+        : undefined;
       return {
         ...r,
         ticketType: { name: nameById.get(r.ticketTypeId) ?? null },
@@ -2155,7 +2194,9 @@ export class EventsService {
               status: order.status,
               totalCents: order.totalCents,
               quantity: order.quantity,
-              paidAt: order.paidAt ? new Date(order.paidAt).toISOString() : null,
+              paidAt: order.paidAt
+                ? new Date(order.paidAt).toISOString()
+                : null,
             }
           : null,
         member: member
@@ -2224,7 +2265,9 @@ export class EventsService {
     };
   }
 
-  private async resolveCertificateEventDetails(registration: EventRegistration): Promise<{
+  private async resolveCertificateEventDetails(
+    registration: EventRegistration,
+  ): Promise<{
     eventTitle: string;
     eventStartAt: Date | null;
     eventEndAt: Date | null;
@@ -2276,11 +2319,11 @@ export class EventsService {
     workloadMinutes: number | null;
     communityProjectKey: string | null;
   }> {
-    const activation = await this.activationRepo.findOneBy({ id: activationId });
+    const activation = await this.activationRepo.findOneBy({
+      id: activationId,
+    });
     if (!activation) {
-      throw new NotFoundException(
-        'Ativação do evento externo não encontrada.',
-      );
+      throw new NotFoundException('Ativação do evento externo não encontrada.');
     }
     if (!activation.features.includes('certificates')) {
       throw new ForbiddenException(
@@ -2810,7 +2853,8 @@ export class EventsService {
       }),
     );
     ctx.seenIdentifier.add(identifier);
-    if (row.externalId) ctx.seenExternal.add(`${ctx.sourceKey}|${row.externalId}`);
+    if (row.externalId)
+      ctx.seenExternal.add(`${ctx.sourceKey}|${row.externalId}`);
     ctx.ticketIncrements.set(
       ticketType.id,
       (ctx.ticketIncrements.get(ticketType.id) ?? 0) + 1,
@@ -2878,9 +2922,7 @@ export class EventsService {
     return true;
   }
 
-  private async resolveImportMember(
-    row: ParsedCsvRow,
-  ): Promise<Member | null> {
+  private async resolveImportMember(row: ParsedCsvRow): Promise<Member | null> {
     // Match: e-mail da conta; se não achar, tenta a coluna opcional
     // `github` (handle) — decisão de design #2 do docs/adrs/001-event-platform.md.
     let member = await this.findMemberByIdentifier(row.email);
@@ -2919,17 +2961,83 @@ export class EventsService {
       externalActivationId: activation.id,
       status: RegistrationStatus.PENDING_MATCH,
     });
+
     let rematched = 0;
+    if (pending.length === 0) {
+      return { rematched, stillUnmatched: 0 };
+    }
+
+    const identifiers = pending.map((r) => r.attendeeEmail.toLowerCase());
+    const memberCache = new Map<string, Member>();
+
+    // 1. Fetch by primary email
+    const byPrimary = await this.memberRepo
+      .createQueryBuilder('m')
+      .where('lower(m.email) IN (:...identifiers)', { identifiers })
+      .andWhere('m."isActive" = true')
+      .getMany();
+    for (const m of byPrimary) {
+      memberCache.set(m.email.toLowerCase(), m);
+    }
+
+    // 2. Fetch by github handle (no @)
+    const remainingHandles = identifiers.filter(
+      (id) => !memberCache.has(id) && !id.includes('@'),
+    );
+    if (remainingHandles.length > 0) {
+      const byHandle = await this.memberRepo
+        .createQueryBuilder('m')
+        .where('lower(m."githubHandle") IN (:...identifiers)', {
+          identifiers: remainingHandles,
+        })
+        .andWhere('m."isActive" = true')
+        .getMany();
+      for (const m of byHandle) {
+        memberCache.set(m.githubHandle.toLowerCase(), m);
+      }
+    }
+
+    // 3. Fetch by secondary emails (has @)
+    const remainingEmails = identifiers.filter(
+      (id) => !memberCache.has(id) && id.includes('@'),
+    );
+    if (remainingEmails.length > 0) {
+      const bySecondary = await this.memberRepo
+        .createQueryBuilder('m')
+        .where(
+          'EXISTS (SELECT 1 FROM unnest(m."secondaryEmails") e WHERE lower(e) IN (:...identifiers))',
+          { identifiers: remainingEmails },
+        )
+        .andWhere('m."isActive" = true')
+        .getMany();
+      for (const m of bySecondary) {
+        if (m.secondaryEmails) {
+          for (const email of m.secondaryEmails) {
+            const lowerEmail = email.toLowerCase();
+            if (remainingEmails.includes(lowerEmail)) {
+              memberCache.set(lowerEmail, m);
+            }
+          }
+        }
+      }
+    }
+
+    const registrationsToSave = [];
     for (const registration of pending) {
-      const member = await this.findMemberByIdentifier(
-        registration.attendeeEmail,
-      );
+      const emailLower = registration.attendeeEmail.toLowerCase();
+      const member = memberCache.get(emailLower);
+
       if (!member) continue;
       registration.memberId = member.id;
       registration.status = RegistrationStatus.CONFIRMED;
-      await this.registrationRepo.save(registration);
+      registrationsToSave.push(registration);
       rematched += 1;
     }
+
+    for (const reg of registrationsToSave) {
+      await this.registrationRepo.save(reg);
+    }
+
     return { rematched, stillUnmatched: pending.length - rematched };
   }
 
@@ -2948,7 +3056,9 @@ export class EventsService {
     const pending = await this.registrationRepo
       .createQueryBuilder('r')
       .where('r.status = :status', { status: RegistrationStatus.PENDING_MATCH })
-      .andWhere('lower(r."attendeeEmail") IN (:...identifiers)', { identifiers })
+      .andWhere('lower(r."attendeeEmail") IN (:...identifiers)', {
+        identifiers,
+      })
       .getMany();
     for (const registration of pending) {
       registration.memberId = member.id;
@@ -3210,10 +3320,7 @@ export class EventsService {
     const registrations = await this.registrationRepo.find({
       where: {
         memberId,
-        status: In([
-          RegistrationStatus.CONFIRMED,
-          RegistrationStatus.REFUNDED,
-        ]),
+        status: In([RegistrationStatus.CONFIRMED, RegistrationStatus.REFUNDED]),
       },
       order: { createdAt: 'DESC' },
     });
@@ -3246,8 +3353,7 @@ export class EventsService {
         const activation = r.externalActivationId
           ? activationById.get(r.externalActivationId)
           : undefined;
-        const eventStartAt =
-          event?.startAt ?? activation?.startAt ?? null;
+        const eventStartAt = event?.startAt ?? activation?.startAt ?? null;
         return {
           id: r.id,
           memberId: r.memberId,
@@ -3343,10 +3449,9 @@ export class EventsService {
       [];
     // hasOverride vem da tabela event_overrides (sourceKey internal:codaqui);
     // os antigos arquivos *.override.json foram descontinuados do repo.
-    const internalOverrides =
-      await this.eventOverridesService.findBySourceKey(
-        EventsService.INTERNAL_SOURCE_KEY,
-      );
+    const internalOverrides = await this.eventOverridesService.findBySourceKey(
+      EventsService.INTERNAL_SOURCE_KEY,
+    );
     const overrideIds = new Set(
       internalOverrides.map((override) => override.eventId),
     );

@@ -55,7 +55,7 @@ describe('ClubController', () => {
       amount: 50,
       coinType: 'sort_coin',
       description: 'bonus',
-    } as any);
+    });
     expect(clubService.manualAdjust).toHaveBeenCalledWith(
       'member-1',
       50,
@@ -79,11 +79,22 @@ describe('ClubController', () => {
 
   it('lists admin all transactions with defaults', async () => {
     await controller.adminAllTransactions();
-    expect(clubService.getAdminAllTransactions).toHaveBeenCalledWith('all', 1, 50);
+    expect(clubService.getAdminAllTransactions).toHaveBeenCalledWith(
+      'all',
+      1,
+      50,
+    );
   });
 
   it('creates raffle with authenticated user', async () => {
-    await controller.createRaffle({ title: 'R', costInCoins: 10, closesAt: new Date().toISOString() } as any, req());
+    await controller.createRaffle(
+      {
+        title: 'R',
+        costInCoins: 10,
+        closesAt: new Date().toISOString(),
+      },
+      req(),
+    );
     expect(raffleService.create).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'R' }),
       'member-1',
@@ -91,7 +102,7 @@ describe('ClubController', () => {
   });
 
   it('enters raffle with default owner type member', async () => {
-    await controller.enterRaffle('raffle-1', {} as any, req());
+    await controller.enterRaffle('raffle-1', {}, req());
     expect(raffleService.enterRaffle).toHaveBeenCalledWith(
       'raffle-1',
       'member-1',
@@ -102,7 +113,7 @@ describe('ClubController', () => {
   it('enters raffle with provided owner type', async () => {
     await controller.enterRaffle(
       'raffle-1',
-      { ownerType: RaffleOwnerType.COMPANY } as any,
+      { ownerType: RaffleOwnerType.COMPANY },
       req(),
     );
     expect(raffleService.enterRaffle).toHaveBeenCalledWith(
@@ -113,11 +124,7 @@ describe('ClubController', () => {
   });
 
   it('falls back to MEMBER when ownerType is null', async () => {
-    await controller.enterRaffle(
-      'raffle-1',
-      { ownerType: null } as any,
-      req(),
-    );
+    await controller.enterRaffle('raffle-1', { ownerType: null } as any, req());
     expect(raffleService.enterRaffle).toHaveBeenCalledWith(
       'raffle-1',
       'member-1',

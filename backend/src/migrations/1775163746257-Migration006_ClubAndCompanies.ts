@@ -16,9 +16,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  *   7. company_wallet_transactions — histórico de créditos/débitos PJ (idempotente)
  *   8. company_members           — colaboradores da empresa (somente leitura)
  */
-export class Migration006ClubAndCompanies1775163746257
-  implements MigrationInterface
-{
+export class Migration006ClubAndCompanies1775163746257 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // ── Enum types (idempotente via bloco DO — synchronize:true em dev pode
     // já ter criado os tipos antes da migration rodar) ───────────────────────

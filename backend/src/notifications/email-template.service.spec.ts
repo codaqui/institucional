@@ -32,7 +32,10 @@ describe('EmailTemplateService.render', () => {
   });
 
   it('renderiza o template padrão quando não há override', async () => {
-    const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx(),
+    );
     expect(r.subject).toBe('Inscrição confirmada — Evento X');
     expect(r.html).toContain('<strong>Evento X</strong>');
     expect(r.text).toContain('Sua inscrição em');
@@ -41,20 +44,28 @@ describe('EmailTemplateService.render', () => {
 
   it('usa subject e Markdown do override quando existe', async () => {
     repo.findOneBy.mockResolvedValue(makeOverride());
-    const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx(),
+    );
     expect(r.subject).toBe('Inscrição ok — Evento X');
     expect(r.html).toContain('<strong>Ana</strong>');
   });
 
   it('rejeita template desconhecido com BadRequestException', async () => {
-    await expect(service.render('nope', makeCtx())).rejects.toThrow(BadRequestException);
+    await expect(service.render('nope', makeCtx())).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('mantém placeholder desconhecido visível no output', async () => {
     repo.findOneBy.mockResolvedValue(
       makeOverride({ bodyMarkdown: 'Olá {{naoExiste}}!' }),
     );
-    const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx(),
+    );
     expect(r.text).toContain('{{naoExiste}}');
   });
 
@@ -65,7 +76,10 @@ describe('EmailTemplateService.render', () => {
           'Olá [clique](javascript:alert(1))<script>alert(2)</script><img src=x onerror=alert(3)>',
       }),
     );
-    const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx(),
+    );
     expect(r.html).not.toContain('<script>');
     expect(r.html).not.toContain('javascript:');
     expect(r.html).not.toContain('onerror');
@@ -73,7 +87,10 @@ describe('EmailTemplateService.render', () => {
 
   it('cai no template padrão quando o lookup do banco falha', async () => {
     repo.findOneBy.mockRejectedValue(new Error('connection lost'));
-    const r = await service.render(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, makeCtx());
+    const r = await service.render(
+      EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+      makeCtx(),
+    );
     expect(r.subject).toBe('Inscrição confirmada — Evento X');
   });
 
@@ -146,7 +163,10 @@ describe('EmailTemplateService CRUD', () => {
       actor,
     );
     expect(repo.save).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'event-registration-confirmation', ...dto }),
+      expect.objectContaining({
+        id: 'event-registration-confirmation',
+        ...dto,
+      }),
     );
     expect(detail.isOverride).toBe(true);
     expect(audit.log).toHaveBeenCalledWith(
@@ -165,14 +185,20 @@ describe('EmailTemplateService CRUD', () => {
 
   it('upsertTemplate rejeita id desconhecido', async () => {
     await expect(
-      service.upsertTemplate('nope', { subject: 's', bodyMarkdown: 'b' }, actor),
+      service.upsertTemplate(
+        'nope',
+        { subject: 's', bodyMarkdown: 'b' },
+        actor,
+      ),
     ).rejects.toThrow(BadRequestException);
     expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('removeTemplate exclui o override e audita', async () => {
     await service.removeTemplate('event-registration-confirmation', actor);
-    expect(repo.delete).toHaveBeenCalledWith({ id: 'event-registration-confirmation' });
+    expect(repo.delete).toHaveBeenCalledWith({
+      id: 'event-registration-confirmation',
+    });
     expect(audit.log).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'email.template_deleted',

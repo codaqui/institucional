@@ -238,7 +238,10 @@ export class LedgerService {
   }
 
   async getAccountByProjectKey(projectKey: string): Promise<Account | null> {
-    return this.accountRepo.findOneBy({ projectKey, type: AccountType.VIRTUAL_WALLET });
+    return this.accountRepo.findOneBy({
+      projectKey,
+      type: AccountType.VIRTUAL_WALLET,
+    });
   }
 
   async getAccounts(): Promise<Account[]> {
@@ -505,8 +508,7 @@ export class LedgerService {
       totalExpenses: Number.parseFloat(totalExpenses) || 0,
       totalTransactions: Number.parseInt(totalTransactions, 10) || 0,
       totalEventTickets: Number.parseInt(totalEventTickets, 10) || 0,
-      totalEventTicketRevenue:
-        Number.parseFloat(totalEventTicketRevenue) || 0,
+      totalEventTicketRevenue: Number.parseFloat(totalEventTicketRevenue) || 0,
       uniqueDonors,
       recentDonors,
       communityStats,

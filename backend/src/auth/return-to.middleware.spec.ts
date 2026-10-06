@@ -1,8 +1,5 @@
 import type { NextFunction, Request, Response } from 'express';
-import {
-  ReturnToMiddleware,
-  RETURN_TO_COOKIE,
-} from './return-to.middleware';
+import { ReturnToMiddleware, RETURN_TO_COOKIE } from './return-to.middleware';
 
 describe('ReturnToMiddleware', () => {
   const originalNodeEnv = process.env.NODE_ENV;
