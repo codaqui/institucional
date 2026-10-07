@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-06T06:28:17.874Z",
+  "generatedAt": "2026-10-07T06:27:50.285Z",
   "totalEvents": 412,
   "profiles": [
     {
@@ -11,7 +11,7 @@
       "baselineCount": 692,
       "count": 763,
       "channelCount": 41,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 201,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6851,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -109,8 +109,8 @@
       "url": "https://www.youtube.com/@elasnocodigo",
       "countLabel": "inscritos",
       "baselineCount": 0,
-      "count": 168,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "count": 167,
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 60,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 268,
-      "fetchedAt": "2026-10-06T06:28:17.874Z",
+      "fetchedAt": "2026-10-07T06:27:50.285Z",
       "isFallback": false
     },
     {
