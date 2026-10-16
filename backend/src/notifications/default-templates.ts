@@ -28,8 +28,7 @@ const SAMPLE: Omit<EmailTemplateContext, 'eventStartAt'> & {
   ticketTypeName: 'Gratuito',
   checkinToken: 'token-de-exemplo-123',
   eventLocation: 'Maringá, PR',
-  eventStartAt: () =>
-    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  eventStartAt: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
 };
 
 function sampleContext(): EmailTemplateContext {

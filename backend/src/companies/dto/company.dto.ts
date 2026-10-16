@@ -13,7 +13,9 @@ import { CompanyStatus } from '../entities/company.entity';
 export class CreateCompanyDto {
   /** Somente dígitos — o service valida formato CNPJ */
   @IsString()
-  @Matches(/^\d{14}$/, { message: 'cnpj deve conter exatamente 14 dígitos numéricos' })
+  @Matches(/^\d{14}$/, {
+    message: 'cnpj deve conter exatamente 14 dígitos numéricos',
+  })
   cnpj: string;
 
   @IsString()

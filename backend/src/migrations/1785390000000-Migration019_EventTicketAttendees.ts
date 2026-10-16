@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration019EventTicketAttendees1785390000000
-  implements MigrationInterface
-{
+export class Migration019EventTicketAttendees1785390000000 implements MigrationInterface {
   name = 'Migration019EventTicketAttendees1785390000000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -20,9 +18,7 @@ export class Migration019EventTicketAttendees1785390000000
 
     // Dados dos participantes informados no checkout (JSON).
     // [{"name":"...","email":"..."}, ...]
-    await queryRunner.query(
-      `ALTER TABLE "event_orders" ADD "attendees" text`,
-    );
+    await queryRunner.query(`ALTER TABLE "event_orders" ADD "attendees" text`);
 
     // Quem pagou o ingresso (denormalizado para queries rápidas de "meus pedidos").
     await queryRunner.query(
@@ -53,7 +49,9 @@ export class Migration019EventTicketAttendees1785390000000
     await queryRunner.query(
       `ALTER TABLE "event_registrations" DROP COLUMN "payerMemberId"`,
     );
-    await queryRunner.query(`ALTER TABLE "event_orders" DROP COLUMN "attendees"`);
+    await queryRunner.query(
+      `ALTER TABLE "event_orders" DROP COLUMN "attendees"`,
+    );
     await queryRunner.query(
       `ALTER TABLE "event_orders" DROP COLUMN "payerMemberId"`,
     );

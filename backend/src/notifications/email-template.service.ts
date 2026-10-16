@@ -21,7 +21,10 @@ import { AuditAction } from '../audit/entities/audit-log.entity';
 // html-to-text v10 não embarca tipos (e @types/html-to-text cobre só a
 // v8/v9), então carregamos via require com tipagem local da superfície usada.
 const { convert } = require('html-to-text') as {
-  convert: (html: string, options?: { wordwrap?: number | string | false }) => string;
+  convert: (
+    html: string,
+    options?: { wordwrap?: number | string | false },
+  ) => string;
 };
 
 export interface RenderedEmail {
@@ -44,10 +47,30 @@ export interface TemplateDetail extends TemplateSummary {
 
 const SANITIZE_OPTIONS: sanitizeHtml.IOptions = {
   allowedTags: [
-    'p', 'br', 'hr', 'strong', 'em', 'u', 's', 'a',
-    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4',
-    'blockquote', 'code', 'pre',
-    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'p',
+    'br',
+    'hr',
+    'strong',
+    'em',
+    'u',
+    's',
+    'a',
+    'ul',
+    'ol',
+    'li',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'blockquote',
+    'code',
+    'pre',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
   ],
   allowedAttributes: { a: ['href', 'target', 'rel'] },
   allowedSchemes: ['http', 'https', 'mailto'],
@@ -102,7 +125,7 @@ export class EmailTemplateService {
   }
 
   private markdownToHtml(markdown: string): string {
-    const raw = marked.parse(markdown, { async: false }) as string;
+    const raw = marked.parse(markdown, { async: false });
     return sanitizeHtml(raw, SANITIZE_OPTIONS);
   }
 
@@ -143,7 +166,11 @@ export class EmailTemplateService {
       );
     }
     try {
-      return this.renderSource(source.subject, source.bodyMarkdown, this.contextValues(ctx));
+      return this.renderSource(
+        source.subject,
+        source.bodyMarkdown,
+        this.contextValues(ctx),
+      );
     } catch (err) {
       const fallback = DEFAULT_TEMPLATES[templateId];
       this.logger.warn(

@@ -31,8 +31,9 @@ describe('default-templates', () => {
       }
       // nenhuma variável solta no markdown
       const leftovers =
-        (def.bodyMarkdown + def.subject).match(/\{\{\s*[a-zA-Z0-9_]+\s*\}\}/g) ??
-        [];
+        (def.bodyMarkdown + def.subject).match(
+          /\{\{\s*[a-zA-Z0-9_]+\s*\}\}/g,
+        ) ?? [];
       for (const token of leftovers) {
         const key = token.replace(/\{\{\s*|\s*\}\}/g, '');
         if (!def.variables.includes(key)) {

@@ -667,9 +667,9 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         .fn()
         .mockResolvedValueOnce(null) // e-mail primário sem conta
         .mockResolvedValueOnce(null); // e-mail secundário sem conta
-      const getMany = jest.fn().mockResolvedValue([
-        { id: uuid(6), githubHandle: 'endersonmenezes' },
-      ]);
+      const getMany = jest
+        .fn()
+        .mockResolvedValue([{ id: uuid(6), githubHandle: 'endersonmenezes' }]);
       memberRepo.createQueryBuilder.mockImplementation(() => ({
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),

@@ -162,7 +162,9 @@ describe('StripeService', () => {
         {
           provide: EmailService,
           useValue: {
-            sendRegistrationConfirmation: jest.fn().mockResolvedValue(undefined),
+            sendRegistrationConfirmation: jest
+              .fn()
+              .mockResolvedValue(undefined),
           },
         },
       ],
@@ -640,7 +642,9 @@ describe('StripeService', () => {
       },
     });
 
-    const buildBalanceTransaction = (overrides: Record<string, unknown> = {}) => ({
+    const buildBalanceTransaction = (
+      overrides: Record<string, unknown> = {},
+    ) => ({
       id: 'txn_test_bt_1',
       fee: 199,
       net: 4801,
@@ -697,17 +701,14 @@ describe('StripeService', () => {
     const expectNoFeeRecorded = () => {
       const feeCalls = ledgerService.recordTransaction.mock.calls.filter(
         (call: unknown[]) =>
-          typeof call[4] === 'string' &&
-          (call[4] as string).startsWith('stripe-fee:'),
+          typeof call[4] === 'string' && call[4].startsWith('stripe-fee:'),
       );
       expect(feeCalls).toHaveLength(0);
     };
 
     /** Mocks idempotency checks: 1st = donation (none), 2nd = fee (none). */
     const mockNoExisting = () => {
-      txRepo.findOneBy
-        .mockResolvedValueOnce(null)
-        .mockResolvedValueOnce(null);
+      txRepo.findOneBy.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     };
 
     /** Stubs PI retrieve with an expanded latest_charge containing the BT. */
@@ -751,7 +752,11 @@ describe('StripeService', () => {
         'Stripe Fees (External)',
         'EXTERNAL',
       );
-      expectFeeRecorded({ amount: 1.99, chargeId: 'ch_test_main', btId: bt.id });
+      expectFeeRecorded({
+        amount: 1.99,
+        chargeId: 'ch_test_main',
+        btId: bt.id,
+      });
     });
 
     it('skips silently on charge.updated when balance_transaction is still null', async () => {
@@ -761,7 +766,9 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(
+        stripeInstance.balanceTransactions.retrieve,
+      ).not.toHaveBeenCalled();
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
 
@@ -783,7 +790,11 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expectFeeRecorded({ amount: 5.38, chargeId: 'ch_sub_main', btId: 'txn_sub_1' });
+      expectFeeRecorded({
+        amount: 5.38,
+        chargeId: 'ch_sub_main',
+        btId: 'txn_sub_1',
+      });
     });
 
     // --- Idempotency ---------------------------------------------------------
@@ -797,7 +808,9 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(
+        stripeInstance.balanceTransactions.retrieve,
+      ).not.toHaveBeenCalled();
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
 
@@ -870,7 +883,10 @@ describe('StripeService', () => {
         buildChargeUpdatedEvent({ balance_transaction: 'txn_api_err' }),
       );
 
-      const result = await service.handleWebhookEvent('sig', Buffer.from('body'));
+      const result = await service.handleWebhookEvent(
+        'sig',
+        Buffer.from('body'),
+      );
 
       expect(result).toEqual({ received: true });
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
@@ -886,7 +902,9 @@ describe('StripeService', () => {
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
-      expect(stripeInstance.balanceTransactions.retrieve).not.toHaveBeenCalled();
+      expect(
+        stripeInstance.balanceTransactions.retrieve,
+      ).not.toHaveBeenCalled();
       expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
     });
 
@@ -896,7 +914,9 @@ describe('StripeService', () => {
       const bt = buildBalanceTransaction({ id: 'txn_inline_oneshot' });
       mockExpandedPI('pi_inline_oneshot', 'ch_inline_oneshot', bt);
       mockNoExisting();
-      txRepo.findOne.mockResolvedValue(buildOriginalDonation('pi_inline_oneshot'));
+      txRepo.findOne.mockResolvedValue(
+        buildOriginalDonation('pi_inline_oneshot'),
+      );
 
       stripeInstance.webhooks.constructEvent.mockReturnValue({
         type: 'checkout.session.completed',
@@ -1291,9 +1311,9 @@ describe('StripeService', () => {
       expect(stripeInstance.subscriptions.list).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'past_due' }),
       );
-      expect(companiesService.listBusinessMembersForCompanyIds).toHaveBeenCalledWith([
-        uuid(3),
-      ]);
+      expect(
+        companiesService.listBusinessMembersForCompanyIds,
+      ).toHaveBeenCalledWith([uuid(3)]);
     });
 
     it('should keep business member even when githubHandle is missing in metadata', async () => {
@@ -1545,7 +1565,9 @@ describe('StripeService', () => {
 
     it('reverts order to pending when post-payment effects fail, so the Stripe retry completes them', async () => {
       // fresh instance por chamada — a entrega anterior muta o objeto para paid
-      eventOrderRepo.findOneBy.mockImplementation(() => Promise.resolve(order()));
+      eventOrderRepo.findOneBy.mockImplementation(() =>
+        Promise.resolve(order()),
+      );
       txRepo.findOneBy.mockResolvedValue(null);
       stripeInstance.webhooks.constructEvent.mockReturnValue(sessionEvent());
 
@@ -1680,9 +1702,7 @@ describe('StripeService', () => {
       txRepo.find.mockResolvedValue([
         { id: uuid(71), amount: 50 }, // R$ 50 já estornados via endpoint admin
       ]);
-      stripeInstance.webhooks.constructEvent.mockReturnValue(
-        refundEvent(5000),
-      );
+      stripeInstance.webhooks.constructEvent.mockReturnValue(refundEvent(5000));
 
       await service.handleWebhookEvent('sig', Buffer.from('body'));
 
@@ -1726,9 +1746,7 @@ describe('StripeService', () => {
     it('falls through to donation flow when payment intent has no event order', async () => {
       eventOrderRepo.findOneBy.mockResolvedValue(null);
       txRepo.findOne.mockResolvedValue(null); // doação original não encontrada
-      stripeInstance.webhooks.constructEvent.mockReturnValue(
-        refundEvent(5000),
-      );
+      stripeInstance.webhooks.constructEvent.mockReturnValue(refundEvent(5000));
 
       const result = await service.handleWebhookEvent(
         'sig',
@@ -2792,7 +2810,8 @@ describe('StripeService', () => {
       );
     });
 
-    it('warns and skips when the invoice has no resolvable subscription', async () => {      stripeInstance.webhooks.constructEvent.mockReturnValue(
+    it('warns and skips when the invoice has no resolvable subscription', async () => {
+      stripeInstance.webhooks.constructEvent.mockReturnValue(
         invoiceEvent({ id: 'in_no_sub', amount_paid: 1000 }),
       );
 
@@ -2867,9 +2886,7 @@ describe('StripeService', () => {
           subscription: 'sub_loop',
           amount_paid: 1000,
           payments: {
-            data: [
-              { payment: { payment_intent: { id: 'pi_loop_obj' } } },
-            ],
+            data: [{ payment: { payment_intent: { id: 'pi_loop_obj' } } }],
           },
         }),
       );

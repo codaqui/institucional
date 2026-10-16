@@ -295,8 +295,16 @@ describe('EventsService', () => {
         getRawMany: jest.fn().mockResolvedValue([]),
       });
       staffRepo.findBy.mockResolvedValue([
-        { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
-        { eventId: uuid(10), memberId: uuid(2), staffRole: EventStaffRole.HOST },
+        {
+          eventId: uuid(10),
+          memberId: uuid(1),
+          staffRole: EventStaffRole.HOST,
+        },
+        {
+          eventId: uuid(10),
+          memberId: uuid(2),
+          staffRole: EventStaffRole.HOST,
+        },
       ]);
       memberRepo.findBy.mockResolvedValue([
         {
@@ -374,7 +382,11 @@ describe('EventsService', () => {
     it('inclui organizers (hosts) no evento single, sem e-mail', async () => {
       eventRepo.findOneBy.mockResolvedValue(makeEvent());
       staffRepo.findBy.mockResolvedValue([
-        { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
+        {
+          eventId: uuid(10),
+          memberId: uuid(1),
+          staffRole: EventStaffRole.HOST,
+        },
       ]);
       memberRepo.findBy.mockResolvedValue([
         {
@@ -449,12 +461,8 @@ describe('EventsService', () => {
       const rejected = results.filter((r) => r.status === 'rejected');
       expect(fulfilled).toHaveLength(1);
       expect(rejected).toHaveLength(1);
-      expect((rejected[0] as PromiseRejectedResult).reason).toBeInstanceOf(
-        ConflictException,
-      );
-      expect((rejected[0] as PromiseRejectedResult).reason.message).toContain(
-        'Lote esgotado',
-      );
+      expect(rejected[0].reason).toBeInstanceOf(ConflictException);
+      expect(rejected[0].reason.message).toContain('Lote esgotado');
     });
 
     it('409 when event capacity is full', async () => {
@@ -526,7 +534,9 @@ describe('EventsService', () => {
       // no commit; como o save falha, nada escapa para os repos reais.
       const stagingEm = {
         query: jest.fn().mockResolvedValue([{ id: uuid(20) }]),
-        create: jest.fn((_target: unknown, d: unknown) => ({ ...(d as object) })),
+        create: jest.fn((_target: unknown, d: unknown) => ({
+          ...(d as object),
+        })),
         save: jest.fn().mockRejectedValue(new Error('db down')),
       };
       registrationRepo.manager.transaction.mockImplementationOnce(
@@ -647,7 +657,9 @@ describe('EventsService', () => {
     });
 
     it('corrige drift de quantitySold (before 2 → after 1) e registra audit', async () => {
-      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 2 })]);
+      ticketTypeRepo.findBy.mockResolvedValue([
+        makeTicket({ quantitySold: 2 }),
+      ]);
       registrationRepo.countBy.mockResolvedValue(1); // 1 registration CONFIRMED
       orderRepo.findBy.mockResolvedValue([]); // sem orders pending
 
@@ -677,7 +689,9 @@ describe('EventsService', () => {
     });
 
     it('sem drift → adjusted=false, sem save e sem audit', async () => {
-      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 1 })]);
+      ticketTypeRepo.findBy.mockResolvedValue([
+        makeTicket({ quantitySold: 1 }),
+      ]);
       registrationRepo.countBy.mockResolvedValue(1);
       orderRepo.findBy.mockResolvedValue([]);
 
@@ -693,7 +707,9 @@ describe('EventsService', () => {
     });
 
     it('soma orders PENDING na quota esperada', async () => {
-      ticketTypeRepo.findBy.mockResolvedValue([makeTicket({ quantitySold: 3 })]);
+      ticketTypeRepo.findBy.mockResolvedValue([
+        makeTicket({ quantitySold: 3 }),
+      ]);
       registrationRepo.countBy.mockResolvedValue(1);
       orderRepo.findBy.mockResolvedValue([
         { id: uuid(30), quantity: 2, status: OrderStatus.PENDING },

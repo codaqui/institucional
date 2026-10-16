@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration020EventOverride1785526595092
-  implements MigrationInterface
-{
+export class Migration020EventOverride1785526595092 implements MigrationInterface {
   name = 'Migration020EventOverride1785526595092';
 
   async up(queryRunner: QueryRunner): Promise<void> {

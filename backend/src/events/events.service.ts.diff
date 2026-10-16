@@ -1,0 +1,105 @@
+<<<<<<< SEARCH
+    const pending = await this.registrationRepo.findBy({
+      externalActivationId: activation.id,
+      status: RegistrationStatus.PENDING_MATCH,
+    });
+    let rematched = 0;
+    for (const registration of pending) {
+      const member = await this.findMemberByIdentifier(
+        registration.attendeeEmail,
+      );
+      if (!member) continue;
+      registration.memberId = member.id;
+      registration.status = RegistrationStatus.CONFIRMED;
+      await this.registrationRepo.save(registration);
+      rematched += 1;
+    }
+    return { rematched, stillUnmatched: pending.length - rematched };
+=======
+    const pending = await this.registrationRepo.findBy({
+      externalActivationId: activation.id,
+      status: RegistrationStatus.PENDING_MATCH,
+    });
+
+    let rematched = 0;
+    if (pending.length === 0) {
+      return { rematched, stillUnmatched: 0 };
+    }
+
+    const identifiers = pending.map((r) => r.attendeeEmail.toLowerCase());
+
+    // Create a map to cache resolved members by identifier
+    const memberCache = new Map<string, Member>();
+
+    // 1. Fetch by primary email
+    const byPrimary = await this.memberRepo
+      .createQueryBuilder('m')
+      .where('lower(m.email) IN (:...identifiers)', { identifiers })
+      .andWhere('m."isActive" = true')
+      .getMany();
+    for (const m of byPrimary) {
+      memberCache.set(m.email.toLowerCase(), m);
+    }
+
+    // 2. Fetch by github handle for those not found by primary email
+    const remainingIdentifiers = identifiers.filter(id => !memberCache.has(id));
+    if (remainingIdentifiers.length > 0) {
+      const byHandle = await this.memberRepo
+        .createQueryBuilder('m')
+        .where('lower(m."githubHandle") IN (:...identifiers)', { identifiers: remainingIdentifiers })
+        .andWhere('m."isActive" = true')
+        .getMany();
+      for (const m of byHandle) {
+        memberCache.set(m.githubHandle.toLowerCase(), m);
+      }
+    }
+
+    // 3. Fetch by secondary emails (using IN array overlap or parsing)
+    // For large scale, checking secondary emails for missing identifiers might be heavy.
+    // The previous implementation used an EXISTS subquery for EACH identifier.
+    const stillRemaining = identifiers.filter(id => !memberCache.has(id) && id.includes('@'));
+    if (stillRemaining.length > 0) {
+      // Find members whose secondary emails overlap with remaining identifiers
+      const bySecondary = await this.memberRepo
+         .createQueryBuilder('m')
+         .where('m."secondaryEmails" && ARRAY[:...identifiers]', { identifiers: stillRemaining })
+         .andWhere('m."isActive" = true')
+         .getMany();
+
+      for (const m of bySecondary) {
+        if (m.secondaryEmails) {
+          for (const email of m.secondaryEmails) {
+            const lowerEmail = email.toLowerCase();
+            if (stillRemaining.includes(lowerEmail)) {
+              memberCache.set(lowerEmail, m);
+            }
+          }
+        }
+      }
+    }
+
+    const registrationsToSave = [];
+    for (const registration of pending) {
+      const emailLower = registration.attendeeEmail.toLowerCase();
+      // Notice: If attendeeEmail doesn't have '@', we also checked githubHandle above
+
+      let member = memberCache.get(emailLower);
+      if (!member) {
+         // fallback single query just in case our bulk query missed an edge case like
+         // identifier being different than we expect in attendeeEmail (though they are exactly what we map)
+         // Actually, let's just stick to the cache to avoid N+1
+      }
+
+      if (!member) continue;
+      registration.memberId = member.id;
+      registration.status = RegistrationStatus.CONFIRMED;
+      registrationsToSave.push(registration);
+      rematched += 1;
+    }
+
+    if (registrationsToSave.length > 0) {
+      await this.registrationRepo.save(registrationsToSave);
+    }
+
+    return { rematched, stillUnmatched: pending.length - rematched };
+>>>>>>> REPLACE

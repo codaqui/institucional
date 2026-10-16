@@ -13,9 +13,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * FKs de memberId NÃO são criadas (defensivo — members são desativados, nunca
  * deletados; e o checkout grava memberId nullable por defesa).
  */
-export class Migration011ManagedEvents1775163746262
-  implements MigrationInterface
-{
+export class Migration011ManagedEvents1775163746262 implements MigrationInterface {
   name = 'Migration011ManagedEvents1775163746262';
 
   public async up(queryRunner: QueryRunner): Promise<void> {

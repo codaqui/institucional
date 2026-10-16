@@ -16,9 +16,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * O down() recria a coluna `role` a partir de roles[1] (melhor esforço:
  * papéis novos que não existiam no enum antigo viram 'membro').
  */
-export class Migration010MemberRolesArray1775163746261
-  implements MigrationInterface
-{
+export class Migration010MemberRolesArray1775163746261 implements MigrationInterface {
   name = 'Migration010MemberRolesArray1775163746261';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
