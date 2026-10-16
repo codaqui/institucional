@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-16T22:02:10.201Z",
+  "generatedAt": "2026-10-16T23:02:26.709Z",
   "source": {
     "source": "meetup",
     "sourceId": "devparana",
@@ -10,10 +10,10 @@
     "ctaLabel": "Abrir grupo do Dev Paraná",
     "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-10-16T22:02:10.201Z",
+    "generatedAt": "2026-10-16T23:02:26.709Z",
     "sourceKey": "meetup:devparana",
     "indexPath": "/events/meetup/devparana/index.json",
-    "itemCount": 378
+    "itemCount": 379
   },
   "events": [
     {
@@ -15028,6 +15028,42 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/316756948.json",
+      "hasOverride": false
+    },
+    {
+      "id": "317017132",
+      "title": "15º Meetup DevParaná Cascavel",
+      "summary": "🚀 O DevParaná Cascavel não podia ficar de fora da semana de inovação de Cascavel! 📅 Informações do Evento Data: 22/10/2026 Horário: 19h00 Local: Senac Endereço: Rua Recife 2283 - Centro Evento gratuito e aberto à comu…",
+      "startAt": "2026-10-22T19:00:00-03:00",
+      "endAt": "2026-10-22T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Senac - Serviço Nacional de Aprendizagem Comercial · R. Recife, 2283 - Centro, Cascavel - PR, 85810-031, Brazil · Centro · PR",
+      "href": "https://www.meetup.com/developerparana/events/317017132/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 2,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "costakauanantonye",
+          "id": "457347446"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/317017132.json",
       "hasOverride": false
     }
   ]
