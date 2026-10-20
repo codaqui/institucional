@@ -1,0 +1,219 @@
+/**
+ * ============================================================
+ * CODAQUI DESIGN SYSTEM — TOKENS v1.0
+ * ============================================================
+ * Fonte única de verdade dos tokens (sem ponte Docusaurus).
+ *
+ * COMO USAR:
+ *   1. Nos componentes, prefira SEMPRE os tokens semânticos
+ *      (--cq-*) em vez de valores hexadecimais soltos.
+ *   2. O tema MUI (src/lib/mui-theme.ts) espelha estes mesmos
+ *      valores — mantenha os dois sincronizados.
+ *
+ * Descoberta crítica de acessibilidade:
+ *   #57B593 (verde da marca) tem contraste de apenas 2.49:1 sobre
+ *   branco — NÃO pode ser usado em texto nem em ícones essenciais
+ *   sobre fundo claro. Para texto/links use --cq-color-primary-700
+ *   (#378369, 4.55:1) ou superior.
+ * ============================================================
+ */
+
+:root {
+  /* ---------------------------------------------------------
+   * 1. PRIMITIVOS — Escala Primary (verde Codaqui)
+   *    500 = cor oficial da marca (#57B593)
+   * --------------------------------------------------------- */
+  --cq-color-primary-50:  #EEF8F4;
+  --cq-color-primary-100: #DAEFE7;
+  --cq-color-primary-200: #B3DECE;
+  --cq-color-primary-300: #89CBB3;
+  --cq-color-primary-400: #6FBFA2;
+  --cq-color-primary-500: #57B593; /* marca — uso decorativo/grandes áreas */
+  --cq-color-primary-600: #499F81; /* texto grande (>=18pt/14pt bold): 3.2:1 */
+  --cq-color-primary-700: #378369; /* texto normal AA: 4.55:1 */
+  --cq-color-primary-800: #2C6753; /* texto AAA: 6.62:1 · links */
+  --cq-color-primary-900: #1C4538; /* 10.73:1 · texto sobre verdes claros */
+
+  /* ---------------------------------------------------------
+   * 2. PRIMITIVOS — Escala Neutra "Plum"
+   *    Derivada do ameixa da marca (#3A2F39)
+   * --------------------------------------------------------- */
+  --cq-color-neutral-50:  #F9F9F9;
+  --cq-color-neutral-100: #F1F0F1;
+  --cq-color-neutral-200: #E1E0E1;
+  --cq-color-neutral-300: #C8C5C8;
+  --cq-color-neutral-400: #A6A1A6;
+  --cq-color-neutral-500: #857E84;
+  --cq-color-neutral-600: #696169; /* texto secundário AA: 5.98:1 */
+  --cq-color-neutral-700: #524851;
+  --cq-color-neutral-800: #3A2F39; /* ameixa da marca: 12.76:1 */
+  --cq-color-neutral-900: #20181F;
+
+  /* ---------------------------------------------------------
+   * 3. PRIMITIVOS — Cores semânticas (todas AA sobre branco)
+   * --------------------------------------------------------- */
+  --cq-color-info:    #2F6FED; /* 4.55:1 */
+  --cq-color-success: #2C7A4B; /* 5.26:1 */
+  --cq-color-warning: #B45309; /* 5.02:1 */
+  --cq-color-error:   #C0392B; /* 5.44:1 */
+
+  --cq-color-info-bg:    #EAF0FD;
+  --cq-color-success-bg: #E8F4EC;
+  --cq-color-warning-bg: #FBF0E4;
+  --cq-color-error-bg:   #FBEAE8;
+
+  /* ---------------------------------------------------------
+   * 4. TOKENS SEMÂNTICOS — Tema claro
+   * --------------------------------------------------------- */
+  --cq-bg-body:        #F8F8F8;
+  --cq-bg-surface:     #FFFFFF;
+  --cq-bg-sunken:      var(--cq-color-neutral-100);
+  --cq-bg-brand:       var(--cq-color-primary-500);
+  --cq-bg-brand-dark:  var(--cq-color-primary-800);
+
+  --cq-text-primary:   var(--cq-color-neutral-800);
+  --cq-text-secondary: var(--cq-color-neutral-600);
+  --cq-text-disabled:  var(--cq-color-neutral-400);
+  --cq-text-on-brand:  var(--cq-color-primary-900); /* sobre --cq-bg-brand */
+
+  --cq-border-default: var(--cq-color-neutral-200);
+  --cq-border-strong:  var(--cq-color-neutral-300);
+
+  --cq-action-primary-bg:    var(--cq-color-primary-700); /* branco passa AA */
+  --cq-action-primary-hover: var(--cq-color-primary-800);
+  --cq-action-primary-text:  #FFFFFF;
+  --cq-link:                 var(--cq-color-primary-800);
+  --cq-link-hover:           var(--cq-color-primary-700);
+  --cq-focus-ring:           var(--cq-color-primary-700);
+
+  /* ---------------------------------------------------------
+   * 5. TIPOGRAFIA
+   * --------------------------------------------------------- */
+  --cq-font-family-base: system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --cq-font-family-mono: "SFMono-Regular", Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  /* Escala modular 1.25 (base 16px) */
+  --cq-font-size-xs:   0.75rem;   /* 12px */
+  --cq-font-size-sm:   0.875rem;  /* 14px */
+  --cq-font-size-base: 1rem;      /* 16px */
+  --cq-font-size-lg:   1.25rem;   /* 20px */
+  --cq-font-size-xl:   1.5rem;    /* 24px */
+  --cq-font-size-2xl:  1.875rem;  /* 30px */
+  --cq-font-size-3xl:  2.25rem;   /* 36px */
+  --cq-font-size-4xl:  3rem;      /* 48px */
+
+  --cq-font-weight-regular: 400;
+  --cq-font-weight-medium:  500;
+  --cq-font-weight-bold:    700;
+  --cq-font-weight-black:   800;
+
+  --cq-line-height-tight:  1.2;
+  --cq-line-height-normal: 1.5;
+  --cq-line-height-loose:  1.7;
+
+  /* ---------------------------------------------------------
+   * 6. ESPAÇAMENTO — escala 4pt
+   * --------------------------------------------------------- */
+  --cq-space-1:  0.25rem;  /*  4px */
+  --cq-space-2:  0.5rem;   /*  8px */
+  --cq-space-3:  0.75rem;  /* 12px */
+  --cq-space-4:  1rem;     /* 16px */
+  --cq-space-5:  1.5rem;   /* 24px */
+  --cq-space-6:  2rem;     /* 32px */
+  --cq-space-7:  3rem;     /* 48px */
+  --cq-space-8:  4rem;     /* 64px */
+  --cq-space-9:  6rem;     /* 96px */
+
+  /* ---------------------------------------------------------
+   * 7. RAIOS, BORDAS E ELEVAÇÃO
+   * --------------------------------------------------------- */
+  --cq-radius-sm:   4px;
+  --cq-radius-md:   8px;   /* padrão (espelha MUI shape.borderRadius) */
+  --cq-radius-lg:   12px;
+  --cq-radius-xl:   16px;
+  --cq-radius-pill: 999px;
+
+  --cq-shadow-sm: 0 1px 2px rgba(32, 24, 31, 0.08);
+  --cq-shadow-md: 0 4px 12px rgba(32, 24, 31, 0.10);
+  --cq-shadow-lg: 0 8px 24px rgba(32, 24, 31, 0.14);
+
+  /* ---------------------------------------------------------
+   * 8. MOVIMENTO
+   * --------------------------------------------------------- */
+  --cq-motion-fast:   120ms;
+  --cq-motion-normal: 200ms;
+  --cq-motion-slow:   320ms;
+  --cq-motion-ease:   cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================
+ * TEMA ESCURO
+ * ============================================================ */
+[data-theme="dark"] {
+  --cq-bg-body:        #2A2130;
+  --cq-bg-surface:     #3A2F39;
+  --cq-bg-sunken:      #241C2B;
+  --cq-bg-brand:       var(--cq-color-primary-300);
+
+  --cq-text-primary:   #F0EDF2;            /* 13.32:1 sobre o body */
+  --cq-text-secondary: #C9BFD1;            /*  8.73:1 sobre o body */
+  --cq-text-disabled:  #7A6F80;
+  --cq-text-on-brand:  var(--cq-color-primary-900); /* 6.1:1 sobre primary-300 */
+
+  --cq-border-default: #4A3E4A;
+  --cq-border-strong:  #5D4F5D;
+
+  --cq-action-primary-bg:    var(--cq-color-primary-300); /* #89CBB3 */
+  --cq-action-primary-hover: var(--cq-color-primary-200);
+  --cq-action-primary-text:  var(--cq-color-primary-900);
+  --cq-link:                 var(--cq-color-primary-300);
+  --cq-link-hover:           var(--cq-color-primary-200);
+  --cq-focus-ring:           var(--cq-color-primary-300);
+
+  --cq-color-info-bg:    #1E2A45;
+  --cq-color-success-bg: #16301F;
+  --cq-color-warning-bg: #3A2410;
+  --cq-color-error-bg:   #3D1B17;
+
+  --cq-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --cq-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.40);
+  --cq-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.50);
+}
+
+/* ============================================================
+ * 10. UTILITÁRIOS DE ACESSIBILIDADE
+ * ============================================================ */
+
+/* Indicador de foco visível e consistente (WCAG 2.4.7 / 2.4.13) */
+:where(a, button, [role="button"], input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--cq-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--cq-radius-sm);
+}
+
+/* Respeito a prefers-reduced-motion (WCAG 2.3.3) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Classe utilitária: texto visível só para leitores de tela */
+.cq-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

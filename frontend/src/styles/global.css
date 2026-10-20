@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+/* Ponte tokens → utilitários Tailwind (bg-action, text-primary, etc.) */
+@theme inline {
+  --color-primary-50: var(--cq-color-primary-50);
+  --color-primary-100: var(--cq-color-primary-100);
+  --color-primary-200: var(--cq-color-primary-200);
+  --color-primary-300: var(--cq-color-primary-300);
+  --color-primary-400: var(--cq-color-primary-400);
+  --color-primary-500: var(--cq-color-primary-500);
+  --color-primary-600: var(--cq-color-primary-600);
+  --color-primary-700: var(--cq-color-primary-700);
+  --color-primary-800: var(--cq-color-primary-800);
+  --color-primary-900: var(--cq-color-primary-900);
+  --color-neutral-50: var(--cq-color-neutral-50);
+  --color-neutral-100: var(--cq-color-neutral-100);
+  --color-neutral-200: var(--cq-color-neutral-200);
+  --color-neutral-300: var(--cq-color-neutral-300);
+  --color-neutral-400: var(--cq-color-neutral-400);
+  --color-neutral-500: var(--cq-color-neutral-500);
+  --color-neutral-600: var(--cq-color-neutral-600);
+  --color-neutral-700: var(--cq-color-neutral-700);
+  --color-neutral-800: var(--cq-color-neutral-800);
+  --color-neutral-900: var(--cq-color-neutral-900);
+  --color-body: var(--cq-bg-body);
+  --color-surface: var(--cq-bg-surface);
+  --color-sunken: var(--cq-bg-sunken);
+  --color-action: var(--cq-action-primary-bg);
+  --color-action-hover: var(--cq-action-primary-hover);
+  --color-on-action: var(--cq-action-primary-text);
+  --color-link: var(--cq-link);
+  --color-link-hover: var(--cq-link-hover);
+  --color-text-primary: var(--cq-text-primary);
+  --color-text-secondary: var(--cq-text-secondary);
+  --color-border: var(--cq-border-default);
+  --color-border-strong: var(--cq-border-strong);
+  --font-sans: var(--cq-font-family-base);
+  --font-mono: var(--cq-font-family-mono);
+  --radius-sm: var(--cq-radius-sm);
+  --radius-md: var(--cq-radius-md);
+  --radius-lg: var(--cq-radius-lg);
+  --radius-xl: var(--cq-radius-xl);
+  --shadow-sm: var(--cq-shadow-sm);
+  --shadow-md: var(--cq-shadow-md);
+  --shadow-lg: var(--cq-shadow-lg);
+}
+
+body {
+  background-color: var(--cq-bg-body);
+  color: var(--cq-text-primary);
+  font-family: var(--cq-font-family-base);
+}
+
+a {
+  color: var(--cq-link);
+}
+a:hover {
+  color: var(--cq-link-hover);
+}
