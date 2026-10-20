@@ -35,13 +35,18 @@ export default function AuthCallback() {
           setStatus("error");
           return;
         }
-        const res = await fetch(`${API_URL}/auth/finalize`, {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token }),
-        });
-        if (!res.ok) {
+        try {
+          const res = await fetch(`${API_URL}/auth/finalize`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          });
+          if (!res.ok) {
+            setStatus("error");
+            return;
+          }
+        } catch {
           setStatus("error");
           return;
         }
