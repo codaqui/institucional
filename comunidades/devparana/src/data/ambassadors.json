@@ -49,7 +49,15 @@
     {
       "id": "centro",
       "name": "Centro",
-      "cities": ["Guarapuava"]
+      "cities": ["Guarapuava"],
+      "ambassador": {
+        "name": "Luiz Schons",
+        "email": "schonsluuiz@gmail.com",
+        "avatar": "https://avatars.githubusercontent.com/u/82298137?v=4",
+        "role": "Embaixador da Região Centro",
+        "github": "https://github.com/sschonss",
+        "githubHandle": "sschonss"
+      }
     }
   ]
 }
