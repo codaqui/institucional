@@ -94,13 +94,35 @@ export interface EventDetailFile {
 
 export const EVENTS_MANIFEST_URL = "/events/index.json";
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
+
+/**
+ * Caminhos candidatos do snapshot agregado do monorepo
+ * (repo/static/events/index.json). Em runtime de teste/dev o módulo roda a
+ * partir da fonte (`frontend/src/lib/`); no build do Astro o bundle SSR é
+ * emitido sob `dist/` e `import.meta.url` muda de profundidade, então o
+ * cwd (sempre `frontend/` nos scripts npm, ou a raiz do repo) é o fallback.
+ */
+function snapshotCandidates(): string[] {
+  return [
+    fileURLToPath(new URL("../../../static/events/index.json", import.meta.url)),
+    resolve(process.cwd(), "..", "static", "events", "index.json"),
+    resolve(process.cwd(), "static", "events", "index.json"),
+  ];
+}
 
 /**
  * Lê o snapshot agregado do monorepo em build time.
  * Caminho: frontend/src/lib/events.ts → repo/static/events/index.json.
  */
 export function loadEventsIndex(): EventIndexFile {
-  const url = new URL("../../../static/events/index.json", import.meta.url);
-  return JSON.parse(readFileSync(url, "utf-8")) as EventIndexFile;
+  const path = snapshotCandidates().find((p) => existsSync(p));
+  if (!path) {
+    throw new Error(
+      `Snapshot de eventos não encontrado. Tentados: ${snapshotCandidates().join(", ")}`,
+    );
+  }
+  return JSON.parse(readFileSync(path, "utf-8")) as EventIndexFile;
 }
