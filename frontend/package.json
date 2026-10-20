@@ -5,11 +5,14 @@
   "type": "module",
   "engines": { "node": ">=24.0" },
   "scripts": {
+    "predev": "npm run sync:snapshots",
     "dev": "astro dev",
+    "prebuild": "npm run sync:snapshots",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "test": "vitest run"
+    "test": "vitest run",
+    "sync:snapshots": "node scripts/copy-snapshots.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^4.3.0",

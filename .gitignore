@@ -17,6 +17,7 @@ build/
 # ─────────────────────────────────────────────────────
 frontend/dist/
 frontend/.astro/
+frontend/public/events/
 
 # ─────────────────────────────────────────────────────
 # Backend NestJS
