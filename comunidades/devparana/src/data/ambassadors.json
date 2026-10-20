@@ -31,7 +31,13 @@
     {
       "id": "oeste",
       "name": "Oeste",
-      "cities": ["Cascavel", "Toledo", "Medianeira", "Foz do Iguaçu"]
+      "cities": ["Cascavel", "Toledo", "Medianeira", "Foz do Iguaçu"],
+       "ambassador": {
+        "name": "Everton Tavares",
+        "email": "everton.tavares@devpr.org",
+        "avatar": "https://avatars.githubusercontent.com/u/93155837?v=4",
+        "role": "Embaixador da Região Oeste"
+      }
     },
     {
       "id": "leste",
