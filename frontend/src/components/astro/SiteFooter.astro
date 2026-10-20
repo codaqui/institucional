@@ -1,10 +1,12 @@
 ---
+import { DISCORD_URL, WHATSAPP_URL, GITHUB_ORG, EMAIL } from "../../data/social";
+
 const year = new Date().getFullYear();
 
 const comunidadeLinks = [
-  { label: "Discord", href: "https://discord.com/invite/xuTtxqCPpz" },
-  { label: "WhatsApp", href: "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up" },
-  { label: "GitHub", href: "https://github.com/codaqui" },
+  { label: "Discord", href: DISCORD_URL },
+  { label: "WhatsApp", href: WHATSAPP_URL },
+  { label: "GitHub", href: GITHUB_ORG },
 ];
 const redesLinks = [
   { label: "Twitter", href: "https://twitter.com/codaquidev" },
@@ -54,8 +56,8 @@ const columns = [
       </p>
       <p>
         Contato:{" "}
-        <a href="mailto:contato@codaqui.dev" class="text-link hover:text-link-hover">
-          contato@codaqui.dev
+        <a href={`mailto:${EMAIL}`} class="text-link hover:text-link-hover">
+          {EMAIL}
         </a>
       </p>
       <p>

@@ -12,12 +12,14 @@ import { communities, type Community } from "../../data/communities";
       {
         communities.map((community: Community) => {
           const link = community.links[0]?.url ?? "#";
+          const isExternal = link.startsWith("http");
           const isLocal = community.logo.startsWith("/img/");
           return (
             <a
               href={link}
-              target="_blank"
-              rel="noopener noreferrer"
+              {...(isExternal
+                ? { target: "_blank", rel: "noopener noreferrer" }
+                : {})}
               class="flex flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors hover:bg-border"
             >
               <img

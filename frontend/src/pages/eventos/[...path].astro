@@ -6,6 +6,7 @@ import {
   buildEventJsonLd,
   buildEventPublicPath,
   eventRouteParam,
+  resolveEventImageUrl,
   truncateEventSummary,
 } from "../../lib/event-path";
 
@@ -24,6 +25,8 @@ const { event } = Astro.props;
 const absoluteUrl = new URL(buildEventPublicPath(event), Astro.site).toString();
 const jsonLd = buildEventJsonLd(event, absoluteUrl);
 const description = truncateEventSummary(event.summary ?? "");
+// .origin (sem barra final): resolveEventImageUrl concatena `${siteUrl}${path}`.
+const ogImage = resolveEventImageUrl(event.imageUrl, Astro.site?.origin ?? "");
 
 const dateFmt = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "full",
@@ -34,7 +37,7 @@ const start = new Date(event.startAt);
 const isPast = event.status === "completed" || event.status === "canceled";
 ---
 
-<PublicLayout title={`${event.title} — Codaqui`} description={description} jsonLd={jsonLd}>
+<PublicLayout title={`${event.title} — Codaqui`} description={description} ogImage={ogImage} jsonLd={jsonLd}>
   <article class="mx-auto max-w-3xl px-4 py-10">
     <p class="text-sm font-bold text-text-secondary">{event.host}</p>
     <h1 class="mt-1 text-3xl font-extrabold text-text-primary">{event.title}</h1>

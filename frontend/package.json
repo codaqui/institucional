@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=24.0" },
+  "engines": {
+    "node": ">=24.0"
+  },
   "scripts": {
     "predev": "npm run sync:snapshots",
     "dev": "astro dev",
@@ -15,7 +17,7 @@
     "sync:snapshots": "node scripts/copy-snapshots.mjs"
   },
   "dependencies": {
-    "@astrojs/react": "^4.3.0",
+    "@astrojs/react": "^7.1.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^9.0.0",
@@ -23,11 +25,11 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.4",
+    "@astrojs/check": "^0.9.11",
     "@tailwindcss/vite": "^4.1.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "astro": "^5.13.0",
+    "astro": "^7.4.1",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.6.2",
     "vitest": "^3.2.0"

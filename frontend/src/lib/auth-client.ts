@@ -7,9 +7,9 @@ export interface AuthUser {
   roles: string[];
 }
 
-const RETURN_KEY = "codaqui_auth_return";
-const COMMUNITY_KEY = "codaqui_auth_community";
-const LOGOUT_RETURN_KEY = "codaqui_auth_logout_return";
+export const RETURN_KEY = "codaqui_auth_return";
+export const COMMUNITY_KEY = "codaqui_auth_community";
+export const LOGOUT_RETURN_KEY = "codaqui_auth_logout_return";
 
 /** GET /auth/me com cookie httpOnly. Null quando não autenticado. */
 export async function fetchMe(apiUrl: string): Promise<AuthUser | null> {
@@ -31,7 +31,9 @@ export function startLogin(
   apiUrl: string,
   options?: { returnTo?: string; switchAccount?: boolean },
 ): void {
-  const returnPath = options?.returnTo ?? globalThis.location.pathname;
+  const returnPath =
+    options?.returnTo ??
+    globalThis.location.pathname + globalThis.location.search;
   sessionStorage.setItem(RETURN_KEY, returnPath);
   sessionStorage.removeItem(COMMUNITY_KEY);
   const absoluteReturn = new URL(

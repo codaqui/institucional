@@ -75,11 +75,12 @@ describe("startLogin / startLogout", () => {
   it("login redireciona para /auth/github com returnTo=/auth/callback absoluto", () => {
     // Node não tem `location`: stubamos um objeto plano com as props usadas
     // (spread de URL não copia os getters, que vivem no protótipo).
-    const currentUrl = new URL("http://localhost:4321/eventos");
+    const currentUrl = new URL("http://localhost:4321/eventos?status=success");
     vi.stubGlobal("location", {
       href: "",
       origin: currentUrl.origin,
       pathname: currentUrl.pathname,
+      search: currentUrl.search,
     });
     const session = new Map<string, string>();
     vi.stubGlobal("sessionStorage", {
@@ -94,7 +95,7 @@ describe("startLogin / startLogout", () => {
     expect(redirect.searchParams.get("returnTo")).toBe(
       "http://localhost:4321/auth/callback",
     );
-    expect(session.get("codaqui_auth_return")).toBe("/eventos");
+    expect(session.get("codaqui_auth_return")).toBe("/eventos?status=success");
   });
 
   it("logout chama /auth/logout e limpa estado via callback", () => {

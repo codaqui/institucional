@@ -6,6 +6,7 @@ interface Props {
   description?: string;
   ogImage?: string;
   jsonLd?: object;
+  noindex?: boolean;
 }
 
 const {
@@ -13,6 +14,7 @@ const {
   description = "Codaqui — Democratizando comunidades e projetos de tecnologia!",
   ogImage = "/img/og-codaqui.jpg",
   jsonLd,
+  noindex = false,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site);
@@ -35,7 +37,8 @@ const isProd = import.meta.env.PROD;
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/png" href="/img/favicon.png" />
-    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
     <script is:inline>
       // Anti-FOUC: resolve o tema antes do primeiro paint.
       // Fonte de verdade: localStorage "cq-theme" → prefers-color-scheme.

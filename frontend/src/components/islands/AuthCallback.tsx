@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../../lib/config";
-import { fetchMe } from "../../lib/auth-client";
+import { fetchMe, RETURN_KEY } from "../../lib/auth-client";
 
-const RETURN_KEY = "codaqui_auth_return";
 const DEFAULT_RETURN = "/"; // /membro só nasce na 0.4 — na POC volta para a home
 
 type Status = "processing" | "error";
