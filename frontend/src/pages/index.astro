@@ -1,9 +1,23 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
+import PublicLayout from "../layouts/PublicLayout.astro";
+import HeroBanner from "../components/astro/HeroBanner.astro";
+import FeaturesSection from "../components/astro/FeaturesSection.astro";
+import CommunitySection from "../components/astro/CommunitySection.astro";
+import JoinSection from "../components/astro/JoinSection.astro";
+import SocialProofStrip from "../components/islands/SocialProofStrip";
 ---
 
-<BaseLayout title="Codaqui — Astro POC">
-  <main class="mx-auto max-w-5xl px-4 py-16">
-    <h1 class="text-4xl font-extrabold">Astro POC OK</h1>
-  </main>
-</BaseLayout>
+<PublicLayout
+  title="Codaqui — Democratizando comunidades e projetos de tecnologia!"
+  description="Democratizando comunidades e projetos de tecnologia!"
+>
+  <HeroBanner />
+  <div class="border-b border-border bg-surface py-3 text-center">
+    <div class="mx-auto max-w-6xl px-4">
+      <SocialProofStrip client:visible />
+    </div>
+  </div>
+  <FeaturesSection />
+  <CommunitySection />
+  <JoinSection />
+</PublicLayout>

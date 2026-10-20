@@ -1,0 +1,51 @@
+---
+// Portado de src/pages/index.tsx (CommunitySection) — MUI → HTML + Tailwind.
+import { communities, type Community } from "../../data/communities";
+---
+
+<section class="bg-sunken py-12 md:py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="mb-4 text-2xl font-bold text-text-primary md:text-3xl">
+      🤝 Comunidades Participantes
+    </h2>
+    <div class="grid grid-cols-2 justify-center gap-4 sm:grid-cols-3 md:grid-cols-6">
+      {
+        communities.map((community: Community) => {
+          const link = community.links[0]?.url ?? "#";
+          const isLocal = community.logo.startsWith("/img/");
+          return (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex flex-col items-center gap-2 rounded-lg p-2 text-center transition-colors hover:bg-border"
+            >
+              <img
+                src={community.logo}
+                alt={community.name}
+                width="64"
+                height="64"
+                loading="lazy"
+                class:list={[
+                  "h-16 w-16 rounded-lg object-contain",
+                  { "community-logo-local": isLocal },
+                ]}
+              />
+              <span class="text-sm font-semibold text-text-primary">
+                {community.name}
+              </span>
+            </a>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Logos locais são monocromáticas escuras — invertidas no tema escuro
+     (espelha o filter do index.tsx original). */
+  [data-theme="dark"] .community-logo-local {
+    filter: invert(1) brightness(2);
+  }
+</style>

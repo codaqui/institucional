@@ -1,0 +1,86 @@
+---
+// Portado de src/pages/index.tsx (JoinSection) — MUI → HTML + Tailwind.
+// O componente React DiscordServerWidget (fetch do widget.json) é substituído
+// nesta fase pelo iframe oficial do Discord (DISCORD_WIDGET_EMBED_URL).
+import {
+  DISCORD_URL,
+  DISCORD_WIDGET_EMBED_URL,
+  socialChannels,
+} from "../../data/social";
+
+const otherChannels = socialChannels.filter((c) => c.key !== "discord");
+---
+
+<section class="bg-sunken py-12 md:py-20">
+  <div class="mx-auto max-w-6xl px-4">
+    <div class="grid items-start gap-10 lg:grid-cols-12">
+      <div class="lg:col-span-7">
+        <h2 class="mb-4 text-2xl font-extrabold text-text-primary md:text-3xl">
+          💬 Entre na comunidade
+        </h2>
+        <p class="mb-6 text-text-secondary">
+          Conecte-se com participantes e mentores ao vivo no Discord.
+        </p>
+        <iframe
+          src={DISCORD_WIDGET_EMBED_URL}
+          title="Widget do servidor Discord"
+          loading="lazy"
+          sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+          class="h-96 w-full rounded-xl border border-border bg-surface shadow-sm"
+        ></iframe>
+      </div>
+
+      <div class="lg:col-span-5">
+        <h3 class="mb-4 text-xl font-bold text-text-primary">
+          Siga e acompanhe
+        </h3>
+        <ul class="space-y-3">
+          {
+            otherChannels.map((channel) => (
+              <li>
+                <a
+                  href={channel.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block rounded-xl border border-border bg-surface px-4 py-3 transition-all duration-200 hover:translate-x-1 hover:border-link hover:shadow-md"
+                >
+                  <span class="flex items-center gap-3">
+                    <span
+                      class="min-w-7 text-xl leading-none"
+                      aria-hidden="true"
+                    >
+                      {channel.emoji}
+                    </span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-bold text-text-primary">
+                        {channel.name}
+                      </span>
+                      <span class="block truncate text-xs text-text-secondary">
+                        {channel.description}
+                      </span>
+                    </span>
+                    <span
+                      class="shrink-0 text-text-secondary"
+                      aria-hidden="true"
+                    >
+                      ↗
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+
+        <a
+          href={DISCORD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="mt-6 block rounded-md bg-action px-6 py-3 text-center text-lg font-bold text-on-action transition-colors hover:bg-action-hover"
+        >
+          Entrar no Discord ↗
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
