@@ -5,5 +5,5 @@
     "baseUrl": ".",
     "resolveJsonModule": true
   },
-  "exclude": [".docusaurus", "build", "backend", "frontend", "node_modules"]
+  "exclude": [".docusaurus", "build", "backend", "frontend", "code-to-analyze", "node_modules"]
 }

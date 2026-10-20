@@ -178,6 +178,7 @@ institucional/
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
 │   │   └── migrations/          # TypeORM migrations (Migration001..012)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
+├── frontend/                    # 🚀 App Astro 5 (Fase 0 — futuro stack; POC 0.1)
 ├── blog/                        # Blog posts (Markdown/MDX)
 │   ├── authors.yml              # Blog author definitions
 │   └── YYYY-MM-DD-slug.md      # Post files (slug in frontmatter)
@@ -599,14 +600,16 @@ Defined in `src/theme/muiTheme.ts`:
 
 | Token | Value |
 |-------|-------|
-| `primary.main` | `#22c55e` (Codaqui green) |
-| `primary.dark` | `#16a34a` |
-| `primary.light` | `#4ade80` |
-| `secondary.main` | `#0ea5e9` (sky blue) |
-| `background.default` (dark) | `#1b1b1d` |
-| `background.paper` (dark) | `#242526` |
+| `primary.main` | `#57B593` (Codaqui green — cor de marca) |
+| `primary.dark` | `#4AA07A` |
+| `primary.light` | `#6DC4A5` |
+| `secondary.main` | `#87D2B7` (verde claro) |
+| `background.default` (dark) | `#2A2130` |
+| `background.paper` (dark) | `#3A2F39` |
 | `shape.borderRadius` | `8` |
 | `typography.fontFamily` | `var(--ifm-font-family-base, ...)` — inherits from Docusaurus |
+
+> ⚠️ **Fase 0 em andamento:** o app Astro em `frontend/` já usa os tokens do Design System Codaqui (cor acionável `#378369` no claro) — ver `docs/plans/codaqui-1-0/design-system.md`. A tabela acima descreve o Docusaurus (site oficial até a 0.6).
 
 **Always use theme tokens** (`color="text.primary"`, `bgcolor="action.hover"`). Never hardcode hex values in components.
 

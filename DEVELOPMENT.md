@@ -4,6 +4,7 @@ audience: Developers running the project locally, DevOps, AI agents needing oper
 sections:
   - Arquitetura do Monorepo
   - Frontend (Docusaurus) — npm scripts, dev server
+  - Frontend (Astro) — Fase 0 em transição
   - Backend (NestJS) — npm scripts, Stripe CLI for webhooks
   - Full Stack (Frontend + Backend + Infra) — Podman Compose
   - Migrations (TypeORM) — generate/run/revert
@@ -95,6 +96,40 @@ Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor 
 > fallback do último snapshot em disco.
 
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
+
+---
+
+## Frontend (Astro) — Fase 0 em transição
+
+> O site oficial continua sendo o Docusaurus da raiz até o cutover (Fase 0.6). O app Astro em `frontend/` é o futuro stack — ver [docs/plans/codaqui-1-0/refatoracao-frontend-astro.md](docs/plans/codaqui-1-0/refatoracao-frontend-astro.md) e [docs/plans/codaqui-1-0/design-system.md](docs/plans/codaqui-1-0/design-system.md).
+
+### Setup
+
+```bash
+cd frontend
+cp .env.example .env   # PUBLIC_API_URL=http://localhost:3001
+npm install
+npm run dev            # http://localhost:4321
+```
+
+O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra. Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
+
+### Comandos
+
+```bash
+npm run dev        # dev server (:4321) — copia snapshots antes (predev)
+npm run build      # build estático em dist/ — copia snapshots antes (prebuild)
+npm run preview    # serve o build localmente
+npm run check      # astro check (tipos de .astro)
+npm run test       # vitest (libs e contratos)
+```
+
+### Convenções do app Astro
+
+- Tokens do Design System (`--cq-*`) em `src/styles/tokens.css` são a fonte única — Tailwind (`@theme inline` em `global.css`) e MUI (`src/lib/mui-theme.ts`) consomem deles. Nunca hardcode de hex.
+- Cor de marca `#57B593` é só decoração; cor acionável é `#378369` (claro) / `#89CBB3` (escuro).
+- Ilhas React: `client:load` (vivo no primeiro paint), `client:visible` (abaixo da dobra), `client:only="react"` (páginas app com auth). O padrão é zero JS.
+- Autenticação: `src/lib/auth-client.ts` (puro) + `src/lib/use-auth.ts` (hook) — mesmo contrato de cookie httpOnly do Docusaurus.
 
 ---
 
