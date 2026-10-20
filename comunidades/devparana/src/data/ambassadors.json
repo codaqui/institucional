@@ -36,7 +36,15 @@
     {
       "id": "leste",
       "name": "Leste",
-      "cities": ["Curitiba", "Campo Largo", "Ponta Grossa", "Castro"]
+      "cities": ["Curitiba", "Campo Largo", "Ponta Grossa", "Castro"],
+      "ambassador": {
+        "name": "Welington O. da Silva",
+        "email": "welington@devpr.org",
+        "role": "Embaixador da Leste",
+        "avatar": "https://avatars.githubusercontent.com/u/23055124?s=96&v=4",
+        "github": "https://github.com/DeveloperParana",
+        "githubHandle": "DeveloperParana"
+      }
     },
     {
       "id": "centro",
