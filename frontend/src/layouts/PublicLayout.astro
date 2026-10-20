@@ -1,0 +1,21 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import SiteHeader from "../components/astro/SiteHeader.astro";
+import SiteFooter from "../components/astro/SiteFooter.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+  jsonLd?: Record<string, unknown>;
+}
+---
+
+<BaseLayout {...Astro.props}>
+  <a href="#conteudo" class="cq-visually-hidden focus:not-sr-only">Pular para o conteúdo</a>
+  <SiteHeader />
+  <main id="conteudo">
+    <slot />
+  </main>
+  <SiteFooter />
+</BaseLayout>

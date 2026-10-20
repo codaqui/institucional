@@ -1,0 +1,22 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  title: string;
+}
+---
+
+<BaseLayout {...Astro.props}>
+  <div class="flex min-h-screen flex-col">
+    <header class="flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+      <img src="/img/logo_principal.svg" alt="Codaqui" class="h-7 w-auto" />
+      <span class="text-sm font-bold text-text-secondary">Painel</span>
+      <span class="text-sm text-text-secondary">›</span>
+      <span class="text-sm font-bold text-text-primary">{Astro.props.title}</span>
+      <a href="/" class="ms-auto text-sm text-link hover:text-link-hover">← Voltar ao site</a>
+    </header>
+    <div class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
+      <slot />
+    </div>
+  </div>
+</BaseLayout>
