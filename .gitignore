@@ -18,6 +18,7 @@ build/
 frontend/dist/
 frontend/.astro/
 frontend/public/events/
+frontend/lighthouse-*.json
 
 # ─────────────────────────────────────────────────────
 # Backend NestJS
