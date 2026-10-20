@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano detalhado (sem código) da refatoração do frontend Docusaurus → Astro 5 + ilhas React (MUI v9 + Tailwind v4), com multi-tenant real por projeto Cloudflare Pages e fim dos Workers mantidos — executado como Fase 0, ANTES da Fase 1a do plano 1.0.0.
 audience: Presidência, mantenedores, AI agents implementando a Fase 0.
-status: design aprovado em 2026-10-05 (Astro monolito = Abordagem A; build matrix por tenant + Pages Function de proxy; MUI v9 + Tailwind v4) — aguardando plano de implementação da Fase 0.1 (esqueleto + POC).
+status: design aprovado em 2026-10-05 (Astro monolito = Abordagem A; build matrix por tenant + Pages Function de proxy; MUI v9 + Tailwind v4) — aguardando plano de implementação da Fase 0.1 (esqueleto + POC); ampliado em 2026-10-20 com o Design System Codaqui (tokens `--cq-*` adotados na 0.1, correção de contraste WCAG do verde acionável, página pública /design-system na 0.3 — ver design-system.md).
 sections:
   - Contexto e motivação
   - Decisões de design (2026-10-05)
@@ -22,6 +22,7 @@ related-docs:
   - docs/plans/multisite/README.md — plano multisite D1 (será encerrado/substituído por esta spec na Fase 0.5)
   - docs/adrs/004-multisite-communities.md — ADR do whitelabel atual (supersedida parcialmente)
   - AGENTS.md — padrões do monorepo (será reescrito na Fase 0.6 para o stack Astro)
+  - docs/plans/codaqui-1-0/design-system.md — ⭐ Design System Codaqui: tokens canônicos adotados na 0.1 e página pública /design-system na 0.3 (anexo, 2026-10-20)
 agent-protocol:
   - Cada subfase 0.x sai em PR isolado, com Docusaurus no ar até a 0.6 (cutover).
   - Contratos de dados (static/events, social-stats, snapshots, API) NÃO mudam — o refactor é só da camada de apresentação.
@@ -128,6 +129,7 @@ Comparativo: hoje um post do blog carrega runtime SPA + React + MUI + Emotion; n
 
 ## Camada de UI (MUI v9 + Tailwind v4)
 
+- **Tokens do Design System Codaqui (2026-10-20):** o refactor **não copia o tema atual** — adota os tokens `--cq-*` do Design System (anexo [design-system.md](design-system.md)) como fonte única, gerando o theme do Tailwind v4 e o `createCodaquiTheme` (MUI v9). Inclui a **correção de contraste WCAG**: `#57B593` vira cor de marca/decoração e a cor acionável passa a `#378369` (claro) / `#89CBB3` (escuro). Mudança visual visível em botões/links, aprovada pela presidência.
 - **MUI v9** segue como sistema de componentes dos app-shells (admin, membro, formulários, dialogs, tabelas) — preserva o investimento, o tema (`createCodaquiTheme`) e os padrões do AGENTS.md. A migração v7 → v9 segue o [guia oficial](https://mui.com/material-ui/migration/upgrade-to-v9/); atenção às mudanças de DOM/a11y nos componentes usados (Grid, Dialog, Autocomplete, Tabs).
 - **Tailwind v4** entra para layout/utilitários e para os componentes `.astro` (grid, espaçamento, tipografia, responsivo) — CSS purgado por página, zero runtime. Convivência via [integração oficial](https://mui.com/material-ui/integrations/tailwindcss/tailwindcss-v4/).
 - **Regra prática:** componente com estado/comportamento complexo → MUI na ilha; apresentação/estrutura → `.astro` + Tailwind. Nunca hardcode de hex — tokens do tema (MUI) ou do Tailwind config (mesmas cores Codaqui).
@@ -190,9 +192,9 @@ A Fase 0.5 **substitui** a arquitetura D1 (`docs/plans/multisite/README.md`) e s
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
-| **0.1 — Esqueleto + POC** | App Astro (em `frontend/` ou raiz), BaseLayout + PublicLayout, MUI v9 + Tailwind v4 + tema, auth-client, 3 páginas representativas: `/` (pública), `/eventos/<slug>` (snapshot + ilha), `/admin/eventos` (app-shell) | `build` + `typecheck` verdes; preview no Pages; Lighthouse mobile das 3 páginas melhor que o equivalente Docusaurus (registrar números no PR) |
+| **0.1 — Esqueleto + POC** | App Astro (em `frontend/` ou raiz), BaseLayout + PublicLayout, MUI v9 + Tailwind v4 + **tokens do Design System (`--cq-*`, nomenclatura unificada, cor acionável `#378369`) aplicados ao theme Tailwind e ao `createCodaquiTheme`**, auth-client, 3 páginas representativas: `/` (pública), `/eventos/<slug>` (snapshot + ilha), `/admin/eventos` (app-shell) | `build` + `typecheck` verdes; preview no Pages; Lighthouse mobile das 3 páginas melhor que o equivalente Docusaurus (registrar números no PR); contraste AA dos pares acionáveis verificado; tabela de tokens do AGENTS.md corrigida |
 | **0.2 — Conteúdo** | Collections blog + trilhas com slugs legados, ContentLayout (TOC/sidebar/Giscus), MDX + inventário/mapeamento de componentes custom | Diff de URLs blog/trilhas 100%; posts renderizam com Giscus e tema |
-| **0.3 — Site público** | Todas as páginas públicas + `/eventos/*` (getStaticPaths) + `/@handle` + transparência + doação Stripe | Paridade de rotas públicas; OG/JSON-LD validados; sitemap equivalente; checkout Stripe ponta a ponta no preview |
+| **0.3 — Site público** | Todas as páginas públicas + `/eventos/*` (getStaticPaths) + `/@handle` + transparência + doação Stripe + **página pública `/design-system` (brand book: História, Marca, Cores, Tipografia, Componentes, Acessibilidade, Tom de Voz — spec em [design-system.md](design-system.md))** | Paridade de rotas públicas; OG/JSON-LD validados; sitemap equivalente; checkout Stripe ponta a ponta no preview; `/design-system` com as 8 seções e dados reais de `timeline.ts` |
 | **0.4 — App (admin/membro)** | AppLayout + todas as `/admin/*` + `/membro/*` + check-in como ilhas `client:only` | Paridade funcional; testes das ilhas (Vitest + Testing Library) verdes; fluxos authFetch/401 cobertos |
 | **0.5 — Multi-tenant** | Matrix de build, projeto Pages por tenant, Pages Function de proxy, migração de `tisocial.org.br` | tisocial.org.br servindo rotas limpas em `/`; login cross-domain OK; doação Stripe cross-domain OK; pasta `workers/` deletada |
 | **0.6 — Cutover** | codaqui.dev no Pages, `_redirects` legados, remoção do Docusaurus e do `gh-deploy.yml`, AGENTS.md reescrito para o stack Astro | DNS cortado com rollback ensaiado; 0 404s em amostra do Search Console; CI publicando em `main`; plano multisite marcado como substituído |
@@ -225,11 +227,13 @@ Fonte: [Cloudflare Pages limits](https://developers.cloudflare.com/pages/platfor
 6. **Ponto aberto — formato dos previews**: `codaqui.dev/previews/develop/` deixa de existir; previews passam a ser `<hash>.<projeto>.pages.dev`. Links antigos de preview quebram (aceitável — não são indexados).
 7. **Ponto aberto — search**: se a busca atual (Algolia) for de fato usada, precisa de equivalente; [Pagefind](https://pagefind.app/) é o padrão Astro (local, grátis, pós-build). Decidir na 0.2 com dados de uso.
 8. **Ponto aberto — CNAME/legado GitHub Pages**: o arquivo `CNAME` e o branch `gh-pages` deixam de ter função após a 0.6; remover referências no AGENTS.md e no README.
+9. **Divergência de tokens no protótipo do DS (2026-10-20):** os artefatos de origem usam duas gramáticas (`--cq-color-primary-*` vs `--cq-primary-*`, `--cq-action-bg` vs `--cq-action-primary-bg`). A 0.1 precisa unificar a nomenclatura **antes** de gerar Tailwind theme e MUI theme — ver [design-system.md](design-system.md).
+10. **AGENTS.md desatualizado na paleta:** documenta `primary #22c55e`/`secondary #0ea5e9`, mas o código usa `#57B593`/`#87D2B7` — corrigir já na PR da 0.1 junto com a adoção dos tokens novos.
 
 ## Fora de escopo (Fase 0)
 
 - **Qualquer mudança de backend** (API, auth, cookies, banco) — apenas consumo.
-- Redesign visual/identidade — é migração de plataforma com paridade de UI, não rebranding.
+- **Rebranding / nova identidade visual** — a marca (logos, verde `#57B593`, ameixa) é preservada. **Exceção aprovada (2026-10-20):** a adoção dos tokens do Design System **está dentro do escopo**, incluindo a correção de contraste da cor acionável (`#378369`) — é migração de plataforma **com** correção de acessibilidade, não rebranding. Detalhes: [design-system.md](design-system.md).
 - Novas páginas do 1.0.0 (assembleias, diretorias, mentoria...) — nascem nas fases 1a+ do plano-mãe, já sobre o Astro.
 - Internacionalização (i18n) — site segue pt-BR apenas.
 - PWA/app mobile — segue fora de escopo como no plano-mãe.
