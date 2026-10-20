@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b — aguardando plano de implementação da Fase 1a.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b; anexada em 2026-10-05 a Fase 0 (refatoração do frontend Docusaurus → Astro, multi-tenant por build matrix no Cloudflare Pages, fim dos workers/) — ver refatoracao-frontend-astro.md; aguardando plano de implementação da Fase 0.1.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -15,7 +15,7 @@ sections:
   - Modelo de dados consolidado
   - Papéis e permissões
   - Frontend e snapshots
-  - Fases e critérios de pronto
+  - Fases e critérios de pronto (Fase 0 → 6)
   - Versionamento 1.0.0
   - ADRs a produzir
   - Riscos e pontos abertos
@@ -25,9 +25,10 @@ related-docs:
   - docs/adrs/001-event-platform.md — plataforma de eventos (será estendida)
   - docs/adrs/002-club-sortcoins.md — Clube individual
   - docs/adrs/003-club-business-pj.md — CLUB Business PJ (vira tier "Empresa Amiga")
-  - docs/adrs/004-multisite-communities.md — whitelabel de comunidades
+  - docs/adrs/004-multisite-communities.md — whitelabel de comunidades (supersedida parcialmente pela Fase 0.5)
   - docs/modules/events/ROLES.md — papéis atuais
   - docs/plans/codaqui-1-0/cadastro-projeto-extensao.md — detalhamento do Cadastro de Projeto de Extensão + comprovantes (subsistema C)
+  - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — ⭐ Fase 0: refatoração do frontend para Astro + multi-tenant por build matrix (anexo oficial)
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
@@ -315,6 +316,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
+| **0. Refatoração de frontend** (anexada 2026-10-05) | Docusaurus → **Astro 5 + ilhas React (MUI v9 + Tailwind v4)**; multi-tenant por build matrix no Cloudflare Pages; fim da pasta `workers/` (proxy vira Pages Function) — detalhes e subfases 0.1–0.6: [refatoracao-frontend-astro.md](refatoracao-frontend-astro.md) | Paridade de URLs públicas; tisocial.org.br com rotas limpas e login cross-domain; cutover de codaqui.dev com rollback ensaiado; Docusaurus removido |
 | **1a. Fundações de dados** (split 2026-10-05) | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas |
 | **1b. UX e transversal** (split 2026-10-05) | **AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
@@ -323,10 +325,11 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 
-Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS). Mapa remapeado em 2026-10-05: **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
+Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS). Mapa remapeado em 2026-10-05: **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor). A **Fase 0 não altera o backend** (refactor só de apresentação) e não consome versão de API.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
+- **011 — Refatoração de frontend para Astro + multi-tenant por build matrix** (Fase 0; supersede parcialmente a ADR 004)
 - **005 — Assembleias híbridas (Discussion + registro fino)**
 - **006 — Diretorias e ledger de horas**
 - **007 — Registro de comunidades, níveis e Selo Codaqui**
