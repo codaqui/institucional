@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-30T21:01:37.682Z",
+  "generatedAt": "2026-10-19T17:01:35.856Z",
   "sources": [
     {
       "source": "discord",
@@ -12,7 +12,7 @@
       "ctaHref": "https://discord.com/invite/xuTtxqCPpz",
       "widgetUrl": "https://discord.com/api/guilds/829882821559451659/widget.json",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "discord:codaqui",
       "indexPath": "/events/discord/codaqui/index.json",
       "itemCount": 12
@@ -27,10 +27,10 @@
       "ctaLabel": "Abrir grupo do Dev Paraná",
       "ctaHref": "https://www.meetup.com/pt-BR/developerparana/",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "meetup:devparana",
       "indexPath": "/events/meetup/devparana/index.json",
-      "itemCount": 378
+      "itemCount": 379
     },
     {
       "source": "doity",
@@ -42,7 +42,7 @@
       "ctaLabel": "Ver eventos na Doity",
       "ctaHref": "https://doity.com.br/organizador/devpr",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "doity:devpr",
       "indexPath": "/events/doity/devpr/index.json",
       "itemCount": 2
@@ -57,7 +57,7 @@
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "ocgroups:cloud-native-maringa",
       "indexPath": "/events/ocgroups/cloud-native-maringa/index.json",
       "itemCount": 7
@@ -72,7 +72,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/elasnocodigo",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "sympla:elasnocodigo",
       "indexPath": "/events/sympla/elasnocodigo/index.json",
       "itemCount": 2
@@ -87,7 +87,7 @@
       "ctaLabel": "Ver eventos na Sympla",
       "ctaHref": "https://www.sympla.com.br/produtor/camposvalley",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "sympla:campostech",
       "indexPath": "/events/sympla/campostech/index.json",
       "itemCount": 10
@@ -102,7 +102,7 @@
       "ctaLabel": "Ver eventos",
       "ctaHref": "/eventos",
       "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-      "generatedAt": "2026-09-30T21:01:37.682Z",
+      "generatedAt": "2026-10-19T17:01:35.856Z",
       "sourceKey": "internal:codaqui",
       "indexPath": "/events/internal/codaqui/index.json",
       "itemCount": 1
@@ -10470,93 +10470,6 @@
       "hasOverride": false
     },
     {
-      "id": "sympla-1983086",
-      "title": "Meetup: Desenvolvimento Backend",
-      "summary": "Bora bater um papo sobre tecnologia? Sábado tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Desenvolvimento Backend Talk 1: Cloud Native, Reatividade e 12 fatores Por Clécius Martinkoski, CTO na…",
-      "startAt": "2023-05-13T16:00:00-03:00",
-      "endAt": "2023-05-13T18:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/meetup-desenvolvimento-backend/1983086",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/64566fc7d3998-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-1983086.json",
-      "hasOverride": false
-    },
-    {
-      "id": "sympla-2016945",
-      "title": "Meetup: Design de Produto Digital",
-      "summary": "Bora bater um papo sobre tecnologia? Sábado, dia 10 tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Design de Produto Digital Talk: Design de Produto Digital - como velhos hábitos matam novos ca…",
-      "startAt": "2023-06-10T16:00:00-03:00",
-      "endAt": "2023-06-10T18:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/meetup-design-de-produto-digital/2016945",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/647a4abc14c2f-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2016945.json",
-      "hasOverride": false
-    },
-    {
-      "id": "sympla-2054515",
-      "title": "Meetup: Carreiras em Tecnologia",
-      "summary": "Bora bater um papo sobre tecnologia? Sábado, dia 15 tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Carreiras em Tecnologia Talk: Carreiras em Tecnologia Por Maria Alice Jovinski, Gerente de Peo…",
-      "startAt": "2023-07-15T16:00:00-03:00",
-      "endAt": "2023-07-15T18:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/meetup-carreiras-em-tecnologia/2054515",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/6498bca7cfe08-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2054515.json",
-      "hasOverride": false
-    },
-    {
       "id": "296968807",
       "title": "DevParaná na Estrada - Cianorte",
       "summary": "O DevParaná na Estrada está rodando várias cidades na semana de 6 a 15 de novembro trazendo muito conteúdo sobre tecnologia e inovação. Já reserve essa data e confirme sua presença. Em breve divulgaremos as talks e maio…",
@@ -10973,35 +10886,6 @@
       "hasOverride": false
     },
     {
-      "id": "sympla-2321587",
-      "title": "Minicurso: Teste de API na Prática!",
-      "summary": "Bora aprender tecnologia na prática? Sábado, dia 3 de fevereiro, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, gar…",
-      "startAt": "2024-02-03T13:00:00-03:00",
-      "endAt": "2024-02-03T17:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/minicurso-teste-de-api-na-pratica/2321587",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/65b3ba83dd44e-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2321587.json",
-      "hasOverride": false
-    },
-    {
       "id": "299101276",
       "title": "[Ingá.php] Rumo à Performance Ideal - Testes e Ajustes",
       "summary": "🚀 Meetup da comunidade Ingá.php na AMTECH 🚀 A Comunidade Ingá.php está com mais um evento presencial imperdível! Estamos animados em nos reunir novamente, e desta vez, nosso ponto de encontro será na AMTECH - Agência…",
@@ -11122,35 +11006,6 @@
       "hasOverride": false
     },
     {
-      "id": "sympla-2388489",
-      "title": "Tech Happy Hour - IA e Tendências de Tecnologia",
-      "summary": "Um papo sobre tecnologia com cerveja e petiscos! Terça-feira, dia 26 de março, a partir das 19h, aguardamos você no Tech Happy Hour da Campos Valley, lá no bar Casa Verde. Conheça os talks e speakers da noite: IA Descom…",
-      "startAt": "2024-03-26T19:00:00-03:00",
-      "endAt": "2024-03-26T21:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/tech-happy-hour-ia-e-tendencias-de-tecnologia/2388489",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/65fa38b8f339b-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2388489.json",
-      "hasOverride": false
-    },
-    {
       "id": "300353757",
       "title": "#27 Maringá Agile - Cases de sucesso de Maringá",
       "summary": "🚀 Evento O 27° Maringá Agile será um evento imperdível onde vamos destacar cases de sucesso de empresas locais, oferecendo uma visão exclusiva das inovações e estratégias que impulsionam o progresso no cenário ágil da…",
@@ -11192,35 +11047,6 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/300353757.json",
-      "hasOverride": false
-    },
-    {
-      "id": "sympla-2452255",
-      "title": "Minicurso: DevOps - Uma infraestrutura ágil para automatizar o seu deploy",
-      "summary": "Bora aprender tecnologia na prática? Sábado, dia 11 de maio, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, garanta…",
-      "startAt": "2024-05-11T13:00:00-03:00",
-      "endAt": "2024-05-11T17:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/minicurso-devops-uma-infraestrutura-agil-para-automatizar-o-seu-deploy/2452255",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/6634e17e87c26-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2452255.json",
       "hasOverride": false
     },
     {
@@ -11549,35 +11375,6 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/301906944.json",
-      "hasOverride": false
-    },
-    {
-      "id": "sympla-2582075",
-      "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
-      "summary": "Bora aprender tecnologia na prática? Sábado, dia 10 de agosto, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, garan…",
-      "startAt": "2024-08-10T13:00:00-03:00",
-      "endAt": "2024-08-10T17:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/minicurso-ux-design-prototipando-um-app-mobile-na-pratica/2582075",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/66afbfd82c57b-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-2582075.json",
       "hasOverride": false
     },
     {
@@ -13143,35 +12940,6 @@
       "hasOverride": false
     },
     {
-      "id": "sympla-3031834",
-      "title": "Meetup: Cyber Security",
-      "summary": "Bora bater um papo sobre tecnologia em Ponta Grossa? Sábado, dia 16 tem meetup da Campos Tech! Venha se conectar com a comunidade de tecnologia dos Campos Gerais. Confira abaixo nosso próximo encontro Tema: Cyber Securi…",
-      "startAt": "2025-08-16T15:00:00-03:00",
-      "endAt": "2025-08-16T18:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Sympla",
-      "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
-      "href": "https://www.sympla.com.br/evento/meetup-cyber-security/3031834",
-      "tags": [
-        "campostech",
-        "sympla",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento na Sympla",
-      "featured": false,
-      "status": "completed",
-      "entityType": "external",
-      "creatorName": "CamposTech",
-      "organizers": [],
-      "imageUrl": "https://images.sympla.com.br/686ec0f249a9e-xs.png",
-      "source": "sympla",
-      "sourceId": "campostech",
-      "sourceKey": "sympla:campostech",
-      "itemPath": "/events/sympla/campostech/sympla-3031834.json",
-      "hasOverride": false
-    },
-    {
       "id": "310654707",
       "title": "6o DevParaná Cascavel",
       "summary": "Está chegando o sexto encontro do DevParaná Cascavel , um evento para fazer networking e falar de tecnologia! 📅 Programação: 19:00: Recepção 19:30: Segurança em esteira DevSecOps - Gustavo Esser (CloudScript) 20:00: Na…",
@@ -13882,6 +13650,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2321587",
+      "title": "Minicurso: Teste de API na Prática!",
+      "summary": "Bora aprender tecnologia na prática? Sábado, dia 3 de fevereiro, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, gar…",
+      "startAt": "2026-02-03T13:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/minicurso-teste-de-api-na-pratica/2321587",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/65b3ba83dd44e-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2321587.json",
+      "hasOverride": false
+    },
+    {
       "id": "313204392",
       "title": "9o Meetup DevParaná Cascavel",
       "summary": "Está chegando um encontro especial do DevParaná Cascavel, um evento para fazer networking e falar de tecnologia. 📅 Programação: eBPF: Como executar código no kernel quase sem medo (só um pouquinho) André Bortoli (Engen…",
@@ -14254,15 +14050,42 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2388489",
+      "title": "Tech Happy Hour - IA e Tendências de Tecnologia",
+      "summary": "Um papo sobre tecnologia com cerveja e petiscos! Terça-feira, dia 26 de março, a partir das 19h, aguardamos você no Tech Happy Hour da Campos Valley, lá no bar Casa Verde. Conheça os talks e speakers da noite: IA Descom…",
+      "startAt": "2026-03-26T19:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/tech-happy-hour-ia-e-tendencias-de-tecnologia/2388489",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/65fa38b8f339b-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2388489.json",
+      "hasOverride": false
+    },
+    {
       "id": "sympla-3361245",
       "title": "Meetup: Refatoração de Código",
       "summary": "Bora bater um papo sobre tecnologia em Ponta Grossa? Sexta, dia 27 tem meetup da Campos Tech! Venha se conectar com a comunidade de tecnologia dos Campos Gerais. Confira abaixo nosso próximo encontro. Tema: Refatoração…",
       "startAt": "2026-03-27T19:00:00-03:00",
-      "endAt": "2026-03-27T22:30:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
       "href": "https://www.sympla.com.br/evento/meetup-refatoracao-de-codigo/3361245",
       "tags": [
         "campostech",
@@ -14287,11 +14110,10 @@
       "title": "[Roda de Conversa] Roda de Conversa: Carreiras em Tech - Trajetórias Femininas que Transformam",
       "summary": "Roda de Conversa: Carreiras em Tech Como é a realidade de uma mulher no mercado de tecnologia em 2026? Da infraestrutura ao mercado internacional, do design à educação inclusiva. O Elas No Código reúne um time de peso p…",
       "startAt": "2026-03-28T14:00:00-03:00",
-      "endAt": "2026-03-28T15:00:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "Elas no Código",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
       "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-roda-de-conversa-carreiras-em-tech-trajetorias-femininas-que-transformam/3362405",
       "tags": [
         "elasnocodigo",
@@ -15094,6 +14916,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2452255",
+      "title": "Minicurso: DevOps - Uma infraestrutura ágil para automatizar o seu deploy",
+      "summary": "Bora aprender tecnologia na prática? Sábado, dia 11 de maio, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, garanta…",
+      "startAt": "2026-05-11T13:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/minicurso-devops-uma-infraestrutura-agil-para-automatizar-o-seu-deploy/2452255",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/6634e17e87c26-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2452255.json",
+      "hasOverride": false
+    },
+    {
       "id": "1488599981085429880",
       "title": "Educação Financeira #5",
       "summary": "Planejamento de longo prazo (Módulo 7)",
@@ -15164,6 +15014,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-1983086",
+      "title": "Meetup: Desenvolvimento Backend",
+      "summary": "Bora bater um papo sobre tecnologia? Sábado tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Desenvolvimento Backend Talk 1: Cloud Native, Reatividade e 12 fatores Por Clécius Martinkoski, CTO na…",
+      "startAt": "2026-05-13T16:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/meetup-desenvolvimento-backend/1983086",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/64566fc7d3998-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-1983086.json",
+      "hasOverride": false
+    },
+    {
       "id": "314707318",
       "title": "11° Meetup Dev Paraná Cascavel",
       "summary": "O Dev Paraná mantém o pé no acelerador em Cascavel com um encontro que une o futuro do desenvolvimento assistido por IA e o reconhecimento do talento local. Prepare-se para uma noite de imersão técnica, troca de experiê…",
@@ -15204,11 +15082,10 @@
       "title": "Roda de Conversa: Maternidade e Carreira",
       "summary": "Maternidade e Carreira: o futuro da tecnologia também é feito por mães! Este mês celebramos o Dia das Mães e queremos deixar um convite especial para você. Sabemos que equilibrar o \"build\" da carreira com a rotina da ma…",
       "startAt": "2026-05-16T14:00:00-03:00",
-      "endAt": "2026-05-16T16:00:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "Elas no Código",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
       "href": "https://www.sympla.com.br/evento-online/roda-de-conversa-maternidade-e-carreira/3421888",
       "tags": [
         "elasnocodigo",
@@ -15358,6 +15235,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2016945",
+      "title": "Meetup: Design de Produto Digital",
+      "summary": "Bora bater um papo sobre tecnologia? Sábado, dia 10 tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Design de Produto Digital Talk: Design de Produto Digital - como velhos hábitos matam novos ca…",
+      "startAt": "2026-06-10T16:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/meetup-design-de-produto-digital/2016945",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/647a4abc14c2f-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2016945.json",
+      "hasOverride": false
+    },
+    {
       "id": "315134319",
       "title": "DevParaná Toledo - Meetup de Tecnologia",
       "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Toledo convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca de…",
@@ -15402,11 +15307,10 @@
       "title": "DIVERSITECH Conference",
       "summary": "DIVERSITECH 2026 – Tecnologia, Inovação e Impacto Social Bora falar sobre tecnologia em Ponta Grossa? O DIVERSITECH é um evento que reúne estudantes para compartilhar conhecimento, apresentar projetos de extensão e disc…",
       "startAt": "2026-06-20T08:30:00-03:00",
-      "endAt": "2026-06-20T12:00:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Sympla",
       "host": "CamposTech",
-      "location": "ARY BARROSO – AYRTON MONTARROYOS E JOÃO CAMARERO Teatro do Centro Cultural Unimed-BH Minas - Belo",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
       "href": "https://www.sympla.com.br/evento/diversitech-conference/3462044",
       "tags": [
         "campostech",
@@ -15555,6 +15459,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2054515",
+      "title": "Meetup: Carreiras em Tecnologia",
+      "summary": "Bora bater um papo sobre tecnologia? Sábado, dia 15 tem meetup da Campos Valley! Confira abaixo nosso próximo encontro Tema: Carreiras em Tecnologia Talk: Carreiras em Tecnologia Por Maria Alice Jovinski, Gerente de Peo…",
+      "startAt": "2026-07-15T16:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/meetup-carreiras-em-tecnologia/2054515",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/6498bca7cfe08-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2054515.json",
+      "hasOverride": false
+    },
+    {
       "id": "315702026",
       "title": "1º Meetup DevParaná Pato Branco",
       "summary": "Está chegando o 1º Meetup DevParaná Pato Branco, um evento para fazer networking e falar de tecnologia! 📅 22/07/2026 às 19h 📍 ACEPB - R. Xavantes, 315 Centro, Pato Branco - PR, 85501-220 🎤 Palestras Confirmadas Desen…",
@@ -15687,6 +15619,34 @@
       "hasOverride": false
     },
     {
+      "id": "sympla-2582075",
+      "title": "Minicurso: UX Design - Prototipando um app mobile na prática",
+      "summary": "Bora aprender tecnologia na prática? Sábado, dia 10 de agosto, tem minicurso da Campos Valley! Serão 4 horas de aprendizado prático e de mentoria, com direito a certificado de participação. As vagas são limitadas, garan…",
+      "startAt": "2026-08-10T13:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/minicurso-ux-design-prototipando-um-app-mobile-na-pratica/2582075",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/66afbfd82c57b-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-2582075.json",
+      "hasOverride": false
+    },
+    {
       "id": "315903291",
       "title": "[DevPR Guarapuava] Happy Hour 13/08",
       "summary": "🍻 Happy Hour DevParaná Guarapuava Uma noite para reunir a comunidade de tecnologia, trocar experiências e fazer networking em um ambiente descontraído. Além do bate-papo, teremos um espaço aberto para mini talks! 🎤 Te…",
@@ -15812,6 +15772,34 @@
       "sourceId": "devparana",
       "sourceKey": "meetup:devparana",
       "itemPath": "/events/meetup/devparana/316020847.json",
+      "hasOverride": false
+    },
+    {
+      "id": "sympla-3031834",
+      "title": "Meetup: Cyber Security",
+      "summary": "Bora bater um papo sobre tecnologia em Ponta Grossa? Sábado, dia 16 tem meetup da Campos Tech! Venha se conectar com a comunidade de tecnologia dos Campos Gerais. Confira abaixo nosso próximo encontro Tema: Cyber Securi…",
+      "startAt": "2026-08-16T15:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Sympla",
+      "host": "CamposTech",
+      "location": "NOV · 11:30 SILVA ENCANTADO - TURNÊ 2024 - ADIADO Araújo Vianna - Porto Alegre, RS Sessão de massagem tântrica masculina",
+      "href": "https://www.sympla.com.br/evento/meetup-cyber-security/3031834",
+      "tags": [
+        "campostech",
+        "sympla",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento na Sympla",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "creatorName": "CamposTech",
+      "organizers": [],
+      "imageUrl": "https://images.sympla.com.br/686ec0f249a9e-xs.png",
+      "source": "sympla",
+      "sourceId": "campostech",
+      "sourceKey": "sympla:campostech",
+      "itemPath": "/events/sympla/campostech/sympla-3031834.json",
       "hasOverride": false
     },
     {
@@ -16048,7 +16036,7 @@
       ],
       "ctaLabel": "Ver evento no Meetup",
       "featured": false,
-      "status": "scheduled",
+      "status": "completed",
       "entityType": "external",
       "userCount": 9,
       "creatorName": "Geovane Norbert",
@@ -16081,9 +16069,9 @@
       "href": "/eventos/esquenta-devpr-conf-2026",
       "tags": [],
       "ctaLabel": "Inscrever-se",
-      "status": "scheduled",
+      "status": "completed",
       "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
-      "userCount": 76,
+      "userCount": 81,
       "source": "internal",
       "sourceId": "codaqui",
       "sourceKey": "internal:codaqui",
@@ -16091,10 +16079,87 @@
       "hasOverride": false
     },
     {
+      "id": "317017132",
+      "title": "15º Meetup DevParaná Cascavel",
+      "summary": "🚀 O DevParaná Cascavel não podia ficar de fora da semana de inovação de Cascavel! 📅 Informações do Evento Data: 22/10/2026 Horário: 19h00 Local: Senac Endereço: Rua Recife 2283 - Centro Evento gratuito e aberto à comu…",
+      "startAt": "2026-10-22T19:00:00-03:00",
+      "endAt": "2026-10-22T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Senac - Serviço Nacional de Aprendizagem Comercial · R. Recife, 2283 - Centro, Cascavel - PR, 85810-031, Brazil · Centro · PR",
+      "href": "https://www.meetup.com/developerparana/events/317017132/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 3,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "costakauanantonye",
+          "id": "457347446"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg",
+      "source": "meetup",
+      "sourceId": "devparana",
+      "sourceKey": "meetup:devparana",
+      "itemPath": "/events/meetup/devparana/317017132.json",
+      "hasOverride": false
+    },
+    {
+      "id": "ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d",
+      "title": "Cloud Native Maringá #6 - <Tema em definição>",
+      "summary": "Cloud Native Maringá #6 - <Tema em definição>",
+      "startAt": "2026-10-24T09:30:00-03:00",
+      "endAt": "2026-10-24T12:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "CNCF Open Community Groups",
+      "host": "Cloud Native Maringá",
+      "location": "Maringá, PR",
+      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/5jejhnq",
+      "tags": [
+        "cncf",
+        "cloud-native-maringa",
+        "presencial"
+      ],
+      "ctaLabel": "Ver no CNCF Open Community Groups",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 3,
+      "creatorName": "Isadora Marcondes",
+      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+      "organizers": [
+        {
+          "name": "Isadora Marcondes",
+          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
+          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
+        },
+        {
+          "name": "Enderson Menezes",
+          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
+          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
+        }
+      ],
+      "source": "ocgroups",
+      "sourceId": "cloud-native-maringa",
+      "sourceKey": "ocgroups:cloud-native-maringa",
+      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json",
+      "hasOverride": false
+    },
+    {
       "id": "1338983526858494053",
       "title": "Reunião Geral da Associação",
       "summary": "Discussão de temas juridicos e financeiros da Associação Codaqui e suas comunidades. \n\nAs pautas das reuniões estão disponíveis aqui:\nhttps://github.com/orgs/codaqui/discussions/categories/reuni%C3%B5es",
-      "startAt": "2026-10-05T21:30:00+00:00",
+      "startAt": "2026-10-26T21:30:00+00:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Discord",
       "host": "Comunidade Codaqui",
@@ -16135,47 +16200,6 @@
       "hasOverride": false
     },
     {
-      "id": "ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d",
-      "title": "Cloud Native Maringá #6 - <Tema em definição>",
-      "summary": "Cloud Native Maringá #6 - <Tema em definição>",
-      "startAt": "2026-10-24T09:30:00-03:00",
-      "endAt": "2026-10-24T12:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "CNCF Open Community Groups",
-      "host": "Cloud Native Maringá",
-      "location": "Maringá, PR",
-      "href": "https://ocgroups.dev/cncf/group/cloudnativemaringa/event/5jejhnq",
-      "tags": [
-        "cncf",
-        "cloud-native-maringa",
-        "presencial"
-      ],
-      "ctaLabel": "Ver no CNCF Open Community Groups",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "external",
-      "userCount": 2,
-      "creatorName": "Isadora Marcondes",
-      "creatorId": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-      "organizers": [
-        {
-          "name": "Isadora Marcondes",
-          "id": "8c4ac62b-8712-5a13-be2e-83a636fe392b",
-          "photoUrl": "/images/7341733e669d7dc9fc9e9008b35be21ffa791abe56506f7dc4c200648347f18e.jpg"
-        },
-        {
-          "name": "Enderson Menezes",
-          "id": "bc28dcad-c9ce-57ff-8dff-7ddfdedc11d6",
-          "photoUrl": "/images/6f55a54b090e86d055f0535acdbe2015fdccc3bce3d59005582f19a1a0a717ee.jpg"
-        }
-      ],
-      "source": "ocgroups",
-      "sourceId": "cloud-native-maringa",
-      "sourceKey": "ocgroups:cloud-native-maringa",
-      "itemPath": "/events/ocgroups/cloud-native-maringa/ocgroups-b9f7e57f-e9c7-4bb0-bf74-cb4847d8354d.json",
-      "hasOverride": false
-    },
-    {
       "id": "devpr-conf-26",
       "title": "DevPR Conf 26",
       "summary": "O DevPR Conf chega na 11ª edição! Um palco. 7 palestras. Zero distrações. Neste ano trocamos as trilhas paralelas por uma trilha única, curada do início ao fim. Sem escolher entre duas palestras boas no mesmo horário, s…",
@@ -16202,7 +16226,7 @@
     },
     {
       "id": "ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5",
-      "title": "Cloud Native Maringá #7 - <Tema em definição>",
+      "title": "Cloud Native Maringá #6 - Fechando o ano com Open Source",
       "summary": "Cloud Native Maringá #7 - <Tema em definição>",
       "startAt": "2026-11-14T09:30:00-03:00",
       "endAt": "2026-11-14T12:00:00-03:00",
