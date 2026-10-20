@@ -178,7 +178,7 @@ institucional/
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
 │   │   └── migrations/          # TypeORM migrations (Migration001..012)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
-├── frontend/                    # 🚀 App Astro 5 (Fase 0 — futuro stack; POC 0.1)
+├── frontend/                    # 🚀 App Astro 7 (Fase 0 — futuro stack; POC 0.1)
 ├── blog/                        # Blog posts (Markdown/MDX)
 │   ├── authors.yml              # Blog author definitions
 │   └── YYYY-MM-DD-slug.md      # Post files (slug in frontmatter)

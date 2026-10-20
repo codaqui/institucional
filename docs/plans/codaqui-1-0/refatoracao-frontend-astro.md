@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
-purpose: Plano detalhado (sem código) da refatoração do frontend Docusaurus → Astro 5 + ilhas React (MUI v9 + Tailwind v4), com multi-tenant real por projeto Cloudflare Pages e fim dos Workers mantidos — executado como Fase 0, ANTES da Fase 1a do plano 1.0.0.
+purpose: Plano detalhado (sem código) da refatoração do frontend Docusaurus → Astro 7 + ilhas React (MUI v9 + Tailwind v4), com multi-tenant real por projeto Cloudflare Pages e fim dos Workers mantidos — executado como Fase 0, ANTES da Fase 1a do plano 1.0.0.
 audience: Presidência, mantenedores, AI agents implementando a Fase 0.
-status: design aprovado em 2026-10-05 (Astro monolito = Abordagem A; build matrix por tenant + Pages Function de proxy; MUI v9 + Tailwind v4) — aguardando plano de implementação da Fase 0.1 (esqueleto + POC); ampliado em 2026-10-20 com o Design System Codaqui (tokens `--cq-*` adotados na 0.1, correção de contraste WCAG do verde acionável, página pública /design-system na 0.3 — ver design-system.md).
+status: design aprovado em 2026-10-05 (Astro monolito = Abordagem A; build matrix por tenant + Pages Function de proxy; MUI v9 + Tailwind v4) — aguardando plano de implementação da Fase 0.1 (esqueleto + POC); ampliado em 2026-10-20 com o Design System Codaqui (tokens `--cq-*` adotados na 0.1, correção de contraste WCAG do verde acionável, página pública /design-system na 0.3 — ver design-system.md) (emendado em 2026-10-20: Astro 7 no lugar de 5 — advisories de segurança críticos sem fix na linha 5.x; decisão registrada no ledger da Fase 0.1).
 sections:
   - Contexto e motivação
   - Decisões de design (2026-10-05)
@@ -55,7 +55,7 @@ agent-protocol:
 
 ## Decisões de design (alinhadas em 2026-10-05)
 
-1. **Stack:** Astro 5 (`output: 'static'`) + `@astrojs/react` + MDX + Tailwind v4 + MUI v9. TypeScript strict, Node 24, mesmo monorepo.
+1. **Stack:** Astro 7 (`output: 'static'`) + `@astrojs/react` + MDX + Tailwind v4 + MUI v9. TypeScript strict, Node 24, mesmo monorepo.
 2. **UI:** MUI v7 → **v9** ([guia oficial](https://mui.com/material-ui/migration/upgrade-to-v9/) — a11y, keyboard nav, DOM mais próximo da plataforma) como sistema de componentes dos app-shells; **Tailwind v4** para layout/utilitários e componentes `.astro` ([integração oficial MUI + Tailwind v4](https://mui.com/material-ui/integrations/tailwindcss/tailwindcss-v4/)).
 3. **Timing:** refatoração **antes** da Fase 1a do 1.0.0 (as páginas novas já nascem no Astro; nada é escrito duas vezes).
 4. **Multi-tenant:** **build matrix por tenant** — um projeto Cloudflare Pages por comunidade, domínio próprio nativo, rotas limpas em `/`. **Fim da pasta `workers/`**: o proxy de API vira uma **Pages Function** (`functions/api/[[path]].ts`) que entra automaticamente em todo build.
