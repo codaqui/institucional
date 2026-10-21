@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T18:02:26.767Z",
+  "generatedAt": "2026-10-21T19:02:16.543Z",
   "events": [
     {
       "id": "316756948",
@@ -161,7 +161,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 5,
+      "userCount": 6,
       "creatorName": "Danilo Pinotti",
       "creatorId": "475426391",
       "organizers": [
