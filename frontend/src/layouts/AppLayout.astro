@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
+import BrandLogo from "../components/astro/BrandLogo.astro";
 
 interface Props {
   title: string;
@@ -10,7 +11,7 @@ interface Props {
 <BaseLayout {...Astro.props}>
   <div class="flex min-h-screen flex-col">
     <header class="flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
-      <img src="/img/logo_principal.svg" alt="Codaqui" class="h-7 w-auto" />
+      <BrandLogo class="h-7 w-auto" />
       <span class="text-sm font-bold text-text-secondary">Painel</span>
       <span class="text-sm text-text-secondary">›</span>
       <span class="text-sm font-bold text-text-primary">{Astro.props.title}</span>

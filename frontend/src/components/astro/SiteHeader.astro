@@ -1,4 +1,5 @@
 ---
+import BrandLogo from "./BrandLogo.astro";
 import NavbarAuth from "../islands/NavbarAuth";
 import ThemeToggle from "../islands/ThemeToggle";
 
@@ -40,7 +41,7 @@ const groups = [
 <header class="sticky top-0 z-40 border-b border-border bg-surface">
   <nav class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4" aria-label="Navegação principal">
     <a href="/" class="flex items-center gap-2 font-extrabold text-text-primary">
-      <img src="/img/logo_principal.svg" alt="Codaqui" class="h-8 w-auto" />
+      <BrandLogo class="h-8 w-auto" />
     </a>
     <a href="/" class="text-sm font-bold text-text-primary hover:text-link">Início</a>
     {groups.map((group) => (
