@@ -8,6 +8,7 @@ import {
   contentAssetUrl,
   sortPostsDesc,
   postCardProps,
+  collectByTag,
 } from "./blog-utils";
 
 describe("postUrl", () => {
@@ -101,6 +102,29 @@ describe("postCardProps", () => {
     expect(card.url).toBe("/blog/2024/07/22/x");
     expect(card.excerpt).toBe("Resumo.");
     expect(card.tags[0].url).toBe("/blog/category/historia");
+  });
+});
+
+describe("collectByTag", () => {
+  const post = (id: string, tags: string[]) => ({ id, data: { tags } });
+
+  it("agrupa posts pelo slug da tag", () => {
+    const posts = [post("a", ["comunidade"]), post("b", ["comunidade", "eventos"]), post("c", ["eventos"])];
+    const byTag = collectByTag(posts);
+    expect(byTag.get("comunidade")?.posts.map((p) => p.id)).toEqual(["a", "b"]);
+    expect(byTag.get("eventos")?.posts.map((p) => p.id)).toEqual(["b", "c"]);
+    expect(byTag.size).toBe(2);
+  });
+
+  it("mantém o label da primeira ocorrência quando labels distintos geram o mesmo slug", () => {
+    const byTag = collectByTag([post("a", ["DevParaná"]), post("b", ["devparana"])]);
+    expect(byTag.size).toBe(1);
+    expect(byTag.get("devparana")?.label).toBe("DevParaná");
+    expect(byTag.get("devparana")?.posts.map((p) => p.id)).toEqual(["a", "b"]);
+  });
+
+  it("retorna mapa vazio sem posts", () => {
+    expect(collectByTag([]).size).toBe(0);
   });
 });
 

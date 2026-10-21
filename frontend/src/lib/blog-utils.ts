@@ -59,6 +59,24 @@ export function sortPostsDesc<T extends PostLike>(posts: T[]): T[] {
   return [...posts].sort((a, b) => postDate(b).getTime() - postDate(a).getTime());
 }
 
+export interface TagGroup<T> {
+  label: string;
+  posts: T[];
+}
+
+export function collectByTag<T extends { data: { tags: string[] } }>(posts: T[]): Map<string, TagGroup<T>> {
+  const byTag = new Map<string, TagGroup<T>>();
+  for (const post of posts) {
+    for (const label of post.data.tags) {
+      const slug = slugifyTag(label);
+      const entry = byTag.get(slug) ?? { label, posts: [] };
+      entry.posts.push(post);
+      byTag.set(slug, entry);
+    }
+  }
+  return byTag;
+}
+
 export function postCardProps(post: {
   id: string;
   body?: string;
