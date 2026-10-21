@@ -172,6 +172,19 @@
   --cq-link-hover:           var(--cq-color-primary-200);
   --cq-focus-ring:           var(--cq-color-primary-300);
 
+  /* Foreground semântico: as versões claras (#2F6FED etc.) foram calibradas
+   * para branco e falham AA sobre os -bg escuros (2.7–3.1:1). Overrides
+   * abaixo garantem ≥4.5:1 (contraste calculado via luminância WCAG):
+   *   info    #8FB3F9 / #1E2A45 = 6.78:1
+   *   success #5CB87A / #16301F = 5.82:1
+   *   warning #E8963C / #3A2410 = 6.15:1
+   *   error   #E8826F / #3D1B17 = 5.74:1
+   */
+  --cq-color-info:    #8FB3F9;
+  --cq-color-success: #5CB87A;
+  --cq-color-warning: #E8963C;
+  --cq-color-error:   #E8826F;
+
   --cq-color-info-bg:    #1E2A45;
   --cq-color-success-bg: #16301F;
   --cq-color-warning-bg: #3A2410;

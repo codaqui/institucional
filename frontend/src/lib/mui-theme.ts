@@ -32,6 +32,11 @@ export const cqColors = {
   success: "#2C7A4B",
   warning: "#B45309",
   error: "#C0392B",
+  // Variantes dark — ≥4.5:1 sobre os -bg escuros (espelha tokens.css)
+  infoDark: "#8FB3F9",
+  successDark: "#5CB87A",
+  warningDark: "#E8963C",
+  errorDark: "#E8826F",
 } as const;
 
 /* Escala tipográfica modular 1.25 (base 16px) */
@@ -63,10 +68,10 @@ export function createCodaquiTheme(mode: "light" | "dark"): Theme {
         light: isDark ? cqColors.neutral[300] : cqColors.neutral[700],
         contrastText: isDark ? cqColors.neutral[900] : "#FFFFFF",
       },
-      info: { main: cqColors.info },
-      success: { main: cqColors.success },
-      warning: { main: cqColors.warning },
-      error: { main: cqColors.error },
+      info: { main: isDark ? cqColors.infoDark : cqColors.info },
+      success: { main: isDark ? cqColors.successDark : cqColors.success },
+      warning: { main: isDark ? cqColors.warningDark : cqColors.warning },
+      error: { main: isDark ? cqColors.errorDark : cqColors.error },
       background: {
         default: isDark ? "#2A2130" : "#F8F8F8",
         paper: isDark ? cqColors.neutral[800] : "#FFFFFF",
