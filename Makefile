@@ -299,6 +299,8 @@ astro-verify: ## Verificação completa da POC 0.1: build + tipos + testes + smo
 	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
+	@printf "$(CYAN)→  Gate de paridade de URLs /blog e /trilhas vs build Docusaurus (build/)...$(RESET)\n"
+	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
 
 astro-lighthouse: astro-build ## Lighthouse mobile nas 3 páginas da POC (/, um evento, /admin/eventos) — requer Chrome

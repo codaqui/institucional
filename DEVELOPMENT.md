@@ -133,6 +133,8 @@ make astro-lighthouse  # Lighthouse mobile nas 3 páginas da POC (requer Chrome)
 make astro-preview     # serve o build (:4321)
 ```
 
+`make astro-verify` inclui o gate de paridade de URLs de `/blog` e `/trilhas` contra o build Docusaurus (`build/` na raiz, referência) — falha se alguma URL pública faltar no `frontend/dist/`; regenere `build/` com `npm run build` na raiz se a referência estiver velha.
+
 ### Convenções do app Astro
 
 - Tokens do Design System (`--cq-*`) em `src/styles/tokens.css` são a fonte única — Tailwind (`@theme inline` em `global.css`) e MUI (`src/lib/mui-theme.ts`) consomem deles. Nunca hardcode de hex.
