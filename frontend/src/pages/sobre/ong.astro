@@ -1,0 +1,241 @@
+---
+// Portado de src/pages/sobre/ong.tsx (Docusaurus + MUI → Astro + Tailwind).
+// Social stats em build-time (loadSocialStats); MembersWall vira ilha React
+// (client:visible); troca de logo dark nos portais via CSS [data-theme].
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import CommunityPresenceCard from "../../components/astro/CommunityPresenceCard.astro";
+import MembersWallIsland from "../../components/islands/MembersWallIsland";
+import { communities } from "../../data/communities";
+import { communityPortals } from "../../data/community-portals";
+import { loadSocialStats, profilesFor } from "../../lib/social-stats";
+
+const snapshot = loadSocialStats();
+
+const helpItems = [
+  {
+    label: "🔧 Recursos Exclusivos",
+    text: "Acesso a ferramentas e materiais de apoio, com suporte completo para que todos os aspectos do seu projeto sejam bem geridos e alinhados.",
+  },
+  {
+    label: "⭐ Mentoria Especializada",
+    text: "Orientação de especialistas nas áreas de tecnologia, desenvolvimento, jurídico e contábil.",
+  },
+  {
+    label: "🤝 Conexão",
+    text: "Acesso a uma rede de contatos com profissionais e líderes da indústria, ampliando suas oportunidades.",
+  },
+  {
+    label: "💰 Apoio Financeiro",
+    text: "Oportunidades de financiamento e patrocínio para apoiar seus projetos e eventos.",
+  },
+  {
+    label: "📢 Visibilidade",
+    text: "Assistência na promoção da sua comunidade e iniciativas.",
+  },
+];
+---
+
+<PublicLayout
+  title="Associação | Codaqui"
+  ogTitle="Associação | CODAQUI.dev"
+  description="Programa de Apoio Institucional da Codaqui para comunidades de tecnologia"
+>
+  <PageHero
+    eyebrow="Programa de Apoio Institucional"
+    title="Codaqui para Comunidades"
+    subtitle="Capacitamos comunidades tech com recursos, mentoria especializada e suporte jurídico-contábil para que ampliem seu impacto."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <h2 class="mb-8 text-2xl font-bold md:text-3xl">Comunidades apoiadas</h2>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+      {
+        communities.map((community) => (
+          <CommunityPresenceCard
+            entityId={community.id}
+            name={`${community.emoji} ${community.name}`}
+            logo={community.logo}
+            description={community.description}
+            profiles={profilesFor(snapshot, community.id)}
+            location={community.location}
+            tags={community.tags}
+            links={community.links.map((l) => ({ label: l.label, url: l.url }))}
+          />
+        ))
+      }
+    </div>
+
+    <hr class="my-12 border-border" />
+
+    <h2 class="mb-6 text-2xl font-bold md:text-3xl">Portais das comunidades</h2>
+    <p class="mb-6">
+      Algumas comunidades parceiras têm um espaço próprio dentro do Codaqui, com
+      identidade visual, campanhas, transparência e doação dedicadas.
+    </p>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+      {
+        communityPortals.map((portal) => (
+          <article class="flex h-full flex-col rounded-lg border border-border bg-surface transition-all duration-200 hover:-translate-y-1 hover:shadow-md">
+            <div class="grow p-4">
+              <img
+                src={portal.logoUrl}
+                alt={portal.name}
+                height="64"
+                loading="lazy"
+                class:list={[
+                  "portal-logo-light mb-4 block h-16 w-auto object-contain",
+                  portal.logoUrl === portal.logoUrlDark && "portal-logo-static",
+                ]}
+              />
+              {portal.logoUrl !== portal.logoUrlDark && (
+                <img
+                  src={portal.logoUrlDark}
+                  alt=""
+                  aria-hidden="true"
+                  height="64"
+                  loading="lazy"
+                  class="portal-logo-dark mb-4 h-16 w-auto object-contain"
+                />
+              )}
+              <h3 class="mb-1 text-lg font-bold">{portal.name}</h3>
+              <p class="mb-1 text-sm text-text-secondary">{portal.tagline}</p>
+              <p class="text-sm text-text-secondary">{portal.description}</p>
+            </div>
+            <div class="p-4 pt-0">
+              <a
+                href={portal.basePath}
+                class="inline-flex items-center gap-1 text-sm font-semibold text-link hover:text-link-hover"
+              >
+                Acessar portal
+                <svg
+                  viewBox="0 0 24 24"
+                  width="16"
+                  height="16"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" />
+                </svg>
+              </a>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+
+    <hr class="my-12 border-border" />
+
+    <h2 class="mb-6 text-2xl font-bold md:text-3xl">Como podemos ajudar</h2>
+
+    <p class="mb-6">
+      Nosso suporte institucional é desenvolvido para atender às necessidades
+      únicas do seu projeto social.
+    </p>
+
+    <div class="mb-8 flex flex-col gap-3">
+      {
+        helpItems.map(({ label, text }) => (
+          <p>
+            <strong>{label}</strong>: {text}
+          </p>
+        ))
+      }
+    </div>
+
+    <h3 class="mb-4 text-xl font-bold">Como funciona</h3>
+    <p class="mb-2">
+      O primeiro passo é bem simples: apresente seu projeto e vamos conversar
+      sobre como podemos ajudar.
+    </p>
+    <div class="flex flex-wrap gap-4">
+      <a
+        href="mailto:contato@codaqui.dev"
+        class="rounded-lg bg-action px-4 py-2 font-bold text-on-action hover:bg-action-hover"
+      >
+        ✉️ Enviar e-mail
+      </a>
+      <a
+        href="/bio"
+        class="rounded-lg border border-border px-4 py-2 font-bold text-link hover:bg-sunken"
+      >
+        💬 Discord / WhatsApp
+      </a>
+    </div>
+
+    <hr class="my-12 border-border" />
+
+    <section class="mb-12">
+      <div class="mb-2 flex items-center gap-3">
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          fill="currentColor"
+          aria-hidden="true"
+          class="text-primary-500"
+        >
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+        </svg>
+        <h2 class="text-2xl font-bold">Quem apoia a Codaqui</h2>
+      </div>
+      <p class="mb-8 max-w-[640px] text-text-secondary">
+        Essas pessoas e organizações acreditam que tecnologia de qualidade deve
+        chegar a todos. Toda contribuição financeira é rastreada em nosso{" "}
+        <a href="/transparencia">portal de transparência</a>.
+      </p>
+      <MembersWallIsland client:visible endpoint="/members/donors" limit={12} />
+      <div class="mt-6 flex flex-wrap gap-4">
+        <a
+          href="/participe/apoiar"
+          class="rounded-lg border border-border px-4 py-2 font-bold text-link hover:bg-sunken"
+        >
+          Quero fazer parte
+        </a>
+        <a href="/membros" class="px-4 py-2 font-semibold text-link hover:text-link-hover">
+          Ver mais membros →
+        </a>
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    <h2 class="mb-4 text-2xl font-bold">Transparência</h2>
+    <p class="mb-2">
+      A Codaqui acredita em gestão aberta e prestação de contas pública.
+    </p>
+    <div class="flex flex-col gap-2">
+      <p>
+        <strong>📊 Demonstrativos Financeiros</strong>: Consulte receitas,
+        despesas e repasses no{" "}
+        <a href="/transparencia">Portal de Transparência</a>.
+      </p>
+      <p>
+        <strong>📄 Atas de Reuniões</strong>: Todas as atas estão disponíveis
+        publicamente no{" "}
+        <a
+          href="https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google Drive</a
+        >.
+      </p>
+    </div>
+  </div>
+</PublicLayout>
+
+<style>
+  /* Troca de logo por tema nos cards de portal — mesmo padrão do BrandLogo. */
+  .portal-logo-dark {
+    display: none;
+  }
+  [data-theme="dark"] .portal-logo-light:not(.portal-logo-static) {
+    display: none;
+  }
+  [data-theme="dark"] .portal-logo-dark {
+    display: block;
+  }
+</style>

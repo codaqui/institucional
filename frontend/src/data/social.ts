@@ -1,6 +1,6 @@
 // Subconjunto portado de src/data/social.ts (site Docusaurus) — exports usados
 // pela homepage e footer, mais codaquiSocialProfiles (usado pelo hook
-// useSocialStatsSnapshot). PLATFORM_COLORS (tokens MUI) fica para a fase de UI.
+// useSocialStatsSnapshot) e PLATFORM_COLORS (chips sociais / MembersWall).
 
 import type { SocialProfile } from "./social-stats";
 
@@ -19,6 +19,24 @@ export const DISCORD_WIDGET_URL =
 export const WHATSAPP_URL = "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up";
 export const EMAIL = "contato@codaqui.dev";
 export const GITHUB_ORG = "https://github.com/codaqui";
+
+/**
+ * Cores de marca por plataforma social. Os valores "text.primary"/
+ * "text.secondary" são tokens a resolver pelo consumidor (tema MUI nas ilhas,
+ * var(--cq-text-*) nos componentes Astro).
+ */
+export const PLATFORM_COLORS: Record<string, string> = {
+  discord: "#5865f2",
+  meetup: "#e0393e",
+  youtube: "#ff0000",
+  instagram: "#e1306c",
+  github: "text.primary",
+  cncf: "#446ca9",
+  twitter: "#1da1f2",
+  whatsapp: "#25d366",
+  linkedin: "#0077b5",
+  website: "text.secondary",
+};
 
 /**
  * URL embeddable (iframe) do widget do Discord, derivada do guild ID presente

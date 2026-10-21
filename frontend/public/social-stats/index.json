@@ -1,0 +1,205 @@
+{
+  "generatedAt": "2026-10-19T06:34:49.154Z",
+  "totalEvents": 413,
+  "profiles": [
+    {
+      "entityId": "codaqui",
+      "platform": "discord",
+      "handle": "@codaqui",
+      "url": "https://discord.com/invite/xuTtxqCPpz",
+      "countLabel": "membros",
+      "baselineCount": 692,
+      "count": 765,
+      "channelCount": 41,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "whatsapp",
+      "handle": "Grupo Codaqui",
+      "url": "https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up",
+      "countLabel": "participantes",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "youtube",
+      "handle": "@codaqui",
+      "url": "https://www.youtube.com/@codaqui",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 17,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "instagram",
+      "handle": "@codaqui.dev",
+      "url": "https://www.instagram.com/codaqui.dev/",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 416,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "codaqui",
+      "platform": "github",
+      "handle": "codaqui",
+      "url": "https://github.com/codaqui",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 202,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "devparana",
+      "platform": "meetup",
+      "handle": "developerparana",
+      "url": "https://www.meetup.com/pt-BR/developerparana/",
+      "countLabel": "membros",
+      "baselineCount": 2100,
+      "count": 6852,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "devparana",
+      "platform": "youtube",
+      "handle": "@devparana",
+      "url": "https://www.youtube.com/devparana",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 1560,
+      "fetchedAt": "2026-06-23T07:25:07.797Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "devparana",
+      "platform": "instagram",
+      "handle": "@devparana",
+      "url": "https://www.instagram.com/devparana",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 5191,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "elasnocodigo",
+      "platform": "instagram",
+      "handle": "@elasnocodigo",
+      "url": "https://www.instagram.com/elasnocodigo/",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 237,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "elasnocodigo",
+      "platform": "youtube",
+      "handle": "@elasnocodigo",
+      "url": "https://www.youtube.com/@elasnocodigo",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 167,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "campostechpg",
+      "platform": "website",
+      "handle": "campostechpg.com.br",
+      "url": "https://campostechpg.com.br/",
+      "countLabel": "site",
+      "baselineCount": 0,
+      "count": 0,
+      "fetchedAt": null,
+      "isFallback": true
+    },
+    {
+      "entityId": "campostechpg",
+      "platform": "instagram",
+      "handle": "@campostechpg",
+      "url": "https://www.instagram.com/campostechpg",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 1351,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "campostechpg",
+      "platform": "youtube",
+      "handle": "CamposTech",
+      "url": "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
+      "countLabel": "inscritos",
+      "baselineCount": 0,
+      "count": 111,
+      "fetchedAt": "2026-05-18T07:35:13.544Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "tisocial",
+      "platform": "instagram",
+      "handle": "@tisocialmaringa",
+      "url": "https://www.instagram.com/tisocialmaringa",
+      "countLabel": "seguidores",
+      "baselineCount": 0,
+      "count": 196,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "cloudnativemaringa",
+      "platform": "cncf",
+      "handle": "sq5vsqs",
+      "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
+      "countLabel": "membros",
+      "baselineCount": 45,
+      "count": 60,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "github",
+      "handle": "cumbucadev",
+      "url": "https://github.com/cumbucadev",
+      "countLabel": "seguidores",
+      "baselineCount": 211,
+      "count": 271,
+      "fetchedAt": "2026-10-19T06:34:49.154Z",
+      "isFallback": false
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "instagram",
+      "handle": "@cumbucadev",
+      "url": "https://www.instagram.com/cumbucadev/",
+      "countLabel": "seguidores",
+      "baselineCount": 1408,
+      "count": 1408,
+      "fetchedAt": "2026-05-07T17:13:10.067Z",
+      "isFallback": true
+    },
+    {
+      "entityId": "cumbucadev",
+      "platform": "youtube",
+      "handle": "@CumbucaDev",
+      "url": "https://www.youtube.com/@CumbucaDev",
+      "countLabel": "inscritos",
+      "baselineCount": 312,
+      "count": 818,
+      "fetchedAt": "2026-06-23T07:25:07.797Z",
+      "isFallback": true
+    }
+  ]
+}
