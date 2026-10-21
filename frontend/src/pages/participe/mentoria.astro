@@ -1,0 +1,324 @@
+---
+// Portado de src/pages/participe/mentoria.tsx (Docusaurus + MUI → Astro + Tailwind).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import { DISCORD_URL, WHATSAPP_URL } from "../../data/social";
+
+// Paths SVG dos ícones MUI correspondentes (Apache-2.0).
+const ICONS = {
+  info: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z",
+  groups:
+    "M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91M4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58C.48 14.9 0 15.62 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29M20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m4 3.43c0-.81-.48-1.53-1.22-1.85-.85-.37-1.79-.58-2.78-.58-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24z",
+  helpOutline:
+    "M11 18h2v-2h-2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4",
+  handshake:
+    "M16.48 10.41c-.39.39-1.04.39-1.43 0l-4.47-4.46-7.05 7.04-.66-.63c-1.17-1.17-1.17-3.07 0-4.24l4.24-4.24c1.17-1.17 3.07-1.17 4.24 0L16.48 9c.39.39.39 1.02 0 1.41m.7-2.12c.78.78.78 2.05 0 2.83-1.27 1.27-2.61.22-2.83 0l-3.76-3.76-5.57 5.57c-.39.39-.39 1.02 0 1.41s1.02.39 1.42 0l4.62-4.62.71.71-4.62 4.62c-.39.39-.39 1.02 0 1.41s1.02.39 1.42 0l4.62-4.62.71.71-4.62 4.62c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0l4.62-4.62.71.71-4.62 4.62c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0l4.62-4.62.71.71-4.62 4.62c-.39.39-.39 1.02 0 1.41s1.02.39 1.41 0l8.32-8.34c1.17-1.17 1.17-3.07 0-4.24l4.24-4.24c-1.15-1.15-3.01-1.17-4.18-.06z",
+  calendarToday:
+    "M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 18H4V8h16z",
+  openInNew:
+    "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z",
+};
+
+const CALENDAR_URL =
+  "https://calendar.google.com/calendar/appointments/AcZssZ3ofYNXgj7RZo-JvhnBpBxo5kryoqul_raZzhg=?gv=true";
+
+const MENTORS = [
+  {
+    name: "Enderson Menezes",
+    turma: "DevOps e Iniciantes",
+    focus: "Carreira em tecnologia, ferramentas, dicas e projetos",
+    availability: "Segundas 19:30h às 21h",
+    link: "https://www.enderson.dev",
+  },
+  {
+    name: "Guilherme Siquinelli",
+    turma: "Frontend e Arquitetura",
+    focus: "Primeiros passos em Frontend e arquitetura de software",
+    availability: "Quartas 19h às 21h",
+    link: null,
+  },
+  {
+    name: "Matheus Luis",
+    turma: "Backend e .NET",
+    focus: "Aprender e seguir carreira no ecossistema .NET",
+    availability: "Seg, Qua e Sex 19h às 20h",
+    link: null,
+  },
+  {
+    name: "Ivo Batistela",
+    turma: "Organização de Eventos",
+    focus: "Como organizar um evento de tecnologia na sua cidade",
+    availability: "Seg à Sex 18h às 18:30h",
+    link: "https://github.com/byivo",
+  },
+  {
+    name: "Renan Ceratto",
+    turma: "Empreendedorismo",
+    focus: "Empreender em tecnologia — por onde começar",
+    availability: "Quintas 19h às 20h",
+    link: null,
+  },
+];
+
+const HOW_IT_WORKS = [
+  {
+    number: "01",
+    title: "Escolha um mentor",
+    description:
+      "Leia o foco de cada mentor e escolha o que melhor se encaixa com seu objetivo.",
+    href: "/sobre/equipe/#mentores",
+    linkLabel: "Ver equipe de mentores →",
+  },
+  {
+    number: "02",
+    title: "Agende sua sessão",
+    description:
+      "Clique no botão de agendamento, escolha o mentor e o horário disponível na agenda.",
+    href: CALENDAR_URL,
+    linkLabel: "Abrir agenda →",
+  },
+  {
+    number: "03",
+    title: "Participe da sessão",
+    description:
+      "Mentoria online via Discord ou Google Meet. Dúvidas antes da sessão? Entre na comunidade.",
+    href: DISCORD_URL,
+    linkLabel: "Entrar no Discord →",
+  },
+];
+
+const getInitials = (name: string): string =>
+  name
+    .split(" ")
+    .slice(0, 2)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
+---
+
+<PublicLayout
+  title="#QueroMentoria | Codaqui"
+  ogTitle="#QueroMentoria | CODAQUI.dev"
+  description="Conectamos você a um mentor experiente para sessões individuais online — de graça."
+>
+  <PageHero
+    eyebrow="Quero Mentoria"
+    title="Mentoria Individual"
+    subtitle="Conectamos você a um mentor experiente para sessões individuais online — de graça."
+  >
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      <a
+        href={CALENDAR_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="rounded-lg bg-white px-6 py-3 font-bold text-primary-900 transition-colors hover:bg-neutral-100"
+      >
+        📅 Agendar uma sessão
+      </a>
+      <span class="rounded-full bg-[var(--cq-color-warning-bg)] px-2.5 py-0.5 text-xs font-bold text-[var(--cq-color-warning)]">
+        BETA
+      </span>
+    </div>
+  </PageHero>
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+    {/* ── Seção 1: O que é o #QueroMentoria ── */}
+    <section class="mb-16">
+      <div class="mb-4 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.info} />
+        </svg>
+        <h2 class="text-3xl font-bold">O que é o #QueroMentoria</h2>
+      </div>
+      <div class="rounded-lg border border-link bg-surface p-6">
+        <p class="mb-4 text-text-secondary">
+          O <strong>#QueroMentoria</strong> é um programa <strong>gratuito</strong> da{" "}
+          <strong>Associação Codaqui</strong> que conecta o{" "}
+          <a href="/participe/estudar">#QueroEstudar</a> ao{" "}
+          <a href="/participe/apoiar">#QueroApoiar</a> — aproximando quem quer aprender
+          de quem tem experiência para compartilhar.
+        </p>
+        <p class="mb-4 text-text-secondary">
+          As sessões são realizadas <strong>online</strong>, via{" "}
+          <strong>Discord</strong> ou <strong>Google Meet</strong>, no horário combinado com
+          o mentor.
+        </p>
+        <p class="text-text-secondary">
+          Aberto a qualquer pessoa — sem restrição de idade ou nível de experiência.
+        </p>
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Seção 2: Nossos Mentores ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.groups} />
+        </svg>
+        <h2 class="text-3xl font-bold">Conheça nossos mentores</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Cada mentor tem um foco específico. Escolha o que melhor se encaixa no seu objetivo
+        e agende uma sessão diretamente na agenda deles.
+      </p>
+
+      <div class="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {
+          MENTORS.map((mentor) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <div class="mb-4 flex items-center gap-4">
+                <span
+                  aria-hidden="true"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-action font-bold text-on-action"
+                >
+                  {getInitials(mentor.name)}
+                </span>
+                <div>
+                  {mentor.link ? (
+                    <a href={mentor.link} target="_blank" rel="noopener noreferrer" class="no-underline">
+                      <h3 class="text-xl font-bold text-link">{mentor.name}</h3>
+                    </a>
+                  ) : (
+                    <h3 class="text-xl font-bold">{mentor.name}</h3>
+                  )}
+                  <span class="mt-1 inline-block rounded-full border border-link px-2 py-0.5 text-xs text-link">
+                    {mentor.turma}
+                  </span>
+                </div>
+              </div>
+              <p class="mb-3 text-sm text-text-secondary">{mentor.focus}</p>
+              <div class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-3.5 w-3.5 text-[var(--cq-text-disabled)]">
+                  <path d={ICONS.calendarToday} />
+                </svg>
+                <span class="text-xs text-[var(--cq-text-disabled)]">{mentor.availability}</span>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <a
+        href={CALENDAR_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-2 rounded-lg bg-action px-6 py-3 font-bold text-on-action no-underline transition-colors hover:bg-action-hover"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+          <path d={ICONS.calendarToday} />
+        </svg>
+        📅 Agendar com qualquer mentor
+      </a>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Seção 3: Como funciona ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.helpOutline} />
+        </svg>
+        <h2 class="text-3xl font-bold">Como funciona</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Em três passos simples você já pode ter sua primeira sessão de mentoria.
+      </p>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {
+          HOW_IT_WORKS.map((step) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-4 transition-shadow duration-200 hover:shadow-md">
+              <p class="mb-1 text-[2.5rem] font-black leading-none text-link opacity-25" aria-hidden="true">
+                {step.number}
+              </p>
+              <h3 class="mb-2 text-xl font-bold">{step.title}</h3>
+              <p class="mb-3 text-sm text-text-secondary">{step.description}</p>
+              <a
+                href={step.href}
+                target={step.href.startsWith("http") ? "_blank" : undefined}
+                rel={step.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                class="text-sm font-semibold text-link no-underline hover:text-link-hover"
+              >
+                {step.linkLabel}
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Seção 4: Quero ser mentor ── */}
+    <section class="mb-16">
+      <div class="mb-4 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.handshake} />
+        </svg>
+        <h2 class="text-3xl font-bold">Quero ser mentor</h2>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-6">
+        <p class="mb-6 max-w-2xl text-text-secondary">
+          Você tem experiência em tecnologia e quer ajudar a próxima geração? A Codaqui conecta
+          mentores voluntários a quem está começando. Faça parte do programa.
+        </p>
+        <div class="flex flex-wrap gap-4">
+          <a
+            href="https://github.com/codaqui/institucional/discussions"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-link px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-action hover:text-on-action"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+              <path d={ICONS.openInNew} />
+            </svg>
+            Abrir discussão no GitHub
+          </a>
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary no-underline transition-colors hover:border-link hover:text-link"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+              <path d={ICONS.openInNew} />
+            </svg>
+            Falar no WhatsApp
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── CTA Final ── */}
+    <section class="mb-8">
+      <div class="rounded-lg border border-border bg-surface p-6 text-center">
+        <h2 class="mb-2 text-2xl font-bold">Ainda com dúvidas?</h2>
+        <p class="mx-auto mb-6 max-w-xl text-text-secondary">
+          Tire suas dúvidas na comunidade do Discord ou veja o que o{" "}
+          <strong>#QueroEstudar</strong> pode oferecer para você.
+        </p>
+        <div class="flex flex-wrap justify-center gap-4">
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center rounded-lg bg-action px-6 py-3 font-bold text-on-action no-underline transition-colors hover:bg-action-hover"
+          >
+            💬 Entrar no Discord
+          </a>
+          <a
+            href="/participe/estudar"
+            class="inline-flex items-center rounded-lg border border-link px-6 py-3 font-bold text-link no-underline transition-colors hover:bg-sunken"
+          >
+            Ver #QueroEstudar
+          </a>
+        </div>
+      </div>
+    </section>
+  </div>
+</PublicLayout>

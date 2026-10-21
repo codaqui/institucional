@@ -1,0 +1,321 @@
+---
+// Portado de src/pages/participe/estudar.tsx (Docusaurus + MUI → Astro + Tailwind).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import InfoCard from "../../components/astro/InfoCard.astro";
+import { DISCORD_URL, WHATSAPP_URL } from "../../data/social";
+import {
+  GOOGLE_FORM_URL,
+  TURMAS,
+  GRUPOS_ESTUDO,
+  TRACKS,
+  HOW_IT_WORKS,
+  CERTIFICATE_STEPS,
+} from "../../data/estudar";
+
+// Paths SVG dos ícones MUI correspondentes (Apache-2.0).
+const ICONS = {
+  school:
+    "M5 13.18v4L12 21l7-3.82v-4L12 17zM12 3 1 9l11 6 9-4.91V17h2V9z",
+  info: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-6h2zm0-8h-2V7h2z",
+  menuBook:
+    "M21 5c-1.11-.35-2.33-.5-3.5-.5-1.95 0-4.05.4-5.5 1.5-1.45-1.1-3.55-1.5-5.5-1.5S2.45 4.9 1 6v14.65c0 .25.25.5.5.5.1 0 .15-.05.25-.05C3.1 20.45 5.05 20 6.5 20c1.95 0 4.05.4 5.5 1.5 1.35-.85 3.8-1.5 5.5-1.5 1.65 0 3.35.3 4.75 1.05.1.05.15.05.25.05.25 0 .5-.25.5-.5V6c-.6-.45-1.25-.75-2-1m0 13.5c-1.1-.35-2.3-.5-3.5-.5-1.7 0-4.15.65-5.5 1.5V8c1.35-.85 3.8-1.5 5.5-1.5 1.2 0 2.4.15 3.5.5z",
+  calendarMonth:
+    "M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2m0 16H5V10h14zM9 14H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2zm-8 4H7v-2h2zm4 0h-2v-2h2zm4 0h-2v-2h2z",
+  emojiEvents:
+    "M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94.63 1.5 1.98 2.63 3.61 2.96V19H7v2h10v-2h-4v-3.1c1.63-.33 2.98-1.46 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2M5 8V7h2v3.82C5.84 10.4 5 9.3 5 8m14 0c0 1.3-.84 2.4-2 2.82V7h2z",
+  groups:
+    "M12 12.75c1.63 0 3.07.39 4.24.9 1.08.48 1.76 1.56 1.76 2.73V18H6v-1.61c0-1.18.68-2.26 1.76-2.73 1.17-.52 2.61-.91 4.24-.91M4 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m1.13 1.1c-.37-.06-.74-.1-1.13-.1-.99 0-1.93.21-2.78.58C.48 14.9 0 15.62 0 16.43V18h4.5v-1.61c0-.83.23-1.61.63-2.29M20 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m4 3.43c0-.81-.48-1.53-1.22-1.85-.85-.37-1.79-.58-2.78-.58-.39 0-.76.04-1.13.1.4.68.63 1.46.63 2.29V18H24z",
+  openInNew:
+    "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z",
+};
+
+const turmaColumns = ["Mês", "Modalidade", "Datas / Horário", "Instrutor", "Plataforma", "Publicação"];
+---
+
+<PublicLayout
+  title="#QueroEstudar | Codaqui"
+  ogTitle="#QueroEstudar | CODAQUI.dev"
+  description="Encontros semanais, trilhas de aprendizado e mentoria individual — de graça."
+>
+  <PageHero
+    eyebrow="Quero Estudar"
+    title="Aprenda Tecnologia"
+    subtitle="Encontros semanais, trilhas de aprendizado e mentoria individual — de graça."
+  >
+    <div class="flex flex-wrap justify-center gap-4">
+      <a
+        href={GOOGLE_FORM_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="rounded-lg bg-white px-6 py-3 font-bold text-primary-900 transition-colors hover:bg-neutral-100"
+      >
+        Inscrever-se (2026)
+      </a>
+      <a
+        href={DISCORD_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="rounded-lg border border-white px-6 py-3 font-bold text-white transition-colors hover:bg-white/10"
+      >
+        Acessar comunidade
+      </a>
+    </div>
+  </PageHero>
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+    {/* ── Público Alvo ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.school} />
+        </svg>
+        <h2 class="text-3xl font-bold">Para quem é?</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Nosso programa é aberto — sem restrição de idade ou nível prévio.
+      </p>
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <InfoCard
+          title="Início de carreira ou transição"
+          description="Nosso formato de encontros em grupo é ideal para quem está dando os primeiros passos ou migrando de área. Não limitamos idade ou critério de entrada — apenas pedimos frequência e participação ativa."
+        />
+        <InfoCard
+          title="Grupos de Estudo"
+          description="Para participantes com experiência intermediária ou avançada que queiram aprofundar temas específicos. Os grupos se reúnem para explorar conteúdos técnicos em maior profundidade."
+        />
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Como funciona ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.info} />
+        </svg>
+        <h2 class="text-3xl font-bold">Como funciona?</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Cada participante evolui no seu ritmo, com suporte da comunidade e dos mentores.
+      </p>
+
+      <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {
+          HOW_IT_WORKS.map((step) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-4 transition-shadow duration-200 hover:shadow-md">
+              <p class="mb-1 text-[2.5rem] font-black leading-none text-link opacity-25" aria-hidden="true">
+                {step.number}
+              </p>
+              <h3 class="mb-2 text-xl font-bold">{step.title}</h3>
+              <p class="mb-3 text-sm text-text-secondary">{step.description}</p>
+              <a
+                href={step.href}
+                target={step.external ? "_blank" : undefined}
+                rel={step.external ? "noopener noreferrer" : undefined}
+                class="text-sm font-semibold text-link no-underline hover:text-link-hover"
+              >
+                {step.linkLabel}
+              </a>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="rounded-lg bg-[var(--cq-color-info-bg)] p-4 text-sm text-text-primary">
+        💬 Tire dúvidas a qualquer momento no{" "}
+        <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">Discord</a>{" "}
+        — toda a comunidade de participantes, mentores e colaboradores está lá.
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Trilhas disponíveis ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.menuBook} />
+        </svg>
+        <h2 class="text-3xl font-bold">Trilhas disponíveis</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Estude de forma autônoma e peça ajuda na comunidade quando precisar.
+      </p>
+
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+        {
+          TRACKS.map((track) => (
+            <div class="h-full rounded-lg border border-link bg-surface p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+              <p class="mb-1 text-3xl" aria-hidden="true">{track.emoji}</p>
+              <h3 class="mb-2 text-xl font-bold">{track.name}</h3>
+              <p class="mb-4 text-sm text-text-secondary">
+                Trilha de aprendizado autônomo com suporte da comunidade no Discord.
+              </p>
+              <a href={track.href} class="text-sm font-semibold text-link no-underline hover:text-link-hover">
+                Começar trilha →
+              </a>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Cronograma 2026 ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.calendarMonth} />
+        </svg>
+        <h2 class="text-3xl font-bold">Cronograma 2026</h2>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Novos temas e instrutores ao longo do ano — inscreva-se para ser avisado.
+      </p>
+
+      <h3 class="mb-2 text-xl font-bold">Turmas</h3>
+      <div class="mb-12 overflow-x-auto rounded-lg border border-border bg-surface">
+        <table class="w-full text-sm">
+          <thead>
+            <tr>
+              {turmaColumns.map((col) => (
+                <th class="border-b border-border px-3 py-2 text-start font-bold">{col}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {
+              TURMAS.map((row) => {
+                const muted = row.instrutor === "A confirmar";
+                const cellClass = `border-b border-border px-3 py-2${muted ? " text-[var(--cq-text-disabled)]" : ""}`;
+                return (
+                  <tr class="transition-colors hover:bg-sunken">
+                    <td class={cellClass}>{row.mes}</td>
+                    <td class={cellClass}>{row.modalidade}</td>
+                    <td class={cellClass}>{row.datas}</td>
+                    <td class={cellClass}>{row.instrutor}</td>
+                    <td class={cellClass}>{row.plataforma}</td>
+                    <td class="border-b border-border px-3 py-2 whitespace-nowrap">
+                      {row.blogHref ? (
+                        <a href={row.blogHref} class="font-semibold text-link no-underline hover:text-link-hover">
+                          Ver post →
+                        </a>
+                      ) : (
+                        <span class="text-[var(--cq-text-disabled)]">—</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <h3 class="mb-2 text-xl font-bold">Grupos de Estudos</h3>
+      <div class="overflow-x-auto rounded-lg border border-border bg-surface">
+        <table class="w-full text-sm">
+          <thead>
+            <tr>
+              <th class="border-b border-border px-3 py-2 text-start font-bold">Tema</th>
+              <th class="border-b border-border px-3 py-2 text-start font-bold">Mediador</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              GRUPOS_ESTUDO.map((row) => (
+                <tr class="transition-colors hover:bg-sunken">
+                  <td class="border-b border-border px-3 py-2">{row.tema}</td>
+                  <td class="border-b border-border px-3 py-2">{row.mediador}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Certificado ── */}
+    <section class="mb-16">
+      <div class="mb-1 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.emojiEvents} />
+        </svg>
+        <h2 class="text-3xl font-bold">Certificado</h2>
+      </div>
+      <div class="mb-6 flex items-center gap-4">
+        <span class="rounded-full bg-[var(--cq-color-warning-bg)] px-2.5 py-0.5 text-xs font-semibold text-[var(--cq-color-warning)]">
+          Em desenvolvimento
+        </span>
+      </div>
+      <p class="mb-8 max-w-2xl text-text-secondary">
+        Ao concluir os exercícios da trilha, você pode solicitar seu certificado de conclusão.
+      </p>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {
+          CERTIFICATE_STEPS.map((step) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-4 transition-shadow duration-200 hover:shadow-md">
+              <p class="mb-1 text-[2.5rem] font-black leading-none text-link opacity-25" aria-hidden="true">
+                {step.number}
+              </p>
+              <p class="mb-3 text-sm text-text-secondary">{step.text}</p>
+              {step.href && step.linkLabel && (
+                <a
+                  href={step.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sm font-semibold text-link no-underline hover:text-link-hover"
+                >
+                  {step.linkLabel}
+                </a>
+              )}
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <hr class="my-12 border-border" />
+
+    {/* ── Comunidade ── */}
+    <section class="mb-8">
+      <div class="mb-4 flex items-center gap-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="text-link">
+          <path d={ICONS.groups} />
+        </svg>
+        <h2 class="text-3xl font-bold">Comunidade</h2>
+      </div>
+      <p class="mb-6 max-w-xl text-text-secondary">
+        Participe da nossa comunidade para interagir com outros membros, tirar dúvidas
+        e estudar em grupo.
+      </p>
+      <div class="flex flex-wrap gap-4">
+        <a
+          href={WHATSAPP_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-link px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-action hover:text-on-action"
+        >
+          📱 WhatsApp
+        </a>
+        <a
+          href={DISCORD_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-text-secondary no-underline transition-colors hover:border-link hover:text-link"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+            <path d={ICONS.openInNew} />
+          </svg>
+          Discord
+        </a>
+      </div>
+    </section>
+  </div>
+</PublicLayout>

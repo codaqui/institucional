@@ -1,0 +1,21 @@
+---
+// Portado de src/pages/sobre/conduta.md (Docusaurus MD → Astro content collection `pages`).
+import { getEntry, render } from "astro:content";
+import PublicLayout from "../../layouts/PublicLayout.astro";
+
+const entry = await getEntry("pages", "conduta");
+if (!entry) throw new Error("Página de conteúdo não encontrada: conduta");
+const { Content } = await render(entry);
+---
+
+<PublicLayout
+  title={`${entry.data.title} | Codaqui`}
+  ogTitle={`${entry.data.title} | CODAQUI.dev`}
+  description={entry.data.description ?? ""}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10">
+    <div class="prose-cq">
+      <Content />
+    </div>
+  </article>
+</PublicLayout>
