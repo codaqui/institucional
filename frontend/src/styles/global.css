@@ -61,6 +61,7 @@ a:hover {
 
 /* Corpo de conteúdo markdown (blog/trilhas) — zero JS, tokens --cq-* via utilities */
 .prose-cq { @apply text-text-primary leading-relaxed; }
+.prose-cq h1 { @apply mt-0 mb-6 text-3xl font-extrabold; }
 .prose-cq h2 { @apply mt-10 mb-4 text-2xl font-bold; }
 .prose-cq h3 { @apply mt-8 mb-3 text-xl font-bold; }
 .prose-cq h4 { @apply mt-6 mb-2 text-lg font-bold; }

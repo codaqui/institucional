@@ -14,20 +14,5 @@ export default function GiscusIsland() {
     return () => observer.disconnect();
   }, []);
 
-  return (
-    <Giscus
-      repo={GISCUS_CONFIG.repo}
-      repoId={GISCUS_CONFIG.repoId}
-      category={GISCUS_CONFIG.category}
-      categoryId={GISCUS_CONFIG.categoryId}
-      mapping="og:title"
-      strict="0"
-      reactionsEnabled="1"
-      emitMetadata="1"
-      inputPosition="bottom"
-      theme={theme}
-      lang="pt"
-      loading="lazy"
-    />
-  );
+  return <Giscus {...GISCUS_CONFIG} theme={theme} loading="lazy" />;
 }
