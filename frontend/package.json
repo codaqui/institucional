@@ -7,14 +7,15 @@
     "node": ">=24.0"
   },
   "scripts": {
-    "predev": "npm run sync:snapshots",
+    "predev": "npm run sync:content",
     "dev": "astro dev",
-    "prebuild": "npm run sync:snapshots",
+    "prebuild": "npm run sync:content",
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
-    "sync:snapshots": "node scripts/copy-snapshots.mjs"
+    "sync:snapshots": "node scripts/copy-snapshots.mjs",
+    "sync:content": "node scripts/copy-snapshots.mjs && node scripts/copy-content.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^7.1.0",
