@@ -2,20 +2,11 @@
 import { getCollection } from "astro:content";
 import PublicLayout from "../../../../layouts/PublicLayout.astro";
 import BlogPostCard from "../../../../components/astro/BlogPostCard.astro";
-import { POSTS_PER_PAGE, sortPostsDesc, postCardProps } from "../../../../lib/blog-utils";
-import { slugifyTag } from "../../../../lib/slugify-tag";
+import { POSTS_PER_PAGE, sortPostsDesc, postCardProps, collectByTag } from "../../../../lib/blog-utils";
 
 export async function getStaticPaths() {
   const sorted = sortPostsDesc(await getCollection("blog"));
-  const byTag = new Map<string, { label: string; posts: typeof sorted }>();
-  for (const post of sorted) {
-    for (const label of post.data.tags) {
-      const slug = slugifyTag(label);
-      const entry = byTag.get(slug) ?? { label, posts: [] };
-      entry.posts.push(post);
-      byTag.set(slug, entry);
-    }
-  }
+  const byTag = collectByTag(sorted);
   return [...byTag.entries()].map(([slug, { label, posts }]) => ({
     params: { tag: slug },
     props: { label, posts, totalPages: Math.ceil(posts.length / POSTS_PER_PAGE) },
