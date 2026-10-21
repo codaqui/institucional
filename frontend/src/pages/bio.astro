@@ -1,0 +1,64 @@
+---
+// Portado de src/pages/bio.tsx (Docusaurus + MUI → Astro + Tailwind).
+// Troca de logo por tema resolvida pelo BrandLogo (data-theme no <html>).
+import PublicLayout from "../layouts/PublicLayout.astro";
+import BrandLogo from "../components/astro/BrandLogo.astro";
+import { DISCORD_URL, WHATSAPP_URL } from "../data/social";
+
+interface LinkItem {
+  label: string;
+  href: string;
+  external?: boolean;
+}
+
+const links: LinkItem[] = [
+  { label: "📅 Cronograma 2026", href: "/participe/estudar" },
+  { label: "📚 Trilhas de Aprendizado", href: "/trilhas/", external: true },
+  { label: "💬 Discord", href: DISCORD_URL, external: true },
+  { label: "📱 WhatsApp", href: WHATSAPP_URL, external: true },
+  { label: "📝 Blog", href: "/blog/", external: true },
+  { label: "🐦 Twitter / X", href: "https://twitter.com/codaquidev", external: true },
+  { label: "📸 Instagram", href: "https://www.instagram.com/codaqui.dev/", external: true },
+  { label: "💼 LinkedIn", href: "https://www.linkedin.com/company/codaqui/", external: true },
+  { label: "🐙 GitHub", href: "https://github.com/codaqui", external: true },
+];
+---
+
+<PublicLayout
+  title="Links | Codaqui"
+  ogTitle="Links | Codaqui | CODAQUI.dev"
+  description="Encontre todos os links da Codaqui em um só lugar"
+>
+  <div class="mx-auto max-w-xl px-4 py-16 text-center">
+    <div
+      class="mx-auto mb-4 flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-surface"
+    >
+      <BrandLogo class="h-10 w-auto" />
+    </div>
+    <h1 class="text-3xl font-extrabold">Codaqui</h1>
+    <p class="mb-6 text-text-secondary">
+      Associação sem fins lucrativos democratizando projetos e comunidades tecnológicas.
+    </p>
+    <span class="mb-8 inline-block rounded-full border border-border px-3 py-0.5 text-sm">
+      2026
+    </span>
+
+    <div class="flex flex-col gap-4">
+      {
+        links.map((link) => (
+          <a
+            href={link.href}
+            target={link.external ? "_blank" : undefined}
+            rel={link.external ? "noopener noreferrer" : undefined}
+            class="flex items-center gap-4 rounded-lg border border-border bg-surface p-4 text-text-primary no-underline transition-all duration-200 hover:-translate-y-0.5 hover:border-link hover:shadow-md"
+          >
+            <span class="min-w-10 text-2xl" aria-hidden="true">
+              {link.label.split(" ")[0]}
+            </span>
+            <span class="font-semibold">{link.label.split(" ").slice(1).join(" ")}</span>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</PublicLayout>

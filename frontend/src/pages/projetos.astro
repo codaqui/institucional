@@ -1,0 +1,68 @@
+---
+// Portado de src/pages/projetos.tsx (Docusaurus + MUI → Astro + Tailwind).
+import PublicLayout from "../layouts/PublicLayout.astro";
+import PageHero from "../components/astro/PageHero.astro";
+import { projects } from "../data/projects";
+
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<PublicLayout
+  title="Projetos | Codaqui"
+  ogTitle="Projetos | CODAQUI.dev"
+  description="Projetos mantidos pela comunidade Codaqui"
+>
+  <PageHero
+    eyebrow="Open Source"
+    title="Projetos da Codaqui"
+    subtitle="A Codaqui é uma comunidade viva. Abaixo estão projetos que mantemos — em laboratório ou em produção — abertos para contribuição."
+  />
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <div class="mb-12 rounded-lg border border-border bg-sunken p-6">
+      <h2 class="mb-3 text-2xl font-bold">Como contribuir?</h2>
+      <ol class="m-0 list-decimal ps-6">
+        <li class="mb-1">Escolha um projeto que desperte seu interesse.</li>
+        <li class="mb-1">
+          Abra uma <em>issue</em> descrevendo o que gostaria de fazer.
+        </li>
+        <li>Aguarde o ok da equipe e mãos à obra!</li>
+      </ol>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+      {
+        projects.map((project) => (
+          <div class="flex h-full flex-col rounded-lg border border-border bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-link hover:shadow-md">
+            <div class="grow p-4">
+              <div class="mb-2 text-[2.5rem] leading-none">{project.emoji}</div>
+              <h3 class="mb-2 text-lg font-bold">{project.title}</h3>
+              <p class="text-sm text-text-secondary">{project.description}</p>
+            </div>
+            <div class="p-4 pt-0">
+              <a
+                href={project.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 rounded-lg border border-link px-3 py-1 text-sm font-semibold text-link no-underline transition-colors hover:bg-link hover:text-white"
+              >
+                Ver no GitHub
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="h-4 w-4"
+                >
+                  <path d={OPEN_IN_NEW_PATH} />
+                </svg>
+              </a>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</PublicLayout>

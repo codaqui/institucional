@@ -1,0 +1,142 @@
+---
+// Portado de src/pages/sobre/equipe.tsx (Docusaurus + MUI → Astro + Tailwind).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import {
+  diretoria,
+  membros,
+  alumni,
+  mentores,
+  type Member,
+} from "../../data/team";
+
+const LINKEDIN_PATH =
+  "M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z";
+const GITHUB_PATH =
+  "M12 1.27a11 11 0 00-3.48 21.46c.55.09.73-.28.73-.55v-1.84c-3.03.64-3.67-1.46-3.67-1.46-.55-1.29-1.28-1.65-1.28-1.65-.92-.65.1-.65.1-.65 1.1 0 1.73 1.1 1.73 1.1.92 1.65 2.57 1.2 3.21.92a2 2 0 01.64-1.47c-2.47-.27-5.04-1.19-5.04-5.5 0-1.1.46-2.1 1.2-2.84a3.76 3.76 0 010-2.93s.91-.28 3.11 1.1c1.8-.49 3.7-.49 5.5 0 2.1-1.38 3.02-1.1 3.02-1.1a3.76 3.76 0 010 2.93c.83.74 1.2 1.74 1.2 2.94 0 4.21-2.57 5.13-5.04 5.4.45.37.82.92.82 2.02v3.03c0 .27.1.64.73.55A11 11 0 0012 1.27";
+
+interface Section {
+  title: string;
+  members: Member[];
+  description?: string;
+  id?: string;
+}
+
+const sections: Section[] = [
+  {
+    title: "Diretoria",
+    description:
+      "Responsável pela gestão, representação legal e prestação de contas da associação.",
+    members: diretoria,
+  },
+  { title: "Membros", members: membros },
+  {
+    title: "Alumni",
+    description:
+      "Pessoas que fizeram parte da associação e contribuíram para sua história e fundação.",
+    members: alumni,
+  },
+  {
+    id: "mentores",
+    title: "Mentores",
+    description:
+      "Nossos mentores participam do programa #QueroMentoria, oferecendo mentorias individuais e aulas para quem está iniciando na tecnologia.",
+    members: mentores,
+  },
+];
+---
+
+<PublicLayout
+  title="Equipe | Codaqui"
+  ogTitle="Equipe | CODAQUI.dev"
+  description="Conheça a diretoria, membros, mentores e alumni da Codaqui"
+>
+  <PageHero
+    eyebrow="Associação Codaqui · CNPJ 44.593.429/0001-05"
+    title="Quem somos"
+    subtitle="Quebramos barreiras e democratizamos o acesso à tecnologia. Uma associação sem fins lucrativos que atua como guarda-chuva de comunidades tech."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    {
+      sections.map((section) => (
+        <section id={section.id} class="mb-16">
+          <h2 id={section.id} class="mb-2 text-2xl font-bold md:text-3xl">
+            {section.title}
+          </h2>
+          {section.description && (
+            <p class="mb-6 max-w-[700px] text-text-secondary">{section.description}</p>
+          )}
+          <hr class="mb-8 border-border" />
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {section.members.map((m) => (
+              <div class="flex h-full flex-col rounded-lg border border-border bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                <div class="flex grow flex-col items-center gap-2 p-4 text-center">
+                  <img
+                    src={m.avatar}
+                    alt={`Foto de ${m.name}`}
+                    width="80"
+                    height="80"
+                    loading="lazy"
+                    class="h-20 w-20 rounded-full border-[3px] border-border"
+                  />
+                  <h3 class="text-lg font-bold">{m.name}</h3>
+                  <span class="rounded-full border border-border px-2.5 py-0.5 text-xs">
+                    {m.role}
+                  </span>
+                  {m.specialty && (
+                    <span class="rounded-full bg-link px-2.5 py-0.5 text-xs font-semibold text-white">
+                      {m.specialty}
+                    </span>
+                  )}
+                </div>
+                <div class="flex justify-center gap-1 p-4 pt-0">
+                  {m.linkedin && m.linkedin !== "#" && (
+                    <a
+                      href={m.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`LinkedIn de ${m.name}`}
+                      class="inline-flex rounded-lg p-2 text-link transition-colors hover:bg-sunken"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d={LINKEDIN_PATH} />
+                      </svg>
+                    </a>
+                  )}
+                  {m.github && m.github !== "#" && (
+                    <a
+                      href={m.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`GitHub de ${m.name}`}
+                      class="inline-flex rounded-lg p-2 text-text-primary transition-colors hover:bg-sunken"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path d={GITHUB_PATH} />
+                      </svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+  </div>
+</PublicLayout>
