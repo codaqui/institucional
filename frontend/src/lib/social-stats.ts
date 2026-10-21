@@ -48,20 +48,43 @@ function isValidSnapshot(data: unknown): data is SocialStatsSnapshot {
   );
 }
 
-/** Lê o snapshot de social stats em build-time, com fallback de baselines. */
-export function loadSocialStats(): SocialStatsSnapshot {
+/**
+ * Path default do snapshot copiado pelo pipeline (scripts/copy-snapshots.mjs).
+ *
+ * Limitação conhecida: usa process.cwd() — o build/teste precisa rodar com
+ * cwd = frontend/ (como fazem os scripts npm). import.meta.url foi descartado
+ * após teste empírico: o Vite rebundla a lib no build do Astro e a URL passa
+ * a apontar para o chunk, não para src/lib — verificado com
+ * `astro build --root frontend` a partir da raiz do monorepo (caiu no fallback).
+ */
+const DEFAULT_SNAPSHOT_PATH = join(
+  process.cwd(),
+  "public",
+  "social-stats",
+  "index.json",
+);
+
+/**
+ * Lê o snapshot de social stats em build-time, com fallback de baselines.
+ * O fallback NÃO é silencioso: emite console.warn com o path tentado.
+ *
+ * @param snapshotPath override do path do JSON (usado pelos testes com
+ * fixtures; em produção usar o default).
+ */
+export function loadSocialStats(
+  snapshotPath: string = DEFAULT_SNAPSHOT_PATH,
+): SocialStatsSnapshot {
+  let data: unknown = null;
   try {
-    // process.cwd(): o build do Astro roda com cwd = frontend/; import.meta.url
-    // não serve aqui porque o frontmatter é rebundled pelo Vite (URL muda).
-    const raw = readFileSync(
-      join(process.cwd(), "public", "social-stats", "index.json"),
-      "utf8",
-    );
-    const data: unknown = JSON.parse(raw);
-    if (isValidSnapshot(data)) return data;
+    data = JSON.parse(readFileSync(snapshotPath, "utf8"));
   } catch {
-    // ausente ou inválido — cai no fallback abaixo
+    // ausente/ilegível — warn abaixo
   }
+  if (isValidSnapshot(data)) return data;
+  console.warn(
+    `[loadSocialStats] snapshot ausente/inválido em ${snapshotPath} — ` +
+      "usando baselines de src/data/social-stats.ts (rode npm run sync:snapshots)",
+  );
   return buildFallbackSnapshot();
 }
 

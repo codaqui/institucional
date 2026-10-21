@@ -1,4 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildFallbackSnapshot,
   loadSocialStats,
@@ -55,10 +58,79 @@ describe("profilesFor", () => {
 });
 
 describe("loadSocialStats", () => {
-  it("retorna um snapshot válido (arquivo copiado ou fallback)", () => {
-    const snapshot = loadSocialStats();
-    expect(typeof snapshot.totalEvents).toBe("number");
-    expect(Array.isArray(snapshot.profiles)).toBe(true);
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), "social-stats-"));
+  });
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+  });
+
+  const FIXTURE = {
+    generatedAt: "2026-10-21T00:00:00.000Z",
+    totalEvents: 999,
+    profiles: [
+      {
+        entityId: "codaqui",
+        platform: "discord",
+        handle: "@codaqui",
+        url: "https://discord.com/invite/xuTtxqCPpz",
+        countLabel: "membros",
+        baselineCount: 100,
+        count: 4242,
+        isFallback: false,
+        fetchedAt: "2026-10-21T00:00:00.000Z",
+      },
+    ],
+  };
+
+  it("caminho feliz: lê o count real do arquivo, não o baseline", () => {
+    const fixturePath = join(tmpDir, "index.json");
+    writeFileSync(fixturePath, JSON.stringify(FIXTURE));
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const snapshot = loadSocialStats(fixturePath);
+
+    // 4242 só existe na fixture; 100 seria o baseline — prova que leu o arquivo.
+    expect(snapshot.profiles[0].count).toBe(4242);
+    expect(snapshot.totalEvents).toBe(999);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it("fallback por JSON inválido: baselines + warn com o path tentado", () => {
+    const fixturePath = join(tmpDir, "index.json");
+    writeFileSync(fixturePath, "{ not json");
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const snapshot = loadSocialStats(fixturePath);
+
+    expect(snapshot.profiles.every((p) => p.isFallback)).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain(fixturePath);
+  });
+
+  it("fallback por shape inválido (profiles não-array): baselines + warn", () => {
+    const fixturePath = join(tmpDir, "index.json");
+    writeFileSync(fixturePath, JSON.stringify({ totalEvents: "oops" }));
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const snapshot = loadSocialStats(fixturePath);
+
+    expect(snapshot.profiles.every((p) => p.isFallback)).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+  });
+
+  it("fallback por arquivo ausente: baselines + warn", () => {
+    const missingPath = join(tmpDir, "nao-existe.json");
+
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const snapshot = loadSocialStats(missingPath);
+
     expect(snapshot.profiles.length).toBeGreaterThan(0);
+    expect(snapshot.profiles.every((p) => p.isFallback)).toBe(true);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0][0]).toContain(missingPath);
   });
 });
