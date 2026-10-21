@@ -83,7 +83,8 @@ export class EventOrganizerOwnershipService {
     eventId: string,
   ): Promise<{ canManage: boolean }> {
     if (user.roles?.includes(MemberRole.ADMIN)) return { canManage: true };
-    if (!user.roles?.includes(MemberRole.EVENT_ORGANIZER)) return { canManage: false };
+    if (!user.roles?.includes(MemberRole.EVENT_ORGANIZER))
+      return { canManage: false };
     const scopes = await this.getOwnedScopes(user);
     const key = `${sourceKey}:${eventId}`;
     const wildcard = `${sourceKey}:*`;

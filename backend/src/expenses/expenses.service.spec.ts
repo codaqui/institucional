@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Expense, ExpenseStatus } from './entities/expense.entity';
@@ -168,9 +165,9 @@ describe('ExpensesService', () => {
     it('propagates NotFoundException for a missing expense', async () => {
       expenseRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(
-        service.approveExpense('missing', 'user-2'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.approveExpense('missing', 'user-2')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

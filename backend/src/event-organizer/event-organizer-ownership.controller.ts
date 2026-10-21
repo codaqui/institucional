@@ -30,7 +30,9 @@ export class EventOrganizerOwnershipController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin', 'event_organizer')
   @ApiBearerAuth('jwt')
-  @ApiOperation({ summary: '🔒 Listar ownership de eventos [admin | event_organizer]' })
+  @ApiOperation({
+    summary: '🔒 Listar ownership de eventos [admin | event_organizer]',
+  })
   getOrganizers() {
     return this.service.getOrganizers();
   }

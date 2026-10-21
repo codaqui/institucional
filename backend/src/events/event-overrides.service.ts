@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
@@ -47,11 +44,16 @@ export class EventOverridesService {
 
   /** Lista overrides por sourceKey (útil para sync e admin). */
   async findBySourceKey(sourceKey: string): Promise<EventOverride[]> {
-    return this.repo.find({ where: { sourceKey }, order: { updatedAt: 'DESC' } });
+    return this.repo.find({
+      where: { sourceKey },
+      order: { updatedAt: 'DESC' },
+    });
   }
 
   /** Lista múltiplos overrides por chaves (útil para o sync de snapshots). */
-  async findByKeys(keys: { sourceKey: string; eventId: string }[]): Promise<EventOverride[]> {
+  async findByKeys(
+    keys: { sourceKey: string; eventId: string }[],
+  ): Promise<EventOverride[]> {
     if (keys.length === 0) return [];
     const qb = this.repo.createQueryBuilder('o');
     const conditions = keys.map(
@@ -76,8 +78,8 @@ export class EventOverridesService {
 
     const extendData =
       'sourceKey' in dto && 'eventId' in dto
-        ? (dto as CreateEventOverrideDto).payload.extendData
-        : (dto as UpdateEventOverrideDto).payload.extendData;
+        ? dto.payload.extendData
+        : dto.payload.extendData;
     EventOrganizerService.assertValidExtendData(extendData);
 
     const payloadJson = JSON.stringify(extendData);

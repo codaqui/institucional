@@ -1,4 +1,10 @@
-import { IsString, IsInt, IsDateString, IsOptional, Min } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  IsDateString,
+  IsOptional,
+  Min,
+} from 'class-validator';
 
 export class CreateRaffleDto {
   @IsString()

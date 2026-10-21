@@ -318,8 +318,14 @@ export class LedgerController {
       'Endpoint público que retorna as transações da carteira virtual de uma comunidade, ' +
       'identificada pelo projectKey. Útil para painel de caixa de eventos.',
   })
-  @ApiResponse({ status: 200, description: 'Resultado paginado de transações.' })
-  @ApiResponse({ status: 404, description: 'Carteira da comunidade não encontrada.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultado paginado de transações.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Carteira da comunidade não encontrada.',
+  })
   async getProjectTransactions(
     @Param('projectKey') projectKey: string,
     @Query() query: GetTransactionsQueryDto,

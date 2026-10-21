@@ -23,8 +23,7 @@ export interface WalletOwner {
 
 @Injectable()
 export class RaffleService {
-  private static readonly DRAW_ALGORITHM =
-    'weighted-sha256-mod(totalCoins)';
+  private static readonly DRAW_ALGORITHM = 'weighted-sha256-mod(totalCoins)';
   private static readonly ALGORITHM_CODE_URL =
     'https://github.com/codaqui/institucional/blob/develop/backend/src/club/raffle.service.ts';
 
@@ -54,7 +53,9 @@ export class RaffleService {
   }
 
   async listAll(): Promise<unknown[]> {
-    const raffles = await this.raffleRepo.find({ order: { createdAt: 'DESC' } });
+    const raffles = await this.raffleRepo.find({
+      order: { createdAt: 'DESC' },
+    });
     return Promise.all(raffles.map((raffle) => this.buildRaffleView(raffle)));
   }
 
@@ -78,13 +79,14 @@ export class RaffleService {
       select: ['id'],
     });
 
-    const ownerFilters: Array<{ ownerId: string; ownerType: RaffleOwnerType }> = [
-      { ownerId: memberId, ownerType: RaffleOwnerType.MEMBER },
-      ...companies.map((company) => ({
-        ownerId: company.id,
-        ownerType: RaffleOwnerType.COMPANY,
-      })),
-    ];
+    const ownerFilters: Array<{ ownerId: string; ownerType: RaffleOwnerType }> =
+      [
+        { ownerId: memberId, ownerType: RaffleOwnerType.MEMBER },
+        ...companies.map((company) => ({
+          ownerId: company.id,
+          ownerType: RaffleOwnerType.COMPANY,
+        })),
+      ];
 
     const entries = await this.entryRepo.find({
       where: ownerFilters,
@@ -125,7 +127,10 @@ export class RaffleService {
     return raffle;
   }
 
-  async create(dto: CreateRaffleDto, createdByMemberId: string): Promise<Raffle> {
+  async create(
+    dto: CreateRaffleDto,
+    createdByMemberId: string,
+  ): Promise<Raffle> {
     const closesAt = new Date(dto.closesAt);
     if (closesAt <= new Date())
       throw new BadRequestException('closesAt deve ser no futuro');
@@ -186,7 +191,9 @@ export class RaffleService {
 
       if (!lockedRaffle) throw new NotFoundException('Sorteio não encontrado');
       if (lockedRaffle.status !== RaffleStatus.OPEN) {
-        throw new BadRequestException('Sorteio não está aberto para inscrições');
+        throw new BadRequestException(
+          'Sorteio não está aberto para inscrições',
+        );
       }
       if (new Date() > lockedRaffle.closesAt) {
         throw new BadRequestException('Sorteio já encerrado');
@@ -255,8 +262,13 @@ export class RaffleService {
         .getOne();
 
       if (!raffle) throw new NotFoundException('Sorteio não encontrado');
-      if (raffle.status !== RaffleStatus.OPEN && raffle.status !== RaffleStatus.CLOSED) {
-        throw new BadRequestException('Sorteio não pode ser sorteado no status atual');
+      if (
+        raffle.status !== RaffleStatus.OPEN &&
+        raffle.status !== RaffleStatus.CLOSED
+      ) {
+        throw new BadRequestException(
+          'Sorteio não pode ser sorteado no status atual',
+        );
       }
 
       const entries = await em.getRepository(RaffleEntry).find({
@@ -267,7 +279,10 @@ export class RaffleService {
         throw new BadRequestException('Sem participantes para sortear');
       }
 
-      const totalCoins = entries.reduce((sum, entry) => sum + entry.coinsSpent, 0);
+      const totalCoins = entries.reduce(
+        (sum, entry) => sum + entry.coinsSpent,
+        0,
+      );
       if (totalCoins <= 0) {
         throw new BadRequestException('Sorteio inválido: sem coins investidos');
       }
@@ -305,8 +320,13 @@ export class RaffleService {
   async cancel(raffleId: string): Promise<Raffle> {
     const raffle = await this.findOne(raffleId);
 
-    if (raffle.status === RaffleStatus.DRAWN || raffle.status === RaffleStatus.CANCELED)
-      throw new BadRequestException('Sorteio não pode ser cancelado no status atual');
+    if (
+      raffle.status === RaffleStatus.DRAWN ||
+      raffle.status === RaffleStatus.CANCELED
+    )
+      throw new BadRequestException(
+        'Sorteio não pode ser cancelado no status atual',
+      );
 
     const entries = await this.entryRepo.find({ where: { raffleId } });
 
@@ -347,7 +367,9 @@ export class RaffleService {
     return this.raffleRepo.save(raffle);
   }
 
-  async listEntries(raffleId: string): Promise<Array<RaffleEntry & { ownerDisplay: string }>> {
+  async listEntries(
+    raffleId: string,
+  ): Promise<Array<RaffleEntry & { ownerDisplay: string }>> {
     const entries = await this.entryRepo.find({
       where: { raffleId },
       order: { enteredAt: 'ASC' },
@@ -383,14 +405,16 @@ export class RaffleService {
         return [member.id, `@${member.githubHandle}${nameSuffix}`];
       }),
     );
-    const companyMap = new Map(companies.map((company) => [company.id, company.name]));
+    const companyMap = new Map(
+      companies.map((company) => [company.id, company.name]),
+    );
 
     return entries.map((entry) => ({
       ...entry,
       ownerDisplay:
         entry.ownerType === RaffleOwnerType.MEMBER
-          ? memberMap.get(entry.ownerId) ?? `Membro ${entry.ownerId}`
-          : companyMap.get(entry.ownerId) ?? `Empresa ${entry.ownerId}`,
+          ? (memberMap.get(entry.ownerId) ?? `Membro ${entry.ownerId}`)
+          : (companyMap.get(entry.ownerId) ?? `Empresa ${entry.ownerId}`),
     }));
   }
 

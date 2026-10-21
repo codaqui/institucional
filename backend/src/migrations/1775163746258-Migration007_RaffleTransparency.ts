@@ -1,8 +1,6 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class Migration007RaffleTransparency1775163746258
-  implements MigrationInterface
-{
+export class Migration007RaffleTransparency1775163746258 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       ALTER TABLE "club_raffles"
@@ -25,4 +23,3 @@ export class Migration007RaffleTransparency1775163746258
     `);
   }
 }
-

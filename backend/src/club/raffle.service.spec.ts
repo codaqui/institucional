@@ -33,19 +33,18 @@ const makeRaffle = (overrides: Partial<Raffle> = {}): Raffle =>
     createdByMemberId: MEMBER_ID,
     createdAt: new Date(),
     ...overrides,
-  } as Raffle);
+  }) as Raffle;
 
-const makeEntry = (overrides: Partial<RaffleEntry> = {}): RaffleEntry =>
-  ({
-    id: 'entry-001',
-    raffleId: RAFFLE_ID,
-    ownerId: MEMBER_ID,
-    ownerType: RaffleOwnerType.MEMBER,
-    coinsSpent: 10,
-    enteredAt: new Date(),
-    raffle: null as any,
-    ...overrides,
-  });
+const makeEntry = (overrides: Partial<RaffleEntry> = {}): RaffleEntry => ({
+  id: 'entry-001',
+  raffleId: RAFFLE_ID,
+  ownerId: MEMBER_ID,
+  ownerType: RaffleOwnerType.MEMBER,
+  coinsSpent: 10,
+  enteredAt: new Date(),
+  raffle: null as any,
+  ...overrides,
+});
 
 describe('RaffleService', () => {
   let service: RaffleService;
@@ -99,7 +98,9 @@ describe('RaffleService', () => {
     };
 
     companiesService = {
-      getOrCreateWallet: jest.fn().mockResolvedValue({ id: 'company-wallet-id' }),
+      getOrCreateWallet: jest
+        .fn()
+        .mockResolvedValue({ id: 'company-wallet-id' }),
       debitForRaffle: jest.fn().mockResolvedValue({}),
       refundFromRaffle: jest.fn().mockResolvedValue({}),
     };
@@ -113,17 +114,25 @@ describe('RaffleService', () => {
     raffleEntryQueryBuilder.setLock.mockReturnValue(raffleEntryQueryBuilder);
     raffleEntryQueryBuilder.where.mockReturnValue(raffleEntryQueryBuilder);
     raffleEntryQueryBuilder.andWhere.mockReturnValue(raffleEntryQueryBuilder);
-    raffleEntryQueryBuilder.getOne.mockImplementation(() => entryRepo.findOne());
+    raffleEntryQueryBuilder.getOne.mockImplementation(() =>
+      entryRepo.findOne(),
+    );
     entryRepo.createQueryBuilder.mockReturnValue(raffleEntryQueryBuilder);
 
     let lockedRaffleId = RAFFLE_ID;
     const raffleQueryBuilder = {
       setLock: jest.fn().mockReturnThis(),
-      where: jest.fn().mockImplementation((_: string, params: { raffleId: string }) => {
-        lockedRaffleId = params.raffleId;
-        return raffleQueryBuilder;
-      }),
-      getOne: jest.fn().mockImplementation(async () => raffleRepo.findOne({ where: { id: lockedRaffleId } })),
+      where: jest
+        .fn()
+        .mockImplementation((_: string, params: { raffleId: string }) => {
+          lockedRaffleId = params.raffleId;
+          return raffleQueryBuilder;
+        }),
+      getOne: jest
+        .fn()
+        .mockImplementation(async () =>
+          raffleRepo.findOne({ where: { id: lockedRaffleId } }),
+        ),
     };
     const raffleTxRepo = {
       createQueryBuilder: jest.fn().mockReturnValue(raffleQueryBuilder),
@@ -134,7 +143,9 @@ describe('RaffleService', () => {
       getRepository: jest.fn((entity) => {
         if (entity === Raffle) return raffleTxRepo;
         if (entity === RaffleEntry) return entryRepo;
-        throw new Error(`Repository mock não configurado para ${entity?.name ?? entity}`);
+        throw new Error(
+          `Repository mock não configurado para ${entity?.name ?? entity}`,
+        );
       }),
     };
     dataSource = {
@@ -147,7 +158,10 @@ describe('RaffleService', () => {
         { provide: getRepositoryToken(Raffle), useValue: raffleRepo },
         { provide: getRepositoryToken(RaffleEntry), useValue: entryRepo },
         { provide: getRepositoryToken(Wallet), useValue: walletRepo },
-        { provide: getRepositoryToken(CompanyWallet), useValue: companyWalletRepo },
+        {
+          provide: getRepositoryToken(CompanyWallet),
+          useValue: companyWalletRepo,
+        },
         { provide: getRepositoryToken(Company), useValue: companyRepo },
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: ClubService, useValue: clubService },
@@ -164,7 +178,10 @@ describe('RaffleService', () => {
   describe('create', () => {
     it('creates raffle with future closesAt', async () => {
       const closesAt = futureDateIso();
-      await service.create({ title: 'Sorteio', costInCoins: 10, closesAt }, MEMBER_ID);
+      await service.create(
+        { title: 'Sorteio', costInCoins: 10, closesAt },
+        MEMBER_ID,
+      );
 
       expect(raffleRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -179,7 +196,11 @@ describe('RaffleService', () => {
     it('throws when closesAt is in the past', async () => {
       await expect(
         service.create(
-          { title: 'X', costInCoins: 5, closesAt: new Date(Date.now() - 1000).toISOString() },
+          {
+            title: 'X',
+            costInCoins: 5,
+            closesAt: new Date(Date.now() - 1000).toISOString(),
+          },
           MEMBER_ID,
         ),
       ).rejects.toThrow(BadRequestException);
@@ -191,20 +212,31 @@ describe('RaffleService', () => {
   describe('findOne', () => {
     it('throws NotFoundException when raffle not found', async () => {
       raffleRepo.findOne.mockResolvedValue(null);
-      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('listMyEntries', () => {
     it('aggregates member and company entries by raffle', async () => {
       companyRepo.findOne.mockResolvedValue(null);
-      companyRepo.find = jest
-        .fn()
-        .mockResolvedValue([{ id: COMPANY_ID }]);
+      companyRepo.find = jest.fn().mockResolvedValue([{ id: COMPANY_ID }]);
       entryRepo.find.mockResolvedValue([
         makeEntry({ raffleId: 'r1', ownerId: MEMBER_ID, coinsSpent: 10 }),
-        makeEntry({ id: 'e2', raffleId: 'r1', ownerId: COMPANY_ID, ownerType: RaffleOwnerType.COMPANY, coinsSpent: 15 }),
-        makeEntry({ id: 'e3', raffleId: 'r2', ownerId: MEMBER_ID, coinsSpent: 20 }),
+        makeEntry({
+          id: 'e2',
+          raffleId: 'r1',
+          ownerId: COMPANY_ID,
+          ownerType: RaffleOwnerType.COMPANY,
+          coinsSpent: 15,
+        }),
+        makeEntry({
+          id: 'e3',
+          raffleId: 'r2',
+          ownerId: MEMBER_ID,
+          coinsSpent: 20,
+        }),
       ]);
 
       const result = await service.listMyEntries(MEMBER_ID);
@@ -239,9 +271,16 @@ describe('RaffleService', () => {
         }),
       ]);
       entryRepo.find.mockResolvedValue([
-        makeEntry({ ownerId: MEMBER_ID, ownerType: RaffleOwnerType.MEMBER, coinsSpent: 20 }),
+        makeEntry({
+          ownerId: MEMBER_ID,
+          ownerType: RaffleOwnerType.MEMBER,
+          coinsSpent: 20,
+        }),
       ]);
-      memberRepo.findOne.mockResolvedValue({ githubHandle: 'octocat', name: 'Octo' });
+      memberRepo.findOne.mockResolvedValue({
+        githubHandle: 'octocat',
+        name: 'Octo',
+      });
 
       const result = await service.listAll();
 
@@ -267,9 +306,16 @@ describe('RaffleService', () => {
         }),
       ]);
       entryRepo.find.mockResolvedValue([
-        makeEntry({ ownerId: COMPANY_ID, ownerType: RaffleOwnerType.COMPANY, coinsSpent: 30 }),
+        makeEntry({
+          ownerId: COMPANY_ID,
+          ownerType: RaffleOwnerType.COMPANY,
+          coinsSpent: 30,
+        }),
       ]);
-      companyRepo.findOne.mockResolvedValue({ id: COMPANY_ID, name: 'Acme Inc' });
+      companyRepo.findOne.mockResolvedValue({
+        id: COMPANY_ID,
+        name: 'Acme Inc',
+      });
 
       const result = await service.listHistory();
 
@@ -344,7 +390,9 @@ describe('RaffleService', () => {
 
       await service.enterRaffle(RAFFLE_ID, MEMBER_ID, RaffleOwnerType.COMPANY);
 
-      expect(companiesService.getOrCreateWallet).toHaveBeenCalledWith(COMPANY_ID);
+      expect(companiesService.getOrCreateWallet).toHaveBeenCalledWith(
+        COMPANY_ID,
+      );
       expect(companiesService.debitForRaffle).toHaveBeenCalled();
       expect(entryRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -377,11 +425,13 @@ describe('RaffleService', () => {
     });
 
     it('throws BadRequestException if raffle not open', async () => {
-      raffleRepo.findOne.mockResolvedValue(makeRaffle({ status: RaffleStatus.DRAWN }));
+      raffleRepo.findOne.mockResolvedValue(
+        makeRaffle({ status: RaffleStatus.DRAWN }),
+      );
 
-      await expect(
-        service.enterRaffle(RAFFLE_ID, MEMBER_ID),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.enterRaffle(RAFFLE_ID, MEMBER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws BadRequestException if raffle expired', async () => {
@@ -389,9 +439,9 @@ describe('RaffleService', () => {
         makeRaffle({ closesAt: new Date(Date.now() - 1000) }),
       );
 
-      await expect(
-        service.enterRaffle(RAFFLE_ID, MEMBER_ID),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.enterRaffle(RAFFLE_ID, MEMBER_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws NotFoundException when company not found for COMPANY type', async () => {
@@ -424,7 +474,10 @@ describe('RaffleService', () => {
     it('draws a winner among entries', async () => {
       const raffle = makeRaffle();
       raffleRepo.findOne.mockResolvedValue(raffle);
-      entryRepo.find.mockResolvedValue([makeEntry(), makeEntry({ id: 'entry-002', ownerId: 'other-member' })]);
+      entryRepo.find.mockResolvedValue([
+        makeEntry(),
+        makeEntry({ id: 'entry-002', ownerId: 'other-member' }),
+      ]);
       raffleRepo.save.mockImplementation((e) => Promise.resolve(e));
 
       const result = await service.draw(RAFFLE_ID);
@@ -438,20 +491,28 @@ describe('RaffleService', () => {
       raffleRepo.findOne.mockResolvedValue(makeRaffle());
       entryRepo.find.mockResolvedValue([]);
 
-      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws if raffle already drawn', async () => {
-      raffleRepo.findOne.mockResolvedValue(makeRaffle({ status: RaffleStatus.DRAWN }));
+      raffleRepo.findOne.mockResolvedValue(
+        makeRaffle({ status: RaffleStatus.DRAWN }),
+      );
 
-      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('throws when total coins invested is zero', async () => {
       raffleRepo.findOne.mockResolvedValue(makeRaffle());
       entryRepo.find.mockResolvedValue([makeEntry({ coinsSpent: 0 })]);
 
-      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.draw(RAFFLE_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -462,7 +523,10 @@ describe('RaffleService', () => {
       const raffle = makeRaffle();
       raffleRepo.findOne.mockResolvedValue(raffle);
       entryRepo.find.mockResolvedValue([makeEntry()]);
-      walletRepo.findOne.mockResolvedValue({ id: WALLET_ID, memberId: MEMBER_ID });
+      walletRepo.findOne.mockResolvedValue({
+        id: WALLET_ID,
+        memberId: MEMBER_ID,
+      });
       raffleRepo.save.mockImplementation((e) => Promise.resolve(e));
 
       const result = await service.cancel(RAFFLE_ID);
@@ -481,7 +545,10 @@ describe('RaffleService', () => {
       entryRepo.find.mockResolvedValue([
         makeEntry({ ownerId: COMPANY_ID, ownerType: RaffleOwnerType.COMPANY }),
       ]);
-      companyWalletRepo.findOne.mockResolvedValue({ id: 'cwallet-id', companyId: COMPANY_ID });
+      companyWalletRepo.findOne.mockResolvedValue({
+        id: 'cwallet-id',
+        companyId: COMPANY_ID,
+      });
       raffleRepo.save.mockImplementation((e) => Promise.resolve(e));
 
       await service.cancel(RAFFLE_ID);
@@ -494,17 +561,26 @@ describe('RaffleService', () => {
     });
 
     it('throws if raffle is already drawn', async () => {
-      raffleRepo.findOne.mockResolvedValue(makeRaffle({ status: RaffleStatus.DRAWN }));
+      raffleRepo.findOne.mockResolvedValue(
+        makeRaffle({ status: RaffleStatus.DRAWN }),
+      );
 
-      await expect(service.cancel(RAFFLE_ID)).rejects.toThrow(BadRequestException);
+      await expect(service.cancel(RAFFLE_ID)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('continues cancellation even if a refund fails', async () => {
       const raffle = makeRaffle();
       raffleRepo.findOne.mockResolvedValue(raffle);
       entryRepo.find.mockResolvedValue([makeEntry()]);
-      walletRepo.findOne.mockResolvedValue({ id: WALLET_ID, memberId: MEMBER_ID });
-      (clubService.refundFromRaffle as jest.Mock).mockRejectedValueOnce(new Error('refund-failed'));
+      walletRepo.findOne.mockResolvedValue({
+        id: WALLET_ID,
+        memberId: MEMBER_ID,
+      });
+      (clubService.refundFromRaffle as jest.Mock).mockRejectedValueOnce(
+        new Error('refund-failed'),
+      );
       raffleRepo.save.mockImplementation((e) => Promise.resolve(e));
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
@@ -526,10 +602,18 @@ describe('RaffleService', () => {
     it('resolves ownerDisplay for member and company entries', async () => {
       entryRepo.find.mockResolvedValue([
         makeEntry({ ownerType: RaffleOwnerType.MEMBER, ownerId: MEMBER_ID }),
-        makeEntry({ id: 'e2', ownerType: RaffleOwnerType.COMPANY, ownerId: COMPANY_ID }),
+        makeEntry({
+          id: 'e2',
+          ownerType: RaffleOwnerType.COMPANY,
+          ownerId: COMPANY_ID,
+        }),
       ]);
-      memberRepo.find.mockResolvedValue([{ id: MEMBER_ID, githubHandle: 'octocat', name: 'Octo' }]);
-      companyRepo.find = jest.fn().mockResolvedValue([{ id: COMPANY_ID, name: 'Acme Inc' }]);
+      memberRepo.find.mockResolvedValue([
+        { id: MEMBER_ID, githubHandle: 'octocat', name: 'Octo' },
+      ]);
+      companyRepo.find = jest
+        .fn()
+        .mockResolvedValue([{ id: COMPANY_ID, name: 'Acme Inc' }]);
 
       const result = await service.listEntries(RAFFLE_ID);
       expect(result[0].ownerDisplay).toContain('@octocat');
@@ -539,7 +623,11 @@ describe('RaffleService', () => {
     it('falls back to generic owner labels when member/company not found', async () => {
       entryRepo.find.mockResolvedValue([
         makeEntry({ ownerType: RaffleOwnerType.MEMBER, ownerId: MEMBER_ID }),
-        makeEntry({ id: 'e2', ownerType: RaffleOwnerType.COMPANY, ownerId: COMPANY_ID }),
+        makeEntry({
+          id: 'e2',
+          ownerType: RaffleOwnerType.COMPANY,
+          ownerId: COMPANY_ID,
+        }),
       ]);
       memberRepo.find.mockResolvedValue([]);
       companyRepo.find = jest.fn().mockResolvedValue([]);

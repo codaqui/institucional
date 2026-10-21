@@ -63,7 +63,10 @@ export class ClubController {
     @Param('handle') handle: string,
     @Query('limit') limit = '10',
   ) {
-    return this.clubService.getPublicWalletByHandle(handle, Number.parseInt(limit, 10));
+    return this.clubService.getPublicWalletByHandle(
+      handle,
+      Number.parseInt(limit, 10),
+    );
   }
 
   // ── Admin: ajuste manual de carteira ─────────────────────────────────────

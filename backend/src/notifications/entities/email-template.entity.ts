@@ -1,9 +1,4 @@
-import {
-  Column,
-  Entity,
-  PrimaryColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, Entity, PrimaryColumn, UpdateDateColumn } from 'typeorm';
 
 /**
  * Override de template de e-mail persistido no banco.

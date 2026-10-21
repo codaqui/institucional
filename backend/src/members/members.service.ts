@@ -279,7 +279,9 @@ export class MembersService {
     return this.repo
       .createQueryBuilder('m')
       .where('m.isActive = true')
-      .andWhere('LOWER(m.githubHandle) IN (:...handles)', { handles: normalizedHandles })
+      .andWhere('LOWER(m.githubHandle) IN (:...handles)', {
+        handles: normalizedHandles,
+      })
       .select([
         'm.id',
         'm.githubHandle',

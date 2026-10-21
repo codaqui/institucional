@@ -21,10 +21,16 @@ describe('EventsController', () => {
 
   beforeEach(async () => {
     service = {
-      getPublicManagedEvents: jest.fn().mockResolvedValue({ source: {}, events: [] }),
-      getPublicManagedEvent: jest.fn().mockResolvedValue({ event: {}, ticketTypes: [] }),
+      getPublicManagedEvents: jest
+        .fn()
+        .mockResolvedValue({ source: {}, events: [] }),
+      getPublicManagedEvent: jest
+        .fn()
+        .mockResolvedValue({ event: {}, ticketTypes: [] }),
       listEvents: jest.fn().mockResolvedValue([]),
-      getCheckinScope: jest.fn().mockResolvedValue({ managed: [], external: [] }),
+      getCheckinScope: jest
+        .fn()
+        .mockResolvedValue({ managed: [], external: [] }),
       createEvent: jest.fn().mockResolvedValue({ id: 'evt-1' }),
       getEvent: jest.fn().mockResolvedValue({ id: 'evt-1' }),
       updateEvent: jest.fn().mockResolvedValue({ id: 'evt-1' }),
@@ -46,7 +52,9 @@ describe('EventsController', () => {
       listOrders: jest.fn().mockResolvedValue([]),
       getEventLedger: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       createEventReimbursement: jest.fn().mockResolvedValue({ id: 'r-1' }),
-      createExternalEventReimbursement: jest.fn().mockResolvedValue({ id: 'r-1' }),
+      createExternalEventReimbursement: jest
+        .fn()
+        .mockResolvedValue({ id: 'r-1' }),
       syncInternalSnapshot: jest.fn().mockResolvedValue({ prNumber: 1 }),
       listActivations: jest.fn().mockResolvedValue([]),
       listMemberRegistrations: jest.fn().mockResolvedValue([]),
@@ -54,11 +62,15 @@ describe('EventsController', () => {
       listExternalTicketTypesManage: jest.fn().mockResolvedValue([]),
       createExternalTicketType: jest.fn().mockResolvedValue({ id: 'tt-ext-1' }),
       updateExternalTicketType: jest.fn().mockResolvedValue({ id: 'tt-ext-1' }),
-      checkoutExternal: jest.fn().mockResolvedValue({ url: 'https://checkout' }),
+      checkoutExternal: jest
+        .fn()
+        .mockResolvedValue({ url: 'https://checkout' }),
       activateExternal: jest.fn().mockResolvedValue({ id: 'act-1' }),
       getActivation: jest.fn().mockResolvedValue({ id: 'act-1' }),
       listExternalOrders: jest.fn().mockResolvedValue([]),
-      getExternalEventLedger: jest.fn().mockResolvedValue({ data: [], total: 0 }),
+      getExternalEventLedger: jest
+        .fn()
+        .mockResolvedValue({ data: [], total: 0 }),
       importParticipants: jest.fn().mockResolvedValue({ imported: 0 }),
       rematchParticipants: jest.fn().mockResolvedValue({ rematched: 0 }),
       listExternalParticipants: jest.fn().mockResolvedValue([]),
@@ -201,7 +213,9 @@ describe('EventsController', () => {
     });
 
     it('GET /events/:id/registrations', async () => {
-      const result = await controller.listRegistrations('evt-1', 'ana', { user });
+      const result = await controller.listRegistrations('evt-1', 'ana', {
+        user,
+      });
       expect(service.listRegistrations).toHaveBeenCalledWith(
         'evt-1',
         { search: 'ana' },
@@ -236,7 +250,11 @@ describe('EventsController', () => {
         features: ['checkin', 'payments'],
         communityProjectKey: 'devparana',
       } as any;
-      const result = await controller.activateExternal('meetup:devparana:1', dto, { user });
+      const result = await controller.activateExternal(
+        'meetup:devparana:1',
+        dto,
+        { user },
+      );
       expect(service.activateExternal).toHaveBeenCalledWith(
         'meetup:devparana:1',
         dto,
@@ -250,7 +268,11 @@ describe('EventsController', () => {
         quantity: 1,
         acceptTerms: true,
       } as any;
-      const result = await controller.checkoutExternal('meetup:devparana:1', dto, { user });
+      const result = await controller.checkoutExternal(
+        'meetup:devparana:1',
+        dto,
+        { user },
+      );
       expect(service.checkoutExternal).toHaveBeenCalledWith(
         'meetup:devparana:1',
         dto,

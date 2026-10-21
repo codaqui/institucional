@@ -60,7 +60,10 @@ describe('EmailService', () => {
     // TemplateService real com repo mockado → cai nos templates padrão.
     const templateRepo = { findOneBy: jest.fn().mockResolvedValue(null) };
     const templateAudit = { log: jest.fn().mockResolvedValue(undefined) };
-    templateService = new EmailTemplateService(templateRepo as any, templateAudit as any);
+    templateService = new EmailTemplateService(
+      templateRepo as any,
+      templateAudit as any,
+    );
 
     service = new EmailService(
       emailLogRepo as any,

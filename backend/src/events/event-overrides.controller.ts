@@ -81,7 +81,9 @@ export class EventOverridesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('event_organizer', 'admin')
   @ApiBearerAuth('jwt')
-  @ApiOperation({ summary: '🔒 Criar override de evento [event_organizer | admin]' })
+  @ApiOperation({
+    summary: '🔒 Criar override de evento [event_organizer | admin]',
+  })
   create(
     @Body() dto: CreateEventOverrideDto,
     @Req() req: { user: JwtPayload },
@@ -93,7 +95,9 @@ export class EventOverridesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('event_organizer', 'admin')
   @ApiBearerAuth('jwt')
-  @ApiOperation({ summary: '🔒 Atualizar override de evento [event_organizer | admin]' })
+  @ApiOperation({
+    summary: '🔒 Atualizar override de evento [event_organizer | admin]',
+  })
   update(
     @Param('sourceKey') sourceKey: string,
     @Param('eventId') eventId: string,
@@ -107,7 +111,9 @@ export class EventOverridesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('event_organizer', 'admin')
   @ApiBearerAuth('jwt')
-  @ApiOperation({ summary: '🔒 Remover override de evento [event_organizer | admin]' })
+  @ApiOperation({
+    summary: '🔒 Remover override de evento [event_organizer | admin]',
+  })
   remove(
     @Param('sourceKey') sourceKey: string,
     @Param('eventId') eventId: string,

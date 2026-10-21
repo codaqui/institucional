@@ -1,10 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import type { Request } from 'express';
-import {
-  GithubAuthGuard,
-  STATE_TTL_SECONDS,
-} from './github-auth.guard';
+import { GithubAuthGuard, STATE_TTL_SECONDS } from './github-auth.guard';
 
 describe('GithubAuthGuard', () => {
   let jwtService: { sign: jest.Mock };

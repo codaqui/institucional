@@ -126,7 +126,9 @@ export class GitHubDBService {
    */
   private validateRepoPath(path: string): void {
     if (!path || typeof path !== 'string') {
-      throw new ServiceUnavailableException('Caminho do arquivo é obrigatório.');
+      throw new ServiceUnavailableException(
+        'Caminho do arquivo é obrigatório.',
+      );
     }
     if (
       path.startsWith('/') ||

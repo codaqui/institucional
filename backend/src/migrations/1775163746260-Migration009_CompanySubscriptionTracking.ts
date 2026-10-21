@@ -6,9 +6,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Permite congelar carteiras de empresas que ficam mais de 3 dias em
  * `past_due`, sem depender apenas do evento de cancelamento.
  */
-export class Migration009CompanySubscriptionTracking1775163746260
-  implements MigrationInterface
-{
+export class Migration009CompanySubscriptionTracking1775163746260 implements MigrationInterface {
   name = 'Migration009CompanySubscriptionTracking1775163746260';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
