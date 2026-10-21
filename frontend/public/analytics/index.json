@@ -1,0 +1,349 @@
+{
+  "updatedAt": "2026-10-19T07:07:21.878Z",
+  "latestPeriod": "2026-09",
+  "totals": {
+    "screenPageViews": 273722,
+    "activeUsers": 118263,
+    "sessions": 149431,
+    "peakMonth": "2024-05",
+    "peakViews": 22422
+  },
+  "monthly": [
+    {
+      "period": "2024-01",
+      "screenPageViews": 5120,
+      "activeUsers": 2355,
+      "sessions": 2908,
+      "averageSessionDuration": 148.8,
+      "bounceRate": 0.371
+    },
+    {
+      "period": "2024-02",
+      "screenPageViews": 7571,
+      "activeUsers": 3905,
+      "sessions": 5353,
+      "averageSessionDuration": 102.7,
+      "bounceRate": 0.4414
+    },
+    {
+      "period": "2024-03",
+      "screenPageViews": 8418,
+      "activeUsers": 4197,
+      "sessions": 6152,
+      "averageSessionDuration": 98.1,
+      "bounceRate": 0.4628
+    },
+    {
+      "period": "2024-04",
+      "screenPageViews": 10254,
+      "activeUsers": 4835,
+      "sessions": 7241,
+      "averageSessionDuration": 128.4,
+      "bounceRate": 0.4604
+    },
+    {
+      "period": "2024-05",
+      "screenPageViews": 22422,
+      "activeUsers": 8849,
+      "sessions": 10190,
+      "averageSessionDuration": 131.3,
+      "bounceRate": 0.4002
+    },
+    {
+      "period": "2024-06",
+      "screenPageViews": 18199,
+      "activeUsers": 7333,
+      "sessions": 8579,
+      "averageSessionDuration": 126.5,
+      "bounceRate": 0.4325
+    },
+    {
+      "period": "2024-07",
+      "screenPageViews": 19305,
+      "activeUsers": 7435,
+      "sessions": 9339,
+      "averageSessionDuration": 116.1,
+      "bounceRate": 0.465
+    },
+    {
+      "period": "2024-08",
+      "screenPageViews": 16958,
+      "activeUsers": 7525,
+      "sessions": 8830,
+      "averageSessionDuration": 106.8,
+      "bounceRate": 0.4911
+    },
+    {
+      "period": "2024-09",
+      "screenPageViews": 13314,
+      "activeUsers": 6184,
+      "sessions": 7000,
+      "averageSessionDuration": 104.9,
+      "bounceRate": 0.4889
+    },
+    {
+      "period": "2024-10",
+      "screenPageViews": 11298,
+      "activeUsers": 5281,
+      "sessions": 5931,
+      "averageSessionDuration": 101.7,
+      "bounceRate": 0.4913
+    },
+    {
+      "period": "2024-11",
+      "screenPageViews": 6925,
+      "activeUsers": 3440,
+      "sessions": 3895,
+      "averageSessionDuration": 90.2,
+      "bounceRate": 0.5096
+    },
+    {
+      "period": "2024-12",
+      "screenPageViews": 6149,
+      "activeUsers": 3028,
+      "sessions": 3402,
+      "averageSessionDuration": 90.5,
+      "bounceRate": 0.5006
+    },
+    {
+      "period": "2025-01",
+      "screenPageViews": 9978,
+      "activeUsers": 4231,
+      "sessions": 5173,
+      "averageSessionDuration": 106.1,
+      "bounceRate": 0.4852
+    },
+    {
+      "period": "2025-02",
+      "screenPageViews": 11584,
+      "activeUsers": 5016,
+      "sessions": 5816,
+      "averageSessionDuration": 102.2,
+      "bounceRate": 0.4776
+    },
+    {
+      "period": "2025-03",
+      "screenPageViews": 9296,
+      "activeUsers": 4109,
+      "sessions": 4691,
+      "averageSessionDuration": 113.3,
+      "bounceRate": 0.4848
+    },
+    {
+      "period": "2025-04",
+      "screenPageViews": 8824,
+      "activeUsers": 4063,
+      "sessions": 4599,
+      "averageSessionDuration": 105.7,
+      "bounceRate": 0.4762
+    },
+    {
+      "period": "2025-05",
+      "screenPageViews": 6731,
+      "activeUsers": 3217,
+      "sessions": 3705,
+      "averageSessionDuration": 96.2,
+      "bounceRate": 0.4985
+    },
+    {
+      "period": "2025-06",
+      "screenPageViews": 7626,
+      "activeUsers": 3401,
+      "sessions": 4183,
+      "averageSessionDuration": 114,
+      "bounceRate": 0.481
+    },
+    {
+      "period": "2025-07",
+      "screenPageViews": 6347,
+      "activeUsers": 2955,
+      "sessions": 3518,
+      "averageSessionDuration": 106.2,
+      "bounceRate": 0.4707
+    },
+    {
+      "period": "2025-08",
+      "screenPageViews": 4091,
+      "activeUsers": 2022,
+      "sessions": 3136,
+      "averageSessionDuration": 147.4,
+      "bounceRate": 0.5501
+    },
+    {
+      "period": "2025-09",
+      "screenPageViews": 4473,
+      "activeUsers": 1604,
+      "sessions": 3148,
+      "averageSessionDuration": 198.9,
+      "bounceRate": 0.5918
+    },
+    {
+      "period": "2025-10",
+      "screenPageViews": 7849,
+      "activeUsers": 4021,
+      "sessions": 5337,
+      "averageSessionDuration": 155.6,
+      "bounceRate": 0.5269
+    },
+    {
+      "period": "2025-11",
+      "screenPageViews": 6900,
+      "activeUsers": 3326,
+      "sessions": 4573,
+      "averageSessionDuration": 167.2,
+      "bounceRate": 0.5347
+    },
+    {
+      "period": "2025-12",
+      "screenPageViews": 4516,
+      "activeUsers": 1870,
+      "sessions": 2729,
+      "averageSessionDuration": 194.4,
+      "bounceRate": 0.498
+    },
+    {
+      "period": "2026-01",
+      "screenPageViews": 5760,
+      "activeUsers": 2395,
+      "sessions": 3462,
+      "averageSessionDuration": 259,
+      "bounceRate": 0.4882
+    },
+    {
+      "period": "2026-02",
+      "screenPageViews": 6033,
+      "activeUsers": 2544,
+      "sessions": 3683,
+      "averageSessionDuration": 187.2,
+      "bounceRate": 0.4828
+    },
+    {
+      "period": "2026-03",
+      "screenPageViews": 8330,
+      "activeUsers": 3831,
+      "sessions": 4904,
+      "averageSessionDuration": 180.7,
+      "bounceRate": 0.4782
+    },
+    {
+      "period": "2026-04",
+      "screenPageViews": 6692,
+      "activeUsers": 1669,
+      "sessions": 2579,
+      "averageSessionDuration": 179.2,
+      "bounceRate": 0.5068
+    },
+    {
+      "period": "2026-05",
+      "screenPageViews": 3143,
+      "activeUsers": 859,
+      "sessions": 1295,
+      "averageSessionDuration": 144.6,
+      "bounceRate": 0.5529
+    },
+    {
+      "period": "2026-06",
+      "screenPageViews": 1713,
+      "activeUsers": 413,
+      "sessions": 742,
+      "averageSessionDuration": 172.5,
+      "bounceRate": 0.5687
+    },
+    {
+      "period": "2026-07",
+      "screenPageViews": 1845,
+      "activeUsers": 453,
+      "sessions": 775,
+      "averageSessionDuration": 532.9,
+      "bounceRate": 0.6065
+    },
+    {
+      "period": "2026-08",
+      "screenPageViews": 2142,
+      "activeUsers": 821,
+      "sessions": 1026,
+      "averageSessionDuration": 94.8,
+      "bounceRate": 0.6033
+    },
+    {
+      "period": "2026-09",
+      "screenPageViews": 3916,
+      "activeUsers": 1076,
+      "sessions": 1537,
+      "averageSessionDuration": 162.7,
+      "bounceRate": 0.4977
+    }
+  ],
+  "topPages": [
+    {
+      "pagePath": "/eventos/esquenta-devpr-conf-2026",
+      "screenPageViews": 739,
+      "activeUsers": 263
+    },
+    {
+      "pagePath": "/eventos",
+      "screenPageViews": 326,
+      "activeUsers": 121
+    },
+    {
+      "pagePath": "/trilhas/python",
+      "screenPageViews": 268,
+      "activeUsers": 190
+    },
+    {
+      "pagePath": "/trilhas/python/page-1",
+      "screenPageViews": 158,
+      "activeUsers": 64
+    },
+    {
+      "pagePath": "/comunidades/devparana",
+      "screenPageViews": 129,
+      "activeUsers": 74
+    },
+    {
+      "pagePath": "/auth/callback",
+      "screenPageViews": 103,
+      "activeUsers": 94
+    },
+    {
+      "pagePath": "/participe/estudar",
+      "screenPageViews": 84,
+      "activeUsers": 58
+    },
+    {
+      "pagePath": "/blog/2026/03/30/curso-introducao-python",
+      "screenPageViews": 79,
+      "activeUsers": 71
+    }
+  ],
+  "trafficSources": {
+    "new": 1022,
+    "google": 619,
+    "(direct)": 784,
+    "returning": 405,
+    "(not set)": 119,
+    "guiadeti.com.br": 20,
+    "ig": 19,
+    "elasnocodigo.com.br": 15,
+    "bing": 15,
+    "l.instagram.com": 9,
+    "devpr.org": 8,
+    "linkedin.com": 10,
+    "facebook.com": 6,
+    "(data not available)": 5,
+    "github.com": 6,
+    "linktree": 5,
+    "m.facebook.com": 4,
+    "chatgpt.com": 2,
+    "blog2026.online": 1,
+    "copilot.com": 1,
+    "lm.facebook.com": 1,
+    "lnkd.in": 1,
+    "sistema.shchat.com.br": 1,
+    "t.co": 1,
+    "teams.public.onecdn.static.microsoft": 1,
+    "webdig.asia": 1,
+    "youtube.com": 2,
+    "ziring.net": 1
+  }
+}

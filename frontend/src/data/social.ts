@@ -1,5 +1,8 @@
-// Subconjunto portado de src/data/social.ts (site Docusaurus) — apenas os
-// exports usados pela homepage e footer nesta fase da migração.
+// Subconjunto portado de src/data/social.ts (site Docusaurus) — exports usados
+// pela homepage e footer, mais codaquiSocialProfiles (usado pelo hook
+// useSocialStatsSnapshot). PLATFORM_COLORS (tokens MUI) fica para a fase de UI.
+
+import type { SocialProfile } from "./social-stats";
 
 export interface SocialChannel {
   key: string;
@@ -24,6 +27,48 @@ export const GITHUB_ORG = "https://github.com/codaqui";
 const discordGuildId =
   DISCORD_WIDGET_URL.match(/guilds\/(\d+)\/widget\.json/)?.[1] ?? "";
 export const DISCORD_WIDGET_EMBED_URL = `https://discord.com/widget?id=${discordGuildId}`;
+
+/**
+ * Perfis sociais da Codaqui — fonte de verdade para o sync de estatísticas.
+ * Contagens baseLine são valores manuais usados como fallback.
+ */
+export const codaquiSocialProfiles: SocialProfile[] = [
+  {
+    platform: "discord",
+    handle: "@codaqui",
+    url: DISCORD_URL,
+    countLabel: "membros",
+    baselineCount: 692,
+  },
+  {
+    platform: "whatsapp",
+    handle: "Grupo Codaqui",
+    url: WHATSAPP_URL,
+    countLabel: "participantes",
+    baselineCount: 0,
+  },
+  {
+    platform: "youtube",
+    handle: "@codaqui",
+    url: "https://www.youtube.com/@codaqui",
+    countLabel: "inscritos",
+    baselineCount: 0,
+  },
+  {
+    platform: "instagram",
+    handle: "@codaqui.dev",
+    url: "https://www.instagram.com/codaqui.dev/",
+    countLabel: "seguidores",
+    baselineCount: 0,
+  },
+  {
+    platform: "github",
+    handle: "codaqui",
+    url: GITHUB_ORG,
+    countLabel: "seguidores",
+    baselineCount: 0,
+  },
+];
 
 export const socialChannels: SocialChannel[] = [
   {

@@ -1,6 +1,5 @@
-// Tipos portados de src/data/social-stats.ts (site Docusaurus) — apenas os
-// tipos necessários para src/data/communities.ts. Constantes de sync
-// (SOCIAL_STATS_URL, BASELINE_TOTAL_EVENTS) ficam fora desta fase.
+// Port completo de src/data/social-stats.ts (site Docusaurus) — tipos e
+// constantes de sync usados pelo hook useSocialStatsSnapshot.
 
 export type SocialPlatform =
   | "discord"
@@ -26,3 +25,28 @@ export interface SocialProfile {
   /** Valor de fallback manual — usado quando o sync não conseguir buscar */
   baselineCount?: number;
 }
+
+export interface SocialStatEntry extends SocialProfile {
+  /** ID da entidade dona do perfil: "codaqui", "devparana", etc. */
+  entityId: string;
+  /** Contagem atual (buscada via sync ou baseline) */
+  count: number;
+  /** Número total de canais do servidor (apenas para plataforma "discord") */
+  channelCount?: number | null;
+  /** ISO 8601 timestamp da última busca bem-sucedida */
+  fetchedAt?: string;
+  /** true quando count veio do baselineCount, não de uma API */
+  isFallback: boolean;
+}
+
+export interface SocialStatsSnapshot {
+  generatedAt: string;
+  /** Total de eventos agregados (soma de todas as fontes em static/events) */
+  totalEvents: number;
+  profiles: SocialStatEntry[];
+}
+
+export const SOCIAL_STATS_URL = "/social-stats/index.json";
+
+/** Baseline manual para total de eventos — atualizar ao rodar sync:events */
+export const BASELINE_TOTAL_EVENTS = 376;
