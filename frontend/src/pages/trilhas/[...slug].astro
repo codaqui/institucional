@@ -1,0 +1,44 @@
+---
+import { getCollection, render } from "astro:content";
+import TrilhaLayout from "../../layouts/TrilhaLayout.astro";
+import { plainExcerpt } from "../../lib/blog-utils";
+
+export async function getStaticPaths() {
+  const pages = await getCollection("trilhas");
+  // O glob loader já remove o sufixo "/index" do id e usa o frontmatter
+  // `slug` como id quando presente: trilhas/index.md → id "intro",
+  // python/index.md → id "python", python/page-3.md → id "python/page-3".
+  // Logo o id já é o slug da rota, sem transformação.
+  return pages.map((page) => ({
+    params: { slug: page.id },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+const { Content, headings } = await render(page);
+const firstH1 = headings.find((h) => h.depth === 1);
+const title = page.data.title ?? firstH1?.text ?? "Trilhas";
+// O H1 já vem no corpo markdown; o layout não repete título.
+const contentHeadings = headings.filter((h) => h.depth > 1);
+// Caminho real do arquivo-fonte no repo: o id perdeu "/index" (ou virou o
+// slug custom "intro"), então remontamos pelo que sobrou.
+// - "intro" (slug do frontmatter) → trilhas/index.md
+// - "python" | "github" (índice de seção) → trilhas/<id>/index.md
+// - "python/page-3" → trilhas/python/page-3.md
+const editPath = page.data.slug
+  ? "index.md"
+  : page.id.includes("/")
+    ? `${page.id}.md`
+    : `${page.id}/index.md`;
+---
+
+<TrilhaLayout
+  title={title}
+  description={plainExcerpt(page.body ?? "")}
+  currentSlug={page.id}
+  editPath={editPath}
+  headings={contentHeadings}
+>
+  <Content />
+</TrilhaLayout>

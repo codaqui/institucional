@@ -1,0 +1,107 @@
+---
+import PublicLayout from "./PublicLayout.astro";
+import { TRILHAS_NAV, type TrilhaNav } from "../data/trilhas-nav";
+
+interface TocItem {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  currentSlug: string; // ex.: "python/page-3" (id da collection)
+  editPath: string; // ex.: "python/page-3.md"
+  headings: TocItem[];
+}
+
+const { title, description, currentSlug, editPath, headings } = Astro.props;
+const nav: TrilhaNav | undefined = TRILHAS_NAV.find((n) => n.items.some((i) => i.slug === currentSlug));
+const items = nav?.items ?? [];
+const index = items.findIndex((i) => i.slug === currentSlug);
+const prev = index > 0 ? items[index - 1] : undefined;
+const next = index >= 0 && index < items.length - 1 ? items[index + 1] : undefined;
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<PublicLayout title={`${title} | Codaqui`} ogTitle={`${title} | CODAQUI.dev`} description={description}>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    {
+      nav && (
+        <aside class="hidden w-64 shrink-0 lg:block">
+          <h2 class="text-sm font-bold uppercase tracking-wide text-text-secondary">{nav.title}</h2>
+          <ul class="mt-3 flex flex-col gap-1">
+            {items.map((item) => (
+              <li>
+                <a
+                  href={`/trilhas/${item.slug}`}
+                  aria-current={item.slug === currentSlug ? "page" : undefined}
+                  class:list={[
+                    "block rounded-md px-3 py-1.5 text-sm",
+                    item.slug === currentSlug
+                      ? "bg-sunken font-bold text-text-primary"
+                      : "text-text-secondary hover:bg-sunken hover:text-text-primary",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+    <article class="min-w-0 max-w-3xl flex-1">
+      <div class="prose-cq">
+        <slot />
+      </div>
+      <p class="mt-8 text-sm">
+        <a
+          href={`https://github.com/codaqui/institucional/edit/develop/trilhas/${editPath}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-link hover:text-link-hover"
+        >
+          ✏️ Editar esta página no GitHub
+        </a>
+      </p>
+      {
+        (prev || next) && (
+          <nav class="mt-8 flex justify-between gap-4 border-t border-border pt-6" aria-label="Navegação da trilha">
+            {prev ? (
+              <a href={`/trilhas/${prev.slug}`} class="text-sm font-bold text-link hover:text-link-hover">
+                ← {prev.label}
+              </a>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <a href={`/trilhas/${next.slug}`} class="text-end text-sm font-bold text-link hover:text-link-hover">
+                {next.label} →
+              </a>
+            ) : (
+              <span />
+            )}
+          </nav>
+        )
+      }
+    </article>
+    {
+      toc.length > 0 && (
+        <aside class="hidden w-56 shrink-0 xl:block">
+          <h2 class="text-sm font-bold uppercase tracking-wide text-text-secondary">Nesta página</h2>
+          <ul class="mt-3 flex flex-col gap-1">
+            {toc.map((h) => (
+              <li class:list={[h.depth === 3 && "ps-3"]}>
+                <a href={`#${h.slug}`} class="text-sm text-text-secondary hover:text-link">
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+  </div>
+</PublicLayout>
