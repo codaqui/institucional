@@ -1,4 +1,7 @@
 import { BLOG_AUTHORS, type BlogAuthor } from "../data/blog-authors";
+import { slugifyTag } from "./slugify-tag";
+
+export const POSTS_PER_PAGE = 9;
 
 interface PostLike {
   id: string;
@@ -54,4 +57,19 @@ export function contentAssetUrl(raw: string): string {
 
 export function sortPostsDesc<T extends PostLike>(posts: T[]): T[] {
   return [...posts].sort((a, b) => postDate(b).getTime() - postDate(a).getTime());
+}
+
+export function postCardProps(post: {
+  id: string;
+  body?: string;
+  data: { slug: string; title: string; date?: Date; tags: string[] };
+}) {
+  return {
+    url: postUrl(post as { data: { slug: string } }),
+    title: post.data.title,
+    date: postDate(post),
+    excerpt: plainExcerpt(post.body ?? ""),
+    readingMinutes: readingTimeMinutes(post.body ?? ""),
+    tags: post.data.tags.map((label) => ({ label, url: `/blog/category/${slugifyTag(label)}` })),
+  };
 }

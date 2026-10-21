@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { postUrl, postDate, resolveAuthors, readingTimeMinutes, plainExcerpt, contentAssetUrl, sortPostsDesc } from "./blog-utils";
+import {
+  postUrl,
+  postDate,
+  resolveAuthors,
+  readingTimeMinutes,
+  plainExcerpt,
+  contentAssetUrl,
+  sortPostsDesc,
+  postCardProps,
+} from "./blog-utils";
 
 describe("postUrl", () => {
   it("monta URL a partir do slug legado", () => {
@@ -79,6 +88,19 @@ describe("contentAssetUrl", () => {
   });
   it("rewrite de trilhas", () => {
     expect(contentAssetUrl("./assets/demo.webm")).toBe("/trilhas-assets/github/assets/demo.webm");
+  });
+});
+
+describe("postCardProps", () => {
+  it("monta props do card", () => {
+    const card = postCardProps({
+      id: "2024-07-22-x",
+      body: "Resumo.\n\n<!-- truncate -->\n\nResto",
+      data: { slug: "2024/07/22/x", title: "Título", tags: ["história"] },
+    });
+    expect(card.url).toBe("/blog/2024/07/22/x");
+    expect(card.excerpt).toBe("Resumo.");
+    expect(card.tags[0].url).toBe("/blog/category/historia");
   });
 });
 

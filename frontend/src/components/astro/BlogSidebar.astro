@@ -1,0 +1,16 @@
+---
+interface Props {
+  recentPosts: { url: string; title: string }[];
+}
+
+const { recentPosts } = Astro.props;
+---
+
+<aside class="hidden w-64 shrink-0 lg:block">
+  <h2 class="text-sm font-bold uppercase tracking-wide text-text-secondary">Posts recentes</h2>
+  <ul class="mt-3 flex flex-col gap-2">
+    {recentPosts.map((post) => (
+      <li><a href={post.url} class="text-sm text-link hover:text-link-hover">{post.title}</a></li>
+    ))}
+  </ul>
+</aside>
