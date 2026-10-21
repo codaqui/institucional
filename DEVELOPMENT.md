@@ -124,6 +124,15 @@ npm run check      # astro check (tipos de .astro)
 npm run test       # vitest (libs e contratos)
 ```
 
+Ou pela raiz, via Makefile (equivalem aos scripts acima, em `frontend/`):
+
+```bash
+make astro-dev         # dev server
+make astro-verify      # verificação completa da POC: build + check + test + smoke do dist/
+make astro-lighthouse  # Lighthouse mobile nas 3 páginas da POC (requer Chrome)
+make astro-preview     # serve o build (:4321)
+```
+
 ### Convenções do app Astro
 
 - Tokens do Design System (`--cq-*`) em `src/styles/tokens.css` são a fonte única — Tailwind (`@theme inline` em `global.css`) e MUI (`src/lib/mui-theme.ts`) consomem deles. Nunca hardcode de hex.

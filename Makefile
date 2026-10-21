@@ -1,6 +1,7 @@
 # =============================================================================
 # Codaqui — Makefile
-# Controla frontend (Docusaurus), backend (NestJS) e infra (Podman Compose).
+# Controla frontend (Docusaurus), frontend Astro (frontend/ — Fase 0),
+# backend (NestJS) e infra (Podman Compose).
 #
 # Uso rápido:
 #   make setup        → prepara o ambiente pela primeira vez
@@ -16,6 +17,7 @@
 COMPOSE_FILE     := compose.yaml
 COMPOSE_PROD     := compose.prod.yaml
 BACKEND_DIR      := backend
+ASTRO_DIR        := frontend
 ENV_FILE         := .env
 ENV_EXAMPLE      := .env.example
 
@@ -43,6 +45,8 @@ RED    := \033[31m
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
         frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
+        astro-install astro-dev astro-build astro-check astro-test astro-preview \
+        astro-verify astro-lighthouse \
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
         worker-dev-elasnocodigo worker-deploy-elasnocodigo \
@@ -89,6 +93,8 @@ setup: ## Prepara o ambiente: cria .env e instala dependências
 	npm install
 	@printf "$(CYAN)→  Instalando dependências do backend...$(RESET)\n"
 	cd $(BACKEND_DIR) && npm install
+	@printf "$(CYAN)→  Instalando dependências do app Astro (frontend/)...$(RESET)\n"
+	cd $(ASTRO_DIR) && npm install
 	@if which mkcert > /dev/null; then \
 	    printf "$(CYAN)→  mkcert encontrado. Tentando configurar HTTPS automaticamente...$(RESET)\n"; \
 	    $(MAKE) setup-https; \
@@ -256,6 +262,59 @@ frontend-typecheck: ## Valida TypeScript do frontend (exclui /backend)
 
 frontend-serve: ## Serve o build estático localmente para homologação
 	npm run serve
+
+# =============================================================================
+##@ 🚀 Frontend (Astro) — Fase 0 (POC 0.1 em frontend/)
+# =============================================================================
+# O site oficial continua sendo o Docusaurus até a Fase 0.6 (cutover).
+# Ver DEVELOPMENT.md → "Frontend (Astro) — Fase 0 em transição".
+
+astro-install: ## Instala dependências do app Astro
+	cd $(ASTRO_DIR) && npm install
+
+astro-dev: ## Inicia o dev server do Astro em http://localhost:4321
+	cd $(ASTRO_DIR) && npm run dev
+
+astro-build: ## Gera o build estático do Astro (copia snapshots antes, via prebuild)
+	cd $(ASTRO_DIR) && npm run build
+
+astro-check: ## Valida tipos dos arquivos .astro (astro check)
+	cd $(ASTRO_DIR) && npm run check
+
+astro-test: ## Roda os testes do app Astro (vitest)
+	cd $(ASTRO_DIR) && npm run test
+
+astro-preview: ## Serve o build do Astro em http://localhost:4321 (homologação)
+	cd $(ASTRO_DIR) && npm run preview
+
+astro-verify: ## Verificação completa da POC 0.1: build + tipos + testes + smoke do dist/
+	@printf "$(CYAN)→  Build + typecheck + testes do Astro...$(RESET)\n"
+	cd $(ASTRO_DIR) && npm run build && npm run check && npm run test
+	@printf "$(CYAN)→  Smoke do build (dist/)...$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage gerada$(RESET)\n"
+	@grep -q "Democratizando comunidades" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage com conteúdo real (tagline)$(RESET)\n"
+	@grep -q "data-theme" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  script anti-FOUC de tema presente$(RESET)\n"
+	@N=$$(find $(ASTRO_DIR)/dist/eventos -name index.html 2>/dev/null | wc -l | tr -d ' '); \
+	    [ "$$N" -gt 0 ] && printf "$(GREEN)✔  %s páginas de eventos geradas$(RESET)\n" "$$N" || { printf "$(RED)✖  nenhuma página de evento gerada$(RESET)\n"; exit 1; }
+	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
+	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
+
+astro-lighthouse: astro-build ## Lighthouse mobile nas 3 páginas da POC (/, um evento, /admin/eventos) — requer Chrome
+	@cd $(ASTRO_DIR) && npm run preview > /tmp/codaqui-astro-preview.log 2>&1 & \
+	    PREVIEW_PID=$$!; \
+	    sleep 4; \
+	    EVENT=$$(find $(ASTRO_DIR)/dist/eventos -name index.html | head -1 | sed "s|^$(ASTRO_DIR)/dist||;s|/index.html$$||"); \
+	    for PAGE in "/" "$$EVENT/" "/admin/eventos/"; do \
+	        printf "$(CYAN)→  Lighthouse: $$PAGE$(RESET)\n"; \
+	        npx --yes lighthouse "http://localhost:4321$$PAGE" --quiet \
+	            --chrome-flags="--headless" --form-factor=mobile --screenEmulation.mobile \
+	            --output=json --output-path=stdout 2>/dev/null \
+	            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const c=JSON.parse(d).categories;console.log('   Perf:',Math.round(c.performance.score*100),'| A11y:',Math.round(c.accessibility.score*100),'| BP:',Math.round(c['best-practices'].score*100),'| SEO:',Math.round(c.seo.score*100))})" \
+	            || printf "$(RED)   ✖  falha na medição de $$PAGE$(RESET)\n"; \
+	    done; \
+	    kill $$PREVIEW_PID 2>/dev/null || true
 
 # =============================================================================
 ##@ 📊 Sync de dados estáticos
