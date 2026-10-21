@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T14:02:24.287Z",
+  "generatedAt": "2026-10-21T15:02:13.260Z",
   "events": [
     {
       "id": "316756948",
@@ -140,6 +140,37 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg"
+    },
+    {
+      "id": "317074666",
+      "title": "[Ingá.php] Encontro #4 de 2026",
+      "summary": "🚀 Meetup da comunidade Ingá.php A Comunidade Ingá.php seguirá 2026 com os eventos presenciais! 👩‍💻👨‍💻 O público alvo do evento são pessoas que possuam interesse por tecnologia, principalmente programadores PHP, ind…",
+      "startAt": "2026-10-23T19:00:00-03:00",
+      "endAt": "2026-10-23T20:30:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Vivaworks · R. Arthur Thomas, 596 - Sala 102 - Zona 01, Maringá - PR, 87013-250 · Maringá",
+      "href": "https://www.meetup.com/developerparana/events/317074666/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Danilo Pinotti",
+      "creatorId": "475426391",
+      "organizers": [
+        {
+          "name": "Danilo Pinotti",
+          "id": "475426391"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/9/8/a/highres_536727018.jpeg"
     },
     {
       "id": "315991184",
