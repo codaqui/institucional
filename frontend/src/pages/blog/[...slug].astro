@@ -1,0 +1,48 @@
+---
+import { getCollection, render } from "astro:content";
+import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+import {
+  postUrl,
+  postDate,
+  resolveAuthors,
+  readingTimeMinutes,
+  plainExcerpt,
+  contentAssetUrl,
+  sortPostsDesc,
+} from "../../lib/blog-utils";
+import { slugifyTag } from "../../lib/slugify-tag";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  const sorted = sortPostsDesc(posts);
+  const recent = sorted.slice(0, 10).map((p) => ({ url: postUrl(p), title: p.data.title }));
+  return posts.map((post) => ({
+    params: { slug: post.data.slug },
+    props: { post, recent },
+  }));
+}
+
+const { post, recent } = Astro.props;
+const { Content } = await render(post);
+const date = postDate(post);
+const authors = resolveAuthors(post.data.authors);
+const tags = post.data.tags.map((label) => ({ label, url: `/blog/category/${slugifyTag(label)}` }));
+const ogImage = post.data.image ? new URL(contentAssetUrl(post.data.image), Astro.site).toString() : undefined;
+// Contrato do Giscus (mapping og:title): o build Docusaurus publica "<título> | CODAQUI.dev".
+const ogTitle = `${post.data.title} | CODAQUI.dev`;
+---
+
+<BlogPostLayout
+  title={post.data.title}
+  ogTitle={ogTitle}
+  description={plainExcerpt(post.body ?? "")}
+  date={date}
+  readingMinutes={readingTimeMinutes(post.body ?? "")}
+  authors={authors}
+  tags={tags}
+  ogImage={ogImage}
+  recentPosts={recent}
+  enableComments={post.data.enableComments !== false}
+>
+  <Content />
+</BlogPostLayout>

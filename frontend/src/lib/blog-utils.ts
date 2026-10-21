@@ -11,9 +11,11 @@ export function postUrl(post: { data: { slug: string } }): string {
 
 export function postDate(post: { id: string; data: { date?: Date } }): Date {
   if (post.data.date) return post.data.date;
-  const match = post.id.match(/^(\d{4}-\d{2}-\d{2})/);
+  // O glob loader usa o `slug` do frontmatter como id (formato YYYY/MM/DD/...);
+  // o formato YYYY-MM-DD cobre ids derivados do nome do arquivo.
+  const match = post.id.match(/^(\d{4})[/-](\d{2})[/-](\d{2})/);
   if (!match) throw new Error(`Post sem data e id fora do padrão: ${post.id}`);
-  return new Date(`${match[1]}T12:00:00-03:00`);
+  return new Date(`${match[1]}-${match[2]}-${match[3]}T12:00:00-03:00`);
 }
 
 export function resolveAuthors(authors: (string | BlogAuthor)[]): BlogAuthor[] {
@@ -37,7 +39,9 @@ export function readingTimeMinutes(body: string): number {
 }
 
 export function plainExcerpt(body: string, maxLen = 160): string {
-  const beforeTruncate = body.split("<!-- truncate -->")[0];
+  // As cópias .mdx geradas pelo copy-content.mjs (plano B) usam o marcador
+  // na forma de comentário MDX `{/* truncate */}`; os .md seguem com `<!-- truncate -->`.
+  const beforeTruncate = body.split(/<!--\s*truncate\s*-->|\{\/\*\s*truncate\s*\*\/\}/)[0];
   const text = plainText(beforeTruncate);
   if (text.length <= maxLen) return text;
   return `${text.slice(0, maxLen).replace(/\s+\S*$/, "")}…`;

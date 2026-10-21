@@ -58,3 +58,23 @@ a {
 a:hover {
   color: var(--cq-link-hover);
 }
+
+/* Corpo de conteúdo markdown (blog/trilhas) — zero JS, tokens --cq-* via utilities */
+.prose-cq { @apply text-text-primary leading-relaxed; }
+.prose-cq h2 { @apply mt-10 mb-4 text-2xl font-bold; }
+.prose-cq h3 { @apply mt-8 mb-3 text-xl font-bold; }
+.prose-cq h4 { @apply mt-6 mb-2 text-lg font-bold; }
+.prose-cq p { @apply my-4; }
+.prose-cq a { @apply text-link underline hover:text-link-hover; }
+.prose-cq ul { @apply my-4 list-disc ps-6; }
+.prose-cq ol { @apply my-4 list-decimal ps-6; }
+.prose-cq li { @apply my-1; }
+.prose-cq blockquote { @apply my-4 border-s-4 border-border ps-4 text-text-secondary; }
+.prose-cq code { @apply rounded bg-sunken px-1 py-0.5 text-sm; }
+.prose-cq pre { @apply my-4 overflow-x-auto rounded-lg bg-sunken p-4 text-sm; }
+.prose-cq pre code { @apply bg-transparent p-0; }
+.prose-cq img { @apply my-4 rounded-lg; }
+.prose-cq video { @apply my-4 w-full rounded-lg; }
+.prose-cq table { @apply my-4 w-full border-collapse text-sm; }
+.prose-cq th, .prose-cq td { @apply border border-border px-3 py-2 text-start; }
+.prose-cq hr { @apply my-8 border-border; }

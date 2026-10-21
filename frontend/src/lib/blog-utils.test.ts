@@ -18,6 +18,12 @@ describe("postDate", () => {
     expect(d.getMonth()).toBe(6);
     expect(d.getDate()).toBe(22);
   });
+  it("cai na data do slug quando o glob loader o usa como id", () => {
+    const d = postDate({ id: "2022/10/14/hello-world", data: {} });
+    expect(d.getFullYear()).toBe(2022);
+    expect(d.getMonth()).toBe(9);
+    expect(d.getDate()).toBe(14);
+  });
   it("lança erro para id fora do padrão sem data", () => {
     expect(() => postDate({ id: "sem-data", data: {} })).toThrow(/sem data/i);
   });
@@ -49,6 +55,9 @@ describe("readingTimeMinutes", () => {
 describe("plainExcerpt", () => {
   it("corta no marcador truncate", () => {
     expect(plainExcerpt("Resumo aqui.\n\n<!-- truncate -->\n\nResto do post")).toBe("Resumo aqui.");
+  });
+  it("corta no marcador truncate em formato MDX (cópias patchadas)", () => {
+    expect(plainExcerpt("Resumo aqui.\n\n{/* truncate */}\n\nResto do post")).toBe("Resumo aqui.");
   });
   it("remove marcação markdown do texto", () => {
     expect(plainExcerpt("# Título\n\nTexto com **negrito** e [link](https://x.dev).", 200)).toBe(
