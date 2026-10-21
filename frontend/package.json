@@ -18,6 +18,7 @@
     "sync:content": "node scripts/copy-snapshots.mjs && node scripts/copy-content.mjs"
   },
   "dependencies": {
+    "@astrojs/mdx": "^8.1.1",
     "@astrojs/react": "^7.1.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -33,6 +34,7 @@
     "astro": "^7.4.1",
     "tailwindcss": "^4.1.0",
     "typescript": "~5.6.2",
+    "unist-util-visit": "^5.1.0",
     "vitest": "^3.2.0"
   }
 }
