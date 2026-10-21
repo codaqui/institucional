@@ -303,12 +303,12 @@ astro-verify: ## Verificação completa da POC 0.1: build + tipos + testes + smo
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
 
-astro-lighthouse: astro-build ## Lighthouse mobile nas 3 páginas da POC (/, um evento, /admin/eventos) — requer Chrome
+astro-lighthouse: astro-build ## Lighthouse mobile nas páginas da POC (/, evento, /admin/eventos, /blog, um post, /trilhas) — requer Chrome
 	@cd $(ASTRO_DIR) && npm run preview > /tmp/codaqui-astro-preview.log 2>&1 & \
 	    PREVIEW_PID=$$!; \
 	    sleep 4; \
 	    EVENT=$$(find $(ASTRO_DIR)/dist/eventos -name index.html | head -1 | sed "s|^$(ASTRO_DIR)/dist||;s|/index.html$$||"); \
-	    for PAGE in "/" "$$EVENT/" "/admin/eventos/"; do \
+	    for PAGE in "/" "$$EVENT/" "/admin/eventos/" "/blog/" "/blog/2024/07/22/devparana-e-codaqui-unidos-pela-comunidade/" "/trilhas/intro/" "/trilhas/python/page-1/"; do \
 	        printf "$(CYAN)→  Lighthouse: $$PAGE$(RESET)\n"; \
 	        npx --yes lighthouse "http://localhost:4321$$PAGE" --quiet \
 	            --chrome-flags="--headless" --form-factor=mobile --screenEmulation.mobile \

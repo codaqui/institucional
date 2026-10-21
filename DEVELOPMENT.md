@@ -129,7 +129,7 @@ Ou pela raiz, via Makefile (equivalem aos scripts acima, em `frontend/`):
 ```bash
 make astro-dev         # dev server
 make astro-verify      # verificação completa da POC: build + check + test + smoke do dist/
-make astro-lighthouse  # Lighthouse mobile nas 3 páginas da POC (requer Chrome)
+make astro-lighthouse  # Lighthouse mobile nas páginas da POC + blog/trilhas (requer Chrome)
 make astro-preview     # serve o build (:4321)
 ```
 
@@ -141,6 +141,8 @@ make astro-preview     # serve o build (:4321)
 - Cor de marca `#57B593` é só decoração; cor acionável é `#378369` (claro) / `#89CBB3` (escuro).
 - Ilhas React: `client:load` (vivo no primeiro paint), `client:visible` (abaixo da dobra), `client:only="react"` (páginas app com auth). O padrão é zero JS.
 - Autenticação: `src/lib/auth-client.ts` (puro) + `src/lib/use-auth.ts` (hook) — mesmo contrato de cookie httpOnly do Docusaurus.
+- Conteúdo blog/trilhas: `blog/` e `trilhas/` da raiz seguem canônicos até a Fase 0.6; o Astro consome cópias geradas em build-time por `scripts/copy-content.mjs` (nunca edite `frontend/src/content/` direto).
+- Autores do blog: a fonte canônica é `blog/authors.yml` (Docusaurus); ao alterá-la, replique a mudança manualmente em `frontend/src/data/blog-authors.ts` (o comentário no topo do arquivo aponta para cá).
 
 ---
 
