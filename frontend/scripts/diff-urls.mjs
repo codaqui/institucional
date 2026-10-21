@@ -34,7 +34,15 @@ function toUrl(file, base) {
 
 function urlsOf(base, section) {
   const dir = join(base, section);
-  const files = [...walk(dir, /\.html$/), ...walk(dir, /^(rss\.xml|atom\.xml|feed\.json)$/)];
+  // O Docusaurus emite o índice da seção como arquivo irmão (blog.html,
+  // trilhas.html), não como <seção>/index.html — sem o sibling, /blog e
+  // /trilhas ficam fora da comparação.
+  const sibling = join(base, `${section}.html`);
+  const files = [
+    ...walk(dir, /\.html$/),
+    ...walk(dir, /^(rss\.xml|atom\.xml|feed\.json)$/),
+    ...(existsSync(sibling) ? [sibling] : []),
+  ];
   return new Set(files.map((f) => toUrl(f, base)).filter((u) => !EXCLUDE.some((re) => re.test(u))));
 }
 

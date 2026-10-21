@@ -1,0 +1,207 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import { TRILHAS_NAV } from "../../data/trilhas-nav";
+import { DISCORD_URL } from "../../data/social";
+
+// Copy espelhada de src/pages/trilhas/index.tsx (Docusaurus) — fonte canônica até a Fase 0.6.
+// Título, contagens e links vêm de TRILHAS_NAV (a "Apresentação" não conta como aula).
+const TRACK_META: Record<string, { icon: string; description: string; topics: string[] }> = {
+  python: {
+    icon: "🐍",
+    description:
+      "Aprenda Python do zero com exercícios práticos. Abrange desde variáveis e estruturas de controle até orientação a objetos e projetos reais.",
+    topics: [
+      "Lógica de programação",
+      "Variáveis e tipos",
+      "Condicionais e laços",
+      "Funções",
+      "Arquivos",
+      "POO",
+      "Projetos práticos",
+    ],
+  },
+  github: {
+    icon: "🐙",
+    description:
+      "Domine Git e GitHub para colaborar em projetos de software. Aprenda versionamento, colaboração e automação com GitHub Actions.",
+    topics: [
+      "Git básico",
+      "Repositórios",
+      "Commits e branches",
+      "Pull requests",
+      "Colaboração",
+      "GitHub Actions",
+    ],
+  },
+};
+
+const tracks = TRILHAS_NAV.map((trilha) => ({
+  icon: TRACK_META[trilha.id]?.icon ?? "📘",
+  title: trilha.title,
+  description: TRACK_META[trilha.id]?.description ?? "",
+  lessonCount: trilha.items.length - 1,
+  level: "Iniciante",
+  topics: TRACK_META[trilha.id]?.topics ?? [],
+  href: `/trilhas/${trilha.items[1].slug}`,
+}));
+
+const howItWorks = [
+  {
+    icon: "📚",
+    title: "Curadoria de conteúdo",
+    description:
+      "Não criamos do zero — curatamos o melhor da internet. Cada lição aponta para materiais verificados pela comunidade de mentores.",
+  },
+  {
+    icon: "🤝",
+    title: "Aprendizado colaborativo",
+    description:
+      "Os próprios participantes e mentores atualizam continuamente os currículos. Você aprende e contribui ao mesmo tempo.",
+  },
+  {
+    icon: "🐙",
+    title: "Metodologia GitBased",
+    description:
+      "Todo o material está no GitHub — aberto, versionado e em constante evolução. Você acompanha o progresso como num projeto real.",
+  },
+];
+
+const benefits = [
+  "Acesso gratuito a todo o conteúdo",
+  "Suporte da comunidade no Discord",
+  "Mentores voluntários disponíveis",
+  "Material atualizado pela própria comunidade",
+  "Certificado de participação ao concluir",
+];
+---
+
+<PublicLayout
+  title="Trilhas de Aprendizado | CODAQUI.dev"
+  description="Aprenda programação com trilhas estruturadas e curadas pela comunidade Codaqui."
+>
+  {/* Hero */}
+  <section class="bg-gradient-to-br from-primary-700 to-primary-500 px-4 py-16 text-center md:py-20">
+    <div class="mx-auto max-w-4xl">
+      <h1 class="text-3xl font-extrabold text-on-action md:text-4xl">🗺️ Trilhas de Aprendizado</h1>
+      <p class="mx-auto mt-4 max-w-2xl text-lg text-on-action/85">
+        Percursos estruturados e curados pela comunidade para você aprender programação no seu
+        ritmo — com suporte real de mentores.
+      </p>
+    </div>
+  </section>
+
+  {/* Trilhas disponíveis */}
+  <section class="mx-auto max-w-6xl px-4 py-12 md:py-16" aria-labelledby="trilhas-disponiveis">
+    <h2 id="trilhas-disponiveis" class="text-center text-2xl font-bold text-text-primary md:text-3xl">
+      Trilhas disponíveis
+    </h2>
+    <p class="mx-auto mt-2 mb-10 max-w-xl text-center text-text-secondary">
+      Comece por qualquer trilha. Se ainda não conhece Git, recomendamos começar pelo GitHub 101
+      antes de avançar para outras linguagens. Prefere o panorama completo? Leia a{" "}
+      <a href="/trilhas/intro" class="font-semibold text-link hover:text-link-hover">visão geral das trilhas</a>.
+    </p>
+    <div class="grid justify-center gap-8 md:grid-cols-2">
+      {tracks.map((track) => (
+        <article class="flex flex-col rounded-lg border border-border bg-surface p-6 transition-all hover:-translate-y-1 hover:border-primary-500 hover:shadow-md">
+          <div class="mb-3 text-5xl" aria-hidden="true">{track.icon}</div>
+          <h3 class="text-xl font-bold text-text-primary">{track.title}</h3>
+          <div class="mt-2 mb-4 flex flex-wrap gap-2">
+            <span class="rounded-full bg-action px-3 py-1 text-xs font-semibold text-on-action">{track.lessonCount} aulas</span>
+            <span class="rounded-full border border-border px-3 py-1 text-xs font-semibold text-text-secondary">{track.level}</span>
+          </div>
+          <p class="mb-4 text-sm text-text-secondary">{track.description}</p>
+          <p class="mb-2 text-xs font-semibold tracking-wide text-text-secondary uppercase">O que você vai aprender</p>
+          <ul class="mb-6 flex flex-wrap gap-2">
+            {track.topics.map((topic) => (
+              <li class="rounded-full border border-border px-3 py-1 text-xs text-text-secondary">{topic}</li>
+            ))}
+          </ul>
+          <a
+            href={track.href}
+            class="mt-auto block rounded-md bg-action px-4 py-2 text-center font-semibold text-on-action transition-colors hover:bg-action-hover"
+          >
+            Começar trilha →
+          </a>
+        </article>
+      ))}
+    </div>
+
+    <div class="mt-8 rounded-lg border border-border bg-sunken p-6 text-center">
+      <p class="text-text-secondary">
+        🏗️ Novas trilhas estão sendo construídas. Quer ajudar?{" "}
+        <a
+          href="https://github.com/orgs/codaqui/discussions/new/choose"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="font-semibold text-link hover:text-link-hover"
+        >
+          Abrir uma discussão no GitHub
+        </a>
+      </p>
+    </div>
+  </section>
+
+  {/* Como funciona */}
+  <section class="bg-sunken px-4 py-12 md:py-16" aria-labelledby="como-funciona">
+    <div class="mx-auto max-w-6xl">
+      <h2 id="como-funciona" class="text-center text-2xl font-bold text-text-primary md:text-3xl">Como funciona</h2>
+      <p class="mx-auto mt-2 mb-10 max-w-xl text-center text-text-secondary">
+        Nossa metodologia é simples: curar, estruturar e compartilhar o melhor conteúdo disponível,
+        com acompanhamento humano.
+      </p>
+      <div class="grid gap-8 md:grid-cols-3">
+        {howItWorks.map((item) => (
+          <article class="rounded-lg border border-border bg-surface p-6">
+            <div class="mb-3 text-3xl" aria-hidden="true">{item.icon}</div>
+            <h3 class="text-lg font-bold text-text-primary">{item.title}</h3>
+            <p class="mt-2 text-sm text-text-secondary">{item.description}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {/* O que você vai ganhar + CTA */}
+  <section class="mx-auto max-w-6xl px-4 py-12 md:py-16" aria-labelledby="o-que-ganhar">
+    <div class="grid items-center gap-8 md:grid-cols-2">
+      <div>
+        <h2 id="o-que-ganhar" class="text-2xl font-bold text-text-primary md:text-3xl">O que você vai ganhar</h2>
+        <p class="mt-2 mb-6 text-text-secondary">
+          Nossas trilhas são desenhadas para quem está começando, mas com profundidade suficiente
+          para quem quer realmente evoluir.
+        </p>
+        <ul class="flex flex-col gap-3">
+          {benefits.map((benefit) => (
+            <li class="flex items-center gap-2 text-text-primary">
+              <span class="shrink-0 text-action" aria-hidden="true">✔</span>
+              {benefit}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div class="rounded-lg bg-gradient-to-br from-primary-700 to-primary-500 p-8 text-center text-on-action">
+        <h3 class="text-2xl font-extrabold">Pronto para começar?</h3>
+        <p class="mx-auto mt-2 mb-6 max-w-md text-on-action/85">
+          Inscreva-se gratuitamente e junte-se à comunidade Codaqui. Acesse mentores, Discord
+          exclusivo e certificados.
+        </p>
+        <div class="flex flex-col justify-center gap-4 sm:flex-row">
+          <a
+            href="/participe/estudar"
+            class="rounded-md bg-surface px-6 py-3 font-bold text-action transition-opacity hover:opacity-90"
+          >
+            Quero me inscrever
+          </a>
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-md border border-on-action px-6 py-3 font-semibold text-on-action transition-colors hover:bg-on-action/10"
+          >
+            Entrar no Discord
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</PublicLayout>
