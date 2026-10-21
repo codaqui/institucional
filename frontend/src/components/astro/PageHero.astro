@@ -1,0 +1,102 @@
+---
+// Portado de src/components/PageHero.tsx (MUI → HTML + Tailwind, tokens --cq-*).
+// Fundo sempre escuro (seção de destaque), brilho radial sutil e barra de acento inferior.
+
+interface Props {
+  /** Eyebrow label acima do título — ex: "Portal de Transparência" */
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  /** Alinhamento do conteúdo — padrão "center" */
+  align?: "center" | "left";
+  /** Classe utilitária de fundo customizada — padrão bg-neutral-900 (equivalente ao slate-900 do original) */
+  bgClass?: string;
+  /** Desabilita os brilhos radiais — útil para heróis com cor sólida de comunidade */
+  disableGradient?: boolean;
+}
+
+const {
+  eyebrow,
+  title,
+  subtitle,
+  align = "center",
+  bgClass,
+  disableGradient = false,
+} = Astro.props;
+
+const isCenter = align === "center";
+---
+
+<section
+  class:list={[
+    "relative overflow-hidden py-14 text-white md:py-22",
+    bgClass ?? "bg-neutral-900",
+    isCenter ? "text-center" : "text-left",
+  ]}
+>
+  {!disableGradient && <div class="hero-glow" aria-hidden="true"></div>}
+
+  <div class="relative z-10 mx-auto max-w-3xl px-4">
+    {
+      eyebrow && (
+        <p class="mb-3 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-400">
+          {eyebrow}
+        </p>
+      )
+    }
+
+    <h2
+      class="mb-4 text-[2rem] leading-[1.15] font-extrabold text-white sm:text-[2.5rem] md:text-[3rem]"
+    >
+      {title}
+    </h2>
+
+    {
+      subtitle && (
+        <p
+          class:list={[
+            "mt-1 max-w-[580px] text-base leading-[1.7] text-white/65 md:text-[1.1rem]",
+            isCenter && "mx-auto",
+          ]}
+        >
+          {subtitle}
+        </p>
+      )
+    }
+
+    {
+      Astro.slots.has("default") && (
+        <div class="mt-6">
+          <slot />
+        </div>
+      )
+    }
+  </div>
+
+  <span
+    aria-hidden="true"
+    class:list={[
+      "absolute bottom-0 h-[3px] rounded-t-sm bg-primary-500",
+      isCenter ? "left-1/2 w-20 -translate-x-1/2" : "left-0 w-[120px]",
+    ]}
+  ></span>
+</section>
+
+<style>
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(
+        circle at 60% 40%,
+        color-mix(in srgb, var(--cq-color-primary-500) 8%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 20% 80%,
+        color-mix(in srgb, var(--cq-color-primary-300) 6%, transparent) 0%,
+        transparent 50%
+      );
+  }
+</style>
