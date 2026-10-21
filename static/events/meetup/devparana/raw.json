@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T15:02:13.260Z",
+  "generatedAt": "2026-10-21T16:01:49.980Z",
   "events": [
     {
       "id": "316756948",
@@ -161,7 +161,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 1,
+      "userCount": 3,
       "creatorName": "Danilo Pinotti",
       "creatorId": "475426391",
       "organizers": [
@@ -170,7 +170,7 @@
           "id": "475426391"
         }
       ],
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/9/8/a/highres_536727018.jpeg"
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/e/c/highres_536727628.jpeg"
     },
     {
       "id": "315991184",
