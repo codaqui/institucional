@@ -1,0 +1,183 @@
+---
+// 03 Cores — escalas primary e neutra "plum" + pares semânticos nos dois temas.
+// Valores REAIS derivados de tokens.css via src/data/ds-palette.ts; badges WCAG
+// calculados por lib/contrast.ts. Swatches copiam o hex (CopySwatchIsland).
+import CopySwatchIsland from "../../islands/CopySwatchIsland";
+import {
+  primaryScale,
+  neutralScale,
+  semanticPairs,
+  swatchTextColor,
+  swatchBadgeOnWhite,
+  semanticBadge,
+  formatRatio,
+  brandVsActionable,
+} from "../../../data/ds-palette";
+
+function badgeClass(badge: string | null): string {
+  switch (badge) {
+    case "AAA":
+      return "bg-[#2C7A4B] text-white";
+    case "AA":
+      return "bg-[#2F6FED] text-white";
+    default:
+      return "bg-[#B45309] text-white"; // AA 18pt+
+  }
+}
+
+---
+
+<section id="cores" class="scroll-mt-32 border-t border-border">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">03</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Cores</h2>
+    <p class="mb-6 max-w-2xl text-text-secondary">
+      Uma escala verde de marca, uma escala neutra derivada do ameixa (cinzas
+      puros são proibidos) e pares semânticos calibrados para os dois temas.
+      Clique em qualquer swatch para copiar o hex. Os badges indicam o nível
+      WCAG da cor usada como <strong>texto sobre fundo claro</strong>.
+    </p>
+
+    {/* Alerta central do DS */}
+    <div
+      role="note"
+      class="mb-10 rounded-lg border p-5"
+      style="background: var(--cq-color-warning-bg); border-color: var(--cq-color-warning);"
+    >
+      <h3 class="mb-2 text-base font-extrabold" style="color: var(--cq-color-warning);">
+        Por que <code>{brandVsActionable.brand.hex}</code> não é acionável?
+      </h3>
+      <p class="text-sm leading-relaxed">
+        O verde de marca <code class="rounded bg-black/10 px-1 py-0.5">{brandVsActionable.brand.hex}</code>
+        tem contraste de apenas <strong>{brandVsActionable.brand.ratio}</strong> sobre
+        branco — <strong>reprova WCAG AA</strong> para texto e ações. Ele continua sendo
+        a cor da marca (decoração, hero, logo, ilustrações), mas botões, links e
+        textos usam o primary-700
+        <code class="rounded bg-black/10 px-1 py-0.5">{brandVsActionable.actionable.hex}</code>
+        (<strong>{brandVsActionable.actionable.ratio}</strong> — AA) no tema claro e
+        <code class="rounded bg-black/10 px-1 py-0.5">{brandVsActionable.actionableDark}</code>
+        no tema escuro.
+      </p>
+    </div>
+
+    {/* Escala primary */}
+    <h3 class="mb-1 text-lg font-bold">Escala primary (verde Codaqui)</h3>
+    <p class="mb-4 text-sm text-text-secondary">
+      <code class="rounded bg-sunken px-1 py-0.5">--cq-color-primary-50 … -900</code> ·
+      500 = cor oficial da marca.
+    </p>
+    <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {
+        primaryScale.map((s) => {
+          const badge = swatchBadgeOnWhite(s.hex);
+          return (
+            <CopySwatchIsland hex={s.hex} client:visible>
+              <span
+                class="block h-20 rounded-lg border border-black/10"
+                style={`background: ${s.hex}; color: ${swatchTextColor(s.hex)};`}
+              >
+                <span class="block px-2 pt-2 text-[0.65rem] font-bold uppercase tracking-wide opacity-80">
+                  {s.token}
+                </span>
+              </span>
+              <span class="mt-1.5 flex items-center gap-1.5 px-0.5">
+                <code class="text-xs font-semibold">{s.hex}</code>
+                {badge && (
+                  <span class={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold ${badgeClass(badge)}`}>
+                    {badge}
+                  </span>
+                )}
+              </span>
+              {s.note && (
+                <span class="block px-0.5 text-[0.7rem] leading-snug text-text-secondary">
+                  {s.note}
+                </span>
+              )}
+            </CopySwatchIsland>
+          );
+        })
+      }
+    </div>
+
+    {/* Escala neutra */}
+    <h3 class="mb-1 text-lg font-bold">Neutros "plum"</h3>
+    <p class="mb-4 text-sm text-text-secondary">
+      <code class="rounded bg-sunken px-1 py-0.5">--cq-color-neutral-50 … -900</code> ·
+      derivados do ameixa da marca #3A2F39 — cinzas puros são proibidos.
+    </p>
+    <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
+      {
+        neutralScale.map((s) => {
+          const badge = swatchBadgeOnWhite(s.hex);
+          return (
+            <CopySwatchIsland hex={s.hex} client:visible>
+              <span
+                class="block h-20 rounded-lg border border-black/10"
+                style={`background: ${s.hex}; color: ${swatchTextColor(s.hex)};`}
+              >
+                <span class="block px-2 pt-2 text-[0.65rem] font-bold uppercase tracking-wide opacity-80">
+                  {s.token}
+                </span>
+              </span>
+              <span class="mt-1.5 flex items-center gap-1.5 px-0.5">
+                <code class="text-xs font-semibold">{s.hex}</code>
+                {badge && (
+                  <span class={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold ${badgeClass(badge)}`}>
+                    {badge}
+                  </span>
+                )}
+              </span>
+              {s.note && (
+                <span class="block px-0.5 text-[0.7rem] leading-snug text-text-secondary">
+                  {s.note}
+                </span>
+              )}
+            </CopySwatchIsland>
+          );
+        })
+      }
+    </div>
+
+    {/* Semânticas nos dois temas */}
+    <h3 class="mb-1 text-lg font-bold">Cores semânticas</h3>
+    <p class="mb-4 text-sm text-text-secondary">
+      Cada semântica tem um par <em>foreground/background</em> por tema. Os
+      foregrounds escuros foram recalibrados (as versões claras falham AA sobre
+      os fundos escuros) — <code class="rounded bg-sunken px-1 py-0.5">--cq-color-*</code>
+      muda com <code class="rounded bg-sunken px-1 py-0.5">[data-theme="dark"]</code>.
+    </p>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        semanticPairs.map((p) => {
+          const lightBadge = semanticBadge(p.light.fg, p.light.bg);
+          const darkBadge = semanticBadge(p.dark.fg, p.dark.bg);
+          return (
+            <div class="overflow-hidden rounded-lg border border-border bg-surface">
+              <h4 class="px-4 pt-3 text-sm font-extrabold">{p.label}</h4>
+              <div class="space-y-2 p-4">
+                <div class="rounded-md p-3" style={`background: ${p.light.bg}; color: ${p.light.fg};`}>
+                  <p class="text-xs font-bold">Tema claro — {p.label}</p>
+                  <p class="mt-1 font-mono text-[0.7rem]">
+                    {p.light.fg} / {p.light.bg}
+                  </p>
+                  <p class="text-[0.7rem] font-semibold">
+                    {formatRatio(p.light.fg, p.light.bg)} · {lightBadge}
+                  </p>
+                </div>
+                <div class="rounded-md p-3" style={`background: ${p.dark.bg}; color: ${p.dark.fg};`}>
+                  <p class="text-xs font-bold">Tema escuro — {p.label}</p>
+                  <p class="mt-1 font-mono text-[0.7rem]">
+                    {p.dark.fg} / {p.dark.bg}
+                  </p>
+                  <p class="text-[0.7rem] font-semibold">
+                    {formatRatio(p.dark.fg, p.dark.bg)} · {darkBadge}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </div>
+</section>

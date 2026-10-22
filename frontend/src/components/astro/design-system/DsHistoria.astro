@@ -1,0 +1,95 @@
+---
+// 01 História — timeline vertical com os eventos REAIS de src/data/timeline.ts.
+// Mesmo padrão visual da linha do tempo de /sobre/insights (Task 6): rail com
+// dot colorido + card com acento, stats e highlights.
+import { timelineEvents, type TimelineEvent } from "../../../data/timeline";
+
+const COLOR_MAP: Record<TimelineEvent["color"], string> = {
+  success: "var(--cq-color-success)",
+  info: "var(--cq-color-info)",
+  warning: "var(--cq-color-warning)",
+  error: "var(--cq-color-error)",
+  primary: "var(--cq-color-primary-500)",
+  secondary: "var(--cq-color-primary-300)",
+  grey: "var(--cq-color-neutral-400)",
+};
+---
+
+<section id="historia" class="scroll-mt-32 border-t border-border">
+  <div class="mx-auto max-w-3xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">01</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">História</h2>
+    <p class="mb-10 text-text-secondary">
+      A marca carrega a trajetória da associação — de uma conversa em 2020 a
+      centenas de participantes. Dados reais, os mesmos de
+      <a href="/sobre/insights" class="text-link underline">/sobre/insights</a>.
+    </p>
+
+    <ol class="m-0 list-none p-0">
+      {
+        timelineEvents.map((event, index) => {
+          const isLast = index === timelineEvents.length - 1;
+          const accent = COLOR_MAP[event.color];
+          return (
+            <li class="flex gap-4">
+              <div class="flex shrink-0 flex-col items-center">
+                <span
+                  style={`--accent: ${accent}`}
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-(--accent) text-lg shadow-md"
+                >
+                  <span aria-hidden="true">{event.icon}</span>
+                </span>
+                {!isLast && <span class="mt-1 -mb-1 min-h-8 w-0.5 flex-1 bg-border" />}
+              </div>
+              <div class:list={["flex-1", !isLast && "pb-8"]}>
+                <p class="mb-1 text-xs leading-none font-extrabold tracking-wider text-text-secondary/70 uppercase">
+                  {event.year}
+                  {event.tag && (
+                    <span class="ml-2 rounded-full border border-border px-2 py-0.5 text-[0.65rem] font-bold text-text-secondary normal-case">
+                      {event.tag}
+                    </span>
+                  )}
+                </p>
+                <article
+                  style={`--accent: ${accent}`}
+                  class="relative overflow-hidden rounded-lg border border-border bg-surface"
+                >
+                  <div class="h-[3px] bg-(--accent)" />
+                  <div class="p-4 sm:p-5">
+                    <h3 class="mb-1.5 text-lg leading-[1.2] font-extrabold">{event.label}</h3>
+                    {event.description && (
+                      <p class="mb-3 text-sm leading-relaxed text-text-secondary">
+                        {event.description}
+                      </p>
+                    )}
+                    {event.stats && event.stats.length > 0 && (
+                      <div class="mb-3 flex flex-wrap gap-x-5 gap-y-1.5">
+                        {event.stats.map((s) => (
+                          <div>
+                            <span class="mr-1 font-mono text-lg leading-none font-extrabold">
+                              {s.value}
+                            </span>
+                            <span class="text-xs font-semibold tracking-[0.05em] text-text-secondary uppercase">
+                              {s.label}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {event.highlights && event.highlights.length > 0 && (
+                      <div class="border-s-[3px] border-(--accent) ps-3">
+                        {event.highlights.map((h) => (
+                          <p class="text-sm leading-normal font-semibold">{h}</p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </article>
+              </div>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</section>

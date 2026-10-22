@@ -1,0 +1,95 @@
+---
+// 06 Acessibilidade — checklist WCAG 2.2 AA + demo de foco visível (navegue por
+// Tab). O anel de foco e o respeito a prefers-reduced-motion são globais
+// (tokens.css §10) — a demo funciona nativamente, sem JS.
+const checklist = [
+  {
+    item: "Contraste AA verificado",
+    detail: "Todo par texto/fundo ≥ 4.5:1 (texto grande ≥ 3:1). A cor acionável é #378369, não o verde de marca.",
+  },
+  {
+    item: "Alvos de toque ≥ 44px",
+    detail: "Botões, links de navegação e campos têm altura mínima de 44px (WCAG 2.5.8).",
+  },
+  {
+    item: "Foco visível sempre",
+    detail: "Anel de 3px em --cq-focus-ring via :focus-visible global (WCAG 2.4.7/2.4.13) — demo abaixo.",
+  },
+  {
+    item: "prefers-reduced-motion respeitado",
+    detail: "Media query global zera animações e transições para quem prefere menos movimento (WCAG 2.3.3).",
+  },
+  {
+    item: "Skip link e landmarks",
+    detail: "Toda página pública tem 'Pular para o conteúdo' e regiões header/main/footer navegáveis.",
+  },
+  {
+    item: "Nada depende só de cor",
+    detail: "Erros têm texto, valores financeiros têm sinal +/−, status têm rótulo.",
+  },
+];
+---
+
+<section id="acessibilidade" class="scroll-mt-32 border-t border-border bg-sunken/40">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">06</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Acessibilidade</h2>
+    <p class="mb-8 max-w-2xl text-text-secondary">
+      WCAG 2.2 AA como piso, não como meta. Estas regras valem para toda página
+      e componente do ecossistema Codaqui — inclusive esta página.
+    </p>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <ul class="m-0 list-none space-y-3 p-0">
+        {
+          checklist.map((c) => (
+            <li class="flex gap-3 rounded-lg border border-border bg-surface p-4">
+              <span
+                aria-hidden="true"
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-black text-white"
+                style="background: var(--cq-color-success);"
+              >
+                ✓
+              </span>
+              <div>
+                <h3 class="text-sm font-extrabold">{c.item}</h3>
+                <p class="mt-0.5 text-sm text-text-secondary">{c.detail}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+
+      {/* Demo de foco */}
+      <div class="h-fit rounded-lg border border-border bg-surface p-5">
+        <h3 class="mb-2 text-sm font-extrabold tracking-wide text-text-secondary uppercase">
+          Demo: foco visível
+        </h3>
+        <p class="mb-4 text-sm text-text-secondary">
+          Pressione <kbd class="rounded border border-border-strong bg-sunken px-1.5 py-0.5 font-mono text-xs">Tab</kbd>
+          para navegar pelos elementos abaixo. O anel verde de 3px aparece em
+          todos — é o mesmo anel global do site inteiro.
+        </p>
+        <div class="flex flex-col gap-3">
+          <a href="#acessibilidade" class="text-link underline">Link de exemplo</a>
+          <button
+            type="button"
+            class="min-h-11 w-fit cursor-pointer rounded-md bg-action px-5 py-2.5 text-sm font-bold text-on-action hover:bg-action-hover"
+          >
+            Botão focável
+          </button>
+          <input
+            type="text"
+            aria-label="Campo de demonstração de foco"
+            placeholder="Campo de texto focável"
+            class="min-h-11 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm"
+          />
+        </div>
+        <p class="mt-4 text-xs text-text-secondary">
+          Teste também o skip link: recarregue a página e pressione Tab uma vez —
+          "Pular para o conteúdo" aparece no topo.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

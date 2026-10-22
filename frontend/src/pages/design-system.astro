@@ -1,0 +1,58 @@
+---
+// /design-system — brand book público da Codaqui (Fase 0.3, Task 14).
+// 8 seções (.astro puro); única ilha: CopySwatchIsland nos swatches de cor.
+import PublicLayout from "../layouts/PublicLayout.astro";
+import DsHero from "../components/astro/design-system/DsHero.astro";
+import DsHistoria from "../components/astro/design-system/DsHistoria.astro";
+import DsMarca from "../components/astro/design-system/DsMarca.astro";
+import DsCores from "../components/astro/design-system/DsCores.astro";
+import DsTipografia from "../components/astro/design-system/DsTipografia.astro";
+import DsComponentes from "../components/astro/design-system/DsComponentes.astro";
+import DsAcessibilidade from "../components/astro/design-system/DsAcessibilidade.astro";
+import DsTomDeVoz from "../components/astro/design-system/DsTomDeVoz.astro";
+
+const sections = [
+  { id: "historia", label: "01 História" },
+  { id: "marca", label: "02 Marca" },
+  { id: "cores", label: "03 Cores" },
+  { id: "tipografia", label: "04 Tipografia" },
+  { id: "componentes", label: "05 Componentes" },
+  { id: "acessibilidade", label: "06 Acessibilidade" },
+  { id: "tom-de-voz", label: "07 Tom de voz" },
+];
+---
+
+<PublicLayout
+  title="Design System | Codaqui"
+  ogTitle="Design System | CODAQUI.dev"
+  description="Brand book público da Codaqui: história, marca, cores (tokens --cq-* com contraste WCAG medido), tipografia, componentes, acessibilidade e tom de voz."
+>
+  <DsHero />
+
+  {/* Índice local (âncoras) */}
+  <nav
+    aria-label="Seções do design system"
+    class="sticky top-16 z-30 border-b border-border bg-body/95 backdrop-blur"
+  >
+    <div class="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2">
+      {
+        sections.map((s) => (
+          <a
+            href={`#${s.id}`}
+            class="min-h-11 shrink-0 content-center rounded-md px-3 text-sm font-semibold whitespace-nowrap text-text-secondary no-underline hover:bg-sunken hover:text-text-primary"
+          >
+            {s.label}
+          </a>
+        ))
+      }
+    </div>
+  </nav>
+
+  <DsHistoria />
+  <DsMarca />
+  <DsCores />
+  <DsTipografia />
+  <DsComponentes />
+  <DsAcessibilidade />
+  <DsTomDeVoz />
+</PublicLayout>

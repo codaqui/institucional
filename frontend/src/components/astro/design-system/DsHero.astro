@@ -1,0 +1,61 @@
+---
+// Hero da página /design-system — fundo sempre escuro (seção de destaque),
+// logo monocromática branca e chips de meta do DS.
+const meta = ["v1.0", "WCAG 2.2 AA", "Tokens --cq-*", "Astro + Tailwind"];
+---
+
+<section class="relative overflow-hidden bg-neutral-900 py-14 text-center text-white md:py-20">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="relative z-10 mx-auto max-w-3xl px-4">
+    <img
+      src="/img/logo_monocromatica.svg"
+      alt="Codaqui"
+      class="mx-auto mb-6 h-12 w-auto md:h-16"
+      width="122"
+      height="33"
+    />
+    <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-primary-300">
+      Brand book público
+    </p>
+    <h1 class="mb-4 text-[2rem] leading-[1.15] font-extrabold sm:text-[2.5rem] md:text-[3rem]">
+      Design System
+    </h1>
+    <p class="mx-auto max-w-[580px] text-base leading-[1.7] text-white/70 md:text-[1.1rem]">
+      As cores, a tipografia, os componentes e a voz da Codaqui — abertos para
+      voluntários, comunidades parceiras e parceiros de mídia. Transparência
+      também é design.
+    </p>
+    <ul class="mt-6 flex flex-wrap justify-center gap-2">
+      {
+        meta.map((m) => (
+          <li class="rounded-full border border-white/25 px-3 py-1 text-xs font-semibold text-white/85">
+            {m}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <span
+    aria-hidden="true"
+    class="absolute bottom-0 left-1/2 h-[3px] w-20 -translate-x-1/2 rounded-t-sm bg-primary-500"
+  ></span>
+</section>
+
+<style>
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(
+        circle at 60% 30%,
+        color-mix(in srgb, var(--cq-color-primary-500) 10%, transparent) 0%,
+        transparent 55%
+      ),
+      radial-gradient(
+        circle at 20% 85%,
+        color-mix(in srgb, var(--cq-color-primary-300) 7%, transparent) 0%,
+        transparent 50%
+      );
+  }
+</style>
