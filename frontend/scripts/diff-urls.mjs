@@ -7,8 +7,10 @@ const ROOT = join(import.meta.dirname, "..", "..");
 const OLD = join(ROOT, "build");
 const NEW = join(ROOT, "frontend", "dist");
 
-// Stubs de redirect fora do escopo da 0.2 (Fase 0.3 — páginas públicas).
-const EXCLUDE = [/^\/blog\/archive/];
+// Histórico: /^\/blog\/archive/ ficou excluído durante a 0.2 porque os stubs
+// de redirect ainda não existiam; a Fase 0.3 (Task 13) criou os stubs em
+// frontend/src/pages/blog/archive/ e a exclusão foi removida.
+const EXCLUDE = [];
 
 function walk(dir, pattern) {
   const out = [];
