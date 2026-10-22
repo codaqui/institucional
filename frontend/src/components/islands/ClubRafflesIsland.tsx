@@ -135,7 +135,8 @@ function ClubRafflesInner(): React.JSX.Element {
       globalThis.removeEventListener(CLUB_RAFFLE_ENTERED_EVENT, onEntered);
   }, [apiUrl]);
 
-  const { isLoggedIn, isFrozen, sortCoins, enteringRaffleId } = walletState;
+  const { ready: walletReady, isLoggedIn, isFrozen, sortCoins, enteringRaffleId } =
+    walletState;
   const enteredRaffles = new Set(walletState.enteredRaffleIds);
   const myCoinsByRaffle = walletState.myCoinsByRaffle;
 
@@ -278,6 +279,7 @@ function ClubRafflesInner(): React.JSX.Element {
                           color={entered ? "success" : "primary"}
                           onClick={() => requestEnterRaffle(raffle.id, raffle.costInCoins)}
                           disabled={
+                            !walletReady ||
                             isEntering ||
                             (isLoggedIn && !canAfford) ||
                             (isLoggedIn && isFrozen)
@@ -289,6 +291,7 @@ function ClubRafflesInner(): React.JSX.Element {
                           }
                         >
                           {raffleActionLabel({
+                            ready: walletReady,
                             isLoggedIn,
                             isFrozen,
                             canAfford,

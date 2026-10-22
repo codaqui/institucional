@@ -127,12 +127,17 @@ export function raffleFilterLabel(filter: "open" | "past" | "all"): string {
 }
 
 export function raffleActionLabel(args: {
+  ready: boolean;
   isLoggedIn: boolean;
   isFrozen: boolean;
   canAfford: boolean;
   entered: boolean;
   costInCoins: number;
 }): string {
+  // Enquanto o snapshot de auth não chega (ilha de carteira não hidratou ou
+  // fetchMe pendente), o botão fica desabilitado com label neutro — assim
+  // nenhum clique se perde (no-op silencioso) e há feedback visual.
+  if (!args.ready) return "Carregando…";
   if (args.isLoggedIn === false) return "Entrar com GitHub";
   if (args.isFrozen) return "Carteira congelada";
   if (args.canAfford === false) return "SortCoins insuficientes";
