@@ -1,0 +1,49 @@
+---
+// Portado de src/components/EventOverrideBadge (MUI Chip → span com tokens --cq-*).
+// Chip exibido quando um evento tem metadados verificados/corrigidos por um
+// organizador (override persistido no backend, tabela event_overrides, já
+// mesclado ao snapshot em `_override`).
+
+interface Props {
+  ownerHandle: string;
+  reason?: string | null;
+}
+
+const { ownerHandle, reason } = Astro.props;
+---
+
+<span class="override-badge" title={reason ?? "Metadados corrigidos pelo organizador"}>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+    class="override-badge-icon"
+  >
+    <path
+      d="M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.69 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82 1.89 3.2L12 21.03l3.4 1.46 1.89-3.2 3.61-.82-.34-3.69zm-10.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48z"
+    ></path>
+  </svg>
+  Verificado por @{ownerHandle}
+</span>
+
+<style>
+  .override-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: var(--cq-color-success);
+    background-color: var(--cq-color-success-bg);
+  }
+  .override-badge-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+</style>

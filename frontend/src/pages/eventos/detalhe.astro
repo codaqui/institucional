@@ -1,0 +1,122 @@
+---
+// Fallback da URL legada /eventos/detalhe?source=...&sourceId=...&id=...
+// (portado do redirect de src/pages/eventos/detalhe.tsx, Docusaurus).
+//
+// O original é uma página dinâmica completa (~1940 linhas); aqui só o
+// comportamento de REDIRECT é replicado:
+// 1. Retorno do Stripe (?status=success&session_id=...): o original fazia
+//    redirect duro para /membro?tab=future&purchase=success. Como /membro ainda
+//    não existe no Astro (0.4) e a rota estática da POC já trata o retorno
+//    inline na EventRegistrationIsland, redirecionamos para a rota estática do
+//    evento PRESERVANDO status/session_id. Sem evento resolvível, cai em /eventos.
+// 2. ?slug=... → /eventos/<slug> (o Docusaurus resolvia slug pela rota estática;
+//    aceito aqui por compatibilidade com links manuais).
+// 3. ?source=&sourceId=&id= → consulta /events/index.json e redireciona
+//    (location.replace) para a rota estática. Sem match (evento interno
+//    recém-publicado ainda sem snapshot — caso em que o original renderizava o
+//    detalhe dinâmico), exibe mensagem com link para a agenda.
+import PublicLayout from "../../layouts/PublicLayout.astro";
+---
+
+<PublicLayout
+  title="Detalhes do evento | Codaqui"
+  description="Detalhes do evento da comunidade Codaqui."
+  noindex
+>
+  <section class="mx-auto max-w-2xl px-4 py-16 text-center md:py-24">
+    <p id="redirect-message" class="text-lg text-text-secondary">
+      Redirecionando para a página do evento…
+    </p>
+    <p id="not-found-message" class="text-lg text-text-secondary" hidden>
+      Não encontramos uma página estática para este evento. Ele pode ter sido publicado há pouco
+      tempo — tente novamente em instantes ou navegue pela agenda completa.
+    </p>
+    <p class="mt-6">
+      <a
+        href="/eventos"
+        class="inline-flex items-center justify-center rounded-lg bg-action px-4 py-2 font-semibold text-on-action no-underline transition-colors hover:bg-action-hover"
+      >
+        Ver agenda de eventos
+      </a>
+    </p>
+  </section>
+
+  <script is:inline>
+    (() => {
+      const params = new URLSearchParams(window.location.search);
+      const enc = encodeURIComponent;
+
+      // Mesma regra de buildEventPublicPath (frontend/src/lib/event-path.ts).
+      const publicPath = (e) => {
+        const source = e.source ?? "internal";
+        if (source === "internal" && e.slug) return `/eventos/${enc(e.slug)}`;
+        return `/eventos/${enc(source)}/${enc(e.sourceId ?? "codaqui")}/${enc(e.id)}`;
+      };
+
+      const showNotFound = () => {
+        const redirect = document.getElementById("redirect-message");
+        const notFound = document.getElementById("not-found-message");
+        if (redirect) redirect.hidden = true;
+        if (notFound) notFound.hidden = false;
+      };
+
+      const resolveEventPath = () =>
+        fetch("/events/index.json")
+          .then((res) => (res.ok ? res.json() : null))
+          .then((data) => {
+            if (!data) return null;
+            const s = params.get("source");
+            const sid = params.get("sourceId");
+            const id = params.get("id");
+            const found = (data.events ?? []).find(
+              (e) => e.source === s && e.sourceId === sid && e.id === id,
+            );
+            return found ? publicPath(found) : null;
+          })
+          .catch(() => null);
+
+      const status = params.get("status");
+      const sessionId = params.get("session_id");
+      const slug = params.get("slug");
+      const hasEventParams = params.get("source") && params.get("sourceId") && params.get("id");
+
+      // 1. Retorno do Stripe: preserva os params ao ir para a rota estática
+      //    (a ilha de inscrição exibe a confirmação inline).
+      if (status === "success" && sessionId) {
+        if (hasEventParams) {
+          resolveEventPath().then((target) => {
+            window.location.replace(
+              target
+                ? `${target}?status=success&session_id=${enc(sessionId)}`
+                : "/eventos",
+            );
+          });
+        } else {
+          window.location.replace("/eventos");
+        }
+        return;
+      }
+
+      // 2. Slug direto.
+      if (slug) {
+        window.location.replace(`/eventos/${enc(slug)}`);
+        return;
+      }
+
+      // 3. URL legada com source/sourceId/id.
+      if (hasEventParams) {
+        resolveEventPath().then((target) => {
+          if (target) {
+            window.location.replace(target);
+          } else {
+            showNotFound();
+          }
+        });
+        return;
+      }
+
+      // Sem params reconhecíveis: volta para a agenda.
+      window.location.replace("/eventos");
+    })();
+  </script>
+</PublicLayout>

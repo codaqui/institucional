@@ -1,0 +1,426 @@
+---
+// Portado de src/pages/eventos.tsx (Docusaurus + MUI → Astro + Tailwind).
+// Listagem 100% build-time (zero framework JS): todos os cards do snapshot são
+// renderizados no HTML; o filtro por fonte e o "carregar mais" do histórico são
+// um <script> inline vanilla que só alterna visibilidade (o original era
+// client-side com fetch do mesmo snapshot).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import EventCard from "../../components/astro/EventCard.astro";
+import DiscordWidgetIsland from "../../components/islands/DiscordWidgetIsland";
+import {
+  loadEventsIndex,
+  partitionEvents,
+  type EventSummary,
+} from "../../lib/events";
+
+const PAST_PAGE_SIZE = 12;
+
+const { events, sources } = loadEventsIndex();
+const { upcoming, past, featured } = partitionEvents(events);
+
+const sourcesById = Object.fromEntries(
+  sources.map((source) => [source.sourceKey, source]),
+) as Record<string, (typeof sources)[number]>;
+
+function statsFor(list: EventSummary[]) {
+  return {
+    total: list.length,
+    recurring: list.filter((event) => Boolean(event.recurrenceRule)).length,
+    rsvps: list.reduce((total, event) => total + (event.userCount ?? 0), 0),
+  };
+}
+
+// Estatísticas por filtro (o original recalcula em runtime; aqui são
+// pré-computadas no build e o script inline só troca os números).
+const statsByFilter: Record<
+  string,
+  { total: number; recurring: number; rsvps: number; label: string | null }
+> = {
+  all: { ...statsFor(events), label: null },
+};
+for (const source of sources) {
+  statsByFilter[source.sourceKey] = {
+    ...statsFor(events.filter((event) => event.sourceKey === source.sourceKey)),
+    label: source.label,
+  };
+}
+
+const primaryDiscordSource = sources.find((source) => source.source === "discord");
+
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<PublicLayout
+  title="Eventos | Codaqui"
+  ogTitle="Eventos | CODAQUI.dev"
+  description="Acompanhe os próximos encontros, cursos e atividades da comunidade Codaqui."
+>
+  <PageHero
+    eyebrow="Agenda da comunidade"
+    title="Eventos da Codaqui"
+    subtitle="Descubra encontros da Associação Codaqui e de comunidades parceiras, com filtros para explorar cada iniciativa sem perder a visão geral."
+  >
+    <div class="flex flex-col justify-center gap-3 sm:flex-row">
+      <a
+        href="#agenda"
+        class="inline-flex items-center justify-center rounded-lg bg-white px-5 py-2.5 font-bold text-primary-800 no-underline transition-colors hover:bg-neutral-100"
+      >
+        Ver agenda
+      </a>
+      {
+        primaryDiscordSource?.ctaHref && (
+          <a
+            href={primaryDiscordSource.ctaHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center justify-center gap-1 rounded-lg border border-white/45 px-5 py-2.5 font-bold text-white no-underline transition-colors hover:border-white hover:bg-white/10"
+          >
+            {primaryDiscordSource.ctaLabel ?? "Entrar na comunidade"}
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+              class="h-4 w-4"
+            >
+              <path d={OPEN_IN_NEW_PATH} />
+            </svg>
+          </a>
+        )
+      }
+    </div>
+  </PageHero>
+
+  <div class="bg-body py-8 md:py-10">
+    <div class="mx-auto max-w-6xl px-4">
+      <p class="alert-info" role="note">
+        A agenda é atualizada automaticamente a partir das nossas integrações com plataformas da
+        comunidade, reunindo os próximos encontros em um só lugar.
+      </p>
+    </div>
+  </div>
+
+  <div class="mx-auto max-w-6xl px-4 pt-8 md:pt-10">
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+          Eventos publicados
+        </p>
+        <p class="text-3xl font-extrabold text-text-primary" id="stat-total">
+          {statsByFilter.all.total}
+        </p>
+        <p class="text-sm text-text-secondary">Total de eventos publicados.</p>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+          Recorrentes
+        </p>
+        <p class="text-3xl font-extrabold text-text-primary" id="stat-recurring">
+          {statsByFilter.all.recurring}
+        </p>
+        <p class="text-sm text-text-secondary">Eventos que se repetem regularmente.</p>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <p class="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+          Inscrições somadas
+        </p>
+        <p class="text-3xl font-extrabold text-text-primary" id="stat-rsvps">
+          {statsByFilter.all.rsvps}
+        </p>
+        <p class="text-sm text-text-secondary">Total de participantes interessados.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="agenda" class="mx-auto max-w-6xl scroll-mt-24 px-4 py-10 md:py-14">
+    <div class="mb-6 rounded-lg border border-border bg-surface p-4 md:p-5">
+      <div class="flex flex-wrap gap-2" role="group" aria-label="Filtrar eventos por comunidade">
+        <button type="button" class="filter-chip" data-filter="all" aria-pressed="true">
+          Tudo ({events.length})
+        </button>
+        {
+          sources.map((source) => (
+            <button
+              type="button"
+              class="filter-chip"
+              data-filter={source.sourceKey}
+              aria-pressed="false"
+            >
+              {source.emoji} {source.label} ({source.itemCount})
+            </button>
+          ))
+        }
+      </div>
+      <p class="mt-3 text-sm text-text-secondary" id="filter-desc">
+        Você está vendo a visão geral com todas as comunidades integradas.
+      </p>
+    </div>
+
+    {
+      featured.length > 0 && (
+        <section id="featured-section" class="mb-10">
+          <h2 class="mb-1 text-2xl font-extrabold text-text-primary">Em destaque</h2>
+          <p class="mb-5 text-text-secondary">
+            Eventos destacados pelos organizadores da comunidade.
+          </p>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {featured.map((event) => (
+              <div data-event-card data-section="featured" data-source-key={event.sourceKey}>
+                <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <section>
+      <h2 class="mb-1 text-2xl font-extrabold text-text-primary">Agenda completa</h2>
+      <p class="mb-5 text-text-secondary">
+        Eventos futuros da seleção atual, reunidos em um único lugar.
+      </p>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {
+          upcoming.map((event) => (
+            <div data-event-card data-section="upcoming" data-source-key={event.sourceKey}>
+              <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="alert-info mt-4" id="upcoming-empty" hidden={upcoming.length > 0}>
+        Nenhum evento foi publicado ainda.
+      </p>
+    </section>
+  </div>
+
+  <div class="bg-sunken py-10 md:py-14">
+    <div class="mx-auto max-w-6xl px-4">
+      <h2 class="mb-1 text-2xl font-extrabold text-text-primary">Histórico da comunidade</h2>
+      <p class="mb-5 text-text-secondary">
+        Eventos anteriores continuam acessíveis para consulta, com espaço para destacar a trajetória
+        de cada comunidade.
+      </p>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {
+          past.map((event, index) => (
+            <div
+              data-event-card
+              data-section="past"
+              data-source-key={event.sourceKey}
+              class={index >= PAST_PAGE_SIZE ? "hidden-by-page" : undefined}
+            >
+              <EventCard event={event} sourceMeta={sourcesById[event.sourceKey]} />
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="alert-info mt-4" id="past-empty" hidden={past.length > 0}>
+        Ainda não há eventos passados indexados.
+      </p>
+
+      <div class="mt-8" id="past-load-more" hidden={past.length <= PAST_PAGE_SIZE}>
+        <button
+          type="button"
+          class="mx-auto flex rounded-lg border border-link px-4 py-2 font-semibold text-link transition-colors hover:bg-link hover:text-white"
+        >
+          Carregar mais eventos passados
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-body py-10 md:py-14">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
+        {
+          primaryDiscordSource?.widgetUrl && (
+            <div class="lg:col-span-7">
+              <DiscordWidgetIsland
+                client:visible
+                widgetUrl={primaryDiscordSource.widgetUrl}
+              />
+            </div>
+          )
+        }
+        <div class:list={["lg:col-span-5", !primaryDiscordSource?.widgetUrl && "lg:col-span-12"]}>
+          <div class="h-full rounded-lg border border-border bg-surface p-6 md:p-8">
+            <h2 class="mb-1 text-xl font-bold text-text-primary">Fontes de eventos</h2>
+            <p class="mb-5 text-sm text-text-secondary">
+              Eventos agregados de diferentes comunidades e plataformas parceiras da Codaqui.
+            </p>
+
+            <ul class="mb-5 flex list-none flex-col gap-3 p-0">
+              {
+                sources.map((source) => (
+                  <li class="rounded-lg border border-border bg-surface p-3">
+                    <p class="mb-0.5 text-sm font-bold text-text-primary">
+                      {source.emoji} {source.label}
+                    </p>
+                    <p class="text-sm text-text-secondary">{source.description}</p>
+                    <p class="mt-1 text-xs text-text-secondary">
+                      {source.itemCount} evento(s)
+                      {source.generatedAt &&
+                        ` · atualizado em ${new Date(source.generatedAt).toLocaleDateString("pt-BR")}`}
+                    </p>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="flex flex-col gap-3">
+              {
+                sources
+                  .filter((source) => source.ctaHref && source.ctaLabel)
+                  .map((source) => {
+                    const isExternal = source.ctaHref?.startsWith("http") ?? false;
+                    return (
+                      <a
+                        href={source.ctaHref}
+                        target={isExternal ? "_blank" : undefined}
+                        rel={isExternal ? "noopener noreferrer" : undefined}
+                        class="inline-flex items-center justify-center gap-1 rounded-lg border border-link px-4 py-2 font-semibold text-link no-underline transition-colors hover:bg-link hover:text-white"
+                      >
+                        {source.ctaLabel}
+                        {isExternal && (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            aria-hidden="true"
+                            class="h-4 w-4"
+                          >
+                            <path d={OPEN_IN_NEW_PATH} />
+                          </svg>
+                        )}
+                      </a>
+                    );
+                  })
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="events-stats" set:html={JSON.stringify(statsByFilter)} />
+
+  <script is:inline>
+    (() => {
+      const PAGE_SIZE = 12;
+      const statsEl = document.getElementById("events-stats");
+      const stats = statsEl ? JSON.parse(statsEl.textContent ?? "{}") : {};
+      const chips = [...document.querySelectorAll("[data-filter]")];
+      const cards = [...document.querySelectorAll("[data-event-card]")];
+      const featuredSection = document.getElementById("featured-section");
+      const upcomingEmpty = document.getElementById("upcoming-empty");
+      const pastEmpty = document.getElementById("past-empty");
+      const loadMoreWrap = document.getElementById("past-load-more");
+      const filterDesc = document.getElementById("filter-desc");
+      let current = "all";
+      let pastShown = PAGE_SIZE;
+
+      const matches = (card) =>
+        current === "all" || card.dataset.sourceKey === current;
+
+      function applyPagination() {
+        const visible = cards.filter(
+          (card) => card.dataset.section === "past" && matches(card),
+        );
+        visible.forEach((card, index) => {
+          card.classList.toggle("hidden-by-page", index >= pastShown);
+        });
+        if (pastEmpty) pastEmpty.hidden = visible.length > 0;
+        if (loadMoreWrap) loadMoreWrap.hidden = pastShown >= visible.length;
+      }
+
+      function applyFilter(key) {
+        current = key;
+        pastShown = PAGE_SIZE;
+        chips.forEach((chip) =>
+          chip.setAttribute("aria-pressed", String(chip.dataset.filter === key)),
+        );
+
+        const s = stats[key] ?? stats.all;
+        if (s) {
+          document.getElementById("stat-total").textContent = s.total;
+          document.getElementById("stat-recurring").textContent = s.recurring;
+          document.getElementById("stat-rsvps").textContent = s.rsvps;
+        }
+        if (filterDesc) {
+          filterDesc.textContent = s?.label
+            ? `Filtro ativo: ${s.label}.`
+            : "Você está vendo a visão geral com todas as comunidades integradas.";
+        }
+
+        let upcomingVisible = 0;
+        let featuredVisible = 0;
+        cards.forEach((card) => {
+          const show = matches(card);
+          card.classList.toggle("hidden-by-filter", !show);
+          if (show && card.dataset.section === "upcoming") upcomingVisible += 1;
+          if (show && card.dataset.section === "featured") featuredVisible += 1;
+        });
+        if (upcomingEmpty) upcomingEmpty.hidden = upcomingVisible > 0;
+        if (featuredSection) featuredSection.hidden = featuredVisible === 0;
+        applyPagination();
+      }
+
+      chips.forEach((chip) =>
+        chip.addEventListener("click", () => applyFilter(chip.dataset.filter)),
+      );
+      loadMoreWrap?.querySelector("button")?.addEventListener("click", () => {
+        pastShown += PAGE_SIZE;
+        applyPagination();
+      });
+    })();
+  </script>
+</PublicLayout>
+
+<style>
+  .alert-info {
+    border-radius: var(--cq-radius-lg);
+    border: 1px solid var(--cq-color-info);
+    background-color: var(--cq-color-info-bg);
+    color: var(--cq-text-primary);
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  .filter-chip {
+    border-radius: 9999px;
+    border: 1px solid var(--cq-border-default);
+    background: transparent;
+    color: var(--cq-text-secondary);
+    padding: 0.375rem 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color 0.15s,
+      color 0.15s;
+  }
+  .filter-chip:hover {
+    border-color: var(--cq-link);
+    color: var(--cq-link);
+  }
+  .filter-chip[aria-pressed="true"] {
+    background-color: var(--cq-action-primary-bg);
+    border-color: transparent;
+    color: var(--cq-action-primary-text);
+  }
+  .hidden-by-filter,
+  .hidden-by-page {
+    display: none;
+  }
+</style>
