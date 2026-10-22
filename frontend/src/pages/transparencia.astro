@@ -1,0 +1,97 @@
+---
+// Portado de src/pages/transparencia.tsx (Docusaurus + MUI → Astro + Tailwind).
+// Shell estático (hero + metodologia); parte dinâmica (KPIs, cards por
+// comunidade, tabs, TransactionTable, mural de doadores) na ilha MUI
+// TransparencyApp (client:visible) — espelha o StatCard.astro para os KPIs.
+import PublicLayout from "../layouts/PublicLayout.astro";
+import PageHero from "../components/astro/PageHero.astro";
+import TransparencyApp from "../components/islands/TransparencyApp";
+import { API_URL } from "../lib/config";
+
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+const CODE_PATH =
+  "M9.4 16.6 4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0 4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z";
+---
+
+<PublicLayout
+  title="Transparência Financeira | Codaqui"
+  ogTitle="Transparência Financeira | CODAQUI.dev"
+  description="Acompanhe em tempo real os saldos e movimentações financeiras de cada comunidade parceira da Codaqui."
+>
+  <PageHero
+    eyebrow="Portal de Transparência"
+    title="Finanças Abertas"
+    subtitle="Toda doação é registrada em contabilidade de dupla partida e visível aqui em tempo real. Sem segredos."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <TransparencyApp client:visible />
+
+    <hr class="my-16 border-border" />
+
+    {/* ── Metodologia ── */}
+    <div class="grid gap-8 md:grid-cols-12">
+      <div class="md:col-span-7">
+        <h2 class="mb-4 text-3xl font-extrabold">Como funciona</h2>
+        <p class="mb-4 text-text-secondary">
+          Usamos <strong>contabilidade de dupla partida</strong>: cada doação cria dois
+          lançamentos — um débito na conta de entrada (Stripe Income) e um crédito na
+          carteira virtual da comunidade escolhida. Isso garante que nenhum valor apareça
+          ou desapareça sem rastreamento completo.
+        </p>
+        <p class="mb-4 text-text-secondary">
+          O backend NestJS valida cada pagamento diretamente com a API da Stripe via
+          Webhook antes de registrar qualquer transação. Pagamentos não confirmados nunca
+          chegam ao sistema.
+        </p>
+        <div class="mt-4 flex flex-wrap gap-4">
+          <a href="/participe/apoiar" class="font-bold">
+            Fazer uma doação →
+          </a>
+          <a
+            href="https://github.com/codaqui/institucional"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 font-semibold text-current opacity-70"
+          >
+            Código aberto
+            <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+              <path d={OPEN_IN_NEW_PATH}></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="md:col-span-5">
+        <div class="rounded-2xl border border-primary-600 bg-primary-500/5 p-6">
+          <div class="mb-4 flex items-center gap-2">
+            <svg viewBox="0 0 24 24" class="h-6 w-6 fill-link" aria-hidden="true">
+              <path d={CODE_PATH}></path>
+            </svg>
+            <h3 class="m-0 text-lg font-bold">API REST pública</h3>
+          </div>
+          <p class="mb-4 text-sm text-text-secondary">
+            Todos os dados aqui exibidos estão disponíveis via API REST documentada.
+            Qualquer pessoa pode consultar os saldos e transações programaticamente.
+          </p>
+          <pre
+            class="mb-4 overflow-x-auto rounded-lg bg-sunken p-3 text-xs"
+          ><code>GET /ledger/community-balances
+GET /ledger/accounts/:id/transactions
+     ?page=1&limit=10</code></pre>
+          <a
+            href={`${API_URL}/docs`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1 font-bold"
+          >
+            Ver documentação completa
+            <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+              <path d={OPEN_IN_NEW_PATH}></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</PublicLayout>
