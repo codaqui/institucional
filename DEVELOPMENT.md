@@ -112,6 +112,13 @@ npm install
 npm run dev            # http://localhost:4321
 ```
 
+Variáveis do app Astro (prefixo `PUBLIC_*`, embutidas no bundle cliente em build time):
+
+| Variável | Descrição |
+|----------|-----------|
+| `PUBLIC_API_URL` | URL base da API NestJS (default `http://localhost:3001`) |
+| `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública Stripe (`pk_test_...` em dev) usada pelo checkout embutido de `/participe/apoiar`. Equivalente à `STRIPE_PUBLISHABLE_KEY` do build Docusaurus (`customFields.stripePublishableKey`); vazia desativa o botão de doação |
+
 O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra. Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
 
 ### Comandos

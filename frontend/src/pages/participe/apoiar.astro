@@ -1,0 +1,129 @@
+---
+// Portado de src/pages/participe/apoiar.tsx (Docusaurus + MUI → Astro + ilhas).
+// Shell estático (hero + abas PF/PJ + rodapé PJ) em HTML/Tailwind; o fluxo de
+// doação e o fluxo empresarial vivem nas ilhas MUI DonationFlowIsland
+// (client:load, acima da dobra) e CompanyDonationIsland (client:visible).
+// A troca de abas é feita pelo script inline abaixo (espelha o estado na URL
+// via ?modo=empresa); as ilhas pedem a troca via CustomEvent
+// `codaqui:apoiar-mode` (ver lib/donation.ts → requestApoiarMode).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import DonationFlowIsland from "../../components/islands/DonationFlowIsland";
+import CompanyDonationIsland from "../../components/islands/CompanyDonationIsland";
+
+const PERSON_PATH =
+  "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z";
+const BUSINESS_PATH =
+  "M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z";
+
+const TAB_BASE =
+  "flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-bold transition-all sm:flex-initial md:px-6";
+const TAB_STATE =
+  "text-text-secondary aria-selected:bg-surface aria-selected:text-text-primary aria-selected:shadow";
+---
+
+<PublicLayout
+  title="Apoiar a Codaqui | Codaqui"
+  ogTitle="Apoiar a Codaqui | CODAQUI.dev"
+  description="Doe diretamente para a Codaqui ou para uma comunidade parceira. 100% transparente."
+>
+  <PageHero
+    eyebrow="Quero Apoiar"
+    title="Apoie a Codaqui"
+    subtitle="Toda contribuição financia tecnologia acessível. Veja em tempo real para onde vai cada real."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+    <div class="mb-6 flex justify-center md:mb-8" role="tablist" aria-label="Escolha o tipo de apoio">
+      <div class="flex w-full rounded-xl bg-sunken p-1 sm:w-auto">
+        <button
+          type="button"
+          role="tab"
+          data-apoiar-tab="pf"
+          aria-selected="true"
+          aria-controls="apoiar-panel-pf"
+          class:list={[TAB_BASE, TAB_STATE]}
+        >
+          <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+            <path d={PERSON_PATH}></path>
+          </svg>
+          Pessoa Física
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-apoiar-tab="pj"
+          aria-selected="false"
+          aria-controls="apoiar-panel-pj"
+          class:list={[TAB_BASE, TAB_STATE]}
+        >
+          <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+            <path d={BUSINESS_PATH}></path>
+          </svg>
+          Pessoa Jurídica / Empresa
+        </button>
+      </div>
+    </div>
+
+    <div id="apoiar-panel-pf" role="tabpanel">
+      <DonationFlowIsland
+        client:load
+        subtitle="Selecione a carteira à esquerda, o valor e a frequência. Doações anônimas aceitas até R$ 100 (única ou recorrente)."
+        companyCta
+      />
+    </div>
+
+    <div id="apoiar-panel-pj" role="tabpanel" hidden>
+      <CompanyDonationIsland client:visible />
+      <hr class="my-8 border-border" />
+      <div class="text-center">
+        <p class="mb-2 text-sm text-text-secondary">
+          Já assinou? Gerencie sua empresa e colaboradores no seu perfil.
+        </p>
+        <a
+          href="/membros/empresa"
+          class="inline-flex items-center gap-2 rounded-lg border border-current px-5 py-2.5 text-sm font-semibold text-link transition-colors hover:bg-sunken"
+        >
+          <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+            <path d={BUSINESS_PATH}></path>
+          </svg>
+          Gerenciar minha empresa
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll("[data-apoiar-tab]"));
+      const panels = {
+        pf: document.getElementById("apoiar-panel-pf"),
+        pj: document.getElementById("apoiar-panel-pj"),
+      };
+      const modeFromUrl = () =>
+        new URLSearchParams(location.search).get("modo") === "empresa" ? "pj" : "pf";
+
+      function apply(mode) {
+        tabs.forEach((tab) =>
+          tab.setAttribute("aria-selected", String(tab.dataset.apoiarTab === mode)),
+        );
+        panels.pf.hidden = mode !== "pf";
+        panels.pj.hidden = mode !== "pj";
+        const params = new URLSearchParams(location.search);
+        if (mode === "pj") params.set("modo", "empresa");
+        else params.delete("modo");
+        const search = params.toString();
+        history.replaceState(null, "", location.pathname + (search ? `?${search}` : ""));
+      }
+
+      tabs.forEach((tab) =>
+        tab.addEventListener("click", () => apply(tab.dataset.apoiarTab)),
+      );
+      window.addEventListener("popstate", () => apply(modeFromUrl()));
+      window.addEventListener("codaqui:apoiar-mode", (event) =>
+        apply(event.detail === "pj" ? "pj" : "pf"),
+      );
+      apply(modeFromUrl());
+    })();
+  </script>
+</PublicLayout>
