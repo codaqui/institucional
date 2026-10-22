@@ -1,0 +1,24 @@
+---
+// Portado de src/pages/membros/index.tsx (Docusaurus + MUI → Astro + ilha).
+// Shell estático (hero); o diretório (membros + doadores + CLUB/CLUB Business,
+// busca e filtros) vive na ilha MUI MembersDirectoryIsland (client:visible).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import MembersDirectoryIsland from "../../components/islands/MembersDirectoryIsland";
+---
+
+<PublicLayout
+  title="Membros | Codaqui"
+  ogTitle="Membros | CODAQUI.dev"
+  description="Conheça as pessoas que fazem parte da Codaqui — participantes, doadores e organizadores."
+>
+  <PageHero
+    eyebrow="Comunidade"
+    title="Membros da Codaqui"
+    subtitle="Conheça as pessoas que constroem, apoiam e fazem a Codaqui acontecer."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-8 md:py-12">
+    <MembersDirectoryIsland client:visible />
+  </div>
+</PublicLayout>
