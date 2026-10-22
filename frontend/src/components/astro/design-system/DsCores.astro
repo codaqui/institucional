@@ -14,15 +14,11 @@ import {
   brandVsActionable,
 } from "../../../data/ds-palette";
 
-function badgeClass(badge: string | null): string {
-  switch (badge) {
-    case "AAA":
-      return "bg-[#2C7A4B] text-white";
-    case "AA":
-      return "bg-[#2F6FED] text-white";
-    default:
-      return "bg-[#B45309] text-white"; // AA 18pt+
-  }
+// Pills de badge WCAG: par semântico bg/fg do próprio DS (garante AA nos dois
+// temas — o fg claro sobre o bg claro e o fg dark sobre o bg dark).
+function badgeStyle(badge: string | null): string {
+  const kind = badge === "AAA" ? "success" : badge === "AA" ? "info" : "warning";
+  return `background: var(--cq-color-${kind}-bg); color: var(--cq-color-${kind}); border: 1px solid var(--cq-color-${kind});`;
 }
 
 ---
@@ -83,7 +79,7 @@ function badgeClass(badge: string | null): string {
               <span class="mt-1.5 flex items-center gap-1.5 px-0.5">
                 <code class="text-xs font-semibold">{s.hex}</code>
                 {badge && (
-                  <span class={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold ${badgeClass(badge)}`}>
+                  <span style={badgeStyle(badge)} class="rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold">
                     {badge}
                   </span>
                 )}
@@ -103,7 +99,7 @@ function badgeClass(badge: string | null): string {
     <h3 class="mb-1 text-lg font-bold">Neutros "plum"</h3>
     <p class="mb-4 text-sm text-text-secondary">
       <code class="rounded bg-sunken px-1 py-0.5">--cq-color-neutral-50 … -900</code> ·
-      derivados do ameixa da marca #3A2F39 — cinzas puros são proibidos.
+      derivados do ameixa da marca {neutralScale[8].hex} — cinzas puros são proibidos.
     </p>
     <div class="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
       {
@@ -122,7 +118,7 @@ function badgeClass(badge: string | null): string {
               <span class="mt-1.5 flex items-center gap-1.5 px-0.5">
                 <code class="text-xs font-semibold">{s.hex}</code>
                 {badge && (
-                  <span class={`rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold ${badgeClass(badge)}`}>
+                  <span style={badgeStyle(badge)} class="rounded-full px-1.5 py-0.5 text-[0.6rem] font-bold">
                     {badge}
                   </span>
                 )}

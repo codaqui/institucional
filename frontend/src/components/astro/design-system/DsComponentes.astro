@@ -2,6 +2,7 @@
 // 05 Componentes — demos estáticas dos padrões do DS: botões, badges, alertas,
 // formulário e tabela financeira (padrão do portal de transparência).
 // Tudo com tokens --cq-* via utilitários Tailwind; zero JS.
+import { brandVsActionable } from "../../../data/ds-palette";
 ---
 
 <section id="componentes" class="scroll-mt-32 border-t border-border">
@@ -41,7 +42,7 @@
         </div>
         <p class="mt-3 text-xs text-text-secondary">
           Primário usa a cor acionável (<code>--cq-action-primary-bg</code> = primary-700
-          no claro) — nunca o verde de marca #57B593. Altura mínima de 44px (alvo de toque).
+          no claro) — nunca o verde de marca {brandVsActionable.brand.hex}. Altura mínima de 44px (alvo de toque).
         </p>
       </div>
 

@@ -13,6 +13,8 @@ const COLOR_MAP: Record<TimelineEvent["color"], string> = {
   secondary: "var(--cq-color-primary-300)",
   grey: "var(--cq-color-neutral-400)",
 };
+
+const ITEMS_THRESHOLD = 4;
 ---
 
 <section id="historia" class="scroll-mt-32 border-t border-border">
@@ -77,11 +79,44 @@ const COLOR_MAP: Record<TimelineEvent["color"], string> = {
                       </div>
                     )}
                     {event.highlights && event.highlights.length > 0 && (
-                      <div class="border-s-[3px] border-(--accent) ps-3">
+                      <div class="mb-3 border-s-[3px] border-(--accent) ps-3">
                         {event.highlights.map((h) => (
                           <p class="text-sm leading-normal font-semibold">{h}</p>
                         ))}
                       </div>
+                    )}
+
+                    {/* Itens do evento — mesmo padrão da Task 6: threshold de 4
+                        visíveis + restante via <details> nativo (zero JS). */}
+                    <ul class="m-0 list-disc ps-4 [&_li+li]:mt-1">
+                      {event.items.slice(0, ITEMS_THRESHOLD).map((item) => (
+                        <li class="text-sm text-text-secondary">{item}</li>
+                      ))}
+                    </ul>
+                    {event.items.length > ITEMS_THRESHOLD && (
+                      <details class="tl-more mt-2">
+                        <summary class="inline-flex min-h-11 cursor-pointer list-none items-center gap-1 text-sm text-text-secondary select-none [&::-webkit-details-marker]:hidden">
+                          <span class="tl-more-open-label">
+                            +{event.items.length - ITEMS_THRESHOLD} detalhes
+                          </span>
+                          <span class="tl-more-close-label">Recolher</span>
+                          <svg
+                            viewBox="0 0 24 24"
+                            width="18"
+                            height="18"
+                            fill="currentColor"
+                            aria-hidden="true"
+                            class="tl-more-chevron"
+                          >
+                            <path d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+                          </svg>
+                        </summary>
+                        <ul class="m-0 mt-1 list-disc ps-4 [&_li+li]:mt-1">
+                          {event.items.slice(ITEMS_THRESHOLD).map((item) => (
+                            <li class="text-sm text-text-secondary">{item}</li>
+                          ))}
+                        </ul>
+                      </details>
                     )}
                   </div>
                 </article>
@@ -93,3 +128,22 @@ const COLOR_MAP: Record<TimelineEvent["color"], string> = {
     </ol>
   </div>
 </section>
+
+<style>
+  /* Expander "+N detalhes" (details nativo): troca de rótulo e chevron ao abrir */
+  .tl-more-close-label {
+    display: none;
+  }
+  .tl-more[open] .tl-more-open-label {
+    display: none;
+  }
+  .tl-more[open] .tl-more-close-label {
+    display: inline;
+  }
+  .tl-more[open] .tl-more-chevron {
+    transform: rotate(180deg);
+  }
+  .tl-more-chevron {
+    transition: transform 0.2s;
+  }
+</style>

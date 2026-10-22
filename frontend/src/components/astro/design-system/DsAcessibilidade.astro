@@ -2,10 +2,11 @@
 // 06 Acessibilidade — checklist WCAG 2.2 AA + demo de foco visível (navegue por
 // Tab). O anel de foco e o respeito a prefers-reduced-motion são globais
 // (tokens.css §10) — a demo funciona nativamente, sem JS.
+import { brandVsActionable } from "../../../data/ds-palette";
 const checklist = [
   {
     item: "Contraste AA verificado",
-    detail: "Todo par texto/fundo ≥ 4.5:1 (texto grande ≥ 3:1). A cor acionável é #378369, não o verde de marca.",
+    detail: `Todo par texto/fundo ≥ 4.5:1 (texto grande ≥ 3:1). A cor acionável é ${brandVsActionable.actionable.hex}, não o verde de marca.`,
   },
   {
     item: "Alvos de toque ≥ 44px",

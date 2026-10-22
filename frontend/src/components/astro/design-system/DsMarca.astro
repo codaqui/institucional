@@ -2,12 +2,17 @@
 // 02 Marca — os 3 logos oficiais, regra de logo por tema (demos lado a lado),
 // respiro mínimo e usos proibidos.
 import BrandLogo from "../BrandLogo.astro";
+import { primaryScale, neutralScale } from "../../../data/ds-palette";
+
+// Cores oficiais citadas no texto vêm da paleta (dados), nunca de hex literal.
+const brandGreen = primaryScale[5].hex; // primary-500 — verde da marca
+const brandPlum = neutralScale[8].hex; // neutral-800 — ameixa da marca
 
 const logos = [
   {
     file: "/img/logo_principal.svg",
     name: "Logo principal",
-    desc: "Ameixa #3A2F39 + verde #57B593. Versão preferencial — somente sobre fundos claros.",
+    desc: `Ameixa ${brandPlum} + verde ${brandGreen}. Versão preferencial — somente sobre fundos claros.`,
     dark: false,
   },
   {
@@ -19,14 +24,14 @@ const logos = [
   {
     file: "/img/logo_mono2.svg",
     name: "Monocromática ameixa",
-    desc: "Uma cor só (#3A2F39) para contextos sem cor: carimbo, recibo, impressão P&B — sobre fundo claro.",
+    desc: `Uma cor só (${brandPlum}) para contextos sem cor: carimbo, recibo, impressão P&B — sobre fundo claro.`,
     dark: false,
   },
 ];
 
 const forbidden = [
   "Não distorcer, esticar ou rotacionar o logotipo",
-  "Não trocar as cores oficiais (ameixa #3A2F39, verde #57B593, branco)",
+  `Não trocar as cores oficiais (ameixa ${brandPlum}, verde ${brandGreen}, branco)`,
   "Não usar a logo escura (principal ou mono2) sobre fundo escuro — use a monocromática branca",
   "Não usar a monocromática branca sobre fundo claro",
   "Não adicionar sombras, contornos, gradientes ou efeitos",
@@ -78,19 +83,23 @@ const forbidden = [
       <span class="text-xs text-text-secondary">← viva: segue o tema da página</span>
     </div>
     <div class="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Fundo fixo proposital (a demo ignora o tema da página): o rótulo usa
+          o token primitivo estável primary-700 (4,55:1 sobre branco — AA). */}
       <div class="rounded-lg border border-border bg-white p-6">
         <div class="flex h-16 items-center justify-center">
           <img src="/img/logo_principal.svg" alt="Logo principal sobre fundo claro (correto)" class="h-8 w-auto" width="122" height="33" loading="lazy" />
         </div>
-        <p class="mt-3 text-center text-xs font-bold text-[#2C7A4B]">
+        <p class="mt-3 text-center text-xs font-bold" style="color: var(--cq-color-primary-700);">
           ✓ Fundo claro → logo principal
         </p>
       </div>
+      {/* Fundo fixo --cq-color-neutral-800: rótulo em primary-300, a cor
+          acionável do tema escuro (6,84:1 sobre neutral-800 — AA). */}
       <div class="rounded-lg border border-border bg-neutral-800 p-6">
         <div class="flex h-16 items-center justify-center">
           <img src="/img/logo_monocromatica.svg" alt="Logo monocromática branca sobre fundo escuro (correto)" class="h-8 w-auto" width="122" height="33" loading="lazy" />
         </div>
-        <p class="mt-3 text-center text-xs font-bold text-[#5CB87A]">
+        <p class="mt-3 text-center text-xs font-bold" style="color: var(--cq-color-primary-300);">
           ✓ Fundo escuro → monocromática branca
         </p>
       </div>
