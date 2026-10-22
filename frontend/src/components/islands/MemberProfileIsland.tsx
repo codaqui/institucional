@@ -1,0 +1,1163 @@
+// Port das partes dinâmicas de src/pages/membros/perfil.tsx (Docusaurus) para
+// ilha React (MUI v9, deep imports). Duas variantes:
+// - "public": seções dinâmicas públicas (doações, eventos, carteira pública,
+//   afiliação) para a rota estática /@<handle> — o cartão do membro já é HTML
+//   estático na página .astro.
+// - "full": perfil completo (carteirinha + QR + seções auth do dono) para
+//   /membros/perfil?handle= — fallback dinâmico e visão do próprio membro.
+import React, { useEffect, useState } from "react";
+import Alert from "@mui/material/Alert";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import Chip from "@mui/material/Chip";
+import Divider from "@mui/material/Divider";
+import Grid from "@mui/material/Grid";
+import Link from "@mui/material/Link";
+import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
+import Stack from "@mui/material/Stack";
+import Tab from "@mui/material/Tab";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Tabs from "@mui/material/Tabs";
+import Typography from "@mui/material/Typography";
+import GitHubIcon from "@mui/icons-material/GitHub";
+import LinkedInIcon from "@mui/icons-material/LinkedIn";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import BadgeIcon from "@mui/icons-material/Badge";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+import VolunteerActivismIcon from "@mui/icons-material/VolunteerActivism";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import BusinessIcon from "@mui/icons-material/Business";
+import LockIcon from "@mui/icons-material/Lock";
+import TokenIcon from "@mui/icons-material/Token";
+import { QRCodeSVG } from "qrcode.react";
+import MuiIslandProvider from "./MuiIslandProvider";
+import ClubWalletTransactionsTable from "./ClubWalletTransactionsTable";
+import { resolveApiUrl } from "../../lib/api-url";
+import { useAuth } from "../../lib/use-auth";
+import { PLATFORM_COLORS } from "../../data/social";
+import { MEMBER_HANDLE_REGEX, buildMemberPath } from "../../lib/member-path";
+import type { PublicMemberProfile } from "../../lib/member-path";
+import { buildEventPath, buildEventPublicPath } from "../../lib/event-path";
+
+// ── Tipos ──────────────────────────────────────────────────────────────────
+
+type Member = PublicMemberProfile;
+
+interface Donation {
+  id: string;
+  amount: number;
+  community: string;
+  communityKey: string;
+  type: string;
+  createdAt: string;
+}
+
+interface ClubWallet {
+  id: string;
+  balances: Record<string, number>;
+  frozenTypes: string[];
+}
+
+interface WalletTransaction {
+  id: string;
+  coinType: string;
+  amount: number;
+  source: string;
+  referenceId?: string | null;
+  description: string | null;
+  createdAt: string;
+}
+
+interface PublicAffiliation {
+  id: string;
+  name: string;
+  cnpj: string | null;
+  logoUrl: string | null;
+  websiteUrl: string | null;
+  responsibleGithubHandle: string | null;
+}
+type BusinessMembershipType = "owner" | "collaborator";
+
+/** Inscrição em evento (endpoint público /events/members/:memberId/registrations). */
+interface PublicEventRegistration {
+  id: string;
+  eventTitle: string;
+  eventStartAt: string | null;
+  checkedIn: boolean;
+  status: string;
+  verificationCode?: string | null;
+  memberId?: string | null;
+  payerMemberId?: string | null;
+  attendeeName?: string | null;
+  eventId?: string | null;
+  /** Slug do evento interno — base da URL `/eventos/<slug>` quando presente. */
+  eventSlug?: string | null;
+  eventKey?: string | null;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function formatCurrency(value: number): string {
+  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function formatShortId(uuid: string): string {
+  return uuid.slice(0, 8).toUpperCase();
+}
+
+/** Formata data ISO de forma defensiva (null quando ausente/inválida). */
+function formatDateSafe(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("pt-BR");
+}
+
+function getRoleLabel(role: string): string {
+  switch (role) {
+    case "admin":
+      return "Organização";
+    case "finance-analyzer":
+      return "Analista Financeiro";
+    case "event_organizer":
+      return "Organizador(a) de eventos";
+    case "event_finance":
+      return "Financeiro de eventos";
+    case "event_host":
+      return "Anfitrião(ã) de evento";
+    case "event_checker":
+      return "Credenciador(a)";
+    default:
+      return "Membro";
+  }
+}
+
+/** TabPanel (port de src/components/TabPanel). */
+function TabPanel({
+  children,
+  value,
+  index,
+}: Readonly<{ children?: React.ReactNode; index: number; value: number }>) {
+  return (
+    <Box
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tab-panel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      sx={{ width: "100%" }}
+    >
+      {value === index ? children : null}
+    </Box>
+  );
+}
+
+// ── Carteirinha ────────────────────────────────────────────────────────────
+
+function Carteirinha({
+  member,
+  isDonor,
+  isClubMember,
+  businessMembershipType,
+  profileUrl,
+}: Readonly<{
+  member: Member;
+  isDonor: boolean;
+  isClubMember: boolean;
+  businessMembershipType: BusinessMembershipType | null;
+  profileUrl: string;
+}>) {
+  return (
+    <Card
+      sx={{
+        background: (theme) =>
+          theme.palette.mode === "dark"
+            ? `linear-gradient(135deg, ${theme.palette.primary.dark}33 0%, ${theme.palette.background.paper} 50%, ${theme.palette.secondary.dark}33 100%)`
+            : `linear-gradient(135deg, ${theme.palette.primary.light}33 0%, ${theme.palette.background.default} 50%, ${theme.palette.secondary.light}33 100%)`,
+        border: "2px solid",
+        borderColor: "primary.main",
+        borderRadius: 3,
+        overflow: "hidden",
+        position: "relative",
+      }}
+    >
+      {/* Header */}
+      <Box
+        sx={{
+          bgcolor: "primary.main",
+          color: "primary.contrastText",
+          px: 3,
+          py: 1.5,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, letterSpacing: 1 }}>
+          ASSOCIAÇÃO CODAQUI
+        </Typography>
+        <Typography variant="caption" sx={{ fontWeight: 600 }}>
+          CARTEIRINHA DE MEMBRO
+        </Typography>
+      </Box>
+
+      <CardContent sx={{ p: 3 }}>
+        <Grid container spacing={3} sx={{ alignItems: "center" }}>
+          {/* Avatar + Info */}
+          <Grid size={{ xs: 12, sm: 8 }}>
+            <Box sx={{ display: "flex", gap: 2.5, alignItems: "center" }}>
+              <Avatar
+                src={member.avatarUrl}
+                alt={member.name}
+                sx={{
+                  width: 96,
+                  height: 96,
+                  border: "3px solid",
+                  borderColor: "primary.main",
+                }}
+              />
+              <Box>
+                <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                  {member.name}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  @{member.githubHandle}
+                </Typography>
+
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+                  {(member.roles?.length ? member.roles : ["membro"]).map((role, idx) => (
+                    <Chip
+                      key={role}
+                      icon={idx === 0 ? <BadgeIcon sx={{ fontSize: 16 }} /> : undefined}
+                      label={getRoleLabel(role)}
+                      size="small"
+                      color={role === "admin" ? "primary" : "default"}
+                      variant="outlined"
+                    />
+                  ))}
+                  {isDonor && (
+                    <Chip
+                      icon={<FavoriteIcon sx={{ fontSize: 14 }} />}
+                      label="Doador(a)"
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                    />
+                  )}
+                  {isClubMember && (
+                    <Chip
+                      icon={<TokenIcon sx={{ fontSize: 14 }} />}
+                      label="CLUB"
+                      size="small"
+                      color="primary"
+                      variant="filled"
+                    />
+                  )}
+                  {businessMembershipType && (
+                    <Chip
+                      icon={<BusinessIcon sx={{ fontSize: 14 }} />}
+                      label={businessMembershipType === "collaborator" ? "Business Member" : "Business Club"}
+                      size="small"
+                      color="secondary"
+                      variant="filled"
+                    />
+                  )}
+                </Stack>
+              </Box>
+            </Box>
+
+            <Box sx={{ mt: 2 }}>
+              <Stack direction="row" spacing={3} useFlexGap sx={{ flexWrap: "wrap" }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <CalendarMonthIcon
+                    sx={{ fontSize: 16, color: "text.secondary" }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    Membro desde {formatDate(member.joinedAt)}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ fontFamily: "monospace" }}
+                  >
+                    ID: {formatShortId(member.id)}
+                  </Typography>
+                </Box>
+              </Stack>
+            </Box>
+          </Grid>
+
+          {/* QR Code */}
+          <Grid
+            size={{ xs: 12, sm: 4 }}
+            sx={{ display: "flex", justifyContent: "center" }}
+          >
+            <Box sx={{ textAlign: "center" }}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 1.5,
+                  bgcolor: "white",
+                  borderRadius: 2,
+                  display: "inline-block",
+                }}
+              >
+                <QRCodeSVG
+                  value={profileUrl}
+                  size={120}
+                  level="M"
+                  marginSize={0}
+                  fgColor="#57B593"
+                />
+              </Paper>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ mt: 0.5, display: "block" }}
+              >
+                Escaneie para ver o perfil
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+
+        {/* Bio */}
+        {member.bio && (
+          <Box sx={{ mt: 2 }}>
+            <Typography
+              variant="caption"
+              color="text.disabled"
+              sx={{ display: "block", mb: 0.5 }}
+            >
+              Autodescrição do membro
+            </Typography>
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{ fontStyle: "italic" }}
+            >
+              &ldquo;{member.bio}&rdquo;
+            </Typography>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ── SortCoins Section ─────────────────────────────────────────────────────
+
+function SortCoinsSection({
+  wallet,
+  transactions,
+}: Readonly<{
+  wallet: ClubWallet;
+  transactions: WalletTransaction[];
+}>) {
+  const sortCoins = wallet.balances?.sort_coin ?? 0;
+  const isFrozen = wallet.frozenTypes?.includes("sort_coin") ?? false;
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <TokenIcon color="primary" />
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          SortCoins
+        </Typography>
+        <Chip
+          label={`${sortCoins.toLocaleString("pt-BR")} coins`}
+          size="small"
+          color="primary"
+          variant="outlined"
+        />
+        {isFrozen && (
+          <Chip
+            icon={<LockIcon sx={{ fontSize: 14 }} />}
+            label="Congelado"
+            size="small"
+            color="error"
+            variant="outlined"
+          />
+        )}
+      </Box>
+
+      {transactions.length > 0 ? (
+        <ClubWalletTransactionsTable transactions={transactions} />
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          Nenhuma transação de SortCoins ainda.{" "}
+          <Link href="/participe/apoiar" underline="hover">
+            Faça uma doação
+          </Link>{" "}
+          para começar a acumular!
+        </Typography>
+      )}
+    </Box>
+  );
+}
+
+// ── Donation History ───────────────────────────────────────────────────────
+
+function donationTypeChip(type: string) {
+  if (type.includes("Empresa")) {
+    return <Chip label={type} size="small" color="success" icon={<BusinessIcon fontSize="small" />} />;
+  }
+  if (type.includes("mensal") || type.includes("anual")) {
+    return <Chip label={type} size="small" color="info" variant="outlined" />;
+  }
+  return <Chip label={type} size="small" variant="outlined" />;
+}
+
+function DonationTable({ rows }: Readonly<{ rows: Donation[] }>) {
+  return (
+    <TableContainer component={Paper} variant="outlined">
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
+            <TableCell sx={{ fontWeight: 700 }}>Comunidade</TableCell>
+            <TableCell sx={{ fontWeight: 700 }}>Tipo</TableCell>
+            <TableCell align="right" sx={{ fontWeight: 700 }}>Valor</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {rows.map((d) => (
+            <TableRow key={d.id}>
+              <TableCell>{formatDate(d.createdAt)}</TableCell>
+              <TableCell>{d.community}</TableCell>
+              <TableCell>{donationTypeChip(d.type)}</TableCell>
+              <TableCell align="right" sx={{ fontWeight: 600 }}>
+                {formatCurrency(d.amount)}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+}
+
+function DonationHistory({ donations }: Readonly<{ donations: Donation[] }>) {
+  if (donations.length === 0) return null;
+
+  const pfDonations = donations.filter((d) => !d.type.includes("Empresa"));
+  const pjDonations = donations.filter((d) => d.type.includes("Empresa"));
+  const total = donations.reduce((sum, d) => sum + d.amount, 0);
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <VolunteerActivismIcon color="success" />
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Histórico de Doações
+        </Typography>
+        <Chip
+          label={`${donations.length} doação(ões) — ${formatCurrency(total)}`}
+          size="small"
+          color="success"
+          variant="outlined"
+        />
+      </Box>
+
+      {pfDonations.length > 0 && (
+        <Box sx={{ mb: pjDonations.length > 0 ? 3 : 0 }}>
+          {pjDonations.length > 0 && (
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
+              Pessoa Física
+            </Typography>
+          )}
+          <DonationTable rows={pfDonations} />
+        </Box>
+      )}
+
+      {pjDonations.length > 0 && (
+        <Box>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+            <BusinessIcon fontSize="small" color="action" />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+              Pessoa Jurídica (CLUB Business)
+            </Typography>
+          </Box>
+          <DonationTable rows={pjDonations} />
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+// ── Histórico de eventos (público) ─────────────────────────────────────────
+
+function eventDetailHref(reg: PublicEventRegistration): string | null {
+  if (reg.eventId) {
+    return buildEventPublicPath({
+      source: "internal",
+      sourceId: "codaqui",
+      id: reg.eventId,
+      slug: reg.eventSlug,
+    });
+  }
+  if (reg.eventKey) {
+    const parts = reg.eventKey.split(":");
+    if (parts.length >= 3) {
+      return buildEventPath(parts[0], parts[1], parts.slice(2).join(":"));
+    }
+  }
+  return null;
+}
+
+function EventHistorySection({
+  registrations,
+}: Readonly<{ registrations: PublicEventRegistration[] }>) {
+  const hasRegistrations = registrations.length > 0;
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+        <CalendarMonthIcon color="primary" />
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          Histórico de eventos
+        </Typography>
+        {hasRegistrations && (
+          <Chip
+            label={`${registrations.length} evento(s)`}
+            size="small"
+            color="primary"
+            variant="outlined"
+          />
+        )}
+      </Box>
+      {!hasRegistrations ? (
+        <Alert severity="info" variant="outlined">
+          Nenhuma participação registrada ainda.
+        </Alert>
+      ) : (
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell sx={{ fontWeight: 700 }}>Evento</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Data</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Situação</TableCell>
+                <TableCell sx={{ fontWeight: 700 }}>Certificado</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {registrations.map((reg) => {
+                const href = eventDetailHref(reg);
+                return (
+                  <TableRow key={reg.id}>
+                    <TableCell>
+                      {href ? (
+                        <Link href={href} underline="hover">
+                          {reg.eventTitle}
+                        </Link>
+                      ) : (
+                        reg.eventTitle
+                      )}
+                    </TableCell>
+                    <TableCell>{formatDateSafe(reg.eventStartAt) ?? "—"}</TableCell>
+                    <TableCell>
+                      {reg.checkedIn ? (
+                        <Chip label="Presente" size="small" color="success" variant="outlined" />
+                      ) : (
+                        <Chip label="Inscrito" size="small" variant="outlined" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {reg.verificationCode ? (
+                        <Link
+                          href={`/certificado/verificar?codigo=${encodeURIComponent(reg.verificationCode)}`}
+                          underline="hover"
+                        >
+                          Verificar
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Box>
+  );
+}
+
+// ── Profile Skeleton ───────────────────────────────────────────────────────
+
+function ProfileSkeleton() {
+  return (
+    <Box sx={{ py: 6 }}>
+      <Skeleton variant="rounded" height={280} sx={{ borderRadius: 3 }} />
+      <Box sx={{ mt: 4 }}>
+        <Skeleton width="40%" height={32} />
+        <Skeleton variant="rounded" height={200} sx={{ mt: 2 }} />
+      </Box>
+    </Box>
+  );
+}
+
+// ── Head dinâmico (variante full — substitui o <Head> do Docusaurus) ───────
+
+function upsertMeta(selector: string, create: () => HTMLMetaElement, content: string) {
+  let el = document.head.querySelector<HTMLMetaElement>(selector);
+  if (!el) {
+    el = create();
+    document.head.appendChild(el);
+  }
+  el.setAttribute("content", content);
+}
+
+function updateMemberHead(member: Member, canonicalUrl: string, description: string) {
+  const title = `${member.name} (@${member.githubHandle}) — Membro Codaqui`;
+  document.title = title;
+  upsertMeta(
+    'meta[name="description"]',
+    () => {
+      const el = document.createElement("meta");
+      el.setAttribute("name", "description");
+      return el;
+    },
+    description,
+  );
+  const og: Record<string, string> = {
+    "og:title": title,
+    "og:description": description,
+    "og:image": member.avatarUrl,
+    "og:url": canonicalUrl,
+    "og:type": "profile",
+    "twitter:title": title,
+    "twitter:description": description,
+    "twitter:image": member.avatarUrl,
+  };
+  for (const [property, content] of Object.entries(og)) {
+    upsertMeta(
+      `meta[property="${property}"]`,
+      () => {
+        const el = document.createElement("meta");
+        el.setAttribute("property", property);
+        return el;
+      },
+      content,
+    );
+  }
+  let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement("link");
+    canonical.setAttribute("rel", "canonical");
+    document.head.appendChild(canonical);
+  }
+  canonical.setAttribute("href", canonicalUrl);
+}
+
+// ── Ilha principal ─────────────────────────────────────────────────────────
+
+interface MemberProfileIslandProps {
+  /**
+   * "full": perfil completo (/membros/perfil?handle=), incl. carteirinha,
+   * QR e seções auth do dono. "public": apenas as seções dinâmicas públicas
+   * da rota estática /@<handle> (cartão já é HTML estático na página).
+   */
+  variant?: "full" | "public";
+  /** Handle injetado pela rota estática `/@<handle>`. */
+  routeHandle?: string;
+  /** Perfil pré-carregado em build time — dispensa o fetch inicial. */
+  initialMember?: PublicMemberProfile;
+}
+
+function MemberProfileInner({
+  variant = "full",
+  routeHandle,
+  initialMember,
+}: Readonly<MemberProfileIslandProps>): React.JSX.Element {
+  const isFull = variant === "full";
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
+
+  const { user: loggedUser, isLoggedIn, authFetch } = useAuth();
+
+  const [member, setMember] = useState<Member | null>(initialMember ?? null);
+  const [donations, setDonations] = useState<Donation[]>([]);
+  const [loading, setLoading] = useState(!initialMember);
+  const [error, setError] = useState<string | null>(null);
+  const [clubWallet, setClubWallet] = useState<ClubWallet | null>(null);
+  const [walletTxs, setWalletTxs] = useState<WalletTransaction[]>([]);
+  const [publicWallet, setPublicWallet] = useState<ClubWallet | null>(null);
+  const [publicWalletTxs, setPublicWalletTxs] = useState<WalletTransaction[]>([]);
+  const [affiliatedCompany, setAffiliatedCompany] = useState<PublicAffiliation | null>(null);
+  const [businessMembershipType, setBusinessMembershipType] = useState<BusinessMembershipType | null>(null);
+  const [eventRegistrations, setEventRegistrations] = useState<PublicEventRegistration[]>([]);
+  const [activeTab, setActiveTab] = useState(0);
+
+  // Suporta ?id=<uuid> ou ?handle=<github_handle>; a rota estática /@<handle>
+  // injeta o handle via prop (routeHandle) e dispensa o query param.
+  const isBrowser = globalThis.window !== undefined;
+  const params = isBrowser
+    ? new URLSearchParams(globalThis.location.search)
+    : null;
+  const memberId = isFull ? (params?.get("id") ?? null) : null;
+  const memberHandle = routeHandle ?? (isFull ? (params?.get("handle") ?? null) : null);
+
+  useEffect(() => {
+    // Variante "public": o membro já veio pré-carregado em build time; busca
+    // só os dados dinâmicos (doações).
+    if (!isFull) {
+      if (!initialMember) {
+        setError("Membro não informado.");
+        setLoading(false);
+        return;
+      }
+      fetch(`${apiUrl}/members/${initialMember.id}/donations`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((donationsData) => {
+          setDonations(donationsData ?? []);
+          setLoading(false);
+        })
+        .catch(() => {
+          setDonations([]);
+          setLoading(false);
+        });
+      return;
+    }
+
+    if (!memberId && !memberHandle) {
+      setError("ID ou handle do membro não informado.");
+      setLoading(false);
+      return;
+    }
+
+    // Valida formato do handle para evitar path traversal
+    if (memberHandle && !MEMBER_HANDLE_REGEX.test(memberHandle)) {
+      setError("Handle inválido.");
+      setLoading(false);
+      return;
+    }
+
+    // Perfil pré-carregado (rota estática): pula o fetch do membro e busca só
+    // os dados dinâmicos (doações).
+    const initialMemberMatches =
+      initialMember &&
+      (memberId
+        ? initialMember.id === memberId
+        : initialMember.githubHandle.toLowerCase() ===
+          memberHandle?.toLowerCase());
+
+    if (initialMemberMatches) {
+      setMember(initialMember);
+      fetch(`${apiUrl}/members/${initialMember.id}/donations`)
+        .then((r) => (r.ok ? r.json() : []))
+        .then((donationsData) => {
+          setDonations(donationsData ?? []);
+          setLoading(false);
+        })
+        .catch(() => {
+          setDonations([]);
+          setLoading(false);
+        });
+      return;
+    }
+
+    // Resolve o membro: por ID ou por handle
+    const memberFetch = memberId
+      ? fetch(`${apiUrl}/members/${memberId}`)
+      : fetch(`${apiUrl}/members/by-handle/${memberHandle}`);
+
+    memberFetch
+      .then((r) => {
+        if (!r.ok) throw new Error("not_found");
+        return r.json();
+      })
+      .then((memberData: Member) => {
+        setMember(memberData);
+        // Agora busca doações pelo ID resolvido
+        return fetch(`${apiUrl}/members/${memberData.id}/donations`)
+          .then((r) => (r.ok ? r.json() : []))
+          .then((donationsData) => {
+            setDonations(donationsData ?? []);
+            setLoading(false);
+          });
+      })
+      .catch((err) => {
+        setError(
+          err.message === "not_found"
+            ? "Membro não encontrado."
+            : "Erro ao carregar o perfil.",
+        );
+        setLoading(false);
+      });
+  }, [isFull, memberId, memberHandle, apiUrl, initialMember]);
+
+  // Load SortCoins wallet only when viewing own profile (requires login)
+  useEffect(() => {
+    if (!isFull || !isLoggedIn || !member) return;
+    if (loggedUser?.handle !== member.githubHandle) return;
+    authFetch("/club/wallet")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: ClubWallet | null) => setClubWallet(data));
+    authFetch("/club/wallet/transactions?limit=10")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: WalletTransaction[]) => setWalletTxs(data ?? []));
+  }, [isFull, isLoggedIn, member, loggedUser, authFetch]);
+
+  useEffect(() => {
+    if (!member) return;
+    if (isFull && isLoggedIn && loggedUser?.handle === member.githubHandle) {
+      setPublicWallet(null);
+      setPublicWalletTxs([]);
+      return;
+    }
+    fetch(`${apiUrl}/club/public-wallet/${member.githubHandle}?limit=10`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((payload: { wallet: ClubWallet | null; transactions: WalletTransaction[] } | null) => {
+        setPublicWallet(payload?.wallet ?? null);
+        setPublicWalletTxs(payload?.transactions ?? []);
+      })
+      .catch(() => {
+        setPublicWallet(null);
+        setPublicWalletTxs([]);
+      });
+  }, [isFull, apiUrl, member, isLoggedIn, loggedUser]);
+
+  useEffect(() => {
+    if (!member) return;
+    fetch(`${apiUrl}/stripe/business-members`)
+      .then((r) => (r.ok ? r.json() : { items: [] }))
+      .then((payload: { items?: Array<{ memberId: string; membershipType?: BusinessMembershipType }> }) => {
+        const found = (payload.items ?? []).find((item) => item.memberId === member.id);
+        setBusinessMembershipType(found?.membershipType ?? (found ? "owner" : null));
+      })
+      .catch(() => setBusinessMembershipType(null));
+  }, [apiUrl, member]);
+
+  useEffect(() => {
+    if (!member) return;
+    fetch(`${apiUrl}/companies/member/${member.githubHandle}/public-affiliation`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: PublicAffiliation | null) => setAffiliatedCompany(data))
+      .catch(() => setAffiliatedCompany(null));
+  }, [apiUrl, member]);
+
+  // Histórico público de eventos do membro (inscrições + presença).
+  useEffect(() => {
+    if (!member) return;
+    fetch(`${apiUrl}/events/members/${member.id}/registrations`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: PublicEventRegistration[]) => {
+        const list = Array.isArray(data) ? data : [];
+        // Defesa: exibe apenas participações onde o membro é o participante,
+        // nunca ingressos que ele apenas comprou para outrem.
+        setEventRegistrations(list.filter((r) => !r.memberId || r.memberId === member.id));
+      })
+      .catch(() => setEventRegistrations([]));
+  }, [apiUrl, member]);
+
+  const isDonor = donations.length > 0;
+  const isClubMember = donations.some(
+    (d) => d.type.includes("mensal") || d.type.includes("anual"),
+  );
+
+  // URL canônica (usada para SEO e QR code). Na rota estática /@<handle> a
+  // vanity URL já é HTTP 200; na rota legada mantemos /membros/perfil?handle=.
+  const canonicalHandle = member?.githubHandle ?? memberHandle ?? "";
+  const canonicalUrl = isBrowser && canonicalHandle
+    ? routeHandle
+      ? `${globalThis.location.origin}${buildMemberPath(canonicalHandle)}`
+      : `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`
+    : "";
+
+  const vanityUrl = canonicalUrl;
+
+  // Variante full: atualiza <head> quando o membro carrega (paridade com o
+  // <Head> do Docusaurus — título, description, OG e canonical dinâmicos).
+  useEffect(() => {
+    if (!isFull || !member || !canonicalUrl) return;
+    const seoDonorSuffix = isDonor ? " Apoiador(a) da comunidade." : "";
+    const description = `Perfil público de ${member.name} na Associação Codaqui. Membro desde ${formatDate(member.joinedAt)}.${seoDonorSuffix}`;
+    updateMemberHead(member, canonicalUrl, description);
+  }, [isFull, member, canonicalUrl, isDonor]);
+
+  const dynamicSections = member && (
+    <>
+      {/* Histórico público de eventos */}
+      <EventHistorySection registrations={eventRegistrations} />
+
+      <Divider sx={{ my: 3 }} />
+
+      {/* ── Tabs ── */}
+      {(() => {
+        const isOwner = isFull && loggedUser?.handle === member.githubHandle;
+        const showWalletTab = isOwner || !!publicWallet;
+        return (
+          <>
+            <Tabs
+              value={activeTab}
+              onChange={(_, v) => setActiveTab(v)}
+              variant="scrollable"
+              allowScrollButtonsMobile
+              sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
+            >
+              <Tab label="Visão Geral" />
+              <Tab label="Histórico de Doações" />
+              {showWalletTab && (
+                <Tab label={isOwner ? "Carteira" : "Carteira pública"} />
+              )}
+            </Tabs>
+
+            <TabPanel value={activeTab} index={0}>
+              <Box>
+                {affiliatedCompany && (
+                  <Card variant="outlined" sx={{ mb: 2 }}>
+                    <CardContent sx={{ py: "12px !important" }}>
+                      <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+                        CLUB Business
+                      </Typography>
+                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                        {affiliatedCompany.name}
+                      </Typography>
+                      {affiliatedCompany.responsibleGithubHandle && (
+                        <Typography variant="caption" color="text.secondary">
+                          Responsável: @{affiliatedCompany.responsibleGithubHandle}
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+                {isDonor ? (
+                  <Grid container spacing={2} sx={{ mb: 3 }}>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Card variant="outlined">
+                        <CardContent sx={{ py: "12px !important" }}>
+                          <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+                            Total doado
+                          </Typography>
+                          <Typography variant="h5" color="success.main" sx={{ fontWeight: 800 }}>
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+                              donations.reduce((s, d) => s + d.amount, 0)
+                            )}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Card variant="outlined">
+                        <CardContent sx={{ py: "12px !important" }}>
+                          <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+                            Apoios registrados
+                          </Typography>
+                          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+                            {donations.length}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                ) : (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <FavoriteIcon sx={{ fontSize: 48, color: "action.disabled", mb: 1 }} />
+                    <Typography variant="body1" color="text.secondary" gutterBottom>
+                      Este membro ainda não fez doações públicas.
+                    </Typography>
+                    <Button variant="contained" size="small" href="/participe/apoiar" sx={{ mt: 1 }}>
+                      Apoie a Codaqui
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            </TabPanel>
+
+            <TabPanel value={activeTab} index={1}>
+              <Box>
+                {isDonor ? (
+                  <DonationHistory donations={donations} />
+                ) : (
+                  <Box sx={{ textAlign: "center", py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Este membro ainda não fez doações públicas.
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </TabPanel>
+
+            {showWalletTab && (
+              <TabPanel value={activeTab} index={2}>
+                <Box>
+                  {isOwner && clubWallet && (
+                    <SortCoinsSection wallet={clubWallet} transactions={walletTxs} />
+                  )}
+                  {!isOwner && publicWallet && (
+                    <SortCoinsSection wallet={publicWallet} transactions={publicWalletTxs} />
+                  )}
+                  {affiliatedCompany && (
+                    <>
+                      <Divider sx={{ my: 3 }} />
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                        <BusinessIcon sx={{ color: "secondary.main" }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                          {businessMembershipType === "collaborator" ? "Vínculo Business Member" : "Vínculo CLUB Business"}
+                        </Typography>
+                      </Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {member.name} participa da empresa <strong>{affiliatedCompany.name}</strong>
+                        {affiliatedCompany.responsibleGithubHandle && (
+                          <> (responsável: @{affiliatedCompany.responsibleGithubHandle})</>
+                        )}.
+                      </Typography>
+                    </>
+                  )}
+                  {isOwner && (
+                    <>
+                      <Divider sx={{ my: 3 }} />
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+                        <BusinessIcon sx={{ color: "success.main" }} />
+                        <Typography variant="h6" sx={{ fontWeight: 700 }}>Minha Empresa</Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="success"
+                        size="small"
+                        startIcon={<BusinessIcon />}
+                        href="/membros/empresa"
+                        sx={{ textTransform: "none", fontWeight: 600 }}
+                      >
+                        Gerenciar empresa e carteira CLUB Business
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              </TabPanel>
+            )}
+          </>
+        );
+      })()}
+    </>
+  );
+
+  // ── Variante "public": apenas as seções dinâmicas (o cartão é estático) ──
+  if (!isFull) {
+    return (
+      <Box sx={{ mt: 4 }}>
+        {member ? dynamicSections : null}
+      </Box>
+    );
+  }
+
+  // ── Variante "full": perfil completo (/membros/perfil) ──
+  return (
+    <Box sx={{ py: { xs: 4, md: 6 } }}>
+      {/* Back link */}
+      <Link
+        href="/membros"
+        underline="hover"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.5,
+          mb: 3,
+          color: "text.secondary",
+          "&:hover": { color: "primary.main" },
+        }}
+      >
+        <ArrowBackIcon sx={{ fontSize: 18 }} />
+        <Typography variant="body2">Voltar para membros</Typography>
+      </Link>
+
+      {loading && <ProfileSkeleton />}
+
+      {error && (
+        <Box sx={{ textAlign: "center", py: 8 }}>
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            {error}
+          </Typography>
+          <Link href="/membros" underline="hover">
+            ← Ver todos os membros
+          </Link>
+        </Box>
+      )}
+
+      {!loading && !error && member && (
+        <>
+          {/* Carteirinha */}
+          <Carteirinha
+            member={member}
+            isDonor={isDonor}
+            isClubMember={isClubMember}
+            businessMembershipType={businessMembershipType}
+            profileUrl={vanityUrl}
+          />
+
+          {/* Social links */}
+          <Stack direction="row" spacing={2} sx={{ mt: 3 }}>
+            <Link
+              href={`https://github.com/${member.githubHandle}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              underline="hover"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                color: "text.secondary",
+              }}
+            >
+              <GitHubIcon sx={{ fontSize: 20 }} />
+              <Typography variant="body2">
+                @{member.githubHandle}
+              </Typography>
+            </Link>
+            {member.linkedinUrl && (
+              <Link
+                href={member.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                underline="hover"
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                  color: PLATFORM_COLORS.linkedin,
+                }}
+              >
+                <LinkedInIcon sx={{ fontSize: 20 }} />
+                <Typography variant="body2">LinkedIn</Typography>
+              </Link>
+            )}
+          </Stack>
+
+          <Divider sx={{ my: 3 }} />
+
+          {dynamicSections}
+        </>
+      )}
+    </Box>
+  );
+}
+
+export default function MemberProfileIsland(
+  props: Readonly<MemberProfileIslandProps>,
+): React.JSX.Element {
+  return (
+    <MuiIslandProvider>
+      <MemberProfileInner {...props} />
+    </MuiIslandProvider>
+  );
+}

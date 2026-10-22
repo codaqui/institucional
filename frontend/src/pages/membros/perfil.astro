@@ -1,0 +1,18 @@
+---
+// Fallback dinâmico do perfil de membro: /membros/perfil?handle=<handle>
+// (ou ?id=<uuid>). Cobre membros criados depois do último build (a rota
+// estática /@<handle> é gerada em build time) e a visão do próprio membro
+// logado (carteira SortCoins, "Minha Empresa"). Port de
+// src/pages/membros/perfil.tsx (Docusaurus) — a lógica vive na ilha.
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import MemberProfileIsland from "../../components/islands/MemberProfileIsland";
+---
+
+<PublicLayout
+  title="Perfil de Membro — Codaqui"
+  description="Perfil de membro da Associação Codaqui."
+>
+  <div class="mx-auto max-w-3xl px-4">
+    <MemberProfileIsland client:only="react" variant="full" />
+  </div>
+</PublicLayout>

@@ -6,6 +6,9 @@ interface Props {
   ogTitle?: string;
   description?: string;
   ogImage?: string;
+  ogImageAlt?: string;
+  ogType?: string;
+  twitterCard?: string;
   jsonLd?: object;
   noindex?: boolean;
 }
@@ -15,6 +18,9 @@ const {
   ogTitle = title,
   description = "Codaqui — Democratizando comunidades e projetos de tecnologia!",
   ogImage = "/img/og-codaqui.jpg",
+  ogImageAlt,
+  ogType = "website",
+  twitterCard = "summary_large_image",
   jsonLd,
   noindex = false,
 } = Astro.props;
@@ -36,8 +42,9 @@ const isProd = import.meta.env.PROD;
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={ogImageAbsolute} />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
+    {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
+    <meta property="og:type" content={ogType} />
+    <meta name="twitter:card" content={twitterCard} />
     <link rel="icon" type="image/png" href="/img/favicon.png" />
     {noindex && <meta name="robots" content="noindex" />}
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
