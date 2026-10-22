@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-21T23:02:15.243Z",
+  "generatedAt": "2026-10-22T00:02:14.813Z",
   "events": [
     {
       "id": "316756948",
@@ -130,7 +130,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 7,
+      "userCount": 8,
       "creatorName": "Everton Tavares",
       "creatorId": "188896297",
       "organizers": [
