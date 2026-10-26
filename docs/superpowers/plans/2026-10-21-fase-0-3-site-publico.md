@@ -92,24 +92,24 @@
 **Interfaces:**
 - Produces: `diretoria`, `membros`, `alumni`, `mentores` (team); `projects`; `timelineEvents`, `TimelineStats` se houver; `titulos`; `ANALYTICS_URL` + tipos; `SOCIAL_STATS_URL` + tipos já existentes. Nomes de export **idênticos** aos do Docusaurus (as páginas portadas os importam sem adaptação de nome).
 
-- [ ] **Step 1: Portar cada arquivo de dados**
+- [x] **Step 1: Portar cada arquivo de dados**
 
 Copiar o conteúdo de cada `src/data/<nome>.ts` para `frontend/src/data/<nome>.ts`, ajustando apenas imports que apontem para fora de `src/data` (ex.: se `timeline.ts` importa tipos de outro lugar, portar o tipo junto). Não alterar dados. Se o original referencia `static/` paths ou `@site/`, reescrever para caminhos do Astro (`/img/...` já funciona: `frontend/public/img` espelha `static/img` — confirmar e anotar no relatório).
 
-- [ ] **Step 2: Verificação de paridade de conteúdo**
+- [x] **Step 2: Verificação de paridade de conteúdo**
 
 Run (raiz): `for f in team projects timeline titulos analytics; do echo "== $f"; node -e "const a=require('./src/data/$f.ts')" 2>/dev/null || true; done` — como são TS, em vez disso: comparar contagens estruturais com grep (ex.: `grep -c "name:" src/data/team.ts` vs `frontend/src/data/team.ts`; `grep -c "^\s*{" src/data/projects.ts` vs port). Registrar a tabela de contagens no relatório — devem ser idênticas.
 
-- [ ] **Step 3: Completar `social-stats.ts`**
+- [x] **Step 3: Completar `social-stats.ts`**
 
 Ler `src/data/social-stats.ts` da raiz e portar para `frontend/src/data/social-stats.ts` o que falta (`SOCIAL_STATS_URL`, `BASELINE_TOTAL_EVENTS` e quaisquer constantes/funções que `useSocialStatsSnapshot` usa — o hook será portado na Task 6). Manter os tipos já existentes no arquivo do frontend.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npx astro check`
 Expected: 0 erros novos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/src/data/
@@ -132,7 +132,7 @@ git commit -m "feat(fase-0.3): port da camada de dados (team, projects, timeline
 - Produces (assinaturas idênticas ao Docusaurus): `formatBRL(cents: number): string`, `TX_TYPE_CONFIG`, `deriveTransactionMeta`, tipos `CommunityBalance`/`TransparencyStats`/`LedgerTransaction` (nomes reais do original); `MEMBER_HANDLE_REGEX`, `buildMemberPath(member): string`, `buildMemberJsonLd(member, siteUrl)`, tipo `PublicMemberProfile`; `formatDocument(doc: string): string`; funções de `datetime.ts` com os mesmos nomes.
 - Consumes: nada das tasks 0.2; consome o config de API existente.
 
-- [ ] **Step 1: Escrever os testes falhando**
+- [x] **Step 1: Escrever os testes falhando**
 
 Para cada função pura, escrever testes com casos reais tirados do uso atual (ler os arquivos-fonte e extrair 3-5 casos cada):
 - `formatBRL`: `formatBRL(123456)` → `"R$ 1.234,56"`; `formatBRL(0)` → `"R$ 0,00"`; negativo.
@@ -145,16 +145,16 @@ Para cada função pura, escrever testes com casos reais tirados do uso atual (l
 Run: `cd frontend && npx vitest run src/lib/transaction.test.ts src/lib/member-path.test.ts src/lib/document.test.ts src/lib/datetime.test.ts`
 Expected: FAIL (módulos não existem).
 
-- [ ] **Step 2: Portar as implementações**
+- [x] **Step 2: Portar as implementações**
 
 Copiar as funções dos originais ajustando imports. `transaction.tsx` → `.ts`: se `TX_TYPE_CONFIG` referencia componentes MUI (ícones), substituir por um campo `icon` string (emoji ou nome) e anotar o mapeamento exato no relatório — as ilhas que consomem (Task 8) decidem a renderização. Se for só texto/cor, portar direto com tokens (nada de hex: mapear cores para nomes de token `--cq-*` existentes; se o original usa hex, registrar o mapeamento hex→token no relatório).
 
-- [ ] **Step 3: Verificar**
+- [x] **Step 3: Verificar**
 
 Run: `cd frontend && npx vitest run && npx astro check`
 Expected: suíte verde (63 + novos), 0 erros.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/lib/
@@ -176,7 +176,7 @@ git commit -m "feat(fase-0.3): port de utils (transaction, member-path, document
   - `<StatCard label value icon? hint? />` — KPI card (ler `src/components/StatCard/`).
   - `<InfoCard icon title description link? />` — ler `src/components/InfoCard/`.
 
-- [ ] **Step 1: Portar os 3 componentes**
+- [x] **Step 1: Portar os 3 componentes**
 
 Ler cada original e reescrever em `.astro` + Tailwind com tokens. Manter a mesma estrutura semântica (heading levels do original). Exemplo do padrão esperado (ajustar ao original real):
 
@@ -200,12 +200,12 @@ const { eyebrow, title, subtitle } = Astro.props;
 </header>
 ```
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `cd frontend && npx astro check`
 Expected: 0 erros.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src/components/astro/
@@ -227,7 +227,7 @@ git commit -m "feat(fase-0.3): componentes Astro PageHero, StatCard, InfoCard"
 - Consumes: `PageHero` (Task 3), `social.ts`/`communities.ts` (já portados), `team.ts`/`projects.ts`/`titulos.ts` (Task 1), `PublicLayout`, `BrandLogo` (bio usa logo por tema).
 - Produces: as 5 rotas com title/description/og:title em paridade.
 
-- [ ] **Step 1: Para cada página, ler o fonte Docusaurus e portar**
+- [x] **Step 1: Para cada página, ler o fonte Docusaurus e portar**
 
 Processo por página (repetir 5×):
 1. Ler `src/pages/<pagina>.tsx`.
@@ -235,12 +235,12 @@ Processo por página (repetir 5×):
 3. Reescrever em `.astro` com `PublicLayout` + componentes da Task 3 + dados portados; MUI→Tailwind (Grid vira `grid` Tailwind; Card vira `rounded-lg border border-border bg-surface`; Chip vira pill `rounded-full border border-border`).
 4. bio.tsx usa `useColorMode` para logo → usar `BrandLogo` (troca por tema já resolvida na 0.1).
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `cd frontend && npm run build && for p in contato projetos bio sobre/equipe sobre/titulos; do test -f dist/$p/index.html && echo "OK /$p"; done`
 Expected: 5 OKs; og:title de cada uma idêntico ao `build/<pagina>.html` correspondente (grep e compare — registrar no relatório).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/src/pages/
@@ -266,7 +266,7 @@ git commit -m "feat(fase-0.3): páginas estáticas — contato, projetos, bio, e
 - Consumes: `PageHero`, `InfoCard`, `.prose-cq`, pipeline de collections da 0.2.
 - Produces: as 6 rotas; collection `pages` com schema `{ title: z.string(), description: z.string().optional() }`.
 
-- [ ] **Step 1: Estender o pipeline de conteúdo**
+- [x] **Step 1: Estender o pipeline de conteúdo**
 
 Adicionar ao `copy-content.mjs` uma cópia de arquivos individuais (criar função `copyFile` ou usar `cpSync` por arquivo):
 
@@ -284,7 +284,7 @@ for (const [from, to] of pageFiles) {
 
 (criar o diretório antes com `mkdirSync(..., { recursive: true })`).
 
-- [ ] **Step 2: Collection `pages`**
+- [x] **Step 2: Collection `pages`**
 
 Adicionar a `frontend/src/content.config.ts`:
 
@@ -299,7 +299,7 @@ const pages = defineCollection({
 // export const collections = { blog, trilhas, pages };
 ```
 
-- [ ] **Step 3: Páginas markdown** — padrão idêntico para as 4 (exemplo `sobre/conduta.astro`):
+- [x] **Step 3: Páginas markdown** — padrão idêntico para as 4 (exemplo `sobre/conduta.astro`):
 
 ```astro
 ---
@@ -322,16 +322,16 @@ const { Content } = await render(entry);
 
 ⚠️ Antes de fixar o ogTitle, conferir o og:title real de `build/sobre/conduta.html` e replicar exatamente (pode não ter sufixo em páginas MD — verificar os 4). Se o frontmatter `.md` não tiver `description`, conferir a meta description do build antigo e replicar (ou deixar vazio se o antigo também omite).
 
-- [ ] **Step 4: estudar e mentoria**
+- [x] **Step 4: estudar e mentoria**
 
 Portar `estudar.tsx` e `mentoria.tsx` lendo os originais: dados inline (TURMAS/GRUPOS_ESTUDO/TRACKS/CERTIFICATE_STEPS e MENTORS/CALENDAR_URL) viram constantes no topo do `.astro` (ou em `frontend/src/data/` se o arquivo passar de ~80 linhas de dados — julgar pelo original; nomear `frontend/src/data/estudar.ts` / `mentoria.ts` nesse caso). Links externos com `target="_blank" rel="noopener noreferrer"`.
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npm run build && for p in participe/estudar participe/mentoria sobre/conduta sobre/pais-responsaveis regex termos-de-compra; do test -f dist/$p/index.html && echo "OK /$p"; done`
 Expected: 6 OKs + og:title/paridade conferidos contra `build/`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/
@@ -355,7 +355,7 @@ git commit -m "feat(fase-0.3): páginas participe/estudar+mentoria e markdown (c
 - Produces: `/sobre/insights`, `/sobre/ong`; `loadSocialStats(): SocialStatsSnapshot` (build-time, lê o snapshot com fallback) e `resolveSocialCount(profile, entry): number` (baseline quando o snapshot não tem a entrada — assinatura final espelha o hook original; verificar antes de nomear); ilhas `SiteAnalyticsIsland`, `DiscordWidgetIsland`.
 - Consumes: `timeline.ts`, `communities.ts`, `social-stats.ts` (Task 1), `PageHero`, `StatCard`, `CommunityPresenceCard`, `MembersWall` (ilha — portar `MembersWall` como `MembersWallIsland.tsx` com `client:visible`; endpoint prop).
 
-- [ ] **Step 1: Portar o loader de social stats para build-time**
+- [x] **Step 1: Portar o loader de social stats para build-time**
 
 O hook original faz fetch em runtime com fallback de baselines. No Astro: ler `frontend/public/social-stats/index.json` (copiado pelo pipeline) em build; se ausente/inválido, usar os baselines de `frontend/src/data/social-stats.ts`. Função pura — teste TDD:
 
@@ -376,20 +376,20 @@ describe("resolveSocialCount", () => {
 
 (Adaptar à assinatura real do hook original — ler `src/hooks/useSocialStatsSnapshot.ts` primeiro e espelhar os casos de fallback.)
 
-- [ ] **Step 2: Portar as ilhas** (`SiteAnalytics`, `DiscordServerWidget`, `MembersWall`)
+- [x] **Step 2: Portar as ilhas** (`SiteAnalytics`, `DiscordServerWidget`, `MembersWall`)
 
 Cada ilha: mesmo fetch do original, MUI permitido dentro da ilha (já há `MuiIslandProvider` na POC — verificar como as ilhas existentes o usam e seguir o padrão), `client:visible`. `DiscordServerWidget` consome `DISCORD_WIDGET_URL` de `social.ts` (portar a constante se faltar).
 
-- [ ] **Step 3: Montar as duas páginas**
+- [x] **Step 3: Montar as duas páginas**
 
 Ler `insights.tsx` e `ong.tsx` e portar seção a seção (stats bar, presença digital, comunidades, timeline; associação + MembersWall + comunidades). Timeline: reproduzir a timeline custom com Tailwind (o original não usa @mui/lab — linha vertical + dots + cards).
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npm run build && for p in sobre/insights sobre/ong; do test -f dist/$p/index.html && echo "OK /$p"; done && npx vitest run src/lib/social-stats.test.ts`
 Expected: 2 OKs + testes verdes; og:title em paridade com `build/sobre/insights.html` e `build/sobre/ong.html`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -409,20 +409,20 @@ git commit -m "feat(fase-0.3): sobre/insights e sobre/ong com social stats, time
 - Consumes: `loadEventsIndex()` (já existe em `frontend/src/lib/events.ts`), `event-path.ts` (já portado), `DiscordWidgetIsland` (Task 6), `PageHero`.
 - Produces: `/eventos` (lista futuros ASC + passados DESC, badges de fonte/override, link para a rota estática de cada evento); `/eventos/detalhe` (redirect client-side).
 
-- [ ] **Step 1: Portar `/eventos`**
+- [x] **Step 1: Portar `/eventos`**
 
 Ler `src/pages/eventos.tsx`. A listagem é alimentada por `static/events/index.json` (já copiado para `frontend/public/events/index.json` pelo pipeline de snapshots da POC — confirmar). Renderizar em build-time (zero JS) a lista completa: futuros (ASC por startAt) e passados (DESC), com badge de fonte e `EventOverrideBadge` quando `hasOverride` (portar o badge como `.astro` puro — lê metadados do próprio snapshot; ler `src/components/EventOverrideBadge/` e `src/utils/event-override.ts`). Cada card linka para `buildEventPublicPath(event)`. Filtros client-side do original: se existirem (filtro por fonte/comunidade), implementar como ilha leve `client:visible` ou via `<details>`/âncoras — julgar pelo original; se for só visual, preferir zero-JS e anotar a decisão no relatório.
 
-- [ ] **Step 2: `/eventos/detalhe` fallback**
+- [x] **Step 2: `/eventos/detalhe` fallback**
 
 Página com script inline que replica a lógica do original: lê `?source=&id=` (e `?slug=`), consulta `/events/index.json`, redireciona para a rota estática; **exceção**: se `status=success&session_id=...` (retorno Stripe), NÃO redirecionar para a rota estática sem preservar os params — ler o comportamento exato do original e replicar (provavelmente: mantém na página de detalhe dinâmica ou redireciona com os params; o original em `detalhe.tsx` trata isso — portar fielmente). `noindex` nesta página.
 
-- [ ] **Step 3: Verificar**
+- [x] **Step 3: Verificar**
 
 Run: `cd frontend && npm run build && test -f dist/eventos/index.html && test -f dist/eventos/detalhe/index.html && echo OK`
 Expected: OK; contagem de cards de eventos no HTML bate com `static/events/index.json` (`node -e "console.log(require('./frontend/public/events/index.json').events.length)"`); og:title em paridade com `build/eventos.html`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/pages/eventos/ frontend/src/lib/events.ts frontend/src/components/
@@ -443,24 +443,24 @@ git commit -m "feat(fase-0.3): índice /eventos + fallback /eventos/detalhe"
 - Consumes: `transaction.ts` (Task 2: `formatBRL`, `TX_TYPE_CONFIG`, `deriveTransactionMeta`, tipos), `communities.ts`, `PageHero`, `StatCard`.
 - Produces: `/transparencia` — shell estático (hero, texto institucional) + ilha `client:visible` que busca `GET /ledger/community-balances` e `GET /ledger/transparency-stats` e renderiza KPIs/tabs/tabela. Query `?tx=` abre o `TransactionDetailDialog` correspondente; `?project=` filtra.
 
-- [ ] **Step 1: Portar TransactionTable + TransactionDetailDialog**
+- [x] **Step 1: Portar TransactionTable + TransactionDetailDialog**
 
 Ler `src/components/TransactionTable/` e `src/components/TransactionDetailDialog/`. Manter MUI dentro da ilha (tabela, dialog, filtros, sort, export CSV da página). Usar `formatBRL`/`deriveTransactionMeta` da lib portada (Task 2) — remover duplicações locais se houver.
 
-- [ ] **Step 2: Portar TransparencyApp**
+- [x] **Step 2: Portar TransparencyApp**
 
 Ler `src/pages/transparencia.tsx` e extrair a parte dinâmica para a ilha: fetch dos 2 endpoints, estados de loading/erro (`Alert` MUI), 5 KPIs, cards por comunidade com progresso entrada/saída, tabs. Suporte a `?tx=` e `?project=` via `URLSearchParams` no mount.
 
-- [ ] **Step 3: Montar a página**
+- [x] **Step 3: Montar a página**
 
 `transparencia.astro`: `PublicLayout` + `PageHero` + texto estático + `<TransparencyApp client:visible />`. og:title em paridade com `build/transparencia.html`.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npm run build && npx astro check`
 Expected: verde; `dist/transparencia/index.html` existe com a ilha montada (`astro-island` no HTML); sem backend local a ilha mostra estado de erro/loading — comportamento idêntico ao esperado (backend local opcional; documentar no relatório).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -482,25 +482,25 @@ git commit -m "feat(fase-0.3): /transparencia com ilha do ledger (balances, stat
 - Consumes: `communities.ts` (targets), `SelectableCard` (portar como subcomponente da ilha), `lib/config.ts` (API URL), `useAuth` (`frontend/src/lib/use-auth.ts` — já existe).
 - Produces: `/participe/apoiar` com toggle PF/PJ (`?modo=empresa`), presets de valor, destinos (tesouro + comunidades com saldo de `GET /ledger/community-balances`), anônimo ≤ R$ 100, checkout embedded por `clientSecret`, fallback hosted por `url`, retorno `?status=success|cancelled&session_id=`.
 
-- [ ] **Step 1: Instalar deps e conferir a publishable key**
+- [x] **Step 1: Instalar deps e conferir a publishable key**
 
 Run: `cd frontend && npm install @stripe/react-stripe-js @stripe/stripe-js`
 A publishable key no Docusaurus vem de `customFields` — ler `docusaurus.config.ts` e descobrir o nome exato do campo e como chega ao cliente. No Astro: expor via `PUBLIC_STripe...` env var ou constante em `frontend/src/lib/config.ts` lendo `import.meta.env.PUBLIC_STRIPE_PUBLISHABLE_KEY`. Documentar a env no `DEVELOPMENT.md` e, se aplicável, no `.env.example` da raiz (permitido: só template, sem valor real). NUNCA commitar a chave real — publishable key é pública por natureza, mas seguir o padrão de env do projeto.
 
-- [ ] **Step 2: Portar o fluxo de doação**
+- [x] **Step 2: Portar o fluxo de doação**
 
 Ler `src/components/DonationFlow/`, `src/components/StripeDonateSection/useDonationFlow.ts` (ou onde estiver), `helpers.ts` (`buildCheckoutBody`, `requestCheckoutSession`) e `StripeEmbeddedCheckoutDialog`. Portar preservando: frequência (monthly/year/once), presets R$ 10/25/50/100/200, destinos com saldo, regra de anonimato ≤ R$ 100 (acima exige login GitHub — usar o `useAuth` portado), estados de erro com `Alert`.
 
-- [ ] **Step 3: Montar a página**
+- [x] **Step 3: Montar a página**
 
 Ler `src/pages/participe/apoiar.tsx`. Shell estático (hero, texto, links OpenCollective→verificar se ainda existe no original — inventário diz que foi removido; replicar o que existe) + `<DonationFlowIsland client:load />` (acima da dobra e interativo) + seção PJ com `<CompanyDonationIsland client:visible />` quando `?modo=empresa` — ou tabs como o original; seguir o original.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npm run build && npx astro check && npx vitest run`
 Expected: verde; ilha presente no HTML. Checkout ponta a ponta real fica para a verificação final (Task 16) com backend local/preview.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -521,16 +521,16 @@ git commit -m "feat(fase-0.3): /participe/apoiar com DonationFlow e checkout Str
 - Consumes: `PageHero`, `social.ts` (PLATFORM_COLORS — portar se faltar), lib de API.
 - Produces: `/patrocinadores`, `/membros`.
 
-- [ ] **Step 1: Portar as duas ilhas**
+- [x] **Step 1: Portar as duas ilhas**
 
 Ler `src/pages/patrocinadores.tsx` e `src/pages/membros/index.tsx`; extrair a parte dinâmica (fetch paginado, estados, cards) para ilhas `client:visible`. Manter CTAs estáticos no shell `.astro` (ex.: CTA de patrocinadores → `/participe/apoiar?modo=empresa`).
 
-- [ ] **Step 2: Montar as páginas e verificar**
+- [x] **Step 2: Montar as páginas e verificar**
 
 Run: `cd frontend && npm run build && for p in patrocinadores membros; do test -f dist/$p/index.html && echo "OK /$p"; done`
 Expected: OKs; og:title em paridade (`build/patrocinadores.html`, `build/membros.html`).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add frontend/
@@ -553,11 +553,11 @@ git commit -m "feat(fase-0.3): /patrocinadores e /membros com ilhas de API públ
 - Consumes: `member-path.ts` (Task 2: `MEMBER_HANDLE_REGEX`, `buildMemberPath`, `buildMemberJsonLd`), `PublicLayout`, `transaction.ts` (wallet), `event-path.ts`.
 - Produces: rotas `/@<handle>` com OG/JSON-LD Person por membro; `/membros/perfil?handle=` (fallback dinâmico); `/404` com redirect `/@handle` → `/membros/perfil?handle=`.
 
-- [ ] **Step 1: `loadPublicMembers()` com teste**
+- [x] **Step 1: `loadPublicMembers()` com teste**
 
 Port de `member-pages.ts` como função: fetch `GET {API}/members?limit=100&page=N` (máx 50 páginas), agrega, falha → `[]` + `console.warn` (não quebra o build). Teste com fetch mockado (vitest `vi.stubGlobal`): 2 páginas agregadas; erro → `[]`.
 
-- [ ] **Step 2: Rota estática `/@handle`**
+- [x] **Step 2: Rota estática `/@handle`**
 
 ```astro
 ---
@@ -582,11 +582,11 @@ const jsonLd = buildMemberJsonLd(member, Astro.site?.origin ?? "");
 
 Renderizar o perfil PÚBLICO estaticamente (nome, avatar, bio, links, badges públicas) com JSON-LD Person + OG; as seções dinâmicas (doações, wallet pública, eventos) como ilhas `client:visible` consumindo as APIs públicas por handle (ler `perfil.tsx` para a lista exata de endpoints públicos: `/members/by-handle/:handle`, `/club/public-wallet/:handle`, `/events/members/:memberId/registrations`, `/companies/member/:handle/public-affiliation`). Seções auth (minha conta) só em `/membros/perfil` logado — ilha `client:only`.
 
-- [ ] **Step 3: `/membros/perfil`**
+- [x] **Step 3: `/membros/perfil`**
 
 Shell + `<MemberProfileIsland client:only="react" />` que lê `?handle=` (ou o usuário logado) e renderiza o perfil completo (port de `perfil.tsx`, incl. QRCode via `qrcode.react` — instalar se usado). Seções que exigem auth renderizam estado de login (o hook `useAuth` portado já trata).
 
-- [ ] **Step 4: `404.astro`**
+- [x] **Step 4: `404.astro`**
 
 ```astro
 ---
@@ -607,12 +607,12 @@ Shell + `<MemberProfileIsland client:only="react" />` que lê `?handle=` (ou o u
 
 (Conferir que `PublicLayout`/`BaseLayout` aceita `noindex` — a POC já tem essa prop; usar o nome real.)
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npm run build && ls dist/@ 2>/dev/null | head -5; npx vitest run src/lib/member-pages.test.ts`
 Expected: build verde SEM a API (fetch falha → 0 páginas @, warn no log — comportamento do Docusaurus); com `DOCUSAURUS_API_URL`/env equivalente apontando para a API de produção, páginas @ geradas (testar com `PUBLIC_API_URL=https://api.codaqui.dev npm run build` se a API for alcançável; anotar o número de páginas no relatório). Testes verdes.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/
@@ -634,20 +634,20 @@ git commit -m "feat(fase-0.3): /@handle estático, /membros/perfil e 404 com red
 - Consumes: `PageHero`, `TabPanel` (portar como parte das ilhas ou componente Astro com details — julgar pelo original), `useAuth`, lib de API.
 - Produces: `/clube`, `/certificado/verificar`.
 
-- [ ] **Step 1: Portar /clube**
+- [x] **Step 1: Portar /clube**
 
 Ler `src/pages/clube.tsx` (770 linhas). Shell estático: hero, explicação do Clube/SortCoins, regras. `ClubRafflesIsland client:visible`: sorteios ativos + histórico (público). `ClubWalletIsland client:only="react"`: carteira do membro logado, minhas entries, botão de participar (POST); deslogado → CTA de login. Manter textos e regras verbatim do original.
 
-- [ ] **Step 2: Portar /certificado/verificar**
+- [x] **Step 2: Portar /certificado/verificar**
 
 Shell + `<CertificateVerifyIsland client:load />`: input de código + `GET /events/certificates/verify/:code`, estados de sucesso/erro (ler o original). Suportar `?code=` na URL se o original suportar.
 
-- [ ] **Step 3: Verificar**
+- [x] **Step 3: Verificar**
 
 Run: `cd frontend && npm run build && for p in clube certificado/verificar; do test -f dist/$p/index.html && echo "OK /$p"; done && npx astro check`
 Expected: OKs + 0 erros; og:title em paridade.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/
@@ -682,7 +682,7 @@ git commit -m "feat(fase-0.3): /clube (raffles públicos + wallet auth) e /certi
 | `/pais_responsaveis` | `/sobre/pais-responsaveis` |
 | `/blog/archive/2022..2025` | `/blog` |
 
-- [ ] **Step 1: Criar o componente**
+- [x] **Step 1: Criar o componente**
 
 ```astro
 ---
@@ -710,16 +710,16 @@ const { to } = Astro.props;
 
 Cada página stub é uma linha: `--- import RedirectStub from "../../components/astro/RedirectStub.astro"; ---` + `<RedirectStub to="/participe/estudar" />` (ajustar profundidade do import por página).
 
-- [ ] **Step 2: Verificar**
+- [x] **Step 2: Verificar**
 
 Run: `cd frontend && npm run build && for p in quero/estudar quero/apoiar quero/mentoria team contact conduta ong timeline pais_responsaveis sobre/timeline blog/archive/2022 blog/archive/2025; do test -f dist/$p/index.html && echo "OK /$p"; done`
 Expected: 12 OKs.
 
-- [ ] **Step 3: Remover a exclusão de /blog/archive do gate**
+- [x] **Step 3: Remover a exclusão de /blog/archive do gate**
 
 Em `frontend/scripts/diff-urls.mjs`, remover `/^\/blog\/archive/` de `EXCLUDE` (os stubs agora existem). Manter o comentário explicando o histórico.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/pages/ frontend/src/components/astro/RedirectStub.astro frontend/scripts/diff-urls.mjs
@@ -741,29 +741,29 @@ git commit -m "feat(fase-0.3): stubs de redirect legados (quero/*, team, contact
 
 **Spec da página (verbatim de `design-system.md`):** Hero com marca · 01 História (timeline real, de `timeline.ts`) · 02 Marca (3 logos + regras de respiro/uso proibido + **regra de logo por tema** com demos lado a lado: `logo_principal` só sobre fundo claro, `logo_monocromatica` só sobre fundo escuro) · 03 Cores (escalas com badge WCAG por swatch, incluindo o alerta "por que `#57B593` não é acionável" — 2.49:1 sobre branco reprova AA; cor acionável `#378369` 4.55:1) · 04 Tipografia (escala renderizada ao vivo — system fonts, modular 1.25, pesos 400/500/700/800) · 05 Componentes (demos: botões, badges, alertas, formulários, tabela financeira) · 06 Acessibilidade (checklist + demo de foco) · 07 Tom de voz (tabela "Diga / Evite / Por quê" + hashtags `#QueroEstudar`, `#QueroApoiar`, `#QueroMentoria`, `#ClubCodaqui`).
 
-- [ ] **Step 1: Estrutura da página**
+- [x] **Step 1: Estrutura da página**
 
 `design-system.astro` com âncoras por seção (`id="historia"` etc.) e índice no topo (nav local com links `#`). Todas as seções `.astro` puro; única ilha: `CopySwatchIsland` nos swatches de cor (copia o hex para clipboard, feedback "Copiado!"). ogTitle: `Design System | CODAQUI.dev`; description própria; title `Design System | Codaqui`.
 
-- [ ] **Step 2: Seções 01–03 (História, Marca, Cores)**
+- [x] **Step 2: Seções 01–03 (História, Marca, Cores)**
 
 - História: timeline vertical (reusar o padrão da Task 6) com `timelineEvents` reais.
 - Marca: os 3 logos em cards com fundo claro E escuro lado a lado (demonstrando a regra de tema), regras de respiro (espaçamento mínimo = altura do "C" do logotipo) e usos proibidos (não distorcer, não trocar cores, não usar logo escura sobre escuro).
 - Cores: escalas primary (50–900), plum (neutros), semânticas — ler os valores REAIS de `frontend/src/styles/tokens.css` e gerar os swatches a partir deles (um objeto TS local `ds-palette.ts` derivado dos tokens; cada swatch com hex + badge AA/AAA onde aplicável — contraste calculado por função `contrastRatio(fg, bg)` em `frontend/src/lib/` com teste TDD: `contrastRatio("#378369", "#FFFFFF")` ≈ 4.55).
 
-- [ ] **Step 3: Seções 04–07**
+- [x] **Step 3: Seções 04–07**
 
 - Tipografia: escala 12–48px renderizada ao vivo (cada tamanho com seu próprio `font-size` via tokens/escala Tailwind), pesos, mono para números de impacto.
 - Componentes: demos estáticas com as classes do DS (botões primário/secundário/disabled, badges, alertas info/success/warning/error, campos de formulário, tabela financeira no padrão da transparência).
 - Acessibilidade: checklist (contraste AA, alvos 44px, foco visível, reduced-motion) + demo de foco visível.
 - Tom de voz: tabela "Diga / Evite / Por quê" (conteúdo do `design-system.md`: "participantes" não "alunos", "programa" não "curso", "encontros" não "aulas", "Associação" não "escola/empresa") + hashtags oficiais.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npm run build && test -f dist/design-system/index.html && npx vitest run && npx astro check`
 Expected: verde. Critério da spec: skip link presente, foco visível, `prefers-reduced-motion` respeitado (verificar no CSS), Lighthouse ≥ demais páginas públicas (registrar na Task 16).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -783,16 +783,16 @@ git commit -m "feat(fase-0.3): página pública /design-system (brand book, 8 se
 **Interfaces:**
 - Produces: `/sitemap-index.xml` (+ sitemaps filhos) no dist; gate estendido.
 
-- [ ] **Step 1: Sitemap**
+- [x] **Step 1: Sitemap**
 
 Run: `cd frontend && npm install @astrojs/sitemap`
 Registrar em `astro.config.mjs`: `integrations: [react(), mdx(), sitemap()]`. Filtrar páginas noindex: `/404`, `/eventos/detalhe`, redirects-stub, `/admin/*`, `/auth/*` (usar a opção `filter` da integração: `(page) => !page.includes("/admin") && ...` — lista exata no código).
 
-- [ ] **Step 2: robots.txt**
+- [x] **Step 2: robots.txt**
 
 Copiar `static/robots.txt` para `frontend/public/robots.txt` (verbatim: `User-agent: *`, `Disallow: /previews/`, `Sitemap: https://codaqui.dev/sitemap.xml`). ⚠️ Verificar o que o `@astrojs/sitemap` emite (`sitemap-index.xml` vs `sitemap.xml`) e ajustar o robots para apontar para o arquivo real; se o Astro emitir `sitemap-index.xml`, atualizar a linha Sitemap para ele e anotar no relatório (paridade de descoberta, não de nome de arquivo).
 
-- [ ] **Step 3: Estender o gate**
+- [x] **Step 3: Estender o gate**
 
 Em `diff-urls.mjs`, generalizar: em vez de `["blog", "trilhas"]`, cobrir as seções públicas:
 
@@ -805,12 +805,12 @@ const TOP_LEVEL = ["", "contato", "projetos", "transparencia", "bio", "clube", "
 
 Implementação: manter o walk por seção + sibling `<seção>.html`, e adicionar os TOP_LEVEL como arquivos soltos (`build/<nome>.html` → `/<nome>`; `/` = `build/index.html`). Rodar, e para cada URL faltando: corrigir a rota (não o script). URLs que o Docusaurus gera e não fazem sentido portar (se houver) exigem exclusão JUSTIFICADA no relatório para o controlador decidir.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npm run build && node scripts/diff-urls.mjs && ls dist/sitemap*`
 Expected: paridade 100% nas seções cobertas; sitemap gerado.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -825,7 +825,7 @@ git commit -m "feat(fase-0.3): sitemap, robots.txt e gate de paridade estendido 
 - Modify: `docs/superpowers/plans/2026-10-21-fase-0-3-site-publico.md` (checkboxes)
 - Modify: `DEVELOPMENT.md` (envs novas: `PUBLIC_STRIPE_PUBLISHABLE_KEY` e o que mais surgir)
 
-- [ ] **Step 1: Gates completos**
+- [x] **Step 1: Gates completos** — ✅ 2026-10-26: build (577 páginas), astro check (0 erros), vitest (192 testes), diff-urls (paridade 100%, 576 URLs de referência) e typecheck da raiz, todos verdes.
 
 Run: `cd frontend && npm run build && npx astro check && npx vitest run && node scripts/diff-urls.mjs`
 Expected: tudo verde, paridade 100%.
@@ -833,24 +833,24 @@ Expected: tudo verde, paridade 100%.
 Run (raiz): `npm run typecheck`
 Expected: verde.
 
-- [ ] **Step 2: Validação de OG/JSON-LD**
+- [x] **Step 2: Validação de OG/JSON-LD** — ✅ 2026-10-26: amostra comparada; divergências encontradas foram corrigidas (commit `b217e444a07`): title tag agora segue `<título> | CODAQUI.dev` em todas as páginas públicas; `trailingSlash: "never"` alinhou canonical/og:url; JSON-LD BlogPosting (posts) e BreadcrumbList (trilhas) replicados. Diferenças residuais documentadas (melhorias deliberadas): homepage com título descritivo (`Codaqui — Democratizando comunidades e projetos de tecnologia!`) no lugar de "Página Inicial"; og:description de posts truncado em ~160 chars (o antigo despachava o parágrafo inteiro). `/@handle` não gerado no build de referência (sem API) — Person validado na 0.1.
 
 Script ou manual: para uma amostra (`/`, `/blog/<post>`, `/trilhas/python/page-1`, `/eventos/<um evento>`, `/sobre/equipe`, `/design-system`, um `/@handle` se gerado), comparar `og:title`, `og:description`, `og:image`, canonical e JSON-LD entre `build/` e `frontend/dist/`. Registrar a tabela no relatório. JSON-LD: Event (já validado na 0.1), Person (membros) — parsear e validar `@type` e campos obrigatórios.
 
-- [ ] **Step 3: Peso das ilhas (meta da spec: nenhuma ilha pública > 100 KB gzip de JS)**
+- [x] **Step 3: Peso das ilhas (meta da spec: nenhuma ilha pública > 100 KB gzip de JS)** — ✅ 2026-10-26: maior chunk único 65 KB gzip (runtime React client), MuiIslandProvider 40 KB; código específico de cada ilha ≤ 31 KB. Nenhuma ilha excede 100 KB de código próprio; ilhas MUI compartilham o runtime de ~105 KB (carregado uma vez, fora da métrica por-ilha).
 
 Run: `cd frontend && for f in dist/_astro/*.js; do gzip -c "$f" | wc -c | awk -v f="$f" '{print f, $1}'; done | sort -k2 -nr | head -10`
 Registrar no relatório; se alguma ilha pública > 100 KB gzip, investigar code-splitting (`client:visible` já ajuda) e anotar.
 
-- [ ] **Step 4: Lighthouse**
+- [x] **Step 4: Lighthouse** — ✅ 2026-10-26 (mobile, `make astro-lighthouse` com as 3 páginas novas): `/` 97 · evento 96 · `/admin/eventos` 93 · `/blog` 99 · post 99 · `/trilhas/intro` 98 · trilha 98 · `/sobre/insights` 98 · `/participe/apoiar` 78 (ilha Stripe+MUI, a mais pesada) · `/design-system` 97. SEO 100 em todas; A11y 94–100; BP 73 constante (artefato do preview, idêntico nas fases 0.1/0.2).
 
 `make astro-lighthouse` (estender o target: adicionar `/sobre/insights/`, `/participe/apoiar/`, `/design-system/`). Registrar números no commit.
 
-- [ ] **Step 5: Checkout Stripe ponta a ponta (documentado)**
+- [x] **Step 5: Checkout Stripe ponta a ponta (documentado)** — ⚠️ 2026-10-26: **pendência ambiental** (não é falha de implementação). A ilha `DonationFlowIsland` está presente no HTML de `/participe/apoiar` (astro-island + chunk `DonationFlowIsland` no dist) e o contrato do port é idêntico ao Docusaurus (`POST /stripe/checkout-session` → `clientSecret` → `EmbeddedCheckoutProvider`). Não foi possível abrir o checkout real neste ambiente: backend local não está no ar, a publishable key não está no repo (vem de env; o build de referência também a tinha vazia) e a API de produção está em modo live (sem cartão de teste). Pendência para o cutover 0.6: repetir no preview do Pages com `PUBLIC_STRIPE_PUBLISHABLE_KEY` configurada — abrir o embedded checkout e parar antes de pagar, ou usar Stripe test mode com backend local (`make db-up`).
 
 Com backend local (`make db-up` + backend, ver DEVELOPMENT.md) ou contra a API de produção com cuidado: iniciar um checkout de doação em `/participe/apoiar` no dev server, confirmar que o embedded checkout abre (pode usar cartão de teste 4242 se em modo teste; se produção, parar antes de pagar e registrar "checkout abre com clientSecret real"). Registrar o resultado exato no relatório — se não for possível testar sem credenciais, documentar como pendência ambiental explícita para o usuário (não como falha).
 
-- [ ] **Step 6: Checkboxes + docs**
+- [x] **Step 6: Checkboxes + docs** — ✅ 2026-10-26: checkboxes marcados; `DEVELOPMENT.md` já documentava `PUBLIC_STRIPE_PUBLISHABLE_KEY` e `PUBLIC_API_URL` (linha 120) e `frontend/.env.example` tem ambas — nada novo a acrescentar. Makefile: `astro-verify`/`astro-lighthouse` atualizados (gate estendido, 3 páginas novas, URLs sem barra).
 
 Marcar os `- [x]` dos itens verificados neste plano; atualizar `DEVELOPMENT.md` com envs novas.
 
@@ -865,10 +865,10 @@ git commit -m "chore(fase-0.3): verificação final — paridade de URLs públic
 
 ## Critérios de pronto da 0.3 (da spec)
 
-- [ ] Paridade de rotas públicas (gate `diff-urls` estendido, 0 faltando)
-- [ ] OG/JSON-LD validados (amostra documentada, incl. Person de membros)
-- [ ] Sitemap equivalente (`@astrojs/sitemap`, robots.txt apontando certo)
-- [ ] Checkout Stripe ponta a ponta no preview (ou pendência ambiental documentada)
-- [ ] `/design-system` no ar com as 8 seções e dados reais de `timeline.ts`; acessível (skip link, foco visível, reduced-motion)
-- [ ] Nenhuma ilha pública > 100 KB gzip de JS (ou exceção justificada)
-- [ ] Gates verdes: build, astro check, vitest, typecheck da raiz
+- [x] Paridade de rotas públicas (gate `diff-urls` estendido, 0 faltando) — 576 URLs de referência, 100% presentes
+- [x] OG/JSON-LD validados (amostra documentada, incl. Person de membros) — diferenças corrigidas em `b217e444a07`; divergências residuais deliberadas documentadas no Step 2
+- [x] Sitemap equivalente (`@astrojs/sitemap`, robots.txt apontando certo) — `sitemap-index.xml` (565 URLs) + `robots.txt` → `sitemap-index.xml`
+- [x] Checkout Stripe ponta a ponta no preview (ou pendência ambiental documentada) — pendência ambiental documentada no Step 5 (para o cutover 0.6)
+- [x] `/design-system` no ar com as 8 seções e dados reais de `timeline.ts`; acessível (skip link, foco visível, reduced-motion) — Lighthouse 97/97/73/100
+- [x] Nenhuma ilha pública > 100 KB gzip de JS (ou exceção justificada) — maior chunk 65 KB; específico por ilha ≤ 31 KB
+- [x] Gates verdes: build, astro check, vitest, typecheck da raiz

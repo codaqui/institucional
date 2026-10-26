@@ -287,7 +287,7 @@ astro-test: ## Roda os testes do app Astro (vitest)
 astro-preview: ## Serve o build do Astro em http://localhost:4321 (homologação)
 	cd $(ASTRO_DIR) && npm run preview
 
-astro-verify: ## Verificação completa da POC 0.1: build + tipos + testes + smoke do dist/
+astro-verify: ## Verificação completa do app Astro: build + tipos + testes + smoke + gate de paridade de URLs
 	@printf "$(CYAN)→  Build + typecheck + testes do Astro...$(RESET)\n"
 	cd $(ASTRO_DIR) && npm run build && npm run check && npm run test
 	@printf "$(CYAN)→  Smoke do build (dist/)...$(RESET)\n"
@@ -299,16 +299,16 @@ astro-verify: ## Verificação completa da POC 0.1: build + tipos + testes + smo
 	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
-	@printf "$(CYAN)→  Gate de paridade de URLs /blog e /trilhas vs build Docusaurus (build/)...$(RESET)\n"
+	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs build Docusaurus (build/)...$(RESET)\n"
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
 
-astro-lighthouse: astro-build ## Lighthouse mobile nas páginas da POC (/, evento, /admin/eventos, /blog, um post, /trilhas) — requer Chrome
+astro-lighthouse: astro-build ## Lighthouse mobile (/, evento, /admin/eventos, /blog, um post, /trilhas, insights, apoiar, design-system) — requer Chrome
 	@cd $(ASTRO_DIR) && npm run preview > /tmp/codaqui-astro-preview.log 2>&1 & \
 	    PREVIEW_PID=$$!; \
 	    sleep 4; \
 	    EVENT=$$(find $(ASTRO_DIR)/dist/eventos -name index.html | head -1 | sed "s|^$(ASTRO_DIR)/dist||;s|/index.html$$||"); \
-	    for PAGE in "/" "$$EVENT/" "/admin/eventos/" "/blog/" "/blog/2024/07/22/devparana-e-codaqui-unidos-pela-comunidade/" "/trilhas/intro/" "/trilhas/python/page-1/"; do \
+	    for PAGE in "/" "$$EVENT" "/admin/eventos" "/blog" "/blog/2024/07/22/devparana-e-codaqui-unidos-pela-comunidade" "/trilhas/intro" "/trilhas/python/page-1" "/sobre/insights" "/participe/apoiar" "/design-system"; do \
 	        printf "$(CYAN)→  Lighthouse: $$PAGE$(RESET)\n"; \
 	        npx --yes lighthouse "http://localhost:4321$$PAGE" --quiet \
 	            --chrome-flags="--headless" --form-factor=mobile --screenEmulation.mobile \
