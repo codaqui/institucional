@@ -1,24 +1,104 @@
 ---
 import BaseLayout from "./BaseLayout.astro";
 import BrandLogo from "../components/astro/BrandLogo.astro";
+import AppNavIsland from "../components/islands/AppNavIsland";
 
 interface Props {
+  /** Título exibido na topbar (curto, ex.: "Eventos"). */
   title: string;
+  /** Title tag/OG; default `${title} | CODAQUI.dev` (paridade com o Docusaurus). */
+  pageTitle?: string;
   noindex?: boolean;
 }
+
+const { title, pageTitle } = Astro.props;
+const currentPath = Astro.url.pathname;
+const docTitle = pageTitle ?? `${title} | CODAQUI.dev`;
+
+const menuIconClass = "h-5 w-5";
+const menuButtonClass =
+  "inline-flex cursor-pointer rounded-md p-2 text-text-secondary transition-colors hover:bg-sunken hover:text-text-primary md:hidden";
 ---
 
-<BaseLayout {...Astro.props}>
+<BaseLayout {...Astro.props} title={docTitle}>
   <div class="flex min-h-screen flex-col">
-    <header class="flex h-14 items-center gap-3 border-b border-border bg-surface px-4">
+    <header
+      class="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-surface px-4"
+    >
+      <label
+        for="app-nav-toggle"
+        class={menuButtonClass}
+        title="Abrir navegação"
+      >
+        <svg
+          class={menuIconClass}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+      </label>
       <BrandLogo class="h-7 w-auto" />
       <span class="text-sm font-bold text-text-secondary">Painel</span>
-      <span class="text-sm text-text-secondary">›</span>
-      <span class="text-sm font-bold text-text-primary">{Astro.props.title}</span>
-      <a href="/" class="ms-auto text-sm text-link hover:text-link-hover">← Voltar ao site</a>
+      <span class="text-sm text-text-secondary" aria-hidden="true">›</span>
+      <h1 class="text-sm font-bold text-text-primary">{title}</h1>
+      <div class="ms-auto flex items-center gap-3">
+        <slot name="header" />
+        <a href="/" class="text-sm text-link hover:text-link-hover">
+          ← Voltar ao site
+        </a>
+      </div>
     </header>
-    <div class="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-      <slot />
+    <div class="flex min-h-0 flex-1">
+      <!-- Checkbox hack: o mesmo <aside> é a sidebar fixa no desktop e o
+           drawer off-canvas no mobile — a ilha de nav é montada UMA vez.
+           O hambúrguer e o backdrop são <label for> (zero JS, zero hidratação
+           extra); a navegação MPA recarrega a página e fecha o drawer. -->
+      <input
+        type="checkbox"
+        id="app-nav-toggle"
+        class="peer sr-only"
+        aria-label="Abrir ou fechar a navegação do painel"
+      />
+      <aside
+        class="fixed inset-y-0 left-0 z-40 flex w-60 -translate-x-full flex-col border-e border-border bg-surface transition-transform duration-200 ease-(--cq-motion-ease) peer-checked:translate-x-0 md:static md:z-auto md:translate-x-0"
+      >
+        <div
+          class="flex items-center justify-between gap-2 border-b border-border px-3 py-2 md:hidden"
+        >
+          <BrandLogo class="h-6 w-auto" />
+          <label for="app-nav-toggle" class={menuButtonClass} title="Fechar navegação">
+            <svg
+              class={menuIconClass}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M6 6l12 12M18 6L6 18"></path>
+            </svg>
+          </label>
+        </div>
+        <div class="min-h-0 flex-1 overflow-y-auto">
+          <AppNavIsland client:load currentPath={currentPath} />
+        </div>
+      </aside>
+      <label
+        for="app-nav-toggle"
+        aria-hidden="true"
+        class="fixed inset-0 z-30 hidden cursor-pointer bg-neutral-900/40 peer-checked:block md:hidden"
+      ></label>
+      <main class="min-w-0 flex-1">
+        <div class="mx-auto w-full max-w-6xl px-4 py-6">
+          <slot />
+        </div>
+      </main>
     </div>
   </div>
 </BaseLayout>

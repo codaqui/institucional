@@ -1,4 +1,14 @@
 import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+// `globals` está desligado no vitest.config, então o RTL não detecta o
+// `afterEach` global e NÃO registra seu cleanup automático — sem isto o
+// jsdom acumula renders entre testes do mesmo arquivo (múltiplos matches
+// nas queries). Registrado aqui para todos os testes .test.tsx.
+afterEach(() => {
+  cleanup();
+});
 
 // Node ≥ 22 expõe um `localStorage` experimental nativo. Por já existir no
 // global, o Vitest não injeta o do jsdom (getWindowKeys filtra chaves

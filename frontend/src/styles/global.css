@@ -59,6 +59,16 @@ a:hover {
   color: var(--cq-link-hover);
 }
 
+/* AppLayout (painel): o hambúrguer/backdrop são <label for> de um checkbox
+   sr-only; o :has() projeta o foco do checkbox (focado via teclado) para um
+   anel visível nos labels — WCAG 2.4.7. O sibling combinator do `peer` não
+   alcança labels aninhados no header/aside. */
+:has(#app-nav-toggle:focus-visible) label[for="app-nav-toggle"] {
+  outline: 3px solid var(--cq-focus-ring);
+  outline-offset: 2px;
+  border-radius: var(--cq-radius-sm);
+}
+
 /* Corpo de conteúdo markdown (blog/trilhas) — zero JS, tokens --cq-* via utilities */
 .prose-cq { @apply text-text-primary leading-relaxed; }
 .prose-cq h1 { @apply mt-0 mb-6 text-3xl font-extrabold; }
