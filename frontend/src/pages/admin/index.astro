@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
+---
+
+<AppLayout title="Admin" noindex>
+  <AdminHubApp client:only="react" />
+</AppLayout>
