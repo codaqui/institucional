@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import ReembolsosApp from "../../components/islands/admin/reembolsos/ReembolsosApp";
+---
+
+<AppLayout title="Reembolsos" noindex>
+  <ReembolsosApp client:only="react" />
+</AppLayout>
