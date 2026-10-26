@@ -854,7 +854,7 @@ Com backend local (`make db-up` + backend, ver DEVELOPMENT.md) ou contra a API d
 
 Marcar os `- [x]` dos itens verificados neste plano; atualizar `DEVELOPMENT.md` com envs novas.
 
-- [ ] **Step 7: Commit final**
+- [x] **Step 7: Commit final**
 
 ```bash
 git add -A
