@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import EmpresasApp from "../../components/islands/admin/empresas/EmpresasApp";
+---
+
+<AppLayout title="Empresas" pageTitle="Admin — Empresas | CODAQUI.dev" noindex>
+  <EmpresasApp client:only="react" />
+</AppLayout>
