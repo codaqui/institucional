@@ -20,15 +20,16 @@ interface Props {
   ogImage?: string;
   recentPosts: RecentPost[];
   enableComments: boolean;
+  jsonLd?: object;
 }
 
-const { title, ogTitle, description, date, readingMinutes, authors, tags, ogImage, recentPosts, enableComments } =
+const { title, ogTitle, description, date, readingMinutes, authors, tags, ogImage, recentPosts, enableComments, jsonLd } =
   Astro.props;
 
 const dateFmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
 ---
 
-<PublicLayout title={`${title} | Codaqui`} ogTitle={ogTitle} description={description} ogImage={ogImage}>
+<PublicLayout title={`${title} | CODAQUI.dev`} ogTitle={ogTitle} description={description} ogImage={ogImage} jsonLd={jsonLd}>
   <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
     <article class="min-w-0 max-w-3xl flex-1">
       <h1 class="text-3xl font-extrabold text-text-primary md:text-4xl">{title}</h1>

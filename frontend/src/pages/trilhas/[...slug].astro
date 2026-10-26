@@ -19,6 +19,15 @@ const { page } = Astro.props;
 const { Content, headings } = await render(page);
 const firstH1 = headings.find((h) => h.depth === 1);
 const title = page.data.title ?? firstH1?.text ?? "Trilhas";
+// JSON-LD BreadcrumbList (paridade com o build Docusaurus).
+const absolutePageUrl = new URL(`/trilhas/${page.id}`, Astro.site).toString();
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: title, item: absolutePageUrl },
+  ],
+};
 // O H1 já vem no corpo markdown; o layout não repete título.
 const contentHeadings = headings.filter((h) => h.depth > 1);
 // Caminho real do arquivo-fonte no repo: o id perdeu "/index" (ou virou o
@@ -39,6 +48,7 @@ const editPath = page.data.slug
   currentSlug={page.id}
   editPath={editPath}
   headings={contentHeadings}
+  jsonLd={jsonLd}
 >
   <Content />
 </TrilhaLayout>

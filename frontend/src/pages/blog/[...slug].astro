@@ -28,6 +28,29 @@ const date = postDate(post);
 const authors = resolveAuthors(post.data.authors);
 const tags = post.data.tags.map((label) => ({ label, url: `/blog/category/${slugifyTag(label)}` }));
 const ogImage = post.data.image ? new URL(contentAssetUrl(post.data.image), Astro.site).toString() : undefined;
+// JSON-LD BlogPosting (paridade com o build Docusaurus).
+const absolutePostUrl = new URL(postUrl(post), Astro.site).toString();
+const authorEntities = authors.map((a) => ({
+  "@type": "Person",
+  name: a.name,
+  ...(a.title ? { description: a.title } : {}),
+  ...(a.url ? { url: a.url } : {}),
+  ...(a.image_url ? { image: a.image_url } : {}),
+}));
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "@id": absolutePostUrl,
+  mainEntityOfPage: absolutePostUrl,
+  url: absolutePostUrl,
+  headline: post.data.title,
+  name: post.data.title,
+  description: plainExcerpt(post.body ?? ""),
+  datePublished: date.toISOString(),
+  author: authorEntities.length === 1 ? authorEntities[0] : authorEntities,
+  keywords: [],
+  isPartOf: { "@type": "Blog", "@id": new URL("/blog", Astro.site).toString(), name: "Blog" },
+};
 // Contrato do Giscus (mapping og:title): o build Docusaurus publica "<título> | CODAQUI.dev".
 const ogTitle = `${post.data.title} | CODAQUI.dev`;
 ---
@@ -43,6 +66,7 @@ const ogTitle = `${post.data.title} | CODAQUI.dev`;
   ogImage={ogImage}
   recentPosts={recent}
   enableComments={post.data.enableComments !== false}
+  jsonLd={jsonLd}
 >
   <Content />
 </BlogPostLayout>

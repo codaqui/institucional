@@ -11,7 +11,7 @@ const totalPages = Math.ceil(sorted.length / POSTS_PER_PAGE);
 const recent = sorted.slice(0, 10).map((p) => ({ url: postUrl(p), title: p.data.title }));
 ---
 
-<PublicLayout title="Blog | Codaqui" ogTitle="Blog | CODAQUI.dev" description="Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — Uma comunidade de comunidades de tecnologia.">
+<PublicLayout title="Blog | CODAQUI.dev" ogTitle="Blog | CODAQUI.dev" description="Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui — Uma comunidade de comunidades de tecnologia.">
   <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
     <div class="min-w-0 flex-1">
       <h1 class="mb-6 text-3xl font-extrabold text-text-primary">Blog</h1>

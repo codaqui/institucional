@@ -14,9 +14,10 @@ interface Props {
   currentSlug: string; // ex.: "python/page-3" (id da collection)
   editPath: string; // ex.: "python/page-3.md"
   headings: TocItem[];
+  jsonLd?: object;
 }
 
-const { title, description, currentSlug, editPath, headings } = Astro.props;
+const { title, description, currentSlug, editPath, headings, jsonLd } = Astro.props;
 const nav: TrilhaNav | undefined = TRILHAS_NAV.find((n) => n.items.some((i) => i.slug === currentSlug));
 const items = nav?.items ?? [];
 const index = items.findIndex((i) => i.slug === currentSlug);
@@ -25,7 +26,7 @@ const next = index >= 0 && index < items.length - 1 ? items[index + 1] : undefin
 const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
-<PublicLayout title={`${title} | Codaqui`} ogTitle={`${title} | CODAQUI.dev`} description={description}>
+<PublicLayout title={`${title} | CODAQUI.dev`} ogTitle={`${title} | CODAQUI.dev`} description={description} jsonLd={jsonLd}>
   <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
     {
       nav && (

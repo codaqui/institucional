@@ -13,6 +13,7 @@ const SITEMAP_EXCLUDE =
 
 export default defineConfig({
   site: process.env.SITE_URL ?? "https://codaqui.dev",
+  trailingSlash: "never",
   integrations: [
     react(),
     mdx(),
