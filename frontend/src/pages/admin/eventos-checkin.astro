@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import CheckinApp from "../../components/islands/admin/checkin/CheckinApp";
+---
+
+<AppLayout title="Check-in de Eventos" noindex>
+  <CheckinApp client:only="react" />
+</AppLayout>
