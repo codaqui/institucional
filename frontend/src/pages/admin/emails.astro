@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import EmailsApp from "../../components/islands/admin/emails/EmailsApp";
+---
+
+<AppLayout title="E-mails" noindex>
+  <EmailsApp client:only="react" />
+</AppLayout>
