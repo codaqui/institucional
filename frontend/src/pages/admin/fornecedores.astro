@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import FornecedoresApp from "../../components/islands/admin/fornecedores/FornecedoresApp";
+---
+
+<AppLayout title="Fornecedores" noindex>
+  <FornecedoresApp client:only="react" />
+</AppLayout>
