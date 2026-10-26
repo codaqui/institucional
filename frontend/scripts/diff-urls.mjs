@@ -1,5 +1,8 @@
-// Gate de paridade: URLs públicas de /blog e /trilhas no build Docusaurus (build/,
-// referência) vs build Astro (frontend/dist/). Sai com código 1 se faltar URL.
+// Gate de paridade: URLs públicas no build Docusaurus (build/, referência) vs
+// build Astro (frontend/dist/). Sai com código 1 se faltar URL.
+// Cobertura (Fase 0.3): seções completas + páginas soltas de topo. Fora:
+// /comunidades (0.5), /admin + /membro + /auth + /eventos/comprovante (0.4),
+// /@handle (geradas com API em build; ausentes na referência).
 import { readdirSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -10,7 +13,38 @@ const NEW = join(ROOT, "frontend", "dist");
 // Histórico: /^\/blog\/archive/ ficou excluído durante a 0.2 porque os stubs
 // de redirect ainda não existiam; a Fase 0.3 (Task 13) criou os stubs em
 // frontend/src/pages/blog/archive/ e a exclusão foi removida.
-const EXCLUDE = [];
+const EXCLUDE = [
+  /^\/comunidades(\/|$)/, // Fase 0.5 (multi-tenant)
+  /^\/admin(\/|$)/, // Fase 0.4
+  /^\/membro(\/|$)/, // Fase 0.4 — cuidado: não pode casar /membros
+  /^\/membros\/empresa(\/|$)/, // Fase 0.4 (affiliation PJ — ruling do plano 0.3)
+  /^\/auth(\/|$)/, // Fase 0.4
+  /^\/eventos\/comprovante(\/|$)/, // Fase 0.4
+  /^\/@[^/]+/, // perfis públicos — só existem no build com API (0 na referência)
+];
+
+// Seções caminhadas recursivamente (o Docusaurus emite o índice da seção como
+// arquivo irmão <seção>.html, não como <seção>/index.html — por isso o sibling).
+const SECTIONS = ["blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado"];
+// Páginas soltas na raiz: build/<nome>.html → /<nome>. "" é a homepage.
+const TOP_LEVEL = [
+  "",
+  "contato",
+  "projetos",
+  "transparencia",
+  "bio",
+  "clube",
+  "patrocinadores",
+  "regex",
+  "termos-de-compra",
+  "team",
+  "contact",
+  "conduta",
+  "ong",
+  "timeline",
+  "pais_responsaveis",
+  "design-system",
+];
 
 function walk(dir, pattern) {
   const out = [];
@@ -38,7 +72,8 @@ function urlsOf(base, section) {
   const dir = join(base, section);
   // O Docusaurus emite o índice da seção como arquivo irmão (blog.html,
   // trilhas.html), não como <seção>/index.html — sem o sibling, /blog e
-  // /trilhas ficam fora da comparação.
+  // /trilhas ficam fora da comparação. No Astro o índice é <seção>/index.html
+  // e o sibling simplesmente não existe (existsSync guarda os dois lados).
   const sibling = join(base, `${section}.html`);
   const files = [
     ...walk(dir, /\.html$/),
@@ -48,23 +83,37 @@ function urlsOf(base, section) {
   return new Set(files.map((f) => toUrl(f, base)).filter((u) => !EXCLUDE.some((re) => re.test(u))));
 }
 
-let missing = 0;
-for (const section of ["blog", "trilhas"]) {
-  const oldUrls = urlsOf(OLD, section);
-  const newUrls = urlsOf(NEW, section);
-  for (const url of oldUrls) {
-    if (!newUrls.has(url)) {
-      console.error(`✖ FALTA no build Astro: ${url}`);
-      missing++;
-    }
-  }
-  const extra = [...newUrls].filter((u) => !oldUrls.has(u));
-  if (extra.length) console.log(`ℹ URLs novas (não existiam no Docusaurus): ${extra.join(", ")}`);
-  console.log(`→ /${section}: ${oldUrls.size} URLs na referência, ${missing === 0 ? "todas presentes" : "FALTANDO"}`);
+function topLevelUrls(base) {
+  // Docusaurus emite páginas de topo como <nome>.html na raiz; o Astro emite
+  // <nome>/index.html. Aceitar os dois formatos de cada lado.
+  const files = TOP_LEVEL.flatMap((name) =>
+    name === "" ? [join(base, "index.html")] : [join(base, `${name}.html`), join(base, name, "index.html")],
+  );
+  return new Set(
+    files
+      .filter((f) => existsSync(f))
+      .map((f) => toUrl(f, base))
+      .filter((u) => !EXCLUDE.some((re) => re.test(u))),
+  );
 }
+
+let missing = 0;
+function compare(label, oldUrls, newUrls) {
+  const absent = [...oldUrls].filter((u) => !newUrls.has(u));
+  for (const url of absent) console.error(`✖ FALTA no build Astro: ${url}`);
+  missing += absent.length;
+  const extra = [...newUrls].filter((u) => !oldUrls.has(u));
+  if (extra.length) console.log(`ℹ URLs novas em ${label} (não existiam no Docusaurus): ${extra.join(", ")}`);
+  console.log(`→ ${label}: ${oldUrls.size} URLs na referência, ${absent.length === 0 ? "todas presentes" : "FALTANDO"}`);
+}
+
+for (const section of SECTIONS) {
+  compare(`/${section}`, urlsOf(OLD, section), urlsOf(NEW, section));
+}
+compare("/", topLevelUrls(OLD), topLevelUrls(NEW));
 
 if (missing > 0) {
   console.error(`✖ diff-urls: ${missing} URL(s) faltando`);
   process.exit(1);
 }
-console.log("✔ diff-urls: paridade 100% em /blog e /trilhas");
+console.log("✔ diff-urls: paridade 100% nas seções públicas cobertas");
