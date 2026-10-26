@@ -1,4 +1,11 @@
 import "@testing-library/jest-dom/vitest";
+import { cleanup } from "@testing-library/react";
+import { afterEach } from "vitest";
+
+// Sem `globals: true` no Vitest, o auto-cleanup da Testing Library não é
+// registrado — desmonta explicitamente após cada teste para não vazar DOM
+// entre testes de um mesmo arquivo.
+afterEach(cleanup);
 
 // Node ≥ 22 expõe um `localStorage` experimental nativo. Por já existir no
 // global, o Vitest não injeta o do jsdom (getWindowKeys filtra chaves
