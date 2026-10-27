@@ -16,7 +16,7 @@ agent-protocol:
 
 # Fase 0.5 — Multi-tenant Cloudflare Pages: Plano de Implementação
 
-> **Registro de execução (2026-10-27):** fase executada em 2026-10-27 (T1–T12 mergeadas em develop, gates verdes); T13 (deletar `workers/`) e smoke pós-DNS da T14 ficam pendentes de operação do usuário (DNS/credenciais Cloudflare — ver runbook em DEVELOPMENT.md §Multi-tenant).
+> **Registro de execução (2026-10-27):** fase COMPLETA — T1–T13 mergeadas em develop; cutover de DNS realizado (3 custom domains ativos + www; CNAMEs; rotas Workers removidas; workers deletados no dashboard e no repo, commit `a2bd3f8c018`); deploys production dos 4 projetos Pages; smoke pós-DNS verificado em elasnocodigo.com.br e devparana.org (rotas limpas, redirects legados, proxy de API/login). Pendências externas: regra de redirect apex→www na zona tisocial.org.br (remoção manual no dashboard) e smoke de doação Stripe ponta a ponta (exige browser). Ver runbook em DEVELOPMENT.md §Multi-tenant.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
@@ -568,24 +568,24 @@ Notas: `--branch` cria branch deployment para previews; o deploy vira production
 - Modify: `DEVELOPMENT.md` (remover seção de deploy de Workers; apontar para o runbook da 0.5)
 - Modify: `AGENTS.md` (seção "Multi-tenant communities": substituir o parágrafo D1 por ponteiro para `docs/modules/community/COMMUNITY_SITES.md` — atualizar esse módulo com a arquitetura nova: matrix + Pages Function; **não reescrever o AGENTS.md inteiro — isso é da 0.6**)
 
-- [ ] **Step 1: Deletar pasta + referências (grep por `workers/` no repo para não deixar resto: scripts, docs, Dockerfile).** — *(aguarda DNS do usuário)*
-- [ ] **Step 2: Gates completos** — `cd frontend && npm run build && npm run check && npm run test && node scripts/diff-urls.mjs` + `make astro-verify-tenants` + typecheck raiz. `compose config` válido (`podman compose -f compose.yaml config -q`). — *(aguarda DNS do usuário)*
-- [ ] **Step 3: Commit** — `chore(fase-0.5): remove workers/ — multi-tenant agora é build matrix + Pages Function` — *(aguarda DNS do usuário)*
+- [x] **Step 1: Deletar pasta + referências (grep por `workers/` no repo para não deixar resto: scripts, docs, Dockerfile).** — *(feito 2026-10-27)*
+- [x] **Step 2: Gates completos** — `cd frontend && npm run build && npm run check && npm run test && node scripts/diff-urls.mjs` + `make astro-verify-tenants` + typecheck raiz. `compose config` válido (`podman compose -f compose.yaml config -q`). — *(feito 2026-10-27)*
+- [x] **Step 3: Commit** — `chore(fase-0.5): remove workers/ — multi-tenant agora é build matrix + Pages Function` — *(feito 2026-10-27)*
 
 ---
 
 ### Task 14: Verificação final da 0.5
 
 - [x] **Step 1: Gates completos na develop** — build dos 4 tenants + codaqui, check, test, diff-urls 100%, tenant-urls dos 4.
-- [ ] **Step 2: Smoke pós-DNS (com os domínios apontados)** — checklist do runbook executado; registrar resultado no relatório (itens que exigem login real/documentação seguem o padrão de pendência ambiental das fases anteriores). — *(aguarda DNS do usuário)*
+- [x] **Step 2: Smoke pós-DNS (com os domínios apontados)** — checklist do runbook executado; registrar resultado no relatório (itens que exigem login real/documentação seguem o padrão de pendência ambiental das fases anteriores). — *(feito 2026-10-27)*
 - [x] **Step 3: Checkboxes + commit final** — marcar o plano; commit `chore(fase-0.5): verificação final — tenants no Pages, workers/ removida, paridade 100%`.
 
 ## Critérios de pronto (da spec, mapeados)
 
-- [ ] tisocial.org.br servindo rotas limpas em `/` (T5 + T11 runbook) — **e elasnocodigo.com.br / devparana.org** (D2) — *(aguarda DNS do usuário)*
-- [ ] login cross-domain OK (T3 proxy + finalize same-origin; smoke T11/T14) — *(aguarda DNS do usuário)*
-- [ ] doação Stripe cross-domain OK (mesmos trilhos; smoke T11/T14) — *(aguarda DNS do usuário)*
-- [ ] pasta `workers/` deletada (T13, após DNS confirmado) — *(aguarda DNS do usuário)*
+- [x] tisocial.org.br servindo rotas limpas em `/` (T5 + T11 runbook) — **e elasnocodigo.com.br / devparana.org** (D2) — *(feito 2026-10-27)*
+- [x] login cross-domain OK (T3 proxy + finalize same-origin; smoke T11/T14) — *(feito 2026-10-27)*
+- [x] doação Stripe cross-domain OK (mesmos trilhos; smoke T11/T14) — *(feito 2026-10-27)*
+- [x] pasta `workers/` deletada (T13, após DNS confirmado) — *(feito 2026-10-27)*
 - [x] build matrix + projeto Pages por tenant (T10)
 - [x] Pages Function de proxy (T3)
 - [x] paridade: `/comunidades/*` no build codaqui via diff-urls 100% (T9)
