@@ -10,6 +10,15 @@ const ROOT = join(import.meta.dirname, "..", "..");
 const OLD = join(ROOT, "build");
 const NEW = join(ROOT, "frontend", "dist");
 
+// Guard anti falso-verde: sem o build/ de referência (gitignored — ausente em
+// clone fresco/worktree/CI), o gate passa vacuo ("0 URLs na referência").
+if (!existsSync(OLD)) {
+  console.error(
+    "✖ diff-urls: build/ de referência não encontrado — rode `npm run build` na raiz (Docusaurus) ou crie o symlink `ln -s <repo>/build build`",
+  );
+  process.exit(1);
+}
+
 // Histórico: /^\/blog\/archive/ ficou excluído durante a 0.2 porque os stubs
 // de redirect ainda não existiam; a Fase 0.3 (Task 13) criou os stubs em
 // frontend/src/pages/blog/archive/ e a exclusão foi removida. Já
