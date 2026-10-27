@@ -40,7 +40,9 @@ export type CommunityExploreIcon =
   | "paid"
   // devparana (buildFeatureCards de comunidades/devparana/src/pages/index.tsx)
   | "groups"
-  | "calendar_month";
+  | "calendar_month"
+  // campostechpg (buildFeatureCards de comunidades/campostechpg/src/pages/index.tsx)
+  | "school";
 
 export interface CommunityExploreCard {
   icon: CommunityExploreIcon;

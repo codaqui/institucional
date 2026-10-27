@@ -1,8 +1,8 @@
 // Gate de paridade: URLs públicas no build Docusaurus (build/, referência) vs
 // build Astro (frontend/dist/). Sai com código 1 se faltar URL.
-// Cobertura (Fase 0.4): seções completas (inclui as app /admin, /membro,
-// /auth) + páginas soltas de topo. Fora: /comunidades (0.5) e /@handle
-// (geradas com API em build; ausentes na referência).
+// Cobertura (Fase 0.5): seções completas (inclui as app /admin, /membro,
+// /auth) + páginas soltas de topo + /comunidades (multi-tenant/wrappers das
+// T6–T9). Fora: /@handle (geradas com API em build; ausentes na referência).
 import { readdirSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -12,15 +12,17 @@ const NEW = join(ROOT, "frontend", "dist");
 
 // Histórico: /^\/blog\/archive/ ficou excluído durante a 0.2 porque os stubs
 // de redirect ainda não existiam; a Fase 0.3 (Task 13) criou os stubs em
-// frontend/src/pages/blog/archive/ e a exclusão foi removida.
+// frontend/src/pages/blog/archive/ e a exclusão foi removida. Já
+// /^\/comunidades(\/|$)/ ficou excluído durante a 0.5 (T6–T8 portaram os
+// tenants/wrappers aos poucos); a Task 9 (wrappers campostechpg) removeu a
+// exclusão e incluiu a seção comunidades no gate — cobertura 100% do portal.
 const EXCLUDE = [
-  /^\/comunidades(\/|$)/, // Fase 0.5 (multi-tenant)
   /^\/@[^/]+/, // perfis públicos — só existem no build com API (0 na referência)
 ];
 
 // Seções caminhadas recursivamente (o Docusaurus emite o índice da seção como
 // arquivo irmão <seção>.html, não como <seção>/index.html — por isso o sibling).
-const SECTIONS = ["admin", "membro", "auth", "blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado"];
+const SECTIONS = ["admin", "membro", "auth", "blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado", "comunidades"];
 // Páginas soltas na raiz: build/<nome>.html → /<nome>. "" é a homepage.
 const TOP_LEVEL = [
   "",

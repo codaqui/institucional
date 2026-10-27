@@ -21,10 +21,25 @@ console.log(`snapshots copiados: ${snapshotDirs.map((d) => `${d}/index.json`).jo
 // Assets de static/img referenciados pelas páginas portadas (0.3) que ainda
 // não existiam em public/img — cópia cirúrgica, não o diretório todo (4.3 MB).
 // og-elasnocodigo.jpg é o socialImage do config da comunidade (OG das páginas
-// /comunidades/elasnocodigo/* e do build tenant).
-const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg"];
+// /comunidades/elasnocodigo/* e do build tenant). og-tisocial.jpg é o
+// socialImage da T.I. Social (OG de /comunidades/tisocial/* e do build tenant
+// — deferido da T5). campostech.svg/og-campostech.jpg são o logo e o
+// socialImage da CamposTech (wrappers /comunidades/campostechpg, Task 9 —
+// a comunidade não é tenant, então só existem os wrappers no portal).
+const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg", "og-tisocial.jpg", "campostech.svg", "og-campostech.jpg"];
 mkdirSync(join(FRONTEND_PUBLIC, "img"), { recursive: true });
 for (const file of imgFiles) {
   cpSync(join(ROOT, "static", "img", file), join(FRONTEND_PUBLIC, "img", file));
 }
 console.log(`snapshots copiados: img/{${imgFiles.join(", ")}}`);
+
+// Diretórios de assets de comunidades sob static/img (avatares locais que os
+// data/teams referenciam em /img/comunidades/<slug>/...). Hoje: mentores da
+// CamposTech (12 jpgs usados pela página /comunidades/campostechpg/mentores).
+const imgDirs = ["comunidades/campostechpg/mentores"];
+for (const dir of imgDirs) {
+  cpSync(join(ROOT, "static", "img", dir), join(FRONTEND_PUBLIC, "img", dir), {
+    recursive: true,
+  });
+}
+console.log(`snapshots copiados: img/{${imgDirs.join(", ")}}/ (recursivo)`);
