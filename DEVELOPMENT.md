@@ -5,7 +5,7 @@ sections:
   - Arquitetura do Monorepo
   - Frontend (Docusaurus) — npm scripts, dev server
   - Frontend (Astro) — Fase 0 em transição
-  - Multi-tenant (Fase 0.5) — sites whitelabel das comunidades no Cloudflare Pages: gates e runbook de cutover de DNS
+  - Multi-tenant (Fase 0.5) — sites whitelabel das comunidades no Cloudflare Pages: gates e runbook de operação (cutover dos 3 tenants concluído)
   - Backend (NestJS) — npm scripts, Stripe CLI for webhooks
   - Full Stack (Frontend + Backend + Infra) — Podman Compose
   - Migrations (TypeORM) — generate/run/revert
@@ -167,11 +167,13 @@ make astro-preview     # serve o build (:4321)
 - Gate local: `make astro-verify-tenants` — 4 builds (codaqui + 3 tenants) + allow-list de URLs por tenant (`frontend/scripts/tenant-urls.mjs`).
 - **R7 — `astro check` NÃO é gate em modo tenant:** páginas codaqui sob srcDir de tenant têm 62 erros pré-existentes (limitação do `getCollection`). Gates por build: codaqui = build + `astro check` + testes + `diff-urls` (`make astro-verify`); tenant = build + `tenant-urls`.
 
-### Runbook de operação (cutover de DNS)
+### Runbook de operação
 
-Até o cutover, os domínios das comunidades são servidos pelos Workers em `workers/<slug>/`. A migração para o Pages é manual, **com janela de 1–2h offline aceita** (definida pelo time). Passos:
+**Estado (2026-10-27):** os 3 domínios das comunidades (tisocial.org.br, elasnocodigo.com.br, devparana.org) **já foram migrados para o Cloudflare Pages** e os Workers correspondentes excluídos — a pasta `workers/` foi removida do repo. O projeto `codaqui` também já recebe deploys no Pages, mas o domínio `codaqui.dev` segue no GitHub Pages — o cutover de DNS do portal principal é **Fase 0.6**.
 
-1. **Criar os 4 projetos Pages** — `codaqui`, `tisocial`, `elasnocodigo`, `devparana` (o matrix do workflow `.github/workflows/deploy-astro.yml` tem uma entrada por build, incluindo `{ tenant: "", project: codaqui }` para o build sem `TENANT`; os nomes dos 3 projetos tenant vêm de `tenants.config.mjs` → `project`). O `wrangler pages deploy` **não** cria projeto automaticamente — sem criar antes, o deploy falha com "project not found":
+Referência para operar e manter os sites tenant:
+
+1. **Projetos Pages** — `codaqui`, `tisocial`, `elasnocodigo`, `devparana` (o matrix do workflow `.github/workflows/deploy-astro.yml` tem uma entrada por build, incluindo `{ tenant: "", project: codaqui }` para o build sem `TENANT`; os nomes dos 3 projetos tenant vêm de `tenants.config.mjs` → `project`). O `wrangler pages deploy` **não** cria projeto automaticamente — sem criar antes, o deploy falha com "project not found". Para criar um projeto novo:
 
    ```bash
    npx wrangler pages project create <project> --production-branch=main
@@ -181,22 +183,22 @@ Até o cutover, os domínios das comunidades são servidos pelos Workers em `wor
 
 2. **Secrets do repositório** (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (escopo mínimo *Cloudflare Pages:Edit* no account) + `CLOUDFLARE_ACCOUNT_ID` — ver tabela na seção [Deploy](#secrets-e-variáveis-do-github-actions).
 
-3. **Por domínio tenant** (janela de 1–2h offline aceita):
-   1. Remover a rota/custom domain do Worker (dashboard Cloudflare → Workers & Pages → `<worker>` → Settings → Domains & Routes / Triggers).
-   2. Apontar o domínio para o projeto Pages: **apex** → registro CNAME para `<project>.pages.dev` (a Cloudflare faz flattening de CNAME em apex); **subdomínios wildcard** `*.<domínio>` conforme o Worker tinha (avaliar necessidade por domínio).
+3. **Cutover de DNS de um domínio tenant** (registro histórico da migração dos 3 tenants, 2026-10-27):
+   1. Remover a rota/custom domain do Worker legado (dashboard Cloudflare → Workers & Pages → `<worker>` → Settings → Domains & Routes / Triggers).
+   2. Apontar o domínio para o projeto Pages: **apex** → registro CNAME para `<project>.pages.dev` (a Cloudflare faz flattening de CNAME em apex); **subdomínios wildcard** `*.<domínio>` conforme necessário.
    3. Aguardar o SSL universal do edge (em geral minutos).
 
-4. **Verificação pós-DNS:**
+4. **Verificação pós-deploy:**
    - `/` serve a home do tenant (não um redirect);
    - `/blog` lista os posts (tisocial);
    - login via doação >R$100 (handoff cross-domain para codaqui.dev) e doação Stripe embutida funcionando;
    - `/comunidades/<slug>/*` → 301 para `/*` (regras do `dist/_redirects`).
 
-5. **Rollback:** reverter o DNS para o Worker e redeployar o Worker do histórico do git:
+5. **Rollback de DNS (emergência):** apontar o DNS de volta para o serviço anterior e, se ainda for o caso do Worker legado, restaurá-lo do histórico do git:
 
    ```bash
-   git checkout <sha-antes-da-deleção> -- workers/
-   npm run worker:deploy:<slug>
+   git checkout <sha-antes-da-remoção> -- workers/
+   npx wrangler deploy --config workers/<slug>/wrangler.toml
    ```
 
 ### Gaps conhecidos

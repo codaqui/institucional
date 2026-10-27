@@ -4,7 +4,8 @@ import { isApiProxyPath } from "../src/lib/api-proxy-paths";
 const DEFAULT_API_ORIGIN = "https://api.codaqui.dev";
 
 /**
- * Pages Function de proxy — substitui o Worker `workers/shared/index.js` (Fase 0.5).
+ * Pages Function de proxy — substitui o Worker legado `workers/shared/index.js`
+ * (Fase 0.5; pasta `workers/` removida do repo — esta função é a fonte atual).
  *
  * Semântica 1:1 com a rota de API do Worker: mesmos `API_EXACT_PATHS`/`API_PREFIXES`
  * (helper compartilhado em `src/lib/api-proxy-paths.ts`), forward do request original

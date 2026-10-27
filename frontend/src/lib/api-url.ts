@@ -3,7 +3,8 @@ import { API_URL } from "./config";
 /**
  * Helpers de runtime para resolver URLs base (API e site canônico da Codaqui)
  * adaptadas ao ambiente atual — produção, dev local ou deploy whitelabel
- * (Cloudflare Worker em domínio próprio de comunidade).
+ * (domínio próprio de comunidade no Cloudflare Pages, com proxy same-origin
+ * via Pages Function `functions/[[path]].ts`).
  *
  * A URL da API configurada em build time vem de `./config` (`API_URL`,
  * `PUBLIC_API_URL` com fallback `http://localhost:3001`) — este módulo NÃO
@@ -60,11 +61,11 @@ export function resolveCodaquiUrlFor(
  *
  * - Em deploys "normais" (codaqui.dev, dev local): retorna o `API_URL`.
  *
- * - Em deploys whitelabel (Cloudflare Worker em `tisocial.org.br`,
- *   `*.localhost:8787`, etc.): retorna `window.location.origin`. O Worker
- *   proxia `/api`, `/auth`, `/stripe`, `/ledger`, `/members` para o backend
- *   real, então o navegador deve fazer requests **same-origin** — assim os
- *   cookies (httpOnly, sameSite=lax) viajam normalmente.
+ * - Em deploys whitelabel (domínio próprio no Pages — `tisocial.org.br`,
+ *   `elasnocodigo.com.br`, etc.): retorna `window.location.origin`. A Pages
+ *   Function proxia `/api`, `/auth`, `/stripe`, `/ledger`, `/members` para o
+ *   backend real, então o navegador deve fazer requests **same-origin** — assim
+ *   os cookies (httpOnly, sameSite=lax) viajam normalmente.
  *
  * Em SSR retorna o configured (sem `window`).
  */

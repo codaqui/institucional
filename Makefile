@@ -48,9 +48,6 @@ RED    := \033[31m
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
         sync sync-events sync-events-full sync-social sync-analytics \
-        worker-dev-tisocial worker-deploy-tisocial \
-        worker-dev-elasnocodigo worker-deploy-elasnocodigo \
-        worker-dev-devparana worker-deploy-devparana \
         clean clean-volumes
 
 # Target padrão
@@ -364,31 +361,6 @@ sync-social: ## Sincroniza contagem de membros/seguidores → static/social-stat
 
 sync-analytics: ## Sincroniza analytics → static/analytics/
 	npm run sync:analytics
-
-# =============================================================================
-##@ 🌍 Workers (Cloudflare) — domínios próprios das comunidades
-# =============================================================================
-# Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
-# Código do Worker é compartilhado em `workers/shared/index.js`.
-# Ver workers/README.md e docs/plans/multisite/README.md §6.
-
-worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
-	npm run worker:dev:tisocial
-
-worker-deploy-tisocial: ## Deploy do Worker da T.I. Social em produção (route tisocial.org.br/*)
-	npm run worker:deploy:tisocial
-
-worker-dev-elasnocodigo: ## Sobe o Worker da Elas no Código local em http://elasnocodigo.localhost:8788 (precisa de `make up-build` rodando)
-	npm run worker:dev:elasnocodigo
-
-worker-deploy-elasnocodigo: ## Deploy do Worker da Elas no Código em produção (route elasnocodigo.com.br/*)
-	npm run worker:deploy:elasnocodigo
-
-worker-dev-devparana: ## Sobe o Worker do DevParaná local em http://devparana.localhost:8789 (precisa de `make up-build` rodando)
-	npm run worker:dev:devparana
-
-worker-deploy-devparana: ## Deploy do Worker do DevParaná em produção (route devparana.org/*)
-	npm run worker:deploy:devparana
 
 # =============================================================================
 ##@ 🧹 Limpeza

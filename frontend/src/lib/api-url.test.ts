@@ -49,7 +49,7 @@ describe("resolveApiUrlFor", () => {
       CONFIGURED_API,
     );
   });
-  it("origem whitelabel retorna a própria origin (same-origin via Worker)", () => {
+  it("origem whitelabel retorna a própria origin (same-origin via Pages Function)", () => {
     expect(
       resolveApiUrlFor("https://tisocial.org.br", CONFIGURED_API, SITE_URL),
     ).toBe("https://tisocial.org.br");

@@ -871,11 +871,11 @@ The `/sobre/insights` page aggregates four modules: **live stats bar**, **presen
 
 ---
 
-## Multi-tenant communities (D1 — single Docusaurus)
+## Multi-tenant communities
 
-Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` com branding, navbar, blog, docs, doação e transparência próprios, no mesmo build do site Codaqui. T.I. Social é o piloto.
+Os sites whitelabel das comunidades parceiras são servidos por **build matrix no Cloudflare Pages** (Fase 0.5, cutover dos 3 tenants em 2026-10-27): um projeto Pages por tenant — fonte única em `frontend/tenants.config.mjs` (`tisocial`, `elasnocodigo`, `devparana`) — com rotas limpas em `/` via `TENANT=<slug>` trocando o `srcDir` do app Astro em build-time, e proxy de API/login via **Pages Function** (`frontend/functions/[[path]].ts`). A arquitetura anterior de Worker pass-through (D1) foi substituída e a pasta `workers/` removida do repo; o conteúdo em `comunidades/<slug>/` (Docusaurus) segue valendo para o build `codaqui` até o cutover de codaqui.dev (Fase 0.6).
 
-> Detalhes completos — onde vive cada peça, checklist para nova comunidade, domínio próprio e anti-patterns — estão em [docs/modules/community/COMMUNITY_SITES.md](docs/modules/community/COMMUNITY_SITES.md).
+> Operação, gates e runbook: [DEVELOPMENT.md](./DEVELOPMENT.md) → "Multi-tenant (Fase 0.5)". Onde vive cada peça de conteúdo, checklist para nova comunidade e anti-patterns: [docs/modules/community/COMMUNITY_SITES.md](docs/modules/community/COMMUNITY_SITES.md).
 
 ---
 

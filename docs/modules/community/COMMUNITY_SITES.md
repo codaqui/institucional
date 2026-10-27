@@ -15,6 +15,8 @@ related-docs:
 
 # Sites de Comunidades Parceiras
 
+> ⚠️ **Atualização (2026-10-27):** a arquitetura de domínio próprio descrita neste documento (Cloudflare Worker em `workers/shared/index.js`) foi **superseda** pela Fase 0.5 — build matrix por tenant no Cloudflare Pages + Pages Function de proxy. A pasta `workers/` foi removida do repo. Ver runbook em [DEVELOPMENT.md](../../../DEVELOPMENT.md) → "Multi-tenant (Fase 0.5)" e o registro de supersessão na [ADR 004](../../adrs/004-multisite-communities.md). O conteúdo abaixo segue válido para o portal codaqui.dev (build `codaqui`).
+
 Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` com branding, navbar, blog, docs, doação e transparência próprios, no mesmo build do site Codaqui. T.I. Social foi o piloto; hoje existem também Elas no Código, DevParaná e CamposTech.
 
 ## Visão geral
@@ -46,7 +48,7 @@ Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` co
 
 ## Domínio próprio
 
-Para domínio próprio, veja [docs/plans/multisite/README.md §6](../../plans/multisite/README.md) — envolve Cloudflare Worker (`workers/shared/index.js`), whitelist de origens no backend (`backend/src/common/allowed-origins.config.ts`) e configuração do callback OAuth.
+Para domínio próprio, veja o runbook [DEVELOPMENT.md §Multi-tenant (Fase 0.5)](../../../DEVELOPMENT.md) — build matrix no Cloudflare Pages + Pages Function (arquitetura atual; o histórico de Worker está em [docs/plans/multisite/README.md §6](../../plans/multisite/README.md)). A whitelist de origens no backend (`backend/src/common/allowed-origins.config.ts`) e a configuração do callback OAuth continuam aplicáveis.
 
 ## Anti-patterns
 

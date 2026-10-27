@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { isApiProxyPath } from "./api-proxy-paths";
 
-describe("isApiProxyPath — paridade 1:1 com workers/shared/index.js", () => {
+describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade com o Worker legado)", () => {
   it("paths exatos do backend", () => {
     expect(isApiProxyPath("/health")).toBe(true);
     expect(isApiProxyPath("/docs")).toBe(true);
