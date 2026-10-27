@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR do multi-tenant frontend para comunidades parceiras. Registra a decisão de usar Docusaurus single-build + edge proxy para domínios próprios.
 audience: AI agents, mantenedores
-status: implementado (parcial — Fase 3 em produção)
+status: implementado (parcial — Fase 3 em produção); D1 superseda parcialmente em 2026-10-27 pela Fase 0.5 (Astro + build matrix por tenant + Pages Function) — ver "Registro de supersessão parcial"
 sections:
   - Contexto
   - Decisão
@@ -17,7 +17,7 @@ related-docs:
 # ADR 004 — Multi-Tenant Frontend para Comunidades Parceiras
 
 - **Data da decisão:** 2026-03
-- **Status:** Implementado (Fase 3 em produção)
+- **Status:** Implementado (Fase 3 em produção) — superseda parcial em 2026-10-27 (ver registro ao final)
 - **Escopo:** `comunidades/<slug>/`, `src/theme/Navbar/`, `workers/`
 
 ## Contexto
@@ -60,3 +60,14 @@ Para domínios próprios, um **Cloudflare Worker** reutilizável (`workers/share
 - Config piloto: `comunidades/tisocial/community.config.ts`
 - Worker compartilhado: `workers/shared/index.js`
 - Plano detalhado: [../plans/multisite/README.md](../plans/multisite/README.md)
+
+## Registro de supersessão parcial (2026-10-27)
+
+A **decisão D1** (single Docusaurus multi-instance + edge proxy Cloudflare Worker com pass-through) foi **superseda parcialmente** pela **Fase 0.5** do plano de refatoração para Astro ([refatoracao-frontend-astro.md](../plans/codaqui-1-0/refatoracao-frontend-astro.md)): build matrix por tenant no Cloudflare Pages — um projeto Pages por comunidade, com domínio próprio nativo e rotas limpas em `/` — e o proxy de API virando uma **Pages Function** (`functions/api/[[path]].ts`), encerrando a pasta `workers/`.
+
+A decisão nova será consolidada na **ADR 011 — Refatoração de frontend para Astro + multi-tenant por build matrix**, a produzir no merge da Fase 0.6 (cutover).
+
+**Permanece válido desta ADR:**
+
+- A **segregação por comunidade no ledger e no Stripe** (`metadata.communityId`, contas por comunidade, `/ledger/community-balances` multi-tenant nativo) — invariante do backend, independente do frontend.
+- O **piloto de conteúdo** da T.I. Social (`comunidades/tisocial/`) como base de conteúdo e branding reaproveitada no novo stack.
