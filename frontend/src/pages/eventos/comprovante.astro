@@ -1,0 +1,11 @@
+---
+// Comprovante de compra autenticado (`/eventos/comprovante?order=`).
+// Port de `src/pages/eventos/comprovante.tsx` (Docusaurus) — a lógica vive
+// na ilha (recibo via API autenticada; deslogado → login com returnTo).
+import AppLayout from "../../layouts/AppLayout.astro";
+import ReceiptApp from "../../components/islands/events/ReceiptApp";
+---
+
+<AppLayout title="Comprovante de compra" noindex>
+  <ReceiptApp client:only="react" />
+</AppLayout>
