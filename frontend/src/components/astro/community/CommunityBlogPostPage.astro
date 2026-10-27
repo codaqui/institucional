@@ -1,0 +1,111 @@
+---
+// Página do post do blog de comunidade — port 1:1 do BlogLayout (banner em
+// gradiente) + BlogPostItem em modo post + BlogPostPaginator
+// ("Publicação mais recente/antiga", sem Giscus — comentários só no blog
+// principal da Codaqui).
+import { render, type CollectionEntry } from "astro:content";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+import CommunityBlogBanner from "./CommunityBlogBanner.astro";
+import CommunityBlogPostHeader from "./CommunityBlogPostHeader.astro";
+import {
+  communityPostDescription,
+  communityPostReadingMinutes,
+  communityPostUrl,
+  communityTagUrl,
+  resolveCommunityBlogAuthors,
+} from "../../../lib/community-blog";
+
+interface PostRef {
+  title: string;
+  url: string;
+}
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  basePath: string;
+  post: CollectionEntry<"communityBlog">;
+  /** Post mais recente (link "Publicação mais recente"), se houver. */
+  newer?: PostRef;
+  /** Post mais antigo (link "Publicação mais antiga"), se houver. */
+  older?: PostRef;
+}
+
+const { config, site, homeHref, basePath, post, newer, older } = Astro.props;
+const { Content } = await render(post);
+const description = communityPostDescription(post);
+const tags = post.data.tags.map((label) => ({
+  label,
+  url: communityTagUrl(label, basePath),
+}));
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={post.data.title}
+  description={description}
+  homeHref={homeHref}
+>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <main class="min-w-0 flex-1">
+      <CommunityBlogBanner config={config} homeHref={homeHref} />
+      <article>
+        <CommunityBlogPostHeader
+          isPostPage
+          title={post.data.title}
+          url={communityPostUrl(post, basePath)}
+          date={post.data.date}
+          readingMinutes={communityPostReadingMinutes(post)}
+          tags={tags}
+          authors={resolveCommunityBlogAuthors(post.data.authors)}
+          description={description}
+        />
+        <div class="prose-cq">
+          <Content />
+        </div>
+      </article>
+
+      {
+        (newer || older) && (
+          <nav
+            class="mt-10 grid gap-4 border-t border-border pt-8 sm:grid-cols-2"
+            aria-label="Navegação entre publicações do blog"
+          >
+            {newer && (
+              <a
+                href={newer.url}
+                class="rounded-lg border border-border bg-surface p-4 no-underline transition-colors hover:border-(--community-primary)"
+              >
+                <span class="block text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  ← Publicação mais recente
+                </span>
+                <span class="mt-1 block font-bold text-text-primary">
+                  {newer.title}
+                </span>
+              </a>
+            )}
+            {older && (
+              <a
+                href={older.url}
+                class:list={[
+                  "rounded-lg border border-border bg-surface p-4 no-underline transition-colors hover:border-(--community-primary)",
+                  !newer && "sm:col-start-2 sm:text-end",
+                ]}
+              >
+                <span class="block text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                  Publicação mais antiga →
+                </span>
+                <span class="mt-1 block font-bold text-text-primary">
+                  {older.title}
+                </span>
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </main>
+  </div>
+</CommunityLayout>

@@ -1,0 +1,72 @@
+---
+// Paginação dos posts por etiqueta no portal codaqui
+// (/comunidades/tisocial/blog/tags/<tag>/page/N).
+import { getCollection } from "astro:content";
+import CommunityBlogTagPostsPage from "../../../../../../../components/astro/community/CommunityBlogTagPostsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../../../../../lib/community";
+import {
+  COMMUNITY_POSTS_PER_PAGE,
+  COMMUNITY_SIDEBAR_COUNT,
+  communityPostUrl,
+  communityTagUrl,
+  collectCommunityPostsByTag,
+  groupCommunityPostsByYear,
+  publishedCommunityPosts,
+  sortCommunityPosts,
+} from "../../../../../../../lib/community-blog";
+import { tenantSite } from "../../../../../../../lib/tenant";
+
+export async function getStaticPaths() {
+  const all = sortCommunityPosts(
+    publishedCommunityPosts(await getCollection("communityBlog")),
+  );
+  return [...collectCommunityPostsByTag(all).entries()].flatMap(([slug, group]) => {
+    const totalPages = Math.ceil(group.posts.length / COMMUNITY_POSTS_PER_PAGE);
+    return Array.from({ length: totalPages - 1 }, (_, i) => i + 2).map((page) => ({
+      params: { tag: slug, page: String(page) },
+      props: { tagLabel: group.label },
+    }));
+  });
+}
+
+const tenant = "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+const basePath = `${homeHref}/blog`;
+
+const tagSlug = Astro.params.tag!;
+const page = Number(Astro.params.page);
+const all = sortCommunityPosts(
+  publishedCommunityPosts(await getCollection("communityBlog")),
+);
+const group = collectCommunityPostsByTag(all).get(tagSlug)!;
+const totalCount = group.posts.length;
+const totalPages = Math.ceil(totalCount / COMMUNITY_POSTS_PER_PAGE);
+const yearGroups = groupCommunityPostsByYear(
+  all.slice(0, COMMUNITY_SIDEBAR_COUNT),
+).map((g) => ({
+  year: g.year,
+  posts: g.posts.map((post) => ({
+    url: communityPostUrl(post, basePath),
+    title: post.data.title,
+  })),
+}));
+---
+
+<CommunityBlogTagPostsPage
+  config={config}
+  site={site}
+  homeHref={homeHref}
+  basePath={basePath}
+  tagBasePath={communityTagUrl(group.label, basePath)}
+  tagLabel={group.label}
+  totalCount={totalCount}
+  page={page}
+  totalPages={totalPages}
+  posts={group.posts.slice(
+    (page - 1) * COMMUNITY_POSTS_PER_PAGE,
+    page * COMMUNITY_POSTS_PER_PAGE,
+  )}
+  yearGroups={yearGroups}
+/>

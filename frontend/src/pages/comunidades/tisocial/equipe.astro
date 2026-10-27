@@ -1,0 +1,14 @@
+---
+// Página "Equipe" da T.I. Social no portal codaqui
+// (/comunidades/tisocial/equipe).
+import CommunityEquipePage from "../../../components/astro/community/CommunityEquipePage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<CommunityEquipePage config={config} site={site} homeHref={homeHref} />

@@ -1,0 +1,65 @@
+---
+// Página de arquivo do blog de comunidade — port do BlogArchivePage do
+// Docusaurus. Sem banner e sem sidebar (paridade com o build de referência),
+// h1 "Arquivo" e posts agrupados por ano (âncora) com data "D de mês".
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+
+interface ArchiveEntry {
+  url: string;
+  title: string;
+  dayMonth: string;
+}
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  title: string;
+  /** Grupos de anos com posts já formatados (url/título/dia-mês). */
+  yearGroups: { year: number; posts: ArchiveEntry[] }[];
+}
+
+const { config, site, homeHref, title, yearGroups } = Astro.props;
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={title}
+  homeHref={homeHref}
+>
+  <div class="mx-auto max-w-3xl px-4 py-10">
+    <main>
+      <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{title}</h1>
+      {
+        yearGroups.map((group) => (
+          <section class="mb-8">
+            <h2
+              id={String(group.year)}
+              class="mb-3 text-2xl font-bold text-text-primary"
+            >
+              {group.year}
+            </h2>
+            <ul class="m-0 flex list-none flex-col gap-2 p-0">
+              {group.posts.map((post) => (
+                <li>
+                  <a
+                    href={post.url}
+                    class="text-text-primary no-underline hover:text-link"
+                  >
+                    <span class="font-semibold text-text-secondary">
+                      {post.dayMonth}
+                    </span>
+                    {" — "}
+                    {post.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </main>
+  </div>
+</CommunityLayout>

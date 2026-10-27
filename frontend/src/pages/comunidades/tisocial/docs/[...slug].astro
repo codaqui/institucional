@@ -1,0 +1,26 @@
+---
+// Docs da T.I. Social no portal codaqui (/comunidades/tisocial/docs) —
+// wrapper do CommunityDocsPage com as rotas do portal.
+import { getCollection } from "astro:content";
+import CommunityDocsPage from "../../../../components/astro/community/CommunityDocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
+import { tenantSite } from "../../../../lib/tenant";
+
+export async function getStaticPaths() {
+  const docs = await getCollection("communityDocs");
+  return docs.map((doc) => ({
+    // docs/index.md → /comunidades/tisocial/docs
+    params: { slug: doc.id === "index" ? undefined : doc.id },
+    props: { doc },
+  }));
+}
+
+const tenant = "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+
+const { doc } = Astro.props;
+---
+
+<CommunityDocsPage config={config} site={site} homeHref={homeHref} doc={doc} />

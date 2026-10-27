@@ -1,0 +1,89 @@
+---
+// Página "Home" da T.I. Social — port 1:1 de
+// comunidades/tisocial/src/pages/index.tsx (spec): hero de texto, impacto
+// (stats derivados de campaigns.json), "Próximas Campanhas" (upcoming.json),
+// explore e canais. Compartilhada entre o build tenant (rotas limpas) e o
+// portal codaqui (/comunidades/tisocial) — só muda o homeHref.
+import CommunityLayout from "./CommunityLayout.astro";
+import CommunityTextHero from "./CommunityTextHero.astro";
+import CommunityImpactSection from "./CommunityImpactSection.astro";
+import CommunityExploreSection from "./CommunityExploreSection.astro";
+import CommunityChannelsSection from "./CommunityChannelsSection.astro";
+import { exploreCardsFromConfig, impactStatsFromCampaigns } from "../../../lib/community-sections";
+import { getTenant } from "../../../lib/tenant";
+
+import campaigns from "../../../../../comunidades/tisocial/src/data/campaigns.json";
+import upcoming from "../../../../../comunidades/tisocial/src/data/upcoming.json";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  /** "/" no build tenant, communityBasePath(config) no portal codaqui. */
+  homeHref: string;
+}
+
+const { config, site, homeHref } = Astro.props;
+
+// Rotas limpas no build tenant: remove o basePath do portal dos cards.
+const tenantBuild = getTenant() !== null;
+const stripBase = (to: string) =>
+  to.startsWith(config.basePath) ? to.slice(config.basePath.length) || "/" : to;
+const exploreCards = exploreCardsFromConfig(config).map((card) => ({
+  ...card,
+  to: tenantBuild ? stripBase(card.to) : card.to,
+}));
+
+const impactStats = impactStatsFromCampaigns(campaigns);
+
+// Ícone calendar_month do @mui/icons-material (fill currentColor).
+const CALENDAR_PATH =
+  "M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`${config.shortName} — Comunidade parceira`}
+  homeHref={homeHref}
+>
+  <CommunityTextHero config={config} />
+  <CommunityImpactSection config={config} stats={impactStats} />
+
+  <section class="border-t border-border py-10 md:py-16">
+    <div class="mx-auto max-w-6xl px-4">
+      <h2 class="m-0 mb-4 text-3xl font-bold">Próximas Campanhas</h2>
+      <p class="m-0 mb-8 text-text-secondary">
+        Confira o cronograma de ações sociais planejadas para os próximos meses.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        {
+          upcoming.map((item) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-4 transition duration-200 hover:-translate-y-1 hover:border-(--community-primary)">
+              <div
+                class="mb-3 flex items-center gap-1"
+                style="color: var(--community-primary)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="h-4 w-4"
+                >
+                  <path d={CALENDAR_PATH} />
+                </svg>
+                <span class="text-xs font-bold uppercase tracking-wide">
+                  {item.date}
+                </span>
+              </div>
+              <p class="m-0 text-base font-bold leading-snug">{item.action}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CommunityExploreSection config={config} cards={exploreCards} />
+  <CommunityChannelsSection config={config} />
+</CommunityLayout>

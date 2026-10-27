@@ -1,0 +1,14 @@
+---
+// Home da T.I. Social no portal codaqui (/comunidades/tisocial) — wrapper do
+// CommunityHomePage com as rotas do portal.
+import CommunityHomePage from "../../../components/astro/community/CommunityHomePage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<CommunityHomePage config={config} site={site} homeHref={homeHref} />

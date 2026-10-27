@@ -1,0 +1,51 @@
+---
+// Listagem do blog da T.I. Social (build tenant, página 1 — rota limpa /blog).
+// Port 1:1 de /comunidades/tisocial/blog no Docusaurus.
+import { getCollection } from "astro:content";
+import CommunityBlogListPage from "../../components/astro/community/CommunityBlogListPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import {
+  COMMUNITY_POSTS_PER_PAGE,
+  COMMUNITY_SIDEBAR_COUNT,
+  communityPostUrl,
+  groupCommunityPostsByYear,
+  publishedCommunityPosts,
+  sortCommunityPosts,
+} from "../../lib/community-blog";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+const basePath = tenantBuild ? "/blog" : `${communityBasePath(config)}/blog`;
+
+const all = sortCommunityPosts(
+  publishedCommunityPosts(await getCollection("communityBlog")),
+);
+const totalCount = all.length;
+const totalPages = Math.ceil(totalCount / COMMUNITY_POSTS_PER_PAGE);
+const posts = all.slice(0, COMMUNITY_POSTS_PER_PAGE);
+const yearGroups = groupCommunityPostsByYear(
+  all.slice(0, COMMUNITY_SIDEBAR_COUNT),
+).map((group) => ({
+  year: group.year,
+  posts: group.posts.map((post) => ({
+    url: communityPostUrl(post, basePath),
+    title: post.data.title,
+  })),
+}));
+---
+
+<CommunityBlogListPage
+  config={config}
+  site={site}
+  homeHref={homeHref}
+  basePath={basePath}
+  page={1}
+  totalPages={totalPages}
+  totalCount={totalCount}
+  posts={posts}
+  yearGroups={yearGroups}
+/>

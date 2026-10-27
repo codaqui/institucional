@@ -1,0 +1,69 @@
+---
+// Página de índice de etiquetas do blog de comunidade — port do
+// BlogTagsListPage do Docusaurus: banner em gradiente, sidebar, h1
+// "Etiquetas" e etiquetas agrupadas por letra inicial com contagem.
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+import CommunityBlogBanner from "./CommunityBlogBanner.astro";
+import CommunityBlogSidebar from "./CommunityBlogSidebar.astro";
+
+interface TagEntry {
+  label: string;
+  url: string;
+  count: number;
+}
+
+interface LetterGroup {
+  letter: string;
+  tags: TagEntry[];
+}
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  title: string;
+  yearGroups: import("./CommunityBlogSidebar.astro").SidebarYearGroup[];
+  letterGroups: LetterGroup[];
+}
+
+const { config, site, homeHref, title, yearGroups, letterGroups } = Astro.props;
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={title}
+  homeHref={homeHref}
+>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <CommunityBlogSidebar yearGroups={yearGroups} />
+    <main class="min-w-0 flex-1">
+      <CommunityBlogBanner config={config} homeHref={homeHref} />
+      <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{title}</h1>
+      {
+        letterGroups.map((group) => (
+          <section class="mb-6">
+            <h2
+              id={group.letter}
+              class="mb-3 text-2xl font-bold text-text-primary"
+            >
+              {group.letter}
+            </h2>
+            <div class="flex flex-wrap gap-2">
+              {group.tags.map((tag) => (
+                <a
+                  href={tag.url}
+                  class="rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-semibold text-text-primary no-underline transition-colors hover:border-(--community-primary)"
+                >
+                  {tag.label}
+                  <span class="ms-1 text-text-secondary">{tag.count}</span>
+                </a>
+              ))}
+            </div>
+          </section>
+        ))
+      }
+    </main>
+  </div>
+</CommunityLayout>

@@ -1,0 +1,61 @@
+---
+// Página de docs da comunidade — port da instância plugin-content-docs da
+// comunidade (sidebarPath: false, breadcrumbs ligados mas sem sidebar —
+// o build de referência não emite breadcrumbs com um único doc). Artigo com
+// TOC à direita (theme-doc-toc) dentro do shell da comunidade.
+import { render, type CollectionEntry } from "astro:content";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+
+interface TocItem {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  doc: CollectionEntry<"communityDocs">;
+}
+
+const { config, site, homeHref, doc } = Astro.props;
+const { Content, headings } = await render(doc);
+const toc: TocItem[] = headings.filter((h) => h.depth === 2);
+const title = doc.data.title ?? "Docs";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={title}
+  homeHref={homeHref}
+>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <article class="prose-cq min-w-0 flex-1">
+      <Content />
+    </article>
+    {
+      toc.length > 0 && (
+        <aside class="hidden w-64 shrink-0 lg:block">
+          <h2 class="m-0 mb-3 text-sm font-bold uppercase tracking-wide text-text-secondary">
+            Nesta página
+          </h2>
+          <ul class="m-0 flex list-none flex-col gap-2 p-0">
+            {toc.map((item) => (
+              <li>
+                <a
+                  href={`#${item.slug}`}
+                  class="text-sm text-link no-underline hover:text-link-hover"
+                >
+                  {item.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )
+    }
+  </div>
+</CommunityLayout>
