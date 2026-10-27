@@ -1,17 +1,32 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../../lib/config";
-import { fetchMe, RETURN_KEY } from "../../lib/auth-client";
+import { COMMUNITY_KEY, fetchMe, RETURN_KEY } from "../../lib/auth-client";
 
-const DEFAULT_RETURN = "/"; // /membro só nasce na 0.4 — na POC volta para a home
+// Paridade com o Docusaurus (src/pages/auth/callback.tsx): após o login o
+// destino padrão é a Área do Membro.
+const DEFAULT_RETURN = "/membro";
 
 type Status = "processing" | "error";
 
 /** Valida que o destino é um path relativo (anti open-redirect). */
 function safeReturnPath(value: string | null): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+  if (
+    !value ||
+    !value.startsWith("/") ||
+    value.startsWith("//") ||
+    value.includes(":")
+  ) {
     return DEFAULT_RETURN;
   }
   return value;
+}
+
+/** Lê o destino salvo, limpa as chaves de auth e valida (anti open-redirect). */
+function consumeReturnPath(): string {
+  const rawReturnTo = sessionStorage.getItem(RETURN_KEY);
+  sessionStorage.removeItem(RETURN_KEY);
+  sessionStorage.removeItem(COMMUNITY_KEY);
+  return safeReturnPath(rawReturnTo);
 }
 
 export default function AuthCallback() {
@@ -20,20 +35,40 @@ export default function AuthCallback() {
   useEffect(() => {
     const run = async () => {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("status") === "error") {
+      const statusParam = params.get("status");
+
+      if (statusParam === "error") {
         setStatus("error");
         return;
       }
 
-      if (params.get("status") === "success") {
-        // Handoff efêmero: JWT no fragment, trocado pelo cookie httpOnly.
-        const hash = new URLSearchParams(window.location.hash.slice(1));
-        const token = hash.get("token");
-        window.history.replaceState(null, "", window.location.pathname);
-        if (!token) {
-          setStatus("error");
-          return;
+      // Guarda: só executa o handoff do token quando vier de um redirect OAuth
+      // real (o backend sempre inclui ?status=success). Acesso direto ou
+      // refresh da página sem esse param cai no else (verifica sessão).
+      if (statusParam !== "success") {
+        const profile = await fetchMe(API_URL);
+        if (profile) {
+          window.location.replace(consumeReturnPath());
+        } else {
+          window.location.replace("/");
         }
+        return;
+      }
+
+      // Token handoff efêmero: o backend coloca `#token=<JWT>` na URL de
+      // redirect. O fragment não vai ao servidor — lemos no client e
+      // trocamos em `/auth/finalize`, que seta o cookie httpOnly.
+      const hash = new URLSearchParams(window.location.hash.slice(1));
+      const token = hash.get("token");
+
+      // Limpa o fragment imediatamente — evita que um token stale seja
+      // re-lido se o efeito re-executar ou se a página for recarregada.
+      if (token) {
+        window.history.replaceState(
+          null,
+          "",
+          window.location.pathname + window.location.search,
+        );
         try {
           const res = await fetch(`${API_URL}/auth/finalize`, {
             method: "POST",
@@ -56,7 +91,7 @@ export default function AuthCallback() {
         setStatus("error");
         return;
       }
-      window.location.replace(safeReturnPath(sessionStorage.getItem(RETURN_KEY)));
+      window.location.replace(consumeReturnPath());
     };
     run();
   }, []);
@@ -64,15 +99,20 @@ export default function AuthCallback() {
   return (
     <main className="mx-auto max-w-md px-4 py-24 text-center">
       {status === "processing" ? (
-        <p className="text-text-secondary">Finalizando seu login…</p>
+        <p className="text-text-secondary" role="status">
+          Finalizando autenticação com GitHub…
+        </p>
       ) : (
         <>
-          <h1 className="text-2xl font-extrabold text-text-primary">Não foi possível entrar</h1>
-          <p className="mt-2 text-text-secondary">
-            Ocorreu um problema na autenticação. Tente novamente.
-          </p>
-          <a href="/" className="mt-4 inline-block font-bold text-link hover:text-link-hover">
-            Voltar para o início
+          <h1 className="text-2xl font-extrabold text-text-primary">
+            Não foi possível autenticar.
+          </h1>
+          <p className="mt-2 text-text-secondary">Tente novamente.</p>
+          <a
+            href="/"
+            className="mt-4 inline-block font-bold text-link hover:text-link-hover"
+          >
+            ← Voltar para o início
           </a>
         </>
       )}
