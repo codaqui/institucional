@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import OverridesApp from "../../components/islands/admin/overrides/OverridesApp";
+---
+
+<AppLayout title="Overrides de Eventos" noindex>
+  <OverridesApp client:only="react" />
+</AppLayout>
