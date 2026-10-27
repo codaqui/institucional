@@ -1,0 +1,81 @@
+---
+// Página de autores do blog de comunidade — port do BlogAuthorsListPage:
+// banner em gradiente, sidebar, h1 "Autores" e card por autor
+// (avatar, nome, título e contagem de posts).
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import type { CommunityBlogAuthor } from "../../../data/community-blog-authors";
+import CommunityLayout from "./CommunityLayout.astro";
+import CommunityBlogBanner from "./CommunityBlogBanner.astro";
+import CommunityBlogSidebar from "./CommunityBlogSidebar.astro";
+
+interface AuthorEntry {
+  author: CommunityBlogAuthor;
+  count: number;
+}
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  title: string;
+  yearGroups: import("./CommunityBlogSidebar.astro").SidebarYearGroup[];
+  authors: AuthorEntry[];
+}
+
+const { config, site, homeHref, title, yearGroups, authors } = Astro.props;
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={title}
+  homeHref={homeHref}
+>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <CommunityBlogSidebar yearGroups={yearGroups} />
+    <main class="min-w-0 flex-1">
+      <CommunityBlogBanner config={config} homeHref={homeHref} />
+      <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{title}</h1>
+      <div class="flex flex-col gap-4">
+        {
+          authors.map(({ author, count }) => {
+            const card = (
+              <div class="flex items-center gap-4 rounded-lg border border-border bg-surface p-5">
+                {author.image_url && (
+                  <img
+                    src={author.image_url}
+                    alt={author.name}
+                    width="64"
+                    height="64"
+                    class="h-16 w-16 rounded-full object-cover"
+                  />
+                )}
+                <div>
+                  <p class="m-0 text-lg font-bold">{author.name}</p>
+                  {author.title && (
+                    <p class="m-0 text-sm text-text-secondary">{author.title}</p>
+                  )}
+                  <p class="m-0 mt-1 text-sm font-semibold text-text-secondary">
+                    {count} {count === 1 ? "publicação" : "publicações"}
+                  </p>
+                </div>
+              </div>
+            );
+            return author.url ? (
+              <a
+                href={author.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="text-inherit no-underline"
+              >
+                {card}
+              </a>
+            ) : (
+              card
+            );
+          })
+        }
+      </div>
+    </main>
+  </div>
+</CommunityLayout>

@@ -1,0 +1,45 @@
+---
+// Arquivo do blog da T.I. Social no portal codaqui
+// (/comunidades/tisocial/blog/archive).
+import { getCollection } from "astro:content";
+import CommunityBlogArchivePage from "../../../../components/astro/community/CommunityBlogArchivePage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
+import {
+  communityPostUrl,
+  groupCommunityPostsByYear,
+  publishedCommunityPosts,
+  sortCommunityPosts,
+} from "../../../../lib/community-blog";
+import { tenantSite } from "../../../../lib/tenant";
+
+const tenant = "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+const basePath = `${homeHref}/blog`;
+
+const all = sortCommunityPosts(
+  publishedCommunityPosts(await getCollection("communityBlog")),
+);
+const dayMonthFmt = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "long",
+  timeZone: "UTC",
+});
+const yearGroups = groupCommunityPostsByYear(all).map((group) => ({
+  year: group.year,
+  posts: group.posts.map((post) => ({
+    url: communityPostUrl(post, basePath),
+    title: post.data.title,
+    dayMonth: dayMonthFmt.format(post.data.date),
+  })),
+}));
+---
+
+<CommunityBlogArchivePage
+  config={config}
+  site={site}
+  homeHref={homeHref}
+  title="Arquivo"
+  yearGroups={yearGroups}
+/>

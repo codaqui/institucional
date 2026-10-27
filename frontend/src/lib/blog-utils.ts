@@ -25,7 +25,7 @@ export function resolveAuthors(authors: (string | BlogAuthor)[]): BlogAuthor[] {
   return authors.map((a) => (typeof a === "string" ? (BLOG_AUTHORS[a] ?? { name: a }) : a));
 }
 
-function plainText(markdown: string): string {
+export function plainText(markdown: string): string {
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")

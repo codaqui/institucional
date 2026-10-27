@@ -1,0 +1,56 @@
+---
+// Autores do blog da T.I. Social (build tenant, /blog/authors). Port do
+// BlogAuthorsListPage: banner em gradiente, sidebar, card por autor.
+import { getCollection } from "astro:content";
+import CommunityBlogAuthorsPage from "../../components/astro/community/CommunityBlogAuthorsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import {
+  COMMUNITY_SIDEBAR_COUNT,
+  communityPostUrl,
+  groupCommunityPostsByYear,
+  publishedCommunityPosts,
+  resolveCommunityBlogAuthors,
+  sortCommunityPosts,
+} from "../../lib/community-blog";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+const basePath = tenantBuild ? "/blog" : `${communityBasePath(config)}/blog`;
+
+const all = sortCommunityPosts(
+  publishedCommunityPosts(await getCollection("communityBlog")),
+);
+// Um card por handle de autor (o authors.yml do tisocial tem um único autor).
+const authorCounts = new Map<string, number>();
+for (const post of all) {
+  for (const handle of post.data.authors) {
+    authorCounts.set(handle, (authorCounts.get(handle) ?? 0) + 1);
+  }
+}
+const authors = [...authorCounts.entries()].map(([handle, count]) => ({
+  author: resolveCommunityBlogAuthors([handle])[0],
+  count,
+}));
+const yearGroups = groupCommunityPostsByYear(
+  all.slice(0, COMMUNITY_SIDEBAR_COUNT),
+).map((group) => ({
+  year: group.year,
+  posts: group.posts.map((post) => ({
+    url: communityPostUrl(post, basePath),
+    title: post.data.title,
+  })),
+}));
+---
+
+<CommunityBlogAuthorsPage
+  config={config}
+  site={site}
+  homeHref={homeHref}
+  title="Autores"
+  yearGroups={yearGroups}
+  authors={authors}
+/>
