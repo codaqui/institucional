@@ -1,0 +1,96 @@
+---
+// Home do site whitelabel T.I. Social (build tenant `TENANT=tisocial`).
+// Port 1:1 de comunidades/tisocial/src/pages/index.tsx (spec): hero de texto,
+// impacto (stats derivados de campaigns.json, mesmo cálculo do config),
+// "Próximas Campanhas" (upcoming.json), explore e canais — tudo com os
+// componentes de comunidade mergeados na Fase 0.5 (T4).
+//
+// Em builds tenant as rotas são limpas (home é "/"): links derivados do
+// config têm o prefixo `/comunidades/<slug>` removido; o dist/_redirects
+// (scripts/build-tenant-redirects.mjs) cobre os paths absolutos que ficam
+// nos configs (ex.: navMenu).
+import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
+import CommunityTextHero from "../components/astro/community/CommunityTextHero.astro";
+import CommunityImpactSection from "../components/astro/community/CommunityImpactSection.astro";
+import CommunityExploreSection from "../components/astro/community/CommunityExploreSection.astro";
+import CommunityChannelsSection from "../components/astro/community/CommunityChannelsSection.astro";
+import {
+  communityBasePath,
+  loadTenantConfig,
+} from "../lib/community";
+import {
+  exploreCardsFromConfig,
+  impactStatsFromCampaigns,
+} from "../lib/community-sections";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+import campaigns from "../../../../comunidades/tisocial/src/data/campaigns.json";
+import upcoming from "../../../../comunidades/tisocial/src/data/upcoming.json";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+
+// Rotas limpas no build tenant: remove o basePath do portal dos cards.
+const stripBase = (to: string) =>
+  to.startsWith(config.basePath) ? to.slice(config.basePath.length) || "/" : to;
+const exploreCards = exploreCardsFromConfig(config).map((card) => ({
+  ...card,
+  to: stripBase(card.to),
+}));
+
+const impactStats = impactStatsFromCampaigns(campaigns);
+
+// Ícone calendar_month do @mui/icons-material (fill currentColor).
+const CALENDAR_PATH =
+  "M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zM9 14H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2zm-8 4H7v-2h2v2zm4 0h-2v-2h2v2zm4 0h-2v-2h2v2z";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`${config.shortName} — Comunidade parceira`}
+  homeHref={homeHref}
+>
+  <CommunityTextHero config={config} />
+  <CommunityImpactSection config={config} stats={impactStats} />
+
+  <section class="border-t border-border py-10 md:py-16">
+    <div class="mx-auto max-w-6xl px-4">
+      <h2 class="m-0 mb-4 text-3xl font-bold">Próximas Campanhas</h2>
+      <p class="m-0 mb-8 text-text-secondary">
+        Confira o cronograma de ações sociais planejadas para os próximos meses.
+      </p>
+      <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+        {
+          upcoming.map((item) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-4 transition duration-200 hover:-translate-y-1 hover:border-(--community-primary)">
+              <div
+                class="mb-3 flex items-center gap-1"
+                style="color: var(--community-primary)"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                  class="h-4 w-4"
+                >
+                  <path d={CALENDAR_PATH} />
+                </svg>
+                <span class="text-xs font-bold uppercase tracking-wide">
+                  {item.date}
+                </span>
+              </div>
+              <p class="m-0 text-base font-bold leading-snug">{item.action}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <CommunityExploreSection config={config} cards={exploreCards} />
+  <CommunityChannelsSection config={config} />
+</CommunityLayout>

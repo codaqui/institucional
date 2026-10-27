@@ -1,0 +1,135 @@
+---
+// Página "Equipe" do site whitelabel T.I. Social (build tenant).
+// Port 1:1 de comunidades/tisocial/src/pages/equipe.tsx (spec): hero accent,
+// seção "Voluntários e Liderança" com os cards de membro a partir de
+// `comunidades/tisocial/src/data/team.ts` (fonte READ-ONLY, mesma importada
+// pelo site Docusaurus até a 0.6).
+import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+import { equipeImpacto } from "../../../../comunidades/tisocial/src/data/team";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+
+// Ícones linkedin/github do @mui/icons-material (fill currentColor).
+const LINKEDIN_PATH =
+  "M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z";
+const GITHUB_PATH =
+  "M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6.1-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.3 2.8.1 3.2.8.8 1.3 1.9 1.3 3.2 0 4.6-2.9 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`Equipe — ${config.shortName}`}
+  description={`Conheça as pessoas por trás da ${config.name}`}
+  homeHref={homeHref}
+>
+  <section class="cq-hero text-white">
+    <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+      <div class="max-w-[760px] space-y-4">
+        <span
+          class="inline-block w-fit rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"
+        >
+          {config.name}
+        </span>
+        <h1 class="m-0 text-3xl font-extrabold md:text-5xl">Equipe de Impacto</h1>
+        <p class="m-0 text-xl font-normal opacity-95">
+          A T.I. Social Maringá é movida por pessoas apaixonadas por tecnologia
+          e causas sociais. Conheça quem faz as campanhas acontecerem.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+    <h2 class="m-0 mb-2 text-3xl font-bold">Voluntários e Liderança</h2>
+    <p class="m-0 mb-4 max-w-[700px] text-text-secondary">
+      Nossa equipe é composta por colaboradores voluntários das empresas
+      parceiras.
+    </p>
+    <hr class="mb-8 border-border" />
+    <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+      {
+        equipeImpacto.map((m) => (
+          <div class="flex h-full flex-col rounded-lg border border-border bg-surface text-center transition duration-200 hover:-translate-y-0.5 hover:border-(--community-primary) hover:shadow-lg">
+            <div class="flex flex-1 flex-col items-center gap-2 p-6">
+              <img
+                src={m.avatar}
+                alt={`Foto de ${m.name}`}
+                width="80"
+                height="80"
+                class="h-20 w-20 rounded-full border-[3px] border-border object-cover"
+              />
+              <h3 class="m-0 text-xl font-bold">{m.name}</h3>
+              <span class="mt-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold">
+                {m.role}
+              </span>
+              {m.specialty && (
+                <span
+                  class="rounded-full px-2.5 py-0.5 text-xs font-semibold text-white"
+                  style="background-color: var(--community-primary)"
+                >
+                  {m.specialty}
+                </span>
+              )}
+            </div>
+            <div class="flex justify-center gap-1 pb-4">
+              {m.linkedin && m.linkedin !== "#" && (
+                <a
+                  href={m.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`LinkedIn de ${m.name}`}
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full no-underline transition-colors hover:bg-sunken"
+                  style="color: var(--community-primary)"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                  >
+                    <path d={LINKEDIN_PATH} />
+                  </svg>
+                </a>
+              )}
+              {m.github && m.github !== "#" && (
+                <a
+                  href={m.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`GitHub de ${m.name}`}
+                  class="inline-flex h-8 w-8 items-center justify-center rounded-full text-text-primary no-underline transition-colors hover:bg-sunken"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                    class="h-5 w-5"
+                  >
+                    <path d={GITHUB_PATH} />
+                  </svg>
+                </a>
+              )}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <style>
+    .cq-hero {
+      background-color: var(--community-primary);
+    }
+    [data-theme="dark"] .cq-hero {
+      background-color: var(--community-primary-dark);
+    }
+  </style>
+</CommunityLayout>

@@ -10,7 +10,7 @@
     "predev": "npm run sync:content",
     "dev": "astro dev",
     "prebuild": "npm run sync:content",
-    "build": "astro build",
+    "build": "astro build && node scripts/build-tenant-redirects.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",

@@ -8,7 +8,7 @@ export default defineConfig({
     jsx: "automatic",
   },
   test: {
-    include: ["src/**/*.test.{ts,tsx}"],
+    include: ["src/**/*.test.{ts,tsx}", "scripts/**/*.test.mjs"],
     environment: "node",
     environmentMatchGlobs: [["src/**/*.test.tsx", "jsdom"]],
     // O jsdom só expõe `window.localStorage` para origens não-opacas — o
