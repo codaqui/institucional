@@ -1,0 +1,113 @@
+---
+// Wrapper codaqui de "Apoiar" do DevParaná (`/comunidades/devparana/apoiar`) —
+// espelho de src-tenants/devparana/pages/apoiar.astro no build do portal.
+// Port 1:1 de comunidades/devparana/src/pages/apoiar.tsx +
+// comunidades/shared/components/CommunityApoiarPage.tsx (spec); mesmos
+// desvios conhecidos do tisocial (sem CommunityLoginCTA; R6: sem
+// authCommunitySlug — a ilha renderiza os prompts de auth).
+import CommunityLayout from "../../../components/astro/community/CommunityLayout.astro";
+import DonationFlowIsland from "../../../components/islands/DonationFlowIsland";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const config = await loadTenantConfig("devparana");
+const site = Astro.site?.toString() ?? tenantSite("devparana");
+const homeHref = communityBasePath(config);
+
+// Ícone verified do @mui/icons-material (fill currentColor).
+const VERIFIED_PATH =
+  "M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.7 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.59 22.5 12 21.04l3.4 1.46 1.89-3.21 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z";
+
+const infoCards = [
+  {
+    title: "Como sua doação é usada",
+    body: `100% direcionada para ações do ${config.shortName}: infraestrutura de eventos, coffee break, deslocamento de palestrantes e brindes. Movimentações registradas no ledger da Associação Codaqui.`,
+  },
+  {
+    title: "Cobertura jurídica",
+    body: "Pagamentos processados pela Stripe; recibo emitido pela Associação Codaqui (CNPJ 44.593.429/0001-05). Doações acima de R$ 100 exigem login com GitHub para conformidade fiscal.",
+  },
+];
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`Apoiar — ${config.shortName}`}
+  description={`Faça uma doação para a comunidade ${config.name}.`}
+  homeHref={homeHref}
+>
+  <section class="cq-hero text-white">
+    <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+      <div class="max-w-[760px] space-y-4">
+        <span
+          class="inline-block w-fit rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"
+        >
+          Apoie esta comunidade
+        </span>
+        <h1 class="m-0 text-3xl font-extrabold md:text-5xl">
+          💙 Apoie o {config.shortName}
+        </h1>
+        <p class="m-0 text-xl font-normal opacity-95">
+          Sua contribuição mantém meetups locais e o evento itinerante
+          DevParaná na Estrada, levando conteúdo de qualidade para várias
+          cidades do Paraná.
+        </p>
+        <div class="flex items-center gap-1 pt-1 text-sm opacity-95">
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+            class="h-4 w-4"
+          >
+            <path d={VERIFIED_PATH}></path>
+          </svg>
+          <p class="m-0">
+            100% rastreado no Portal de Transparência da Associação Codaqui.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-4 py-10 md:py-16">
+    <div
+      class="rounded-lg border bg-surface p-5 md:p-8"
+      style="border-color: var(--community-primary)"
+    >
+      <DonationFlowIsland
+        client:load
+        lockedTargetId={config.slug}
+        hideWallets
+        accentColor={config.theme.primary}
+        accentColorDark={config.theme.primaryDark}
+        title={`Apoiar a ${config.shortName}`}
+        subtitle={`Mensal, anual ou doação única. 100% direcionado para a ${config.shortName}.`}
+      />
+    </div>
+  </section>
+
+  <section class="bg-sunken py-10 md:py-16">
+    <div class="mx-auto max-w-3xl px-4">
+      <div class="grid gap-6 md:grid-cols-2">
+        {
+          infoCards.map((card) => (
+            <div class="h-full rounded-lg border border-border bg-surface p-6">
+              <h2 class="m-0 mb-2 text-xl font-bold">{card.title}</h2>
+              <p class="m-0 text-sm text-text-secondary">{card.body}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .cq-hero {
+      background-color: var(--community-primary);
+    }
+    [data-theme="dark"] .cq-hero {
+      background-color: var(--community-primary-dark);
+    }
+  </style>
+</CommunityLayout>

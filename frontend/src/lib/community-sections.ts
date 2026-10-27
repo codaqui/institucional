@@ -32,12 +32,15 @@ export interface CommunityImpactStat {
   label: string;
 }
 
-/** Ícones MUI usados nos cards de "Explore a comunidade" (paths em community-sections). */
+/** Ícones MUI usados nos cards de "Explore a comunidade" (paths em CommunityExploreSection). */
 export type CommunityExploreIcon =
   | "article"
   | "menu_book"
   | "volunteer_activism"
-  | "paid";
+  | "paid"
+  // devparana (buildFeatureCards de comunidades/devparana/src/pages/index.tsx)
+  | "groups"
+  | "calendar_month";
 
 export interface CommunityExploreCard {
   icon: CommunityExploreIcon;
