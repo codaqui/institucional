@@ -16,7 +16,9 @@ agent-protocol:
 
 # Fase 0.5 — Multi-tenant Cloudflare Pages: Plano de Implementação
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **Registro de execução (2026-10-27):** fase executada em 2026-10-27 (T1–T12 mergeadas em develop, gates verdes); T13 (deletar `workers/`) e smoke pós-DNS da T14 ficam pendentes de operação do usuário (DNS/credenciais Cloudflare — ver runbook em DEVELOPMENT.md §Multi-tenant).
+
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Subir todos os tenants (codaqui + tisocial + elasnocodigo + devparana) em projetos Cloudflare Pages por build matrix, com rotas limpas em `/` nos domínios próprios, proxy de API via Pages Function, migração dos 3 domínios live e deleção da pasta `workers/`.
 
@@ -93,7 +95,7 @@ frontend/
   - `getTenant(): "tisocial" | "elasnocodigo" | "devparana" | null` — lê `import.meta.env.PUBLIC_TENANT`.
   - `tenantSite(tenant: string): string` — URL canônica do tenant.
 
-- [ ] **Step 1: Testes falhando do tenant lib**
+- [x] **Step 1: Testes falhando do tenant lib**
 
 ```ts
 // frontend/src/lib/tenant.test.ts
@@ -116,12 +118,12 @@ describe("tenant", () => {
 
 (O teste de getTenant com valor setado usa `vi.stubEnv` + reset de módulo — padrão de `api-url.test.ts`.)
 
-- [ ] **Step 2: Rodar e ver falhar**
+- [x] **Step 2: Rodar e ver falhar**
 
 Run: `cd frontend && npx vitest run src/lib/tenant.test.ts`
 Expected: FAIL (módulo não existe).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 `frontend/tenants.config.mjs`:
 
@@ -188,12 +190,12 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 4: Rodar testes + gates**
+- [x] **Step 4: Rodar testes + gates**
 
 Run: `cd frontend && npx vitest run src/lib/tenant.test.ts && npm run check && npm run build`
 Expected: tudo verde (build codaqui sem TENANT continua idêntico — `git status` do `frontend/dist` não é commitado, mas o diff de URLs deve seguir 100%: `node scripts/diff-urls.mjs` após o build).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/tenants.config.mjs frontend/tenants.config.d.ts frontend/src/lib/tenant.ts frontend/src/lib/tenant.test.ts frontend/astro.config.mjs
@@ -216,11 +218,11 @@ git commit -m "feat(fase-0.5): infra de tenant — tenants.config, lib/tenant e 
   - `tenantNav(config): Array<{ label: string; to: string }>` — `navMenu` achatado (items com submenu viram link para o primeiro `to` do submenu — replicar o achatamento do swizzle `src/theme/Navbar/Content/index.tsx` do Docusaurus).
   - `communityBasePath(config): string` — `/comunidades/<slug>`.
 
-- [ ] **Step 1: Testes falhando** — cobrir: loadTenantConfig("tisocial") devolve slug/cores/nav esperados (assert em campos conhecidos do config: `theme.primary === "#8DC044"`, `features.donations === true`); tenantCssVars mapeia as 5 chaves; tenantNav achata menu com submenu; communityBasePath.
+- [x] **Step 1: Testes falhando** — cobrir: loadTenantConfig("tisocial") devolve slug/cores/nav esperados (assert em campos conhecidos do config: `theme.primary === "#8DC044"`, `features.donations === true`); tenantCssVars mapeia as 5 chaves; tenantNav achata menu com submenu; communityBasePath.
 
-- [ ] **Step 2: Ver falhar** — Run: `cd frontend && npx vitest run src/lib/community.test.ts` → FAIL.
+- [x] **Step 2: Ver falhar** — Run: `cd frontend && npx vitest run src/lib/community.test.ts` → FAIL.
 
-- [ ] **Step 3: Implementar** — dynamic imports literais por tenant:
+- [x] **Step 3: Implementar** — dynamic imports literais por tenant:
 
 ```ts
 export async function loadTenantConfig(tenant: TenantName): Promise<CommunitySiteConfig> {
@@ -234,9 +236,9 @@ export async function loadTenantConfig(tenant: TenantName): Promise<CommunitySit
 
 (tipo `CommunitySiteConfig` import type-only de `../../../comunidades/shared/types`.) Nota: `devparana/community.config.ts` importa dados locais (`./src/data/...`) — imports relativos dentro de `comunidades/` resolvem naturalmente. O `tisocial/community.config.ts` importa `./src/data/campaigns.json` — idem. Se o Vite reclamar de fs.allow no **dev server** (`astro dev` com TENANT), acrescentar `server: { fs: { allow: [".."] } }` ao vite config (comentário explicando). Build não é afetado.
 
-- [ ] **Step 4: Testes verdes + check** — `npx vitest run src/lib/community.test.ts && npm run check`.
+- [x] **Step 4: Testes verdes + check** — `npx vitest run src/lib/community.test.ts && npm run check`.
 
-- [ ] **Step 5: Commit** — `feat(fase-0.5): adapters de community.config — loadTenantConfig, tenantCssVars, tenantNav`
+- [x] **Step 5: Commit** — `feat(fase-0.5): adapters de community.config — loadTenantConfig, tenantCssVars, tenantNav`
 
 ---
 
@@ -252,11 +254,11 @@ export async function loadTenantConfig(tenant: TenantName): Promise<CommunitySit
 - Produces: `isApiProxyPath(pathname: string): boolean` — paridade 1:1 com o Worker (`workers/shared/index.js`): exatos `{"/health","/docs","/auth/me","/auth/logout","/auth/finalize"}` + prefixos `["/api/","/auth/github","/auth/me","/auth/logout","/auth/finalize","/stripe/","/ledger/","/members/","/events/","/reimbursements/","/companies/","/club/","/vendors/","/account-transfers/","/admin/","/notifications/"]` com normalização de trailing slash para calls "bare" (mesma lógica do Worker). **`/auth/callback` NÃO é API** (é página — mesma exclusão proposital do Worker).
 - Produces: `onRequest` Pages Function — API → `fetch(new URL(pathname + search, env.API_ORIGIN ?? "https://api.codaqui.dev"), request)` (headers/cookies intactos, como o Worker); não-API → `context.next()` (assets estáticos). Stripping de `cookie`/`authorization` no caminho estático: **não necessário** (sem terceiro — o asset serve do próprio Pages; documentar no comentário).
 
-- [ ] **Step 1: Testes falhando de `isApiProxyPath`** — casos: `/health` true; `/auth/github?x=1` (só pathname) true; `/auth/callback` **false**; `/comunidades/tisocial` false; `/stripe/checkout-session` true; `/vendors` (bare) true; `/vendorsxyz` false; `/blog` false; `/` false.
+- [x] **Step 1: Testes falhando de `isApiProxyPath`** — casos: `/health` true; `/auth/github?x=1` (só pathname) true; `/auth/callback` **false**; `/comunidades/tisocial` false; `/stripe/checkout-session` true; `/vendors` (bare) true; `/vendorsxyz` false; `/blog` false; `/` false.
 
-- [ ] **Step 2: Ver falhar** — Run: `cd frontend && npx vitest run src/lib/api-proxy-paths.test.ts` → FAIL.
+- [x] **Step 2: Ver falhar** — Run: `cd frontend && npx vitest run src/lib/api-proxy-paths.test.ts` → FAIL.
 
-- [ ] **Step 3: Implementar** os dois arquivos:
+- [x] **Step 3: Implementar** os dois arquivos:
 
 ```ts
 // frontend/src/lib/api-proxy-paths.ts
@@ -286,7 +288,7 @@ export const onRequest: PagesFunction<{ API_ORIGIN?: string }> = async ({ reques
 };
 ```
 
-- [ ] **Step 4: Verificação local da Function** — buildar e servir com wrangler:
+- [x] **Step 4: Verificação local da Function** — buildar e servir com wrangler:
 
 ```bash
 cd frontend && npm run build && npx wrangler pages dev dist --port 8787
@@ -297,7 +299,7 @@ cd frontend && npm run build && npx wrangler pages dev dist --port 8787
 
 (Backend local `make db-up` + `PORT=3001 npm run start:dev` deve estar no ar para o /health; se indisponível, validar só o roteamento estático e registrar smoke de proxy como pendência — padrão 0.4.)
 
-- [ ] **Step 5: Gates + commit** — `npx vitest run && npm run check && npm run build` verdes; commit `feat(fase-0.5): Pages Function de proxy (functions/[[path]].ts) + isApiProxyPath 1:1 com o Worker`.
+- [x] **Step 5: Gates + commit** — `npx vitest run && npm run check && npm run build` verdes; commit `feat(fase-0.5): Pages Function de proxy (functions/[[path]].ts) + isApiProxyPath 1:1 com o Worker`.
 
 ---
 
@@ -318,15 +320,15 @@ cd frontend && npm run build && npx wrangler pages dev dist --port 8787
   - Seções presentacionais portando o markup de `comunidades/shared/components/{CommunityTextHero,CommunityExploreSection,CommunityImpactSection,CommunityChannelsSection}.tsx` para `.astro`+Tailwind, mesmos textos/estrutura; dados por props.
   - Helpers testáveis em `src/lib/community-sections.ts`: `impactStatsFromCampaigns(campaigns)` (mesma derivação de `comunidades/tisocial/src/pages/index.tsx` — ações = count, pessoas = sum beneficiados, R$ = formatBRL), `exploreCardsFromConfig(config)` (features → cards, mesmo rótulo/ordem do original).
 
-- [ ] **Step 1: Testes falhando** dos helpers puros (impactStats com campaigns fixture: 2 ações, 30 pessoas, "R$ 1.500,00"; exploreCards com features `{donations:true, transparency:true, events:false, blog:true, docs:true}` → 4 cards com labels esperados replicando o original).
+- [x] **Step 1: Testes falhando** dos helpers puros (impactStats com campaigns fixture: 2 ações, 30 pessoas, "R$ 1.500,00"; exploreCards com features `{donations:true, transparency:true, events:false, blog:true, docs:true}` → 4 cards com labels esperados replicando o original).
 
-- [ ] **Step 2: Ver falhar** → FAIL.
+- [x] **Step 2: Ver falhar** → FAIL.
 
-- [ ] **Step 3: Implementar** helpers + componentes. Regras: zero JS de runtime (astro puro), hexes só vindos de `config` (CSS vars), textos 1:1 com os componentes-fonte (o fonte é spec — ler cada `.tsx` de `comunidades/shared/components/`).
+- [x] **Step 3: Implementar** helpers + componentes. Regras: zero JS de runtime (astro puro), hexes só vindos de `config` (CSS vars), textos 1:1 com os componentes-fonte (o fonte é spec — ler cada `.tsx` de `comunidades/shared/components/`).
 
-- [ ] **Step 4: Verificação estrutural** — build codaqui continua verde (`npm run build && npm run check`); os componentes só são exercidos de fato em T5+ (páginas), aqui basta compilar. Testes dos helpers verdes.
+- [x] **Step 4: Verificação estrutural** — build codaqui continua verde (`npm run build && npm run check`); os componentes só são exercidos de fato em T5+ (páginas), aqui basta compilar. Testes dos helpers verdes.
 
-- [ ] **Step 5: Commit** — `feat(fase-0.5): componentes Astro de comunidade (CommunityLayout + seções) e helpers`
+- [x] **Step 5: Commit** — `feat(fase-0.5): componentes Astro de comunidade (CommunityLayout + seções) e helpers`
 
 ---
 
@@ -350,7 +352,7 @@ cd frontend && npm run build && npx wrangler pages dev dist --port 8787
     /comunidades/<slug>/* /:splat 301
     ```
 
-- [ ] **Step 1: Scaffold** — criar dirs + symlinks comitados (`ln -s ../../src/components frontend/src-tenants/tisocial/components` etc.; `git add` grava o symlink). `env.d.ts`:
+- [x] **Step 1: Scaffold** — criar dirs + symlinks comitados (`ln -s ../../src/components frontend/src-tenants/tisocial/components` etc.; `git add` grava o symlink). `env.d.ts`:
 
 ```ts
 /// <reference types="astro/client" />
@@ -358,23 +360,23 @@ interface ImportMetaEnv { readonly PUBLIC_TENANT: string; readonly PUBLIC_API_UR
 interface ImportMeta { readonly env: ImportMetaEnv; }
 ```
 
-- [ ] **Step 2: Redirects pós-build (TDD)** — teste de script: com `TENANT=tisocial` e `dist/` mock, `build-tenant-redirects.mjs` escreve as 2 linhas corretas; sem TENANT, não escreve. Rodar e ver falhar → implementar → verde.
+- [x] **Step 2: Redirects pós-build (TDD)** — teste de script: com `TENANT=tisocial` e `dist/` mock, `build-tenant-redirects.mjs` escreve as 2 linhas corretas; sem TENANT, não escreve. Rodar e ver falhar → implementar → verde.
 
-- [ ] **Step 3: Páginas tenant (ports 1:1)** — ler `comunidades/tisocial/src/pages/{index,apoiar,transparencia,equipe}.tsx` + componentes shared e reproduzir em `.astro` usando T4:
+- [x] **Step 3: Páginas tenant (ports 1:1)** — ler `comunidades/tisocial/src/pages/{index,apoiar,transparencia,equipe}.tsx` + componentes shared e reproduzir em `.astro` usando T4:
   - `index.astro` — `getTenant()` → `loadTenantConfig`; CommunityTextHero (`config.hero`), CommunityExploreSection, CommunityImpactSection (`impactStatsFromCampaigns` com `campaigns.json` importado de `../../../../comunidades/tisocial/src/data/campaigns.json` — path via symlink `data/`? **não**: o symlink `data` aponta para `src/data`; importar diretamente pelo path relativo cruzado `../../../../comunidades/tisocial/src/data/campaigns.json`), CommunityChannelsSection.
   - `apoiar.astro` — mesmo contrato de `CommunityApoiarPage`: ilha `DonationFlowIsland` com `lockedTargetId={config.slug}` + `authCommunitySlug={config.slug}`, mesmos textos.
   - `transparencia.astro` — `TransparencyApp` com slug da comunidade (replicar `useCommunityBalance(community.slug)` → prop da ilha).
   - `equipe.astro` — porte de `equipe.tsx` usando `team.ts` da comunidade (`../../../../comunidades/tisocial/src/data/team.ts`).
   - Todas com `<CommunityLayout config site title>`. Em builds tenant, links internos usam rotas limpas; `homeHref="/"`.
 
-- [ ] **Step 4: Buildar os dois modos** —
+- [x] **Step 4: Buildar os dois modos** —
 
 ```bash
 cd frontend && npm run build && node scripts/diff-urls.mjs   # codaqui inalterado, paridade 100%
 TENANT=tisocial npm run build && node scripts/tenant-urls.mjs dist tisocial  # tenant-urls ainda não existe (T11) — validar manualmente: ls dist/{index,apoiar,transparencia,equipe}/index.html + cat dist/_redirects
 ```
 
-- [ ] **Step 5: Commit** — `feat(fase-0.5): tenant build tisocial — src-tenants scaffold, 4 páginas, redirects pós-build`
+- [x] **Step 5: Commit** — `feat(fase-0.5): tenant build tisocial — src-tenants scaffold, 4 páginas, redirects pós-build`
 
 ---
 
@@ -394,13 +396,13 @@ TENANT=tisocial npm run build && node scripts/tenant-urls.mjs dist tisocial  # t
 - Produces: collection `communityBlog` (schema: title, date, authors (string), tags (string[]), draft?, image?, slug) — glob `src/content/community-blog/tisocial/*.md` no src principal e `./content/community-blog/tisocial/*.md` no tenant (mesma definição duplicada nos dois content.config, como fazem blog/trilhas).
 - Regras de paridade (fonte: plugin blog Docusaurus em `docusaurus.config.ts:172-222`): rotas `/comunidades/tisocial/blog`, `/comunidades/tisocial/blog/<slug do frontmatter>`, `/comunidades/tisocial/blog/tags/<tag>` (+paginação se o original emitir — conferir com `diff-urls` em T11), RSS `type: "all"` → `rss.xml` (e `atom.xml`/`feed.json` se o build de referência os tiver — verificar `build/comunidades/tisocial/blog/`). Blog tenant nasce em `/blog*`. Docs: única página `docs/index.md` → `/docs` (tenant) e `/comunidades/tisocial/docs` (codaqui).
 
-- [ ] **Step 1: Collection + teste de carregamento** — teste: `getCollection("communityBlog")` retorna 10 posts com slugs legados; frontmatter `authors: tisocial` preservado.
+- [x] **Step 1: Collection + teste de carregamento** — teste: `getCollection("communityBlog")` retorna 10 posts com slugs legados; frontmatter `authors: tisocial` preservado.
 
-- [ ] **Step 2: Páginas** — porte 1:1 do `BlogLayout`/lista do Docusaurus (blogTitle `"T.I. Social — Blog"`, banner com gradiente `theme.primary→primaryDark`, posts com autor/data/tags, Giscus **não** entra em blog de comunidade — conferir fonte). Wrappers codaqui reutilizam os mesmos componentes com `homeHref=/comunidades/tisocial`.
+- [x] **Step 2: Páginas** — porte 1:1 do `BlogLayout`/lista do Docusaurus (blogTitle `"T.I. Social — Blog"`, banner com gradiente `theme.primary→primaryDark`, posts com autor/data/tags, Giscus **não** entra em blog de comunidade — conferir fonte). Wrappers codaqui reutilizam os mesmos componentes com `homeHref=/comunidades/tisocial`.
 
-- [ ] **Step 3: Gates** — build codaqui: `node scripts/diff-urls.mjs` cobrindo `/comunidades/tisocial/*` (exclusão ainda ativa até T11 — validar que as URLs existem com `ls`/grep no dist). Build tenant tisocial: `/`, `/blog`, 10 posts, `/blog/tags/*`, `/docs`.
+- [x] **Step 3: Gates** — build codaqui: `node scripts/diff-urls.mjs` cobrindo `/comunidades/tisocial/*` (exclusão ainda ativa até T11 — validar que as URLs existem com `ls`/grep no dist). Build tenant tisocial: `/`, `/blog`, 10 posts, `/blog/tags/*`, `/docs`.
 
-- [ ] **Step 4: Commit** — `feat(fase-0.5): blog+docs tisocial em Astro (tenant e /comunidades/tisocial)`
+- [x] **Step 4: Commit** — `feat(fase-0.5): blog+docs tisocial em Astro (tenant e /comunidades/tisocial)`
 
 ---
 
@@ -415,10 +417,10 @@ TENANT=tisocial npm run build && node scripts/tenant-urls.mjs dist tisocial  # t
 - Consumes: T1–T5 (mesma maquinaria; sem blog/collections).
 - Regras: porte 1:1 de `comunidades/elasnocodigo/src/pages/*` (fonte é spec); `features` do config ligam seções (events/blog/docs false) — não emitir seções desligadas.
 
-- [ ] **Step 1: Scaffold + páginas tenant** — build `TENANT=elasnocodigo` emitindo `/`, `/apoiar`, `/transparencia`, `/equipe`.
-- [ ] **Step 2: Wrappers codaqui** — `/comunidades/elasnocodigo/*` + docs.
-- [ ] **Step 3: Gates** — builds dos dois modos + presença das URLs.
-- [ ] **Step 4: Commit** — `feat(fase-0.5): tenant elasnocodigo (build tenant + /comunidades/elasnocodigo)`
+- [x] **Step 1: Scaffold + páginas tenant** — build `TENANT=elasnocodigo` emitindo `/`, `/apoiar`, `/transparencia`, `/equipe`.
+- [x] **Step 2: Wrappers codaqui** — `/comunidades/elasnocodigo/*` + docs.
+- [x] **Step 3: Gates** — builds dos dois modos + presença das URLs.
+- [x] **Step 4: Commit** — `feat(fase-0.5): tenant elasnocodigo (build tenant + /comunidades/elasnocodigo)`
 
 ---
 
@@ -433,10 +435,10 @@ TENANT=tisocial npm run build && node scripts/tenant-urls.mjs dist tisocial  # t
 **Interfaces:**
 - Regras específicas: `eventSources: ["meetup:devparana"]` → seção de eventos na home filtrando `loadEventsIndex().events` por `sourceKey` (mesmo filtro do original); dados de embaixadores/mentores/team de `comunidades/devparana/src/data/*`; RFCs replicam comportamento dos `Rfc*` (fonte é spec). Ilha de membros: replicar o uso de `useCodaquiMembers` do original — se for fetch client-side de `/members`, usar `MembersDirectoryIsland`/`MembersWallIsland` existente com filtro; se for build-time, `loadPublicMembers()` já existe.
 
-- [ ] **Step 1: Scaffold + componentes RFC** — testes puros se houver helpers (ex.: status→cor do badge, via data).
-- [ ] **Step 2: Páginas tenant + wrappers codaqui**.
-- [ ] **Step 3: Gates** — builds + URLs (incl. seção eventos filtrada).
-- [ ] **Step 4: Commit** — `feat(fase-0.5): tenant devparana (build tenant + /comunidades/devparana, RFCs, embaixadores)`
+- [x] **Step 1: Scaffold + componentes RFC** — testes puros se houver helpers (ex.: status→cor do badge, via data).
+- [x] **Step 2: Páginas tenant + wrappers codaqui**.
+- [x] **Step 3: Gates** — builds + URLs (incl. seção eventos filtrada).
+- [x] **Step 4: Commit** — `feat(fase-0.5): tenant devparana (build tenant + /comunidades/devparana, RFCs, embaixadores)`
 
 ---
 
@@ -450,10 +452,10 @@ TENANT=tisocial npm run build && node scripts/tenant-urls.mjs dist tisocial  # t
 - campostechpg não tem domínio/tenant — só wrappers codaqui (mesma maquinaria de T7/T8, `eventSources: ["sympla:campostech"]`).
 - **O gate `diff-urls` passa a cobrir `/comunidades/*` em todos os builds codaqui** — executar e corrigir faltas (blog tags/paginação do tisocial, feeds, etc.) até 100%.
 
-- [ ] **Step 1: Wrappers campostechpg**.
-- [ ] **Step 2: Remover exclusão** do diff-urls + atualizar comentário do histórico.
-- [ ] **Step 3: `npm run build && node scripts/diff-urls.mjs` → 100%** (iterar nas faltas — cada URL faltante é bug das T5–T8).
-- [ ] **Step 4: Commit** — `feat(fase-0.5): campostechpg em /comunidades + diff-urls cobre comunidades (paridade 100%)`
+- [x] **Step 1: Wrappers campostechpg**.
+- [x] **Step 2: Remover exclusão** do diff-urls + atualizar comentário do histórico.
+- [x] **Step 3: `npm run build && node scripts/diff-urls.mjs` → 100%** (iterar nas faltas — cada URL faltante é bug das T5–T8).
+- [x] **Step 4: Commit** — `feat(fase-0.5): campostechpg em /comunidades + diff-urls cobre comunidades (paridade 100%)`
 
 ---
 
@@ -509,9 +511,9 @@ Notas: `--branch` cria branch deployment para previews; o deploy vira production
 
 - pr-check: job `astro-tenants` com matrix dos 4 tenants rodando só `npm ci` + `TENANT=… npm run build` (sem deploy) — quebra de build de tenant vira vermelho no PR.
 
-- [ ] **Step 1: Workflow novo + job no pr-check**.
-- [ ] **Step 2: Validar YAML** (`npx yaml` parse ou actionlint se disponível) e simular build matrix localmente (rodar os 4 builds na sequência — já garantido pelas T5–T9).
-- [ ] **Step 3: Commit** — `ci(fase-0.5): deploy matrix Pages (direct upload) + build de tenants no pr-check`
+- [x] **Step 1: Workflow novo + job no pr-check**.
+- [x] **Step 2: Validar YAML** (`npx yaml` parse ou actionlint se disponível) e simular build matrix localmente (rodar os 4 builds na sequência — já garantido pelas T5–T9).
+- [x] **Step 3: Commit** — `ci(fase-0.5): deploy matrix Pages (direct upload) + build de tenants no pr-check`
 
 ---
 
@@ -534,11 +536,11 @@ Notas: `--branch` cria branch deployment para previews; o deploy vira production
   6. Nota: previews `<branch>.<project>.pages.dev` caem no fallback codaqui.dev em redirects de login/doação (gap `*.pages.dev` documentado — fora de escopo).
   7. Nota dev Windows: symlinks exigem `git config core.symlinks true`.
 
-- [ ] **Step 1: Script tenant-urls (TDD leve: fixture dist fake)**.
-- [ ] **Step 2: Makefile target**.
-- [ ] **Step 3: DEVELOPMENT.md** (seções conforme acima, com AGENT-INDEX do arquivo mantido intacto — só adicionar seção).
-- [ ] **Step 4: `make astro-verify-tenants` verde**.
-- [ ] **Step 5: Commit** — `docs(fase-0.5): gates de tenant (tenant-urls) + runbook de operação Cloudflare Pages`
+- [x] **Step 1: Script tenant-urls (TDD leve: fixture dist fake)**.
+- [x] **Step 2: Makefile target**.
+- [x] **Step 3: DEVELOPMENT.md** (seções conforme acima, com AGENT-INDEX do arquivo mantido intacto — só adicionar seção).
+- [x] **Step 4: `make astro-verify-tenants` verde**.
+- [x] **Step 5: Commit** — `docs(fase-0.5): gates de tenant (tenant-urls) + runbook de operação Cloudflare Pages`
 
 ---
 
@@ -548,9 +550,9 @@ Notas: `--branch` cria branch deployment para previews; o deploy vira production
 - Modify: `docs/plans/multisite/README.md`
 - Modify: `docs/adrs/004-multisite-communities.md`
 
-- [ ] **Step 1:** Banner no topo do README do D1 (após o AGENT-INDEX): bloco de citação "⚠️ **Substituído (2026-10-27)** — esta arquitetura (Worker pass-through) foi substituída pela Fase 0.5 do anexo [refatoracao-frontend-astro.md](../codaqui-1-0/refatoracao-frontend-astro.md): build matrix por tenant no Cloudflare Pages + Pages Function. Mantido para histórico."
-- [ ] **Step 2:** ADR 004 — adicionar seção `## Registro de supersessão parcial (2026-10-27)` (precedente: entradas datadas da ADR 001): decisão D1 (Worker pass-through) superseda parcialmente pela Fase 0.5; ADR 011 (a produzir no merge da 0.6) consolida a decisão nova; o que permanece válido: segregação por comunidade no ledger/Stripe e o piloto de conteúdo.
-- [ ] **Step 3: Commit** — `docs(fase-0.5): marca plano D1 como substituído e ADR 004 com nota de supersessão parcial`
+- [x] **Step 1:** Banner no topo do README do D1 (após o AGENT-INDEX): bloco de citação "⚠️ **Substituído (2026-10-27)** — esta arquitetura (Worker pass-through) foi substituída pela Fase 0.5 do anexo [refatoracao-frontend-astro.md](../codaqui-1-0/refatoracao-frontend-astro.md): build matrix por tenant no Cloudflare Pages + Pages Function. Mantido para histórico."
+- [x] **Step 2:** ADR 004 — adicionar seção `## Registro de supersessão parcial (2026-10-27)` (precedente: entradas datadas da ADR 001): decisão D1 (Worker pass-through) superseda parcialmente pela Fase 0.5; ADR 011 (a produzir no merge da 0.6) consolida a decisão nova; o que permanece válido: segregação por comunidade no ledger/Stripe e o piloto de conteúdo.
+- [x] **Step 3: Commit** — `docs(fase-0.5): marca plano D1 como substituído e ADR 004 com nota de supersessão parcial`
 
 ---
 
@@ -566,24 +568,24 @@ Notas: `--branch` cria branch deployment para previews; o deploy vira production
 - Modify: `DEVELOPMENT.md` (remover seção de deploy de Workers; apontar para o runbook da 0.5)
 - Modify: `AGENTS.md` (seção "Multi-tenant communities": substituir o parágrafo D1 por ponteiro para `docs/modules/community/COMMUNITY_SITES.md` — atualizar esse módulo com a arquitetura nova: matrix + Pages Function; **não reescrever o AGENTS.md inteiro — isso é da 0.6**)
 
-- [ ] **Step 1: Deletar pasta + referências (grep por `workers/` no repo para não deixar resto: scripts, docs, Dockerfile).**
-- [ ] **Step 2: Gates completos** — `cd frontend && npm run build && npm run check && npm run test && node scripts/diff-urls.mjs` + `make astro-verify-tenants` + typecheck raiz. `compose config` válido (`podman compose -f compose.yaml config -q`).
-- [ ] **Step 3: Commit** — `chore(fase-0.5): remove workers/ — multi-tenant agora é build matrix + Pages Function`
+- [ ] **Step 1: Deletar pasta + referências (grep por `workers/` no repo para não deixar resto: scripts, docs, Dockerfile).** — *(aguarda DNS do usuário)*
+- [ ] **Step 2: Gates completos** — `cd frontend && npm run build && npm run check && npm run test && node scripts/diff-urls.mjs` + `make astro-verify-tenants` + typecheck raiz. `compose config` válido (`podman compose -f compose.yaml config -q`). — *(aguarda DNS do usuário)*
+- [ ] **Step 3: Commit** — `chore(fase-0.5): remove workers/ — multi-tenant agora é build matrix + Pages Function` — *(aguarda DNS do usuário)*
 
 ---
 
 ### Task 14: Verificação final da 0.5
 
-- [ ] **Step 1: Gates completos na develop** — build dos 4 tenants + codaqui, check, test, diff-urls 100%, tenant-urls dos 4.
-- [ ] **Step 2: Smoke pós-DNS (com os domínios apontados)** — checklist do runbook executado; registrar resultado no relatório (itens que exigem login real/documentação seguem o padrão de pendência ambiental das fases anteriores).
-- [ ] **Step 3: Checkboxes + commit final** — marcar o plano; commit `chore(fase-0.5): verificação final — tenants no Pages, workers/ removida, paridade 100%`.
+- [x] **Step 1: Gates completos na develop** — build dos 4 tenants + codaqui, check, test, diff-urls 100%, tenant-urls dos 4.
+- [ ] **Step 2: Smoke pós-DNS (com os domínios apontados)** — checklist do runbook executado; registrar resultado no relatório (itens que exigem login real/documentação seguem o padrão de pendência ambiental das fases anteriores). — *(aguarda DNS do usuário)*
+- [x] **Step 3: Checkboxes + commit final** — marcar o plano; commit `chore(fase-0.5): verificação final — tenants no Pages, workers/ removida, paridade 100%`.
 
 ## Critérios de pronto (da spec, mapeados)
 
-- [ ] tisocial.org.br servindo rotas limpas em `/` (T5 + T11 runbook) — **e elasnocodigo.com.br / devparana.org** (D2)
-- [ ] login cross-domain OK (T3 proxy + finalize same-origin; smoke T11/T14)
-- [ ] doação Stripe cross-domain OK (mesmos trilhos; smoke T11/T14)
-- [ ] pasta `workers/` deletada (T13, após DNS confirmado)
-- [ ] build matrix + projeto Pages por tenant (T10)
-- [ ] Pages Function de proxy (T3)
-- [ ] paridade: `/comunidades/*` no build codaqui via diff-urls 100% (T9)
+- [ ] tisocial.org.br servindo rotas limpas em `/` (T5 + T11 runbook) — **e elasnocodigo.com.br / devparana.org** (D2) — *(aguarda DNS do usuário)*
+- [ ] login cross-domain OK (T3 proxy + finalize same-origin; smoke T11/T14) — *(aguarda DNS do usuário)*
+- [ ] doação Stripe cross-domain OK (mesmos trilhos; smoke T11/T14) — *(aguarda DNS do usuário)*
+- [ ] pasta `workers/` deletada (T13, após DNS confirmado) — *(aguarda DNS do usuário)*
+- [x] build matrix + projeto Pages por tenant (T10)
+- [x] Pages Function de proxy (T3)
+- [x] paridade: `/comunidades/*` no build codaqui via diff-urls 100% (T9)
