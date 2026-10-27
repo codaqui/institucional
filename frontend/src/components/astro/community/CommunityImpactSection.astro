@@ -2,8 +2,8 @@
 // Port 1:1 de comunidades/shared/components/CommunityImpactSection.tsx
 // (MUI → Astro + Tailwind, zero JS). Stats vêm de config.impact por padrão;
 // o caller pode injetar stats derivados (ex.: impactStatsFromCampaigns de
-// src/lib/community-sections.ts). Cor do valor: accent do tenant via
-// var(--community-primary).
+// src/lib/community-sections.ts). Cor do valor: variantes dark/light da cor
+// de marca (AA sobre bg-surface).
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
 import type { CommunityImpactStat } from "../../../lib/community-sections";
 
@@ -28,8 +28,7 @@ const subtitle = config.impact?.subtitle;
         stats.map((stat) => (
           <div class="h-full rounded-lg border border-border bg-surface px-6 py-8 text-center">
             <p
-              class="m-0 mb-1 text-4xl font-extrabold md:text-5xl"
-              style="color: var(--community-primary)"
+              class="cq-accent m-0 mb-1 text-4xl font-extrabold md:text-5xl"
             >
               {stat.value}
             </p>
@@ -40,3 +39,16 @@ const subtitle = config.impact?.subtitle;
     </div>
   </div>
 </section>
+
+<style>
+  /* Valor do stat: --community-primary puro falha AA sobre bg-surface —
+   * #8DC044 (TI Social) 2.15:1 no claro (texto grande precisa ≥3:1),
+   * #9c27b0 (Elas no Código) 2.02:1 no escuro. As variantes dark (claro) /
+   * light (escuro) da marca passam nos três tenants. */
+  .cq-accent {
+    color: var(--community-primary-dark);
+  }
+  [data-theme="dark"] .cq-accent {
+    color: var(--community-primary-light);
+  }
+</style>

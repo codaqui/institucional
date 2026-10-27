@@ -184,15 +184,18 @@ const isRight = imagePosition === "right";
     color: color-mix(in srgb, var(--cq-text-primary) 78%, transparent);
   }
 
-  /* CTAs. */
+  /* CTAs. O primário usa --community-primary escurecido via color-mix: o
+   * branco do texto precisa de AA e a cor primária vem de dados do tenant
+   * (#1ba250 do DevParaná tem só 3.32:1). O mix a 62% garante ≥5.15:1 nos
+   * tenants cadastrados. */
   .cq-hero-cta-primary {
-    background-color: var(--community-primary);
+    background-color: color-mix(in srgb, var(--community-primary) 62%, black);
     color: #fff;
     box-shadow: 0 10px 30px color-mix(in srgb, var(--community-primary) 27%, transparent);
     transition: all 0.25s ease;
   }
   .cq-hero-cta-primary:hover {
-    background-color: var(--community-primary-dark);
+    background-color: color-mix(in srgb, var(--community-primary) 45%, black);
     transform: translateY(-2px);
   }
   .cq-hero-cta-secondary {

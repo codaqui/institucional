@@ -2,8 +2,7 @@
 // Port 1:1 de comunidades/shared/components/CommunityExploreSection.tsx
 // (MUI → Astro + Tailwind, zero JS). Os cards vêm do helper puro
 // exploreCardsFromConfig (src/lib/community-sections.ts); o ícone de cada
-// card é o mesmo SVG do @mui/icons-material do original, na cor accent do
-// tenant via var(--community-primary).
+// card usa as variantes dark/light da cor de marca (AA sobre bg-surface).
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
 import type {
   CommunityExploreCard,
@@ -66,8 +65,7 @@ const ICON_PATHS: Record<CommunityExploreIcon, string[]> = {
               viewBox="0 0 24 24"
               fill="currentColor"
               aria-hidden="true"
-              class="mb-4 h-8 w-8"
-              style="color: var(--community-primary)"
+              class="cq-accent mb-4 h-8 w-8"
             >
               {ICON_PATHS[card.icon].map((d) => (
                 <path d={d} />
@@ -83,3 +81,16 @@ const ICON_PATHS: Record<CommunityExploreIcon, string[]> = {
     </div>
   </div>
 </section>
+
+<style>
+  /* Ícone do card: --community-primary puro falha AA sobre bg-surface como
+   * ícone (≥3:1) — #8DC044 (TI Social) 2.15:1 no claro, #9c27b0
+   * (Elas no Código) 2.02:1 no escuro. As variantes dark (claro) / light
+   * (escuro) da marca passam com folga nos três tenants. */
+  .cq-accent {
+    color: var(--community-primary-dark);
+  }
+  [data-theme="dark"] .cq-accent {
+    color: var(--community-primary-light);
+  }
+</style>

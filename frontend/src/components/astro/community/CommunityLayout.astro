@@ -7,13 +7,16 @@
 //
 // Port de: comunidades/shared/components/CommunityHead.tsx (OG/title) +
 // swizzle src/theme/Navbar/Content/index.tsx (CodaquiBackChip + itens da
-// comunidade). Zero JS de runtime: o chip resolve a URL da Codaqui em
-// build time (resolveCodaquiUrl cai no branch SSR → siteUrl + baseUrl).
+// comunidade). O chip resolve a URL da Codaqui em build time
+// (resolveCodaquiUrl cai no branch SSR → siteUrl + baseUrl). Único JS de
+// runtime: a ilha ThemeToggle (mesma do SiteHeader do portal — alterna
+// data-theme/localStorage "cq-theme", a mesma chave do anti-FOUC do <head>).
 import "../../../styles/global.css";
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
 import { tenantCssVars, tenantNav } from "../../../lib/community";
 import { getTenant } from "../../../lib/tenant";
 import { resolveCodaquiUrl } from "../../../lib/api-url";
+import ThemeToggle from "../../islands/ThemeToggle";
 
 interface Props {
   config: CommunitySiteConfig;
@@ -135,6 +138,9 @@ const footerLogo = config.logoUrlDark ?? config.logoUrl;
               </li>
             )
           }
+          <li class="flex items-center">
+            <ThemeToggle client:load />
+          </li>
         </ul>
       </nav>
     </header>

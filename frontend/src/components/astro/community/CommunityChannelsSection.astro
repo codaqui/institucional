@@ -1,7 +1,10 @@
 ---
 // Port 1:1 de comunidades/shared/components/CommunityChannelsSection.tsx
 // (MUI → Astro + Tailwind, zero JS). Botões outlined com ícone
-// open_in_new (SVG inline do @mui/icons-material original).
+// open_in_new (SVG inline do @mui/icons-material original). Desvio de cor
+// do original: texto usa text-link em vez de text-action — o verde ação
+// (#378369) fica em 4.29:1 sobre o body / 4.0:1 no hover sunken no tema
+// claro (abaixo do AA 4.5:1); o token link (#2C6753) passa (6.2:1 / 5.8:1).
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
 
 interface Props {
@@ -29,7 +32,7 @@ const OPEN_IN_NEW_PATH =
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            class="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-semibold text-action no-underline transition-colors hover:bg-sunken"
+            class="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-sunken"
           >
             {link.label}
             <svg
