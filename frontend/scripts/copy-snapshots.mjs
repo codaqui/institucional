@@ -29,7 +29,7 @@ console.log(`snapshots copiados: ${snapshotDirs.map((d) => `${d}/index.json`).jo
 // campostech.svg/og-campostech.jpg são o logo e o socialImage da CamposTech
 // (wrappers /comunidades/campostechpg, Task 9 — a comunidade não é tenant,
 // então só existem os wrappers no portal).
-const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg", "og-tisocial.jpg", "og-devparana.jpg", "campostech.svg", "og-campostech.jpg"];
+const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg", "og-tisocial.jpg", "og-devparana.jpg", "devparana-hero.jpg", "campostech.svg", "og-campostech.jpg"];
 mkdirSync(join(FRONTEND_PUBLIC, "img"), { recursive: true });
 for (const file of imgFiles) {
   cpSync(join(ROOT, "static", "img", file), join(FRONTEND_PUBLIC, "img", file));
