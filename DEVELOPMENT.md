@@ -162,7 +162,7 @@ make astro-preview     # serve o build (:4321)
 ### Como funciona
 
 - `TENANT=<slug>` em build-time troca o `srcDir` para `frontend/src-tenants/<slug>/` — rotas limpas (`/`, `/apoiar`, `/transparencia`, `/equipe`, `/blog`, `/docs`) com o tema/nav da comunidade. **Build codaqui = sem `TENANT`** (srcDir padrão `./src`, portal completo).
-- `frontend/tenants.config.mjs` é a fonte única dos tenants (slug, domínio `site`, nome do projeto Pages). O matrix do workflow `.github/workflows/deploy-astro.yml` espelha essa lista.
+- `frontend/tenants.config.mjs` é a fonte única dos tenants (slug, domínio `site`, nome do projeto Pages). O matrix do workflow `.github/workflows/deploy-astro.yml` espelha essa lista **mais o build codaqui** (`{ tenant: "", project: "codaqui" }`).
 - Cada build de tenant grava `dist/_redirects` com 301 de `/comunidades/<slug>[/*]` para `[/][:splat]` — links antigos do portal continuam funcionando no domínio próprio.
 - Gate local: `make astro-verify-tenants` — 4 builds (codaqui + 3 tenants) + allow-list de URLs por tenant (`frontend/scripts/tenant-urls.mjs`).
 - **R7 — `astro check` NÃO é gate em modo tenant:** páginas codaqui sob srcDir de tenant têm 62 erros pré-existentes (limitação do `getCollection`). Gates por build: codaqui = build + `astro check` + testes + `diff-urls` (`make astro-verify`); tenant = build + `tenant-urls`.
@@ -171,7 +171,7 @@ make astro-preview     # serve o build (:4321)
 
 Até o cutover, os domínios das comunidades são servidos pelos Workers em `workers/<slug>/`. A migração para o Pages é manual, **com janela de 1–2h offline aceita** (definida pelo time). Passos:
 
-1. **Criar os 3 projetos Pages** (um por tenant, nome em `tenants.config.mjs` → `project`):
+1. **Criar os 4 projetos Pages** — `codaqui`, `tisocial`, `elasnocodigo`, `devparana` (o matrix do workflow `.github/workflows/deploy-astro.yml` tem uma entrada por build, incluindo `{ tenant: "", project: codaqui }` para o build sem `TENANT`; os nomes dos 3 projetos tenant vêm de `tenants.config.mjs` → `project`). O `wrangler pages deploy` **não** cria projeto automaticamente — sem criar antes, o deploy falha com "project not found":
 
    ```bash
    npx wrangler pages project create <project> --production-branch=main
