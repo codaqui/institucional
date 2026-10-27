@@ -417,3 +417,38 @@ jobs:
             | **URL** | [https://codaqui.dev/previews/develop/](https://codaqui.dev/previews/develop/) |
             | **Commit** | `${{ github.sha }}` |
             | **Observação** | TypeScript check executado; preview e Lighthouse dedicados foram pulados |
+
+  astro-tenants:
+    name: Astro Tenants Build (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # codaqui roda com TENANT vazio de propósito — TENANT_BY_NAME não tem
+          # "codaqui" e o astro.config.mjs lançaria "TENANT desconhecido".
+          - { tenant: "", project: codaqui, site: "https://codaqui.dev" }
+          - { tenant: tisocial, project: tisocial, site: "https://tisocial.org.br" }
+          - { tenant: elasnocodigo, project: elasnocodigo, site: "https://elasnocodigo.com.br" }
+          - { tenant: devparana, project: devparana, site: "https://devparana.org" }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies & build (${{ matrix.project }})
+        working-directory: frontend
+        env:
+          TENANT: ${{ matrix.tenant }}
+          SITE_URL: ${{ matrix.site }}
+        run: |
+          npm ci --ignore-scripts
+          npm run build
