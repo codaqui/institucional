@@ -76,3 +76,26 @@ exit 1 listando as URLs faltantes, exit 0 com relatório `✔ N/N URLs presentes
   o DEVELOPMENT.md já referencia os secrets e o nome do workflow conforme o plano.
 - Cutover de DNS em si continua sendo ação do usuário (R3) — runbook documentado,
   sem validação ponta a ponta possível neste ambiente (sem credenciais Cloudflare).
+
+---
+
+## Fix round 1
+
+**Finding (Important, da revisão):** o runbook dizia "criar os 3 projetos Pages (um
+por tenant, nome em `tenants.config.mjs` → `project`)", mas o matrix do workflow
+`deploy-astro.yml` tem **4** entradas — incluindo `{ tenant: "", project: codaqui }`
+para o build sem `TENANT`. Como `tenants.config.mjs` só produz 3 slugs, o operador
+não conseguiria derivar o 4º projeto da fonte documentada e o primeiro
+`wrangler pages deploy --project-name=codaqui` falharia (project not found, sem
+auto-create).
+
+**Fix:** passo 1 do runbook reescrito — criar os **4** projetos (`codaqui`,
+`tisocial`, `elasnocodigo`, `devparana`), explicitando que `codaqui` é o projeto do
+build sem `TENANT` (matrix do workflow), que os 3 nomes tenant vêm de
+`tenants.config.mjs` → `project`, e que o `wrangler pages deploy` **não** cria
+projeto automaticamente. Linha de "Como funciona" ajustada para consistência
+(matrix = lista do config **+** build codaqui).
+
+**Verificação:** revisão manual do trecho alterado (seção "Multi-tenant (Fase 0.5)"
+do DEVELOPMENT.md) — sem gate de código; conteúdo é markdown-only e a seção ficou
+internamente consistente (passo 1 ↔ matrix ↔ "Como funciona").
