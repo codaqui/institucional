@@ -90,7 +90,7 @@ function ReceiptBody({
           <Typography variant="overline" color="text.secondary">
             Comprovante de compra
           </Typography>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          <Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>
             {receipt.eventTitle || "Ingresso"}
           </Typography>
         </Box>

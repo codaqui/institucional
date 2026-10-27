@@ -187,7 +187,7 @@ function FornecedoresInner(): React.JSX.Element {
           mb: 2,
         }}
       >
-        <Typography variant="h4" sx={{ fontWeight: 800 }}>
+        <Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>
           <AddBusinessIcon sx={{ mr: 1, verticalAlign: "middle" }} />
           Fornecedores
         </Typography>

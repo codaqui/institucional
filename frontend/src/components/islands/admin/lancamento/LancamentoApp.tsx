@@ -93,6 +93,7 @@ function LancamentoInner(): React.JSX.Element | null {
       <Box sx={{ mb: 2 }}>
         <Typography
           variant="h4"
+          component="h2"
           gutterBottom
           sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 800 }}
         >

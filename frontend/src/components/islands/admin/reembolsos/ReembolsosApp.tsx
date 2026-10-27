@@ -479,7 +479,7 @@ function ReembolsosInner(): React.JSX.Element {
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          <Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>
             Reembolsos
           </Typography>
           <Typography variant="body2" color="text.secondary">
