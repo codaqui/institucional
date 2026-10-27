@@ -4,3 +4,6 @@ src/content/trilhas/
 src/content/pages/
 public/blog-assets/
 public/trilhas-assets/
+
+# Cache/local state do wrangler (npm run pages:dev)
+.wrangler/
