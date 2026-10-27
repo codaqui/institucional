@@ -81,6 +81,22 @@ const footerLogo = config.logoUrlDark ?? config.logoUrl;
     <meta name="twitter:image" content={absoluteImage} />
     <meta name="twitter:image:alt" content={config.name} />
     <link rel="icon" type="image/png" href="/img/favicon.png" />
+    <script is:inline>
+      // Anti-FOUC: resolve o tema antes do primeiro paint — mesma lógica e
+      // mesmo storage ("cq-theme") do BaseLayout. Sem este script o atributo
+      // data-theme nunca é setado nas páginas de comunidade e as regras dark
+      // das seções (ex.: [data-theme="dark"] .cq-hero) ficam inertes.
+      (() => {
+        const stored = localStorage.getItem("cq-theme");
+        const mode =
+          stored === "dark" || stored === "light"
+            ? stored
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = mode;
+      })();
+    </script>
     <style set:html={varsStyle}></style>
   </head>
   <body class="flex min-h-screen flex-col">
