@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   isCodaquiOrigin,
   isLocalDevHost,
@@ -80,5 +80,61 @@ describe("wrappers (delegam ao config do Astro)", () => {
   });
   it("resolveCodaquiUrl em SSR retorna siteUrl + baseUrl", () => {
     expect(resolveCodaquiUrl(SITE_URL, "/")).toBe("https://codaqui.dev/");
+  });
+});
+
+// Regressão do bug de produção 0.5: em builds tenant o `siteUrl` é o domínio do
+// PRÓPRIO tenant, então `origin === siteUrl` casa e `resolveApiUrlFor` retornava
+// o `configuredApiUrl` — que nos deploys sem PUBLIC_API_URL era o fallback
+// `http://localhost:3001`. Com PUBLIC_TENANT setado o runtime DEVE ser
+// same-origin, independentemente de siteUrl.
+describe("resolveApiUrl em build tenant (PUBLIC_TENANT setado)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    delete (globalThis as { window?: unknown }).window;
+  });
+
+  function mockWindowOrigin(origin: string) {
+    (globalThis as { window?: unknown }).window = { location: { origin } };
+  }
+
+  it("tenant: same-origin MESMO quando origin === siteUrl do próprio tenant", () => {
+    vi.stubEnv("PUBLIC_TENANT", "tisocial");
+    mockWindowOrigin("https://tisocial.org.br");
+    expect(resolveApiUrl("https://tisocial.org.br")).toBe("https://tisocial.org.br");
+  });
+
+  it("tenant: contrato SSR mantido (sem window → configured)", () => {
+    vi.stubEnv("PUBLIC_TENANT", "tisocial");
+    expect(resolveApiUrl("https://tisocial.org.br")).toBe(API_URL);
+  });
+
+  it("codaqui (sem PUBLIC_TENANT): origin === siteUrl usa configured, não same-origin", () => {
+    mockWindowOrigin("https://codaqui.dev");
+    expect(resolveApiUrl(SITE_URL)).toBe(API_URL);
+  });
+});
+
+describe("config PUBLIC_API_URL (builds de deploy)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    delete (globalThis as { window?: unknown }).window;
+    vi.resetModules();
+  });
+
+  it("codaqui sem PUBLIC_API_URL mantém fallback localhost:3001 (dev local)", () => {
+    // Este processo de teste roda sem PUBLIC_API_URL → API_URL captura o
+    // default do config.ts (mesmo valor usado pelo dev local).
+    expect(API_URL).toBe("http://localhost:3001");
+  });
+
+  it("codaqui com PUBLIC_API_URL=https://api.codaqui.dev usa ela quando origin === site", async () => {
+    vi.stubEnv("PUBLIC_API_URL", "https://api.codaqui.dev");
+    vi.resetModules();
+    const { resolveApiUrl: resolveFresh } = await import("./api-url");
+    (globalThis as { window?: unknown }).window = {
+      location: { origin: "https://codaqui.dev" },
+    };
+    expect(resolveFresh(SITE_URL)).toBe("https://api.codaqui.dev");
   });
 });

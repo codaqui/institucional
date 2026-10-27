@@ -38,10 +38,13 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { tenant: "", project: codaqui, site: "https://codaqui.dev" }
-          - { tenant: tisocial, project: tisocial, site: "https://tisocial.org.br" }
-          - { tenant: elasnocodigo, project: elasnocodigo, site: "https://elasnocodigo.com.br" }
-          - { tenant: devparana, project: devparana, site: "https://devparana.org" }
+          # `api_url` vira PUBLIC_API_URL no build: codaqui aponta p/ a API
+          # própria; tenants fixam o próprio site (o runtime já resolve
+          # same-origin via PUBLIC_TENANT — o valor cobre o bundle/SSR).
+          - { tenant: "", project: codaqui, site: "https://codaqui.dev", api_url: "https://api.codaqui.dev" }
+          - { tenant: tisocial, project: tisocial, site: "https://tisocial.org.br", api_url: "https://tisocial.org.br" }
+          - { tenant: elasnocodigo, project: elasnocodigo, site: "https://elasnocodigo.com.br", api_url: "https://elasnocodigo.com.br" }
+          - { tenant: devparana, project: devparana, site: "https://devparana.org", api_url: "https://devparana.org" }
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -63,6 +66,14 @@ jobs:
         env:
           TENANT: ${{ matrix.tenant }}
           SITE_URL: ${{ matrix.site }}
+          PUBLIC_API_URL: ${{ matrix.api_url }}
+          # STRIPE_PUBLISHABLE_KEY vem de `vars` do repo (mesma var do build
+          # Docusaurus). O Vite/Astro só expõe env com prefixo PUBLIC_ ao
+          # client, então o valor precisa ser reexportado como
+          # PUBLIC_STRIPE_PUBLISHABLE_KEY p/ o config.ts enxergar — sem ele o
+          # checkout de doação fica desativado.
+          STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
         run: |
           npm ci --ignore-scripts
           npm run build

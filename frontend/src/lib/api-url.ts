@@ -8,7 +8,9 @@ import { API_URL } from "./config";
  *
  * A URL da API configurada em build time vem de `./config` (`API_URL`,
  * `PUBLIC_API_URL` com fallback `http://localhost:3001`) — este módulo NÃO
- * duplica a leitura de env, apenas delega.
+ * duplica essa leitura. Única exceção: o build flag `PUBLIC_TENANT`
+ * (`import.meta.env`, substituído em build time pelo `astro.config.mjs`),
+ * lido em `resolveApiUrl` para forçar same-origin nos deploys tenant.
  */
 
 /** URL canônica da Codaqui em dev local (Docusaurus dev server). */
@@ -59,19 +61,25 @@ export function resolveCodaquiUrlFor(
  * Resolve a URL base da API em runtime, usando o `API_URL` do `./config` como
  * valor configurado em build time.
  *
- * - Em deploys "normais" (codaqui.dev, dev local): retorna o `API_URL`.
+ * - Em builds **tenant** (`PUBLIC_TENANT` setado em build time pelo
+ *   `astro.config.mjs`): retorna `window.location.origin` SEMPRE — a Pages
+ *   Function do tenant proxia `/api`, `/auth`, `/stripe`, `/ledger`, `/members`
+ *   para o backend real, então o navegador deve fazer requests **same-origin**
+ *   (cookies httpOnly sameSite=lax viajam normalmente). Sem esse guard, o
+ *   `siteUrl` do próprio tenant casaria `origin === siteUrl` e cairíamos no
+ *   `configuredApiUrl` — que em deploys sem `PUBLIC_API_URL` era o fallback
+ *   `http://localhost:3001` (bug de produção da Fase 0.5).
  *
- * - Em deploys whitelabel (domínio próprio no Pages — `tisocial.org.br`,
- *   `elasnocodigo.com.br`, etc.): retorna `window.location.origin`. A Pages
- *   Function proxia `/api`, `/auth`, `/stripe`, `/ledger`, `/members` para o
- *   backend real, então o navegador deve fazer requests **same-origin** — assim
- *   os cookies (httpOnly, sameSite=lax) viajam normalmente.
+ * - Em deploys "normais" (codaqui.dev, dev local): retorna o `API_URL`.
  *
  * Em SSR retorna o configured (sem `window`).
  */
 export function resolveApiUrl(siteUrl: string): string {
   const origin =
     globalThis.window === undefined ? undefined : globalThis.window.location.origin;
+  if (import.meta.env.PUBLIC_TENANT) {
+    return origin ?? API_URL;
+  }
   return resolveApiUrlFor(origin, API_URL, siteUrl);
 }
 
