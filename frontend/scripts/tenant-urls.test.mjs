@@ -63,14 +63,31 @@ afterEach(() => {
 });
 
 describe("requiredUrls", () => {
-  it("base: /, /apoiar, /transparencia, /equipe para qualquer tenant", () => {
+  it("base: /, /apoiar, /transparencia, /equipe, /auth/callback para qualquer tenant", () => {
     const root = makeRoot();
-    expect(requiredUrls({ tenant: "devparana", rootDir: root })).toEqual([
+    expect(requiredUrls({ tenant: "elasnocodigo", rootDir: root })).toEqual([
       "/",
       "/apoiar",
       "/transparencia",
       "/equipe",
+      "/auth/callback",
     ]);
+  });
+
+  it("extras por tenant: devparana exige /embaixadores e /rfcs", () => {
+    const root = makeRoot();
+    const urls = requiredUrls({ tenant: "devparana", rootDir: root });
+    expect(urls).toContain("/embaixadores");
+    expect(urls).toContain("/rfcs");
+  });
+
+  it("extras por tenant: tisocial e elasnocodigo não herdam extras do devparana", () => {
+    const root = makeRoot();
+    for (const tenant of ["tisocial", "elasnocodigo"]) {
+      const urls = requiredUrls({ tenant, rootDir: root });
+      expect(urls).not.toContain("/embaixadores");
+      expect(urls).not.toContain("/rfcs");
+    }
   });
 
   it("com community-blog: /blog, slugs dos frontmatters e /blog/tags", () => {
@@ -80,6 +97,7 @@ describe("requiredUrls", () => {
       "/apoiar",
       "/transparencia",
       "/equipe",
+      "/auth/callback",
       "/blog",
       "/blog/pascoa-2025",
       "/blog/pascoa-2026",
@@ -130,6 +148,7 @@ describe("checkTenantUrls", () => {
     const dist = makeDist(root, ["/", "/apoiar", "/transparencia", "/equipe"]);
     const result = checkTenantUrls({ distDir: dist, tenant: "tisocial", rootDir: root });
     expect(result.missing).toEqual([
+      "/auth/callback",
       "/blog",
       "/blog/pascoa-2025",
       "/blog/pascoa-2026",
@@ -147,8 +166,25 @@ describe("checkTenantUrls", () => {
     writeFileSync(join(dist, "apoiar.html"), "");
     writeFileSync(join(dist, "transparencia.html"), "");
     writeFileSync(join(dist, "equipe.html"), "");
-    const result = checkTenantUrls({ distDir: dist, tenant: "devparana", rootDir: root });
+    mkdirSync(join(dist, "auth"), { recursive: true });
+    writeFileSync(join(dist, "auth", "callback.html"), "");
+    const result = checkTenantUrls({ distDir: dist, tenant: "elasnocodigo", rootDir: root });
     expect(result.missing).toEqual([]);
+  });
+
+  it("reporta has404=false quando o dist não tem 404.html (soft-404 no Pages)", () => {
+    const root = makeRoot();
+    const dist = makeDist(root, ["/"]);
+    const result = checkTenantUrls({ distDir: dist, tenant: "devparana", rootDir: root });
+    expect(result.has404).toBe(false);
+  });
+
+  it("reporta has404=true quando o dist tem 404.html", () => {
+    const root = makeRoot();
+    const dist = makeDist(root, ["/"]);
+    writeFileSync(join(dist, "404.html"), "<html></html>");
+    const result = checkTenantUrls({ distDir: dist, tenant: "devparana", rootDir: root });
+    expect(result.has404).toBe(true);
   });
 
   it("falha quando o dist não existe", () => {

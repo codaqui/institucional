@@ -71,6 +71,35 @@ export function tenantNav(config: CommunitySiteConfig): TenantNavLink[] {
   });
 }
 
+/**
+ * href do nav para o build renderizado. Os configs das comunidades apontam
+ * os links para o basePath do portal (`/comunidades/<slug>/…`) — certo nos
+ * wrappers do build codaqui, mas no build tenant (domínio próprio) os links
+ * devem nascer limpos:
+ *
+ * - `to === basePath` → `/` (raiz da comunidade);
+ * - prefixado com `basePath + "/"` → prefixo removido (`/docs`, `/rfcs`…);
+ * - rota do portal fora do basePath (ex.: `/eventos`) → origem absoluta do
+ *   portal — o `_redirects` do tenant só cobre `/comunidades/<slug>[/*]`,
+ *   então o link relativo 404aria no domínio próprio. Mesmo padrão de
+ *   `tenantExploreCardHref` em `community-devparana.ts`.
+ *
+ * `tenantBuild === false` (wrappers `/comunidades/<slug>` do build codaqui)
+ * devolve `to` sem alteração.
+ */
+export function tenantNavHref(
+  to: string,
+  basePath: string,
+  tenantBuild: boolean,
+  portalOrigin: string,
+): string {
+  if (!tenantBuild) return to;
+  if (to === basePath) return "/";
+  if (to.startsWith(`${basePath}/`)) return to.slice(basePath.length);
+  if (portalOrigin && to.startsWith("/")) return `${portalOrigin}${to}`;
+  return to;
+}
+
 /** Base path da comunidade no portal (`/comunidades/<slug>`). */
 export function communityBasePath(config: CommunitySiteConfig): string {
   return config.basePath;

@@ -62,7 +62,7 @@ export function resolveCodaquiUrlFor(
  * valor configurado em build time.
  *
  * - Em builds **tenant** (`PUBLIC_TENANT` setado em build time pelo
- *   `astro.config.mjs`): retorna `window.location.origin` SEMPRE — a Pages
+ *   `astro.config.mjs`): retorna `window.location.origin` — a Pages
  *   Function do tenant proxia `/api`, `/auth`, `/stripe`, `/ledger`, `/members`
  *   para o backend real, então o navegador deve fazer requests **same-origin**
  *   (cookies httpOnly sameSite=lax viajam normalmente). Sem esse guard, o
@@ -70,16 +70,26 @@ export function resolveCodaquiUrlFor(
  *   `configuredApiUrl` — que em deploys sem `PUBLIC_API_URL` era o fallback
  *   `http://localhost:3001` (bug de produção da Fase 0.5).
  *
+ *   **Exceção dev local** (`astro dev` com `TENANT=<slug>`, sem Pages
+ *   Function): hosts `localhost`/`*.localhost` mantêm o `configuredApiUrl`
+ *   (ex.: `http://localhost:3001`) — a origin `:4321` não tem proxy, então
+ *   forçar same-origin quebraria as ilhas no dev local.
+ *
  * - Em deploys "normais" (codaqui.dev, dev local): retorna o `API_URL`.
  *
  * Em SSR retorna o configured (sem `window`).
  */
 export function resolveApiUrl(siteUrl: string): string {
-  const origin =
-    globalThis.window === undefined ? undefined : globalThis.window.location.origin;
+  const win = globalThis.window;
   if (import.meta.env.PUBLIC_TENANT) {
-    return origin ?? API_URL;
+    // Produção: same-origin SEMPRE (Pages Function proxia /api etc.).
+    // Exceção dev local (astro dev, sem Pages Function): hosts
+    // localhost/*.localhost mantêm o configured (ex.: localhost:3001) — a
+    // origin :4321 não tem proxy. SSR (sem window) também usa o configured.
+    if (win && !isLocalDevHost(win.location.host)) return win.location.origin;
+    return API_URL;
   }
+  const origin = win === undefined ? undefined : win.location.origin;
   return resolveApiUrlFor(origin, API_URL, siteUrl);
 }
 

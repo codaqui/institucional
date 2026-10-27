@@ -1,0 +1,24 @@
+---
+// Callback do OAuth GitHub do site whitelabel Elas no Código (build tenant
+// `TENANT=elasnocodigo`): o backend redireciona para /auth/callback#token após
+// a autorização. Sem esta rota o retorno do login caía no soft-404 da home e
+// a autenticação morria (C2 — QA wave Fase 0.5). Mesma ilha do build codaqui;
+// título de paridade com o portal e noindex.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AuthCallback from "../../components/islands/AuthCallback";
+import { loadTenantConfig } from "../../lib/community";
+import { getTenant } from "../../lib/tenant";
+
+const tenant = getTenant() ?? "elasnocodigo";
+const config = await loadTenantConfig(tenant);
+---
+
+<BaseLayout
+  title={`Entrando… — ${config.shortName}`}
+  description={config.description}
+  ogImage={config.socialImage ?? config.logoUrl}
+  ogImageAlt={config.name}
+  noindex
+>
+  <AuthCallback client:only="react" />
+</BaseLayout>

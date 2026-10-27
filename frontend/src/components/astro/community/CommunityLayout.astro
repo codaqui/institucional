@@ -13,7 +13,7 @@
 // data-theme/localStorage "cq-theme", a mesma chave do anti-FOUC do <head>).
 import "../../../styles/global.css";
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
-import { tenantCssVars, tenantNav } from "../../../lib/community";
+import { tenantCssVars, tenantNav, tenantNavHref } from "../../../lib/community";
 import { getTenant } from "../../../lib/tenant";
 import { resolveCodaquiUrl } from "../../../lib/api-url";
 import ThemeToggle from "../../islands/ThemeToggle";
@@ -47,17 +47,27 @@ const absoluteImage = pageImage.startsWith("http")
   : `${siteUrl}${pageImage}`;
 const canonical = new URL(Astro.url.pathname, siteUrl);
 
-const nav = tenantNav(config);
+// Build tenant (domínio próprio) vs wrapper (/comunidades/<slug> no portal).
+const isTenantBuild = getTenant() !== null;
+const CODAQUI_SITE_URL = "https://codaqui.dev";
+
+// Nav achatado do config. No build tenant os hrefs nascem limpos (sem o
+// prefixo /comunidades/<slug> e sem o hop 301 do _redirects); nos wrappers
+// do portal os paths prefixados continuam como estão.
+const nav = tenantNav(config).map((item) => ({
+  ...item,
+  to: tenantNavHref(item.to, config.basePath, isTenantBuild, CODAQUI_SITE_URL),
+}));
 const cssVars = tenantCssVars(config);
 const varsStyle = `:root {\n${Object.entries(cssVars)
   .map(([name, value]) => `  ${name}: ${value};`)
   .join("\n")}\n}`;
 
 // Chip "← Codaqui": só faz sentido em builds tenant (no portal codaqui o
-// próprio site é a Codaqui). resolveCodaquiUrl espera a URL da Codaqui
-// (não a do tenant) e adapta dev local (*.localhost → localhost:3000).
-const isTenantBuild = getTenant() !== null;
-const CODAQUI_SITE_URL = "https://codaqui.dev";
+// próprio site é a Codaqui). ATENÇÃO: este layout é pré-renderizado em SSR
+// (build estático), então resolveCodaquiUrl SEMPRE cai no branch sem window
+// e o href é https://codaqui.dev — o "adapta dev local" de
+// resolveCodaquiUrl nunca se aplica aqui.
 const codaquiHref = isTenantBuild ? resolveCodaquiUrl(CODAQUI_SITE_URL, "/") : null;
 
 // Footer escuro de comunidade: logo branco quando disponível.

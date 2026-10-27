@@ -23,10 +23,13 @@ console.log(`snapshots copiados: ${snapshotDirs.map((d) => `${d}/index.json`).jo
 // og-elasnocodigo.jpg é o socialImage do config da comunidade (OG das páginas
 // /comunidades/elasnocodigo/* e do build tenant). og-tisocial.jpg é o
 // socialImage da T.I. Social (OG de /comunidades/tisocial/* e do build tenant
-// — deferido da T5). campostech.svg/og-campostech.jpg são o logo e o
-// socialImage da CamposTech (wrappers /comunidades/campostechpg, Task 9 —
-// a comunidade não é tenant, então só existem os wrappers no portal).
-const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg", "og-tisocial.jpg", "campostech.svg", "og-campostech.jpg"];
+// — deferido da T5). og-devparana.jpg é o socialImage do DevParaná (OG das
+// páginas do build tenant — QA wave 0.5: antes só existia no Docusaurus e o
+// Pages servia HTML no /img/og-devparana.jpg do tenant, quebrando o OG).
+// campostech.svg/og-campostech.jpg são o logo e o socialImage da CamposTech
+// (wrappers /comunidades/campostechpg, Task 9 — a comunidade não é tenant,
+// então só existem os wrappers no portal).
+const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg", "og-tisocial.jpg", "og-devparana.jpg", "campostech.svg", "og-campostech.jpg"];
 mkdirSync(join(FRONTEND_PUBLIC, "img"), { recursive: true });
 for (const file of imgFiles) {
   cpSync(join(ROOT, "static", "img", file), join(FRONTEND_PUBLIC, "img", file));

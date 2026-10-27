@@ -6,6 +6,8 @@
 // primaryDark em ambos os temas. Alternância claro/escuro via seletor
 // [data-theme="dark"].
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import { tenantNavHref } from "../../../lib/community";
+import { getTenant } from "../../../lib/tenant";
 
 interface Props {
   config: CommunitySiteConfig;
@@ -14,6 +16,15 @@ interface Props {
 }
 
 const { config, chipLabel = "Comunidade parceira da Codaqui" } = Astro.props;
+
+// CTA primário: mesmo stripBase do nav (C4 — QA wave 0.5): no build tenant
+// o link do config nasce limpo (/apoiar), sem o hop 301 do _redirects.
+const ctaPrimaryHref = tenantNavHref(
+  config.hero.ctaPrimary.to,
+  config.basePath,
+  getTenant() !== null,
+  "https://codaqui.dev",
+);
 
 // Ícones MUI (volunteer_activism / open_in_new) como SVG inline — paths do
 // @mui/icons-material, fill currentColor.
@@ -37,7 +48,7 @@ const OPEN_IN_NEW_PATH =
       </p>
       <div class="flex flex-col gap-4 pt-2 sm:flex-row">
         <a
-          href={config.hero.ctaPrimary.to}
+          href={ctaPrimaryHref}
           class="cq-hero-primary inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold no-underline"
         >
           <svg

@@ -12,6 +12,8 @@
 //   hardcoded; o fade final usa o token do app (--cq-bg-body) para acabar na
 //   cor da página, e claro/escuro segue o seletor [data-theme="dark"].
 import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import { tenantNavHref } from "../../../lib/community";
+import { getTenant } from "../../../lib/tenant";
 
 interface Props {
   config: CommunitySiteConfig;
@@ -21,6 +23,15 @@ const { config } = Astro.props;
 const visual = config.heroVisual;
 const imagePosition = visual?.imagePosition ?? "right";
 const isRight = imagePosition === "right";
+
+// CTA primário: mesmo stripBase do nav (C4 — QA wave 0.5): no build tenant
+// o link do config nasce limpo (/apoiar), sem o hop 301 do _redirects.
+const ctaPrimaryHref = tenantNavHref(
+  config.hero.ctaPrimary.to,
+  config.basePath,
+  getTenant() !== null,
+  "https://codaqui.dev",
+);
 ---
 
 {
@@ -46,7 +57,7 @@ const isRight = imagePosition === "right";
               </p>
               <div class="flex flex-col gap-4 pt-1 sm:flex-row">
                 <a
-                  href={config.hero.ctaPrimary.to}
+                  href={ctaPrimaryHref}
                   class="cq-hero-cta-primary inline-flex items-center justify-center gap-2 rounded-[10px] px-7 py-3 text-sm font-bold no-underline"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">

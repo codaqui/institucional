@@ -4,7 +4,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { useAuth } from "./use-auth";
-import { API_URL } from "./config";
 
 const baseUser = {
   sub: "uuid",
@@ -15,10 +14,12 @@ const baseUser = {
 };
 
 function mockAuthMe(user: object | null, status = user ? 200 : 401) {
+  // Aceita qualquer base resolvida por resolveApiUrl — este arquivo testa os
+  // helpers de role, não a resolução da URL (coberta em use-auth-api-url).
   vi.stubGlobal(
     "fetch",
     vi.fn(async (url: string) => {
-      if (url === `${API_URL}/auth/me`) {
+      if (url.endsWith("/auth/me")) {
         return new Response(user ? JSON.stringify(user) : "", { status });
       }
       throw new Error(`URL inesperada: ${url}`);

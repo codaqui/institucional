@@ -1,0 +1,42 @@
+---
+// Página 404 do site whitelabel DevParaná (build tenant `TENANT=devparana` e
+// wrapper /comunidades/devparana do portal): sem src/pages/404.astro o dist
+// do tenant não tinha 404.html e o Cloudflare Pages servia a homepage com
+// status 200 para URLs inexistentes (soft-404 — páginas fantasmas viravam
+// clones indexáveis da home). QA wave Fase 0.5 (C1).
+import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title="Página não encontrada"
+  homeHref={homeHref}
+>
+  <section class="mx-auto max-w-2xl px-4 py-20 text-center">
+    <p class="m-0 text-7xl font-extrabold" style="color: var(--community-primary)">
+      404
+    </p>
+    <h1 class="m-0 mt-4 text-3xl font-extrabold text-text-primary">
+      Página não encontrada
+    </h1>
+    <p class="m-0 mt-4 text-text-secondary">
+      O endereço que você acessou não existe neste site. O link pode ter
+      mudado ou sido digitado errado — que tal voltar para o início?
+    </p>
+    <a
+      href={homeHref}
+      class="mt-6 inline-block rounded-lg bg-action px-4 py-2 font-bold text-on-action no-underline hover:bg-action-hover"
+    >
+      ← Voltar para o início
+    </a>
+  </section>
+</CommunityLayout>

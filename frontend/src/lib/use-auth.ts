@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { API_URL } from "./config";
+import { resolveApiUrl } from "./api-url";
 import {
   authFetch as authFetchClient,
   fetchMe,
@@ -12,11 +12,16 @@ export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [ready, setReady] = useState(false);
 
+  // Mesmo padrão das ilhas: resolveApiUrl(import.meta.env.SITE) — em builds
+  // tenant o guard PUBLIC_TENANT força same-origin via Pages Function; API_URL
+  // cru cairia no fallback de build fora do workflow (ex.: localhost:3001).
+  const apiUrl = resolveApiUrl(import.meta.env.SITE);
+
   const refreshUser = useCallback(async (): Promise<AuthUser | null> => {
-    const profile = await fetchMe(API_URL);
+    const profile = await fetchMe(apiUrl);
     setUser(profile);
     return profile;
-  }, []);
+  }, [apiUrl]);
 
   useEffect(() => {
     refreshUser().finally(() => setReady(true));
@@ -24,19 +29,22 @@ export function useAuth() {
 
   const login = useCallback(
     (options?: { returnTo?: string; switchAccount?: boolean }) =>
-      startLogin(API_URL, options),
-    [],
+      startLogin(apiUrl, options),
+    [apiUrl],
   );
 
-  const logout = useCallback((options?: { returnTo?: string }) => {
-    setUser(null);
-    startLogout(API_URL, options);
-  }, []);
+  const logout = useCallback(
+    (options?: { returnTo?: string }) => {
+      setUser(null);
+      startLogout(apiUrl, options);
+    },
+    [apiUrl],
+  );
 
   const authFetch = useCallback(
     (path: string, init: RequestInit = {}) =>
-      authFetchClient(API_URL, path, init, () => setUser(null)),
-    [],
+      authFetchClient(apiUrl, path, init, () => setUser(null)),
+    [apiUrl],
   );
 
   return {

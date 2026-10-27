@@ -95,7 +95,9 @@ describe("resolveApiUrl em build tenant (PUBLIC_TENANT setado)", () => {
   });
 
   function mockWindowOrigin(origin: string) {
-    (globalThis as { window?: unknown }).window = { location: { origin } };
+    (globalThis as { window?: unknown }).window = {
+      location: { origin, host: new URL(origin).host },
+    };
   }
 
   it("tenant: same-origin MESMO quando origin === siteUrl do próprio tenant", () => {
@@ -106,6 +108,20 @@ describe("resolveApiUrl em build tenant (PUBLIC_TENANT setado)", () => {
 
   it("tenant: contrato SSR mantido (sem window → configured)", () => {
     vi.stubEnv("PUBLIC_TENANT", "tisocial");
+    expect(resolveApiUrl("https://tisocial.org.br")).toBe(API_URL);
+  });
+
+  it("tenant: dev local (astro dev, sem Pages Function) mantém configured", () => {
+    // C6: com TENANT=<slug> em dev local não há proxy same-origin — o guard
+    // PUBLIC_TENANT não pode forçar a origin (:4321), senão as ilhas quebram.
+    vi.stubEnv("PUBLIC_TENANT", "tisocial");
+    mockWindowOrigin("http://localhost:4321");
+    expect(resolveApiUrl("https://tisocial.org.br")).toBe(API_URL);
+  });
+
+  it("tenant: *.localhost (wrangler dev) também mantém configured", () => {
+    vi.stubEnv("PUBLIC_TENANT", "tisocial");
+    mockWindowOrigin("http://tisocial.localhost:8787");
     expect(resolveApiUrl("https://tisocial.org.br")).toBe(API_URL);
   });
 

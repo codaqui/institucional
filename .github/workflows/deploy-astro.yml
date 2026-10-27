@@ -78,6 +78,14 @@ jobs:
           npm ci --ignore-scripts
           npm run build
 
+      - name: Gate de URLs canônicas do tenant
+        # Só para builds tenant (matrix.tenant vazio = codaqui, que tem o
+        # diff-urls local): confere a allow-list de rotas limpas + 404.html
+        # no dist antes do upload. QA wave Fase 0.5 (C7).
+        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && matrix.tenant != '' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
+        working-directory: frontend
+        run: node scripts/tenant-urls.mjs dist ${{ matrix.tenant }}
+
       # Wrangler vem das devDependencies pinadas do package.json da RAIZ — sem
       # node_modules na raiz o npx baixaria wrangler@latest do registry e
       # executaria COM os secrets Cloudflare no env (risco supply-chain no

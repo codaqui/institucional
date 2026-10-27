@@ -4,6 +4,7 @@ import {
   loadTenantConfig,
   tenantCssVars,
   tenantNav,
+  tenantNavHref,
 } from "./community";
 
 describe("loadTenantConfig", () => {
@@ -71,5 +72,44 @@ describe("communityBasePath", () => {
   it("retorna o basePath da config (/comunidades/<slug>)", async () => {
     const config = await loadTenantConfig("tisocial");
     expect(communityBasePath(config)).toBe("/comunidades/tisocial");
+  });
+});
+
+describe("tenantNavHref", () => {
+  const basePath = "/comunidades/devparana";
+  const portalOrigin = "https://codaqui.dev";
+
+  it("build codaqui (não-tenant) mantém os paths prefixados do portal", () => {
+    expect(tenantNavHref("/comunidades/devparana", basePath, false, portalOrigin)).toBe(
+      "/comunidades/devparana",
+    );
+    expect(
+      tenantNavHref("/comunidades/devparana/docs", basePath, false, portalOrigin),
+    ).toBe("/comunidades/devparana/docs");
+  });
+
+  it("build tenant: item da raiz da comunidade vira /", () => {
+    expect(tenantNavHref("/comunidades/devparana", basePath, true, portalOrigin)).toBe("/");
+  });
+
+  it("build tenant: remove o prefixo do basePath (rotas limpas)", () => {
+    expect(
+      tenantNavHref("/comunidades/devparana/docs", basePath, true, portalOrigin),
+    ).toBe("/docs");
+    expect(
+      tenantNavHref("/comunidades/devparana/rfcs", basePath, true, portalOrigin),
+    ).toBe("/rfcs");
+  });
+
+  it("build tenant: rota do portal fora do basePath ganha a origem absoluta", () => {
+    expect(tenantNavHref("/eventos", basePath, true, portalOrigin)).toBe(
+      "https://codaqui.dev/eventos",
+    );
+  });
+
+  it("build tenant: href já absoluto (outro domínio) passa como está", () => {
+    expect(tenantNavHref("https://discord.com/convite", basePath, true, portalOrigin)).toBe(
+      "https://discord.com/convite",
+    );
   });
 });
