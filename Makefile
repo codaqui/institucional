@@ -46,7 +46,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
-        astro-verify astro-lighthouse \
+        astro-verify astro-verify-tenants astro-lighthouse \
         sync sync-events sync-events-full sync-social sync-analytics \
         worker-dev-tisocial worker-deploy-tisocial \
         worker-dev-elasnocodigo worker-deploy-elasnocodigo \
@@ -290,6 +290,8 @@ astro-preview: ## Serve o build do Astro em http://localhost:4321 (homologação
 astro-verify: ## Verificação completa do app Astro: build + tipos + testes + smoke + gate de paridade de URLs
 	@printf "$(CYAN)→  Build + typecheck + testes do Astro...$(RESET)\n"
 	cd $(ASTRO_DIR) && npm run build && npm run check && npm run test
+	@printf "$(CYAN)→  Type-check da Pages Function (tsconfig próprio, fora do astro check)...$(RESET)\n"
+	cd $(ASTRO_DIR) && npx tsc -p functions/tsconfig.json
 	@printf "$(CYAN)→  Smoke do build (dist/)...$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage gerada$(RESET)\n"
 	@grep -q "Democratizando comunidades" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage com conteúdo real (tagline)$(RESET)\n"
@@ -302,6 +304,27 @@ astro-verify: ## Verificação completa do app Astro: build + tipos + testes + s
 	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs build Docusaurus (build/)...$(RESET)\n"
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
+
+# Tenants do app Astro (Fase 0.5) — fonte única em frontend/tenants.config.mjs.
+# codaqui não é TENANT: é o build sem a env (srcDir padrão ./src).
+ASTRO_TENANTS := $(shell node --input-type=module -e "import('./$(ASTRO_DIR)/tenants.config.mjs').then((m) => console.log(m.TENANTS.map((t) => t.tenant).join(' ')))" 2>/dev/null)
+
+astro-verify-tenants: ## Verificação dos builds multi-tenant: 4 builds (codaqui + 3 tenants) + gate de allow-list de URLs por tenant
+	@if [ -z "$(ASTRO_TENANTS)" ]; then \
+	    printf "$(RED)✖  Não foi possível ler a lista de tenants em $(ASTRO_DIR)/tenants.config.mjs$(RESET)\n"; \
+	    exit 1; \
+	fi
+	@for t in codaqui $(ASTRO_TENANTS); do \
+	    if [ "$$t" = "codaqui" ]; then \
+	        printf "$(CYAN)→  Build codaqui (sem TENANT)...$(RESET)\n"; \
+	        (cd $(ASTRO_DIR) && env -u TENANT npm run build) || exit 1; \
+	    else \
+	        printf "$(CYAN)→  Build tenant $$t + gate tenant-urls...$(RESET)\n"; \
+	        (cd $(ASTRO_DIR) && TENANT=$$t npm run build && node scripts/tenant-urls.mjs dist $$t) || exit 1; \
+	    fi; \
+	done
+	@printf "$(GREEN)✔  Builds multi-tenant verificados (codaqui + $(ASTRO_TENANTS))$(RESET)\n"
+	@printf "$(YELLOW)ℹ  astro check NÃO roda em modo tenant (62 erros pré-existentes em páginas codaqui — R7). Gate de tenant = build + tenant-urls; codaqui completo em make astro-verify$(RESET)\n"
 
 astro-lighthouse: astro-build ## Lighthouse mobile (/, evento, /admin/eventos, /blog, um post, /trilhas, insights, apoiar, design-system) — requer Chrome
 	@cd $(ASTRO_DIR) && npm run preview > /tmp/codaqui-astro-preview.log 2>&1 & \

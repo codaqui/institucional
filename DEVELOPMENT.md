@@ -5,6 +5,7 @@ sections:
   - Arquitetura do Monorepo
   - Frontend (Docusaurus) — npm scripts, dev server
   - Frontend (Astro) — Fase 0 em transição
+  - Multi-tenant (Fase 0.5) — sites whitelabel das comunidades no Cloudflare Pages: gates e runbook de cutover de DNS
   - Backend (NestJS) — npm scripts, Stripe CLI for webhooks
   - Full Stack (Frontend + Backend + Infra) — Podman Compose
   - Migrations (TypeORM) — generate/run/revert
@@ -135,7 +136,8 @@ Ou pela raiz, via Makefile (equivalem aos scripts acima, em `frontend/`):
 
 ```bash
 make astro-dev         # dev server
-make astro-verify      # verificação completa da POC: build + check + test + smoke do dist/
+make astro-verify      # verificação completa da POC: build + check + test + type-check da Pages Function + smoke do dist/
+make astro-verify-tenants  # 4 builds (codaqui + 3 tenants) + gate de allow-list de URLs por tenant — ver "Multi-tenant (Fase 0.5)"
 make astro-lighthouse  # Lighthouse mobile nas páginas da POC + blog/trilhas (requer Chrome)
 make astro-preview     # serve o build (:4321)
 ```
@@ -150,6 +152,57 @@ make astro-preview     # serve o build (:4321)
 - Autenticação: `src/lib/auth-client.ts` (puro) + `src/lib/use-auth.ts` (hook) — mesmo contrato de cookie httpOnly do Docusaurus.
 - Conteúdo blog/trilhas: `blog/` e `trilhas/` da raiz seguem canônicos até a Fase 0.6; o Astro consome cópias geradas em build-time por `scripts/copy-content.mjs` (nunca edite `frontend/src/content/` direto).
 - Autores do blog: a fonte canônica é `blog/authors.yml` (Docusaurus); ao alterá-la, replique a mudança manualmente em `frontend/src/data/blog-authors.ts` (o comentário no topo do arquivo aponta para cá).
+
+---
+
+## Multi-tenant (Fase 0.5)
+
+**Quando usar:** operar os sites whitelabel das comunidades (T.I. Social, Elas no Código, DevParaná), servidos por **Cloudflare Pages** a partir do mesmo app Astro em `frontend/`. Arquitetura e decisões: [docs/superpowers/plans/2026-10-27-fase-0-5-multi-tenant-pages.md](docs/superpowers/plans/2026-10-27-fase-0-5-multi-tenant-pages.md) e [ADR 004](docs/adrs/004-multisite-communities.md).
+
+### Como funciona
+
+- `TENANT=<slug>` em build-time troca o `srcDir` para `frontend/src-tenants/<slug>/` — rotas limpas (`/`, `/apoiar`, `/transparencia`, `/equipe`, `/blog`, `/docs`) com o tema/nav da comunidade. **Build codaqui = sem `TENANT`** (srcDir padrão `./src`, portal completo).
+- `frontend/tenants.config.mjs` é a fonte única dos tenants (slug, domínio `site`, nome do projeto Pages). O matrix do workflow `.github/workflows/deploy-astro.yml` espelha essa lista.
+- Cada build de tenant grava `dist/_redirects` com 301 de `/comunidades/<slug>[/*]` para `[/][:splat]` — links antigos do portal continuam funcionando no domínio próprio.
+- Gate local: `make astro-verify-tenants` — 4 builds (codaqui + 3 tenants) + allow-list de URLs por tenant (`frontend/scripts/tenant-urls.mjs`).
+- **R7 — `astro check` NÃO é gate em modo tenant:** páginas codaqui sob srcDir de tenant têm 62 erros pré-existentes (limitação do `getCollection`). Gates por build: codaqui = build + `astro check` + testes + `diff-urls` (`make astro-verify`); tenant = build + `tenant-urls`.
+
+### Runbook de operação (cutover de DNS)
+
+Até o cutover, os domínios das comunidades são servidos pelos Workers em `workers/<slug>/`. A migração para o Pages é manual, **com janela de 1–2h offline aceita** (definida pelo time). Passos:
+
+1. **Criar os 3 projetos Pages** (um por tenant, nome em `tenants.config.mjs` → `project`):
+
+   ```bash
+   npx wrangler pages project create <project> --production-branch=main
+   ```
+
+   (Ou via dashboard Cloudflare → Workers & Pages → Create → Pages.)
+
+2. **Secrets do repositório** (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN` (escopo mínimo *Cloudflare Pages:Edit* no account) + `CLOUDFLARE_ACCOUNT_ID` — ver tabela na seção [Deploy](#secrets-e-variáveis-do-github-actions).
+
+3. **Por domínio tenant** (janela de 1–2h offline aceita):
+   1. Remover a rota/custom domain do Worker (dashboard Cloudflare → Workers & Pages → `<worker>` → Settings → Domains & Routes / Triggers).
+   2. Apontar o domínio para o projeto Pages: **apex** → registro CNAME para `<project>.pages.dev` (a Cloudflare faz flattening de CNAME em apex); **subdomínios wildcard** `*.<domínio>` conforme o Worker tinha (avaliar necessidade por domínio).
+   3. Aguardar o SSL universal do edge (em geral minutos).
+
+4. **Verificação pós-DNS:**
+   - `/` serve a home do tenant (não um redirect);
+   - `/blog` lista os posts (tisocial);
+   - login via doação >R$100 (handoff cross-domain para codaqui.dev) e doação Stripe embutida funcionando;
+   - `/comunidades/<slug>/*` → 301 para `/*` (regras do `dist/_redirects`).
+
+5. **Rollback:** reverter o DNS para o Worker e redeployar o Worker do histórico do git:
+
+   ```bash
+   git checkout <sha-antes-da-deleção> -- workers/
+   npm run worker:deploy:<slug>
+   ```
+
+### Gaps conhecidos
+
+- **Previews `*.pages.dev`:** builds de preview (`<branch>.<project>.pages.dev`) caem no fallback `codaqui.dev` nos redirects de login/doação (gap `*.pages.dev` — fora de escopo da fase).
+- **Windows:** os `src-tenants/<slug>/content` são symlinks — ative `git config core.symlinks true` (global ou no repo) antes de clonar, ou reponha os symlinks após o clone.
 
 ---
 
@@ -349,6 +402,8 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 | `GH_APP_ID` | **Variable** (não secret) | Idem | App ID do mesmo GitHub App |
 | `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `gh-deploy`, `pr-check` | Chave pública Stripe (`pk_live_...`) injetada no build do Docusaurus. Sem isso o botão de doação fica desativado. |
 | `DISCORD_BOT_TOKEN` | **Secret** | `sync-event-snapshots`, `sync-social-stats` | Token do bot Discord. Opcional — sem ele os scripts preservam os snapshots existentes. |
+| `CLOUDFLARE_API_TOKEN` | **Secret** | `deploy-astro` | Token de API da Cloudflare com escopo mínimo *Cloudflare Pages:Edit* no account — deploy dos sites tenant (Cloudflare Pages). Opcional — sem ele o workflow faz o build mas pula o deploy. |
+| `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
 
 > **Como obter o GitHub App:**
 > Crie um GitHub App em *Settings → Developer settings → GitHub Apps* com permissão de escrita em `Contents` do repositório, gere uma chave privada (`.pem`) e use seu conteúdo como valor de `GH_APP_PRIVATE_KEY`.
