@@ -6,9 +6,10 @@
 //
 // Em builds tenant as rotas são limpas (home é "/"): links derivados do
 // config têm o prefixo `/comunidades/<slug>` removido; os links que apontam
-// para o portal Codaqui (agenda e detalhes de eventos) usam a origem
-// absoluta via resolveCodaquiUrl; o dist/_redirects cobre os paths absolutos
-// que ficam nos configs (ex.: navMenu, CTAs do hero).
+// para o portal Codaqui (agenda e detalhes de eventos, e o card "Eventos" do
+// explore — rota do portal não prefixada) usam a origem absoluta via
+// resolveCodaquiUrl; o dist/_redirects cobre os paths absolutos que ficam nos
+// configs (ex.: navMenu, CTAs do hero).
 import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
 import CommunityHero from "../components/astro/community/CommunityHero.astro";
 import CommunityExploreSection from "../components/astro/community/CommunityExploreSection.astro";
@@ -17,6 +18,7 @@ import HomeEventsSection from "../components/astro/community/devparana/HomeEvent
 import { communityBasePath, loadTenantConfig } from "../lib/community";
 import {
   devparanaFeatureCards,
+  tenantExploreCardHref,
   upcomingCommunityEvents,
 } from "../lib/community-devparana";
 import { loadEventsIndex } from "../lib/events";
@@ -29,12 +31,17 @@ const config = await loadTenantConfig(tenant);
 const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = tenantBuild ? "/" : communityBasePath(config);
 
-// Rotas limpas no build tenant: remove o basePath do portal dos cards.
-const stripBase = (to: string) =>
-  to.startsWith(config.basePath) ? to.slice(config.basePath.length) || "/" : to;
+// Origem absoluta do portal Codaqui (build tenant): rotas do portal que não
+// são prefixadas com o basePath da comunidade (ex.: o card "Eventos",
+// `/eventos`) precisam do host absoluto — o `_redirects` só cobre
+// `/comunidades/<slug>[/*]`.
+const portal = tenantBuild ? resolveCodaquiUrl("https://codaqui.dev", "") : "";
+
+// Rotas limpas no build tenant: remove o basePath do portal dos cards e
+// aponta rotas do portal (card Eventos) para a origem absoluta da Codaqui.
 const exploreCards = devparanaFeatureCards(config).map((card) => ({
   ...card,
-  to: stripBase(card.to),
+  to: tenantExploreCardHref(card.to, config.basePath, portal),
 }));
 
 // Próximos eventos: build time (snapshot do monorepo), mesmo filtro do
@@ -52,7 +59,6 @@ try {
     error,
   );
 }
-const portal = tenantBuild ? resolveCodaquiUrl("https://codaqui.dev", "") : "";
 const eventsHref =
   sourceKeys.length > 0
     ? `${portal}/eventos?source=${encodeURIComponent(sourceKeys[0])}`

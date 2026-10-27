@@ -120,6 +120,30 @@ export function upcomingCommunityEvents(
     .slice(0, limit);
 }
 
+/**
+ * href de um card de "Explore a comunidade" no build tenant (rotas limpas).
+ *
+ * - Cards prefixados com o basePath do portal viram rotas limpas do domínio
+ *   próprio (`/comunidades/devparana/docs` → `/docs`);
+ * - Cards cujo destino é uma rota do portal Codaqui que NÃO é prefixada com o
+ *   basePath da comunidade (ex.: o card "Eventos", `to: "/eventos"`) ganham a
+ *   origem absoluta do portal — o `_redirects` pós-build só cobre
+ *   `/comunidades/<slug>[/*]`, então o link relativo 404aria no domínio
+ *   próprio. Mesmo padrão dos CTAs da seção "Próximos eventos".
+ *
+ * No build codaqui o caller não usa este helper (os links relativos do
+ * portal funcionam como estão).
+ */
+export function tenantExploreCardHref(
+  to: string,
+  basePath: string,
+  portalOrigin: string,
+): string {
+  if (to.startsWith(basePath)) return to.slice(basePath.length) || "/";
+  if (portalOrigin && to.startsWith("/")) return `${portalOrigin}${to}`;
+  return to;
+}
+
 /** Formata a data do card de evento (Intl pt-BR `dateStyle: "full"`, `timeStyle: "short"` no timezone do evento). */
 export function formatFullEventDate(date: string, timeZone: string): string {
   return new Intl.DateTimeFormat("pt-BR", {
