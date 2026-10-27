@@ -33,5 +33,9 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     define: { "import.meta.env.PUBLIC_TENANT": JSON.stringify(TENANT ?? "") },
+    // Dev (`astro dev` com TENANT): src/lib/community.ts importa os configs de
+    // `comunidades/<slug>/`, fora da raiz do Vite — sem isso o dev-server
+    // bloqueia com 403 "outside of Vite serving allow list". Build não é afetado.
+    server: { fs: { allow: [".."] } },
   },
 });
