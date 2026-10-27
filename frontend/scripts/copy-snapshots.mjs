@@ -20,7 +20,9 @@ console.log(`snapshots copiados: ${snapshotDirs.map((d) => `${d}/index.json`).jo
 
 // Assets de static/img referenciados pelas páginas portadas (0.3) que ainda
 // não existiam em public/img — cópia cirúrgica, não o diretório todo (4.3 MB).
-const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png"];
+// og-elasnocodigo.jpg é o socialImage do config da comunidade (OG das páginas
+// /comunidades/elasnocodigo/* e do build tenant).
+const imgFiles = ["logo.png", "cncf-logo.png", "elasnocodigo-white.svg", "tisocial.png", "og-elasnocodigo.jpg"];
 mkdirSync(join(FRONTEND_PUBLIC, "img"), { recursive: true });
 for (const file of imgFiles) {
   cpSync(join(ROOT, "static", "img", file), join(FRONTEND_PUBLIC, "img", file));
