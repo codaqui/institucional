@@ -1,8 +1,8 @@
 // Gate de paridade: URLs públicas no build Docusaurus (build/, referência) vs
 // build Astro (frontend/dist/). Sai com código 1 se faltar URL.
-// Cobertura (Fase 0.3): seções completas + páginas soltas de topo. Fora:
-// /comunidades (0.5), /admin + /membro + /auth + /eventos/comprovante (0.4),
-// /@handle (geradas com API em build; ausentes na referência).
+// Cobertura (Fase 0.4): seções completas (inclui as app /admin, /membro,
+// /auth) + páginas soltas de topo. Fora: /comunidades (0.5) e /@handle
+// (geradas com API em build; ausentes na referência).
 import { readdirSync, existsSync } from "node:fs";
 import { join, relative } from "node:path";
 
@@ -15,17 +15,12 @@ const NEW = join(ROOT, "frontend", "dist");
 // frontend/src/pages/blog/archive/ e a exclusão foi removida.
 const EXCLUDE = [
   /^\/comunidades(\/|$)/, // Fase 0.5 (multi-tenant)
-  /^\/admin(\/|$)/, // Fase 0.4
-  /^\/membro(\/|$)/, // Fase 0.4 — cuidado: não pode casar /membros
-  /^\/membros\/empresa(\/|$)/, // Fase 0.4 (affiliation PJ — ruling do plano 0.3)
-  /^\/auth(\/|$)/, // Fase 0.4
-  /^\/eventos\/comprovante(\/|$)/, // Fase 0.4
   /^\/@[^/]+/, // perfis públicos — só existem no build com API (0 na referência)
 ];
 
 // Seções caminhadas recursivamente (o Docusaurus emite o índice da seção como
 // arquivo irmão <seção>.html, não como <seção>/index.html — por isso o sibling).
-const SECTIONS = ["blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado"];
+const SECTIONS = ["admin", "membro", "auth", "blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado"];
 // Páginas soltas na raiz: build/<nome>.html → /<nome>. "" é a homepage.
 const TOP_LEVEL = [
   "",

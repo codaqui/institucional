@@ -1,6 +1,6 @@
 # Fase 0.4 — App (admin/membro) Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Migrar todas as páginas app autenticadas do Docusaurus para o Astro — `/admin/*` (~14 páginas), `/membro/*` (monólito + subpáginas), `/membros/empresa`, `/eventos/comprovante` e o check-in — como ilhas React `client:only="react"` dentro de um `AppLayout` real, com testes Vitest + Testing Library e fluxos authFetch/401 cobertos.
 
@@ -15,7 +15,7 @@
 - Trabalho na branch `develop`, direto na raiz do repo (sem worktree) — ruling das fases 0.1–0.3.
 - **Não modificar** nada do Docusaurus fora de `frontend/` — exceções permitidas: `Makefile`, `DEVELOPMENT.md`, `AGENTS.md`, `docs/`.
 - Commits em pt-BR, conventional commits, um commit ou mais por task.
-- Páginas app replicam o SEO do Docusaurus: title tag (`Admin — Eventos | CODAQUI.dev`, `Área do Membro | CODAQUI.dev`, `Comprovante de compra | CODAQUI.dev` — verificados em `build/`), sem meta robots — **exceto** `/membros/empresa`, que tem `noindex` no original (replicar). O sitemap (`SITEMAP_EXCLUDE` em `astro.config.mjs`) já exclui `/admin/*`, `/membro/*`, `/auth/*`.
+- Páginas app replicam o SEO do Docusaurus: title tag (`Admin — Eventos | CODAQUI.dev`, `Área do Membro | CODAQUI.dev`, `Comprovante de compra | CODAQUI.dev` — verificados em `build/`). Meta robots: convenção app-wide da 0.4 (ruling R10, ledger SDD) é `noindex` em todas as shells app (`/admin/*`, `/membro/*`, `/membros/empresa`, `/auth/*`, `/eventos/comprovante`) — shells SSR vazios com ilha `client:only` não devem ser indexados, mesmo onde o Docusaurus não emitia robots. O sitemap (`SITEMAP_EXCLUDE` em `astro.config.mjs`) já exclui `/admin/*`, `/membro/*`, `/auth/*`.
 - Páginas app: ilha única `client:only="react"` por página; o `.astro` só renderiza shell + `<slot>` de loading/skeleton se houver.
 - Nunca hardcode de hex — tokens `--cq-*` / utilities do tema Tailwind / tema MUI nas ilhas.
 - Linguagem inclusiva: "participantes", "programa", "Associação"; "SortCoins" é o único nome da moeda; "saldo" sempre qualificado (R$, SortCoins, horas).
@@ -98,12 +98,12 @@ NÃO precisa portar: `SelectableCard` (só usado pela doação pública, substit
 **Interfaces:**
 - Produces: `npm run test` roda `.test.ts` (node) E `.test.tsx` (jsdom); `@testing-library/react` disponível para todas as tasks seguintes; helper `renderWithMui(ui)` em `frontend/src/test/render-mui.tsx` (wrapper `MuiIslandProvider` + `createCodaquiTheme("light")`) — usado pelos testes das ilhas das Tasks 3+.
 
-- [ ] **Step 1: Instalar deps**
+- [x] **Step 1: Instalar deps**
 
 Run: `cd frontend && npm install -D jsdom @testing-library/react @testing-library/dom @testing-library/user-event`
 Expected: package.json atualizado.
 
-- [ ] **Step 2: Configurar vitest para `.test.tsx` em jsdom**
+- [x] **Step 2: Configurar vitest para `.test.tsx` em jsdom**
 
 `frontend/vitest.config.ts` hoje é `environment: "node"`, `include: ["src/**/*.test.ts"]`. Novo conteúdo:
 
@@ -128,7 +128,7 @@ import "@testing-library/jest-dom/vitest";
 
 (Se `@testing-library/jest-dom` não for instalado no Step 1 por omissão, adicioná-lo: `npm install -D @testing-library/jest-dom`.)
 
-- [ ] **Step 3: Teste canário TDD**
+- [x] **Step 3: Teste canário TDD**
 
 `frontend/src/components/islands/__smoke__/AuthSmoke.test.tsx`:
 
@@ -152,7 +152,7 @@ describe("infra de testes de ilhas (canário)", () => {
 
 (Verificar o nome real do export de `ThemeToggle.tsx` — default ou named — e ajustar o import. Se o toggle depender de estado pré-existente em `localStorage`, limpar no `beforeEach`.)
 
-- [ ] **Step 4: Helper compartilhado `render-mui.tsx`**
+- [x] **Step 4: Helper compartilhado `render-mui.tsx`**
 
 ```tsx
 // frontend/src/test/render-mui.tsx
@@ -167,12 +167,12 @@ export function renderWithMui(ui: ReactElement, options?: RenderOptions) {
 
 (Confirmar o export default de `MuiIslandProvider` e ajustar.)
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npx vitest run`
 Expected: suíte completa verde (18 arquivos `.test.ts` existentes + canário novo), sem regressão.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/package.json frontend/package-lock.json frontend/vitest.config.ts frontend/src/test/
@@ -192,30 +192,30 @@ git commit -m "feat(fase-0.4): infra de testes de ilhas — vitest jsdom + Testi
 - Consumes: `useAuth()` (`frontend/src/lib/use-auth.ts`: `{ user, ready, isLoggedIn, isAdmin, login, logout }`), rotas fixas da nav.
 - Produces: `<AppLayout title noindex?>` com slots `header`/`default`; `AppNavIsland` com props `{ currentPath: string }` (item ativo por prefixo); guard: ilha redireciona `window.location` para `/` quando `ready && !isLoggedIn` (mesmo padrão do `AdminEventsApp`).
 
-- [ ] **Step 1: Teste TDD do AppNavIsland**
+- [x] **Step 1: Teste TDD do AppNavIsland**
 
 Cobrir: (a) `!ready` → skeleton; (b) `!isLoggedIn` → efeito de redirect (mock `window.location.replace` via `vi.stubGlobal`); (c) logado admin → nome/handle + item ativo conforme `currentPath`; (d) logout chama `startLogout`.
 
 Stub de `use-auth`: `vi.mock("../../lib/use-auth")` com fábrica retornando o estado desejado por caso.
 
-- [ ] **Step 2: Implementar AppNavIsland**
+- [x] **Step 2: Implementar AppNavIsland**
 
 Portar a estrutura do `AdminNavbar` Docusaurus (ler `src/components/` — NavbarAdmin ou equivalente usado pelas páginas admin; se não houver componente compartilhado, replicar a fileira de botões/links do topo das páginas admin como lista vertical): grupos **Gestão** (`/admin` hubs) e **Conta** (`/membro`), identidade no topo (avatar, nome, `@handle`, chips de roles conforme roles do usuário), botão Sair. Item ativo por prefixo de rota. Mobile: drawer (MUI `Drawer` com hambúrguer).
 
-- [ ] **Step 3: Reescrever AppLayout.astro**
+- [x] **Step 3: Reescrever AppLayout.astro**
 
 Manter a prop `title`/`noindex`; adicionar `<div class="flex">` com sidebar (`<aside>` fixa 240px, `hidden md:flex`) + conteúdo; `<AppNavIsland client:load currentPath={Astro.url.pathname} />` dentro da sidebar E no drawer mobile (mesma ilha montada uma vez — usar uma única montagem com `client:load` na sidebar e um botão hambúrguer estático que alterna um `<details>`/drawer CSS para mobile, evitando dupla hidratação; julgar na implementação e anotar).
 
-- [ ] **Step 4: Migrar `admin/eventos.astro` para o AppLayout novo**
+- [x] **Step 4: Migrar `admin/eventos.astro` para o AppLayout novo**
 
 Trocar o header antigo pelo AppLayout; `AdminEventsApp` continua `client:only` no slot.
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npx vitest run && npm run build && npm run check`
 Expected: verde; `/admin/eventos` renderiza com sidebar no dist.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add frontend/
@@ -236,7 +236,7 @@ git commit -m "feat(fase-0.4): AppLayout com sidebar e AppNavIsland (guard + ide
 **Interfaces:**
 - Produces: `useAuth()` ganha `isFinanceAnalyzer`, `isEventFinance`, `isEventHost`, `isEventChecker` (booleanos derivados de `user.roles`); `parseAuthJson<T>(res: Response, onError?: (msg: string) => void): Promise<T | null>` e `extractErrorMessage(res: Response, fallback: string): Promise<string>` — assinaturas idênticas ao Docusaurus (`src/hooks/authFetchHelpers.ts` é o spec).
 
-- [ ] **Step 1: Testes falhando**
+- [x] **Step 1: Testes falhando**
 
 `frontend/src/lib/auth-fetch-helpers.test.ts`:
 
@@ -280,22 +280,22 @@ describe("extractErrorMessage", () => {
 Run: `cd frontend && npx vitest run src/lib/auth-fetch-helpers.test.ts src/lib/use-auth-roles.test.ts`
 Expected: FAIL (módulos/helpers inexistentes).
 
-- [ ] **Step 2: Implementar**
+- [x] **Step 2: Implementar**
 
 - `auth-fetch-helpers.ts`: port 1:1 do original (61 linhas — parse JSON, `body.message ?? fallback`).
 - `use-auth.ts`: adicionar os 4 helpers derivados de `user?.roles` (espelhar a nomenclatura de `src/hooks/useAuth.ts`).
 
-- [ ] **Step 3: Instalar qr-scanner**
+- [x] **Step 3: Instalar qr-scanner**
 
 Run: `cd frontend && npm install qr-scanner@^1.4.2`
 (Ainda sem uso — chega na Task 14; instalar agora para tipagem do mock de testes.)
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd frontend && npx vitest run && npm run check`
 Expected: verde.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -322,7 +322,7 @@ git commit -m "feat(fase-0.4): authFetchHelpers + role helpers no use-auth + dep
   - `DataTable({ table, page, totalPages, onPageChange, tableContainerSx?, paginationMarginTop? })`
   - `StatCard({ icon, value, label, color?, variant? })`
 
-- [ ] **Step 1: Testes falhando**
+- [x] **Step 1: Testes falhando**
 
 `frontend/src/components/islands/admin/ui/__tests__/ui.test.tsx`:
 
@@ -365,16 +365,16 @@ describe("TabPanel", () => {
 
 (Antes de implementar, ler `ModalConfirm` original e conferir: o que `onClose` recebe (boolean vs void), labels padrão dos botões, e o papel de `variant`. Corrigir o teste para espelhar o comportamento real.)
 
-- [ ] **Step 2: Portar os 5 componentes**
+- [x] **Step 2: Portar os 5 componentes**
 
 Ler cada original e portar com MUI v9 (deep imports `@mui/material/X`), sem hex (tokens do tema). NENHUM deles leva `MuiIslandProvider` próprio — o tema vem da ilha-pai (e do `renderWithMui` nos testes).
 
-- [ ] **Step 3: Verificar**
+- [x] **Step 3: Verificar**
 
 Run: `cd frontend && npx vitest run && npm run check`
 Expected: verde.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/components/islands/admin/ui/
@@ -394,13 +394,13 @@ git commit -m "feat(fase-0.4): componentes base admin (ModalConfirm, TabPanel, P
 - Consumes: `parseAuthJson`/`extractErrorMessage` (Task 3), `formatBRL` (`lib/transaction`).
 - Produces: `VendorTransactionForm({ direction, vendors, accounts, authFetch, apiUrl, onSuccess, initialValues?, initialKey? })` exportando `VendorTxFormValues` e `emptyVendorTxForm`; `VendorTransactionCard({ tx, direction, accountLabel, onReuse, onDelete })` — assinaturas idênticas ao original.
 
-- [ ] **Step 1: Testes falhando** — cobrir: render por `direction` (payment vs receipt); submit monta o body correto e chama `authFetch` (mock resolvendo 201 — validar o payload capturado); validação bloqueia submit com campos obrigatórios vazios (ler o original: o que é obrigatório? replicar e testar). Card: render dos campos + `onReuse` ao clicar em reutilizar.
+- [x] **Step 1: Testes falhando** — cobrir: render por `direction` (payment vs receipt); submit monta o body correto e chama `authFetch` (mock resolvendo 201 — validar o payload capturado); validação bloqueia submit com campos obrigatórios vazios (ler o original: o que é obrigatório? replicar e testar). Card: render dos campos + `onReuse` ao clicar em reutilizar.
 
-- [ ] **Step 2: Portar** — fiel ao original; MUI v9; `authFetch`/`apiUrl` por props (injeção preservada para testes).
+- [x] **Step 2: Portar** — fiel ao original; MUI v9; `authFetch`/`apiUrl` por props (injeção preservada para testes).
 
-- [ ] **Step 3: Verificar** — `npx vitest run && npm run check` verde.
+- [x] **Step 3: Verificar** — `npx vitest run && npm run check` verde.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/components/islands/admin/vendors/
@@ -421,13 +421,13 @@ git commit -m "feat(fase-0.4): VendorTransactionForm e VendorTransactionCard por
 - Consumes: `parseAuthJson`/`extractErrorMessage` (Task 3), `TabPanel` (Task 4).
 - Produces: `EventOrdersDialog({ open, onClose, eventId?, eventKey?, eventTitle, apiUrl, authFetch })`; `EventReimbursementDialog({ open, onClose, apiUrl, authFetch, title, eventId?, eventKey?, ... })` (props exatas no original); `MarkdownLite({ text })`.
 
-- [ ] **Step 1: Testes falhando** — `MarkdownLite`: 3-4 casos reais do renderer original (heading, negrito, link — o original tem sanitização própria sem deps; ler a implementação e cobrir suas regras, incluindo o que ele BLOQUEIA). Dialogs: estados loading/erro/vazio com `authFetch` mockado; render condicionado a `open`.
+- [x] **Step 1: Testes falhando** — `MarkdownLite`: 3-4 casos reais do renderer original (heading, negrito, link — o original tem sanitização própria sem deps; ler a implementação e cobrir suas regras, incluindo o que ele BLOQUEIA). Dialogs: estados loading/erro/vazio com `authFetch` mockado; render condicionado a `open`.
 
-- [ ] **Step 2: Portar os 3 componentes** — fiel ao original; MUI v9; sem provider próprio.
+- [x] **Step 2: Portar os 3 componentes** — fiel ao original; MUI v9; sem provider próprio.
 
-- [ ] **Step 3: Verificar** — `npx vitest run && npm run check` verde.
+- [x] **Step 3: Verificar** — `npx vitest run && npm run check` verde.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add frontend/src/components/islands/admin/events/
@@ -448,15 +448,15 @@ git commit -m "feat(fase-0.4): EventOrdersDialog, EventReimbursementDialog e Mar
 - Consumes: `useAuth` (com `isFinanceAnalyzer` — Task 3), `parseAuthJson`/`extractErrorMessage` (Task 3), `PageContainer`/`TabPanel`/`ModalConfirm` (Task 4), `formatBRL` (`lib/transaction`).
 - Produces: `<LancamentoApp />` ilha `client:only`; rota `/admin/lancamento` (title `Admin — Lançamento | CODAQUI.dev` — conferir o build de referência: `grep -o "<title>[^<]*" build/admin/lancamento.html`) e `/admin/transferencias` (redirect).
 
-- [ ] **Step 1: Converter o teste existente** — copiar `src/pages/admin/__tests__/lancamento.test.tsx` para o destino e adaptar: `jest.mock` → `vi.mock` (com hoisting: usar `vi.mock` com factory), `jest.fn` → `vi.fn`, imports `@site/...` → relativos, `render` → `renderWithMui` quando envolver MUI. Rodar: FAIL (ilha inexistente).
+- [x] **Step 1: Converter o teste existente** — copiar `src/pages/admin/__tests__/lancamento.test.tsx` para o destino e adaptar: `jest.mock` → `vi.mock` (com hoisting: usar `vi.mock` com factory), `jest.fn` → `vi.fn`, imports `@site/...` → relativos, `render` → `renderWithMui` quando envolver MUI. Rodar: FAIL (ilha inexistente).
 
-- [ ] **Step 2: Portar a ilha** — ler `lancamento.tsx` integralmente; replicar tabs (Lançamento direto / Transferências), sub-tabs de transferências (Pendentes/Aprovadas/Rejeitadas), formulário, ações approve/reject, estados de erro com `Alert`. Endpoints por `authFetch` da `useAuth`.
+- [x] **Step 2: Portar a ilha** — ler `lancamento.tsx` integralmente; replicar tabs (Lançamento direto / Transferências), sub-tabs de transferências (Pendentes/Aprovadas/Rejeitadas), formulário, ações approve/reject, estados de erro com `Alert`. Endpoints por `authFetch` da `useAuth`.
 
-- [ ] **Step 3: Shells `.astro`** — `lancamento.astro` (AppLayout + `<LancamentoApp client:only="react" />`); `transferencias.astro` → `<RedirectStub to="/admin/lancamento?tab=transferencias" />`.
+- [x] **Step 3: Shells `.astro`** — `lancamento.astro` (AppLayout + `<LancamentoApp client:only="react" />`); `transferencias.astro` → `<RedirectStub to="/admin/lancamento?tab=transferencias" />`.
 
-- [ ] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check`; conferir título de `dist/admin/lancamento/index.html` vs `build/admin/lancamento.html`.
+- [x] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check`; conferir título de `dist/admin/lancamento/index.html` vs `build/admin/lancamento.html`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -477,15 +477,15 @@ git commit -m "feat(fase-0.4): /admin/lancamento com transferências + redirect 
 - Consumes: Tasks 3 e 4; `StatCard.astro` NÃO serve aqui (ilha) — usar `StatCard` React da Task 4 onde o original usa.
 - Produces: `<ReembolsosApp />`, `<FornecedoresApp />`; rotas `/admin/reembolsos`, `/admin/fornecedores`.
 
-- [ ] **Step 1: Converter teste de reembolsos + escrever teste de fornecedores** — reembolsos: adaptar `__tests__/reembolsos.test.tsx` (mesmas regras de conversão da Task 7). fornecedores (sem teste original): cobrir lista vazia/erro, criação (POST com payload certo), exclusão com `ModalConfirm`.
+- [x] **Step 1: Converter teste de reembolsos + escrever teste de fornecedores** — reembolsos: adaptar `__tests__/reembolsos.test.tsx` (mesmas regras de conversão da Task 7). fornecedores (sem teste original): cobrir lista vazia/erro, criação (POST com payload certo), exclusão com `ModalConfirm`.
 
-- [ ] **Step 2: Portar as duas ilhas** — fiel: reembolsos tem ações approve/reject/delete/revert + saldos de `GET /ledger/community-balances` (fetch público); fornecedores é CRUD com chips contadores.
+- [x] **Step 2: Portar as duas ilhas** — fiel: reembolsos tem ações approve/reject/delete/revert + saldos de `GET /ledger/community-balances` (fetch público); fornecedores é CRUD com chips contadores.
 
-- [ ] **Step 3: Shells `.astro`** — AppLayout + ilha `client:only`; títulos conforme `build/admin/*.html`.
+- [x] **Step 3: Shells `.astro`** — AppLayout + ilha `client:only`; títulos conforme `build/admin/*.html`.
 
-- [ ] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check` verde.
+- [x] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check` verde.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -506,11 +506,11 @@ git commit -m "feat(fase-0.4): /admin/reembolsos e /admin/fornecedores"
 - Consumes: `VendorTransactionForm`/`VendorTransactionCard` (Task 5), Tasks 3-4.
 - Produces: `<PagamentosApp />` (formulário + histórico + templates), `<RecebimentosApp />`; rotas correspondentes.
 
-- [ ] **Step 1: Testes falhando** — pagamentos: render de histórico vazio/erro; criação de template (POST `/vendors/templates`); exclusão de pagamento com confirmação. recebimentos: criação (POST `/vendors/receipts` via form) e exclusão.
+- [x] **Step 1: Testes falhando** — pagamentos: render de histórico vazio/erro; criação de template (POST `/vendors/templates`); exclusão de pagamento com confirmação. recebimentos: criação (POST `/vendors/receipts` via form) e exclusão.
 
-- [ ] **Step 2: Portar as ilhas** — atenção aos helpers do original (`parseBrlInput` já portado em `lib/transaction.ts` — verificar nome real do export: `parseBrlInput`).
+- [x] **Step 2: Portar as ilhas** — atenção aos helpers do original (`parseBrlInput` já portado em `lib/transaction.ts` — verificar nome real do export: `parseBrlInput`).
 
-- [ ] **Step 3: Shells + verificar + commit**
+- [x] **Step 3: Shells + verificar + commit**
 
 ```bash
 git add frontend/
@@ -532,11 +532,11 @@ git commit -m "feat(fase-0.4): /admin/pagamentos e /admin/recebimentos"
 - Consumes: Tasks 3-4; `WalletTransactionDetailDialog` + helpers `lib/wallet-transactions.ts` (já existem).
 - Produces: 3 ilhas + rotas `/admin/empresas`, `/admin/sorteios`, `/admin/carteiras`.
 
-- [ ] **Step 1: Converter testes existentes (empresas, sorteios) + criar carteiras** — carteiras: paginação (`GET /club/admin/wallet/all-transactions?type=&page=&limit=`), diálogo de detalhe ao clicar.
+- [x] **Step 1: Converter testes existentes (empresas, sorteios) + criar carteiras** — carteiras: paginação (`GET /club/admin/wallet/all-transactions?type=&page=&limit=`), diálogo de detalhe ao clicar.
 
-- [ ] **Step 2: Portar as 3 ilhas** — empresas: listagem paginada + ativação (`PATCH /companies/:id/status`) com diálogo de carteira/membros; sorteios: CRUD + `POST /club/raffles/:id/draw` (ação de sortear com confirmação) + entries.
+- [x] **Step 2: Portar as 3 ilhas** — empresas: listagem paginada + ativação (`PATCH /companies/:id/status`) com diálogo de carteira/membros; sorteios: CRUD + `POST /club/raffles/:id/draw` (ação de sortear com confirmação) + entries.
 
-- [ ] **Step 3: Shells + verificar + commit**
+- [x] **Step 3: Shells + verificar + commit**
 
 ```bash
 git add frontend/
@@ -556,11 +556,11 @@ git commit -m "feat(fase-0.4): /admin/empresas, /admin/sorteios e /admin/carteir
 - Consumes: `DataTable` (Task 4), `ModalConfirm` (Task 4), Tasks 3.
 - Produces: `<AdminHubApp />` — listagem de membros (`GET /admin/members` paginado), edição (`PATCH`), CRUD de papéis, exclusão; rota `/admin` com title de referência (`build/admin.html`).
 
-- [ ] **Step 1: Converter teste existente** — adaptar `__tests__/index.test.tsx`.
+- [x] **Step 1: Converter teste existente** — adaptar `__tests__/index.test.tsx`.
 
-- [ ] **Step 2: Portar a ilha** — fiel ao original (inclui busca/filtros se houver).
+- [x] **Step 2: Portar a ilha** — fiel ao original (inclui busca/filtros se houver).
 
-- [ ] **Step 3: Shell + verificar + commit**
+- [x] **Step 3: Shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -581,15 +581,15 @@ git commit -m "feat(fase-0.4): hub /admin (membros e papéis)"
 - Consumes: Tasks 3, 4, 6 (`MarkdownLite`, dialogs), `buildEventPath`/`buildEventPublicPath` (`lib/event-path.ts`, já portado).
 - Produces: `<EventosAdminApp />` — CRUD managed (`POST/PATCH /events`), ticket-types, staff, publish/cancel, force-sync snapshot (`POST /events/internal/snapshot`), mini-editor markdown (`MarkdownLite` para preview), dialogs de pedidos/reembolso. Paridade total com `src/pages/admin/eventos.tsx`.
 
-- [ ] **Step 1: Converter teste existente** (`__tests__/eventos.test.tsx`).
+- [x] **Step 1: Converter teste existente** (`__tests__/eventos.test.tsx`).
 
-- [ ] **Step 2: Decompor e portar** — ler o original integralmente antes; mapear as seções (hub lista / form / ticket-types / staff / ações / dialogs) para arquivos; portar seção a seção mantendo textos e endpoints. O force-sync e o reconcile-quota seguem como estão.
+- [x] **Step 2: Decompor e portar** — ler o original integralmente antes; mapear as seções (hub lista / form / ticket-types / staff / ações / dialogs) para arquivos; portar seção a seção mantendo textos e endpoints. O force-sync e o reconcile-quota seguem como estão.
 
-- [ ] **Step 3: Trocar o shell + remover a POC** — `eventos.astro` aponta para a ilha nova; deletar `AdminEventsApp.tsx` e referências.
+- [x] **Step 3: Trocar o shell + remover a POC** — `eventos.astro` aponta para a ilha nova; deletar `AdminEventsApp.tsx` e referências.
 
-- [ ] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check` verde; `grep -rn "AdminEventsApp" frontend/src` → só a nova ilha.
+- [x] **Step 4: Verificar** — `npx vitest run && npm run build && npm run check` verde; `grep -rn "AdminEventsApp" frontend/src` → só a nova ilha.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/
@@ -609,11 +609,11 @@ git commit -m "feat(fase-0.4): /admin/eventos gestão completa (substitui POC re
 - Consumes: Tasks 3, 4, 6 (`EventOrdersDialog`, `EventReimbursementDialog`).
 - Produces: `<OverridesApp />` — 3 tabs: Override de metadados / Organizers / Ativação de features (endpoints do inventário §1, incl. `overrideApiUrl`, import/rematch de participantes, ticket-types externos).
 
-- [ ] **Step 1: Teste falhando** — tabs renderizam seus painéis; PUT de override com payload correto; estado de erro do `Alert`.
+- [x] **Step 1: Teste falhando** — tabs renderizam seus painéis; PUT de override com payload correto; estado de erro do `Alert`.
 
-- [ ] **Step 2: Portar** — 2.202 linhas: decompor em `OverridesTab.tsx`, `OrganizersTab.tsx`, `ActivationTab.tsx` na pasta da ilha.
+- [x] **Step 2: Portar** — 2.202 linhas: decompor em `OverridesTab.tsx`, `OrganizersTab.tsx`, `ActivationTab.tsx` na pasta da ilha.
 
-- [ ] **Step 3: Shell + verificar + commit**
+- [x] **Step 3: Shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -634,11 +634,11 @@ git commit -m "feat(fase-0.4): /admin/overrides (3 tabs + histórico)"
 - Consumes: `qr-scanner` (Task 3), `parseAuthJson`/`extractErrorMessage` (Task 3), `PageContainer` (Task 4).
 - Produces: `<CheckinApp />` — seletor de evento (interno e `external:<eventKey>`), câmera QR com start/stop, fallback manual (`?query=` no backend para internos; filtro client-side para externos), `POST .../checkin`, contador de presentes, deep-link `?event=`. Roles: `CHECKIN_ROLES = ["admin","event_organizer","event_checker"]` (+ `event_host` via `canUseList` — replicar a lógica original de permissão).
 
-- [ ] **Step 1: Converter teste + mock do qr-scanner** — adaptar `__tests__/eventos-checkin.test.tsx` e o mock `src/__mocks__/qr-scanner.ts` (registrar o mock via `vi.mock("qr-scanner")` apontando para `frontend/src/test/mocks/qr-scanner.ts`).
+- [x] **Step 1: Converter teste + mock do qr-scanner** — adaptar `__tests__/eventos-checkin.test.tsx` e o mock `src/__mocks__/qr-scanner.ts` (registrar o mock via `vi.mock("qr-scanner")` apontando para `frontend/src/test/mocks/qr-scanner.ts`).
 
-- [ ] **Step 2: Portar a ilha** — atenção: o scanner usa `BarcodeDetector`/WebWorker do `qr-scanner`; manter a instanciação em ref e o cleanup start/stop; HTTPS local (mkcert) continua valendo para câmera no celular (documentado no DEVELOPMENT.md).
+- [x] **Step 2: Portar a ilha** — atenção: o scanner usa `BarcodeDetector`/WebWorker do `qr-scanner`; manter a instanciação em ref e o cleanup start/stop; HTTPS local (mkcert) continua valendo para câmera no celular (documentado no DEVELOPMENT.md).
 
-- [ ] **Step 3: Shell + verificar + commit**
+- [x] **Step 3: Shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -658,11 +658,11 @@ git commit -m "feat(fase-0.4): /admin/eventos-checkin (QR/câmera + busca manual
 - Consumes: `StatCard` (Task 4), `TabPanel` (Task 4), Tasks 3.
 - Produces: `<EmailsApp />` — tabs Logs/Templates, StatCards de volume, filtros, resend (`POST /notifications/emails/:id/resend`).
 
-- [ ] **Step 1: Converter teste existente.**
+- [x] **Step 1: Converter teste existente.**
 
-- [ ] **Step 2: Portar ilha + TemplatesTab.**
+- [x] **Step 2: Portar ilha + TemplatesTab.**
 
-- [ ] **Step 3: Shell + verificar + commit**
+- [x] **Step 3: Shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -683,11 +683,11 @@ git commit -m "feat(fase-0.4): /admin/emails (logs + templates)"
 - Consumes: `useAuth`, Tasks 3-4, `ModalConfirm`, `WalletTransactionDetailDialog`/`ClubWalletTransactionsTable` (já portados), `QRCodeSVG` (`qrcode.react`), `formatBRL`, `buildEventPath`/`buildEventPublicPath` (`lib/event-path.ts`).
 - Produces: `<MemberDashboardApp />` (header com avatar/QR/copiar URL/logout/link editar + tabs Visão Geral/Doações/Assinaturas/Carteira/Eventos; cancelamento de inscrição; download de certificado), `<EditarPerfilApp />`; rotas `/membro` (title `Área do Membro | CODAQUI.dev`) e `/membro/editar`.
 
-- [ ] **Step 1: Converter teste do dashboard + criar teste de editar.**
+- [x] **Step 1: Converter teste do dashboard + criar teste de editar.**
 
-- [ ] **Step 2: Portar** — decompor por tab; endpoint a endpoint conforme inventário §2. O cancelamento de inscrição usa `ModalConfirm` + `DELETE /events/registrations/:id`; certificado `GET /events/registrations/:id/certificate`.
+- [x] **Step 2: Portar** — decompor por tab; endpoint a endpoint conforme inventário §2. O cancelamento de inscrição usa `ModalConfirm` + `DELETE /events/registrations/:id`; certificado `GET /events/registrations/:id/certificate`.
 
-- [ ] **Step 3: Shells + verificar + commit**
+- [x] **Step 3: Shells + verificar + commit**
 
 ```bash
 git add frontend/
@@ -707,11 +707,11 @@ git commit -m "feat(fase-0.4): /membro (dashboard 5 tabs) e /membro/editar"
 - Consumes: `useAuth` (helper `api()` local do original usa `authFetch` — injetar via hook), Tasks 3-4.
 - Produces: `<MyCompanyApp />`; rota `/membros/empresa`.
 
-- [ ] **Step 1: Teste falhando** — carregamento de `/companies/me`; estados sem empresa (CTA); distribuição de SortCoins (POST com payload validado).
+- [x] **Step 1: Teste falhando** — carregamento de `/companies/me`; estados sem empresa (CTA); distribuição de SortCoins (POST com payload validado).
 
-- [ ] **Step 2: Portar** — seções internas conforme inventário §3 (edição cadastral, colaboradores add/remove, carteira + transações paginadas, resumo de apoio).
+- [x] **Step 2: Portar** — seções internas conforme inventário §3 (edição cadastral, colaboradores add/remove, carteira + transações paginadas, resumo de apoio).
 
-- [ ] **Step 3: Shell + verificar + commit**
+- [x] **Step 3: Shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -731,9 +731,9 @@ git commit -m "feat(fase-0.4): /membros/empresa (conta PJ com noindex)"
 - Consumes: `useAuth` (`login({ returnTo })` quando deslogado), `formatBRL`, `PageContainer` (Task 4).
 - Produces: `<ReceiptApp />` — `GET /events/orders/:orderId/receipt` via `authFetch`, botão Imprimir (`print()`); rota `/eventos/comprovante`.
 
-- [ ] **Step 1: Teste falhando** — deslogado chama `login` com `returnTo` do pathname+search; logado renderiza recibo com dados mockados; erro mostra `Alert`.
+- [x] **Step 1: Teste falhando** — deslogado chama `login` com `returnTo` do pathname+search; logado renderiza recibo com dados mockados; erro mostra `Alert`.
 
-- [ ] **Step 2: Portar + shell + verificar + commit**
+- [x] **Step 2: Portar + shell + verificar + commit**
 
 ```bash
 git add frontend/
@@ -753,11 +753,11 @@ git commit -m "feat(fase-0.4): /eventos/comprovante (recibo autenticado)"
 - Consumes: `RETURN_KEY`, `COMMUNITY_KEY` (`auth-client.ts`).
 - Produces: comportamento igual ao Docusaurus `src/pages/auth/callback.tsx`: default return `/membro` (hoje é `/`); limpar `COMMUNITY_KEY` no finalize; manter validação anti-open-redirect (`safeReturnPath`).
 
-- [ ] **Step 1: Teste falhando** — sem `sessionStorage[RETURN_KEY]` → redirect para `/membro`; com return válido → redirect para ele; return inválido (absoluto) → cai no default.
+- [x] **Step 1: Teste falhando** — sem `sessionStorage[RETURN_KEY]` → redirect para `/membro`; com return válido → redirect para ele; return inválido (absoluto) → cai no default.
 
-- [ ] **Step 2: Implementar** — ler `src/pages/auth/callback.tsx` (183 linhas) e espelhar o fluxo (inclui `resolveCommunityFromPath`? NÃO portar branding de comunidade — é Fase 0.5; mas a LIMPEZA de `COMMUNITY_KEY` deve entrar).
+- [x] **Step 2: Implementar** — ler `src/pages/auth/callback.tsx` (183 linhas) e espelhar o fluxo (inclui `resolveCommunityFromPath`? NÃO portar branding de comunidade — é Fase 0.5; mas a LIMPEZA de `COMMUNITY_KEY` deve entrar).
 
-- [ ] **Step 3: Verificar + commit**
+- [x] **Step 3: Verificar + commit**
 
 ```bash
 git add frontend/
@@ -772,12 +772,12 @@ git commit -m "feat(fase-0.4): /auth/callback com default return /membro e limpe
 - Modify: `frontend/scripts/diff-urls.mjs` (remover exclusões de 0.4)
 - Modify: `docs/superpowers/plans/2026-10-26-fase-0-4-app-admin-membro.md` (checkboxes)
 
-- [ ] **Step 1: Estender o gate** — em `EXCLUDE`, remover `/^\/admin(\/|$)/`, `/^\/membro(\/|$)/`, `/^\/membros\/empresa(\/|$)/`, `/^\/auth(\/|$)/`, `/^\/eventos\/comprovante(\/|$)/`; em `SECTIONS`, adicionar `"admin"`, `"membro"`, `"auth"` (`membros/empresa` e `eventos/comprovante` já são cobertos pelas caminhadas de `membros`/`eventos` com as exclusões removidas). Atualizar o comentário do histórico.
+- [x] **Step 1: Estender o gate** — em `EXCLUDE`, remover `/^\/admin(\/|$)/`, `/^\/membro(\/|$)/`, `/^\/membros\/empresa(\/|$)/`, `/^\/auth(\/|$)/`, `/^\/eventos\/comprovante(\/|$)/`; em `SECTIONS`, adicionar `"admin"`, `"membro"`, `"auth"` (`membros/empresa` e `eventos/comprovante` já são cobertos pelas caminhadas de `membros`/`eventos` com as exclusões removidas). Atualizar o comentário do histórico.
 
 Run: `cd frontend && npm run build && node scripts/diff-urls.mjs`
 Expected: paridade 100% incluindo as novas seções.
 
-- [ ] **Step 2: Gates completos**
+- [x] **Step 2: Gates completos**
 
 ```bash
 cd frontend && npm run build && npm run check && npm run test && node scripts/diff-urls.mjs
@@ -786,11 +786,11 @@ npm run typecheck   # raiz
 
 Expected: tudo verde.
 
-- [ ] **Step 3: Smoke manual documentado** — `make astro-dev` com backend local (`make db-up` + `npm run start:dev` no backend) e conferir ponta a ponta: login GitHub → `/admin` e `/membro` carregam com dados; check-in abre; comprovante com `?order=` válido. Registrar o resultado no relatório (se não rodar backend local neste ambiente, documentar como pendência ambiental como na 0.3).
+- [x] **Step 3: Smoke manual documentado** — `make astro-dev` com backend local (`make db-up` + `npm run start:dev` no backend) e conferir ponta a ponta: login GitHub → `/admin` e `/membro` carregam com dados; check-in abre; comprovante com `?order=` válido. Registrar o resultado no relatório (se não rodar backend local neste ambiente, documentar como pendência ambiental como na 0.3).
 
-- [ ] **Step 4: Checkboxes + critérios** — marcar o plano; conferir critérios de pronto abaixo.
+- [x] **Step 4: Checkboxes + critérios** — marcar o plano; conferir critérios de pronto abaixo.
 
-- [ ] **Step 5: Commit final**
+- [x] **Step 5: Commit final**
 
 ```bash
 git add -A
@@ -801,10 +801,10 @@ git commit -m "chore(fase-0.4): verificação final — paridade app 100%, ilhas
 
 ## Critérios de pronto da 0.4 (da spec)
 
-- [ ] Paridade funcional: todas as `/admin/*` + `/membro/*` + `/membros/empresa` + `/eventos/comprovante` migradas, mesmos endpoints/estados/textos
-- [ ] Gate `diff-urls` sem exclusões de 0.4 — 0 URLs faltando
-- [ ] Testes das ilhas (Vitest + Testing Library) verdes — 9 testes convertidos do jest + novos por batch
-- [ ] Fluxos authFetch/401 cobertos (logout automático → redirect)
-- [ ] `useAuth` com helpers de role completos; `authFetchHelpers` portado
-- [ ] POC `AdminEventsApp` removida, gestão completa de eventos no ar
-- [ ] Gates verdes: build, astro check, vitest, typecheck da raiz
+- [x] Paridade funcional: todas as `/admin/*` + `/membro/*` + `/membros/empresa` + `/eventos/comprovante` migradas, mesmos endpoints/estados/textos
+- [x] Gate `diff-urls` sem exclusões de 0.4 — 0 URLs faltando
+- [x] Testes das ilhas (Vitest + Testing Library) verdes — 9 testes convertidos do jest + novos por batch
+- [x] Fluxos authFetch/401 cobertos (logout automático → redirect)
+- [x] `useAuth` com helpers de role completos; `authFetchHelpers` portado
+- [x] POC `AdminEventsApp` removida, gestão completa de eventos no ar
+- [x] Gates verdes: build, astro check, vitest, typecheck da raiz
