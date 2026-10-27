@@ -1,0 +1,98 @@
+---
+// Port 1:1 de comunidades/shared/components/CommunityTextHero.tsx (MUI →
+// Astro + Tailwind, zero JS). As cores vêm das CSS vars do tenant injetadas
+// pelo CommunityLayout; o alternância claro/escuro do fundo e do CTA
+// primário replica o sx com palette.mode via seletor [data-theme="dark"].
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+
+interface Props {
+  config: CommunitySiteConfig;
+  /** Chip acima do título; default "Comunidade parceira da Codaqui". */
+  chipLabel?: string;
+}
+
+const { config, chipLabel = "Comunidade parceira da Codaqui" } = Astro.props;
+
+// Ícones MUI (volunteer_activism / open_in_new) como SVG inline — paths do
+// @mui/icons-material, fill currentColor.
+const VOLUNTEER_ACTIVISM_PATH =
+  "M1 11h4v11H1zm15-7.75C16.65 2.49 17.66 2 18.7 2 20.55 2 22 3.45 22 5.3c0 2.27-2.91 4.9-6 7.7-3.09-2.81-6-5.44-6-7.7C10 3.45 11.45 2 13.3 2c1.04 0 2.05.49 2.7 1.25M20 17h-7l-2.09-.73.33-.94L13 16h2.82c.65 0 1.18-.53 1.18-1.18 0-.49-.31-.93-.77-1.11L8.97 11H7v9.02L14 22l8.01-3c-.01-1.1-.9-2-2.01-2";
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<section class="cq-hero text-white">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+    <div class="max-w-[760px] space-y-6">
+      <span class="inline-block w-fit rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold">
+        {chipLabel}
+      </span>
+      <h1 class="m-0 text-3xl font-extrabold md:text-6xl">
+        {config.hero.title}
+      </h1>
+      <p class="m-0 text-xl font-normal opacity-95">
+        {config.hero.subtitle}
+      </p>
+      <div class="flex flex-col gap-4 pt-2 sm:flex-row">
+        <a
+          href={config.hero.ctaPrimary.to}
+          class="cq-hero-primary inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold no-underline"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+            class="h-5 w-5"
+          >
+            <path d={VOLUNTEER_ACTIVISM_PATH}></path>
+          </svg>
+          {config.hero.ctaPrimary.label}
+        </a>
+        {
+          config.hero.ctaSecondary && (
+            <a
+              href={config.hero.ctaSecondary.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-2 rounded-md border border-white/60 px-5 py-2.5 text-sm font-bold text-white no-underline transition-colors hover:border-white hover:bg-white/5"
+            >
+              {config.hero.ctaSecondary.label}
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+                class="h-4 w-4"
+              >
+                <path d={OPEN_IN_NEW_PATH}></path>
+              </svg>
+            </a>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cq-hero {
+    background-color: var(--community-primary);
+  }
+  [data-theme="dark"] .cq-hero {
+    background-color: var(--community-primary-dark);
+  }
+  /* CTA primário: claro = fundo branco com texto accentDark; escuro = accent. */
+  .cq-hero-primary {
+    background-color: #fff;
+    color: var(--community-primary-dark);
+  }
+  .cq-hero-primary:hover {
+    background-color: #f1f5f9;
+  }
+  [data-theme="dark"] .cq-hero-primary {
+    background-color: var(--community-primary);
+    color: #fff;
+  }
+  [data-theme="dark"] .cq-hero-primary:hover {
+    background-color: var(--community-primary-light);
+  }
+</style>
