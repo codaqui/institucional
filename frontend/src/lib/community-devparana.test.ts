@@ -19,6 +19,7 @@ import {
   rfcDisplayName,
   rfcStatusTone,
   teamHandles,
+  tenantExploreCardHref,
   upcomingCommunityEvents,
 } from "./community-devparana";
 
@@ -132,6 +133,35 @@ describe("devparanaFeatureCards", () => {
       "Embaixadores",
       "Eventos",
     ]);
+  });
+});
+
+describe("tenantExploreCardHref", () => {
+  const BASE = "/comunidades/devparana";
+  const PORTAL = "https://codaqui.dev";
+
+  it("remove o basePath do portal (rotas limpas do tenant)", () => {
+    expect(tenantExploreCardHref(`${BASE}/docs`, BASE, PORTAL)).toBe("/docs");
+    expect(tenantExploreCardHref(`${BASE}/equipe`, BASE, PORTAL)).toBe(
+      "/equipe",
+    );
+  });
+
+  it("mapeia rotas do portal não prefixadas para a origem absoluta (card Eventos)", () => {
+    expect(tenantExploreCardHref("/eventos", BASE, PORTAL)).toBe(
+      "https://codaqui.dev/eventos",
+    );
+  });
+
+  it("basePath sem sufixo vira a rota raiz", () => {
+    expect(tenantExploreCardHref(BASE, BASE, PORTAL)).toBe("/");
+  });
+
+  it("não altera links externos nem links relativos quando não há portal", () => {
+    expect(
+      tenantExploreCardHref("https://devparana.org", BASE, PORTAL),
+    ).toBe("https://devparana.org");
+    expect(tenantExploreCardHref("/eventos", BASE, "")).toBe("/eventos");
   });
 });
 
