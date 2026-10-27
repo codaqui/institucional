@@ -1,0 +1,17 @@
+---
+// Índice da documentação do site whitelabel DevParaná (build tenant): /docs.
+// Renderiza `docs/index.md` (canônico em comunidades/devparana/docs/,
+// READ-ONLY) — ver docstring de DevparanaDocsRoute.astro. Os RFCs ficam em
+// `./[...slug].astro` (`/docs/rfcs/<slug>`).
+import DevparanaDocsRoute from "../../components/astro/community/devparana/DevparanaDocsRoute.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<DevparanaDocsRoute slug="index" config={config} site={site} homeHref={homeHref} />

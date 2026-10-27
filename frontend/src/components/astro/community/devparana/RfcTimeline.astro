@@ -1,0 +1,51 @@
+---
+// Port 1:1 (zero JS) de comunidades/devparana/src/components/RfcTimeline —
+// linha do tempo vertical: tracinho entre itens (::before) e bolinha na cor
+// da marca (::after), data em destaque e descrição.
+import type { RfcTimelineItem } from "../../../../lib/community-devparana";
+
+interface Props {
+  items: RfcTimelineItem[];
+}
+
+const { items } = Astro.props;
+---
+
+<ul class="cq-timeline m-0 list-none p-0">
+  {
+    items.map((item) => (
+      <li class="cq-timeline-item relative pb-3 ps-9 last:pb-0">
+        <p class="m-0 font-bold" style="color: var(--community-primary)">
+          {item.date}
+        </p>
+        <p class="m-0 text-text-secondary">{item.label}</p>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .cq-timeline-item::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 8px;
+    bottom: -8px;
+    width: 2px;
+    background-color: var(--cq-border-default);
+  }
+  .cq-timeline-item:last-child::before {
+    bottom: 0;
+  }
+  .cq-timeline-item::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 6px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: var(--community-primary);
+    border: 2px solid var(--cq-bg-surface);
+  }
+</style>

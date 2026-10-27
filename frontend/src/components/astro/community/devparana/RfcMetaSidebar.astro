@@ -1,0 +1,177 @@
+---
+// Port 1:1 (zero JS) de comunidades/devparana/src/components/RfcMetaSidebar —
+// card lateral fixo (sticky) com status, autor(es), datas, marcos (timeline)
+// e, opcionalmente, as regiões do RFC 001.
+//
+// Mesma regra do RfcHero: enriquecimento de nomes/avatars em build time via
+// `members` (helpers de src/lib/community-devparana.ts), zero JS de runtime.
+import type { PublicMemberProfile } from "../../../../lib/member-path";
+import {
+  findRfcMember,
+  rfcDisplayAvatar,
+  rfcDisplayName,
+  rfcStatusTone,
+  type RfcFrontmatter,
+} from "../../../../lib/community-devparana";
+
+interface Props {
+  frontmatter: RfcFrontmatter;
+  /** Regiões (só presentes no RFC 001). */
+  regions?: { name: string; cities: string[] }[];
+  /** Membros da API pública (build time) para enriquecer nomes/avatars. */
+  members?: PublicMemberProfile[];
+}
+
+const { frontmatter, regions, members = [] } = Astro.props;
+
+const resolvedAuthors = frontmatter.authors.map((a) => ({
+  ref: a,
+  member: findRfcMember(a, members),
+}));
+const primaryAuthor = resolvedAuthors[0];
+const statusTone = rfcStatusTone(frontmatter.status);
+const timeline = frontmatter.timeline ?? [];
+
+// Ícones MUI do original (fill currentColor).
+const CHECK_CIRCLE_PATH =
+  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z";
+const CALENDAR_TODAY_PATH =
+  "M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 18H4V8h16z";
+const PLACE_OUTLINED_PATH =
+  "M12 2C8.13 2 5 5.13 5 8.5c0 5.25 7 13 7 13s7-7.75 7-13C19 5.13 15.87 2 12 2m0 9.5c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3";
+---
+
+<aside class="rounded-2xl border border-border bg-surface md:sticky md:top-6">
+  <div class="flex flex-col gap-6 p-6">
+    <div>
+      <p class="cq-overline m-0 mb-2 text-xs font-bold tracking-wide">Status</p>
+      <span
+        class:list={[
+          "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+          statusTone === "success" ? "chip-success" : "chip-outline",
+        ]}
+      >
+        {
+          statusTone === "success" && (
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-3.5 w-3.5">
+              <path d={CHECK_CIRCLE_PATH}></path>
+            </svg>
+          )
+        }
+        {frontmatter.status}
+      </span>
+    </div>
+
+    {
+      primaryAuthor && (
+        <div>
+          <p class="cq-overline m-0 mb-2 text-xs font-bold tracking-wide">
+            Autor{frontmatter.authors.length > 1 ? "es" : ""}
+          </p>
+          <div class="flex items-center gap-2.5">
+            <img
+              src={rfcDisplayAvatar(primaryAuthor.ref, primaryAuthor.member)}
+              alt={rfcDisplayName(primaryAuthor.ref, primaryAuthor.member)}
+              width="36"
+              height="36"
+              loading="lazy"
+              class="h-9 w-9 rounded-full object-cover"
+            />
+            <p class="m-0 text-sm font-semibold">
+              {resolvedAuthors
+                .map(({ ref, member }) => rfcDisplayName(ref, member))
+                .join(", ")}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    {
+      (frontmatter.writtenAt || frontmatter.publishedAt) && (
+        <div>
+          <p class="cq-overline m-0 mb-2 text-xs font-bold tracking-wide">Datas</p>
+          <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
+            {frontmatter.writtenAt && (
+              <li class="flex items-center gap-2 text-sm">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4 text-text-secondary">
+                  <path d={CALENDAR_TODAY_PATH}></path>
+                </svg>
+                <span>
+                  <strong>Escrita:</strong> {frontmatter.writtenAt}
+                </span>
+              </li>
+            )}
+            {frontmatter.publishedAt && (
+              <li class="flex items-center gap-2 text-sm">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4 text-text-secondary">
+                  <path d={CALENDAR_TODAY_PATH}></path>
+                </svg>
+                <span>
+                  <strong>Publicação:</strong> {frontmatter.publishedAt}
+                </span>
+              </li>
+            )}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      timeline.length > 0 && (
+        <div>
+          <p class="cq-overline m-0 mb-2 text-xs font-bold tracking-wide">Marcos</p>
+          <ul class="m-0 flex list-none flex-col gap-1.5 p-0">
+            {timeline.map((item) => (
+              <li class="flex items-start gap-2 text-sm">
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="mt-0.5 h-4 w-4 text-text-secondary">
+                  <path d={CALENDAR_TODAY_PATH}></path>
+                </svg>
+                <span>
+                  <strong>{item.date}:</strong> {item.label}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      regions && regions.length > 0 && (
+        <div>
+          <p class="cq-overline m-0 mb-2 text-xs font-bold tracking-wide">Regiões</p>
+          <ul class="m-0 flex list-none flex-col gap-2.5 p-0">
+            {regions.map((region) => (
+              <li>
+                <span class="flex items-center gap-1.5 text-sm font-bold" style="color: var(--community-primary)">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+                    <path d={PLACE_OUTLINED_PATH}></path>
+                  </svg>
+                  {region.name}
+                </span>
+                <p class="cq-cities m-0 mt-0.5 text-xs text-text-secondary">
+                  {region.cities.join(", ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )
+    }
+  </div>
+</aside>
+
+<style>
+  .cq-overline {
+    color: var(--cq-text-secondary);
+  }
+  .chip-outline {
+    border: 1px solid var(--cq-border-default);
+    color: var(--cq-text-secondary);
+  }
+  .chip-success {
+    color: var(--cq-color-success);
+    background-color: var(--cq-color-success-bg);
+  }
+</style>

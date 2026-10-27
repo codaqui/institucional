@@ -1,0 +1,388 @@
+---
+// Rota de docs do DevParaná compartilhada entre o build tenant (rotas limpas:
+// /docs, /docs/rfcs/<slug>) e os wrappers codaqui (/comunidades/devparana/docs*).
+// Usada pelos shells `docs/[...slug].astro` dos dois lados — o caller passa o
+// `slug` (de `getStaticPaths`), `homeHref` e o `site`.
+//
+// Conteúdo:
+// - "index" → docs/index.md renderizado em build time (pipeline markdown do
+//   site, via src/lib/community-devparana-docs.ts);
+// - RFCs → frontmatter extraído do MDX canônico (parser oficial do Astro) +
+//   corpo portado 1:1 dos arquivos .mdx (comunidades/devparana/docs/rfcs/) com
+//   os componentes Rfc* zero-JS. O corpo em JSX/MUI dos MDX não é compilável
+//   no app Astro (imports @site/... e MUI), então o texto e a estrutura foram
+//   portados para cá; metadados (rfcId, status, autores, aprovadores, datas,
+//   timeline) continuam vindo da fonte. ⚠️ Editar o corpo de um RFC exige
+//   espelhar a mudança neste arquivo.
+//
+// Enriquecimento de pessoas (nomes/avatars): o fonte usa fetch client-side
+// (`useCodaquiMembersBatch`); aqui é build time via `loadPublicMembers()` —
+// sem API, cai nos mesmos fallbacks (nome/e-mail do frontmatter, avatar
+// github.com/<handle>.png) que o original usa enquanto carrega.
+import CommunityLayout from "../CommunityLayout.astro";
+import RfcHero from "./RfcHero.astro";
+import RfcMetaSidebar from "./RfcMetaSidebar.astro";
+import RfcRegionCard from "./RfcRegionCard.astro";
+import RfcTimeline from "./RfcTimeline.astro";
+import type { CommunitySiteConfig } from "../../../../../../comunidades/shared/types";
+import { loadPublicMembers } from "../../../../lib/member-pages";
+import {
+  devparanaRfcList,
+} from "../../../../lib/community-devparana";
+import {
+  loadDevparanaDocIndex,
+  loadDevparanaRfcDocs,
+} from "../../../../lib/community-devparana-docs";
+import { regions } from "../../../../../../comunidades/devparana/src/data/ambassadors";
+
+interface Props {
+  /** Slug da rota: "index" | "rfcs/projeto-embaixadores" | "rfcs/devparana-na-estrada-2026". */
+  slug: string;
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+}
+
+const { slug, config, site, homeHref } = Astro.props;
+
+const EDIT_BASE =
+  "https://github.com/codaqui/institucional/edit/develop/comunidades/devparana/docs";
+
+const members = await loadPublicMembers();
+
+const rfcDocs = loadDevparanaRfcDocs();
+const rfcDoc = rfcDocs.find((d) => d.slug === slug);
+const rfcList = devparanaRfcList(config.basePath);
+const rfcListItem = rfcDoc
+  ? rfcList.find((r) => r.id === rfcDoc.frontmatter.rfcId)
+  : undefined;
+
+const docIndex = slug === "index" ? await loadDevparanaDocIndex() : null;
+
+const pageTitle = docIndex
+  ? `${docIndex.title} — ${config.shortName}`
+  : rfcDoc
+    ? `${rfcDoc.frontmatter.title} — ${config.shortName}`
+    : `Docs — ${config.shortName}`;
+const pageDescription = docIndex
+  ? config.description
+  : (rfcDoc?.frontmatter.summary ?? config.description);
+
+const rfcRegions = regions.map((r) => ({ name: r.name, cities: r.cities }));
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={pageTitle}
+  description={pageDescription}
+  homeHref={homeHref}
+>
+  {
+    docIndex && (
+      <article class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+        <div class="prose-cq" set:html={docIndex.html} />
+        <p class="mt-8 text-sm">
+          <a
+            href={`${EDIT_BASE}/index.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Editar esta página no GitHub
+          </a>
+        </p>
+      </article>
+    )
+  }
+
+  {
+    rfcDoc && (
+      <article>
+        <div class="mx-auto max-w-7xl px-4 pt-8 md:pt-12">
+          <h1 class="m-0 text-3xl font-extrabold md:text-4xl">
+            {rfcDoc.frontmatter.title}
+          </h1>
+        </div>
+
+        <RfcHero
+          frontmatter={rfcDoc.frontmatter}
+          title={rfcListItem?.title}
+          members={members}
+        />
+
+        <div class="mx-auto max-w-7xl px-4 pb-12 md:pb-16">
+          <div class="flex flex-col gap-6 md:flex-row md:gap-10">
+            <div class="flex-1">
+              {slug === "rfcs/projeto-embaixadores" ? (
+                <div class="flex flex-col gap-8">
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Overview</h2>
+                    <p class="m-0 text-text-secondary">
+                      O DevParaná tem crescido no estado, com meetups em
+                      cidades como Francisco Beltrão, Guarapuava, Curitiba e
+                      Cascavel. O modelo testado no DevParaná na Estrada 2025
+                      dividiu o estado em regiões com responsáveis,
+                      mostrando-se promissor. Esta RFC formaliza a organização
+                      por regiões com embaixadores.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">
+                      Objetivo dos embaixadores
+                    </h2>
+                    <p class="m-0 text-text-secondary">
+                      Ser a pessoa de referência em cada região, facilitar
+                      contato em cidades com meetups, identificar novos grupos,
+                      gerar parcerias com empresas, centros de ensino e
+                      entidades.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Responsabilidades</h2>
+                    <ul class="my-0 ps-5 text-text-secondary">
+                      <li>Liderar iniciativas da comunidade na região;</li>
+                      <li>Representar a comunidade e seus interesses;</li>
+                      <li>Zelar pela boa imagem e reputação da comunidade;</li>
+                      <li>Garantir que o código de conduta seja aplicado;</li>
+                      <li>
+                        Identificar e formar novas lideranças, apoiando eventos
+                        locais;
+                      </li>
+                      <li>
+                        Ser o representante principal em eventos de entidades
+                        parceiras;
+                      </li>
+                      <li>
+                        Participar das reuniões da associação quando convocado;
+                      </li>
+                      <li>
+                        Gerenciar e entregar brindes da associação na região.
+                      </li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">
+                      Processo de nomeação
+                    </h2>
+                    <p class="m-0 text-text-secondary">
+                      O embaixador é indicado pela diretoria ou por outros
+                      embaixadores e aprovado na reunião da associação.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Acompanhamento</h2>
+                    <p class="m-0 text-text-secondary">
+                      Haverá espaço reservado em cada reunião da associação para
+                      o embaixador falar sobre iniciativas e dificuldades da sua
+                      região.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Regiões</h2>
+                    <div class="grid gap-4 sm:grid-cols-2">
+                      {rfcRegions.map((region) => (
+                        <RfcRegionCard region={region} />
+                      ))}
+                    </div>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Timeline</h2>
+                    {rfcDoc.frontmatter.timeline && (
+                      <RfcTimeline items={rfcDoc.frontmatter.timeline} />
+                    )}
+                  </section>
+                </div>
+              ) : (
+                <div class="flex flex-col gap-8">
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Overview</h2>
+                    <p class="m-0 text-text-secondary">
+                      O DevParaná na Estrada iniciou em 2019 para levar o
+                      espírito da comunidade a outras cidades. Realizado em
+                      2019, 2022, 2024, 2025 e 2026, o evento itinerante levou
+                      meetups e workshops para várias cidades do Paraná. A
+                      edição de 2026 já foi executada; o histórico e os
+                      próximos encontros podem ser conferidos no{" "}
+                      <a
+                        href="https://www.meetup.com/pt-BR/developerparana/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Meetup do DevParaná
+                      </a>
+                      .
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Quando</h2>
+                    <p class="m-0 text-text-secondary">
+                      A edição de 2026 ocorreu ao longo do fim de março e abril.
+                      As datas futuras são divulgadas no Meetup da comunidade.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">
+                      Formato 2025 (referência)
+                    </h2>
+                    <p class="m-0 text-text-secondary">
+                      Uma semana inteira à noite, paralelo em 15 cidades:
+                      Maringá, Londrina, Ivaiporã, Cascavel, Toledo, Foz do
+                      Iguaçu, Cianorte, Campo Mourão, Umuarama, Dois Vizinhos,
+                      Francisco Beltrão, Pato Branco, Curitiba, Guarapuava e
+                      Ponta Grossa.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Formatos 2026</h2>
+                    <h3 class="m-0 mb-2 text-lg font-bold">
+                      Meetup (cidades sem encontros recorrentes)
+                    </h3>
+                    <ul class="my-2 ps-5 text-text-secondary">
+                      <li>3 slots de 50 min (45 min palestra + 5 min perguntas);</li>
+                      <li>19:00 — Abertura;</li>
+                      <li>19:30 — Slot 1 — DevParaná;</li>
+                      <li>20:20 — Slot 2 — Local;</li>
+                      <li>21:10 — Slot 3 — Externo;</li>
+                      <li>22:00 — Encerramento.</li>
+                    </ul>
+                    <h3 class="m-0 mb-2 text-lg font-bold">
+                      Workshop + Palestras (cidades com eventos recorrentes)
+                    </h3>
+                    <p class="m-0 mb-2 text-text-secondary">
+                      Realizado no sábado. Inscrição de R$25,00.
+                    </p>
+                    <ul class="my-2 ps-5 text-text-secondary">
+                      <li>08:00 — Credenciamento;</li>
+                      <li>08:30 — Workshops;</li>
+                      <li>12:00 — Almoço;</li>
+                      <li>13:30 — Abertura das palestras;</li>
+                      <li>14:00 — Slot 1;</li>
+                      <li>14:50 — Slot 2;</li>
+                      <li>15:40 — Coffee break;</li>
+                      <li>16:30 — Slot 3;</li>
+                      <li>17:30 — Encerramento.</li>
+                    </ul>
+                    <p class="m-0 text-text-secondary">
+                      Workshops de até 3 horas, com no mínimo 3 opções de
+                      workshop.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Patrocinadores</h2>
+                    <p class="m-0 text-text-secondary">
+                      Acesso livre para banner e equipe de recrutamento (sem
+                      estrutura fornecida). Segue RFC003 de benefícios.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Patrocínio Local</h2>
+                    <ul class="my-0 ps-5 text-text-secondary">
+                      <li>
+                        <strong>Bronze — R$300:</strong> Logo nas artes, flyers
+                        e brindes;
+                      </li>
+                      <li>
+                        <strong>Prata — R$500:</strong> Benefícios bronze +
+                        fala sobre a empresa;
+                      </li>
+                      <li>
+                        <strong>Ouro — R$800:</strong> Benefícios prata +
+                        indicar palestrante para slot patrocinador.
+                      </li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">
+                      Distribuição das palestras
+                    </h2>
+                    <ul class="my-0 mb-2 ps-5 text-text-secondary">
+                      <li>Um palestrante da comunidade;</li>
+                      <li>
+                        Um slot patrocinador (se não usado, livre para
+                        organizador local, prazo de 10 dias antes);
+                      </li>
+                      <li>Um palestrante local obrigatório.</li>
+                    </ul>
+                    <p class="m-0 text-text-secondary">
+                      Call4Papers para palestrantes da comunidade, lançado até
+                      uma semana após confirmação das cidades.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Coordenação local</h2>
+                    <p class="m-0 mb-2 text-text-secondary">
+                      A coordenação local deve:
+                    </p>
+                    <ul class="my-0 ps-5 text-text-secondary">
+                      <li>Definir local, programação e dia do evento;</li>
+                      <li>Alinhar data com a organização geral;</li>
+                      <li>Designar responsável por fotos e vídeos;</li>
+                      <li>Orçar coffee break;</li>
+                      <li>
+                        Reservar hotel para staff/palestrante quando necessário.
+                      </li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Custos</h2>
+                    <p class="m-0 text-text-secondary">
+                      A comunidade custeia viagem (ônibus ou combustível) e
+                      diária de até R$300,00 para hotel/alimentação. Pagamento
+                      via reembolso OpenCollective. A ajuda de custo é
+                      destinada ao embaixador da região ou a membro indicado.
+                    </p>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Marketing</h2>
+                    <ul class="my-0 ps-5 text-text-secondary">
+                      <li>Identidade visual única para toda a edição;</li>
+                      <li>
+                        Cada cidade envia: local, nomes, cargos, temas,
+                        Instagram, LinkedIn e foto dos palestrantes;
+                      </li>
+                      <li>
+                        Fotos e vídeos obrigatórios: início, palestrantes no
+                        palco, todos juntos, embaixadores/organizadores, público
+                        e ganhadores de brindes;
+                      </li>
+                      <li>Grupo de comunicação com palestrantes e organizadores.</li>
+                    </ul>
+                  </section>
+                  <section>
+                    <h2 class="m-0 mb-2 text-2xl font-bold">Timeline</h2>
+                    <ul class="my-0 ps-5 text-text-secondary">
+                      {rfcDoc.frontmatter.timeline?.map((item) => (
+                        <li>
+                          <strong>{item.date}:</strong> {item.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </div>
+              )}
+            </div>
+            <div class="md:w-4/12 lg:w-3/12">
+              <RfcMetaSidebar
+                frontmatter={rfcDoc.frontmatter}
+                regions={
+                  slug === "rfcs/projeto-embaixadores" ? rfcRegions : undefined
+                }
+                members={members}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="mx-auto max-w-7xl px-4 pb-10 text-sm">
+          <a
+            href={`https://github.com/codaqui/institucional/edit/develop/${rfcDoc.editPath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Editar esta página no GitHub
+          </a>
+        </div>
+      </article>
+    )
+  }
+</CommunityLayout>
