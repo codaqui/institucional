@@ -1,7 +1,10 @@
 // Copia as fontes canônicas de conteúdo (blog/ e trilhas/ na raiz, usadas pelo
 // Docusaurus até a Fase 0.6) para dentro do app Astro, separando corpo (content
 // collections) de assets (public/). Roda em predev/prebuild, idempotente.
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// As páginas soltas (collection `pages`) deixaram de ser copiadas na Fase 0.6 —
+// os .md canônicos moram versionados em frontend/src/content/pages/ (admonitions
+// já convertidas em blockquote na origem).
+import { cpSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join, sep } from "node:path";
 
 const ROOT = join(import.meta.dirname, "..", "..");
@@ -26,51 +29,6 @@ for (const { from, to, filter } of copies) {
   cpSync(from, to, { recursive: true, ...(filter ? { filter } : {}) });
 }
 console.log(`copy-content: ${copies.length} origens copiadas`);
-
-// Páginas markdown soltas do Docusaurus (src/pages/*.md) → collection `pages`.
-// Cópia arquivo a arquivo (não o diretório todo, que contém também os .tsx).
-const pagesDir = join(FRONTEND, "src", "content", "pages");
-mkdirSync(pagesDir, { recursive: true });
-
-const pageFiles = [
-  ["src/pages/sobre/conduta.md", "conduta.md"],
-  ["src/pages/sobre/pais-responsaveis.md", "pais-responsaveis.md"],
-  ["src/pages/regex.md", "regex.md"],
-  ["src/pages/termos-de-compra.md", "termos-de-compra.md"],
-];
-for (const [from, to] of pageFiles) {
-  cpSync(join(ROOT, from), join(pagesDir, to));
-}
-console.log(`copy-content: ${pageFiles.length} páginas .md copiadas`);
-
-// As admonitions do Docusaurus (`:::info[Titulo] ... :::`) não são suportadas
-// pelo compilador markdown do Astro. Mesmo padrão do plano B abaixo: mapeamento
-// literal, falha o build se o trecho original mudar. Originais intactos.
-const PAGE_MD_PATCHES = {
-  "pais-responsaveis.md": [
-    [
-      ":::info[Sobre a Codaqui]\nA **Associação Codaqui** é uma organização sem fins lucrativos que atua como guarda-chuva de comunidades de tecnologia. Nossos programas são gratuitos e abertos a qualquer pessoa que queira aprender, colaborar ou crescer na área tech.\n:::",
-      "> **Sobre a Codaqui**\n>\n> A **Associação Codaqui** é uma organização sem fins lucrativos que atua como guarda-chuva de comunidades de tecnologia. Nossos programas são gratuitos e abertos a qualquer pessoa que queira aprender, colaborar ou crescer na área tech.",
-    ],
-    [
-      ":::tip[Ambiente seguro e inclusivo]\nTodos os encontros seguem nosso [Código de Conduta](/sobre/conduta), que garante um espaço livre de assédio, discriminação e qualquer forma de violência. Pais e responsáveis podem acompanhar as atividades pelo nosso [Discord](https://discord.com/invite/xuTtxqCPpz) e [WhatsApp](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up).\n:::",
-      "> **Ambiente seguro e inclusivo**\n>\n> Todos os encontros seguem nosso [Código de Conduta](/sobre/conduta), que garante um espaço livre de assédio, discriminação e qualquer forma de violência. Pais e responsáveis podem acompanhar as atividades pelo nosso [Discord](https://discord.com/invite/xuTtxqCPpz) e [WhatsApp](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up).",
-    ],
-  ],
-};
-
-for (const [file, pairs] of Object.entries(PAGE_MD_PATCHES)) {
-  const path = join(pagesDir, file);
-  let text = readFileSync(path, "utf8");
-  for (const [from, to] of pairs) {
-    if (!text.includes(from)) {
-      throw new Error(`copy-content: trecho do patch não encontrado em ${file}: ${JSON.stringify(from.slice(0, 80))}`);
-    }
-    text = text.replaceAll(from, to);
-  }
-  writeFileSync(path, text);
-}
-console.log(`copy-content: ${Object.keys(PAGE_MD_PATCHES).length} páginas .md patchadas (admonitions)`);
 
 // Plano B (Task 7 do plano fase-0.2): os 2 posts .mdx usam componentes MUI,
 // comentários HTML (`<!-- truncate -->`) e admonitions (`:::tip`) do Docusaurus,

@@ -35,8 +35,8 @@ const rootDir = process.cwd();
 const syncConfigPath = path.join(rootDir, "social-stats.config.json");
 const outputDir = path.join(rootDir, "static", "social-stats");
 const outputFile = path.join(outputDir, "index.json");
-const communitiesPath = path.join(rootDir, "src", "data", "communities.ts");
-const socialPath = path.join(rootDir, "src", "data", "social.ts");
+const communitiesPath = path.join(rootDir, "scripts", "data", "communities.ts");
+const socialPath = path.join(rootDir, "scripts", "data", "social.ts");
 const eventsIndexPath = path.join(rootDir, "static", "events", "index.json");
 
 // ─── Discord ─────────────────────────────────────────────────────────────────
