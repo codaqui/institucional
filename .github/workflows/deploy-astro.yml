@@ -42,7 +42,7 @@ jobs:
           # própria; tenants fixam o próprio site (o runtime já resolve
           # same-origin via PUBLIC_TENANT — o valor cobre o bundle/SSR).
           - { tenant: "", project: codaqui, site: "https://codaqui.dev", api_url: "https://api.codaqui.dev" }
-          - { tenant: tisocial, project: tisocial, site: "https://tisocial.org.br", api_url: "https://tisocial.org.br" }
+          - { tenant: tisocial, project: tisocial, site: "https://www.tisocial.org.br", api_url: "https://www.tisocial.org.br" }
           - { tenant: elasnocodigo, project: elasnocodigo, site: "https://elasnocodigo.com.br", api_url: "https://elasnocodigo.com.br" }
           - { tenant: devparana, project: devparana, site: "https://devparana.org", api_url: "https://devparana.org" }
     steps:

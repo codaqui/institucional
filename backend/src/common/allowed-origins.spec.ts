@@ -44,7 +44,11 @@ describe('allowed-origins', () => {
 
     it('rejects subdomains of allowed hosts (no wildcard matching)', () => {
       expect(isAllowedOrigin('https://evil.codaqui.dev')).toBe(false);
-      expect(isAllowedOrigin('https://www.tisocial.org.br')).toBe(false);
+    });
+
+    it('accepts the www origin of T.I. Social (canonical host)', () => {
+      process.env.NODE_ENV = 'production';
+      expect(isAllowedOrigin('https://www.tisocial.org.br')).toBe(true);
     });
 
     it('rejects look-alike hosts and wrong schemes/ports', () => {
