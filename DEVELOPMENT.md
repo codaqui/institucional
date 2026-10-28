@@ -1,16 +1,16 @@
 <!-- AGENT-INDEX
 purpose: Setup, environment variables, migrations and deploy procedures for the monorepo.
 audience: Developers running the project locally, DevOps, AI agents needing operational details.
+status: Atualizado pós-Fase 0.6 — o app Docusaurus foi removido; o site oficial é o app Astro em frontend/ (Cloudflare Pages).
 sections:
   - Arquitetura do Monorepo
-  - Frontend (Docusaurus) — npm scripts, dev server
-  - Frontend (Astro) — Fase 0 em transição
-  - Multi-tenant (Fase 0.5) — sites whitelabel das comunidades no Cloudflare Pages: gates e runbook de operação (cutover dos 3 tenants concluído)
+  - Frontend (Astro) — app oficial em frontend/: setup, comandos, convenções, syncs
+  - Multi-tenant (Fase 0.5) — sites whitelabel das comunidades no Cloudflare Pages: gates e runbook de operação
   - Backend (NestJS) — npm scripts, Stripe CLI for webhooks
   - Full Stack (Frontend + Backend + Infra) — Podman Compose
   - Migrations (TypeORM) — generate/run/revert
   - Variáveis de Ambiente — .env reference
-  - Deploy — produção ARM64 via Podman Compose
+  - Deploy — Cloudflare Pages (automático) + backend ARM64 (manual)
   - Git: merge de main no branch de feature
   - Convenção de Commits
 related-docs:
@@ -31,65 +31,109 @@ agent-protocol: All operational/setup commands live HERE — AGENTS.md only refe
 
 | Camada | Diretório | Serve via |
 |--------|-----------|-----------|
-| **Frontend** (Docusaurus) | `/` (raiz) | GitHub Pages · `npm start` (dev) |
+| **Frontend** (Astro) | `frontend/` | Cloudflare Pages (CI) · `make astro-dev` (dev) |
 | **Backend** (NestJS) | `backend/` | Podman Compose (local + produção ARM64) |
 | **Infra** | `compose.yaml` / `compose.prod.yaml` | Podman Compose |
 
-> O GitHub Pages **nunca** publica o `backend/`.
+O site é o app Astro em `frontend/` — o Docusaurus da raiz foi removido na Fase 0.6.
+O conteúdo canônico de blog/trilhas continua na raiz (`blog/`, `trilhas/`) e é copiado
+para dentro do app em build-time (`frontend/scripts/copy-content.mjs`, via `predev`/`prebuild`);
+os snapshots de `static/` idem (`copy-snapshots.mjs`). Nunca edite as cópias em
+`frontend/src/content/` — edite as fontes.
+
+O `package.json` da raiz é mínimo: só os scripts `astro:*`, `sync:*` e `test:scripts`,
+com devDependencies leves (`playwright` + `wrangler`) usadas pelos syncs e pelo deploy.
+Dependências de verdade vivem em `frontend/package.json` e `backend/package.json`.
 
 ---
 
-## Frontend (Docusaurus)
+## Frontend (Astro)
 
-**Quando usar:** editar blog, trilhas, páginas, componentes React, dados ou estilos. Não precisa de Podman nem do backend.
+**Quando usar:** editar páginas, blog, trilhas, componentes, dados, estilos ou tokens do
+design system. Não precisa de Podman nem do backend.
 
 ### Setup
 
 ```bash
-npm install   # apenas na primeira vez
-npm start     # → http://localhost:3000
+cd frontend
+cp .env.example .env   # PUBLIC_API_URL=http://localhost:3001
+npm install
+npm run dev            # → http://localhost:4321
 ```
 
-As páginas `/transparencia` e `/participe/apoiar` exibem mensagem de fallback quando o backend está offline — comportamento esperado.
+Ou, da raiz (após `make setup`): `make astro-dev`.
+
+Variáveis do app Astro (prefixo `PUBLIC_*`, embutidas no bundle cliente em build time):
+
+| Variável | Descrição |
+|----------|-----------|
+| `PUBLIC_API_URL` | URL base da API NestJS (default `http://localhost:3001`) |
+| `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública Stripe (`pk_test_...` em dev) usada pelo checkout embutido de `/participe/apoiar`. Vazia desativa o botão de doação |
+
+O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra.
+Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
 
 ### Comandos
 
+Dentro de `frontend/`:
+
 ```bash
-npm run build       # Gera ./build/ (mesmo que o CI)
-npm run serve       # Serve o build localmente para testar
-npm run typecheck   # TypeScript (exclui /backend automaticamente)
+npm run dev        # dev server (:4321) — copia conteúdo/snapshots antes (predev)
+npm run build      # build estático em dist/ — copia antes (prebuild)
+npm run preview    # serve o build localmente
+npm run check      # astro check (tipos de .astro)
+npm run test       # vitest (libs e contratos)
 ```
 
-> Rode `npm run typecheck` antes de abrir qualquer PR.
+Pela raiz, via Makefile:
+
+```bash
+make astro-dev             # dev server
+make astro-build           # build estático (dist/)
+make astro-check           # astro check
+make astro-test            # vitest
+make astro-verify          # verificação completa: build + check + test + type-check da
+                           # Pages Function + smoke do dist/ + gate de paridade de URLs
+make astro-verify-tenants  # 4 builds (codaqui + 3 tenants) + gate de allow-list de URLs
+                           # por tenant — ver "Multi-tenant (Fase 0.5)"
+make astro-lighthouse      # Lighthouse mobile nas páginas principais (requer Chrome)
+make astro-preview         # serve o build (:4321)
+```
+
+`make astro-verify` inclui o **gate de paridade de URLs** (`frontend/scripts/diff-urls.mjs`):
+cada URL pública da referência versionada `frontend/scripts/url-reference.json` precisa
+existir no `frontend/dist/` (como página ou redirect). A referência é um snapshot do build
+final do Docusaurus, gerado antes da remoção dele — **não é regenerável**; se o gate
+reclamar de uma divergência legítima, ajuste a decisão de URL com o time (e o redirect em
+`frontend/scripts/build-tenant-redirects.mjs`), não a referência.
 
 ### O que editar sem o backend
 
 | O que | Onde |
 |-------|------|
-| Blog posts | `blog/YYYY-MM-DD-slug.md` |
-| Trilhas | `trilhas/python/` ou `trilhas/github/` |
-| Equipe | `src/data/team.ts` |
-| Comunidades parceiras | `src/data/communities.ts` |
-| Projetos open-source | `src/data/projects.ts` |
-| Timeline | `src/data/timeline.ts` |
-| Links sociais | `src/data/social.ts` |
-| Páginas | `src/pages/*.tsx` |
-| Componentes React | `src/components/` |
-| Estilos globais | `src/css/custom.css` |
+| Blog posts | `blog/YYYY-MM-DD-slug.md` (fonte canônica) |
+| Trilhas | `trilhas/python/` ou `trilhas/github/` (fonte canônica) |
+| Páginas | `frontend/src/pages/` |
+| Componentes (Astro/React) | `frontend/src/components/` |
+| Dados das listas (equipe, comunidades, projetos, timeline, social) | `frontend/src/data/` (espelho parcial versionado em `scripts/data/` na raiz) |
+| Tokens do design system | `frontend/src/styles/tokens.css` |
+| Estilos globais | `frontend/src/styles/global.css` |
 
 ### Sync de dados estáticos
 
-Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor chaves ao browser.
+Scripts na raiz que buscam dados externos e gravam snapshots em `static/` — sem expor
+chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficiente).
 
 | Comando | O que faz |
 |---------|-----------|
-| `npm run sync:events` | Eventos (Discord + Meetup) → `static/events/` |
+| `npm run sync:events` | Eventos (Discord + Meetup + internal) → `static/events/` |
 | `npm run sync:events:full` | Re-pagina todos os eventos passados |
 | `npm run sync:social` | Contagens de membros/seguidores → `static/social-stats/index.json` |
 | `npm run sync:analytics` | Analytics → `static/analytics/` |
 | `npm run sync:analytics:full` | Re-pagina todo o histórico de analytics |
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
+| `npm run test:scripts` | Testes dos scripts de sync/validação (`node --test`) |
 
 > **`make sync-events` (recomendado em dev):** igual ao `npm run sync:events`, mas exporta
 > `INTERNAL_EVENTS_API_URL=http://localhost:3001` para a fonte `internal:codaqui` (eventos
@@ -98,60 +142,16 @@ Scripts que buscam dados externos e gravam snapshots em `static/` — sem expor 
 
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
----
-
-## Frontend (Astro) — Fase 0 em transição
-
-> O site oficial continua sendo o Docusaurus da raiz até o cutover (Fase 0.6). O app Astro em `frontend/` é o futuro stack — ver [docs/plans/codaqui-1-0/refatoracao-frontend-astro.md](docs/plans/codaqui-1-0/refatoracao-frontend-astro.md) e [docs/plans/codaqui-1-0/design-system.md](docs/plans/codaqui-1-0/design-system.md).
-
-### Setup
-
-```bash
-cd frontend
-cp .env.example .env   # PUBLIC_API_URL=http://localhost:3001
-npm install
-npm run dev            # http://localhost:4321
-```
-
-Variáveis do app Astro (prefixo `PUBLIC_*`, embutidas no bundle cliente em build time):
-
-| Variável | Descrição |
-|----------|-----------|
-| `PUBLIC_API_URL` | URL base da API NestJS (default `http://localhost:3001`) |
-| `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública Stripe (`pk_test_...` em dev) usada pelo checkout embutido de `/participe/apoiar`. Equivalente à `STRIPE_PUBLISHABLE_KEY` do build Docusaurus (`customFields.stripePublishableKey`); vazia desativa o botão de doação |
-
-O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra. Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
-
-### Comandos
-
-```bash
-npm run dev        # dev server (:4321) — copia snapshots antes (predev)
-npm run build      # build estático em dist/ — copia snapshots antes (prebuild)
-npm run preview    # serve o build localmente
-npm run check      # astro check (tipos de .astro)
-npm run test       # vitest (libs e contratos)
-```
-
-Ou pela raiz, via Makefile (equivalem aos scripts acima, em `frontend/`):
-
-```bash
-make astro-dev         # dev server
-make astro-verify      # verificação completa da POC: build + check + test + type-check da Pages Function + smoke do dist/
-make astro-verify-tenants  # 4 builds (codaqui + 3 tenants) + gate de allow-list de URLs por tenant — ver "Multi-tenant (Fase 0.5)"
-make astro-lighthouse  # Lighthouse mobile nas páginas da POC + blog/trilhas (requer Chrome)
-make astro-preview     # serve o build (:4321)
-```
-
-`make astro-verify` inclui o gate de paridade de URLs de `/blog` e `/trilhas` contra o build Docusaurus (`build/` na raiz, referência) — falha se alguma URL pública faltar no `frontend/dist/`; regenere `build/` com `npm run build` na raiz se a referência estiver velha.
+Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social` e `make sync-analytics` espelham os comandos da tabela.
 
 ### Convenções do app Astro
 
 - Tokens do Design System (`--cq-*`) em `src/styles/tokens.css` são a fonte única — Tailwind (`@theme inline` em `global.css`) e MUI (`src/lib/mui-theme.ts`) consomem deles. Nunca hardcode de hex.
 - Cor de marca `#57B593` é só decoração; cor acionável é `#378369` (claro) / `#89CBB3` (escuro).
 - Ilhas React: `client:load` (vivo no primeiro paint), `client:visible` (abaixo da dobra), `client:only="react"` (páginas app com auth). O padrão é zero JS.
-- Autenticação: `src/lib/auth-client.ts` (puro) + `src/lib/use-auth.ts` (hook) — mesmo contrato de cookie httpOnly do Docusaurus.
-- Conteúdo blog/trilhas: `blog/` e `trilhas/` da raiz seguem canônicos até a Fase 0.6; o Astro consome cópias geradas em build-time por `scripts/copy-content.mjs` (nunca edite `frontend/src/content/` direto).
-- Autores do blog: a fonte canônica é `blog/authors.yml` (Docusaurus); ao alterá-la, replique a mudança manualmente em `frontend/src/data/blog-authors.ts` (o comentário no topo do arquivo aponta para cá).
+- Autenticação: `src/lib/auth-client.ts` (puro) + `src/lib/use-auth.ts` (hook) — cookie httpOnly assinado pelo backend.
+- Conteúdo blog/trilhas: `blog/` e `trilhas/` da raiz são as fontes canônicas; o Astro consome cópias geradas em build-time por `scripts/copy-content.mjs` (nunca edite `frontend/src/content/` direto).
+- Autores do blog: a fonte canônica é `blog/authors.yml`; ao alterá-la, replique a mudança manualmente em `frontend/src/data/blog-authors.ts` (o comentário no topo do arquivo aponta para cá).
 
 ---
 
@@ -169,7 +169,7 @@ make astro-preview     # serve o build (:4321)
 
 ### Runbook de operação
 
-**Estado (2026-10-27):** os 3 domínios das comunidades (tisocial.org.br, elasnocodigo.com.br, devparana.org) **já foram migrados para o Cloudflare Pages** e os Workers correspondentes excluídos — a pasta `workers/` foi removida do repo. O projeto `codaqui` também já recebe deploys no Pages, mas o domínio `codaqui.dev` segue no GitHub Pages — o cutover de DNS do portal principal é **Fase 0.6**.
+**Estado (2026-10-27):** os 3 domínios das comunidades (tisocial.org.br, elasnocodigo.com.br, devparana.org) **já foram migrados para o Cloudflare Pages** e os Workers correspondentes excluídos — a pasta `workers/` foi removida do repo. O projeto `codaqui` também já recebe deploys no Pages; o cutover de DNS de `codaqui.dev` (GitHub Pages → Pages) é a **Fase 0.6** — o runbook do cutover será anexado a esta seção quando executado.
 
 Referência para operar e manter os sites tenant:
 
@@ -245,6 +245,8 @@ npm run build   # Compila → dist/
 
 > Sempre rode antes de abrir um PR que altere o backend.
 
+Pela raiz, os atalhos `make backend-start`, `make backend-build`, `make backend-test` e `make backend-lint` equivalem aos comandos acima.
+
 ### Módulos e Endpoints
 
 | Módulo | Endpoints principais | Descrição |
@@ -278,14 +280,14 @@ stripe listen --forward-to localhost:3001/stripe/webhook
 1. Acesse [dashboard.stripe.com → Webhooks](https://dashboard.stripe.com/webhooks)
 2. Clique em **"Add endpoint"**
 3. URL: `https://api.codaqui.dev/stripe/webhook`
-4. Eventos a escutar: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
+4. Eventos a ouvir: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
 5. Copie o **Signing secret** (`whsec_...`) gerado e defina como `STRIPE_WEBHOOK_SECRET` no servidor de produção
 
 ---
 
 ## Full Stack (Frontend + Backend + Infra)
 
-**Quando usar:** funcionalidades que dependem da integração entre frontend e backend (ex: transparência financeira, formulário de doações).
+**Quando usar:** funcionalidades que dependem da integração entre site e backend (ex: transparência financeira, formulário de doações, login).
 
 ### Setup
 
@@ -296,14 +298,24 @@ make setup   # Cria .env a partir de .env.example e instala dependências
 Edite o `.env` gerado com suas credenciais, depois:
 
 ```bash
-make up   # Sobe todos os serviços e captura o STRIPE_WEBHOOK_SECRET automaticamente
+make up   # Sobe backend + banco + Stripe CLI (captura o STRIPE_WEBHOOK_SECRET)
 ```
+
+O app Astro não roda no Compose — em outro terminal:
+
+```bash
+make astro-dev   # http://localhost:4321
+```
+
+> Com o site Astro em dev, aponte `FRONTEND_URL=http://localhost:4321` no `.env` da raiz:
+> o backend usa essa variável nos redirects pós-autenticação/doação e nos links de e-mail
+> (default `http://localhost:3000`).
 
 ### Serviços (DEV)
 
 | Serviço | URL |
 |---------|-----|
-| Docusaurus | http://localhost:3000 |
+| App Astro (terminal separado: `make astro-dev`) | http://localhost:4321 |
 | Backend NestJS | http://localhost:3001 |
 | Backend Swagger UI | http://localhost:3001/docs |
 | PostgreSQL | localhost:5432 |
@@ -364,7 +376,7 @@ Baseie-se no `.env.example`. Variáveis principais:
 > (`raw.githubusercontent.com`).
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails de eventos (confirmação, lembrete D-1, pós-evento) via SMTP Gmail. Sem credenciais, envios são logados como `failed` com `SMTP_NOT_CONFIGURED` em `email_logs` |
 | `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
-| `FRONTEND_URL` | Backend | URL base do frontend (default: `http://localhost:3000`) |
+| `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; com o Astro em dev use `http://localhost:4321`) |
 
 **Produção (apenas `compose.prod.yaml`):**
 
@@ -385,14 +397,20 @@ Baseie-se no `.env.example`. Variáveis principais:
 
 ## Deploy
 
-### Frontend → GitHub Pages (automático)
+### Sites → Cloudflare Pages (automático)
 
-Push em `main` ou `develop` dispara `.github/workflows/gh-deploy.yml`:
-1. `npm ci`
-2. `npm run build` (com `STRIPE_PUBLISHABLE_KEY` injetada via GitHub Variable)
-3. Deploy em `gh-pages` (main) ou `gh-pages/previews/develop/` (develop)
+Push em `main` ou `develop` dispara [`.github/workflows/deploy-astro.yml`](.github/workflows/deploy-astro.yml):
 
-O `backend/` **nunca** é enviado para o GitHub Pages.
+1. Build matrix — um job por projeto: `codaqui` (build **sem** `TENANT`) + `tisocial` + `elasnocodigo` + `devparana` (cada um com `TENANT`, `SITE_URL` e `PUBLIC_API_URL` próprios).
+2. Gate de URLs canônicas por tenant (`tenant-urls.mjs`) antes do upload.
+3. *Direct upload* com `wrangler pages deploy` (wrangler pinado nas devDeps da raiz).
+
+- `main` = produção (codaqui.dev + domínios próprios dos tenants, conforme a production branch de cada projeto Pages).
+- Outras branches = *branch deployments* de preview (`<branch>.<projeto>.pages.dev`).
+- `workflow_dispatch` com input `tenant` restringe o deploy a um único projeto.
+- Sem `CLOUDFLARE_API_TOKEN` configurado, o workflow faz apenas o build e pula o deploy.
+
+O `backend/` **nunca** é enviado para o Cloudflare Pages.
 
 ### Secrets e Variáveis do GitHub Actions
 
@@ -400,33 +418,34 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 
 | Nome | Tipo | Workflow | Para quê |
 |------|------|----------|----------|
-| `GH_APP_PRIVATE_KEY` | **Secret** | `gh-deploy`, `pr-preview-deploy`, `pr-preview-cleanup` | Chave privada do GitHub App que faz push no branch `gh-pages`. Sem isso o deploy falha. |
+| `GH_APP_PRIVATE_KEY` | **Secret** | `sync-event-snapshots`, `sync-social-stats`, `sync-analytics` | Chave privada do GitHub App usado para commitar os snapshots atualizados na `main`. Sem isso os syncs falham ao pushar. |
 | `GH_APP_ID` | **Variable** (não secret) | Idem | App ID do mesmo GitHub App |
-| `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `gh-deploy`, `pr-check` | Chave pública Stripe (`pk_live_...`) injetada no build do Docusaurus. Sem isso o botão de doação fica desativado. |
 | `DISCORD_BOT_TOKEN` | **Secret** | `sync-event-snapshots`, `sync-social-stats` | Token do bot Discord. Opcional — sem ele os scripts preservam os snapshots existentes. |
-| `CLOUDFLARE_API_TOKEN` | **Secret** | `deploy-astro` | Token de API da Cloudflare com escopo mínimo *Cloudflare Pages:Edit* no account — deploy dos sites tenant (Cloudflare Pages). Opcional — sem ele o workflow faz o build mas pula o deploy. |
+| `DADOS_DISPATCH_TOKEN` | **Secret** | `sync-analytics` | GitHub PAT com `actions:write` no repo `codaqui/dados` — dispara o relatório mensal de analytics lá. Opcional — o fetch dos dados funciona sem ele. |
+| `CLOUDFLARE_API_TOKEN` | **Secret** | `deploy-astro` | Token de API da Cloudflare com escopo mínimo *Cloudflare Pages:Edit* no account. Opcional — sem ele o workflow faz o build mas pula o deploy. |
 | `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
+| `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `deploy-astro` | Chave pública Stripe (`pk_live_...`) reexportada como `PUBLIC_STRIPE_PUBLISHABLE_KEY` no build. Sem isso o botão de doação fica desativado. |
 
 > **Como obter o GitHub App:**
 > Crie um GitHub App em *Settings → Developer settings → GitHub Apps* com permissão de escrita em `Contents` do repositório, gere uma chave privada (`.pem`) e use seu conteúdo como valor de `GH_APP_PRIVATE_KEY`.
 
-### Backend → Produção ARM64
+### Backend → Produção ARM64 (manual)
 
-```bash
-# No servidor de produção
-podman compose -f compose.prod.yaml pull
-podman compose -f compose.prod.yaml up -d
-```
+1. **Publicar a imagem:** rode o workflow manual [`.github/workflows/publish-backend.yml`](.github/workflows/publish-backend.yml) (*Actions → CD: Publish Backend & Push GHCR → Run workflow*). A tag da imagem e da release vêm do `version` de `backend/package.json` — **bump de versão obrigatório** a cada mudança no backend (feat → minor, fix → patch), senão o deploy sobrescreve a imagem anterior.
+2. **Subir no servidor:**
 
-Sobe: PostgreSQL + Backend. Sem Docusaurus, sem Stripe CLI.
+   ```bash
+   podman compose -f compose.prod.yaml pull
+   podman compose -f compose.prod.yaml up -d
+   ```
 
-As migrations são executadas automaticamente na inicialização (`migrationsRun: true` em produção).
+Sobe: PostgreSQL + Backend. As migrations são executadas automaticamente na inicialização (`migrationsRun: true` em produção).
 
 ---
 
 ## Git: merge de `main` no branch de feature
 
-A `main` recebe commits automáticos de sync de dados (`static/events/`, `static/social-stats/`).
+A `main` recebe commits automáticos de sync de dados (`static/events/`, `static/social-stats/`, `static/analytics/`).
 Ao fazer merge de `main` no branch de desenvolvimento, sempre preserve os snapshots da `main`:
 
 ```bash
@@ -453,4 +472,3 @@ docs: atualiza DEVELOPMENT.md
 refactor: reorganiza módulo de ledger
 chore: atualiza dependências
 ```
-
