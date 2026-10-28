@@ -27,7 +27,6 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/events")).toBe(true);
     expect(isApiProxyPath("/companies")).toBe(true);
     expect(isApiProxyPath("/club")).toBe(true);
-    expect(isApiProxyPath("/admin")).toBe(true);
     expect(isApiProxyPath("/notifications")).toBe(true);
     expect(isApiProxyPath("/ledger")).toBe(true);
     expect(isApiProxyPath("/api")).toBe(true);
@@ -44,11 +43,20 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/auth/callback")).toBe(false);
   });
 
-  it("redirects legados de página NÃO são API (Fase 0.6 — sources do dist/_redirects)", () => {
+  it("páginas do painel /admin/* NÃO são API (I-1 Fase 0.6 — só /admin/members é rota do backend)", () => {
+    expect(isApiProxyPath("/admin")).toBe(false);
     expect(isApiProxyPath("/admin/transferencias")).toBe(false);
-    expect(isApiProxyPath("/admin/transferencias/")).toBe(false);
-    // demais /admin/* seguem proxados (ex.: /admin/members do AdminHub):
+    expect(isApiProxyPath("/admin/eventos")).toBe(false);
+    expect(isApiProxyPath("/admin/lancamento")).toBe(false);
+    expect(isApiProxyPath("/admin/emails")).toBe(false);
+  });
+
+  it("/admin/members é API (bare, trailing slash e subpath — o backend expõe GET e PATCH :id)", () => {
     expect(isApiProxyPath("/admin/members")).toBe(true);
+    expect(isApiProxyPath("/admin/members/")).toBe(true);
+    expect(isApiProxyPath("/admin/members/abc-123")).toBe(true);
+    // falso positivo de startsWith não casa (prefixo com trailing slash):
+    expect(isApiProxyPath("/admin/memberships")).toBe(false);
   });
 
   it("não-API delega ao estático via context.next()", () => {

@@ -105,7 +105,7 @@ const roleChipColor = (role: string): "default" | "secondary" | "primary" => {
 
 const financeLinks = [
   { href: "/admin/lancamento", label: "Lançamento direto", description: "Registrar despesa ou receita pontual.", icon: <AccountBalanceWalletIcon color="primary" /> },
-  { href: "/admin/transferencias", label: "Transferências", description: "Movimentar valores entre contas internas.", icon: <CallReceivedIcon color="primary" /> },
+  { href: "/admin/lancamento?tab=transferencias", label: "Transferências", description: "Movimentar valores entre contas internas.", icon: <CallReceivedIcon color="primary" /> },
   { href: "/admin/reembolsos", label: "Reembolsos", description: "Aprovar, rejeitar e pagar reembolsos de membros.", icon: <ReceiptLongIcon color="primary" /> },
   { href: "/admin/fornecedores", label: "Fornecedores", description: "Cadastrar fornecedores e acompanhar saldo.", icon: <StorefrontIcon color="primary" /> },
   { href: "/admin/pagamentos", label: "Pagamentos", description: "Registrar pagamentos a fornecedores.", icon: <PaymentIcon color="primary" /> },
