@@ -10,7 +10,7 @@ sections:
   - Full Stack (Frontend + Backend + Infra) — Podman Compose
   - Migrations (TypeORM) — generate/run/revert
   - Variáveis de Ambiente — .env reference
-  - Deploy — Cloudflare Pages (automático) + backend ARM64 (manual)
+  - Deploy — Cloudflare Pages (automático) + backend ARM64 (manual) + runbook de cutover do codaqui.dev (Fase 0.6)
   - Git: merge de main no branch de feature
   - Convenção de Commits
 related-docs:
@@ -169,7 +169,7 @@ Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-
 
 ### Runbook de operação
 
-**Estado (2026-10-27):** os 3 domínios das comunidades (tisocial.org.br, elasnocodigo.com.br, devparana.org) **já foram migrados para o Cloudflare Pages** e os Workers correspondentes excluídos — a pasta `workers/` foi removida do repo. O projeto `codaqui` também já recebe deploys no Pages; o cutover de DNS de `codaqui.dev` (GitHub Pages → Pages) é a **Fase 0.6** — o runbook do cutover será anexado a esta seção quando executado.
+**Estado (2026-10-27):** os 3 domínios das comunidades (tisocial.org.br, elasnocodigo.com.br, devparana.org) **já foram migrados para o Cloudflare Pages** e os Workers correspondentes excluídos — a pasta `workers/` foi removida do repo. O projeto `codaqui` também já recebe deploys no Pages; o cutover de DNS de `codaqui.dev` (GitHub Pages → Pages) é a **Fase 0.6** — runbook em [Deploy → Cutover codaqui.dev (Fase 0.6)](#cutover-codaquidev-fase-06).
 
 Referência para operar e manter os sites tenant:
 
@@ -411,6 +411,197 @@ Push em `main` ou `develop` dispara [`.github/workflows/deploy-astro.yml`](.gith
 - Sem `CLOUDFLARE_API_TOKEN` configurado, o workflow faz apenas o build e pula o deploy.
 
 O `backend/` **nunca** é enviado para o Cloudflare Pages.
+
+### Cutover codaqui.dev (Fase 0.6)
+
+Migração do domínio principal `codaqui.dev` + `www.codaqui.dev` de **GitHub Pages** (branch `gh-pages`) para o projeto Pages **`codaqui`**. DNS gerido na zona Cloudflare `codaqui.dev` (id `7d25116af2182b27811d350558152f1e`, plano Free, account `70ef4d210bb380167db78da021123de9`).
+
+**Estado (2026-10-28):** os custom domains `codaqui.dev` e `www.codaqui.dev` **já estão anexados** ao projeto Pages com status `pending` — a validação HTTP deles só completa depois que o DNS apontar (mesmo comportamento dos tenants). O GitHub Pages (source `gh-pages`, `cname: codaqui.dev`, HTTPS aprovado até 2026-12-26) **permanece intacto como rollback** até a T10 (~7 dias pós-cut).
+
+**Janela do cut:** TTL dos registros atuais ≈ 300 s (Cloudflare "auto", DNS-only) — propagação de ~5–10 min, sem preparação de véspera. Execute em horário de baixo tráfego; o rollback (seção 4) é quase imediato.
+
+Todos os snippets assumem:
+
+```bash
+export CLOUDFLARE_API_TOKEN=...        # ou: source /tmp/cf_codaqui_env
+export CLOUDFLARE_ACCOUNT_ID=70ef4d210bb380167db78da021123de9
+ZONE_ID=7d25116af2182b27811d350558152f1e
+```
+
+**1. Pré-checks**
+
+- [ ] `make astro-verify` verde na develop (build codaqui + `astro check` + vitest + type-check da Pages Function + smoke do dist + gate `diff-urls`).
+- [ ] `make astro-verify-tenants` verde (4 builds + allow-list de URLs por tenant).
+- [ ] Último run de [`deploy-astro.yml`](.github/workflows/deploy-astro.yml) em `main` verde (produção do projeto `codaqui` no ar):
+
+  ```bash
+  gh run list --workflow deploy-astro.yml --branch main --limit 5
+  ```
+
+- [ ] Paridade de URLs 100% — o gate `diff-urls` roda dentro do `astro-verify`; a referência `frontend/scripts/url-reference.json` **não é regenerável**, então qualquer divergência bloqueia o cut.
+- [ ] Custom domains presentes e `pending` no projeto:
+
+  ```bash
+  curl -s "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/codaqui/domains" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" | python3 -m json.tool
+  # "status": "pending" + "error_message": "CNAME record not set" nos dois — ESPERADO neste ponto
+  ```
+
+  (Somente se algum estiver faltando — feito pelo orquestrador em 2026-10-28 — anexe com `POST …/pages/projects/codaqui/domains` e body `{"name":"codaqui.dev"}` / `{"name":"www.codaqui.dev"}`.)
+
+**2. Passos do cut**
+
+**2.1 — Inventário pré-cut** (evidência para o rollback — guarde a saída):
+
+```bash
+mkdir -p /tmp/cutover-codaqui
+curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=A&name=codaqui.dev" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  | tee /tmp/cutover-codaqui/apex-a.json | python3 -m json.tool
+curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=CNAME&name=www.codaqui.dev" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  | tee /tmp/cutover-codaqui/www-cname.json | python3 -m json.tool
+```
+
+Confira antes de prosseguir: **4× A** `codaqui.dev` → `185.199.108.153` / `185.199.109.153` / `185.199.110.153` / `185.199.111.153` (DNS-only) e **1× CNAME** `www.codaqui.dev` → `codaqui.github.io` (DNS-only). Divergiu? **Pare** e reavalie.
+
+> ⚠️ **Não toque em mais nada da zona:** `api` / `apps` / `firefox` / `ping` / `ssh` (Cloudflare Tunnel), `dados` (Streamlit), MX/SPF/DKIM/DMARC, `google-site-verification`, TXTs `_github-challenge-*` / `_gh-*` e os CNAMEs de DCV (`_5b08…comodoca.com`). O TXT `_github-pages-challenge-codaqui` **só é removido na T10** (seção 5).
+
+**2.2 — www primeiro** (não conflita com nada): aponte para `codaqui.pages.dev`, agora **proxied**:
+
+```bash
+WWW_ID=$(python3 -c 'import json; print(json.load(open("/tmp/cutover-codaqui/www-cname.json"))["result"][0]["id"])')
+curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$WWW_ID" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"type":"CNAME","name":"www.codaqui.dev","content":"codaqui.pages.dev","proxied":true}' \
+  | python3 -m json.tool
+```
+
+**2.3 — Deletar os 4 A do apex.** O CNAME do apex (2.4) conflita com A de mesmo nome, então a ordem é deletar primeiro:
+
+```bash
+for A_ID in $(python3 -c 'import json; print(" ".join(r["id"] for r in json.load(open("/tmp/cutover-codaqui/apex-a.json"))["result"]))'); do
+  curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$A_ID" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+  echo
+done
+```
+
+**2.4 — CNAME no apex** (a Cloudflare faz flattening de CNAME em apex), **proxied**:
+
+```bash
+curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"type":"CNAME","name":"codaqui.dev","content":"codaqui.pages.dev","proxied":true}' \
+  | python3 -m json.tool
+```
+
+**2.5 — Confirme no autoritativo** (resolvers públicos podem ainda mostrar o estado antigo por até ~5 min):
+
+```bash
+dig +short codaqui.dev
+dig +short www.codaqui.dev
+```
+
+**3. Verificação pós-cut**
+
+**3.1 — Validação dos custom domains** (poll até `active`; em geral 5–10 min):
+
+```bash
+while :; do
+  date
+  curl -s "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/codaqui/domains" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+    | python3 -c 'import json,sys; [print(" ", d["name"]+":", d["status"]) for d in json.load(sys.stdin)["result"]]'
+  sleep 30
+done
+```
+
+**3.2 — Checklist HTTP** (`curl -4` força IPv4; se o resolver ainda servir o apex antigo, aguarde a propagação ou teste contra `https://codaqui.pages.dev` + `Host`):
+
+```bash
+B=https://codaqui.dev
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/"                                    # 200
+curl -4sS "$B/" | grep -o "<title>[^<]*</title>"                                     # contém "Codaqui"
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/eventos" "$B/transparencia" "$B/comunidades/tisocial"  # 200 200 200
+curl -4sS -o /dev/null -w "%{http_code} -> %{redirect_url}\n" "$B/team"              # 301 -> https://codaqui.dev/sobre/equipe
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/blog/rss.xml" "$B/sitemap-index.xml"  # 200 200
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/@endersonmenezes"                     # 200 (perfil de membro)
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/auth/github"                          # 302 (proxy -> backend -> github.com/login/oauth)
+curl -4sS -o /dev/null -w "%{http_code}\n" "$B/health"                               # 200 via proxy
+curl -4sS "$B/admin" | grep -qi noindex && curl -4sS -o /dev/null -w "/admin: %{http_code}\n" "$B/admin"
+```
+
+**3.3 — Amostra da referência de URLs** — ~30 paths de `frontend/scripts/url-reference.json` sem **404** (200/301/308 ok — a referência inclui URLs que viraram redirect). O arquivo é um JSON pretty-printed, então a amostragem sai via `python3` (seed fixo = amostra reproduzível):
+
+```bash
+python3 -c 'import json,random; [print(p) for p in random.Random(42).sample(json.load(open("frontend/scripts/url-reference.json")), 30)]' \
+| while read -r path; do
+  code=$(curl -4sS -o /dev/null -w "%{http_code}" "https://codaqui.dev$path")
+  echo "$code $path"
+done | tee /tmp/cutover-codaqui/sample.txt
+grep "^404" /tmp/cutover-codaqui/sample.txt || echo "amostra OK — sem 404"
+```
+
+> `shuf -n 30 frontend/scripts/url-reference.json` **não** serve: o arquivo é JSON formatado (uma string por linha, com aspas/vírgula) — o `shuf` pegaria linhas cruas, não paths.
+
+Se algo falhar por DNS ainda não propagado, aguarde e repita. Se falhar por outra causa e não se resolver sozinho: **rollback (4)**.
+
+**4. Rollback (DNS de volta ao GitHub Pages)**
+
+Restaura exatamente o estado do inventário (2.1): recria os 4 A **DNS-only** (`"ttl":1` = auto ≈300 s) e devolve o www a `codaqui.github.io`. **Ordem importa**: delete o CNAME do apex antes de recriar os A.
+
+```bash
+# 4.1 — deletar o CNAME do apex
+APEX_CNAME_ID=$(curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=CNAME&name=codaqui.dev" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  | python3 -c 'import json,sys; r=json.load(sys.stdin)["result"]; print(r[0]["id"] if r else "")')
+if [ -n "$APEX_CNAME_ID" ]; then
+  curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$APEX_CNAME_ID" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+  echo
+fi
+
+# 4.2 — recriar os 4 A (valores exatos do estado pré-cut)
+for ip in 185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153; do
+  curl -s -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+    -d "{\"type\":\"A\",\"name\":\"codaqui.dev\",\"content\":\"$ip\",\"proxied\":false,\"ttl\":1}"
+  echo
+done
+
+# 4.3 — www de volta ao GitHub Pages (DNS-only)
+WWW_ID=$(curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=CNAME&name=www.codaqui.dev" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"][0]["id"])')
+curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$WWW_ID" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
+  -d '{"type":"CNAME","name":"www.codaqui.dev","content":"codaqui.github.io","proxied":false,"ttl":1}'
+```
+
+Aguarde ~5 min e confirme: `dig +short codaqui.dev` volta a responder os IPs `185.199.108–111.153` e `curl -4sS https://codaqui.dev/` é servido pelo GitHub Pages de novo. O cert HTTPS do GitHub Pages continua válido — rollback por DNS não invalida nada.
+
+**5. Pós-estável (T10 — ~7 dias após o cut)**
+
+Critério para executar: ~7 dias de operação estável no Pages (sem rollback; verificações 3.2/3.3 verdes). Só então desmontar o GitHub Pages:
+
+```bash
+# 5.1 — desabilitar GitHub Pages (source gh-pages + cname) do repositório
+gh api -X DELETE /repos/codaqui/institucional/pages
+
+# 5.2 — remover o TXT de verificação do GitHub Pages na zona
+TXT_ID=$(curl -s "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?type=TXT&name=_github-pages-challenge-codaqui.codaqui.dev" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  | python3 -c 'import json,sys; r=json.load(sys.stdin)["result"]; print(r[0]["id"] if r else "")')
+if [ -n "$TXT_ID" ]; then
+  curl -s -X DELETE "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$TXT_ID" \
+    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"
+  echo
+fi
+
+# 5.3 — deletar a branch gh-pages
+git push origin :gh-pages
+```
 
 ### Secrets e Variáveis do GitHub Actions
 
