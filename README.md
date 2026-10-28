@@ -73,7 +73,7 @@ institucional/
 ├── backend/           # 🖥️ API NestJS (eventos, ledger, Stripe, membros, notificações)
 ├── blog/              # ✍️ Fonte canônica dos posts (copiada para o Astro em build-time)
 ├── trilhas/           # 📚 Fonte canônica das trilhas (Python, GitHub)
-├── comunidades/       # 🗃️ Conteúdo whitelabel legado (era do Docusaurus) — fora do build Astro
+├── comunidades/       # 🗃️ Conteúdo canônico whitelabel das comunidades — lido pelos builds tenant via symlink; edite aqui, nunca em src-tenants/
 ├── static/            # 📦 Assets + snapshots gerados pelos syncs (events/, social-stats/, analytics/)
 ├── scripts/           # 🔄 Syncs e validações (rodam local e nos workflows)
 ├── docs/              # 📑 Documentação técnica (ADRs, módulos, planos)

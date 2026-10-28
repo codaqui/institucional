@@ -65,7 +65,7 @@ Para domínios próprios, um **Cloudflare Worker** reutilizável (`workers/share
 
 A **decisão D1** (single Docusaurus multi-instance + edge proxy Cloudflare Worker com pass-through) foi **superseda parcialmente** pela **Fase 0.5** do plano de refatoração para Astro ([refatoracao-frontend-astro.md](../plans/codaqui-1-0/refatoracao-frontend-astro.md)): build matrix por tenant no Cloudflare Pages — um projeto Pages por comunidade, com domínio próprio nativo e rotas limpas em `/` — e o proxy de API virando uma **Pages Function** (`functions/api/[[path]].ts`), encerrando a pasta `workers/`.
 
-A decisão nova será consolidada na **ADR 011 — Refatoração de frontend para Astro + multi-tenant por build matrix**, a produzir no merge da Fase 0.6 (cutover).
+A decisão nova foi consolidada na **[ADR 011 — Refatoração de frontend para Astro + multi-tenant por build matrix](../adrs/011-frontend-astro-multi-tenant-pages.md)** (implementada nas Fases 0.1–0.6).
 
 **Permanece válido desta ADR:**
 
