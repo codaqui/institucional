@@ -89,7 +89,7 @@ jobs:
       # Wrangler vem das devDependencies pinadas do package.json da RAIZ — sem
       # node_modules na raiz o npx baixaria wrangler@latest do registry e
       # executaria COM os secrets Cloudflare no env (risco supply-chain no
-      # cutover). O ci na raiz é barato (wrangler é a única devDependency).
+      # cutover). O ci na raiz é barato (só playwright + wrangler nas devDeps).
       - name: Install root dependencies (wrangler)
         if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
         run: npm ci --ignore-scripts

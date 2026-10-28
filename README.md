@@ -16,7 +16,7 @@ agent-protocol: README is intentionally short. For implementation details, go to
 
 # CODAQUI
 
-![Imagem do Header](images/header.png)
+![Imagem do Header](static/img/header.png)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=codaqui_institucional&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=codaqui_institucional)
 

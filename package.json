@@ -3,16 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build",
-    "swizzle": "docusaurus swizzle",
-    "deploy": "docusaurus deploy",
-    "clear": "docusaurus clear",
-    "serve": "docusaurus serve",
-    "write-translations": "docusaurus write-translations",
-    "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc",
     "astro:dev": "npm --prefix frontend run dev",
     "astro:build": "npm --prefix frontend run build",
     "astro:check": "npm --prefix frontend run check",
@@ -24,66 +14,13 @@
     "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
-    "test:scripts": "node --test scripts/*.test.mjs",
-    "test:frontend": "jest --config jest.config.ts"
-  },
-  "dependencies": {
-    "@docusaurus/core": "^3.9.2",
-    "@docusaurus/plugin-client-redirects": "^3.9.2",
-    "@docusaurus/preset-classic": "^3.9.2",
-    "@docusaurus/theme-live-codeblock": "^3.9.2",
-    "@docusaurus/theme-mermaid": "^3.9.2",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@giscus/react": "^3.1.0",
-    "@mdx-js/react": "^3.0.0",
-    "@mui/icons-material": "^7.3.9",
-    "@mui/lab": "^7.0.1-beta.23",
-    "@mui/material": "^7.3.9",
-    "@stripe/react-stripe-js": "^6.1.0",
-    "@stripe/stripe-js": "^9.0.1",
-    "clsx": "^2.0.0",
-    "html2canvas": "^1.4.1",
-    "jspdf": "^4.2.1",
-    "prism-react-renderer": "^2.3.0",
-    "qr-scanner": "^1.4.2",
-    "qrcode.react": "^4.2.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "test:scripts": "node --test scripts/*.test.mjs"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "^3.9.2",
-    "@docusaurus/tsconfig": "^3.9.2",
-    "@docusaurus/types": "^3.9.2",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/jest": "^30.0.0",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
     "playwright": "^1.60.0",
-    "ts-jest": "^29.4.9",
-    "typescript": "~5.6.2",
     "wrangler": "^4.87.0"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 3 chrome version",
-      "last 3 firefox version",
-      "last 5 safari version"
-    ]
   },
   "engines": {
     "node": ">=24.0"
-  },
-  "overrides": {
-    "serialize-javascript": "7.0.5",
-    "uuid": "^11.1.1",
-    "qs": "^6.15.2"
   }
 }

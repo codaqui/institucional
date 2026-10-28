@@ -1,7 +1,7 @@
 # =============================================================================
 # Codaqui — Makefile
-# Controla frontend (Docusaurus), frontend Astro (frontend/ — Fase 0),
-# backend (NestJS) e infra (Podman Compose).
+# Controla o app Astro (frontend/ — site oficial pós-Fase 0.6), backend (NestJS)
+# e infra (Podman Compose).
 #
 # Uso rápido:
 #   make setup        → prepara o ambiente pela primeira vez
@@ -44,7 +44,6 @@ RED    := \033[31m
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
-        frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
         sync sync-events sync-events-full sync-social sync-analytics \
@@ -86,7 +85,7 @@ setup: ## Prepara o ambiente: cria .env e instala dependências
 	else \
 	    printf "$(GREEN)✔  .env já existe.$(RESET)\n"; \
 	fi
-	@printf "$(CYAN)→  Instalando dependências do frontend...$(RESET)\n"
+	@printf "$(CYAN)→  Instalando dependências da raiz (scripts de sync — leve, só devDeps)...$(RESET)\n"
 	npm install
 	@printf "$(CYAN)→  Instalando dependências do backend...$(RESET)\n"
 	cd $(BACKEND_DIR) && npm install
@@ -241,30 +240,8 @@ backend-lint: ## Executa o linter e auto-corrige o backend
 	cd $(BACKEND_DIR) && npm run lint
 
 # =============================================================================
-##@ 🌐 Frontend (Docusaurus)
+##@ 🚀 Frontend (Astro) — app oficial em frontend/ (site + tenants)
 # =============================================================================
-
-frontend-clean: ## Limpa o cache do Docusaurus (builds antigos e dependências temporárias)
-	npm run clear
-	rm -rf .docusaurus build
-
-frontend-start: ## Inicia o servidor de desenvolvimento do Docusaurus
-	npm start
-
-frontend-build: ## Gera o build de produção do Docusaurus (igual ao CI)
-	npm run build
-
-frontend-typecheck: ## Valida TypeScript do frontend (exclui /backend)
-	npm run typecheck
-
-frontend-serve: ## Serve o build estático localmente para homologação
-	npm run serve
-
-# =============================================================================
-##@ 🚀 Frontend (Astro) — Fase 0 (POC 0.1 em frontend/)
-# =============================================================================
-# O site oficial continua sendo o Docusaurus até a Fase 0.6 (cutover).
-# Ver DEVELOPMENT.md → "Frontend (Astro) — Fase 0 em transição".
 
 astro-install: ## Instala dependências do app Astro
 	cd $(ASTRO_DIR) && npm install
@@ -298,9 +275,9 @@ astro-verify: ## Verificação completa do app Astro: build + tipos + testes + s
 	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
-	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs build Docusaurus (build/)...$(RESET)\n"
+	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs referência versionada (url-reference.json)...$(RESET)\n"
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
-	@printf "$(GREEN)✔  POC 0.1 verificada. Suba com: make astro-preview$(RESET)\n"
+	@printf "$(GREEN)✔  App Astro verificado. Suba com: make astro-preview$(RESET)\n"
 
 # Tenants do app Astro (Fase 0.5) — fonte única em frontend/tenants.config.mjs.
 # codaqui não é TENANT: é o build sem a env (srcDir padrão ./src).

@@ -58,28 +58,6 @@ services:
       timeout: 10s
       retries: 3
 
-  docusaurus:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: codaqui_docusaurus
-    env_file:
-      - .env
-    environment:
-      - HTTPS=${HTTPS:-false}
-      - SSL_CRT_FILE=/app/.certs/localhost.pem
-      - SSL_KEY_FILE=/app/.certs/localhost-key.pem
-      - DOCUSAURUS_API_URL=${BACKEND_URL:-http://localhost:3001}
-    ports:
-      - "3000:3000" # http(s)://localhost:3000
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.docusaurus
-      - ./.certs:/app/.certs:ro
-    networks:
-      - codaqui-network
-
   # Stripe CLI — encaminha webhooks do Stripe para o backend local
   # Requer STRIPE_SECRET_KEY no .env. Inicie 1x para ver o webhook secret:
   # podman logs codaqui_stripe_cli
