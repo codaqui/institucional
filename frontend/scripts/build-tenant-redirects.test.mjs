@@ -1,13 +1,16 @@
-// Teste do script pós-build de tenants (Cloudflare Pages): gera dist/_redirects
-// (301 de /comunidades/<slug>/* para as rotas limpas) e dist/robots.txt
-// (Sitemap apontando para o domínio próprio do tenant — o public/robots.txt
-// compartilhado aponta para o sitemap da Codaqui, errado nos whitelabels).
+// Teste do script pós-build (Cloudflare Pages): em builds TENANT=<slug> gera
+// dist/_redirects (301 de /comunidades/<slug>/* para as rotas limpas) +
+// dist/robots.txt (Sitemap do domínio próprio — o public/robots.txt
+// compartilhado aponta para o sitemap da Codaqui, errado nos whitelabels);
+// no build codaqui (sem TENANT) gera dist/_redirects com os redirects legados
+// do Docusaurus (Fase 0.6) e não toca no robots.txt.
 import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import {
+  buildCodaquiRedirectsText,
   buildRedirectsText,
   buildRobotsText,
   writeTenantRedirects,
@@ -32,6 +35,29 @@ describe("buildRedirectsText", () => {
     expect(buildRedirectsText("tisocial")).toBe(
       "/comunidades/tisocial / 301\n" +
         "/comunidades/tisocial/* /:splat 301\n",
+    );
+  });
+});
+
+describe("buildCodaquiRedirectsText", () => {
+  it("emite exatamente as 16 linhas dos redirects legados", () => {
+    expect(buildCodaquiRedirectsText()).toBe(
+      "/quero/estudar /participe/estudar 301\n" +
+        "/quero/apoiar /participe/apoiar 301\n" +
+        "/quero/mentoria /participe/mentoria 301\n" +
+        "/team /sobre/equipe 301\n" +
+        "/contact /contato 301\n" +
+        "/conduta /sobre/conduta 301\n" +
+        "/ong /sobre/ong 301\n" +
+        "/timeline /sobre/insights 301\n" +
+        "/sobre/timeline /sobre/insights 301\n" +
+        "/pais_responsaveis /sobre/pais-responsaveis 301\n" +
+        "/admin/transferencias /admin/lancamento?tab=transferencias 302\n" +
+        "/blog/archive /blog 301\n" +
+        "/blog/archive/2022 /blog 301\n" +
+        "/blog/archive/2023 /blog 301\n" +
+        "/blog/archive/2024 /blog 301\n" +
+        "/blog/archive/2025 /blog 301\n",
     );
   });
 });
@@ -83,12 +109,53 @@ describe("writeTenantRedirects", () => {
     );
   });
 
-  it("sem TENANT não escreve nada", () => {
+  it("sem TENANT escreve dist/_redirects com as 16 linhas dos redirects legados", () => {
     const dist = makeDist();
     const wrote = writeTenantRedirects({ tenant: null, distDir: dist });
-    expect(wrote).toBe(false);
-    expect(existsSync(join(dist, "_redirects"))).toBe(false);
+    expect(wrote).toBe(true);
+    expect(readFileSync(join(dist, "_redirects"), "utf8")).toBe(
+      "/quero/estudar /participe/estudar 301\n" +
+        "/quero/apoiar /participe/apoiar 301\n" +
+        "/quero/mentoria /participe/mentoria 301\n" +
+        "/team /sobre/equipe 301\n" +
+        "/contact /contato 301\n" +
+        "/conduta /sobre/conduta 301\n" +
+        "/ong /sobre/ong 301\n" +
+        "/timeline /sobre/insights 301\n" +
+        "/sobre/timeline /sobre/insights 301\n" +
+        "/pais_responsaveis /sobre/pais-responsaveis 301\n" +
+        "/admin/transferencias /admin/lancamento?tab=transferencias 302\n" +
+        "/blog/archive /blog 301\n" +
+        "/blog/archive/2022 /blog 301\n" +
+        "/blog/archive/2023 /blog 301\n" +
+        "/blog/archive/2024 /blog 301\n" +
+        "/blog/archive/2025 /blog 301\n",
+    );
+  });
+
+  it("sem TENANT não escreve dist/robots.txt (usa o public/ compartilhado)", () => {
+    const dist = makeDist();
+    writeTenantRedirects({ tenant: null, distDir: dist });
+    expect(existsSync(join(dist, "_redirects"))).toBe(true);
     expect(existsSync(join(dist, "robots.txt"))).toBe(false);
+  });
+
+  it("sem TENANT com string vazia tem o mesmo comportamento", () => {
+    const dist = makeDist();
+    const wrote = writeTenantRedirects({ tenant: "", distDir: dist });
+    expect(wrote).toBe(true);
+    expect(readFileSync(join(dist, "_redirects"), "utf8")).toContain(
+      "/team /sobre/equipe 301",
+    );
+  });
+
+  it("com dist ausente retorna false sem escrever nada", () => {
+    const dir = mkdtempSync(join(tmpdir(), "tenant-redirects-"));
+    fixtures.push(dir);
+    const missing = join(dir, "dist");
+    expect(writeTenantRedirects({ tenant: "tisocial", distDir: missing })).toBe(false);
+    expect(writeTenantRedirects({ tenant: null, distDir: missing })).toBe(false);
+    expect(existsSync(join(missing, "_redirects"))).toBe(false);
   });
 
   it("rejeita TENANT desconhecido", () => {

@@ -44,6 +44,13 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/auth/callback")).toBe(false);
   });
 
+  it("redirects legados de página NÃO são API (Fase 0.6 — sources do dist/_redirects)", () => {
+    expect(isApiProxyPath("/admin/transferencias")).toBe(false);
+    expect(isApiProxyPath("/admin/transferencias/")).toBe(false);
+    // demais /admin/* seguem proxados (ex.: /admin/members do AdminHub):
+    expect(isApiProxyPath("/admin/members")).toBe(true);
+  });
+
   it("não-API delega ao estático via context.next()", () => {
     expect(isApiProxyPath("/")).toBe(false);
     expect(isApiProxyPath("/blog")).toBe(false);
