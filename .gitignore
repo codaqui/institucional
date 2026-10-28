@@ -6,14 +6,7 @@ temp-devparana-rfcs/
 code-to-analyze/
 
 # ─────────────────────────────────────────────────────
-# Docusaurus (frontend — raiz)
-# ─────────────────────────────────────────────────────
-build/
-.docusaurus/
-.cache/
-
-# ─────────────────────────────────────────────────────
-# Astro (frontend/ — Fase 0)
+# Astro (frontend/ — app principal pós-Fase 0.6)
 # ─────────────────────────────────────────────────────
 frontend/dist/
 frontend/.astro/
@@ -131,14 +124,3 @@ lerna-debug.log*
 *.tgz
 *.tar.gz
 *.zip
-
-# ─────────────────────────────────────────────────────
-# Legado — MkDocs (migração antiga)
-# ─────────────────────────────────────────────────────
-site/
-mkdocs-material/
-venv/
-sql-commands
-
-# Cloudflare Workers local state
-workers/**/.wrangler/
