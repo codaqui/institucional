@@ -1,125 +1,109 @@
-// Gate de paridade: URLs públicas no build Docusaurus (build/, referência) vs
-// build Astro (frontend/dist/). Sai com código 1 se faltar URL.
-// Cobertura (Fase 0.5): seções completas (inclui as app /admin, /membro,
-// /auth) + páginas soltas de topo + /comunidades (multi-tenant/wrappers das
-// T6–T9). Fora: /@handle (geradas com API em build; ausentes na referência).
-import { readdirSync, existsSync } from "node:fs";
-import { join, relative } from "node:path";
+// Gate de paridade (Fase 0.6): URLs públicas do site novo (frontend/dist/,
+// build Astro) vs a referência versionada (scripts/url-reference.json —
+// snapshot do build/ Docusaurus final gerado por archive-urls.mjs antes da
+// deleção do Docusaurus no cutover). Sai com código 1 se alguma URL da
+// referência não for servida pelo site novo.
+//
+// Histórico: na Fase 0.5 este gate caminhava o build/ Docusaurus diretamente
+// (seções + top-level), com exclusões que foram removidas aos poucos
+// (/^\/blog\/archive/ na 0.3 com os stubs, /^\/comunidades/ na Task 9). Na
+// Fase 0.6 (cutover codaqui.dev) o build/ será deletado, então a referência
+// virou um JSON versionado, e os redirects legados do Docusaurus (stubs
+// RedirectStub deletados) passaram a viver no dist/_redirects de edge do
+// Cloudflare Pages — gerado por build-tenant-redirects.mjs no build codaqui.
+//
+// URLs válidas do site novo = (arquivos .html/feeds do dist)
+//   ∪ (sources de dist/_redirects) ∪ (targets de dist/_redirects).
+// O brief da Fase 0.6 lista explicitamente os targets; os sources entram
+// também porque a referência contém as URLs legadas que hoje respondem 301
+// pelo edge (sem os sources o gate quebraria justamente nas 16 URLs que o
+// _redirects preserva). Além disso cada target precisa resolver para uma
+// página real do dist ou para outro source — redirect que aponta para o
+// nada é quebrado.
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+import { collectPageUrls, parseRedirects } from "./url-walk.mjs";
 
 const ROOT = join(import.meta.dirname, "..", "..");
-const OLD = join(ROOT, "build");
 const NEW = join(ROOT, "frontend", "dist");
+const REDIRECTS_FILE = join(NEW, "_redirects");
+const REFERENCE_FILE = join(ROOT, "frontend", "scripts", "url-reference.json");
 
-// Guard anti falso-verde: sem o build/ de referência (gitignored — ausente em
-// clone fresco/worktree/CI), o gate passa vacuo ("0 URLs na referência").
-if (!existsSync(OLD)) {
-  console.error(
-    "✖ diff-urls: build/ de referência não encontrado — rode `npm run build` na raiz (Docusaurus) ou crie o symlink `ln -s <repo>/build build`",
-  );
-  process.exit(1);
-}
-
-// Histórico: /^\/blog\/archive/ ficou excluído durante a 0.2 porque os stubs
-// de redirect ainda não existiam; a Fase 0.3 (Task 13) criou os stubs em
-// frontend/src/pages/blog/archive/ e a exclusão foi removida. Já
-// /^\/comunidades(\/|$)/ ficou excluído durante a 0.5 (T6–T8 portaram os
-// tenants/wrappers aos poucos); a Task 9 (wrappers campostechpg) removeu a
-// exclusão e incluiu a seção comunidades no gate — cobertura 100% do portal.
 const EXCLUDE = [
-  /^\/@[^/]+/, // perfis públicos — só existem no build com API (0 na referência)
+  /^\/@[^/]+/, // perfis públicos — só existem com API em build (0 na referência)
 ];
 
-// Seções caminhadas recursivamente (o Docusaurus emite o índice da seção como
-// arquivo irmão <seção>.html, não como <seção>/index.html — por isso o sibling).
-const SECTIONS = ["admin", "membro", "auth", "blog", "trilhas", "eventos", "sobre", "participe", "quero", "membros", "certificado", "comunidades"];
-// Páginas soltas na raiz: build/<nome>.html → /<nome>. "" é a homepage.
-const TOP_LEVEL = [
-  "",
-  "contato",
-  "projetos",
-  "transparencia",
-  "bio",
-  "clube",
-  "patrocinadores",
-  "regex",
-  "termos-de-compra",
-  "team",
-  "contact",
-  "conduta",
-  "ong",
-  "timeline",
-  "pais_responsaveis",
-  "design-system",
-];
-
-function walk(dir, pattern) {
-  const out = [];
-  if (!existsSync(dir)) return out;
-  const stack = [dir];
-  while (stack.length) {
-    const current = stack.pop();
-    for (const entry of readdirSync(current, { withFileTypes: true })) {
-      const full = join(current, entry.name);
-      if (entry.isDirectory()) stack.push(full);
-      else if (pattern.test(entry.name)) out.push(full);
-    }
+// Guard anti falso-verde: sem a referência versionada (ou corrompida), o
+// gate passaria vacuo. Regenerar exige o build/ Docusaurus ainda presente:
+// `node scripts/archive-urls.mjs` (na pasta frontend/).
+function loadReference() {
+  if (!existsSync(REFERENCE_FILE)) {
+    console.error(
+      "✖ diff-urls: url-reference.json não encontrado — gere com `node scripts/archive-urls.mjs` (precisa do build/ Docusaurus, antes da deleção dele)",
+    );
+    process.exit(1);
   }
-  return out;
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(REFERENCE_FILE, "utf8"));
+  } catch (err) {
+    console.error(`✖ diff-urls: url-reference.json corrompido (${err.message}) — regenere com \`node scripts/archive-urls.mjs\``);
+    process.exit(1);
+  }
+  if (!Array.isArray(parsed) || parsed.some((u) => typeof u !== "string")) {
+    console.error("✖ diff-urls: url-reference.json inválido (esperado: array de strings) — regenere com `node scripts/archive-urls.mjs`");
+    process.exit(1);
+  }
+  return new Set(parsed);
 }
 
-function toUrl(file, base) {
-  let url = `/${relative(base, file).replace(/\\/g, "/")}`;
-  if (url.endsWith("/index.html")) url = url.slice(0, -"index.html".length); // keep trailing dir
-  else url = url.replace(/\.html$/, "");
-  return url.replace(/\/$/, "") || "/";
-}
-
-function urlsOf(base, section) {
-  const dir = join(base, section);
-  // O Docusaurus emite o índice da seção como arquivo irmão (blog.html,
-  // trilhas.html), não como <seção>/index.html — sem o sibling, /blog e
-  // /trilhas ficam fora da comparação. No Astro o índice é <seção>/index.html
-  // e o sibling simplesmente não existe (existsSync guarda os dois lados).
-  const sibling = join(base, `${section}.html`);
-  const files = [
-    ...walk(dir, /\.html$/),
-    ...walk(dir, /^(rss\.xml|atom\.xml|feed\.json)$/),
-    ...(existsSync(sibling) ? [sibling] : []),
-  ];
-  return new Set(files.map((f) => toUrl(f, base)).filter((u) => !EXCLUDE.some((re) => re.test(u))));
-}
-
-function topLevelUrls(base) {
-  // Docusaurus emite páginas de topo como <nome>.html na raiz; o Astro emite
-  // <nome>/index.html. Aceitar os dois formatos de cada lado.
-  const files = TOP_LEVEL.flatMap((name) =>
-    name === "" ? [join(base, "index.html")] : [join(base, `${name}.html`), join(base, name, "index.html")],
-  );
-  return new Set(
-    files
-      .filter((f) => existsSync(f))
-      .map((f) => toUrl(f, base))
-      .filter((u) => !EXCLUDE.some((re) => re.test(u))),
-  );
-}
-
-let missing = 0;
-function compare(label, oldUrls, newUrls) {
-  const absent = [...oldUrls].filter((u) => !newUrls.has(u));
-  for (const url of absent) console.error(`✖ FALTA no build Astro: ${url}`);
-  missing += absent.length;
-  const extra = [...newUrls].filter((u) => !oldUrls.has(u));
-  if (extra.length) console.log(`ℹ URLs novas em ${label} (não existiam no Docusaurus): ${extra.join(", ")}`);
-  console.log(`→ ${label}: ${oldUrls.size} URLs na referência, ${absent.length === 0 ? "todas presentes" : "FALTANDO"}`);
-}
-
-for (const section of SECTIONS) {
-  compare(`/${section}`, urlsOf(OLD, section), urlsOf(NEW, section));
-}
-compare("/", topLevelUrls(OLD), topLevelUrls(NEW));
-
-if (missing > 0) {
-  console.error(`✖ diff-urls: ${missing} URL(s) faltando`);
+if (!existsSync(NEW)) {
+  console.error("✖ diff-urls: frontend/dist não encontrado — rode `npm run build` no frontend");
   process.exit(1);
 }
-console.log("✔ diff-urls: paridade 100% nas seções públicas cobertas");
+
+const reference = loadReference();
+const distUrls = collectPageUrls(NEW, { exclude: EXCLUDE });
+
+let redirects = { rules: [], sources: new Set(), targets: new Set() };
+if (existsSync(REDIRECTS_FILE)) {
+  redirects = parseRedirects(readFileSync(REDIRECTS_FILE, "utf8"));
+}
+
+// Targets com query string (ex.: /admin/lancamento?tab=transferencias)
+// resolvem contra o path estático — a query é consumida client-side pela
+// página destino. Normaliza para o path puro antes de checar existência.
+const targetPath = (t) => t.split(/[?#]/)[0];
+const targetPaths = new Set([...redirects.targets].map(targetPath));
+
+// URLs servidas pelo site novo: páginas do dist + sources (respondem 301 no
+// edge) + targets (precisam existir para os redirects não apontarem pro
+// nada). O brief da Fase 0.6 lista explicitamente os targets; os sources
+// entram também porque a referência contém as URLs legadas que hoje
+// respondem 301 pelo edge (sem os sources o gate quebraria justamente nas 16
+// URLs que o _redirects preserva).
+const valid = new Set([...distUrls, ...redirects.sources, ...targetPaths]);
+
+const absent = [...reference].filter((u) => !valid.has(u));
+for (const url of absent) console.error(`✖ FALTA no site novo: ${url}`);
+
+// Redirect para o nada: target (sem query) que não é página do dist nem
+// outro source.
+const dangling = [...targetPaths].filter(
+  (t) => !distUrls.has(t) && !redirects.sources.has(t),
+);
+for (const target of dangling) console.error(`✖ _redirects com target sem página: ${target}`);
+
+const extra = [...valid].filter((u) => !reference.has(u));
+if (extra.length) {
+  console.log(`ℹ URLs novas no site novo (não existiam na referência): ${extra.join(", ")}`);
+}
+
+if (absent.length > 0 || dangling.length > 0) {
+  console.error(`✖ diff-urls: ${absent.length} URL(s) faltando, ${dangling.length} redirect(s) órfão(s)`);
+  process.exit(1);
+}
+console.log(
+  `✔ diff-urls: paridade 100% — ${reference.size} URLs na referência, ${extra.length} extras informativas (${distUrls.size} páginas no dist + ${redirects.rules.length} redirects)`,
+);
