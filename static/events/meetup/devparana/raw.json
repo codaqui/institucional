@@ -1,6 +1,37 @@
 {
-  "generatedAt": "2026-10-23T08:01:57.153Z",
+  "generatedAt": "2026-10-29T17:01:02.790Z",
   "events": [
+    {
+      "id": "317074666",
+      "title": "[Ingá.php] Encontro #4 de 2026",
+      "summary": "🚀 Meetup da comunidade Ingá.php A Comunidade Ingá.php seguirá 2026 com os eventos presenciais! 👩‍💻👨‍💻 O público alvo do evento são pessoas que possuam interesse por tecnologia, principalmente programadores PHP, ind…",
+      "startAt": "2026-10-23T19:00:00-03:00",
+      "endAt": "2026-10-23T20:30:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Vivaworks · R. Arthur Thomas, 596 - Sala 102 - Zona 01, Maringá - PR, 87013-250 · Maringá",
+      "href": "https://www.meetup.com/developerparana/events/317074666/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 11,
+      "creatorName": "Danilo Pinotti",
+      "creatorId": "475426391",
+      "organizers": [
+        {
+          "name": "Danilo Pinotti",
+          "id": "475426391"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/e/c/highres_536727628.jpeg"
+    },
     {
       "id": "317017132",
       "title": "15º Meetup DevParaná Cascavel",
@@ -111,6 +142,37 @@
       "imageUrl": "https://secure.meetupstatic.com/photos/event/2/e/9/7/highres_536171927.jpeg"
     },
     {
+      "id": "317102213",
+      "title": "Meetup DevParaná - Esquenta DevPR Conf",
+      "summary": "ATENÇÃO: As inscrições oficiais devem ser realizadas clicando AQUI, este cadastro é apenas para divulgação. O DevParaná é uma comunidade 100% voluntária focada na troca de conhecimentos, no networking e no fortaleciment…",
+      "startAt": "2026-11-04T19:00:00-03:00",
+      "endAt": "2026-11-04T22:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Vale do Pinhão · R. Eng. Rebouças, 1732 - Rebouças, Curitiba - PR, 80230-040, Brazil · Rebouças · PR",
+      "href": "https://www.meetup.com/developerparana/events/317102213/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "scheduled",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Welington Oliveira da Silva",
+      "creatorId": "442863629",
+      "organizers": [
+        {
+          "name": "Welington Oliveira da Silva",
+          "id": "442863629"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/8/f/highres_536753903.jpeg"
+    },
+    {
       "id": "316574270",
       "title": "14º Meetup DevParaná Cascavel",
       "summary": "🚀 Uma noite para aprender, conectar e evoluir como desenvolvedor! O DevParaná Cascavel convida toda a comunidade de tecnologia da região para uma noite especial de compartilhamento de conhecimento, networking e troca d…",
@@ -140,37 +202,6 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/f/b/c/highres_536164028.jpeg"
-    },
-    {
-      "id": "317074666",
-      "title": "[Ingá.php] Encontro #4 de 2026",
-      "summary": "🚀 Meetup da comunidade Ingá.php A Comunidade Ingá.php seguirá 2026 com os eventos presenciais! 👩‍💻👨‍💻 O público alvo do evento são pessoas que possuam interesse por tecnologia, principalmente programadores PHP, ind…",
-      "startAt": "2026-10-23T19:00:00-03:00",
-      "endAt": "2026-10-23T20:30:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Meetup",
-      "host": "Dev Paraná",
-      "location": "Vivaworks · R. Arthur Thomas, 596 - Sala 102 - Zona 01, Maringá - PR, 87013-250 · Maringá",
-      "href": "https://www.meetup.com/developerparana/events/317074666/",
-      "tags": [
-        "meetup",
-        "devparana",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento no Meetup",
-      "featured": false,
-      "status": "scheduled",
-      "entityType": "external",
-      "userCount": 8,
-      "creatorName": "Danilo Pinotti",
-      "creatorId": "475426391",
-      "organizers": [
-        {
-          "name": "Danilo Pinotti",
-          "id": "475426391"
-        }
-      ],
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/e/c/highres_536727628.jpeg"
     },
     {
       "id": "315991184",
