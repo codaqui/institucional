@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo do plano Codaqui 1.0.0 — itens transversais G3–G6 decididos pela presidência em 2026-10-29 (anti-captcha Cloudflare Turnstile, busca do site, certificados sem validade, retenção de auditoria). Mapeamento por fase (1a–7) com arquitetura proposta.
 audience: Presidência, mantenedores, AI agents implementando as fases 1a em diante.
-status: design registrado em 2026-10-29 (decisões G3–G6 da presidência); Turnstile = candidata aprovada Cloudflare Turnstile gratuita (site já está no Cloudflare); busca = recomendação Pagefind (site pós-Fase 0 não tem busca); certificados = decisão sem mudança de código; auditoria = retenção operacional 30 dias configurável + governo permanente.
+status: design registrado em 2026-10-29 (decisões G3–G6 da presidência); Turnstile = candidata aprovada Cloudflare Turnstile gratuita (site já está no Cloudflare); busca = recomendação Pagefind (site pós-Fase 0 não tem busca); certificados = decisão sem mudança de código; auditoria = retenção operacional 30 dias **configurável por painel admin** (ratificado) + governo permanente.
 sections:
   - G3 — Anti-captcha (Cloudflare Turnstile): mapeamento, arquitetura, fallbacks, fase
   - G4 — Busca do site: comparativo, recomendação Pagefind, pontos de instalação, o que não busca, fase
@@ -29,7 +29,7 @@ agent-protocol:
 | **G3 Anti-captcha** | Cloudflare Turnstile (gratuito) | Infra na **1a**; obrigatório antes da **4b** (primeiro formulário público) |
 | **G4 Busca** | Pagefind (recomendado neste anexo) | **1b** |
 | **G5 Certificados** | Sem validade — decisão registrada, zero código | — (nota na ADR futura de certificados/horas) |
-| **G6 Auditoria** | Operacional 30d rotativo (env configurável) + governo permanente | **1a** |
+| **G6 Auditoria** | Operacional 30d rotativo (**configurável por painel admin**, env como fallback) + governo permanente | **1a** |
 
 ---
 
@@ -128,15 +128,16 @@ Separar em duas classes com retenções distintas:
 | Classe | Conteúdo | Retenção |
 |---|---|---|
 | **Auditoria de governo** | Concessões e decisões: mudanças de `roles`, concessão de selo/tier, aprovações de horas/mentores/embaixadores, criação/encerramento de diretorias e projetos, assembleias, finalização de campanhas C4P, mudanças de vínculo de avaliador | **Permanente — nunca expira** (baixíssimo volume; é a trilha de atos da associação) |
-| **Logs operacionais** | `auth.login/logout`, `event.checkin`, importações de participantes, syncs internos, overrides de evento, edição de templates de e-mail, cancelamentos Stripe | **Rotativo: 30 dias por padrão**, via flag configurável para aumentar com o crescimento |
+| **Logs operacionais** | `auth.login/logout`, `event.checkin`, importações de participantes, syncs internos, overrides de evento, edição de templates de e-mail, cancelamentos Stripe | **Rotativo: 30 dias por padrão**, **configurável pelo painel admin** (ver implementação) para aumentar com o crescimento |
 
 ### Implementação proposta (backend, padrões do monorepo)
 
 1. **Coluna `category`** em `audit_logs` (`'governance' \| 'operational'`, migration aditiva, default `'operational'` + índice composto `(category, createdAt)`). O mapeamento action → category vive junto ao enum `AuditAction` (código), não em banco.
-2. **Flag configurável:** env `AUDIT_OPERATIONAL_RETENTION_DAYS` (default **30**) lida no `AuditService` — substitui a constante hardcoded; documentar em `backend/.env.example`. Aumentar a retenção = mudar env, sem deploy.
-3. **Cron de purga:** cron diário (ex.: 03:00, `CronExpression.EVERY_DAY_AT_3AM` — mesmo pattern dos crons do módulo `notifications`) chamando `cleanupOperational()`: `DELETE FROM audit_logs WHERE category='operational' AND createdAt < now() - <retention> days`. Categoria `governance` **nunca** entra na purga. Logar contagem removida.
-4. **API admin:** `GET /audit/logs` ganha filtro `category`; `POST /audit/cleanup` executa a mesma política (manual = operacional apenas, com o retention do env). Swagger atualizado.
-5. **LGPD/compliance:** retenção de 30 dias do operacional e permanência do governo (legítimo interesse/obrigação de prestação de contas de associação sem fins lucrativos) são **declarados na Política de Privacidade** (P1, Fase 1b) e no inventário `docs/modules/privacy/`.
+2. **Retenção configurável por painel (✅ ratificado 2026-10-29):** `AUDIT_OPERATIONAL_RETENTION_DAYS` (default **30**) como *fallback de env*; o valor efetivo fica em **configuração editável pelo admin** — tabela `app_settings` (chave-valor simples: `key`, `value`, `updatedById`, `updatedAt` — mesma família do padrão `email_templates`) com `GET/PUT /admin/settings/audit-retention` (role `admin`, audit em governo). O `AuditService` resolve env → settings (settings vence quando presente), validando o range (ex.: 7–365). Sem deploy para ajustar: admin muda no painel e o cron do dia seguinte aplica.
+3. **Painel admin:** seção em `/admin` (Fase 1b/1a-frontend) com campo numérico "Retenção de logs operacionais (dias)" + hint do valor efetivo (env vs. override) — seguindo o padrão de tela admin do repo (guarda, authFetch, Alert).
+4. **Cron de purga:** cron diário (ex.: 03:00, `CronExpression.EVERY_DAY_AT_3AM` — mesmo pattern dos crons do módulo `notifications`) chamando `cleanupOperational()`: `DELETE FROM audit_logs WHERE category='operational' AND createdAt < now() - <retention> days`. Categoria `governance` **nunca** entra na purga. Logar contagem removida.
+5. **API admin:** `GET /audit/logs` ganha filtro `category`; `POST /audit/cleanup` executa a mesma política (manual = operacional apenas, com o retention efetivo). Swagger atualizado.
+6. **LGPD/compliance:** retenção de 30 dias do operacional (ajustável pelo painel, declarada na política) e permanência do governo (legítimo interesse/obrigação de prestação de contas de associação sem fins lucrativos) são **declarados na Política de Privacidade** (P1, Fase 1b) e no inventário `docs/modules/privacy/`.
 
 ### O que nunca expira
 
