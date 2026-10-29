@@ -1,12 +1,12 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b; anexada em 2026-10-05 a Fase 0 (refatoração do frontend Docusaurus → Astro, multi-tenant por build matrix no Cloudflare Pages, fim dos workers/) — ver refatoracao-frontend-astro.md; ampliado em 2026-10-20: Design System Codaqui integrado à Fase 0 (tokens novos + correção de contraste WCAG + página pública /design-system — ver design-system.md) e C4P integrado como subsistema G / Fase 7, fechando o 1.0.0 (ver c4p.md — sistema externo validado no DevPR Conf 2026, portado com submissão pública); **atualizado em 2026-10-29: Fase 0 CONCLUÍDA (0.1–0.6 + fases adjuntas, ADR 011 implementada, sites nos 4 domínios servidos por CI a partir de main; backend em 0.11.5 com hardening de segurança) — ordem das fases 1a→7 mantida, com reduções de escopo na 1b já entregues pela Fase 0 (ver nota na tabela de fases)**.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b; anexada em 2026-10-05 a Fase 0 (refatoração do frontend Docusaurus → Astro, multi-tenant por build matrix no Cloudflare Pages, fim dos workers/) — ver refatoracao-frontend-astro.md; ampliado em 2026-10-20: Design System Codaqui integrado à Fase 0 (tokens novos + correção de contraste WCAG + página pública /design-system — ver design-system.md) e C4P integrado como subsistema G / Fase 7, fechando o 1.0.0 (ver c4p.md — sistema externo validado no DevPR Conf 2026, portado com submissão pública); **atualizado em 2026-10-29: Fase 0 CONCLUÍDA (0.1–0.6 + fases adjuntas, ADR 011 implementada, sites nos 4 domínios servidos por CI a partir de main; backend em 0.11.5 com hardening de segurança) — ordem das fases 1a→7 mantida, com reduções de escopo na 1b já entregues pela Fase 0 (ver nota na tabela de fases); adicionado o subsistema H — Codaqui Universitário (Fase 4b, bases compartilhadas com o subsistema C)**.
 sections:
   - Visão e princípios
   - Estado atual revisado
   - Decisões de design (alinhadas com a presidência em 2026-09-21)
-  - Subsistemas (A–G)
+  - Subsistemas (A–H)
   - Sistema de e-mail (melhorias transversais E1/E2)
   - Arquitetura de menus e navegação (UX)
   - Relatórios & exportações (R1–R3)
@@ -43,7 +43,7 @@ agent-protocol:
 
 ## Visão e princípios
 
-Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), mentoria (#QueroMentoria com agendamento e sessões), ecossistema de comunidades (níveis + selo), apoio empresarial (tiers) e **chamadas de trabalhos (C4P)** com submissão pública e curadoria.
+Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), **presença universitária (Codaqui Universitário: cidades, IES, embaixadores, eventos nas instituições)**, mentoria (#QueroMentoria com agendamento e sessões), ecossistema de comunidades (níveis + selo), apoio empresarial (tiers) e **chamadas de trabalhos (C4P)** com submissão pública e curadoria.
 
 Princípios:
 
@@ -200,6 +200,29 @@ Feature muito solicitada pelas comunidades, validada como sistema externo em pro
 
 > **Detalhamento completo** — modelo de dados, rotas, papéis, integração com eventos, LGPD e o que descartar do sistema externo: [c4p.md](c4p.md).
 
+### H. Codaqui Universitário (adicionado 2026-10-29)
+
+Programa de presença em Instituições de Ensino Superior (IES): membro da comunidade **gestiona o programa**, cadastra-se **cidades** e **IES**, seleciona-se um **embaixador por IES** e o foco é **organizar eventos dentro da instituição** — reaproveitando a plataforma de eventos existente (inscrição, check-in, certificado e **horas automáticas**) e as bases do **subsistema C** (entidades/projetos de extensão).
+
+**Gestão:** papel `gestor_universitario` (global, designado pela diretoria — mesmo padrão de concessão com `audit`).
+
+**Entidades (reaproveitamento explícito do subsistema C):**
+- **`cities`** (nova — **base compartilhada**): `id`, `name`, `uf`, `isActive`. Usada por IES (`entities.cityId`) e candidata a uso futuro por comunidades/entidades em geral.
+- **`entities`** (JÁ EXISTE no subsistema C): o cadastro de IES **é uma entity de type `'instituicao_ensino'`** — o Universitário NÃO duplica cadastro. Acréscimo mínimo ao modelo do subsistema C: `entities.cityId?` (FK → `cities`).
+- **`institution_ambassadors`** (nova): `id`, `entityId` (IES), `memberId`, `status` ('appointed' | 'active' | 'removed'), `appointedById`, `confirmedById?`, `since`, `validUntil?`. Guarda: **1 embaixador active por IES** (unique parcial). Substitui o pattern manual de `ambassadors.json` do DevParaná (dados migráveis).
+- **`managed_events`** (JÁ EXISTE): acréscimo de `institutionId?` (FK → `entities`, somente type IES) — um evento "do Universitário" é um managed event comum **com vínculo à IES**; inscrição, check-in atômico, certificado e o hook de horas (`event_checkin`) funcionam sem mudança.
+
+**Fluxo:**
+1. Diretoria designa o(s) gestor(es) do programa (role `gestor_universitario`).
+2. Gestor cadastra cidades e as IES (entity `instituicao_ensino` + cidade; se a entidade já existir pelo fluxo do subsistema C, apenas vincula).
+3. **Seleção de embaixador:** membro candidata-se pela página do programa ("Quero ser embaixador" na IES, com motivação) → gestor avalia → **admin confirma** (padrão de concessões auditáveis) → embaixador active. Empossado, o embaixador ganha o atalho de criar eventos na sua IES.
+4. **Eventos na IES:** embaixador/gestor cria o managed event com `institutionId` (organizer via `event_organizer_ownership` existente) → divulgação, inscrição, check-in e certificado pelo fluxo atual; horas entram no `hour_ledger` como `event_checkin` (Fase 2).
+5. **Casa com Projeto de Extensão (subsistema C):** quando o evento/ação na IES tem enquadramento extensionista formal, cria-se um `extension_project` vinculado à **mesma entity** (a IES) → horas por `extension_project`, mentor designado, participantes e relatório — sem tabela nova: a ponte é `extension_projects.entityId` (já existente) + o vínculo conceitual gestor↔diretor responsável.
+
+**Frontend:** `/universitario` (pública: o programa, vitrine de cidades/IES com embaixadores, eventos nas IES via filtro de `institutionId`, CTA de candidatura); painel do gestor (`/admin/universitario`: CRUD cidades/IES, fila de candidaturas, visão do programa); atalho do embaixador (criar evento na minha IES, meus eventos). Snapshot público `static/universities/index.json` (cidades + IES + embaixadores ativos), seguindo o padrão dos syncs.
+
+> **Base compartilhada com o subsistema C (revisão solicitada):** `entities` (IES = entity), `cities` (nova, compartilhada), `extension_projects` (ponte via entityId), `hour_ledger` (fontes `event_checkin`/`extension_project` já previstas), eventos (`managed_events.institutionId`). O subsistema C absorve `entities.cityId` sem quebra — migração aditiva.
+
 ## Sistema de e-mail (melhorias transversais)
 
 Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entrar **antes** das fases que dependem de e-mail transacional (Fase 5 mentoria, sobretudo). Duas entregas:
@@ -302,8 +325,8 @@ Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam par
 
 ## Modelo de dados consolidado
 
-Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`, `c4p_calls`, `c4p_talks`, `c4p_evaluators`, `c4p_votes`.
-Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail).
+Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`, `cities`, `institution_ambassadors`, `c4p_calls`, `c4p_talks`, `c4p_evaluators`, `c4p_votes`.
+Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`, `gestor_universitario`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail), `entities` (+`cityId` — base compartilhada com o Universitário), `managed_events` (+`institutionId` — eventos em IES).
 Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `managed_events.workloadMinutes` já existem). Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
 
 > **Nota — duas ledgers, zero mistura:** a `hour_ledger` é independente da ledger financeira (`Account`/`Transaction`): unidade horas vs. BRL, sem double-entry, sem contas compartilhadas. O que ela herda é apenas o *padrão* (trilha de auditoria, status de aprovação, convenção de referências). Dinheiro — incluindo a caixa das comunidades integradas — segue exclusivamente na ledger financeira.
@@ -316,6 +339,7 @@ Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `manag
 | `diretor` | global leitura + escrita na própria diretoria (voluntários, horas, entidades, parcerias, projetos) |
 | `voluntario` | membro com vínculo a diretoria — sem permissões administrativas |
 | `mentor` | programa #QueroMentoria: própria disponibilidade, confirmação e realização de sessões |
+| `gestor_universitario` | programa Codaqui Universitário: cidades, IES, candidaturas de embaixador, visão do programa (Fase 4b) |
 | `finance-analyzer` | aprovação de horas + visão financeira |
 | mentor de extensão (não é role; é vínculo) | lança horas nos próprios projetos |
 | responsável de comunidade (vínculo) | painel da própria comunidade |
@@ -325,7 +349,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 ## Frontend e snapshots
 
-- **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores), snapshot por membro para o perfil público `/@handle` (campos e históricos **já filtrados por visibilidade**) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
+- **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores), `static/universities/index.json` (cidades + IES + embaixadores ativos do Universitário), snapshot por membro para o perfil público `/@handle` (campos e históricos **já filtrados por visibilidade**) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
 - **Giscus:** categoria "Assembleias" por pathname (configuração por página, igual ao blog).
 - **Admin:** páginas novas seguem o padrão `/admin/*` (guarda de login, authFetch, Alert de erro).
 - **Dados públicos:** páginas leem snapshots; dados privados (filas de aprovação) vão direto à API.
@@ -340,6 +364,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
+| **4b. Codaqui Universitário** (adicionado 2026-10-29) | `cities` + `entities.cityId` + `institution_ambassadors` + `managed_events.institutionId` + papel `gestor_universitario` + página `/universitario` + painel do gestor — **bases compartilhadas com o subsistema C** (IES = entity; ponte de extensão via `extension_projects.entityId`) | Cidade→IES→embaixador (1 active/IES, seleção gestor+confirmação admin)→evento na IES com inscrição/check-in/certificado/horas reais; ação extensionista vira projeto de extensão na mesma entity; snapshot público `static/universities/` |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 | **7. C4P** (anexada 2026-10-20) | Porte do sistema externo de C4P (curadoria: importação CSV, avaliadores, votação por critérios, dashboard, PDF) **+ submissão pública** + resultado público opt-in — detalhes: [c4p.md](c4p.md) | Submissão pública ponta a ponta com consentimento LGPD; curadoria completa (convite→votação→finalização→e-mails); importação CSV compatível com o Google Forms atual; notas nunca públicas; ADR 012 implementada |
@@ -350,7 +375,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 > - **Dependências críticas inalteradas**: F5 (mentoria) precisa de E1 (e-mail) + P1/P2 (LGPD) + hour_ledger (F2); F2 precisa de directorates (1a) e do check-in atômico (✅ 0.11.x); F3 precisa da categoria Giscus "Assembleias" (risco 1 — tarefa manual a fazer antes).
 > - **C4P (F7)** continua independente das fases 1–6 — se a presidência quiser antecipá-la (feature mais solicitada), é possível sem quebrar dependências; por ora mantém-se como fecho do 1.0.0.
 
-Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS); **0.11.3–0.11.5 consumidas no hardening pós-Fase 0** (whitelist www do tenant, fixes de dependências do Trivy, paginação de membros + `/docs-json` público) — fora do mapa, sem mudar a sequência. Mapa remapeado em 2026-10-05 e novamente em 2026-10-20 (entrada do C4P): **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **0.15.0** (fase 6, business) → **1.0.0** (fase 7, C4P — a versão 1.0.0 fecha com a feature mais solicitada pelas comunidades). Cada fase com `npm run build && npx jest` verde no backend e `check && build && test` no frontend (Astro — ver AGENTS.md), além de bump de versão por fase (feat → minor). A **Fase 0 não alterou o backend** (refactor só de apresentação) e não consumiu versão de API — as 0.11.x pós-cutover foram hardening, não funcionalidade.
+Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS); **0.11.3–0.11.5 consumidas no hardening pós-Fase 0** (whitelist www do tenant, fixes de dependências do Trivy, paginação de membros + `/docs-json` público) — fora do mapa, sem mudar a sequência. Mapa remapeado em 2026-10-05 e novamente em 2026-10-20 (entrada do C4P): **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4–4b) → **0.14.0** (fase 5, mentoria) → **0.15.0** (fase 6, business) → **1.0.0** (fase 7, C4P — a versão 1.0.0 fecha com a feature mais solicitada pelas comunidades). Cada fase com `npm run build && npx jest` verde no backend e `check && build && test` no frontend (Astro — ver AGENTS.md), além de bump de versão por fase (feat → minor). A **Fase 0 não alterou o backend** (refactor só de apresentação) e não consumiu versão de API — as 0.11.x pós-cutover foram hardening, não funcionalidade.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
@@ -362,6 +387,7 @@ Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora d
 - **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 - **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))
+- **013 — Codaqui Universitário (cidades, IES, embaixadores, eventos nas instituições)** (Fase 4b — bases compartilhadas com a ADR 008)
 
 ## Riscos e pontos abertos
 
