@@ -124,3 +124,6 @@ lerna-debug.log*
 *.tgz
 *.tar.gz
 *.zip
+
+# Scratch de processo SDD (ledgers/briefs/reports) — não é conteúdo do repo
+.superpowers/
