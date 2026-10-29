@@ -1,0 +1,14 @@
+---
+// Página "Embaixadores" do DevParaná no portal codaqui
+// (/comunidades/devparana/embaixadores).
+import EmbaixadoresPage from "../../../components/astro/community/devparana/EmbaixadoresPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<EmbaixadoresPage config={config} site={site} homeHref={homeHref} />

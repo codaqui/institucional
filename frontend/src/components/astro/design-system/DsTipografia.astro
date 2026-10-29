@@ -1,0 +1,99 @@
+---
+// 04 Tipografia — system fonts (performance é inclusão), escala modular 1.25
+// renderizada ao vivo, pesos 400/500/700/800 e mono para números de impacto.
+const scale = [
+  { token: "--cq-font-size-4xl", rem: "3rem", px: 48, usage: "Heróis e números de impacto" },
+  { token: "--cq-font-size-3xl", rem: "2.25rem", px: 36, usage: "Títulos de página (h1)" },
+  { token: "--cq-font-size-2xl", rem: "1.875rem", px: 30, usage: "Títulos de seção (h2)" },
+  { token: "--cq-font-size-xl", rem: "1.5rem", px: 24, usage: "Subtítulos (h3)" },
+  { token: "--cq-font-size-lg", rem: "1.25rem", px: 20, usage: "Destaques e leads" },
+  { token: "--cq-font-size-base", rem: "1rem", px: 16, usage: "Corpo de texto (base)" },
+  { token: "--cq-font-size-sm", rem: "0.875rem", px: 14, usage: "Texto secundário" },
+  { token: "--cq-font-size-xs", rem: "0.75rem", px: 12, usage: "Legendas e metadados" },
+];
+
+const weights = [
+  { name: "Regular", value: 400, usage: "Corpo de texto" },
+  { name: "Medium", value: 500, usage: "Ênfase sutil" },
+  { name: "Bold", value: 700, usage: "Títulos e labels" },
+  { name: "Black", value: 800, usage: "Títulos principais" },
+];
+---
+
+<section id="tipografia" class="scroll-mt-32 border-t border-border bg-sunken/40">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">04</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Tipografia</h2>
+    <p class="mb-8 max-w-2xl text-text-secondary">
+      <strong>System fonts</strong> — nenhuma webfont baixada: a página abre
+      instantânea em qualquer conexão. Performance é inclusão. Escala modular
+      1.25 sobre a base de 16px.
+    </p>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+      {/* Escala renderizada ao vivo */}
+      <div class="overflow-hidden rounded-lg border border-border bg-surface">
+        <div class="border-b border-border bg-sunken px-4 py-2 text-xs font-bold tracking-wide text-text-secondary uppercase">
+          Escala modular 1.25 (12–48px)
+        </div>
+        <ul class="m-0 list-none divide-y divide-border p-0">
+          {
+            scale.map((s) => (
+              <li class="flex flex-wrap items-baseline gap-x-4 px-4 py-3">
+                <span
+                  class="min-w-0 flex-1 truncate font-sans font-bold"
+                  style={`font-size: var(${s.token}); line-height: 1.2;`}
+                >
+                  Democratizar a tecnologia
+                </span>
+                <span class="shrink-0 font-mono text-xs text-text-secondary">
+                  {s.px}px · {s.usage}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="space-y-6">
+        {/* Famílias */}
+        <div class="rounded-lg border border-border bg-surface p-4">
+          <h3 class="mb-2 text-sm font-extrabold">Famílias</h3>
+          <p class="text-sm font-sans">Texto e títulos — <code class="text-xs">--cq-font-family-base</code></p>
+          <p class="mt-1 font-mono text-[0.7rem] leading-relaxed text-text-secondary">
+            system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial
+          </p>
+          <p class="mt-3 text-sm font-mono">Números de impacto — <code class="text-xs">--cq-font-family-mono</code></p>
+          <p class="mt-1 font-mono text-2xl font-extrabold">692 membros</p>
+        </div>
+
+        {/* Pesos */}
+        <div class="rounded-lg border border-border bg-surface p-4">
+          <h3 class="mb-2 text-sm font-extrabold">Pesos</h3>
+          <ul class="m-0 list-none space-y-1 p-0">
+            {
+              weights.map((w) => (
+                <li class="flex items-baseline justify-between gap-2">
+                  <span style={`font-weight: ${w.value};`} class="text-lg">
+                    {w.name} {w.value}
+                  </span>
+                  <span class="text-xs text-text-secondary">{w.usage}</span>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        {/* Alturas de linha */}
+        <div class="rounded-lg border border-border bg-surface p-4">
+          <h3 class="mb-2 text-sm font-extrabold">Altura de linha</h3>
+          <ul class="m-0 list-none space-y-1 p-0 font-mono text-xs text-text-secondary">
+            <li><code>--cq-line-height-tight: 1.2</code> — títulos</li>
+            <li><code>--cq-line-height-normal: 1.5</code> — UI</li>
+            <li><code>--cq-line-height-loose: 1.7</code> — leitura longa</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

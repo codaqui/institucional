@@ -1,0 +1,20 @@
+---
+// Docs do site whitelabel Elas no Código (build tenant, rota limpa /docs).
+// O corpo da página vive em DocsPage (compartilhado com o wrapper do portal
+// codaqui). Só existe o index: /docs. Qualquer outro slug cai no 404 do Astro.
+import DocsPage from "../../components/astro/community/elasnocodigo/DocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+export function getStaticPaths() {
+  return [{ params: { slug: undefined } }];
+}
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "elasnocodigo";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<DocsPage config={config} site={site} homeHref={homeHref} />

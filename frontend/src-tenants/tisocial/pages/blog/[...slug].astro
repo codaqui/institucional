@@ -1,0 +1,45 @@
+---
+// Página de post do blog da T.I. Social (build tenant, /blog/<slug>).
+// Port 1:1 de /comunidades/tisocial/blog/<slug> no Docusaurus.
+import { getCollection } from "astro:content";
+import CommunityBlogPostPage from "../../components/astro/community/CommunityBlogPostPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import {
+  communityPostUrl,
+  publishedCommunityPosts,
+  sortCommunityPosts,
+} from "../../lib/community-blog";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+export async function getStaticPaths() {
+  return publishedCommunityPosts(await getCollection("communityBlog")).map((post) => ({
+    params: { slug: post.data.slug },
+    props: { post },
+  }));
+}
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+const basePath = tenantBuild ? "/blog" : `${communityBasePath(config)}/blog`;
+
+const { post } = Astro.props;
+const all = sortCommunityPosts(
+  publishedCommunityPosts(await getCollection("communityBlog")),
+);
+const index = all.findIndex((p) => p.data.slug === post.data.slug);
+const newer = index > 0 ? all[index - 1] : undefined;
+const older = index >= 0 && index < all.length - 1 ? all[index + 1] : undefined;
+---
+
+<CommunityBlogPostPage
+  config={config}
+  site={site}
+  homeHref={homeHref}
+  basePath={basePath}
+  post={post}
+  newer={newer ? { title: newer.data.title, url: communityPostUrl(newer, basePath) } : undefined}
+  older={older ? { title: older.data.title, url: communityPostUrl(older, basePath) } : undefined}
+/>

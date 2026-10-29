@@ -1,0 +1,198 @@
+---
+// Gera /@<handle> por membro ativo (build time, API pública) — port do plugin
+// src/plugins/member-pages.ts (Docusaurus). Rotas explícitas têm precedência
+// sobre rest params no roteador do Astro: esta rota só emite as páginas
+// retornadas por getStaticPaths e não colide com as demais páginas do site.
+// Sem API, loadPublicMembers() retorna [] com warn e o build segue — o
+// 404.astro redireciona /@handle → /membros/perfil?handle= como fallback.
+import PublicLayout from "../layouts/PublicLayout.astro";
+import MemberProfileIsland from "../components/islands/MemberProfileIsland";
+import MemberQrCode from "../components/islands/MemberQrCode";
+import { loadPublicMembers } from "../lib/member-pages";
+import {
+  MEMBER_HANDLE_REGEX,
+  buildMemberJsonLd,
+  buildMemberPath,
+  defaultMemberBioFallback,
+  truncateMemberBio,
+} from "../lib/member-path";
+import type { PublicMemberProfile } from "../lib/member-path";
+
+export async function getStaticPaths() {
+  const members = await loadPublicMembers();
+  const seenHandles = new Set<string>();
+  const paths = [];
+
+  for (const member of members) {
+    if (!MEMBER_HANDLE_REGEX.test(member.githubHandle)) {
+      console.warn(
+        `[member-pages] Handle inválido ignorado: ${JSON.stringify(member.githubHandle)} (membro ${member.id})`,
+      );
+      continue;
+    }
+    const key = member.githubHandle.toLowerCase();
+    if (seenHandles.has(key)) {
+      console.warn(
+        `[member-pages] Rota duplicada ignorada: ${buildMemberPath(member.githubHandle)} (membro ${member.id})`,
+      );
+      continue;
+    }
+    seenHandles.add(key);
+    paths.push({
+      params: { handle: `@${member.githubHandle}` },
+      props: { member },
+    });
+  }
+
+  console.log(`[member-pages] ✔ ${paths.length} páginas de membro geradas`);
+  return paths;
+}
+
+interface Props {
+  member: PublicMemberProfile;
+}
+
+const { member } = Astro.props;
+const absoluteUrl = new URL(buildMemberPath(member.githubHandle), Astro.site).toString();
+const jsonLd = buildMemberJsonLd(member, absoluteUrl);
+const description = truncateMemberBio(member.bio, defaultMemberBioFallback(member.name));
+const title = `${member.name} (@${member.githubHandle}) — Codaqui`;
+
+function getRoleLabel(role: string): string {
+  switch (role) {
+    case "admin":
+      return "Organização";
+    case "finance-analyzer":
+      return "Analista Financeiro";
+    case "event_organizer":
+      return "Organizador(a) de eventos";
+    case "event_finance":
+      return "Financeiro de eventos";
+    case "event_host":
+      return "Anfitrião(ã) de evento";
+    case "event_checker":
+      return "Credenciador(a)";
+    default:
+      return "Membro";
+  }
+}
+
+const roles = member.roles?.length ? member.roles : ["membro"];
+const joinedFmt = new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+}).format(new Date(member.joinedAt));
+const shortId = member.id.slice(0, 8).toUpperCase();
+---
+
+<PublicLayout
+  title={title}
+  ogTitle={member.name}
+  description={description}
+  ogImage={member.avatarUrl}
+  ogImageAlt={member.name}
+  ogType="profile"
+  twitterCard="summary"
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto max-w-3xl px-4 py-8 md:py-10">
+    <a
+      href="/membros"
+      class="mb-6 inline-flex items-center gap-1 text-sm text-text-secondary hover:text-link"
+    >
+      ← Voltar para membros
+    </a>
+
+    {/* Carteirinha estática (HTML puro — SEO/crawlers); o QR hidrata via ilha */}
+    <section class="overflow-hidden rounded-2xl border-2 border-action bg-surface shadow-sm">
+      <header class="flex items-center justify-between bg-action px-6 py-3 text-on-action">
+        <span class="text-sm font-extrabold tracking-widest">ASSOCIAÇÃO CODAQUI</span>
+        <span class="text-xs font-semibold">CARTEIRINHA DE MEMBRO</span>
+      </header>
+
+      <div class="grid gap-6 p-6 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div>
+          <div class="flex items-center gap-4">
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              width="96"
+              height="96"
+              loading="lazy"
+              class="h-24 w-24 rounded-full border-4 border-action"
+            />
+            <div>
+              <h1 class="text-2xl font-extrabold text-text-primary">{member.name}</h1>
+              <p class="text-sm text-text-secondary">@{member.githubHandle}</p>
+              <ul class="mt-2 flex flex-wrap gap-2">
+                {roles.map((role) => (
+                  <li
+                    class:list={[
+                      "rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+                      role === "admin"
+                        ? "border-action text-link"
+                        : "border-border text-text-secondary",
+                    ]}
+                  >
+                    {getRoleLabel(role)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-text-secondary">
+            <span>📅 Membro desde {joinedFmt}</span>
+            <span class="font-mono">ID: {shortId}</span>
+          </div>
+
+          {member.bio && (
+            <div class="mt-4">
+              <p class="text-xs text-text-secondary">Autodescrição do membro</p>
+              <p class="mt-1 text-sm italic text-text-secondary">&ldquo;{member.bio}&rdquo;</p>
+            </div>
+          )}
+        </div>
+
+        <div class="flex justify-center">
+          <MemberQrCode client:visible value={absoluteUrl} />
+        </div>
+      </div>
+    </section>
+
+    {/* Links sociais */}
+    <ul class="mt-6 flex flex-wrap gap-4 text-sm">
+      <li>
+        <a
+          href={`https://github.com/${member.githubHandle}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-link hover:text-link-hover"
+        >
+          GitHub @{member.githubHandle}
+        </a>
+      </li>
+      {member.linkedinUrl && (
+        <li>
+          <a
+            href={member.linkedinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-link hover:text-link-hover"
+          >
+            LinkedIn
+          </a>
+        </li>
+      )}
+    </ul>
+
+    {/* Seções dinâmicas públicas (doações, eventos, carteira pública, CLUB Business) */}
+    <MemberProfileIsland
+      client:visible
+      variant="public"
+      routeHandle={member.githubHandle}
+      initialMember={member}
+    />
+  </article>
+</PublicLayout>

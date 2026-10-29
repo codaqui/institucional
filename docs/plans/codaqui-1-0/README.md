@@ -1,12 +1,12 @@
 <!-- AGENT-INDEX
-purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers).
+purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b — aguardando plano de implementação da Fase 1a.
+status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b; anexada em 2026-10-05 a Fase 0 (refatoração do frontend Docusaurus → Astro, multi-tenant por build matrix no Cloudflare Pages, fim dos workers/) — ver refatoracao-frontend-astro.md; aguardando plano de implementação da Fase 0.1; ampliado em 2026-10-20: Design System Codaqui integrado à Fase 0 (tokens novos + correção de contraste WCAG + página pública /design-system — ver design-system.md) e C4P integrado como subsistema G / Fase 7, fechando o 1.0.0 (ver c4p.md — sistema externo validado no DevPR Conf 2026, portado com submissão pública).
 sections:
   - Visão e princípios
   - Estado atual revisado
   - Decisões de design (alinhadas com a presidência em 2026-09-21)
-  - Subsistemas (A–F)
+  - Subsistemas (A–G)
   - Sistema de e-mail (melhorias transversais E1/E2)
   - Arquitetura de menus e navegação (UX)
   - Relatórios & exportações (R1–R3)
@@ -15,7 +15,7 @@ sections:
   - Modelo de dados consolidado
   - Papéis e permissões
   - Frontend e snapshots
-  - Fases e critérios de pronto
+  - Fases e critérios de pronto (Fase 0 → 7)
   - Versionamento 1.0.0
   - ADRs a produzir
   - Riscos e pontos abertos
@@ -25,9 +25,12 @@ related-docs:
   - docs/adrs/001-event-platform.md — plataforma de eventos (será estendida)
   - docs/adrs/002-club-sortcoins.md — Clube individual
   - docs/adrs/003-club-business-pj.md — CLUB Business PJ (vira tier "Empresa Amiga")
-  - docs/adrs/004-multisite-communities.md — whitelabel de comunidades
+  - docs/adrs/004-multisite-communities.md — whitelabel de comunidades (supersedida parcialmente pela Fase 0.5)
   - docs/modules/events/ROLES.md — papéis atuais
   - docs/plans/codaqui-1-0/cadastro-projeto-extensao.md — detalhamento do Cadastro de Projeto de Extensão + comprovantes (subsistema C)
+  - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — ⭐ Fase 0: refatoração do frontend para Astro + multi-tenant por build matrix (anexo oficial)
+  - docs/plans/codaqui-1-0/design-system.md — ⭐ Design System Codaqui: tokens canônicos, correção de contraste WCAG e página pública /design-system (integrado à Fase 0; anexo oficial, 2026-10-20)
+  - docs/plans/codaqui-1-0/c4p.md — ⭐ C4P (Chamada de Trabalhos): subsistema G, Fase 7 — porte do sistema externo validado + submissão pública (anexo oficial, 2026-10-20)
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
@@ -40,7 +43,7 @@ agent-protocol:
 
 ## Visão e princípios
 
-Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), mentoria (#QueroMentoria com agendamento e sessões), ecossistema de comunidades (níveis + selo) e apoio empresarial (tiers).
+Transformar o site de vitrine institucional em **plataforma de gestão da associação**, cobrindo: governança (assembleias), pessoas (diretorias, voluntários, horas), relações institucionais (entidades, parcerias, projetos de extensão), mentoria (#QueroMentoria com agendamento e sessões), ecossistema de comunidades (níveis + selo), apoio empresarial (tiers) e **chamadas de trabalhos (C4P)** com submissão pública e curadoria.
 
 Princípios:
 
@@ -65,6 +68,8 @@ Princípios:
 | Snapshots estáticos (`static/events/`) | Mesmo pattern para `static/assemblies/` e migração de `communities.ts` |
 | `src/data/communities.ts` (5 parceiras, frontend-only) | Migra para tabela `communities` + snapshot |
 | `/participe/mentoria` (estática, Google Calendar externo, mentores hardcoded) | Vira módulo de mentoria: perfis, disponibilidade, agendamento, sessões, insights (subsistema F) |
+| Sistema externo de C4P (validado em produção no DevPR Conf 2026 — curadoria com importação CSV, avaliadores, votação por critérios, PDF) | Portado como subsistema G (Fase 7): módulo NestJS + PostgreSQL, auth por roles, + submissão pública — ver [c4p.md](c4p.md) |
+| Tema MUI/CSS atual (`#57B593` reprova contraste AA como cor acionável) | Design System Codaqui adotado na Fase 0: tokens `--cq-*` + correção de contraste + página pública `/design-system` — ver [design-system.md](design-system.md) |
 | Perfil público `/@handle` (snapshot em build, campos fixos, sem privacidade) | Controles de visibilidade por campo + redesign com badges, timeline e horas |
 | Menu de perfil (navbar, desktop/mobile) | Reagrupado com identidade e seções (UX — ver seção de menus) |
 | Política de Privacidade (**inexistente**) | Criar `/sobre/privacidade` + inventário de tratamentos (`docs/modules/privacy/`) |
@@ -77,6 +82,8 @@ Princípios:
 2. **Comunidades:** 2 níveis — **Parceira** (listada, apoio pontual) e **Integrada** (site + eventos + caixa) — mais o **Selo Codaqui** (processo formal da diretoria, validade de 1 ano, responsável obrigatório).
 3. **Business:** tiers **Empresa Amiga** (só financeiro = CLUB Business PJ atual) e **Empresa Aliada** (Codaqui valida de forma consultiva; selo próprio com validade).
 4. **Horas:** **uma única ledger de horas** (`hour_ledger`, **separada da ledger financeira**) com aprovação — diretor/mentor lança (pending), presidência/finance-analyzer aprova; check-in em eventos (internos **e** externos ativados) entra automaticamente como approved. Derivação das horas de evento (decisão 2026-10-05): `workloadMinutes` do evento; se ausente, a duração (`endAt − startAt`); se nenhuma das duas estiver disponível, a carga horária torna-se **obrigatória** no cadastro/ativação do evento.
+5. **Design System (2026-10-20):** o frontend novo (Fase 0) já nasce com os tokens do **Design System Codaqui** — correção de acessibilidade incluída (`#57B593` vira cor de marca; cor acionável `#378369`) — e o DS ganha uma **versão pública** em `/design-system`. Detalhes: [design-system.md](design-system.md).
+6. **C4P (2026-10-20):** a Chamada de Trabalhos entra como **subsistema G / Fase 7**, fechando o 1.0.0 — porte do sistema externo validado (curadoria) **+ submissão pública** substituindo o Google Forms. Detalhes: [c4p.md](c4p.md).
 
 ## Subsistemas
 
@@ -183,6 +190,16 @@ Traz o programa de mentoria (hoje página estática com Google Calendar externo)
 
 **Frontend:** `/participe/mentoria` reescrita (mentores com chips de área + disponibilidade semanal real + "Agendar" por mentor, passo a passo, números públicos do programa, CTA de candidatura); painel do mentor (disponibilidade, solicitações, próximas sessões, histórico, marcar realizada/no-show); página do mentorando por token; admin (aprovação de mentores, visão detalhada, insights). Lista pública de mentores também em snapshot estático (`static/mentors/`), como eventos.
 
+### G. C4P — Chamada de Trabalhos
+
+Feature muito solicitada pelas comunidades, validada como sistema externo em produção real (C4P do DevPR Conf 2026) e integrada à base na **Fase 7**, fechando o 1.0.0. Escopo: **curadoria portada** (importação CSV, avaliadores por campanha, votação por critérios, dashboard, finalização com PDF) **+ submissão pública** de propostas, substituindo o Google Forms.
+
+**Entidades:** `c4p_calls` (campanha; vínculo opcional a `managed_events` e a `communities`), `c4p_talks` (propostas, com `origin` e consentimento LGPD), `c4p_evaluators` (vínculo membro↔campanha, pattern `event_staff`), `c4p_votes` (scores por critério configurável, upsert).
+
+**Fluxo:** abertura da campanha → submissão pública (`/c4p/<slug>/submeter`, com consentimento) ou importação CSV → convite/aceite de avaliadores → votação → finalização (selecionadas + PDF + e-mails de resultado) → resultado público opt-in (`/c4p/<slug>/resultado`, sem notas).
+
+> **Detalhamento completo** — modelo de dados, rotas, papéis, integração com eventos, LGPD e o que descartar do sistema externo: [c4p.md](c4p.md).
+
 ## Sistema de e-mail (melhorias transversais)
 
 Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entrar **antes** das fases que dependem de e-mail transacional (Fase 5 mentoria, sobretudo). Duas entregas:
@@ -284,7 +301,7 @@ Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam par
 
 ## Modelo de dados consolidado
 
-Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`.
+Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`, `c4p_calls`, `c4p_talks`, `c4p_evaluators`, `c4p_votes`.
 Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail).
 Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `managed_events.workloadMinutes` já existem). Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
 
@@ -301,6 +318,7 @@ Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `manag
 | `finance-analyzer` | aprovação de horas + visão financeira |
 | mentor de extensão (não é role; é vínculo) | lança horas nos próprios projetos |
 | responsável de comunidade (vínculo) | painel da própria comunidade |
+| avaliador C4P (não é role global; vínculo via `c4p_evaluators`) | votação nas campanhas em que está vinculado (Fase 7) |
 
 Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação de horas) ficam com admin/presidência; `finance-analyzer` aprova horas.
 
@@ -315,6 +333,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
+| **0. Refatoração de frontend** (anexada 2026-10-05; DS integrado 2026-10-20) | Docusaurus → **Astro 7 + ilhas React (MUI v9 + Tailwind v4)**; **tokens do Design System Codaqui já no esqueleto (0.1) + página pública `/design-system` (0.3)**; multi-tenant por build matrix no Cloudflare Pages; fim da pasta `workers/` (proxy vira Pages Function) — detalhes e subfases 0.1–0.6: [refatoracao-frontend-astro.md](refatoracao-frontend-astro.md) + [design-system.md](design-system.md) | Paridade de URLs públicas; tokens novos com contraste AA aplicados; `/design-system` publicada; tisocial.org.br com rotas limpas e login cross-domain; cutover de codaqui.dev com rollback ensaiado; Docusaurus removido |
 | **1a. Fundações de dados** (split 2026-10-05) | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas |
 | **1b. UX e transversal** (split 2026-10-05) | **AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
@@ -322,17 +341,20 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
+| **7. C4P** (anexada 2026-10-20) | Porte do sistema externo de C4P (curadoria: importação CSV, avaliadores, votação por critérios, dashboard, PDF) **+ submissão pública** + resultado público opt-in — detalhes: [c4p.md](c4p.md) | Submissão pública ponta a ponta com consentimento LGPD; curadoria completa (convite→votação→finalização→e-mails); importação CSV compatível com o Google Forms atual; notas nunca públicas; ADR 012 implementada |
 
-Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS). Mapa remapeado em 2026-10-05: **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **1.0.0** (fase 6, business). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor).
+Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS). Mapa remapeado em 2026-10-05 e novamente em 2026-10-20 (entrada do C4P): **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4) → **0.14.0** (fase 5, mentoria) → **0.15.0** (fase 6, business) → **1.0.0** (fase 7, C4P — a versão 1.0.0 fecha com a feature mais solicitada pelas comunidades). Cada fase com `npm run build && npx jest` verde no backend e `typecheck && build && test:frontend` no frontend, além de bump de versão por fase (feat → minor). A **Fase 0 não altera o backend** (refactor só de apresentação) e não consome versão de API.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
+- **011 — Refatoração de frontend para Astro + multi-tenant por build matrix** (Fase 0; supersede parcialmente a ADR 004; inclui as decisões de tokens do Design System — ver [design-system.md](design-system.md))
 - **005 — Assembleias híbridas (Discussion + registro fino)**
 - **006 — Diretorias e ledger de horas**
 - **007 — Registro de comunidades, níveis e Selo Codaqui**
 - **008 — Entidades, parcerias e Projetos de Extensão**
 - **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
+- **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))
 
 ## Riscos e pontos abertos
 
@@ -346,6 +368,8 @@ Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora d
 8. **Visibilidade do perfil público:** o snapshot por membro é gerado pelo workflow — uma mudança de privacidade leva até o próximo run para refletir em `/@handle` (documentar no painel: "alterações levam até X minutos").
 9. **Horas pós-cancelamento:** não existe fluxo de desfazer check-in (0.11.x); uma entrada `event_checkin` gerada permanece approved mesmo se a inscrição for cancelada/reembolsada depois — definir com a diretoria se cabe reversão manual na fila de aprovação ou política de "hora registrada não se desfaz".
 10. **Carga horária de eventos externos legados:** ativações externas anteriores à Fase 2 podem não ter duração confiável no snapshot nem `workloadMinutes` — a regra de obrigatoriedade vale para novas ativações; o tratamento de retroativos (backfill manual vs. ignorar) fica para o plano de implementação da Fase 2.
+11. **PII no protótipo do C4P:** o seed do sistema externo contém dados pessoais reais (e-mails/telefones de palestrantes) e uma senha em texto claro — `code-to-analyze/` permanece gitignored e nada disso é portado; o anexo [c4p.md](c4p.md) registra a proibição.
+12. **Avaliador C4P sem conta GitHub:** o design exige membro com OAuth; se a diretoria precisar de avaliadores externos sem cadastro, a alternativa é o pattern de convidado por token (como o mentorando da Fase 5) — decidir no plano de implementação da Fase 7.
 
 ## Fora de escopo (1.0.0)
 

@@ -1,0 +1,12 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import LancamentoApp from "../../components/islands/admin/lancamento/LancamentoApp";
+---
+
+<AppLayout
+  title="Lançamento"
+  pageTitle="Admin — Lançamento | CODAQUI.dev"
+  noindex
+>
+  <LancamentoApp client:only="react" />
+</AppLayout>

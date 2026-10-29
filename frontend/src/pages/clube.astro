@@ -1,0 +1,187 @@
+---
+// Portado de src/pages/clube.tsx (Docusaurus + MUI → Astro + ilhas).
+// Shell estático: hero, abas (script inline, sem estado na URL — igual ao
+// original), aba "Moedas" (textos + alvo do portal #club-wallet-balances) e
+// aba "Como funciona". A carteira/login vive na ClubWalletIsland
+// (client:only) e os sorteios na ClubRafflesIsland (client:visible); as ilhas
+// se comunicam via CustomEvents — ver lib/club.ts.
+import PublicLayout from "../layouts/PublicLayout.astro";
+import PageHero from "../components/astro/PageHero.astro";
+import ClubRafflesIsland from "../components/islands/ClubRafflesIsland";
+import ClubWalletIsland from "../components/islands/ClubWalletIsland";
+
+const TAB_BASE =
+  "flex-1 rounded-lg px-4 py-2.5 text-sm font-bold transition-all sm:flex-initial md:px-6";
+const TAB_STATE =
+  "text-text-secondary aria-selected:bg-primary-500/10 aria-selected:text-link";
+
+const CARD = "h-full rounded-lg border border-border bg-surface p-6";
+const OVERLINE = "mb-1 text-xs font-bold uppercase tracking-wider text-link";
+const BTN_SOLID =
+  "inline-flex items-center rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-white no-underline transition-colors hover:bg-primary-600";
+const BTN_OUTLINE =
+  "inline-flex items-center rounded-lg border border-current px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-primary-500/10";
+---
+
+<PublicLayout
+  title="Clube Codaqui | CODAQUI.dev"
+  ogTitle="Clube Codaqui | CODAQUI.dev"
+  description="SortCoins, sorteios e benefícios exclusivos para apoiadores da Codaqui."
+>
+  <PageHero
+    eyebrow="Clube Codaqui"
+    title="Suas moedas, seus sorteios"
+    subtitle="Cada real doado vira 1 SortCoin — a primeira das moedas do Clube. Use coins para participar de sorteios e benefícios exclusivos."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+    {/* ── Carteira do membro / CTA de login (ilha auth) ── */}
+    <ClubWalletIsland client:only="react" />
+
+    {/* ── Abas ── */}
+    <div class="mb-6 rounded-xl border border-border bg-surface p-2">
+      <div class="flex gap-1 overflow-x-auto" role="tablist" aria-label="Seções do Clube Codaqui">
+        <button
+          type="button"
+          role="tab"
+          data-clube-tab="0"
+          aria-selected="true"
+          aria-controls="clube-panel-0"
+          class:list={[TAB_BASE, TAB_STATE]}
+        >
+          Sorteios
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-clube-tab="1"
+          aria-selected="false"
+          aria-controls="clube-panel-1"
+          class:list={[TAB_BASE, TAB_STATE]}
+        >
+          Moedas
+        </button>
+        <button
+          type="button"
+          role="tab"
+          data-clube-tab="2"
+          aria-selected="false"
+          aria-controls="clube-panel-2"
+          class:list={[TAB_BASE, TAB_STATE]}
+        >
+          Como funciona
+        </button>
+      </div>
+    </div>
+
+    {/* ── Sorteios (ilha pública) ── */}
+    <div id="clube-panel-0" role="tabpanel">
+      <ClubRafflesIsland client:visible />
+    </div>
+
+    {/* ── Moedas ── */}
+    <div id="clube-panel-1" role="tabpanel" hidden>
+      <div class="grid gap-6 md:grid-cols-2">
+        <div class={CARD}>
+          <h3 class="mb-2 text-lg font-bold">Moedas da sua carteira</h3>
+          <p class="mb-4 text-sm text-text-secondary">
+            O Clube suporta múltiplas moedas. Hoje a principal é SortCoin, e novas
+            moedas podem ser habilitadas por função/campanha.
+          </p>
+          {/* A ClubWalletIsland renderiza os saldos aqui via portal. */}
+          <div id="club-wallet-balances"></div>
+        </div>
+        <div class={CARD}>
+          <h3 class="mb-2 text-lg font-bold">Conceito de moedas no Clube</h3>
+          <div class="space-y-2 text-sm text-text-secondary">
+            <p>
+              <strong class="text-text-primary">SortCoin:</strong> usada em sorteios e
+              benefícios do Clube.
+            </p>
+            <p>
+              <strong class="text-text-primary">Moedas futuras:</strong> poderão
+              representar missões, eventos ou campanhas específicas.
+            </p>
+            <p>
+              <strong class="text-text-primary">Status congelada:</strong> a moeda existe
+              na carteira, mas está temporariamente bloqueada para uso.
+            </p>
+          </div>
+          <a href="/participe/apoiar" class:list={[BTN_OUTLINE, "mt-4"]}>
+            Quero apoiar e acumular moedas
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {/* ── Como funciona ── */}
+    <div id="clube-panel-2" role="tabpanel" hidden>
+      <h3 class="mb-2 text-2xl font-extrabold">Como funciona o Clube Codaqui?</h3>
+      <p class="mb-6 max-w-2xl text-text-secondary">
+        O Clube é um sistema de benefícios para quem apoia a Codaqui. Cada real doado se
+        transforma em moedas que dão acesso a sorteios e benefícios exclusivos.
+      </p>
+      <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+        <div class={CARD}>
+          <p class={OVERLINE}>1. Apoie</p>
+          <h4 class="mb-2 text-lg font-bold">Doe e acumule moedas</h4>
+          <p class="mb-4 text-sm text-text-secondary">
+            Cada R$&nbsp;1 doado à Codaqui vira 1 SortCoin na sua carteira. Em breve
+            outras moedas poderão ser ganhas por missões, eventos e campanhas.
+          </p>
+          <a href="/participe/apoiar" class={BTN_SOLID}>Quero apoiar</a>
+        </div>
+        <div class={CARD}>
+          <p class={OVERLINE}>2. Participe</p>
+          <h4 class="mb-2 text-lg font-bold">Entre nos sorteios</h4>
+          <p class="mb-4 text-sm text-text-secondary">
+            Use suas moedas para entrar em sorteios de cursos, livros e gadgets. Quanto
+            mais moedas você usa em um sorteio, maior sua chance de ganhar.
+          </p>
+          <button type="button" data-clube-goto-tab="0" class={BTN_OUTLINE}>
+            Ver sorteios abertos
+          </button>
+        </div>
+        <div class={CARD}>
+          <p class={OVERLINE}>Empresa</p>
+          <h4 class="mb-2 text-lg font-bold">CLUB Business</h4>
+          <p class="mb-4 text-sm text-text-secondary">
+            Empresas apoiadoras ganham moedas para distribuir às suas equipes e
+            visibilidade na página de patrocinadores.
+          </p>
+          <a href="/patrocinadores" class={BTN_OUTLINE}>Ver patrocinadores</a>
+        </div>
+      </div>
+      <div class="mt-6 rounded-lg border border-border bg-sunken p-6">
+        <h4 class="mb-2 text-base font-bold">Transparência total</h4>
+        <p class="text-sm text-text-secondary">
+          Os sorteios usam um algoritmo público e auditável. O seed e o código do sorteio
+          ficam registrados permanentemente — qualquer pessoa pode verificar o resultado.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline>
+    (() => {
+      const tabs = Array.from(document.querySelectorAll("[data-clube-tab]"));
+      const panels = [0, 1, 2].map((i) => document.getElementById("clube-panel-" + i));
+
+      function apply(index) {
+        tabs.forEach((tab) =>
+          tab.setAttribute("aria-selected", String(Number(tab.dataset.clubeTab) === index)),
+        );
+        panels.forEach((panel, i) => {
+          if (panel) panel.hidden = i !== index;
+        });
+      }
+
+      tabs.forEach((tab) =>
+        tab.addEventListener("click", () => apply(Number(tab.dataset.clubeTab))),
+      );
+      document.querySelectorAll("[data-clube-goto-tab]").forEach((el) =>
+        el.addEventListener("click", () => apply(Number(el.dataset.clubeGotoTab))),
+      );
+    })();
+  </script>
+</PublicLayout>

@@ -1,0 +1,88 @@
+---
+// Página de posts por etiqueta — port do BlogTagsPostsPage: banner em
+// gradiente, sidebar, h1 "{n} publicações com a etiqueta \"{label}\"", itens
+// e paginação ("Publicações mais recentes/antigas" dentro da etiqueta).
+import type { CollectionEntry } from "astro:content";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+import CommunityBlogBanner from "./CommunityBlogBanner.astro";
+import CommunityBlogSidebar from "./CommunityBlogSidebar.astro";
+import CommunityBlogPostItem from "./CommunityBlogPostItem.astro";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  /** Base das rotas de blog. */
+  basePath: string;
+  /** Base das rotas desta etiqueta: `${basePath}/tags/${slug}`. */
+  tagBasePath: string;
+  tagLabel: string;
+  totalCount: number;
+  page: number;
+  totalPages: number;
+  posts: CollectionEntry<"communityBlog">[];
+  yearGroups: import("./CommunityBlogSidebar.astro").SidebarYearGroup[];
+}
+
+const {
+  config,
+  site,
+  homeHref,
+  basePath,
+  tagBasePath,
+  tagLabel,
+  totalCount,
+  page,
+  totalPages,
+  posts,
+  yearGroups,
+} = Astro.props;
+
+const title = `${totalCount} publicações com a etiqueta "${tagLabel}"`;
+const prevPageHref = page === 2 ? tagBasePath : `${tagBasePath}/page/${page - 1}`;
+const nextPageHref = `${tagBasePath}/page/${page + 1}`;
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={title}
+  homeHref={homeHref}
+>
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <CommunityBlogSidebar yearGroups={yearGroups} />
+    <main class="min-w-0 flex-1">
+      <CommunityBlogBanner config={config} homeHref={homeHref} />
+      <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{title}</h1>
+      <div class="flex flex-col gap-8">
+        {posts.map((post) => <CommunityBlogPostItem post={post} basePath={basePath} />)}
+      </div>
+      {
+        totalPages > 1 && (
+          <nav
+            class="mt-8 flex justify-between"
+            aria-label="Paginação da etiqueta do blog"
+          >
+            {page > 1 && (
+              <a
+                href={prevPageHref}
+                class="text-sm font-bold text-link no-underline hover:text-link-hover"
+              >
+                ← Publicações mais recentes
+              </a>
+            )}
+            {page < totalPages && (
+              <a
+                href={nextPageHref}
+                class="ms-auto text-sm font-bold text-link no-underline hover:text-link-hover"
+              >
+                Publicações mais antigas →
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </main>
+  </div>
+</CommunityLayout>

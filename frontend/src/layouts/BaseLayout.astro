@@ -1,0 +1,80 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  ogTitle?: string;
+  description?: string;
+  ogImage?: string;
+  ogImageAlt?: string;
+  ogType?: string;
+  twitterCard?: string;
+  jsonLd?: object;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  ogTitle = title,
+  description = "Codaqui — Democratizando comunidades e projetos de tecnologia!",
+  ogImage = "/img/og-codaqui.jpg",
+  ogImageAlt,
+  ogType = "website",
+  twitterCard = "summary_large_image",
+  jsonLd,
+  noindex = false,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImageAbsolute = new URL(ogImage, Astro.site);
+const isProd = import.meta.env.PROD;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={ogTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    {ogImageAlt && <meta property="og:image:alt" content={ogImageAlt} />}
+    <meta property="og:type" content={ogType} />
+    <meta name="twitter:card" content={twitterCard} />
+    <link rel="icon" type="image/png" href="/img/favicon.png" />
+    {noindex && <meta name="robots" content="noindex" />}
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
+    <script is:inline>
+      // Anti-FOUC: resolve o tema antes do primeiro paint.
+      // Fonte de verdade: localStorage "cq-theme" → prefers-color-scheme.
+      (() => {
+        const stored = localStorage.getItem("cq-theme");
+        const mode =
+          stored === "dark" || stored === "light"
+            ? stored
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = mode;
+      })();
+    </script>
+    {isProd && (
+      <>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-CL043JTTND"></script>
+        <script is:inline>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-CL043JTTND', { anonymize_ip: true });
+        </script>
+      </>
+    )}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

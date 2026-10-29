@@ -1,0 +1,30 @@
+---
+// Logo da Codaqui com troca por tema: `logo_principal` (escura) no claro,
+// `logo_monocromatica` (branca) no escuro. O atributo data-theme no <html>
+// é definido pelo script anti-FOUC do BaseLayout.
+interface Props {
+  class?: string;
+}
+
+const { class: className = "h-8 w-auto" } = Astro.props;
+---
+
+<img src="/img/logo_principal.svg" alt="Codaqui" class:list={[className, "brand-logo-light"]} />
+<img
+  src="/img/logo_monocromatica.svg"
+  alt=""
+  aria-hidden="true"
+  class:list={[className, "brand-logo-dark"]}
+/>
+
+<style>
+  .brand-logo-dark {
+    display: none;
+  }
+  :global([data-theme="dark"]) .brand-logo-light {
+    display: none;
+  }
+  :global([data-theme="dark"]) .brand-logo-dark {
+    display: block;
+  }
+</style>

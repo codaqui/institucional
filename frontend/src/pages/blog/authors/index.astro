@@ -1,0 +1,57 @@
+---
+import { getCollection } from "astro:content";
+import PublicLayout from "../../../layouts/PublicLayout.astro";
+import { resolveAuthors } from "../../../lib/blog-utils";
+import type { BlogAuthor } from "../../../data/blog-authors";
+
+// Autores que de fato aparecem nos posts (chaves do authors.yml e autores inline),
+// deduplicados por nome e ordenados alfabeticamente.
+const posts = await getCollection("blog");
+const byName = new Map<string, BlogAuthor>();
+for (const post of posts) {
+  for (const author of resolveAuthors(post.data.authors)) {
+    if (!byName.has(author.name)) byName.set(author.name, author);
+  }
+}
+const authors = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
+---
+
+<PublicLayout
+  title="Autores | CODAQUI.dev"
+  ogTitle="Autores | CODAQUI.dev"
+  description="Autores dos posts do blog da Codaqui."
+>
+  <div class="mx-auto max-w-3xl px-4 py-10">
+    <h1 class="mb-6 text-3xl font-extrabold text-text-primary">Autores</h1>
+    <ul class="flex flex-col gap-6">
+      {
+        authors.map((author) => (
+          <li class="flex items-center gap-4">
+            {author.image_url && (
+              <img
+                src={author.image_url}
+                alt={author.name}
+                width="64"
+                height="64"
+                class="h-16 w-16 rounded-full"
+                loading="lazy"
+              />
+            )}
+            <div>
+              <h2 class="text-xl font-bold">
+                {author.url ? (
+                  <a href={author.url} target="_blank" rel="noopener noreferrer" class="text-text-primary hover:text-link">
+                    {author.name}
+                  </a>
+                ) : (
+                  author.name
+                )}
+              </h2>
+              {author.title && <p class="text-sm text-text-secondary">{author.title}</p>}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</PublicLayout>

@@ -1,0 +1,45 @@
+---
+// Sidebar "Posts recentes" do blog de comunidade — port do BlogSidebar do
+// Docusaurus (blogSidebarTitle: "Posts recentes", blogSidebarCount: 10):
+// posts agrupados por ano (desc), só título linkado.
+export interface SidebarYearGroup {
+  year: number;
+  posts: { url: string; title: string }[];
+}
+
+interface Props {
+  title?: string;
+  yearGroups: SidebarYearGroup[];
+}
+
+const { title = "Posts recentes", yearGroups } = Astro.props;
+---
+
+<aside class="hidden w-64 shrink-0 lg:block">
+  <h2
+    class="m-0 mb-3 text-sm font-bold uppercase tracking-wide text-text-secondary"
+  >
+    {title}
+  </h2>
+  {
+    yearGroups.map((group) => (
+      <div class="mb-4">
+        <h3 class="m-0 mb-2 text-base font-bold text-text-primary">
+          {group.year}
+        </h3>
+        <ul class="m-0 flex list-none flex-col gap-2 p-0">
+          {group.posts.map((post) => (
+            <li>
+              <a
+                href={post.url}
+                class="text-sm text-link no-underline hover:text-link-hover"
+              >
+                {post.title}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</aside>

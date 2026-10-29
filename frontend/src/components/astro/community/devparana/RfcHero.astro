@@ -1,0 +1,187 @@
+---
+// Port 1:1 (zero JS) de comunidades/devparana/src/components/RfcHero —
+// faixa accent com card "vidro": chips RFC id + status, título, resumo,
+// bloco de autor(es), datas e caixa de aprovadores.
+//
+// O original resolve nomes/avatars de autor e aprovadores com um fetch
+// client-side (`useCodaquiMembersBatch`); aqui o enriquecimento é feito em
+// build time pela rota docs (helpers `findRfcMember`/`rfcDisplayName`/
+// `rfcDisplayAvatar` de src/lib/community-devparana.ts) e passado pronto via
+// `members` — sem JS de runtime, com os mesmos fallbacks do fonte.
+import type { PublicMemberProfile } from "../../../../lib/member-path";
+import {
+  findRfcMember,
+  rfcDisplayAvatar,
+  rfcDisplayName,
+  type RfcFrontmatter,
+} from "../../../../lib/community-devparana";
+
+interface Props {
+  frontmatter: RfcFrontmatter;
+  /**
+   * Título exibido no h1 do hero. O fonte usa o `export const frontmatter` do
+   * MDX ("Projeto Embaixadores"), que difere do `title` do YAML ("RFC 001 — …",
+   * usado no h1 da página/docs theme) — a rota docs passa o título da
+   * listagem `devparanaRfcList()` (mesma fonte do `export const`).
+   */
+  title?: string;
+  /** Membros da API pública (build time) para enriquecer nomes/avatars. */
+  members?: PublicMemberProfile[];
+}
+
+const { frontmatter, title, members = [] } = Astro.props;
+
+const heroTitle = title ?? frontmatter.title;
+const resolvedAuthors = frontmatter.authors.map((a) => ({
+  ref: a,
+  member: findRfcMember(a, members),
+}));
+const primaryAuthor = resolvedAuthors[0];
+const approvers = frontmatter.approvers ?? [];
+const resolvedApprovers = approvers.map((ref) => ({
+  ref,
+  member: findRfcMember(ref, members),
+}));
+
+// Ícones MUI do original (fill currentColor).
+const FORUM_PATH =
+  "M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1m-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1";
+const CHECK_CIRCLE_PATH =
+  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z";
+const CALENDAR_TODAY_PATH =
+  "M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m0 18H4V8h16z";
+---
+
+<section class="cq-rfc-hero text-white">
+  <div class="mx-auto max-w-7xl px-4">
+    <div
+      class="rounded-3xl border border-white/20 bg-white/[0.08] p-6 text-white backdrop-blur-md md:p-10"
+    >
+      <div class="flex flex-col gap-8 md:flex-row">
+        <div class="flex-1">
+          <div class="flex flex-col gap-6">
+            <div class="flex flex-wrap items-center gap-2">
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-white/[0.18] px-3 py-1.5 text-sm font-bold"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+                  <path d={FORUM_PATH}></path>
+                </svg>
+                RFC {frontmatter.rfcId}
+              </span>
+              <span
+                class="inline-flex items-center gap-1.5 rounded-full bg-white/[0.18] px-3 py-1.5 text-sm font-bold"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+                  <path d={CHECK_CIRCLE_PATH}></path>
+                </svg>
+                {frontmatter.status}
+              </span>
+            </div>
+
+            <h1 class="m-0 text-3xl font-extrabold md:text-5xl">{heroTitle}</h1>
+            <p class="m-0 text-lg font-normal opacity-95 md:text-xl">
+              {frontmatter.summary}
+            </p>
+
+            {
+              primaryAuthor && (
+                <div class="flex flex-wrap items-center gap-3">
+                  <img
+                    src={rfcDisplayAvatar(primaryAuthor.ref, primaryAuthor.member)}
+                    alt={rfcDisplayName(primaryAuthor.ref, primaryAuthor.member)}
+                    width="48"
+                    height="48"
+                    loading="lazy"
+                    class="h-12 w-12 rounded-full border-2 border-white/40 object-cover"
+                  />
+                  <div>
+                    <p class="m-0 text-sm opacity-80">
+                      Autor{frontmatter.authors.length > 1 ? "es" : ""}
+                    </p>
+                    <p class="m-0 font-bold">
+                      {resolvedAuthors
+                        .map(({ ref, member }) => rfcDisplayName(ref, member))
+                        .join(", ")}
+                    </p>
+                  </div>
+                </div>
+              )
+            }
+
+            <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+              {
+                frontmatter.writtenAt && (
+                  <span class="inline-flex items-center gap-2 text-sm">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4 opacity-80">
+                      <path d={CALENDAR_TODAY_PATH}></path>
+                    </svg>
+                    <span>
+                      <strong>Escrita:</strong> {frontmatter.writtenAt}
+                    </span>
+                  </span>
+                )
+              }
+              {
+                frontmatter.publishedAt && (
+                  <span class="inline-flex items-center gap-2 text-sm">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4 opacity-80">
+                      <path d={CALENDAR_TODAY_PATH}></path>
+                    </svg>
+                    <span>
+                      <strong>Publicação:</strong> {frontmatter.publishedAt}
+                    </span>
+                  </span>
+                )
+              }
+            </div>
+          </div>
+        </div>
+
+        {
+          approvers.length > 0 && (
+            <div class="rounded-2xl bg-black/[0.15] p-5 md:w-1/3">
+              <p class="m-0 mb-3 font-bold">Aprovadores</p>
+              <ul class="m-0 flex list-none flex-col gap-3 p-0">
+                {resolvedApprovers.map(({ ref, member }) => (
+                  <li class="flex items-center gap-2.5">
+                    <img
+                      src={rfcDisplayAvatar(ref, member)}
+                      alt={rfcDisplayName(ref, member)}
+                      width="32"
+                      height="32"
+                      loading="lazy"
+                      class="h-8 w-8 rounded-full object-cover"
+                    />
+                    <span class="text-sm font-medium">
+                      {rfcDisplayName(ref, member)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cq-rfc-hero {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    margin-bottom: 2rem;
+    background-color: var(--community-primary);
+  }
+  @media (min-width: 768px) {
+    .cq-rfc-hero {
+      padding-top: 4rem;
+      padding-bottom: 4rem;
+      margin-bottom: 3rem;
+    }
+  }
+  :global([data-theme="dark"]) .cq-rfc-hero {
+    background-color: var(--community-primary-dark);
+  }
+</style>

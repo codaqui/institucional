@@ -35,8 +35,10 @@ const rootDir = process.cwd();
 const syncConfigPath = path.join(rootDir, "social-stats.config.json");
 const outputDir = path.join(rootDir, "static", "social-stats");
 const outputFile = path.join(outputDir, "index.json");
-const communitiesPath = path.join(rootDir, "src", "data", "communities.ts");
-const socialPath = path.join(rootDir, "src", "data", "social.ts");
+// Fonte canônica única: os mesmos data files consumidos pelo site (dedup fase 0.6).
+// O parse é por regex, então qualquer path funciona — o formato TS deve ser mantido.
+const communitiesPath = path.join(rootDir, "frontend", "src", "data", "communities.ts");
+const socialPath = path.join(rootDir, "frontend", "src", "data", "social.ts");
 const eventsIndexPath = path.join(rootDir, "static", "events", "index.json");
 
 // ─── Discord ─────────────────────────────────────────────────────────────────

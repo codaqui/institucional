@@ -1,0 +1,77 @@
+---
+import { DISCORD_URL, WHATSAPP_URL, GITHUB_ORG, EMAIL } from "../../data/social";
+
+const year = new Date().getFullYear();
+
+const comunidadeLinks = [
+  { label: "Discord", href: DISCORD_URL },
+  { label: "WhatsApp", href: WHATSAPP_URL },
+  { label: "GitHub", href: GITHUB_ORG },
+];
+const redesLinks = [
+  { label: "Twitter", href: "https://twitter.com/codaquidev" },
+  { label: "LinkedIn", href: "https://www.linkedin.com/company/codaqui" },
+  { label: "Instagram", href: "https://instagram.com/codaqui.dev" },
+  { label: "YouTube", href: "https://youtube.com/@codaqui" },
+];
+const maisLinks = [
+  { label: "Blog", href: "/blog" },
+  { label: "GitHub", href: "https://github.com/codaqui/institucional" },
+];
+const columns = [
+  { title: "Comunidade", links: comunidadeLinks },
+  { title: "Redes Sociais", links: redesLinks },
+  { title: "Mais", links: maisLinks },
+];
+---
+
+<footer class="border-t border-border bg-surface">
+  <div class="mx-auto max-w-6xl px-4 py-10">
+    <div class="grid gap-8 sm:grid-cols-3">
+      {columns.map((column) => (
+        <nav aria-label={`Rodapé — ${column.title}`}>
+          <h2 class="text-sm font-bold text-text-primary">{column.title}</h2>
+          <ul class="mt-3 space-y-2">
+            {column.links.map((link) => (
+              <li>
+                <a
+                  href={link.href}
+                  class="text-sm text-text-secondary hover:text-link"
+                  {...(link.href.startsWith("http")
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))}
+    </div>
+    <div class="mt-10 space-y-1 border-t border-border pt-6 text-center text-sm text-text-secondary">
+      <p>
+        Codaqui © Copyright {year} - Todos os direitos reservados - CNPJ
+        44.593.429/0001-05
+      </p>
+      <p>
+        Contato:{" "}
+        <a href={`mailto:${EMAIL}`} class="text-link hover:text-link-hover">
+          {EMAIL}
+        </a>
+      </p>
+      <p>
+        Conteúdo distribuído sob a licença{" "}
+        <a
+          href="https://creativecommons.org/licenses/by-sa/4.0/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-link hover:text-link-hover"
+        >
+          Creative Commons Attribution-ShareAlike (CC BY-SA)
+        </a>
+        .
+      </p>
+    </div>
+  </div>
+</footer>

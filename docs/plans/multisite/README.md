@@ -18,7 +18,10 @@ agent-protocol:
   - Cada fase abaixo deve sair em PR isolado.
   - Fase 1 está praticamente completa; Fase 2 só inicia depois de fechar pendências.
   - Fase 3 (domínio próprio) requer mudanças coordenadas no backend + edge proxy.
+status: substituído em 2026-10-27 pela Fase 0.5 do anexo docs/plans/codaqui-1-0/refatoracao-frontend-astro.md (build matrix por tenant no Cloudflare Pages + Pages Function) — mantido para histórico
 -->
+
+> ⚠️ **Substituído (2026-10-27)** — esta arquitetura (Worker pass-through) foi substituída pela Fase 0.5 do anexo [refatoracao-frontend-astro.md](../codaqui-1-0/refatoracao-frontend-astro.md): build matrix por tenant no Cloudflare Pages + Pages Function. Mantido para histórico.
 
 # Multi-Tenant Frontend para Comunidades Parceiras (Plano)
 

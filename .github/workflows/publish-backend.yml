@@ -24,7 +24,7 @@ jobs:
         id: version
         run: |
           VERSION=$(node -p "require('./backend/package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
@@ -90,7 +90,7 @@ jobs:
         id: version
         run: |
           VERSION=$(node -p "require('./backend/package.json').version")
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
       - name: Extract Release Notes
         id: notes

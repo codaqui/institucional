@@ -1,0 +1,162 @@
+---
+// Página "Transparência" da Elas no Código — port 1:1 de
+// comunidades/elasnocodigo/src/pages/transparencia.tsx +
+// comunidades/shared/components/CommunityTransparenciaPage.tsx (spec): hero
+// accent com chip "Transparência financeira", saldo/como-funciona/movimentações
+// na ilha CommunityTransparencyIsland (port de useCommunityBalance + tabela da
+// conta) e CTA final (Apoiar + painel completo da Codaqui). Compartilhada
+// entre o build tenant (rotas limpas) e o portal codaqui
+// (/comunidades/elasnocodigo) — só muda o homeHref.
+//
+// ⚠️ Desvio conhecido (mesmo do tisocial): o brief previa `TransparencyApp`
+// com prop de slug, mas essa ilha é o painel global sem props (Fase 0.4). O
+// equivalente community-scoped foi criado como CommunityTransparencyIsland —
+// mesmo contrato de dados do original (ledger filtrado por projectKey).
+import CommunityLayout from "../CommunityLayout.astro";
+import CommunityTransparencyIsland from "../../../islands/CommunityTransparencyIsland";
+import { communityBasePath } from "../../../../lib/community";
+import { resolveCodaquiUrl } from "../../../../lib/api-url";
+import { getTenant } from "../../../../lib/tenant";
+import type { CommunitySiteConfig } from "../../../../../../comunidades/shared/types";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  /** "/" no build tenant, communityBasePath(config) no portal codaqui. */
+  homeHref: string;
+}
+
+const { config, site, homeHref } = Astro.props;
+
+const tenantBuild = getTenant() !== null;
+const apoiarHref = `${tenantBuild ? "" : communityBasePath(config)}/apoiar`;
+// "Painel completo (Codaqui)" aponta para o portal institucional — em dev
+// local resolve para localhost:3000 (mesma regra do chip "← Codaqui").
+const codaquiTransparenciaHref = resolveCodaquiUrl(
+  "https://codaqui.dev",
+  "/transparencia",
+);
+
+// Ícones verified/favorite/open_in_new do @mui/icons-material (fill currentColor).
+const VERIFIED_PATH =
+  "M23 12l-2.44-2.79.34-3.69-3.61-.82-1.89-3.2L12 2.96 8.6 1.5 6.71 4.7 3.1 5.5l.34 3.7L1 12l2.44 2.79-.34 3.7 3.61.82L8.59 22.5 12 21.04l3.4 1.46 1.89-3.21 3.61-.82-.34-3.69L23 12zm-12.91 4.72l-3.8-3.81 1.48-1.48 2.32 2.33 5.85-5.87 1.48 1.48-7.33 7.35z";
+const FAVORITE_PATH =
+  "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`Transparência — ${config.shortName}`}
+  description={`Saldo e movimentações da conta ${config.name} no ledger Codaqui.`}
+  homeHref={homeHref}
+>
+  <section class="cq-hero text-white">
+    <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
+      <div class="max-w-[760px] space-y-4">
+        <span
+          class="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+            class="h-4 w-4"
+          >
+            <path d={VERIFIED_PATH} />
+          </svg>
+          Transparência financeira
+        </span>
+        <h1 class="m-0 text-3xl font-extrabold md:text-5xl">
+          📊 Transparência da {config.shortName}
+        </h1>
+        <p class="m-0 text-xl font-normal opacity-95">
+          Toda doação para a {config.shortName} é registrada no ledger contábil
+          da Associação Codaqui. Aqui você acompanha o saldo e cada movimentação
+          em tempo real.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+    <CommunityTransparencyIsland slug={config.slug} client:visible />
+  </section>
+
+  <section class="mx-auto max-w-6xl px-4 pb-12 md:pb-16">
+    <div class="rounded-lg border border-border bg-sunken p-6 md:p-8">
+      <div
+        class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center"
+      >
+        <div>
+          <h2 class="m-0 mb-1 text-xl font-bold">
+            Quer fazer parte dessa transparência?
+          </h2>
+          <p class="m-0 text-sm text-text-secondary">
+            Apoie a {config.shortName} ou veja o painel completo da Codaqui.
+          </p>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a
+            href={apoiarHref}
+            class="cq-cta-primary inline-flex items-center justify-center gap-2 rounded-md px-5 py-2.5 text-sm font-bold no-underline"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+              class="h-4 w-4"
+            >
+              <path d={FAVORITE_PATH} />
+            </svg>
+            Apoiar
+          </a>
+          <a
+            href={codaquiTransparenciaHref}
+            class="cq-cta-outline inline-flex items-center justify-center gap-2 rounded-md border px-5 py-2.5 text-sm font-semibold no-underline"
+          >
+            Painel completo (Codaqui)
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+              class="h-4 w-4"
+            >
+              <path d={OPEN_IN_NEW_PATH} />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .cq-hero {
+      background-color: var(--community-primary);
+    }
+    :global([data-theme="dark"]) .cq-hero {
+      background-color: var(--community-primary-dark);
+    }
+    .cq-cta-primary {
+      background-color: var(--community-primary);
+      color: #fff;
+    }
+    .cq-cta-primary:hover {
+      background-color: var(--community-primary-dark);
+    }
+    .cq-cta-outline {
+      border-color: var(--community-primary);
+      color: var(--community-primary);
+    }
+    .cq-cta-outline:hover {
+      border-color: var(--community-primary-dark);
+      background-color: color-mix(
+        in srgb,
+        var(--community-primary) 6%,
+        transparent
+      );
+    }
+  </style>
+</CommunityLayout>

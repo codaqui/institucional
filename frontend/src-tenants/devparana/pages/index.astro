@@ -1,0 +1,16 @@
+---
+// Home do site whitelabel DevParaná (build tenant `TENANT=devparana`, rota
+// limpa /). O corpo da página vive em HomePage (compartilhado com o wrapper
+// do portal codaqui).
+import HomePage from "../components/astro/community/devparana/HomePage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<HomePage config={config} site={site} homeHref={homeHref} />

@@ -1,0 +1,41 @@
+---
+import { getCollection } from "astro:content";
+import PublicLayout from "../../../layouts/PublicLayout.astro";
+import BlogPostCard from "../../../components/astro/BlogPostCard.astro";
+import BlogSidebar from "../../../components/astro/BlogSidebar.astro";
+import { POSTS_PER_PAGE, sortPostsDesc, postUrl, postCardProps } from "../../../lib/blog-utils";
+
+export async function getStaticPaths() {
+  const sorted = sortPostsDesc(await getCollection("blog"));
+  const totalPages = Math.ceil(sorted.length / POSTS_PER_PAGE);
+  return Array.from({ length: totalPages - 1 }, (_, i) => i + 2).map((page) => ({
+    params: { page: String(page) },
+    props: {
+      page,
+      totalPages,
+      posts: sorted.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE),
+      recent: sorted.slice(0, 10).map((p) => ({ url: postUrl(p), title: p.data.title })),
+    },
+  }));
+}
+
+const { page, totalPages, posts, recent } = Astro.props;
+---
+
+<PublicLayout title={`Blog — página ${page} | CODAQUI.dev`} ogTitle="Blog | CODAQUI.dev" description="Tutoriais técnicos, novidades institucionais e projetos da comunidade Codaqui.">
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <div class="min-w-0 flex-1">
+      <h1 class="mb-6 text-3xl font-extrabold text-text-primary">Blog</h1>
+      <div class="flex flex-col gap-4">
+        {posts.map((post) => <BlogPostCard {...postCardProps(post)} />)}
+      </div>
+      <nav class="mt-8 flex justify-between" aria-label="Paginação do blog">
+        <a href={page === 2 ? "/blog" : `/blog/page/${page - 1}`} class="text-sm font-bold text-link hover:text-link-hover">← Posts recentes</a>
+        {page < totalPages && (
+          <a href={`/blog/page/${page + 1}`} class="text-sm font-bold text-link hover:text-link-hover">Posts anteriores →</a>
+        )}
+      </nav>
+    </div>
+    <BlogSidebar recentPosts={recent} />
+  </div>
+</PublicLayout>

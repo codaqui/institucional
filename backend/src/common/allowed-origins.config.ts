@@ -12,6 +12,8 @@
 export const ALLOWED_ORIGINS_PROD: string[] = [
   'https://codaqui.dev',
   'https://tisocial.org.br',
+  // T.I. Social canonicaliza em www (Page Rule apex→www não gerenciável via API).
+  'https://www.tisocial.org.br',
   'https://elasnocodigo.com.br',
   'https://devparana.org',
 ];

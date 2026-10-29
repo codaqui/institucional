@@ -1,0 +1,16 @@
+---
+// Índice da documentação do DevParaná no portal codaqui:
+// /comunidades/devparana/docs. O corpo da página vive em DocsPage
+// (compartilhado com o wrapper do portal codaqui). Os RFCs ficam em
+// `./[...slug].astro`.
+import DocsPage from "../../../../components/astro/community/devparana/DocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
+import { tenantSite } from "../../../../lib/tenant";
+
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<DocsPage slug="index" config={config} site={site} homeHref={homeHref} />

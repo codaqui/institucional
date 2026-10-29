@@ -1,0 +1,136 @@
+---
+// 02 Marca — os 3 logos oficiais, regra de logo por tema (demos lado a lado),
+// respiro mínimo e usos proibidos.
+import BrandLogo from "../BrandLogo.astro";
+import { primaryScale, neutralScale } from "../../../data/ds-palette";
+
+// Cores oficiais citadas no texto vêm da paleta (dados), nunca de hex literal.
+const brandGreen = primaryScale[5].hex; // primary-500 — verde da marca
+const brandPlum = neutralScale[8].hex; // neutral-800 — ameixa da marca
+
+const logos = [
+  {
+    file: "/img/logo_principal.svg",
+    name: "Logo principal",
+    desc: `Ameixa ${brandPlum} + verde ${brandGreen}. Versão preferencial — somente sobre fundos claros.`,
+    dark: false,
+  },
+  {
+    file: "/img/logo_monocromatica.svg",
+    name: "Monocromática branca",
+    desc: "Somente sobre fundos escuros (ameixa, fotos escuras, hero). Some sobre fundo claro — nunca usar.",
+    dark: true,
+  },
+  {
+    file: "/img/logo_mono2.svg",
+    name: "Monocromática ameixa",
+    desc: `Uma cor só (${brandPlum}) para contextos sem cor: carimbo, recibo, impressão P&B — sobre fundo claro.`,
+    dark: false,
+  },
+];
+
+const forbidden = [
+  "Não distorcer, esticar ou rotacionar o logotipo",
+  `Não trocar as cores oficiais (ameixa ${brandPlum}, verde ${brandGreen}, branco)`,
+  "Não usar a logo escura (principal ou mono2) sobre fundo escuro — use a monocromática branca",
+  "Não usar a monocromática branca sobre fundo claro",
+  "Não adicionar sombras, contornos, gradientes ou efeitos",
+  "Não rearranjar o símbolo e o logotipo nem trocar a tipografia",
+];
+---
+
+<section id="marca" class="scroll-mt-32 border-t border-border bg-sunken/40">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">02</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Marca</h2>
+    <p class="mb-8 max-w-2xl text-text-secondary">
+      Três versões oficiais em <code class="rounded bg-sunken px-1 py-0.5 text-sm">/img/</code>.
+      A regra de ouro é de contraste: logo escura só sobre fundo claro, logo
+      branca só sobre fundo escuro.
+    </p>
+
+    {/* Versões oficiais */}
+    <div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+      {
+        logos.map((logo) => (
+          <figure class="overflow-hidden rounded-lg border border-border bg-surface">
+            <div
+              class:list={[
+                "flex h-28 items-center justify-center px-6",
+                logo.dark ? "bg-neutral-800" : "bg-white",
+              ]}
+            >
+              <img src={logo.file} alt={`${logo.name} da Codaqui`} class="h-8 w-auto" width="122" height="33" loading="lazy" />
+            </div>
+            <figcaption class="p-4">
+              <h3 class="text-sm font-bold">{logo.name}</h3>
+              <p class="mt-1 text-xs leading-relaxed text-text-secondary">{logo.desc}</p>
+            </figcaption>
+          </figure>
+        ))
+      }
+    </div>
+
+    {/* Regra de logo por tema — demos lado a lado */}
+    <h3 class="mb-3 text-lg font-bold">Regra de logo por tema</h3>
+    <p class="mb-4 max-w-2xl text-sm text-text-secondary">
+      Vigente em todo o site: o componente <code class="rounded bg-sunken px-1 py-0.5">BrandLogo</code>
+      troca automaticamente conforme <code class="rounded bg-sunken px-1 py-0.5">[data-theme]</code>.
+      Experimente alternar o tema no cabeçalho — a logo abaixo acompanha:
+    </p>
+    <div class="mb-4 flex items-center gap-3 rounded-lg border border-border bg-surface p-4">
+      <BrandLogo class="h-8 w-auto" />
+      <span class="text-xs text-text-secondary">← viva: segue o tema da página</span>
+    </div>
+    <div class="mb-12 grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* Fundo fixo proposital (a demo ignora o tema da página): o rótulo usa
+          o token primitivo estável primary-700 (4,55:1 sobre branco — AA). */}
+      <div class="rounded-lg border border-border bg-white p-6">
+        <div class="flex h-16 items-center justify-center">
+          <img src="/img/logo_principal.svg" alt="Logo principal sobre fundo claro (correto)" class="h-8 w-auto" width="122" height="33" loading="lazy" />
+        </div>
+        <p class="mt-3 text-center text-xs font-bold" style="color: var(--cq-color-primary-700);">
+          ✓ Fundo claro → logo principal
+        </p>
+      </div>
+      {/* Fundo fixo --cq-color-neutral-800: rótulo em primary-300, a cor
+          acionável do tema escuro (6,84:1 sobre neutral-800 — AA). */}
+      <div class="rounded-lg border border-border bg-neutral-800 p-6">
+        <div class="flex h-16 items-center justify-center">
+          <img src="/img/logo_monocromatica.svg" alt="Logo monocromática branca sobre fundo escuro (correto)" class="h-8 w-auto" width="122" height="33" loading="lazy" />
+        </div>
+        <p class="mt-3 text-center text-xs font-bold" style="color: var(--cq-color-primary-300);">
+          ✓ Fundo escuro → monocromática branca
+        </p>
+      </div>
+    </div>
+
+    {/* Respiro + usos proibidos */}
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div class="rounded-lg border border-border bg-surface p-6">
+        <h3 class="mb-3 text-lg font-bold">Respiro mínimo</h3>
+        <div class="flex items-center justify-center rounded-md border border-dashed border-border-strong bg-white p-8">
+          <img src="/img/logo_principal.svg" alt="Demonstração de respiro da logo Codaqui" class="h-8 w-auto" width="122" height="33" loading="lazy" />
+        </div>
+        <p class="mt-3 text-sm text-text-secondary">
+          Mantenha ao redor da marca uma área livre igual à <strong>altura do
+          "C" do logotipo</strong> (a área tracejada). Nenhum texto, logo de
+          parceiro ou elemento gráfico invade esse espaço.
+        </p>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-6">
+        <h3 class="mb-3 text-lg font-bold">Usos proibidos</h3>
+        <ul class="m-0 list-none space-y-2 p-0">
+          {
+            forbidden.map((rule) => (
+              <li class="flex gap-2 text-sm text-text-secondary">
+                <span aria-hidden="true" class="font-bold" style="color: var(--cq-color-error);">✗</span>
+                <span>{rule}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>

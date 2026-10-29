@@ -1,0 +1,19 @@
+---
+// Docs da Elas no Código no portal codaqui (/comunidades/elasnocodigo/docs) —
+// wrapper do DocsPage com as rotas do portal. Só existe o index: qualquer
+// outro slug cai no 404 do Astro.
+import DocsPage from "../../../../components/astro/community/elasnocodigo/DocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
+import { tenantSite } from "../../../../lib/tenant";
+
+export function getStaticPaths() {
+  return [{ params: { slug: undefined } }];
+}
+
+const tenant = "elasnocodigo";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<DocsPage config={config} site={site} homeHref={homeHref} />

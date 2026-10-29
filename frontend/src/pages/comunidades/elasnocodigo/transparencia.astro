@@ -1,0 +1,14 @@
+---
+// Página "Transparência" da Elas no Código no portal codaqui
+// (/comunidades/elasnocodigo/transparencia).
+import TransparenciaPage from "../../../components/astro/community/elasnocodigo/TransparenciaPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "elasnocodigo";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<TransparenciaPage config={config} site={site} homeHref={homeHref} />

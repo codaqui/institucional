@@ -1,0 +1,19 @@
+---
+// Home da CamposTech no portal codaqui (/comunidades/campostechpg) — wrapper
+// do HomePage. A CamposTech NÃO é tenant (sem build de domínio próprio) — o
+// config é importado direto de `comunidades/campostechpg/community.config`
+// (em vez de `loadTenantConfig`, que só conhece os tenants) e o homeHref é o
+// basePath da comunidade.
+import HomePage from "../../../components/astro/community/campostechpg/HomePage.astro";
+import { communityBasePath } from "../../../lib/community";
+
+import config from "../../../../../comunidades/campostechpg/community.config";
+
+// Astro.site vem do astro.config (default https://codaqui.dev no portal);
+// o fallback só existe por defesa — a CamposTech não é tenant, então não há
+// tenantSite() para ela.
+const site = Astro.site?.toString() ?? "https://codaqui.dev";
+const homeHref = communityBasePath(config);
+---
+
+<HomePage config={config} site={site} homeHref={homeHref} />

@@ -1,0 +1,26 @@
+---
+// Portado de src/components/InfoCard/index.tsx (MUI → HTML + Tailwind, tokens --cq-*).
+// Ícone via slot nomeado "icon" (no original era React.ReactNode).
+
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<div
+  class="h-full rounded-lg border border-border bg-surface p-4 pb-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+>
+  {
+    Astro.slots.has("icon") && (
+      <span class="mb-2 block text-link">
+        <slot name="icon" />
+      </span>
+    )
+  }
+  <h6 class="mb-2 text-xl font-bold text-link">{title}</h6>
+  <p class="text-sm text-text-secondary">{description}</p>
+  <slot />
+</div>

@@ -17,10 +17,10 @@ Cada decisão de estrutura é confirmada com o usuário antes de ser executada.
 
 ## Princípios
 
-1. **Leia sempre antes de escrever.** Leia `src/data/communities.ts` e
+1. **Leia sempre antes de escrever.** Leia `frontend/src/data/communities.ts` e
    `social-stats.config.json` antes de qualquer edição para seguir o formato exato.
 2. **Uma pergunta por vez.** Use `ask_user` — nunca perguntas em texto livre.
-3. **Valide antes de entregar.** Execute `npm run typecheck` após cada mudança de código.
+3. **Valide antes de entregar.** Execute `cd frontend && npm run check` após cada mudança de código.
 4. **Protocolo de fechamento.** Nunca assuma que a tarefa está concluída — feche com
    pergunta de feedback via `ask_user`.
 
@@ -54,10 +54,10 @@ Pergunte **uma de cada vez**:
 Antes de adicionar, verifique se o `id` já existe:
 
 ```bash
-grep -n '"id":' src/data/communities.ts
+grep -n '"id":' frontend/src/data/communities.ts
 ```
 
-### Etapa 3 — Editar `src/data/communities.ts`
+### Etapa 3 — Editar `frontend/src/data/communities.ts`
 
 Adicione a nova entrada no array `communities[]` seguindo o shape exato:
 
@@ -126,8 +126,8 @@ Adicione um objeto no array `"entities"` com os perfis que devem ser buscados au
 ### Etapa 5 — Validar e rodar o sync
 
 ```bash
-npm run typecheck                          # valida TypeScript
-node scripts/sync-social-stats.mjs        # regenera static/social-stats/index.json
+cd frontend && npm run check                  # valida TypeScript/.astro
+node scripts/sync-social-stats.mjs            # regenera static/social-stats/index.json (da raiz do repo)
 ```
 
 Verifique no output que a nova entidade aparece sem `isFallback: true` nos perfis
@@ -141,18 +141,18 @@ grep -A 5 '"entityId": "slug"' static/social-stats/index.json
 
 ---
 
-## Fluxo multisite (Fase 2 — opcional)
+## Fluxo multisite (opcional — domínio próprio)
 
-> Só execute se o usuário confirmar que a comunidade vai ganhar página própria
+> Só execute se o usuário confirmar que a comunidade vai ganhar site próprio
 > (como T.I. Social). Consulte `AGENTS.md §Multi-tenant communities` para o
-> checklist completo.
+> checklist completo (fonte única: `frontend/tenants.config.mjs` + matrix dos
+> workflows + runbook do DEVELOPMENT.md).
 
 Perguntas adicionais para multisite:
 
 1. A comunidade tem domínio próprio (ex: `exemplo.org.br`)?
-2. Qual será o `basePath`? (padrão: `/comunidades/<slug>`)
-3. Quais features habilitar? (`donations`, `transparency`, `events`, `blog`, `docs`)
-4. Tem branding de cores definido? (`primary`, `primaryDark`, `primaryLight`, `accent`)
+2. Quais features habilitar? (`donations`, `transparency`, `events`, `blog`, `docs`)
+3. Tem branding de cores definido? (`primary`, `primaryDark`, `primaryLight`, `accent`)
 
 ---
 
@@ -162,7 +162,7 @@ Perguntas adicionais para multisite:
 |----------|-------|
 | Hardcode hex de cor | Tokens do tema MUI |
 | `entity.id` antes do `repo.save()` | Factory `persistWithLedger(repo, e, (s) => ...)` |
-| `<Grid item xs={}>` | `<Grid size={{ xs: 12 }}>` (MUI v7) |
+| `<Grid item xs={}>` | `<Grid size={{ xs: 12 }}>` (MUI v9) |
 | Usar `id` do Community como `projectKey` no ledger | Confirmar com backend que `projectKey === community.slug` |
 | Adicionar logo com URL instável (WordPress CDN c/ query params) | Usar GitHub org avatar ou `/static/img/` |
 | Ignorar `baselineCount` em plataformas sem API | Sempre definir baseline razoável como fallback |
@@ -174,7 +174,7 @@ Perguntas adicionais para multisite:
 Leia `AGENTS.md` antes de qualquer tarefa — ele contém inventário completo, convenções
 de código, anti-patterns e toda a arquitetura do sistema multisite.
 
-Arquivo de dados: `src/data/communities.ts`  
-Config de sync: `social-stats.config.json`  
+Arquivo de dados: `frontend/src/data/communities.ts`  
+Config de sync: `social-stats.config.json` (raiz do repo)  
 Snapshot gerado: `static/social-stats/index.json`  
-Script de sync: `scripts/sync-social-stats.mjs`
+Script de sync: `scripts/sync-social-stats.mjs` (raiz do repo)

@@ -1,0 +1,17 @@
+---
+// Índice da documentação do site whitelabel DevParaná (build tenant): rota
+// limpa /docs. O corpo da página vive em DocsPage (compartilhado com o
+// wrapper do portal codaqui). Os RFCs ficam em `./[...slug].astro`
+// (/docs/rfcs/<slug>).
+import DocsPage from "../../components/astro/community/devparana/DocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<DocsPage slug="index" config={config} site={site} homeHref={homeHref} />

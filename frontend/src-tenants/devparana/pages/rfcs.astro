@@ -1,0 +1,15 @@
+---
+// Página "RFCs" do site whitelabel DevParaná (build tenant, /rfcs). O corpo
+// da página vive em RfcsPage (compartilhado com o wrapper do portal codaqui).
+import RfcsPage from "../components/astro/community/devparana/RfcsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<RfcsPage config={config} site={site} homeHref={homeHref} />

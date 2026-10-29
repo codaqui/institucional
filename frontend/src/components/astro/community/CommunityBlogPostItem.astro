@@ -1,0 +1,43 @@
+---
+// Item do blog de comunidade nas listagens (blog, etiqueta) — port do
+// BlogPostItem em modo lista: header em modo "Leitura recomendada" + CORPO
+// COMPLETO do post (os posts da T.I. Social não usam `<!-- truncate -->`,
+// então o Docusaurus renderiza o conteúdo inteiro na listagem — ver
+// build/comunidades/tisocial/blog.html de referência).
+import { render, type CollectionEntry } from "astro:content";
+import CommunityBlogPostHeader from "./CommunityBlogPostHeader.astro";
+import {
+  communityPostDescription,
+  communityPostReadingMinutes,
+  communityPostUrl,
+  communityTagUrl,
+  resolveCommunityBlogAuthors,
+} from "../../../lib/community-blog";
+
+interface Props {
+  post: CollectionEntry<"communityBlog">;
+  basePath: string;
+}
+
+const { post, basePath } = Astro.props;
+const { Content } = await render(post);
+const tags = post.data.tags.map((label) => ({
+  label,
+  url: communityTagUrl(label, basePath),
+}));
+---
+
+<article class="border-b border-border pb-8 last:border-b-0">
+  <CommunityBlogPostHeader
+    title={post.data.title}
+    url={communityPostUrl(post, basePath)}
+    date={post.data.date}
+    readingMinutes={communityPostReadingMinutes(post)}
+    tags={tags}
+    authors={resolveCommunityBlogAuthors(post.data.authors)}
+    description={communityPostDescription(post)}
+  />
+  <div class="prose-cq">
+    <Content />
+  </div>
+</article>

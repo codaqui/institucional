@@ -1,0 +1,18 @@
+---
+// Portado de src/pages/certificado/verificar.tsx (Docusaurus + MUI → Astro +
+// ilha). Todo o conteúdo interativo (formulário + estados de
+// sucesso/erro/not-found) vive na CertificateVerifyIsland (client:load —
+// SSR'd, então o h1 sai no HTML estático).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import CertificateVerifyIsland from "../../components/islands/CertificateVerifyIsland";
+---
+
+<PublicLayout
+  title="Verificar certificado | CODAQUI.dev"
+  ogTitle="Verificar certificado | CODAQUI.dev"
+  description="Verifique a autenticidade de um certificado de participação da Associação Codaqui."
+>
+  <div class="mx-auto max-w-xl px-4 py-8 md:py-12">
+    <CertificateVerifyIsland client:load />
+  </div>
+</PublicLayout>

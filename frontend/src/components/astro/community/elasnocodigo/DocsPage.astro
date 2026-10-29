@@ -1,0 +1,38 @@
+---
+// Docs da Elas no Código — a comunidade tem um único documento,
+// `comunidades/elasnocodigo/docs/index.md` (fonte READ-ONLY), servido pelo
+// Docusaurus em `/comunidades/elasnocodigo/docs`; no app Astro o markdown é
+// importado diretamente como componente (named exports Content/frontmatter).
+// Compartilhado entre o build tenant (rota limpa /docs) e o portal codaqui
+// (/comunidades/elasnocodigo/docs) — só muda o homeHref. No build tenant o
+// dist/_redirects cuida do path prefixado que permanece no navMenu do config.
+import CommunityLayout from "../CommunityLayout.astro";
+import type { CommunitySiteConfig } from "../../../../../../comunidades/shared/types";
+
+import { Content, frontmatter } from "../../../../../../comunidades/elasnocodigo/docs/index.md";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  /** "/" no build tenant, communityBasePath(config) no portal codaqui. */
+  homeHref: string;
+}
+
+const { config, site, homeHref } = Astro.props;
+
+const { title } = (frontmatter ?? {}) as { title?: string };
+const pageTitle = title ?? "Docs";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={pageTitle}
+  homeHref={homeHref}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 md:py-16">
+    <div class="prose-cq">
+      <Content />
+    </div>
+  </article>
+</CommunityLayout>

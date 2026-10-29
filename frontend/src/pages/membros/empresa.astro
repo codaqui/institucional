@@ -1,0 +1,14 @@
+---
+// Minha Empresa — conta PJ do membro logado (CLUB Business).
+// Port de src/pages/membros/empresa.tsx (Docusaurus). O original emitia
+// <title>CODAQUI.dev</title> (e nenhuma meta description) porque o guard
+// retornava null antes do Layout no SSG — aqui o título é estático e
+// replica isso via pageTitle. noindex replicado (paridade com o <Head> do
+// original). A lógica vive na ilha.
+import AppLayout from "../../layouts/AppLayout.astro";
+import MyCompanyApp from "../../components/islands/member/company/MyCompanyApp";
+---
+
+<AppLayout title="Minha Empresa" pageTitle="CODAQUI.dev" noindex>
+  <MyCompanyApp client:only="react" />
+</AppLayout>

@@ -1,0 +1,313 @@
+---
+// Port 1:1 (zero JS) de comunidades/shared/components/CommunityHero/index.tsx
+// — hero replicável com imagem de fundo em duotone na cor da marca, ativado
+// quando `config.heroVisual` está presente (spec: devparana, que o usa na home).
+//
+// Desvios inevitáveis do original React:
+// - Os efeitos de scroll (parallax do offsetY, grid em movimento) e o reveal
+//   animado dependem de JS de runtime; aqui o hero já nasce no estado final
+//   (opacity 1, translateY(0)), que é o estado de repouso do original.
+// - As cores atmosféricas neutras do original (#050a08, #f4fbf7, #e8f5ed)
+//   derivam da cor da marca via color-mix com preto/branco — zero hex de marca
+//   hardcoded; o fade final usa o token do app (--cq-bg-body) para acabar na
+//   cor da página, e claro/escuro segue o seletor [data-theme="dark"].
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import { tenantNavHref } from "../../../lib/community";
+import { getTenant } from "../../../lib/tenant";
+
+interface Props {
+  config: CommunitySiteConfig;
+}
+
+const { config } = Astro.props;
+const visual = config.heroVisual;
+const imagePosition = visual?.imagePosition ?? "right";
+const isRight = imagePosition === "right";
+
+// CTA primário: mesmo stripBase do nav (C4 — QA wave 0.5): no build tenant
+// o link do config nasce limpo (/apoiar), sem o hop 301 do _redirects.
+const ctaPrimaryHref = tenantNavHref(
+  config.hero.ctaPrimary.to,
+  config.basePath,
+  getTenant() !== null,
+  "https://codaqui.dev",
+);
+---
+
+{
+  visual && (
+    <section class:list={["cq-hero relative overflow-hidden py-16 md:min-h-[92vh] md:py-0 md:flex md:items-center"]}>
+      {/* Fundo: radial de marca + gradiente atmosférico */}
+      <div class="absolute inset-0 cq-hero-bg" aria-hidden="true" />
+      {/* Grade decorativa (estática — no original desloca com o scroll) */}
+      <div class="absolute inset-0 cq-hero-grid" aria-hidden="true" />
+
+      <div class="relative z-[2] mx-auto w-full max-w-6xl px-4">
+        <div class:list={["flex", isRight ? "justify-start" : "justify-end"]}>
+          <div class:list={["relative z-[3] w-full md:w-7/12 lg:w-8/12", !isRight && "lg:pr-8"]}>
+            <div class="flex flex-col items-start gap-7">
+              <span class="cq-hero-chip inline-block rounded-full border px-3 py-1.5 text-sm font-semibold tracking-wide backdrop-blur-sm">
+                Comunidade parceira da Codaqui
+              </span>
+              <h1 class="cq-hero-title m-0 text-4xl font-black leading-[1.1] tracking-[-0.02em] sm:text-5xl lg:text-6xl">
+                {config.hero.title}
+              </h1>
+              <p class="cq-hero-subtitle m-0 max-w-[560px] text-xl leading-normal font-normal">
+                {config.hero.subtitle}
+              </p>
+              <div class="flex flex-col gap-4 pt-1 sm:flex-row">
+                <a
+                  href={ctaPrimaryHref}
+                  class="cq-hero-cta-primary inline-flex items-center justify-center gap-2 rounded-[10px] px-7 py-3 text-sm font-bold no-underline"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+                    <path d="M1 11h4v11H1zm15-7.75C16.65 2.49 17.66 2 18.7 2 20.55 2 22 3.45 22 5.3c0 2.27-2.91 4.9-6 7.7-3.09-2.81-6-5.44-6-7.7C10 3.45 11.45 2 13.3 2c1.04 0 2.05.49 2.7 1.25M20 17h-7l-2.09-.73.33-.94L13 16h2.82c.65 0 1.18-.53 1.18-1.18 0-.49-.31-.93-.77-1.11L8.97 11H7v9.02L14 22l8.01-3c-.01-1.1-.9-2-2.01-2" />
+                  </svg>
+                  {config.hero.ctaPrimary.label}
+                </a>
+                {config.hero.ctaSecondary && (
+                  <a
+                    href={config.hero.ctaSecondary.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="cq-hero-cta-secondary inline-flex items-center justify-center gap-2 rounded-[10px] border px-7 py-3 text-sm font-semibold no-underline backdrop-blur-sm"
+                  >
+                    {config.hero.ctaSecondary.label}
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
+                      <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z" />
+                    </svg>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Imagem duotone na cor da marca (mascarada, blend "multiply"/"screen") */}
+      <div
+        class:list={["cq-hero-image absolute inset-y-0 opacity-20 sm:opacity-100", isRight ? "cq-pos-right right-0" : "cq-pos-left left-0"]}
+        aria-hidden="true"
+      >
+        <img
+          src={visual.imageSrc}
+          alt={visual.imageAlt}
+          class="cq-hero-img h-full w-full object-cover"
+          loading="eager"
+        />
+        <div class="cq-hero-tint absolute inset-0" />
+      </div>
+
+      {/* Fade para a cor de fundo da página */}
+      <div class="cq-hero-fade pointer-events-none absolute inset-x-0 bottom-0 h-[120px]" aria-hidden="true" />
+    </section>
+  )
+}
+
+<style>
+  /* Fundo atmosférico: radial na cor da marca + gradiente quase-neutro. */
+  .cq-hero {
+    background-color: #fff;
+    color: var(--cq-text-primary);
+  }
+  :global([data-theme="dark"]) .cq-hero {
+    background-color: #000;
+    color: #fff;
+  }
+  .cq-hero-bg {
+    background:
+      radial-gradient(
+        ellipse 80% 70% at var(--cq-radial-side, 85%) 50%,
+        color-mix(in srgb, var(--community-primary) 9%, transparent) 0%,
+        transparent 60%
+      ),
+      linear-gradient(
+        135deg,
+        #fff 0%,
+        color-mix(in srgb, var(--community-primary) 8%, #fff) 55%
+      );
+  }
+  :global([data-theme="dark"]) .cq-hero-bg {
+    background:
+      radial-gradient(
+        ellipse 80% 70% at var(--cq-radial-side, 85%) 50%,
+        color-mix(in srgb, var(--community-primary-dark) 19%, transparent) 0%,
+        transparent 60%
+      ),
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--community-primary-dark) 8%, #000) 0%,
+        #000 55%
+      );
+  }
+  .cq-pos-right {
+    --cq-radial-side: 85%;
+  }
+  .cq-pos-left {
+    --cq-radial-side: 15%;
+  }
+
+  /* Grade decorativa sutil (4% de opacidade na cor da marca). */
+  .cq-hero-grid {
+    opacity: 0.04;
+    background-image:
+      linear-gradient(var(--community-primary) 1px, transparent 1px),
+      linear-gradient(90deg, var(--community-primary) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Chip "Comunidade parceira da Codaqui". */
+  .cq-hero-chip {
+    background-color: color-mix(in srgb, var(--community-primary) 8%, transparent);
+    color: var(--community-primary-dark);
+    border-color: color-mix(in srgb, var(--community-primary) 20%, transparent);
+  }
+  :global([data-theme="dark"]) .cq-hero-chip {
+    background-color: color-mix(in srgb, var(--community-primary) 13%, transparent);
+    color: var(--community-primary-light);
+    border-color: color-mix(in srgb, var(--community-primary) 27%, transparent);
+  }
+
+  /* Título em gradiente da cor da marca. */
+  .cq-hero-title {
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--community-primary-dark) 22%, #000) 0%,
+      var(--community-primary-dark) 55%,
+      var(--community-primary) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  :global([data-theme="dark"]) .cq-hero-title {
+    background: linear-gradient(
+      135deg,
+      #fff 0%,
+      var(--community-primary-light) 55%,
+      var(--community-primary) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .cq-hero-subtitle {
+    color: color-mix(in srgb, var(--cq-text-primary) 78%, transparent);
+  }
+
+  /* CTAs. O primário usa --community-primary escurecido via color-mix: o
+   * branco do texto precisa de AA e a cor primária vem de dados do tenant
+   * (#1ba250 do DevParaná tem só 3.32:1). O mix a 62% garante ≥5.15:1 nos
+   * tenants cadastrados. */
+  .cq-hero-cta-primary {
+    background-color: color-mix(in srgb, var(--community-primary) 62%, black);
+    color: #fff;
+    box-shadow: 0 10px 30px color-mix(in srgb, var(--community-primary) 27%, transparent);
+    transition: all 0.25s ease;
+  }
+  .cq-hero-cta-primary:hover {
+    background-color: color-mix(in srgb, var(--community-primary) 45%, black);
+    transform: translateY(-2px);
+  }
+  .cq-hero-cta-secondary {
+    color: var(--community-primary-dark);
+    border-color: color-mix(in srgb, var(--community-primary) 33%, transparent);
+    transition: all 0.25s ease;
+  }
+  .cq-hero-cta-secondary:hover {
+    border-color: var(--community-primary);
+    background-color: color-mix(in srgb, var(--community-primary) 5%, transparent);
+    transform: translateY(-2px);
+  }
+  :global([data-theme="dark"]) .cq-hero-cta-secondary {
+    color: #fff;
+    border-color: rgb(255 255 255 / 0.35);
+  }
+  :global([data-theme="dark"]) .cq-hero-cta-secondary:hover {
+    border-color: #fff;
+    background-color: rgb(255 255 255 / 0.06);
+  }
+
+  /* Imagem em duotone: P&B + overlay de cor com blend. */
+  .cq-hero-image {
+    width: 100%;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    z-index: 1;
+    -webkit-mask-image: linear-gradient(to top, black 70%, transparent 100%);
+    mask-image: linear-gradient(to top, black 70%, transparent 100%);
+  }
+  @media (min-width: 640px) {
+    .cq-hero-image {
+      width: 65%;
+    }
+    .cq-pos-right {
+      right: -8%;
+    }
+    .cq-pos-left {
+      left: -8%;
+    }
+  }
+  @media (min-width: 768px) {
+    .cq-hero-image {
+      width: 50%;
+    }
+    .cq-pos-right {
+      right: -2%;
+    }
+    .cq-pos-left {
+      left: -2%;
+    }
+  }
+  @media (min-width: 1024px) {
+    .cq-hero-image {
+      width: 40%;
+    }
+    .cq-pos-right {
+      right: 5%;
+    }
+    .cq-pos-left {
+      left: 5%;
+    }
+  }
+  @media (min-width: 1280px) {
+    .cq-hero-image {
+      width: 35%;
+    }
+    .cq-pos-right {
+      right: 10%;
+    }
+    .cq-pos-left {
+      left: 10%;
+    }
+  }
+  .cq-hero-img {
+    filter: grayscale(100%) contrast(0.9) brightness(1.05);
+  }
+  :global([data-theme="dark"]) .cq-hero-image {
+    mix-blend-mode: screen;
+  }
+  :global([data-theme="dark"]) .cq-hero-img {
+    filter: grayscale(100%) contrast(1.1) brightness(0.85);
+  }
+  .cq-hero-tint {
+    mix-blend-mode: color;
+    opacity: 0.92;
+    background: linear-gradient(
+      to top,
+      color-mix(in srgb, var(--community-primary-dark) 80%, transparent) 0%,
+      color-mix(in srgb, var(--community-primary) 60%, transparent) 45%,
+      transparent 85%
+    );
+  }
+
+  /* Fade inferior para a cor de fundo da página. */
+  .cq-hero-fade {
+    z-index: 2;
+    background: linear-gradient(
+      to top,
+      var(--cq-bg-body) 0%,
+      transparent 100%
+    );
+  }
+</style>

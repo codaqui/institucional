@@ -1,0 +1,23 @@
+---
+// Página de docs do DevParaná — wrapper comum das duas rotas de
+// documentação (índice `/docs` e RFCs completas `/docs/rfcs/<slug>`): o caller
+// (shell da página) passa o `slug` (de `getStaticPaths`), o `config`, o
+// `site` e o `homeHref`; o corpo vive em DevparanaDocsRoute. Compartilhada
+// entre o build tenant (rotas limpas) e o portal codaqui
+// (/comunidades/devparana/docs) — só muda o homeHref.
+import DevparanaDocsRoute from "./DevparanaDocsRoute.astro";
+import type { CommunitySiteConfig } from "../../../../../../comunidades/shared/types";
+
+interface Props {
+  /** Slug da rota: "index" | "rfcs/projeto-embaixadores" | "rfcs/devparana-na-estrada-2026". */
+  slug: string;
+  config: CommunitySiteConfig;
+  site: string;
+  /** "/" no build tenant, communityBasePath(config) no portal codaqui. */
+  homeHref: string;
+}
+
+const { slug, config, site, homeHref } = Astro.props;
+---
+
+<DevparanaDocsRoute slug={slug} config={config} site={site} homeHref={homeHref} />

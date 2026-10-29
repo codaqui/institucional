@@ -1,0 +1,252 @@
+---
+import BrandLogo from "./BrandLogo.astro";
+import NavbarAuth from "../islands/NavbarAuth";
+import ThemeToggle from "../islands/ThemeToggle";
+
+const sobreItems = [
+  { label: "Equipe", href: "/sobre/equipe" },
+  { label: "Membros", href: "/membros" },
+  { label: "Associação", href: "/sobre/ong" },
+  { label: "Títulos e Reconhecimentos", href: "/sobre/titulos" },
+  { label: "Insights", href: "/sobre/insights" },
+  { label: "Transparência", href: "/transparencia" },
+  { label: "Pais e Responsáveis", href: "/sobre/pais-responsaveis" },
+  { label: "Código de Conduta", href: "/sobre/conduta" },
+];
+const participeItems = [
+  { label: "#QueroEstudar", href: "/participe/estudar" },
+  { label: "#QueroApoiar", href: "/participe/apoiar" },
+  { label: "#QueroMentoria", href: "/participe/mentoria" },
+  { label: "#ClubCodaqui", href: "/clube" },
+];
+const trilhasItems = [
+  { label: "Visão Geral", href: "/trilhas" },
+  { label: "Python 101", href: "/trilhas/python/" },
+  { label: "GitHub 101", href: "/trilhas/github/" },
+];
+const directLinks = [
+  { label: "Eventos", href: "/eventos" },
+  { label: "Projetos", href: "/projetos" },
+  { label: "Patrocinadores", href: "/patrocinadores" },
+  { label: "Blog", href: "/blog" },
+  { label: "Contato", href: "/contato" },
+];
+const groups = [
+  { label: "Sobre", items: sobreItems },
+  { label: "Participe", items: participeItems },
+  { label: "Trilhas", items: trilhasItems },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-border bg-surface">
+  <nav class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4" aria-label="Navegação principal">
+    <a href="/" class="flex items-center gap-2 font-extrabold text-text-primary">
+      <BrandLogo class="h-8 w-auto" />
+    </a>
+    {/* Nav inline só no desktop (lg+); abaixo disso o drawer leva tudo (U1) */}
+    <div class="cq-header-nav hidden items-center gap-4 lg:flex">
+      <a href="/" class="text-sm font-bold text-text-primary hover:text-link">Início</a>
+      {groups.map((group) => (
+        <details class="group relative">
+          <summary class="cursor-pointer list-none text-sm font-bold text-text-primary hover:text-link">
+            {group.label}
+          </summary>
+          <ul class="absolute left-0 z-50 mt-2 w-56 rounded-lg border border-border bg-surface p-2 shadow-md">
+            {group.items.map((item) => (
+              <li>
+                <a href={item.href} class="block rounded-md px-3 py-2 text-sm text-text-primary hover:bg-sunken">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+      {directLinks.map((link) => (
+        <a href={link.href} class="text-sm font-bold text-text-primary hover:text-link">
+          {link.label}
+        </a>
+      ))}
+    </div>
+    <span class="ms-auto flex items-center gap-1">
+      <span class="hidden items-center gap-1 lg:inline-flex">
+        <ThemeToggle client:load />
+        <NavbarAuth client:load />
+      </span>
+      <button
+        type="button"
+        id="cq-menu-trigger"
+        class="inline-flex items-center justify-center rounded-md p-2 text-text-primary hover:bg-sunken lg:hidden"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+        aria-controls="cq-site-drawer"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-6 w-6">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+        </svg>
+      </button>
+    </span>
+  </nav>
+</header>
+
+{/* Drawer mobile — guia navigation-drawer: popover="manual" no top layer,
+    backdrop escurecido, ESC/backdrop/fechar dispensam, foco entra no painel
+    e fica preso nele (helpers testados em src/lib/header-menu.ts). */}
+<div id="cq-site-drawer" class="cq-drawer lg:hidden" popover="manual">
+  <div class="cq-drawer-panel" tabindex="-1">
+    <div class="flex items-center justify-between border-b border-border px-4 py-3">
+      <a href="/" class="flex items-center gap-2 font-extrabold text-text-primary">
+        <BrandLogo class="h-8 w-auto" />
+      </a>
+      <button
+        type="button"
+        id="cq-menu-close"
+        class="inline-flex items-center justify-center rounded-md p-2 text-text-primary hover:bg-sunken"
+        aria-label="Fechar menu"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-6 w-6">
+          <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+        </svg>
+      </button>
+    </div>
+    <nav class="flex-1 overflow-y-auto px-4 py-3" aria-label="Navegação do menu">
+      <ul class="m-0 flex list-none flex-col gap-1 p-0">
+        <li>
+          <a href="/" class="block rounded-md px-3 py-2 text-base font-bold text-text-primary no-underline hover:bg-sunken">
+            Início
+          </a>
+        </li>
+        {directLinks.map((link) => (
+          <li>
+            <a href={link.href} class="block rounded-md px-3 py-2 text-base font-bold text-text-primary no-underline hover:bg-sunken">
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+      {groups.map((group) => (
+        <details class="border-t border-border pt-2 mt-2">
+          <summary class="cursor-pointer list-none rounded-md px-3 py-2 text-base font-bold text-text-primary hover:bg-sunken">
+            {group.label}
+          </summary>
+          <ul class="m-0 list-none p-0 pb-1 ps-4">
+            {group.items.map((item) => (
+              <li>
+                <a href={item.href} class="block rounded-md px-3 py-2 text-sm text-text-primary no-underline hover:bg-sunken">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      ))}
+    </nav>
+    <div class="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+      <ThemeToggle client:load />
+      <NavbarAuth client:load />
+    </div>
+  </div>
+</div>
+
+<style>
+  .cq-drawer {
+    /* Reset do UA popover + viewport inteiro: o backdrop cobre a página e
+       cliques fora do painel caem no próprio popover (light dismiss). */
+    inset: 0;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
+  .cq-drawer::backdrop {
+    background: rgb(0 0 0 / 0.45);
+  }
+  .cq-drawer-panel {
+    width: min(20em, 85dvw);
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background: var(--cq-bg-surface);
+    border-right: 1px solid var(--cq-border-default);
+    transform: translateX(-100%);
+    transition:
+      transform var(--cq-motion-normal) var(--cq-motion-ease),
+      display var(--cq-motion-normal) allow-discrete;
+  }
+  .cq-drawer:popover-open .cq-drawer-panel {
+    transform: translateX(0);
+  }
+  @starting-style {
+    .cq-drawer:popover-open .cq-drawer-panel {
+      transform: translateX(-100%);
+    }
+  }
+</style>
+
+<script>
+  import {
+    initHeaderDetailsNav,
+    isOutside,
+    focusableIn,
+    nextTrapTarget,
+  } from "../../lib/header-menu";
+
+  // U2 — menus desktop: single-open + ESC + clique fora.
+  const header = document.querySelector<HTMLElement>("header:has(.cq-header-nav)");
+  if (header) initHeaderDetailsNav(header);
+
+  // U1 — drawer mobile.
+  const drawer = document.getElementById("cq-site-drawer");
+  const trigger = document.getElementById("cq-menu-trigger");
+  const panel = drawer?.querySelector<HTMLElement>(".cq-drawer-panel");
+  const main = document.querySelector<HTMLElement>("main");
+
+  if (drawer instanceof HTMLElement && trigger instanceof HTMLButtonElement && panel) {
+    let lastFocused: HTMLElement | null = null;
+
+    const openDrawer = () => {
+      lastFocused = document.activeElement as HTMLElement | null;
+      drawer.showPopover();
+      main?.setAttribute("inert", "");
+      trigger.setAttribute("aria-expanded", "true");
+      panel.focus();
+    };
+
+    const closeDrawer = () => {
+      if (!drawer.matches(":popover-open")) return;
+      drawer.hidePopover();
+      main?.removeAttribute("inert");
+      trigger.setAttribute("aria-expanded", "false");
+      lastFocused?.focus();
+    };
+
+    trigger.addEventListener("click", () => {
+      if (drawer.matches(":popover-open")) closeDrawer();
+      else openDrawer();
+    });
+
+    drawer.querySelector("#cq-menu-close")?.addEventListener("click", closeDrawer);
+
+    // Backdrop: clique no popover fora do painel dispensam (guia).
+    drawer.addEventListener("click", (event) => {
+      if (isOutside(event.target, panel)) closeDrawer();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDrawer();
+    });
+
+    // Focus trap: nas bordas do painel o Tab enrola (helpers testados).
+    panel.addEventListener("keydown", (event) => {
+      if (event.key !== "Tab") return;
+      const next = nextTrapTarget(focusableIn(panel), document.activeElement, event.shiftKey);
+      if (next) {
+        event.preventDefault();
+        next.focus();
+      }
+    });
+  }
+</script>

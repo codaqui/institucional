@@ -2,10 +2,12 @@
 purpose: High-level overview of the codaqui/institucional monorepo.
 audience: New contributors, casual readers, AI agents
 sections:
-  - Sobre o Repositório (monorepo: frontend + backend)
-  - Como Contribuir (links to DEVELOPMENT.md sections)
+  - Sobre o Repositório (monorepo: app Astro em frontend/ + backend NestJS)
+  - Quickstart (site, API local, full stack)
+  - Estrutura de Diretórios
   - Espaços de Discussão (Discord, WhatsApp, GitHub)
-  - Previews de Branch (gh-pages preview URLs)
+  - Deploy (resumo — Cloudflare Pages + backend ARM64)
+  - Licença e Contato
   - Fluxo de Contribuição (mermaid)
 related-docs:
   - AGENTS.md — main guide for AI agents (rules, patterns, anti-patterns)
@@ -16,7 +18,7 @@ agent-protocol: README is intentionally short. For implementation details, go to
 
 # CODAQUI
 
-![Imagem do Header](images/header.png)
+![Imagem do Header](static/img/header.png)
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=codaqui_institucional&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=codaqui_institucional)
 
@@ -28,25 +30,55 @@ Codaqui é uma **associação brasileira sem fins lucrativos** que democratiza e
 
 ## Sobre o Repositório
 
-Este repositório é um **monorepo**:
+Este repositório é um **monorepo** com duas camadas:
 
-| Camada | Diretório | Hospedagem |
-|--------|-----------|-----------|
-| Frontend (Docusaurus) | `/` (raiz) | GitHub Pages — automático via CI |
-| Backend (NestJS) | [`backend/`](./backend/README.md) | Servidor ARM64 via Podman Compose |
+| Camada | Diretório | Stack | Hospedagem |
+|--------|-----------|-------|------------|
+| **Site** — portal codaqui.dev, blog, trilhas e sites whitelabel das comunidades | [`frontend/`](./frontend) | Astro 7 · React 19 · Tailwind/MUI | Cloudflare Pages — automático via CI |
+| **API** — eventos, ledger, Stripe, membros, e-mails | [`backend/`](./backend/README.md) | NestJS 11 · TypeORM · PostgreSQL 18 | Servidor ARM64 (Podman Compose) |
 
-O GitHub Pages **nunca** publica o `backend/`. O CI usa apenas `npm ci → npm run build → deploy`.
+Na raiz ficam também os **scripts de sincronização** (`scripts/`), que buscam dados externos (Discord, Meetup, analytics) e gravam snapshots versionados em `static/`, consumidos pelo build do site. O `backend/` **nunca** é publicado junto com o site.
 
 ---
 
-## Como Contribuir
+## Quickstart
 
-Para detalhes de setup, comandos e fluxo de desenvolvimento, consulte o **[DEVELOPMENT.md](./DEVELOPMENT.md)**:
+Requer **Node ≥ 24**. Para a API e infra local, **Podman** (ou Docker com o binário `podman` disponível).
 
-- [Contribuindo só no Frontend](./DEVELOPMENT.md#frontend-docusaurus) — sem Podman, sem backend
-- [Desenvolvendo o Backend](./DEVELOPMENT.md#backend-nestjs)
-- [Ambiente Full Stack](./DEVELOPMENT.md#full-stack-frontend--backend--infra)
-- [Deploy](./DEVELOPMENT.md#deploy)
+Primeira vez:
+
+```bash
+make setup   # cria o .env a partir do .env.example e instala as dependências (raiz, frontend/, backend/)
+```
+
+Depois, conforme o que vai mexer:
+
+| Quero... | Comando | URL |
+|----------|---------|-----|
+| Só o site (Astro) | `make astro-dev` | http://localhost:4321 |
+| Só a API (NestJS) | `make db-up` (PostgreSQL) e `make backend-start` | http://localhost:3000 |
+| API via containers + webhooks Stripe | `make up` | API em http://localhost:3001 · banco em localhost:5432 |
+
+> Sem Podman: o site roda standalone com `cd frontend && npm install && npm run dev` — as páginas que consomem a API mostram fallback quando ela está offline.
+
+Setup completo, variáveis de ambiente e deploy: **[DEVELOPMENT.md](./DEVELOPMENT.md)**. Padrões de código e anti-patterns: **[AGENTS.md](./AGENTS.md)**.
+
+---
+
+## Estrutura de Diretórios
+
+```
+institucional/
+├── frontend/          # 🚀 App Astro — portal codaqui.dev + builds whitelabel (tenants)
+├── backend/           # 🖥️ API NestJS (eventos, ledger, Stripe, membros, notificações)
+├── blog/              # ✍️ Fonte canônica dos posts (copiada para o Astro em build-time)
+├── trilhas/           # 📚 Fonte canônica das trilhas (Python, GitHub)
+├── comunidades/       # 🗃️ Conteúdo canônico whitelabel das comunidades — lido pelos builds tenant via symlink; edite aqui, nunca em src-tenants/
+├── static/            # 📦 Assets + snapshots gerados pelos syncs (events/, social-stats/, analytics/)
+├── scripts/           # 🔄 Syncs e validações (rodam local e nos workflows)
+├── docs/              # 📑 Documentação técnica (ADRs, módulos, planos)
+└── .github/workflows/ # CI — deploy Pages, PR check, syncs, publish da imagem do backend
+```
 
 ---
 
@@ -59,15 +91,20 @@ Para detalhes de setup, comandos e fluxo de desenvolvimento, consulte o **[DEVEL
 
 ---
 
-## Previews de Branch
+## Deploy
 
-| Branch | URL |
-|--------|-----|
-| `main` | https://codaqui.dev (produção) |
-| `develop` | https://codaqui.dev/previews/develop/ |
-| PRs | https://codaqui.dev/previews/pr-`<numero>`/ |
+- **Sites (codaqui.dev + tenants das comunidades):** push em `main` dispara [`.github/workflows/deploy-astro.yml`](./.github/workflows/deploy-astro.yml) — build matrix (codaqui + T.I. Social + Elas no Código + DevParaná) com *direct upload* no Cloudflare Pages. Outras branches viram previews em `<branch>.<projeto>.pages.dev`.
+- **Backend:** imagem multi-arch publicada manualmente via workflow `publish-backend.yml` e subida no servidor com `compose.prod.yaml`.
 
-Os previews usam `noIndex: true` — não aparecem em buscas.
+Detalhes, secrets e runbook: [DEVELOPMENT.md](./DEVELOPMENT.md#deploy).
+
+---
+
+## Licença e Contato
+
+- **Licença:** Creative Commons Attribution-ShareAlike
+- **Contato:** contato@codaqui.dev
+- **Repositório:** https://github.com/codaqui/institucional
 
 ---
 

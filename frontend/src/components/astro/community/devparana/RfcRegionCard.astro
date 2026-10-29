@@ -1,0 +1,42 @@
+---
+// Port 1:1 (zero JS) de comunidades/devparana/src/components/RfcRegionCard —
+// card de região com ícone de localização e chips das cidades.
+interface Props {
+  region: {
+    name: string;
+    cities: string[];
+  };
+}
+
+const { region } = Astro.props;
+
+// Ícone place_outlined do @mui/icons-material (fill currentColor).
+const PLACE_OUTLINED_PATH =
+  "M12 2C8.13 2 5 5.13 5 8.5c0 5.25 7 13 7 13s7-7.75 7-13C19 5.13 15.87 2 12 2m0 9.5c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3";
+---
+
+<div class="cq-region-card h-full rounded-lg border border-border bg-surface p-6 transition duration-200 hover:-translate-y-0.5 hover:shadow-lg">
+  <div class="mb-3 flex items-center gap-2" style="color: var(--community-primary)">
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+      <path d={PLACE_OUTLINED_PATH}></path>
+    </svg>
+    <h3 class="m-0 text-lg font-bold" style="color: var(--community-primary)">
+      {region.name}
+    </h3>
+  </div>
+  <div class="flex flex-wrap gap-1.5">
+    {
+      region.cities.map((city) => (
+        <span class="rounded-full border border-border px-2.5 py-0.5 text-xs font-semibold text-text-secondary">
+          {city}
+        </span>
+      ))
+    }
+  </div>
+</div>
+
+<style>
+  .cq-region-card:hover {
+    border-color: var(--community-primary);
+  }
+</style>

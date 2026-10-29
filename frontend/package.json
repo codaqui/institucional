@@ -1,0 +1,60 @@
+{
+  "name": "codaqui-frontend-astro",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.0"
+  },
+  "scripts": {
+    "predev": "npm run sync:content",
+    "dev": "astro dev",
+    "prebuild": "npm run sync:content",
+    "build": "astro build && node scripts/build-tenant-redirects.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "pages:dev": "wrangler pages dev dist --port 8787",
+    "sync:snapshots": "node scripts/copy-snapshots.mjs",
+    "sync:content": "node scripts/copy-snapshots.mjs && node scripts/copy-content.mjs"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "^8.1.1",
+    "@astrojs/react": "^7.1.0",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@giscus/react": "^3.1.0",
+    "@mui/icons-material": "^9.5.0",
+    "@mui/material": "^9.0.0",
+    "@stripe/react-stripe-js": "^7.0.0",
+    "@stripe/stripe-js": "^10.1.0",
+    "qr-scanner": "^1.4.2",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.11",
+    "@astrojs/markdown-remark": "^7.3.4",
+    "@cloudflare/workers-types": "^5.20261027.1",
+    "@tailwindcss/vite": "^4.1.0",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.8",
+    "@types/mdast": "^4.0.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/unist": "^3.0.3",
+    "astro": "^7.4.1",
+    "jsdom": "^29.1.1",
+    "tailwindcss": "^4.1.0",
+    "typescript": "~5.6.2",
+    "unist-util-visit": "^5.1.0",
+    "vfile": "^6.0.3",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.87.0"
+  }
+}

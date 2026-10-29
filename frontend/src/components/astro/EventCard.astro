@@ -1,0 +1,196 @@
+---
+// Portado do EventCard de src/pages/eventos.tsx (MUI → HTML + Tailwind, tokens --cq-*).
+import type { EventSummary, EventSourceSummary } from "../../lib/events";
+import { formatEventOrganizers } from "../../lib/events";
+import { buildEventPublicPath } from "../../lib/event-path";
+import EventOverrideBadge from "./EventOverrideBadge.astro";
+
+interface Props {
+  event: EventSummary;
+  sourceMeta?: EventSourceSummary;
+}
+
+const { event, sourceMeta } = Astro.props;
+
+const isExternal = event.href.startsWith("http");
+const detailPath = buildEventPublicPath(event);
+const speakers = event.speakers ?? [];
+
+const STATUS_LABEL: Record<string, string> = {
+  scheduled: "Agendado",
+  active: "Ao vivo",
+  completed: "Concluído",
+  canceled: "Cancelado",
+};
+const statusLabel = event.status ? STATUS_LABEL[event.status] : null;
+const statusClass =
+  event.status === "active"
+    ? "chip-success"
+    : event.status === "canceled"
+      ? "chip-error"
+      : event.status === "completed"
+        ? "chip-neutral"
+        : "chip-warning";
+
+const dateFmt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: event.timezone || "America/Sao_Paulo",
+});
+
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<article
+  class:list={[
+    "flex h-full flex-col rounded-lg border bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-link hover:shadow-md",
+    event.featured ? "border-2 border-[var(--cq-color-success)]" : "border-border",
+  ]}
+>
+  <div class="grow p-4">
+    <div class="mb-3 flex flex-wrap items-center gap-1.5">
+      <span class="chip-outline">
+        {sourceMeta?.emoji ?? "📌"} {sourceMeta?.label ?? event.source}
+      </span>
+      {statusLabel && <span class:list={["chip", statusClass]}>{statusLabel}</span>}
+      {event.featured && <span class="chip chip-success">Destaque</span>}
+      {event._override && (
+        <EventOverrideBadge
+          ownerHandle={event._override.ownerHandle}
+          reason={event._override.reason}
+        />
+      )}
+      {event.recurrenceLabel && (
+        <span class="chip-outline">🔁 {event.recurrenceLabel}</span>
+      )}
+    </div>
+
+    {
+      event.imageUrl && (
+        <div class="mb-3 overflow-hidden rounded-lg border border-border">
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            loading="lazy"
+            class="block h-40 w-full object-cover"
+          />
+        </div>
+      )
+    }
+
+    <h3 class="mb-2 text-xl font-bold text-text-primary">{event.title}</h3>
+    <p class="mb-4 text-sm text-text-secondary">{event.summary}</p>
+
+    <ul class="mb-4 flex list-none flex-col gap-1.5 p-0 text-sm text-text-primary">
+      <li>
+        📅 <time datetime={event.startAt}>{dateFmt.format(new Date(event.startAt))}</time>
+      </li>
+      <li>💬 {event.platform} · com {formatEventOrganizers(event)}</li>
+      <li>📍 {event.location}</li>
+      {
+        typeof event.userCount === "number" && event.userCount > 0 && (
+          <li>👥 {event.userCount} pessoa(s) interessadas</li>
+        )
+      }
+      {
+        speakers.length > 0 && (
+          <li class="flex items-center gap-2">
+            <span class="flex -space-x-2">
+              {speakers.slice(0, 4).map((speaker) => (
+                <img
+                  src={
+                    speaker.avatarUrl ??
+                    (speaker.handle
+                      ? `https://avatars.githubusercontent.com/${speaker.handle}?v=4`
+                      : "/img/logo.png")
+                  }
+                  alt={speaker.name}
+                  loading="lazy"
+                  class="h-7 w-7 rounded-full border-2 border-surface object-cover"
+                />
+              ))}
+            </span>
+            <span>com {speakers.map((s) => s.name).join(", ")}</span>
+          </li>
+        )
+      }
+    </ul>
+
+    {
+      event.tags.length > 0 && (
+        <ul class="flex list-none flex-wrap gap-1.5 p-0">
+          {event.tags.map((tag) => (
+            <li class="chip-outline">{tag}</li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+
+  <div class="flex flex-col gap-2 p-4 pt-0 sm:flex-row">
+    {
+      isExternal && (
+        <a
+          href={event.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-1 rounded-lg border border-link px-3 py-1.5 text-sm font-semibold text-link no-underline transition-colors hover:bg-link hover:text-white"
+        >
+          Site original
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            aria-hidden="true"
+            class="h-4 w-4"
+          >
+            <path d={OPEN_IN_NEW_PATH} />
+          </svg>
+        </a>
+      )
+    }
+    <a
+      href={detailPath}
+      class="inline-flex items-center justify-center rounded-lg bg-action px-3 py-1.5 text-sm font-semibold text-on-action no-underline transition-colors hover:bg-action-hover"
+    >
+      Ver detalhes
+    </a>
+  </div>
+</article>
+
+<style>
+  .chip,
+  .chip-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 9999px;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .chip-outline {
+    border: 1px solid var(--cq-border-default);
+    color: var(--cq-text-secondary);
+  }
+  .chip-success {
+    color: var(--cq-color-success);
+    background-color: var(--cq-color-success-bg);
+  }
+  .chip-warning {
+    color: var(--cq-color-warning);
+    background-color: var(--cq-color-warning-bg);
+  }
+  .chip-error {
+    color: var(--cq-color-error);
+    background-color: var(--cq-color-error-bg);
+  }
+  .chip-neutral {
+    color: var(--cq-text-secondary);
+    background-color: var(--cq-bg-sunken);
+  }
+</style>

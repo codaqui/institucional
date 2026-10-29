@@ -1,0 +1,16 @@
+---
+// Página "Transparência" do site whitelabel DevParaná (build tenant,
+// /transparencia). O corpo da página vive em TransparenciaPage (compartilhado
+// com o wrapper do portal codaqui).
+import TransparenciaPage from "../components/astro/community/devparana/TransparenciaPage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<TransparenciaPage config={config} site={site} homeHref={homeHref} />

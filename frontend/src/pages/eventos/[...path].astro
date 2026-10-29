@@ -1,0 +1,76 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import EventRegistrationIsland from "../../components/islands/EventRegistrationIsland";
+import { loadEventsIndex, type EventSummary } from "../../lib/events";
+import {
+  buildEventJsonLd,
+  buildEventPublicPath,
+  eventRouteParam,
+  resolveEventImageUrl,
+  truncateEventSummary,
+} from "../../lib/event-path";
+
+export function getStaticPaths() {
+  return loadEventsIndex().events.map((event) => ({
+    params: { path: eventRouteParam(event) },
+    props: { event },
+  }));
+}
+
+interface Props {
+  event: EventSummary;
+}
+
+const { event } = Astro.props;
+const absoluteUrl = new URL(buildEventPublicPath(event), Astro.site).toString();
+const jsonLd = buildEventJsonLd(event, absoluteUrl);
+const description = truncateEventSummary(event.summary ?? "");
+// .origin (sem barra final): resolveEventImageUrl concatena `${siteUrl}${path}`.
+const ogImage = resolveEventImageUrl(event.imageUrl, Astro.site?.origin ?? "");
+
+const dateFmt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: event.timezone || "America/Sao_Paulo",
+});
+const start = new Date(event.startAt);
+const isPast = event.status === "completed" || event.status === "canceled";
+---
+
+<PublicLayout title={`${event.title} | CODAQUI.dev`} ogTitle={`${event.title} | CODAQUI.dev`} description={description} ogImage={ogImage} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-3xl px-4 py-10">
+    <p class="text-sm font-bold text-text-secondary">{event.host}</p>
+    <h1 class="mt-1 text-3xl font-extrabold text-text-primary">{event.title}</h1>
+    <p class="mt-4 text-text-secondary">
+      📅 <time datetime={event.startAt}>{dateFmt.format(start)}</time><br />
+      📍 {event.location}
+    </p>
+    {event.tags.length > 0 && (
+      <ul class="mt-3 flex flex-wrap gap-2">
+        {event.tags.map((tag) => (
+          <li class="rounded-full bg-sunken px-3 py-1 text-xs font-bold text-text-secondary">{tag}</li>
+        ))}
+      </ul>
+    )}
+    <p class="mt-6 text-lg text-text-primary">{event.summary}</p>
+
+    {!isPast && (
+      <section class="mt-8 rounded-xl border border-border bg-surface p-6 shadow-sm">
+        <EventRegistrationIsland
+          client:only="react"
+          eventId={event.id}
+          source={event.source}
+          externalHref={event.href}
+          ctaLabel={event.ctaLabel}
+        />
+      </section>
+    )}
+
+    {event.description && (
+      <section class="prose mt-10 max-w-none text-text-primary">
+        <h2>Sobre o evento</h2>
+        <p style="white-space: pre-line">{event.description}</p>
+      </section>
+    )}
+  </article>
+</PublicLayout>

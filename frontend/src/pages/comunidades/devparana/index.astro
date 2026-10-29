@@ -1,0 +1,14 @@
+---
+// Home do DevParaná no portal codaqui (/comunidades/devparana) — wrapper do
+// HomePage com as rotas do portal.
+import HomePage from "../../../components/astro/community/devparana/HomePage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<HomePage config={config} site={site} homeHref={homeHref} />

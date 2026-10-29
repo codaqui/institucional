@@ -1,0 +1,168 @@
+---
+// Página de listagem do blog de comunidade — port 1:1 do branch `community`
+// do swizzle src/theme/BlogListPage/index.tsx: PageHero sólido na cor primária
+// (eyebrow/title "Blog da {shortName}", métricas, CTAs "Explorar publicações"
+// e "Assinar RSS"), grid sidebar+posts e card "Sobre a {shortName}".
+import type { CollectionEntry } from "astro:content";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import CommunityLayout from "./CommunityLayout.astro";
+import PageHero from "../PageHero.astro";
+import CommunityBlogSidebar from "./CommunityBlogSidebar.astro";
+import CommunityBlogPostItem from "./CommunityBlogPostItem.astro";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  homeHref: string;
+  /** Base das rotas de blog: "/blog" (tenant) ou "/comunidades/<slug>/blog". */
+  basePath: string;
+  /** Número da página atual (1-based). */
+  page: number;
+  totalPages: number;
+  totalCount: number;
+  posts: CollectionEntry<"communityBlog">[];
+  yearGroups: import("./CommunityBlogSidebar.astro").SidebarYearGroup[];
+}
+
+const {
+  config,
+  site,
+  homeHref,
+  basePath,
+  page,
+  totalPages,
+  totalCount,
+  posts,
+  yearGroups,
+} = Astro.props;
+
+const metrics = [
+  `${totalCount} publicações`,
+  `${posts.length} nesta página`,
+  `${totalPages} páginas de conteúdo`,
+];
+
+const prevPageHref = page === 2 ? basePath : `${basePath}/page/${page - 1}`;
+const nextPageHref = `${basePath}/page/${page + 1}`;
+
+// Ícones AutoStoriesRounded/RssFeedRounded do @mui/icons-material.
+const AUTO_STORIES_PATH =
+  "m18.15 1.35-4 4q-.15.15-.15.36v8.17c0 .43.51.66.83.37l4-3.6c.11-.09.17-.23.17-.37V1.71c0-.45-.54-.67-.85-.36m4.32 3.85c-.47-.24-.96-.44-1.47-.61v12.03c-1.14-.41-2.31-.62-3.5-.62-1.9 0-3.78.54-5.5 1.58V5.48C10.38 4.55 8.51 4 6.5 4c-1.79 0-3.48.44-4.97 1.2-.33.16-.53.51-.53.88v12.08c0 .76.81 1.23 1.48.87C3.69 18.4 5.05 18 6.5 18c2.07 0 3.98.82 5.5 2 1.52-1.18 3.43-2 5.5-2 1.45 0 2.81.4 4.02 1.04.67.36 1.48-.11 1.48-.87V6.08c0-.37-.2-.72-.53-.88";
+const RSS_PATH =
+  "M5.59 10.23c-.84-.14-1.59.55-1.59 1.4 0 .71.53 1.28 1.23 1.4 2.92.51 5.22 2.82 5.74 5.74.12.7.69 1.23 1.4 1.23.85 0 1.54-.75 1.41-1.59-.68-4.2-3.99-7.51-8.19-8.18m-.03-5.71C4.73 4.43 4 5.1 4 5.93c0 .73.55 1.33 1.27 1.4 6.01.6 10.79 5.38 11.39 11.39.07.73.67 1.28 1.4 1.28.84 0 1.5-.73 1.42-1.56-.73-7.34-6.57-13.19-13.92-13.92";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={`${config.shortName} — Blog`}
+  homeHref={homeHref}
+>
+  <PageHero
+    eyebrow={`Blog da ${config.shortName}`}
+    title={`Blog da ${config.shortName}`}
+    subtitle={`Histórias, prestações de contas e novidades da comunidade ${config.name}.`}
+    bgClass="cq-community-hero"
+    disableGradient
+  >
+    <div class="mb-4 flex flex-wrap justify-center gap-2">
+      {
+        metrics.map((metric) => (
+          <span class="rounded-full bg-white/15 px-3 py-1 text-sm font-bold text-white">
+            {metric}
+          </span>
+        ))
+      }
+    </div>
+    <div
+      class="flex flex-col justify-center gap-3 sm:flex-row"
+    >
+      <a
+        href="#posts"
+        class="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2.5 font-bold text-neutral-800 no-underline hover:bg-neutral-100"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+          <path d={AUTO_STORIES_PATH}></path>
+        </svg>
+        Explorar publicações
+      </a>
+      <a
+        href={`${basePath}/rss.xml`}
+        class="inline-flex items-center justify-center gap-2 rounded-lg border border-white/45 px-4 py-2.5 font-bold text-white no-underline transition-colors hover:border-white hover:bg-white/10"
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-5 w-5">
+          <path d={RSS_PATH}></path>
+        </svg>
+        Assinar RSS
+      </a>
+    </div>
+  </PageHero>
+
+  <div class="mx-auto flex max-w-6xl gap-10 px-4 py-10">
+    <CommunityBlogSidebar yearGroups={yearGroups} />
+    <main id="posts" class="min-w-0 flex-1">
+      <div class="flex flex-col gap-8">
+        {posts.map((post) => <CommunityBlogPostItem post={post} basePath={basePath} />)}
+      </div>
+      {
+        totalPages > 1 && (
+          <nav
+            class="mt-8 flex justify-between"
+            aria-label="Paginação da listagem do blog"
+          >
+            {page > 1 && (
+              <a
+                href={prevPageHref}
+                class="text-sm font-bold text-link no-underline hover:text-link-hover"
+              >
+                ← Publicações mais recentes
+              </a>
+            )}
+            {page < totalPages && (
+              <a
+                href={nextPageHref}
+                class="ms-auto text-sm font-bold text-link no-underline hover:text-link-hover"
+              >
+                Publicações mais antigas →
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </main>
+  </div>
+
+  <section class="bg-sunken py-12 md:py-16">
+    <div class="mx-auto max-w-3xl px-4">
+      <div class="rounded-lg border border-border bg-surface p-6 text-center md:p-8">
+        <h2 class="m-0 mb-2 text-2xl font-extrabold">Sobre a {config.shortName}</h2>
+        <p class="m-0 mb-6 text-text-secondary">{config.description}</p>
+        <div class="flex flex-col justify-center gap-3 sm:flex-row">
+          <a
+            href={homeHref}
+            class="inline-flex items-center justify-center rounded-lg px-4 py-2 font-bold text-white no-underline transition-opacity hover:opacity-90"
+            style="background-color: var(--community-primary)"
+          >
+            Voltar à home da comunidade
+          </a>
+          <a
+            href={`${homeHref === "/" ? "/apoiar" : `${homeHref}/apoiar`}`}
+            class="inline-flex items-center justify-center rounded-lg border border-border px-4 py-2 font-bold no-underline transition-colors hover:bg-sunken"
+            style="color: var(--community-primary); border-color: var(--community-primary)"
+          >
+            Apoiar
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .cq-community-hero {
+      background-color: var(--community-primary);
+    }
+    :global([data-theme="dark"]) .cq-community-hero {
+      background-color: var(--community-primary-dark);
+    }
+  </style>
+</CommunityLayout>

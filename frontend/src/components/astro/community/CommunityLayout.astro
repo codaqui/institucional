@@ -1,0 +1,221 @@
+---
+// Shell HTML completo dos sites de comunidade (Fase 0.5) — análogo ao
+// BaseLayout do portal, com branding do tenant: as 5 CSS vars do tema
+// (--community-*) injetadas no :root, title/OG com og:image absoluto,
+// header com logo + nav achatado + chip "← Codaqui" (só em builds tenant) e
+// footer com theme.footerBg + navMenu.
+//
+// Port de: comunidades/shared/components/CommunityHead.tsx (OG/title) +
+// swizzle src/theme/Navbar/Content/index.tsx (CodaquiBackChip + itens da
+// comunidade). O chip resolve a URL da Codaqui em build time
+// (resolveCodaquiUrl cai no branch SSR → siteUrl + baseUrl). Único JS de
+// runtime: a ilha ThemeToggle (mesma do SiteHeader do portal — alterna
+// data-theme/localStorage "cq-theme", a mesma chave do anti-FOUC do <head>).
+import "../../../styles/global.css";
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import { tenantCssVars, tenantNav, tenantNavHref } from "../../../lib/community";
+import { getTenant } from "../../../lib/tenant";
+import { resolveCodaquiUrl } from "../../../lib/api-url";
+import ThemeToggle from "../../islands/ThemeToggle";
+
+interface Props {
+  config: CommunitySiteConfig;
+  /** URL absoluta do site deste build (Astro.site) — base do OG/canonical. */
+  site: string;
+  /** Título da página; compõe `<title>{title} | {config.shortName}</title>`. */
+  title: string;
+  /** href do logo/header: "/" no build tenant, communityBasePath(config) no codaqui. */
+  homeHref: string;
+  /** Descrição da página; default `config.description`. */
+  description?: string;
+}
+
+const {
+  config,
+  site,
+  title,
+  homeHref,
+  description = config.description,
+} = Astro.props;
+
+const siteUrl = site.replace(/\/$/, "");
+const pageTitle = `${title} | ${config.shortName}`;
+const pageImage = config.socialImage ?? config.logoUrl;
+// Crawlers não resolvem path relativo — og:image precisa ser absoluto.
+const absoluteImage = pageImage.startsWith("http")
+  ? pageImage
+  : `${siteUrl}${pageImage}`;
+const canonical = new URL(Astro.url.pathname, siteUrl);
+
+// Build tenant (domínio próprio) vs wrapper (/comunidades/<slug> no portal).
+const isTenantBuild = getTenant() !== null;
+const CODAQUI_SITE_URL = "https://codaqui.dev";
+
+// Nav achatado do config. No build tenant os hrefs nascem limpos (sem o
+// prefixo /comunidades/<slug> e sem o hop 301 do _redirects); nos wrappers
+// do portal os paths prefixados continuam como estão.
+const nav = tenantNav(config).map((item) => ({
+  ...item,
+  to: tenantNavHref(item.to, config.basePath, isTenantBuild, CODAQUI_SITE_URL),
+}));
+const cssVars = tenantCssVars(config);
+const varsStyle = `:root {\n${Object.entries(cssVars)
+  .map(([name, value]) => `  ${name}: ${value};`)
+  .join("\n")}\n}`;
+
+// Chip "← Codaqui": só faz sentido em builds tenant (no portal codaqui o
+// próprio site é a Codaqui). ATENÇÃO: este layout é pré-renderizado em SSR
+// (build estático), então resolveCodaquiUrl SEMPRE cai no branch sem window
+// e o href é https://codaqui.dev — o "adapta dev local" de
+// resolveCodaquiUrl nunca se aplica aqui.
+const codaquiHref = isTenantBuild ? resolveCodaquiUrl(CODAQUI_SITE_URL, "/") : null;
+
+// Footer escuro de comunidade: logo branco quando disponível.
+const footerLogo = config.logoUrlDark ?? config.logoUrl;
+// Header troca a logo por tema (U4): só renderiza a variante dark quando
+// difere da light (campostechpg/devparana apontam as duas para o mesmo asset).
+const headerLogoDark =
+  config.logoUrlDark && config.logoUrlDark !== config.logoUrl
+    ? config.logoUrlDark
+    : null;
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={absoluteImage} />
+    <meta property="og:image:alt" content={config.name} />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={absoluteImage} />
+    <meta name="twitter:image:alt" content={config.name} />
+    <link rel="icon" type="image/png" href="/img/favicon.png" />
+    <script is:inline>
+      // Anti-FOUC: resolve o tema antes do primeiro paint — mesma lógica e
+      // mesmo storage ("cq-theme") do BaseLayout. Sem este script o atributo
+      // data-theme nunca é setado nas páginas de comunidade e as regras dark
+      // das seções (ex.: [data-theme="dark"] .cq-hero) ficam inertes.
+      (() => {
+        const stored = localStorage.getItem("cq-theme");
+        const mode =
+          stored === "dark" || stored === "light"
+            ? stored
+            : matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = mode;
+      })();
+    </script>
+    <style set:html={varsStyle}></style>
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <header class="sticky top-0 z-40 border-b border-border bg-surface">
+      <nav
+        class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4"
+        aria-label="Navegação principal"
+      >
+        <a href={homeHref} class="flex shrink-0 items-center gap-2 no-underline">
+          <span class="inline-flex h-8 items-center">
+            <img src={config.logoUrl} alt={config.name} class="cq-logo-light h-8 w-auto" />
+            {
+              headerLogoDark && (
+                <img
+                  src={headerLogoDark}
+                  alt=""
+                  aria-hidden="true"
+                  class="cq-logo-dark h-8 w-auto"
+                />
+              )
+            }
+          </span>
+          <span class="font-extrabold text-text-primary">{config.shortName}</span>
+        </a>
+        <ul class="ms-auto flex list-none items-center gap-1 overflow-x-auto p-0">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={item.to}
+                  class="block whitespace-nowrap px-3 py-2 text-sm font-bold text-text-primary no-underline hover:text-link"
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+          {
+            codaquiHref && (
+              <li>
+                <a
+                  href={codaquiHref}
+                  aria-label="Voltar para o site da Codaqui"
+                  class="ms-2 inline-flex items-center gap-1 rounded-full border border-action px-3 py-1 text-xs font-semibold text-action no-underline transition-colors hover:bg-action hover:text-on-action"
+                >
+                  ← Codaqui
+                </a>
+              </li>
+            )
+          }
+          <li class="flex items-center">
+            <ThemeToggle client:load />
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="text-white" style="background-color: var(--community-footer-bg)">
+      <div
+        class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-10 text-center"
+      >
+        <img src={footerLogo} alt={config.name} class="h-8 w-auto" />
+        <p class="m-0 text-sm font-semibold">{config.name}</p>
+        <nav aria-label={`Rodapé — ${config.shortName}`}>
+          <ul class="m-0 flex list-none flex-wrap items-center justify-center gap-x-6 gap-y-2 p-0">
+            {
+              nav.map((item) => (
+                <li>
+                  <a
+                    href={item.to}
+                    class="text-sm text-white/75 no-underline hover:text-white"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </nav>
+      </div>
+    </footer>
+
+    <style>
+      /* Logo do header por tema (U4): configs com logoUrlDark (ex.: tisocial)
+       * trocam para a variante branca no dark — mesmo padrão da home de
+       * elasnocodigo (cq-logo-light/cq-logo-dark). data-theme é setado no
+       * <html> pelo script anti-FOUC do <head>. */
+      .cq-logo-dark {
+        display: none;
+      }
+      [data-theme="dark"] .cq-logo-light {
+        display: none;
+      }
+      [data-theme="dark"] .cq-logo-dark {
+        display: block;
+      }
+    </style>
+  </body>
+</html>

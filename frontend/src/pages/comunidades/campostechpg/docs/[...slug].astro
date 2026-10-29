@@ -1,0 +1,18 @@
+---
+// Docs da CamposTech no portal codaqui (/comunidades/campostechpg/docs) —
+// wrapper do DocsPage. Só existe o index: qualquer outro slug cai no 404 do
+// Astro.
+import DocsPage from "../../../../components/astro/community/campostechpg/DocsPage.astro";
+import { communityBasePath } from "../../../../lib/community";
+
+import config from "../../../../../../comunidades/campostechpg/community.config";
+
+export function getStaticPaths() {
+  return [{ params: { slug: undefined } }];
+}
+
+const site = Astro.site?.toString() ?? "https://codaqui.dev";
+const homeHref = communityBasePath(config);
+---
+
+<DocsPage config={config} site={site} homeHref={homeHref} />

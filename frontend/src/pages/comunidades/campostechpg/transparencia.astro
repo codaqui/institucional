@@ -1,0 +1,13 @@
+---
+// Página "Transparência" da CamposTech no portal codaqui
+// (/comunidades/campostechpg/transparencia).
+import TransparenciaPage from "../../../components/astro/community/campostechpg/TransparenciaPage.astro";
+import { communityBasePath } from "../../../lib/community";
+
+import config from "../../../../../comunidades/campostechpg/community.config";
+
+const site = Astro.site?.toString() ?? "https://codaqui.dev";
+const homeHref = communityBasePath(config);
+---
+
+<TransparenciaPage config={config} site={site} homeHref={homeHref} />

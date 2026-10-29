@@ -1,6 +1,7 @@
 # =============================================================================
 # Codaqui — Makefile
-# Controla frontend (Docusaurus), backend (NestJS) e infra (Podman Compose).
+# Controla o app Astro (frontend/ — site oficial pós-Fase 0.6), backend (NestJS)
+# e infra (Podman Compose).
 #
 # Uso rápido:
 #   make setup        → prepara o ambiente pela primeira vez
@@ -16,6 +17,7 @@
 COMPOSE_FILE     := compose.yaml
 COMPOSE_PROD     := compose.prod.yaml
 BACKEND_DIR      := backend
+ASTRO_DIR        := frontend
 ENV_FILE         := .env
 ENV_EXAMPLE      := .env.example
 
@@ -42,11 +44,9 @@ RED    := \033[31m
         stripe-secret \
         migration-generate migration-run migration-revert migration-show \
         backend-start backend-build backend-test backend-lint \
-        frontend-start frontend-build frontend-typecheck frontend-serve frontend-clean \
+        astro-install astro-dev astro-build astro-check astro-test astro-preview \
+        astro-verify astro-verify-tenants astro-lighthouse \
         sync sync-events sync-events-full sync-social sync-analytics \
-        worker-dev-tisocial worker-deploy-tisocial \
-        worker-dev-elasnocodigo worker-deploy-elasnocodigo \
-        worker-dev-devparana worker-deploy-devparana \
         clean clean-volumes
 
 # Target padrão
@@ -85,10 +85,12 @@ setup: ## Prepara o ambiente: cria .env e instala dependências
 	else \
 	    printf "$(GREEN)✔  .env já existe.$(RESET)\n"; \
 	fi
-	@printf "$(CYAN)→  Instalando dependências do frontend...$(RESET)\n"
+	@printf "$(CYAN)→  Instalando dependências da raiz (scripts de sync — leve, só devDeps)...$(RESET)\n"
 	npm install
 	@printf "$(CYAN)→  Instalando dependências do backend...$(RESET)\n"
 	cd $(BACKEND_DIR) && npm install
+	@printf "$(CYAN)→  Instalando dependências do app Astro (frontend/)...$(RESET)\n"
+	cd $(ASTRO_DIR) && npm install
 	@if which mkcert > /dev/null; then \
 	    printf "$(CYAN)→  mkcert encontrado. Tentando configurar HTTPS automaticamente...$(RESET)\n"; \
 	    $(MAKE) setup-https; \
@@ -238,24 +240,80 @@ backend-lint: ## Executa o linter e auto-corrige o backend
 	cd $(BACKEND_DIR) && npm run lint
 
 # =============================================================================
-##@ 🌐 Frontend (Docusaurus)
+##@ 🚀 Frontend (Astro) — app oficial em frontend/ (site + tenants)
 # =============================================================================
 
-frontend-clean: ## Limpa o cache do Docusaurus (builds antigos e dependências temporárias)
-	npm run clear
-	rm -rf .docusaurus build
+astro-install: ## Instala dependências do app Astro
+	cd $(ASTRO_DIR) && npm install
 
-frontend-start: ## Inicia o servidor de desenvolvimento do Docusaurus
-	npm start
+astro-dev: ## Inicia o dev server do Astro em http://localhost:4321
+	cd $(ASTRO_DIR) && npm run dev
 
-frontend-build: ## Gera o build de produção do Docusaurus (igual ao CI)
-	npm run build
+astro-build: ## Gera o build estático do Astro (copia snapshots antes, via prebuild)
+	cd $(ASTRO_DIR) && npm run build
 
-frontend-typecheck: ## Valida TypeScript do frontend (exclui /backend)
-	npm run typecheck
+astro-check: ## Valida tipos dos arquivos .astro (astro check)
+	cd $(ASTRO_DIR) && npm run check
 
-frontend-serve: ## Serve o build estático localmente para homologação
-	npm run serve
+astro-test: ## Roda os testes do app Astro (vitest)
+	cd $(ASTRO_DIR) && npm run test
+
+astro-preview: ## Serve o build do Astro em http://localhost:4321 (homologação)
+	cd $(ASTRO_DIR) && npm run preview
+
+astro-verify: ## Verificação completa do app Astro: build + tipos + testes + smoke + gate de paridade de URLs
+	@printf "$(CYAN)→  Build + typecheck + testes do Astro...$(RESET)\n"
+	cd $(ASTRO_DIR) && npm run build && npm run check && npm run test
+	@printf "$(CYAN)→  Type-check da Pages Function (tsconfig próprio, fora do astro check)...$(RESET)\n"
+	cd $(ASTRO_DIR) && npx tsc -p functions/tsconfig.json
+	@printf "$(CYAN)→  Smoke do build (dist/)...$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage gerada$(RESET)\n"
+	@grep -q "Democratizando comunidades" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  homepage com conteúdo real (tagline)$(RESET)\n"
+	@grep -q "data-theme" $(ASTRO_DIR)/dist/index.html && printf "$(GREEN)✔  script anti-FOUC de tema presente$(RESET)\n"
+	@N=$$(find $(ASTRO_DIR)/dist/eventos -name index.html 2>/dev/null | wc -l | tr -d ' '); \
+	    [ "$$N" -gt 0 ] && printf "$(GREEN)✔  %s páginas de eventos geradas$(RESET)\n" "$$N" || { printf "$(RED)✖  nenhuma página de evento gerada$(RESET)\n"; exit 1; }
+	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
+	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
+	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs referência versionada (url-reference.json)...$(RESET)\n"
+	node $(ASTRO_DIR)/scripts/diff-urls.mjs
+	@printf "$(GREEN)✔  App Astro verificado. Suba com: make astro-preview$(RESET)\n"
+
+# Tenants do app Astro (Fase 0.5) — fonte única em frontend/tenants.config.mjs.
+# codaqui não é TENANT: é o build sem a env (srcDir padrão ./src).
+ASTRO_TENANTS := $(shell node --input-type=module -e "import('./$(ASTRO_DIR)/tenants.config.mjs').then((m) => console.log(m.TENANTS.map((t) => t.tenant).join(' ')))" 2>/dev/null)
+
+astro-verify-tenants: ## Verificação dos builds multi-tenant: 4 builds (codaqui + 3 tenants) + gate de allow-list de URLs por tenant
+	@if [ -z "$(ASTRO_TENANTS)" ]; then \
+	    printf "$(RED)✖  Não foi possível ler a lista de tenants em $(ASTRO_DIR)/tenants.config.mjs$(RESET)\n"; \
+	    exit 1; \
+	fi
+	@for t in codaqui $(ASTRO_TENANTS); do \
+	    if [ "$$t" = "codaqui" ]; then \
+	        printf "$(CYAN)→  Build codaqui (sem TENANT)...$(RESET)\n"; \
+	        (cd $(ASTRO_DIR) && env -u TENANT npm run build) || exit 1; \
+	    else \
+	        printf "$(CYAN)→  Build tenant $$t + gate tenant-urls...$(RESET)\n"; \
+	        (cd $(ASTRO_DIR) && TENANT=$$t npm run build && node scripts/tenant-urls.mjs dist $$t) || exit 1; \
+	    fi; \
+	done
+	@printf "$(GREEN)✔  Builds multi-tenant verificados (codaqui + $(ASTRO_TENANTS))$(RESET)\n"
+	@printf "$(YELLOW)ℹ  astro check NÃO roda em modo tenant (62 erros pré-existentes em páginas codaqui — R7). Gate de tenant = build + tenant-urls; codaqui completo em make astro-verify$(RESET)\n"
+
+astro-lighthouse: astro-build ## Lighthouse mobile (/, evento, /admin/eventos, /blog, um post, /trilhas, insights, apoiar, design-system) — requer Chrome
+	@cd $(ASTRO_DIR) && npm run preview > /tmp/codaqui-astro-preview.log 2>&1 & \
+	    PREVIEW_PID=$$!; \
+	    sleep 4; \
+	    EVENT=$$(find $(ASTRO_DIR)/dist/eventos -name index.html | head -1 | sed "s|^$(ASTRO_DIR)/dist||;s|/index.html$$||"); \
+	    for PAGE in "/" "$$EVENT" "/admin/eventos" "/blog" "/blog/2024/07/22/devparana-e-codaqui-unidos-pela-comunidade" "/trilhas/intro" "/trilhas/python/page-1" "/sobre/insights" "/participe/apoiar" "/design-system"; do \
+	        printf "$(CYAN)→  Lighthouse: $$PAGE$(RESET)\n"; \
+	        npx --yes lighthouse "http://localhost:4321$$PAGE" --quiet \
+	            --chrome-flags="--headless" --form-factor=mobile --screenEmulation.mobile \
+	            --output=json --output-path=stdout 2>/dev/null \
+	            | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const c=JSON.parse(d).categories;console.log('   Perf:',Math.round(c.performance.score*100),'| A11y:',Math.round(c.accessibility.score*100),'| BP:',Math.round(c['best-practices'].score*100),'| SEO:',Math.round(c.seo.score*100))})" \
+	            || printf "$(RED)   ✖  falha na medição de $$PAGE$(RESET)\n"; \
+	    done; \
+	    kill $$PREVIEW_PID 2>/dev/null || true
 
 # =============================================================================
 ##@ 📊 Sync de dados estáticos
@@ -280,31 +338,6 @@ sync-social: ## Sincroniza contagem de membros/seguidores → static/social-stat
 
 sync-analytics: ## Sincroniza analytics → static/analytics/
 	npm run sync:analytics
-
-# =============================================================================
-##@ 🌍 Workers (Cloudflare) — domínios próprios das comunidades
-# =============================================================================
-# Cada comunidade com domínio próprio tem `workers/<slug>/wrangler*.toml`.
-# Código do Worker é compartilhado em `workers/shared/index.js`.
-# Ver workers/README.md e docs/plans/multisite/README.md §6.
-
-worker-dev-tisocial: ## Sobe o Worker da T.I. Social local em http://tisocial.localhost:8787 (precisa de `make up-build` rodando)
-	npm run worker:dev:tisocial
-
-worker-deploy-tisocial: ## Deploy do Worker da T.I. Social em produção (route tisocial.org.br/*)
-	npm run worker:deploy:tisocial
-
-worker-dev-elasnocodigo: ## Sobe o Worker da Elas no Código local em http://elasnocodigo.localhost:8788 (precisa de `make up-build` rodando)
-	npm run worker:dev:elasnocodigo
-
-worker-deploy-elasnocodigo: ## Deploy do Worker da Elas no Código em produção (route elasnocodigo.com.br/*)
-	npm run worker:deploy:elasnocodigo
-
-worker-dev-devparana: ## Sobe o Worker do DevParaná local em http://devparana.localhost:8789 (precisa de `make up-build` rodando)
-	npm run worker:dev:devparana
-
-worker-deploy-devparana: ## Deploy do Worker do DevParaná em produção (route devparana.org/*)
-	npm run worker:deploy:devparana
 
 # =============================================================================
 ##@ 🧹 Limpeza

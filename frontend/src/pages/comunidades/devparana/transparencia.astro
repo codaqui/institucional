@@ -1,0 +1,14 @@
+---
+// Página "Transparência" do DevParaná no portal codaqui
+// (/comunidades/devparana/transparencia).
+import TransparenciaPage from "../../../components/astro/community/devparana/TransparenciaPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<TransparenciaPage config={config} site={site} homeHref={homeHref} />

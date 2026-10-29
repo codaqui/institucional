@@ -1,0 +1,16 @@
+---
+// Home do site whitelabel T.I. Social (build tenant `TENANT=tisocial`,
+// rota limpa /). O corpo da página vive em CommunityHomePage (compartilhado
+// com o wrapper do portal codaqui).
+import CommunityHomePage from "../components/astro/community/CommunityHomePage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<CommunityHomePage config={config} site={site} homeHref={homeHref} />

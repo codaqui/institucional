@@ -1,0 +1,16 @@
+---
+// Página "Apoiar" do site whitelabel T.I. Social (build tenant, /apoiar).
+// O corpo da página vive em CommunityApoiarPage (compartilhado com o wrapper
+// do portal codaqui).
+import CommunityApoiarPage from "../components/astro/community/CommunityApoiarPage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<CommunityApoiarPage config={config} site={site} homeHref={homeHref} />

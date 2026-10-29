@@ -1,0 +1,51 @@
+---
+// Port 1:1 de comunidades/shared/components/CommunityChannelsSection.tsx
+// (MUI → Astro + Tailwind, zero JS). Botões outlined com ícone
+// open_in_new (SVG inline do @mui/icons-material original). Desvio de cor
+// do original: texto usa text-link em vez de text-action — o verde ação
+// (#378369) fica em 4.29:1 sobre o body / 4.0:1 no hover sunken no tema
+// claro (abaixo do AA 4.5:1); o token link (#2C6753) passa (6.2:1 / 5.8:1).
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+
+interface Props {
+  config: CommunitySiteConfig;
+}
+
+const { config } = Astro.props;
+
+const title = config.channelsSection?.title ?? "Quer saber mais?";
+const subtitle =
+  config.channelsSection?.subtitle ?? `Acesse os canais oficiais da ${config.name}.`;
+
+const OPEN_IN_NEW_PATH =
+  "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
+---
+
+<section class="py-10 md:py-16">
+  <div class="mx-auto max-w-[900px] px-4 text-center">
+    <h2 class="m-0 mb-4 text-2xl font-bold">{title}</h2>
+    <p class="m-0 mb-6 text-text-secondary">{subtitle}</p>
+    <div class="flex flex-col items-center justify-center gap-4 sm:flex-row">
+      {
+        config.externalLinks.map((link) => (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-1.5 rounded-md border border-border-strong px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-sunken"
+          >
+            {link.label}
+            <svg
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+              class="h-4 w-4"
+            >
+              <path d={OPEN_IN_NEW_PATH} />
+            </svg>
+          </a>
+        ))
+      }
+    </div>
+  </div>
+</section>

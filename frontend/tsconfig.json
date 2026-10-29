@@ -1,0 +1,9 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  // `functions/` tem tsconfig próprio: a Pages Function referencia
+  // `@cloudflare/workers-types`, cujos globals (ex.: `Response.json<T>()` sem
+  // default → `unknown`) vazariam para o programa inteiro e quebrariam o
+  // `astro check` das ilhas. Ver `functions/tsconfig.json`.
+  "exclude": ["dist", "functions"]
+}

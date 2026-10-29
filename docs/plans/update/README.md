@@ -173,7 +173,7 @@ npm run lint && npm run build && npx jest --silent
 
 ## 3. MUI 7 → 9 (skipped v8)
 
-**Status:** pendente — janela dedicada
+**Status:** ✅ resolvido na Fase 0 — o app Astro (`frontend/`) nasceu direto em MUI v9 (ver AGENTS.md). O escopo abaixo refere-se ao app Docusaurus, removido na Fase 0.6 (equivalentes atuais: tema em `frontend/src/lib/mui-theme.ts`, páginas `.astro` + ilhas em `frontend/src/components/islands/`).
 
 ### Motivação
 v9 alinha versionamento com MUI X (Data Grid, Pickers). v7 ainda recebe patches mas a evolução de DX e perf está em v9 (sx prop ~30% mais rápido, Color-mix theming, novos componentes `NumberField` / `Menubar`).

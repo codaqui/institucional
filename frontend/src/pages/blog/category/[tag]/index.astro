@@ -1,0 +1,38 @@
+---
+import { getCollection } from "astro:content";
+import PublicLayout from "../../../../layouts/PublicLayout.astro";
+import BlogPostCard from "../../../../components/astro/BlogPostCard.astro";
+import { POSTS_PER_PAGE, sortPostsDesc, postCardProps, collectByTag } from "../../../../lib/blog-utils";
+
+export async function getStaticPaths() {
+  const sorted = sortPostsDesc(await getCollection("blog"));
+  const byTag = collectByTag(sorted);
+  return [...byTag.entries()].map(([slug, { label, posts }]) => ({
+    params: { tag: slug },
+    props: { label, posts, totalPages: Math.ceil(posts.length / POSTS_PER_PAGE) },
+  }));
+}
+
+const { label, posts, totalPages } = Astro.props;
+const { tag } = Astro.params;
+// Paridade com o build Docusaurus: mesmo título para index e páginas N≥2 da tag,
+// com singular "Uma publicação" quando a tag tem 1 post.
+const tagTitle =
+  posts.length === 1
+    ? `Uma publicação com a etiqueta "${label}" | CODAQUI.dev`
+    : `${posts.length} publicações com a etiqueta "${label}" | CODAQUI.dev`;
+---
+
+<PublicLayout title={tagTitle} ogTitle={tagTitle} description={`Posts do blog da Codaqui com a tag ${label}.`}>
+  <div class="mx-auto max-w-3xl px-4 py-10">
+    <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{label}</h1>
+    <div class="flex flex-col gap-4">
+      {posts.slice(0, POSTS_PER_PAGE).map((post) => <BlogPostCard {...postCardProps(post)} />)}
+    </div>
+    {totalPages > 1 && (
+      <nav class="mt-8 flex justify-end" aria-label="Paginação da tag">
+        <a href={`/blog/category/${tag}/page/2`} class="text-sm font-bold text-link hover:text-link-hover">Posts anteriores →</a>
+      </nav>
+    )}
+  </div>
+</PublicLayout>

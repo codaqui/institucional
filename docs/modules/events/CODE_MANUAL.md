@@ -35,22 +35,22 @@ related-docs:
 | Reembolsos vinculados a evento | `reimbursements/reimbursements.service.ts`, `events/events.service.ts` |
 | Papéis e permissões | `members/entities/member.entity.ts`, `auth/guards/roles.guard.ts` |
 
-### Frontend (`src/`)
+### Frontend (`frontend/src/`)
 
 | Funcionalidade | Arquivo(s) principais |
 |----------------|-----------------------|
-| Listagem pública de eventos | `pages/eventos.tsx`, `lib/events-api.ts` |
-| Detalhe do evento | `pages/eventos/detalhe.tsx` |
-| Hub admin de eventos | `pages/admin/eventos.tsx` |
-| Check-in | `pages/admin/eventos-checkin.tsx` |
-| Perfil do membro (inscrições/certificados) | `pages/membro/index.tsx` |
-| Perfil público (histórico de eventos) | `pages/membros/perfil.tsx` |
-| Overrides e ativações | `pages/admin/overrides.tsx` |
-| Componente de pedidos | `components/EventOrdersDialog/index.tsx` |
-| Componente de lançar despesa de evento | `components/EventReimbursementDialog/index.tsx` |
-| Checkout embedded de ingressos | `components/StripeEmbeddedCheckoutDialog/index.tsx` |
-| Categorização de transações | `utils/transaction.tsx` |
-| Termos de compra | `pages/termos-de-compra.md` |
+| Listagem pública de eventos | `pages/eventos/index.astro`, `lib/events.ts`, `lib/events-api.ts` |
+| Detalhe do evento | `pages/eventos/detalhe.astro` (redirect para a estática) + `pages/eventos/[...path].astro` (página estática SEO/OG por evento) |
+| Hub admin de eventos | `pages/admin/eventos.astro` (`components/islands/admin/eventos/EventosAdminApp.tsx`) |
+| Check-in | `pages/admin/eventos-checkin.astro` (`components/islands/admin/checkin/CheckinApp.tsx`) |
+| Perfil do membro (inscrições/certificados) | `pages/membro/index.astro` (`components/islands/member/`) |
+| Perfil público (histórico de eventos) | `pages/membros/perfil.astro`, `pages/[...handle].astro` |
+| Overrides e ativações | `pages/admin/overrides.astro` (`components/islands/admin/overrides/`) |
+| Componente de pedidos | `components/islands/admin/events/EventOrdersDialog.tsx` |
+| Componente de lançar despesa de evento | `components/islands/admin/events/EventReimbursementDialog.tsx` |
+| Checkout embedded de ingressos | `components/islands/EventRegistrationIsland.tsx` + `components/islands/StripeCheckoutDialog.tsx` |
+| Categorização de transações | `lib/transaction.ts` |
+| Termos de compra | `pages/termos-de-compra.astro` |
 
 ## 1.1 Mapa rápido de papéis
 
@@ -83,7 +83,7 @@ related-docs:
 
 ### 2.2 Vender um ingresso pago
 
-1. Frontend `eventos/detalhe.tsx` chama `POST /events/:id/checkout`.
+1. Frontend `eventos/detalhe.astro` chama `POST /events/:id/checkout`.
 2. Backend reserva quota (`reserveQuota`) e cria `EventOrder` `pending`.
 3. Stripe Checkout Session é criada com metadata `entityType: event-ticket`.
 4. Webhook `checkout.session.completed` marca order `paid`, gera registrations e
@@ -150,40 +150,41 @@ Crawlers de preview (WhatsApp, LinkedIn, Twitter) não executam JS, então a
 página `/eventos/detalhe?source=...&id=...` (client-side) gerava OG genérico.
 Agora cada evento tem uma página estática gerada em build time:
 
-1. O plugin local `src/plugins/event-pages.ts` (registrado no
-   `docusaurus.config.ts`) lê `static/events/index.json` no `loadContent` e, no
-   `contentLoaded`, cria uma rota por evento via `addRoute`, com o
-   `EventSummary` injetado em `modules.content` (componente
-   `src/components/EventDetailRoute/index.tsx`).
+1. A rota estática `src/pages/eventos/[...path].astro` (Astro) emite uma página
+   por evento em build time via `getStaticPaths`: lê o snapshot
+   (`loadEventsIndex()` → `static/events/index.json`, copiado para o app no
+   prebuild) e mapeia cada evento em `params: { path: eventRouteParam(event) }`
+   com o `EventSummary` inteiro em `props` (zero fetch no render).
 2. URL canônica: `/eventos/<slug>` para eventos internos (slug única da
    `managed_events`, montada por `buildEventSlugPath`) e
    `/eventos/<source>/<sourceId>/<id>` para externos e internos legados sem
-   slug (`buildEventPath`). Ambas vivem em `src/utils/event-path.ts` (cada
+   slug (`buildEventPath`). Ambas vivem em `src/lib/event-path.ts` (cada
    segmento passa por `encodeURIComponent`); `buildEventPublicPath` escolhe o
    formato pela regra `source === "internal" && slug`. Slugs que colidirem com
    páginas estáticas de `src/pages/eventos/` (`detalhe`, `comprovante`) e
    colisões de path são logadas e o evento é pulado.
-3. O componente de rota emite `<Head>` com `og:title/description/image/url`,
-   `twitter:card=summary_large_image`, canonical e JSON-LD `schema.org/Event`
-   (helper puro `buildEventJsonLd` em `src/utils/event-path.ts`), e renderiza o
-   mesmo conteúdo da página de detalhe — `EventoDetalhePage` aceita props
-   opcionais `{ routeSource, routeSourceId, routeEventId, initialEvent }`;
-   com `initialEvent` o primeiro render não depende de fetch (o fetch vira
-   refresh em background, mantendo override recente e o fallback ao vivo de
-   eventos internos).
-4. A URL legada com query continua existindo: sem `status`/`session_id` e com
-   params válidos, a página faz `history.replace` para a rota estática **se ela
-   existir no snapshot do build** (evento interno recém-publicado, ainda sem
-   sync/build, segue funcionando via query). O retorno do Stripe
-   (`status=success&session_id=...`) **não** redireciona — as URLs de retorno
-   do checkout (`buildEventReturnPath` em `events.service.ts`) permanecem na
-   página com query.
-5. Todos os geradores de link usam `buildEventPublicPath` (ou
-   `getEventDetailPagePath`, que delega a ele): listagem `/eventos`,
-   `pages/membro`, `pages/membros/perfil`, `TransactionDetailDialog` e o
-   `href` do snapshot interno no backend (`toEventItem` em
-   `events.service.ts`). `pages/admin/eventos` linka direto pela slug
-   (`buildEventSlugPath`), pois tem o `ManagedEvent` completo.
+3. O template da rota estática recebe OG/JSON-LD pelo `PublicLayout`
+   (`og:title/description/image/url`, `twitter:card=summary_large_image`,
+   canonical e JSON-LD `schema.org/Event` via helper puro `buildEventJsonLd` em
+   `src/lib/event-path.ts`) e renderiza o conteúdo do evento server-side, com
+   `<EventRegistrationIsland>` para inscrição/checkout dos eventos internos.
+4. A URL legada com query continua existindo: `src/pages/eventos/detalhe.astro`
+   roda um script inline que resolve o caminho público do evento em
+   `/events/index.json` (mesma regra de `buildEventPublicPath`) e redireciona
+   para a rota estática — sem `status`/`session_id` e com params válidos, o
+   redirect acontece **se a página existir no snapshot do build** (evento interno
+   recém-publicado, ainda sem sync/build, cai no aviso "tente novamente em
+   instantes"). O retorno do Stripe (`status=success&session_id=...`) **preserva
+   os params** ao ir para a rota estática (a ilha de inscrição exibe a
+   confirmação inline) — as URLs de retorno do checkout
+   (`buildEventReturnPath` em `events.service.ts`) permanecem com query.
+5. Todos os geradores de link usam `buildEventPublicPath`: listagem `/eventos`
+   (`EventCard.astro`), `pages/membros/perfil`, `MemberProfileIsland`,
+   aba Eventos do dashboard (`member/dashboard/EventsTab.tsx`),
+   `TransactionDetailDialog`, seções "Próximos eventos" das comunidades
+   (CamposTech/DevParaná) e o `href` do snapshot interno no backend
+   (`toEventItem` em `events.service.ts`). `pages/admin/eventos` linka direto
+   pela slug (`buildEventSlugPath`), pois tem o `ManagedEvent` completo.
 
 ### 2.9 RSVP gratuito, reconciliação de quota e organizers
 
@@ -235,12 +236,12 @@ npm run typecheck
 - **Match CSV falha:** confira `members.secondaryEmails` e o método
   `findMemberByIdentifier` em `events.service.ts`.
 - **Transação não aparece na transparência:** verifique `referenceId` e se o tipo está em
-  `src/utils/transaction.tsx` e no backend `ledger.service.ts`.
+  `frontend/src/lib/transaction.ts` e no backend `ledger.service.ts`.
 - **Checkout embedded não abre:** verifique se `STRIPE_PUBLISHABLE_KEY` está configurada e se
   `uiMode: 'embedded'` está sendo enviado no `CheckoutDto`.
 - **Despesa de evento não aparece:** verifique se `ReimbursementRequest.eventId` ou
   `externalActivationId` foi preenchido e se o `referenceId` começa com `reimbursement:`.
-- **Termos de compra versionados:** o texto canônico fica em `src/pages/termos-de-compra.md`;
+- **Termos de compra versionados:** o texto canônico fica em `frontend/src/pages/termos-de-compra.astro`;
   o `termsVersion` aceito no backend é `2026-07-v1`.
 - **Erro de DI no backend (`UnknownDependenciesException`):** adicione o teste em
   `events.module.spec.ts` e verifique se a assinatura do construtor de `EventsService` foi

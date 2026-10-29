@@ -1,0 +1,140 @@
+---
+// Header do post de blog de comunidade — port 1:1 do swizzle
+// src/theme/BlogPostItem/Header/index.tsx: chip "Leitura recomendada" (lista)
+// ou "Post do blog" (página do post), tags (2 na lista, 3 no post), título,
+// data, tempo de leitura e pills de autor (avatar + nome + título).
+import type { CommunityBlogAuthor } from "../../../data/community-blog-authors";
+
+interface Tag {
+  label: string;
+  url: string;
+}
+
+interface Props {
+  title: string;
+  url: string;
+  date: Date;
+  readingMinutes: number;
+  tags: Tag[];
+  authors: CommunityBlogAuthor[];
+  /** Página do post: h1 + chip "Post do blog" + até 3 tags + subtítulo. */
+  isPostPage?: boolean;
+  /** Subtítulo (primeiro parágrafo) — só na página do post. */
+  description?: string;
+}
+
+const {
+  title,
+  url,
+  date,
+  readingMinutes,
+  tags,
+  authors,
+  isPostPage = false,
+  description,
+} = Astro.props;
+
+const dateLabel = new Intl.DateTimeFormat("pt-BR", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+  timeZone: "UTC",
+}).format(date);
+const readingLabel = `${Math.max(1, Math.ceil(readingMinutes))} min de leitura`;
+const visibleTags = tags.slice(0, isPostPage ? 3 : 2);
+const showDescription = isPostPage && description && description !== title;
+const Heading = isPostPage ? "h1" : "h2";
+---
+
+<header class="mb-6">
+  <div class="mb-2 flex flex-wrap gap-2">
+    <span
+      class="rounded-full border border-green-700/70 px-2 py-0.5 text-xs font-bold text-green-700"
+    >
+      {isPostPage ? "Post do blog" : "Leitura recomendada"}
+    </span>
+    {
+      visibleTags.map((tag) => (
+        <a
+          href={tag.url}
+          class="rounded-full border border-border px-2 py-0.5 text-xs font-semibold text-text-secondary no-underline hover:bg-sunken"
+        >
+          {tag.label}
+        </a>
+      ))
+    }
+  </div>
+
+  <Heading class="mb-2 text-wrap-balance text-2xl font-extrabold">
+    {
+      isPostPage ? (
+        title
+      ) : (
+        <a href={url} class="text-text-primary no-underline hover:text-link">
+          {title}
+        </a>
+      )
+    }
+  </Heading>
+
+  {
+    showDescription && (
+      <p class="mb-3 max-w-[760px] text-lg font-medium text-text-secondary">
+        {description}
+      </p>
+    )
+  }
+
+  <div class="mb-3 flex flex-wrap gap-2">
+    <span
+      class="rounded-full border border-border px-2 py-0.5 text-xs font-semibold text-text-secondary"
+    >
+      {dateLabel}
+    </span>
+    <span
+      class="rounded-full border border-border px-2 py-0.5 text-xs font-semibold text-text-secondary"
+    >
+      {readingLabel}
+    </span>
+  </div>
+
+  {
+    authors.length > 0 && (
+      <div class="flex flex-wrap gap-3">
+        {authors.map((author) => {
+          const pill = (
+            <div class="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
+              {author.image_url && (
+                <img
+                  src={author.image_url}
+                  alt={author.name}
+                  width="40"
+                  height="40"
+                  class="h-8 w-8 rounded-full object-cover"
+                />
+              )}
+              <div>
+                <p class="m-0 text-sm font-bold">{author.name}</p>
+                {author.title && (
+                  <p class="m-0 text-xs text-text-secondary">{author.title}</p>
+                )}
+              </div>
+            </div>
+          );
+          return author.url ? (
+            <a
+              href={author.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-inherit no-underline"
+            >
+              {pill}
+            </a>
+          ) : (
+            pill
+          );
+        })}
+      </div>
+    )
+  }
+</header>

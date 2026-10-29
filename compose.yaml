@@ -58,28 +58,6 @@ services:
       timeout: 10s
       retries: 3
 
-  docusaurus:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: codaqui_docusaurus
-    env_file:
-      - .env
-    environment:
-      - HTTPS=${HTTPS:-false}
-      - SSL_CRT_FILE=/app/.certs/localhost.pem
-      - SSL_KEY_FILE=/app/.certs/localhost-key.pem
-      - DOCUSAURUS_API_URL=${BACKEND_URL:-http://localhost:3001}
-    ports:
-      - "3000:3000" # http(s)://localhost:3000
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - /app/.docusaurus
-      - ./.certs:/app/.certs:ro
-    networks:
-      - codaqui-network
-
   # Stripe CLI — encaminha webhooks do Stripe para o backend local
   # Requer STRIPE_SECRET_KEY no .env. Inicie 1x para ver o webhook secret:
   # podman logs codaqui_stripe_cli
@@ -98,75 +76,9 @@ services:
     networks:
       - codaqui-network
 
-  # Workers Cloudflare — proxies reversos para domínios próprios das comunidades.
-  # Disponibilizam http://<slug>.localhost:<porta> mapeando para o Docusaurus
-  # e encaminham /api, /auth, /stripe, /ledger, /members para o backend.
-  worker-tisocial:
-    container_name: codaqui_worker_tisocial
-    build:
-      context: .
-      dockerfile: workers/Dockerfile
-    working_dir: /app
-    command: >
-      sh -c "npx wrangler dev --config workers/tisocial/wrangler.dev.toml --local --port 8787 --ip 0.0.0.0"
-    ports:
-      - "8787:8787"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - worker-tisocial-cache:/app/workers/tisocial/.wrangler
-    depends_on:
-      - docusaurus
-      - backend
-    networks:
-      - codaqui-network
-
-  worker-elasnocodigo:
-    container_name: codaqui_worker_elasnocodigo
-    build:
-      context: .
-      dockerfile: workers/Dockerfile
-    working_dir: /app
-    command: >
-      sh -c "npx wrangler dev --config workers/elasnocodigo/wrangler.dev.toml --local --port 8788 --ip 0.0.0.0"
-    ports:
-      - "8788:8788"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - worker-elasnocodigo-cache:/app/workers/elasnocodigo/.wrangler
-    depends_on:
-      - docusaurus
-      - backend
-    networks:
-      - codaqui-network
-
-  worker-devparana:
-    container_name: codaqui_worker_devparana
-    build:
-      context: .
-      dockerfile: workers/Dockerfile
-    working_dir: /app
-    command: >
-      sh -c "npx wrangler dev --config workers/devparana/wrangler.dev.toml --local --port 8789 --ip 0.0.0.0"
-    ports:
-      - "8789:8789"
-    volumes:
-      - .:/app
-      - /app/node_modules
-      - worker-devparana-cache:/app/workers/devparana/.wrangler
-    depends_on:
-      - docusaurus
-      - backend
-    networks:
-      - codaqui-network
-
 networks:
   codaqui-network:
     driver: bridge
 
 volumes:
   pgdata:
-  worker-tisocial-cache:
-  worker-elasnocodigo-cache:
-  worker-devparana-cache:

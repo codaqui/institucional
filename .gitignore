@@ -3,13 +3,15 @@
 # ─────────────────────────────────────────────────────
 tmp-devparana-rfcs/*
 temp-devparana-rfcs/
+code-to-analyze/
 
 # ─────────────────────────────────────────────────────
-# Docusaurus (frontend — raiz)
+# Astro (frontend/ — app principal pós-Fase 0.6)
 # ─────────────────────────────────────────────────────
-build/
-.docusaurus/
-.cache/
+frontend/dist/
+frontend/.astro/
+frontend/public/events/
+frontend/lighthouse-*.json
 
 # ─────────────────────────────────────────────────────
 # Backend NestJS
@@ -122,14 +124,3 @@ lerna-debug.log*
 *.tgz
 *.tar.gz
 *.zip
-
-# ─────────────────────────────────────────────────────
-# Legado — MkDocs (migração antiga)
-# ─────────────────────────────────────────────────────
-site/
-mkdocs-material/
-venv/
-sql-commands
-
-# Cloudflare Workers local state
-workers/**/.wrangler/

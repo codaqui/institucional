@@ -1,0 +1,48 @@
+---
+// Portado de src/pages/index.tsx (HeroBanner) — MUI → HTML + Tailwind (tokens --cq-*).
+---
+
+<header class="cq-home-hero py-14 text-center md:py-20">
+  <div class="mx-auto max-w-3xl px-4">
+    <img
+      src="/img/logo_monocromatica.svg"
+      alt="Codaqui"
+      class="mx-auto mb-8 h-auto w-40 md:w-50"
+      width="200"
+      height="64"
+    />
+    <p class="mx-auto mb-8 max-w-xl text-xl leading-relaxed text-white/90">
+      Democratizando comunidades e projetos de tecnologia! 🇧🇷
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a
+        href="/participe/estudar"
+        class="rounded-md bg-white px-6 py-3 text-lg font-bold text-primary-800 transition-colors hover:bg-neutral-100"
+      >
+        #QueroEstudar
+      </a>
+      <a
+        href="/participe/apoiar"
+        class="rounded-md border border-white/60 px-6 py-3 text-lg font-bold text-white transition-colors hover:border-white hover:bg-white/10"
+      >
+        #QueroApoiar
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* Gradiente do hero com a extremidade clara escurecida via color-mix:
+   * texto/borda brancos dos CTAs precisam de AA sobre TODO o gradiente —
+   * #57B593 puro (fim antigo) dá só 2.49:1 com branco. O mix a 62% (mesma
+   * receita dos heróis de comunidade, U3) sobe o par branco-texto para
+   * 5.79:1 (texto) e a borda white/60 para 3.21:1 (não-texto), medidos no
+   * pior ponto (fim do gradiente). */
+  .cq-home-hero {
+    background-image: linear-gradient(
+      to bottom right,
+      var(--cq-color-primary-900),
+      color-mix(in srgb, var(--cq-color-primary-500) 62%, black)
+    );
+  }
+</style>

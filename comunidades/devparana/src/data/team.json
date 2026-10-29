@@ -2,9 +2,18 @@
   "members": [
     {
       "name": "Everton Tavares",
-      "role": "Coordenador",
-      "specialty": "Liderança e Embaixador Norte",
-      "avatar": "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
+      "role": "Voluntário",
+      "avatar": "https://avatars.githubusercontent.com/u/93155837?v=4",
+      "linkedin": "https://www.linkedin.com/in/evertontavaresdev/",
+      "email": "",
+      "githubHandle": "evertontavaresdev"
+    },
+    {
+      "name": "Ivo Batistela",
+      "role": "Voluntário",
+      "specialty": "Embaixador da Região Norte",
+      "avatar": "https://avatars.githubusercontent.com/u/5186894?v=4",
+      "linkedin": "https://www.linkedin.com/in/byivo/",
       "email": "ivo@devpr.org",
       "githubHandle": "ByIvo"
     },
@@ -19,9 +28,17 @@
     {
       "name": "Welington O. da Silva",
       "role": "Voluntário",
-      "specialty": "Enbaixador Região Leste",
+      "specialty": "Embaixador da Região Leste",
       "avatar": "https://avatars.githubusercontent.com/u/23055124?s=96&v=4",
       "email": "welington@devpr.org",
+      "githubHandle": "welsilva"
+    },
+    {
+      "name": "Rafael M. Barros",
+      "role": "Voluntário",
+      "specialty": "Embaixador da Região Noroeste",
+      "avatar": "https://github.com/ghost.png",
+      "email": "rafael.barros@devpr.org",
       "githubHandle": ""
     },
     {

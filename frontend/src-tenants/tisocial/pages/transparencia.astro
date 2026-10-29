@@ -1,0 +1,16 @@
+---
+// Página "Transparência" do site whitelabel T.I. Social (build tenant,
+// /transparencia). O corpo da página vive em CommunityTransparenciaPage
+// (compartilhado com o wrapper do portal codaqui).
+import CommunityTransparenciaPage from "../components/astro/community/CommunityTransparenciaPage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<CommunityTransparenciaPage config={config} site={site} homeHref={homeHref} />

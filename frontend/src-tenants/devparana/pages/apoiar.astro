@@ -1,0 +1,16 @@
+---
+// Página "Apoiar" do site whitelabel DevParaná (build tenant, /apoiar). O
+// corpo da página vive em ApoiarPage (compartilhado com o wrapper do portal
+// codaqui).
+import ApoiarPage from "../components/astro/community/devparana/ApoiarPage.astro";
+import { communityBasePath, loadTenantConfig } from "../lib/community";
+import { getTenant, tenantSite } from "../lib/tenant";
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+---
+
+<ApoiarPage config={config} site={site} homeHref={homeHref} />

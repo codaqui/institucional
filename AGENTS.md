@@ -1,24 +1,23 @@
 <!-- AGENT-INDEX
-purpose: Master guide for AI agents and contributors working on this monorepo.
+purpose: Master guide for AI agents and contributors working on this monorepo (site Astro + backend NestJS + tenants Cloudflare Pages).
 audience: AI agents, maintainers
 read-first: true
 sections:
   - Documentação do Projeto (docs/)
-  - Tech Stack (frontend + backend)
-  - Commands
+  - Tech Stack (site Astro + multi-tenant Pages + backend NestJS)
+  - Commands (gates por build, frontend, backend, scripts de sync)
   - Directory Structure
-  - Critical Architecture Decisions
-  - MUI Theme & Component/Page patterns
+  - Critical Architecture Decisions (design tokens, build matrix, proxy same-origin, conteúdo canônico, eventos, ledger financeiro, blog SEO)
   - Common Anti-Patterns
-  - Git Workflow & SonarCloud
+  - Git Workflow & Deployment (Cloudflare Pages, branch deployments)
   - PR Checklist
   - File Naming Conventions
   - About Codaqui
   - Regular Maintenance
-  - Insights & Social Stats (link)
   - Multi-tenant communities (link)
+  - Insights & Social Stats (link)
 related-docs:
-  - DEVELOPMENT.md — setup, env vars, migrations, deploy
+  - DEVELOPMENT.md — setup, env vars, migrations, deploy, runbook multi-tenant/secrets
   - README.md — repo overview
   - docs/README.md — índice central da documentação técnica
   - docs/adrs/001-event-platform.md — plataforma de eventos
@@ -27,15 +26,14 @@ related-docs:
   - docs/adrs/004-multisite-communities.md — multi-tenant frontend
   - docs/modules/events/CODE_MANUAL.md — manual prático do módulo de eventos
   - docs/modules/events/ROLES.md — papéis de eventos
-  - docs/modules/community/COMMUNITY_SITES.md — sites whitelabel de comunidades
+  - docs/modules/community/COMMUNITY_SITES.md — conteúdo whitelabel das comunidades
   - docs/modules/insights/SOCIAL_STATS.md — estatísticas e presença digital
-  - docs/plans/multisite/README.md — detalhes das fases pendentes do multisite
 agent-protocol:
   - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
-  - Each .md in this repo has its own AGENT-INDEX header. Trust it as the doc's TLDR.
+  - Each .md in this repo (and in `backend/`) has its own AGENT-INDEX header. Trust it as the doc's TLDR.
 -->
 
-# AGENTS.md — Codaqui Institutional Site
+# AGENTS.md — Codaqui Monorepo
 
 > Instructions for AI agents, contributors, and maintainers.
 
@@ -89,21 +87,20 @@ Planos futuros:
 
 ## Tech Stack
 
-### Frontend (Docusaurus — GitHub Pages)
+### Site (Astro 7 — Cloudflare Pages)
 
 | Layer | Technology |
 |-------|-----------|
-| **Framework** | Docusaurus 3.9.2 (`@docusaurus/preset-classic`) |
-| **UI Library** | MUI v7 (`@mui/material` ^7.3, `@mui/icons-material`, `@mui/lab`) |
-| **Styling** | `@emotion/react` + `@emotion/styled` (MUI's SSR-compatible engine) |
-| **Language** | TypeScript 5.6, React 19, MDX |
-| **Diagrams** | `@docusaurus/theme-mermaid` |
-| **Live Code** | `@docusaurus/theme-live-codeblock` |
-| **Comments** | Giscus (`@giscus/react`, repo: `codaqui/institucional`, category: "Blog") |
-| **Analytics** | Google gtag `G-CL043JTTND` |
-| **Redirects** | `@docusaurus/plugin-client-redirects` |
-| **Node** | ≥24 (enforced in `package.json` engines) |
-| **Hosting** | GitHub Pages via GitHub Actions |
+| **Framework** | Astro 7 (`astro` ^7.4, static output, `@astrojs/mdx`, `@astrojs/rss`, `@astrojs/sitemap`) |
+| **Multi-tenant** | Build matrix por tenant — `TENANT=<slug>` troca o `srcDir` em build-time (`frontend/astro.config.mjs` + `frontend/tenants.config.mjs`) |
+| **Edge** | Cloudflare Pages (direct upload via Wrangler) + **Pages Function** `frontend/functions/[[path]].ts` (proxy de API same-origin) |
+| **Ilhas React** | React 19 + MUI v9 (`@mui/material` ^9, `@mui/icons-material`) + Emotion — hidratação sob demanda (`client:load` / `client:visible` / `client:only`) |
+| **Styling** | Tailwind CSS v4 (`@tailwindcss/vite`) com tokens `--cq-*` do Design System (`frontend/src/styles/tokens.css`) |
+| **Language** | TypeScript ~5.6 |
+| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`, category: "Blog") |
+| **Pagamentos** | Stripe.js embutido (`@stripe/react-stripe-js`) no fluxo de doação |
+| **Node** | ≥24 (enforced em `package.json` engines, raiz e `frontend/`) |
+| **Hosting** | Cloudflare Pages — projetos `codaqui`, `tisocial`, `elasnocodigo`, `devparana` |
 
 ### Backend (NestJS — local + produção ARM64)
 
@@ -125,7 +122,7 @@ Planos futuros:
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
 | **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
 
-**Site**: https://codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
+**Site**: https://codaqui.dev · **API**: https://api.codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
 
 ---
 
@@ -133,400 +130,146 @@ Planos futuros:
 
 > Setup completo, variáveis de ambiente, migrations e guia de deploy: **[DEVELOPMENT.md](./DEVELOPMENT.md)**. Não duplique aqui.
 
-Antes de submeter mudanças, rode:
+Antes de submeter mudanças, rode os **gates por build**:
 
 ```bash
-# Frontend (sempre)
-npm run typecheck   # TypeScript (exclui /backend)
-npm run build       # Build completo igual ao CI
+# Site codaqui (gate completo)
+make astro-verify          # build + astro check + vitest + tsc da Pages Function
+                           # + smoke do dist/ + gate de paridade de URLs (diff-urls)
+
+# Builds multi-tenant (codaqui + 3 tenants)
+make astro-verify-tenants  # 4 builds + allow-list de URLs por tenant (tenant-urls)
+```
+
+Comandos por camada:
+
+```bash
+# Frontend (frontend/ — app Astro)
+cd frontend && npm run build     # build estático em dist/ (copia snapshots + conteúdo antes)
+cd frontend && npm run check     # astro check (tipos de .astro — gate só no build codaqui, ver R7 abaixo)
+cd frontend && npm run test      # vitest (libs, contratos e ilhas)
 
 # Backend (se mexeu em backend/)
-cd backend && npm run build && npx jest --silent
+cd backend && npm run build      # nest build
+cd backend && npx jest --silent  # testes unitários
+
+# Scripts de sync (raiz — leves, sem install pesado)
+npm run test:scripts             # node --test scripts/*.test.mjs
+npm run sync                     # eventos + social-stats + analytics → static/
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
+
+Demais comandos (dev server, lighthouse, syncs individuais, infra Podman Compose, migrations): **`make help`** ou a seção de comandos do [DEVELOPMENT.md](./DEVELOPMENT.md).
 
 ---
 
 ## Directory Structure
 
-Este repositório é um **monorepo**: o frontend Docusaurus fica na raiz e o backend NestJS em `backend/`. O CI do GitHub Pages **nunca** publica o `backend/`.
+Este repositório é um **monorepo**: conteúdo canônico + scripts de sync na raiz, app do site em `frontend/`, API em `backend/`.
 
 ```
 institucional/
-├── backend/                     # 🖥️ API REST NestJS (NÃO vai para GitHub Pages)
+├── backend/                     # 🖥️ API REST NestJS
 │   ├── src/
 │   │   ├── auth/                # GitHub OAuth + JWT (GithubStrategy + JwtStrategy)
 │   │   ├── members/             # Membros da Codaqui (multi-role `roles: text[]`, autorização)
-│   │   ├── github-db/           # GitHubDBService (branch + PR com o token OAuth do membro) — ⚠️ legado: só force-sync de snapshot interno
+│   │   ├── github-db/           # GitHubDBService — ⚠️ legado: só force-sync de snapshot interno
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios
-│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento + templates editáveis via /admin/emails — tabela email_templates, pipeline Markdown→HTML sanitizado com fallback p/ padrões)
+│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento + templates editáveis via /admin/emails)
 │   │   ├── ledger/              # ⭐ Contabilidade dupla partida (núcleo financeiro)
-│   │   │   ├── entities/        # Account, Transaction (TypeORM)
-│   │   │   ├── ledger.controller.ts  # GET /ledger/community-balances, /transactions
-│   │   │   └── ledger.service.ts     # recordTransaction, getCommunityBalances
 │   │   ├── stripe/              # Stripe Checkout + webhooks (donations, refunds)
-│   │   ├── expenses/            # Despesas (lançamento direto: ↓ debit pra fora)
-│   │   ├── transfers/           # Transferências entre contas internas
-│   │   ├── reimbursements/      # Reembolsos a membros (request → approve → pay)
-│   │   ├── vendors/             # ⭐ Fornecedores: payments + receipts (bidirecional)
-│   │   │   ├── entities/        # AbstractVendorTransaction (base) + VendorPayment + VendorReceipt + Vendor + TransactionTemplate
-│   │   │   ├── dto/             # Base DTOs reutilizados por payment/receipt
-│   │   │   └── vendors.service.ts  # Helpers genéricos (persistWithLedger c/ factory, resolveByReference, etc.)
+│   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Audit log de ações sensíveis
-│   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS: Drive/Dropbox/OneDrive/Imgur; ⚠ sem upload — sem S3/MinIO)
-│   │   └── migrations/          # TypeORM migrations (Migration001..012)
+│   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
+│   │   └── migrations/          # TypeORM migrations
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
-├── blog/                        # Blog posts (Markdown/MDX)
-│   ├── authors.yml              # Blog author definitions
-│   └── YYYY-MM-DD-slug.md      # Post files (slug in frontmatter)
-├── trilhas/                     # Learning trails (Docusaurus docs plugin)
-│   ├── python/                  # Python 101 (index.md + page-1..page-16.md)
-│   └── github/                  # GitHub 101 (index.md + page-1..page-8.md)
-├── src/
-│   ├── components/              # Shared React components
-│   │   ├── ApiHealthBanner/     # Sinaliza backend offline
-│   │   ├── Badge/
-│   │   ├── CommunityPresenceCard/
-│   │   ├── DiscordServerWidget/
-│   │   ├── EventOverrideBadge/  # ⭐ Badge "Verificado por @handle" em evento com override
-│   │   ├── GiscusComponent/     # Giscus wrapper (reads config from themeConfig)
-│   │   ├── InfoCard/
-│   │   ├── LessonCard/
-│   │   ├── MembersWall/         # Mural de membros (avatares + papéis)
-│   │   ├── ModalConfirm/        # Modal genérico de confirmação destrutiva
-│   │   ├── NavbarAuth/          # Botão GitHub login no navbar (admin)
-│   │   ├── PageHero.tsx
-│   │   ├── SelectableCard/
-│   │   ├── SiteAnalytics/
-│   │   ├── StatCard/
-│   │   ├── StripeDonateSection/ # ⭐ Formulário de doação por comunidade via Stripe
-│   │   ├── TransactionDetailDialog/ # ⭐ Detalhe rico de qualquer transação do ledger
-│   │   ├── TransactionTable/    # Tabela genérica de histórico (filtro/sort)
-│   │   ├── VideoEmbed/
-│   │   └── index.ts             # Barrel exports
-│   ├── hooks/                   # ⭐ React hooks compartilhados
-│   │   ├── useAuth.ts           # GitHub OAuth + JWT, authFetch (401 → logout)
-│   │   ├── authFetchHelpers.ts  # parseAuthJson<T>, extractErrorMessage
-│   │   └── useSocialStatsSnapshot.ts
-│   ├── utils/
-│   │   ├── transaction.tsx      # ⭐ Tipos + TX_TYPE_CONFIG + deriveTransactionMeta + formatBRL
-│   │   ├── event-override.ts    # ⭐ loadEventWithOverride (snapshot + metadados de event_overrides)
-│   │   ├── event-path.ts        # ⭐ buildEventPath (rota estática do evento) + buildEventJsonLd
-│   │   └── document.ts          # formatDocument (CPF/CNPJ)
-│   ├── data/                    # ⭐ Centralized data layer (see below)
-│   │   ├── social.ts            # DISCORD_URL, WHATSAPP_URL, EMAIL, GITHUB_ORG, socialChannels[]
-│   │   ├── team.ts              # diretoria[], membros[], alumni[], mentores[]
-│   │   ├── communities.ts       # communities[] (5 partners)
-│   │   ├── projects.ts          # projects[] (9 open-source projects)
-│   │   └── timeline.ts          # timelineEvents[] (2020–2026)
-│   ├── pages/                   # Custom pages (TSX or MD)
-│   │   ├── index.tsx            # Homepage (MUI Grid + Cards)
-│   │   ├── bio.tsx              # Links page
-│   │   ├── contato.tsx          # Contact page
-│   │   ├── projetos.tsx         # Projects page
-│   │   ├── transparencia.tsx    # ⭐ Portal de transparência financeira (consome /ledger/community-balances)
-│   │   ├── regex.md             # Regex learning page
-│   │   ├── admin/               # ⭐ Painel administrativo (GitHub OAuth + JWT, role-based)
-│   │   │   ├── index.tsx        # Hub: lista membros + atalhos
-│   │   │   ├── lancamento.tsx   # Lançamento direto de despesa (one-shot)
-│   │   │   ├── transferencias.tsx # Transferências internas
-│   │   │   ├── reembolsos.tsx   # Aprovar/rejeitar/pagar reembolsos
-│   │   │   ├── fornecedores.tsx # CRUD vendors + chips contadores (pagamentos/recebimentos)
-│   │   │   ├── pagamentos.tsx   # Lançar pagamento a fornecedor + histórico
-│   │   │   ├── recebimentos.tsx # ⭐ Lançar recebimento de fornecedor + histórico
-│   │   │   ├── empresas.tsx     # Gestão de empresas (CLUB Business)
-│   │   │   ├── carteiras.tsx    # Histórico unificado de carteiras SortCoins
-│   │   │   ├── sorteios.tsx     # Gestão de sorteios do Clube Codaqui
-│   │   │   ├── eventos.tsx      # ⭐ Events Hub: lista unificada (internos+externos, badges, filtros) + CRUD de managed + force-sync snapshot
-│   │   │   ├── overrides.tsx    # ⭐ Overrides de metadados (+ histórico de edições) + organizers (ownership) + ativações externas
-│   │   │   ├── eventos-checkin.tsx # ⭐ Check-in mobile-first (QR/câmera + fallback manual; internos E externos ativados)
-│   │   │   └── emails.tsx       # ⭐ Painel de e-mails enviados + analytics (email_logs)
-│   │   ├── participe/           # Participation pages (TSX)
-│   │   │   ├── apoiar.tsx       # ⭐ Doação (OpenCollective + Stripe por comunidade)
-│   │   │   ├── estudar.tsx
-│   │   │   └── mentoria.tsx
-│   │   ├── sobre/               # About section
-│   │   │   ├── equipe.tsx       # Team (MUI Avatar + Card + Chip)
-│   │   │   ├── ong.tsx          # Association + communities
-│   │   │   ├── insights.tsx     # Insights: stats + social presence + communities + timeline
-│   │   │   ├── timeline.tsx     # ⚠️ Redirect → /sobre/insights
-│   │   │   ├── conduta.md       # Code of conduct
-│   │   │   └── pais-responsaveis.md
-│   │   ├── blog/archive/        # Year archive redirects (2022–2025)
-│   │   ├── quero/               # ⚠️ Legacy URL redirects — DO NOT DELETE
-│   │   ├── team.tsx             # ⚠️ Redirect → /sobre/equipe
-│   │   ├── contact.tsx          # ⚠️ Redirect → /contato
-│   │   ├── conduta.tsx          # ⚠️ Redirect → /sobre/conduta
-│   │   ├── ong.tsx              # ⚠️ Redirect → /sobre/ong
-│   │   ├── timeline.tsx         # ⚠️ Redirect → /sobre/timeline → /sobre/insights
-│   │   └── pais_responsaveis.tsx # ⚠️ Redirect → /sobre/pais-responsaveis
-│   ├── theme/                   # Docusaurus theme overrides
-│   │   ├── Root.tsx             # MUI ThemeProvider (SSR-safe, see below)
-│   │   ├── muiTheme.ts          # createCodaquiTheme(mode) factory
-│   │   └── BlogPostItem/        # Swizzled: injects Giscus comments
-│   └── css/
-│       └── custom.css           # Docusaurus CSS variables + global overrides
-├── static/
-│   ├── img/                     # logo.png, logo_blk.png, community logos
-│   ├── assets/docs/             # PDFs (estatuto.pdf)
-│   ├── events/                  # ⭐ Event snapshots (generated by workflow)
-│   │   ├── index.json           # Aggregated index (all sources, all events; `hasOverride` por evento)
-│   │   ├── internal/codaqui/    # ⭐ Eventos próprios (backend /events/public/managed → sync)
-│   │   ├── discord/codaqui/     # Per-event JSON + source index
-│   │   └── meetup/devparana/    # Per-event JSON + source index
-│   └── social-stats/            # ⭐ Social stats snapshot (generated by workflow)
-│       └── index.json           # Counts: Discord members, Meetup members, GitHub followers
-├── scripts/                     # Node scripts de sync/validação (rodam em workflows e local)
-│   ├── sync-events.mjs          # Gera static/events/ (fontes externas + internal:codaqui + hasOverride)
-│   └── sync-social-stats.mjs    # Gera static/social-stats/ (Discord/Meetup/GitHub)
-├── comunidades/                 # ⭐ Sites whitelabel de comunidades parceiras (single Docusaurus)
-│   ├── index.ts                 # Registro central das configs (COMMUNITIES_CONFIG)
-│   └── tisocial/                # Piloto (T.I. Social)
-├── compose.yaml                 # 🐳 DEV: todos os serviços (Docusaurus + Backend + infra)
-├── compose.prod.yaml            # 🏭 PROD ARM64: apenas backend + infra (sem Docusaurus)
-├── Dockerfile                   # DEV-only: container Docusaurus (npm start)
-├── .env.example                 # Template de variáveis de ambiente
-├── docusaurus.config.ts         # Main Docusaurus configuration
-├── sidebars.ts                  # Sidebar config for trilhas
-├── tsconfig.json                # Exclui /backend para evitar conflito de decorators
-├── CNAME                        # codaqui.dev
-└── .github/workflows/
-    ├── gh-deploy.yml            # CI: npm ci → build → deploy
-    └── sync-event-snapshots.yml # Workflow de sync de eventos
+├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
+│   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
+│   ├── tenants.config.mjs       # ⭐ Fonte única dos tenants (slug, site, project Pages)
+│   ├── functions/[[path]].ts    # ⭐ Pages Function — proxy de API same-origin (allow-list estreita)
+│   ├── functions/tsconfig.json  # Type-check da Function é separado do astro check
+│   ├── src/                     # App do portal codaqui (srcDir padrão)
+│   │   ├── pages/               # Rotas .astro (blog/, trilhas/, eventos/, admin/, comunidades/, …)
+│   │   ├── layouts/             # BaseLayout (SEO/OG/JSON-LD/noindex), PublicLayout, AppLayout, BlogPostLayout, TrilhaLayout
+│   │   ├── components/
+│   │   │   ├── astro/           # Componentes de servidor (SiteHeader, EventCard, PageHero, …)
+│   │   │   └── islands/         # ⭐ Ilhas React (admin/, events/, ThemeToggle, TransactionTable, …)
+│   │   ├── content/             # Collections Astro (blog, trilhas, pages, community-blog)
+│   │   ├── content.config.ts    # Schemas + loaders (glob)
+│   │   ├── data/                # ⭐ Camada de dados (team, communities, projects, timeline, giscus, …)
+│   │   ├── lib/                 # ⭐ Lógica pura testada (events, event-path, member-pages, transaction, api-url, use-auth, mui-theme, …)
+│   │   └── styles/              # tokens.css (--cq-*) + global.css (ponte @theme inline → Tailwind)
+│   ├── src-tenants/             # Apps dos tenants (tisocial, elasnocodigo, devparana) — thin, reutilizam src/
+│   ├── scripts/                 # ⭐ copy-content.mjs, copy-snapshots.mjs, build-tenant-redirects.mjs,
+│   │                            #    diff-urls.mjs, tenant-urls.mjs, archive-urls.mjs, url-reference.json
+│   └── public/                  # Assets estáticos + robots.txt (snapshots são copiados p/ cá no prebuild)
+├── blog/                        # ⭐ Conteúdo canônico do blog (Markdown/MDX) — copiado p/ o app no build
+│   ├── authors.yml              # Fonte canônica de autores
+│   └── YYYY-MM-DD-slug.md(x)    # Posts (slug legado no frontmatter — ver decisão 7)
+├── trilhas/                     # ⭐ Conteúdo canônico das trilhas (python/, github/)
+├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
+│   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
+│   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
+├── static/                      # ⭐ Snapshots gerados por workflows (events/, social-stats/, analytics/, img/)
+├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
+│   └── *.mjs                    # sync-events / sync-social-stats / sync-analytics (+ testes .test.mjs)
+│                                #    (os syncs leem os data files canônicos de frontend/src/data/)
+├── docs/                        # Documentação técnica (ADRs, módulos, planos)
+├── .github/workflows/           # 6 workflows (ver Git Workflow & Deployment)
+└── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
 ```
 
 ---
 
 ## Critical Architecture Decisions
 
-### 1. MUI v7 Grid API (most common pitfall)
+### 1. Design tokens `--cq-*` — zero hex solto
 
-MUI v7 removed the `item` prop and replaced `xs`/`md`/etc. with the `size` prop:
+`frontend/src/styles/tokens.css` é a **fonte única** do Design System. Tailwind consome via `@theme inline` em `global.css` (utilitários `bg-action`, `text-primary-700`, …); o tema MUI (`src/lib/mui-theme.ts`) **espelha** os mesmos valores.
 
-```tsx
-// ✅ CORRECT — MUI v7 Grid
-import Grid from '@mui/material/Grid';
+- Nunca hardcode hex em componentes — use tokens CSS (`var(--cq-*)`) ou utilitários Tailwind; em ilhas MUI, use o tema (`color="primary.700"`, `sx` com tokens do tema).
+- ⚠️ Cor de marca `#57B593` (primary-500) tem contraste 2.49:1 sobre branco — **só decoração/grandes áreas**. Texto e ícones essenciais sobre claro: `--cq-color-primary-700` (`#378369`, 4.55:1) ou superior; links: primary-800.
 
-<Grid container spacing={3}>
-  <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-    <Card>...</Card>
-  </Grid>
-</Grid>
+### 2. Multi-tenant por build matrix (Fase 0.5)
 
-// ❌ WRONG — MUI v5/v6 API (will NOT compile)
-<Grid item xs={12} md={6}>
-```
+- `TENANT=<slug>` em build-time troca o `srcDir` para `frontend/src-tenants/<slug>/` — rotas limpas (`/`, `/apoiar`, `/transparencia`, `/equipe`, `/blog`, `/docs`) com tema/nav da comunidade. **`frontend/tenants.config.mjs` é a fonte única** (slug, domínio `site`, projeto Pages).
+- **Build codaqui = sem `TENANT`** (srcDir padrão `./src`, portal completo). `TENANT=codaqui` quebraria o build (`TENANT_BY_NAME` não tem essa chave).
+- O matrix do workflow `.github/workflows/deploy-astro.yml` (e o job `astro-tenants` do `pr-check.yml`) **espelha** essa lista — ao onboarding um tenant novo, atualize os dois **e** `tenants.config.mjs` juntos.
+- og:url/canonical/sitemap saem corretos por build porque `SITE_URL` vem do tenant (build-time) — não há reescrita em runtime.
+- **R7 — `astro check` NÃO é gate em modo tenant:** páginas codaqui sob srcDir de tenant têm ~62 erros pré-existentes (limitação do `getCollection`). Gates: codaqui = `make astro-verify` completo; tenant = build + `tenant-urls`.
 
-The codebase imports `Grid` (not `Grid2`) — MUI v7 unified the component name.
+### 3. API same-origin via Pages Function — allow-list ESTREITA (lição I-1)
 
-### 2. Dark Mode Sync (SSR-safe pattern)
+`frontend/functions/[[path]].ts` intercepta **somente** os paths da allow-list em `frontend/src/lib/api-proxy-paths.ts` e faz forward para `API_ORIGIN` (default `https://api.codaqui.dev`), com method/headers/cookies intactos. Todo o resto cai no asset estático via `next()`.
 
-`src/theme/Root.tsx` wraps the entire app in a MUI `ThemeProvider`. It reads Docusaurus's `data-theme` attribute on `<html>` via a `MutationObserver`:
+- O prefixo admin é **deliberadamente estreito**: `/admin/members/` (com trailing slash de propósito). O prefixo antigo `/admin/` fazia a Function interceptar as 13 páginas do painel `/admin/*` — a Function roda **antes** dos assets e do `_redirects` no Pages, e o proxy respondia 404 do backend: o painel inteiro sumia no edge (achado I-1, fix `67ac9450f9e`).
+- **Nunca alargue a allow-list sem checar colisão com rotas estáticas do app.** Prefixo estreito + trailing slash; bare path casa por normalização, e `/admin/memberships` (falso positivo de `startsWith`) NÃO casa.
+- `/auth/callback` **não** é API — é a página do frontend que finaliza o OAuth (não confundir com `/auth/github/callback`, rota do backend).
+- No cliente, **sempre** resolva a base com `resolveApiUrl()` (`src/lib/api-url.ts`): em builds tenant o guard `PUBLIC_TENANT` força same-origin; `API_URL` cru cairia no fallback errado fora do workflow.
 
-```tsx
-// Root.tsx — simplified
-function MuiThemeWrapper({ children }) {
-  const [mode, setMode] = useState<"light" | "dark">("light");
+### 4. Conteúdo canônico na raiz — `frontend/src/content/` é gerado
 
-  useEffect(() => {
-    const getMode = () =>
-      document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
-    setMode(getMode());
+- `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
+- A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
+- Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
+- Snapshots (`static/events|social-stats|analytics/index.json` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild.
+- Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
+- `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
-    const observer = new MutationObserver(() => setMode(getMode()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["data-theme"],
-    });
-    return () => observer.disconnect();
-  }, []);
+### 5. Eventos — snapshot estático + páginas geradas no build
 
-  return <ThemeProvider theme={createCodaquiTheme(mode)}>{children}</ThemeProvider>;
-}
-```
+> **Visão completa:** [docs/adrs/001-event-platform.md](docs/adrs/001-event-platform.md) · [Manual prático de código](docs/modules/events/CODE_MANUAL.md) · [Mapa de papéis/permissões](docs/modules/events/ROLES.md)
 
-> **⚠️ NEVER use `useColorMode()` in `Root.tsx`** — it causes `ReactContextError` during SSR because `ColorModeProvider` is a child of `Root` in the Docusaurus component tree.
+- A listagem pública de eventos é **estática**: o workflow `sync-event-snapshots.yml` (horário) gera JSONs em `static/events/` a partir de fontes externas (Discord, Meetup, Sympla, OCGroups, Doity — configuradas em `events.config.json`) e da fonte própria `internal:codaqui` (backend `GET /events/public/managed`). O app lê o snapshot do **filesystem em build-time** (`loadEventsIndex()` em `src/lib/events.ts`) e o build estático emite `/eventos/<rota>` por evento (`src/pages/eventos/[...path].astro`, helpers em `src/lib/event-path.ts`) com OG/JSON-LD. O mesmo índice é servido em runtime em `/events/index.json`.
+- **Status:** `scheduled`, `active`, `completed`, `canceled`. Ordenação do índice: ASC por `startAt`.
+- **Overrides de metadados:** via API REST do backend (`/events/overrides`, persistidos no PostgreSQL); o sync aplica os metadados estendidos antes de gravar os snapshots.
+- **Eventos próprios (`internal:codaqui`):** a página de detalhe detecta a fonte e embute inscrição/checkout (`EventRegistrationIsland`).
+- **Perfis de membro:** `src/pages/[...handle].astro` gera a vanity URL `/@<handle>` em build time a partir da API pública (`loadPublicMembers()` — sem API retorna `[]` com warn e o build segue; o 404 faz fallback para `/membros/perfil?handle=`).
+- **Force-sync manual** (`POST /events/internal/snapshot`, botão no admin): abre PR usando o token do membro (GitHub-as-Database) — **fluxo legado**, será substituído (ver `docs/plans/events-sync-improvements/`, Camada 3).
 
-`useColorMode()` is safe in any other component (pages, GiscusComponent, etc.) — just not in Root.
-
-### 3. Data Layer Pattern
-
-All shared data lives in `src/data/*.ts`. Pages import from these files — **never inline arrays in page components**.
-
-| File | Exports | Used by |
-|------|---------|---------|
-| `social.ts` | `DISCORD_URL`, `WHATSAPP_URL`, `EMAIL`, `GITHUB_ORG`, `socialChannels[]`, `codaquiSocialProfiles[]` | index.tsx, contato.tsx, bio.tsx, sobre/insights.tsx |
-| `team.ts` | `diretoria[]`, `membros[]`, `alumni[]`, `mentores[]` | sobre/equipe.tsx |
-| `communities.ts` | `communities[]` (with `socialProfiles[]` per community) | index.tsx, sobre/ong.tsx, sobre/insights.tsx, **transparencia.tsx**, **StripeDonateSection** |
-| `projects.ts` | `projects[]` | projetos.tsx |
-| `timeline.ts` | `timelineEvents[]` | sobre/insights.tsx |
-| `social-stats.ts` | `SocialProfile`, `SocialStatEntry`, `SocialStatsSnapshot`, `SOCIAL_STATS_URL` | sobre/insights.tsx, scripts/sync-social-stats.mjs |
-
-**To add a team member** — edit `src/data/team.ts` only:
-```typescript
-// Add to the correct array: diretoria, membros, alumni, or mentores
-{
-  name: "Nome Completo",
-  role: "Cargo",
-  avatar: "https://avatars.githubusercontent.com/username?v=4",
-  linkedin: "https://www.linkedin.com/in/username/",  // optional
-  github: "https://github.com/username",              // optional
-  specialty: "DevOps e Iniciantes",                    // mentores only
-}
-```
-
-**To add a community** — edit `src/data/communities.ts` only:
-```typescript
-{
-  id: "slug",
-  name: "Community Name",
-  emoji: "🤝",
-  logo: "/img/community-logo.svg",      // or external URL
-  description: "Short description.",
-  location: "City, State",              // optional
-  founded: 2020,                        // optional
-  links: [
-    { type: "website", label: "example.com", url: "https://example.com/" },
-  ],
-  socialProfiles: [                      // optional — shown in Insights page
-    {
-      platform: "meetup",               // discord | meetup | youtube | instagram | github
-      handle: "my-group",
-      url: "https://www.meetup.com/my-group/",
-      countLabel: "membros",
-      baselineCount: 500,               // manual fallback
-    },
-  ],
-  tags: ["tag1", "tag2"],
-}
-```
-
-> After adding a community's `socialProfiles`, also add a corresponding entry in `scripts/sync-social-stats.mjs` so the count is auto-fetched.
-
-**To add a project** — edit `src/data/projects.ts` only.
-
-**To add a timeline event** — edit `src/data/timeline.ts` only.
-
-### 4. Blog URL Convention (SEO critical)
-
-Posts live at `blog/YYYY-MM-DD-slug.md`. The frontmatter `slug` determines the final URL path — this preserves Google-indexed URLs from the legacy site:
-
-```yaml
----
-slug: 2024/07/22/meu-post
-title: Título do Post
-authors: [username]
-tags: [tag1, tag2]
-date: 2024-07-22
----
-
-Resumo do post (appears in listing).
-
-<!-- truncate -->
-
-Full content below the fold...
-```
-
-- `tagsBasePath: 'category'` in `docusaurus.config.ts` preserves `/blog/category/X/` URLs — **do not change**.
-- Blog comments: enabled by default via swizzled `BlogPostItem`. Disable per-post with `enableComments: false` in frontmatter.
-
-### 5. Learning Trails (Trilhas)
-
-Configured as a docs plugin: `path: "trilhas"`, `routeBasePath: "trilhas"`.
-
-Lesson files: `trilhas/python/page-N.md` or `trilhas/github/page-N.md`:
-
-```markdown
----
-sidebar_position: N
-title: Título da Aula
----
-
-# Título da Aula
-
-## Objetivos
-## Conteúdo Principal
-## Exercícios Práticos
-## Referências
-```
-
-Sidebars are manually defined in `sidebars.ts` (not auto-generated).
-
-### 6. Giscus Comments
-
-Configuration lives in `docusaurus.config.ts` → `themeConfig.giscus`. The `GiscusComponent` reads it at runtime:
-
-```typescript
-const giscusConfig = siteConfig.themeConfig.giscus as Record<string, string>;
-```
-
-- **Mapping**: `og:title` — works for both blog posts and learning trail pages.
-- **Theme**: automatically syncs with Docusaurus color mode.
-- **Usage**: import `GiscusComponent` from `@site/src/components/GiscusComponent` wherever you need comments.
-
-### 7. Events System
-
-> **Visão completa:** [docs/adrs/001-event-platform.md](docs/adrs/001-event-platform.md)  
-> **Manual prático de código:** [docs/modules/events/CODE_MANUAL.md](docs/modules/events/CODE_MANUAL.md)  
-> **Mapa de papéis/permissões:** [docs/modules/events/ROLES.md](docs/modules/events/ROLES.md)
-
-A listagem pública de eventos é **100% estática**: o workflow [`sync-event-snapshots.yml`](.github/workflows/sync-event-snapshots.yml) gera arquivos JSON em `static/events/` a partir de fontes externas (Discord, Meetup, Sympla, OCGroups, Doity) e da fonte própria `internal:codaqui`. O frontend lê apenas esses JSONs.
-
-#### Layout essencial
-
-```
-static/events/
-├── index.json                         # Índice agregado (único arquivo lido pela UI)
-├── discord/codaqui/
-├── meetup/devparana/
-├── sympla/{elasnocodigo,campostech}/
-├── ocgroups/cloud-native-maringa/
-├── doity/devpr/                       # DevPR Conf (organizador devpr na Doity)
-└── internal/codaqui/                  # Eventos próprios (backend /events/public/managed)
-```
-
-#### Operações rápidas
-
-- **Adicionar uma nova fonte:** editar `events.config.json` e incluir um objeto em `sources`.
-- **Status:** `scheduled`, `active`, `completed`, `canceled`.
-- **Ordenação:** `static/events/index.json` é ordenado ASC por `startAt`; a página `/eventos` separa futuros e passados no cliente.
-- **Overrides de metadados:** feitos via API REST do backend (`/events/overrides`) e persistidos no PostgreSQL; o sync aplica os metadados estendidos antes de gravar os snapshots. Veja [ADR 001](docs/adrs/001-event-platform.md) para detalhes de escopo, schema e permissões.
-- **Eventos próprios (`internal:codaqui`):** expostos por `GET /events/public/managed` e incorporados ao pipeline de snapshots. A página `/eventos/detalhe` detecta `source === "internal"` e embute inscrição/checkout.
-- **Páginas estáticas por evento (SEO/OG):** o plugin local `src/plugins/event-pages.ts` gera `/eventos/<slug>` para eventos internos (slug da `managed_events`) e `/eventos/<source>/<sourceId>/<id>` para externos, para cada evento do `static/events/index.json` (componente `src/components/EventDetailRoute/`, helpers em `src/utils/event-path.ts`), com OG/JSON-LD corretos para crawlers. A URL legada `/eventos/detalhe?source=...&id=...` redireciona para a rota estática quando ela existe, exceto no retorno do Stripe (`status=success&session_id=...`). Detalhes em `docs/modules/events/CODE_MANUAL.md` §2.8.
-- **Páginas estáticas por membro (SEO/OG):** o plugin local `src/plugins/member-pages.ts` gera a vanity URL `/@<handle>` por membro ativo (componente `src/components/MemberProfileRoute/`, helpers em `src/utils/member-path.ts`), com OG/JSON-LD (schema.org/Person); a lista vem da API pública (`GET /members`) em build time via `DOCUSAURUS_API_URL` e falha no fetch não quebra o build (o 404 swizzlado segue redirecionando `/@handle` para `/membros/perfil?handle=` como fallback).
-- **Sync de snapshots:** o caminho normal é o workflow horário [`sync-event-snapshots.yml`](.github/workflows/sync-event-snapshots.yml), que commita direto em `main`. O force-sync manual (`POST /events/internal/snapshot`, botão no admin) ainda existe e abre um PR usando o token do membro (GitHub-as-Database) — **fluxo legado**, será substituído (ver `docs/plans/events-sync-improvements/`, Camada 3).
-
-> O antigo fluxo de arquivos `*.override.json`, `organizers.json` e o workflow `validate-event-overrides.yml` foram substituídos pelas APIs do backend (tabela `event_overrides` no PostgreSQL).
-
----
-
-### 8. Legacy URL Redirects
-
-| Redirect file | Redirects to |
-|---------------|-------------|
-| `src/pages/quero/estudar.tsx` | `/participe/estudar` |
-| `src/pages/quero/apoiar.tsx` | `/participe/apoiar` |
-| `src/pages/quero/mentoria.tsx` | `/participe/mentoria` |
-| `src/pages/team.tsx` | `/sobre/equipe` |
-| `src/pages/contact.tsx` | `/contato` |
-| `src/pages/conduta.tsx` | `/sobre/conduta` |
-| `src/pages/ong.tsx` | `/sobre/ong` |
-| `src/pages/timeline.tsx` | `/sobre/timeline` |
-| `src/pages/pais_responsaveis.tsx` | `/sobre/pais-responsaveis` |
-
-Pattern:
-```tsx
-import { Redirect } from "@docusaurus/router";
-export default function RedirectX() {
-  return <Redirect to="/new/path" />;
-}
-```
-
----
-
-### 9. Backend Financial Modules (Ledger-centric)
+### 6. Backend financeiro — tudo passa pelo ledger
 
 Todo movimento financeiro passa pelo `ledger` (`Account` + `Transaction`, double-entry). Os módulos especializados gravam suas próprias entidades **e** registram a transação no ledger via `LedgerService.recordTransaction(source, destination, amount, description, referenceId)`.
 
@@ -544,7 +287,7 @@ Todo movimento financeiro passa pelo `ledger` (`Account` + `Transaction`, double
 
 > ⚠️ A captura de taxa Stripe (`stripe-fee:*`) **não** se aplica a ingressos de eventos — o handler localiza a doação pelo `referenceId` com prefixo `stripe-pi:`. Fees de eventos ficam fora do ledger por ora (follow-up conhecido).
 
-> O frontend usa o **prefixo** do `referenceId` (em `src/utils/transaction.tsx`) para classificar a transação (`donation`, `reimbursement`, `vendor-payment`, `vendor-receipt`, `transfer`, `other`) e renderizar o cartão correto.
+> O frontend classifica a transação pelo **prefixo** do `referenceId` (`src/lib/transaction.ts`) e renderiza o cartão correto.
 
 #### Padrão `persistWithLedger`
 
@@ -557,13 +300,7 @@ const saved = await this.persistWithLedger(repo, entity, (s) => ({
 }));
 ```
 
-> ⚠️ **Use a factory `(saved) => ledgerArgs`**, NÃO um objeto literal. O UUID só é gerado depois do save — usar `entity.id` antes resulta em `referenceId: "...:undefined"` (bug latente que quebra o resolver no frontend).
-
-#### Módulos principais
-
-- **Vendors (pagamentos + recebimentos):** cada `Vendor` tem uma `Account` do tipo `EXTERNAL` usada como balanço bidirecional. Pagamento = `community → vendor.account`; recebimento = `vendor.account → community`. Ver `backend/src/vendors/`.
-- **CLUB SortCoins:** crédito automático por assinatura Stripe, sorteios com seed auditável. Ver [docs/adrs/002-club-sortcoins.md](docs/adrs/002-club-sortcoins.md).
-- **CLUB Business (PJ):** apoiadores empresariais com CNPJ, assinatura mínima de R$ 200/mês, ativação manual e wallet separada. Ver [docs/adrs/003-club-business-pj.md](docs/adrs/003-club-business-pj.md).
+> ⚠️ **Use a factory `(saved) => ledgerArgs`**, NÃO um objeto literal. O UUID só é gerado depois do save — usar `entity.id` antes resulta em `referenceId: "...:undefined"`.
 
 #### Papéis relevantes
 
@@ -579,102 +316,58 @@ const saved = await this.persistWithLedger(repo, entity, (s) => ({
 
 > Papéis de eventos detalhados em [docs/modules/events/ROLES.md](docs/modules/events/ROLES.md).
 
-#### Padrão de tela admin
+### 7. Blog — convenção de URL (SEO crítico) + comentários
 
-Toda página em `src/pages/admin/*` segue:
+Posts vivem em `blog/YYYY-MM-DD-slug.md(x)`. O frontmatter `slug` determina a URL final — preserva URLs indexadas pelo Google desde o site anterior:
 
-1. Guarda `useEffect([isLoggedIn])` que redireciona para `/` se não logado.
-2. `authFetch` do `useAuth` faz `setUser(null)` em 401 → trigger automático do redirect.
-3. Helpers em `src/hooks/authFetchHelpers.ts`:
-   - `parseAuthJson<T>(res, onError)` — para GETs (retorna `null` em erro, não throw).
-   - `extractErrorMessage(res, fallback)` — para POST/PATCH/DELETE.
-4. Estado `loadError` + `<Alert severity="error">` no header da página.
-5. Cards/tabelas usam `<TransactionDetailDialog>` para detalhe rico ao clicar.
+```yaml
+---
+slug: 2024/07/22/meu-post
+title: "Título do Post"
+authors: [username]   # ou lista inline de objetos {name, title, url, image_url}
+tags: [tag1, tag2]
+date: 2024-07-22      # opcional — ausente, o app infere pela data do nome do arquivo
+---
+```
 
+- `<!-- truncate -->` marca o fim do resumo na listagem (o build converte nas cópias).
+- **Nunca mude o `slug` de posts publicados** — quebra URLs indexadas e mapeamento de comentários.
+- Comentários Giscus usam mapping `og:title` (`frontend/src/data/giscus.ts`): o `og:title` dos posts precisa permanecer estável para o histórico de comentários sobreviver. Disable per-post com `enableComments: false` no frontmatter.
+
+### 8. Redirects legados em `dist/_redirects` + paridade de URLs versionada
+
+- Os redirects de URLs legadas (ex.: `/quero/apoiar`, `/team`, `/sobre/timeline`, `/conduta`, `/blog/archive/*`, … — 16 no total) vivem no **`dist/_redirects` gerado em build-time** por `frontend/scripts/build-tenant-redirects.mjs` (build codaqui). Os antigos stubs de página rediretora foram **deletados** — não recrie páginas-sombra; adicione a regra no script.
+- Builds tenant emitem `_redirects` com 301 de `/comunidades/<slug>[/*]` para `[/][:splat]` (links antigos do portal funcionam no domínio próprio) **e** um `robots.txt` com o Sitemap do domínio do tenant.
+- **Paridade pós-cutover:** `frontend/scripts/url-reference.json` é a referência versionada e **congelada** das URLs públicas do site anterior (gerada por `archive-urls.mjs` antes da remoção do stack antigo). `diff-urls.mjs` (dentro de `make astro-verify`) falha se qualquer URL da referência não for servida pelo build novo (página ou redirect). URLs válidas = páginas do dist ∪ sources ∪ targets do `_redirects`; redirect que aponta para o nada quebra o gate. **Não regenere a referência** — ela é o contrato do cutover.
+
+### 9. Rotas de app noindex + fora do sitemap
+
+Rotas de aplicativo (`/admin/*`, `/auth/*`, `/membro/*`, `/membros/empresa`, `/eventos/detalhe`, `/eventos/comprovante`, 404) passam `noindex` no layout e são excluídas do sitemap (`SITEMAP_EXCLUDE` em `astro.config.mjs`). O `robots.txt` do build codaqui aponta o Sitemap para `https://codaqui.dev/sitemap-index.xml`.
+
+### 10. Dark mode — `data-theme` com anti-FOUC
+
+`BaseLayout.astro` emite um script inline no `<head>` que lê a preferência salva/sistema e seta `document.documentElement.dataset.theme` **antes do paint** (sem flash). Ilhas MUI leem o mesmo atributo (`MuiIslandProvider`, `ThemeToggle`) — em ilhas, nunca assuma tema sem observar `data-theme` no `documentElement`.
+
+### 11. Padrão de tela admin
+
+Toda página em `frontend/src/pages/admin/*` é um `.astro` fino:
+
+```astro
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 ---
 
-## MUI Theme & Component/Page patterns
-
-Defined in `src/theme/muiTheme.ts`:
-
-| Token | Value |
-|-------|-------|
-| `primary.main` | `#22c55e` (Codaqui green) |
-| `primary.dark` | `#16a34a` |
-| `primary.light` | `#4ade80` |
-| `secondary.main` | `#0ea5e9` (sky blue) |
-| `background.default` (dark) | `#1b1b1d` |
-| `background.paper` (dark) | `#242526` |
-| `shape.borderRadius` | `8` |
-| `typography.fontFamily` | `var(--ifm-font-family-base, ...)` — inherits from Docusaurus |
-
-**Always use theme tokens** (`color="text.primary"`, `bgcolor="action.hover"`). Never hardcode hex values in components.
-
----
-
-## Component Creation Pattern
-
-New components go in `src/components/ComponentName/index.tsx`:
-
-```tsx
-import React from "react";
-import { Card, CardContent, Typography } from "@mui/material";
-
-interface MyComponentProps {
-  title: string;
-  description: string;
-}
-
-export default function MyComponent({ title, description }: MyComponentProps) {
-  return (
-    <Card sx={{ height: "100%", "&:hover": { transform: "translateY(-4px)", boxShadow: 6 } }}>
-      <CardContent>
-        <Typography variant="h6" fontWeight={700}>{title}</Typography>
-        <Typography variant="body2" color="text.secondary">{description}</Typography>
-      </CardContent>
-    </Card>
-  );
-}
+<AppLayout title="Admin" noindex>
+  <AdminHubApp client:only="react" />
+</AppLayout>
 ```
 
-Then export from `src/components/index.ts`:
-```typescript
-export { default as MyComponent } from "./MyComponent";
-```
-
-### Page Creation Pattern
-
-Pages go in `src/pages/`:
-
-```tsx
-import React from "react";
-import Layout from "@theme/Layout";
-import { Container, Typography, Grid, Card, CardContent } from "@mui/material";
-import { someData } from "../data/someFile";
-
-export default function MyPage(): React.JSX.Element {
-  return (
-    <Layout title="Page Title" description="SEO description">
-      <Container maxWidth="lg" sx={{ py: 6 }}>
-        <Typography variant="h3" fontWeight={800} gutterBottom>
-          Page Title
-        </Typography>
-        <Grid container spacing={3}>
-          {someData.map((item) => (
-            <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Card>
-                <CardContent>
-                  <Typography>{item.name}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-    </Layout>
-  );
-}
-```
+1. A ilha React usa o hook `useAuth()` (`src/lib/use-auth.ts`): `authFetch` faz `setUser(null)` em 401 → redirect automático para login.
+2. Helpers em `src/lib/auth-fetch-helpers.ts`: `parseAuthJson<T>(res, onError)` para GETs (retorna `null` em erro, não throw) e `extractErrorMessage(res, fallback)` para POST/PATCH/DELETE.
+3. Estado de erro com `Alert`/`loadError` no header da página.
+4. Tabelas/cartões usam `<TransactionDetailDialog>` / `<WalletTransactionDetailDialog>` para detalhe rico ao clicar.
+5. A base da API na ilha vem de `resolveApiUrl(import.meta.env.SITE)` — nunca `API_URL` cru (ver decisão 3).
 
 ---
 
@@ -682,19 +375,22 @@ export default function MyPage(): React.JSX.Element {
 
 | ❌ Don't | ✅ Do |
 |----------|-------|
-| `<Grid item xs={12}>` | `<Grid size={{ xs: 12 }}>` (MUI v7) |
-| `useColorMode()` in `Root.tsx` | Read `data-theme` via MutationObserver |
-| `referenceId: \`prefix:${entity.id}\`` antes do `repo.save()` | Use factory `persistWithLedger(repo, e, (s) => ({ referenceId: \`prefix:${s.id}\` }))` |
-| `fetch(...)` direto em página admin | `authFetch` do `useAuth` (trata 401 → logout automático) |
-| Inline `() => {}` silenciando erros de fetch admin | `parseAuthJson<T>` + `setLoadError` + `<Alert>` |
+| `<Grid item xs={12}>` ou system props MUI (`bgcolor=`, `p=`) | MUI v9: `size={{ xs: 12 }}` no Grid; `slotProps` para slots; `sx` para estilo — nada de system props nas props do componente |
+| Hex solto em componentes (`#57B593`) | Tokens `--cq-*` (Tailwind) / tema Mui espelhado (`src/lib/mui-theme.ts`) — zero hex fora de `tokens.css` |
+| Editar `frontend/src/content/blog` ou `trilhas` | Editar `blog/` e `trilhas/` na raiz (copiados por `copy-content.mjs`) |
+| Editar conteúdo em `frontend/src-tenants/<slug>/` | Editar `comunidades/<slug>/` (READ-WRITE) — `src-tenants` lê por symlink |
+| `fetch(API_URL …)` / `API_URL` cru em ilha | `resolveApiUrl(import.meta.env.SITE)` + `authFetch` do `useAuth` |
+| Alargar a allow-list do proxy com prefixo largo (`/admin/`) | Prefixo **estreito** com trailing slash (`/admin/members/`); checar colisão com rotas estáticas antes (lição I-1) |
+| Criar página-sombra de redirect | Regra no `build-tenant-redirects.mjs` → `dist/_redirects` |
+| Regenerar `url-reference.json` sem justificativa | Referência congelada do cutover; gate `diff-urls` deve continuar verde |
+| Usar `astro check` como gate de build tenant | R7: tenant = build + `tenant-urls`; codaqui completo em `make astro-verify` |
+| `TENANT=codaqui` em build/script | Build codaqui = **sem** `TENANT` (env vazia) |
+| Cadastrar tenant só no workflow (ou só em `tenants.config.mjs`) | Os dois **juntos**: `tenants.config.mjs` + matrix em `deploy-astro.yml`/`pr-check.yml` |
+| `referenceId: \`prefix:${entity.id}\`` antes do `repo.save()` | Factory `persistWithLedger(repo, e, (s) => ({ referenceId: \`prefix:${s.id}\` }))` |
+| `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
 | Hardcode Discord/WhatsApp URLs | Import from `src/data/social.ts` |
 | Inline team/community arrays in pages | Import from `src/data/*.ts` |
-| `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
-| `makeStyles()` or `styled-components` | MUI `sx` prop |
-| Hardcode hex colors in components | Use theme tokens (`color="text.secondary"`) |
-| Delete files in `src/pages/quero/` | They are SEO redirect stubs |
 | `slug: meu-post` (blog) | `slug: 2024/07/22/meu-post` (preserves Google URLs) |
-| Edit `equipe.tsx` to add a member | Edit `src/data/team.ts` |
 | Use "alunos", "escola", "curso" | Use "participantes", "Associação", "programa" |
 
 ---
@@ -705,104 +401,63 @@ export default function MyPage(): React.JSX.Element {
 
 | Branch | Deploys to | URL |
 |--------|-----------|-----|
-| `main` | `gh-pages` | https://codaqui.dev (production) |
-| `develop` | `gh-pages/previews/develop/` | https://codaqui.dev/previews/develop/ |
+| `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
+| `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI Pipeline (`.github/workflows/gh-deploy.yml`)
+### CI/CD (`.github/workflows/` — 6 workflows)
 
-On push to `develop` or `main`:
-1. `actions/checkout@v6`
-2. `actions/setup-node@v6` with Node 24 + npm cache
-3. `npm ci`
-4. `npm run build`
-5. Deploy production from `main` to `gh-pages`, preserving `previews/`
-6. Sync the `develop` preview to `gh-pages/previews/develop/`
+| Workflow | Quando | O que faz |
+|----------|--------|-----------|
+| `deploy-astro.yml` | push em `main`/`develop` + dispatch | Build matrix (codaqui + 3 tenants) + gate `tenant-urls` + direct upload Wrangler p/ cada projeto Pages |
+| `pr-check.yml` | PR → `develop`/`main` | Backend (build + jest coverage), Trivy (frontend + backend), builds Astro dos 4 projetos, `astro check` + vitest do codaqui |
+| `publish-backend.yml` | manual | Build + push da imagem Docker ARM64 p/ GHCR (usa `version` do `backend/package.json`) |
+| `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
+| `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
+| `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 
 ### Commit Convention
 
 ```
-feat: adiciona nova trilha de JavaScript
-fix: corrige link quebrado na página inicial
-docs: atualiza README com novas instruções
-style: ajusta formatação do post sobre Python
-refactor: reorganiza estrutura de pastas
-chore: atualiza dependências do projeto
+feat(fase-0.x): descreve a mudança
+fix(fase-0.x): corrige o bug
+docs(fase-0.x): atualiza documentação
 ```
+
+(escopo opcional; semver de backend via `version` em `backend/package.json`)
 
 ### Contribution Flow
 
 1. Create branch from `develop`: `feat/nome` or `fix/nome`
-2. Make changes, ensure `npm run build` passes
-3. Open PR targeting `develop`
-4. Review → merge → auto-update preview at `https://codaqui.dev/previews/develop/`
-5. After validation, merge `develop` → `main` → auto-deploy to production
-
----
-
-## SonarCloud — Code Quality
-
-Every PR is analyzed by SonarCloud (`codaqui_institucional` project). Issues are surfaced as PR checks and block merge when the Quality Gate fails.
-
-### Querying issues (API — SPA won't render in CLI/bots)
-
-```bash
-# List all open issues for a PR (replace 513 with the PR number)
-curl -s "https://sonarcloud.io/api/issues/search?componentKeys=codaqui_institucional&pullRequest=<PR_NUMBER>&statuses=OPEN,CONFIRMED&sinceLeakPeriod=true&ps=100"
-
-# With jq for readable output:
-curl -s "..." | jq '.issues[] | {rule, message, component, line}'
-```
-
-The UI URL is:
-```
-https://sonarcloud.io/project/issues?id=codaqui_institucional&pullRequest=<PR_NUMBER>&issueStatuses=OPEN,CONFIRMED&sinceLeakPeriod=true
-```
-> The SonarCloud UI is a React SPA — it does not render in `curl` or headless fetches. Always use the REST API (`/api/issues/search`) when automating or scripting.
-
-### Common rules in this project
-
-| SonarCloud Rule | What it flags | Quick fix |
-|----------------|--------------|-----------|
-| `typescript:S1128` | Unused imports | Remove the `import` line |
-| `typescript:S1854` | Dead assignments | Remove or use the variable |
-| `typescript:S6544` | `async` function with no `await` | Remove `async` or add `await` |
-| `Web:S5254` | Missing `alt` on `<img>` | Add `alt` attribute |
-| `javascript:S1192` | Duplicate string literals | Extract to constant |
-
-### Fixing and committing
-
-```bash
-# 1. Get open issues via API (see above)
-# 2. Fix the flagged lines in the source files
-# 3. Validate
-npm run typecheck
-# 4. Commit with a descriptive message referencing the rule
-git commit -m "fix: remove unused imports in insights.tsx (SonarCloud PR#513)"
-```
+2. Rode os gates (`make astro-verify` + `make astro-verify-tenants`; backend se aplicável)
+3. Open PR targeting `develop` → `pr-check.yml` valida
+4. Review → merge → branch deployment de homologação
+5. Após validação, merge `develop` → `main` → produção
 
 ---
 
 ## PR Checklist
 
-Before submitting:
+Antes de submeter:
 
-- [ ] `npm run build` completes without errors
-- [ ] `npm run typecheck` passes (runs only on frontend — backend is excluded)
-- [ ] SonarCloud Quality Gate passes (check via API or PR checks tab)
-- [ ] Blog posts include `slug: YYYY/MM/DD/name` in frontmatter
-- [ ] Data changes go in `src/data/*.ts`, not inline in pages
-- [ ] Social URLs imported from `src/data/social.ts`
-- [ ] MUI Grid uses `size={{ xs, sm, md }}` (not `item xs={}`)
-- [ ] Images optimized (max 500KB; SVG for logos, PNG for screenshots)
-- [ ] External links have `target="_blank" rel="noopener noreferrer"`
-- [ ] MUI Avatars have `alt={name}`
-- [ ] IconButtons have `aria-label`
-- [ ] Heading hierarchy is correct (h1 → h2 → h3, no skipping)
-- [ ] Inclusive language: "participantes", "programa", "encontros", "Associação"
-- [ ] No hardcoded hex colors — use MUI theme tokens
-- [ ] No secrets or credentials committed (use `.env.example` for templates)
-- [ ] Legacy redirect files untouched
-- [ ] Backend changes: `cd backend && npm run build` passes before committing
+- [ ] `make astro-verify` passa (build codaqui completo + paridade de URLs)
+- [ ] `make astro-verify-tenants` passa (se tocou em `tenants.config.mjs`, layouts, lib compartilhada ou conteúdo de comunidade)
+- [ ] `cd backend && npm run build && npx jest --silent` (se mexeu em `backend/`) + **bump de `version`** em `backend/package.json`
+- [ ] `npm run test:scripts` (se mexeu em `scripts/*.mjs`)
+- [ ] Blog posts novos usam `slug: YYYY/MM/DD/nome` no frontmatter
+- [ ] Mudanças em conteúdo canônico foram feitas em `blog/`/`trilhas/` (não nas cópias em `frontend/src/content/`)
+- [ ] Data changes em `frontend/src/data/*.ts`, não inline em páginas
+- [ ] Social URLs importados de `frontend/src/data/social.ts`
+- [ ] Zero hex solto — tokens `--cq-*` / tema MUI
+- [ ] MUI v9: `slotProps` + `sx` (sem system props); Grid com `size={{ xs, sm, md }}`
+- [ ] Redirect novo de URL legada vai no `build-tenant-redirects.mjs` (não em página-sombra)
+- [ ] Imagens otimizadas (máx ~500KB; SVG para logos, JPG/PNG para fotos)
+- [ ] Links externos com `target="_blank" rel="noopener noreferrer"`
+- [ ] Avatares/imagens com `alt`
+- [ ] IconButtons com `aria-label`
+- [ ] Hierarquia de headings correta (h1 → h2 → h3, sem pular)
+- [ ] Linguagem inclusiva: "participantes", "programa", "encontros", "Associação"
+- [ ] Nenhum segredo commitado (templates vivem em `.env.example`)
+- [ ] Tenant novo: `tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md)
 
 ---
 
@@ -810,12 +465,16 @@ Before submitting:
 
 | Type | Pattern | Example |
 |------|---------|---------|
-| Blog post | `YYYY-MM-DD-slug.md` | `2024-07-22-welcome.md` |
+| Blog post | `blog/YYYY-MM-DD-slug.md` | `blog/2024-07-22-welcome.md` |
 | Blog image | `blog/img/YYYY-MM-DD-slug/` | `blog/img/2024-07-22-welcome/hero.png` |
-| Component | `src/components/Name/index.tsx` | `src/components/Badge/index.tsx` |
-| Data file | `src/data/name.ts` | `src/data/team.ts` |
-| Page | `src/pages/name.tsx` or `.md` | `src/pages/projetos.tsx` |
-| Static asset | `static/img/description.ext` | `static/img/elasnocodigo.svg` |
+| Página Astro | `frontend/src/pages/nome.astro` ou `frontend/src/pages/<dir>/[...slug].astro` | `frontend/src/pages/sobre/equipe.astro` |
+| Layout Astro | `frontend/src/layouts/NomeLayout.astro` | `frontend/src/layouts/PublicLayout.astro` |
+| Componente de servidor | `frontend/src/components/astro/Nome.astro` | `frontend/src/components/astro/EventCard.astro` |
+| Ilha React | `frontend/src/components/islands/NomeIsland.tsx` | `frontend/src/components/islands/ThemeToggle.tsx` |
+| Lib (lógica pura) | `frontend/src/lib/nome.ts` (+ `nome.test.ts`) | `frontend/src/lib/event-path.ts` |
+| Data file | `frontend/src/data/nome.ts` | `frontend/src/data/team.ts` |
+| Script de build/sync | `frontend/scripts/nome.mjs` / `scripts/nome.mjs` | `frontend/scripts/copy-content.mjs` |
+| Static asset | `static/img/description.ext` | `static/img/og-codaqui.jpg` |
 
 ---
 
@@ -828,7 +487,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 - **Values**: Transparency, inclusion, collaboration, collective growth
 - **License**: Creative Commons Attribution-ShareAlike
 - **Contact**: contato@codaqui.dev
-- **Communities**: DevParaná, Elas no Código, CamposTech, TI Social, Cloud Native Maringá
+- **Communities**: DevParaná, Elas no Código, CamposTech, T.I. Social, Cloud Native Maringá
 
 ### Social
 
@@ -848,38 +507,42 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 
 | What | When | Where |
 |------|------|-------|
-| Team changes | As needed | `src/data/team.ts` |
-| New community partners | As needed | `src/data/communities.ts` + `scripts/sync-social-stats.mjs` |
-| Timeline events | Annually | `src/data/timeline.ts` |
-| Social links (WhatsApp expires) | When links change | `src/data/social.ts` |
-| Manual follower counts (YouTube/Instagram) | When updated | `src/data/social.ts` + `src/data/communities.ts` (`baselineCount`) |
+| Team changes | As needed | `frontend/src/data/team.ts` |
+| New community partners | As needed | `frontend/src/data/communities.ts` + `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
+| Timeline events | Annually | `frontend/src/data/timeline.ts` |
+| Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
+| Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
 | Event sources/fallbacks | As needed | `events.config.json` |
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
-| Social stats sync (Discord/Meetup/GitHub) | Automatic (daily workflow) | `static/social-stats/` via `sync-social-stats.yml` |
-| Dependencies | Quarterly | `package.json` → `npm update` |
+| Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
+| Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
+| New tenant onboarding | As needed | `frontend/tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md) |
+| Dependencies | Quarterly | `frontend/package.json` → `npm update` |
+
+---
+
+## Multi-tenant communities
+
+Os sites whitelabel das comunidades parceiras são servidos por **build matrix no Cloudflare Pages** (Fase 0.5): um projeto Pages por tenant — fonte única em `frontend/tenants.config.mjs` (`tisocial`, `elasnocodigo`, `devparana`) — com rotas limpas em `/` via `TENANT=<slug>` trocando o `srcDir` do app Astro em build-time, e proxy de API/login via **Pages Function** (`frontend/functions/[[path]].ts`).
+
+> Operação, gates (R7), runbook de DNS/secrets e gaps conhecidos (`*.pages.dev`, symlinks no Windows): [DEVELOPMENT.md](./DEVELOPMENT.md) → "Multi-tenant (Fase 0.5)". Onde vive cada peça de conteúdo, checklist para nova comunidade e anti-patterns: [docs/modules/community/COMMUNITY_SITES.md](docs/modules/community/COMMUNITY_SITES.md).
 
 ---
 
 ## Insights & Social Stats
 
-The `/sobre/insights` page aggregates four modules: **live stats bar**, **presença digital**, **comunidades parceiras**, and the **linha do tempo** (timeline). It replaces the old `/sobre/timeline` URL (now a redirect).
+A página `/sobre/insights` agrega quatro módulos: **live stats bar**, **presença digital**, **comunidades parceiras** e a **linha do tempo** (timeline).
 
 > Detalhes completos — fontes de dados, schema do snapshot, atualização manual e workflow de sync — estão em [docs/modules/insights/SOCIAL_STATS.md](docs/modules/insights/SOCIAL_STATS.md).
 
 ---
 
-## Multi-tenant communities (D1 — single Docusaurus)
-
-Cada comunidade parceira tem um espaço próprio em `/comunidades/<slug>/...` com branding, navbar, blog, docs, doação e transparência próprios, no mesmo build do site Codaqui. T.I. Social é o piloto.
-
-> Detalhes completos — onde vive cada peça, checklist para nova comunidade, domínio próprio e anti-patterns — estão em [docs/modules/community/COMMUNITY_SITES.md](docs/modules/community/COMMUNITY_SITES.md).
-
----
-
 ## References
 
-- [Docusaurus 3 Docs](https://docusaurus.io/docs)
-- [MUI v7 Components](https://mui.com/material-ui/all-components/)
-- [MUI Timeline (@mui/lab)](https://mui.com/material-ui/react-timeline/)
+- [Astro docs](https://docs.astro.build/)
+- [MUI v9 Components](https://mui.com/material-ui/all-components/)
+- [Tailwind CSS v4](https://tailwindcss.com/docs)
+- [Cloudflare Pages](https://developers.cloudflare.com/pages/) · [Pages Functions](https://developers.cloudflare.com/pages/functions/)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
 - [Giscus](https://giscus.app/)
 - [GitHub Discussions](https://github.com/codaqui/institucional/discussions)

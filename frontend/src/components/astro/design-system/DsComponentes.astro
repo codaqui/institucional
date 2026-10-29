@@ -1,0 +1,167 @@
+---
+// 05 Componentes — demos estáticas dos padrões do DS: botões, badges, alertas,
+// formulário e tabela financeira (padrão do portal de transparência).
+// Tudo com tokens --cq-* via utilitários Tailwind; zero JS.
+import { brandVsActionable } from "../../../data/ds-palette";
+---
+
+<section id="componentes" class="scroll-mt-32 border-t border-border">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">05</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Componentes</h2>
+    <p class="mb-8 max-w-2xl text-text-secondary">
+      Padrões de UI construídos sobre os tokens — os mesmos usados nas páginas
+      públicas e no app. Demonstrações estáticas; o comportamento real vive nos
+      componentes.
+    </p>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      {/* Botões */}
+      <div class="rounded-lg border border-border bg-surface p-5">
+        <h3 class="mb-4 text-sm font-extrabold tracking-wide text-text-secondary uppercase">Botões</h3>
+        <div class="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            class="min-h-11 cursor-pointer rounded-md bg-action px-5 py-2.5 text-sm font-bold text-on-action hover:bg-action-hover"
+          >
+            Primário
+          </button>
+          <button
+            type="button"
+            class="min-h-11 cursor-pointer rounded-md border border-border-strong bg-surface px-5 py-2.5 text-sm font-bold text-text-primary hover:bg-sunken"
+          >
+            Secundário
+          </button>
+          <button
+            type="button"
+            disabled
+            class="min-h-11 cursor-not-allowed rounded-md bg-sunken px-5 py-2.5 text-sm font-bold text-text-secondary opacity-60"
+          >
+            Desabilitado
+          </button>
+        </div>
+        <p class="mt-3 text-xs text-text-secondary">
+          Primário usa a cor acionável (<code>--cq-action-primary-bg</code> = primary-700
+          no claro) — nunca o verde de marca {brandVsActionable.brand.hex}. Altura mínima de 44px (alvo de toque).
+        </p>
+      </div>
+
+      {/* Badges */}
+      <div class="rounded-lg border border-border bg-surface p-5">
+        <h3 class="mb-4 text-sm font-extrabold tracking-wide text-text-secondary uppercase">Badges</h3>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="rounded-full bg-action px-3 py-1 text-xs font-bold text-on-action">Verificado</span>
+          <span class="rounded-full border border-border-strong px-3 py-1 text-xs font-bold text-text-primary">Neutro</span>
+          <span class="rounded-full px-3 py-1 text-xs font-bold" style="background: var(--cq-color-success-bg); color: var(--cq-color-success);">Concluído</span>
+          <span class="rounded-full px-3 py-1 text-xs font-bold" style="background: var(--cq-color-warning-bg); color: var(--cq-color-warning);">Em andamento</span>
+          <span class="rounded-full px-3 py-1 text-xs font-bold" style="background: var(--cq-color-info-bg); color: var(--cq-color-info);">Evento</span>
+        </div>
+        <p class="mt-3 text-xs text-text-secondary">
+          Pills com raio <code>--cq-radius-pill</code>; pares semânticos mudam com o tema.
+        </p>
+      </div>
+
+      {/* Alertas */}
+      <div class="rounded-lg border border-border bg-surface p-5">
+        <h3 class="mb-4 text-sm font-extrabold tracking-wide text-text-secondary uppercase">Alertas</h3>
+        <div class="space-y-2">
+          <p role="status" class="rounded-md border-s-4 p-3 text-sm font-semibold" style="background: var(--cq-color-info-bg); color: var(--cq-color-info); border-color: var(--cq-color-info);">
+            Info — inscrições abertas até sexta-feira.
+          </p>
+          <p role="status" class="rounded-md border-s-4 p-3 text-sm font-semibold" style="background: var(--cq-color-success-bg); color: var(--cq-color-success); border-color: var(--cq-color-success);">
+            Sucesso — doação registrada no ledger.
+          </p>
+          <p role="alert" class="rounded-md border-s-4 p-3 text-sm font-semibold" style="background: var(--cq-color-warning-bg); color: var(--cq-color-warning); border-color: var(--cq-color-warning);">
+            Aviso — restam apenas 5 vagas.
+          </p>
+          <p role="alert" class="rounded-md border-s-4 p-3 text-sm font-semibold" style="background: var(--cq-color-error-bg); color: var(--cq-color-error); border-color: var(--cq-color-error);">
+            Erro — não foi possível validar o comprovante.
+          </p>
+        </div>
+      </div>
+
+      {/* Formulário */}
+      <div class="rounded-lg border border-border bg-surface p-5">
+        <h3 class="mb-4 text-sm font-extrabold tracking-wide text-text-secondary uppercase">Formulário</h3>
+        <form class="space-y-3" action="#" method="get">
+          <div>
+            <label for="ds-nome" class="mb-1 block text-sm font-bold">Nome completo</label>
+            <input
+              id="ds-nome"
+              name="nome"
+              type="text"
+              placeholder="Como devemos te chamar?"
+              class="min-h-11 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/70"
+            />
+            <p class="mt-1 text-xs text-text-secondary">Texto de ajuda sempre visível, não só no placeholder.</p>
+          </div>
+          <div>
+            <label for="ds-email" class="mb-1 block text-sm font-bold">E-mail</label>
+            <input
+              id="ds-email"
+              name="email"
+              type="email"
+              value="email-invalido"
+              aria-invalid="true"
+              aria-describedby="ds-email-erro"
+              class="min-h-11 w-full rounded-md border px-3 py-2 text-sm text-text-primary"
+              style="border-color: var(--cq-color-error);"
+            />
+            <p id="ds-email-erro" class="mt-1 text-xs font-semibold" style="color: var(--cq-color-error);">
+              Formato de e-mail inválido — mensagem ligada ao campo via aria-describedby.
+            </p>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    {/* Tabela financeira */}
+    <div class="mt-6 rounded-lg border border-border bg-surface p-5">
+      <h3 class="mb-4 text-sm font-extrabold tracking-wide text-text-secondary uppercase">
+        Tabela financeira (padrão do portal de transparência)
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full border-collapse text-sm">
+          <thead>
+            <tr class="bg-sunken text-left">
+              <th scope="col" class="border border-border px-3 py-2">Data</th>
+              <th scope="col" class="border border-border px-3 py-2">Descrição</th>
+              <th scope="col" class="border border-border px-3 py-2">Comunidade</th>
+              <th scope="col" class="border border-border px-3 py-2 text-right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="border border-border px-3 py-2 whitespace-nowrap">12/09/2026</td>
+              <td class="border border-border px-3 py-2">Doação via Stripe</td>
+              <td class="border border-border px-3 py-2">Codaqui</td>
+              <td class="border border-border px-3 py-2 text-right font-mono font-bold" style="color: var(--cq-color-success);">
+                + R$ 200,00
+              </td>
+            </tr>
+            <tr class="bg-sunken/50">
+              <td class="border border-border px-3 py-2 whitespace-nowrap">05/09/2026</td>
+              <td class="border border-border px-3 py-2">Reembolso de transporte (DevPR Conf)</td>
+              <td class="border border-border px-3 py-2">DevParaná</td>
+              <td class="border border-border px-3 py-2 text-right font-mono font-bold" style="color: var(--cq-color-error);">
+                − R$ 85,00
+              </td>
+            </tr>
+            <tr>
+              <td class="border border-border px-3 py-2 whitespace-nowrap">01/09/2026</td>
+              <td class="border border-border px-3 py-2">Pagamento a fornecedor (camisetas)</td>
+              <td class="border border-border px-3 py-2">Codaqui</td>
+              <td class="border border-border px-3 py-2 text-right font-mono font-bold" style="color: var(--cq-color-error);">
+                − R$ 1.240,00
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="mt-3 text-xs text-text-secondary">
+        Valores em mono, sinal e cor semântica por direção (crédito/débito) —
+        nunca só cor: o sinal <code>+</code>/<code>−</code> acompanha sempre.
+      </p>
+    </div>
+  </div>
+</section>

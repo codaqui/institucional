@@ -74,9 +74,9 @@ Atribuídas dentro de um evento específico por `admin`/`event_organizer`:
 - **Backend:** `backend/src/events/events.service.ts` — métodos `canManageAll`,
   `assertCanViewEvent`, `assertCanEditEvent`, `isStaff` e checagens inline nos
   endpoints de orders/refund/check-in.
-- **Frontend check-in:** `src/pages/admin/eventos-checkin.tsx` — constantes
+- **Frontend check-in:** `frontend/src/components/islands/admin/checkin/CheckinApp.tsx` — constantes
   `CHECKIN_ROLES` e `LIST_ROLES` controlam scanner vs. busca manual.
-- **Frontend admin de eventos:** `src/pages/admin/eventos.tsx` — acesso restrito
+- **Frontend admin de eventos:** `frontend/src/components/islands/admin/eventos/EventosAdminApp.tsx` — acesso restrito
   a `isAdmin || isEventOrganizer`.
 
 ## 5. Adicionar uma nova role

@@ -1,0 +1,101 @@
+name: Deploy Astro (Pages)
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      tenant:
+        description: "Tenant único (vazio = todos)"
+        required: false
+        default: ""
+
+# Build + deploy dos 4 tenants Astro da Fase 0.5 (direct upload no Pages).
+# O matrix espelha frontend/tenants.config.mjs (manter sincronizado).
+# ATENÇÃO: o entry codaqui roda com TENANT VAZIO de propósito — TENANT_BY_NAME
+# (frontend/tenants.config.mjs) não tem "codaqui" e o astro.config.mjs lançaria
+# "TENANT desconhecido". String vazia é falsy no config e cai no build do site
+# principal (srcDir ./src).
+concurrency:
+  group: deploy-astro-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  deploy:
+    name: Build & Deploy (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    env:
+      # `secrets` não é contexto válido em steps.if (só github, needs, job,
+      # runner, env, vars, inputs, matrix, strategy, steps) — o guard é
+      # mapeado p/ env aqui no job e lido via env.* nos steps.
+      HAS_CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    # `if` em nível de STEP: job-level if não enxerga `matrix` no GitHub Actions.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # `api_url` vira PUBLIC_API_URL no build: codaqui aponta p/ a API
+          # própria; tenants fixam o próprio site (o runtime já resolve
+          # same-origin via PUBLIC_TENANT — o valor cobre o bundle/SSR).
+          - { tenant: "", project: codaqui, site: "https://codaqui.dev", api_url: "https://api.codaqui.dev" }
+          - { tenant: tisocial, project: tisocial, site: "https://tisocial.org.br", api_url: "https://tisocial.org.br" }
+          - { tenant: elasnocodigo, project: elasnocodigo, site: "https://elasnocodigo.com.br", api_url: "https://elasnocodigo.com.br" }
+          - { tenant: devparana, project: devparana, site: "https://devparana.org", api_url: "https://devparana.org" }
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            package-lock.json
+
+      - name: Build (${{ matrix.project }})
+        # Sem secrets os steps são pulados (job fica verde) — até lá, os gates
+        # locais do frontend são a fonte de verdade (runbook na T11).
+        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
+        working-directory: frontend
+        env:
+          TENANT: ${{ matrix.tenant }}
+          SITE_URL: ${{ matrix.site }}
+          PUBLIC_API_URL: ${{ matrix.api_url }}
+          # STRIPE_PUBLISHABLE_KEY vem de `vars` do repo (mesma var do build
+          # Docusaurus). O Vite/Astro só expõe env com prefixo PUBLIC_ ao
+          # client, então o valor precisa ser reexportado como
+          # PUBLIC_STRIPE_PUBLISHABLE_KEY p/ o config.ts enxergar — sem ele o
+          # checkout de doação fica desativado.
+          STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
+          PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ vars.STRIPE_PUBLISHABLE_KEY }}
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+
+      - name: Gate de URLs canônicas do tenant
+        # Só para builds tenant (matrix.tenant vazio = codaqui, que tem o
+        # diff-urls local): confere a allow-list de rotas limpas + 404.html
+        # no dist antes do upload. QA wave Fase 0.5 (C7).
+        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && matrix.tenant != '' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
+        working-directory: frontend
+        run: node scripts/tenant-urls.mjs dist ${{ matrix.tenant }}
+
+      # O deploy roda com cwd=frontend de propósito: o wrangler só inclui a
+      # Pages Function (frontend/functions/) no upload quando o diretório
+      # `functions/` é relativo ao cwd — rodando da raiz o proxy de API
+      # (same-origin) ficava de fora do deploy via CI. O wrangler vem das
+      # devDependencies pinadas do frontend (npm ci no step de build acima),
+      # então o npx não baixa nada do registry.
+      - name: Deploy direct upload (${{ matrix.project }})
+        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
+        working-directory: frontend
+        run: npx wrangler pages deploy dist --project-name=${{ matrix.project }} --branch=${{ github.ref_name }}
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

@@ -1,0 +1,54 @@
+---
+// Port 1:1 de comunidades/shared/components/CommunityImpactSection.tsx
+// (MUI → Astro + Tailwind, zero JS). Stats vêm de config.impact por padrão;
+// o caller pode injetar stats derivados (ex.: impactStatsFromCampaigns de
+// src/lib/community-sections.ts). Cor do valor: variantes dark/light da cor
+// de marca (AA sobre bg-surface).
+import type { CommunitySiteConfig } from "../../../../../comunidades/shared/types";
+import type { CommunityImpactStat } from "../../../lib/community-sections";
+
+interface Props {
+  config: CommunitySiteConfig;
+  /** Stats exibidos; default `config.impact?.stats ?? []`. */
+  stats?: CommunityImpactStat[];
+}
+
+const { config, stats = config.impact?.stats ?? [] } = Astro.props;
+
+const title = config.impact?.title ?? "Impacto recente";
+const subtitle = config.impact?.subtitle;
+---
+
+<section class="py-10 md:py-16">
+  <div class="mx-auto max-w-6xl px-4">
+    <h2 class="m-0 mb-4 text-3xl font-bold">{title}</h2>
+    {subtitle && <p class="m-0 mb-8 text-text-secondary">{subtitle}</p>}
+    <div class="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+      {
+        stats.map((stat) => (
+          <div class="h-full rounded-lg border border-border bg-surface px-6 py-8 text-center">
+            <p
+              class="cq-accent m-0 mb-1 text-4xl font-extrabold md:text-5xl"
+            >
+              {stat.value}
+            </p>
+            <p class="m-0 text-sm text-text-secondary">{stat.label}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Valor do stat: --community-primary puro falha AA sobre bg-surface —
+   * #8DC044 (TI Social) 2.15:1 no claro (texto grande precisa ≥3:1),
+   * #9c27b0 (Elas no Código) 2.02:1 no escuro. As variantes dark (claro) /
+   * light (escuro) da marca passam nos três tenants. */
+  .cq-accent {
+    color: var(--community-primary-dark);
+  }
+  :global([data-theme="dark"]) .cq-accent {
+    color: var(--community-primary-light);
+  }
+</style>

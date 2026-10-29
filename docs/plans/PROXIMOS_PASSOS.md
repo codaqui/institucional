@@ -27,6 +27,8 @@ agent-protocol:
 
 > Snapshot de coordenação gerado por varredura dos planos em `docs/plans/`, do código (frontend + backend), de branches e das issues abertas. Cada item aponta a evidência no código. **Revalidar antes de executar** — este documento envelhece rápido.
 
+> **Nota (Fase 0.6):** os paths `src/pages/*.tsx` / `src/utils/*` citados abaixo referem-se ao app Docusaurus, removido na Fase 0.6. Os equivalentes atuais vivem em `frontend/src/` (páginas `.astro` + ilhas React; lógica pura em `frontend/src/lib/`). Os itens permanecem como registro histórico — confirme no código atual antes de agir.
+
 ## Resumo executivo
 
 | Área | Status | Próximo marco |
@@ -107,7 +109,7 @@ Sequência:
 
 ## Multisite / comunidades
 
-**O código está à frente do plano.** `docs/plans/multisite/README.md` diz "Fase 1 em andamento / Fase 2 em stand-by", mas já existem 3 comunidades (`tisocial`, `elasnocodigo`, `devparana`) em `comunidades/index.ts:16-19`, com workers e domínios próprios na whitelist (`backend/src/common/allowed-origins.config.ts:12-17`). O link em `/sobre/ong` (marcado aberto no plano) já existe (`src/pages/sobre/ong.tsx:81-130`).
+**O código está à frente do plano.** `docs/plans/multisite/README.md` diz "Fase 1 em andamento / Fase 2 em stand-by", mas já existem 3 comunidades (`tisocial`, `elasnocodigo`, `devparana`) em `comunidades/index.ts:16-19`, com domínios próprios servidos por build matrix no Cloudflare Pages (Fase 0.5 — os workers foram removidos) na whitelist (`backend/src/common/allowed-origins.config.ts:12-17`). O link em `/sobre/ong` (marcado aberto no plano) já existe (`frontend/src/pages/sobre/ong.astro`).
 
 **Ações:**
 1. **Atualizar `docs/plans/multisite/README.md`** — pré-condição para coordenar o resto (risco de decisão errada por doc defasado).

@@ -1,0 +1,14 @@
+---
+// Página "Apoiar" do DevParaná no portal codaqui
+// (/comunidades/devparana/apoiar).
+import ApoiarPage from "../../../components/astro/community/devparana/ApoiarPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../../lib/community";
+import { tenantSite } from "../../../lib/tenant";
+
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = communityBasePath(config);
+---
+
+<ApoiarPage config={config} site={site} homeHref={homeHref} />

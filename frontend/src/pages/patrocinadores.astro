@@ -1,0 +1,60 @@
+---
+// Portado de src/pages/patrocinadores.tsx (Docusaurus + MUI → Astro + ilha).
+// Shell estático (hero + CTA para novas empresas); a listagem paginada de
+// patrocinadores (/companies/sponsors) vive na ilha MUI SponsorsIsland
+// (client:visible). Os CTAs apontam para /participe/apoiar?modo=empresa
+// (aba PJ do fluxo de doação).
+import PublicLayout from "../layouts/PublicLayout.astro";
+import PageHero from "../components/astro/PageHero.astro";
+import SponsorsIsland from "../components/islands/SponsorsIsland";
+
+const BUSINESS_PATH =
+  "M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z";
+---
+
+<PublicLayout
+  title="Patrocinadores | CODAQUI.dev"
+  ogTitle="Patrocinadores | CODAQUI.dev"
+  description="Empresas que apoiam o ecossistema Codaqui e ajudam a democratizar tecnologia."
+>
+  <PageHero
+    eyebrow="Patrocinadores"
+    title="Empresas que acreditam"
+    subtitle="Estas empresas investem no ecossistema Codaqui e ajudam a democratizar tecnologia para jovens em todo o Brasil."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-10 md:py-16">
+    <SponsorsIsland client:visible />
+
+    {/* CTA para novas empresas */}
+    <div class="mt-16 rounded-2xl bg-sunken p-6 text-center md:p-10">
+      <h2 class="mb-3 text-2xl font-extrabold text-text-primary md:text-3xl">
+        Sua empresa também pode apoiar
+      </h2>
+      <p class="mx-auto mb-6 max-w-xl text-text-secondary">
+        A partir de R$&nbsp;200/mês, sua empresa ganha visibilidade nesta
+        página, SortCoins para os sorteios e impacto real no ecossistema
+        tech brasileiro.
+      </p>
+      <a
+        href="/participe/apoiar?modo=empresa"
+        class="inline-flex items-center gap-2 rounded-lg bg-action px-6 py-3 text-base font-bold text-on-action no-underline transition-colors hover:bg-action-hover"
+      >
+        Apoiar como empresa
+      </a>
+    </div>
+
+    {/* Minha Empresa — link para a página dedicada */}
+    <div class="mt-10 text-center">
+      <a
+        href="/membros/empresa"
+        class="inline-flex items-center gap-2 rounded-lg border border-current px-5 py-2.5 text-sm font-semibold text-link no-underline transition-colors hover:bg-sunken"
+      >
+        <svg viewBox="0 0 24 24" class="h-4 w-4 fill-current" aria-hidden="true">
+          <path d={BUSINESS_PATH}></path>
+        </svg>
+        Gerenciar minha empresa
+      </a>
+    </div>
+  </div>
+</PublicLayout>

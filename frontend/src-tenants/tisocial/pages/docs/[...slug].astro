@@ -1,0 +1,28 @@
+---
+// Docs da T.I. Social (build tenant, rota limpa /docs). Port de
+// /comunidades/tisocial/docs — hoje um único doc (docs/index.md,
+// "Introdução"), renderizado com TOC à direita.
+import { getCollection } from "astro:content";
+import CommunityDocsPage from "../../components/astro/community/CommunityDocsPage.astro";
+import { communityBasePath, loadTenantConfig } from "../../lib/community";
+import { getTenant, tenantSite } from "../../lib/tenant";
+
+export async function getStaticPaths() {
+  const docs = await getCollection("communityDocs");
+  return docs.map((doc) => ({
+    // docs/index.md → /docs; demais docs viriam como /docs/<id>
+    params: { slug: doc.id === "index" ? undefined : doc.id },
+    props: { doc },
+  }));
+}
+
+const tenantBuild = getTenant() !== null;
+const tenant = getTenant() ?? "tisocial";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
+const homeHref = tenantBuild ? "/" : communityBasePath(config);
+
+const { doc } = Astro.props;
+---
+
+<CommunityDocsPage config={config} site={site} homeHref={homeHref} doc={doc} />

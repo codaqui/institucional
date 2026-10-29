@@ -1,0 +1,13 @@
+---
+// Página "Mentores" da CamposTech no portal codaqui
+// (/comunidades/campostechpg/mentores).
+import MentoresPage from "../../../components/astro/community/campostechpg/MentoresPage.astro";
+import { communityBasePath } from "../../../lib/community";
+
+import config from "../../../../../comunidades/campostechpg/community.config";
+
+const site = Astro.site?.toString() ?? "https://codaqui.dev";
+const homeHref = communityBasePath(config);
+---
+
+<MentoresPage config={config} site={site} homeHref={homeHref} />

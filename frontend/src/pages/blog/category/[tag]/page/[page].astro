@@ -1,0 +1,48 @@
+---
+import { getCollection } from "astro:content";
+import PublicLayout from "../../../../../layouts/PublicLayout.astro";
+import BlogPostCard from "../../../../../components/astro/BlogPostCard.astro";
+import { POSTS_PER_PAGE, sortPostsDesc, postCardProps, collectByTag } from "../../../../../lib/blog-utils";
+
+export async function getStaticPaths() {
+  const sorted = sortPostsDesc(await getCollection("blog"));
+  const byTag = collectByTag(sorted);
+  return [...byTag.entries()].flatMap(([slug, { label, posts }]) => {
+    const totalPages = Math.ceil(posts.length / POSTS_PER_PAGE);
+    return Array.from({ length: Math.max(0, totalPages - 1) }, (_, i) => i + 2).map((page) => ({
+      params: { tag: slug, page: String(page) },
+      props: {
+        label,
+        page,
+        totalPages,
+        total: posts.length,
+        posts: posts.slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE),
+      },
+    }));
+  });
+}
+
+const { label, page, totalPages, total, posts } = Astro.props;
+const { tag } = Astro.params;
+// Paridade com o build Docusaurus: mesmo título para index e páginas N≥2 da tag,
+// com singular "Uma publicação" quando a tag tem 1 post.
+const tagTitle =
+  total === 1
+    ? `Uma publicação com a etiqueta "${label}" | CODAQUI.dev`
+    : `${total} publicações com a etiqueta "${label}" | CODAQUI.dev`;
+---
+
+<PublicLayout title={tagTitle} ogTitle={tagTitle} description={`Posts do blog da Codaqui com a tag ${label}.`}>
+  <div class="mx-auto max-w-3xl px-4 py-10">
+    <h1 class="mb-6 text-3xl font-extrabold text-text-primary">{label}</h1>
+    <div class="flex flex-col gap-4">
+      {posts.map((post) => <BlogPostCard {...postCardProps(post)} />)}
+    </div>
+    <nav class="mt-8 flex justify-between" aria-label="Paginação da tag">
+      <a href={page === 2 ? `/blog/category/${tag}` : `/blog/category/${tag}/page/${page - 1}`} class="text-sm font-bold text-link hover:text-link-hover">← Posts recentes</a>
+      {page < totalPages && (
+        <a href={`/blog/category/${tag}/page/${page + 1}`} class="text-sm font-bold text-link hover:text-link-hover">Posts anteriores →</a>
+      )}
+    </nav>
+  </div>
+</PublicLayout>

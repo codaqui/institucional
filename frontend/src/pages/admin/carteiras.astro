@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import CarteirasApp from "../../components/islands/admin/carteiras/CarteirasApp";
+---
+
+<AppLayout title="Carteiras" pageTitle="Admin — Carteiras | CODAQUI.dev" noindex>
+  <CarteirasApp client:only="react" />
+</AppLayout>

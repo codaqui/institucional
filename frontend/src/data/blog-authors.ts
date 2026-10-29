@@ -1,0 +1,20 @@
+export interface BlogAuthor {
+  name: string;
+  title?: string;
+  url?: string;
+  image_url?: string;
+}
+
+// Portado de blog/authors.yml (fonte canônica segue no Docusaurus até a Fase 0.6).
+// Manter em sync manualmente quando authors.yml mudar — documentado no DEVELOPMENT.md.
+export const BLOG_AUTHORS: Record<string, BlogAuthor> = {
+  endersonmenezes: { name: "Enderson Menezes", title: "Founder", url: "https://github.com/endersonmenezes", image_url: "https://avatars.githubusercontent.com/u/11020807?v=4" },
+  thaifurforo: { name: "Thainara Furforo", title: "Volunteer", url: "https://github.com/thaifurforo", image_url: "https://avatars.githubusercontent.com/u/92865769?v=4" },
+  anaelisalace: { name: "Ana Elisa", title: "Volunteer", url: "https://github.com/anaelisalace", image_url: "https://avatars.githubusercontent.com/u/92278335?v=4" },
+  artumosgoc: { name: "Elias Miranda", title: "Student", url: "https://github.com/artumosgoc", image_url: "https://avatars.githubusercontent.com/u/63540372" },
+  amandatambara: { name: "Amanda Tambara", title: "Volunteer", url: "https://amandatambara.com", image_url: "https://amandatambara.com/wp-content/uploads/2023/04/cropped-cropped-foto-amanda-tambara-22.png" },
+  anacarolyne: { name: "Ana Carolyne", title: "Volunteer", url: "https://github.com/anacarolyne", image_url: "https://avatars.githubusercontent.com/u/111382055?v=4" },
+  renanceratto: { name: "Renan Ceratto", title: "Volunteer", url: "https://github.com/renanceratto", image_url: "https://github.com/renanceratto.png" },
+  cumbuca: { name: "Cumbuca.dev", title: "Community", url: "https://cumbuca.dev", image_url: "https://avatars.githubusercontent.com/u/146448842?v=4" },
+  antoniamaia: { name: "antoniamaia", title: "Community", url: "https://cumbuca.dev", image_url: "https://avatars.githubusercontent.com/u/109252406?v=4" },
+};

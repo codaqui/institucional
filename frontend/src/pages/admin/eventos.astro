@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import EventosAdminApp from "../../components/islands/admin/eventos/EventosAdminApp";
+---
+
+<AppLayout title="Eventos" pageTitle="Admin — Eventos | CODAQUI.dev" noindex>
+  <EventosAdminApp client:only="react" />
+</AppLayout>

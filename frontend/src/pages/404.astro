@@ -1,0 +1,27 @@
+---
+// 404 do site. Replica o comportamento do NotFound swizzlado do Docusaurus:
+// /@username → /membros/perfil?handle=username (fallback para membros
+// criados depois do build das páginas estáticas /@<handle>).
+import PublicLayout from "../layouts/PublicLayout.astro";
+---
+
+<PublicLayout
+  title="Página não encontrada | CODAQUI.dev"
+  ogTitle="Página não encontrada | CODAQUI.dev"
+  noindex
+>
+  <script is:inline>
+    // /@username → /membros/perfil?handle=username
+    // Fallback: membros presentes no último build têm rota estática /@handle
+    // (pages/[...handle].astro); este redirect cobre membros criados depois
+    // do build e links antigos.
+    const m = location.pathname.match(/^\/@([a-zA-Z0-9_-]+)\/?$/);
+    if (m) location.replace(`/membros/perfil?handle=${m[1]}`);
+  </script>
+  <div class="mx-auto max-w-xl px-4 py-20 text-center">
+    <h1 class="text-3xl font-extrabold text-text-primary">Página não encontrada</h1>
+    <p class="mt-4 text-text-secondary">
+      O link pode ter mudado. Que tal voltar para a <a class="text-link hover:text-link-hover" href="/">página inicial</a>?
+    </p>
+  </div>
+</PublicLayout>

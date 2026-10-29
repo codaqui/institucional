@@ -1,0 +1,8 @@
+# Conteúdo gerado por scripts/copy-content.mjs (não versionar)
+src/content/blog/
+src/content/trilhas/
+public/blog-assets/
+public/trilhas-assets/
+
+# Cache/local state do wrangler (npm run pages:dev)
+.wrangler/

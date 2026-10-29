@@ -1,0 +1,84 @@
+---
+// 07 Tom de voz — pt-BR primeiro, linguagem inclusiva (tabela Diga/Evite/Por quê)
+// e hashtags oficiais.
+const rows = [
+  {
+    diga: "participantes",
+    evite: "alunos",
+    porque: "Não somos escola: quem chega participa de uma comunidade, não de uma sala de aula.",
+  },
+  {
+    diga: "programa",
+    evite: "curso",
+    porque: "Trilhas, mentoria e encontros formam um programa contínuo — não um produto fechado.",
+  },
+  {
+    diga: "encontros",
+    evite: "aulas",
+    porque: "O formato é horizontal e colaborativo: encontro de pessoas, não transmissão de conteúdo.",
+  },
+  {
+    diga: "Associação Codaqui",
+    evite: "escola / empresa",
+    porque: "Somos uma associação sem fins lucrativos (CNPJ 44.593.429/0001-05) — transparência é valor.",
+  },
+];
+
+const hashtags = [
+  { tag: "#QueroEstudar", desc: "Trilhas e programa de estudo" },
+  { tag: "#QueroApoiar", desc: "Doações e financiamento coletivo" },
+  { tag: "#QueroMentoria", desc: "Projeto Mentoria" },
+  { tag: "#ClubCodaqui", desc: "Clube de benefícios (SortCoins)" },
+];
+---
+
+<section id="tom-de-voz" class="scroll-mt-32 border-t border-border">
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-1 text-xs font-bold tracking-[0.15em] text-text-secondary uppercase">07</p>
+    <h2 class="mb-2 text-2xl font-extrabold md:text-3xl">Tom de voz</h2>
+    <p class="mb-8 max-w-2xl text-text-secondary">
+      Português do Brasil primeiro. Linguagem inclusiva e direta: acolhedora sem
+      ser infantil, técnica sem ser arrogante. As palavras abaixo são norma, não
+      sugestão.
+    </p>
+
+    <div class="overflow-x-auto rounded-lg border border-border bg-surface">
+      <table class="w-full border-collapse text-sm">
+        <thead>
+          <tr class="bg-sunken text-left">
+            <th scope="col" class="border border-border px-4 py-2">Diga</th>
+            <th scope="col" class="border border-border px-4 py-2">Evite</th>
+            <th scope="col" class="border border-border px-4 py-2">Por quê</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            rows.map((r) => (
+              <tr>
+                <td class="border border-border px-4 py-3 font-bold" style="color: var(--cq-color-success);">
+                  “{r.diga}”
+                </td>
+                <td class="border border-border px-4 py-3 font-semibold line-through decoration-2" style="color: var(--cq-color-error);">
+                  “{r.evite}”
+                </td>
+                <td class="border border-border px-4 py-3 text-text-secondary">{r.porque}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="mt-10 mb-4 text-lg font-bold">Hashtags oficiais</h3>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {
+        hashtags.map((h) => (
+          <div class="rounded-lg border border-border bg-surface p-4">
+            <p class="font-mono text-base font-extrabold text-link">{h.tag}</p>
+            <p class="mt-1 text-xs text-text-secondary">{h.desc}</p>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>

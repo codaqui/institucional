@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import PagamentosApp from "../../components/islands/admin/pagamentos/PagamentosApp";
+---
+
+<AppLayout title="Pagamentos" noindex>
+  <PagamentosApp client:only="react" />
+</AppLayout>
