@@ -3,7 +3,12 @@
     {
       "id": "norte",
       "name": "Norte",
-      "cities": ["Maringá", "Apucarana", "Paranavaí", "Londrina"],
+      "cities": [
+        "Maringá",
+        "Apucarana",
+        "Paranavaí",
+        "Londrina"
+      ],
       "ambassador": {
         "name": "Ivo Batistela",
         "email": "ivo@devpr.org",
@@ -17,7 +22,11 @@
     {
       "id": "sudoeste",
       "name": "Sudoeste",
-      "cities": ["Dois Vizinhos", "Pato Branco", "Francisco Beltrão"],
+      "cities": [
+        "Dois Vizinhos",
+        "Pato Branco",
+        "Francisco Beltrão"
+      ],
       "ambassador": {
         "name": "Geovane Norbert",
         "email": "geovane@codaqui.dev",
@@ -27,7 +36,12 @@
     {
       "id": "noroeste",
       "name": "Noroeste",
-      "cities": ["Cianorte", "Umuarama", "Campo Mourão", "Ivaiporã"],
+      "cities": [
+        "Cianorte",
+        "Umuarama",
+        "Campo Mourão",
+        "Ivaiporã"
+      ],
       "ambassador": {
         "name": "Rafael M. Barros",
         "email": "rafael.barros@devpr.org",
@@ -37,12 +51,28 @@
     {
       "id": "oeste",
       "name": "Oeste",
-      "cities": ["Cascavel", "Toledo", "Medianeira", "Foz do Iguaçu"]
+      "cities": [
+        "Cascavel",
+        "Toledo",
+        "Medianeira",
+        "Foz do Iguaçu"
+      ],
+      "ambassador": {
+        "name": "Everton Tavares",
+        "email": "everton.tavares@devpr.org",
+        "avatar": "https://avatars.githubusercontent.com/u/93155837?v=4",
+        "role": "Embaixador da Região Oeste"
+      }
     },
     {
       "id": "leste",
       "name": "Leste",
-      "cities": ["Curitiba", "Campo Largo", "Ponta Grossa", "Castro"],
+      "cities": [
+        "Curitiba",
+        "Campo Largo",
+        "Ponta Grossa",
+        "Castro"
+      ],
       "ambassador": {
         "name": "Welington O. da Silva",
         "email": "welington@devpr.org",
@@ -55,7 +85,17 @@
     {
       "id": "centro",
       "name": "Centro",
-      "cities": ["Guarapuava"]
+      "cities": [
+        "Guarapuava"
+      ],
+      "ambassador": {
+        "name": "Luiz Schons",
+        "email": "schonsluuiz@gmail.com",
+        "avatar": "https://avatars.githubusercontent.com/u/82298137?v=4",
+        "role": "Embaixador da Região Centro",
+        "github": "https://github.com/sschonss",
+        "githubHandle": "sschonss"
+      }
     }
   ]
 }
