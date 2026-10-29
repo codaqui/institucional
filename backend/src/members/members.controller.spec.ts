@@ -54,25 +54,27 @@ describe('MembersController', () => {
         data: [mockMember()],
         total: 1,
         page: 1,
+        limit: 50,
         totalPages: 1,
       };
       membersService.findAllActive.mockResolvedValue(expected);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({});
 
       expect(result).toEqual(expected);
       expect(membersService.findAllActive).toHaveBeenCalledWith(1, 50);
     });
 
-    it('should parse page and limit query params', async () => {
+    it('should forward page and limit query params to the service', async () => {
       membersService.findAllActive.mockResolvedValue({
         data: [],
         total: 0,
         page: 2,
+        limit: 10,
         totalPages: 0,
       });
 
-      await controller.findAll(2, 10);
+      await controller.findAll({ page: 2, limit: 10 });
 
       expect(membersService.findAllActive).toHaveBeenCalledWith(2, 10);
     });
@@ -80,12 +82,19 @@ describe('MembersController', () => {
 
   describe('findDonors (GET /members/donors)', () => {
     it('should return donors list', async () => {
-      const expected = { data: [], total: 0, page: 1, totalPages: 0 };
+      const expected = {
+        data: [],
+        total: 0,
+        page: 1,
+        limit: 50,
+        totalPages: 0,
+      };
       membersService.findDonors.mockResolvedValue(expected);
 
-      const result = await controller.findDonors();
+      const result = await controller.findDonors({});
 
       expect(result).toEqual(expected);
+      expect(membersService.findDonors).toHaveBeenCalledWith(1, 50);
     });
   });
 

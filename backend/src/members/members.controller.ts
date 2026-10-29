@@ -14,6 +14,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { MembersService } from './members.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -22,9 +23,12 @@ import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberRole } from './entities/member.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { FindMembersBatchDto } from './dto/find-members-batch.dto';
+import { GetMembersQueryDto } from './dto/get-members-query.dto';
+import { PaginatedMembersResultDto } from './dto/paginated-members-result.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 
+@ApiTags('Members')
 @Controller()
 export class MembersController {
   constructor(
@@ -37,11 +41,20 @@ export class MembersController {
   // para evitar que o parâmetro dinâmico capture strings literais.
 
   @Get('members')
-  findAll(@Query('page') page?: number, @Query('limit') limit?: number) {
-    return this.membersService.findAllActive(
-      page ? Number.parseInt(String(page), 10) : 1,
-      limit ? Number.parseInt(String(limit), 10) : 50,
-    );
+  @ApiOperation({
+    summary: 'Lista de membros ativos (paginada)',
+    description:
+      'Retorna os membros ativos da Associação Codaqui em ordem de entrada ' +
+      '(joinedAt ASC). Endpoint público — usado pelo diretório de membros do site.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultado paginado de membros.',
+    type: PaginatedMembersResultDto,
+  })
+  @ApiResponse({ status: 400, description: 'Parâmetros de paginação inválidos.' })
+  findAll(@Query() query: GetMembersQueryDto) {
+    return this.membersService.findAllActive(query.page ?? 1, query.limit ?? 50);
   }
 
   @Post('members/batch')
@@ -53,11 +66,20 @@ export class MembersController {
   }
 
   @Get('members/donors')
-  findDonors(@Query('page') page?: number, @Query('limit') limit?: number) {
-    return this.membersService.findDonors(
-      page ? Number.parseInt(String(page), 10) : 1,
-      limit ? Number.parseInt(String(limit), 10) : 50,
-    );
+  @ApiOperation({
+    summary: 'Lista de doadores (paginada)',
+    description:
+      'Retorna os membros que fizeram pelo menos uma doação, ordenados por ' +
+      'total doado (DESC). Endpoint público.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Resultado paginado de doadores.',
+    type: PaginatedMembersResultDto,
+  })
+  @ApiResponse({ status: 400, description: 'Parâmetros de paginação inválidos.' })
+  findDonors(@Query() query: GetMembersQueryDto) {
+    return this.membersService.findDonors(query.page ?? 1, query.limit ?? 50);
   }
 
   // ── Membro logado ─────────────────────────────────────────────────────────

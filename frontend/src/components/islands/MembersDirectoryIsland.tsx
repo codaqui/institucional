@@ -25,8 +25,14 @@ import TokenIcon from "@mui/icons-material/Token";
 import BusinessIcon from "@mui/icons-material/Business";
 import PeopleIcon from "@mui/icons-material/People";
 import MuiIslandProvider from "./MuiIslandProvider";
+import PaginationControls from "./ui/PaginationControls";
 import { resolveApiUrl } from "../../lib/api-url";
 import { PLATFORM_COLORS } from "../../data/social";
+import {
+  MEMBERS_PAGE_SIZE,
+  rangeLabel,
+  type PaginatedResponse,
+} from "../../lib/pagination";
 
 // ── Tipos ──────────────────────────────────────────────────────────────────
 
@@ -45,13 +51,6 @@ interface DonorInfo {
   totalDonated: number;
   donationCount: number;
   lastDonatedAt: string;
-}
-
-interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  totalPages: number;
 }
 
 type FilterValue = "todos" | "club" | "club-business";
@@ -252,37 +251,67 @@ function MembersSkeleton() {
 function MembersDirectoryInner(): React.JSX.Element {
   const apiUrl = resolveApiUrl(import.meta.env.SITE);
 
-  const [members, setMembers] = useState<Member[]>([]);
+  const [membersRes, setMembersRes] = useState<PaginatedResponse<Member>>({
+    data: [],
+    total: 0,
+    page: 1,
+    totalPages: 1,
+  });
   const [donorMap, setDonorMap] = useState<Map<string, DonorInfo>>(new Map());
   const [clubMemberIds, setClubMemberIds] = useState<Set<string>>(new Set());
   const [clubBusinessRoleByMemberId, setClubBusinessRoleByMemberId] = useState<Map<string, BusinessMembershipType>>(new Map());
   const [clubBusinessMemberIds, setClubBusinessMemberIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
+  const [membersLoading, setMembersLoading] = useState(true);
+  const [auxLoading, setAuxLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [pageError, setPageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [page, setPage] = useState(1);
   const [filter, setFilter] = useState<FilterValue>("todos");
   const [searchTerm, setSearchTerm] = useState("");
 
+  // Membros: fetch paginado por página (total vem do COUNT do envelope —
+  // membros além do 100º ficam visíveis navegando entre páginas).
   useEffect(() => {
+    let cancelled = false;
+    setMembersLoading(true);
+    setPageError(false);
+    fetch(`${apiUrl}/members?page=${page}&limit=${MEMBERS_PAGE_SIZE}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((res: PaginatedResponse<Member>) => {
+        if (!cancelled) setMembersRes(res);
+      })
+      .catch(() => {
+        if (!cancelled) setPageError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setMembersLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [apiUrl, page, retryCount]);
+
+  // Auxiliares (donors/club/business): fetch único — enriquecem os cards.
+  useEffect(() => {
+    let cancelled = false;
+    setAuxLoading(true);
     Promise.all([
-      fetch(`${apiUrl}/members?limit=100`).then((r) => r.json()),
-      fetch(`${apiUrl}/members/donors?limit=100`).then((r) => r.json()),
+      fetch(`${apiUrl}/members/donors?limit=${MEMBERS_PAGE_SIZE}`).then((r) => r.json()),
       fetch(`${apiUrl}/stripe/club-members`).then((r) => r.json()),
       fetch(`${apiUrl}/stripe/business-members`).then((r) => r.json()),
     ])
       .then(
         ([
-          membersRes,
           donorsRes,
           clubRes,
           clubBusinessRes,
         ]: [
-          PaginatedResponse<Member>,
           PaginatedResponse<Member & DonorInfo>,
           { items?: Array<{ memberId: string }> },
           { items?: Array<{ memberId: string; membershipType?: BusinessMembershipType }> },
         ]) => {
-          setMembers(membersRes.data ?? []);
-
+          if (cancelled) return;
           const map = new Map<string, DonorInfo>();
           for (const d of donorsRes.data ?? []) {
             map.set(d.id, {
@@ -300,14 +329,23 @@ function MembersDirectoryInner(): React.JSX.Element {
           setClubBusinessRoleByMemberId(new Map(
             businessItems.map((item) => [item.memberId, item.membershipType ?? "owner"]),
           ));
-          setLoading(false);
         },
       )
       .catch(() => {
-        setError(true);
-        setLoading(false);
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setAuxLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [apiUrl]);
+
+  const members = membersRes.data;
+  const totalMembers = membersRes.total;
+  const totalPages = Math.max(1, membersRes.totalPages);
+  const loading = membersLoading || auxLoading;
 
   const filtered = useMemo(() => {
     let list = [...members];
@@ -344,7 +382,6 @@ function MembersDirectoryInner(): React.JSX.Element {
 
   const clubCount = clubMemberIds.size;
   const clubBusinessCount = members.filter((member) => clubBusinessMemberIds.has(member.id)).length;
-  const totalMembers = members.length;
 
   return (
     <>
@@ -382,6 +419,16 @@ function MembersDirectoryInner(): React.JSX.Element {
         onChange={(event) => setSearchTerm(event.target.value)}
         sx={{ mb: 2 }}
       />
+      {searchTerm.trim() && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", mt: -1, mb: 2 }}
+        >
+          Busca aplicada à página atual — limpe a busca para navegar entre todas
+          as páginas.
+        </Typography>
+      )}
       <ToggleButtonGroup
         value={filter}
         exclusive
@@ -402,13 +449,28 @@ function MembersDirectoryInner(): React.JSX.Element {
         </Typography>
       )}
 
-      {!loading && !error && filtered.length === 0 && (
+      {!loading && pageError && !error && (
+        <Stack spacing={2} sx={{ alignItems: "flex-start" }}>
+          <Typography variant="body2" color="text.secondary">
+            Não foi possível carregar esta página.
+          </Typography>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={() => setRetryCount((c) => c + 1)}
+          >
+            Tentar novamente
+          </Link>
+        </Stack>
+      )}
+
+      {!loading && !error && !pageError && filtered.length === 0 && (
         <Typography variant="body2" color="text.secondary">
           Nenhum membro encontrado para este filtro.
         </Typography>
       )}
 
-      {!loading && !error && filtered.length > 0 && (
+      {!loading && !error && !pageError && filtered.length > 0 && (
         <Grid container spacing={2}>
           {filtered.map((m) => (
             <Grid key={m.id} size={{ xs: 12, sm: 6, md: 4 }}>
@@ -421,6 +483,21 @@ function MembersDirectoryInner(): React.JSX.Element {
             </Grid>
           ))}
         </Grid>
+      )}
+
+      {/* Paginação — só aparece quando há mais de uma página (total > 100) */}
+      {!loading && !error && !pageError && totalPages > 1 && (
+        <Stack spacing={1.5} sx={{ mt: 4, alignItems: "center" }}>
+          <Typography variant="body2" color="text.secondary">
+            {rangeLabel(page, MEMBERS_PAGE_SIZE, totalMembers)}
+          </Typography>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            onChange={setPage}
+            itemLabel="membros"
+          />
+        </Stack>
       )}
     </>
   );
