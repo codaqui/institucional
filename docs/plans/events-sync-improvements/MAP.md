@@ -23,6 +23,11 @@ agent-protocol:
 
 # MAP — Melhorias do Fluxo de Eventos (sync banco → Git → site)
 
+> **Nota (Fase 0.6):** os paths `src/pages/*` / `src/utils/*` / `src/data/*` citados neste
+> MAP referem-se ao app Docusaurus, removido na Fase 0.6. Equivalentes atuais em
+> `frontend/src/` (páginas `.astro`, ilhas em `components/islands/`, lógica pura em `lib/`).
+> Camadas 1–2 foram implementadas; trate os achados e frentes como registro histórico.
+
 ## Contexto em 30 segundos
 
 Eventos próprios (`managed_events` no PostgreSQL) são expostos por `GET /events/public/managed` (backend NestJS), puxados pelo `scripts/sync-events.mjs` (workflow horário `.github/workflows/sync-event-snapshots.yml`, commit direto em `main`) e gravados em `static/events/`. O frontend lê esses JSONs estáticos. Overrides de metadados vivem na tabela `event_overrides` (edição direta via API — o fluxo antigo de PR/GitHub-as-Database morreu para overrides; o ÚNICO resquício vivo de PR é o force-sync manual de snapshot interno `POST /events/internal/snapshot`).

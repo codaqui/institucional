@@ -6,6 +6,7 @@
 // - "full": perfil completo (carteirinha + QR + seções auth do dono) para
 //   /membros/perfil?handle= — fallback dinâmico e visão do próprio membro.
 import React, { useEffect, useState } from "react";
+import { useTheme } from "@mui/material/styles";
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -182,6 +183,7 @@ function Carteirinha({
   businessMembershipType: BusinessMembershipType | null;
   profileUrl: string;
 }>) {
+  const theme = useTheme();
   return (
     <Card
       sx={{
@@ -324,7 +326,7 @@ function Carteirinha({
                   size={120}
                   level="M"
                   marginSize={0}
-                  fgColor="#57B593"
+                  fgColor={theme.palette.success.main}
                 />
               </Paper>
               <Typography

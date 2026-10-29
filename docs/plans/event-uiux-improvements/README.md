@@ -415,6 +415,13 @@ const isInternal = event.source === "internal";
 
 ## 7. Registro de implementação (2026-07-31)
 
+> **Nota (Fase 0.6):** os paths deste registro referem-se ao app Docusaurus, removido na
+> Fase 0.6. Equivalentes atuais em `frontend/src/`: `src/pages/admin/eventos.tsx` →
+> `pages/admin/eventos.astro` (ilha `components/islands/admin/eventos/EventosAdminApp.tsx`);
+> `src/pages/eventos*.tsx` → `pages/eventos/*.astro`; `src/pages/admin/eventos-checkin.tsx` →
+> `pages/admin/eventos-checkin.astro`; `src/pages/membro|membros/**.tsx` →
+> `pages/membro|membros/*.astro`; `src/components/**` → `components/islands/**`.
+
 | Sprint | O que foi entregue | Arquivos principais |
 |--------|-------------------|---------------------|
 | Sprint 1 | Aviso de role ausente em organizers; explicação role vs. ownership; proteção contra auto-remoção de admin; landing page financeira. | `src/pages/admin/overrides.tsx`, `src/pages/admin/index.tsx`, `src/components/ModalConfirm/index.tsx`, `backend/src/events/events.service.ts` |

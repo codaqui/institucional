@@ -1,5 +1,4 @@
 import type { CommunitySiteConfig } from "../../../comunidades/shared/types";
-import type { EventSummary } from "./events";
 import type { CommunityExploreCard } from "./community-sections";
 
 /**
@@ -15,7 +14,9 @@ import type { CommunityExploreCard } from "./community-sections";
  *   [docs], Mentores, Apoiar [donations], Transparência [transparency]).
  * - `upcomingCommunityEvents`/`formatFullEventDate` replicam o filtro da
  *   seção "Próximos eventos" (sourceKey + status !== "completed", ASC por
- *   startAt, slice 3) e o `formatEventDate` (Intl pt-BR full+short).
+ *   startAt, slice 3) e o `formatEventDate` (Intl pt-BR full+short). Foram
+ *   extraídos para `./community-events` (duplicado byte-idêntico com o
+ *   devparana) e são re-exportados aqui.
  */
 
 /** Card de feature da home — mesmo shape de `CommunityExploreCard`. */
@@ -68,34 +69,11 @@ export function campostechFeatureCards(
 }
 
 // ── Próximos eventos (home) ────────────────────────────────────────────────
+// `upcomingCommunityEvents`/`formatFullEventDate` vivem em `./community-events`
+// (extraídos — eram duplicados byte-idênticos no devparana) e são
+// re-exportados aqui para os consumidores desta lib.
 
-/**
- * Próximos eventos da comunidade: mesma derivação do `UpcomingEventsSection`
- * original — filtra por `sourceKeys` e `status !== "completed"`, ordena ASC
- * por `startAt` e limita (default 3, como o slice do original).
- */
-export function upcomingCommunityEvents(
-  events: EventSummary[],
-  sourceKeys: string[],
-  limit = 3,
-): EventSummary[] {
-  if (sourceKeys.length === 0) return [];
-  return events
-    .filter(
-      (event) =>
-        sourceKeys.includes(event.sourceKey) && event.status !== "completed",
-    )
-    .sort(
-      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
-    )
-    .slice(0, limit);
-}
-
-/** Formata a data do card de evento (Intl pt-BR `dateStyle: "full"`, `timeStyle: "short"` no timezone do evento). */
-export function formatFullEventDate(date: string, timeZone: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone,
-  }).format(new Date(date));
-}
+export {
+  upcomingCommunityEvents,
+  formatFullEventDate,
+} from "./community-events";

@@ -1,5 +1,4 @@
 import type { CommunitySiteConfig } from "../../../comunidades/shared/types";
-import type { EventSummary } from "./events";
 import type { PublicMemberProfile } from "./member-path";
 import type { CommunityExploreCard } from "./community-sections";
 
@@ -15,7 +14,9 @@ import type { CommunityExploreCard } from "./community-sections";
  *   filtro por `features`).
  * - `upcomingCommunityEvents`/`formatFullEventDate` replicam o filtro da
  *   seção "Próximos eventos" (sourceKey + status !== "completed", ASC por
- *   startAt, slice 3) e o `formatEventDate` (Intl pt-BR full+short).
+ *   startAt, slice 3) e o `formatEventDate` (Intl pt-BR full+short). Foram
+ *   extraídos para `./community-events` (duplicado byte-idêntico com a
+ *   campostechpg) e são re-exportados aqui.
  * - `extractGithubHandle`/`findMemberByAmbassador`/`ambassadorHandles` são o
  *   matching de embaixador ↔ membro da API de `embaixadores.tsx`.
  * - `enrichDevparanaTeamMember`/`teamHandles` replicam `enrichMember` de
@@ -97,28 +98,14 @@ export function devparanaFeatureCards(
 }
 
 // ── Próximos eventos (home) ────────────────────────────────────────────────
+// `upcomingCommunityEvents`/`formatFullEventDate` vivem em `./community-events`
+// (extraídos — eram duplicados byte-idênticos na campostechpg) e são
+// re-exportados aqui para os consumidores desta lib.
 
-/**
- * Próximos eventos da comunidade: mesma derivação do `UpcomingEventsSection`
- * original — filtra por `sourceKeys` e `status !== "completed"`, ordena ASC
- * por `startAt` e limita (default 3, como o slice do original).
- */
-export function upcomingCommunityEvents(
-  events: EventSummary[],
-  sourceKeys: string[],
-  limit = 3,
-): EventSummary[] {
-  if (sourceKeys.length === 0) return [];
-  return events
-    .filter(
-      (event) =>
-        sourceKeys.includes(event.sourceKey) && event.status !== "completed",
-    )
-    .sort(
-      (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
-    )
-    .slice(0, limit);
-}
+export {
+  upcomingCommunityEvents,
+  formatFullEventDate,
+} from "./community-events";
 
 /**
  * href de um card de "Explore a comunidade" no build tenant (rotas limpas).
@@ -142,15 +129,6 @@ export function tenantExploreCardHref(
   if (to.startsWith(basePath)) return to.slice(basePath.length) || "/";
   if (portalOrigin && to.startsWith("/")) return `${portalOrigin}${to}`;
   return to;
-}
-
-/** Formata a data do card de evento (Intl pt-BR `dateStyle: "full"`, `timeStyle: "short"` no timezone do evento). */
-export function formatFullEventDate(date: string, timeZone: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
-    dateStyle: "full",
-    timeStyle: "short",
-    timeZone,
-  }).format(new Date(date));
 }
 
 // ── Embaixadores ───────────────────────────────────────────────────────────

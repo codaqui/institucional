@@ -20,6 +20,8 @@ agent-protocol:
 
 # Layer 3 — Eliminar o último PR (repository_dispatch) — DESIGN ONLY
 
+
+
 ## Problema
 
 O force-sync manual de snapshot interno (`POST /events/internal/snapshot`, `backend/src/events/events.service.ts:3068-3215`) ainda usa `GitHubDBService.createPRWithFiles` com o **token OAuth do próprio membro** (`requireUserToken` — falha 400 se o admin não tiver token GitHub cadastrado). Consequências:

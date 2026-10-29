@@ -18,7 +18,7 @@ export default function MemberQrCode({ value }: Readonly<{ value: string }>) {
           size={120}
           level="M"
           marginSize={0}
-          fgColor="#57B593"
+          fgColor="var(--cq-color-success)"
         />
       </span>
       <span

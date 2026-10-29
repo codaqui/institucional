@@ -19,6 +19,8 @@ agent-protocol:
 
 # Layer 2 — Robustez do pipeline e da UX
 
+
+
 ## L2-5 — Robustez do sync 🟡 (frente B)
 
 **Arquivo:** `scripts/sync-events.mjs`.

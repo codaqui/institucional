@@ -19,6 +19,8 @@ agent-protocol:
 
 # Layer 1 — Quick Wins (bugs em produção + limpeza)
 
+
+
 ## L1-1 — Workflow não exporta `EVENT_OVERRIDES_API_URL` 🔴
 
 **Arquivo:** `.github/workflows/sync-event-snapshots.yml` (env por volta da linha 50-55).
