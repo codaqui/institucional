@@ -1,6 +1,37 @@
 {
-  "generatedAt": "2026-10-19T17:01:35.856Z",
+  "generatedAt": "2026-10-23T08:01:57.153Z",
   "events": [
+    {
+      "id": "317017132",
+      "title": "15º Meetup DevParaná Cascavel",
+      "summary": "🚀 O DevParaná Cascavel não podia ficar de fora da semana de inovação de Cascavel! 📅 Informações do Evento Data: 22/10/2026 Horário: 19h00 Local: Senac Endereço: Rua Recife 2283 - Centro Evento gratuito e aberto à comu…",
+      "startAt": "2026-10-22T19:00:00-03:00",
+      "endAt": "2026-10-22T21:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Senac - Serviço Nacional de Aprendizagem Comercial · R. Recife, 2283 - Centro, Cascavel - PR, 85810-031, Brazil · Centro · PR",
+      "href": "https://www.meetup.com/developerparana/events/317017132/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 11,
+      "creatorName": "Everton Tavares",
+      "creatorId": "188896297",
+      "organizers": [
+        {
+          "name": "costakauanantonye",
+          "id": "457347446"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg"
+    },
     {
       "id": "316756948",
       "title": "[DevPR Francisco Beltrão] 2º Happy Hour",
@@ -111,16 +142,16 @@
       "imageUrl": "https://secure.meetupstatic.com/photos/event/f/b/c/highres_536164028.jpeg"
     },
     {
-      "id": "317017132",
-      "title": "15º Meetup DevParaná Cascavel",
-      "summary": "🚀 O DevParaná Cascavel não podia ficar de fora da semana de inovação de Cascavel! 📅 Informações do Evento Data: 22/10/2026 Horário: 19h00 Local: Senac Endereço: Rua Recife 2283 - Centro Evento gratuito e aberto à comu…",
-      "startAt": "2026-10-22T19:00:00-03:00",
-      "endAt": "2026-10-22T21:00:00-03:00",
+      "id": "317074666",
+      "title": "[Ingá.php] Encontro #4 de 2026",
+      "summary": "🚀 Meetup da comunidade Ingá.php A Comunidade Ingá.php seguirá 2026 com os eventos presenciais! 👩‍💻👨‍💻 O público alvo do evento são pessoas que possuam interesse por tecnologia, principalmente programadores PHP, ind…",
+      "startAt": "2026-10-23T19:00:00-03:00",
+      "endAt": "2026-10-23T20:30:00-03:00",
       "timezone": "America/Sao_Paulo",
       "platform": "Meetup",
       "host": "Dev Paraná",
-      "location": "Senac - Serviço Nacional de Aprendizagem Comercial · R. Recife, 2283 - Centro, Cascavel - PR, 85810-031, Brazil · Centro · PR",
-      "href": "https://www.meetup.com/developerparana/events/317017132/",
+      "location": "Vivaworks · R. Arthur Thomas, 596 - Sala 102 - Zona 01, Maringá - PR, 87013-250 · Maringá",
+      "href": "https://www.meetup.com/developerparana/events/317074666/",
       "tags": [
         "meetup",
         "devparana",
@@ -130,16 +161,16 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "external",
-      "userCount": 3,
-      "creatorName": "Everton Tavares",
-      "creatorId": "188896297",
+      "userCount": 8,
+      "creatorName": "Danilo Pinotti",
+      "creatorId": "475426391",
       "organizers": [
         {
-          "name": "costakauanantonye",
-          "id": "457347446"
+          "name": "Danilo Pinotti",
+          "id": "475426391"
         }
       ],
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg"
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/6/b/e/c/highres_536727628.jpeg"
     },
     {
       "id": "315991184",
