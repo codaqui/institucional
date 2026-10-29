@@ -124,7 +124,7 @@ export async function listRawPeriods(): Promise<string[]> {
         /^\d{4}-\d{2}$/.test(String((e as { name?: unknown }).name ?? "")),
     )
     .map((e) => e.name)
-    .sort();
+    .sort((a, b) => String(a).localeCompare(String(b)));
 }
 
 // ─── Normalização do snapshot consolidado (mesmo gerado pelo sync) ───────────
