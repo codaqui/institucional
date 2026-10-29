@@ -265,6 +265,8 @@ Pela raiz, os atalhos `make backend-start`, `make backend-build`, `make backend-
 
 Disponível em `http://localhost:3000/docs` (sem containers) ou `http://localhost:3001/docs` (via Compose). Desabilitado em produção por padrão — para habilitar: `SWAGGER_ENABLED=true`.
 
+O JSON do spec (`GET /docs-json`) é servido **sempre, inclusive em produção** (fora do guard `SWAGGER_ENABLED`): ele alimenta a página pública [`/desenvolvedores/api`](frontend/src/pages/desenvolvedores/api.astro) do site (Swagger UI embarcada via `ApiDocsIsland`, code-split só nessa rota — ver decisão 14 do `AGENTS.md`).
+
 ### Webhook do Stripe
 
 **Em desenvolvimento** — o `make up` sobe o Stripe CLI como container e captura o secret automaticamente. Ou rode manualmente:
@@ -631,6 +633,8 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
    ```
 
 Sobe: PostgreSQL + Backend. As migrations são executadas automaticamente na inicialização (`migrationsRun: true` em produção).
+
+> **Produção (Coolify):** o ambiente real do servidor ARM64 é gerenciado pelo **Coolify** — após o `publish-backend.yml` pushar a nova imagem, o redeploy do serviço é **manual** no painel do Coolify.
 
 ---
 

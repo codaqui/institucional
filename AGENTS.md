@@ -8,6 +8,7 @@ sections:
   - Commands (gates por build, frontend, backend, scripts de sync)
   - Directory Structure
   - Critical Architecture Decisions (design tokens, build matrix, proxy same-origin, conteúdo canônico, eventos, ledger financeiro, blog SEO)
+  - Padrões de UI/Listagem pós-Fase 0 (paginação padronizada, admonitions, doc da API no site, header/menus, analytics com fallback, dados de comunidade enriquecidos)
   - Common Anti-Patterns
   - Git Workflow & Deployment (Cloudflare Pages, branch deployments)
   - PR Checklist
@@ -122,6 +123,8 @@ Planos futuros:
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
 | **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
 
+**Versionamento do backend:** ver `backend/package.json` (não fixar a versão nesta doc). Toda mudança em `backend/` exige **bump semver** (feat → minor, fix → patch): o workflow `publish-backend.yml` (manual) usa o `version` para a tag da imagem multi-arch (amd64 + arm64/v8) no GHCR e para a release `v<versão>-backend` — e o **redeploy em produção é manual no Coolify** (ver Commands).
+
 **Site**: https://codaqui.dev · **API**: https://api.codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
 
 ---
@@ -191,15 +194,16 @@ institucional/
 │   ├── functions/[[path]].ts    # ⭐ Pages Function — proxy de API same-origin (allow-list estreita)
 │   ├── functions/tsconfig.json  # Type-check da Function é separado do astro check
 │   ├── src/                     # App do portal codaqui (srcDir padrão)
-│   │   ├── pages/               # Rotas .astro (blog/, trilhas/, eventos/, admin/, comunidades/, …)
+│   │   ├── pages/               # Rotas .astro (blog/, trilhas/, eventos/, admin/, comunidades/, desenvolvedores/, …)
 │   │   ├── layouts/             # BaseLayout (SEO/OG/JSON-LD/noindex), PublicLayout, AppLayout, BlogPostLayout, TrilhaLayout
 │   │   ├── components/
 │   │   │   ├── astro/           # Componentes de servidor (SiteHeader, EventCard, PageHero, …)
-│   │   │   └── islands/         # ⭐ Ilhas React (admin/, events/, ThemeToggle, TransactionTable, …)
+│   │   │   └── islands/         # ⭐ Ilhas React (admin/, events/, ui/PaginationControls, ApiDocsIsland, ThemeToggle, …)
 │   │   ├── content/             # Collections Astro (blog, trilhas, pages, community-blog)
 │   │   ├── content.config.ts    # Schemas + loaders (glob)
-│   │   ├── data/                # ⭐ Camada de dados (team, communities, projects, timeline, giscus, …)
-│   │   ├── lib/                 # ⭐ Lógica pura testada (events, event-path, member-pages, transaction, api-url, use-auth, mui-theme, …)
+│   │   ├── data/                # ⭐ Camada de dados (team, communities, projects, timeline, giscus, analytics, …)
+│   │   ├── lib/                 # ⭐ Lógica pura testada (events, pagination, header-menu, remark-admonitions, analytics, api-url, use-auth, mui-theme, …)
+│   │   ├── test/                # ⭐ Helpers vitest compartilhados (http-mock.ts: jsonResponse/useFetchMock; render-mui.tsx: renderWithMui)
 │   │   └── styles/              # tokens.css (--cq-*) + global.css (ponte @theme inline → Tailwind)
 │   ├── src-tenants/             # Apps dos tenants (tisocial, elasnocodigo, devparana) — thin, reutilizam src/
 │   ├── scripts/                 # ⭐ copy-content.mjs, copy-snapshots.mjs, build-tenant-redirects.mjs,
@@ -369,6 +373,45 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 4. Tabelas/cartões usam `<TransactionDetailDialog>` / `<WalletTransactionDetailDialog>` para detalhe rico ao clicar.
 5. A base da API na ilha vem de `resolveApiUrl(import.meta.env.SITE)` — nunca `API_URL` cru (ver decisão 3).
 
+### 12. Paginação padronizada (site + backend)
+
+- **Frontend:** `src/lib/pagination.ts` é a fonte única — constantes `MEMBERS_PAGE_SIZE` (100), `DEFAULT_PAGE_SIZE` (50), `MAX_PAGE_SIZE` (100), `PAGE_WINDOW_SIZE` (5); interface `PaginatedResponse<T>` (`{data, total, page, totalPages, limit?}`); `pageWindow()` (janela deslizante de páginas centrada na atual) e `rangeLabel()` ("Mostrando X–Y de Z"). Ilhas/tabelas **nunca hardcodam limites** — importam daqui.
+- **Componente:** `src/components/islands/ui/PaginationControls.tsx` (MUI acessível — `<nav>` com `aria-label`, `aria-current` na página ativa) **só renderiza quando há mais de uma página** (`totalPages <= 1` → `null`).
+- **Backend:** DTOs de query com `@Type(() => Number)` + `@IsInt()` + `@Min(1)` + `@Max(...)` — `GetMembersQueryDto` (cap 100, default 50) e o padrão de `GetTransactionsQueryDto` do ledger (cap 50, default 10). Envelope `PaginatedResultDto` (`backend/src/ledger/dto/paginated-result.dto.ts`): `{data, total, page, totalPages, limit}`.
+- **Novas listagens devem seguir esse padrão** (lib + componente + DTO + envelope) — ver também o anti-pattern correspondente.
+
+### 13. Admonitions em trilhas e blog
+
+- Sintaxe Docusaurus: `:::info[Título]`, `:::tip`, `:::warning`, `:::note`, fechamento `:::` em linha própria; título **sem colchetes** também vale (`:::tip Texto livre`).
+- Transformer mdast em `src/lib/remark-admonitions.ts`, plugado no `markdown.processor` do `astro.config.mjs` (depois de `remarkContentAssets` — ordem importa); saída `<div class="admonition admonition-{tipo}">` com CSS em `global.css` (`.prose-cq .admonition*`, cores por tokens `--cq-*`).
+- As fontes canônicas **não são reescritas** (dezenas de blocos em `trilhas/`, também usados no `blog/`) — continue editando em `trilhas/`/`blog/` na raiz (decisão 4).
+- Bloco **sem fechamento `:::` fica literal de propósito** — sinaliza erro de autoria em vez de engolir o documento.
+
+### 14. Documentação da API no site (`/desenvolvedores/api`)
+
+- Página pública e indexável (`src/pages/desenvolvedores/api.astro`) embute `ApiDocsIsland` (`client:only`): Swagger UI (`swagger-ui-dist`, ~1,7MB) via **dynamic import** — code-split, só é baixado nessa rota.
+- A ilha consome `GET /docs-json` **ao vivo** com `resolveApiUrl(import.meta.env.SITE)` (mesmo padrão das demais ilhas; em builds tenant o proxy same-origin entrega `/docs-json`).
+- O backend serve `/docs-json` **em produção incondicional** (fora do guard `SWAGGER_ENABLED` — `backend/src/main.ts`); a UI `/docs` continua dev-only (`SWAGGER_ENABLED=true` em prod).
+- `/docs-json` está na allow-list do proxy como path **exato** (`api-proxy-paths.ts`) — não colide com rotas estáticas.
+- Try-it ativo de propósito: o CORS do backend cobre codaqui.dev + domínios dos tenants; endpoints protegidos pedem JWT Bearer (botão Authorize).
+
+### 15. Header e menus (SiteHeader + NavbarAuth)
+
+- `src/lib/header-menu.ts`: menus desktop em `<details>` — **single-open** (abrir um fecha os demais), **ESC fecha**, **clique fora fecha** (`initHeaderDetailsNav`); **hover-intent** via `bindHover` (openDelay 200ms, closeDelay 300ms — tempo de atravessar o gap até o painel; só instala com hover fino, `pointer: fine` — touch/teclado seguem 100% nativos do `<details>`); drawer mobile com focus trap (Tab wrap) e light dismiss.
+- `NavbarAuth` (ilha, usada no header desktop e no drawer mobile): o avatar abre o menu do usuário — **Meu Perfil** (`/membro`), **Meu Clube** (`/clube`), **Minha Empresa** (`/membros/empresa`, só com `hasCompany`), **Painel Admin** por papel (href dinâmico: admin/finance → `/admin`, organizer → `/admin/eventos`, host/checker → `/admin/eventos-checkin`), **Fazer uma Doação** (`/participe/apoiar`), **Trocar conta**, **Sair**. No drawer mobile (`variant="inline"`) vira lista expandida, não dropdown.
+
+### 16. Analytics com fallback (`/sobre/insights`)
+
+- `src/lib/analytics.ts`: `loadAnalyticsWithFallback()` — primário `/analytics/index.json` (snapshot same-origin, `src/data/analytics.ts`); **failover** reconstrói o snapshot a partir do repo `codaqui/dados` (listing via `api.github.com` + arquivos em `raw.githubusercontent.com`, últimos 12 meses, parse defensivo — números vêm como string no formato raw).
+- Validação de host **sempre por URL parsing** (`isAllowedHost`: `new URL(...)`, protocolo `https:` + hostname **exato** na lista) — **nunca `startsWith`** (`https://api.github.com.evil.example` passaria; regra CodeQL `js/incomplete-url-substring-sanitization`).
+- Ilha `SiteAnalyticsIsland` com estados visíveis: skeleton CSS enquanto carrega, Alert com **Tentar novamente** em erro, seletor de período (3/6/12 meses/Todos) — falha visível em vez de seção sumindo.
+
+### 17. Dados de comunidade enriquecidos em build time
+
+- `comunidades/<slug>/src/data/*` é consumido em **build time** pelo app (ex.: `comunidades/devparana/src/data/ambassadors.json` → páginas `/embaixadores` do build tenant e do portal codaqui; `tisocial` tem `upcoming.json`/`campaigns.json`).
+- Enriquecimento: `EmbaixadoresPage.astro` cruza os dados locais com `loadPublicMembers()` (API pública) via `findMemberByAmbassador` (`src/lib/community-devparana.ts`, matching por `githubHandle`); quando encontra o membro, **prefere `member.name`** (e avatar/linkedin/bio) sobre o cadastro local — comportamento conhecido.
+- Sem API disponível no build → fallback nos dados locais (build segue).
+
 ---
 
 ## Common Anti-Patterns
@@ -392,6 +435,9 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | Inline team/community arrays in pages | Import from `src/data/*.ts` |
 | `slug: meu-post` (blog) | `slug: 2024/07/22/meu-post` (preserves Google URLs) |
 | Use "alunos", "escola", "curso" | Use "participantes", "Associação", "programa" |
+| Nova listagem paginada hardcodando limit/page | `src/lib/pagination.ts` (constantes + `PaginatedResponse`) + `PaginationControls` (islands/ui) + DTO backend com envelope `{data,total,page,totalPages,limit}` (decisão 12) |
+| Validar host/URL com `startsWith("https://api.github.com")` | `isAllowedHost` (`src/lib/analytics.ts`) — parsing real (`new URL`), protocolo `https:` + hostname exato (CodeQL js/incomplete-url-substring-sanitization) |
+| Notas/avisos em HTML cru nas trilhas e blog | Admonitions `:::info[Título]` … `:::` (`src/lib/remark-admonitions.ts`, decisão 13) |
 
 ---
 
@@ -410,7 +456,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 |----------|--------|-----------|
 | `deploy-astro.yml` | push em `main`/`develop` + dispatch | Build matrix (codaqui + 3 tenants) + gate `tenant-urls` + direct upload Wrangler p/ cada projeto Pages |
 | `pr-check.yml` | PR → `develop`/`main` | Backend (build + jest coverage), Trivy (frontend + backend), builds Astro dos 4 projetos, `astro check` + vitest do codaqui |
-| `publish-backend.yml` | manual | Build + push da imagem Docker ARM64 p/ GHCR (usa `version` do `backend/package.json`) |
+| `publish-backend.yml` | manual | Build + push da imagem Docker multi-arch (amd64 + arm64/v8) p/ GHCR + release `v<versão>-backend` (usa `version` do `backend/package.json`); redeploy em produção manual no Coolify |
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
@@ -443,6 +489,7 @@ Antes de submeter:
 - [ ] `make astro-verify-tenants` passa (se tocou em `tenants.config.mjs`, layouts, lib compartilhada ou conteúdo de comunidade)
 - [ ] `cd backend && npm run build && npx jest --silent` (se mexeu em `backend/`) + **bump de `version`** em `backend/package.json`
 - [ ] `npm run test:scripts` (se mexeu em `scripts/*.mjs`)
+- [ ] Listagens novas seguem o padrão de paginação (`pagination.ts` + `PaginationControls` + DTO backend — decisão 12)
 - [ ] Blog posts novos usam `slug: YYYY/MM/DD/nome` no frontmatter
 - [ ] Mudanças em conteúdo canônico foram feitas em `blog/`/`trilhas/` (não nas cópias em `frontend/src/content/`)
 - [ ] Data changes em `frontend/src/data/*.ts`, não inline em páginas
