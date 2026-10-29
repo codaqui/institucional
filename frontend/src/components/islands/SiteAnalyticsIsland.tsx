@@ -1,22 +1,29 @@
 // Port de src/components/SiteAnalytics (Docusaurus) para ilha React da POC.
-// Mesmo fetch em runtime de /analytics/index.json (ANALYTICS_URL); gráfico de
-// barras em SVG puro, sem lib de chart. Encapsulada em MuiIslandProvider.
+// Dados via loadAnalyticsWithFallback() (src/lib/analytics.ts): snapshot
+// same-origin /analytics/index.json com failover para o raw do codaqui/dados.
+// Estados visíveis: skeleton (CSS) enquanto carrega e Alert em erro — a seção
+// nunca some em silêncio. Gráfico de barras em SVG puro, sem lib de chart.
 // Nota MUI v9: system props (fontWeight/display/alignItems) só via `sx`.
 import React, { useEffect, useRef, useState } from "react";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
 import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import { keyframes, useTheme } from "@mui/material/styles";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import MuiIslandProvider from "./MuiIslandProvider";
 import {
-  ANALYTICS_URL,
+  loadAnalyticsWithFallback,
+  type AnalyticsLoadResult,
+} from "../../lib/analytics";
+import {
   type AnalyticsSnapshot,
   type MonthlyMetric,
 } from "../../data/analytics";
@@ -424,6 +431,120 @@ function HeroMetric({
   );
 }
 
+// ─── Loading / error shells (falha visível em vez de a seção sumir) ──────────
+
+const pulse = keyframes`
+  0% { opacity: 1; }
+  50% { opacity: 0.45; }
+  100% { opacity: 1; }
+`;
+
+function SkeletonBar({
+  height,
+  width = "100%",
+  delay = 0,
+}: Readonly<{ height: number; width?: number | string; delay?: number }>) {
+  return (
+    <Box
+      sx={{
+        height,
+        width,
+        bgcolor: "action.hover",
+        borderRadius: 2,
+        animation: `${pulse} 1.6s ease-in-out ${delay}s infinite`,
+      }}
+    />
+  );
+}
+
+function SectionShell({ children }: Readonly<{ children: React.ReactNode }>) {
+  return (
+    <Box
+      sx={{
+        bgcolor: "background.paper",
+        borderTop: 1,
+        borderColor: "divider",
+        py: { xs: 5, md: 7 },
+      }}
+    >
+      <Box sx={{ maxWidth: "lg", mx: "auto", px: { xs: 2, sm: 3, lg: 4 } }}>
+        {children}
+      </Box>
+    </Box>
+  );
+}
+
+function SectionHeader({ caption }: Readonly<{ caption?: React.ReactNode }>) {
+  return (
+    <Stack
+      direction={{ xs: "column", sm: "row" }}
+      spacing={1}
+      sx={{ alignItems: { xs: "flex-start", sm: "baseline" }, mb: 4 }}
+    >
+      <Typography variant="h5" sx={{ fontWeight: 800 }}>
+        📊 Alcance do Site
+      </Typography>
+      <Typography variant="caption" color="text.disabled" sx={{ ml: { sm: 1 } }}>
+        {caption}
+      </Typography>
+    </Stack>
+  );
+}
+
+function AnalyticsSkeleton() {
+  return (
+    <SectionShell>
+      <SectionHeader caption="Google Analytics · carregando…" />
+      <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
+        <SkeletonBar height={24} width={260} />
+      </Stack>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        spacing={{ xs: 2.5, sm: 4 }}
+        sx={{ mb: 4, flexWrap: "wrap" }}
+      >
+        <SkeletonBar height={48} width={180} />
+        <SkeletonBar height={48} width={180} delay={0.15} />
+        <SkeletonBar height={48} width={180} delay={0.3} />
+      </Stack>
+      <Paper
+        elevation={0}
+        sx={{ p: { xs: 2, sm: 3 }, mb: 3, bgcolor: "action.hover", borderRadius: 2 }}
+      >
+        <SkeletonBar height={110} />
+      </Paper>
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <SkeletonBar height={16} width={140} />
+          <SkeletonBar height={90} delay={0.1} />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <SkeletonBar height={16} width={140} delay={0.15} />
+          <SkeletonBar height={90} delay={0.25} />
+        </Grid>
+      </Grid>
+    </SectionShell>
+  );
+}
+
+function AnalyticsError({ onRetry }: Readonly<{ onRetry: () => void }>) {
+  return (
+    <SectionShell>
+      <SectionHeader />
+      <Alert
+        severity="warning"
+        action={
+          <Button color="inherit" size="small" onClick={onRetry}>
+            Tentar novamente
+          </Button>
+        }
+      >
+        Não foi possível carregar os dados de alcance agora.
+      </Alert>
+    </SectionShell>
+  );
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 type PeriodFilter = 3 | 6 | 12 | 0;
@@ -455,39 +576,49 @@ function computeFilteredTotals(filtered: MonthlyMetric[]) {
   return { screenPageViews, activeUsers, peakViews, peakMonth };
 }
 
+type LoadState =
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; result: AnalyticsLoadResult };
+
 function SiteAnalyticsInner() {
-  const [data, setData] = useState<AnalyticsSnapshot | null>(null);
+  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [reloadKey, setReloadKey] = useState(0);
   const [period, setPeriod] = useState<PeriodFilter>(6);
 
   useEffect(() => {
-    fetch(ANALYTICS_URL)
-      .then((r) => r.json())
-      .then((d: AnalyticsSnapshot) => setData(d))
+    let cancelled = false;
+    setState({ status: "loading" });
+    loadAnalyticsWithFallback()
+      .then((result) => {
+        if (!cancelled) setState({ status: "ready", result });
+      })
       .catch(() => {
-        // Silently skip — analytics are non-critical
+        if (!cancelled) setState({ status: "error" });
       });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
 
-  if (!data) return null;
+  if (state.status === "loading") return <AnalyticsSkeleton />;
+  if (state.status === "error") {
+    return <AnalyticsError onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
 
+  const { snapshot: data, fromFallback } = state.result;
   const { monthly, topPages, trafficSources, latestPeriod } = data;
   const filtered = sliceMonthly(monthly, period);
   const stats = computeFilteredTotals(filtered);
   const periodDesc = period === 0 ? `${monthly.length} meses` : `${period} meses`;
 
   return (
-    <Box sx={{ bgcolor: "background.paper", borderTop: 1, borderColor: "divider", py: { xs: 5, md: 7 } }}>
-      <Box sx={{ maxWidth: "lg", mx: "auto", px: { xs: 2, sm: 3, lg: 4 } }}>
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={1}
-          sx={{ alignItems: { xs: "flex-start", sm: "baseline" }, mb: 4 }}
-        >
-          <Typography variant="h5" sx={{ fontWeight: 800 }}>
-            📊 Alcance do Site
-          </Typography>
-          <Typography variant="caption" color="text.disabled" sx={{ ml: { sm: 1 } }}>
-            Google Analytics · dados via{" "}
+    <SectionShell>
+      <SectionHeader
+        caption={
+          <>
+            Google Analytics · dados de {periodLong(latestPeriod)} · desde{" "}
+            {periodLabel(monthly[0].period)} · via{" "}
             <Box
               component="a"
               href="https://github.com/codaqui/dados"
@@ -497,9 +628,19 @@ function SiteAnalyticsInner() {
             >
               codaqui/dados
             </Box>
-            {" "}· desde jan/2024
-          </Typography>
-        </Stack>
+          </>
+        }
+      />
+      {fromFallback && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{ display: "block", mt: -2.5, mb: 3 }}
+        >
+          ⚠️ Snapshot do site indisponível — dados de contingência lidos
+          diretamente do repositório (últimos {monthly.length} meses).
+        </Typography>
+      )}
 
         <Stack direction="row" spacing={1} sx={{ mb: 3 }}>
           {PERIOD_OPTIONS.map((opt) => (
@@ -592,8 +733,7 @@ function SiteAnalyticsInner() {
             <TopPages pages={topPages} latestPeriod={latestPeriod} />
           </Grid>
         </Grid>
-      </Box>
-    </Box>
+    </SectionShell>
   );
 }
 
