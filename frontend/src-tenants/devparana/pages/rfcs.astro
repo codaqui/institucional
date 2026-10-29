@@ -1,118 +1,15 @@
 ---
-// Página "RFCs" do site whitelabel DevParaná (build tenant).
-// Port 1:1 de comunidades/devparana/src/pages/rfcs.tsx (spec): hero accent
-// com chip da comunidade e cards dos RFCs (status "Ready" em verde, chip
-// "Por <autores>" outline), linkando para o documento completo em
-// /docs/rfcs/<slug> (rotas limpas no build tenant; `_redirects` cobre os
-// paths absolutos que ficam nos configs).
-import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
+// Página "RFCs" do site whitelabel DevParaná (build tenant, /rfcs). O corpo
+// da página vive em RfcsPage (compartilhado com o wrapper do portal codaqui).
+import RfcsPage from "../components/astro/community/devparana/RfcsPage.astro";
 import { communityBasePath, loadTenantConfig } from "../lib/community";
 import { getTenant, tenantSite } from "../lib/tenant";
-import { devparanaRfcList, rfcStatusTone } from "../lib/community-devparana";
 
 const tenantBuild = getTenant() !== null;
 const tenant = getTenant() ?? "devparana";
 const config = await loadTenantConfig(tenant);
 const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = tenantBuild ? "/" : communityBasePath(config);
-
-// Rotas limpas no build tenant: remove o prefixo do portal dos links dos cards.
-const stripBase = (to: string) =>
-  to.startsWith(config.basePath) ? to.slice(config.basePath.length) || "/" : to;
-const rfcs = devparanaRfcList(config.basePath).map((rfc) => ({
-  ...rfc,
-  to: stripBase(rfc.to),
-}));
-
-// Ícone article do @mui/icons-material (fill currentColor).
-const ARTICLE_PATH =
-  "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2m-5 14H7v-2h7zm3-4H7v-2h10zm0-4H7V7h10z";
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={`RFCs — ${config.shortName}`}
-  description="Propostas e decisões da comunidade DevParaná."
-  homeHref={homeHref}
->
-  <section class="cq-hero text-white">
-    <div class="mx-auto max-w-6xl px-4 py-12 md:py-20">
-      <div class="max-w-[760px] space-y-4">
-        <span
-          class="inline-block w-fit rounded-full bg-white/15 px-3 py-1.5 text-sm font-semibold"
-        >
-          {config.name}
-        </span>
-        <h1 class="m-0 text-3xl font-extrabold md:text-5xl">RFCs</h1>
-        <p class="m-0 text-xl font-normal opacity-95">
-          Propostas e decisões da comunidade. Aqui documentamos iniciativas em
-          discussão, aprovadas e em implementação.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <section class="mx-auto max-w-6xl px-4 py-10 md:py-16">
-    <div class="grid gap-6 md:grid-cols-2">
-      {
-        rfcs.map((rfc) => (
-          <a
-            href={rfc.to}
-            class="cq-rfc-card block h-full rounded-lg border border-border bg-surface no-underline transition duration-200 hover:-translate-y-1 hover:shadow-lg"
-          >
-            <div class="p-6">
-              <div class="mb-3 flex items-center gap-1.5" style="color: var(--community-primary)">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="h-4 w-4">
-                  <path d={ARTICLE_PATH}></path>
-                </svg>
-                <span class="text-xs font-bold tracking-wide uppercase">
-                  RFC {rfc.id}
-                </span>
-              </div>
-              <h2 class="m-0 mb-2 text-2xl font-bold text-text-primary">
-                {rfc.title}
-              </h2>
-              <p class="m-0 mb-3 text-sm text-text-secondary">{rfc.summary}</p>
-              <div class="flex flex-wrap gap-1.5">
-                <span
-                  class:list={[
-                    "rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                    rfcStatusTone(rfc.status) === "success"
-                      ? "chip-success"
-                      : "chip-outline",
-                  ]}
-                >
-                  {rfc.status}
-                </span>
-                <span class="chip-outline rounded-full px-2.5 py-0.5 text-xs font-semibold">
-                  Por {rfc.authors}
-                </span>
-              </div>
-            </div>
-          </a>
-        ))
-      }
-    </div>
-  </section>
-
-  <style>
-    .cq-hero {
-      background-color: var(--community-primary);
-    }
-    :global([data-theme="dark"]) .cq-hero {
-      background-color: var(--community-primary-dark);
-    }
-    .cq-rfc-card:hover {
-      border-color: var(--community-primary);
-    }
-    .chip-outline {
-      border: 1px solid var(--cq-border-default);
-      color: var(--cq-text-secondary);
-    }
-    .chip-success {
-      color: var(--cq-color-success);
-      background-color: var(--cq-color-success-bg);
-    }
-  </style>
-</CommunityLayout>
+<RfcsPage config={config} site={site} homeHref={homeHref} />

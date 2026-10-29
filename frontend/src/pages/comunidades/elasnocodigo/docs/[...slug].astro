@@ -1,40 +1,19 @@
 ---
-// Docs da Elas no Código dentro do portal Codaqui (rota
-// `/comunidades/elasnocodigo/docs`). A comunidade tem um único documento —
-// `comunidades/elasnocodigo/docs/index.md` (fonte READ-ONLY) — servido pelo
-// Docusaurus em `/comunidades/elasnocodigo/docs`; aqui o mesmo markdown é
-// importado diretamente como componente (named exports Content/frontmatter).
-// Espelha a página do tenant em `frontend/src-tenants/elasnocodigo/pages/docs/`.
-import CommunityLayout from "../../../../components/astro/community/CommunityLayout.astro";
+// Docs da Elas no Código no portal codaqui (/comunidades/elasnocodigo/docs) —
+// wrapper do DocsPage com as rotas do portal. Só existe o index: qualquer
+// outro slug cai no 404 do Astro.
+import DocsPage from "../../../../components/astro/community/elasnocodigo/DocsPage.astro";
 import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
-import { getTenant, tenantSite } from "../../../../lib/tenant";
+import { tenantSite } from "../../../../lib/tenant";
 
-import { Content, frontmatter } from "../../../../../../comunidades/elasnocodigo/docs/index.md";
-
-// Só existe o index: /docs. Qualquer outro slug cai no 404 do Astro.
 export function getStaticPaths() {
   return [{ params: { slug: undefined } }];
 }
 
-const tenantBuild = getTenant() !== null;
-const tenant = getTenant() ?? "elasnocodigo";
+const tenant = "elasnocodigo";
 const config = await loadTenantConfig(tenant);
 const site = Astro.site?.toString() ?? tenantSite(tenant);
-const homeHref = tenantBuild ? "/" : communityBasePath(config);
-
-const { title } = (frontmatter ?? {}) as { title?: string };
-const pageTitle = title ?? "Docs";
+const homeHref = communityBasePath(config);
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={pageTitle}
-  homeHref={homeHref}
->
-  <article class="mx-auto max-w-3xl px-4 py-10 md:py-16">
-    <div class="prose-cq">
-      <Content />
-    </div>
-  </article>
-</CommunityLayout>
+<DocsPage config={config} site={site} homeHref={homeHref} />

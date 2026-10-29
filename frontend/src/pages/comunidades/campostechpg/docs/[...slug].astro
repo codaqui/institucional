@@ -1,40 +1,18 @@
 ---
-// Docs da CamposTech dentro do portal Codaqui (rota
-// `/comunidades/campostechpg/docs`). A comunidade tem um único documento —
-// `comunidades/campostechpg/docs/index.md` (fonte READ-ONLY) — servido pelo
-// Docusaurus em `/comunidades/campostechpg/docs`; aqui o mesmo markdown é
-// importado diretamente como componente (named exports Content/frontmatter),
-// no mesmo padrão do wrapper docs da Elas no Código. A CamposTech não é
-// tenant — o config é importado direto de
-// `comunidades/campostechpg/community.config` e o homeHref é o basePath da
-// comunidade.
-import CommunityLayout from "../../../../components/astro/community/CommunityLayout.astro";
+// Docs da CamposTech no portal codaqui (/comunidades/campostechpg/docs) —
+// wrapper do DocsPage. Só existe o index: qualquer outro slug cai no 404 do
+// Astro.
+import DocsPage from "../../../../components/astro/community/campostechpg/DocsPage.astro";
 import { communityBasePath } from "../../../../lib/community";
 
 import config from "../../../../../../comunidades/campostechpg/community.config";
-import { Content, frontmatter } from "../../../../../../comunidades/campostechpg/docs/index.md";
 
-// Só existe o index: /docs. Qualquer outro slug cai no 404 do Astro.
 export function getStaticPaths() {
   return [{ params: { slug: undefined } }];
 }
 
 const site = Astro.site?.toString() ?? "https://codaqui.dev";
 const homeHref = communityBasePath(config);
-
-const { title } = (frontmatter ?? {}) as { title?: string };
-const pageTitle = title ?? "Docs";
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={pageTitle}
-  homeHref={homeHref}
->
-  <article class="mx-auto max-w-3xl px-4 py-10 md:py-16">
-    <div class="prose-cq">
-      <Content />
-    </div>
-  </article>
-</CommunityLayout>
+<DocsPage config={config} site={site} homeHref={homeHref} />

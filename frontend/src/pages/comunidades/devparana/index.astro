@@ -1,81 +1,14 @@
 ---
-// Wrapper codaqui da home do DevParaná (`/comunidades/devparana`), espelhando
-// src-tenants/devparana/pages/index.astro no build do portal: mesmas seções
-// (hero visual, próximos eventos, explore, canais) com links relativos do
-// portal e homeHref no basePath da comunidade. Port 1:1 de
-// comunidades/devparana/src/pages/index.tsx (spec).
-import CommunityLayout from "../../../components/astro/community/CommunityLayout.astro";
-import CommunityHero from "../../../components/astro/community/CommunityHero.astro";
-import CommunityExploreSection from "../../../components/astro/community/CommunityExploreSection.astro";
-import CommunityChannelsSection from "../../../components/astro/community/CommunityChannelsSection.astro";
-import HomeEventsSection from "../../../components/astro/community/devparana/HomeEventsSection.astro";
+// Home do DevParaná no portal codaqui (/comunidades/devparana) — wrapper do
+// HomePage com as rotas do portal.
+import HomePage from "../../../components/astro/community/devparana/HomePage.astro";
 import { communityBasePath, loadTenantConfig } from "../../../lib/community";
-import {
-  devparanaFeatureCards,
-  upcomingCommunityEvents,
-} from "../../../lib/community-devparana";
-import { loadEventsIndex } from "../../../lib/events";
 import { tenantSite } from "../../../lib/tenant";
 
-const config = await loadTenantConfig("devparana");
-const site = Astro.site?.toString() ?? tenantSite("devparana");
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = communityBasePath(config);
-
-// Links relativos do portal: os cards usam o basePath do config como vêm.
-const exploreCards = devparanaFeatureCards(config);
-
-// Próximos eventos: build time (snapshot do monorepo), mesmo filtro do
-// original (sourceKeys + status !== "completed", ASC, top 3). Snapshot
-// ausente → alerta de aviso (estado de erro do original), build continua.
-const sourceKeys = config.eventSources ?? [];
-let upcoming: ReturnType<typeof upcomingCommunityEvents> = [];
-let eventsError = false;
-try {
-  upcoming = upcomingCommunityEvents(loadEventsIndex().events, sourceKeys);
-} catch (error) {
-  eventsError = true;
-  console.warn(
-    "[devparana] Snapshot de eventos indisponível — seção renderiza o estado de erro.",
-    error,
-  );
-}
-const eventsHref =
-  sourceKeys.length > 0
-    ? `/eventos?source=${encodeURIComponent(sourceKeys[0])}`
-    : "/eventos";
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={`${config.shortName} — Comunidade parceira`}
-  homeHref={homeHref}
->
-  <CommunityHero config={config} />
-
-  {
-    eventsError ? (
-      <section class="border-t border-border py-10 md:py-16">
-        <div class="mx-auto max-w-6xl px-4">
-          <h2 class="m-0 mb-4 text-3xl font-bold">Próximos eventos</h2>
-          <div class="cq-events-error rounded-lg border p-4 text-sm">
-            Não foi possível carregar a agenda de eventos no momento. Tente
-            novamente mais tarde.
-          </div>
-        </div>
-      </section>
-    ) : (
-      <HomeEventsSection events={upcoming} eventsHref={eventsHref} />
-    )
-  }
-
-  <CommunityExploreSection config={config} cards={exploreCards} />
-  <CommunityChannelsSection config={config} />
-</CommunityLayout>
-
-<style>
-  .cq-events-error {
-    border-color: var(--cq-color-warning);
-    color: var(--cq-text-secondary);
-  }
-</style>
+<HomePage config={config} site={site} homeHref={homeHref} />

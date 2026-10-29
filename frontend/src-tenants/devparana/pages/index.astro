@@ -1,28 +1,9 @@
 ---
-// Home do site whitelabel DevParaná (build tenant `TENANT=devparana`).
-// Port 1:1 de comunidades/devparana/src/pages/index.tsx (spec): hero visual
-// (heroVisual → CommunityHero), "Próximos eventos" (snapshot filtrado por
-// `eventSources`, mesmo filtro do original), explore e canais.
-//
-// Em builds tenant as rotas são limpas (home é "/"): links derivados do
-// config têm o prefixo `/comunidades/<slug>` removido; os links que apontam
-// para o portal Codaqui (agenda e detalhes de eventos, e o card "Eventos" do
-// explore — rota do portal não prefixada) usam a origem absoluta via
-// resolveCodaquiUrl; o dist/_redirects cobre os paths absolutos que ficam nos
-// configs (ex.: navMenu, CTAs do hero).
-import CommunityLayout from "../components/astro/community/CommunityLayout.astro";
-import CommunityHero from "../components/astro/community/CommunityHero.astro";
-import CommunityExploreSection from "../components/astro/community/CommunityExploreSection.astro";
-import CommunityChannelsSection from "../components/astro/community/CommunityChannelsSection.astro";
-import HomeEventsSection from "../components/astro/community/devparana/HomeEventsSection.astro";
+// Home do site whitelabel DevParaná (build tenant `TENANT=devparana`, rota
+// limpa /). O corpo da página vive em HomePage (compartilhado com o wrapper
+// do portal codaqui).
+import HomePage from "../components/astro/community/devparana/HomePage.astro";
 import { communityBasePath, loadTenantConfig } from "../lib/community";
-import {
-  devparanaFeatureCards,
-  tenantExploreCardHref,
-  upcomingCommunityEvents,
-} from "../lib/community-devparana";
-import { loadEventsIndex } from "../lib/events";
-import { resolveCodaquiUrl } from "../lib/api-url";
 import { getTenant, tenantSite } from "../lib/tenant";
 
 const tenantBuild = getTenant() !== null;
@@ -30,76 +11,6 @@ const tenant = getTenant() ?? "devparana";
 const config = await loadTenantConfig(tenant);
 const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = tenantBuild ? "/" : communityBasePath(config);
-
-// Origem absoluta do portal Codaqui (build tenant): rotas do portal que não
-// são prefixadas com o basePath da comunidade (ex.: o card "Eventos",
-// `/eventos`) precisam do host absoluto — o `_redirects` só cobre
-// `/comunidades/<slug>[/*]`.
-const portal = tenantBuild ? resolveCodaquiUrl("https://codaqui.dev", "") : "";
-
-// Rotas limpas no build tenant: remove o basePath do portal dos cards e
-// aponta rotas do portal (card Eventos) para a origem absoluta da Codaqui.
-const exploreCards = devparanaFeatureCards(config).map((card) => ({
-  ...card,
-  to: tenantExploreCardHref(card.to, config.basePath, portal),
-}));
-
-// Próximos eventos: build time (snapshot do monorepo), mesmo filtro do
-// original (sourceKeys + status !== "completed", ASC, top 3). Snapshot
-// ausente → alerta de aviso (estado de erro do original), build continua.
-const sourceKeys = config.eventSources ?? [];
-let upcoming: ReturnType<typeof upcomingCommunityEvents> = [];
-let eventsError = false;
-try {
-  upcoming = upcomingCommunityEvents(loadEventsIndex().events, sourceKeys);
-} catch (error) {
-  eventsError = true;
-  console.warn(
-    "[devparana] Snapshot de eventos indisponível — seção renderiza o estado de erro.",
-    error,
-  );
-}
-const eventsHref =
-  sourceKeys.length > 0
-    ? `${portal}/eventos?source=${encodeURIComponent(sourceKeys[0])}`
-    : `${portal}/eventos`;
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={`${config.shortName} — Comunidade parceira`}
-  homeHref={homeHref}
->
-  <CommunityHero config={config} />
-
-  {
-    eventsError ? (
-      <section class="border-t border-border py-10 md:py-16">
-        <div class="mx-auto max-w-6xl px-4">
-          <h2 class="m-0 mb-4 text-3xl font-bold">Próximos eventos</h2>
-          <div class="cq-events-error rounded-lg border p-4 text-sm">
-            Não foi possível carregar a agenda de eventos no momento. Tente
-            novamente mais tarde.
-          </div>
-        </div>
-      </section>
-    ) : (
-      <HomeEventsSection
-        events={upcoming}
-        eventsHref={eventsHref}
-        portalPrefix={portal}
-      />
-    )
-  }
-
-  <CommunityExploreSection config={config} cards={exploreCards} />
-  <CommunityChannelsSection config={config} />
-</CommunityLayout>
-
-<style>
-  .cq-events-error {
-    border-color: var(--cq-color-warning);
-    color: var(--cq-text-secondary);
-  }
-</style>
+<HomePage config={config} site={site} homeHref={homeHref} />

@@ -1,16 +1,11 @@
 ---
-// Docs do site whitelabel Elas no Código (build tenant `TENANT=elasnocodigo`).
-// A comunidade tem um único documento — `comunidades/elasnocodigo/docs/index.md`
-// (fonte READ-ONLY) — que o Docusaurus servia em `/comunidades/elasnocodigo/docs`.
-// Aqui ele vira a rota limpa `/docs`; o dist/_redirects cuida do path
-// prefixado que permanece no navMenu do config.
-import CommunityLayout from "../../components/astro/community/CommunityLayout.astro";
+// Docs do site whitelabel Elas no Código (build tenant, rota limpa /docs).
+// O corpo da página vive em DocsPage (compartilhado com o wrapper do portal
+// codaqui). Só existe o index: /docs. Qualquer outro slug cai no 404 do Astro.
+import DocsPage from "../../components/astro/community/elasnocodigo/DocsPage.astro";
 import { communityBasePath, loadTenantConfig } from "../../lib/community";
 import { getTenant, tenantSite } from "../../lib/tenant";
 
-import { Content, frontmatter } from "../../../../../comunidades/elasnocodigo/docs/index.md";
-
-// Só existe o index: /docs. Qualquer outro slug cai no 404 do Astro.
 export function getStaticPaths() {
   return [{ params: { slug: undefined } }];
 }
@@ -20,20 +15,6 @@ const tenant = getTenant() ?? "elasnocodigo";
 const config = await loadTenantConfig(tenant);
 const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = tenantBuild ? "/" : communityBasePath(config);
-
-const { title } = (frontmatter ?? {}) as { title?: string };
-const pageTitle = title ?? "Docs";
 ---
 
-<CommunityLayout
-  config={config}
-  site={site}
-  title={pageTitle}
-  homeHref={homeHref}
->
-  <article class="mx-auto max-w-3xl px-4 py-10 md:py-16">
-    <div class="prose-cq">
-      <Content />
-    </div>
-  </article>
-</CommunityLayout>
+<DocsPage config={config} site={site} homeHref={homeHref} />

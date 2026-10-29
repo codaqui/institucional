@@ -1,9 +1,9 @@
 ---
 // RFCs completos do DevParaná no portal codaqui:
-// /comunidades/devparana/docs/rfcs/<slug>. O frontmatter vem do MDX canônico
-// em `comunidades/devparana/docs/rfcs/` (READ-ONLY) — ver docstring de
-// DevparanaDocsRoute.astro. O índice da documentação é o `./index.astro`.
-import DevparanaDocsRoute from "../../../../components/astro/community/devparana/DevparanaDocsRoute.astro";
+// /comunidades/devparana/docs/rfcs/<slug>. O corpo da página vive em DocsPage
+// (compartilhado com o wrapper do portal codaqui). O índice da documentação é
+// o `./index.astro`.
+import DocsPage from "../../../../components/astro/community/devparana/DocsPage.astro";
 import { communityBasePath, loadTenantConfig } from "../../../../lib/community";
 import { tenantSite } from "../../../../lib/tenant";
 import { loadDevparanaRfcDocs } from "../../../../lib/community-devparana-docs";
@@ -13,9 +13,10 @@ export async function getStaticPaths() {
 }
 
 const { slug } = Astro.params;
-const config = await loadTenantConfig("devparana");
-const site = Astro.site?.toString() ?? tenantSite("devparana");
+const tenant = "devparana";
+const config = await loadTenantConfig(tenant);
+const site = Astro.site?.toString() ?? tenantSite(tenant);
 const homeHref = communityBasePath(config);
 ---
 
-<DevparanaDocsRoute slug={slug} config={config} site={site} homeHref={homeHref} />
+<DocsPage slug={slug} config={config} site={site} homeHref={homeHref} />

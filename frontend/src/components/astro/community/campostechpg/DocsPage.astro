@@ -1,0 +1,39 @@
+---
+// Docs da CamposTech — a comunidade tem um único documento,
+// `comunidades/campostechpg/docs/index.md` (fonte READ-ONLY), servido pelo
+// Docusaurus em `/comunidades/campostechpg/docs`; no app Astro o markdown é
+// importado diretamente como componente (named exports Content/frontmatter).
+// A CamposTech não é tenant — o componente é usado pelos wrappers codaqui em
+// `/comunidades/campostechpg`; o config é importado direto de
+// `comunidades/campostechpg/community.config` e o homeHref é o basePath da
+// comunidade.
+import CommunityLayout from "../CommunityLayout.astro";
+import type { CommunitySiteConfig } from "../../../../../../comunidades/shared/types";
+
+import { Content, frontmatter } from "../../../../../../comunidades/campostechpg/docs/index.md";
+
+interface Props {
+  config: CommunitySiteConfig;
+  site: string;
+  /** communityBasePath(config) no portal codaqui. */
+  homeHref: string;
+}
+
+const { config, site, homeHref } = Astro.props;
+
+const { title } = (frontmatter ?? {}) as { title?: string };
+const pageTitle = title ?? "Docs";
+---
+
+<CommunityLayout
+  config={config}
+  site={site}
+  title={pageTitle}
+  homeHref={homeHref}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 md:py-16">
+    <div class="prose-cq">
+      <Content />
+    </div>
+  </article>
+</CommunityLayout>
