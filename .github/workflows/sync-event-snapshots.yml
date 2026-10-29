@@ -20,7 +20,9 @@ concurrency:
 jobs:
   sync:
     name: Sync snapshots
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 pinado: o Playwright ainda não publica chromium para
+    # ubuntu-26.04 (migração do ubuntu-latest), quebrando o install de browsers.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Generate GitHub App token
