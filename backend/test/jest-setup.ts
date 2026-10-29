@@ -11,6 +11,13 @@
 // node_modules do npm: se specs falharem de repente com "Cannot use import
 // statement", verifique se o npm deixou de hoistar o htmlparser2@12 para fora
 // do node_modules aninhado do sanitize-html e ajuste o caminho do mock.
+//
+// ⚠️ Não atualizar o Jest para >= 30.5 sem reescrever os mocks abaixo: a partir
+// dessa versão o jest-runtime sobrescreve process.getBuiltinModule no sandbox
+// (installGetBuiltinModule) e o bypass deixa de funcionar — as factories caem
+// em recursão infinita ("Maximum call stack size exceeded"). O lockfile mantém
+// o monorepo do Jest em 30.3.0; um `npm audit fix` futuro pode tentar subi-lo
+// (a cadeia dev do deepmerge), o que reintroduz a quebra de propósito.
 jest.mock('marked', () => {
   const { createRequire } = process.getBuiltinModule('module');
   return createRequire(__filename)('marked');
