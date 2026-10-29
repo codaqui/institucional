@@ -237,6 +237,7 @@ describe('MembersService', () => {
         data: members,
         total: 1,
         page: 1,
+        limit: 50,
         totalPages: 1,
       });
       expect(memberRepo.findAndCount).toHaveBeenCalledWith(
@@ -256,6 +257,33 @@ describe('MembersService', () => {
       expect(memberRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({ take: 100 }),
       );
+    });
+
+    // Regressão: take, skip e totalPages devem usar o MESMO limite efetivo
+    // (cap de 100). Antes, skip/totalPages usavam o limit bruto — com
+    // limit=200 e total=150, totalPages vinha 1 (errado) em vez de 2.
+    it('should compute totalPages with the capped limit, not the raw limit', async () => {
+      memberRepo.findAndCount.mockResolvedValue([[], 150]);
+
+      const result = await service.findAllActive(1, 200);
+
+      expect(result.totalPages).toBe(2); // ceil(150 / 100)
+      expect(result.limit).toBe(100);
+      expect(memberRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 0, take: 100 }),
+      );
+    });
+
+    it('should offset skip by the capped limit on later pages', async () => {
+      memberRepo.findAndCount.mockResolvedValue([[], 250]);
+
+      const result = await service.findAllActive(2, 200);
+
+      expect(memberRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({ skip: 100, take: 100 }),
+      );
+      expect(result.page).toBe(2);
+      expect(result.totalPages).toBe(3); // ceil(250 / 100)
     });
   });
 
@@ -400,6 +428,8 @@ describe('MembersService', () => {
       expect(result.data[0].donationCount).toBe(5);
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(1);
     });
 
     it('should clamp page and limit values', async () => {
@@ -421,6 +451,7 @@ describe('MembersService', () => {
 
       expect(result.page).toBe(1);
       // limit is clamped to 100
+      expect(result.limit).toBe(100);
       expect(qb.limit).toHaveBeenCalledWith(100);
     });
   });

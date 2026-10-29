@@ -2,6 +2,7 @@ import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Member, MemberRole } from './entities/member.entity';
+import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { EventsService } from '../events/events.service';
 import { decryptToken, encryptToken } from '../common/crypto.util';
@@ -200,12 +201,12 @@ export class MembersService {
   async findAllActive(
     page = 1,
     limit = 50,
-  ): Promise<{
-    data: Member[];
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
+  ): Promise<PaginatedResultDto<Member>> {
+    // safeLimit consistente: take, skip e totalPages usam o MESMO limite
+    // efetivo (cap de 100). Antes, take usava o cap mas skip/totalPages usavam
+    // o limit bruto — paginação quebrada para limit > 100.
+    const safePage = Math.max(1, Math.floor(page));
+    const safeLimit = Math.min(Math.max(1, Math.floor(limit)), 100);
     const [data, total] = await this.repo.findAndCount({
       where: { isActive: true },
       select: [
@@ -219,10 +220,16 @@ export class MembersService {
         'joinedAt',
       ],
       order: { joinedAt: 'ASC' },
-      skip: (page - 1) * limit,
-      take: Math.min(limit, 100), // hard cap at 100 per page
+      skip: (safePage - 1) * safeLimit,
+      take: safeLimit, // hard cap at 100 per page
     });
-    return { data, total, page, totalPages: Math.ceil(total / limit) };
+    return {
+      data,
+      total,
+      page: safePage,
+      limit: safeLimit,
+      totalPages: Math.ceil(total / safeLimit),
+    };
   }
 
   /** Perfil individual (endpoint público) */
@@ -341,8 +348,8 @@ export class MembersService {
   async findDonors(
     page = 1,
     limit = 50,
-  ): Promise<{
-    data: Array<{
+  ): Promise<
+    PaginatedResultDto<{
       id: string;
       githubHandle: string;
       name: string;
@@ -354,11 +361,8 @@ export class MembersService {
       totalDonated: number;
       lastDonatedAt: Date;
       donationCount: number;
-    }>;
-    total: number;
-    page: number;
-    totalPages: number;
-  }> {
+    }>
+  > {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
     const offset = (safePage - 1) * safeLimit;
@@ -420,6 +424,7 @@ export class MembersService {
       })),
       total,
       page: safePage,
+      limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit),
     };
   }

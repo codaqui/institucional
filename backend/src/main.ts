@@ -87,9 +87,11 @@ async function bootstrap() {
   );
 
   // ── Swagger / OpenAPI ─────────────────────────────────────────────────────
-  // Disponível apenas fora de produção, ou se explicitamente habilitado via env.
+  // A UI (/docs) fica disponível apenas fora de produção, ou se habilitada via
+  // env. Já o documento JSON (/docs-json) é servido SEMPRE: ele alimenta a
+  // página pública /desenvolvedores/api do site (ilha consome ao vivo).
   const swaggerEnabled = !isProd || process.env.SWAGGER_ENABLED === 'true';
-  if (swaggerEnabled) {
+  {
     const config = new DocumentBuilder()
       .setTitle('Codaqui API')
       .setDescription(
@@ -120,17 +122,24 @@ async function bootstrap() {
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document, {
+    // Rota servida independente do swaggerEnabled (alimenta /desenvolvedores/api do site).
+    const expressApp = app.getHttpAdapter().getInstance() as express.Application;
+    expressApp.get('/docs-json', (_req: express.Request, res: express.Response) =>
+      res.json(document),
+    );
+    if (swaggerEnabled) {
+      SwaggerModule.setup('docs', app, document, {
       swaggerOptions: {
         persistAuthorization: true,
         docExpansion: 'list',
         filter: true,
         showRequestDuration: true,
       },
-      customSiteTitle: 'Codaqui API Docs',
-    });
-
-    logger.log('Swagger UI disponível em /docs');
+        customSiteTitle: 'Codaqui API Docs',
+      });
+      logger.log('Swagger UI disponível em /docs');
+    }
+    logger.log('OpenAPI JSON disponível em /docs-json');
   }
 
   const port = process.env.PORT ?? 3000;

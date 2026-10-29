@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   closeSiblingDetails,
   closeAllDetails,
   isOutside,
   initHeaderDetailsNav,
+  bindHover,
   focusableIn,
   nextTrapTarget,
 } from "./header-menu";
@@ -138,6 +139,7 @@ describe("initHeaderDetailsNav", () => {
 });
 
 describe("focusableIn / nextTrapTarget (focus trap do drawer)", () => {
+
   it("lista focáveis em tab order, ignorando disabled e tabindex=-1", () => {
     document.body.innerHTML = `
       <div id="panel" tabindex="-1">
@@ -175,5 +177,153 @@ describe("focusableIn / nextTrapTarget (focus trap do drawer)", () => {
   it("foco fora da lista vai para o primeiro elemento", () => {
     const a = document.createElement("a");
     expect(nextTrapTarget([a], null, false)).toBe(a);
+  });
+});
+
+
+describe("bindHover (hover-intent dos dropdowns desktop)", () => {
+  // jsdom não implementa PointerEvent — Event + pointerType definido manualmente.
+  function pointerEvent(type: string, pointerType = "mouse"): Event {
+    const event = new Event(type);
+    Object.defineProperty(event, "pointerType", { value: pointerType });
+    return event;
+  }
+
+  function hoverFixture(): {
+    details: HTMLDetailsElement;
+    summary: HTMLElement;
+    panel: HTMLElement;
+  } {
+    document.body.innerHTML = `
+      <details id="d">
+        <summary id="s">Sobre</summary>
+        <ul id="p"><li><a href="/a">A</a></li></ul>
+      </details>
+    `;
+    return {
+      details: document.getElementById("d") as HTMLDetailsElement,
+      summary: document.getElementById("s") as HTMLElement,
+      panel: document.getElementById("p") as HTMLElement,
+    };
+  }
+
+  function stubMatchMedia(matches: boolean) {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn().mockReturnValue({ matches, media: "", addEventListener: vi.fn(), removeEventListener: vi.fn() }),
+    );
+  }
+
+  beforeEach(() => {
+    vi.useFakeTimers();
+    stubMatchMedia(true);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+    document.body.innerHTML = "";
+  });
+
+  it("abre no hover após o openDelay", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    expect(details.open).toBe(false);
+    vi.advanceTimersByTime(200);
+    expect(details.open).toBe(true);
+  });
+
+  it("passagem rápida (anti-flicker) não abre", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(100);
+    summary.dispatchEvent(pointerEvent("pointerleave"));
+    vi.advanceTimersByTime(500);
+    expect(details.open).toBe(false);
+  });
+
+  it("não fecha ao atravessar do summary para o painel dentro do closeDelay", () => {
+    const { details, summary, panel } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(200);
+    expect(details.open).toBe(true);
+    summary.dispatchEvent(pointerEvent("pointerleave"));
+    panel.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(300);
+    expect(details.open).toBe(true);
+  });
+
+  it("fecha ao sair do details após o closeDelay", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(200);
+    details.dispatchEvent(pointerEvent("pointerleave"));
+    vi.advanceTimersByTime(300);
+    expect(details.open).toBe(false);
+  });
+
+  it("re-entrar no summary cancela o fechamento pendente", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(200);
+    details.dispatchEvent(pointerEvent("pointerleave"));
+    vi.advanceTimersByTime(150);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(300);
+    expect(details.open).toBe(true);
+  });
+
+  it("clique continua funcionando: aberto por clique, toggle limpa timers", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    // clique abre (comportamento nativo do <details> — simulado via atributo)
+    details.setAttribute("open", "");
+    details.dispatchEvent(new Event("toggle"));
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    details.dispatchEvent(pointerEvent("pointerleave"));
+    // fecha manualmente (como um segundo clique no summary) antes do closeDelay
+    details.removeAttribute("open");
+    details.dispatchEvent(new Event("toggle"));
+    vi.advanceTimersByTime(1000);
+    expect(details.open).toBe(false);
+  });
+
+  it("não intercepta o clique do summary (defaultPrevented falso)", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    const click = new MouseEvent("click", { cancelable: true, bubbles: true });
+    summary.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(false);
+  });
+
+  it("pointer de touch não dispara hover", () => {
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter", "touch"));
+    vi.advanceTimersByTime(500);
+    expect(details.open).toBe(false);
+  });
+
+  it("sem hover fino (matchMedia false) é no-op — touch não quebra", () => {
+    stubMatchMedia(false);
+    const { details, summary } = hoverFixture();
+    bindHover(details, summary);
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(500);
+    expect(details.open).toBe(false);
+  });
+
+  it("cleanup remove listeners e timers", () => {
+    const { details, summary } = hoverFixture();
+    const unbind = bindHover(details, summary);
+    unbind();
+    summary.dispatchEvent(pointerEvent("pointerenter"));
+    vi.advanceTimersByTime(500);
+    expect(details.open).toBe(false);
   });
 });

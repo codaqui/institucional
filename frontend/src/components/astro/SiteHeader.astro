@@ -4,6 +4,7 @@ import NavbarAuth from "../islands/NavbarAuth";
 import ThemeToggle from "../islands/ThemeToggle";
 
 const sobreItems = [
+  { label: "Design System", href: "/design-system" },
   { label: "Equipe", href: "/sobre/equipe" },
   { label: "Membros", href: "/membros" },
   { label: "Associação", href: "/sobre/ong" },
@@ -29,6 +30,7 @@ const directLinks = [
   { label: "Projetos", href: "/projetos" },
   { label: "Patrocinadores", href: "/patrocinadores" },
   { label: "Blog", href: "/blog" },
+  { label: "API", href: "/desenvolvedores/api" },
   { label: "Contato", href: "/contato" },
 ];
 const groups = [
@@ -51,7 +53,7 @@ const groups = [
           <summary class="cursor-pointer list-none text-sm font-bold text-text-primary hover:text-link">
             {group.label}
           </summary>
-          <ul class="absolute left-0 z-50 mt-2 w-56 rounded-lg border border-border bg-surface p-2 shadow-md">
+          <ul class="absolute left-0 z-50 mt-2 w-56 rounded-lg border border-border bg-surface p-2 shadow-md before:absolute before:inset-x-0 before:-top-2 before:h-2 before:content-['']">
             {group.items.map((item) => (
               <li>
                 <a href={item.href} class="block rounded-md px-3 py-2 text-sm text-text-primary hover:bg-sunken">
@@ -143,7 +145,7 @@ const groups = [
     </nav>
     <div class="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
       <ThemeToggle client:load />
-      <NavbarAuth client:load />
+      <NavbarAuth client:load variant="inline" />
     </div>
   </div>
 </div>
@@ -189,6 +191,7 @@ const groups = [
 <script>
   import {
     initHeaderDetailsNav,
+    bindHover,
     isOutside,
     focusableIn,
     nextTrapTarget,
@@ -197,6 +200,17 @@ const groups = [
   // U2 — menus desktop: single-open + ESC + clique fora.
   const header = document.querySelector<HTMLElement>("header:has(.cq-header-nav)");
   if (header) initHeaderDetailsNav(header);
+
+  // Hover-intent nos dropdowns desktop (guia viewport-aware-dropdowns):
+  // pointerenter abre com delay anti-flicker; pointerleave fecha com delay
+  // que permite atravessar o gap (bridge ::before no ul cobre o mt-2).
+  // Clique/touch e teclado seguem nativos do <details>/<summary>.
+  if (header) {
+    header.querySelectorAll<HTMLDetailsElement>("details").forEach((details) => {
+      const summary = details.querySelector("summary");
+      if (summary instanceof HTMLElement) bindHover(details, summary);
+    });
+  }
 
   // U1 — drawer mobile.
   const drawer = document.getElementById("cq-site-drawer");
