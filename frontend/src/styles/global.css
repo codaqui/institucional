@@ -96,3 +96,55 @@ body {
 .prose-cq table { @apply my-4 w-full border-collapse text-sm; }
 .prose-cq th, .prose-cq td { @apply border border-border px-3 py-2 text-start; }
 .prose-cq hr { @apply my-8 border-border; }
+
+/* Admonitions Docusaurus (`:::info[Título]` … `:::`) — gerados pelo plugin
+ * src/lib/remark-admonitions.ts a partir das fontes canônicas das trilhas.
+ * Acento (borda lateral + fundo sutil) vem dos tokens semânticos; o TÍTULO
+ * fica em --cq-text-primary porque o acento sobre o -bg reprova AA para
+ * texto normal (info 3.98:1, warning 4.47:1 sobre os -bg claros). */
+.prose-cq .admonition {
+  margin-block: var(--cq-space-4);
+  padding: var(--cq-space-3) var(--cq-space-4);
+  border: 1px solid var(--cq-border-default);
+  border-inline-start: 4px solid var(--admonition-accent, var(--cq-color-info));
+  border-radius: var(--cq-radius-lg);
+  background-color: var(--admonition-bg, var(--cq-color-info-bg));
+}
+.prose-cq .admonition-title {
+  margin: 0 0 var(--cq-space-2);
+  font-weight: var(--cq-font-weight-bold);
+  color: var(--cq-text-primary);
+}
+.prose-cq .admonition > :first-child { margin-top: 0; }
+.prose-cq .admonition > :last-child { margin-bottom: 0; }
+.prose-cq .admonition-info,
+.prose-cq .admonition-note {
+  --admonition-accent: var(--cq-color-info);
+  --admonition-bg: var(--cq-color-info-bg);
+}
+.prose-cq .admonition-tip {
+  --admonition-accent: var(--cq-color-success);
+  --admonition-bg: var(--cq-color-success-bg);
+}
+.prose-cq .admonition-warning {
+  --admonition-accent: var(--cq-color-warning);
+  --admonition-bg: var(--cq-color-warning-bg);
+}
+
+/* <details>/<summary> do markdown (trilhas/python/page-1) — até então sem
+ * nenhum estilo, colado no fluxo de texto. */
+.prose-cq details {
+  margin-block: var(--cq-space-4);
+  padding: var(--cq-space-3) var(--cq-space-4);
+  border: 1px solid var(--cq-border-default);
+  border-radius: var(--cq-radius-lg);
+  background-color: var(--cq-bg-sunken);
+}
+.prose-cq details summary {
+  cursor: pointer;
+  font-weight: var(--cq-font-weight-bold);
+  color: var(--cq-text-primary);
+}
+.prose-cq details summary + * { margin-top: var(--cq-space-2); }
+.prose-cq details[open] summary { margin-bottom: var(--cq-space-2); }
+.prose-cq details > :last-child { margin-bottom: 0; }

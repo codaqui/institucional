@@ -5,6 +5,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import { unified } from "@astrojs/markdown-remark";
 import { remarkContentAssets } from "./src/lib/remark-content-assets";
+import { remarkAdmonitions } from "./src/lib/remark-admonitions";
 import { TENANT_BY_NAME } from "./tenants.config.mjs";
 
 const TENANT = process.env.TENANT ?? null;
@@ -29,7 +30,11 @@ export default defineConfig({
       filter: (page) => !SITEMAP_EXCLUDE.test(new URL(page).pathname),
     }),
   ],
-  markdown: { processor: unified({ remarkPlugins: [remarkContentAssets] }) },
+  markdown: {
+    // Ordem importa: content-assets reescreve URLs de imagem antes do
+    // admonitions reorganizar os nós (blocos multi-nó já chegam reescritos).
+    processor: unified({ remarkPlugins: [remarkContentAssets, remarkAdmonitions] }),
+  },
   vite: {
     plugins: [tailwindcss()],
     define: { "import.meta.env.PUBLIC_TENANT": JSON.stringify(TENANT ?? "") },
