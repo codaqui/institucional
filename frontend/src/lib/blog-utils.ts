@@ -43,11 +43,14 @@ export function resolveAuthors(authors: (string | BlogAuthor)[]): BlogAuthor[] {
 }
 
 export function plainText(markdown: string): string {
+  // Quantificadores lazy (Sonar S8786): as classes de conteúdo excluem os
+  // delimitadores (`]`, `)`, `>`), então lazy e greedy têm o mesmo primeiro
+  // match — sem o backtracking super-linear de corpos grandes sem match.
   return markdown
     .replace(/```[\s\S]*?```/g, " ")
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-    .replace(/<[^>]+>/g, " ")
+    .replace(/!\[[^\]]*?\]\([^)]*?\)/g, " ")
+    .replace(/\[([^\]]*?)\]\([^)]*?\)/g, "$1")
+    .replace(/<[^>]+?>/g, " ")
     .replace(/[#*_>`-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -64,7 +67,13 @@ export function plainExcerpt(body: string, maxLen = 160): string {
   const beforeTruncate = body.split(/<!--\s*truncate\s*-->|\{\/\*\s*truncate\s*\*\/\}/)[0];
   const text = plainText(beforeTruncate);
   if (text.length <= maxLen) return text;
-  return `${text.slice(0, maxLen).replace(/\s+\S*$/, "")}…`;
+  // Corte em palavra inteira: equivalente a `/\s+\S*$/`, mas linear — após o
+  // plainText todo whitespace foi colapsado em espaços simples, então o último
+  // espaço é o único `\s` possível no trecho cortado.
+  const sliced = text.slice(0, maxLen);
+  const lastSpace = sliced.lastIndexOf(" ");
+  const trimmed = lastSpace === -1 ? sliced : sliced.slice(0, lastSpace);
+  return `${trimmed}…`;
 }
 
 export function contentAssetUrl(raw: string): string {

@@ -523,7 +523,16 @@ function SummaryCard({ selected, mode, modeConfig, isRecurring, amountLabel, isL
   );
 }
 
-interface DonationFormProps extends DonationFlowProps {
+// Contrato explícito do formulário: ele recebe o que renderiza e o `flow`
+// (estado calculado) — não herda DonationFlowProps para não declarar props
+// que não lê (lockedTargetId/hideWallets entram via hook, não via JSX).
+interface DonationFormProps {
+  readonly title?: string;
+  readonly subtitle?: string;
+  readonly accentColor?: string;
+  readonly accentColorDark?: string;
+  readonly onCompanyClick?: () => void;
+  readonly disableAuth?: boolean;
   readonly flow: Flow;
 }
 
@@ -774,12 +783,28 @@ interface DonationFlowIslandProps extends DonationFlowProps {
   readonly companyCta?: boolean;
 }
 
-export default function DonationFlowIsland({ companyCta, ...props }: DonationFlowIslandProps) {
+export default function DonationFlowIsland({
+  companyCta,
+  onCompanyClick,
+  lockedTargetId,
+  hideWallets,
+  disableAuth,
+  accentColor,
+  accentColorDark,
+  title,
+  subtitle,
+}: DonationFlowIslandProps) {
   return (
     <MuiIslandProvider>
       <DonationFlow
-        {...props}
-        onCompanyClick={companyCta ? () => requestApoiarMode("pj") : props.onCompanyClick}
+        lockedTargetId={lockedTargetId}
+        hideWallets={hideWallets}
+        disableAuth={disableAuth}
+        accentColor={accentColor}
+        accentColorDark={accentColorDark}
+        title={title}
+        subtitle={subtitle}
+        onCompanyClick={companyCta ? () => requestApoiarMode("pj") : onCompanyClick}
       />
     </MuiIslandProvider>
   );

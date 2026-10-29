@@ -25,17 +25,23 @@ const ROOT = join(import.meta.dirname, "..", "..");
 const BUILD = join(ROOT, "build");
 const OUT = join(import.meta.dirname, "url-reference.json");
 
+// Comparador explícito (code-unit, paridade com a geração original da
+// referência congelada) — sort() bare converteria para string de qualquer
+// forma, mas o Sonar exige intenção declarada.
+function compareUrlsCodeUnit(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 export function archiveUrls({ buildDir = BUILD } = {}) {
   if (!existsSync(buildDir)) {
     throw new Error(
       `build/ de referência não encontrado em ${buildDir} — rode \`npm run build\` na raiz (Docusaurus) ou crie o symlink \`ln -s <repo>/build build\``,
     );
   }
-  // Comparador explícito (code-unit, paridade com a geração original da
-  // referência congelada) — sort() bare converteria para string de qualquer
-  // forma, mas o Sonar exige intenção declarada.
-  const urls = [...collectPageUrls(buildDir, { exclude: EXCLUDE })].sort((a, b) =>
-    a < b ? -1 : a > b ? 1 : 0,
+  const urls = [...collectPageUrls(buildDir, { exclude: EXCLUDE })].sort(
+    compareUrlsCodeUnit,
   );
   return urls;
 }

@@ -99,52 +99,67 @@ describe("/membro/editar", () => {
     );
   });
 
-  it("bio tem limite de 280 caracteres e contador", async () => {
-    const authFetch = vi.fn(async () => jsonResponse({ bio: "", linkedinUrl: "" }));
-    mockLoggedIn(authFetch);
+  it(
+    "bio tem limite de 280 caracteres e contador",
+    async () => {
+      const authFetch = vi.fn(async () => jsonResponse({ bio: "", linkedinUrl: "" }));
+      mockLoggedIn(authFetch);
 
-    renderWithMui(<EditarPerfilApp />);
+      renderWithMui(<EditarPerfilApp />);
 
-    const bio = (await screen.findByLabelText(/bio/i)) as HTMLTextAreaElement;
-    expect(bio).toHaveAttribute("maxLength", "280");
-    expect(screen.getByText("0/280")).toBeInTheDocument();
+      const bio = (await screen.findByLabelText(/bio/i)) as HTMLTextAreaElement;
+      expect(bio).toHaveAttribute("maxLength", "280");
+      expect(screen.getByText("0/280")).toBeInTheDocument();
 
-    await userEvent.type(bio, "a".repeat(300));
-    expect(bio.value.length).toBeLessThanOrEqual(280);
-    expect(screen.getByText(`${bio.value.length}/280`)).toBeInTheDocument();
-  });
+      // Cola os 300 caracteres de uma vez em vez de digitar tecla a tecla:
+      // o userEvent.paste aplica o maxLength como um navegador (mesma
+      // asserção de truncamento), mas em 1 evento — o teste precisa ser
+      // estruturalmente rápido no runner lento do CI.
+      await userEvent.click(bio);
+      await userEvent.paste("a".repeat(300));
 
-  it("salva com PUT /members/me e exibe sucesso", async () => {
-    const authFetch = vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.includes("/members/me") && init?.method === "PUT") {
-        return jsonResponse({ ok: true });
-      }
-      if (url.includes("/members/me")) {
-        return jsonResponse({ bio: "", linkedinUrl: "" });
-      }
-      return jsonResponse(null, { status: 404 });
-    });
-    mockLoggedIn(authFetch);
+      expect(bio.value).toHaveLength(280);
+      expect(screen.getByText("280/280")).toBeInTheDocument();
+    },
+    15000,
+  );
 
-    renderWithMui(<EditarPerfilApp />);
+  it(
+    "salva com PUT /members/me e exibe sucesso",
+    async () => {
+      const authFetch = vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.includes("/members/me") && init?.method === "PUT") {
+          return jsonResponse({ ok: true });
+        }
+        if (url.includes("/members/me")) {
+          return jsonResponse({ bio: "", linkedinUrl: "" });
+        }
+        return jsonResponse(null, { status: 404 });
+      });
+      mockLoggedIn(authFetch);
 
-    const bio = await screen.findByLabelText(/bio/i);
-    await userEvent.type(bio, "Nova bio");
-    await userEvent.click(screen.getByRole("button", { name: /salvar/i }));
+      renderWithMui(<EditarPerfilApp />);
 
-    expect(
-      await screen.findByText("Perfil atualizado com sucesso!"),
-    ).toBeInTheDocument();
-    await waitFor(() => {
-      expect(authFetch).toHaveBeenCalledWith(
-        expect.stringContaining("/members/me"),
-        expect.objectContaining({
-          method: "PUT",
-          body: JSON.stringify({ bio: "Nova bio", linkedinUrl: "" }),
-        }),
-      );
-    });
-  });
+      const bio = await screen.findByLabelText(/bio/i);
+      await userEvent.click(bio);
+      await userEvent.paste("Nova bio");
+      await userEvent.click(screen.getByRole("button", { name: /salvar/i }));
+
+      expect(
+        await screen.findByText("Perfil atualizado com sucesso!"),
+      ).toBeInTheDocument();
+      await waitFor(() => {
+        expect(authFetch).toHaveBeenCalledWith(
+          expect.stringContaining("/members/me"),
+          expect.objectContaining({
+            method: "PUT",
+            body: JSON.stringify({ bio: "Nova bio", linkedinUrl: "" }),
+          }),
+        );
+      });
+    },
+    15000,
+  );
 
   it("exibe erro quando o PUT falha", async () => {
     const authFetch = vi.fn(async (url: string, init?: RequestInit) => {

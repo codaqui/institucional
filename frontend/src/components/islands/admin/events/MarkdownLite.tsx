@@ -14,9 +14,13 @@ interface MarkdownLiteProps {
 // *itálico* / _itálico_, [links](http|https), listas "- " e títulos ## / ###.
 // Qualquer outra sintaxe é renderizada como texto literal (fail-safe).
 
+// Quantificadores lazy para evitar backtracking super-linear (Sonar S8786):
+// como as classes de conteúdo excluem os próprios delimitadores (`*`/`_`/`]`/
+// `)`), greedy e lazy encontram exatamente o mesmo primeiro match — o conteúdo
+// termina sempre na primeira ocorrência do delimitador.
 const SAFE_URL_RE = /^https?:\/\/\S+$/i;
 const INLINE_RE =
-  /(\*\*([^*]+)\*\*)|(\*([^*]+)\*)|(_([^_]+)_)|(\[([^\]]+)\]\(([^)\s]+)\))/g;
+  /(\*\*([^*]+?)\*\*)|(\*([^*]+?)\*)|(_([^_]+?)_)|(\[([^\]]+?)\]\(([^)\s]+?)\))/g;
 
 function renderInline(line: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];

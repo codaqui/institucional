@@ -6,6 +6,7 @@ export function slugifyTag(tag: string): string {
     .replace(/([a-z])(\d)/g, "$1-$2")
     .replace(/(\d)([a-z])/g, "$1-$2")
     .replace(/[^a-z\d]+/g, "-")
-    .replace(/^-+/, "")
-    .replace(/-+$/, "");
+    .split("-")
+    .filter(Boolean)
+    .join("-");
 }

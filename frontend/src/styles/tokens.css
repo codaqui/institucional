@@ -207,6 +207,12 @@
 }
 
 /* Respeito a prefers-reduced-motion (WCAG 2.3.3) */
+/* sonar-disable css:S9423 -- !important estritamente necessário: este é o
+   reset canônico de reduced-motion e precisa vencer estilos que uma regra
+   comum não alcança — classes de transição do MUI/Emotion (especificidade de
+   classe > `*`) e estilos inline (`style=`). Sem !important componentes com
+   transition própria continuariam animando para quem pediu redução de
+   movimento. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -217,6 +223,7 @@
     scroll-behavior: auto !important;
   }
 }
+/* sonar-enable css:S9423 */
 
 /* Classe utilitária: texto visível só para leitores de tela */
 @layer components {

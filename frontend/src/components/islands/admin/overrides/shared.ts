@@ -2,7 +2,7 @@
  * Tipos e helpers compartilhados entre as três abas da ilha
  * `/admin/overrides` (port de `src/pages/admin/overrides.tsx`).
  */
-import type { EventSourceSummary, EventSummary } from "../../../../lib/events";
+import type { EventSummary } from "../../../../lib/events";
 
 export type AuthFetch = (path: string, init?: RequestInit) => Promise<Response>;
 

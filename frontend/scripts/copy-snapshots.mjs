@@ -4,7 +4,10 @@ import { join } from "node:path";
 // Copia os snapshots gerados pelos workflows do monorepo para public/ do Astro.
 // POC 0.1: apenas o índice de eventos. 0.3: social-stats e analytics entram no
 // pipeline (a Task 1 havia copiado analytics/index.json manualmente).
-// TODO(0.3+): generalizar para os JSONs per-event de static/events/**.
+// Limitação conhecida: só os index.json sobem — os ~421 JSONs per-event de
+// static/events/** ficam de fora. Nenhum consumidor do app (build ou runtime)
+// faz fetch deles hoje (itemPath é só metadado do índice), então a cópia
+// completa fica para quando existir um beneficiário.
 const ROOT = join(import.meta.dirname, "..", "..");
 const FRONTEND_PUBLIC = join(ROOT, "frontend", "public");
 
