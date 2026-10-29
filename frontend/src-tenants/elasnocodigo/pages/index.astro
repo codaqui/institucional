@@ -228,7 +228,7 @@ const ctaPrimaryHref = tenantBuild
     .cq-hero {
       background-color: var(--community-primary);
     }
-    [data-theme="dark"] .cq-hero {
+    :global([data-theme="dark"]) .cq-hero {
       background-color: var(--community-primary-dark);
     }
     /* Título/destaque do hero na cor de destaque do tema (accent). */
@@ -253,10 +253,10 @@ const ctaPrimaryHref = tenantBuild
     .cq-logo-dark {
       display: none;
     }
-    [data-theme="dark"] .cq-logo-light {
+    :global([data-theme="dark"]) .cq-logo-light {
       display: none;
     }
-    [data-theme="dark"] .cq-logo-dark {
+    :global([data-theme="dark"]) .cq-logo-dark {
       display: block;
     }
   </style>
