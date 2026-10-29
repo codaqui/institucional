@@ -14,6 +14,12 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/docs/intro")).toBe(false);
   });
 
+  it("/docs-json é API (spec OpenAPI da página /desenvolvedores/api — exato, sem colisão com /docs estático)", () => {
+    expect(isApiProxyPath("/docs-json")).toBe(true);
+    // qualquer subpath/irmão continua delegando ao estático:
+    expect(isApiProxyPath("/docs-json/extra")).toBe(false);
+  });
+
   it("prefixos de API com subpath", () => {
     expect(isApiProxyPath("/api/health")).toBe(true);
     expect(isApiProxyPath("/auth/github/callback")).toBe(true);

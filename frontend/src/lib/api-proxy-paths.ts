@@ -2,7 +2,17 @@
 // Sem "/docs" de propósito: a doc Swagger (backend) segue acessível direto em
 // api.codaqui.dev/docs e as páginas /docs dos tenants têm precedência de asset
 // estático — manter a entrada aqui só geraria ruído (revisão do PR #599).
-const API_EXACT_PATHS = new Set(["/health", "/auth/me", "/auth/logout", "/auth/finalize"]);
+// "/docs-json" (spec OpenAPI servido pelo @nestjs/swagger) é EXATO e não colide
+// com nenhuma rota estática: usado pela página /desenvolvedores/api do portal
+// (Swagger UI embarcada, mesmo-origin nos tenants via proxy e cross-origin
+// codaqui.dev → api.codaqui.dev via CORS whitelist).
+const API_EXACT_PATHS = new Set([
+  "/health",
+  "/auth/me",
+  "/auth/logout",
+  "/auth/finalize",
+  "/docs-json",
+]);
 // ⚠️ O prefixo admin é deliberadamente ESTREITO: o backend só expõe rotas sob
 // /admin/members (GET /admin/members + PATCH /admin/members/:id, via
 // method-level path no members.controller). O prefixo antigo "/admin/"

@@ -1,0 +1,36 @@
+---
+// Documentação interativa da API REST da Codaqui — Swagger UI embarcado
+// consumindo o spec OpenAPI ao vivo do backend (/docs-json). Rota pública
+// e indexável (fora de SITEMAP_EXCLUDE); a ilha carrega o swagger-ui-dist
+// via code-splitting e só roda no client (client:only — precisa de window).
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import ApiDocsIsland from "../../components/islands/ApiDocsIsland";
+---
+
+<PublicLayout
+  title="API — CODAQUI.dev"
+  ogTitle="API — CODAQUI.dev"
+  description="Documentação interativa (OpenAPI/Swagger) da API REST da Associação Codaqui — explore os endpoints e teste requisições ao vivo."
+>
+  <PageHero
+    eyebrow="Desenvolvedores"
+    title="API Codaqui"
+    subtitle="Documentação interativa e ao vivo da API REST da Associação Codaqui — contabilidade, eventos, membros e integrações."
+  />
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <p class="mb-6 text-sm leading-relaxed text-text-secondary">
+      O painel abaixo carrega o spec OpenAPI direto do backend
+      (<code>/docs-json</code>). Use o botão <strong>Authorize</strong> para
+      testar endpoints 🔒 — o token JWT (Bearer) é obtido pelo login GitHub
+      em <a
+        href="https://api.codaqui.dev"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="text-link hover:underline">api.codaqui.dev</a>.
+      As chamadas de teste partem do seu navegador para a API, com CORS
+      liberado para os domínios da Codaqui e das comunidades parceiras.
+    </p>
+    <ApiDocsIsland client:only="react" />
+  </div>
+</PublicLayout>
