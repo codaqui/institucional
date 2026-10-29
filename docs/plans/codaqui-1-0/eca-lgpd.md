@@ -161,7 +161,7 @@ Fora do 1.0.0 (registrado como alvo futuro): `c4p_calls.adultOnly` (Fase 7), fro
 
 ## Pontos abertos
 
-1. **Threshold do horário noturno** — proposta 18h (horário local do evento); confirmar na implementação.
+1. **Threshold do horário noturno** — ✅ **ratificado em 2026-10-29: 18h** (horário local do evento); copy v1 do warning aprovada para seguir, melhorias podem surgir na implementação.
 2. **Copy final do aviso** — validar com presidência/jurídico antes de publicar (menção ao ECA/LGPD deve ser precisa).
 3. **Variante ilha descartável** — decidir depois do lançamento da versão estática (se vale a hidratação).
 4. **Badge 🔞 vs "+18"** — manter texto "+18" legível com emoji decorativo `aria-hidden` (proposta deste design; confirmar em revisão de acessibilidade).
