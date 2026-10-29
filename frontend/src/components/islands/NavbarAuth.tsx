@@ -57,6 +57,13 @@ export function resolveAdminHref(auth: {
   return "/admin";
 }
 
+/** Conta colaborações: envelope `{ items: [] }` (paginado) ou array cru. */
+function collabCountFrom(data: unknown): number {
+  if (Array.isArray(data)) return data.length;
+  const items = (data as { items?: unknown[] } | null)?.items;
+  return Array.isArray(items) ? items.length : 0;
+}
+
 function useHasCompany(
   enabled: boolean,
   authFetch: (path: string, init?: RequestInit) => Promise<Response>,
@@ -73,12 +80,7 @@ function useHasCompany(
         const owned = ownedRes.ok;
         let collabCount = 0;
         try {
-          const data: unknown = await collabRes.json();
-          collabCount = Array.isArray(data)
-            ? data.length
-            : Array.isArray((data as { items?: unknown[] } | null)?.items)
-              ? ((data as { items: unknown[] }).items?.length ?? 0)
-              : 0;
+          collabCount = collabCountFrom(await collabRes.json());
         } catch {
           collabCount = 0;
         }

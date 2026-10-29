@@ -26,7 +26,10 @@ import type { Html, List, Parent, Root, RootContent, Text } from "mdast";
 
 export const ADMONITION_TYPES = ["info", "note", "tip", "warning"] as const;
 
-const OPENING_RE = /^:::([A-Za-z]+)(?:\[([^\]]*)\]| +([^\n]*?))?\s*$/;
+// Abertura parseada SEM regex super-linear (S8786): prefixo linear + string
+// ops para o título. `CLOSING_LINE_RE`/`LIST_ITEM_CLOSE_RE` não têm
+// quantificadores aninhados e seguem como regex.
+const OPENING_PREFIX_RE = /^:::([A-Za-z]+)/;
 const CLOSING_LINE_RE = /(?:^|\n):::[ \t]*(?=\n|$)/;
 const LIST_ITEM_CLOSE_RE = /\n:::[ \t]*$/;
 
@@ -41,12 +44,26 @@ interface Opening {
 }
 
 function parseOpening(line: string): Opening | null {
-  const match = OPENING_RE.exec(line);
+  const match = OPENING_PREFIX_RE.exec(line);
   if (!match) return null;
   const type = match[1].toLowerCase();
   if (!(ADMONITION_TYPES as readonly string[]).includes(type)) return null;
-  const title = (match[2] ?? match[3] ?? "").trim();
-  return { type, title: title || null };
+  const rest = line.slice(match[0].length);
+  let title: string;
+  if (rest.startsWith("[")) {
+    // Título fecha no PRIMEIRO `]` (page-9.md:168 tem backtick+`]` interno);
+    // depois do `]` só whitespace é aceito (a regex antiga exigia `\s*$`).
+    const close = rest.indexOf("]");
+    if (close === -1) return null;
+    if (rest.slice(close + 1).trim() !== "") return null;
+    title = rest.slice(1, close);
+  } else {
+    // Sem colchetes a regex antiga exigia ` +` (espaço) — `:::tip\tTítulo`
+    // (tab) ficava literal; só `:::tip`/`:::tip texto` abrem bloco.
+    if (rest !== "" && !rest.startsWith(" ")) return null;
+    title = rest;
+  }
+  return { type, title: title.trim() || null };
 }
 
 /** Texto integral de um nó (folhas `value` concatenadas em ordem; os `\n` vivem nos text nodes). */
@@ -127,6 +144,69 @@ export function remarkAdmonitions(this: unknown) {
     return start === undefined || end === undefined ? nodeText(node as Parent) : source.slice(start, end);
   };
 
+  /** Linha bruta de abertura do parágrafo (do source; fallback pro texto parseado). */
+  const openingLineOf = (node: RootContent): string => {
+    const start = node.position?.start.offset;
+    if (start === undefined) return nodeText(node as Parent).split("\n", 1)[0];
+    const lineEnd = source.indexOf("\n", start);
+    const sliceEnd = lineEnd === -1 ? undefined : lineEnd;
+    return source.slice(start, sliceEnd);
+  };
+
+  const openingOf = (node: RootContent): Opening | null => {
+    // Children[0] como text garante que o fonte começa literalmente com
+    // `:::` (protege `` `:::info` `` em inline code). Título da linha bruta.
+    if (node.type !== "paragraph" || node.children[0]?.type !== "text") return null;
+    return parseOpening(openingLineOf(node));
+  };
+
+  /**
+   * Varre os nós irmãos após a abertura até o `:::` de fechamento, acumulando
+   * o conteúdo. Devolve o texto à direita do fechamento e quantos nós foram
+   * consumidos, ou `null` quando não há fechamento (não transforma).
+   */
+  const collectUntilClose = (
+    children: RootContent[],
+    start: number,
+    content: RootContent[],
+  ): { trailing: string; consumed: number } | null => {
+    for (let j = start + 1; j < children.length; j++) {
+      const node = children[j];
+      if (node.type === "paragraph") {
+        const nodeRaw = rawOf(node);
+        const spans = closingSpans(nodeRaw);
+        if (spans) {
+          content.push(...parseBlocks(nodeRaw.slice(0, spans.beforeEnd)));
+          return {
+            trailing: nodeRaw.slice(spans.afterStart).replace(/^\n/, ""),
+            consumed: j - start + 1,
+          };
+        }
+      }
+      content.push(node);
+      if (node.type === "list" && stripListItemClose(node)) {
+        return { trailing: "", consumed: j - start + 1 };
+      }
+    }
+    return null; // sem `:::` de fechamento — não transforma
+  };
+
+  const buildAdmonition = (
+    opening: Opening,
+    content: RootContent[],
+    trailing: string | null,
+    consumed: number,
+  ): { nodes: RootContent[]; consumed: number } => {
+    const nodes: RootContent[] = [openHtml(opening), ...content, closeHtml()];
+    if (trailing && trailing.trim() !== "") {
+      nodes.push({
+        type: "paragraph",
+        children: [{ type: "text", value: trailing }],
+      });
+    }
+    return { nodes, consumed };
+  };
+
   const collect = (
     children: RootContent[],
     start: number,
@@ -151,39 +231,13 @@ export function remarkAdmonitions(this: unknown) {
       trailing =
         openingRaw.slice(firstLineEnd + 1 + openingClose.afterStart).replace(/^\n/, "");
     } else {
-      // Fechamento em nó seguinte.
-      let closed = false;
-      for (let j = start + 1; j < children.length; j++) {
-        const node = children[j];
-        if (node.type === "paragraph") {
-          const nodeRaw = rawOf(node);
-          const spans = closingSpans(nodeRaw);
-          if (spans) {
-            content.push(...parseBlocks(nodeRaw.slice(0, spans.beforeEnd)));
-            trailing = nodeRaw.slice(spans.afterStart).replace(/^\n/, "");
-            consumed = j - start + 1;
-            closed = true;
-            break;
-          }
-        }
-        content.push(node);
-        if (node.type === "list" && stripListItemClose(node)) {
-          consumed = j - start + 1;
-          closed = true;
-          break;
-        }
-      }
-      if (!closed) return null; // sem `:::` de fechamento — não transforma
+      const closed = collectUntilClose(children, start, content);
+      if (!closed) return null;
+      trailing = closed.trailing;
+      consumed = closed.consumed;
     }
 
-    const nodes: RootContent[] = [openHtml(opening), ...content, closeHtml()];
-    if (trailing && trailing.trim() !== "") {
-      nodes.push({
-        type: "paragraph",
-        children: [{ type: "text", value: trailing }],
-      });
-    }
-    return { nodes, consumed };
+    return buildAdmonition(opening, content, trailing, consumed);
   };
 
   const transform = (parent: Parent): void => {
@@ -194,24 +248,8 @@ export function remarkAdmonitions(this: unknown) {
     const children = parent.children as RootContent[];
     let i = 0;
     while (i < children.length) {
-      const node = children[i];
-      let opening: Opening | null = null;
-      if (node.type === "paragraph" && node.children[0]?.type === "text") {
-        // Children[0] como text garante que o fonte começa literalmente com
-        // `:::` (protege `` `:::info` `` em inline code). Título da linha bruta.
-        const start = node.position?.start.offset;
-        const lineEnd = start === undefined ? -1 : source.indexOf("\n", start);
-        const line =
-          start === undefined
-            ? nodeText(node).split("\n", 1)[0]
-            : source.slice(start, lineEnd === -1 ? undefined : lineEnd);
-        opening = parseOpening(line);
-      }
-      if (!opening) {
-        i++;
-        continue;
-      }
-      const result = collect(children, i, opening);
+      const opening = openingOf(children[i]);
+      const result = opening && collect(children, i, opening);
       if (!result) {
         i++;
         continue;

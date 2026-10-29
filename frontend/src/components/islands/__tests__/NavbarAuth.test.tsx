@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import NavbarAuth from "../NavbarAuth";
 import { renderWithMui } from "../../../test/render-mui";
+import { jsonResponse } from "../../../test/http-mock";
 import type { AuthUser } from "../../../lib/auth-client";
 
 const state = vi.hoisted(() => ({
@@ -63,14 +64,6 @@ function mockLoggedIn(roles: string[] = ["membro"]) {
   state.isEventFinance = roles.includes("event_finance");
   state.isEventHost = roles.includes("event_host");
   state.isEventChecker = roles.includes("event_checker");
-}
-
-function jsonResponse(body: unknown, init: ResponseInit = {}) {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
 }
 
 /** Sem empresa: /companies/me 404 e colaborações vazia. */
@@ -140,58 +133,20 @@ describe("NavbarAuth — dropdown desktop", () => {
     expect(screen.queryByRole("menuitem", { name: /minha empresa/i })).not.toBeInTheDocument();
   });
 
-  it("admin vê Painel Admin com href /admin", async () => {
-    mockLoggedIn(["admin"]);
+  it.each([
+    { role: "admin", href: "/admin" },
+    { role: "finance-analyzer", href: "/admin" },
+    { role: "event_organizer", href: "/admin/eventos" },
+    { role: "event_host", href: "/admin/eventos-checkin" },
+    { role: "event_checker", href: "/admin/eventos-checkin" },
+  ])("papel $role vê Painel Admin com href $href", async ({ role, href }) => {
+    mockLoggedIn([role]);
     renderWithMui(<NavbarAuth />);
     fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
 
     expect(await screen.findByRole("menuitem", { name: /painel admin/i })).toHaveAttribute(
       "href",
-      "/admin",
-    );
-  });
-
-  it("finance-analyzer vê Painel Admin com href /admin", async () => {
-    mockLoggedIn(["finance-analyzer"]);
-    renderWithMui(<NavbarAuth />);
-    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /painel admin/i })).toHaveAttribute(
-      "href",
-      "/admin",
-    );
-  });
-
-  it("event_organizer vê Painel Admin com href /admin/eventos", async () => {
-    mockLoggedIn(["event_organizer"]);
-    renderWithMui(<NavbarAuth />);
-    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /painel admin/i })).toHaveAttribute(
-      "href",
-      "/admin/eventos",
-    );
-  });
-
-  it("event_host vê Painel Admin com href /admin/eventos-checkin", async () => {
-    mockLoggedIn(["event_host"]);
-    renderWithMui(<NavbarAuth />);
-    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /painel admin/i })).toHaveAttribute(
-      "href",
-      "/admin/eventos-checkin",
-    );
-  });
-
-  it("event_checker vê Painel Admin com href /admin/eventos-checkin", async () => {
-    mockLoggedIn(["event_checker"]);
-    renderWithMui(<NavbarAuth />);
-    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
-
-    expect(await screen.findByRole("menuitem", { name: /painel admin/i })).toHaveAttribute(
-      "href",
-      "/admin/eventos-checkin",
+      href,
     );
   });
 

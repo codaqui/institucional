@@ -4,12 +4,13 @@
  * controles + label de intervalo, troca de página refetch em
  * `/members?page=N&limit=100` e a nota de busca client-side por página.
  */
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import MembersDirectoryIsland from "../MembersDirectoryIsland";
 import { renderWithMui } from "../../../test/render-mui";
+import { jsonResponse, useFetchMock } from "../../../test/http-mock";
 
-let fetchMock = vi.fn();
+const fetchMock = useFetchMock();
 
 vi.mock("../../../lib/api-url", () => ({
   resolveApiUrl: () => "https://api.test",
@@ -52,16 +53,9 @@ function membersPage(data: MemberShape[], page: number, total: number, totalPage
   };
 }
 
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
 /** Roteador de fetch: membros paginados + donors/club/business vazios. */
 function mockDirectoryFetch(total: number, totalPages: number) {
-  fetchMock.mockImplementation((url: string) => {
+  fetchMock.current.mockImplementation((url: string) => {
     if (url.includes("/members?page=1&limit=100")) {
       return Promise.resolve(
         jsonResponse(membersPage(page1Members, 1, total, totalPages)),
@@ -90,15 +84,6 @@ async function renderDirectory(total: number, totalPages: number) {
 }
 
 describe("MembersDirectoryIsland — paginação", () => {
-  beforeEach(() => {
-    fetchMock = vi.fn();
-    vi.stubGlobal("fetch", fetchMock);
-  });
-
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("total ≤ 100: renderiza membros sem controles de paginação", async () => {
     await renderDirectory(2, 1);
 
@@ -130,7 +115,7 @@ describe("MembersDirectoryIsland — paginação", () => {
     await screen.findByText("Carol Souza");
     expect(screen.queryByText("Ana Silva")).not.toBeInTheDocument();
     expect(screen.getByText("Mostrando 101–150 de 150")).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith(
+    expect(fetchMock.current).toHaveBeenCalledWith(
       "https://api.test/members?page=2&limit=100",
     );
 
@@ -138,7 +123,7 @@ describe("MembersDirectoryIsland — paginação", () => {
     fireEvent.click(screen.getByRole("button", { name: "Página anterior" }));
     await screen.findByText("Ana Silva");
     expect(
-      fetchMock.mock.calls.filter((call: unknown[]) =>
+      fetchMock.current.mock.calls.filter((call: unknown[]) =>
         String(call[0]).includes("/members?page=1&limit=100"),
       ),
     ).toHaveLength(2);
@@ -163,9 +148,9 @@ describe("MembersDirectoryIsland — paginação", () => {
     await renderDirectory(150, 2);
 
     // A partir de agora, página 2 falha.
-    fetchMock.mockImplementation((url: string) => {
+    fetchMock.current.mockImplementation((url: string) => {
       if (url.includes("/members?page=2")) {
-        return Promise.resolve(jsonResponse({}, 503));
+        return Promise.resolve(jsonResponse({}, { status: 503 }));
       }
       if (url.includes("/members?page=1")) {
         return Promise.resolve(

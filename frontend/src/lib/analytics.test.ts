@@ -4,7 +4,7 @@ import {
   parseRawWebsiteInfo,
   parseRawPages,
   parseRawDimensions,
-  DADOS_RAW_BASE,
+  isAllowedHost,
 } from "./analytics";
 import { ANALYTICS_URL, type AnalyticsSnapshot } from "../data/analytics";
 
@@ -64,7 +64,7 @@ const RAW_INFO = {
 function dadosRouter(periods: string[]) {
   return vi.fn(async (url: string | URL | Request): Promise<Response> => {
     const u = String(url);
-    if (u.startsWith("https://api.github.com")) {
+    if (isAllowedHost(u, ["api.github.com"])) {
       return jsonResponse(
         periods.map((name) => ({ name, type: "dir" })),
       );
@@ -156,7 +156,7 @@ describe("loadAnalyticsWithFallback", () => {
     expect(routingMock).toHaveBeenCalledTimes(16);
     const rawUrls = routingMock.mock.calls
       .map(([u]) => String(u))
-      .filter((u) => u.startsWith(DADOS_RAW_BASE));
+      .filter((u) => isAllowedHost(u, ["raw.githubusercontent.com"]));
     expect(rawUrls).toHaveLength(14);
     expect(rawUrls.every((u) => u.endsWith(".json"))).toBe(true);
   });
@@ -218,7 +218,7 @@ describe("loadAnalyticsWithFallback", () => {
     const fetchMock = vi.fn(async (url: string | URL | Request) => {
       const u = String(url);
       if (u === ANALYTICS_URL) throw new Error("down");
-      if (u.startsWith("https://api.github.com")) {
+      if (isAllowedHost(u, ["api.github.com"])) {
         return jsonResponse(periods.map((name) => ({ name, type: "dir" })));
       }
       if (u.endsWith("/website_info.json")) {
@@ -247,6 +247,36 @@ describe("loadAnalyticsWithFallback", () => {
     );
 
     await expect(loadAnalyticsWithFallback()).rejects.toThrow();
+  });
+});
+
+describe("isAllowedHost", () => {
+  const GITHUB_HOSTS = ["api.github.com", "raw.githubusercontent.com"] as const;
+
+  it("aceita URLs cujo hostname bate exatamente, com path/query/fragment", () => {
+    expect(
+      isAllowedHost("https://api.github.com/repos/codaqui/dados/contents/data", GITHUB_HOSTS),
+    ).toBe(true);
+    expect(
+      isAllowedHost(
+        "https://raw.githubusercontent.com/codaqui/dados/main/data/2026-09/website_info.json?x=1#y",
+        GITHUB_HOSTS,
+      ),
+    ).toBe(true);
+  });
+
+  it("rejeita sufixo de host falso (substring no início da URL)", () => {
+    // O bypass clássico de startsWith("https://api.github.com"):
+    expect(isAllowedHost("https://api.github.com.evil.example/x", GITHUB_HOSTS)).toBe(false);
+    expect(isAllowedHost("https://api.github.com@evil.example/x", GITHUB_HOSTS)).toBe(false);
+  });
+
+  it("rejeita subdomínio, host diferente, outro protocolo e URL inválida", () => {
+    expect(isAllowedHost("https://sub.api.github.com/x", GITHUB_HOSTS)).toBe(false);
+    expect(isAllowedHost("https://github.com/codaqui/dados", GITHUB_HOSTS)).toBe(false);
+    expect(isAllowedHost("http://api.github.com/x", GITHUB_HOSTS)).toBe(false);
+    expect(isAllowedHost("não-é-url", GITHUB_HOSTS)).toBe(false);
+    expect(isAllowedHost("", GITHUB_HOSTS)).toBe(false);
   });
 });
 

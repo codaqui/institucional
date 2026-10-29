@@ -24,6 +24,22 @@ export interface AnalyticsLoadResult {
   fromFallback: boolean;
 }
 
+/**
+ * Validação de host por parsing real — `startsWith("https://api.github.com")`
+ * deixa passar `https://api.github.com.evil.example/x` ou
+ * `https://api.github.com@evil.example` (CodeQL
+ * js/incomplete-url-substring-sanitization). Exige HTTPS (os endpoints do
+ * failover são https-only) e devolve `false` em URL inválida.
+ */
+export function isAllowedHost(url: string, hosts: readonly string[]): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" && hosts.includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
 async function fetchJson(url: string): Promise<unknown> {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
