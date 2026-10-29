@@ -1,57 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
+import {
+  authState,
+  jsonResponse,
+  mockLoggedIn,
+  resetAuthState,
+  stubLocation,
+} from "../../../../../test/admin-auth-fixtures";
 import ReembolsosApp from "../ReembolsosApp";
 import { renderWithMui } from "../../../../../test/render-mui";
-import type { AuthUser } from "../../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta
-// os campos que precisa no beforeEach/corpo.
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  isAdmin: false,
-  isFinanceAnalyzer: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.isAdmin,
-    isFinanceAnalyzer: authState.isFinanceAnalyzer,
-    authFetch: authState.authFetch,
-  }),
-}));
-
-function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
-}
-
-function makeUser(roles: string[]): AuthUser {
-  return {
-    sub: "sub-1",
-    githubId: "github-1",
-    handle: "octocat",
-    name: "Monalisa Octocat",
-    avatarUrl: "https://avatars.githubusercontent.com/octocat",
-    roles,
-  };
-}
-
-function mockLoggedIn(roles: string[]) {
-  authState.user = makeUser(roles);
-  authState.ready = true;
-  authState.isLoggedIn = true;
-  authState.isAdmin = roles.includes("admin");
-  authState.isFinanceAnalyzer = roles.includes("finance-analyzer");
-}
 
 /** O saldo das contas vem de um fetch público (sem auth). */
 function stubBalancesFetch() {
@@ -60,19 +17,9 @@ function stubBalancesFetch() {
   return fetchMock;
 }
 
-function stubLocation() {
-  const replace = vi.fn();
-  vi.stubGlobal("location", { replace });
-  return replace;
-}
-
 describe("/admin/reembolsos", () => {
   beforeEach(() => {
-    authState.user = null;
-    authState.ready = false;
-    authState.isLoggedIn = false;
-    authState.isAdmin = false;
-    authState.isFinanceAnalyzer = false;
+    resetAuthState();
     authState.authFetch = vi.fn(async (url: string) => {
       if (url.includes("/reimbursements")) {
         return jsonResponse({ data: [] });

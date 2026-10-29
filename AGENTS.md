@@ -214,8 +214,8 @@ institucional/
 │   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
 ├── static/                      # ⭐ Snapshots gerados por workflows (events/, social-stats/, analytics/, img/)
 ├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   ├── data/                    # Dados consumidos pelos syncs (communities.ts, social.ts)
 │   └── *.mjs                    # sync-events / sync-social-stats / sync-analytics (+ testes .test.mjs)
+│                                #    (os syncs leem os data files canônicos de frontend/src/data/)
 ├── docs/                        # Documentação técnica (ADRs, módulos, planos)
 ├── .github/workflows/           # 6 workflows (ver Git Workflow & Deployment)
 └── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
@@ -510,7 +510,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Team changes | As needed | `frontend/src/data/team.ts` |
 | New community partners | As needed | `frontend/src/data/communities.ts` + `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
 | Timeline events | Annually | `frontend/src/data/timeline.ts` |
-| Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` + `scripts/data/social.ts` |
+| Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
 | Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
 | Event sources/fallbacks | As needed | `events.config.json` |
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |

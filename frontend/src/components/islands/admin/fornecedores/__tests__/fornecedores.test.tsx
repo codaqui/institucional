@@ -1,58 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import {
+  authState,
+  jsonResponse,
+  mockLoggedIn,
+  resetAuthState,
+  stubLocation,
+} from "../../../../../test/admin-auth-fixtures";
 import FornecedoresApp from "../FornecedoresApp";
 import { renderWithMui } from "../../../../../test/render-mui";
-import type { AuthUser } from "../../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta
-// os campos que precisa no beforeEach/corpo.
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  isAdmin: false,
-  isFinanceAnalyzer: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.isAdmin,
-    isFinanceAnalyzer: authState.isFinanceAnalyzer,
-    authFetch: authState.authFetch,
-  }),
-}));
-
-function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-    ...init,
-  });
-}
-
-function makeUser(roles: string[]): AuthUser {
-  return {
-    sub: "sub-1",
-    githubId: "github-1",
-    handle: "octocat",
-    name: "Monalisa Octocat",
-    avatarUrl: "https://avatars.githubusercontent.com/octocat",
-    roles,
-  };
-}
-
-function mockLoggedIn(roles: string[]) {
-  authState.user = makeUser(roles);
-  authState.ready = true;
-  authState.isLoggedIn = true;
-  authState.isAdmin = roles.includes("admin");
-  authState.isFinanceAnalyzer = roles.includes("finance-analyzer");
-}
 
 const VENDOR = {
   id: "v1",
@@ -67,12 +24,6 @@ const VENDOR = {
   receiptCount: 1,
 };
 
-function stubLocation() {
-  const replace = vi.fn();
-  vi.stubGlobal("location", { replace });
-  return replace;
-}
-
 function mockVendorsGet(list: unknown[], overrides?: Response) {
   authState.authFetch = vi.fn(async (url: string) => {
     if (url === "/vendors/with-counters") return overrides ?? jsonResponse(list);
@@ -82,11 +33,7 @@ function mockVendorsGet(list: unknown[], overrides?: Response) {
 
 describe("/admin/fornecedores", () => {
   beforeEach(() => {
-    authState.user = null;
-    authState.ready = false;
-    authState.isLoggedIn = false;
-    authState.isAdmin = false;
-    authState.isFinanceAnalyzer = false;
+    resetAuthState();
     mockVendorsGet([]);
   });
 

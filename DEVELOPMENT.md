@@ -115,7 +115,7 @@ reclamar de uma divergência legítima, ajuste a decisão de URL com o time (e o
 | Trilhas | `trilhas/python/` ou `trilhas/github/` (fonte canônica) |
 | Páginas | `frontend/src/pages/` |
 | Componentes (Astro/React) | `frontend/src/components/` |
-| Dados das listas (equipe, comunidades, projetos, timeline, social) | `frontend/src/data/` (espelho parcial versionado em `scripts/data/` na raiz) |
+| Dados das listas (equipe, comunidades, projetos, timeline, social) | `frontend/src/data/` (canônico — os syncs da raiz leem destes mesmos arquivos) |
 | Tokens do design system | `frontend/src/styles/tokens.css` |
 | Estilos globais | `frontend/src/styles/global.css` |
 

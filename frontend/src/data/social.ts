@@ -1,6 +1,6 @@
-// Subconjunto portado de src/data/social.ts (site Docusaurus) — exports usados
-// pela homepage e footer, mais codaquiSocialProfiles (usado pelo hook
-// useSocialStatsSnapshot) e PLATFORM_COLORS (chips sociais / MembersWall).
+// Fonte canônica de canais/perfis sociais — consumida pelo site (homepage, footer,
+// chips sociais) E pelo sync-social-stats.mjs da raiz (parse por regex). Ao alterar
+// os perfis aqui, o próximo sync atualiza static/social-stats/.
 
 import type { SocialProfile } from "./social-stats";
 
