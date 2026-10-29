@@ -52,11 +52,18 @@ body {
   font-family: var(--cq-font-family-base);
 }
 
-a {
-  color: var(--cq-link);
-}
-a:hover {
-  color: var(--cq-link-hover);
+/* Estilos base de âncora DENTRO de @layer base: fora de layer, estas
+ * regras venceriam TODOS os utilitários Tailwind (text-white, text-text-primary,
+ * hover:text-*) em qualquer <a> — ex.: CTA branco do hero renderizando a cor
+ * de link (--cq-link, 1.75:1 sobre o bg branco no dark). Em @layer base os
+ * utilitários (layer utilities, posterior) voltam a ter precedência. */
+@layer base {
+  a {
+    color: var(--cq-link);
+  }
+  a:hover {
+    color: var(--cq-link-hover);
+  }
 }
 
 /* AppLayout (painel): o hambúrguer/backdrop são <label for> de um checkbox

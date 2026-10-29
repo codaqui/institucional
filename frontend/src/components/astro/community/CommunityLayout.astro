@@ -72,6 +72,12 @@ const codaquiHref = isTenantBuild ? resolveCodaquiUrl(CODAQUI_SITE_URL, "/") : n
 
 // Footer escuro de comunidade: logo branco quando disponível.
 const footerLogo = config.logoUrlDark ?? config.logoUrl;
+// Header troca a logo por tema (U4): só renderiza a variante dark quando
+// difere da light (campostechpg/devparana apontam as duas para o mesmo asset).
+const headerLogoDark =
+  config.logoUrlDark && config.logoUrlDark !== config.logoUrl
+    ? config.logoUrlDark
+    : null;
 ---
 
 <!doctype html>
@@ -119,7 +125,19 @@ const footerLogo = config.logoUrlDark ?? config.logoUrl;
         aria-label="Navegação principal"
       >
         <a href={homeHref} class="flex shrink-0 items-center gap-2 no-underline">
-          <img src={config.logoUrl} alt={config.name} class="h-8 w-auto" />
+          <span class="inline-flex h-8 items-center">
+            <img src={config.logoUrl} alt={config.name} class="cq-logo-light h-8 w-auto" />
+            {
+              headerLogoDark && (
+                <img
+                  src={headerLogoDark}
+                  alt=""
+                  aria-hidden="true"
+                  class="cq-logo-dark h-8 w-auto"
+                />
+              )
+            }
+          </span>
           <span class="font-extrabold text-text-primary">{config.shortName}</span>
         </a>
         <ul class="ms-auto flex list-none items-center gap-1 overflow-x-auto p-0">
@@ -183,5 +201,21 @@ const footerLogo = config.logoUrlDark ?? config.logoUrl;
         </nav>
       </div>
     </footer>
+
+    <style>
+      /* Logo do header por tema (U4): configs com logoUrlDark (ex.: tisocial)
+       * trocam para a variante branca no dark — mesmo padrão da home de
+       * elasnocodigo (cq-logo-light/cq-logo-dark). data-theme é setado no
+       * <html> pelo script anti-FOUC do <head>. */
+      .cq-logo-dark {
+        display: none;
+      }
+      [data-theme="dark"] .cq-logo-light {
+        display: none;
+      }
+      [data-theme="dark"] .cq-logo-dark {
+        display: block;
+      }
+    </style>
   </body>
 </html>

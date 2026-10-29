@@ -91,12 +91,17 @@ const OPEN_IN_NEW_PATH =
    * de dados do tenant e o branco do texto precisa de AA — #8DC044 (TI Social)
    * tem só 2.15:1, #1ba250 (DevParaná) 3.32:1. O mix a 62% garante ≥5.15:1
    * nos tenants cadastrados; uma primária ainda mais clara pede ajuste no
-   * config da comunidade. No escuro primaryDark já é escuro (≥5.4:1). */
+   * config da comunidade.
+   * No escuro o mesmo mix a 35% mantém a identidade da marca (fundo
+   * verde-muito-escuro em vez do cinza neutro do primaryDark de alguns
+   * tenants) com contraste ≥10.8:1 do branco (medido: tisocial 10.79,
+   * devparana 13.01, elasnocodigo 16.22) — consistência com a estética
+   * "dark menos estourado" do restante do tema. */
   .cq-hero {
     background-color: color-mix(in srgb, var(--community-primary) 62%, black);
   }
-  [data-theme="dark"] .cq-hero {
-    background-color: var(--community-primary-dark);
+  :global([data-theme="dark"]) .cq-hero {
+    background-color: color-mix(in srgb, var(--community-primary) 35%, black);
   }
   /* CTA primário (ambos os temas): fundo branco com texto primaryDark
    * (≥5.4:1 sobre branco nos três tenants). O dark invertia para bg
