@@ -55,6 +55,17 @@ describe("MarkdownLite", () => {
     );
   });
 
+  it("URL com parênteses: corta no primeiro ')' (comportamento do regex original)", () => {
+    const { container } = renderWithMui(
+      <MarkdownLite text={"Veja [a página](https://pt.wikipedia.org/wiki/Algo_(disambiguação))."} />,
+    );
+    const link = screen.getByRole("link", { name: "a página" });
+    expect(link).toHaveAttribute("href", "https://pt.wikipedia.org/wiki/Algo_(disambiguação");
+    expect(container.querySelector("p")?.textContent).toBe(
+      "Veja a página).",
+    );
+  });
+
   it("BLOQUEIA HTML cru: tags são escapadas como texto, nunca viram elementos", () => {
     const { container } = renderWithMui(
       <MarkdownLite text={"<script>alert(1)</script>"} />,

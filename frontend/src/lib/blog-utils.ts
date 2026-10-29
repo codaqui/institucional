@@ -42,15 +42,77 @@ export function resolveAuthors(authors: (string | BlogAuthor)[]): BlogAuthor[] {
   return authors.map((a) => (typeof a === "string" ? (BLOG_AUTHORS[a] ?? { name: a }) : a));
 }
 
+// Stripping de imagens/links/tags por varredura (indexOf/slice) — sem regex de
+// quantificadores (Sonar S8786). Replica a semântica das regexes anteriores:
+// cada delimitador fecha na primeira ocorrência (a classe do URL original era
+// `[^)]` — whitespace é permitido, diferente do MarkdownLite).
+
+/** `![alt](url)` → espaço (imagens saem do texto). */
+function stripImageLinks(markdown: string): string {
+  let result = "";
+  let cursor = 0;
+  let p = markdown.indexOf("![", cursor);
+  while (p !== -1) {
+    const bracketClose = markdown.indexOf("]", p + 2);
+    if (bracketClose !== -1 && markdown[bracketClose + 1] === "(") {
+      const parenClose = markdown.indexOf(")", bracketClose + 2);
+      if (parenClose !== -1) {
+        result += markdown.slice(cursor, p) + " ";
+        cursor = parenClose + 1;
+        p = markdown.indexOf("![", cursor);
+        continue;
+      }
+    }
+    p = markdown.indexOf("![", p + 1);
+  }
+  return result + markdown.slice(cursor);
+}
+
+/** `[texto](url)` → `texto` (rótulo preservado; imagens já removidas). */
+function stripTextLinks(markdown: string): string {
+  let result = "";
+  let cursor = 0;
+  let p = markdown.indexOf("[", cursor);
+  while (p !== -1) {
+    const bracketClose = markdown.indexOf("]", p + 1);
+    if (bracketClose !== -1 && markdown[bracketClose + 1] === "(") {
+      const parenClose = markdown.indexOf(")", bracketClose + 2);
+      if (parenClose !== -1) {
+        result += markdown.slice(cursor, p) + markdown.slice(p + 1, bracketClose);
+        cursor = parenClose + 1;
+        p = markdown.indexOf("[", cursor);
+        continue;
+      }
+    }
+    p = markdown.indexOf("[", p + 1);
+  }
+  return result + markdown.slice(cursor);
+}
+
+/** `<tag …>` → espaço (tags HTML cruas saem do texto). */
+function stripHtmlTags(markdown: string): string {
+  let result = "";
+  let cursor = 0;
+  let p = markdown.indexOf("<", cursor);
+  while (p !== -1) {
+    const close = markdown.indexOf(">", p + 1);
+    if (close !== -1 && close > p + 1) {
+      result += markdown.slice(cursor, p) + " ";
+      cursor = close + 1;
+      p = markdown.indexOf("<", cursor);
+      continue;
+    }
+    p = markdown.indexOf("<", p + 1);
+  }
+  return result + markdown.slice(cursor);
+}
+
 export function plainText(markdown: string): string {
-  // Quantificadores lazy (Sonar S8786): as classes de conteúdo excluem os
-  // delimitadores (`]`, `)`, `>`), então lazy e greedy têm o mesmo primeiro
-  // match — sem o backtracking super-linear de corpos grandes sem match.
-  return markdown
-    .replace(/```[\s\S]*?```/g, " ")
-    .replace(/!\[[^\]]*?\]\([^)]*?\)/g, " ")
-    .replace(/\[([^\]]*?)\]\([^)]*?\)/g, "$1")
-    .replace(/<[^>]+?>/g, " ")
+  let text = markdown.replace(/```[\s\S]*?```/g, " ");
+  text = stripImageLinks(text);
+  text = stripTextLinks(text);
+  text = stripHtmlTags(text);
+  return text
     .replace(/[#*_>`-]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();

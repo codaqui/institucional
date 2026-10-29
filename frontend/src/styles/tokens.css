@@ -206,24 +206,23 @@
   border-radius: var(--cq-radius-sm);
 }
 
-/* Respeito a prefers-reduced-motion (WCAG 2.3.3) */
-/* sonar-disable css:S9423 -- !important estritamente necessário: este é o
-   reset canônico de reduced-motion e precisa vencer estilos que uma regra
-   comum não alcança — classes de transição do MUI/Emotion (especificidade de
-   classe > `*`) e estilos inline (`style=`). Sem !important componentes com
-   transition própria continuariam animando para quem pediu redução de
-   movimento. */
+/* Respeito a prefers-reduced-motion (WCAG 2.3.3).
+   O `!important` é estritamente necessário aqui: o reset precisa vencer
+   estilos inline (`style={{ transition: … }}`, ex.: SiteAnalyticsIsland) e
+   classes de transição do MUI/Emotion — especificidade de seletor não
+   alcança nenhum dos dois. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
+    /* sonar-disable css:S9423 */
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+    /* sonar-enable */
   }
 }
-/* sonar-enable css:S9423 */
 
 /* Classe utilitária: texto visível só para leitores de tela */
 @layer components {

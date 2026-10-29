@@ -14,54 +14,103 @@ interface MarkdownLiteProps {
 // *itálico* / _itálico_, [links](http|https), listas "- " e títulos ## / ###.
 // Qualquer outra sintaxe é renderizada como texto literal (fail-safe).
 
-// Quantificadores lazy para evitar backtracking super-linear (Sonar S8786):
-// como as classes de conteúdo excluem os próprios delimitadores (`*`/`_`/`]`/
-// `)`), greedy e lazy encontram exatamente o mesmo primeiro match — o conteúdo
-// termina sempre na primeira ocorrência do delimitador.
+// O parsing inline é uma varredura por delimitadores (indexOf/slice) em vez de
+// uma regex com alternância de quantificadores (Sonar S8786 — sem regex no hot
+// path). Mantém a semântica do regex original: posição mais à esquerda e, nela,
+// prioridade `**` > `*` > `_` > `[texto](url)`; conteúdos não podem conter o
+// próprio delimitador e o URL corta no primeiro `)` sem whitespace.
 const SAFE_URL_RE = /^https?:\/\/\S+$/i;
-const INLINE_RE =
-  /(\*\*([^*]+?)\*\*)|(\*([^*]+?)\*)|(_([^_]+?)_)|(\[([^\]]+?)\]\(([^)\s]+?)\))/g;
+
+type InlineToken =
+  | { kind: "bold"; content: string; end: number }
+  | { kind: "em"; content: string; end: number }
+  | { kind: "link"; label: string; url: string; end: number };
+
+/** Tenta casar um token inline em `line[i]`; retorna null se não houver match. */
+function parseInlineAt(line: string, i: number): InlineToken | null {
+  const ch = line[i];
+  if (ch === "*") {
+    if (line[i + 1] === "*") {
+      // **negrito**: fecha no primeiro `**`; um `*` solto antes dele impede o
+      // match (`[^*]+` não cruza o delimitador), como no regex original.
+      const close = line.indexOf("*", i + 2);
+      if (close !== -1 && close > i + 2 && line[close + 1] === "*") {
+        return { kind: "bold", content: line.slice(i + 2, close), end: close + 2 };
+      }
+      return null;
+    }
+    const close = line.indexOf("*", i + 1);
+    if (close !== -1 && close > i + 1) {
+      return { kind: "em", content: line.slice(i + 1, close), end: close + 1 };
+    }
+    return null;
+  }
+  if (ch === "_") {
+    const close = line.indexOf("_", i + 1);
+    if (close !== -1 && close > i + 1) {
+      return { kind: "em", content: line.slice(i + 1, close), end: close + 1 };
+    }
+    return null;
+  }
+  if (ch === "[") {
+    const bracketClose = line.indexOf("]", i + 1);
+    if (bracketClose === -1 || bracketClose === i + 1) return null; // rótulo 1+
+    if (line[bracketClose + 1] !== "(") return null;
+    const parenClose = line.indexOf(")", bracketClose + 2);
+    if (parenClose === -1 || parenClose === bracketClose + 2) return null; // URL 1+
+    const url = line.slice(bracketClose + 2, parenClose);
+    if (/\s/.test(url)) return null; // classe [^)\s] do regex original
+    return {
+      kind: "link",
+      label: line.slice(i + 1, bracketClose),
+      url,
+      end: parenClose + 1,
+    };
+  }
+  return null;
+}
 
 function renderInline(line: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-  INLINE_RE.lastIndex = 0;
+  let textStart = 0;
+  let i = 0;
 
-  while ((match = INLINE_RE.exec(line)) !== null) {
-    if (match.index > lastIndex) {
-      nodes.push(line.slice(lastIndex, match.index));
+  while (i < line.length) {
+    const token = parseInlineAt(line, i);
+    if (token === null) {
+      i += 1;
+      continue;
     }
-    const key = `${keyPrefix}-${match.index}`;
-    if (match[1] !== undefined) {
-      nodes.push(<strong key={key}>{match[2]}</strong>);
-    } else if (match[3] !== undefined) {
-      nodes.push(<em key={key}>{match[4]}</em>);
-    } else if (match[5] !== undefined) {
-      nodes.push(<em key={key}>{match[6]}</em>);
-    } else if (match[7] !== undefined) {
-      const url = match[9];
-      if (SAFE_URL_RE.test(url)) {
-        nodes.push(
-          <Link
-            key={key}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            color="primary"
-          >
-            {match[8]}
-          </Link>,
-        );
-      } else {
-        nodes.push(match[7]);
-      }
+    if (i > textStart) {
+      nodes.push(line.slice(textStart, i));
     }
-    lastIndex = match.index + match[0].length;
+    const key = `${keyPrefix}-${i}`;
+    if (token.kind === "bold") {
+      nodes.push(<strong key={key}>{token.content}</strong>);
+    } else if (token.kind === "em") {
+      nodes.push(<em key={key}>{token.content}</em>);
+    } else if (SAFE_URL_RE.test(token.url)) {
+      nodes.push(
+        <Link
+          key={key}
+          href={token.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          color="primary"
+        >
+          {token.label}
+        </Link>,
+      );
+    } else {
+      // URL fora do subconjunto seguro: a sintaxe inteira vira texto literal.
+      nodes.push(line.slice(i, token.end));
+    }
+    i = token.end;
+    textStart = i;
   }
 
-  if (lastIndex < line.length) {
-    nodes.push(line.slice(lastIndex));
+  if (textStart < line.length) {
+    nodes.push(line.slice(textStart));
   }
   return nodes;
 }
