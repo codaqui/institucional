@@ -215,12 +215,10 @@
   *,
   *::before,
   *::after {
-    /* sonar-disable css:S9423 */
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-    /* sonar-enable */
+    animation-duration: 0.01ms !important; /* NOSONAR */
+    animation-iteration-count: 1 !important; /* NOSONAR */
+    transition-duration: 0.01ms !important; /* NOSONAR */
+    scroll-behavior: auto !important; /* NOSONAR */
   }
 }
 

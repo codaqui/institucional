@@ -26,47 +26,47 @@ type InlineToken =
   | { kind: "em"; content: string; end: number }
   | { kind: "link"; label: string; url: string; end: number };
 
+/** `*itálico*` / `_itálico_`: fecha no próximo marcador; conteúdo precisa
+ * ter 1+ caracteres (`[^*]+`/`[^_]+` do regex original). */
+function parseEm(line: string, i: number, marker: "*" | "_"): InlineToken | null {
+  const close = line.indexOf(marker, i + 1);
+  if (close === -1 || close === i + 1) return null;
+  return { kind: "em", content: line.slice(i + 1, close), end: close + 1 };
+}
+
+/** `**negrito**`: fecha no primeiro `**`; um `*` solto antes dele impede o
+ * match (`[^*]+` não cruza o delimitador), como no regex original. */
+function parseBold(line: string, i: number): InlineToken | null {
+  const close = line.indexOf("*", i + 2);
+  if (close === -1 || close === i + 2 || line[close + 1] !== "*") return null;
+  return { kind: "bold", content: line.slice(i + 2, close), end: close + 2 };
+}
+
+/** `[texto](url)`: rótulo 1+, URL 1+ sem whitespace, corta no primeiro `)`. */
+function parseLink(line: string, i: number): InlineToken | null {
+  const bracketClose = line.indexOf("]", i + 1);
+  if (bracketClose === -1 || bracketClose === i + 1) return null; // rótulo 1+
+  if (line[bracketClose + 1] !== "(") return null;
+  const parenClose = line.indexOf(")", bracketClose + 2);
+  if (parenClose === -1 || parenClose === bracketClose + 2) return null; // URL 1+
+  const url = line.slice(bracketClose + 2, parenClose);
+  if (/\s/.test(url)) return null; // classe [^)\s] do regex original
+  return {
+    kind: "link",
+    label: line.slice(i + 1, bracketClose),
+    url,
+    end: parenClose + 1,
+  };
+}
+
 /** Tenta casar um token inline em `line[i]`; retorna null se não houver match. */
 function parseInlineAt(line: string, i: number): InlineToken | null {
   const ch = line[i];
   if (ch === "*") {
-    if (line[i + 1] === "*") {
-      // **negrito**: fecha no primeiro `**`; um `*` solto antes dele impede o
-      // match (`[^*]+` não cruza o delimitador), como no regex original.
-      const close = line.indexOf("*", i + 2);
-      if (close !== -1 && close > i + 2 && line[close + 1] === "*") {
-        return { kind: "bold", content: line.slice(i + 2, close), end: close + 2 };
-      }
-      return null;
-    }
-    const close = line.indexOf("*", i + 1);
-    if (close !== -1 && close > i + 1) {
-      return { kind: "em", content: line.slice(i + 1, close), end: close + 1 };
-    }
-    return null;
+    return line[i + 1] === "*" ? parseBold(line, i) : parseEm(line, i, "*");
   }
-  if (ch === "_") {
-    const close = line.indexOf("_", i + 1);
-    if (close !== -1 && close > i + 1) {
-      return { kind: "em", content: line.slice(i + 1, close), end: close + 1 };
-    }
-    return null;
-  }
-  if (ch === "[") {
-    const bracketClose = line.indexOf("]", i + 1);
-    if (bracketClose === -1 || bracketClose === i + 1) return null; // rótulo 1+
-    if (line[bracketClose + 1] !== "(") return null;
-    const parenClose = line.indexOf(")", bracketClose + 2);
-    if (parenClose === -1 || parenClose === bracketClose + 2) return null; // URL 1+
-    const url = line.slice(bracketClose + 2, parenClose);
-    if (/\s/.test(url)) return null; // classe [^)\s] do regex original
-    return {
-      kind: "link",
-      label: line.slice(i + 1, bracketClose),
-      url,
-      end: parenClose + 1,
-    };
-  }
+  if (ch === "_") return parseEm(line, i, "_");
+  if (ch === "[") return parseLink(line, i);
   return null;
 }
 

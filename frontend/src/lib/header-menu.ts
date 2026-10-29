@@ -73,6 +73,6 @@ export function nextTrapTarget(
   const index = active ? focusables.indexOf(active as HTMLElement) : -1;
   if (index < 0) return focusables[0];
   if (!shiftKey && index === focusables.length - 1) return focusables[0];
-  if (shiftKey && index === 0) return focusables[focusables.length - 1];
+  if (shiftKey && index === 0) return focusables.at(-1) ?? null;
   return null;
 }
