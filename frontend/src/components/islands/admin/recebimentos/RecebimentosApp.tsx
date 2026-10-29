@@ -57,7 +57,7 @@ function RecebimentosInner() {
   // O VendorTransactionForm declara authFetch como typeof fetch; o authFetch
   // do useAuth recebe path string — adapter para satisfazer a prop.
   const formAuthFetch: typeof fetch = (input, init) =>
-    authFetch(String(input), init);
+    authFetch(input instanceof Request ? input.url : String(input), init);
 
   const canAccess = isAdmin || isFinanceAnalyzer;
 

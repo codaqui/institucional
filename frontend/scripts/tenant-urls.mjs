@@ -15,7 +15,10 @@ import { pathToFileURL } from "node:url";
 import { TENANT_BY_NAME } from "../tenants.config.mjs";
 
 /** Slug do frontmatter (primeira ocorrência de `slug:` por arquivo). */
-const FRONTMATTER_SLUG_RE = /^slug:\s*(.+)$/m;
+// `[^\S\r\n]`/`[^\r\n]` no lugar de `\s`/`.$` com flag m: o original
+// (`/^slug:\s*(.+)$/m`) tinha sobreposição de quantificadores (backtracking
+// super-linear no Sonar) — classes negadas deixam o padrão linear.
+const FRONTMATTER_SLUG_RE = /^slug:[^\S\r\n]*([^\r\n]+)/m;
 
 /** Base canônica de todo site whitelabel (rotas limpas). */
 const BASE_URLS = ["/", "/apoiar", "/transparencia", "/equipe", "/auth/callback"];

@@ -23,13 +23,13 @@ import StopCircleIcon from "@mui/icons-material/StopCircle";
 import VideocamIcon from "@mui/icons-material/Videocam";
 
 interface QrScannerPanelProps {
-  cameraSupported: boolean;
-  cameraActive: boolean;
-  cameraStarting: boolean;
-  cameraError: string;
-  videoRef: RefObject<HTMLVideoElement | null>;
-  onStart: () => void;
-  onStop: () => void;
+  readonly cameraSupported: boolean;
+  readonly cameraActive: boolean;
+  readonly cameraStarting: boolean;
+  readonly cameraError: string;
+  readonly videoRef: RefObject<HTMLVideoElement | null>;
+  readonly onStart: () => void;
+  readonly onStop: () => void;
 }
 
 export default function QrScannerPanel({
@@ -40,7 +40,10 @@ export default function QrScannerPanel({
   videoRef,
   onStart,
   onStop,
-}: QrScannerPanelProps): React.JSX.Element {
+}: Readonly<QrScannerPanelProps>): React.JSX.Element {
+  let cameraLabel = "Ativar câmera";
+  if (cameraActive) cameraLabel = "Parar câmera";
+  else if (cameraStarting) cameraLabel = "Ativando...";
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent>
@@ -104,7 +107,7 @@ export default function QrScannerPanel({
             startIcon={cameraActive ? <StopCircleIcon /> : <VideocamIcon />}
             onClick={cameraActive ? onStop : onStart}
           >
-            {cameraActive ? "Parar câmera" : cameraStarting ? "Ativando..." : "Ativar câmera"}
+            {cameraLabel}
           </Button>
         )}
       </CardContent>

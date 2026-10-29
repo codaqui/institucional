@@ -4,10 +4,14 @@ import { isApiProxyPath } from "./api-proxy-paths";
 describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade com o Worker legado)", () => {
   it("paths exatos do backend", () => {
     expect(isApiProxyPath("/health")).toBe(true);
-    expect(isApiProxyPath("/docs")).toBe(true);
     expect(isApiProxyPath("/auth/me")).toBe(true);
     expect(isApiProxyPath("/auth/logout")).toBe(true);
     expect(isApiProxyPath("/auth/finalize")).toBe(true);
+  });
+
+  it("/docs NÃO é API (doc Swagger fica em api.codaqui.dev/docs; páginas /docs dos tenants são assets estáticos)", () => {
+    expect(isApiProxyPath("/docs")).toBe(false);
+    expect(isApiProxyPath("/docs/intro")).toBe(false);
   });
 
   it("prefixos de API com subpath", () => {

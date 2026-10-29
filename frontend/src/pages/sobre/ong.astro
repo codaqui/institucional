@@ -232,10 +232,10 @@ const helpItems = [
   .portal-logo-dark {
     display: none;
   }
-  [data-theme="dark"] .portal-logo-light:not(.portal-logo-static) {
+  :global([data-theme="dark"]) .portal-logo-light:not(.portal-logo-static) {
     display: none;
   }
-  [data-theme="dark"] .portal-logo-dark {
+  :global([data-theme="dark"]) .portal-logo-dark {
     display: block;
   }
 </style>

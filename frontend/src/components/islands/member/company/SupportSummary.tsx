@@ -32,7 +32,7 @@ export default function SupportSummary({ supportSummary }: SupportSummaryProps):
       <Chip
         size="small"
         variant="outlined"
-        label={`${supportSummary.monthsSupporting} mês${supportSummary.monthsSupporting === 1 ? "" : "es"} apoiando`}
+        label={`${supportSummary.monthsSupporting} ${supportSummary.monthsSupporting === 1 ? "mês" : "meses"} apoiando`}
       />
     </Stack>
   );

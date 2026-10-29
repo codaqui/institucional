@@ -2,6 +2,7 @@
 import PublicLayout from "./PublicLayout.astro";
 import BlogSidebar from "../components/astro/BlogSidebar.astro";
 import GiscusIsland from "../components/islands/GiscusIsland";
+import { formatPostDate } from "../lib/blog-utils";
 import type { BlogAuthor } from "../data/blog-authors";
 
 interface RecentPost {
@@ -26,7 +27,7 @@ interface Props {
 const { title, ogTitle, description, date, readingMinutes, authors, tags, ogImage, recentPosts, enableComments, jsonLd } =
   Astro.props;
 
-const dateFmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
+const dateLabel = formatPostDate(date);
 ---
 
 <PublicLayout title={`${title} | CODAQUI.dev`} ogTitle={ogTitle} description={description} ogImage={ogImage} jsonLd={jsonLd}>
@@ -34,7 +35,7 @@ const dateFmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: 
     <article class="min-w-0 max-w-3xl flex-1">
       <h1 class="text-3xl font-extrabold text-text-primary md:text-4xl">{title}</h1>
       <p class="mt-2 text-sm text-text-secondary">
-        {dateFmt.format(date)} · {readingMinutes} min de leitura
+        {dateLabel} · {readingMinutes} min de leitura
       </p>
       {
         authors.length > 0 && (

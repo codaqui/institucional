@@ -3,8 +3,9 @@ export function slugifyTag(tag: string): string {
     .normalize("NFD")
     .replace(/\p{M}/gu, "")
     .toLowerCase()
-    .replace(/([a-z])([0-9])/g, "$1-$2")
-    .replace(/([0-9])([a-z])/g, "$1-$2")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/([a-z])(\d)/g, "$1-$2")
+    .replace(/(\d)([a-z])/g, "$1-$2")
+    .replace(/[^a-z\d]+/g, "-")
+    .replace(/^-+/, "")
+    .replace(/-+$/, "");
 }

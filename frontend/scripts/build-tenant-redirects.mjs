@@ -86,11 +86,13 @@ if (invokedDirectly) {
     tenant: process.env.TENANT ?? null,
     distDir,
   });
-  console.log(
-    !wrote
-      ? `build-tenant-redirects: dist não encontrado em ${distDir} — nada escrito`
-      : process.env.TENANT
-        ? `build-tenant-redirects: dist/_redirects + dist/robots.txt escritos (TENANT=${process.env.TENANT})`
-        : "build-tenant-redirects: dist/_redirects dos redirects legados escritos (build codaqui)",
-  );
+  let message;
+  if (!wrote) {
+    message = `build-tenant-redirects: dist não encontrado em ${distDir} — nada escrito`;
+  } else if (process.env.TENANT) {
+    message = `build-tenant-redirects: dist/_redirects + dist/robots.txt escritos (TENANT=${process.env.TENANT})`;
+  } else {
+    message = "build-tenant-redirects: dist/_redirects dos redirects legados escritos (build codaqui)";
+  }
+  console.log(message);
 }

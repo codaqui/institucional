@@ -259,9 +259,8 @@ function AdminHubInner(): React.JSX.Element {
         member.name.toLowerCase().includes(term) ||
         member.githubHandle.toLowerCase().includes(term) ||
         member.roles.some((r) => roleLabel(r).toLowerCase().includes(term));
-      const matchesRoles =
-        selectedRoles.length === 0 ||
-        selectedRoles.every((r) => member.roles.includes(r));
+      // every() em `selectedRoles` vazio é true — sem filtro de papel ativo.
+      const matchesRoles = selectedRoles.every((r) => member.roles.includes(r));
       return matchesTerm && matchesRoles;
     });
   }, [members, searchTerm, selectedRoles]);

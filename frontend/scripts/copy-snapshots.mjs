@@ -16,7 +16,8 @@ for (const dir of snapshotDirs) {
     join(FRONTEND_PUBLIC, dir, "index.json"),
   );
 }
-console.log(`snapshots copiados: ${snapshotDirs.map((d) => `${d}/index.json`).join(", ")}`);
+const copiedIndexes = snapshotDirs.map((d) => `${d}/index.json`).join(", ");
+console.log(`snapshots copiados: ${copiedIndexes}`);
 
 // Assets de static/img referenciados pelas páginas portadas (0.3) que ainda
 // não existiam em public/img — cópia cirúrgica, não o diretório todo (4.3 MB).

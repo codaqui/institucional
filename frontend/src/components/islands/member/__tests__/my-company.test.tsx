@@ -160,10 +160,10 @@ describe("/membros/empresa", () => {
     const receipt = screen.getByRole("link", { name: /Baixar comprovante de doação/i });
     expect(receipt).toHaveAttribute("href", "https://api.test/companies/company-1/receipt");
 
-    // Resumo de apoio — o label segue 1:1 o original ("mês" + "es")
+    // Resumo de apoio — plural correto de "mês" é "meses"
     expect(screen.getByText("R$ 2.400 apoiados")).toBeInTheDocument();
     expect(screen.getByText("12 apoios")).toBeInTheDocument();
-    expect(screen.getByText("12 mêses apoiando")).toBeInTheDocument();
+    expect(screen.getByText("12 meses apoiando")).toBeInTheDocument();
 
     // Colaboradores
     expect(screen.getByText("@octocat")).toBeInTheDocument();

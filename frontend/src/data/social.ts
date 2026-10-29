@@ -42,8 +42,8 @@ export const PLATFORM_COLORS: Record<string, string> = {
  * URL embeddable (iframe) do widget do Discord, derivada do guild ID presente
  * em DISCORD_WIDGET_URL (que é o endpoint JSON, não servível em iframe).
  */
-const discordGuildId =
-  DISCORD_WIDGET_URL.match(/guilds\/(\d+)\/widget\.json/)?.[1] ?? "";
+const DISCORD_GUILD_ID_RE = /guilds\/(\d+)\/widget\.json/;
+const discordGuildId = DISCORD_GUILD_ID_RE.exec(DISCORD_WIDGET_URL)?.[1] ?? "";
 export const DISCORD_WIDGET_EMBED_URL = `https://discord.com/widget?id=${discordGuildId}`;
 
 /**

@@ -24,13 +24,13 @@ import type { EventRegistration } from "./types";
 import { formatDateTime, formatOrderStatus } from "./checkin-utils";
 
 interface ManualSearchProps {
-  registrations: EventRegistration[];
-  regsLoading: boolean;
-  searchQuery: string;
-  checkinLoading: boolean;
-  onSearchQueryChange: (query: string) => void;
-  onSearch: () => void;
-  onCheckin: (token: string) => void;
+  readonly registrations: EventRegistration[];
+  readonly regsLoading: boolean;
+  readonly searchQuery: string;
+  readonly checkinLoading: boolean;
+  readonly onSearchQueryChange: (query: string) => void;
+  readonly onSearch: () => void;
+  readonly onCheckin: (token: string) => void;
 }
 
 export default function ManualSearch({
@@ -41,7 +41,7 @@ export default function ManualSearch({
   onSearchQueryChange,
   onSearch,
   onCheckin,
-}: ManualSearchProps): React.JSX.Element {
+}: Readonly<ManualSearchProps>): React.JSX.Element {
   return (
     <>
       <Divider sx={{ my: 2 }} />

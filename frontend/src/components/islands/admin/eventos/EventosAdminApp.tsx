@@ -171,11 +171,11 @@ function EventosAdminInner(): React.JSX.Element {
       return;
     }
     if (canAccess) {
-      fetchEvents(page, useBackendPagination);
-      fetchMembers();
-      fetchExternalData();
-      fetchOrganizers();
-      fetchActivations();
+      void fetchEvents(page, useBackendPagination);
+      void fetchMembers();
+      void fetchExternalData();
+      void fetchOrganizers();
+      void fetchActivations();
     }
   }, [
     ready,

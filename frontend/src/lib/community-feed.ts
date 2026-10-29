@@ -40,7 +40,7 @@ export function communityBlogRssOptions(input: CommunityFeedInput) {
 }
 
 const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
 /** Atom 1.0 — mesmo shape do atom.xml do blog principal. */
 export function communityBlogAtom(input: CommunityFeedInput): Response {
@@ -53,7 +53,8 @@ export function communityBlogAtom(input: CommunityFeedInput): Response {
       return `<entry><title>${esc(post.title)}</title><link href="${url}"/><id>${url}</id><published>${published}</published><updated>${published}</updated><summary>${esc(post.description)}</summary></entry>`;
     })
     .join("");
-  const xml = `<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="pt-BR"><title>${esc(`${input.shortName} — Blog`)}</title><link href="${base}${input.basePath}/atom.xml" rel="self"/><link href="${base}${input.basePath}"/><id>${base}${input.basePath}</id><updated>${updated}</updated>${entries}</feed>`;
+  const feedTitle = esc(`${input.shortName} — Blog`);
+  const xml = `<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="pt-BR"><title>${feedTitle}</title><link href="${base}${input.basePath}/atom.xml" rel="self"/><link href="${base}${input.basePath}"/><id>${base}${input.basePath}</id><updated>${updated}</updated>${entries}</feed>`;
   return new Response(xml, { headers: { "Content-Type": "application/atom+xml; charset=utf-8" } });
 }
 

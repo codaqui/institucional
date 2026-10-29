@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   postUrl,
   postDate,
+  formatPostDate,
   resolveAuthors,
   readingTimeMinutes,
   plainExcerpt,
@@ -36,6 +37,21 @@ describe("postDate", () => {
   });
   it("lança erro para id fora do padrão sem data", () => {
     expect(() => postDate({ id: "sem-data", data: {} })).toThrow(/sem data/i);
+  });
+});
+
+describe("formatPostDate", () => {
+  // Datas de frontmatter chegam como meia-noite UTC (z.coerce.date); o
+  // fallback pelo nome do arquivo usa meio-dia em UTC-3. Em ambos os casos a
+  // intenção é o dia do calendário — formatar em UTC (e não no TZ do runner)
+  // evita o off-by-one em builds fora de São Paulo.
+  it("data de frontmatter (meia-noite UTC) exibe o mesmo dia em qualquer TZ", () => {
+    expect(formatPostDate(new Date("2026-03-30T00:00:00Z"))).toBe("30 de março de 2026");
+  });
+  it("fallback pelo nome do arquivo exibe o mesmo dia em qualquer TZ", () => {
+    expect(formatPostDate(postDate({ id: "2024-07-22-meu-post", data: {} }))).toBe(
+      "22 de julho de 2024",
+    );
   });
 });
 

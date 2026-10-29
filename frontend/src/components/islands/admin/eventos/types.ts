@@ -4,7 +4,7 @@
  * (módulo events) mantidos 1:1.
  */
 
-import type { EventIndexFile, EventSummary } from "../../../../lib/events";
+import type { EventSummary } from "../../../../lib/events";
 import { parseBrlInput } from "../../../../lib/transaction";
 import { fromDateTimeLocal } from "../../../../lib/datetime";
 import { buildEventSlugPath } from "../../../../lib/event-path";
@@ -272,6 +272,43 @@ interface ValidationResult {
   payload?: Record<string, unknown>;
 }
 
+/**
+ * Campos opcionais de evento (fuso, capacidade, carga horária). Aplica no
+ * `payload` e retorna mensagem de erro, ou null quando válido. A ORDEM das
+ * validações é contrato (define qual erro aparece primeiro na UI).
+ */
+function applyOptionalEventFields(
+  payload: Record<string, unknown>,
+  form: EventForm,
+  mode: "create" | "edit",
+): string | null {
+  const timezone = form.timezone.trim();
+  if (timezone && !TIMEZONE_OPTIONS.includes(timezone)) {
+    return "Fuso horário inválido (ex.: America/Sao_Paulo).";
+  }
+  if (timezone) payload.timezone = timezone;
+
+  const capacityRaw = form.capacity.trim();
+  if (capacityRaw) {
+    const cap = Number.parseInt(capacityRaw, 10);
+    if (Number.isNaN(cap) || cap <= 0) return "Capacidade inválida.";
+    payload.capacity = cap;
+  }
+
+  const workloadRaw = form.workloadMinutes.trim();
+  if (workloadRaw) {
+    const minutes = Number.parseInt(workloadRaw, 10);
+    if (Number.isNaN(minutes) || minutes < 0 || minutes > 1000) {
+      return "Carga horária inválida (0–1000 minutos).";
+    }
+    payload.workloadMinutes = minutes;
+  } else if (mode === "edit") {
+    // Vazio em edição = voltar ao cálculo automático (duração do evento).
+    payload.workloadMinutes = null;
+  }
+  return null;
+}
+
 export function buildEventPayload(
   form: EventForm,
   mode: "create" | "edit",
@@ -323,29 +360,8 @@ export function buildEventPayload(
   }
   const endIso = fromDateTimeLocal(form.endAt);
   if (endIso) payload.endAt = endIso;
-  if (form.timezone.trim()) {
-    if (!TIMEZONE_OPTIONS.includes(form.timezone.trim())) {
-      return { error: "Fuso horário inválido (ex.: America/Sao_Paulo)." };
-    }
-    payload.timezone = form.timezone.trim();
-  }
-  if (form.capacity.trim()) {
-    const cap = Number.parseInt(form.capacity, 10);
-    if (Number.isNaN(cap) || cap <= 0) {
-      return { error: "Capacidade inválida." };
-    }
-    payload.capacity = cap;
-  }
-  if (form.workloadMinutes.trim()) {
-    const minutes = Number.parseInt(form.workloadMinutes, 10);
-    if (Number.isNaN(minutes) || minutes < 0 || minutes > 1000) {
-      return { error: "Carga horária inválida (0–1000 minutos)." };
-    }
-    payload.workloadMinutes = minutes;
-  } else if (mode === "edit") {
-    // Vazio em edição = voltar ao cálculo automático (duração do evento).
-    payload.workloadMinutes = null;
-  }
+  const optionalError = applyOptionalEventFields(payload, form, mode);
+  if (optionalError) return { error: optionalError };
   return { payload };
 }
 

@@ -39,7 +39,7 @@ export function walkFiles(dir, pattern) {
  * Trailing slash é removida e a homepage vira "/".
  */
 export function fileToUrl(file, base) {
-  let url = `/${relative(base, file).replace(/\\/g, "/")}`;
+  let url = `/${relative(base, file).replaceAll("\\", "/")}`;
   if (url.endsWith("/index.html")) url = url.slice(0, -"index.html".length); // keep trailing dir
   else url = url.replace(/\.html$/, "");
   return url.replace(/\/$/, "") || "/";

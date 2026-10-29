@@ -148,7 +148,7 @@ function CheckinInner(): React.JSX.Element {
       window.location.replace("/");
       return;
     }
-    (async () => {
+    void (async () => {
       setEventsLoading(true);
       try {
         const res = await authFetch("/events/checkin-scope");

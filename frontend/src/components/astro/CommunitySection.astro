@@ -51,7 +51,7 @@ import { communities, type Community } from "../../data/communities";
 <style>
   /* Logos locais monocromáticas escuras — invertidas no tema escuro
      (espelha o filter do index.tsx original). */
-  [data-theme="dark"] .community-logo-dark-mono {
+  :global([data-theme="dark"]) .community-logo-dark-mono {
     filter: invert(1) brightness(2);
   }
   /* Logos brancas (ex.: T.I. Social) — escurecidas no tema claro,

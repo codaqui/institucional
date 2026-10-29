@@ -34,8 +34,10 @@ export function startLogin(
   const returnPath =
     options?.returnTo ??
     globalThis.location.pathname + globalThis.location.search;
-  sessionStorage.setItem(RETURN_KEY, returnPath);
-  sessionStorage.removeItem(COMMUNITY_KEY);
+  if (typeof sessionStorage !== "undefined") {
+    sessionStorage.setItem(RETURN_KEY, returnPath);
+    sessionStorage.removeItem(COMMUNITY_KEY);
+  }
   const absoluteReturn = new URL(
     "/auth/callback",
     globalThis.location.origin,
@@ -51,7 +53,10 @@ export function startLogout(
   apiUrl: string,
   options?: { returnTo?: string },
 ): void {
-  if (options?.returnTo) {
+  if (
+    options?.returnTo &&
+    typeof sessionStorage !== "undefined"
+  ) {
     sessionStorage.setItem(LOGOUT_RETURN_KEY, options.returnTo);
   }
   const absoluteReturn = options?.returnTo

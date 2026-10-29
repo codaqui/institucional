@@ -235,8 +235,9 @@ function ReceiptInner(): React.JSX.Element {
     setLoading(true);
     setError(null);
 
-    authFetch(`/events/orders/${orderId}/receipt`)
-      .then(async (res) => {
+    void (async () => {
+      try {
+        const res = await authFetch(`/events/orders/${orderId}/receipt`);
         if (!active) return;
         if (!res.ok) {
           const msg = await res.text().catch(() => "");
@@ -245,13 +246,12 @@ function ReceiptInner(): React.JSX.Element {
         }
         const data = (await res.json()) as ReceiptData;
         setReceipt(data);
-      })
-      .catch(() => {
+      } catch {
         if (active) setError("Erro inesperado ao carregar o comprovante.");
-      })
-      .finally(() => {
+      } finally {
         if (active) setLoading(false);
-      });
+      }
+    })();
 
     return () => {
       active = false;

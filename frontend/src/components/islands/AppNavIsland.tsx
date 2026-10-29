@@ -40,7 +40,7 @@ import { useAuth } from "../../lib/use-auth";
 
 export interface AppNavIslandProps {
   /** Rota atual (Astro.url.pathname) — define o item ativo por prefixo. */
-  currentPath: string;
+  readonly currentPath: string;
 }
 
 interface NavItem {
@@ -95,8 +95,8 @@ function NavGroupLabel({
   icon,
   children,
 }: {
-  icon?: ReactNode;
-  children: ReactNode;
+  readonly icon?: ReactNode;
+  readonly children: ReactNode;
 }) {
   return (
     <Typography
@@ -124,8 +124,8 @@ function NavLink({
   item,
   currentPath,
 }: {
-  item: NavItem;
-  currentPath: string;
+  readonly item: NavItem;
+  readonly currentPath: string;
 }) {
   const active = isItemActive(currentPath, item.href);
   return (
@@ -154,12 +154,12 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
 
   if (!ready) {
     return (
-      <div role="status" className="flex flex-col gap-2 p-3">
+      <output className="flex flex-col gap-2 p-3">
         <span className="cq-visually-hidden">Carregando navegação…</span>
         <span className="h-12 animate-pulse rounded-md bg-sunken" />
         <span className="h-12 animate-pulse rounded-md bg-sunken" />
         <span className="h-24 animate-pulse rounded-md bg-sunken" />
-      </div>
+      </output>
     );
   }
 
@@ -273,7 +273,7 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
   );
 }
 
-export default function AppNavIsland(props: AppNavIslandProps) {
+export default function AppNavIsland(props: Readonly<AppNavIslandProps>) {
   return (
     <MuiIslandProvider>
       <AppNavContent {...props} />

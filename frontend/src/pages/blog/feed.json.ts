@@ -16,6 +16,9 @@ export const GET: APIRoute = async ({ site }) => {
       url: `${base}${postUrl(post)}`,
       title: post.data.title,
       summary: plainExcerpt(post.body ?? ""),
+      // JSON Feed 1.1 exige content_text ou content_html por item — o corpo
+      // já vem renderizado pelo glob loader (paridade com rss.xml/atom.xml).
+      content_html: post.rendered?.html ?? plainExcerpt(post.body ?? ""),
       date_published: postDate(post).toISOString(),
       tags: post.data.tags,
     })),

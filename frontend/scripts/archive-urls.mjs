@@ -31,7 +31,12 @@ export function archiveUrls({ buildDir = BUILD } = {}) {
       `build/ de referência não encontrado em ${buildDir} — rode \`npm run build\` na raiz (Docusaurus) ou crie o symlink \`ln -s <repo>/build build\``,
     );
   }
-  const urls = [...collectPageUrls(buildDir, { exclude: EXCLUDE })].sort();
+  // Comparador explícito (code-unit, paridade com a geração original da
+  // referência congelada) — sort() bare converteria para string de qualquer
+  // forma, mas o Sonar exige intenção declarada.
+  const urls = [...collectPageUrls(buildDir, { exclude: EXCLUDE })].sort((a, b) =>
+    a < b ? -1 : a > b ? 1 : 0,
+  );
   return urls;
 }
 

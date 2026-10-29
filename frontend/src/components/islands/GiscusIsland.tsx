@@ -7,7 +7,7 @@ export default function GiscusIsland() {
 
   useEffect(() => {
     const read = () =>
-      document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
     setTheme(read());
     const observer = new MutationObserver(() => setTheme(read()));
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

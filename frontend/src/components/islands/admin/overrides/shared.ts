@@ -69,7 +69,7 @@ export interface TabCommonProps {
   readonly canReimburse?: boolean;
 }
 
-export type { EventSourceSummary, EventSummary };
+export type { EventSourceSummary, EventSummary } from "../../../../lib/events";
 
 export const formatEventDate = (iso: string): string =>
   new Date(iso).toLocaleDateString("pt-BR", {

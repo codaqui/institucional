@@ -21,10 +21,10 @@ const { class: className = "h-8 w-auto" } = Astro.props;
   .brand-logo-dark {
     display: none;
   }
-  [data-theme="dark"] .brand-logo-light {
+  :global([data-theme="dark"]) .brand-logo-light {
     display: none;
   }
-  [data-theme="dark"] .brand-logo-dark {
+  :global([data-theme="dark"]) .brand-logo-dark {
     display: block;
   }
 </style>

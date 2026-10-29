@@ -93,15 +93,15 @@ export default function AuthCallback() {
       }
       window.location.replace(consumeReturnPath());
     };
-    run();
+    void run();
   }, []);
 
   return (
     <main className="mx-auto max-w-md px-4 py-24 text-center">
       {status === "processing" ? (
-        <p className="text-text-secondary" role="status">
+        <output className="text-text-secondary">
           Finalizando autenticação com GitHub…
-        </p>
+        </output>
       ) : (
         <>
           <h1 className="text-2xl font-extrabold text-text-primary">

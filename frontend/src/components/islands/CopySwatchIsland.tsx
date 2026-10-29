@@ -4,8 +4,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface Props {
-  hex: string;
-  children: ReactNode;
+  readonly hex: string;
+  readonly children: ReactNode;
 }
 
 export default function CopySwatchIsland({ hex, children }: Props) {

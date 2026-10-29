@@ -6,10 +6,12 @@ function filePathOf(file: VFile): string {
   return file.path || file.history[0] || "";
 }
 
+const trilhaRegex = /content\/trilhas\/([^/]+)\//;
+
 export function remarkContentAssets() {
   return (tree: Root, file: VFile) => {
-    const path = filePathOf(file).replace(/\\/g, "/");
-    const trilha = path.match(/content\/trilhas\/([^/]+)\//)?.[1];
+    const path = filePathOf(file).replaceAll("\\", "/");
+    const trilha = trilhaRegex.exec(path)?.[1];
     const isBlog = path.includes("content/blog/");
 
     const rewrite = (url: string): string => {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_URL } from "../../lib/config";
+import { resolveApiUrl } from "../../lib/api-url";
 
 interface Donor {
   id: string;
@@ -26,7 +26,8 @@ export default function SocialProofStrip() {
   const [count, setCount] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(`${API_URL}/members/donors`)
+    const apiUrl = resolveApiUrl(import.meta.env.SITE);
+    fetch(`${apiUrl}/members/donors`)
       .then((res) => (res.ok ? res.json() : null))
       .then((res: DonorsResponse | null) =>
         setCount(res?.total ?? res?.data?.length ?? 0),

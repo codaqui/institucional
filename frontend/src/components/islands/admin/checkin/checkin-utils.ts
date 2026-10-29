@@ -36,7 +36,7 @@ export function formatOrderStatus(status: string): string {
 export const isCameraAvailable = (): boolean =>
   typeof window !== "undefined" &&
   typeof navigator !== "undefined" &&
-  typeof navigator.mediaDevices !== "undefined" &&
+  navigator.mediaDevices !== undefined &&
   typeof navigator.mediaDevices.getUserMedia === "function";
 
 /**

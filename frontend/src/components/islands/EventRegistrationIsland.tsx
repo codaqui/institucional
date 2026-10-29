@@ -17,11 +17,10 @@ interface TicketType {
 }
 
 interface Props {
-  eventId: string;
-  source: string;
-  sourceId: string;
-  externalHref: string;
-  ctaLabel: string;
+  readonly eventId: string;
+  readonly source: string;
+  readonly externalHref: string;
+  readonly ctaLabel: string;
 }
 
 function formatBRL(cents: number): string {
@@ -31,7 +30,7 @@ function formatBRL(cents: number): string {
   });
 }
 
-function RegistrationInner({ eventId, source, externalHref, ctaLabel }: Props) {
+function RegistrationInner({ eventId, source, externalHref, ctaLabel }: Readonly<Props>) {
   const { isLoggedIn, ready, login, authFetch } = useAuth();
   const [ticketTypes, setTicketTypes] = useState<TicketType[] | null>(null);
   const [selected, setSelected] = useState("");
@@ -99,36 +98,45 @@ function RegistrationInner({ eventId, source, externalHref, ctaLabel }: Props) {
 
   const ticket = ticketTypes.find((t) => t.id === selected);
 
+  const registerFree = async (ticketTypeId: string) => {
+    const res = await authFetch(`/events/${eventId}/register`, {
+      method: "POST",
+      body: JSON.stringify({ ticketTypeId }),
+    });
+    if (res.status === 409) throw new Error("Você já está inscrito ou o lote esgotou.");
+    if (!res.ok) throw new Error("Falha ao inscrever. Tente novamente.");
+    setDone(true);
+  };
+
+  const startCheckout = async (ticketTypeId: string) => {
+    const res = await authFetch(`/events/${eventId}/checkout`, {
+      method: "POST",
+      body: JSON.stringify({ ticketTypeId, quantity: 1, acceptTerms: true }),
+    });
+    if (res.status === 409) throw new Error("Você já possui ingresso para este evento.");
+    if (!res.ok) throw new Error("Falha ao iniciar o pagamento. Tente novamente.");
+    const data = (await res.json()) as { url?: string };
+    if (!data.url) throw new Error("Checkout indisponível no momento.");
+    window.location.href = data.url;
+  };
+
   const submit = async () => {
     if (!ticket) return;
     setLoading(true);
     setError(null);
     try {
-      if (ticket.kind === "free") {
-        const res = await authFetch(`/events/${eventId}/register`, {
-          method: "POST",
-          body: JSON.stringify({ ticketTypeId: ticket.id }),
-        });
-        if (res.status === 409) throw new Error("Você já está inscrito ou o lote esgotou.");
-        if (!res.ok) throw new Error("Falha ao inscrever. Tente novamente.");
-        setDone(true);
-      } else {
-        const res = await authFetch(`/events/${eventId}/checkout`, {
-          method: "POST",
-          body: JSON.stringify({ ticketTypeId: ticket.id, quantity: 1, acceptTerms: true }),
-        });
-        if (res.status === 409) throw new Error("Você já possui ingresso para este evento.");
-        if (!res.ok) throw new Error("Falha ao iniciar o pagamento. Tente novamente.");
-        const data = (await res.json()) as { url?: string };
-        if (!data.url) throw new Error("Checkout indisponível no momento.");
-        window.location.href = data.url;
-      }
+      if (ticket.kind === "free") await registerFree(ticket.id);
+      else await startCheckout(ticket.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro inesperado.");
     } finally {
       setLoading(false);
     }
   };
+
+  let submitLabel = "Ir para pagamento";
+  if (loading) submitLabel = "Processando…";
+  else if (ticket?.kind === "free") submitLabel = "Confirmar inscrição";
 
   return (
     <Stack spacing={2}>
@@ -155,13 +163,13 @@ function RegistrationInner({ eventId, source, externalHref, ctaLabel }: Props) {
         onClick={submit}
         sx={{ alignSelf: "flex-start" }}
       >
-        {loading ? "Processando…" : ticket?.kind === "free" ? "Confirmar inscrição" : "Ir para pagamento"}
+        {submitLabel}
       </Button>
     </Stack>
   );
 }
 
-export default function EventRegistrationIsland(props: Props) {
+export default function EventRegistrationIsland(props: Readonly<Props>) {
   return (
     <MuiIslandProvider>
       <RegistrationInner {...props} />

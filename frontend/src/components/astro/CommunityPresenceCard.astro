@@ -250,7 +250,7 @@ const visibleLinks = (links ?? []).filter((l) => !chipUrls.has(normalize(l.url))
 <style>
   /* Logos locais (claros por padrão) precisam de inversão no tema escuro —
      mesmo comportamento do Avatar do original. */
-  [data-theme="dark"] .cpc-logo-local img {
+  :global([data-theme="dark"]) .cpc-logo-local img {
     filter: invert(1) brightness(2);
   }
 </style>

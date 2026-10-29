@@ -781,29 +781,26 @@ function MemberProfileInner({
       ? fetch(`${apiUrl}/members/${memberId}`)
       : fetch(`${apiUrl}/members/by-handle/${memberHandle}`);
 
-    memberFetch
-      .then((r) => {
+    void (async () => {
+      try {
+        const r = await memberFetch;
         if (!r.ok) throw new Error("not_found");
-        return r.json();
-      })
-      .then((memberData: Member) => {
+        const memberData = (await r.json()) as Member;
         setMember(memberData);
         // Agora busca doações pelo ID resolvido
-        return fetch(`${apiUrl}/members/${memberData.id}/donations`)
-          .then((r) => (r.ok ? r.json() : []))
-          .then((donationsData) => {
-            setDonations(donationsData ?? []);
-            setLoading(false);
-          });
-      })
-      .catch((err) => {
+        const donationsRes = await fetch(`${apiUrl}/members/${memberData.id}/donations`);
+        const donationsData = donationsRes.ok ? await donationsRes.json() : [];
+        setDonations(donationsData ?? []);
+        setLoading(false);
+      } catch (err) {
         setError(
-          err.message === "not_found"
+          err instanceof Error && err.message === "not_found"
             ? "Membro não encontrado."
             : "Erro ao carregar o perfil.",
         );
         setLoading(false);
-      });
+      }
+    })();
   }, [isFull, memberId, memberHandle, apiUrl, initialMember]);
 
   // Load SortCoins wallet only when viewing own profile (requires login)
@@ -878,11 +875,12 @@ function MemberProfileInner({
   // URL canônica (usada para SEO e QR code). Na rota estática /@<handle> a
   // vanity URL já é HTTP 200; na rota legada mantemos /membros/perfil?handle=.
   const canonicalHandle = member?.githubHandle ?? memberHandle ?? "";
-  const canonicalUrl = isBrowser && canonicalHandle
-    ? routeHandle
+  let canonicalUrl = "";
+  if (isBrowser && canonicalHandle) {
+    canonicalUrl = routeHandle
       ? `${globalThis.location.origin}${buildMemberPath(canonicalHandle)}`
-      : `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`
-    : "";
+      : `${globalThis.location.origin}/membros/perfil?handle=${canonicalHandle}`;
+  }
 
   const vanityUrl = canonicalUrl;
 

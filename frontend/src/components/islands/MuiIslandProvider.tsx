@@ -11,7 +11,7 @@ import { createCodaquiTheme } from "../../lib/mui-theme";
 export default function MuiIslandProvider({
   children,
 }: {
-  children: ReactNode;
+  readonly children: ReactNode;
 }) {
   const [mode, setMode] = useState<"light" | "dark">("light");
 

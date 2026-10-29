@@ -1,5 +1,8 @@
 /** Allow-list de proxy — fonte única atual (Fase 0.5; substitui o Worker legado, removido com a pasta `workers/`). */
-const API_EXACT_PATHS = new Set(["/health", "/docs", "/auth/me", "/auth/logout", "/auth/finalize"]);
+// Sem "/docs" de propósito: a doc Swagger (backend) segue acessível direto em
+// api.codaqui.dev/docs e as páginas /docs dos tenants têm precedência de asset
+// estático — manter a entrada aqui só geraria ruído (revisão do PR #599).
+const API_EXACT_PATHS = new Set(["/health", "/auth/me", "/auth/logout", "/auth/finalize"]);
 // ⚠️ O prefixo admin é deliberadamente ESTREITO: o backend só expõe rotas sob
 // /admin/members (GET /admin/members + PATCH /admin/members/:id, via
 // method-level path no members.controller). O prefixo antigo "/admin/"

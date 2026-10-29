@@ -3,7 +3,7 @@ import type { APIRoute } from "astro";
 import { postUrl, postDate, plainExcerpt, sortPostsDesc } from "../../lib/blog-utils";
 
 const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
 export const GET: APIRoute = async ({ site }) => {
   const base = (site ?? new URL("https://codaqui.dev")).origin;

@@ -1,4 +1,6 @@
 ---
+import { formatPostDate } from "../../lib/blog-utils";
+
 interface Props {
   url: string;
   title: string;
@@ -9,14 +11,14 @@ interface Props {
 }
 
 const { url, title, date, excerpt, readingMinutes, tags } = Astro.props;
-const dateFmt = new Intl.DateTimeFormat("pt-BR", { dateStyle: "long", timeZone: "America/Sao_Paulo" });
+const dateLabel = formatPostDate(date);
 ---
 
 <article class="rounded-lg border border-border bg-surface p-5 transition-shadow hover:shadow-md">
   <h2 class="text-xl font-bold">
     <a href={url} class="text-text-primary hover:text-link">{title}</a>
   </h2>
-  <p class="mt-1 text-sm text-text-secondary">{dateFmt.format(date)} · {readingMinutes} min de leitura</p>
+  <p class="mt-1 text-sm text-text-secondary">{dateLabel} · {readingMinutes} min de leitura</p>
   <p class="mt-3 text-text-secondary">{excerpt}</p>
   {tags.length > 0 && (
     <ul class="mt-3 flex flex-wrap gap-2">

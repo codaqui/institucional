@@ -110,7 +110,7 @@ const ctaPrimaryHref = tenantNavHref(
     background-color: #fff;
     color: var(--cq-text-primary);
   }
-  [data-theme="dark"] .cq-hero {
+  :global([data-theme="dark"]) .cq-hero {
     background-color: #000;
     color: #fff;
   }
@@ -127,7 +127,7 @@ const ctaPrimaryHref = tenantNavHref(
         color-mix(in srgb, var(--community-primary) 8%, #fff) 55%
       );
   }
-  [data-theme="dark"] .cq-hero-bg {
+  :global([data-theme="dark"]) .cq-hero-bg {
     background:
       radial-gradient(
         ellipse 80% 70% at var(--cq-radial-side, 85%) 50%,
@@ -162,7 +162,7 @@ const ctaPrimaryHref = tenantNavHref(
     color: var(--community-primary-dark);
     border-color: color-mix(in srgb, var(--community-primary) 20%, transparent);
   }
-  [data-theme="dark"] .cq-hero-chip {
+  :global([data-theme="dark"]) .cq-hero-chip {
     background-color: color-mix(in srgb, var(--community-primary) 13%, transparent);
     color: var(--community-primary-light);
     border-color: color-mix(in srgb, var(--community-primary) 27%, transparent);
@@ -180,7 +180,7 @@ const ctaPrimaryHref = tenantNavHref(
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  [data-theme="dark"] .cq-hero-title {
+  :global([data-theme="dark"]) .cq-hero-title {
     background: linear-gradient(
       135deg,
       #fff 0%,
@@ -219,11 +219,11 @@ const ctaPrimaryHref = tenantNavHref(
     background-color: color-mix(in srgb, var(--community-primary) 5%, transparent);
     transform: translateY(-2px);
   }
-  [data-theme="dark"] .cq-hero-cta-secondary {
+  :global([data-theme="dark"]) .cq-hero-cta-secondary {
     color: #fff;
     border-color: rgb(255 255 255 / 0.35);
   }
-  [data-theme="dark"] .cq-hero-cta-secondary:hover {
+  :global([data-theme="dark"]) .cq-hero-cta-secondary:hover {
     border-color: #fff;
     background-color: rgb(255 255 255 / 0.06);
   }
@@ -284,10 +284,10 @@ const ctaPrimaryHref = tenantNavHref(
   .cq-hero-img {
     filter: grayscale(100%) contrast(0.9) brightness(1.05);
   }
-  [data-theme="dark"] .cq-hero-image {
+  :global([data-theme="dark"]) .cq-hero-image {
     mix-blend-mode: screen;
   }
-  [data-theme="dark"] .cq-hero-img {
+  :global([data-theme="dark"]) .cq-hero-img {
     filter: grayscale(100%) contrast(1.1) brightness(0.85);
   }
   .cq-hero-tint {

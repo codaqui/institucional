@@ -134,7 +134,7 @@ function MemberDashboardInner() {
   }, [registrations, user]);
 
   const copyVanityUrl = () => {
-    navigator.clipboard.writeText(vanityUrl).then(() => {
+    void navigator.clipboard.writeText(vanityUrl).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     });

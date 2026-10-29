@@ -86,21 +86,16 @@ jobs:
         working-directory: frontend
         run: node scripts/tenant-urls.mjs dist ${{ matrix.tenant }}
 
-      # Wrangler vem das devDependencies pinadas do package.json da RAIZ — sem
-      # node_modules na raiz o npx baixaria wrangler@latest do registry e
-      # executaria COM os secrets Cloudflare no env (risco supply-chain no
-      # cutover). O ci na raiz é barato (só playwright + wrangler nas devDeps).
-      - name: Install root dependencies (wrangler)
-        if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
-        run: npm ci --ignore-scripts
-
-      # Roda na raiz para reusar o wrangler do node_modules pinado acima (npx
-      # não o baixa de novo). `--branch` cria branch deployment para previews;
-      # vira production quando a branch é a production branch do projeto Pages
-      # (main).
+      # O deploy roda com cwd=frontend de propósito: o wrangler só inclui a
+      # Pages Function (frontend/functions/) no upload quando o diretório
+      # `functions/` é relativo ao cwd — rodando da raiz o proxy de API
+      # (same-origin) ficava de fora do deploy via CI. O wrangler vem das
+      # devDependencies pinadas do frontend (npm ci no step de build acima),
+      # então o npx não baixa nada do registry.
       - name: Deploy direct upload (${{ matrix.project }})
         if: ${{ env.HAS_CLOUDFLARE_TOKEN == 'true' && (github.event.inputs.tenant == '' || github.event.inputs.tenant == matrix.tenant) }}
-        run: npx wrangler pages deploy frontend/dist --project-name=${{ matrix.project }} --branch=${{ github.ref_name }}
+        working-directory: frontend
+        run: npx wrangler pages deploy dist --project-name=${{ matrix.project }} --branch=${{ github.ref_name }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

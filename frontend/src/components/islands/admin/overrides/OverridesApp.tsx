@@ -74,7 +74,7 @@ function OverridesAppInner(): JSX.Element {
   useEffect(() => {
     if (!ready || !isLoggedIn || !canAccess) return;
     let cancelled = false;
-    (async () => {
+    void (async () => {
       try {
         const res = await fetch(EVENTS_MANIFEST_URL);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);

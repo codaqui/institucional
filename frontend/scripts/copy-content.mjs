@@ -56,10 +56,10 @@ const card = (color) => [
   `<Card sx={{ height: '100%', borderLeft: '4px solid', borderColor: '${color}.main' }}>`,
   CARD_DIV,
 ];
-const typo = (variant, extra, to) => [
-  `<Typography variant="${variant}"${extra ? ` ${extra}` : ""}>`,
-  to,
-];
+const typo = (variant, extra, to) => {
+  const extraAttr = extra ? ` ${extra}` : "";
+  return [`<Typography variant="${variant}"${extraAttr}>`, to];
+};
 
 const COMMON_MDX_PATCHES = [
   TRUNCATE_MDX,

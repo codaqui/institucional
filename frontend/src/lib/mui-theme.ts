@@ -49,47 +49,52 @@ const typeScale = {
   h6: { fontSize: "1rem", fontWeight: 700, lineHeight: 1.5 },
 } as const;
 
+/** Paleta por modo — mesmas decisões de contraste do tokens.css (fonte única). */
+function buildPalette(mode: "light" | "dark") {
+  const isDark = mode === "dark";
+  return {
+    mode,
+    primary: {
+      // main = cor ACIONÁVEL (botões/ícones interativos), não a marca crua
+      main: isDark ? cqColors.primary[300] : cqColors.primary[700],
+      dark: isDark ? cqColors.primary[200] : cqColors.primary[800],
+      light: isDark ? cqColors.primary[400] : cqColors.primary[600],
+      contrastText: isDark ? cqColors.primary[900] : "#FFFFFF",
+    },
+    secondary: {
+      main: isDark ? cqColors.neutral[200] : cqColors.neutral[800],
+      dark: cqColors.neutral[900],
+      light: isDark ? cqColors.neutral[300] : cqColors.neutral[700],
+      contrastText: isDark ? cqColors.neutral[900] : "#FFFFFF",
+    },
+    info: { main: isDark ? cqColors.infoDark : cqColors.info },
+    success: { main: isDark ? cqColors.successDark : cqColors.success },
+    warning: { main: isDark ? cqColors.warningDark : cqColors.warning },
+    error: { main: isDark ? cqColors.errorDark : cqColors.error },
+    background: {
+      default: isDark ? "#2A2130" : "#F8F8F8",
+      paper: isDark ? cqColors.neutral[800] : "#FFFFFF",
+    },
+    text: isDark
+      ? {
+          primary: "#F0EDF2", // 13.32:1
+          secondary: "#C9BFD1", // 8.73:1
+          disabled: "#7A6F80",
+        }
+      : {
+          primary: cqColors.neutral[800], // 12.76:1
+          secondary: cqColors.neutral[600], // 5.98:1
+          disabled: cqColors.neutral[400],
+        },
+    divider: isDark ? "#4A3E4A" : cqColors.neutral[200],
+  };
+}
+
 export function createCodaquiTheme(mode: "light" | "dark"): Theme {
   const isDark = mode === "dark";
 
   return createTheme({
-    palette: {
-      mode,
-      primary: {
-        // main = cor ACIONÁVEL (botões/ícones interativos), não a marca crua
-        main: isDark ? cqColors.primary[300] : cqColors.primary[700],
-        dark: isDark ? cqColors.primary[200] : cqColors.primary[800],
-        light: isDark ? cqColors.primary[400] : cqColors.primary[600],
-        contrastText: isDark ? cqColors.primary[900] : "#FFFFFF",
-      },
-      secondary: {
-        main: isDark ? cqColors.neutral[200] : cqColors.neutral[800],
-        dark: cqColors.neutral[900],
-        light: isDark ? cqColors.neutral[300] : cqColors.neutral[700],
-        contrastText: isDark ? cqColors.neutral[900] : "#FFFFFF",
-      },
-      info: { main: isDark ? cqColors.infoDark : cqColors.info },
-      success: { main: isDark ? cqColors.successDark : cqColors.success },
-      warning: { main: isDark ? cqColors.warningDark : cqColors.warning },
-      error: { main: isDark ? cqColors.errorDark : cqColors.error },
-      background: {
-        default: isDark ? "#2A2130" : "#F8F8F8",
-        paper: isDark ? cqColors.neutral[800] : "#FFFFFF",
-      },
-      text: isDark
-        ? {
-            primary: "#F0EDF2", // 13.32:1
-            secondary: "#C9BFD1", // 8.73:1
-            disabled: "#7A6F80",
-          }
-        : {
-            primary: cqColors.neutral[800], // 12.76:1
-            secondary: cqColors.neutral[600], // 5.98:1
-            disabled: cqColors.neutral[400],
-          },
-      divider: isDark ? "#4A3E4A" : cqColors.neutral[200],
-    },
-
+    palette: buildPalette(mode),
     typography: {
       fontFamily:
         'var(--cq-font-family-base, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif)',

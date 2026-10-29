@@ -12,13 +12,30 @@ export function postUrl(post: { data: { slug: string } }): string {
   return `/blog/${post.data.slug}`;
 }
 
+// O glob loader usa o `slug` do frontmatter como id (formato YYYY/MM/DD/...);
+// o formato YYYY-MM-DD cobre ids derivados do nome do arquivo.
+const POST_ID_DATE_RE = /^(\d{4})[/-](\d{2})[/-](\d{2})/;
+
 export function postDate(post: { id: string; data: { date?: Date } }): Date {
   if (post.data.date) return post.data.date;
-  // O glob loader usa o `slug` do frontmatter como id (formato YYYY/MM/DD/...);
-  // o formato YYYY-MM-DD cobre ids derivados do nome do arquivo.
-  const match = post.id.match(/^(\d{4})[/-](\d{2})[/-](\d{2})/);
+  const match = POST_ID_DATE_RE.exec(post.id);
   if (!match) throw new Error(`Post sem data e id fora do padrão: ${post.id}`);
   return new Date(`${match[1]}-${match[2]}-${match[3]}T12:00:00-03:00`);
+}
+
+/**
+ * Exibe a data de publicação do post. Sempre em UTC: datas de frontmatter
+ * chegam como meia-noite UTC (`z.coerce.date`) e o fallback do `postDate`
+ * usa meio-dia em UTC-3 — em ambos os casos o dia do calendário pretendido
+ * só sobrevive à formatação se o timeZone for fixo (não o do runner/build).
+ */
+const postDateFmt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+
+export function formatPostDate(date: Date): string {
+  return postDateFmt.format(date);
 }
 
 export function resolveAuthors(authors: (string | BlogAuthor)[]): BlogAuthor[] {

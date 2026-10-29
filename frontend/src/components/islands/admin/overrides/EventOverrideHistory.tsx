@@ -61,7 +61,7 @@ export default function EventOverrideHistory({
     let cancelled = false;
     setLoading(true);
     setError("");
-    (async () => {
+    void (async () => {
       try {
         const res = await fetch(
           `${API_URL}/events/overrides/${encodeURIComponent(sourceKey)}/${encodeURIComponent(eventId)}`,
