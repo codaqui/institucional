@@ -86,4 +86,5 @@ Python possui uma extensa documentação oficial e recursos de aprendizado de al
 Agora que você já conhece um pouco sobre Python, está na hora de mergulhar nos detalhes e começar a aprender de verdade!
 :::
 
-[Comece com Variáveis e Tipos de Dados →](/trilhas/python/page-1)
+[Comece com Variáveis e Tipos de Dados →](/trilhas/python/page-1)  
+segue no insta la @joacaszwl 
