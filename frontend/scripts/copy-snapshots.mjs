@@ -42,8 +42,9 @@ console.log(`snapshots copiados: img/{${imgFiles.join(", ")}}`);
 
 // Diretórios de assets de comunidades sob static/img (avatares locais que os
 // data/teams referenciam em /img/comunidades/<slug>/...). Hoje: mentores da
-// CamposTech (12 jpgs usados pela página /comunidades/campostechpg/mentores).
-const imgDirs = ["comunidades/campostechpg/mentores"];
+// CamposTech (12 jpgs usados pela página /comunidades/campostechpg/mentores) e
+// equipe da T.I. Social (/equipe do tenant e /comunidades/tisocial/equipe).
+const imgDirs = ["comunidades/campostechpg/mentores", "comunidades/tisocial/equipe"];
 for (const dir of imgDirs) {
   cpSync(join(ROOT, "static", "img", dir), join(FRONTEND_PUBLIC, "img", dir), {
     recursive: true,
