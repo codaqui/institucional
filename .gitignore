@@ -6,6 +6,18 @@ temp-devparana-rfcs/
 code-to-analyze/
 
 # ─────────────────────────────────────────────────────
+# Artefatos gerados por stacks legados (Docusaurus/MkDocs/Workers)
+# ─────────────────────────────────────────────────────
+build/
+.docusaurus/
+.cache/
+site/
+mkdocs-material/
+venv/
+sql-commands
+workers/**/.wrangler/
+
+# ─────────────────────────────────────────────────────
 # Astro (frontend/ — app principal pós-Fase 0.6)
 # ─────────────────────────────────────────────────────
 frontend/dist/
