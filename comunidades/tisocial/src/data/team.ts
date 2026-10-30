@@ -7,54 +7,56 @@ export interface Member {
   github?: string;
 }
 
+const AVATAR_BASE = "/img/comunidades/tisocial/equipe";
+
 export const equipeImpacto: Member[] = [
   {
     name: "Amanda Veras",
     role: "Voluntária",
     specialty: "Gerente de Marketing",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFeL1wnvNv6Lg/profile-displayphoto-crop_800_800/B4DZx91LmtI8AI-/0/1771637619859?e=1781136000&v=beta&t=FJfcfRH7XLpXalpCVF3rXJiKSD_pGTYT7LGXVJ37R40",
+    avatar: `${AVATAR_BASE}/amanda.jpg`,
     linkedin: "https://www.linkedin.com/in/amannda-veras/"
   },
   {
     name: "Ana Letícia Mania Feijó",
     role: "Voluntária",
     specialty: "Governança de TI",
-    avatar: "https://media.licdn.com/dms/image/v2/C4E03AQEub9czwWcZMQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1655991286341?e=1781136000&v=beta&t=ohzImnnePWSL69dPhUuSzQ061CBNIFMak4YzMycof6w",
+    avatar: `${AVATAR_BASE}/ana-leticia.jpg`,
     linkedin: "https://www.linkedin.com/in/analeticiamania/"
   },
   {
     name: "Caroline Fiori",
     role: "Voluntária",
     specialty: "Especialista em Employer Branding",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQGybeuYIn99Wg/profile-displayphoto-crop_800_800/B4DZ203tulHsAI-/0/1776856001511?e=1781136000&v=beta&t=cWxJy8Chp4aXGGQi7BnbP6vpULLur0MuerQ5MjMpO1g",
+    avatar: `${AVATAR_BASE}/caroline.jpg`,
     linkedin: "https://www.linkedin.com/in/caroline-fiori-454730b1/"
   },
   {
     name: "Emerson Rafael Marchi",
     role: "Voluntário",
     specialty: "Encarregado de Recursos Humanos",
-    avatar: "https://media.licdn.com/dms/image/v2/C4E03AQFG-xhKvMxfkg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1622294438819?e=1781136000&v=beta&t=maZFbG-xfNaPRjxGwkExaDE1xQfYxVtfD_IgUTYyHDU",
+    avatar: `${AVATAR_BASE}/emerson.jpg`,
     linkedin: "https://www.linkedin.com/in/ermarchi/"
   },
   {
     name: "Jean da Silva Baldaia",
     role: "Voluntário",
     specialty: "Analista de Inovação",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQE_aIMdseIxXA/profile-displayphoto-shrink_800_800/B4DZUV_9HNHIAc-/0/1739830842515?e=1781136000&v=beta&t=lhxR2FZiKlh5H4RNgXKKL97MBoF9lxOWVcw0Xm11Dd0",
+    avatar: `${AVATAR_BASE}/jean.jpg`,
     linkedin: "https://www.linkedin.com/in/jeanbaldaia/"
   },
   {
     name: "Júlia Nicolodi",
     role: "Voluntária",
     specialty: "Comunicação interna",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFViOX8aGVifw/profile-displayphoto-crop_800_800/B4DZ3CLMnPKEAI-/0/1777079213022?e=1781136000&v=beta&t=JC04yfbzuSqVzCJjFNTi-_NhEoJOJ2aWz37EthtQI18",
+    avatar: `${AVATAR_BASE}/julia.jpg`,
     linkedin: "https://www.linkedin.com/in/j%C3%BAlia-nicolodi-10a308181/"
   },
   {
     name: "Renan Ceratto",
     role: "Voluntário",
     specialty: "O programador",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQEQkdwbmliqwg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1730159934068?e=1781136000&v=beta&t=VEsa9UufJCVRHHOzWcz3neSF6cjA83zMGG4YQniQCVg",
+    avatar: `${AVATAR_BASE}/renan.jpg`,
     linkedin: "https://www.linkedin.com/in/renanceratto/"
   },
   {
