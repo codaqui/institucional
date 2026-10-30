@@ -24,8 +24,14 @@ export enum AuditAction {
 
   // Members
   ROLE_CHANGE = 'member.role_change',
+  ROLE_DERIVED = 'member.role_derived',
   MEMBER_DEACTIVATE = 'member.deactivate',
   MEMBER_ACTIVATE = 'member.activate',
+
+  // Designations
+  DESIGNATION_GRANTED = 'designation.granted',
+  DESIGNATION_CONFIRMED = 'designation.confirmed',
+  DESIGNATION_REVOKED = 'designation.revoked',
 
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',

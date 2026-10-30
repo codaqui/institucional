@@ -20,6 +20,7 @@ import { GithubDbModule } from './github-db/github-db.module';
 import { EventOrganizerModule } from './event-organizer/event-organizer.module';
 import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { DesignationsModule } from './designations/designations.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     EventOrganizerModule,
     EventsModule,
     NotificationsModule,
+    DesignationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

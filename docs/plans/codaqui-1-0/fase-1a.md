@@ -73,7 +73,7 @@ agent-protocol:
 - Produces: `TargetType`, `Designation`, `DesignationStatus`, `MemberDesignation`, `DesignationsService.hasDesignation()`, `grant()`, `confirm()`, `revoke()`, `listActive()`.
 - Produces: roles derivadas `diretor`, `voluntario`, `mentor`, `gestor_universitario`; nenhuma role `fundador_comunidade`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```ts
 it('grants a director and derives both organizational roles', async () => {
@@ -99,7 +99,7 @@ it('does not grant a second active responsible for the same community', async ()
 Run: `cd backend && npx jest src/designations/designations.service.spec.ts --runInBand`
 Expected: FAIL porque o módulo não existe.
 
-- [ ] **Step 2: Create the migration and entity**
+- [x] **Step 2: Create the migration and entity**
 
 Use `varchar` + `CHECK` para os enums, `uuid` para IDs, `timestamptz` para datas e estes valores:
 
@@ -117,7 +117,7 @@ export const DESIGNATION_STATUSES = ['pending', 'active', 'ended', 'removed'] as
 
 A migration cria índices `(memberId,status)`, `(targetType,targetId,designation,status)`, `(targetType,targetKey,designation,status)`, índice único geral com `NULLS NOT DISTINCT` para evitar duplicatas ativas e índices únicos parciais para responsible/community, ambassador/ies, director/directorate, mentor/extension_project, responsible/company e mentor/program('mentoria') por membro. O `down` remove apenas esses índices e a tabela.
 
-- [ ] **Step 3: Implement grant/revoke and derived-role synchronization**
+- [x] **Step 3: Implement grant/revoke and derived-role synchronization**
 
 ```ts
 export const DERIVED_ROLE_RULES = {
@@ -138,12 +138,12 @@ export const DERIVED_ROLE_RULES = {
 
 `grant/confirm/revoke` e `syncMember(memberId)` compartilham uma transação `QueryRunner`; a sync adiciona/remove somente roles derivadas e grava `member.role_derived`. `hasDesignation` consulta o banco com cache de 60 segundos e invalidação por escrita.
 
-- [ ] **Step 4: Run the focused tests**
+- [x] **Step 4: Run the focused tests**
 
 Run: `cd backend && npx jest src/designations/designations.service.spec.ts --runInBand`
 Expected: PASS, incluindo idempotência, confirmação `pending → active`, revogação e remoção de roles derivadas.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/designations backend/src/members/entities/member.entity.ts backend/src/audit/entities/audit-log.entity.ts backend/src/app.module.ts backend/src/migrations/1793289600000-Migration026_MemberDesignations.ts

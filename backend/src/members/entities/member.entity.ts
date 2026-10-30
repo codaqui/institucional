@@ -13,6 +13,10 @@ export enum MemberRole {
   EVENT_FINANCE = 'event_finance',
   EVENT_HOST = 'event_host',
   EVENT_CHECKER = 'event_checker',
+  DIRETOR = 'diretor',
+  VOLUNTARIO = 'voluntario',
+  MENTOR = 'mentor',
+  GESTOR_UNIVERSITARIO = 'gestor_universitario',
 }
 
 @Entity('members')
