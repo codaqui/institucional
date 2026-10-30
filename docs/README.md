@@ -51,6 +51,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fase 0 concluída e [Fase 1a pronta para execução](plans/codaqui-1-0/fase-1a.md). |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |
@@ -63,6 +64,7 @@ Arquivos datados gerados pelo processo de specs/plans do superpowers. Servem de 
 
 | Data | Documento |
 |------|-----------|
+| 2026-10-30 | [Spec — Fase E1: Aquisição Pública e Medição](superpowers/specs/2026-10-30-codaqui-experience-growth-e1-design.md) |
 | 2026-08-17 | [Spec — site da comunidade DevParaná](superpowers/specs/2026-08-17-devparana-community-site-design.md) · [Plan](superpowers/plans/2026-08-17-devparana-community-site-plan.md) |
 
 ---
