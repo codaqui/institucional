@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-10-29T06:19:57.306Z",
-  "totalEvents": 414,
+  "generatedAt": "2026-10-30T06:19:06.965Z",
+  "totalEvents": 415,
   "profiles": [
     {
       "entityId": "codaqui",
@@ -9,9 +9,9 @@
       "url": "https://discord.com/invite/xuTtxqCPpz",
       "countLabel": "membros",
       "baselineCount": 692,
-      "count": 766,
+      "count": 767,
       "channelCount": 41,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -33,7 +33,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 17,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -55,7 +55,7 @@
       "countLabel": "seguidores",
       "baselineCount": 0,
       "count": 204,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -66,7 +66,7 @@
       "countLabel": "membros",
       "baselineCount": 2100,
       "count": 6855,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -110,7 +110,7 @@
       "countLabel": "inscritos",
       "baselineCount": 0,
       "count": 167,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -165,7 +165,7 @@
       "countLabel": "membros",
       "baselineCount": 45,
       "count": 60,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
@@ -176,7 +176,7 @@
       "countLabel": "seguidores",
       "baselineCount": 211,
       "count": 273,
-      "fetchedAt": "2026-10-29T06:19:57.306Z",
+      "fetchedAt": "2026-10-30T06:19:06.965Z",
       "isFallback": false
     },
     {
