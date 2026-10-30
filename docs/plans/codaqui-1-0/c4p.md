@@ -17,7 +17,7 @@ sections:
 related-docs:
   - docs/plans/codaqui-1-0/README.md — plano-mãe 1.0.0 (Fase 7, subsistema G)
   - docs/adrs/001-event-platform.md — plataforma de eventos (vínculo managed_events)
-  - docs/modules/events/ROLES.md — padrão de papéis por evento (espelhado em c4p_evaluators)
+  - docs/plans/codaqui-1-0/rbac.md — designations evaluator @ c4p_campaign e guards
   - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — Fase 0 (as telas do C4P nascem no Astro)
 agent-protocol:
   - O sistema externo vive em code-to-analyze/ (gitignored) e contém PII real e uma senha em texto claro no seed — NUNCA portar dados, apenas a lógica.
@@ -42,15 +42,15 @@ Limitações do externo que a integração corrige: **não há submissão públi
 
 ## Decisões de design (2026-10-20)
 
-1. **Fase 7 do 1.0.0** — o C4P fecha a versão 1.0.0 (remapeamento: Fase 6 business → 0.15.0; **Fase 7 C4P → 1.0.0**). Como vem depois da Fase 0, **todas as telas nascem no Astro** — nada é escrito duas vezes.
-2. **Escopo: curadoria portada + submissão pública.** O formulário público de submissão substitui o Google Forms como caminho principal; a **importação CSV é mantida como fallback** (eventos que já colheram propostas fora).
-3. **Auth nativa, sem senha caseira:** admin = roles existentes (`admin`, `event_organizer`); avaliador = **membro com vínculo por campanha** (`c4p_evaluators`, espelhando o pattern `event_staff`). Avaliadores recebem convite e entram com GitHub OAuth.
+1. **Fase 7 do 1.0.0** — o C4P fecha a versão 1.0.0; as fases anteriores recebem minors próprias, sem versões históricas reutilizadas. Todas as telas nascem no Astro.
+2. **Escopo: curadoria portada + submissão pública.** O formulário público substitui o Google Forms; importação CSV permanece como fallback.
+3. **Auth nativa, sem senha caseira:** admin = roles existentes; avaliador = designation `evaluator` @ `c4p_campaign` (`pending` no convite, `active` no aceite), com GitHub OAuth. Não existe tabela `c4p_evaluators`.
 4. **Critérios configuráveis por campanha**, com os 5 atuais como default — comunidades integradas podem ajustar nomes/pesos sem fork de código.
 5. **Resultado público opt-in:** a página pública de resultado (aprovadas, sem notas individuais) só existe se a campanha habilitar; notas e comentários **nunca** são públicos.
 
 ## Arquitetura alvo
 
-- **Backend:** módulo NestJS `c4p/` (controller REST + service + entidades TypeORM/PostgreSQL). Os routers tRPC do externo mapeiam quase 1:1 para endpoints REST: `auth` (morre — vira Guards/roles), `events` → `calls`, `evaluators`, `talks`, `votes`. Validação zod vira class-validator/DTOs. Agregação de scores portada de `api/lib/scoring.ts` (média simples; pesos por critério se configurados).
+- **Backend:** módulo NestJS `c4p/` (REST + TypeORM/PostgreSQL). Validação em DTOs. Para cada voto, `score = Σ(scoreDoCritério × peso) / Σ(pesos)`; a nota da palestra é a média simples dos scores dos avaliadores que votaram. Pesos devem ser positivos e somar > 0; critérios sem voto não entram no cálculo individual.
 - **Frontend:** páginas Astro novas (ver "Frontend e rotas") — admin no `AppLayout`, avaliador e submissão pública com `PublicLayout`.
 - **E-mails:** notificações de convite de avaliador, confirmação de submissão e resultado (aprovada/não aprovada) via módulo `notifications` (mesmo pattern de `email_logs` + templates editáveis de E2).
 - **Audit:** criação/fechamento de campanha, importação CSV, seleção final e mudanças de vínculo de avaliador vão ao módulo `audit`.
@@ -61,15 +61,15 @@ Novas tabelas (PostgreSQL/TypeORM, uuid PK, createdAt/updatedAt, migrations na s
 
 - **`c4p_calls`**: `id`, `slug`, `name`, `description?`, `managedEventId?` (vínculo opcional a `managed_events`), `communityId?` (null = Codaqui; preenchido = comunidade integrada), `status` ('draft' | 'open' | 'closed'), `submissionOpenAt?`, `submissionCloseAt?`, `criteria` (jsonb — default: os 5 critérios atuais com pesos iguais), `selectedTalkIds` (jsonb), `publicResults` (bool), `finalizedAt?`, `createdById`.
 - **`c4p_talks`**: `id`, `callId`, `speakerName`, `speakerEmail`, `speakerPhone?`, `speakerRole?`, `linkedin?`, `spokeBefore?`, `title`, `summary`, `level`, `track`, `bio?`, `photoUrl?`, `extraNotes?`, `origin` ('public_form' | 'csv_import'), `consentAt` (timestamp do consentimento LGPD — obrigatório em `public_form`).
-- **`c4p_evaluators`**: `id`, `callId`, `memberId`, `invitedById`, `invitedAt`, `acceptedAt?` — único por (`callId`, `memberId`).
-- **`c4p_votes`**: `id`, `talkId`, `evaluatorId` (→ `c4p_evaluators`), `scores` (jsonb `{ criterionKey: 0–10 }` — suporta critérios configuráveis), `comment?`, `updatedAt` — único por (`talkId`, `evaluatorId`), upsert enquanto `open`.
+- **Avaliadores:** `member_designations` com `targetType='c4p_campaign'`, `targetId=callId`, `designation='evaluator'`, `appointedById` e status `pending/active/removed`; único active por (`callId`, `memberId`).
+- **`c4p_votes`**: `id`, `talkId`, `evaluatorDesignationId` (→ `member_designations`), `scores` (jsonb `{ criterionKey: 0–10 }`), `comment?`, `updatedAt` — único por (`talkId`, `evaluatorDesignationId`), upsert enquanto `open` e designation `active`.
 
-> A tabela `sessions`/auth do externo **não é portada** — auth é o JWT/OAuth existente. `users` vira `members` + vínculo `c4p_evaluators`.
+> A tabela `sessions`/auth do externo não é portada; `users` vira `members` + designations.
 
 ## Fluxos
 
 1. **Abertura:** organizador cria a campanha (opcionalmente vinculada a um `managed_event`), configura critérios e janela de submissão → `open`.
-2. **Submissão pública:** palestrante preenche `/c4p/<slug>/submeter` (espelha os campos do Google Forms atual) + **checkbox de consentimento LGPD** → `c4p_talks` com `origin='public_form'` → e-mail de confirmação. Rate limiting via `@nestjs/throttler`. Importação CSV segue disponível no admin (`origin='csv_import'`, `consentAt` herdado do termo do Google Forms — registrar na política).
+2. **Submissão pública:** `/c4p/<slug>/submeter` + consentimento LGPD + **Turnstile obrigatório** + throttler → `origin='public_form'` → confirmação por e-mail. Importação CSV permanece no admin (`origin='csv_import'`, com origem do consentimento registrada na política).
 3. **Avaliação:** organizador convida avaliadores (membros) → avaliador aceita → vota palestra a palestra (upsert) → dashboard acompanha progresso, ranking, médias por critério, distribuição por trilha/nível.
 4. **Finalização:** organizador marca selecionadas → `closed` + `selectedTalkIds` + `finalizedAt` (pode reabrir) → relatório PDF no cliente (portar `src/lib/pdf.ts` — jspdf + autotable) → e-mails de resultado aos palestrantes.
 5. **Resultado público:** se `publicResults`, `/c4p/<slug>/resultado` lista aprovadas (título, palestrante, trilha — **sem notas**) — candidata a snapshot estático no pattern `static/events/`.
@@ -80,7 +80,7 @@ Novas tabelas (PostgreSQL/TypeORM, uuid PK, createdAt/updatedAt, migrations na s
 |---|---|
 | `admin` | global |
 | `event_organizer` | CRUD das próprias campanhas, convite de avaliadores, importação CSV, finalização |
-| `c4p_evaluator` (vínculo por campanha, não é role global) | votação nas campanhas em que está vinculado |
+| designation `evaluator` @ `c4p_campaign` | votação nas campanhas com designation `active`; não é role global |
 | responsável de comunidade (vínculo) | campanhas da própria comunidade integrada (`communityId`) |
 
 ## Frontend e rotas
@@ -95,7 +95,7 @@ Novas tabelas (PostgreSQL/TypeORM, uuid PK, createdAt/updatedAt, migrations na s
 | `/admin/c4p` | ilha `client:only` | Lista/gestão de campanhas |
 | `/admin/c4p/<id>` | ilha `client:only` | Tabs: Propostas (import CSV), Avaliadores, Dashboard, Finalização |
 
-Entrada na sidebar do `AdminLayout`: seção **Eventos** (ou **Governança** — decidir no plano de implementação da Fase 7).
+Entrada na sidebar do `AppLayout`/`AppNavIsland` existente, na seção definida pelo plano da Fase 7.
 
 ## Integração com a plataforma de eventos
 

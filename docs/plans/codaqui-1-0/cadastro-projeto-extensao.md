@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano detalhado (sem código) do Cadastro de Projeto de Extensão + comprovantes — formulário adaptado do modelo de "Atividade Extensionista" (AdminLTE) ao contexto da Codaqui, com restrições de negócio, máquina de estados, horas no ledger e declarações verificáveis.
 audience: Presidência, diretoria, mantenedores, AI agents implementando a Fase 4.
-status: proposta aprovada em 2026-09-21 — detalha o subsistema C do plano 1.0.0; aguardando plano de implementação.
+status: spec aprovada para a Fase 4, ainda sem plano executável próprio. Revisada para o RBAC consolidado: mentor principal é designation; múltiplos lançamentos manuais de horas são permitidos com idempotencyKey; versão backend será fixada no plano da fase.
 sections:
   - Contexto e vínculo com o 1.0.0
   - Papéis e permissões
@@ -56,7 +56,7 @@ Princípios herdados do plano-mãe:
 | Emitir/baixar comprovante | o próprio titular (autenticado) |
 | Ver observação interna | somente diretoria/admin |
 
-O mentor de extensão **não é role** — é vínculo (`mentorMemberId` no projeto), conforme o plano-mãe.
+O mentor principal é designation `mentor` @ `extension_project` com `appointedById`; essa designation origina a role derivada `mentor`, mas a autorização de lançar horas sempre verifica o vínculo no projeto. Não existe coluna `mentorMemberId` em `extension_projects`.
 
 ## Fluxo ponta a ponta
 
@@ -82,6 +82,7 @@ Extende a entidade `extension_projects` do plano-mãe. Campos novos em relação
 | `slug` | texto | automático | Gerado de `name`; único. |
 | `entityId` | FK → entities | sim | Entidade principal do projeto. |
 | `partnershipId` | FK → partnerships | não | Vínculo formal, quando houver. |
+| `createdById` | FK → members | automático | Diretor criador; usado para restringir transições ao "diretor dono" e para auditoria. |
 | `summary` | texto (curto) | sim | Resumo para a vitrine pública. |
 | `isPublic` | boolean | sim (default true) | Exibe em `/projetos`. |
 
@@ -121,8 +122,8 @@ Extende a entidade `extension_projects` do plano-mãe. Campos novos em relação
 
 | Campo | Tipo | Obrigatório | Regras |
 |---|---|---|---|
-| `mentorMemberId` | FK → members | sim | Designado pela diretoria no cadastro. Membro ativo. |
-| `coMentors` | FK[] → members | não | "Colaboradores extensionistas": busca de membros por nome/handle; viram vínculos em `project_participants` com role `mentor`. |
+| `mentorMemberId` (somente input do DTO) | UUID de members | sim | O service cria designation `mentor` @ projeto; não persiste coluna de vínculo no projeto. Um único mentor principal ativo. |
+| `coMentors` | UUID[] de members | não | Colaboradores em `project_participants` com role `mentor`, sem designation principal e sem permissão de lançar horas; essa permissão é só do mentor principal. |
 | `supportPartners` | jsonb | não | `[{ nome, cnpj? }]` — parceiros de apoio descritivos. Hint no formulário: parceiro estratégico recorrente deve ser cadastrado como `entity`. Sem CNPJ obrigatório. |
 
 ### Orçamento e anexos
@@ -184,11 +185,11 @@ draft → proposed → active → finished
 
 ## Lançamento e aprovação de horas
 
-1. Mentor lança horas por participante (`hours`, `occurredAt`, `description`, `sourceLabel`) → `hour_ledger` com `sourceType: extension_project`, `sourceId = projectId`, `status: pending`, `reportedById = mentor`.
-2. **Unicidade**: no máximo 1 entrada `approved` por (`memberId`, `extension_project`, `projectId`) — reenvio/edição enquanto `pending` é permitido.
+1. Mentor lança horas por participante (`hours`, `occurredAt`, `description`, `sourceLabel`) → `hour_ledger` com `sourceType: extension_project`, `sourceId = projectId`, `status: pending`, `reportedById = mentor` e `idempotencyKey` gerado pelo cliente.
+2. **Múltiplos encontros e retry seguro:** não há unique por projeto/membro. O unique de `idempotencyKey` impede duplicar o mesmo lançamento em retries; lançamentos de datas/encontros diferentes coexistem. Edição de `pending` mantém a mesma chave.
 3. Aprovação por presidência/`finance-analyzer` → `approved` (`approvedById`, `approvedAt`) entra no saldo; rejeição exige `rejectReason` e gera audit.
 4. Mentor pode lançar também para si (horas de mentoria), mesmo fluxo.
-5. Horas do mentor têm teto natural = `totalHours` do projeto; horas por participante não devem exceder `totalHours` (alerta de consistência no momento do lançamento).
+5. O limite usa a **soma** das horas do titular no projeto: entradas `pending` + `approved` não podem exceder `totalHours`; rejeitadas não contam.
 
 ## Comprovantes e verificação
 
@@ -243,7 +244,8 @@ Reutilizam o módulo `notifications` (mesmo pattern de `email_logs`):
 - [ ] Verificação pública por código retorna os dados mínimos do comprovante.
 - [ ] E-mails transacionais disparando e registrados em `email_logs`.
 - [ ] `audit` completo nas transições, designações e decisões de horas.
-- [ ] `npm run build && npx jest` verde no backend; `typecheck && build` no frontend; bump de versão (Fase 4 → backend 0.10.0).
+- [ ] Dois encontros do mesmo participante geram duas entradas válidas; retry com a mesma `idempotencyKey` não duplica; soma respeita `totalHours`.
+- [ ] `cd backend && npm run build && npx jest --silent` e `make astro-verify` verdes; bump para a minor definida no plano executável da Fase 4.
 - [ ] ADR 008 atualizada com o status `draft` e os campos novos de `extension_projects`.
 
 ## Fora de escopo (nesta versão)

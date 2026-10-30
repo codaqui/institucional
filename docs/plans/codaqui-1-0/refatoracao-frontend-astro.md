@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano detalhado (sem código) da refatoração do frontend Docusaurus → Astro 7 + ilhas React (MUI v9 + Tailwind v4), com multi-tenant real por projeto Cloudflare Pages e fim dos Workers mantidos — executado como Fase 0, ANTES da Fase 1a do plano 1.0.0.
 audience: Presidência, mantenedores, AI agents implementando a Fase 0.
-status: design aprovado em 2026-10-05 (Astro monolito = Abordagem A; build matrix por tenant + Pages Function de proxy; MUI v9 + Tailwind v4) — aguardando plano de implementação da Fase 0.1 (esqueleto + POC); ampliado em 2026-10-20 com o Design System Codaqui (tokens `--cq-*` adotados na 0.1, correção de contraste WCAG do verde acionável, página pública /design-system na 0.3 — ver design-system.md) (emendado em 2026-10-20: Astro 7 no lugar de 5 — advisories de segurança críticos sem fix na linha 5.x; decisão registrada no ledger da Fase 0.1).
+status: IMPLEMENTADO nas Fases 0.1–0.6 (2026-10-20 → 2026-10-28), conforme ADR 011. Documento preservado como spec histórica; decisões vigentes e estado operacional estão na ADR 011, no AGENTS.md e no DEVELOPMENT.md.
 sections:
   - Contexto e motivação
   - Decisões de design (2026-10-05)

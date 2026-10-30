@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design do fluxo ECA/LGPD do plano Codaqui 1.0.0 — sinalização de conteúdo destinado a maiores (flag adultOnly + venueType), componente de aviso reutilizável (<AdultContentNotice>) e responsabilidades do organizador, sem coleta de idade e sem policiamento de menores.
 audience: Presidência, mantenedores, AI agents implementando as fases 1a/1b.
-status: design proposto em 2026-10-29 a partir das decisões da presidência (eventos livres; GitHub 13+ como piso; sem mapeamento de idades; eventos em bares/restaurantes) — aguardando integração pelo orquestrador no README do plano.
+status: integrado ao plano executável da Fase 1a (Task 10 de fase-1a.md). Escopo limitado à sinalização informativa 18+; texto de privacidade P1 passa por revisão jurídica e não presume ausência de dados de adolescentes.
 sections:
   - Contexto e decisões da presidência
   - 1. Princípios
@@ -36,13 +36,9 @@ agent-protocol:
 ## 1. Princípios
 
 1. **Zero coleta de idade.** Nenhum cadastro (membro, mentorando convidado, C4P, inscrição em evento) pergunta data de nascimento ou idade. Isso é invariante: não há campo, não haverá.
-2. **Base legal por contexto (LGPD art. 7º).**
-   - Membro (OAuth GitHub: id, handle, nome, e-mail, avatar): **execução de contrato** (adesão à associação) + **legítimo interesse** (gestão associativa) — arts. 7º, V e IX.
-   - Campos opcionais (bio, LinkedIn, e-mails secundários, opt-ins): **consentimento** — art. 7º, I (revogável no painel).
-   - Financeiro (Stripe, doações, PJ): execução de contrato + obrigação legal/fiscal — arts. 7º, V e II/c.
-   - E-mails transacionais e analytics: legítimo interesse, com opt-out onde aplicável.
-3. **Menores de idade = não tratamos dados (LGPD art. 14).** Dado pessoal de criança/adolescente exige consentimento específico e em destaque de pelo menos um responsável legal, com dever de verificação do controlador. Como não coletamos idade, não podemos operar esse consentimento em escala — a resposta é **não captar dados de menores** e orientar o público: menores só participam acompanhados de responsável, e o responsável é quem registra o que for necessário. Qualquer dado de menor que chegar por exceção (ex.: foto, contato pontual) é tratado sob art. 14 e removido sob solicitação em contato@codaqui.dev.
-4. **GitHub 13+ como plataforma-base.** Conta, OAuth, processos e comentários já herdam o piso do GitHub. O sistema nunca precisa duplicar essa verificação.
+2. **Bases legais são hipóteses de trabalho para revisão jurídica na P1**, não conclusão automática deste anexo: execução de contrato/gestão associativa para conta e operações, consentimento revogável para opt-ins e obrigação legal quando aplicável a registros financeiros.
+3. **Crianças e adolescentes exigem cuidado específico, sem inferência etária.** O piso GitHub 13+ não comprova que todo usuário é adulto: adolescentes podem ter conta e dados tratados pela plataforma. Portanto não usar a frase absoluta "não tratamos dados de menores". O produto não é dirigido a crianças, não coleta idade e não infere faixa etária; orienta acompanhamento de responsável e oferece canal para revisão/remoção quando um caso for identificado. Regras de consentimento e verificação para crianças/adolescentes devem ser revistas na P1 conforme o contexto real do tratamento.
+4. **GitHub 13+ como requisito da plataforma-base, não como verificação de maioridade.** A Codaqui não duplica controle etário nem usa o cadastro GitHub para estimar idade.
 5. **Sinalizar, não policiar.** O flag `adultOnly` é **informativo**: avisa que o local/horário/conteúdo é destinado a maiores, desencoraja a participação de menores desacompanhados e declara nossa postura de dados. Ele **não bloqueia inscrição**, não verifica idade e não controla entrada.
 6. **Responsabilidade do organizador em eventos sinalizados.** Quem cadastra/edita o evento (organizer dono via `event_organizer_ownership`, ou admin) é responsável por classificar: conhece o local, o horário e o conteúdo. O sistema sugere (via `venueType` + horário — seção 3), mas **confirmação humana é obrigatória** — a sugestão nunca grava sozinha.
 7. **Transparência sobre indexação.** Evento sinalizado continua **indexável** (sem noindex, fora do `SITEMAP_EXCLUDE`): o aviso existe para informar na listagem e no detalhe, não para esconder. Conteúdo adulto de fato (que não organizaríamos) é outra história e não é o caso aqui.
@@ -67,7 +63,7 @@ Pipeline validado no código (estado atual):
 1. `ManagedEvent` → `EventsService.toEventItem()` (`backend/src/events/events.service.ts`) → `GET /events/public/managed` (somente `published`).
 2. Workflow `sync-event-snapshots.yml` (horário) lê esse endpoint e grava `static/events/internal/codaqui/`; o build do site emite `/eventos/<slug>`.
 3. Acréscimo no serializer: `adultOnly: event.adultOnly` (sempre presente, explícito) e `...(event.venueType && { venueType: event.venueType })`.
-4. Tipo no frontend: `EventItem.adultOnly?: boolean` + `export type VenueType = 'bar' | 'restaurante' | 'auditório' | 'campus' | 'online' | 'outro'` em `frontend/src/lib/events.ts`.
+4. Tipo no frontend: `EventItem.adultOnly?: boolean` + `export type VenueType = 'bar' | 'restaurante' | 'auditorio' | 'campus' | 'online' | 'outro'` em `frontend/src/lib/events.ts`.
 
 **Latência = latência dos overrides** (mudança reflete no próximo sync + build — documentar no admin, como no risco 8 do plano).
 
@@ -82,7 +78,7 @@ Eventos de fontes externas já têm via de metadados: `event_overrides.payload` 
 - **Copy centralizada** em `frontend/src/lib/adult-content.ts` (constantes exportadas + teste unitário `adult-content.test.ts`) — é o "i18n" do site: pt-BR único hoje, com props `title?`/`body?` permitindo override futuro sem tocar páginas.
 - **Texto padrão (pt-BR):**
   - Título: "Evento destinado a maiores de 18 anos"
-  - Corpo: "Este evento acontece em local e horário destinados a maiores. Menores de idade só devem participar acompanhados de um responsável legal. A Codaqui não coleta dados pessoais de menores de idade."
+  - Corpo: "Este evento acontece em local, horário ou contexto destinado a maiores. Menores de idade devem participar acompanhados de um responsável legal. A sinalização é informativa e não substitui as regras do local nem a responsabilidade do organizador."
 - **Marcação:** `<div class="adult-content-notice" role="note" aria-label="Aviso: evento destinado a maiores de idade">` — ícone 🔞 (`aria-hidden="true"`), título em negrito, corpo. Sem interatividade no padrão.
 - **Estilo (zero hex, tokens `--cq-*`):** fundo `var(--cq-color-warning-bg)`, borda esquerda 4px `var(--cq-color-warning)`, texto `var(--cq-color-warning)` — par warning já tem contraste AA (5.02:1 claro / 6.15:1 escuro) e varia por `[data-theme]` automaticamente (`tokens.css`). Cantos arredondados; padding e tipografia seguem o padrão das admonitions existentes.
 - **Uso — página de detalhe** (`frontend/src/pages/eventos/[...path].astro`): `{event.adultOnly && <AdultContentNotice />}` **imediatamente após o bloco data/local e antes da seção de inscrição** — quem chega pelo CTA vê o aviso primeiro.
@@ -102,7 +98,7 @@ Eventos de fontes externas já têm via de metadados: `event_overrides.payload` 
 |---|---|
 | `bar` | Bar, pub, cervejaria |
 | `restaurante` | Restaurante, pizzaria, casa de show com jantar |
-| `auditório` | Auditório, sala de palestras, teatro |
+| `auditorio` | Auditório, sala de palestras, teatro |
 | `campus` | IES/escola, biblioteca, campus |
 | `online` | Remoto/Discord/streams |
 | `outro` | Tudo o mais |
@@ -120,7 +116,7 @@ Por que confirmação humana: restaurante almoço (13h) não é 18+; bar durante
 1. **Classificação:** conteúdo adequado — se houver linguagem/temática/local 18+, marcar `adultOnly` e descrever o contexto no resumo (ex.: "happy hour — o local serve bebidas alcoólicas").
 2. **Local e horário:** preencher `venueType`; avaliar a sugestão do sistema (seção 3); no texto do evento, orientar que menores só participam acompanhados de responsável legal.
 3. **Imagem e fotos:** se houver fotógrafo/filmagem, avisar no texto do evento. Fotos que capturem menores exigem consentimento do responsável legal (LGPD art. 14); preferir enquadrar sem foco em menores; qualquer responsável pode pedir remoção em contato@codaqui.dev. ECA art. 53 responsabiliza quem organiza atividades destinadas a crianças e adolescentes — nosso desenho evita esse enquadramento ao não dirigir eventos a menores, mas o cuidado com imagem vale para eventos abertos ao público geral.
-4. **Inscrição de menores:** não coletar dados de menores em nenhuma etapa. No nosso sistema a inscrição exige login GitHub (13+); em plataformas terceiras, o organizador orienta que o responsável legal acompanhe e seja quem se inscreve.
+4. **Inscrição e dados:** não perguntar idade nem usar o formulário para registrar dados de terceiros sem base e finalidade válidas. O login GitHub 13+ não comprova maioridade; orientar acompanhamento de responsável e encaminhar qualquer situação identificada envolvendo criança/adolescente ao canal de privacidade, sem criar um fluxo caseiro de consentimento.
 5. **Material de divulgação:** respeitar a mesma classificação do evento (criativo de happy hour não vai para canal de menor).
 
 ### O que o SISTEMA faz
@@ -141,19 +137,19 @@ Por que confirmação humana: restaurante almoço (13h) não é 18+; bar durante
 
 | Onde | O quê |
 |---|---|
-| **Backend 0.12.x** (junto da Fase 1a) | Migration (≥ 026): `managed_events` +`adultOnly` (bool, NOT NULL, default false) +`venueType` (enum nullable). DTOs (`Create/UpdateEventDto`). `toEventItem` expõe ambos. Audit em mudança de `adultOnly`. Reconhecer `payload.adultOnly` no sync/override de externos (frontend já lê do `EventItem`). |
-| **Frontend** (mesma janela da 1a/1b) | `src/lib/adult-content.ts` + `AdultContentNotice.astro` + badge no `EventCard.astro` + condicional na `[...path].astro`; campos no formulário admin/organizer com sugestão venueType+horário; tipos em `src/lib/events.ts`. Tenants herdam via `src/` compartilhado. Gates: `make astro-verify` (+ tenants se tocar em compartilhado). |
-| **P1 — Política de Privacidade** (Fase 1b, `/sobre/privacidade`) | Nova seção **"Menores de idade"**: não coletamos idade; piso GitHub 13+; dados de menores só com consentimento do responsável (art. 14 LGPD) e remoção sob solicitação; imagem; o que o sinalizador 18+ significa (aviso informativo) e o que **não** significa (não é controle de entrada nem verificação). Atualizar o inventário em `docs/modules/privacy/`. |
-| **ADR** | Não gera ADR nova — é extensão da plataforma de eventos (ADR 001); citar este documento na nota de implementação da Fase 1a. |
+| **Backend 0.12.0 / Migration 031** | `managed_events` +`adultOnly` +`venueType`; DTOs e serializer; audit de mudança; externos por `payload.adultOnly` |
+| **Frontend / Task 10 da 1a** | `adult-content.ts`, `AdultContentNotice.astro`, badge, detalhe, formulário e tipos. Gates: `make astro-verify` + tenants |
+| **P1 — Política de Privacidade (1b)** | Seção "Crianças e adolescentes": não coletamos nem inferimos idade; GitHub 13+ não é prova de maioridade; orientação sobre acompanhamento, imagem e canal de revisão/remoção; significado e limites do aviso 18+. Texto e bases legais passam por revisão jurídica, sem declaração absoluta de ausência de dados de menores |
+| **ADR** | Extensão da ADR 001, sem ADR nova |
 
-Fora do 1.0.0 (registrado como alvo futuro): `c4p_calls.adultOnly` (Fase 7), frontmatter `adultOnly` em trilhas/blog.
+Fora da **1a** (avaliar em suas fases): `c4p_calls.adultOnly` e frontmatter `adultOnly` em trilhas/blog.
 
 ## 6. O que NÃO faremos
 
 - **Não perguntar idade/data de nascimento** em cadastro, inscrição, mentoria, C4P ou qualquer formulário — hoje e no 1.0.0.
 - **Não bloquear menores**: o piso é o do GitHub (13+); acima disso, sinalizamos e orientamos (responsável legal acompanha), sem impedir participação. A associação não é porta de evento.
 - **Não verificar documentos de identidade** nem fazer controle de entrada/escuta etária.
-- **Não coletar dados pessoais de menores** (nem em nome do responsável como "cadastro do filho"); exceção pontual só com consentimento do responsável (art. 14) + registro no inventário.
+- **Não criar cadastro dedicado de menores nem registrar dados de terceiros** (como "cadastro do filho") sem finalidade, base legal e processo de consentimento revistos; situações identificadas seguem o canal de privacidade e o inventário.
 - **Não auto-classificar eventos**: a heurística venueType+horário **sugere**, nunca grava.
 - **Não desindexar** eventos sinalizados (sem noindex / sem sair do sitemap).
 - **Não tocar em bebida alcoólica** — venda/distribuição é do estabelecimento.

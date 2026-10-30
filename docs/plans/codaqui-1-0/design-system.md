@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo do plano Codaqui 1.0.0 — adoção do Design System Codaqui (tokens, tema, correção de contraste WCAG) dentro da Fase 0 (refatoração Astro) e a página pública /design-system (brand book interativo) como entrega da Fase 0.3.
 audience: Presidência, mantenedores, AI agents implementando a Fase 0.
-status: design aprovado em 2026-10-20 (tokens novos integrados ao refactor do frontend; correção de contraste do verde acionável aprovada; página pública confirmada como entrega da Fase 0.3). Origem: protótipo externo "Kimi_Agent_Codaqui Design System (1)" analisado em 2026-10-20.
+status: IMPLEMENTADO nas Fases 0.1–0.4 (tokens, tema MUI/Tailwind, correção de contraste e página pública /design-system). Documento preservado como spec histórica; a fonte canônica atual é frontend/src/styles/tokens.css, complementada por frontend/src/lib/mui-theme.ts e AGENTS.md.
 sections:
   - Origem e análise do protótipo
   - Decisões de design (2026-10-20)

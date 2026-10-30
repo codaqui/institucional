@@ -92,8 +92,9 @@ Quando (e somente quando) um segundo provedor entrar, as mudanças são pontuais
 | `guest_claimed_at` | `timestamptz null` | quando o convidado preencheu nome/e-mail |
 | `guest_consent_at` | `timestamptz null` | consentimento LGPD (ver 2.4) |
 | `status` | enum **+ `PENDING_GUEST`** | convite emitido, ainda não reclamado |
+| `attendeeName` / `attendeeEmail` | passam a aceitar `NULL` | somente `PENDING_GUEST` pode ficar sem os dois; o claim preenche valores reais e os demais fluxos exigem não-nulo por validação |
 
-**Token único.** Reutilizamos `checkinToken` (já `unique`, já vai no QR) como o token do link de convite: a URL `/eventos/<rota>/convite/<checkinToken>` é tanto o link de cadastro quanto a credencial de check-in do dia. Alternativa considerada e descartada: token de convite separado, gerando `checkinToken` fresco no claim — complexidade extra sem ganho, porque check-in exige ação do staff e status `CONFIRMED` (convite não reclamado é `PENDING_GUEST` e é rejeitado — ver seção 3).
+**Token único.** Reutilizamos `checkinToken` (já `unique`, já vai no QR) como o token do link de convite: a URL canônica `/eventos/convite/<checkinToken>` é tanto o link de cadastro quanto a credencial de check-in do dia. O token localiza o evento no backend, portanto a rota não duplica slug/ID. Alternativa considerada e descartada: token separado, sem ganho para eventos gratuitos porque check-in exige staff e status `CONFIRMED`.
 
 ### 2.2 Fluxo ponta a ponta
 
@@ -104,8 +105,8 @@ admin/organizer/staff host            convidado                        staff no 
     cria registration                   │                                │
     status=PENDING_GUEST,               │                                │
     isGuest=true, checkinToken          │                                │
-    devolve /eventos/<rota>/            │                                │
-    convite/<token> (+QR no admin)      │                                │
+    devolve /eventos/convite/          │                                │
+    <token> (+QR no admin)             │                                │
         │                          2. abre o link (página pública,      │
         │                             noindex, sem login)               │
         │                          3. preenche Nome + E-mail +          │
@@ -126,7 +127,7 @@ admin/organizer/staff host            convidado                        staff no 
 ```
 
 1. **Emissão** — `POST /events/:id/guest-invites` (`JwtAuthGuard` + `RolesGuard`: roles globais de evento **ou** staff `host` do evento — mesmo critério do check-in). Cria a registration `PENDING_GUEST` e devolve a URL + QR (renderizado no admin para imprimir). Vai ao `audit`. Rate limit por evento (evita bombardeio de convites).
-2. **Abertura** — página pública (rota sob `/eventos/…`, `noindex`, `PublicLayout`). Estados: `PENDING_GUEST` → formulário; `CONFIRMED` → dados + QR de check-in (reabertura do link); evento lotado/cancelado/encerrado → mensagem clara.
+2. **Abertura** — `/eventos/convite/[token]` (`noindex`, `PublicLayout`) consulta `GET /events/public/guest-invites/:token`, com throttler e resposta mínima. Estados: `PENDING_GUEST` → formulário; `CONFIRMED` → nome, evento, QR e **e-mail mascarado**; lotado/cancelado/encerrado → mensagem clara. Nunca devolver `attendeeEmail` completo, `memberId`, `guestInvitedByMemberId` ou dados de outras inscrições.
 3. **Claim** — `POST /events/public/guest-claim` **sem login** (única superfície pública nova; protegida por Turnstile + throttler — ver 2.4 e seção 5). Valida evento `PUBLISHED` e capacidade, então executa o claim **exatamente 1×**:
 
    ```sql
@@ -190,7 +191,7 @@ O token do convite **é a credential** — e o check-in reutiliza o fluxo atômi
 | Entrega | Fase | Versão backend | Por quê |
 |---|---|---|---|
 | **Centralização do login** | **Nenhuma** — documental | nenhuma | O fluxo atual já é o padrão; este anexo fixa o contrato e o checklist de provedores |
-| **Guest token (backend + frontend)** | **Fase 2 — "Pessoas e horas"** | **0.12.0** (mesma versão da Fase 2) | Toca `event_registrations`, o check-in atômico e a decisão do hook de horas para guest (risco 5) — o mesmo módulo e o mesmo gate de testes (`npm run build && npx jest`). Não é 1a (fundações = communities/directorates/E1/R1, sem relação com eventos). É aditivo e poderia ser antecipado como minor independente, mas tocaria o módulo de eventos duas vezes (guest agora, hook F2 depois) — recomendação: junto com a Fase 2 |
+| **Guest token (backend + frontend)** | **Fase 2 — "Pessoas e horas"** | minor própria, fixada no plano da Fase 2; **não é 0.12.0**, reservada à 1a | Toca `event_registrations`, check-in e hook de horas no mesmo release. Turnstile da 1a é pré-requisito; guest não foi antecipado para a 1a |
 
 Migrations: aditiva em `event_registrations` (seção 2.1), número atribuído na sequência do plano-mãe (≥ 026) no momento da implementação.
 
@@ -199,7 +200,7 @@ Migrations: aditiva em `event_registrations` (seção 2.1), número atribuído n
 - Migration: colunas guest + status `PENDING_GUEST` (2.1).
 - `RegistrationStatus.PENDING_GUEST`; `performCheckin` rejeita `PENDING_GUEST` (seção 3).
 - `EventsService`: `createGuestInvite()` (emissão, audit, rate limit), `claimGuestRegistration()` (claim atômico condicional, Turnstile, capacity/quota, e-mail), listagem de convidados em `listRegistrations` (sem mudança de assinatura — já é por evento).
-- Controller: `POST /events/:id/guest-invites` (`JwtAuthGuard` + `RolesGuard`/ownership) e `POST /events/public/guest-claim` (**público** — Turnstile + `@nestjs/throttler`, fora de qualquer guard de JWT).
+- Controller: `POST /events/:id/guest-invites` (autenticado), `GET /events/public/guest-invites/:token` (público, throttled, DTO mínimo com e-mail mascarado) e `POST /events/public/guest-claim` (público, Turnstile + throttler).
 - `MembersService.upsertByGithub`: hook de vínculo por e-mail verificado (2.6).
 - `notifications`: template de confirmação guest no registry (E2) + extensão do lembrete D-1 para guests.
 
@@ -224,4 +225,4 @@ Migrations: aditiva em `event_registrations` (seção 2.1), número atribuído n
 
 ---
 
-> **Síntese para implementação:** seção 1 = contrato (não muda código hoje); seções 2–3 = feature aditiva de eventos recomendada para a **Fase 2 (0.12.0)**; seção 4 = o que implementar por camada; seção 5 = o que fechar com a presidência antes do primeiro PR (riscos 1, 4 e 5 são as decisões de negócio).
+> **Síntese para implementação:** seção 1 = contrato (não muda código hoje); seções 2–3 = feature da **Fase 2**, com minor própria definida no plano da fase; seção 4 = camadas; riscos 1, 4 e 5 são decisões de negócio a fechar antes do primeiro PR.
