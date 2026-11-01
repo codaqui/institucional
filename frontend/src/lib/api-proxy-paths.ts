@@ -22,7 +22,7 @@ const API_EXACT_PATHS = new Set([
 // inteiro sumia no edge. Forma com trailing slash de propósito: o helper
 // normaliza bare paths adicionando "/", então "/admin/members" casa; e
 // "/admin/memberships" (falso positivo de startsWith) NÃO casa.
-const API_PREFIXES = ["/api/", "/auth/github", "/auth/me", "/auth/logout", "/auth/finalize", "/stripe/", "/ledger/", "/members/", "/events/", "/reimbursements/", "/companies/", "/club/", "/vendors/", "/account-transfers/", "/admin/members/", "/notifications/"];
+const API_PREFIXES = ["/api/", "/auth/github", "/auth/me", "/auth/logout", "/auth/finalize", "/stripe/", "/ledger/", "/members/", "/events/", "/reimbursements/", "/companies/", "/club/", "/vendors/", "/account-transfers/", "/admin/members/", "/notifications/", "/designations/"];
 
 export function isApiProxyPath(pathname: string): boolean {
   if (API_EXACT_PATHS.has(pathname)) return true;

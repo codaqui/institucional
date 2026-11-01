@@ -371,6 +371,46 @@ describe('MembersService', () => {
         isActive: false,
       });
     });
+
+    it('rejects manual additions of derived roles', async () => {
+      memberRepo.findOneOrFail.mockResolvedValue(mockMember());
+
+      await expect(
+        service.adminUpdate('member-1', {
+          roles: [MemberRole.MEMBRO, MemberRole.DIRETOR],
+        }),
+      ).rejects.toThrow('role derivada');
+      expect(memberRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects manual removals of derived roles', async () => {
+      memberRepo.findOneOrFail.mockResolvedValue({
+        ...mockMember(),
+        roles: [MemberRole.MEMBRO, MemberRole.MENTOR],
+      });
+
+      await expect(
+        service.adminUpdate('member-1', { roles: [MemberRole.MEMBRO] }),
+      ).rejects.toThrow('role derivada');
+      expect(memberRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('allows manual role updates that preserve derived roles', async () => {
+      const member = {
+        ...mockMember(),
+        roles: [MemberRole.MEMBRO, MemberRole.VOLUNTARIO],
+      };
+      memberRepo.findOneOrFail.mockResolvedValue(member);
+      const roles = [
+        MemberRole.MEMBRO,
+        MemberRole.VOLUNTARIO,
+        MemberRole.ADMIN,
+      ];
+
+      await service.adminUpdate(member.id, { roles });
+
+      expect(memberRepo.update).toHaveBeenCalledWith(member.id, { roles });
+    });
   });
 
   // ─── findAll (admin) ─────────────────────────────────────────────────────

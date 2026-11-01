@@ -30,12 +30,14 @@ import StorefrontIcon from "@mui/icons-material/Storefront";
 import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
 import { useAuth } from "../../lib/use-auth";
+import {
+  useMyDesignations,
+  type MyDesignation,
+} from "../../lib/use-designations";
 
 /**
- * Navegação do app (sidebar) — port vertical do AdminNavbar do Docusaurus
- * (src/components/AdminNavbar). Espelha a visibilidade por papel: item sem
- * `roles` é visível para qualquer membro logado; admin vê tudo; os demais
- * precisam de ao menos um papel listado (igual ao `canSee` original).
+ * Navegação do app (sidebar): item sem restrição é visível para qualquer
+ * membro logado; admin vê tudo; os demais precisam de role ou designation.
  */
 
 export interface AppNavIslandProps {
@@ -48,10 +50,20 @@ interface NavItem {
   href: string;
   icon: ReactNode;
   roles?: readonly string[];
+  designations?: readonly {
+    targetType: MyDesignation["targetType"];
+    designation?: MyDesignation["designation"];
+  }[];
 }
 
 const GESTAO_ITEMS: readonly NavItem[] = [
   { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+  {
+    label: "Minha comunidade",
+    href: "/admin/comunidades",
+    icon: <BusinessIcon />,
+    designations: [{ targetType: "community", designation: "responsible" }],
+  },
   { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
   { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
   { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
@@ -147,6 +159,7 @@ function NavLink({
 
 export function AppNavContent({ currentPath }: AppNavIslandProps) {
   const { user, ready, isLoggedIn, isAdmin, logout } = useAuth();
+  const { data: myDesignations } = useMyDesignations();
 
   useEffect(() => {
     if (ready && !isLoggedIn) window.location.replace("/");
@@ -166,8 +179,25 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
   if (!isLoggedIn || !user) return null; // guard disparou redirect
 
   const userRoles = user.roles;
-  const canSee = (item: NavItem) =>
-    !item.roles || isAdmin || item.roles.some((role) => userRoles.includes(role));
+  const canSee = (item: NavItem) => {
+    const roleMatch =
+      item.roles?.some((role) => userRoles.includes(role)) ?? false;
+    const designationMatch =
+      item.designations?.some((required) =>
+        myDesignations.some(
+          (designation) =>
+            designation.targetType === required.targetType &&
+            (!required.designation ||
+              designation.designation === required.designation),
+        ),
+      ) ?? false;
+    return (
+      isAdmin ||
+      (!item.roles && !item.designations) ||
+      roleMatch ||
+      designationMatch
+    );
+  };
 
   const gestaoItems = GESTAO_ITEMS.filter(canSee);
   const eventoItems = EVENTO_ITEMS.filter(canSee);

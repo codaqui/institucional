@@ -170,7 +170,7 @@ git commit -m "feat(fase-1a): adiciona designations e roles organizacionais deri
 - `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` → admin.
 - `@Designations({ targetType, targetIdParam, designation })` + `DesignationsGuard`.
 
-- [ ] **Step 1: Write failing API, role-protection and UI tests**
+- [x] **Step 1: Write failing API, role-protection and UI tests**
 
 ```ts
 it('rejects manual changes to derived roles', async () => {
@@ -202,11 +202,11 @@ Run: `cd backend && npx jest src/members src/designations --runInBand`
 Run: `cd frontend && npx vitest run src/lib/use-designations.test.tsx src/components/islands/__tests__/AppNavIsland.test.tsx`
 Expected: FAIL nos novos casos.
 
-- [ ] **Step 2: Implement the guard and endpoints**
+- [x] **Step 2: Implement the guard and endpoints**
 
 O guard lê `req.user.sub`, resolve `targetId` de `req.params[targetIdParam]`, aceita admin e delega ao service. `MembersService.adminUpdate` compara o conjunto anterior e o novo: qualquer adição/remoção de `DERIVED_ROLES` lança `ConflictException` antes do update. A validação permanece no service, não apenas no controller.
 
-- [ ] **Step 3: Implement the frontend hook and navigation filter**
+- [x] **Step 3: Implement the frontend hook and navigation filter**
 
 ```ts
 export interface MyDesignation {
@@ -226,13 +226,13 @@ export function useMyDesignations(): {
 
 O hook usa `authFetch`, `parseAuthJson` e `resolveApiUrl`. `NavItem.designations` é opcional; visibilidade é `isAdmin || roleMatch || designationMatch`. Adicionar `/designations/` a `API_PREFIXES` e testar que `/admin/designations` continua fora do proxy.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/members src/designations --runInBand`
 Run: `cd frontend && npx vitest run src/lib/use-designations.test.tsx src/components/islands/__tests__/AppNavIsland.test.tsx src/lib/api-proxy-paths.test.ts`
 Expected: PASS; `JwtStrategy` continua lendo roles frescas do banco a cada request.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/designations backend/src/members frontend/src/lib/use-designations.ts frontend/src/lib/use-designations.test.tsx frontend/src/components/islands/AppNavIsland.tsx frontend/src/components/islands/__tests__/AppNavIsland.test.tsx frontend/src/lib/api-proxy-paths.ts frontend/src/lib/api-proxy-paths.test.ts

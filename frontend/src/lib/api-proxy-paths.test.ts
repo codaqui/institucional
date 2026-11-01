@@ -69,6 +69,14 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/admin/memberships")).toBe(false);
   });
 
+  it("designations é API sem alargar o prefixo administrativo", () => {
+    expect(isApiProxyPath("/designations")).toBe(true);
+    expect(isApiProxyPath("/designations/me")).toBe(true);
+    expect(isApiProxyPath("/designations/abc/confirm")).toBe(true);
+    expect(isApiProxyPath("/designationsxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/designations")).toBe(false);
+  });
+
   it("não-API delega ao estático via context.next()", () => {
     expect(isApiProxyPath("/")).toBe(false);
     expect(isApiProxyPath("/blog")).toBe(false);

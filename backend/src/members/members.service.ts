@@ -1,6 +1,13 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { DERIVED_ROLES } from '../designations/designations.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { Transaction } from '../ledger/entities/transaction.entity';
@@ -328,13 +335,29 @@ export class MembersService {
 
   /**
    * Admin: atualizar role ou isActive.
-   * Nota: bootstrap admins que fizerem login novamente terão role=admin
-   * restaurada automaticamente — a restrição é por design.
+   * Roles derivadas só mudam pelo sync de designations. Bootstrap admins que
+   * fizerem login novamente terão role=admin restaurada automaticamente.
    */
   async adminUpdate(
     id: string,
     dto: Readonly<AdminUpdateDto>,
   ): Promise<Member> {
+    if (dto.roles) {
+      const member = await this.repo.findOneOrFail({ where: { id } });
+      const previousRoles = new Set(member.roles);
+      const nextRoles = new Set(dto.roles);
+      const changesDerivedRole = DERIVED_ROLES.some(
+        (role) =>
+          previousRoles.has(role as MemberRole) !==
+          nextRoles.has(role as MemberRole),
+      );
+      if (changesDerivedRole) {
+        throw new ConflictException(
+          'role derivada — gerida pelo sync de designations',
+        );
+      }
+    }
+
     await this.repo.update(id, dto);
     return this.repo.findOneOrFail({ where: { id } });
   }

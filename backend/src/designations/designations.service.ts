@@ -58,7 +58,7 @@ export interface DesignationQuery {
 
 type DerivedRole = keyof typeof DERIVED_ROLE_RULES;
 
-const DERIVED_ROLES = Object.keys(DERIVED_ROLE_RULES) as DerivedRole[];
+export const DERIVED_ROLES = Object.keys(DERIVED_ROLE_RULES) as DerivedRole[];
 const CACHE_TTL_MS = 60_000;
 const SINGLE_TARGET_RULES = [
   { targetType: 'community', designation: 'responsible' },
