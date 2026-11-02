@@ -1,6 +1,14 @@
 ---
 // Portado de src/pages/index.tsx (CommunitySection) — MUI → HTML + Tailwind.
-import { communities, type Community } from "../../data/communities";
+import {
+  communityLevelLabel,
+  communitySealLabel,
+  getCommunityPrimaryLink,
+  loadCommunitiesIndex,
+  type CommunityIndexEntry,
+} from "../../lib/communities";
+
+const { communities } = loadCommunitiesIndex();
 ---
 
 <section class="bg-sunken py-12 md:py-20">
@@ -10,11 +18,13 @@ import { communities, type Community } from "../../data/communities";
     </h2>
     <div class="grid grid-cols-2 justify-center gap-4 sm:grid-cols-3 md:grid-cols-6">
       {
-        communities.map((community: Community) => {
-          const link = community.links[0]?.url ?? "#";
+        communities.map((community: CommunityIndexEntry) => {
+          const primaryLink = getCommunityPrimaryLink(community);
+          const link = primaryLink?.url ?? "#";
           const isExternal = link.startsWith("http");
           const isLocal = community.logo.startsWith("/img/");
           const isWhiteLogo = isLocal && community.logo.includes("white");
+          const sealLabel = communitySealLabel(community.sealStatus);
           return (
             <a
               href={link}
@@ -39,6 +49,9 @@ import { communities, type Community } from "../../data/communities";
               />
               <span class="text-sm font-semibold text-text-primary">
                 {community.name}
+              </span>
+              <span class="text-xs font-semibold text-text-secondary">
+                {communityLevelLabel(community.level)}{sealLabel ? ` · ${sealLabel}` : ""}
               </span>
             </a>
           );

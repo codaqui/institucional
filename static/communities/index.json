@@ -1,0 +1,355 @@
+{
+  "generatedAt": "2026-11-02T16:47:38.927Z",
+  "communities": [
+    {
+      "id": "campostechpg",
+      "slug": "campostechpg",
+      "name": "CamposTech",
+      "description": "Espaço colaborativo dedicado à inovação, tecnologia e empreendedorismo em Ponta Grossa. Fomenta conexões entre participantes, profissionais, organizações e entusiastas.",
+      "emoji": "💻",
+      "logo": "/img/campostech.svg",
+      "location": "Ponta Grossa, PR",
+      "founded": null,
+      "links": [
+        {
+          "url": "/comunidades/campostechpg",
+          "type": "website",
+          "label": "Página da comunidade"
+        },
+        {
+          "url": "https://campostechpg.com.br/",
+          "type": "website",
+          "label": "campostechpg.com.br"
+        },
+        {
+          "url": "https://www.instagram.com/campostechpg",
+          "type": "instagram",
+          "label": "@campostechpg"
+        },
+        {
+          "url": "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
+          "type": "youtube",
+          "label": "CamposTech no YouTube"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://campostechpg.com.br/",
+          "handle": "campostechpg.com.br",
+          "platform": "website",
+          "countLabel": "site",
+          "baselineCount": 0
+        },
+        {
+          "url": "https://www.instagram.com/campostechpg",
+          "handle": "@campostechpg",
+          "platform": "instagram",
+          "countLabel": "seguidores",
+          "baselineCount": 0
+        },
+        {
+          "url": "https://www.youtube.com/channel/UC4DBdSVpA-72UqHubk0AN0w/videos",
+          "handle": "CamposTech",
+          "platform": "youtube",
+          "countLabel": "inscritos",
+          "baselineCount": 0
+        }
+      ],
+      "tags": [
+        "inovação",
+        "empreendedorismo",
+        "networking"
+      ],
+      "level": "integrada",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": false,
+      "siteDomain": null,
+      "responsible": null
+    },
+    {
+      "id": "cloudnativemaringa",
+      "slug": "cloudnativemaringa",
+      "name": "Cloud Native Maringá",
+      "description": "Comunidade oficial da Cloud Native Computing Foundation (CNCF) em Maringá. Fomenta o aprendizado de tecnologias cloud-native, organiza grupos de estudo para certificações (KCNA, CKA, CKAD) e promove encontros entre estudantes e profissionais de SRE, DevOps e arquitetura de software.",
+      "emoji": "☁️",
+      "logo": "https://avatars.githubusercontent.com/u/13455738?v=4",
+      "location": "Maringá, PR",
+      "founded": null,
+      "links": [
+        {
+          "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
+          "type": "website",
+          "label": "ocgroups.dev"
+        },
+        {
+          "url": "https://chat.whatsapp.com/DJeegYRE1SC1zQuW64Hmzn",
+          "type": "whatsapp",
+          "label": "WhatsApp"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://ocgroups.dev/cncf/group/sq5vsqs",
+          "handle": "sq5vsqs",
+          "platform": "cncf",
+          "countLabel": "membros",
+          "baselineCount": 45
+        }
+      ],
+      "tags": [
+        "cloud-native",
+        "devops",
+        "sre",
+        "certificações"
+      ],
+      "level": "parceira",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": false,
+      "siteDomain": null,
+      "responsible": null
+    },
+    {
+      "id": "cumbucadev",
+      "slug": "cumbucadev",
+      "name": "Cumbuca Dev",
+      "description": "Comunidade open source inclusiva dedicada a empoderar pessoas historicamente sub-representadas na tecnologia. Promove contribuições abertas, colaboração e pertencimento, tornando o desenvolvimento de software mais diverso e acessível.",
+      "emoji": "🥥",
+      "logo": "https://avatars.githubusercontent.com/u/146448842?v=4",
+      "location": "Brasil",
+      "founded": 2023,
+      "links": [
+        {
+          "url": "https://cumbuca.dev/",
+          "type": "website",
+          "label": "cumbuca.dev"
+        },
+        {
+          "url": "https://github.com/cumbucadev",
+          "type": "github",
+          "label": "GitHub"
+        },
+        {
+          "url": "https://www.instagram.com/cumbucadev/",
+          "type": "instagram",
+          "label": "@cumbucadev"
+        },
+        {
+          "url": "https://www.youtube.com/@CumbucaDev",
+          "type": "youtube",
+          "label": "YouTube"
+        },
+        {
+          "url": "https://www.linkedin.com/company/cumbucadev/",
+          "type": "linkedin",
+          "label": "LinkedIn"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://github.com/cumbucadev",
+          "handle": "cumbucadev",
+          "platform": "github",
+          "countLabel": "seguidores",
+          "baselineCount": 211
+        },
+        {
+          "url": "https://www.instagram.com/cumbucadev/",
+          "handle": "@cumbucadev",
+          "platform": "instagram",
+          "countLabel": "seguidores",
+          "baselineCount": 1408
+        },
+        {
+          "url": "https://www.youtube.com/@CumbucaDev",
+          "handle": "@CumbucaDev",
+          "platform": "youtube",
+          "countLabel": "inscritos",
+          "baselineCount": 312
+        }
+      ],
+      "tags": [
+        "diversidade",
+        "open-source",
+        "educação",
+        "inclusão",
+        "empoderamento"
+      ],
+      "level": "parceira",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": false,
+      "siteDomain": null,
+      "responsible": null
+    },
+    {
+      "id": "devparana",
+      "slug": "devparana",
+      "name": "DevParaná",
+      "description": "Comunidade sem fins lucrativos que conecta pessoas desenvolvedoras de software em todo o estado do Paraná. Fundada em 2015 e sediada em Maringá, promove meetups, workshops, hackathons e DevPR Conf.",
+      "emoji": "👥",
+      "logo": "https://avatars.githubusercontent.com/u/15199454?s=200&v=4",
+      "location": "Maringá, PR",
+      "founded": 2015,
+      "links": [
+        {
+          "url": "/comunidades/devparana",
+          "type": "website",
+          "label": "Página da comunidade"
+        },
+        {
+          "url": "https://github.com/DeveloperParana",
+          "type": "github",
+          "label": "GitHub"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://www.meetup.com/pt-BR/developerparana/",
+          "handle": "developerparana",
+          "platform": "meetup",
+          "countLabel": "membros",
+          "baselineCount": 2100
+        },
+        {
+          "url": "https://www.youtube.com/devparana",
+          "handle": "@devparana",
+          "platform": "youtube",
+          "countLabel": "inscritos",
+          "baselineCount": 0
+        },
+        {
+          "url": "https://www.instagram.com/devparana",
+          "handle": "@devparana",
+          "platform": "instagram",
+          "countLabel": "seguidores",
+          "baselineCount": 0
+        }
+      ],
+      "tags": [
+        "developers",
+        "paraná",
+        "meetups",
+        "conferências"
+      ],
+      "level": "integrada",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": true,
+      "siteDomain": "devparana.org",
+      "responsible": null
+    },
+    {
+      "id": "elasnocodigo",
+      "slug": "elasnocodigo",
+      "name": "Elas no Código",
+      "description": "Iniciativa que tem como objetivo inserir mulheres no setor da tecnologia e apoiar as que já estão, empoderando-as e oferecendo mais oportunidades de conhecimento e desenvolvimento profissional.",
+      "emoji": "♀️",
+      "logo": "/img/elasnocodigo.svg",
+      "location": null,
+      "founded": null,
+      "links": [
+        {
+          "url": "https://www.instagram.com/elasnocodigo/",
+          "type": "instagram",
+          "label": "@elasnocodigo"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://www.instagram.com/elasnocodigo/",
+          "handle": "@elasnocodigo",
+          "platform": "instagram",
+          "countLabel": "seguidores",
+          "baselineCount": 0
+        },
+        {
+          "url": "https://www.youtube.com/@elasnocodigo",
+          "handle": "@elasnocodigo",
+          "platform": "youtube",
+          "countLabel": "inscritos",
+          "baselineCount": 0
+        }
+      ],
+      "tags": [
+        "mulheres",
+        "inclusão",
+        "empoderamento",
+        "tech"
+      ],
+      "level": "integrada",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": true,
+      "siteDomain": "elasnocodigo.com.br",
+      "responsible": null
+    },
+    {
+      "id": "tisocial",
+      "slug": "tisocial",
+      "name": "TI Social",
+      "description": "Projeto que une tecnologia e responsabilidade social, promovendo o acesso à educação digital para comunidades carentes da região de Maringá.",
+      "emoji": "🤝",
+      "logo": "/img/tisocial-white.png",
+      "location": "Maringá, PR",
+      "founded": null,
+      "links": [
+        {
+          "url": "/comunidades/tisocial",
+          "type": "website",
+          "label": "Página da comunidade"
+        },
+        {
+          "url": "https://www.instagram.com/tisocialmaringa",
+          "type": "instagram",
+          "label": "@tisocialmaringa"
+        }
+      ],
+      "socialProfiles": [
+        {
+          "url": "https://www.instagram.com/tisocialmaringa",
+          "handle": "@tisocialmaringa",
+          "platform": "instagram",
+          "countLabel": "seguidores",
+          "baselineCount": 0
+        }
+      ],
+      "tags": [
+        "inclusão digital",
+        "educação",
+        "social"
+      ],
+      "level": "integrada",
+      "status": "active",
+      "sealStatus": "none",
+      "sealGrantedAt": null,
+      "sealGrantedById": null,
+      "sealValidUntil": null,
+      "sealNotes": null,
+      "siteEnabled": true,
+      "siteDomain": "tisocial.org.br",
+      "responsible": null
+    }
+  ]
+}

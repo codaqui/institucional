@@ -405,7 +405,7 @@ git commit -m "feat(fase-1a): cadastra comunidades e valida doações direcionad
 - `loadCommunitiesIndex(): CommunityIndexFile` lê `static/communities/index.json` em build time.
 - `sync:communities` grava por arquivo temporário + rename e não altera o snapshot se a API falhar.
 
-- [ ] **Step 1: Write failing script and frontend tests**
+- [x] **Step 1: Write failing script and frontend tests**
 
 ```js
 test('preserves the previous snapshot when the API fails', async () => {
@@ -419,15 +419,15 @@ Run: `node --test scripts/sync-communities.test.mjs`
 Run: `cd frontend && npx vitest run src/lib/communities.test.ts src/components/islands/admin/communities/CommunitiesAdminApp.test.tsx`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement sync, loader and public rendering**
+- [x] **Step 2: Implement sync, loader and public rendering**
 
 O snapshot contém `{generatedAt, communities}` e inclui somente `status='active'`. `copy-snapshots.mjs` passa a copiar também `communities/index.json`. `/comunidades` e `CommunitySection` consomem o mesmo loader; cards mostram nível/selo e preservam os links atuais. Não mudar configs nem conteúdo canônico em `comunidades/`.
 
-- [ ] **Step 3: Implement the admin island and workflow**
+- [x] **Step 3: Implement the admin island and workflow**
 
 A ilha cobre CRUD, mudança Parceira↔Integrada, solicitação/concessão de selo e atribuição de responsável por designation. O workflow roda de hora em hora e por dispatch, com permissões mínimas, `npm run sync:communities` e commit somente quando houver diff.
 
-- [ ] **Step 4: Generate and verify the real snapshot**
+- [x] **Step 4: Generate and verify the real snapshot**
 
 Run: `make db-up && make migration-run`
 Run: `make backend-start` em um segundo terminal e aguardar `GET http://localhost:3001/health` responder 200.
@@ -435,7 +435,7 @@ Run: `node scripts/sync-communities.mjs && node --test scripts/sync-communities.
 Run: `cd frontend && npx vitest run src/lib/communities.test.ts src/components/islands/admin/communities`
 Expected: seis comunidades no JSON; testes PASS. Encerrar o backend local ao concluir os demais fluxos.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/sync-communities.mjs scripts/sync-communities.test.mjs .github/workflows/sync-community-snapshots.yml static/communities/index.json frontend/src/lib/communities.ts frontend/src/lib/communities.test.ts frontend/src/pages/comunidades frontend/src/pages/admin/comunidades.astro frontend/src/components/islands/admin/communities frontend/src/components/astro/CommunitySection.astro frontend/scripts/copy-snapshots.mjs package.json Makefile

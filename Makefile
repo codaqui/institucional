@@ -46,7 +46,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
-        sync sync-events sync-events-full sync-social sync-analytics \
+        sync sync-events sync-events-full sync-social sync-analytics sync-communities \
         clean clean-volumes
 
 # Target padrão
@@ -338,6 +338,9 @@ sync-social: ## Sincroniza contagem de membros/seguidores → static/social-stat
 
 sync-analytics: ## Sincroniza analytics → static/analytics/
 	npm run sync:analytics
+
+sync-communities: ## Sincroniza comunidades ativas → static/communities/
+	COMMUNITIES_API_URL=http://localhost:3001 npm run sync:communities
 
 # =============================================================================
 ##@ 🧹 Limpeza

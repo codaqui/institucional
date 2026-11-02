@@ -12,6 +12,7 @@
     "sync:social": "node scripts/sync-social-stats.mjs",
     "sync:analytics": "node scripts/sync-analytics.mjs",
     "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
+    "sync:communities": "node scripts/sync-communities.mjs",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
     "test:scripts": "node --test scripts/*.test.mjs"

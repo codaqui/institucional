@@ -1,9 +1,7 @@
 import { cpSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 
-// Copia os snapshots gerados pelos workflows do monorepo para public/ do Astro.
-// POC 0.1: apenas o índice de eventos. 0.3: social-stats e analytics entram no
-// pipeline (a Task 1 havia copiado analytics/index.json manualmente).
+// Copia os índices gerados pelos workflows do monorepo para public/ do Astro.
 // Limitação conhecida: só os index.json sobem — os ~421 JSONs per-event de
 // static/events/** ficam de fora. Nenhum consumidor do app (build ou runtime)
 // faz fetch deles hoje (itemPath é só metadado do índice), então a cópia
@@ -11,7 +9,7 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dirname, "..", "..");
 const FRONTEND_PUBLIC = join(ROOT, "frontend", "public");
 
-const snapshotDirs = ["events", "social-stats", "analytics"];
+const snapshotDirs = ["events", "social-stats", "analytics", "communities"];
 for (const dir of snapshotDirs) {
   mkdirSync(join(FRONTEND_PUBLIC, dir), { recursive: true });
   cpSync(
