@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-01T23:01:10.149Z",
+  "generatedAt": "2026-11-02T00:01:35.947Z",
   "events": [
     {
       "id": "1338983526858494053",
@@ -19,7 +19,7 @@
       "featured": false,
       "status": "scheduled",
       "entityType": "voice",
-      "userCount": 15,
+      "userCount": 16,
       "creatorName": "Enderson Menezes",
       "creatorId": "265457153257635850",
       "organizers": [
