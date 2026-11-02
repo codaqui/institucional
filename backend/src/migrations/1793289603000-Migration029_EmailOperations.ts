@@ -4,6 +4,7 @@ export class Migration029EmailOperations1793289603000
   implements MigrationInterface
 {
   name = 'Migration029EmailOperations1793289603000';
+  transaction = false;
 
   async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(

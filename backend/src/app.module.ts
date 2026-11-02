@@ -42,6 +42,7 @@ import { CommunitiesModule } from './communities/communities.module';
       autoLoadEntities: true,
       synchronize: false,
       migrations: ['dist/migrations/*.js'],
+      migrationsTransactionMode: 'each',
       migrationsRun: process.env.NODE_ENV === 'production',
     }),
     ThrottlerModule.forRoot([
