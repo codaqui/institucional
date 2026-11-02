@@ -77,6 +77,15 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/admin/designations")).toBe(false);
   });
 
+  it("directorates é API sem interceptar a página administrativa", () => {
+    expect(isApiProxyPath("/directorates")).toBe(true);
+    expect(isApiProxyPath("/directorates/public")).toBe(true);
+    expect(isApiProxyPath("/directorates/manage")).toBe(true);
+    expect(isApiProxyPath("/directorates/abc-123")).toBe(true);
+    expect(isApiProxyPath("/directoratesxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/diretorias")).toBe(false);
+  });
+
   it("não-API delega ao estático via context.next()", () => {
     expect(isApiProxyPath("/")).toBe(false);
     expect(isApiProxyPath("/blog")).toBe(false);

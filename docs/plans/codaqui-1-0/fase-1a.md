@@ -258,7 +258,7 @@ git commit -m "feat(fase-1a): expõe designations e protege roles derivadas"
 - `POST /directorates` admin; `PATCH /directorates/:id` admin ou `director` na própria diretoria.
 - Diretores e voluntários são geridos pelos endpoints da Task 2.
 
-- [ ] **Step 1: Write failing service and island tests**
+- [x] **Step 1: Write failing service and island tests**
 
 ```ts
 it('allows a director to edit only their own directorate', async () => {
@@ -272,21 +272,21 @@ Run: `cd backend && npx jest src/directorates --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/admin/directorates/DirectoratesAdminApp.test.tsx`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement migration, module and paginated API**
+- [x] **Step 2: Implement migration, module and paginated API**
 
 `directorates` contém somente `id`, `slug`, `name`, `description`, `isActive`, `createdAt`, `updatedAt`. `slug` é único; não há `directorMemberId`. `ListDirectoratesDto` usa `DEFAULT_PAGE_SIZE=50` no frontend e cap `100` no backend, envelope `{data,total,page,totalPages,limit}`.
 
-- [ ] **Step 3: Implement the admin island**
+- [x] **Step 3: Implement the admin island**
 
 A página `.astro` usa `AppLayout` e `DirectoratesAdminApp client:only="react"`. A ilha implementa lista, busca server-side, create/edit, ativação e links para conceder diretor/voluntário via `/designations`. Erros usam `Alert` e `extractErrorMessage`; ações de escrita são confirmadas e fazem `refresh()` das designations.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/directorates src/designations --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/admin/directorates`
 Expected: PASS, incluindo 403 fora de escopo e paginação.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/directorates backend/src/migrations/1793289601000-Migration027_Directorates.ts backend/src/app.module.ts frontend/src/pages/admin/diretorias.astro frontend/src/components/islands/admin/directorates frontend/src/lib/api-proxy-paths.ts

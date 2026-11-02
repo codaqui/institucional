@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import DirectoratesAdminApp from "../../components/islands/admin/directorates/DirectoratesAdminApp";
+---
+
+<AppLayout title="Diretorias" pageTitle="Admin — Diretorias | CODAQUI.dev" noindex>
+  <DirectoratesAdminApp client:only="react" />
+</AppLayout>

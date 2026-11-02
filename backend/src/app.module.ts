@@ -21,6 +21,7 @@ import { EventOrganizerModule } from './event-organizer/event-organizer.module';
 import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { DesignationsModule } from './designations/designations.module';
+import { DirectoratesModule } from './directorates/directorates.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { DesignationsModule } from './designations/designations.module';
     EventsModule,
     NotificationsModule,
     DesignationsModule,
+    DirectoratesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
