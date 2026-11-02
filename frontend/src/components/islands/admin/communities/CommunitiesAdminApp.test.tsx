@@ -208,6 +208,30 @@ describe("CommunitiesAdminApp", () => {
     });
   });
 
+  it("clears optional fields explicitly with null when editing", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<CommunitiesAdminApp />);
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+
+    expect(screen.getByLabelText(/Localização/)).toHaveValue("Maringá, PR");
+    expect(screen.getByLabelText(/Ano de fundação/)).toHaveValue(2015);
+    expect(screen.getByLabelText(/Domínio do site/)).toHaveValue("devparana.org");
+    await user.clear(screen.getByLabelText(/Localização/));
+    await user.clear(screen.getByLabelText(/Ano de fundação/));
+    await user.clear(screen.getByLabelText(/Domínio do site/));
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() =>
+      expect(lastCall(`/communities/${community.id}`, "PATCH")).toBeDefined(),
+    );
+    const call = lastCall(`/communities/${community.id}`, "PATCH");
+    expect(JSON.parse(String(call?.[1]?.body))).toMatchObject({
+      location: null,
+      founded: null,
+      siteDomain: null,
+    });
+  });
+
   it("surfaces API errors in an accessible alert", async () => {
     const user = userEvent.setup();
     mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {

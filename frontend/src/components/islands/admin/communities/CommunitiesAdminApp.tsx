@@ -222,12 +222,12 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
       description: form.description.trim(),
       emoji: form.emoji.trim(),
       logoUrl: form.logoUrl.trim(),
-      location: form.location.trim() || undefined,
-      founded: form.founded ? Number(form.founded) : undefined,
+      location: form.location.trim() || (editing ? null : undefined),
+      founded: form.founded ? Number(form.founded) : editing ? null : undefined,
       level: form.level,
       status: form.status,
       siteEnabled: form.siteEnabled,
-      siteDomain: form.siteDomain.trim() || undefined,
+      siteDomain: form.siteDomain.trim() || (editing ? null : undefined),
     };
     try {
       const response = await authFetch(

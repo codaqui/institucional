@@ -77,3 +77,30 @@ test("writes only active communities through an atomic rename", async (t) => {
   assert.deepEqual(snapshot.communities, [active]);
   assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
 });
+
+test("preserves the previous snapshot byte for byte when communities are unchanged", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const active = {
+    id: "active-community",
+    slug: "active-community",
+    name: "Comunidade ativa",
+    status: "active",
+    level: "integrada",
+  };
+  const previous = `{\n  "generatedAt": "2026-11-01T10:00:00.000Z",\n  "communities": ${JSON.stringify([active], null, 2)}\n}\n`;
+  await writeFile(outputFile, previous, "utf8");
+  const apiUrl = await apiServer(t, (_request, response) => {
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end(JSON.stringify([active]));
+  });
+
+  const result = await syncCommunities({
+    apiUrl,
+    outputFile,
+    now: () => new Date("2026-11-02T12:00:00.000Z"),
+  });
+
+  assert.equal(await readFile(outputFile, "utf8"), previous);
+  assert.equal(result.generatedAt, "2026-11-01T10:00:00.000Z");
+  assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});

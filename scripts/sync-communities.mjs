@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { isDeepStrictEqual } from "node:util";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const DEFAULT_OUTPUT_FILE = path.join(ROOT, "static", "communities", "index.json");
@@ -22,9 +23,22 @@ export async function syncCommunities({
     throw new Error("Resposta inválida de /communities/public: esperado um array.");
   }
 
+  const communities = payload.filter((community) => community?.status === "active");
+  try {
+    const previous = JSON.parse(await readFile(outputFile, "utf8"));
+    if (
+      typeof previous.generatedAt === "string" &&
+      isDeepStrictEqual(previous.communities, communities)
+    ) {
+      return previous;
+    }
+  } catch {
+    // A primeira execução ou um snapshot ilegível segue para uma gravação completa.
+  }
+
   const snapshot = {
     generatedAt: now().toISOString(),
-    communities: payload.filter((community) => community?.status === "active"),
+    communities,
   };
   const outputDirectory = path.dirname(outputFile);
   const temporaryFile = path.join(outputDirectory, `.${path.basename(outputFile)}.${randomUUID()}.tmp`);
