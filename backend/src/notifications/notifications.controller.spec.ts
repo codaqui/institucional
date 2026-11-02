@@ -15,6 +15,7 @@ describe('NotificationsController', () => {
       listLogs: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       resend: jest.fn().mockResolvedValue({ success: true }),
       sendTemplate: jest.fn(),
+      getStatus: jest.fn().mockReturnValue({ configured: false }),
     };
     templateService = {
       listTemplates: jest.fn().mockResolvedValue([]),
@@ -43,6 +44,12 @@ describe('NotificationsController', () => {
       .compile();
 
     controller = module.get<NotificationsController>(NotificationsController);
+  });
+
+  it('expõe o status de configuração do módulo', async () => {
+    const result = await controller.getStatus();
+    expect(emailService.getStatus).toHaveBeenCalledTimes(1);
+    expect(result).toEqual({ configured: false });
   });
 
   it('lista logs de e-mail com filtros e paginação', async () => {

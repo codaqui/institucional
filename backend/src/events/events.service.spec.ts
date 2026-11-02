@@ -93,7 +93,7 @@ describe('EventsService', () => {
   beforeEach(() => {
     eventRepo = {
       find: jest.fn(),
-      findOneBy: jest.fn(),
+      findOneBy: jest.fn().mockResolvedValue(null),
       findBy: jest.fn().mockResolvedValue([]),
       create: jest.fn((d) => d),
       save: jest.fn((e) => Promise.resolve({ id: uuid(10), ...e })),
@@ -170,6 +170,7 @@ describe('EventsService', () => {
     };
     emailService = {
       sendRegistrationConfirmation: jest.fn().mockResolvedValue(undefined),
+      sendRegistrationCancellation: jest.fn().mockResolvedValue(undefined),
     };
     eventOrganizerService = {
       assertCanManage: jest.fn().mockResolvedValue(undefined),
@@ -566,6 +567,28 @@ describe('EventsService', () => {
       );
     });
 
+    it('notifica o cancelamento confirmado sem transformar falha de e-mail em rollback', async () => {
+      const cancelled = registration();
+      registrationRepo.findOneBy.mockResolvedValue(cancelled);
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      emailService.sendRegistrationCancellation.mockRejectedValue(
+        new Error('smtp down'),
+      );
+
+      await expect(
+        service.cancelRegistration(uuid(40), user()),
+      ).resolves.toMatchObject({ status: RegistrationStatus.CANCELLED });
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        cancelled,
+        expect.objectContaining({ id: uuid(10), title: 'Evento X' }),
+      );
+      expect(registrationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
+      );
+    });
+
     it('save de cancelamento e release de quota acontecem na mesma transação', async () => {
       registrationRepo.findOneBy.mockResolvedValue(registration());
 
@@ -916,6 +939,26 @@ describe('EventsService', () => {
         }),
       );
       expect(result.full).toBe(true);
+    });
+
+    it('notifica cada estorno sem reverter os efeitos financeiros quando o e-mail falha', async () => {
+      emailService.sendRegistrationCancellation.mockRejectedValue(
+        new Error('smtp down'),
+      );
+
+      const result = await service.refundOrder(uuid(30), {}, adminUser);
+
+      expect(result).toMatchObject({
+        refundedRegistrations: 3,
+        full: true,
+        orderStatus: OrderStatus.REFUNDED,
+      });
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        { id: expect.anything() },
+        { status: RegistrationStatus.REFUNDED },
+      );
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledTimes(3);
     });
 
     it('refund parcial: amount = N × unitário, order permanece paid, quota das selecionadas devolvida', async () => {

@@ -125,9 +125,9 @@ describe('EmailTemplateService CRUD', () => {
 
   const actor = { actorId: 'm1', actorHandle: 'octocat' };
 
-  it('lista os 3 templates com isOverride=false quando não há overrides', async () => {
+  it('lista os 4 templates com isOverride=false quando não há overrides', async () => {
     const list = await service.listTemplates();
-    expect(list).toHaveLength(3);
+    expect(list).toHaveLength(4);
     expect(list.every((t) => t.isOverride === false)).toBe(true);
   });
 

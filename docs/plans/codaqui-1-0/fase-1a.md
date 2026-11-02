@@ -461,7 +461,7 @@ git commit -m "feat(fase-1a): publica snapshot e gestão de comunidades"
 - `GET /notifications/status` → `{ configured: boolean }`.
 - `EMAIL_LOG_RETENTION_DAYS=365` e cron diário de retenção.
 
-- [ ] **Step 1: Write failing contract and behavior tests**
+- [x] **Step 1: Write failing contract and behavior tests**
 
 ```ts
 it('records skipped instead of failed when SMTP is not configured', async () => {
@@ -481,21 +481,21 @@ it('does not let a skipped reminder dedupe a later real delivery', async () => {
 Run: `cd backend && npx jest src/notifications/email.service.spec.ts --runInBand`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement skipped semantics, summary and retention**
+- [x] **Step 2: Implement skipped semantics, summary and retention**
 
 `sendTemplate` registra `skipped/SMTP_NOT_CONFIGURED`; `resend` retorna 409 amigável quando desligado. A deduplicação dos crons considera apenas `sent` e `failed`. A migration adiciona o enum `skipped`, índice `(template,registrationId)` e o cron apaga somente logs anteriores a 365 dias. A summary agrega por template+status e inclui `skipped` no total, sem somá-lo a `failed`.
 
-- [ ] **Step 3: Add cancellation/refund notification and admin status**
+- [x] **Step 3: Add cancellation/refund notification and admin status**
 
 Criar `event-registration-cancelled` no registry com contexto real (`attendeeName`, `eventTitle`, `eventStartAt`, `eventTimeZone`). Após refund/cancelamento confirmado, chamar `EmailService` sem transformar falha de e-mail em rollback financeiro. O admin mostra banner quando `configured=false`, filtro/card `skipped` e botão Reenviar para `failed` ou `skipped` quando configurado.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/notifications src/events --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/admin/emails`
 Expected: PASS; shape antigo `byTemplate: number` não permanece em nenhum consumidor.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/migrations/1793289603000-Migration029_EmailOperations.ts backend/src/notifications backend/src/events/events.service.ts frontend/src/components/islands/admin/emails

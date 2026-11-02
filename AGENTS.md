@@ -117,7 +117,7 @@ Planos futuros:
 | **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
 | **Storage** | ⚠ **Sem upload pelo backend**: comprovantes/recibos são **links externos** que o time sobe manualmente em serviços confiáveis. O `StorageModule` valida URLs (`POST /storage/validate-receipt-url`) — exige HTTPS e hostname numa allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. **Não há S3/MinIO conectado**; o backend não escreve em disco local nem em bucket. |
 | **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
-| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `failed` com `SMTP_NOT_CONFIGURED`) |
+| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `skipped` com `SMTP_NOT_CONFIGURED`, sem contar como falha) |
 | **GitHub-as-Database** | Token OAuth do próprio membro (scope `public_repo`, criptografado em repouso — `GITHUB_TOKEN_ENCRYPTION_KEY` + `GITHUB_REPO_*` no `.env.example`). ⚠️ **Legado:** hoje usado apenas pelo force-sync manual do snapshot interno (`POST /events/internal/snapshot`, abre PR em nome do membro — canônico se colaborador; fork flow senão; será removido, ver `docs/plans/events-sync-improvements/` Camada 3). Overrides e organizers migraram para o PostgreSQL (`event_overrides`, `event_organizer_ownership`) |
 | **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |

@@ -376,7 +376,7 @@ Baseie-se no `.env.example`. Variáveis principais:
 > é persistido criptografado a cada login. Sem o scope (login antigo), os endpoints de
 > escrita respondem 400/403 orientando re-login. Leituras são públicas
 > (`raw.githubusercontent.com`).
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails de eventos (confirmação, lembrete D-1, pós-evento) via SMTP Gmail. Sem credenciais, envios são logados como `failed` com `SMTP_NOT_CONFIGURED` em `email_logs` |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails de eventos (confirmação, cancelamento, lembrete D-1, pós-evento) via SMTP Gmail. Sem credenciais, envios são logados como `skipped` com `SMTP_NOT_CONFIGURED` em `email_logs`, sem contar como falha |
 | `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
 | `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; com o Astro em dev use `http://localhost:4321`) |
 

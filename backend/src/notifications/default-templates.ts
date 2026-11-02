@@ -7,6 +7,8 @@ import type { EmailTemplateContext } from './email.service';
 // undefined quando email.service é carregado primeiro.
 export const EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION =
   'event-registration-confirmation';
+export const EMAIL_TEMPLATE_REGISTRATION_CANCELLED =
+  'event-registration-cancelled';
 export const EMAIL_TEMPLATE_REMINDER_D1 = 'event-reminder-d1';
 export const EMAIL_TEMPLATE_POST_EVENT = 'event-post-event';
 
@@ -71,6 +73,28 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
       'Apresente o [QR Code da sua inscrição]({{checkinUrl}}) na entrada do evento.',
       '',
       'Acompanhe suas inscrições e certificados em {{checkinUrl}}.',
+      '',
+      '— Equipe Codaqui',
+    ].join('\n'),
+  },
+  [EMAIL_TEMPLATE_REGISTRATION_CANCELLED]: {
+    subject: 'Inscrição cancelada — {{eventTitle}}',
+    variables: [
+      'attendeeName',
+      'eventTitle',
+      'eventStartAt',
+      'eventTimeZone',
+    ],
+    sample: sampleContext,
+    bodyMarkdown: [
+      'Olá, {{attendeeName}}!',
+      '',
+      'A inscrição em **{{eventTitle}}** foi cancelada. Se houve pagamento, o estorno foi processado pela plataforma.',
+      '',
+      '- Data prevista: {{eventStartAt}}',
+      '- Fuso horário: {{eventTimeZone}}',
+      '',
+      'Em caso de dúvidas, fale com a equipe Codaqui.',
       '',
       '— Equipe Codaqui',
     ].join('\n'),

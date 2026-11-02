@@ -40,7 +40,7 @@ export class SmtpEmailProvider {
       });
     } else {
       this.logger.warn(
-        'SMTP_USER/SMTP_PASS não definidos — envios serão registrados como failed (SMTP_NOT_CONFIGURED).',
+        'SMTP_USER/SMTP_PASS não definidos — envios serão registrados como skipped (SMTP_NOT_CONFIGURED).',
       );
     }
   }

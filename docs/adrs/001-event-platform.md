@@ -1312,7 +1312,8 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     membro (hook no `MembersService`).
 12. **E-mail:** resend atualiza o MESMO log; crons diários com janela (D-1: `startAt` em
     +12h/+36h; pós-evento: fim em −36h/−12h) com dedupe via `email_logs`; confirmação = 1
-    e-mail por registration; sem credenciais SMTP → log `failed` com `SMTP_NOT_CONFIGURED`;
+    e-mail por registration; sem credenciais SMTP → log `skipped` com `SMTP_NOT_CONFIGURED`,
+    sem contar como falha e sem deduplicar uma entrega futura; cancelamento/estorno também notifica;
     `members.eventCommsOptIn` default `false` (pós-evento só com opt-in; transacionais
     ignoram a flag) — UI de toggle do opt-in PENDENTE.
 13. **Painel admin dividido em duas páginas:** `/admin/eventos` (eventos próprios) e

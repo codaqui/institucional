@@ -1,8 +1,8 @@
 /**
  * /admin/emails — Painel de e-mails transacionais da plataforma de eventos.
  *
- * Duas abas: Logs (volume, filtros, tabela paginada e resend de falhas) e
- * Templates (edição de subject/corpo — ver EmailsTemplatesTab).
+ * Duas abas: Logs (volume, filtros, tabela paginada e resend de falhas/ignorados)
+ * e Templates (edição de subject/corpo — ver EmailsTemplatesTab).
  *
  * Port de src/pages/admin/emails.tsx (Docusaurus).
  */
@@ -52,7 +52,7 @@ interface EmailLog {
   to: string;
   template: string;
   eventId: string | null;
-  status: "sent" | "failed";
+  status: "sent" | "failed" | "skipped";
   error: string | null;
   createdAt: string;
 }
@@ -63,7 +63,8 @@ interface EmailLogsResponse {
   summary: {
     sent: number;
     failed: number;
-    byTemplate: Record<string, { sent: number; failed: number }>;
+    skipped: number;
+    byTemplate: Record<string, { sent: number; failed: number; skipped: number }>;
   };
 }
 
@@ -81,6 +82,7 @@ const formatDateTime = (iso: string) =>
 const statusConfig = {
   sent: { label: "Enviado", color: "success" as const, icon: <CheckCircleIcon fontSize="small" /> },
   failed: { label: "Falha", color: "error" as const, icon: <ErrorIcon fontSize="small" /> },
+  skipped: { label: "Ignorado", color: "default" as const, icon: <MailOutlineIcon fontSize="small" /> },
 };
 
 function EmailsInner(): React.JSX.Element | null {
@@ -89,6 +91,7 @@ function EmailsInner(): React.JSX.Element | null {
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [total, setTotal] = useState(0);
   const [summary, setSummary] = useState<EmailLogsResponse["summary"] | null>(null);
+  const [configured, setConfigured] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
@@ -109,8 +112,15 @@ function EmailsInner(): React.JSX.Element | null {
       if (templateFilter) params.set("template", templateFilter);
       params.set("page", String(page));
       params.set("pageSize", String(PAGE_SIZE));
-      const res = await authFetch(`/notifications/emails?${params.toString()}`);
-      const data = await parseAuthJson<EmailLogsResponse>(res, setLoadError);
+      const [res, statusRes] = await Promise.all([
+        authFetch(`/notifications/emails?${params.toString()}`),
+        authFetch("/notifications/status"),
+      ]);
+      const [data, statusData] = await Promise.all([
+        parseAuthJson<EmailLogsResponse>(res, setLoadError),
+        parseAuthJson<{ configured: boolean }>(statusRes, setLoadError),
+      ]);
+      if (statusData) setConfigured(statusData.configured);
       if (!data) return;
       setLogs(Array.isArray(data.items) ? data.items : []);
       setTotal(data.total ?? 0);
@@ -216,7 +226,7 @@ function EmailsInner(): React.JSX.Element | null {
                   </TableCell>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDateTime(log.createdAt)}</TableCell>
                   <TableCell align="right">
-                    {log.status === "failed" && (
+                    {configured === true && (log.status === "failed" || log.status === "skipped") && (
                       <Button
                         size="small"
                         variant="outlined"
@@ -251,7 +261,7 @@ function EmailsInner(): React.JSX.Element | null {
           E-mails
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Envios transacionais da plataforma de eventos (confirmação, lembrete, pós-evento)
+          Envios transacionais da plataforma de eventos (confirmação, cancelamento, lembrete, pós-evento)
         </Typography>
       </Box>
 
@@ -261,6 +271,11 @@ function EmailsInner(): React.JSX.Element | null {
       </Tabs>
 
       <TabPanel index={0} value={tab}>
+        {configured === false && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            Envios de e-mail estão desativados porque o SMTP não está configurado. Novos envios serão registrados como ignorados.
+          </Alert>
+        )}
         {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
         {resendFeedback && (
           <Alert severity={resendFeedback.kind} sx={{ mb: 3 }} onClose={() => setResendFeedback(null)}>
@@ -286,11 +301,19 @@ function EmailsInner(): React.JSX.Element | null {
               color="error.main"
             />
           </Grid>
+          <Grid size={{ xs: 6, sm: 3 }}>
+            <StatCard
+              icon={<MailOutlineIcon fontSize="large" />}
+              value={summary?.skipped ?? "—"}
+              label="Ignorados"
+              color="warning.main"
+            />
+          </Grid>
           {templateKeys.slice(0, 2).map((tpl) => (
             <Grid key={tpl} size={{ xs: 6, sm: 3 }}>
               <StatCard
                 icon={<MailOutlineIcon fontSize="large" />}
-                value={summary!.byTemplate[tpl].sent + summary!.byTemplate[tpl].failed}
+                value={summary!.byTemplate[tpl].sent + summary!.byTemplate[tpl].failed + summary!.byTemplate[tpl].skipped}
                 label={tpl}
                 color="info.main"
               />
@@ -311,7 +334,7 @@ function EmailsInner(): React.JSX.Element | null {
                   return (
                     <Chip
                       key={tpl}
-                      label={`${tpl}: ${stats.sent} enviados · ${stats.failed} falhas`}
+                      label={`${tpl}: ${stats.sent} enviados · ${stats.failed} falhas · ${stats.skipped} ignorados`}
                       size="small"
                       variant="outlined"
                       color={stats.failed > 0 ? "warning" : "default"}
@@ -330,8 +353,9 @@ function EmailsInner(): React.JSX.Element | null {
         {/* ── Filtros ── */}
         <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
           <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>Status</InputLabel>
+            <InputLabel id="email-status-filter-label">Status</InputLabel>
             <Select
+              labelId="email-status-filter-label"
               value={statusFilter}
               label="Status"
               onChange={(e) => {
@@ -342,6 +366,7 @@ function EmailsInner(): React.JSX.Element | null {
               <MenuItem value="">Todos</MenuItem>
               <MenuItem value="sent">Enviados</MenuItem>
               <MenuItem value="failed">Falhas</MenuItem>
+              <MenuItem value="skipped">Ignorados</MenuItem>
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 200 }}>

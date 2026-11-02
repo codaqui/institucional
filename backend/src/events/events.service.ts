@@ -1088,6 +1088,21 @@ export class EventsService {
     return registration;
   }
 
+  private notifyRegistrationCancellation(
+    registration: EventRegistration,
+    event: ManagedEvent,
+  ): void {
+    void this.emailService
+      .sendRegistrationCancellation(registration, event)
+      .catch((error: unknown) =>
+        this.logger.warn(
+          `Falha ao enviar cancelamento da inscrição ${registration.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
+  }
+
   /** DELETE /events/registrations/:id — dono, staff do evento ou admin */
   async cancelRegistration(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({
@@ -1142,6 +1157,20 @@ export class EventsService {
       await em.save(registration);
       await this.releaseQuota(registration.ticketTypeId, 1, em);
     });
+    if (registration.eventId) {
+      void this.eventRepo
+        .findOneBy({ id: registration.eventId })
+        .then((event) => {
+          if (event) this.notifyRegistrationCancellation(registration, event);
+        })
+        .catch((error: unknown) =>
+          this.logger.warn(
+            `Falha ao carregar evento para notificar cancelamento da inscrição ${registration.id}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+    }
     return registration;
   }
 
@@ -1623,6 +1652,12 @@ export class EventsService {
         full: refundingAllRemaining,
       },
     });
+
+    if (event) {
+      for (const registration of targets) {
+        this.notifyRegistrationCancellation(registration, event);
+      }
+    }
 
     return {
       refundedRegistrations: targets.length,
