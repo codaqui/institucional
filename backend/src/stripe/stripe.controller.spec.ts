@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StripeController } from './stripe.controller';
 import { StripeService } from './stripe.service';
+import { CommunitiesService } from '../communities/communities.service';
 
 const uuid = (n: number) =>
   `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
@@ -9,6 +10,7 @@ const uuid = (n: number) =>
 describe('StripeController', () => {
   let controller: StripeController;
   let service: Record<string, jest.Mock>;
+  let communities: { findActiveForDonations: jest.Mock };
 
   beforeEach(async () => {
     service = {
@@ -20,10 +22,20 @@ describe('StripeController', () => {
       getMySubscriptions: jest.fn(),
       cancelSubscription: jest.fn(),
     };
+    communities = {
+      findActiveForDonations: jest.fn().mockResolvedValue({
+        slug: 'devparana',
+        level: 'integrada',
+        status: 'active',
+      }),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StripeController],
-      providers: [{ provide: StripeService, useValue: service }],
+      providers: [
+        { provide: StripeService, useValue: service },
+        { provide: CommunitiesService, useValue: communities },
+      ],
     }).compile();
 
     controller = module.get<StripeController>(StripeController);
@@ -171,6 +183,73 @@ describe('StripeController', () => {
           githubHandle: undefined,
         }),
       );
+    });
+
+    it('rejects donation directed to a partner community', async () => {
+      communities.findActiveForDonations.mockResolvedValue(null);
+
+      await expect(
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { amount: 1000, communityId: 'parceira' },
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(service.createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it('rejects donation directed to an unknown or inactive community', async () => {
+      communities.findActiveForDonations.mockResolvedValue(null);
+
+      await expect(
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { amount: 1000, communityId: 'desconhecida' },
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(service.createCheckoutSession).not.toHaveBeenCalled();
+    });
+
+    it('preserves the existing CamposTech checkout as integrated', async () => {
+      communities.findActiveForDonations.mockResolvedValue({
+        slug: 'campostechpg',
+        level: 'integrada',
+        status: 'active',
+      });
+      service.createCheckoutSession.mockResolvedValue({
+        clientSecret: 'secret',
+      });
+
+      await expect(
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { amount: 1000, communityId: 'campostechpg' },
+        ),
+      ).resolves.toEqual({ clientSecret: 'secret' });
+      expect(communities.findActiveForDonations).toHaveBeenCalledWith(
+        'campostechpg',
+      );
+    });
+
+    it('preserves general donations to the legacy treasury destination', async () => {
+      service.createCheckoutSession.mockResolvedValue({
+        clientSecret: 'general-secret',
+      });
+
+      await expect(
+        controller.createCheckoutSession(
+          { ...authedReq, headers: {} },
+          undefined,
+          undefined,
+          { amount: 1000, communityId: 'tesouro-geral' },
+        ),
+      ).resolves.toEqual({ clientSecret: 'general-secret' });
+      expect(communities.findActiveForDonations).not.toHaveBeenCalled();
     });
 
     it('should pass memberId for authenticated user', async () => {

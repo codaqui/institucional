@@ -23,6 +23,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { resolveOrigin } from '../common/allowed-origins';
+import { CommunitiesService } from '../communities/communities.service';
 
 /** Limite em centavos para doação anônima: R$ 100 */
 const ANONYMOUS_LIMIT_CENTS = 10_000;
@@ -30,7 +31,10 @@ const ANONYMOUS_LIMIT_CENTS = 10_000;
 @ApiTags('Stripe')
 @Controller('stripe')
 export class StripeController {
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly communities: CommunitiesService,
+  ) {}
 
   /**
    * Lista as doações do membro autenticado (pagamentos únicos + assinaturas).
@@ -192,6 +196,17 @@ export class StripeController {
       throw new UnauthorizedException(
         'Doações acima de R$ 100 requerem login com GitHub.',
       );
+    }
+
+    if (body.communityId !== 'tesouro-geral') {
+      const community = await this.communities.findActiveForDonations(
+        body.communityId,
+      );
+      if (!community) {
+        throw new BadRequestException(
+          'communityId deve referenciar uma comunidade Integrada ativa.',
+        );
+      }
     }
 
     return this.stripeService.createCheckoutSession({

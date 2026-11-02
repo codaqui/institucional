@@ -33,6 +33,9 @@ export enum AuditAction {
   DESIGNATION_CONFIRMED = 'designation.confirmed',
   DESIGNATION_REVOKED = 'designation.revoked',
 
+  // Communities
+  COMMUNITY_SEAL_GRANTED = 'community.seal_granted',
+
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
   ACCOUNT_CREATED = 'ledger.account_created',

@@ -12,9 +12,11 @@ import { TicketType } from '../events/entities/ticket-type.entity';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { Member } from '../members/entities/member.entity';
+import { CommunitiesModule } from '../communities/communities.module';
 
 @Module({
   imports: [
+    CommunitiesModule,
     LedgerModule,
     TypeOrmModule.forFeature([
       Transaction,

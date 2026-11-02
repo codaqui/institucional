@@ -313,7 +313,7 @@ git commit -m "feat(fase-1a): adiciona diretorias com escopo por designation"
 - `GET /communities/manage`, `POST /communities`, `PATCH /communities/:id`, `POST /communities/:id/seal/request`, `POST /communities/:id/seal`.
 - Não existem campos `maintainer*`, `payout*`, `platformFeePct`, `isActive` ou `responsibleMemberId`.
 
-- [ ] **Step 1: Write failing seed, seal and checkout tests**
+- [x] **Step 1: Write failing seed, seal and checkout tests**
 
 ```ts
 const bodyFor = (communityId: string) => ({ amount: 1000, communityId });
@@ -342,7 +342,7 @@ it('preserves the existing CamposTech checkout as integrated', async () => {
 Run: `cd backend && npx jest src/communities src/stripe/stripe.controller.spec.ts --runInBand`
 Expected: FAIL.
 
-- [ ] **Step 2: Generate the historical seed and create the migration**
+- [x] **Step 2: Generate the historical seed and create the migration**
 
 ```js
 import { writeFile } from 'node:fs/promises';
@@ -367,16 +367,16 @@ Expected: seis objetos, quatro Integradas e duas Parceiras, sem perda de `links`
 
 A migration usa `ON CONFLICT ("slug") DO NOTHING`, grava `sealGrantedById/validUntil` apenas quando houver dado real e reporta as quatro Integradas sem responsável como pendência de governança, sem falhar.
 
-- [ ] **Step 3: Implement public/manage APIs and donation validation**
+- [x] **Step 3: Implement public/manage APIs and donation validation**
 
 A entidade usa colunas explícitas para dados centrais e `jsonb` para `links`/`socialProfiles`; `tags` é `text[]`. O selo exige designation `responsible` ativa, `sealValidUntil` 1 ano após a concessão e `sealNotes` com a avaliação manual da diretoria; grava audit `community.seal_granted`. Stripe aceita `communityId` somente de comunidade `active` com nível `integrada`; `autonoma` ainda não existe nesta fase e `parceira` não recebe direcionamento. O comportamento sem `communityId` permanece inalterado.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/communities src/stripe/stripe.controller.spec.ts src/designations --runInBand`
 Expected: PASS, incluindo slug duplicado, selo com responsável e compatibilidade de doações gerais.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/export-community-seed.mjs backend/src/communities backend/src/migrations/1793289602000-Migration028_Communities.ts backend/src/stripe/stripe.controller.ts backend/src/stripe/stripe.controller.spec.ts backend/src/app.module.ts frontend/src/lib/api-proxy-paths.ts

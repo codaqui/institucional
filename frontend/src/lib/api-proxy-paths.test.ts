@@ -86,6 +86,16 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/admin/diretorias")).toBe(false);
   });
 
+  it("communities é API sem interceptar páginas administrativas ou públicas do site", () => {
+    expect(isApiProxyPath("/communities")).toBe(true);
+    expect(isApiProxyPath("/communities/public")).toBe(true);
+    expect(isApiProxyPath("/communities/manage")).toBe(true);
+    expect(isApiProxyPath("/communities/abc-123/seal/request")).toBe(true);
+    expect(isApiProxyPath("/communitiesxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/comunidades")).toBe(false);
+    expect(isApiProxyPath("/comunidades/devparana")).toBe(false);
+  });
+
   it("não-API delega ao estático via context.next()", () => {
     expect(isApiProxyPath("/")).toBe(false);
     expect(isApiProxyPath("/blog")).toBe(false);
