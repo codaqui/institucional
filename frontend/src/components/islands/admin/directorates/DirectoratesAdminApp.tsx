@@ -73,6 +73,12 @@ function validateFormField(
   return "";
 }
 
+function saveDirectorateLabel(saving: boolean, editing: Directorate | null): string {
+  if (saving) return "Salvando…";
+  if (editing) return "Salvar alterações";
+  return "Criar diretoria";
+}
+
 function DirectoratesAdminInner(): React.JSX.Element | null {
   const { ready, isLoggedIn, isAdmin, user, authFetch } = useAuth();
   const {
@@ -545,7 +551,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
               Cancelar
             </Button>
             <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? "Salvando…" : editing ? "Salvar alterações" : "Criar diretoria"}
+              {saveDirectorateLabel(saving, editing)}
             </Button>
           </DialogActions>
         </form>
