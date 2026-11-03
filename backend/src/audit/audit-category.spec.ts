@@ -22,6 +22,7 @@ describe('auditCategory', () => {
     AuditAction.EVENT_ORGANIZER_GRANTED,
     AuditAction.EVENT_ORGANIZER_REVOKED,
     AuditAction.EVENT_PUBLISHED,
+    AuditAction.EVENT_ADULT_ONLY_CHANGED,
     AuditAction.EVENT_ORDER_REFUNDED,
     AuditAction.SETTINGS_AUDIT_RETENTION_UPDATED,
   ])('classifies %s as governance', (action) => {
@@ -48,7 +49,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(34);
+    expect(actions).toHaveLength(35);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }

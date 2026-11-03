@@ -1,5 +1,7 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
+  IsEnum,
   IsInt,
   IsISO8601,
   IsNotEmpty,
@@ -11,6 +13,7 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { VenueType } from '../entities/managed-event.entity';
 
 export class ListEventsQueryDto {
   @IsOptional()
@@ -100,6 +103,15 @@ export class CreateEventDto {
   @Min(0)
   @Max(1000)
   workloadMinutes?: number | null;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  adultOnly?: boolean;
+
+  @IsOptional()
+  @IsEnum(VenueType)
+  venueType?: VenueType | null;
 }
 
 export class UpdateEventDto {
@@ -167,4 +179,13 @@ export class UpdateEventDto {
   @Min(0)
   @Max(1000)
   workloadMinutes?: number | null;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  adultOnly?: boolean;
+
+  @IsOptional()
+  @IsEnum(VenueType)
+  venueType?: VenueType | null;
 }

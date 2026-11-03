@@ -51,6 +51,7 @@ export enum AuditAction {
 
   // Events (managed events — Fase 2)
   EVENT_PUBLISHED = 'event.published',
+  EVENT_ADULT_ONLY_CHANGED = 'event.adult_only_changed',
   EVENT_CANCELED = 'event.canceled',
   EVENT_ORDER_REFUNDED = 'event.order_refunded',
   EVENT_QUOTA_RECONCILED = 'event.quota_reconciled',

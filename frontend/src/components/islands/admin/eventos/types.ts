@@ -5,6 +5,7 @@
  */
 
 import type { EventSummary } from "../../../../lib/events";
+import type { VenueType } from "../../../../lib/adult-content";
 import { parseBrlInput } from "../../../../lib/transaction";
 import { fromDateTimeLocal } from "../../../../lib/datetime";
 import { buildEventSlugPath } from "../../../../lib/event-path";
@@ -69,6 +70,8 @@ export interface ManagedEvent {
   status: EventStatus;
   capacity: number | null;
   workloadMinutes: number | null;
+  adultOnly: boolean;
+  venueType: VenueType | null;
   ticketTypes: TicketType[];
   staff: EventStaff[];
 }
@@ -218,6 +221,8 @@ export interface EventForm {
   communityProjectKey: string;
   capacity: string;
   workloadMinutes: string;
+  adultOnly: boolean;
+  venueType: VenueType | "";
 }
 
 export const EMPTY_EVENT_FORM: EventForm = {
@@ -233,6 +238,8 @@ export const EMPTY_EVENT_FORM: EventForm = {
   communityProjectKey: "codaqui",
   capacity: "",
   workloadMinutes: "",
+  adultOnly: false,
+  venueType: "",
 };
 
 export interface TicketForm {
@@ -334,7 +341,13 @@ export function buildEventPayload(
     location: form.location.trim(),
     startAt: startIso,
     communityProjectKey: form.communityProjectKey,
+    adultOnly: form.adultOnly,
   };
+  if (form.venueType) {
+    payload.venueType = form.venueType;
+  } else if (mode === "edit") {
+    payload.venueType = null;
+  }
   if (mode === "create") {
     const slug = form.slug.trim();
     if (!SLUG_REGEX.test(slug)) {

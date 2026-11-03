@@ -326,6 +326,8 @@ export class EventsService {
       tags: [],
       ctaLabel: 'Inscrever-se',
       status: EventsService.deriveItemStatus(event),
+      adultOnly: event.adultOnly,
+      venueType: event.venueType,
       ...(event.imageUrl && { imageUrl: event.imageUrl }),
       userCount: confirmedCount,
       ...(organizers && organizers.length > 0 && { organizers }),
@@ -454,6 +456,8 @@ export class EventsService {
       status: event.status,
       capacity: event.capacity,
       workloadMinutes: event.workloadMinutes,
+      adultOnly: event.adultOnly,
+      venueType: event.venueType,
       createdAt: event.createdAt,
     };
   }
@@ -740,6 +744,8 @@ export class EventsService {
         communityProjectKey: dto.communityProjectKey,
         capacity: dto.capacity ?? null,
         workloadMinutes: dto.workloadMinutes ?? null,
+        adultOnly: dto.adultOnly ?? false,
+        venueType: dto.venueType ?? null,
         status: ManagedEventStatus.DRAFT,
         createdByMemberId: user.sub,
       }),
@@ -751,6 +757,11 @@ export class EventsService {
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
     await this.assertCanEditEvent(user, id);
+    const previousAdultOnly = event.adultOnly;
+    const adultOnlyChanged =
+      dto.adultOnly !== undefined &&
+      dto.adultOnly !== previousAdultOnly &&
+      event.status !== ManagedEventStatus.DRAFT;
 
     if (dto.title !== undefined) event.title = dto.title;
     if (dto.summary !== undefined) event.summary = dto.summary;
@@ -783,8 +794,24 @@ export class EventsService {
       // null volta ao cálculo automático pela duração (endAt - startAt).
       event.workloadMinutes = dto.workloadMinutes ?? null;
     }
+    if (dto.adultOnly !== undefined) event.adultOnly = dto.adultOnly;
+    if (dto.venueType !== undefined) event.venueType = dto.venueType;
 
     await this.eventRepo.save(event);
+    if (adultOnlyChanged) {
+      void this.auditService.log({
+        action: AuditAction.EVENT_ADULT_ONLY_CHANGED,
+        actorId: user.sub,
+        actorHandle: user.handle,
+        targetId: id,
+        targetType: 'event',
+        details: {
+          slug: event.slug,
+          before: previousAdultOnly,
+          after: event.adultOnly,
+        },
+      });
+    }
     return this.withRelations(event);
   }
 

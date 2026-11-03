@@ -126,6 +126,8 @@ export function useAdminEventosMutations(
       communityProjectKey: event.communityProjectKey,
       capacity: event.capacity != null ? String(event.capacity) : "",
       workloadMinutes: event.workloadMinutes != null ? String(event.workloadMinutes) : "",
+      adultOnly: event.adultOnly,
+      venueType: event.venueType ?? "",
     });
     setEventError("");
     setEventDialog({ mode: "edit", event });

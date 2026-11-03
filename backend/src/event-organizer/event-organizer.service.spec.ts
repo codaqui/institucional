@@ -220,6 +220,14 @@ describe('EventOrganizerService', () => {
       expect(() => call({ featured: 'yes' })).toThrow(BadRequestException);
     });
 
+    it('accepts adultOnly only as a boolean', () => {
+      expect(() => call({ adultOnly: true })).not.toThrow();
+      expect(() => call({ adultOnly: false })).not.toThrow();
+      expect(() => call({ adultOnly: 'true' })).toThrow(
+        'extendData.adultOnly deve ser um boolean.',
+      );
+    });
+
     it('rejects invalid workloadMinutes values', () => {
       expect(() => call({ workloadMinutes: -1 })).toThrow(BadRequestException);
       expect(() => call({ workloadMinutes: 3000 })).toThrow(

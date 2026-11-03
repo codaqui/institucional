@@ -62,6 +62,10 @@ export class ExtendDataDto {
   featured?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  adultOnly?: boolean;
+
+  @IsOptional()
   @IsArray()
   @ArrayMaxSize(10)
   @IsString({ each: true })

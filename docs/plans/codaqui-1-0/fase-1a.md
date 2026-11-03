@@ -710,7 +710,7 @@ git commit -m "feat(fase-1a): prepara verificação Cloudflare Turnstile"
 - `adultOnly boolean NOT NULL DEFAULT false`; `venueType varchar NULL`.
 - Snapshot expõe ambos para managed events; externos continuam usando `payload.adultOnly`.
 
-- [ ] **Step 1: Write failing serializer, heuristic and copy tests**
+- [x] **Step 1: Write failing serializer, heuristic and copy tests**
 
 ```ts
 it('serializes adult classification without changing event visibility', () => {
@@ -738,24 +738,24 @@ Run: `cd backend && npx jest src/events/events.service.spec.ts src/event-organiz
 Run: `cd frontend && npx vitest run src/lib/adult-content.test.ts src/components/islands/admin/eventos/__tests__/eventos.test.tsx`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement backend persistence and serialization**
+- [x] **Step 2: Implement backend persistence and serialization**
 
 Adicionar DTOs com `@IsBoolean()`/`@Type(() => Boolean)` e `@IsEnum(VenueType)`, persistência create/update e campos no snapshot. `ExtendDataDto.adultOnly` e a validação manual de overrides aceitam somente boolean para eventos externos. Alterações de `adultOnly` após publicação gravam antes/depois em audit de governo. Não adicionar idade, data de nascimento, bloqueio de inscrição, noindex ou verificação de documento.
 
-- [ ] **Step 3: Implement static notice and form suggestion**
+- [x] **Step 3: Implement static notice and form suggestion**
 
 Copy padrão: título **"Evento destinado a maiores de 18 anos"**; corpo **"Este evento acontece em local, horário ou contexto destinado a maiores. Menores de idade devem participar acompanhados de um responsável legal. A sinalização é informativa e não substitui as regras do local nem a verificação de responsabilidade do organizador."** Não afirmar que a Codaqui nunca trata dados de adolescentes.
 
 O componente usa tokens warning e `role="note"`. O badge mostra `+18`. O formulário calcula hora no timezone do evento, sugere sem salvar automaticamente e exige ação humana.
 
-- [ ] **Step 4: Run focused tests and smoke checks**
+- [x] **Step 4: Run focused tests and smoke checks**
 
 Run: `cd backend && npx jest src/events src/event-organizer --runInBand`
 Run: `cd frontend && npx vitest run src/lib/adult-content.test.ts src/components/islands/admin/eventos`
 Run: `cd frontend && npm run build && test -f dist/eventos/index.html`
 Expected: PASS; eventos 18+ continuam indexáveis e no sitemap.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/migrations/1793289605000-Migration031_EventAdultContent.ts backend/src/events backend/src/event-organizer frontend/src/lib/adult-content.ts frontend/src/lib/adult-content.test.ts frontend/src/lib/events.ts frontend/src/components/astro/AdultContentNotice.astro frontend/src/components/astro/EventCard.astro frontend/src/components/islands/admin/eventos frontend/src/pages/eventos/[...path].astro

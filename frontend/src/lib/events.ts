@@ -1,3 +1,5 @@
+import type { VenueType } from "./adult-content";
+
 export type EventSourceType = "discord" | "meetup" | "ocgroups" | "doity" | "internal" | "external";
 export type EventStatus = "scheduled" | "active" | "completed" | "canceled";
 export type EventEntityType = "stage_instance" | "voice" | "external";
@@ -77,6 +79,8 @@ export interface EventItem {
   recurrenceLabel?: string;
   recurrenceRule?: EventRecurrenceRule;
   imageUrl?: string;
+  adultOnly?: boolean;
+  venueType?: VenueType | null;
   /** Palestrantes (só presente quando um override os define — já mesclado no snapshot). */
   speakers?: EventSpeaker[];
 }

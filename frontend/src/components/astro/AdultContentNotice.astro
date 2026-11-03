@@ -1,0 +1,47 @@
+---
+import {
+  ADULT_CONTENT_BADGE,
+  ADULT_CONTENT_NOTICE_BODY,
+  ADULT_CONTENT_NOTICE_TITLE,
+} from "../../lib/adult-content";
+---
+
+<aside role="note" class="adult-content-notice">
+  <span class="adult-content-badge" aria-hidden="true">{ADULT_CONTENT_BADGE}</span>
+  <div>
+    <h2>{ADULT_CONTENT_NOTICE_TITLE}</h2>
+    <p>{ADULT_CONTENT_NOTICE_BODY}</p>
+  </div>
+</aside>
+
+<style>
+  .adult-content-notice {
+    display: flex;
+    gap: var(--cq-space-3);
+    align-items: flex-start;
+    border: 1px solid var(--cq-color-warning);
+    border-radius: var(--cq-radius-md);
+    padding: var(--cq-space-4);
+    background: var(--cq-color-warning-bg);
+    color: var(--cq-text-primary);
+  }
+  .adult-content-badge {
+    flex-shrink: 0;
+    border-radius: var(--cq-radius-pill);
+    padding: var(--cq-space-1) var(--cq-space-2);
+    background: var(--cq-color-warning);
+    color: var(--cq-color-warning-bg);
+    font-size: var(--cq-font-size-sm);
+    font-weight: var(--cq-font-weight-bold);
+  }
+  h2 {
+    margin: 0 0 var(--cq-space-2);
+    color: var(--cq-color-warning);
+    font-size: var(--cq-font-size-base);
+    font-weight: var(--cq-font-weight-bold);
+  }
+  p {
+    margin: 0;
+    line-height: var(--cq-line-height-normal);
+  }
+</style>

@@ -7,12 +7,14 @@
 import Alert from "@mui/material/Alert";
 import Autocomplete from "@mui/material/Autocomplete";
 import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
 import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
@@ -21,6 +23,11 @@ import TextField from "@mui/material/TextField";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import DescriptionMarkdownEditor from "./DescriptionMarkdownEditor";
+import {
+  ADULT_CONTENT_NOTICE_TITLE,
+  getEventLocalHour,
+  shouldSuggestAdult,
+} from "../../../../lib/adult-content";
 import {
   COMMUNITY_OPTIONS,
   TIMEZONE_OPTIONS,
@@ -49,6 +56,12 @@ export default function EventFormDialog({
 }: Readonly<EventFormDialogProps>): React.JSX.Element {
   const theme = useTheme();
   const eventDialogFullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const showAdultSuggestion =
+    !eventForm.adultOnly &&
+    shouldSuggestAdult({
+      venueType: eventForm.venueType,
+      localHour: getEventLocalHour(eventForm.startAt, eventForm.timezone),
+    });
 
   return (
     <Dialog
@@ -149,6 +162,58 @@ export default function EventFormDialog({
                 helperText="Padrão: America/Sao_Paulo"
               />
             )}
+          />
+          <FormControl size="small" fullWidth>
+            <InputLabel id="event-venue-type-label">Tipo de local</InputLabel>
+            <Select
+              labelId="event-venue-type-label"
+              label="Tipo de local"
+              value={eventForm.venueType}
+              onChange={(e) =>
+                setEventForm((f) => ({
+                  ...f,
+                  venueType: e.target.value as EventForm["venueType"],
+                }))
+              }
+            >
+              <MenuItem value="">Não informado</MenuItem>
+              <MenuItem value="bar">Bar</MenuItem>
+              <MenuItem value="restaurante">Restaurante</MenuItem>
+              <MenuItem value="auditorio">Auditório</MenuItem>
+              <MenuItem value="campus">Campus</MenuItem>
+              <MenuItem value="online">Online</MenuItem>
+              <MenuItem value="outro">Outro</MenuItem>
+            </Select>
+          </FormControl>
+          {showAdultSuggestion && (
+            <Alert
+              severity="warning"
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() =>
+                    setEventForm((f) => ({ ...f, adultOnly: true }))
+                  }
+                >
+                  Aplicar sugestão 18+
+                </Button>
+              }
+            >
+              Sugestão: local e horário podem indicar um evento para maiores de
+              18 anos. Revise e aplique somente se fizer sentido.
+            </Alert>
+          )}
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={eventForm.adultOnly}
+                onChange={(e) =>
+                  setEventForm((f) => ({ ...f, adultOnly: e.target.checked }))
+                }
+              />
+            }
+            label={ADULT_CONTENT_NOTICE_TITLE}
           />
           <FormControl size="small" fullWidth>
             <InputLabel id="event-community-label">Comunidade</InputLabel>
