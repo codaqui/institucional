@@ -13,12 +13,13 @@ export function hasOnlySafeCommunityUrls(
 ): boolean {
   return (
     entries === undefined ||
-    entries.every(
-      (entry) =>
-        entry !== null &&
-        typeof entry === 'object' &&
-        !Array.isArray(entry) &&
-        isSafeCommunityUrl(entry.url),
-    )
+    (Array.isArray(entries) &&
+      entries.every(
+        (entry) =>
+          entry !== null &&
+          typeof entry === 'object' &&
+          !Array.isArray(entry) &&
+          isSafeCommunityUrl(entry.url),
+      ))
   );
 }

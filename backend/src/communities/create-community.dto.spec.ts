@@ -32,4 +32,11 @@ describe('CreateCommunityDto URL validation', () => {
       expect(errors).not.toHaveLength(0);
     },
   );
+
+  it('rejects a non-array links payload without throwing in the custom validator', async () => {
+    const errors = await validate(
+      dtoWith({ links: { url: 'https://example.com' } }),
+    );
+    expect(errors).not.toHaveLength(0);
+  });
 });
