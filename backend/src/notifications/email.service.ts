@@ -12,6 +12,7 @@ import {
   ManagedEvent,
   ManagedEventStatus,
 } from '../events/entities/managed-event.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import {
   EventRegistration,
   RegistrationStatus,
@@ -51,6 +52,14 @@ export interface EmailTemplateContext {
   eventLocation?: string | null;
 }
 
+export interface RegistrationEmailEvent {
+  title: string | null;
+  startAt: Date | null;
+  timezone?: string;
+  location?: string | null;
+  eventKey?: string;
+}
+
 export interface ListEmailLogsQuery {
   status?: string;
   template?: string;
@@ -85,6 +94,8 @@ export class EmailService {
     private readonly emailLogRepo: Repository<EmailLog>,
     @InjectRepository(ManagedEvent)
     private readonly eventRepo: Repository<ManagedEvent>,
+    @InjectRepository(ExternalEventActivation)
+    private readonly activationRepo: Repository<ExternalEventActivation>,
     @InjectRepository(EventRegistration)
     private readonly registrationRepo: Repository<EventRegistration>,
     @InjectRepository(TicketType)
@@ -95,14 +106,14 @@ export class EmailService {
 
   private contextFor(
     registration: EventRegistration,
-    event: ManagedEvent,
+    event: RegistrationEmailEvent,
     ticketTypeName: string | null = null,
   ): EmailTemplateContext {
     return {
       attendeeName: registration.attendeeName,
-      eventTitle: event.title,
-      eventStartAt: event.startAt,
-      eventTimeZone: event.timezone,
+      eventTitle: event.title ?? event.eventKey ?? 'Evento',
+      eventStartAt: event.startAt ?? registration.createdAt,
+      eventTimeZone: event.timezone ?? 'America/Sao_Paulo',
       ticketTypeName,
       checkinToken: registration.checkinToken,
       eventLocation: event.location,
@@ -175,13 +186,13 @@ export class EmailService {
 
   async sendRegistrationCancellation(
     registration: EventRegistration,
-    event: ManagedEvent,
+    event: RegistrationEmailEvent,
   ): Promise<void> {
     await this.sendTemplate(
       EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
       registration.attendeeEmail,
       this.contextFor(registration, event),
-      { eventId: event.id, registrationId: registration.id },
+      { eventId: registration.eventId, registrationId: registration.id },
     );
   }
 
@@ -404,12 +415,19 @@ export class EmailService {
     const registration = await this.registrationRepo.findOneBy({
       id: log.registrationId,
     });
-    if (!registration?.eventId) {
+    if (!registration) {
       throw new BadRequestException(
         'Inscrição vinculada ao log não encontrada.',
       );
     }
-    const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    let event: RegistrationEmailEvent | null = null;
+    if (registration.eventId) {
+      event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    } else if (registration.externalActivationId) {
+      event = await this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+    }
     if (!event) {
       throw new BadRequestException('Evento vinculado ao log não encontrado.');
     }

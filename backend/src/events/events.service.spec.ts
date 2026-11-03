@@ -632,6 +632,30 @@ describe('EventsService', () => {
       );
     });
 
+    it('notifica cancelamento de evento externo pela ativação', async () => {
+      const cancelled = {
+        ...registration(),
+        eventId: null,
+        externalActivationId: uuid(70),
+      };
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devpr:1',
+        title: 'Meetup externo',
+        startAt: new Date('2026-08-10T13:00:00Z'),
+      };
+      registrationRepo.findOneBy.mockResolvedValue(cancelled);
+      activationRepo.findOneBy.mockResolvedValue(activation);
+
+      await service.cancelRegistration(uuid(40), user());
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        cancelled,
+        activation,
+      );
+    });
+
     it('save de cancelamento e release de quota acontecem na mesma transação', async () => {
       registrationRepo.findOneBy.mockResolvedValue(registration());
 
@@ -1076,6 +1100,11 @@ describe('EventsService', () => {
           communityProjectKey: 'elasnocodigo',
           externalActivationId: uuid(70),
         }),
+      );
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledTimes(3);
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        expect.objectContaining({ id: uuid(41) }),
+        expect.objectContaining({ id: uuid(70), title: 'Meetup Elas' }),
       );
     });
 

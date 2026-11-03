@@ -41,6 +41,7 @@ describe('EmailService', () => {
   let service: EmailService;
   let emailLogRepo: Record<string, jest.Mock>;
   let eventRepo: Record<string, jest.Mock>;
+  let activationRepo: Record<string, jest.Mock>;
   let registrationRepo: Record<string, jest.Mock>;
   let ticketTypeRepo: Record<string, jest.Mock>;
   let provider: Record<string, jest.Mock>;
@@ -60,6 +61,7 @@ describe('EmailService', () => {
       findOneBy: jest.fn().mockResolvedValue(makeEvent()),
       findBy: jest.fn().mockResolvedValue([makeEvent()]),
     };
+    activationRepo = { findOneBy: jest.fn() };
     registrationRepo = {
       findOneBy: jest.fn().mockResolvedValue(makeRegistration()),
       createQueryBuilder: jest.fn(),
@@ -78,6 +80,7 @@ describe('EmailService', () => {
     service = new EmailService(
       emailLogRepo as any,
       eventRepo as any,
+      activationRepo as any,
       registrationRepo as any,
       ticketTypeRepo as any,
       provider as any,
@@ -153,6 +156,26 @@ describe('EmailService', () => {
       expect(message.text).toContain('Ana');
       expect(message.text).toContain('10 de agosto de 2026');
     });
+
+    it('usa o contexto da ativação externa sem preencher eventId managed', async () => {
+      const registration = makeRegistration({
+        eventId: null,
+        externalActivationId: uuid(70),
+      });
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devpr:1',
+        title: 'Meetup externo',
+        startAt: new Date('2026-08-10T13:00:00Z'),
+      };
+
+      await service.sendRegistrationCancellation(registration as any, activation as any);
+
+      expect(emailLogRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ eventId: null, registrationId: uuid(40) }),
+      );
+      expect(provider.send.mock.calls[0][0].subject).toContain('Meetup externo');
+    });
   });
 
   describe('resend', () => {
@@ -180,6 +203,35 @@ describe('EmailService', () => {
         new Date('2026-07-01T00:00:00Z').getTime(),
       );
       expect(emailLogRepo.save).toHaveBeenCalledWith(existing);
+    });
+
+    it('reenvia um log de inscrição externa usando a ativação', async () => {
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devpr:1',
+        title: 'Meetup externo',
+        startAt: new Date('2026-08-10T13:00:00Z'),
+      };
+      emailLogRepo.findOneBy.mockResolvedValue({
+        id: uuid(80),
+        to: 'ana@x.dev',
+        template: EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
+        registrationId: uuid(40),
+        status: EmailStatus.FAILED,
+        createdAt: new Date(),
+      });
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ eventId: null, externalActivationId: uuid(70) }),
+      );
+      (service as any).activationRepo = {
+        findOneBy: jest.fn().mockResolvedValue(activation),
+      };
+
+      const result = await service.resend(uuid(80));
+
+      expect(provider.send.mock.calls[0][0].subject).toContain('Meetup externo');
+      expect(result.status).toBe(EmailStatus.SENT);
+      expect(eventRepo.findOneBy).not.toHaveBeenCalled();
     });
 
     it('mantém failed quando o SMTP configurado falha novamente', async () => {

@@ -1117,7 +1117,7 @@ export class EventsService {
 
   private notifyRegistrationCancellation(
     registration: EventRegistration,
-    event: ManagedEvent,
+    event: ManagedEvent | ExternalEventActivation,
   ): void {
     void this.emailService
       .sendRegistrationCancellation(registration, event)
@@ -1184,9 +1184,15 @@ export class EventsService {
       await em.save(registration);
       await this.releaseQuota(registration.ticketTypeId, 1, em);
     });
-    if (registration.eventId) {
-      void this.eventRepo
-        .findOneBy({ id: registration.eventId })
+    const eventPromise = registration.eventId
+      ? this.eventRepo.findOneBy({ id: registration.eventId })
+      : registration.externalActivationId
+        ? this.activationRepo.findOneBy({
+            id: registration.externalActivationId,
+          })
+        : null;
+    if (eventPromise) {
+      void eventPromise
         .then((event) => {
           if (event) this.notifyRegistrationCancellation(registration, event);
         })
@@ -1680,9 +1686,10 @@ export class EventsService {
       },
     });
 
-    if (event) {
+    const notificationEvent = event ?? activation;
+    if (notificationEvent) {
       for (const registration of targets) {
-        this.notifyRegistrationCancellation(registration, event);
+        this.notifyRegistrationCancellation(registration, notificationEvent);
       }
     }
 
