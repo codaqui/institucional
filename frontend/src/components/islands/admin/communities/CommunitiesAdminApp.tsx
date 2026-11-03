@@ -112,6 +112,13 @@ function buildCommunityPayload(
   editing: ManagedCommunity | null,
   isAdmin: boolean,
 ) {
+  let founded: number | null | undefined;
+  if (form.founded) {
+    founded = Number(form.founded);
+  } else if (editing) {
+    founded = null;
+  }
+
   return {
     name: form.name.trim(),
     ...(!editing ? { slug: form.slug.trim() } : {}),
@@ -119,7 +126,7 @@ function buildCommunityPayload(
     emoji: form.emoji.trim(),
     logoUrl: form.logoUrl.trim(),
     location: form.location.trim() || (editing ? null : undefined),
-    founded: form.founded ? Number(form.founded) : editing ? null : undefined,
+    founded,
     ...(isAdmin
       ? {
           level: form.level,
@@ -129,6 +136,12 @@ function buildCommunityPayload(
         }
       : {}),
   };
+}
+
+function saveCommunityLabel(saving: boolean, editing: ManagedCommunity | null): string {
+  if (saving) return "Salvando…";
+  if (editing) return "Salvar alterações";
+  return "Criar comunidade";
 }
 
 function CommunitiesAdminInner(): React.JSX.Element | null {
@@ -458,16 +471,23 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
         <Button type="submit" variant="outlined">Buscar</Button>
       </Box>
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress aria-label="Carregando comunidades" />
-        </Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
-          Nenhuma comunidade encontrada.
-        </Typography>
-      ) : (
-        <>
+      {(() => {
+        if (loading) {
+          return (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+              <CircularProgress aria-label="Carregando comunidades" />
+            </Box>
+          );
+        }
+        if (items.length === 0) {
+          return (
+            <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
+              Nenhuma comunidade encontrada.
+            </Typography>
+          );
+        }
+        return (
+          <>
           <TableContainer component={Box} sx={{ mb: 2, overflowX: "auto" }}>
             <Table size="small" aria-label="Comunidades cadastradas">
               <TableHead>
@@ -585,8 +605,9 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
             onChange={setPage}
             itemLabel="comunidades"
           />
-        </>
-      )}
+          </>
+        );
+      })()}
 
       <Dialog open={formOpen} onClose={() => !saving && setFormOpen(false)} fullWidth maxWidth="sm">
         <form onSubmit={(event) => void saveCommunity(event)} noValidate>
@@ -711,7 +732,7 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
           <DialogActions>
             <Button type="button" disabled={saving} onClick={() => setFormOpen(false)}>Cancelar</Button>
             <Button type="submit" variant="contained" disabled={saving}>
-              {saving ? "Salvando…" : editing ? "Salvar alterações" : "Criar comunidade"}
+              {saveCommunityLabel(saving, editing)}
             </Button>
           </DialogActions>
         </form>
