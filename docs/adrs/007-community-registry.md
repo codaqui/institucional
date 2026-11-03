@@ -50,12 +50,12 @@ As quatro Integradas nascem **sem responsible fabricado**. A migration apenas re
 
 | Endpoint | Acesso e comportamento |
 |---|---|
-| `GET /communities/public` | Público; somente comunidades ativas, shape legado + nível/lifecycle/selo/site/responsible. |
-| `GET /communities/manage` | Admin; busca server-side e envelope paginado (`limit=50`, cap 100). |
-| `POST /communities` | Admin; cria registro com slug único. |
-| `PATCH /communities/:id` | Admin ou responsible ativo da comunidade via `DesignationsGuard`. |
-| `POST /communities/:id/seal/request` | Admin ou responsible ativo; marca o selo como `applied`. |
-| `POST /communities/:id/seal` | Admin; exige responsible ativo e avaliação manual em `sealNotes`. Usa validade futura explícita ou default de um ano e grava auditoria de governo. |
+| `GET /communities/public` | Público; somente comunidades ativas, shape legado + nível/lifecycle/selo/site/responsible. `sealEffective` e o `sealStatus` exposto consideram `sealValidUntil`, sem apagar o histórico da concessão. |
+| `GET /communities/manage` | Admin lista todas; responsible lista somente suas comunidades. Busca server-side e envelope paginado (`limit=50`, cap 100). |
+| `POST /communities` | Admin; cria registro com slug único e reserva `tesouro-geral`. |
+| `PATCH /communities/:id` | Admin ou responsible ativo da comunidade via `DesignationsGuard`; responsible edita somente dados de perfil. Slug existente é imutável e mudanças sensíveis gravam auditoria de governo com before/after. |
+| `POST /communities/:id/seal/request` | Admin ou responsible ativo; `none → applied`, ou `sealed → applied` somente para renovação após expiração. Selo vigente rejeita nova solicitação. |
+| `POST /communities/:id/seal` | Admin; exige responsible ativo e avaliação manual em `sealNotes`. Usa validade futura explícita ou default de um ano e grava auditoria de governo; também é o fluxo de renovação enquanto o selo está vigente. |
 
 `POST /stripe/checkout-session` valida todo `communityId` direcionado antes de chamar o Stripe: somente comunidade **Integrada ativa** é aceita. Parceira, desconhecida, suspensa ou inativa é recusada. O destino especial `tesouro-geral` permanece aceito. CamposTech continua aceito porque é Integrada ativa, mesmo sem site tenant.
 

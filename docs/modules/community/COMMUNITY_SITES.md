@@ -59,12 +59,12 @@ Responsible é uma designation ativa `responsible @ community`, não uma coluna 
 
 ## APIs, selo e doações
 
-- `GET /communities/public`: somente ativas; preserva `id=slug` e `logo=logoUrl`, acrescenta governança/site/responsible.
-- `GET /communities/manage`: admin, busca e paginação padrão (50, cap 100).
-- `POST /communities`: admin.
-- `PATCH /communities/:id`: admin ou responsible ativo da comunidade.
-- `POST /communities/:id/seal/request`: admin ou responsible ativo.
-- `POST /communities/:id/seal`: admin; exige responsible ativo e `sealNotes`, define validade futura ou um ano e grava auditoria de governo.
+- `GET /communities/public`: somente ativas; preserva `id=slug` e `logo=logoUrl`, acrescenta governança/site/responsible. Selo expirado não aparece como efetivo; concessão e validade históricas permanecem no payload.
+- `GET /communities/manage`: admin lista todas; responsible lista somente as próprias. Busca e paginação padrão (50, cap 100).
+- `POST /communities`: admin; `tesouro-geral` é reservado.
+- `PATCH /communities/:id`: admin ou responsible ativo da comunidade; responsible edita somente perfil, slug existente é imutável e mudanças gravam auditoria com before/after.
+- `POST /communities/:id/seal/request`: admin ou responsible ativo; nova solicitação parte de `none`, renovação por esse fluxo só após expiração.
+- `POST /communities/:id/seal`: admin; exige responsible ativo e `sealNotes`, define validade futura ou um ano e grava auditoria de governo. É também o fluxo de renovação com selo vigente.
 
 No checkout, `communityId` direcionado precisa ser Integrada ativa. Parceira é recusada antes de chamar Stripe; `tesouro-geral` segue aceito. CamposTech continua aceito e seu ledger/transparência continuam por `projectKey=campostechpg`, independentemente de não ter tenant.
 
