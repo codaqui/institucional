@@ -12,6 +12,7 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { VenueType } from '../entities/managed-event.entity';
 
@@ -180,7 +181,7 @@ export class UpdateEventDto {
   @Max(1000)
   workloadMinutes?: number | null;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @Type(() => Boolean)
   @IsBoolean()
   adultOnly?: boolean;
