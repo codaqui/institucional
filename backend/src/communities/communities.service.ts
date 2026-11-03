@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -114,18 +114,25 @@ export class CommunitiesService {
     }
 
     const search = query.search?.trim();
-    const where = search
-      ? [
-          { ...(scopedIds ? { id: In(scopedIds) } : {}), name: ILike(`%${search}%`) },
-          { ...(scopedIds ? { id: In(scopedIds) } : {}), slug: ILike(`%${search}%`) },
-          {
-            ...(scopedIds ? { id: In(scopedIds) } : {}),
-            description: ILike(`%${search}%`),
-          },
-        ]
-      : scopedIds
-        ? { id: In(scopedIds) }
-        : undefined;
+    let where:
+      | FindOptionsWhere<Community>
+      | FindOptionsWhere<Community>[]
+      | undefined;
+    if (search) {
+      where = [
+        { name: ILike(`%${search}%`) },
+        { slug: ILike(`%${search}%`) },
+        { description: ILike(`%${search}%`) },
+      ];
+      if (scopedIds) {
+        where = where.map((condition) => ({
+          ...condition,
+          id: In(scopedIds),
+        }));
+      }
+    } else if (scopedIds) {
+      where = { id: In(scopedIds) };
+    }
     const [data, total] = await this.repo.findAndCount({
       where,
       order: { name: 'ASC' },
