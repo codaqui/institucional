@@ -97,6 +97,40 @@ function validateSlug(value: string): string {
   return "";
 }
 
+function validateCommunityForm(
+  form: CommunityForm,
+  editing: ManagedCommunity | null,
+): FormErrors {
+  return {
+    name: validateName(form.name) || undefined,
+    slug: !editing ? validateSlug(form.slug) || undefined : undefined,
+  };
+}
+
+function buildCommunityPayload(
+  form: CommunityForm,
+  editing: ManagedCommunity | null,
+  isAdmin: boolean,
+) {
+  return {
+    name: form.name.trim(),
+    ...(!editing ? { slug: form.slug.trim() } : {}),
+    description: form.description.trim(),
+    emoji: form.emoji.trim(),
+    logoUrl: form.logoUrl.trim(),
+    location: form.location.trim() || (editing ? null : undefined),
+    founded: form.founded ? Number(form.founded) : editing ? null : undefined,
+    ...(isAdmin
+      ? {
+          level: form.level,
+          status: form.status,
+          siteEnabled: form.siteEnabled,
+          siteDomain: form.siteDomain.trim() || (editing ? null : undefined),
+        }
+      : {}),
+  };
+}
+
 function CommunitiesAdminInner(): React.JSX.Element | null {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
   const {
@@ -214,10 +248,7 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
 
   const saveCommunity = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const errors = {
-      name: validateName(form.name) || undefined,
-      slug: !editing ? validateSlug(form.slug) || undefined : undefined,
-    };
+    const errors = validateCommunityForm(form, editing);
     setFormErrors(errors);
     if (errors.name || errors.slug) {
       document.getElementById(errors.name ? "community-name" : "community-slug")?.focus();
@@ -228,23 +259,7 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
 
     setSaving(true);
     setFormError("");
-    const payload = {
-      name: form.name.trim(),
-      ...(!editing ? { slug: form.slug.trim() } : {}),
-      description: form.description.trim(),
-      emoji: form.emoji.trim(),
-      logoUrl: form.logoUrl.trim(),
-      location: form.location.trim() || (editing ? null : undefined),
-      founded: form.founded ? Number(form.founded) : editing ? null : undefined,
-      ...(isAdmin
-        ? {
-            level: form.level,
-            status: form.status,
-            siteEnabled: form.siteEnabled,
-            siteDomain: form.siteDomain.trim() || (editing ? null : undefined),
-          }
-        : {}),
-    };
+    const payload = buildCommunityPayload(form, editing, isAdmin);
     try {
       const response = await authFetch(
         editing ? `/communities/${editing.id}` : "/communities",
