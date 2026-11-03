@@ -394,16 +394,23 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
         </Button>
       </Box>
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress />
-        </Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
-          Nenhuma diretoria encontrada.
-        </Typography>
-      ) : (
-        <>
+      {(() => {
+        if (loading) {
+          return (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+              <CircularProgress />
+            </Box>
+          );
+        }
+        if (items.length === 0) {
+          return (
+            <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>
+              Nenhuma diretoria encontrada.
+            </Typography>
+          );
+        }
+        return (
+          <>
           <TableContainer component={Box} sx={{ mb: 2 }}>
             <Table size="small" aria-label="Diretorias cadastradas">
               <TableHead>
@@ -479,8 +486,9 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
             onChange={setPage}
             itemLabel="diretorias"
           />
-        </>
-      )}
+          </>
+        );
+      })()}
 
       <Dialog open={formOpen} onClose={() => !saving && setFormOpen(false)} fullWidth maxWidth="sm">
         <form onSubmit={(event) => void saveDirectorate(event)} noValidate>
