@@ -1130,6 +1130,72 @@ export class EventsService {
       );
   }
 
+  private async assertCanCancelRegistration(
+    registration: EventRegistration,
+    user: JwtPayload,
+  ): Promise<void> {
+    if (registration.memberId === user.sub) return;
+
+    if (registration.eventId) {
+      await this.assertCanViewEvent(user, registration.eventId);
+      return;
+    }
+
+    if (registration.externalActivationId) {
+      const activation = await this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+      if (!activation) {
+        throw new NotFoundException(
+          'Ativação do evento externo não encontrada.',
+        );
+      }
+      await this.assertExternalManager(user, activation, {
+        allowActivator: true,
+      });
+      return;
+    }
+
+    throw new ForbiddenException(
+      'Sem permissão para cancelar esta inscrição.',
+    );
+  }
+
+  private async assertRegistrationCancellationAllowed(
+    registration: EventRegistration,
+  ): Promise<void> {
+    if (registration.status !== RegistrationStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Inscrição já está ${registration.status}.`,
+      );
+    }
+
+    if (!registration.orderId) return;
+
+    const order = await this.orderRepo.findOneBy({
+      id: registration.orderId,
+    });
+    if (order?.status === OrderStatus.PAID) {
+      throw new ConflictException(
+        'Inscrição vinculada a pedido pago: use o fluxo de estorno (POST /events/orders/:id/refund) para devolver o valor.',
+      );
+    }
+  }
+
+  private findCancellationEvent(
+    registration: EventRegistration,
+  ): Promise<ManagedEvent | ExternalEventActivation | null> | null {
+    if (registration.eventId) {
+      return this.eventRepo.findOneBy({ id: registration.eventId });
+    }
+    if (registration.externalActivationId) {
+      return this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+    }
+    return null;
+  }
+
   /** DELETE /events/registrations/:id — dono, staff do evento ou admin */
   async cancelRegistration(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({
@@ -1137,45 +1203,8 @@ export class EventsService {
     });
     if (!registration) throw new NotFoundException('Inscrição não encontrada.');
 
-    const isOwner = registration.memberId === user.sub;
-    if (!isOwner) {
-      if (registration.eventId) {
-        await this.assertCanViewEvent(user, registration.eventId);
-      } else if (registration.externalActivationId) {
-        const activation = await this.activationRepo.findOneBy({
-          id: registration.externalActivationId,
-        });
-        if (!activation) {
-          throw new NotFoundException(
-            'Ativação do evento externo não encontrada.',
-          );
-        }
-        await this.assertExternalManager(user, activation, {
-          allowActivator: true,
-        });
-      } else {
-        throw new ForbiddenException(
-          'Sem permissão para cancelar esta inscrição.',
-        );
-      }
-    }
-
-    if (registration.status !== RegistrationStatus.CONFIRMED) {
-      throw new BadRequestException(
-        `Inscrição já está ${registration.status}.`,
-      );
-    }
-
-    if (registration.orderId) {
-      const order = await this.orderRepo.findOneBy({
-        id: registration.orderId,
-      });
-      if (order?.status === OrderStatus.PAID) {
-        throw new ConflictException(
-          'Inscrição vinculada a pedido pago: use o fluxo de estorno (POST /events/orders/:id/refund) para devolver o valor.',
-        );
-      }
-    }
+    await this.assertCanCancelRegistration(registration, user);
+    await this.assertRegistrationCancellationAllowed(registration);
 
     registration.status = RegistrationStatus.CANCELLED;
     // Cancelamento + devolução de quota na MESMA transação: se a liberação
@@ -1184,13 +1213,7 @@ export class EventsService {
       await em.save(registration);
       await this.releaseQuota(registration.ticketTypeId, 1, em);
     });
-    const eventPromise = registration.eventId
-      ? this.eventRepo.findOneBy({ id: registration.eventId })
-      : registration.externalActivationId
-        ? this.activationRepo.findOneBy({
-            id: registration.externalActivationId,
-          })
-        : null;
+    const eventPromise = this.findCancellationEvent(registration);
     if (eventPromise) {
       void eventPromise
         .then((event) => {
