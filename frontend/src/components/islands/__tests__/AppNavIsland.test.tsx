@@ -149,6 +149,8 @@ describe("AppNavIsland", () => {
     expect(
       screen.getByRole("link", { name: /virtualcoins/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Diretorias" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Configurações" })).toBeInTheDocument();
   });
 
   it("ativa item por prefixo de rota (check-in)", () => {
@@ -229,7 +231,7 @@ describe("AppNavIsland", () => {
     ).toHaveAttribute("href", "/admin/comunidades");
   });
 
-  it("does not show Minha comunidade for an unrelated designation", () => {
+  it("shows Diretorias to a director without exposing community or settings admin actions", () => {
     designationsState.data = [
       {
         id: "designation-1",
@@ -242,8 +244,12 @@ describe("AppNavIsland", () => {
     mockLoggedIn(makeUser());
     renderWithMui(<AppNavIsland currentPath="/membro" />);
 
+    expect(screen.getByRole("link", { name: "Diretorias" })).toHaveAttribute(
+      "href",
+      "/admin/diretorias",
+    );
     expect(screen.queryByText("Minha comunidade")).not.toBeInTheDocument();
-    expect(screen.queryByText("Gestão")).not.toBeInTheDocument();
+    expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {

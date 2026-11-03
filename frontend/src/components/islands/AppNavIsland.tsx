@@ -26,6 +26,7 @@ import HubIcon from "@mui/icons-material/Hub";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PaymentIcon from "@mui/icons-material/Payment";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import SettingsIcon from "@mui/icons-material/Settings";
 import StorefrontIcon from "@mui/icons-material/Storefront";
 import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
@@ -64,6 +65,12 @@ const GESTAO_ITEMS: readonly NavItem[] = [
     icon: <BusinessIcon />,
     designations: [{ targetType: "community", designation: "responsible" }],
   },
+  {
+    label: "Diretorias",
+    href: "/admin/diretorias",
+    icon: <HubIcon />,
+    designations: [{ targetType: "directorate", designation: "director" }],
+  },
   { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
   { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
   { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
@@ -73,6 +80,7 @@ const GESTAO_ITEMS: readonly NavItem[] = [
   { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
   { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
   { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
+  { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
 ];
 
 const EVENTO_ITEMS: readonly NavItem[] = [
