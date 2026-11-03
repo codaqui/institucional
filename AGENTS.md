@@ -448,7 +448,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 ### 22. Turnstile opt-in (G3)
 
-- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e restringe `req.hostname` por `TURNSTILE_ALLOWED_HOSTNAMES`.
+- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_ALLOWED_HOSTNAMES`.
 - **Nenhuma rota existente usa `TurnstileGuard` na Fase 1a.** Sem secret, desenvolvimento faz warn/no-op; produção falha fechada quando o guard for aplicado. `TurnstileField` só renderiza o widget com `PUBLIC_TURNSTILE_SITE_KEY`.
 
 ### 23. ECA — eventos 18+ informativos

@@ -74,6 +74,74 @@ describe('TurnstileGuard', () => {
     );
   });
 
+  it.each([
+    [{ origin: 'https://codaqui.dev/form' }, 'codaqui.dev'],
+    [{ referer: 'https://tisocial.org.br/form' }, 'tisocial.org.br'],
+    [{ 'x-forwarded-host': 'www.codaqui.dev:443' }, 'www.codaqui.dev'],
+  ])(
+    'verifies the frontend hostname from %p when the API hostname differs',
+    async (headers, expectedHostname) => {
+      const context = contextFor({
+        body: { turnstileToken: 'token' },
+        headers,
+        hostname: 'api.codaqui.dev',
+      });
+
+      await expect(guard.canActivate(context)).resolves.toBe(true);
+      expect(service.verify).toHaveBeenCalledWith(
+        'token',
+        '192.0.2.1',
+        expectedHostname,
+      );
+    },
+  );
+
+  it('prefers Origin over Referer and X-Forwarded-Host', async () => {
+    const context = contextFor({
+      body: { turnstileToken: 'token' },
+      headers: {
+        origin: 'https://codaqui.dev',
+        referer: 'https://tisocial.org.br/form',
+        'x-forwarded-host': 'www.codaqui.dev',
+      },
+      hostname: 'api.codaqui.dev',
+    });
+
+    await guard.canActivate(context);
+
+    expect(service.verify).toHaveBeenCalledWith(
+      'token',
+      '192.0.2.1',
+      'codaqui.dev',
+    );
+  });
+
+  it('rejects an invalid Origin even when the API hostname is allowed', async () => {
+    const context = contextFor({
+      body: { turnstileToken: 'token' },
+      headers: { origin: 'https://codaqui.dev.evil.example' },
+      hostname: 'codaqui.dev',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      ForbiddenException,
+    );
+    expect(service.verify).not.toHaveBeenCalled();
+  });
+
+  it('rejects a malformed frontend URL', async () => {
+    const context = contextFor({
+      body: { turnstileToken: 'token' },
+      headers: { origin: 'not-a-url' },
+      hostname: 'codaqui.dev',
+    });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      ForbiddenException,
+    );
+    expect(service.verify).not.toHaveBeenCalled();
+  });
+
   it('reads the token from the Turnstile header when the body has none', async () => {
     const context = contextFor({
       headers: { 'cf-turnstile-token': 'header-token' },
