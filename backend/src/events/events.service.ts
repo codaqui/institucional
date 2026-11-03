@@ -1579,19 +1579,9 @@ export class EventsService {
 
   // ── Refund (admin | event_finance) ────────────────────────────────────────
 
-  /**
-   * POST /events/orders/:id/refund
-   *
-   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve toda a
-   *   quantia restante do charge), order → refunded.
-   * - Com `registrationIds`: estorno PARCIAL (soma unitária dos ingressos
-   *   selecionados). As registrations são marcadas refunded IMEDIATAMENTE e a
-   *   quota é devolvida; o webhook `charge.refunded` reconcilia o restante
-   *   (status final da order e diferença de ledger, se houver).
-   * - O reversal no ledger usa `event-ticket-refund:<orderId>:<ts>`; o webhook
-   *   deduz o que já foi lançado aqui para não duplicar.
-   */
-  async refundOrder(orderId: string, dto: RefundOrderDto, user: JwtPayload) {
+  private async findRefundableOrder(
+    orderId: string,
+  ): Promise<EventOrder & { stripePaymentIntentId: string }> {
     const order = await this.orderRepo.findOneBy({ id: orderId });
     if (!order) throw new NotFoundException('Pedido não encontrado.');
     if (order.status !== OrderStatus.PAID) {
@@ -1605,59 +1595,39 @@ export class EventsService {
     if (!order.eventId && !order.externalActivationId) {
       throw new BadRequestException('Pedido sem evento vinculado.');
     }
+    return order as EventOrder & { stripePaymentIntentId: string };
+  }
 
-    const ticketType = await this.ticketTypeRepo.findOneBy({
-      id: order.ticketTypeId,
-    });
-    // Unitário derivado do valor pago na order; preço atual do lote é só fallback
-    const unitCents =
-      order.quantity > 0 && order.totalCents > 0
-        ? Math.round(order.totalCents / order.quantity)
-        : (ticketType?.priceCents ?? 0);
+  private resolveRefundUnitCents(
+    order: EventOrder,
+    ticketType: TicketType | null,
+  ): number {
+    if (order.quantity > 0 && order.totalCents > 0) {
+      return Math.round(order.totalCents / order.quantity);
+    }
+    return ticketType?.priceCents ?? 0;
+  }
 
-    const confirmedRegs = await this.registrationRepo.findBy({
-      orderId: order.id,
-      status: RegistrationStatus.CONFIRMED,
-    });
-    if (confirmedRegs.length === 0) {
+  private selectRefundTargets(
+    confirmedRegs: EventRegistration[],
+    registrationIds?: string[],
+  ): EventRegistration[] {
+    if (!registrationIds?.length) return confirmedRegs;
+
+    const ids = new Set(registrationIds);
+    const targets = confirmedRegs.filter((r) => ids.has(r.id));
+    if (targets.length !== ids.size) {
       throw new BadRequestException(
-        'Nenhuma inscrição confirmada para estornar.',
+        'registrationIds inválidos: não pertencem ao pedido ou já foram estornados.',
       );
     }
+    return targets;
+  }
 
-    let targets = confirmedRegs;
-    if (dto.registrationIds?.length) {
-      const ids = new Set(dto.registrationIds);
-      targets = confirmedRegs.filter((r) => ids.has(r.id));
-      if (targets.length !== ids.size) {
-        throw new BadRequestException(
-          'registrationIds inválidos: não pertencem ao pedido ou já foram estornados.',
-        );
-      }
-    }
-
-    const refundingAllRemaining = targets.length === confirmedRegs.length;
-    const amountCents = targets.length * unitCents;
-
-    // Sem amount → Stripe devolve toda a quantia restante do charge
-    await this.stripeService.createEventTicketRefund(
-      order.stripePaymentIntentId,
-      refundingAllRemaining ? undefined : amountCents,
-    );
-
-    // Marca registrations + devolve quota imediatamente
-    await this.registrationRepo.update(
-      { id: In(targets.map((t) => t.id)) },
-      { status: RegistrationStatus.REFUNDED },
-    );
-    await this.releaseQuota(order.ticketTypeId, targets.length);
-
-    const remainingConfirmed = confirmedRegs.length - targets.length;
-    if (remainingConfirmed === 0) {
-      order.status = OrderStatus.REFUNDED;
-      await this.orderRepo.save(order);
-    }
-
+  private async recordEventTicketRefund(
+    order: EventOrder,
+    amountCents: number,
+  ) {
     // Reversal no ledger (comunidade → conta externa Stripe)
     const event = order.eventId
       ? await this.eventRepo.findOneBy({ id: order.eventId })
@@ -1694,6 +1664,79 @@ export class EventsService {
         externalActivationId: order.externalActivationId ?? undefined,
       },
     );
+    return { event, activation };
+  }
+
+  private notifyRefundCancellations(
+    registrations: EventRegistration[],
+    event: ManagedEvent | ExternalEventActivation | null,
+  ): void {
+    if (!event) return;
+    for (const registration of registrations) {
+      this.notifyRegistrationCancellation(registration, event);
+    }
+  }
+
+  /**
+   * POST /events/orders/:id/refund
+   *
+   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve toda a
+   *   quantia restante do charge), order → refunded.
+   * - Com `registrationIds`: estorno PARCIAL (soma unitária dos ingressos
+   *   selecionados). As registrations são marcadas refunded IMEDIATAMENTE e a
+   *   quota é devolvida; o webhook `charge.refunded` reconcilia o restante
+   *   (status final da order e diferença de ledger, se houver).
+   * - O reversal no ledger usa `event-ticket-refund:<orderId>:<ts>`; o webhook
+   *   deduz o que já foi lançado aqui para não duplicar.
+   */
+  async refundOrder(orderId: string, dto: RefundOrderDto, user: JwtPayload) {
+    const order = await this.findRefundableOrder(orderId);
+    const ticketType = await this.ticketTypeRepo.findOneBy({
+      id: order.ticketTypeId,
+    });
+    // Unitário derivado do valor pago na order; preço atual do lote é só fallback
+    const unitCents = this.resolveRefundUnitCents(order, ticketType);
+
+    const confirmedRegs = await this.registrationRepo.findBy({
+      orderId: order.id,
+      status: RegistrationStatus.CONFIRMED,
+    });
+    if (confirmedRegs.length === 0) {
+      throw new BadRequestException(
+        'Nenhuma inscrição confirmada para estornar.',
+      );
+    }
+
+    const targets = this.selectRefundTargets(
+      confirmedRegs,
+      dto.registrationIds,
+    );
+    const refundingAllRemaining = targets.length === confirmedRegs.length;
+    const amountCents = targets.length * unitCents;
+
+    // Sem amount → Stripe devolve toda a quantia restante do charge
+    await this.stripeService.createEventTicketRefund(
+      order.stripePaymentIntentId,
+      refundingAllRemaining ? undefined : amountCents,
+    );
+
+    // Marca registrations + devolve quota imediatamente
+    await this.registrationRepo.update(
+      { id: In(targets.map((t) => t.id)) },
+      { status: RegistrationStatus.REFUNDED },
+    );
+    await this.releaseQuota(order.ticketTypeId, targets.length);
+
+    const remainingConfirmed = confirmedRegs.length - targets.length;
+    if (remainingConfirmed === 0) {
+      order.status = OrderStatus.REFUNDED;
+      await this.orderRepo.save(order);
+    }
+
+    const { event, activation } = await this.recordEventTicketRefund(
+      order,
+      amountCents,
+    );
 
     void this.auditService.log({
       action: AuditAction.EVENT_ORDER_REFUNDED,
@@ -1709,12 +1752,7 @@ export class EventsService {
       },
     });
 
-    const notificationEvent = event ?? activation;
-    if (notificationEvent) {
-      for (const registration of targets) {
-        this.notifyRegistrationCancellation(registration, notificationEvent);
-      }
-    }
+    this.notifyRefundCancellations(targets, event ?? activation);
 
     return {
       refundedRegistrations: targets.length,
