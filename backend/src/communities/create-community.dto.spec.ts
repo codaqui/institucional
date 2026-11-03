@@ -10,7 +10,14 @@ function dtoWith(value: Record<string, unknown>) {
 }
 
 describe('CreateCommunityDto URL validation', () => {
-  it.each(['https://example.com/community', '/comunidades/teste'])(
+  it.each([
+    'https://example.com/community',
+    '/comunidades/teste',
+    'https://github.com/DeveloperParana',
+    '/comunidades/devparana',
+    'https://www.meetup.com/pt-BR/developerparana/',
+    '/img/devparana.svg',
+  ])(
     'accepts safe community URL %s',
     async (url) => {
       const errors = await validate(
@@ -23,7 +30,15 @@ describe('CreateCommunityDto URL validation', () => {
     },
   );
 
-  it.each(['javascript:alert(1)', 'http://example.com', 'data:text/html,test']) (
+  it.each([
+    'javascript:alert(1)',
+    'http://example.com',
+    'data:text/html,test',
+    '//external.example',
+    '/\\external.example',
+    '/comunidades/\nexternal.example',
+    'https://example.com/\\@external.example',
+  ])(
     'rejects unsafe community URL %s',
     async (url) => {
       const errors = await validate(

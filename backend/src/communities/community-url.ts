@@ -1,8 +1,17 @@
 export function isSafeCommunityUrl(value: unknown): value is string {
-  if (typeof value !== 'string' || value.length === 0) return false;
-  if (value.startsWith('/')) return !value.startsWith('//');
+  if (
+    typeof value !== 'string' ||
+    value.length === 0 ||
+    /[\\\u0000-\u001f\u007f]/.test(value)
+  ) {
+    return false;
+  }
+
+  const base = 'https://codaqui.dev';
   try {
-    return new URL(value).protocol === 'https:';
+    const parsed = new URL(value, base);
+    if (value.startsWith('/')) return parsed.origin === base;
+    return parsed.protocol === 'https:';
   } catch {
     return false;
   }
