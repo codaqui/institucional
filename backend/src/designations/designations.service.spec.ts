@@ -191,6 +191,8 @@ describe('DesignationsService', () => {
     await expect(service.confirm('designation-1', actor)).resolves.toBe(active);
 
     expect(repo.save).not.toHaveBeenCalled();
+    expect(queryRunner.query).not.toHaveBeenCalled();
+    expect(membersRepo.save).not.toHaveBeenCalled();
     expect(audit.log).not.toHaveBeenCalled();
   });
 
@@ -246,6 +248,22 @@ describe('DesignationsService', () => {
     await expect(service.revoke('designation-1', actor)).resolves.toBe(removed);
 
     expect(repo.save).not.toHaveBeenCalled();
+    expect(audit.log).not.toHaveBeenCalled();
+  });
+
+  it('returns an ended designation when revocation is repeated', async () => {
+    const ended = {
+      ...directorInput,
+      id: 'designation-1',
+      status: 'ended',
+    };
+    repo.findOne.mockResolvedValue(ended);
+
+    await expect(service.revoke('designation-1', actor)).resolves.toBe(ended);
+
+    expect(repo.save).not.toHaveBeenCalled();
+    expect(queryRunner.query).not.toHaveBeenCalled();
+    expect(membersRepo.save).not.toHaveBeenCalled();
     expect(audit.log).not.toHaveBeenCalled();
   });
 

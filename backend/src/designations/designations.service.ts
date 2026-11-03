@@ -170,37 +170,40 @@ export class DesignationsService {
     id: string,
     actor: DesignationActor,
   ): Promise<MemberDesignation> {
-    let wrote = false;
-    const saved = await this.inTransaction(async (queryRunner) => {
-      const repo = this.designationRepo(queryRunner);
-      const designation = await this.requireDesignation(repo, id);
-      if (designation.status === 'active') return designation;
-      if (designation.status !== 'pending') {
-        throw new ConflictException(
-          'Somente designações pendentes podem ser confirmadas.',
-        );
-      }
+    const { designation: saved, transitioned } = await this.inTransaction(
+      async (queryRunner) => {
+        const repo = this.designationRepo(queryRunner);
+        const designation = await this.requireDesignation(repo, id);
+        if (designation.status === 'active') {
+          return { designation, transitioned: false };
+        }
+        if (designation.status !== 'pending') {
+          throw new ConflictException(
+            'Somente designações pendentes podem ser confirmadas.',
+          );
+        }
 
-      await this.assertNoActiveConflict(repo, designation, designation.id);
-      designation.status = 'active';
-      designation.confirmedAt = new Date();
-      designation.confirmedById = actor.actorId;
-      const confirmed = await repo.save(designation);
-      wrote = true;
-      await this.syncMemberWithRunner(queryRunner, designation.memberId, actor);
-      return confirmed;
-    });
+        await this.assertNoActiveConflict(repo, designation, designation.id);
+        designation.status = 'active';
+        designation.confirmedAt = new Date();
+        designation.confirmedById = actor.actorId;
+        const confirmed = await repo.save(designation);
+        await this.syncMemberWithRunner(queryRunner, designation.memberId, actor);
+        return { designation: confirmed, transitioned: true };
+      },
+    );
 
-    if (!wrote) return saved;
-    this.cache.clear();
-    await this.audit.log({
-      action: AuditAction.DESIGNATION_CONFIRMED,
-      actorId: actor.actorId,
-      actorHandle: actor.actorHandle,
-      targetId: saved.memberId,
-      targetType: 'member',
-      details: { designationId: saved.id, status: saved.status },
-    });
+    if (transitioned) {
+      this.cache.clear();
+      await this.audit.log({
+        action: AuditAction.DESIGNATION_CONFIRMED,
+        actorId: actor.actorId,
+        actorHandle: actor.actorHandle,
+        targetId: saved.memberId,
+        targetType: 'member',
+        details: { designationId: saved.id, status: saved.status },
+      });
+    }
     return saved;
   }
 
@@ -208,32 +211,36 @@ export class DesignationsService {
     id: string,
     actor: DesignationActor,
   ): Promise<MemberDesignation> {
-    let wrote = false;
-    const saved = await this.inTransaction(async (queryRunner) => {
-      const repo = this.designationRepo(queryRunner);
-      const designation = await this.requireDesignation(repo, id);
-      if (designation.status === 'removed' || designation.status === 'ended') {
-        return designation;
-      }
+    const { designation: saved, transitioned } = await this.inTransaction(
+      async (queryRunner) => {
+        const repo = this.designationRepo(queryRunner);
+        const designation = await this.requireDesignation(repo, id);
+        if (
+          designation.status === 'removed' ||
+          designation.status === 'ended'
+        ) {
+          return { designation, transitioned: false };
+        }
 
-      designation.status = 'removed';
-      designation.endedAt = new Date();
-      const revoked = await repo.save(designation);
-      wrote = true;
-      await this.syncMemberWithRunner(queryRunner, designation.memberId, actor);
-      return revoked;
-    });
+        designation.status = 'removed';
+        designation.endedAt = new Date();
+        const revoked = await repo.save(designation);
+        await this.syncMemberWithRunner(queryRunner, designation.memberId, actor);
+        return { designation: revoked, transitioned: true };
+      },
+    );
 
-    if (!wrote) return saved;
-    this.cache.clear();
-    await this.audit.log({
-      action: AuditAction.DESIGNATION_REVOKED,
-      actorId: actor.actorId,
-      actorHandle: actor.actorHandle,
-      targetId: saved.memberId,
-      targetType: 'member',
-      details: { designationId: saved.id, status: saved.status },
-    });
+    if (transitioned) {
+      this.cache.clear();
+      await this.audit.log({
+        action: AuditAction.DESIGNATION_REVOKED,
+        actorId: actor.actorId,
+        actorHandle: actor.actorHandle,
+        targetId: saved.memberId,
+        targetType: 'member',
+        details: { designationId: saved.id, status: saved.status },
+      });
+    }
     return saved;
   }
 
