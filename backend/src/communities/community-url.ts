@@ -9,9 +9,11 @@ export function isSafeCommunityUrl(value: unknown): value is string {
 
   const base = 'https://codaqui.dev';
   try {
-    const parsed = new URL(value, base);
-    if (value.startsWith('/')) return parsed.origin === base;
-    return parsed.protocol === 'https:';
+    if (value.startsWith('//')) return false;
+    if (value.startsWith('/')) {
+      return new URL(value, base).origin === base;
+    }
+    return new URL(value).protocol === 'https:';
   } catch {
     return false;
   }

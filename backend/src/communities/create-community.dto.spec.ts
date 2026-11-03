@@ -38,6 +38,12 @@ describe('CreateCommunityDto URL validation', () => {
     '/\\external.example',
     '/comunidades/\nexternal.example',
     'https://example.com/\\@external.example',
+    'comunidade',
+    '../comunidade',
+    '?pagina=1',
+    '#secao',
+    '//codaqui.dev/caminho',
+    ' //external.example',
   ])(
     'rejects unsafe community URL %s',
     async (url) => {
