@@ -44,6 +44,40 @@ describe('Migration030AuditRetention', () => {
     );
   });
 
+  it('starts every action update before waiting for the first one', async () => {
+    let releaseFirstUpdate: () => void;
+    const firstUpdate = new Promise<void>((resolve) => {
+      releaseFirstUpdate = resolve;
+    });
+    const query = jest.fn().mockImplementation((sql: string, parameters?: unknown[]) => {
+      if (sql.includes('SELECT DISTINCT "action"')) {
+        return Promise.resolve([
+          { action: AuditAction.ROLE_CHANGE },
+          { action: AuditAction.ROLE_DERIVED },
+          { action: AuditAction.LOGIN },
+        ]);
+      }
+      if (
+        sql.includes('UPDATE "audit_logs" SET "category"') &&
+        parameters?.[1] === AuditAction.ROLE_CHANGE
+      ) {
+        return firstUpdate;
+      }
+      return Promise.resolve([]);
+    });
+    const migration = new Migration030AuditRetention1793289604000();
+
+    const migrationPromise = migration.up({ query } as unknown as QueryRunner);
+    await new Promise((resolve) => setImmediate(resolve));
+    const updatesStarted = query.mock.calls.filter(([sql]) =>
+      sql.includes('UPDATE "audit_logs" SET "category"'),
+    ).length;
+    releaseFirstUpdate!();
+    await migrationPromise;
+
+    expect(updatesStarted).toBe(3);
+  });
+
   it('removes only objects owned by this migration on down', async () => {
     const query = jest.fn().mockResolvedValue([]);
     const migration = new Migration030AuditRetention1793289604000();

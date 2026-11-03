@@ -69,7 +69,7 @@ export class Migration028Communities1793289602000 implements MigrationInterface 
       await readFile(seedPath, 'utf8'),
     ) as CommunitySeed[];
 
-    for (const community of seed) {
+    const inserts = seed.map((community) => {
       const columns = [
         'slug',
         'name',
@@ -117,13 +117,16 @@ export class Migration028Communities1793289602000 implements MigrationInterface 
         }
       }
 
-      await queryRunner.query(
-        `INSERT INTO "communities" (${columns.map((column) => `"${column}"`).join(', ')})
-         VALUES (${columns.map((_, index) => `$${index + 1}`).join(', ')})
+      const quotedColumns = columns.map((column) => `"${column}"`).join(', ');
+      const placeholders = columns.map((_, index) => `$${index + 1}`).join(', ');
+      return queryRunner.query(
+        `INSERT INTO "communities" (${quotedColumns})
+         VALUES (${placeholders})
          ON CONFLICT ("slug") DO NOTHING`,
         values,
       );
-    }
+    });
+    await Promise.all(inserts);
 
     const pending = (await queryRunner.query(`
       SELECT c."slug"

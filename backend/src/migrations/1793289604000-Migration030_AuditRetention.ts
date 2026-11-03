@@ -21,12 +21,13 @@ export class Migration030AuditRetention1793289604000
     const actions = (await queryRunner.query(
       `SELECT DISTINCT "action" FROM "audit_logs"`,
     )) as Array<{ action: AuditAction }>;
-    for (const { action } of actions) {
-      await queryRunner.query(
+    const updates = actions.map(({ action }) =>
+      queryRunner.query(
         `UPDATE "audit_logs" SET "category" = $1 WHERE "action" = $2`,
         [auditCategory(action), action],
-      );
-    }
+      ),
+    );
+    await Promise.all(updates);
 
     await queryRunner.query(`
       UPDATE "audit_logs" SET "ipAddress" = NULL
