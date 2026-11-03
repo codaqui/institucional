@@ -23,6 +23,7 @@ workers/**/.wrangler/
 frontend/dist/
 frontend/.astro/
 frontend/public/events/
+frontend/public/communities/
 frontend/lighthouse-*.json
 
 # ─────────────────────────────────────────────────────

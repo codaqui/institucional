@@ -9,9 +9,9 @@ sections:
   - Onde as permissões são verificadas no código
 related-docs:
   - AGENTS.md — guia geral do monorepo
-  - ../adrs/001-event-platform.md — plataforma de eventos
-  - ../adrs/006-directorates-designations.md — fonte única de vínculos e derivação
-  - ../adrs/007-community-registry.md — responsible @ community
+  - ../../adrs/001-event-platform.md — plataforma de eventos
+  - ../../adrs/006-directorates-designations.md — fonte única de vínculos e derivação
+  - ../../adrs/007-community-registry.md — responsible @ community
   - ./CODE_MANUAL.md — manual do código para agents
 -->
 
