@@ -30,6 +30,7 @@ export interface CommunityIndexEntry {
   level: CommunityLevel;
   status: CommunityStatus;
   sealStatus: CommunitySealStatus;
+  sealEffective?: boolean;
   sealGrantedAt: string | null;
   sealGrantedById: string | null;
   sealValidUntil: string | null;

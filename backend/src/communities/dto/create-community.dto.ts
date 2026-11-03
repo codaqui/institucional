@@ -9,7 +9,25 @@ import {
   MaxLength,
   Min,
   MinLength,
+  Validate,
+  ValidatorConstraint,
 } from 'class-validator';
+import type {
+  ValidationArguments,
+  ValidatorConstraintInterface,
+} from 'class-validator';
+import { hasOnlySafeCommunityUrls } from '../community-url';
+
+@ValidatorConstraint({ name: 'safeCommunityUrls', async: false })
+class SafeCommunityUrlsConstraint implements ValidatorConstraintInterface {
+  validate(value: Record<string, unknown>[] | undefined) {
+    return hasOnlySafeCommunityUrls(value);
+  }
+
+  defaultMessage(args?: ValidationArguments) {
+    return `${args?.property ?? 'links'} deve conter somente URLs https: ou caminhos locais iniciados por /`;
+  }
+}
 
 export class CreateCommunityDto {
   @IsString()
@@ -51,10 +69,12 @@ export class CreateCommunityDto {
 
   @IsOptional()
   @IsArray()
+  @Validate(SafeCommunityUrlsConstraint)
   links?: Record<string, unknown>[];
 
   @IsOptional()
   @IsArray()
+  @Validate(SafeCommunityUrlsConstraint)
   socialProfiles?: Record<string, unknown>[];
 
   @IsOptional()

@@ -99,7 +99,19 @@ function validateSlug(value: string): string {
 
 function CommunitiesAdminInner(): React.JSX.Element | null {
   const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
-  const { error: designationsError, refresh: refreshDesignations } = useMyDesignations();
+  const {
+    data: myDesignations,
+    loading: designationsLoading,
+    error: designationsError,
+    refresh: refreshDesignations,
+  } = useMyDesignations();
+  const canManage =
+    isAdmin ||
+    myDesignations.some(
+      (designation) =>
+        designation.targetType === "community" &&
+        designation.designation === "responsible",
+    );
   const [items, setItems] = useState<ManagedCommunity[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -157,13 +169,13 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
   }, [authFetch, page, search]);
 
   useEffect(() => {
-    if (!ready) return;
-    if (!isLoggedIn || !isAdmin) {
+    if (!ready || designationsLoading) return;
+    if (!isLoggedIn || !canManage) {
       window.location.replace("/");
       return;
     }
     void loadCommunities();
-  }, [ready, isLoggedIn, isAdmin, loadCommunities]);
+  }, [ready, designationsLoading, isLoggedIn, canManage, loadCommunities]);
 
   const openCreate = () => {
     setEditing(null);
@@ -204,7 +216,7 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
     event.preventDefault();
     const errors = {
       name: validateName(form.name) || undefined,
-      slug: validateSlug(form.slug) || undefined,
+      slug: !editing ? validateSlug(form.slug) || undefined : undefined,
     };
     setFormErrors(errors);
     if (errors.name || errors.slug) {
@@ -218,16 +230,20 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
     setFormError("");
     const payload = {
       name: form.name.trim(),
-      slug: form.slug.trim(),
+      ...(!editing ? { slug: form.slug.trim() } : {}),
       description: form.description.trim(),
       emoji: form.emoji.trim(),
       logoUrl: form.logoUrl.trim(),
       location: form.location.trim() || (editing ? null : undefined),
       founded: form.founded ? Number(form.founded) : editing ? null : undefined,
-      level: form.level,
-      status: form.status,
-      siteEnabled: form.siteEnabled,
-      siteDomain: form.siteDomain.trim() || (editing ? null : undefined),
+      ...(isAdmin
+        ? {
+            level: form.level,
+            status: form.status,
+            siteEnabled: form.siteEnabled,
+            siteDomain: form.siteDomain.trim() || (editing ? null : undefined),
+          }
+        : {}),
     };
     try {
       const response = await authFetch(
@@ -363,14 +379,14 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
     }
   };
 
-  if (!ready) {
+  if (!ready || designationsLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>
         <CircularProgress aria-label="Carregando autenticação" />
       </Box>
     );
   }
-  if (!isLoggedIn || !isAdmin) return null;
+  if (!isLoggedIn || !canManage) return null;
 
   return (
     <PageContainer>
@@ -387,9 +403,11 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
             Cadastro, nível, selo e responsáveis das comunidades
           </Typography>
         </Box>
-        <Button variant="contained" onClick={openCreate}>
-          Nova comunidade
-        </Button>
+        {isAdmin && (
+          <Button variant="contained" onClick={openCreate}>
+            Nova comunidade
+          </Button>
+        )}
       </Stack>
 
       {(designationsError || loadError) && (
@@ -470,25 +488,27 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}>
                         <Button size="small" onClick={() => openEdit(community)}>Editar</Button>
-                        <Button
-                          size="small"
-                          disabled={busyId === community.id}
-                          onClick={() => void runAction(
-                            community,
-                            `Alterar o nível de "${community.name}"?`,
-                            `/communities/${community.id}`,
-                            {
-                              method: "PATCH",
-                              body: JSON.stringify({
-                                level: community.level === "integrada" ? "parceira" : "integrada",
-                              }),
-                            },
-                            "Nível da comunidade atualizado.",
-                            "Não foi possível alterar o nível.",
-                          )}
-                        >
-                          {community.level === "integrada" ? "Tornar parceira" : "Tornar integrada"}
-                        </Button>
+                        {isAdmin && (
+                          <Button
+                            size="small"
+                            disabled={busyId === community.id}
+                            onClick={() => void runAction(
+                              community,
+                              `Alterar o nível de "${community.name}"?`,
+                              `/communities/${community.id}`,
+                              {
+                                method: "PATCH",
+                                body: JSON.stringify({
+                                  level: community.level === "integrada" ? "parceira" : "integrada",
+                                }),
+                              },
+                              "Nível da comunidade atualizado.",
+                              "Não foi possível alterar o nível.",
+                            )}
+                          >
+                            {community.level === "integrada" ? "Tornar parceira" : "Tornar integrada"}
+                          </Button>
+                        )}
                         <Button
                           size="small"
                           disabled={busyId === community.id}
@@ -503,33 +523,37 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                         >
                           Solicitar selo
                         </Button>
-                        <Button size="small" onClick={() => openSeal(community)}>Conceder selo</Button>
-                        <Button size="small" onClick={() => openResponsible(community)}>
-                          Atribuir responsável
-                        </Button>
-                        <Button
-                          size="small"
-                          color={community.status === "exited" ? "success" : "error"}
-                          disabled={busyId === community.id}
-                          onClick={() => {
-                            const exiting = community.status !== "exited";
-                            void runAction(
-                              community,
-                              exiting
-                                ? `Excluir "${community.name}" da listagem pública? O cadastro será marcado como saída.`
-                                : `Reativar "${community.name}"?`,
-                              `/communities/${community.id}`,
-                              {
-                                method: "PATCH",
-                                body: JSON.stringify({ status: exiting ? "exited" : "active" }),
-                              },
-                              exiting ? "Comunidade marcada como saída." : "Comunidade reativada.",
-                              "Não foi possível alterar o status.",
-                            );
-                          }}
-                        >
-                          {community.status === "exited" ? "Reativar" : "Excluir"}
-                        </Button>
+                        {isAdmin && (
+                          <>
+                            <Button size="small" onClick={() => openSeal(community)}>Conceder selo</Button>
+                            <Button size="small" onClick={() => openResponsible(community)}>
+                              Atribuir responsável
+                            </Button>
+                            <Button
+                              size="small"
+                              color={community.status === "exited" ? "success" : "error"}
+                              disabled={busyId === community.id}
+                              onClick={() => {
+                                const exiting = community.status !== "exited";
+                                void runAction(
+                                  community,
+                                  exiting
+                                    ? `Excluir "${community.name}" da listagem pública? O cadastro será marcado como saída.`
+                                    : `Reativar "${community.name}"?`,
+                                  `/communities/${community.id}`,
+                                  {
+                                    method: "PATCH",
+                                    body: JSON.stringify({ status: exiting ? "exited" : "active" }),
+                                  },
+                                  exiting ? "Comunidade marcada como saída." : "Comunidade reativada.",
+                                  "Não foi possível alterar o status.",
+                                );
+                              }}
+                            >
+                              {community.status === "exited" ? "Reativar" : "Excluir"}
+                            </Button>
+                          </>
+                        )}
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -575,7 +599,8 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                 id="community-slug"
                 label="Slug"
                 name="slug"
-                required
+                required={!editing}
+                disabled={Boolean(editing)}
                 value={form.slug}
                 onChange={(event) => updateForm("slug", event.target.value)}
                 onBlur={() => {
@@ -624,44 +649,48 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                 value={form.location}
                 onChange={(event) => updateForm("location", event.target.value)}
               />
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <TextField
-                  label="Nível"
-                  select
-                  value={form.level}
-                  onChange={(event) => updateForm("level", event.target.value as ManagedCommunity["level"])}
-                  fullWidth
-                >
-                  <MenuItem value="parceira">Parceira</MenuItem>
-                  <MenuItem value="integrada">Integrada</MenuItem>
-                </TextField>
-                <TextField
-                  label="Status"
-                  select
-                  value={form.status}
-                  onChange={(event) => updateForm("status", event.target.value as ManagedCommunity["status"])}
-                  fullWidth
-                >
-                  <MenuItem value="proposed">Proposta</MenuItem>
-                  <MenuItem value="active">Ativa</MenuItem>
-                  <MenuItem value="suspended">Suspensa</MenuItem>
-                  <MenuItem value="exited">Saída</MenuItem>
-                </TextField>
-              </Stack>
-              <TextField
-                label="Domínio do site"
-                value={form.siteDomain}
-                onChange={(event) => updateForm("siteDomain", event.target.value)}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={form.siteEnabled}
-                    onChange={(event) => updateForm("siteEnabled", event.target.checked)}
+              {isAdmin && (
+                <>
+                  <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                    <TextField
+                      label="Nível"
+                      select
+                      value={form.level}
+                      onChange={(event) => updateForm("level", event.target.value as ManagedCommunity["level"])}
+                      fullWidth
+                    >
+                      <MenuItem value="parceira">Parceira</MenuItem>
+                      <MenuItem value="integrada">Integrada</MenuItem>
+                    </TextField>
+                    <TextField
+                      label="Status"
+                      select
+                      value={form.status}
+                      onChange={(event) => updateForm("status", event.target.value as ManagedCommunity["status"])}
+                      fullWidth
+                    >
+                      <MenuItem value="proposed">Proposta</MenuItem>
+                      <MenuItem value="active">Ativa</MenuItem>
+                      <MenuItem value="suspended">Suspensa</MenuItem>
+                      <MenuItem value="exited">Saída</MenuItem>
+                    </TextField>
+                  </Stack>
+                  <TextField
+                    label="Domínio do site"
+                    value={form.siteDomain}
+                    onChange={(event) => updateForm("siteDomain", event.target.value)}
                   />
-                }
-                label="Site próprio habilitado"
-              />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={form.siteEnabled}
+                        onChange={(event) => updateForm("siteEnabled", event.target.checked)}
+                      />
+                    }
+                    label="Site próprio habilitado"
+                  />
+                </>
+              )}
             </Stack>
           </DialogContent>
           <DialogActions>

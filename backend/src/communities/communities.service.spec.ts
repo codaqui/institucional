@@ -47,6 +47,11 @@ describe('CommunitiesService', () => {
   let designations: { hasDesignation: jest.Mock };
   let audit: { log: jest.Mock };
   let community: Community;
+  const responsible = {
+    sub: 'member-1',
+    handle: 'responsible',
+    roles: ['membro'],
+  } as JwtPayload;
 
   beforeEach(() => {
     community = communityFixture();
@@ -57,7 +62,10 @@ describe('CommunitiesService', () => {
       create: jest.fn().mockImplementation((value) => ({ ...value })),
       save: jest.fn().mockImplementation(async (value) => value),
     };
-    designationRepo = { findOne: jest.fn().mockResolvedValue(null) };
+    designationRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOne: jest.fn().mockResolvedValue(null),
+    };
     membersRepo = { findOne: jest.fn().mockResolvedValue(null) };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
@@ -74,16 +82,26 @@ describe('CommunitiesService', () => {
     repo.findOne.mockResolvedValue(community);
 
     await expect(
-      service.create({ slug: 'devparana', name: 'Duplicada' }),
+      service.create({ slug: 'devparana', name: 'Duplicada' }, admin),
     ).rejects.toThrow(ConflictException);
     expect(repo.save).not.toHaveBeenCalled();
   });
 
-  it('creates a partner community without inventing future fields', async () => {
-    const created = await service.create({
-      slug: 'nova-comunidade',
-      name: 'Nova Comunidade',
-    });
+  it('reserves the general treasury slug during creation', async () => {
+    await expect(
+      service.create({ slug: 'tesouro-geral', name: 'Tesouro' }, admin),
+    ).rejects.toThrow(ConflictException);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('creates a partner community without inventing future fields and audits the actor', async () => {
+    const created = await service.create(
+      {
+        slug: 'nova-comunidade',
+        name: 'Nova Comunidade',
+      },
+      admin,
+    );
 
     expect(created).toMatchObject({
       slug: 'nova-comunidade',
@@ -97,12 +115,21 @@ describe('CommunitiesService', () => {
     expect(created).not.toHaveProperty('payoutAccountId');
     expect(created).not.toHaveProperty('platformFeePct');
     expect(created).not.toHaveProperty('isActive');
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'community.created',
+        actorId: 'admin-1',
+        details: expect.objectContaining({
+          after: expect.objectContaining({ slug: 'nova-comunidade' }),
+        }),
+      }),
+    );
   });
 
   it('returns the standard management pagination envelope', async () => {
     repo.findAndCount.mockResolvedValue([[community], 101]);
 
-    const result = await service.listManage({ page: 2, limit: 50 });
+    const result = await service.listManage({ page: 2, limit: 50 }, admin);
 
     expect(result).toEqual({
       data: [community],
@@ -116,16 +143,100 @@ describe('CommunitiesService', () => {
     );
   });
 
-  it('updates a community profile and protects a changed slug', async () => {
-    repo.findOne.mockResolvedValueOnce(community).mockResolvedValueOnce(null);
+  it('lists only communities assigned to a non-admin responsible', async () => {
+    designationRepo.find.mockResolvedValue([
+      { targetId: 'community-1' },
+      { targetId: 'community-2' },
+    ]);
+
+    await service.listManage({ page: 1, limit: 50, search: 'dev' }, responsible);
+
+    expect(designationRepo.find).toHaveBeenCalledWith({
+      where: {
+        memberId: 'member-1',
+        status: 'active',
+        targetType: 'community',
+        designation: 'responsible',
+      },
+    });
+    expect(repo.findAndCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.arrayContaining([
+          expect.objectContaining({ id: expect.anything() }),
+        ]),
+      }),
+    );
+  });
+
+  it('returns an empty scoped page when the member has no responsible designation', async () => {
+    const result = await service.listManage({ page: 1, limit: 50 }, responsible);
+
+    expect(result).toEqual({ data: [], total: 0, page: 1, totalPages: 0, limit: 50 });
+    expect(repo.findAndCount).not.toHaveBeenCalled();
+  });
+
+  it('rejects changing the slug of an existing community', async () => {
+    repo.findOne.mockResolvedValue(community);
 
     await expect(
-      service.update('community-1', {
-        slug: 'devpr',
-        name: 'DevPR',
-      }),
-    ).resolves.toMatchObject({ slug: 'devpr', name: 'DevPR' });
+      service.update('community-1', { slug: 'devpr', name: 'DevPR' }, admin),
+    ).rejects.toThrow(ConflictException);
+    expect(repo.save).not.toHaveBeenCalled();
+    expect(community.slug).toBe('devparana');
   });
+
+  it('lets a responsible edit only profile data and audits level changes with before and after', async () => {
+    repo.findOne.mockResolvedValue(community);
+    designations.hasDesignation.mockResolvedValue(true);
+
+    await service.update('community-1', { name: 'DevPR' }, responsible);
+    expect(designations.hasDesignation).toHaveBeenCalledWith('member-1', {
+      targetType: 'community',
+      targetId: 'community-1',
+      designation: 'responsible',
+    });
+    await expect(
+      service.update('community-1', { level: 'parceira' }, responsible),
+    ).rejects.toThrow(BadRequestException);
+
+    await service.update('community-1', { level: 'parceira' }, admin);
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'community.updated',
+        actorId: 'admin-1',
+        details: expect.objectContaining({
+          before: expect.objectContaining({ level: 'integrada' }),
+          after: expect.objectContaining({ level: 'parceira' }),
+        }),
+      }),
+    );
+  });
+
+  it('rejects a non-admin update outside the responsible community scope', async () => {
+    repo.findOne.mockResolvedValue(community);
+
+    await expect(
+      service.update('community-1', { name: 'DevPR' }, responsible),
+    ).rejects.toThrow('próprias comunidades');
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it.each(['javascript:alert(1)', 'http://insecure.example', '//external.example']) (
+    'rejects unsafe community link %s in the service',
+    async (url) => {
+      await expect(
+        service.create(
+          {
+            slug: 'nova-comunidade',
+            name: 'Nova Comunidade',
+            links: [{ label: 'Link', url }],
+          },
+          admin,
+        ),
+      ).rejects.toThrow(BadRequestException);
+      expect(repo.save).not.toHaveBeenCalled();
+    },
+  );
 
   it('lists only active integrated communities as donation destinations', async () => {
     repo.findOne.mockResolvedValue(community);
@@ -182,11 +293,67 @@ describe('CommunitiesService', () => {
     });
   });
 
-  it('allows a responsible member to request a seal', async () => {
-    repo.findOne.mockResolvedValue(community);
+  it('does not display an expired seal as effective and preserves its history', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-03T12:00:00Z'));
+    community.sealStatus = 'sealed';
+    community.sealGrantedAt = new Date('2025-11-01T12:00:00Z');
+    community.sealValidUntil = new Date('2026-11-01T12:00:00Z');
 
-    await expect(service.requestSeal('community-1')).resolves.toMatchObject({
+    const [result] = await service.listPublic();
+
+    expect(result).toMatchObject({
+      sealStatus: 'none',
+      sealEffective: false,
+      sealGrantedAt: community.sealGrantedAt,
+      sealValidUntil: community.sealValidUntil,
+    });
+    expect(community.sealStatus).toBe('sealed');
+  });
+
+  it('allows a responsible member to request a seal and audits the transition', async () => {
+    repo.findOne.mockResolvedValue(community);
+    designations.hasDesignation.mockResolvedValue(true);
+
+    await expect(
+      service.requestSeal('community-1', responsible),
+    ).resolves.toMatchObject({ sealStatus: 'applied' });
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'community.seal_requested',
+        actorId: 'member-1',
+        details: expect.objectContaining({
+          before: expect.objectContaining({ sealStatus: 'none' }),
+          after: expect.objectContaining({ sealStatus: 'applied' }),
+        }),
+      }),
+    );
+  });
+
+  it('rejects a new request while a seal is still effective', async () => {
+    repo.findOne.mockResolvedValue(community);
+    designations.hasDesignation.mockResolvedValue(true);
+    community.sealStatus = 'sealed';
+    community.sealValidUntil = new Date(Date.now() + 86_400_000);
+
+    await expect(
+      service.requestSeal('community-1', responsible),
+    ).rejects.toThrow(ConflictException);
+    expect(community.sealStatus).toBe('sealed');
+  });
+
+  it('allows an expired seal to enter the explicit renewal flow', async () => {
+    repo.findOne.mockResolvedValue(community);
+    designations.hasDesignation.mockResolvedValue(true);
+    community.sealStatus = 'sealed';
+    community.sealValidUntil = new Date(Date.now() - 86_400_000);
+    const grantedAt = new Date('2025-01-01T00:00:00Z');
+    community.sealGrantedAt = grantedAt;
+
+    await expect(
+      service.requestSeal('community-1', responsible),
+    ).resolves.toMatchObject({
       sealStatus: 'applied',
+      sealGrantedAt: grantedAt,
     });
   });
 

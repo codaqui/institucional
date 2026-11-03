@@ -34,19 +34,21 @@ export class CommunitiesController {
   }
 
   @Get('manage')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
-  listManage(@Query() query: ListCommunitiesDto) {
-    return this.communities.listManage(query);
+  listManage(
+    @Query() query: ListCommunitiesDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.communities.listManage(query, req.user);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @ApiBearerAuth('jwt')
-  create(@Body() body: CreateCommunityDto) {
-    return this.communities.create(body);
+  create(@Body() body: CreateCommunityDto, @Req() req: { user: JwtPayload }) {
+    return this.communities.create(body, req.user);
   }
 
   @Patch(':id')
@@ -60,8 +62,9 @@ export class CommunitiesController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: UpdateCommunityDto,
+    @Req() req: { user: JwtPayload },
   ) {
-    return this.communities.update(id, body);
+    return this.communities.update(id, body, req.user);
   }
 
   @Post(':id/seal/request')
@@ -72,8 +75,11 @@ export class CommunitiesController {
     designation: 'responsible',
   })
   @ApiBearerAuth('jwt')
-  requestSeal(@Param('id', ParseUUIDPipe) id: string) {
-    return this.communities.requestSeal(id);
+  requestSeal(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.communities.requestSeal(id, req.user);
   }
 
   @Post(':id/seal')

@@ -8,13 +8,15 @@ import CommunitiesAdminApp from "./CommunitiesAdminApp";
 const mocks = vi.hoisted(() => ({
   authFetch: vi.fn(),
   refreshDesignations: vi.fn(),
+  isAdmin: true,
+  designations: [] as Array<Record<string, unknown>>,
 }));
 
 vi.mock("../../../../lib/use-auth", () => ({
   useAuth: () => ({
     ready: true,
     isLoggedIn: true,
-    isAdmin: true,
+    isAdmin: mocks.isAdmin,
     user: {
       sub: "admin-1",
       githubId: "gh-1",
@@ -29,7 +31,7 @@ vi.mock("../../../../lib/use-auth", () => ({
 
 vi.mock("../../../../lib/use-designations", () => ({
   useMyDesignations: () => ({
-    data: [],
+    data: mocks.designations,
     loading: false,
     error: "",
     refresh: mocks.refreshDesignations,
@@ -80,6 +82,8 @@ function lastCall(path: string, method = "GET") {
 
 describe("CommunitiesAdminApp", () => {
   beforeEach(() => {
+    mocks.isAdmin = true;
+    mocks.designations = [];
     mocks.authFetch.mockReset();
     mocks.refreshDesignations.mockReset().mockResolvedValue(undefined);
     mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
@@ -101,6 +105,55 @@ describe("CommunitiesAdminApp", () => {
     expect(await screen.findByText("DevParaná")).toBeInTheDocument();
     expect(lastCall("/communities/manage?page=1&limit=50")).toBeDefined();
     expect(screen.getByText("Mostrando 1–1 de 1")).toBeInTheDocument();
+  });
+
+  it("lets a responsible edit profile data without exposing admin actions", async () => {
+    mocks.isAdmin = false;
+    mocks.designations = [{
+      id: "designation-1",
+      targetType: "community",
+      targetId: community.id,
+      targetKey: null,
+      designation: "responsible",
+    }];
+    const user = userEvent.setup();
+    renderWithMui(<CommunitiesAdminApp />);
+
+    const editButton = await screen.findByRole("button", { name: "Editar" });
+    expect(screen.getByRole("button", { name: "Solicitar selo" })).toBeInTheDocument();
+    await user.click(editButton);
+    expect(screen.getByLabelText(/Slug/)).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Nova comunidade" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Conceder selo" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Atribuir responsável" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Excluir" })).not.toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText(/Nome da comunidade/));
+    await user.type(screen.getByLabelText(/Nome da comunidade/), "DevPR");
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() => expect(lastCall(`/communities/${community.id}`, "PATCH")).toBeDefined());
+    const payload = JSON.parse(String(lastCall(`/communities/${community.id}`, "PATCH")?.[1]?.body));
+    expect(payload).toMatchObject({ name: "DevPR" });
+    expect(payload).not.toHaveProperty("slug");
+    expect(payload).not.toHaveProperty("level");
+    expect(payload).not.toHaveProperty("status");
+    expect(payload).not.toHaveProperty("siteEnabled");
+    expect(payload).not.toHaveProperty("siteDomain");
+  });
+
+  it("redirects a non-admin without a responsible designation", async () => {
+    const replace = vi.fn();
+    vi.stubGlobal("location", { replace });
+    try {
+      mocks.isAdmin = false;
+      renderWithMui(<CommunitiesAdminApp />);
+
+      await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+      expect(mocks.authFetch).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
   });
 
   it("creates a community with validated required fields", async () => {
