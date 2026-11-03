@@ -44,6 +44,16 @@ test("preserves the previous snapshot when the API returns an error", async (t) 
   assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
 });
 
+test("rejects a non-array API payload with TypeError", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const apiUrl = await apiServer(t, (_request, response) => {
+    response.writeHead(200, { "Content-Type": "application/json" });
+    response.end('{"communities":[]}');
+  });
+
+  await assert.rejects(syncCommunities({ apiUrl, outputFile }), TypeError);
+});
+
 test("writes only active communities through an atomic rename", async (t) => {
   const outputFile = await temporaryOutput(t);
   const active = {

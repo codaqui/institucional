@@ -20,7 +20,7 @@ export async function syncCommunities({
 
   const payload = await response.json();
   if (!Array.isArray(payload)) {
-    throw new Error("Resposta inválida de /communities/public: esperado um array.");
+    throw new TypeError("Resposta inválida de /communities/public: esperado um array.");
   }
 
   const communities = payload.filter((community) => community?.status === "active");
