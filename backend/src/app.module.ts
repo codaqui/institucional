@@ -24,6 +24,7 @@ import { DesignationsModule } from './designations/designations.module';
 import { DirectoratesModule } from './directorates/directorates.module';
 import { CommunitiesModule } from './communities/communities.module';
 import { SettingsModule } from './settings/settings.module';
+import { TurnstileModule } from './common/turnstile/turnstile.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { SettingsModule } from './settings/settings.module';
     DirectoratesModule,
     CommunitiesModule,
     SettingsModule,
+    TurnstileModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

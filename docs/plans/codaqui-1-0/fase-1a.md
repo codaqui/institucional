@@ -644,7 +644,7 @@ git commit -m "feat(fase-1a): separa retenção de auditoria operacional e gover
 - `TurnstileGuard` lê `turnstileToken` do body ou `cf-turnstile-token`; nenhuma rota existente recebe o guard nesta fase.
 - Sem nova dependência npm: usar `fetch` global do Node 24 e script oficial no frontend.
 
-- [ ] **Step 1: Write failing verification and fail-closed tests**
+- [x] **Step 1: Write failing verification and fail-closed tests**
 
 ```ts
 it('rejects a valid token for another hostname', async () => {
@@ -662,21 +662,21 @@ it('fails closed in production without a secret', async () => {
 Run: `cd backend && npx jest src/common/turnstile --runInBand`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement server verification**
+- [x] **Step 2: Implement server verification**
 
 Timeout de 5 segundos com `AbortSignal.timeout(5000)`, POST `application/x-www-form-urlencoded`, exigência de `success===true`, hostname exato e cache em memória do SHA-256 do token por 5 minutos. O guard só aceita um `req.hostname` presente em `TURNSTILE_ALLOWED_HOSTNAMES` e passa esse valor validado ao service — nunca confia em sufixo nem em um host arbitrário. Sem secret: warn/no-op somente fora de produção; produção falha fechada. Testes mockam `fetch`; nenhum teste chama Cloudflare.
 
-- [ ] **Step 3: Implement the reusable frontend field**
+- [x] **Step 3: Implement the reusable frontend field**
 
 `TurnstileField` carrega `https://challenges.cloudflare.com/turnstile/v0/api.js` uma única vez, renderiza o widget apenas com `PUBLIC_TURNSTILE_SITE_KEY`, devolve `onTokenChange(token)` e expõe estado de erro/indisponível. Sem chave em dev, renderiza aviso somente em desenvolvimento; produção não finge sucesso.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/common/turnstile --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/ui/TurnstileField.test.tsx`
 Expected: PASS para sucesso, hostname errado, timeout, replay e produção sem secret.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/common/turnstile backend/src/app.module.ts frontend/src/components/islands/ui/TurnstileField.tsx frontend/src/components/islands/ui/TurnstileField.test.tsx .env.example frontend/.env.example
