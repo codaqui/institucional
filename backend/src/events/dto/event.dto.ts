@@ -106,7 +106,6 @@ export class CreateEventDto {
   workloadMinutes?: number | null;
 
   @IsOptional()
-  @Type(() => Boolean)
   @IsBoolean()
   adultOnly?: boolean;
 
@@ -182,7 +181,6 @@ export class UpdateEventDto {
   workloadMinutes?: number | null;
 
   @ValidateIf((_, value) => value !== undefined)
-  @Type(() => Boolean)
   @IsBoolean()
   adultOnly?: boolean;
 
