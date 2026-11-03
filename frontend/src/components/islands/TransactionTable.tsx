@@ -33,6 +33,7 @@ import {
 } from "../../lib/transaction";
 import TransactionDetailDialog from "./TransactionDetailDialog";
 import { txTypeIcon } from "./tx-icons";
+import DateRangeControls, { type DateRange } from "./ui/DateRangeControls";
 
 // ---------------------------------------------------------------------------
 // Filter options
@@ -54,8 +55,6 @@ const PERIOD_FILTER_OPTIONS = [
   { value: 90, label: "Últimos 3 meses" },
   { value: 365, label: "Último ano" },
 ];
-
-const escapeCsvField = (value: string) => `"${value.replaceAll('"', '""')}"`;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -96,19 +95,28 @@ export default function TransactionTable({
   const [daysFilter, setDaysFilter] = useState(0);
   const [searchFilter, setSearchFilter] = useState("");
   const [searchInput, setSearchInput] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>({ from: "", to: "" });
+  const isDateRangeValid = !dateRange.from || !dateRange.to || dateRange.from <= dateRange.to;
+
+  const getFilterParams = useCallback(() => {
+    const params = new URLSearchParams();
+    if (typeFilter) params.set("type", typeFilter);
+    if (daysFilter > 0) params.set("days", String(daysFilter));
+    if (searchFilter) params.set("search", searchFilter);
+    if (dateRange.from) params.set("from", dateRange.from);
+    if (dateRange.to) params.set("to", dateRange.to);
+    return params;
+  }, [typeFilter, daysFilter, searchFilter, dateRange]);
 
   const fetchTransactions = useCallback(
     async (p: number, limit: number) => {
+      if (!isDateRangeValid) return;
       setLoading(true);
       setError(null);
       try {
-        const params = new URLSearchParams({
-          page: String(p + 1),
-          limit: String(limit),
-        });
-        if (typeFilter) params.set("type", typeFilter);
-        if (daysFilter > 0) params.set("days", String(daysFilter));
-        if (searchFilter) params.set("search", searchFilter);
+        const params = getFilterParams();
+        params.set("page", String(p + 1));
+        params.set("limit", String(limit));
 
         const res = await fetch(
           `${apiUrl}/ledger/accounts/${accountId}/transactions?${params}`
@@ -122,7 +130,7 @@ export default function TransactionTable({
         setLoading(false);
       }
     },
-    [accountId, apiUrl, typeFilter, daysFilter, searchFilter]
+    [accountId, apiUrl, getFilterParams, isDateRangeValid]
   );
 
   useEffect(() => {
@@ -131,7 +139,7 @@ export default function TransactionTable({
 
   useEffect(() => {
     setPage(0);
-  }, [typeFilter, daysFilter, searchFilter]);
+  }, [typeFilter, daysFilter, searchFilter, dateRange]);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);
@@ -147,29 +155,13 @@ export default function TransactionTable({
   };
 
   const handleExportCSV = () => {
-    if (!result?.data.length) return;
-    const header = "Data,Tipo,Descrição,De,Para,Valor,Direção\n";
-    const rows = result.data.map((tx) => {
-      const isCredit = tx.destinationAccount.id === accountId;
-      const type = detectTxType(tx);
-      return [
-        escapeCsvField(formatDate(tx.createdAt)),
-        escapeCsvField(TX_TYPE_CONFIG[type].label),
-        escapeCsvField(tx.description),
-        escapeCsvField(tx.sourceAccount?.name ?? ""),
-        escapeCsvField(tx.destinationAccount?.name ?? ""),
-        escapeCsvField(Number(tx.amount).toFixed(2)),
-        escapeCsvField(isCredit ? "Crédito" : "Débito"),
-      ].join(",");
-    });
-    const csv = header + rows.join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `transacoes-${accountName.toLowerCase().replaceAll(" ", "-")}-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    if (!isDateRangeValid) return;
+    const params = getFilterParams();
+    window.open(
+      `${apiUrl}/ledger/accounts/${accountId}/transactions/export?${params}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   };
 
   if (error) {
@@ -182,7 +174,7 @@ export default function TransactionTable({
 
   const rows = result?.data ?? [];
   const total = result?.total ?? 0;
-  const hasActiveFilters = typeFilter !== "" || daysFilter > 0 || searchFilter !== "";
+  const hasActiveFilters = typeFilter !== "" || daysFilter > 0 || searchFilter !== "" || dateRange.from !== "" || dateRange.to !== "";
 
   return (
     <Box>
@@ -237,15 +229,24 @@ export default function TransactionTable({
           sx={{ flex: 1, minWidth: 140 }}
         />
 
-        <Tooltip title="Exportar CSV da página atual">
-          <IconButton
-            size="small"
-            onClick={handleExportCSV}
-            disabled={rows.length === 0}
-            aria-label="Exportar CSV"
-          >
-            <DownloadIcon fontSize="small" />
-          </IconButton>
+        <DateRangeControls
+          from={dateRange.from}
+          to={dateRange.to}
+          onChange={setDateRange}
+          onClear={() => setDateRange({ from: "", to: "" })}
+        />
+
+        <Tooltip title="Exportar CSV com os filtros atuais">
+          <span>
+            <IconButton
+              size="small"
+              onClick={handleExportCSV}
+              disabled={!isDateRangeValid}
+              aria-label="Exportar CSV"
+            >
+              <DownloadIcon fontSize="small" />
+            </IconButton>
+          </span>
         </Tooltip>
 
         {hasActiveFilters && (
@@ -257,6 +258,7 @@ export default function TransactionTable({
               setDaysFilter(0);
               setSearchFilter("");
               setSearchInput("");
+              setDateRange({ from: "", to: "" });
             }}
             sx={{ fontSize: "0.75rem", textTransform: "none" }}
           >

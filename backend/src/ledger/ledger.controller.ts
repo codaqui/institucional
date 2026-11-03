@@ -5,6 +5,7 @@ import {
   Body,
   Param,
   Query,
+  Res,
   UseGuards,
   ParseUUIDPipe,
   NotFoundException,
@@ -17,12 +18,75 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { LedgerService } from './ledger.service';
+import type { Response } from 'express';
+import { LedgerService, TransactionFilters } from './ledger.service';
 import { AccountType } from './entities/account.entity';
+import { Transaction } from './entities/transaction.entity';
 import { GetTransactionsQueryDto } from './dto/get-transactions-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { toCsv } from '../common/csv';
+
+const REFERENCE_TYPE_LABELS: Array<[string, string]> = [
+  ['reimbursement-reversal:', 'Estorno de Reembolso'],
+  ['reimbursement-deletion:', 'Estorno de Reembolso'],
+  ['reimbursement:', 'Reembolso'],
+  ['vendor-payment-reversal:', 'Estorno de Pagamento a Fornecedor'],
+  ['vendor-payment:', 'Pagamento a Fornecedor'],
+  ['vendor-receipt-reversal:', 'Estorno de Recebimento de Fornecedor'],
+  ['vendor-receipt:', 'Recebimento de Fornecedor'],
+  ['transfer:', 'Transferência Interna'],
+  ['stripe-fee:', 'Taxa Stripe'],
+  ['stripe-refund:', 'Estorno de Doação'],
+  ['event-ticket-refund:', 'Reembolso de Ingresso'],
+  ['event-ticket:', 'Ingresso de Evento'],
+];
+
+function transactionTypeLabel(tx: Transaction): string {
+  const referenceId = tx.referenceId ?? '';
+  const referenceLabel = REFERENCE_TYPE_LABELS.find(([prefix]) =>
+    referenceId.startsWith(prefix),
+  );
+  if (referenceLabel) return referenceLabel[1];
+  if (referenceId.startsWith('re_')) return 'Estorno de Doação';
+  if (['cs_', 'pi_', 'in_', 'stripe-pi:'].some((prefix) => referenceId.startsWith(prefix))) {
+    return tx.description.includes('Empresa:') ? 'Doação Empresarial' : 'Doação';
+  }
+
+  const description = tx.description.toLowerCase();
+  if (description.startsWith('estorno')) return 'Estorno de Doação';
+  if (description.startsWith('taxa stripe')) return 'Taxa Stripe';
+  if (description.startsWith('pagamento a fornecedor')) return 'Pagamento a Fornecedor';
+  if (description.startsWith('recebimento de fornecedor')) return 'Recebimento de Fornecedor';
+  if (description.startsWith('reembolso')) return 'Reembolso';
+  if (description.startsWith('transfer')) return 'Transferência Interna';
+  if (description.includes('empresarial')) return 'Doação Empresarial';
+  if (description.startsWith('doação') || description.startsWith('assinatura')) return 'Doação';
+  return 'Movimentação';
+}
+
+function transactionFilters(query: GetTransactionsQueryDto): TransactionFilters {
+  return {
+    type: query.type,
+    days: query.days,
+    search: query.search,
+    eventId: query.eventId,
+    ticketTypeId: query.ticketTypeId,
+    externalActivationId: query.externalActivationId,
+    from: query.from,
+    to: query.to,
+  };
+}
+
+function filenameSlug(value: string): string {
+  return value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
 
 @ApiTags('Ledger')
 @Controller('ledger')
@@ -227,12 +291,55 @@ export class LedgerController {
     return this.ledgerService.getAccountBalance(id);
   }
 
+  @Get('transactions/export')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin', 'finance-analyzer')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Exportar transações de todas as contas [admin | finance-analyzer]' })
+  async exportTransactions(
+    @Query() query: GetTransactionsQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const transactions = await this.ledgerService.getTransactionsForExport(
+      transactionFilters(query),
+    );
+    const date = new Date().toISOString().slice(0, 10);
+    return this.sendTransactionsCsv(
+      res,
+      transactions,
+      `transacoes-todas-contas-${date}.csv`,
+    );
+  }
+
   @Get('transactions/:txId')
   @ApiOperation({ summary: 'Detalhes de uma transação por ID (público)' })
   async getTransactionById(@Param('txId', ParseUUIDPipe) txId: string) {
     const tx = await this.ledgerService.getTransactionById(txId);
     if (!tx) throw new NotFoundException('Transação não encontrada');
     return tx;
+  }
+
+  @Get('accounts/:id/transactions/export')
+  @ApiOperation({ summary: 'Exportar transações públicas de uma conta em CSV' })
+  @ApiParam({ name: 'id', description: 'UUID da conta', format: 'uuid' })
+  async exportAccountTransactions(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query() query: GetTransactionsQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const account = await this.ledgerService.getAccountById(id);
+    if (!account) throw new NotFoundException('Conta não encontrada');
+    const transactions = await this.ledgerService.getAccountTransactionsForExport(
+      id,
+      transactionFilters(query),
+    );
+    const date = new Date().toISOString().slice(0, 10);
+    return this.sendTransactionsCsv(
+      res,
+      transactions,
+      `transacoes-${filenameSlug(account.name)}-${date}.csv`,
+      id,
+    );
   }
 
   @Get('accounts/:id/transactions')
@@ -300,14 +407,7 @@ export class LedgerController {
       id,
       query.page ?? 1,
       query.limit ?? 10,
-      {
-        type: query.type,
-        days: query.days,
-        search: query.search,
-        eventId: query.eventId,
-        ticketTypeId: query.ticketTypeId,
-        externalActivationId: query.externalActivationId,
-      },
+      transactionFilters(query),
     );
   }
 
@@ -334,14 +434,32 @@ export class LedgerController {
       account.id,
       query.page ?? 1,
       query.limit ?? 10,
-      {
-        type: query.type,
-        days: query.days,
-        search: query.search,
-        eventId: query.eventId,
-        ticketTypeId: query.ticketTypeId,
-        externalActivationId: query.externalActivationId,
-      },
+      transactionFilters(query),
     );
+  }
+
+  private sendTransactionsCsv(
+    res: Response,
+    transactions: Transaction[],
+    filename: string,
+    accountId?: string,
+  ) {
+    const headers = ['Data', 'Tipo', 'Descrição', 'De', 'Para', 'Valor', 'Direção'];
+    const rows = transactions.map((tx) => ({
+      Data: new Date(tx.createdAt).toISOString(),
+      Tipo: transactionTypeLabel(tx),
+      Descrição: tx.description,
+      De: tx.sourceAccount?.name ?? '',
+      Para: tx.destinationAccount?.name ?? '',
+      Valor: Number(tx.amount).toFixed(2),
+      Direção: accountId
+        ? tx.destinationAccount?.id === accountId
+          ? 'Crédito'
+          : 'Débito'
+        : '',
+    }));
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(toCsv(headers, rows));
   }
 }

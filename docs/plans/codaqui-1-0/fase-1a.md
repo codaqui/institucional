@@ -522,7 +522,7 @@ git commit -m "fix(fase-1a): corrige operação e métricas de e-mails"
 - `GET /ledger/transactions/export` admin/finance-analyzer, todas as contas.
 - CSV UTF-8 com BOM e proteção contra formula injection.
 
-- [ ] **Step 1: Write failing CSV and range tests**
+- [x] **Step 1: Write failing CSV and range tests**
 
 ```ts
 it('escapes formulas and preserves Excel-compatible CSV', () => {
@@ -540,21 +540,21 @@ it('rejects from after to', async () => {
 Run: `cd backend && npx jest src/common/csv.spec.ts src/ledger --runInBand`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement shared range filtering and exports**
+- [x] **Step 2: Implement shared range filtering and exports**
 
 Extrair um único `TransactionFilters` para listagem/exportação. Declarar `transactions/export` antes de `transactions/:txId` e `accounts/:id/transactions/export` antes da rota paginada equivalente. Resposta usa `Content-Type: text/csv; charset=utf-8`, `Content-Disposition` com slug/data e todas as linhas do range, não apenas a página.
 
-- [ ] **Step 3: Replace page-only export in TransactionTable**
+- [x] **Step 3: Replace page-only export in TransactionTable**
 
 `DateRangeControls` controla `from`/`to` com `<input type="date">`, erro textual para range invertido e botão Limpar. A tabela envia os filtros à listagem e o botão Exportar abre a URL server-side com os mesmos filtros; remover `escapeCsvField` e o CSV da página atual.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/common/csv.spec.ts src/ledger --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/ui/DateRangeControls.test.tsx src/components/islands/__tests__/TransactionTable.test.tsx`
 Expected: PASS; exportação mantém tipo, busca, dias e range.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/common/csv.ts backend/src/common/csv.spec.ts backend/src/ledger frontend/src/components/islands/ui/DateRangeControls.tsx frontend/src/components/islands/ui/DateRangeControls.test.tsx frontend/src/components/islands/TransactionTable.tsx frontend/src/components/islands/__tests__/TransactionTable.test.tsx

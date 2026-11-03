@@ -12,6 +12,17 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
+export interface TransactionFilters {
+  type?: string;
+  days?: number;
+  search?: string;
+  eventId?: string;
+  ticketTypeId?: string;
+  externalActivationId?: string;
+  from?: string;
+  to?: string;
+}
+
 @Injectable()
 export class LedgerService {
   /**
@@ -130,26 +141,21 @@ export class LedgerService {
     return (Number.parseFloat(credits) || 0) - (Number.parseFloat(debits) || 0);
   }
 
-  async getAccountTransactions(
-    accountId: string,
-    page = 1,
-    limit = 10,
-    filters?: {
-      type?: string;
-      days?: number;
-      search?: string;
-      eventId?: string;
-      ticketTypeId?: string;
-      externalActivationId?: string;
-    },
-  ): Promise<PaginatedResult<Transaction>> {
-    const skip = (page - 1) * limit;
+  private createTransactionsQuery(
+    filters: TransactionFilters = {},
+    accountId?: string,
+  ) {
+    if (filters.from && filters.to && filters.from > filters.to) {
+      throw new BadRequestException('from must be earlier than or equal to to');
+    }
 
     const qb = this.txRepo
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.sourceAccount', 'src')
-      .leftJoinAndSelect('tx.destinationAccount', 'dst')
-      .where(
+      .leftJoinAndSelect('tx.destinationAccount', 'dst');
+
+    if (accountId) {
+      qb.where(
         new Brackets((sub) =>
           sub
             .where('tx.sourceAccountId = :id')
@@ -157,9 +163,9 @@ export class LedgerService {
         ),
         { id: accountId },
       );
+    }
 
-    // Type filter
-    if (filters?.type) {
+    if (filters.type) {
       switch (filters.type) {
         case 'donation':
           qb.andWhere(
@@ -190,41 +196,57 @@ export class LedgerService {
       }
     }
 
-    // Date filter
-    if (filters?.days) {
+    if (filters.days) {
       const since = new Date();
       since.setDate(since.getDate() - filters.days);
       qb.andWhere('tx.createdAt >= :since', { since });
     }
+    if (filters.from) {
+      qb.andWhere('tx.createdAt >= :from', {
+        from: new Date(`${filters.from}T00:00:00.000Z`),
+      });
+    }
+    if (filters.to) {
+      qb.andWhere('tx.createdAt <= :to', {
+        to: new Date(`${filters.to}T23:59:59.999Z`),
+      });
+    }
 
-    // Search filter
-    if (filters?.search) {
+    if (filters.search) {
       qb.andWhere('tx.description ILIKE :search', {
         search: `%${filters.search}%`,
       });
     }
 
-    // Event / ticket metadata filters
-    if (filters?.eventId) {
+    if (filters.eventId) {
       qb.andWhere("tx.metadata->>'eventId' = :eventId", {
         eventId: filters.eventId,
       });
     }
-    if (filters?.ticketTypeId) {
+    if (filters.ticketTypeId) {
       qb.andWhere("tx.metadata->>'ticketTypeId' = :ticketTypeId", {
         ticketTypeId: filters.ticketTypeId,
       });
     }
-    if (filters?.externalActivationId) {
+    if (filters.externalActivationId) {
       qb.andWhere(
         "tx.metadata->>'externalActivationId' = :externalActivationId",
         { externalActivationId: filters.externalActivationId },
       );
     }
 
-    const [data, total] = await qb
+    return qb;
+  }
+
+  async getAccountTransactions(
+    accountId: string,
+    page = 1,
+    limit = 10,
+    filters: TransactionFilters = {},
+  ): Promise<PaginatedResult<Transaction>> {
+    const [data, total] = await this.createTransactionsQuery(filters, accountId)
       .orderBy('tx.createdAt', 'DESC')
-      .skip(skip)
+      .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
 
@@ -235,6 +257,27 @@ export class LedgerService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async getAccountTransactionsForExport(
+    accountId: string,
+    filters: TransactionFilters = {},
+  ): Promise<Transaction[]> {
+    return this.createTransactionsQuery(filters, accountId)
+      .orderBy('tx.createdAt', 'DESC')
+      .getMany();
+  }
+
+  async getTransactionsForExport(
+    filters: TransactionFilters = {},
+  ): Promise<Transaction[]> {
+    return this.createTransactionsQuery(filters)
+      .orderBy('tx.createdAt', 'DESC')
+      .getMany();
+  }
+
+  async getAccountById(id: string): Promise<Account | null> {
+    return this.accountRepo.findOneBy({ id });
   }
 
   async getAccountByProjectKey(projectKey: string): Promise<Account | null> {

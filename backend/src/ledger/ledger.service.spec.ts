@@ -379,4 +379,62 @@ describe('LedgerService', () => {
     });
     expect(result).toEqual({ id: 'tx-1' });
   });
+
+  it('rejects from after to', async () => {
+    await expect(
+      service.getAccountTransactions('account-1', 1, 10, {
+        from: '2026-10-30',
+        to: '2026-10-29',
+      }),
+    ).rejects.toThrow(BadRequestException);
+    expect(txRepo.createQueryBuilder).not.toHaveBeenCalled();
+  });
+
+  it('includes the entire final day in the shared range filters', async () => {
+    const qb = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      getMany: jest.fn().mockResolvedValue([]),
+    };
+    txRepo.createQueryBuilder.mockReturnValue(qb);
+    const filters = { from: '2026-10-01', to: '2026-10-31' };
+
+    await service.getAccountTransactions('acc-1', 2, 10, filters);
+    await service.getAccountTransactionsForExport('acc-1', filters);
+
+    expect(qb.andWhere).toHaveBeenCalledWith('tx.createdAt >= :from', {
+      from: new Date('2026-10-01T00:00:00.000Z'),
+    });
+    expect(qb.andWhere).toHaveBeenCalledWith('tx.createdAt <= :to', {
+      to: new Date('2026-10-31T23:59:59.999Z'),
+    });
+    expect(qb.getManyAndCount).toHaveBeenCalledTimes(1);
+    expect(qb.getMany).toHaveBeenCalledTimes(1);
+    expect(qb.skip).toHaveBeenCalledTimes(1);
+    expect(qb.take).toHaveBeenCalledTimes(1);
+  });
+
+  it('exports all accounts without pagination', async () => {
+    const txs = [{ id: 'tx-1' }, { id: 'tx-2' }];
+    const qb = {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue(txs),
+    };
+    txRepo.createQueryBuilder.mockReturnValue(qb);
+
+    await expect(service.getTransactionsForExport({ search: 'PIX' })).resolves.toBe(txs);
+    expect(qb.where).not.toHaveBeenCalled();
+    expect(qb.skip).not.toHaveBeenCalled();
+    expect(qb.take).not.toHaveBeenCalled();
+  });
 });
