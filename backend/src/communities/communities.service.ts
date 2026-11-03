@@ -260,6 +260,7 @@ export class CommunitiesService {
       validUntil.setUTCFullYear(validUntil.getUTCFullYear() + 1);
     }
 
+    const before = { ...community };
     community.sealStatus = 'sealed';
     community.sealGrantedAt = grantedAt;
     community.sealGrantedById = actor.sub;
@@ -272,11 +273,7 @@ export class CommunitiesService {
       actorHandle: actor.handle,
       targetId: id,
       targetType: 'community',
-      details: {
-        sealGrantedAt: grantedAt,
-        sealValidUntil: validUntil,
-        sealNotes: dto.notes,
-      },
+      details: { before, after: { ...sealed } },
     });
     return sealed;
   }

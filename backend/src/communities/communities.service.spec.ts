@@ -405,6 +405,47 @@ describe('CommunitiesService', () => {
     jest.useRealTimers();
   });
 
+  it('records the complete previous seal state when renewing', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-03T12:00:00Z'));
+    repo.findOne.mockResolvedValue(community);
+    designationRepo.findOne.mockResolvedValue({ memberId: 'member-1' });
+    designations.hasDesignation.mockResolvedValue(true);
+    community.sealStatus = 'sealed';
+    community.sealGrantedAt = new Date('2025-10-01T09:30:00Z');
+    community.sealGrantedById = 'previous-admin';
+    community.sealValidUntil = new Date('2026-10-01T09:30:00Z');
+    community.sealNotes = 'Avaliação anterior.';
+
+    await service.grantSeal(
+      'community-1',
+      { validUntil: '2028-01-15', notes: 'Renovação aprovada.' },
+      admin,
+    );
+
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'community.seal_granted',
+        actorId: 'admin-1',
+        details: {
+          before: expect.objectContaining({
+            sealStatus: 'sealed',
+            sealGrantedAt: new Date('2025-10-01T09:30:00Z'),
+            sealGrantedById: 'previous-admin',
+            sealValidUntil: new Date('2026-10-01T09:30:00Z'),
+            sealNotes: 'Avaliação anterior.',
+          }),
+          after: expect.objectContaining({
+            sealStatus: 'sealed',
+            sealGrantedAt: new Date('2026-11-03T12:00:00Z'),
+            sealGrantedById: 'admin-1',
+            sealValidUntil: new Date('2028-01-15T00:00:00Z'),
+            sealNotes: 'Renovação aprovada.',
+          }),
+        },
+      }),
+    );
+  });
+
   it('accepts an explicit future seal validity', async () => {
     repo.findOne.mockResolvedValue(community);
     designationRepo.findOne.mockResolvedValue({ memberId: 'member-1' });
