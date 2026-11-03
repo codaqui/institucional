@@ -131,6 +131,7 @@ chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficie
 | `npm run sync:social` | Contagens de membros/seguidores → `static/social-stats/index.json` |
 | `npm run sync:analytics` | Analytics → `static/analytics/` |
 | `npm run sync:analytics:full` | Re-pagina todo o histórico de analytics |
+| `npm run sync:communities` | `GET /communities/public` → `static/communities/index.json` (rename atômico) |
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
 | `npm run test:scripts` | Testes dos scripts de sync/validação (`node --test`) |
@@ -140,9 +141,15 @@ chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficie
 > próprios publicados no Postgres) ser resolvida do backend dev — sem isso o sync cai no
 > fallback do último snapshot em disco.
 
+Para comunidades, `COMMUNITIES_API_URL` define a base da API (default `http://localhost:3001`).
+O sync filtra novamente `status=active`, preserva o shape legado e não altera `generatedAt`
+quando os dados permanecem iguais. O workflow `sync-community-snapshots.yml` roda a cada hora
+no minuto 7 e por dispatch. **O agregador `npm run sync` não inclui comunidades**; rode o sync
+específico quando alterar esse registro.
+
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
-Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social` e `make sync-analytics` espelham os comandos da tabela.
+Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics` e `make sync-communities` espelham os comandos da tabela.
 
 ### Convenções do app Astro
 
@@ -251,15 +258,22 @@ Pela raiz, os atalhos `make backend-start`, `make backend-build`, `make backend-
 
 | Módulo | Endpoints principais | Descrição |
 |--------|---------------------|-----------|
-| `LedgerModule` | `GET /ledger/community-balances` · `GET /ledger/accounts` · `GET /ledger/accounts/:id/transactions` · `POST /ledger/accounts` · `POST /ledger/transactions` | Contabilidade dupla partida. Contas criadas automaticamente por `projectKey`. |
-| `StripeModule` | `POST /stripe/checkout-session` · `POST /stripe/webhook` · `GET /stripe/my-donations` · `GET /stripe/my-subscriptions` · `DELETE /stripe/subscriptions/:id` | Pagamentos. Webhook credita a carteira da comunidade no Ledger. |
+| `LedgerModule` | `GET /ledger/community-balances` · `GET /ledger/accounts` · `GET /ledger/accounts/:id/transactions` · `GET /ledger/accounts/:id/transactions/export` · `GET /ledger/transactions/export` · `POST /ledger/accounts` · `POST /ledger/transactions` | Double-entry, filtros `from`/`to` e CSV server-side com BOM e proteção contra formula injection. Exportação por conta é pública; todas as contas exige admin/finance-analyzer. |
+| `StripeModule` | `POST /stripe/checkout-session` · `POST /stripe/webhook` · `GET /stripe/my-donations` · `GET /stripe/my-subscriptions` · `DELETE /stripe/subscriptions/:id` | Pagamentos. Doação direcionada exige comunidade Integrada ativa; `tesouro-geral` e CamposTech continuam aceitos. |
 | `AuthModule` | `GET /auth/github` · `GET /auth/github/callback` · `GET /auth/me` · `GET /auth/logout` | Autenticação via GitHub OAuth + JWT. |
-| `MembersModule` | `GET /members` · `GET /members/:id` · `GET /members/me` · `PUT /members/me` · `GET /admin/members` · `PATCH /admin/members/:id` | Perfis de membros da Associação. |
+| `MembersModule` | `GET /members` · `GET /members/:id` · `GET /members/me` · `PUT /members/me` · `GET /admin/members` · `PATCH /admin/members/:id` | Perfis. Roles derivadas por designations não podem ser editadas manualmente. |
+| `DesignationsModule` | `GET /designations/me` · `POST /designations` · `POST /designations/:id/confirm` · `POST /designations/:id/revoke` | Fonte única dos vínculos novos; escritas admin sincronizam `diretor`, `voluntario`, `mentor` e `gestor_universitario`. |
+| `DirectoratesModule` | `GET /directorates/public` · `GET /directorates/manage` · `POST /directorates` · `PATCH /directorates/:id` | Diretor edita somente a diretoria de sua designation ativa; admin tem acesso global. |
+| `CommunitiesModule` | `GET /communities/public` · `GET /communities/manage` · `POST /communities` · `PATCH /communities/:id` · `POST /communities/:id/seal/request` · `POST /communities/:id/seal` | Seis seeds (4 Integradas/2 Parceiras), responsible por designation e selo admin com avaliação/validade. |
+| `NotificationsModule` | `GET /notifications/status` · `GET /notifications/emails` · `POST /notifications/emails/:id/resend` · templates/preview/test | Logs `sent`/`failed`/`skipped`, summary por template e reenvio do mesmo log; SMTP ausente não conta como falha. |
+| `SettingsModule` | `GET /settings/audit-retention` · `PUT /settings/audit-retention` | Admin; retenção operacional de 7–365 dias, com precedência sobre o fallback de ambiente. |
 | `ReimbursementsModule` | `POST /reimbursements` · `GET /reimbursements` · `GET /reimbursements/my` · `GET /reimbursements/public/:id` · `PATCH /reimbursements/:id/approve` · `PATCH /reimbursements/:id/reject` | Solicitações de reembolso com fluxo de aprovação. |
 | `TransfersModule` | `POST /account-transfers` · `GET /account-transfers` · `PATCH /account-transfers/:id/approve` · `PATCH /account-transfers/:id/reject` | Transferências entre contas do Ledger. |
 | `ExpensesModule` | `POST /expenses` · `GET /expenses` · `GET /expenses/:id` · `POST /expenses/:id/approve` · `POST /expenses/:id/pay` | Gestão de despesas organizacionais. |
 | `StorageModule` | `POST /storage/validate-receipt-url` | Valida URLs de comprovante: exige HTTPS e hostname em allowlist (Google Drive/Docs, Dropbox, OneDrive/1drv.ms, Imgur). Os arquivos ficam nos serviços confiáveis (upload manual pelo time); o backend não usa S3/MinIO/disco. |
-| `AuditModule` | `GET /audit/logs` · `POST /audit/cleanup` | Trilha de auditoria das ações administrativas. |
+| `AuditModule` | `GET /audit/logs` · `POST /audit/cleanup` | Logs de governo permanentes e sem IP; somente operacionais expiram pela política efetiva. |
+
+O Turnstile possui `TurnstileService`, `TurnstileGuard` e `TurnstileField`, mas **nenhuma rota existente usa o guard na Fase 1a**. Não documente nem trate formulários atuais como protegidos por Turnstile sem aplicar e testar o guard explicitamente.
 
 ### Swagger / OpenAPI
 
@@ -349,7 +363,7 @@ make migration-revert   # Reverte a última migration aplicada
 make migration-show     # Lista todas as migrations e seus status
 ```
 
-Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar.
+Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar. `make migration-revert` executa o `down` da última migration aplicada e pode remover colunas/dados: valide reversões em um PostgreSQL descartável, nunca aponte esse teste para desenvolvimento compartilhado ou produção. Na Fase 1a, a sequência aditiva é 026 (designations), 027 (diretorias), 028 (comunidades), 029 (e-mails), 030 (auditoria/settings) e 031 (eventos 18+); após validar o `down` da 031, restaure imediatamente com `make migration-run` no mesmo banco descartável.
 
 ---
 
@@ -368,6 +382,12 @@ Baseie-se no `.env.example`. Variáveis principais:
 | `GITHUB_TOKEN_ENCRYPTION_KEY` | Backend | Chave de 32 bytes (hex/base64) para criptografar em repouso os tokens OAuth dos membros (`members.githubAccessToken`, AES-256-GCM). Obrigatória em produção — gere com `openssl rand -hex 32`. Em dev pode ficar vazia (tokens gravados com prefixo `plain:`) |
 | `GITHUB_REPO_OWNER` / `GITHUB_REPO_NAME` | Backend | Repositório alvo do GitHub-as-Database (`codaqui` / `institucional`) — overrides/organizers |
 | `GITHUB_BASE_BRANCH` | Backend | Branch base de leitura/escrita do GitHub-as-Database (default: `main`). Em dev use `develop` — os PRs/merges locais vão para lá, e sem a env o backend não enxerga overrides/snapshots |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails transacionais via SMTP. Sem credenciais, envios viram `skipped` + `SMTP_NOT_CONFIGURED`, não contam como falha e podem ser reenviados depois por `/notifications/emails/:id/resend` |
+| `AUDIT_OPERATIONAL_RETENTION_DAYS` | Backend | Fallback da retenção de logs operacionais (7–365; default 30). O setting admin vence a env; governo nunca expira |
+| `TURNSTILE_SECRET_KEY` / `TURNSTILE_ALLOWED_HOSTNAMES` | Backend | Infraestrutura opt-in do Turnstile. Nenhuma rota atual usa o guard; produção sem secret falha fechada quando ele for aplicado |
+| `PUBLIC_TURNSTILE_SITE_KEY` | Frontend | Renderiza `TurnstileField`; sem chave não há widget nem token simulado |
+| `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
+| `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; com o Astro em dev use `http://localhost:4321`) |
 
 > **Nota (GitHub-as-Database):** a escrita no repositório usa o **token OAuth do próprio
 > membro logado** — o código pede o scope `public_repo` no OAuth App existente
@@ -375,10 +395,8 @@ Baseie-se no `.env.example`. Variáveis principais:
 > o novo consentimento aparece automaticamente no próximo login de cada usuário, e o token
 > é persistido criptografado a cada login. Sem o scope (login antigo), os endpoints de
 > escrita respondem 400/403 orientando re-login. Leituras são públicas
-> (`raw.githubusercontent.com`).
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails de eventos (confirmação, cancelamento, lembrete D-1, pós-evento) via SMTP Gmail. Sem credenciais, envios são logados como `skipped` com `SMTP_NOT_CONFIGURED` em `email_logs`, sem contar como falha |
-| `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
-| `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; com o Astro em dev use `http://localhost:4321`) |
+> (`raw.githubusercontent.com`). Hoje esse fluxo legado é usado apenas pelo force-sync
+> manual do snapshot interno; overrides e organizers já estão no PostgreSQL.
 
 **Produção (apenas `compose.prod.yaml`):**
 

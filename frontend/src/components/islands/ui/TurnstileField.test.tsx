@@ -36,7 +36,7 @@ function installTurnstile() {
 describe("TurnstileField", () => {
   beforeEach(() => {
     vi.resetModules();
-    vi.stubEnv("DEV", "true");
+    vi.stubEnv("DEV", true);
     vi.stubEnv("PUBLIC_TURNSTILE_SITE_KEY", "test-site-key");
     document.head.querySelectorAll(`script[src="${SCRIPT_URL}"]`).forEach((script) => script.remove());
     Reflect.deleteProperty(window, "turnstile");

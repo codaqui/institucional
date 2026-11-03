@@ -6,7 +6,10 @@ sections:
   - Fluxos principais (criar evento, vender ingresso, check-in, certificado, reconciliação de quota)
   - Páginas estáticas por evento (SEO/OG)
   - Convensões e anti-patterns
-  - Testes
+  - E1 — e-mails skipped/resend/summary
+  - R1 — filtros e exportação CSV server-side
+  - G6, Turnstile opt-in e classificação informativa 18+
+  - Convenções, testes e debug
   - Dicas de debug
 related-docs:
   - AGENTS.md — guia geral do monorepo
@@ -201,6 +204,46 @@ Agora cada evento tem uma página estática gerada em build time:
    GitHub e avatar do membro; **nunca e-mail**), carregados com 2 queries (sem
    N+1). O campo é omitido quando o evento não tem hosts.
 
+### 2.10 E-mails operacionais (E1)
+
+1. `EmailService.sendTemplate` registra `skipped` + `SMTP_NOT_CONFIGURED` quando o provider
+   não está configurado; esse estado não conta como `failed` e não impede a operação principal.
+2. `GET /notifications/status` informa `configured`; `GET /notifications/emails` aceita
+   `status`, `template`, `page` e `pageSize`, retornando `items`, `total` e `summary` com
+   `sent`, `failed`, `skipped` e agregação por template.
+3. `POST /notifications/emails/:id/resend` exige SMTP configurado e log ligado a uma inscrição.
+   Reenvio atualiza o mesmo registro e seu timestamp; com SMTP desligado responde 409.
+4. Apenas `sent` e `failed` deduplicam os crons, permitindo que um `skipped` seja entregue após
+   configurar SMTP. Logs de e-mail expiram após 365 dias. O template
+   `event-registration-cancelled` usa o contexto real da inscrição/evento.
+
+### 2.11 Filtros e CSV de transações (R1)
+
+1. `GetTransactionsQueryDto` aceita `from`/`to` ISO além dos filtros anteriores; `from > to` é
+   inválido e `to` inclui o dia inteiro. Listagem e exportação usam o mesmo `TransactionFilters`.
+2. `GET /ledger/accounts/:id/transactions/export` exporta publicamente as transações visíveis
+   da conta. `GET /ledger/transactions/export` exporta todas as contas para admin ou
+   finance-analyzer. Ambos exportam o range inteiro, não a página corrente.
+3. `src/common/csv.ts` produz UTF-8 com BOM, CRLF e campos citados. Valores iniciados por
+   fórmula ou caracteres de controle recebem apóstrofo antes da serialização. No frontend,
+   `DateRangeControls` e `TransactionTable` reutilizam os mesmos filtros na URL server-side.
+
+### 2.12 Retenção, Turnstile e classificação 18+
+
+- **G6:** `auditCategory()` classifica cada ação como `governance` ou `operational`.
+  `GET/PUT /settings/audit-retention` lê/configura 7–365 dias (admin), com precedência sobre
+  `AUDIT_OPERATIONAL_RETENTION_DAYS`. `POST /audit/cleanup`, o cron diário e a limpeza no
+  startup removem somente operacionais expirados; governo é permanente e tem `ipAddress=null`.
+- **Turnstile:** `src/common/turnstile/` e `TurnstileField.tsx` são infraestrutura opt-in.
+  Nenhum controller usa `TurnstileGuard` nesta fase. O service valida `success` e hostname
+  exato, aplica timeout de 5 s e cache de token por 5 min; produção sem secret falha fechada
+  quando o guard é aplicado.
+- **ECA:** `ManagedEvent.adultOnly` e `venueType` chegam ao snapshot por `toEventItem`.
+  Overrides externos aceitam `payload.adultOnly` boolean. `adult-content.ts` apenas sugere
+  18+ para bar/restaurante às 18h ou depois; não salva automaticamente. `EventCard.astro` e
+  `AdultContentNotice.astro` mostram badge/aviso estático sem bloquear inscrição ou indexação.
+  Mudança pós-publicação de `adultOnly` registra antes/depois em auditoria de governo.
+
 ## 3. Convenções e anti-patterns
 
 - **Sempre use `authFetch` em telas admin** — `fetch` direto não trata 401.
@@ -209,7 +252,11 @@ Agora cada evento tem uma página estática gerada em build time:
 - **Ledger:** toda movimentação financeira usa `recordTransaction` com `referenceId`
   prefixado. Nunca crie conta manualmente — use `getOrCreateCommunityAccount`.
 - **Migrations:** nomeie como `MigrationNNN_Descricao.ts` com timestamp crescente.
-- **Frontend:** use MUI v7 Grid com `size={{ xs: 12 }}` (não `item xs={12}`).
+- **Frontend:** use MUI v9 Grid com `size={{ xs: 12 }}` (não `item xs={12}`).
+- **Classificação 18+:** não transforme a heurística de formulário em bloqueio, coleta de
+  idade/documento, `noindex` ou exclusão do sitemap.
+- **Turnstile:** não aplique o guard a uma rota pública sem testar token, hostname, timeout,
+  replay e o comportamento de produção sem secret.
 
 ## 4. Testes
 

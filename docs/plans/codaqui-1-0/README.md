@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fase 0 concluída; Fase 1a revisada e pronta para implementação mediante comando explícito (ver fase-1a.md). Demais fases permanecem em design. Revisão integral em 2026-10-29: RBAC consolidado como fonte de vínculos, seis comunidades preservadas no seed, E1/R1/transversais confirmados no código e versionamento ajustado para uma versão backend por release.
+status: Fase 0 e Fase 1a concluídas (Fase 1a em 2026-11-03, backend 0.12.0). Demais fases permanecem em design. Revisão integral em 2026-10-29: RBAC consolidado como fonte de vínculos, seis comunidades preservadas no seed, E1/R1/transversais confirmados no código e versionamento ajustado para uma versão backend por release.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -36,7 +36,7 @@ related-docs:
   - docs/plans/codaqui-1-0/rbac.md — ⭐ RBAC consolidado: roles × designations × derivação (anexo de design, 2026-10-29)
   - docs/plans/codaqui-1-0/comunidades-plataforma.md — ⭐ Plataforma de comunidades: níveis + criação por membros + split Stripe para Autônomas (anexo de design, 2026-10-29)
   - docs/plans/codaqui-1-0/transversais.md — ⭐ Transversais: Turnstile, busca (Pagefind), certificados sem validade, retenção de auditoria (anexo de design, 2026-10-29)
-  - docs/plans/codaqui-1-0/fase-1a.md — ⭐ Plano executável da Fase 1a: tasks, migrations 026–031, testes e gates; aguardando comando de implementação
+  - docs/plans/codaqui-1-0/fase-1a.md — ⭐ Plano executável da Fase 1a: tasks, migrations 026–031, testes e gates concluídos
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
@@ -363,7 +363,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
 | **0. Refatoração de frontend** ✅ **CONCLUÍDA (2026-10-29)** (anexada 2026-10-05; DS integrado 2026-10-20) | Docusaurus → **Astro 7 + ilhas React (MUI v9 + Tailwind v4)**; **tokens do Design System Codaqui já no esqueleto (0.1) + página pública `/design-system` (0.3)**; multi-tenant por build matrix no Cloudflare Pages; fim da pasta `workers/` (proxy vira Pages Function) — detalhes e subfases 0.1–0.6: [refatoracao-frontend-astro.md](refatoracao-frontend-astro.md) + [design-system.md](design-system.md) | ✅ Paridade de URLs públicas; tokens novos com contraste AA aplicados; `/design-system` publicada; tisocial.org.br com rotas limpas e login cross-domain; cutover de codaqui.dev com rollback ensaiado; Docusaurus removido — **todos os critérios atendidos; ADR 011 implementada; releases v1.0.0 (site) e v0.11.x-backend; produção servida por CI a partir de `main` (develop = sandbox/preview)** |
-| **1a. Fundações de dados** 🟡 **PRONTA PARA EXECUÇÃO** — [plano detalhado](fase-1a.md) | `member_designations` + roles derivadas + `communities` + níveis/selo + `directorates` + seed das 6 comunidades + **E1 + R1 + G3/G6 + ECA** | CRUD admin + snapshot público; roles e guards de designation; seed sem perda de dados; e-mail `skipped` e summary corrigida; CSV por datas; retenção de auditoria; Turnstile testado; eventos 18+ sinalizados; backend `0.12.0` e todos os gates verdes |
+| **1a. Fundações de dados** ✅ **CONCLUÍDA (2026-11-03)** — [plano detalhado](fase-1a.md) | `member_designations` + roles derivadas + `communities` + níveis/selo + `directorates` + seed das 6 comunidades + **E1 + R1 + G3/G6 + ECA** | ✅ CRUD admin + snapshot público; roles e guards de designation; seed sem perda de dados; e-mail `skipped` e summary corrigida; CSV por datas; retenção de auditoria; Turnstile testado; eventos 18+ sinalizados; backend `0.12.0` e todos os gates verdes |
 | **1b. UX e transversal** | **Refinamento do AppLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 + Pagefind** | sidebar agrupada; visibilidade por campo no endpoint público; política publicada; conduta com nova UI; busca local no portal |
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |

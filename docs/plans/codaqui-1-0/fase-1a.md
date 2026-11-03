@@ -777,11 +777,11 @@ git commit -m "feat(fase-1a): adiciona sinalização informativa para eventos 18
 - Modify: `backend/package.json`
 - Modify: `backend/package-lock.json`
 
-- [ ] **Step 1: Update documentation to the delivered behavior**
+- [x] **Step 1: Update documentation to the delivered behavior**
 
 ADRs 006/007 nascem com escopo implementado apenas na 1a; não declarar `hour_ledger` como existente. Documentar endpoints reais, seis seeds, Integradas sem responsável legado, proxy `/designations/` etc., E1, R1, G6, Turnstile e ECA. Remover das docs vivas instruções que contradigam o código entregue.
 
-- [ ] **Step 2: Bump backend version once**
+- [x] **Step 2: Bump backend version once**
 
 ```bash
 cd backend && npm version 0.12.0 --no-git-tag-version
@@ -789,7 +789,7 @@ cd backend && npm version 0.12.0 --no-git-tag-version
 
 Expected: `backend/package.json` e lockfile em `0.12.0`.
 
-- [ ] **Step 3: Run all project gates**
+- [x] **Step 3: Run all project gates**
 
 ```bash
 cd backend && npm run build && npx jest --silent
@@ -798,7 +798,7 @@ cd .. && make astro-verify && make astro-verify-tenants && npm run test:scripts
 
 Expected: todos PASS. Se qualquer gate falhar, corrigir a causa e repetir somente o gate afetado antes de repetir o conjunto final.
 
-- [ ] **Step 4: Exercise the original scenarios end to end**
+- [x] **Step 4: Exercise the original scenarios end to end**
 
 Com PostgreSQL migrado e backend/frontend locais:
 1. Conceder diretor; verificar roles derivadas e edição somente na própria diretoria.
@@ -809,7 +809,7 @@ Com PostgreSQL migrado e backend/frontend locais:
 6. Marcar evento bar/18h como 18+; sincronizar eventos e conferir badge/aviso no build.
 7. Rodar `make migration-revert` apenas em banco descartável para validar `down` da 031; restaurar com `migration-run`.
 
-- [ ] **Step 5: Review generated files and commit**
+- [x] **Step 5: Review generated files and commit**
 
 ```bash
 git status --short
@@ -821,9 +821,9 @@ Não incluir dumps, `.env`, logs, coverage ou artefatos de build no commit. O PR
 
 ## Completion Checklist
 
-- [ ] Seis comunidades migradas sem perda de dados públicos; três tenants e as doações/transparência de CamposTech preservados.
-- [ ] Designations são a única fonte de vínculos novos; roles derivadas não são editáveis manualmente.
-- [ ] Nenhuma rota `/admin/*` foi adicionada ao proxy.
-- [ ] E1, R1, G6, Turnstile e ECA têm testes de comportamento e fluxo local verificado.
-- [ ] Todos os gates do projeto passaram no estado final da branch.
-- [ ] Backend está em `0.12.0`; nenhuma funcionalidade da Fase 2 foi marcada como implementada.
+- [x] Seis comunidades migradas sem perda de dados públicos; três tenants e as doações/transparência de CamposTech preservados.
+- [x] Designations são a única fonte de vínculos novos; roles derivadas não são editáveis manualmente.
+- [x] Nenhuma rota `/admin/*` foi adicionada ao proxy.
+- [x] E1, R1, G6, Turnstile e ECA têm testes de comportamento e fluxo local verificado.
+- [x] Todos os gates do projeto passaram no estado final da branch.
+- [x] Backend está em `0.12.0`; nenhuma funcionalidade da Fase 2 foi marcada como implementada.

@@ -460,6 +460,6 @@ export class LedgerController {
     }));
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    return res.send(toCsv(headers, rows));
+    res.send(toCsv(headers, rows));
   }
 }

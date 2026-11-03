@@ -129,12 +129,14 @@ describe('LedgerController', () => {
       },
     ]);
     const res = { setHeader: jest.fn(), send: jest.fn() };
+    res.send.mockReturnValue(res);
     const query = {
       type: 'donation', days: 90, search: 'octocat', from: '2026-10-01', to: '2026-10-31',
     } as any;
 
-    await controller.exportAccountTransactions('acc-1', query, res as any);
+    const result = await controller.exportAccountTransactions('acc-1', query, res as any);
 
+    expect(result).toBeUndefined();
     expect(service.getAccountTransactionsForExport).toHaveBeenCalledWith('acc-1', {
       type: 'donation', days: 90, search: 'octocat', eventId: undefined,
       ticketTypeId: undefined, externalActivationId: undefined,

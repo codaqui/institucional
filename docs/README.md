@@ -33,7 +33,9 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 001 | [Plataforma de Gestão de Eventos](adrs/001-event-platform.md) | 2024 → 2026 | Implementado |
 | 002 | [Clube Codaqui — SortCoins](adrs/002-club-sortcoins.md) | 2026 | Implementado |
 | 003 | [Clube Codaqui Business (PJ)](adrs/003-club-business-pj.md) | 2026 | Implementado |
-| 004 | [Multi-tenant Frontend para Comunidades](adrs/004-multisite-communities.md) | 2026 | Implementado (Fase 3) |
+| 004 | [Multi-tenant Frontend para Comunidades](adrs/004-multisite-communities.md) | 2026 | Implementado (Fase 3; parcialmente supersedido pela ADR 011) |
+| 006 | [Diretorias e Designations](adrs/006-directorates-designations.md) | 2026-11 | Implementado (Fase 1a; sem ledger de horas) |
+| 007 | [Registro de Comunidades](adrs/007-community-registry.md) | 2026-11 | Implementado (Fase 1a) |
 | 011 | [Refatoração de Frontend para Astro + Multi-tenant por Build Matrix](adrs/011-frontend-astro-multi-tenant-pages.md) | 2026-10 | Implementado (Fases 0.1–0.6) |
 
 ### Módulos — Documentação Viva
@@ -41,7 +43,8 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | Módulo | Documentos |
 |--------|-----------|
 | Eventos | [Manual do Código](modules/events/CODE_MANUAL.md) · [Mapa de Papéis](modules/events/ROLES.md) |
-| Comunidades parceiras | [Sites whitelabel](modules/community/COMMUNITY_SITES.md) |
+| Comunidades | [Registro, snapshot e sites whitelabel](modules/community/COMMUNITY_SITES.md) · [Mapa de papéis](modules/events/ROLES.md) |
+| Diretorias e designations | [ADR 006](adrs/006-directorates-designations.md) · [Mapa de papéis](modules/events/ROLES.md) |
 | Insights / Social Stats | [Estatísticas e presença digital](modules/insights/SOCIAL_STATS.md) |
 
 ### Plans — Planos e RFCs
@@ -51,7 +54,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
-| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fase 0 concluída e [Fase 1a pronta para execução](plans/codaqui-1-0/fase-1a.md). |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0 e 1a concluídas; demais fases em design. |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |
