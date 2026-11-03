@@ -88,6 +88,12 @@ function filenameSlug(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
+function transactionDirection(tx: Transaction, accountId?: string): string {
+  if (!accountId) return '';
+  if (tx.destinationAccount?.id === accountId) return 'Crédito';
+  return 'Débito';
+}
+
 @ApiTags('Ledger')
 @Controller('ledger')
 export class LedgerController {
@@ -452,11 +458,7 @@ export class LedgerController {
       De: tx.sourceAccount?.name ?? '',
       Para: tx.destinationAccount?.name ?? '',
       Valor: Number(tx.amount).toFixed(2),
-      Direção: accountId
-        ? tx.destinationAccount?.id === accountId
-          ? 'Crédito'
-          : 'Débito'
-        : '',
+      Direção: transactionDirection(tx, accountId),
     }));
     res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);

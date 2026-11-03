@@ -263,7 +263,7 @@ export class LedgerService {
     accountId: string,
     filters: TransactionFilters = {},
   ): Promise<Transaction[]> {
-    return this.createTransactionsQuery(filters, accountId)
+    return await this.createTransactionsQuery(filters, accountId)
       .orderBy('tx.createdAt', 'DESC')
       .getMany();
   }
@@ -271,13 +271,13 @@ export class LedgerService {
   async getTransactionsForExport(
     filters: TransactionFilters = {},
   ): Promise<Transaction[]> {
-    return this.createTransactionsQuery(filters)
+    return await this.createTransactionsQuery(filters)
       .orderBy('tx.createdAt', 'DESC')
       .getMany();
   }
 
   async getAccountById(id: string): Promise<Account | null> {
-    return this.accountRepo.findOneBy({ id });
+    return await this.accountRepo.findOneBy({ id });
   }
 
   async getAccountByProjectKey(projectKey: string): Promise<Account | null> {
