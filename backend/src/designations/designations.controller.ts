@@ -15,12 +15,19 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  Validate,
+  ValidatorConstraint,
+} from 'class-validator';
+import type {
+  ValidationArguments,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { DesignationsService } from './designations.service';
+import { designationTargetError } from './designation-target';
 import {
   DESIGNATION_STATUSES,
   DESIGNATIONS,
@@ -32,11 +39,28 @@ import type {
   TargetType,
 } from './entities/member-designation.entity';
 
+@ValidatorConstraint({ name: 'designationTarget', async: false })
+class DesignationTargetConstraint implements ValidatorConstraintInterface {
+  validate(_: unknown, args?: ValidationArguments) {
+    return (
+      !!args && !designationTargetError(args.object as GrantDesignationDto)
+    );
+  }
+
+  defaultMessage(args?: ValidationArguments) {
+    return args
+      ? (designationTargetError(args.object as GrantDesignationDto) ??
+          'Combinação de designation e destino inválida.')
+      : 'Combinação de designation e destino inválida.';
+  }
+}
+
 export class GrantDesignationDto {
   @IsUUID()
   memberId: string;
 
   @IsIn([...TARGET_TYPES])
+  @Validate(DesignationTargetConstraint)
   targetType: TargetType;
 
   @IsOptional()

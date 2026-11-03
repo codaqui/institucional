@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -8,6 +9,7 @@ import { DataSource, IsNull, QueryRunner, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { designationTargetError } from './designation-target';
 import {
   Designation,
   DesignationStatus,
@@ -117,6 +119,9 @@ export class DesignationsService {
     input: GrantDesignationInput,
     actor: DesignationActor,
   ): Promise<MemberDesignation> {
+    const targetError = designationTargetError(input);
+    if (targetError) throw new BadRequestException(targetError);
+
     let wrote = false;
     const saved = await this.inTransaction(async (queryRunner) => {
       const repo = this.designationRepo(queryRunner);
@@ -250,6 +255,9 @@ export class DesignationsService {
     memberId: string,
     actor?: DesignationActor,
   ): Promise<void> {
+    await queryRunner.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+      memberId,
+    ]);
     const designations = await this.designationRepo(queryRunner).find({
       where: { memberId, status: 'active' },
     });

@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { validate } from 'class-validator';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import {
@@ -85,6 +86,57 @@ describe('DesignationsController', () => {
       { ...body, appointedById: 'admin-1' },
       { actorId: 'admin-1', actorHandle: 'admin' },
     );
+  });
+
+  it.each([
+    {
+      name: 'director without a directorate',
+      value: { targetType: 'directorate', designation: 'director' },
+    },
+    {
+      name: 'designation that does not belong to the target',
+      value: {
+        targetType: 'community',
+        targetId: 'a9e2ac1f-0a70-4f1f-a4aa-c9756b2f7901',
+        designation: 'director',
+      },
+    },
+    {
+      name: 'both target id and wildcard key',
+      value: {
+        targetType: 'event',
+        targetId: 'a9e2ac1f-0a70-4f1f-a4aa-c9756b2f7901',
+        targetKey: 'meetup:devpr',
+        designation: 'organizer',
+      },
+    },
+  ])('rejects $name in the DTO', async ({ value }) => {
+    const dto = Object.assign(new GrantDesignationDto(), {
+      memberId: 'f5f7a67c-b0b1-487f-b45d-f189e1dc65cf',
+      ...value,
+    });
+
+    expect(await validate(dto)).not.toHaveLength(0);
+  });
+
+  it.each([
+    {
+      targetType: 'program',
+      targetKey: 'mentoria',
+      designation: 'mentor',
+    },
+    {
+      targetType: 'event',
+      targetKey: 'meetup:devpr',
+      designation: 'organizer',
+    },
+  ])('accepts valid program and wildcard DTO shapes', async (value) => {
+    const dto = Object.assign(new GrantDesignationDto(), {
+      memberId: 'f5f7a67c-b0b1-487f-b45d-f189e1dc65cf',
+      ...value,
+    });
+
+    expect(await validate(dto)).toHaveLength(0);
   });
 
   it('confirms and revokes designations as the authenticated admin', async () => {

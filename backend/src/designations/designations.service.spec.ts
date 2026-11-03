@@ -1,4 +1,8 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member } from '../members/entities/member.entity';
 import { MemberDesignation } from './entities/member-designation.entity';
@@ -47,6 +51,7 @@ describe('DesignationsService', () => {
       commitTransaction: jest.fn().mockResolvedValue(undefined),
       rollbackTransaction: jest.fn().mockResolvedValue(undefined),
       release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue(undefined),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {
           if (entity === MemberDesignation) return repo;
@@ -90,8 +95,19 @@ describe('DesignationsService', () => {
       expect.objectContaining({ action: AuditAction.ROLE_DERIVED }),
     );
     expect(queryRunner.startTransaction).toHaveBeenCalledTimes(1);
+    expect(queryRunner.query).toHaveBeenCalledWith(
+      'SELECT pg_advisory_xact_lock(hashtext($1))',
+      ['member-1'],
+    );
     expect(queryRunner.commitTransaction).toHaveBeenCalledTimes(1);
     expect(queryRunner.release).toHaveBeenCalledTimes(1);
+  });
+
+  it('rejects an invalid target and designation combination in the service', async () => {
+    await expect(
+      service.grant({ ...directorInput, targetId: undefined }, actor),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.save).not.toHaveBeenCalled();
   });
 
   it('does not grant a second active responsible for the same community', async () => {
