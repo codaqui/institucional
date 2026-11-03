@@ -22,6 +22,25 @@ describe("adult content", () => {
     expect(getEventLocalHour("invalid", "America/Sao_Paulo")).toBeNull();
   });
 
+  it.each([
+    ["America/Sao_Paulo", 18],
+    ["UTC", 21],
+    ["America/New_York", 16],
+  ])(
+    "converts datetime-local through an instant before formatting in %s",
+    (timezone, expectedHour) => {
+      expect(getEventLocalHour("2026-12-10T18:00", timezone)).toBe(
+        expectedHour,
+      );
+    },
+  );
+
+  it("returns null for an invalid event timezone with datetime-local", () => {
+    expect(
+      getEventLocalHour("2026-12-10T18:00", "Invalid/Timezone"),
+    ).toBeNull();
+  });
+
   it("keeps the informational copy exact", () => {
     expect(ADULT_CONTENT_BADGE).toBe("+18");
     expect(ADULT_CONTENT_NOTICE_TITLE).toBe(
