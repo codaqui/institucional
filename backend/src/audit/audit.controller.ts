@@ -4,9 +4,10 @@ import {
   ApiOperation,
   ApiBearerAuth,
   ApiResponse,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { AuditService } from './audit.service';
-import { AUDIT_RETENTION_DAYS } from './entities/audit-log.entity';
+import type { AuditCategory } from './audit-category';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -23,30 +24,37 @@ export class AuditController {
   @ApiOperation({
     summary: '🔒 Listar logs de auditoria [admin]',
     description:
-      `Retorna os logs de auditoria paginados. ` +
-      `Registros mais antigos que ${AUDIT_RETENTION_DAYS} dias são removidos automaticamente.`,
+      'Retorna logs paginados, opcionalmente filtrados por categoria. Somente logs operacionais expiram.',
   })
+  @ApiQuery({ name: 'category', required: false, enum: ['governance', 'operational'] })
   @ApiResponse({ status: 200, description: 'Logs paginados.' })
-  getLogs(@Query('page') page?: number, @Query('limit') limit?: number) {
+  getLogs(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('category') category?: AuditCategory,
+  ) {
     return this.auditService.findAll(
       page ? Number.parseInt(String(page), 10) : 1,
       limit ? Number.parseInt(String(limit), 10) : 50,
+      category === 'governance' || category === 'operational'
+        ? category
+        : undefined,
     );
   }
 
   @Post('cleanup')
   @ApiOperation({
-    summary: '🔒 Executar limpeza de logs expirados [admin]',
+    summary: '🔒 Executar limpeza de logs operacionais expirados [admin]',
     description:
-      `Remove registros de auditoria com mais de ${AUDIT_RETENTION_DAYS} dias. ` +
-      `Pode ser chamado manualmente ou via cron.`,
+      'Usa a retenção efetiva de settings/env e nunca remove logs de governo.',
   })
   @ApiResponse({
     status: 201,
-    description: 'Quantidade de registros removidos.',
+    description: 'Quantidade de registros removidos e retenção efetiva.',
   })
   async runCleanup() {
-    const deleted = await this.auditService.cleanup();
-    return { deleted, retentionDays: AUDIT_RETENTION_DAYS };
+    const deleted = await this.auditService.cleanupOperational();
+    const retentionDays = await this.auditService.getOperationalRetentionDays();
+    return { deleted, retentionDays };
   }
 }

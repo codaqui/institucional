@@ -585,7 +585,7 @@ git commit -m "feat(fase-1a): exporta transações por faixa de datas"
 - `GET/PUT /settings/audit-retention`, range `7–365`, admin.
 - `AUDIT_OPERATIONAL_RETENTION_DAYS=30` é fallback; setting vence.
 
-- [ ] **Step 1: Write failing classification, precedence and purge tests**
+- [x] **Step 1: Write failing classification, precedence and purge tests**
 
 ```ts
 it('never deletes governance logs', async () => {
@@ -603,21 +603,21 @@ it('prefers the admin setting over the environment fallback', async () => {
 Run: `cd backend && npx jest src/audit src/settings --runInBand`
 Expected: FAIL.
 
-- [ ] **Step 2: Implement migration, classification and retention cron**
+- [x] **Step 2: Implement migration, classification and retention cron**
 
 A migration adiciona `category`, classifica registros existentes pelo enum atual, zera `ipAddress` nos registros de governo e cria `(category,createdAt)`. Roles, concessões, aprovações e decisões são `governance`; login/checkin/sync/overrides/templates/cancelamentos são `operational`. `AuditService.log` sempre define categoria e grava `ipAddress=null` em governo. Cron diário às 03:17 chama `cleanupOperational`; o endpoint manual usa a mesma política.
 
-- [ ] **Step 3: Implement settings API and admin control**
+- [x] **Step 3: Implement settings API and admin control**
 
 `app_settings` tem `key` único, `value` jsonb, `updatedById`, `updatedAt`. PUT grava audit de governo. A ilha mostra valor efetivo, origem (`setting` ou `env`) e confirmação antes de salvar. Adicionar `/settings/` e `/audit/` ao proxy, nunca `/admin/`.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `cd backend && npx jest src/audit src/settings --runInBand`
 Run: `cd frontend && npx vitest run src/components/islands/admin/settings src/lib/api-proxy-paths.test.ts`
 Expected: PASS, incluindo limites 7/365 e governo fora da purga.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/migrations/1793289604000-Migration030_AuditRetention.ts backend/src/settings backend/src/audit backend/src/app.module.ts frontend/src/pages/admin/configuracoes.astro frontend/src/components/islands/admin/settings frontend/src/lib/api-proxy-paths.ts frontend/src/lib/api-proxy-paths.test.ts .env.example

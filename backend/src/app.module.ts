@@ -23,6 +23,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { DesignationsModule } from './designations/designations.module';
 import { DirectoratesModule } from './directorates/directorates.module';
 import { CommunitiesModule } from './communities/communities.module';
+import { SettingsModule } from './settings/settings.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { CommunitiesModule } from './communities/communities.module';
     DesignationsModule,
     DirectoratesModule,
     CommunitiesModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
