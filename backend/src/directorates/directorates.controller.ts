@@ -42,8 +42,8 @@ export class DirectoratesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  create(@Body() body: CreateDirectorateDto) {
-    return this.directorates.create(body);
+  create(@Body() body: CreateDirectorateDto, @Req() req: { user: JwtPayload }) {
+    return this.directorates.create(body, req.user);
   }
 
   @Patch(':id')

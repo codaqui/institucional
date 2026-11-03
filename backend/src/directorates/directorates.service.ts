@@ -6,6 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { DesignationsService } from '../designations/designations.service';
 import { MemberRole } from '../members/entities/member.entity';
@@ -21,6 +23,7 @@ export class DirectoratesService {
     @InjectRepository(Directorate)
     private readonly repo: Repository<Directorate>,
     private readonly designations: DesignationsService,
+    private readonly audit: AuditService,
   ) {}
 
   listPublic(): Promise<Directorate[]> {
@@ -59,9 +62,21 @@ export class DirectoratesService {
     };
   }
 
-  async create(dto: CreateDirectorateDto): Promise<Directorate> {
+  async create(
+    dto: CreateDirectorateDto,
+    actor: JwtPayload,
+  ): Promise<Directorate> {
     await this.assertUniqueSlug(dto.slug);
-    return this.repo.save(this.repo.create(dto));
+    const created = await this.repo.save(this.repo.create(dto));
+    await this.audit.log({
+      action: AuditAction.DIRECTORATE_CREATED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: created.id,
+      targetType: 'directorate',
+      details: { after: { ...created } },
+    });
+    return created;
   }
 
   async update(
@@ -88,8 +103,18 @@ export class DirectoratesService {
     if (dto.slug && dto.slug !== directorate.slug) {
       await this.assertUniqueSlug(dto.slug);
     }
+    const before = { ...directorate };
     Object.assign(directorate, dto);
-    return this.repo.save(directorate);
+    const updated = await this.repo.save(directorate);
+    await this.audit.log({
+      action: AuditAction.DIRECTORATE_UPDATED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: id,
+      targetType: 'directorate',
+      details: { before, after: { ...updated } },
+    });
+    return updated;
   }
 
   private async assertUniqueSlug(slug: string): Promise<void> {

@@ -24,6 +24,7 @@ describe('DirectoratesService', () => {
   let service: DirectoratesService;
   let repo: Record<string, jest.Mock>;
   let designations: { hasDesignation: jest.Mock };
+  let audit: { log: jest.Mock };
   let directorate: Directorate;
 
   beforeEach(() => {
@@ -44,7 +45,8 @@ describe('DirectoratesService', () => {
       save: jest.fn().mockImplementation(async (value) => value),
     };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
-    service = new DirectoratesService(repo as any, designations as any);
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
+    service = new DirectoratesService(repo as any, designations as any, audit as any);
   });
 
   it('lists only active directorates publicly', async () => {
@@ -98,16 +100,25 @@ describe('DirectoratesService', () => {
       description: 'Comunicação da Associação',
     };
 
-    await expect(service.create(input)).resolves.toMatchObject(input);
+    await expect(service.create(input, userAdmin)).resolves.toMatchObject(input);
     expect(repo.create).toHaveBeenCalledWith(input);
     expect(repo.save).toHaveBeenCalledTimes(1);
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'directorate.created',
+        actorId: 'admin-1',
+        details: expect.objectContaining({
+          after: expect.objectContaining({ slug: 'comunicacao' }),
+        }),
+      }),
+    );
   });
 
   it('rejects a duplicate slug before creating', async () => {
     repo.findOne.mockResolvedValue(directorate);
 
     await expect(
-      service.create({ slug: 'tecnologia', name: 'Duplicada' }),
+      service.create({ slug: 'tecnologia', name: 'Duplicada' }, userAdmin),
     ).rejects.toThrow(ConflictException);
     expect(repo.save).not.toHaveBeenCalled();
   });
@@ -119,6 +130,26 @@ describe('DirectoratesService', () => {
       service.update('directorate-1', { name: 'Novo nome' }, userAdmin),
     ).resolves.toMatchObject({ name: 'Novo nome' });
     expect(designations.hasDesignation).not.toHaveBeenCalled();
+  });
+
+  it('audits isActive changes with actor and before/after snapshots', async () => {
+    repo.findOne.mockResolvedValue(directorate);
+
+    await service.update('directorate-1', { isActive: false }, userAdmin);
+
+    expect(audit.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'directorate.updated',
+        actorId: 'admin-1',
+        actorHandle: 'admin',
+        targetId: 'directorate-1',
+        targetType: 'directorate',
+        details: expect.objectContaining({
+          before: expect.objectContaining({ isActive: true }),
+          after: expect.objectContaining({ isActive: false }),
+        }),
+      }),
+    );
   });
 
   it('allows a director to edit their own directorate', async () => {
