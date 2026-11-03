@@ -9,6 +9,15 @@ import {
 } from '@nestjs/common';
 import { TurnstileService } from './turnstile.service';
 
+type HeaderValue = string | string[] | undefined;
+
+type TurnstileRequest = {
+  body?: { turnstileToken?: unknown };
+  headers: Record<string, HeaderValue>;
+  hostname?: string;
+  ip?: string;
+};
+
 @Injectable()
 export class TurnstileGuard implements CanActivate {
   private readonly logger = new Logger(TurnstileGuard.name);
@@ -28,20 +37,15 @@ export class TurnstileGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<{
-      body?: { turnstileToken?: unknown };
-      headers: Record<string, string | string[] | undefined>;
-      hostname?: string;
-      ip?: string;
-    }>();
+    const request = context.switchToHttp().getRequest<TurnstileRequest>();
     const bodyToken = request.body?.turnstileToken;
     const headerToken = request.headers['cf-turnstile-token'];
-    const token =
-      typeof bodyToken === 'string' && bodyToken.length > 0
-        ? bodyToken
-        : typeof headerToken === 'string' && headerToken.length > 0
-          ? headerToken
-          : undefined;
+    let token: string | undefined;
+    if (typeof bodyToken === 'string' && bodyToken.length > 0) {
+      token = bodyToken;
+    } else if (typeof headerToken === 'string' && headerToken.length > 0) {
+      token = headerToken;
+    }
     if (!token) {
       throw new BadRequestException('Token Turnstile obrigatório.');
     }
@@ -68,10 +72,9 @@ export class TurnstileGuard implements CanActivate {
     return true;
   }
 
-  private resolveFrontendHostname(request: {
-    headers: Record<string, string | string[] | undefined>;
-    hostname?: string;
-  }): string | undefined {
+  private resolveFrontendHostname(
+    request: Pick<TurnstileRequest, 'headers' | 'hostname'>,
+  ): string | undefined {
     const origin = this.headerValue(request.headers.origin);
     if (origin !== undefined) return this.urlHostname(origin);
 
@@ -88,7 +91,7 @@ export class TurnstileGuard implements CanActivate {
     return request.hostname;
   }
 
-  private headerValue(value: string | string[] | undefined): string | undefined {
+  private headerValue(value: HeaderValue): string | undefined {
     return Array.isArray(value) ? value[0] : value;
   }
 

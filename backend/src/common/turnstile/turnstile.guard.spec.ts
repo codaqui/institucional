@@ -155,6 +155,20 @@ describe('TurnstileGuard', () => {
     );
   });
 
+  it('prefers the body token when the Turnstile header is also present', async () => {
+    const context = contextFor({
+      body: { turnstileToken: 'body-token' },
+      headers: { 'cf-turnstile-token': 'header-token' },
+    });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(service.verify).toHaveBeenCalledWith(
+      'body-token',
+      '192.0.2.1',
+      'codaqui.dev',
+    );
+  });
+
   it('rejects a missing token when verification is configured', async () => {
     await expect(guard.canActivate(contextFor({}))).rejects.toThrow(
       BadRequestException,
