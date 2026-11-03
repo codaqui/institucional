@@ -53,34 +53,39 @@ export class CommunitiesService {
       order: { name: 'ASC' },
     });
     return Promise.all(
-      communities.map(async (community) => ({
-        id: community.slug,
-        slug: community.slug,
-        name: community.name,
-        description: community.description,
-        emoji: community.emoji,
-        logo: community.logoUrl,
-        location: community.location,
-        founded: community.founded,
-        links: community.links,
-        socialProfiles: community.socialProfiles,
-        tags: community.tags,
-        level: community.level,
-        status: community.status,
-        sealStatus: this.hasEffectiveSeal(community)
-          ? 'sealed'
-          : community.sealStatus === 'sealed'
-            ? 'none'
-            : community.sealStatus,
-        sealEffective: this.hasEffectiveSeal(community),
-        sealGrantedAt: community.sealGrantedAt,
-        sealGrantedById: community.sealGrantedById,
-        sealValidUntil: community.sealValidUntil,
-        sealNotes: community.sealNotes,
-        siteEnabled: community.siteEnabled,
-        siteDomain: community.siteDomain,
-        responsible: await this.findResponsible(community.id),
-      })),
+      communities.map(async (community) => {
+        let sealStatus = community.sealStatus;
+        if (this.hasEffectiveSeal(community)) {
+          sealStatus = 'sealed';
+        } else if (community.sealStatus === 'sealed') {
+          sealStatus = 'none';
+        }
+
+        return {
+          id: community.slug,
+          slug: community.slug,
+          name: community.name,
+          description: community.description,
+          emoji: community.emoji,
+          logo: community.logoUrl,
+          location: community.location,
+          founded: community.founded,
+          links: community.links,
+          socialProfiles: community.socialProfiles,
+          tags: community.tags,
+          level: community.level,
+          status: community.status,
+          sealStatus,
+          sealEffective: this.hasEffectiveSeal(community),
+          sealGrantedAt: community.sealGrantedAt,
+          sealGrantedById: community.sealGrantedById,
+          sealValidUntil: community.sealValidUntil,
+          sealNotes: community.sealNotes,
+          siteEnabled: community.siteEnabled,
+          siteDomain: community.siteDomain,
+          responsible: await this.findResponsible(community.id),
+        };
+      }),
     );
   }
 
