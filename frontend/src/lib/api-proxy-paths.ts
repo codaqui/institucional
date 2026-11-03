@@ -25,6 +25,7 @@ const API_EXACT_PATHS = new Set([
 const API_PREFIXES = ["/api/", "/auth/github", "/auth/me", "/auth/logout", "/auth/finalize", "/stripe/", "/ledger/", "/members/", "/events/", "/reimbursements/", "/companies/", "/club/", "/vendors/", "/account-transfers/", "/admin/members/", "/notifications/", "/designations/", "/directorates/", "/communities/", "/settings/", "/audit/"];
 
 export function isApiProxyPath(pathname: string): boolean {
+  if (pathname === "/communities/index.json") return false;
   if (API_EXACT_PATHS.has(pathname)) return true;
   const p = pathname.endsWith("/") && pathname !== "/" ? pathname : pathname + "/";
   return API_PREFIXES.some((prefix) => p.startsWith(prefix));

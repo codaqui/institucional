@@ -96,6 +96,12 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/comunidades/devparana")).toBe(false);
   });
 
+  it("communities/index.json é snapshot estático, sem interceptar as demais APIs", () => {
+    expect(isApiProxyPath("/communities/index.json")).toBe(false);
+    expect(isApiProxyPath("/communities/abc-123")).toBe(true);
+    expect(isApiProxyPath("/communities/public")).toBe(true);
+  });
+
   it("settings e audit são APIs sem interceptar a página de configurações", () => {
     expect(isApiProxyPath("/settings")).toBe(true);
     expect(isApiProxyPath("/settings/audit-retention")).toBe(true);
