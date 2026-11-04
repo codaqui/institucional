@@ -149,7 +149,7 @@ describe('ClubService', () => {
           id: MEMBER_ID,
           githubHandle: 'octocat',
           name: 'Octo',
-          profileVisibility: { sortcoins: true },
+          profileVisibility: {},
         }),
       };
       memberRepo.createQueryBuilder.mockReturnValue(memberQb);
@@ -166,7 +166,7 @@ describe('ClubService', () => {
       );
     });
 
-    it('hides wallet and transactions unless SortCoins visibility is enabled', async () => {
+    it('hides wallet and transactions after an explicit SortCoins opt-out', async () => {
       const memberQb = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -175,7 +175,7 @@ describe('ClubService', () => {
           id: MEMBER_ID,
           githubHandle: 'octocat',
           name: 'Octo',
-          profileVisibility: {},
+          profileVisibility: { sortcoins: false },
         }),
       };
       memberRepo.createQueryBuilder.mockReturnValue(memberQb);

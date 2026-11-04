@@ -300,7 +300,7 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam para a página do evento e certificados para `/certificado/verificar`, mas **doações e SortCoins não linkam para lugar nenhum**; nas transparências (global e whitelabel), o `TransactionTable` abre só um dialog local, sem saída para a página do evento/comunidade relacionados.
 1. `TransactionDetailDialog` (usado nas 3 transparências) ganha links contextuais: transação de ingresso → página do evento (`buildEventPath`, via metadata); transação de carteira comunitária → transparência da comunidade.
 2. `DonationTable` do `/@handle`: cada doação → transparência da comunidade beneficiada (mapa `projectKey` → página pública, com fallback para `/transparencia`).
-3. Seção SortCoins do `/@handle`: respeita visibilidade (opt-in) e ganha link "Ver no Clube" → `/clube`.
+3. Seção SortCoins do `/@handle`: respeita visibilidade e ganha link "Ver no Clube" → `/clube`. Na Fase 1b, o default permanece público por compatibilidade; a ocultação exige opt-out explícito.
 4. Transparência global: cards/saldos de comunidades → transparência da comunidade correspondente (mesmo mapa `projectKey`).
 
 ## Privacidade, LGPD e Conduta

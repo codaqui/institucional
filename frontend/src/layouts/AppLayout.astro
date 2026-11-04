@@ -62,7 +62,7 @@ const menuButtonClass =
         popover="manual"
         tabindex="-1"
         aria-label="Navegação do painel"
-        class="app-nav-drawer fixed inset-y-0 left-0 z-40 m-0 flex w-60 -translate-x-full flex-col border-e border-border bg-surface p-0 transition-transform duration-200 ease-(--cq-motion-ease) md:static md:z-auto md:translate-x-0"
+        class="app-nav-drawer fixed inset-y-0 left-0 z-40 m-0 w-60 -translate-x-full flex-col border-e border-border bg-surface p-0 transition-transform duration-200 ease-(--cq-motion-ease) md:static md:z-auto md:flex md:translate-x-0"
       >
         <div
           class="flex items-center justify-between gap-2 border-b border-border px-3 py-2 md:hidden"
@@ -99,11 +99,16 @@ const menuButtonClass =
   .app-nav-drawer::backdrop {
     background: rgb(0 0 0 / 0.45);
   }
+  .app-nav-drawer:not(:popover-open) {
+    display: none;
+  }
   .app-nav-drawer:popover-open {
+    display: flex;
     transform: translateX(0);
   }
   @media (min-width: 768px) {
-    .app-nav-drawer {
+    .app-nav-drawer,
+    .app-nav-drawer:not(:popover-open) {
       display: flex;
       position: static;
       height: auto;

@@ -2480,6 +2480,15 @@ export class EventsService {
       .getOne();
     if (!registration) return { valid: false as const };
 
+    if (registration.memberId) {
+      const member = await this.memberRepo.findOneBy({
+        id: registration.memberId,
+      });
+      if (!resolveProfileVisibility(member?.profileVisibility).certificates) {
+        return { valid: false as const };
+      }
+    }
+
     let eventTitle = '';
     let eventStartAt: Date | null = null;
     let communityProjectKey: string | null = null;

@@ -35,7 +35,7 @@ export const DEFAULT_PROFILE_VISIBILITY: ProfileVisibility = {
   certificates: true,
   hours: true,
   donations: true,
-  sortcoins: false,
+  sortcoins: true,
   designations: true,
 };
 
@@ -48,7 +48,7 @@ export const PROFILE_VISIBILITY_FIELDS = [
   { key: 'certificates', label: 'Certificados', source: 'Emissões por presença', purpose: 'Comprovação de participação' },
   { key: 'hours', label: 'Horas', source: 'Aprovações de horas', purpose: 'Total de contribuição' },
   { key: 'donations', label: 'Doações', source: 'Ledger financeiro', purpose: 'Histórico de apoio opt-in' },
-  { key: 'sortcoins', label: 'SortCoins', source: 'Clube Codaqui', purpose: 'Saldo e histórico opt-in' },
+  { key: 'sortcoins', label: 'SortCoins', source: 'Clube Codaqui', purpose: 'Saldo e histórico públicos por padrão' },
   { key: 'designations', label: 'Designations', source: 'Vínculos ativos', purpose: 'Representações institucionais' },
 ] as const;
 

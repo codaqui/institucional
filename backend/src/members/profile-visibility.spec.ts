@@ -11,7 +11,7 @@ describe('profile visibility', () => {
   it('preserves current public defaults and never exposes email as a visibility key', () => {
     expect(DEFAULT_PROFILE_VISIBILITY.bio).toBe(true);
     expect(DEFAULT_PROFILE_VISIBILITY.linkedin).toBe(true);
-    expect(DEFAULT_PROFILE_VISIBILITY.sortcoins).toBe(false);
+    expect(DEFAULT_PROFILE_VISIBILITY.sortcoins).toBe(true);
     expect(PROFILE_VISIBILITY_KEYS).not.toContain('email');
   });
 
