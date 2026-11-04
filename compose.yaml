@@ -53,7 +53,7 @@ services:
     networks:
       - codaqui-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/ || wget -qO- --no-check-certificate https://localhost:3000/ || exit 1" ]
+      test: [ "CMD-SHELL", "curl -fsS --max-redirs 0 http://localhost:3000/ || curl -fsS --max-redirs 0 --cacert /app/.certs/rootCA.pem https://localhost:3000/ || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -81,7 +81,7 @@ services:
     networks:
       - codaqui-network
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/ || wget -qO- --no-check-certificate https://localhost:3000/ || exit 1" ]
+      test: [ "CMD-SHELL", "curl -fsS --max-redirs 0 http://localhost:3000/ || curl -fsS --max-redirs 0 --cacert /app/.certs/rootCA.pem https://localhost:3000/ || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 12

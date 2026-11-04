@@ -152,6 +152,7 @@ setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
 	@mkcert -install
 	@mkdir -p .certs
 	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
+	@cp "$$(mkcert -CAROOT)/rootCA.pem" .certs/rootCA.pem
 	@if ! grep -q "^PUBLIC_API_URL=" $(ENV_FILE); then printf "\nPUBLIC_API_URL=http://localhost:3001\n" >> $(ENV_FILE); fi
 	@if ! grep -q "^STRIPE_FORWARD_URL=" $(ENV_FILE); then printf "\nSTRIPE_FORWARD_URL=http://backend:3000/stripe/webhook\n" >> $(ENV_FILE); fi
 	@sed -i.bak \

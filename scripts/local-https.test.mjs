@@ -17,9 +17,10 @@ test('setup-https aligns application and Stripe forwarding URLs', async (t) => {
   const mkcert = join(bin, 'mkcert');
   await writeFile(
     mkcert,
-    '#!/bin/bash\nif [[ "$1" == "-key-file" ]]; then : > "$2"; : > "$4"; fi\n',
+    '#!/bin/bash\nif [[ "$1" == "-CAROOT" ]]; then printf "%s\\n" "$FAKE_CAROOT"; exit 0; fi\nif [[ "$1" == "-key-file" ]]; then : > "$2"; : > "$4"; fi\n',
   );
   await chmod(mkcert, 0o755);
+  await writeFile(join(directory, 'rootCA.pem'), 'public-test-ca');
   const envFile = join(directory, '.env');
   await writeFile(
     envFile,
@@ -38,12 +39,17 @@ test('setup-https aligns application and Stripe forwarding URLs', async (t) => {
     ['-f', join(root, 'Makefile'), 'setup-https', `ENV_FILE=${envFile}`],
     {
       cwd: directory,
-      env: { ...process.env, PATH: `${bin}:${process.env.PATH}` },
+      env: {
+        ...process.env,
+        PATH: `${bin}:${process.env.PATH}`,
+        FAKE_CAROOT: directory,
+      },
       encoding: 'utf8',
     },
   );
 
   assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.equal(await readFile(join(directory, '.certs/rootCA.pem'), 'utf8'), 'public-test-ca');
   const env = await readFile(envFile, 'utf8');
   for (const expected of [
     'HTTPS=true',
