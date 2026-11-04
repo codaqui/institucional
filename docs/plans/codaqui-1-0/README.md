@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fase 0 e Fase 1a concluídas (Fase 1a em 2026-11-03, backend 0.12.3). Fase 1b pronta para implementação; demais fases permanecem em design. Revisão integral em 2026-10-29: RBAC consolidado como fonte de vínculos, seis comunidades preservadas no seed, E1/R1/transversais confirmados no código e versionamento ajustado para uma versão backend por release.
+status: Fase 0 e Fase 1a concluídas (Fase 1a em 2026-11-03, backend 0.12.3). Fase 1b em implementação (backend 0.13.0); demais fases permanecem em design. Revisão integral em 2026-10-29: RBAC consolidado como fonte de vínculos, seis comunidades preservadas no seed, E1/R1/transversais confirmados no código e versionamento ajustado para uma versão backend por release.
 sections:
   - Visão e princípios
   - Estado atual revisado

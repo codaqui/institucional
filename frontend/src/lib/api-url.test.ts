@@ -138,10 +138,11 @@ describe("config PUBLIC_API_URL (builds de deploy)", () => {
     vi.resetModules();
   });
 
-  it("codaqui sem PUBLIC_API_URL mantém fallback localhost:3001 (dev local)", () => {
-    // Este processo de teste roda sem PUBLIC_API_URL → API_URL captura o
-    // default do config.ts (mesmo valor usado pelo dev local).
-    expect(API_URL).toBe("http://localhost:3001");
+  it("codaqui sem PUBLIC_API_URL mantém fallback localhost:3001 (dev local)", async () => {
+    vi.stubEnv("PUBLIC_API_URL", undefined);
+    vi.resetModules();
+    const { API_URL: fallbackApiUrl } = await import("./config");
+    expect(fallbackApiUrl).toBe("http://localhost:3001");
   });
 
   it("codaqui com PUBLIC_API_URL=https://api.codaqui.dev usa ela quando origin === site", async () => {

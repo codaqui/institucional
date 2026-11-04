@@ -3,12 +3,11 @@ import { renderWithMui } from "../../../../../test/render-mui";
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import OverridesApp from "../OverridesApp";
+import { API_URL as API } from "../../../../../lib/config";
 
 // Base da API nas rotas stub. OverridesTab/EventOverrideHistory usam API_URL
 // cru (endpoints públicos); useAuth resolve via resolveApiUrl. O mock abaixo
-// alinha as duas pontas em "http://localhost:3001" (= API_URL default em
-// testes, sem PUBLIC_API_URL).
-const API = "http://localhost:3001";
+// alinha as duas pontas na mesma configuração da aplicação.
 
 vi.mock("../../../../../lib/api-url", () => ({
   resolveApiUrl: () => API,

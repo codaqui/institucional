@@ -1,19 +1,19 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import { it } from 'vitest';
 import {
   shouldExcludeFromSearch,
   shouldRunPagefind,
 } from '../src/lib/pagefind-contract.ts';
 import { shouldHandleSearchShortcut } from '../src/lib/search-shortcut.ts';
 
-test('Pagefind runs only for the codaqui portal, never for tenants', () => {
+it('Pagefind runs only for the codaqui portal, never for tenants', () => {
   assert.equal(shouldRunPagefind(undefined), true);
   assert.equal(shouldRunPagefind(''), true);
   assert.equal(shouldRunPagefind('tisocial'), false);
   assert.equal(shouldRunPagefind('devparana'), false);
 });
 
-test('app routes are excluded from search while public content stays indexed', () => {
+it('app routes are excluded from search while public content stays indexed', () => {
   for (const path of [
     '/admin/eventos',
     '/membro',
@@ -30,7 +30,7 @@ test('app routes are excluded from search while public content stays indexed', (
   }
 });
 
-test('search shortcut only fires outside editable controls and without modifiers', () => {
+it('search shortcut only fires outside editable controls and without modifiers', () => {
   assert.equal(shouldHandleSearchShortcut({ key: '/', target: { tagName: 'BODY' } }), true);
   assert.equal(shouldHandleSearchShortcut({ key: '/', target: { tagName: 'INPUT' } }), false);
   assert.equal(shouldHandleSearchShortcut({ key: '/', target: { tagName: 'TEXTAREA' } }), false);

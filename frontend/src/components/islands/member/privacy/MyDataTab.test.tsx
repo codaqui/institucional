@@ -63,7 +63,7 @@ describe("MyDataTab", () => {
     expect(
       await screen.findByText(
         (_, element) =>
-          element.tagName === "P" &&
+          element?.tagName === "P" &&
           (element.textContent?.includes("private@example.test") ?? false),
       ),
     ).toBeInTheDocument();
