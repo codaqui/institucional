@@ -12,6 +12,7 @@ import {
   WalletTxSource,
 } from './entities/wallet-transaction.entity';
 import { Member } from '../members/entities/member.entity';
+import { resolveProfileVisibility } from '../members/profile-visibility';
 
 /** Quantos SortCoins por real (pode virar config de banco no futuro) */
 const SORT_COINS_PER_REAL = 1;  // 1 real = 1 SortCoin
@@ -64,11 +65,23 @@ export class ClubService {
         handle: normalizedHandle.toLowerCase(),
       })
       .andWhere('member."isActive" = true')
-      .select(['member.id', 'member.githubHandle', 'member.name'])
+      .select(['member.id', 'member.githubHandle', 'member.name', 'member.profileVisibility'])
       .getOne();
 
     if (!member) {
       throw new NotFoundException('Membro não encontrado');
+    }
+
+    if (!resolveProfileVisibility(member.profileVisibility).sortcoins) {
+      return {
+        member: {
+          id: member.id,
+          githubHandle: member.githubHandle,
+          name: member.name,
+        },
+        wallet: null,
+        transactions: [],
+      };
     }
 
     const wallet = await this.walletRepo.findOne({ where: { memberId: member.id } });

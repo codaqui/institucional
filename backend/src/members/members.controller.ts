@@ -90,7 +90,7 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req: { user: JwtPayload }) {
     // sub é agora o UUID da tabela members (desde a refatoração do JWT)
-    return this.membersService.findOne(req.user.sub);
+    return this.membersService.findMe(req.user.sub);
   }
 
   @Put('members/me')

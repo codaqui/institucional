@@ -53,10 +53,13 @@ describe('profile visibility', () => {
 
     const result = applyProfileVisibility(member);
 
-    expect(result.bio).toBeNull();
-    expect(result.linkedinUrl).toBeNull();
-    expect(result.roles).toEqual([]);
-    expect(result.joinedAt).toBeUndefined();
+    expect(result).not.toHaveProperty('bio');
+    expect(result).not.toHaveProperty('linkedinUrl');
+    expect(result).not.toHaveProperty('roles');
+    expect(result).not.toHaveProperty('joinedAt');
     expect(result).not.toHaveProperty('email');
+    expect(result).not.toHaveProperty('profileVisibility');
+    expect(result).not.toHaveProperty('githubAccessToken');
+    expect(result).not.toHaveProperty('secondaryEmails');
   });
 });

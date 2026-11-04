@@ -7,8 +7,8 @@ describe('JwtStrategy', () => {
   const originalNodeEnv = process.env.NODE_ENV;
   const originalSecret = process.env.JWT_SECRET;
 
-  const makeMembersService = (findOne: jest.Mock) =>
-    ({ findOne }) as unknown as MembersService;
+  const makeMembersService = (findMe: jest.Mock) =>
+    ({ findMe }) as unknown as MembersService;
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
@@ -57,15 +57,15 @@ describe('JwtStrategy', () => {
     };
 
     it('returns the payload with fresh roles from the database', async () => {
-      const findOne = jest.fn().mockResolvedValue({
+      const findMe = jest.fn().mockResolvedValue({
         id: 'member-uuid-1',
         roles: [MemberRole.MEMBRO, MemberRole.ADMIN],
       });
-      const strategy = new JwtStrategy(makeMembersService(findOne));
+      const strategy = new JwtStrategy(makeMembersService(findMe));
 
       const result = await strategy.validate(payload);
 
-      expect(findOne).toHaveBeenCalledWith('member-uuid-1');
+      expect(findMe).toHaveBeenCalledWith('member-uuid-1');
       expect(result).toEqual({
         ...payload,
         roles: [MemberRole.MEMBRO, MemberRole.ADMIN],
@@ -73,8 +73,8 @@ describe('JwtStrategy', () => {
     });
 
     it('throws UnauthorizedException when the member no longer exists', async () => {
-      const findOne = jest.fn().mockResolvedValue(null);
-      const strategy = new JwtStrategy(makeMembersService(findOne));
+      const findMe = jest.fn().mockResolvedValue(null);
+      const strategy = new JwtStrategy(makeMembersService(findMe));
 
       await expect(strategy.validate(payload)).rejects.toThrow(
         UnauthorizedException,

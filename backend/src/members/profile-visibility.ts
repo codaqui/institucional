@@ -16,9 +16,14 @@ export const PROFILE_VISIBILITY_KEYS = [
 
 export type ProfileVisibilityKey = (typeof PROFILE_VISIBILITY_KEYS)[number];
 export type ProfileVisibility = Record<ProfileVisibilityKey, boolean>;
-export type PublicMember = Omit<Member, 'joinedAt' | 'email'> & {
+export type PublicMember = Pick<
+  Member,
+  'id' | 'githubHandle' | 'name' | 'avatarUrl'
+> & {
+  bio?: string | null;
+  linkedinUrl?: string | null;
+  roles?: Member['roles'];
   joinedAt?: Date;
-  email?: never;
 };
 
 export const DEFAULT_PROFILE_VISIBILITY: ProfileVisibility = {
@@ -66,12 +71,14 @@ export function resolveProfileVisibility(input: unknown): ProfileVisibility {
 
 export function applyProfileVisibility(member: Member): PublicMember {
   const visibility = resolveProfileVisibility(member.profileVisibility);
-  const { email: _email, ...publicMember } = member;
   return {
-    ...publicMember,
-    bio: visibility.bio ? member.bio : null,
-    linkedinUrl: visibility.linkedin ? member.linkedinUrl : null,
-    roles: visibility.roles ? member.roles : [],
-    joinedAt: visibility.memberSince ? member.joinedAt : undefined,
+    id: member.id,
+    githubHandle: member.githubHandle,
+    name: member.name,
+    avatarUrl: member.avatarUrl,
+    ...(visibility.bio ? { bio: member.bio } : {}),
+    ...(visibility.linkedin ? { linkedinUrl: member.linkedinUrl } : {}),
+    ...(visibility.roles ? { roles: member.roles } : {}),
+    ...(visibility.memberSince ? { joinedAt: member.joinedAt } : {}),
   };
 }

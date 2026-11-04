@@ -1,14 +1,14 @@
-import { IsBoolean } from 'class-validator';
+import { IsBoolean, IsOptional } from 'class-validator';
 
 export class UpdateProfileVisibilityDto {
-  @IsBoolean() bio?: boolean;
-  @IsBoolean() linkedin?: boolean;
-  @IsBoolean() roles?: boolean;
-  @IsBoolean() memberSince?: boolean;
-  @IsBoolean() events?: boolean;
-  @IsBoolean() certificates?: boolean;
-  @IsBoolean() hours?: boolean;
-  @IsBoolean() donations?: boolean;
-  @IsBoolean() sortcoins?: boolean;
-  @IsBoolean() designations?: boolean;
+  @IsOptional() @IsBoolean() bio?: boolean;
+  @IsOptional() @IsBoolean() linkedin?: boolean;
+  @IsOptional() @IsBoolean() roles?: boolean;
+  @IsOptional() @IsBoolean() memberSince?: boolean;
+  @IsOptional() @IsBoolean() events?: boolean;
+  @IsOptional() @IsBoolean() certificates?: boolean;
+  @IsOptional() @IsBoolean() hours?: boolean;
+  @IsOptional() @IsBoolean() donations?: boolean;
+  @IsOptional() @IsBoolean() sortcoins?: boolean;
+  @IsOptional() @IsBoolean() designations?: boolean;
 }

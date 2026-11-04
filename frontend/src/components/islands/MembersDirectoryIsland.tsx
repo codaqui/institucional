@@ -41,10 +41,10 @@ interface Member {
   githubHandle: string;
   name: string;
   avatarUrl: string;
-  bio: string | null;
-  linkedinUrl: string | null;
-  role: "membro" | "admin" | "finance-analyzer";
-  joinedAt: string;
+  bio?: string | null;
+  linkedinUrl?: string | null;
+  role?: "membro" | "admin" | "finance-analyzer";
+  joinedAt?: string;
 }
 
 interface DonorInfo {
@@ -186,9 +186,11 @@ function MemberCard({
               </>
             )}
 
-            <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: "block" }}>
-              Membro desde {formatDate(member.joinedAt)}
-            </Typography>
+            {member.joinedAt && (
+              <Typography variant="caption" color="text.disabled" sx={{ mt: 1, display: "block" }}>
+                Membro desde {formatDate(member.joinedAt)}
+              </Typography>
+            )}
 
             <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
               <Tooltip title={`GitHub: ${member.githubHandle}`}>
@@ -374,7 +376,7 @@ function MembersDirectoryInner(): React.JSX.Element {
       if (aDonor && !bDonor) return -1;
       if (!aDonor && bDonor) return 1;
       if (aDonor && bDonor) return bDonor.totalDonated - aDonor.totalDonated;
-      return new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime();
+      return new Date(a.joinedAt ?? 0).getTime() - new Date(b.joinedAt ?? 0).getTime();
     });
 
     return list;

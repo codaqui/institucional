@@ -7,10 +7,10 @@ export interface PublicMemberProfile {
   githubHandle: string;
   name: string;
   avatarUrl: string;
-  bio: string | null;
-  linkedinUrl: string | null;
-  roles: string[];
-  joinedAt: string;
+  bio?: string | null;
+  linkedinUrl?: string | null;
+  roles?: string[];
+  joinedAt?: string;
 }
 
 /** Path estático da vanity URL de um membro (`/@<handle>`). */

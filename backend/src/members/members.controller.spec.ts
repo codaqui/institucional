@@ -25,6 +25,7 @@ describe('MembersController', () => {
     membersService = {
       findAllActive: jest.fn(),
       findOne: jest.fn(),
+      findMe: jest.fn(),
       findByHandle: jest.fn(),
       findDonors: jest.fn(),
       findMemberDonations: jest.fn(),
@@ -103,7 +104,7 @@ describe('MembersController', () => {
   describe('getMe (GET /members/me)', () => {
     it('should return the authenticated member', async () => {
       const member = mockMember();
-      membersService.findOne.mockResolvedValue(member);
+      membersService.findMe.mockResolvedValue(member);
 
       const result = await controller.getMe({
         user: {
@@ -118,7 +119,7 @@ describe('MembersController', () => {
       });
 
       expect(result).toEqual(member);
-      expect(membersService.findOne).toHaveBeenCalledWith(member.id);
+      expect(membersService.findMe).toHaveBeenCalledWith(member.id);
     });
   });
 

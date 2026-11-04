@@ -248,6 +248,10 @@ export class MembersService {
     };
   }
 
+  async findMe(id: string): Promise<Member | null> {
+    return this.repo.findOne({ where: { id, isActive: true } });
+  }
+
   /** Perfil individual (endpoint público) */
   async findOne(id: string) {
     const member = await this.repo.findOne({
@@ -437,10 +441,10 @@ export class MembersService {
       githubHandle: string;
       name: string;
       avatarUrl: string;
-      bio: string | null;
-      linkedinUrl: string | null;
-      roles: string[];
-      joinedAt: Date;
+      bio?: string | null;
+      linkedinUrl?: string | null;
+      roles?: string[];
+      joinedAt?: Date;
       totalDonated: number;
       lastDonatedAt: Date;
       donationCount: number;
@@ -455,6 +459,7 @@ export class MembersService {
       .createQueryBuilder('tx')
       .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
       .where('m."isActive" = true')
+      .andWhere("COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'")
       .select([
         'm.id AS id',
         'm."githubHandle" AS "githubHandle"',
@@ -488,6 +493,7 @@ export class MembersService {
       .createQueryBuilder('tx')
       .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
       .where('m."isActive" = true')
+      .andWhere("COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'")
       .select('COUNT(DISTINCT m.id)', 'count')
       .getRawOne();
 
