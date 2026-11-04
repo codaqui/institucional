@@ -3,8 +3,13 @@ FROM node:24-alpine
 WORKDIR /app/frontend
 
 COPY package.json package-lock.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm ci --ignore-scripts --no-audit --no-fund && chown -R node:node /app
+
+USER node
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "npm install --no-audit --no-fund && npm run dev -- --host 0.0.0.0 --port 3000"]
+HEALTHCHECK --interval=10s --timeout=5s --retries=12 \
+  CMD wget -qO- http://localhost:3000/ || wget -qO- --no-check-certificate https://localhost:3000/ || exit 1
+
+CMD ["sh", "-c", "npm install --ignore-scripts --no-audit --no-fund && npm run dev -- --host 0.0.0.0 --port 3000"]
