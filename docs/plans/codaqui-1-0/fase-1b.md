@@ -122,15 +122,15 @@ agent-protocol:
 - Salvar usa `authFetch`, exibe sucesso/erro e atualiza a configuração sem exigir logout.
 - Explica quando uma alteração passa a valer no perfil público/build.
 
-- [ ] **Step 1: Write failing island tests**
+- [x] **Step 1: Write failing island tests**
   Cobrir carregamento, defaults, toggles, save, erro da API, e-mail somente leitura e mensagem de propagação.
-- [ ] **Step 2: Implement Meus dados**
+- [x] **Step 2: Implement Meus dados**
   Reutilizar padrões admin/membro, tokens e componentes compartilhados; não criar uma segunda API no cliente.
-- [ ] **Step 3: Verify end to end**
+- [x] **Step 3: Verify end to end**
   Alterar visibilidade, confirmar audit e ausência do campo no payload público após rebuild/refresh aplicável.
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
   `cd frontend && npx vitest run src/components/islands/member src/components/islands/__tests__`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/islands frontend/src/lib/api-proxy-paths* && git commit -m "feat(fase-1b): adiciona Meus dados e controles de privacidade"`
 
 ### Task 4: P1/P2 — Política de Privacidade e inventário de tratamentos
