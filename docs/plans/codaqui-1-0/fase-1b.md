@@ -148,13 +148,13 @@ agent-protocol:
 - Inventário: dado → fonte → finalidade → acesso/compartilhamento → retenção → direitos/canal.
 - Seção específica de crianças e adolescentes, operadores, GitHub/Stripe/Google/SMTP/Cloudflare e retenções E1/G6.
 
-- [ ] **Step 1: Draft inventory before legal copy**
+- [x] **Step 1: Draft inventory before legal copy**
   Preencher o inventário com os tratamentos reais do código; marcar revisão jurídica como gate humano.
-- [ ] **Step 2: Publish the privacy page and links**
+- [x] **Step 2: Publish the privacy page and links**
   URL `/sobre/privacidade`, footer e menu do perfil. Conteúdo revisável, sem promessas absolutas.
-- [ ] **Step 3: Verify content and navigation**
+- [x] **Step 3: Verify content and navigation**
   Conferir links, headings, responsividade, contraste e presença no sitemap após revisão humana.
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git add docs/modules/privacy docs/README.md frontend/src/pages/sobre/privacidade.astro frontend/src/components/astro frontend/src/components/islands/NavbarAuth.tsx frontend/src/components/islands/__tests__/NavbarAuth.test.tsx && git commit -m "docs(fase-1b): publica privacidade e inventário de tratamentos"`
 
 ### Task 5: P3 — UI do Código de Conduta sem alterar o texto
@@ -168,13 +168,13 @@ agent-protocol:
 - Hero, resumo em cards, TOC responsivo, destaque para Como reportar, contato e versão print-friendly.
 - Texto canônico preservado integralmente e URL mantida; link para Privacidade.
 
-- [ ] **Step 1: Write failing page smoke tests**
+- [x] **Step 1: Write failing page smoke tests**
   Verificar TOC, heading hierarchy, contato, link cruzado e preservação do conteúdo.
-- [ ] **Step 2: Implement responsive layout**
+- [x] **Step 2: Implement responsive layout**
   Usar tokens e componentes de servidor sempre que possível; sem JS desnecessário.
-- [ ] **Step 3: Verify desktop, mobile and print**
+- [x] **Step 3: Verify desktop, mobile and print**
   Conferir TOC, foco, contraste e impressão.
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git add frontend/src/pages/sobre frontend/src/components && git commit -m "feat(fase-1b): renova apresentação do código de conduta"`
 
 ### Task 6: G4 — Pagefind somente no portal codaqui

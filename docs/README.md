@@ -46,6 +46,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | Comunidades | [Registro, snapshot e sites whitelabel](modules/community/COMMUNITY_SITES.md) · [Mapa de papéis](modules/events/ROLES.md) |
 | Diretorias e designations | [ADR 006](adrs/006-directorates-designations.md) · [Mapa de papéis](modules/events/ROLES.md) |
 | Insights / Social Stats | [Estatísticas e presença digital](modules/insights/SOCIAL_STATS.md) |
+| Privacidade e proteção de dados | [Visão geral](modules/privacy/README.md) · [Inventário de tratamentos](modules/privacy/treatments.md) |
 
 ### Plans — Planos e RFCs
 
