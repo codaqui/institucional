@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import mdx from "@astrojs/mdx";
@@ -13,6 +14,13 @@ const tenantDef = TENANT ? TENANT_BY_NAME[TENANT] : null;
 if (TENANT && !tenantDef) throw new Error(`TENANT desconhecido: ${TENANT}`);
 // SITE_URL explícito vence (previews locais/CI); senão o do tenant; senão codaqui.
 const SITE_URL = process.env.SITE_URL ?? tenantDef?.site ?? "https://codaqui.dev";
+const https =
+  process.env.HTTPS === "true"
+    ? {
+        key: readFileSync(new URL("../.certs/localhost-key.pem", import.meta.url)),
+        cert: readFileSync(new URL("../.certs/localhost.pem", import.meta.url)),
+      }
+    : undefined;
 
 // Páginas que não entram no sitemap: noindex (404, fallback de evento,
 // stubs de redirect legado) e rotas de app das fases 0.4+ (admin, auth).
@@ -41,6 +49,6 @@ export default defineConfig({
     // Dev (`astro dev` com TENANT): src/lib/community.ts importa os configs de
     // `comunidades/<slug>/`, fora da raiz do Vite — sem isso o dev-server
     // bloqueia com 403 "outside of Vite serving allow list". Build não é afetado.
-    server: { fs: { allow: [".."] } },
+    server: { fs: { allow: [".."] }, https },
   },
 });

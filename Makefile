@@ -152,9 +152,17 @@ setup-https: ## Gera certificados locais confiáveis via mkcert (HTTPS)
 	@mkcert -install
 	@mkdir -p .certs
 	@mkcert -key-file .certs/localhost-key.pem -cert-file .certs/localhost.pem "localhost" "*.localhost" "127.0.0.1" "::1"
-	@sed -i.bak "s|^HTTPS=.*|HTTPS=true|" $(ENV_FILE)
+	@if ! grep -q "^PUBLIC_API_URL=" $(ENV_FILE); then printf "\nPUBLIC_API_URL=http://localhost:3001\n" >> $(ENV_FILE); fi
+	@if ! grep -q "^STRIPE_FORWARD_URL=" $(ENV_FILE); then printf "\nSTRIPE_FORWARD_URL=http://backend:3000/stripe/webhook\n" >> $(ENV_FILE); fi
+	@sed -i.bak \
+	    -e "s|^HTTPS=.*|HTTPS=true|" \
+	    -e "s|^BACKEND_URL=.*|BACKEND_URL=https://localhost:3001|" \
+	    -e "s|^FRONTEND_URL=.*|FRONTEND_URL=https://localhost:3000|" \
+	    -e "s|^PUBLIC_API_URL=.*|PUBLIC_API_URL=https://localhost:3001|" \
+	    -e "s|^STRIPE_FORWARD_URL=.*|STRIPE_FORWARD_URL=https://backend:3000/stripe/webhook|" $(ENV_FILE)
 	@rm -f $(ENV_FILE).bak
-	@printf "$(GREEN)✔  Certificados gerados em .certs/ e HTTPS ativado no .env.$(RESET)\n"
+	@printf "$(GREEN)✔  Certificados gerados em .certs/; HTTPS e URLs locais atualizados no .env.$(RESET)\n"
+	@printf "$(YELLOW)⚠  Atualize o callback do GitHub OAuth App para https://localhost:3001/auth/github/callback.$(RESET)\n"
 
 down: ## Para e remove todos os containers
 	podman compose -f $(COMPOSE_FILE) down

@@ -31,7 +31,7 @@ agent-protocol: All operational/setup commands live HERE — AGENTS.md only refe
 
 | Camada | Diretório | Serve via |
 |--------|-----------|-----------|
-| **Frontend** (Astro) | `frontend/` | Cloudflare Pages (CI) · `make astro-dev` (dev) |
+| **Frontend** (Astro) | `frontend/` | Cloudflare Pages (CI) · `make up` (Compose :3000) · `make astro-dev` (dev :4321) |
 | **Backend** (NestJS) | `backend/` | Podman Compose (local + produção ARM64) |
 | **Infra** | `compose.yaml` / `compose.prod.yaml` | Podman Compose |
 
@@ -287,7 +287,8 @@ O JSON do spec (`GET /docs-json`) é servido **sempre, inclusive em produção**
 
 ```bash
 # Instale a CLI: https://stripe.com/docs/stripe-cli
-stripe listen --forward-to localhost:3001/stripe/webhook
+stripe listen --forward-to localhost:3001/stripe/webhook \
+  --events checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,invoice.payment_succeeded,charge.refunded,charge.succeeded,charge.updated,customer.subscription.deleted,customer.subscription.updated
 # A CLI imprime o STRIPE_WEBHOOK_SECRET temporário — cole no .env
 ```
 
@@ -296,7 +297,7 @@ stripe listen --forward-to localhost:3001/stripe/webhook
 1. Acesse [dashboard.stripe.com → Webhooks](https://dashboard.stripe.com/webhooks)
 2. Clique em **"Add endpoint"**
 3. URL: `https://api.codaqui.dev/stripe/webhook`
-4. Eventos a ouvir: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`
+4. Eventos a ouvir: `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `invoice.payment_succeeded`, `charge.refunded`, `charge.succeeded`, `charge.updated`, `customer.subscription.deleted`, `customer.subscription.updated`
 5. Copie o **Signing secret** (`whsec_...`) gerado e defina como `STRIPE_WEBHOOK_SECRET` no servidor de produção
 
 ---
@@ -314,26 +315,20 @@ make setup   # Cria .env a partir de .env.example e instala dependências
 Edite o `.env` gerado com suas credenciais, depois:
 
 ```bash
-make up   # Sobe backend + banco + Stripe CLI (captura o STRIPE_WEBHOOK_SECRET)
+make up   # Sobe Astro + backend + banco + Stripe CLI (captura o STRIPE_WEBHOOK_SECRET)
 ```
 
-O app Astro não roda no Compose — em outro terminal:
+O Compose padroniza o frontend em `http://localhost:3000` e o backend em `http://localhost:3001`, com callbacks OAuth coerentes com essas URLs. O Astro roda com hot reload; o monorepo é montado no container e as dependências ficam no volume `frontend_node_modules`. Não é necessário abrir outro terminal. Para rodar o Astro fora do Compose, `make astro-dev` continua disponível em `http://localhost:4321`.
 
-```bash
-make astro-dev   # http://localhost:4321
-```
-
-> Com o site Astro em dev, aponte `FRONTEND_URL=http://localhost:4321` no `.env` da raiz:
-> o backend usa essa variável nos redirects pós-autenticação/doação e nos links de e-mail
-> (default `http://localhost:3000`).
+Para usar HTTPS local, rode `make setup-https` antes do `make up`. O target gera os certificados com `mkcert` e ajusta `HTTPS`, `BACKEND_URL`, `FRONTEND_URL`, `PUBLIC_API_URL` e `STRIPE_FORWARD_URL` no `.env`; o site passa para `https://localhost:3000` e a API para `https://localhost:3001`, sem editar as URLs manualmente. Atualize também o callback do GitHub OAuth App para `https://localhost:3001/auth/github/callback`: o valor cadastrado precisa corresponder ao `BACKEND_URL` ativo (HTTP ou HTTPS).
 
 ### Serviços (DEV)
 
 | Serviço | URL |
 |---------|-----|
-| App Astro (terminal separado: `make astro-dev`) | http://localhost:4321 |
-| Backend NestJS | http://localhost:3001 |
-| Backend Swagger UI | http://localhost:3001/docs |
+| App Astro (Compose) | http://localhost:3000 ou https://localhost:3000 |
+| Backend NestJS | http://localhost:3001 ou https://localhost:3001 |
+| Backend Swagger UI | http://localhost:3001/docs ou https://localhost:3001/docs |
 | PostgreSQL | localhost:5432 |
 | Stripe CLI | (sem UI — use `make logs SERVICE=stripe-cli`) |
 
@@ -363,6 +358,8 @@ make migration-revert   # Reverte a última migration aplicada
 make migration-show     # Lista todas as migrations e seus status
 ```
 
+Para validar um dump em um banco isolado, crie o banco de destino e passe `DB_NAME` explicitamente: `make db-restore-prod DUMP=pg_dump/arquivo.dmp DB_NAME=codaqui_test && make migration-run DB_NAME=codaqui_test`. A restauração recria o schema `public` do banco informado; confira o nome exibido antes de confirmar.
+
 Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar. `make migration-revert` executa o `down` da última migration aplicada e pode remover colunas/dados: valide reversões em um PostgreSQL descartável, nunca aponte esse teste para desenvolvimento compartilhado ou produção. Na Fase 1a, a sequência aditiva é 026 (designations), 027 (diretorias), 028 (comunidades), 029 (e-mails), 030 (auditoria/settings) e 031 (eventos 18+); após validar o `down` da 031, restaure imediatamente com `make migration-run` no mesmo banco descartável.
 
 ---
@@ -386,8 +383,9 @@ Baseie-se no `.env.example`. Variáveis principais:
 | `AUDIT_OPERATIONAL_RETENTION_DAYS` | Backend | Fallback da retenção de logs operacionais (7–365; default 30). O setting admin vence a env; governo nunca expira |
 | `TURNSTILE_SECRET_KEY` / `TURNSTILE_ALLOWED_HOSTNAMES` | Backend | Infraestrutura opt-in do Turnstile. Nenhuma rota atual usa o guard; produção sem secret falha fechada quando ele for aplicado |
 | `PUBLIC_TURNSTILE_SITE_KEY` | Frontend | Renderiza `TurnstileField`; sem chave não há widget nem token simulado |
-| `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`) |
-| `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; com o Astro em dev use `http://localhost:4321`) |
+| `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`; `make setup-https` ajusta para HTTPS) |
+| `PUBLIC_API_URL` | Frontend | URL da API usada pelo Compose e pelas ilhas (default: `http://localhost:3001`; `make setup-https` ajusta para HTTPS) |
+| `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; `make setup-https` ajusta para HTTPS) |
 
 > **Nota (GitHub-as-Database):** a escrita no repositório usa o **token OAuth do próprio
 > membro logado** — o código pede o scope `public_repo` no OAuth App existente

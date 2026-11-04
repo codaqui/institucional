@@ -58,13 +58,47 @@ services:
       timeout: 10s
       retries: 3
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: codaqui_frontend
+    environment:
+      NODE_ENV: development
+      HTTPS: ${HTTPS:-false}
+      SITE_URL: ${FRONTEND_URL:-http://localhost:3000}
+      PUBLIC_API_URL: ${PUBLIC_API_URL:-http://localhost:3001}
+      PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY:-}
+      PUBLIC_TURNSTILE_SITE_KEY: ${PUBLIC_TURNSTILE_SITE_KEY:-}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - frontend_node_modules:/app/frontend/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - codaqui-network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/ || wget -qO- --no-check-certificate https://localhost:3000/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
   # Stripe CLI — encaminha webhooks do Stripe para o backend local
   # Requer STRIPE_SECRET_KEY no .env. Inicie 1x para ver o webhook secret:
   # podman logs codaqui_stripe_cli
   stripe-cli:
     container_name: codaqui_stripe_cli
     image: stripe/stripe-cli:latest
-    command: listen --forward-to http://backend:3000/stripe/webhook --skip-verify
+    command:
+      - listen
+      - --forward-to
+      - ${STRIPE_FORWARD_URL:-http://backend:3000/stripe/webhook}
+      - --skip-verify
+      - --events
+      - checkout.session.completed,checkout.session.async_payment_succeeded,checkout.session.async_payment_failed,invoice.payment_succeeded,charge.refunded,charge.succeeded,charge.updated,customer.subscription.deleted,customer.subscription.updated
     env_file:
       - .env
     environment:
@@ -82,3 +116,4 @@ networks:
 
 volumes:
   pgdata:
+  frontend_node_modules:
