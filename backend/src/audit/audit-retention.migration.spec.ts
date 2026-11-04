@@ -21,18 +21,14 @@ describe('Migration030AuditRetention', () => {
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining('ADD "category" character varying(16)'),
     );
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE "audit_logs" SET "category" = $1'), [
-      'governance',
-      AuditAction.ROLE_CHANGE,
-    ]);
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE "audit_logs" SET "category" = $1'), [
-      'governance',
-      AuditAction.ROLE_DERIVED,
-    ]);
-    expect(query).toHaveBeenCalledWith(expect.stringContaining('UPDATE "audit_logs" SET "category" = $1'), [
-      'operational',
-      AuditAction.LOGIN,
-    ]);
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE "action" = ANY($2)'),
+      ['governance', [AuditAction.ROLE_CHANGE, AuditAction.ROLE_DERIVED]],
+    );
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('WHERE "action" = ANY($2)'),
+      ['operational', [AuditAction.LOGIN]],
+    );
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining('SET "ipAddress" = NULL'),
     );
@@ -44,12 +40,18 @@ describe('Migration030AuditRetention', () => {
     );
   });
 
-  it('starts every action update before waiting for the first one', async () => {
+  it('does not overlap category updates on the same database connection', async () => {
     let releaseFirstUpdate: () => void;
+    let markFirstUpdateStarted: () => void;
     const firstUpdate = new Promise<void>((resolve) => {
       releaseFirstUpdate = resolve;
     });
-    const query = jest.fn().mockImplementation((sql: string, parameters?: unknown[]) => {
+    const firstUpdateStarted = new Promise<void>((resolve) => {
+      markFirstUpdateStarted = resolve;
+    });
+    let activeUpdates = 0;
+    let maxActiveUpdates = 0;
+    const query = jest.fn().mockImplementation((sql: string) => {
       if (sql.includes('SELECT DISTINCT "action"')) {
         return Promise.resolve([
           { action: AuditAction.ROLE_CHANGE },
@@ -57,25 +59,29 @@ describe('Migration030AuditRetention', () => {
           { action: AuditAction.LOGIN },
         ]);
       }
-      if (
-        sql.includes('UPDATE "audit_logs" SET "category"') &&
-        parameters?.[1] === AuditAction.ROLE_CHANGE
-      ) {
-        return firstUpdate;
+      if (!sql.includes('UPDATE "audit_logs" SET "category"')) {
+        return Promise.resolve([]);
       }
-      return Promise.resolve([]);
+      activeUpdates += 1;
+      maxActiveUpdates = Math.max(maxActiveUpdates, activeUpdates);
+      const finish = () => {
+        activeUpdates -= 1;
+      };
+      if (activeUpdates === 1) {
+        markFirstUpdateStarted();
+        return firstUpdate.then(finish);
+      }
+      return Promise.resolve([]).then(finish);
     });
     const migration = new Migration030AuditRetention1793289604000();
 
     const migrationPromise = migration.up({ query } as unknown as QueryRunner);
-    await new Promise((resolve) => setImmediate(resolve));
-    const updatesStarted = query.mock.calls.filter(([sql]) =>
-      sql.includes('UPDATE "audit_logs" SET "category"'),
-    ).length;
+    await firstUpdateStarted;
+    const observedMaxActiveUpdates = maxActiveUpdates;
     releaseFirstUpdate!();
     await migrationPromise;
 
-    expect(updatesStarted).toBe(3);
+    expect(observedMaxActiveUpdates).toBe(1);
   });
 
   it('removes only objects owned by this migration on down', async () => {
@@ -84,9 +90,7 @@ describe('Migration030AuditRetention', () => {
 
     await migration.down({ query } as unknown as QueryRunner);
 
-    expect(query).toHaveBeenCalledWith(
-      expect.stringContaining('DROP INDEX'),
-    );
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('DROP INDEX'));
     expect(query).toHaveBeenCalledWith(
       expect.stringContaining('DROP TABLE "app_settings"'),
     );

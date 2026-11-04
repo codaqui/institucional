@@ -69,25 +69,30 @@ export class Migration028Communities1793289602000 implements MigrationInterface 
       await readFile(seedPath, 'utf8'),
     ) as CommunitySeed[];
 
-    const inserts = seed.map((community) => {
-      const columns = [
-        'slug',
-        'name',
-        'description',
-        'emoji',
-        'logoUrl',
-        'location',
-        'founded',
-        'links',
-        'socialProfiles',
-        'tags',
-        'level',
-        'status',
-        'sealStatus',
-        'siteEnabled',
-        'siteDomain',
-      ];
-      const values: unknown[] = [
+    const columns = [
+      'slug',
+      'name',
+      'description',
+      'emoji',
+      'logoUrl',
+      'location',
+      'founded',
+      'links',
+      'socialProfiles',
+      'tags',
+      'level',
+      'status',
+      'sealStatus',
+      'siteEnabled',
+      'siteDomain',
+      'sealGrantedAt',
+      'sealGrantedById',
+      'sealValidUntil',
+      'sealNotes',
+    ];
+    const values: unknown[] = [];
+    const rows = seed.map((community, rowIndex) => {
+      const rowValues: unknown[] = [
         community.slug,
         community.name,
         community.description,
@@ -103,30 +108,27 @@ export class Migration028Communities1793289602000 implements MigrationInterface 
         community.sealStatus,
         community.siteEnabled,
         community.siteDomain,
+        community.sealGrantedAt ?? null,
+        community.sealGrantedById ?? null,
+        community.sealValidUntil ?? null,
+        community.sealNotes ?? null,
       ];
-      const optionalSealColumns = [
-        'sealGrantedAt',
-        'sealGrantedById',
-        'sealValidUntil',
-        'sealNotes',
-      ] as const;
-      for (const column of optionalSealColumns) {
-        if (community[column] != null) {
-          columns.push(column);
-          values.push(community[column]);
-        }
-      }
-
-      const quotedColumns = columns.map((column) => `"${column}"`).join(', ');
-      const placeholders = columns.map((_, index) => `$${index + 1}`).join(', ');
-      return queryRunner.query(
-        `INSERT INTO "communities" (${quotedColumns})
-         VALUES (${placeholders})
-         ON CONFLICT ("slug") DO NOTHING`,
-        values,
-      );
+      values.push(...rowValues);
+      const placeholders = rowValues
+        .map(
+          (_, columnIndex) =>
+            `$${rowIndex * rowValues.length + columnIndex + 1}`,
+        )
+        .join(', ');
+      return `(${placeholders})`;
     });
-    await Promise.all(inserts);
+    const quotedColumns = columns.map((column) => `"${column}"`).join(', ');
+    await queryRunner.query(
+      `INSERT INTO "communities" (${quotedColumns})
+       VALUES ${rows.join(', ')}
+       ON CONFLICT ("slug") DO NOTHING`,
+      values,
+    );
 
     const pending = (await queryRunner.query(`
       SELECT c."slug"

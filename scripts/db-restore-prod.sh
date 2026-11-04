@@ -7,6 +7,7 @@
 # Uso:
 #   make db-restore-prod                       # usa o dump mais recente em pg_dump/
 #   make db-restore-prod DUMP=pg_dump/foo.dmp  # dump específico
+#   make db-restore-prod DB_NAME=codaqui_test  # banco de destino específico
 #
 # Estratégia:
 #   1. Localiza o dump (.dmp em formato custom, gerado via pg_dump -F c)
@@ -38,11 +39,13 @@ if [[ ! -f .env ]]; then
   printf "${RED}✖  .env não encontrado. Execute: make setup${RESET}\n"
   exit 1
 fi
+DB_USER_OVERRIDE="${DB_USER:-}"
+DB_NAME_OVERRIDE="${DB_NAME:-}"
 # shellcheck disable=SC1091
 set -a; source .env; set +a
 
-DB_USER="${DB_USER:-codaqui}"
-DB_NAME="${DB_NAME:-codaqui_db}"
+DB_USER="${DB_USER_OVERRIDE:-${DB_USER:-codaqui}}"
+DB_NAME="${DB_NAME_OVERRIDE:-${DB_NAME:-codaqui_db}}"
 CONTAINER="codaqui_postgres"
 
 # ─── 2. Localiza o dump ──────────────────────────────────────────────────────
@@ -149,8 +152,8 @@ cat <<EOF
 ${BOLD}${GREEN}✔  Restauração concluída.${RESET}
 
 ${BOLD}Próximos passos:${RESET}
-  1. ${CYAN}make migration-show${RESET}          # confere se há migrations pendentes
-  2. ${CYAN}make migration-run${RESET}           # aplica patches de schema (se houver)
+  1. ${CYAN}make migration-show DB_NAME=${DB_NAME} DB_USER=${DB_USER}${RESET}  # confere se há migrations pendentes no banco restaurado
+  2. ${CYAN}make migration-run DB_NAME=${DB_NAME} DB_USER=${DB_USER}${RESET}   # aplica patches de schema no mesmo banco
   3. No frontend: ${BOLD}faça logout e login${RESET} novamente
      - Seu memberId UUID mudou; o JWT no localStorage está obsoleto
      - O OAuth te encontra por githubId e cria um JWT novo automaticamente

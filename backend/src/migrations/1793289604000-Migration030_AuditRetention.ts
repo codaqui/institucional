@@ -2,9 +2,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 import { auditCategory } from '../audit/audit-category';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 
-export class Migration030AuditRetention1793289604000
-  implements MigrationInterface
-{
+export class Migration030AuditRetention1793289604000 implements MigrationInterface {
   name = 'Migration030AuditRetention1793289604000';
 
   async up(queryRunner: QueryRunner): Promise<void> {
@@ -21,13 +19,24 @@ export class Migration030AuditRetention1793289604000
     const actions = (await queryRunner.query(
       `SELECT DISTINCT "action" FROM "audit_logs"`,
     )) as Array<{ action: AuditAction }>;
-    const updates = actions.map(({ action }) =>
-      queryRunner.query(
-        `UPDATE "audit_logs" SET "category" = $1 WHERE "action" = $2`,
-        [auditCategory(action), action],
-      ),
-    );
-    await Promise.all(updates);
+    const governanceActions = actions
+      .filter(({ action }) => auditCategory(action) === 'governance')
+      .map(({ action }) => action);
+    const operationalActions = actions
+      .filter(({ action }) => auditCategory(action) === 'operational')
+      .map(({ action }) => action);
+    if (governanceActions.length > 0) {
+      await queryRunner.query(
+        `UPDATE "audit_logs" SET "category" = $1 WHERE "action" = ANY($2)`,
+        ['governance', governanceActions],
+      );
+    }
+    if (operationalActions.length > 0) {
+      await queryRunner.query(
+        `UPDATE "audit_logs" SET "category" = $1 WHERE "action" = ANY($2)`,
+        ['operational', operationalActions],
+      );
+    }
 
     await queryRunner.query(`
       UPDATE "audit_logs" SET "ipAddress" = NULL
