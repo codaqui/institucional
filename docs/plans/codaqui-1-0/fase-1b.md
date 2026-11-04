@@ -193,15 +193,15 @@ agent-protocol:
 - `/busca` noindex/fora do sitemap, UI pt-BR e carregamento sob demanda.
 - Excluir rotas noindex, app autenticado, `/_*` e o próprio índice; link Buscar e atalho `/` fora de formulários.
 
-- [ ] **Step 1: Write failing search contract tests**
+- [x] **Step 1: Write failing search contract tests**
   Cobrir decisão codaqui × tenant, exclusões, atalho de teclado e presença do índice no build.
-- [ ] **Step 2: Add Pagefind and portal-only build wiring**
+- [x] **Step 2: Add Pagefind and portal-only build wiring**
   Instalar a versão compatível registrada no lockfile; não executar o índice em builds tenant.
-- [ ] **Step 3: Implement search page and navigation**
+- [x] **Step 3: Implement search page and navigation**
   Usar UI oficial, pt-BR, noindex, carregamento sob demanda e fallback sem JS.
-- [ ] **Step 4: Verify real search**
+- [x] **Step 4: Verify real search**
   Executar build codaqui e confirmar que um termo de blog/trilha retorna resultado; builds tenant não contêm `dist/pagefind/`.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/package.json frontend/package-lock.json frontend/astro.config.mjs frontend/src frontend/scripts && git commit -m "feat(fase-1b): adiciona busca Pagefind ao portal"`
 
 ### Task 7: Documentação, release e handoff
