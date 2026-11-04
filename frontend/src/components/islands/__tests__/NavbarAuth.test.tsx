@@ -220,6 +220,26 @@ describe("NavbarAuth — dropdown desktop", () => {
     );
   });
 
+  it("exibe vínculos ativos de comunidade e diretoria junto aos papéis", async () => {
+    mockLoggedIn();
+    state.authFetch.mockImplementation((url: string) => {
+      if (url.includes("/designations/me")) {
+        return Promise.resolve(jsonResponse([
+          { id: "d1", targetType: "community", targetId: null, targetKey: "devparana", designation: "responsible" },
+          { id: "d2", targetType: "directorate", targetId: "dir-1", targetKey: null, designation: "director" },
+        ]));
+      }
+      return Promise.resolve(url.includes("/companies/me")
+        ? jsonResponse({ message: "not found" }, { status: 404 })
+        : jsonResponse([]));
+    });
+    renderWithMui(<NavbarAuth />);
+    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
+
+    expect(await screen.findByText("responsible @ devparana")).toBeInTheDocument();
+    expect(screen.getByText("director @ dir-1")).toBeInTheDocument();
+  });
+
   it("Sair chama logout({ returnTo: '/' })", async () => {
     mockLoggedIn();
     renderWithMui(<NavbarAuth />);

@@ -76,5 +76,11 @@ const isProd = import.meta.env.PROD;
   </head>
   <body data-pagefind-ignore={noindex ? true : undefined}>
     <slot />
+    {!import.meta.env.PUBLIC_TENANT && (
+      <script>
+        import { initSearchShortcut } from "../lib/search-shortcut";
+        initSearchShortcut(document, (path) => window.location.assign(path));
+      </script>
+    )}
   </body>
 </html>

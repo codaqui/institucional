@@ -35,21 +35,5 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         search_label: "Busca",
       },
     });
-    document.addEventListener("keydown", (event) => {
-      const target = event.target;
-      if (
-        event.key === "/" &&
-        !event.ctrlKey &&
-        !event.metaKey &&
-        !event.altKey &&
-        !(target instanceof HTMLInputElement) &&
-        !(target instanceof HTMLTextAreaElement) &&
-        !(target instanceof HTMLSelectElement) &&
-        !(target instanceof HTMLElement && target.isContentEditable)
-      ) {
-        event.preventDefault();
-        document.querySelector(".pagefind-ui__search-input")?.focus();
-      }
-    });
   });
 </script>

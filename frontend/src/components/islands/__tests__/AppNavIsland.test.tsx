@@ -11,6 +11,8 @@ const designationsState = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../lib/use-designations", () => ({
+  formatDesignationLabel: (designation: MyDesignation) =>
+    `${designation.designation} @ ${designation.targetKey ?? designation.targetId ?? designation.targetType}`,
   useMyDesignations: () => ({
     data: designationsState.data,
     loading: false,
@@ -123,6 +125,9 @@ describe("AppNavIsland", () => {
       makeUser({ roles: ["membro", "admin", "event_organizer"] }),
       true,
     );
+    designationsState.data = [
+      { id: "d1", targetType: "community", targetId: null, targetKey: "devparana", designation: "responsible" },
+    ];
     renderWithMui(<AppNavIsland currentPath="/admin/eventos" />);
 
     expect(screen.getByText("Monalisa Octocat")).toBeInTheDocument();
@@ -135,6 +140,7 @@ describe("AppNavIsland", () => {
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("Organizador")).toBeInTheDocument();
     expect(screen.queryByText("Membro")).not.toBeInTheDocument();
+    expect(screen.getByText("responsible @ devparana")).toBeInTheDocument();
 
     const visaoGeral = screen.getByRole("link", { name: /visão geral/i });
     expect(visaoGeral).toHaveAttribute("href", "/admin/eventos");

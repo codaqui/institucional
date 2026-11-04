@@ -37,6 +37,7 @@ import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
 import { useAuth } from "../../lib/use-auth";
 import {
+  formatDesignationLabel,
   useMyDesignations,
   type MyDesignation,
 } from "../../lib/use-designations";
@@ -349,7 +350,7 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
           </Typography>
         </Box>
       </Box>
-      {roleChips.length > 0 && (
+      {(roleChips.length > 0 || myDesignations.length > 0) && (
         <Box
           sx={{
             display: "flex",
@@ -365,6 +366,14 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
               size="small"
               variant="outlined"
               label={ROLE_LABELS[role] ?? role}
+            />
+          ))}
+          {myDesignations.map((designation) => (
+            <Chip
+              key={designation.id}
+              size="small"
+              variant="outlined"
+              label={formatDesignationLabel(designation)}
             />
           ))}
         </Box>

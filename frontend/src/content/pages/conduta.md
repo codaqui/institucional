@@ -3,8 +3,6 @@ title: Código de Conduta
 description: Código de Conduta da Comunidade Codaqui
 ---
 
-# Código de Conduta da Comunidade Codaqui
-
 ## Resumo
 
 A Codaqui é uma comunidade dedicada a oferecer um ambiente livre de assédio para todos, independentemente do sexo, identidade de gênero e expressão, idade, orientação sexual, deficiência, aparência física, tamanho corporal, cor de pele, etnia, religião (ou falta dela), nacionalidade, ideologia política, experiência em computação e suas tecnologias (ou a falta dela).

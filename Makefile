@@ -284,6 +284,7 @@ astro-verify: ## Verificação completa do app Astro: build + tipos + testes + s
 	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
+	@! grep -Eq '<loc>https://codaqui.dev/(busca<|admin(/|<)|membro(/|<)|auth(/|<))' $(ASTRO_DIR)/dist/sitemap-0.xml && printf "$(GREEN)✔  busca e rotas de app fora do sitemap$(RESET)\n"
 	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs referência versionada (url-reference.json)...$(RESET)\n"
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  App Astro verificado. Suba com: make astro-preview$(RESET)\n"

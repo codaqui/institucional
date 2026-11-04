@@ -20,6 +20,7 @@ import SwitchAccountIcon from "@mui/icons-material/SwitchAccount";
 import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
 import { useAuth } from "../../lib/use-auth";
+import { formatDesignationLabel, useMyDesignations } from "../../lib/use-designations";
 
 /**
  * Menu da conta no header — restore do port do Docusaurus.
@@ -136,6 +137,7 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
   } = useAuth();
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const hasCompany = useHasCompany(Boolean(isLoggedIn && user), authFetch);
+  const { data: myDesignations } = useMyDesignations(Boolean(isLoggedIn && user));
 
   if (!ready) {
     return <span className="inline-block h-9 w-24 animate-pulse rounded-md bg-sunken" />;
@@ -230,6 +232,14 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
                 label={ROLE_LABELS[role] ?? role}
               />
             ))}
+          {myDesignations.map((designation) => (
+            <Chip
+              key={designation.id}
+              size="small"
+              variant="outlined"
+              label={formatDesignationLabel(designation)}
+            />
+          ))}
         </div>
       </div>
     </div>

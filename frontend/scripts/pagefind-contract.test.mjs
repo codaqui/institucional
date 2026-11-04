@@ -4,7 +4,7 @@ import {
   shouldExcludeFromSearch,
   shouldRunPagefind,
 } from '../src/lib/pagefind-contract.ts';
-import { shouldHandleSearchShortcut } from '../src/lib/search-shortcut.ts';
+import { initSearchShortcut, shouldHandleSearchShortcut } from '../src/lib/search-shortcut.ts';
 
 it('Pagefind runs only for the codaqui portal, never for tenants', () => {
   assert.equal(shouldRunPagefind(undefined), true);
@@ -40,4 +40,26 @@ it('search shortcut only fires outside editable controls and without modifiers',
   assert.equal(shouldHandleSearchShortcut({ key: '/', target: { tagName: 'BODY' }, metaKey: true }), false);
   assert.equal(shouldHandleSearchShortcut({ key: '/', target: { tagName: 'BODY' }, altKey: true }), false);
   assert.equal(shouldHandleSearchShortcut({ key: 'a', target: { tagName: 'BODY' } }), false);
+});
+
+it('global search shortcut navigates to /busca or focuses the existing input', () => {
+  let listener;
+  const focusCalls = [];
+  const input = { focus: () => focusCalls.push(true) };
+  const document = {
+    location: { pathname: '/' },
+    addEventListener: (_type, handler) => { listener = handler; },
+    querySelector: () => input,
+  };
+  const navigations = [];
+  initSearchShortcut(document, (path) => navigations.push(path));
+  const event = { key: '/', target: { tagName: 'BODY' }, prevented: false, preventDefault() { this.prevented = true; } };
+
+  listener(event);
+  assert.deepEqual(navigations, ['/busca']);
+  assert.equal(event.prevented, true);
+
+  document.location.pathname = '/busca';
+  listener({ ...event, prevented: false });
+  assert.equal(focusCalls.length, 1);
 });
