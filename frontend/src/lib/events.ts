@@ -125,7 +125,7 @@ export interface EventDetailFile {
   event: EventItem;
 }
 
-export const EVENTS_MANIFEST_URL = "/events/index.json";
+export { EVENTS_MANIFEST_URL } from "./events-manifest";
 
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";

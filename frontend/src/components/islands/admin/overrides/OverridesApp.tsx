@@ -20,10 +20,10 @@ import OrganizersTab from "./OrganizersTab";
 import OverridesTab from "./OverridesTab";
 import { useAuth } from "../../../../lib/use-auth";
 import { API_URL } from "../../../../lib/config";
-import {
-  EVENTS_MANIFEST_URL,
-  type EventIndexFile,
-  type EventSummary,
+import { EVENTS_MANIFEST_URL } from "../../../../lib/events-manifest";
+import type {
+  EventIndexFile,
+  EventSummary,
 } from "../../../../lib/events";
 
 function OverridesAppInner(): JSX.Element {

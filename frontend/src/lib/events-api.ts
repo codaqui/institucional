@@ -7,11 +7,11 @@
  * backend como fallback para refletir overrides criados entre dois syncs.
  */
 
-import {
-  EVENTS_MANIFEST_URL,
-  type EventIndexFile,
-  type EventSourceSummary,
-  type EventSummary,
+import { EVENTS_MANIFEST_URL } from "./events-manifest";
+import type {
+  EventIndexFile,
+  EventSourceSummary,
+  EventSummary,
 } from "./events";
 
 /** Evento da listagem já mesclado com o payload do override (quando existe). */
