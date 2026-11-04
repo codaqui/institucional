@@ -74,7 +74,7 @@ const isProd = import.meta.env.PROD;
       </>
     )}
   </head>
-  <body>
+  <body data-pagefind-ignore={noindex ? true : undefined}>
     <slot />
   </body>
 </html>
