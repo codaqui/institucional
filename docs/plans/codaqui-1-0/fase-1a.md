@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 1a do Codaqui 1.0.0 — fundações de dados, RBAC, comunidades, diretorias, E1, R1 e transversais aprovadas.
 audience: AI agents e mantenedores executando a Fase 1a.
-status: pronto para implementação mediante comando explícito; baseline auditada em 2026-10-29 (backend 0.11.5, migrations até 025, frontend Astro 7).
+status: concluída em 2026-11-03 (backend 0.12.3, migrations 026–031 validadas com dump PostgreSQL e gates completos).
 sections:
   - Constraints globais e sequência de migrations
   - Mapa de arquivos
