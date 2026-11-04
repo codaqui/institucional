@@ -67,15 +67,15 @@ agent-protocol:
 - Menu de perfil com identidade, chips de roles/designations, grupos Conta/Gestão/Sessão e link para Privacidade.
 - Nenhuma mudança nas regras de autorização do backend.
 
-- [ ] **Step 1: Write failing navigation tests**
+- [x] **Step 1: Write failing navigation tests**
   Cobrir grupos, filtro, item ativo por prefixo, seção vazia, roles/designations, drawer mobile, foco/teclado e link de privacidade. Preservar os casos atuais.
-- [ ] **Step 2: Implement the refined sidebar and profile menu**
+- [x] **Step 2: Implement the refined sidebar and profile menu**
   Manter sidebar 240px, drawer e topbar atuais. Não duplicar menus nem criar outro layout.
-- [ ] **Step 3: Verify behavior in browser**
+- [x] **Step 3: Verify behavior in browser**
   Conferir desktop/mobile, ESC, clique fora, single-open, navegação por teclado e usuários com papéis distintos.
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
   `cd frontend && npx vitest run src/components/islands/__tests__/AppNavIsland.test.tsx src/components/islands/__tests__/NavbarAuth.test.tsx src/lib/header-menu.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/layouts/AppLayout.astro frontend/src/components/islands frontend/src/lib/header-menu* && git commit -m "feat(fase-1b): agrupa navegação admin e menu de perfil"`
 
 ### Task 2: Migration 032 e API de visibilidade do perfil

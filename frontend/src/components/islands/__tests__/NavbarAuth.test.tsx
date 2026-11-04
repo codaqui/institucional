@@ -123,6 +123,19 @@ describe("NavbarAuth — dropdown desktop", () => {
     expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
   });
 
+  it("mostra identidade com chips e link Privacidade e dados", async () => {
+    mockLoggedIn(["membro", "admin"]);
+    renderWithMui(<NavbarAuth />);
+    fireEvent.click(screen.getByRole("button", { name: /menu da conta @octocat/i }));
+
+    expect(await screen.findByText("Monalisa Octocat")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /privacidade e dados/i })).toHaveAttribute(
+      "href",
+      "/sobre/privacidade",
+    );
+  });
+
   it("usuário comum não vê Painel Admin nem Minha Empresa", async () => {
     mockLoggedIn(["membro"]);
     renderWithMui(<NavbarAuth />);

@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import {
   Avatar,
   Button,
+  Chip,
   Divider,
   IconButton,
   ListItemIcon,
@@ -14,6 +15,7 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BusinessIcon from "@mui/icons-material/Business";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
+import PrivacyTipIcon from "@mui/icons-material/PrivacyTip";
 import SwitchAccountIcon from "@mui/icons-material/SwitchAccount";
 import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
@@ -41,6 +43,26 @@ interface AccountMenuEntry {
   href?: string;
   onSelect?: () => void;
   danger?: boolean;
+}
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  "finance-analyzer": "Financeiro",
+  event_organizer: "Organizador",
+  event_finance: "Finanças de eventos",
+  event_host: "Host",
+  event_checker: "Checker",
+};
+
+function MenuSectionLabel({ children }: { readonly children: ReactNode }) {
+  return (
+    <Typography
+      variant="caption"
+      sx={{ display: "block", px: 2, pt: 1, color: "text.secondary", fontWeight: 700 }}
+    >
+      {children}
+    </Typography>
+  );
 }
 
 /** href do Painel Admin por papel — espelha a sidebar (AppNavIsland). */
@@ -140,6 +162,7 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
   const primaryEntries: AccountMenuEntry[] = [
     { key: "perfil", label: "Meu Perfil", href: "/membro", icon: <PersonIcon fontSize="small" /> },
     { key: "clube", label: "Meu Clube", href: "/clube", icon: <TokenIcon fontSize="small" /> },
+    { key: "privacidade", label: "Privacidade e dados", href: "/sobre/privacidade", icon: <PrivacyTipIcon fontSize="small" /> },
     ...(hasCompany
       ? [
           {
@@ -187,11 +210,28 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
   ];
 
   const accountHeader = (
-    <div className="flex items-center gap-2 px-3 py-2">
+    <div className="flex items-start gap-2 px-3 py-2">
       <Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 32, height: 32 }} />
-      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-        @{user.handle}
-      </Typography>
+      <div className="min-w-0">
+        <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
+          {user.name}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" noWrap>
+          @{user.handle}
+        </Typography>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {user.roles
+            .filter((role) => role !== "membro")
+            .map((role) => (
+              <Chip
+                key={role}
+                size="small"
+                variant="outlined"
+                label={ROLE_LABELS[role] ?? role}
+              />
+            ))}
+        </div>
+      </div>
     </div>
   );
 
@@ -221,10 +261,13 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
     return (
       <nav aria-label="Menu da conta" className="flex w-full flex-col gap-1">
         {accountHeader}
+        <MenuSectionLabel>Conta</MenuSectionLabel>
         {primaryEntries.map(renderInline)}
         <hr className="my-1 border-border" />
+        <MenuSectionLabel>Gestão</MenuSectionLabel>
         {donationEntries.map(renderInline)}
         <hr className="my-1 border-border" />
+        <MenuSectionLabel>Sessão</MenuSectionLabel>
         {sessionEntries.map(renderInline)}
       </nav>
     );
@@ -274,10 +317,13 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
       >
         {accountHeader}
         <Divider />
+        <MenuSectionLabel>Conta</MenuSectionLabel>
         {primaryEntries.map(renderMenuItem)}
         <Divider />
+        <MenuSectionLabel>Gestão</MenuSectionLabel>
         {donationEntries.map(renderMenuItem)}
         <Divider />
+        <MenuSectionLabel>Sessão</MenuSectionLabel>
         {sessionEntries.map(renderMenuItem)}
       </Menu>
     </>
