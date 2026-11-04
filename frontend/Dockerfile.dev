@@ -1,0 +1,15 @@
+FROM node:24-alpine
+
+WORKDIR /app/frontend
+
+COPY package.json package-lock.json ./
+RUN apk add --no-cache curl && npm ci --ignore-scripts --no-audit --no-fund && chown -R node:node /app
+
+USER node
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=10s --timeout=5s --retries=12 \
+  CMD curl -fsS --max-redirs 0 http://localhost:3000/ || curl -fsS --max-redirs 0 --cacert /app/.certs/rootCA.pem https://localhost:3000/ || exit 1
+
+CMD ["sh", "-c", "npm install --ignore-scripts --no-audit --no-fund && npm run dev -- --host 0.0.0.0 --port 3000"]

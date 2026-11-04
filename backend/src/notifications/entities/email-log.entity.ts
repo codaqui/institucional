@@ -9,15 +9,17 @@ import {
 export enum EmailStatus {
   SENT = 'sent',
   FAILED = 'failed',
+  SKIPPED = 'skipped',
 }
 
 /**
  * Log de cada e-mail enviado (ou tentado) pela plataforma.
- * Alimenta o painel /admin/emails (enviados/falhas por template e reenvio).
+ * Alimenta o painel /admin/emails (status por template e reenvio).
  */
 @Entity('email_logs')
 @Index('IDX_email_logs_createdAt', ['createdAt'])
 @Index('IDX_email_logs_template_status', ['template', 'status'])
+@Index('IDX_email_logs_template_registration', ['template', 'registrationId'])
 export class EmailLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;

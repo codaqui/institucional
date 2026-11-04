@@ -12,6 +12,15 @@ export enum ManagedEventStatus {
   COMPLETED = 'completed',
 }
 
+export enum VenueType {
+  BAR = 'bar',
+  RESTAURANTE = 'restaurante',
+  AUDITORIO = 'auditorio',
+  CAMPUS = 'campus',
+  ONLINE = 'online',
+  OUTRO = 'outro',
+}
+
 @Entity('managed_events')
 export class ManagedEvent {
   @PrimaryGeneratedColumn('uuid')
@@ -66,6 +75,12 @@ export class ManagedEvent {
    */
   @Column({ type: 'int', nullable: true })
   workloadMinutes: number | null;
+
+  @Column({ default: false })
+  adultOnly: boolean;
+
+  @Column({ type: 'varchar', nullable: true })
+  venueType: VenueType | null;
 
   @Column()
   createdByMemberId: string;

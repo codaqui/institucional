@@ -9,7 +9,8 @@ sections:
   - G6 — Retenção de auditoria: política governo (permanente) vs. operacional (30 dias), flag configurável, cron de purga, fase
 related-docs:
   - docs/plans/codaqui-1-0/README.md — plano-mãe 1.0.0 (fases 1a→7, decisões de design)
-  - docs/plans/codaqui-1-0/c4p.md — submissão pública do C4P (Fase 7, primeiro formulário público anônimo)
+  - docs/plans/codaqui-1-0/auth.md — guest claim (Fase 2, primeiro novo formulário anônimo; Turnstile obrigatório)
+  - docs/plans/codaqui-1-0/c4p.md — submissão pública do C4P (Fase 7, Turnstile obrigatório)
   - docs/adrs/001-event-platform.md — plataforma de eventos (decisão #2: inscrição/check-in exigem conta, sem guest)
   - AGENTS.md — decisão 3 (proxy same-origin), decisão 9 (rotas noindex), padrões de backend
   - backend/src/audit/ — módulo de auditoria existente (tabela audit_logs, cleanup manual, retenção 90d hardcoded)
@@ -26,8 +27,8 @@ agent-protocol:
 
 | Item | Decisão (2026-10-29) | Fase sugerida |
 |---|---|---|
-| **G3 Anti-captcha** | Cloudflare Turnstile (gratuito) | Infra na **1a**; obrigatório antes da **4b** (primeiro formulário público) |
-| **G4 Busca** | Pagefind (recomendado neste anexo) | **1b** |
+| **G3 Anti-captcha** | Cloudflare Turnstile (gratuito) | Infra na **1a**; obrigatório no guest claim da **Fase 2**, primeiro novo formulário anônimo |
+| **G4 Busca** | Pagefind | **1b** |
 | **G5 Certificados** | Sem validade — decisão registrada, zero código | — (nota na ADR futura de certificados/horas) |
 | **G6 Auditoria** | Operacional 30d rotativo (**configurável por painel admin**, env como fallback) + governo permanente | **1a** |
 
@@ -37,38 +38,36 @@ agent-protocol:
 
 ### Por Turnstile
 
-- **Gratuito** (até 1M verificações/mês, widgets ilimitados) e a conta Cloudflare da associação **já existe** — os 4 sites (codaqui + 3 tenants) são projetos Cloudflare Pages no mesmo account (`frontend/tenants.config.mjs`, `.github/workflows/deploy-astro.yml`).
-- **Sem cookies e sem PII** no modelo padrão (desafio não interativo na maioria dos casos) — compatível com a política de privacidade P1 (a coleta será declarada lá) e com LGPD.
-- Alternativas (reCAPTCHA, hCaptcha) foram descartadas: cookies/rastreamento e fricção desnecessária para uma ONG.
+- **Gratuito** e a conta Cloudflare da associação **já existe** — os 4 sites são projetos Cloudflare Pages no mesmo account.
+- **Sem cookies próprios e sem persistência do token no nosso banco.** Cloudflare ainda processa dados técnicos da requisição (por exemplo IP e metadados do dispositivo); isso deve constar como compartilhamento com operador na P1/inventário, sem alegar ausência absoluta de PII.
+- Alternativas com cookies/rastreamento ou maior fricção foram descartadas.
 
 ### Onde entra (mapeamento por formulário público)
 
-| Formulário | Fase | Rota/endpoint | Público hoje? | Turnstile |
-|---|---|---|---|---|
-| **Submissão C4P** | 7 (G) | `POST /c4p/:slug/talks` (a criar — ver [c4p.md](c4p.md)) | Sim, anônimo (substitui Google Forms) | **Obrigatório** |
-| **Candidatura de embaixador (Universitário)** | 4b (H) | página `/universitario` → candidatura com motivação | Sim (membro logado, formulário público) | **Obrigatório** |
-| **Pedido de mentoria** | 5 (F) | `POST /mentorship/sessions` (a criar) | **Sim, 100% anônimo** (mentorando convidado: nome + e-mail, sem login) | **Obrigatório** |
-| **Inscrição em evento** | — | hoje **não existe guest**: ADR 001 (decisão #2) exige conta GitHub para inscrever-se/check-in. O ponto de entrada público real é o início do OAuth (`/auth/github`) e o cadastro de inscrição autenticado | Parcial (o OAuth é público) | **Recomendado** no início do fluxo OAuth (barateia brute-force de redirects) e **obrigatório se um cadastro de guest for introduzido** no futuro (padrão convidado por token, como o mentorando — risco 12 do plano-mãe) |
-| **Doação anônima** | existe | `POST /stripe/checkout-session` com `OptionalJwtAuthGuard` (anônimo ≤ R$ 100, `/participe/apoiar`) | Sim | **Recomendado** em modo managed/invisível: Stripe já tem sinais antifraude próprios e o throttler global (30 req/min/IP — `backend/src/app.module.ts`) já atua, mas é o único endpoint público de dinheiro. Decisão final no plano de implementação |
-
-> **Nota de mapeamento:** o briefing citou "cadastro de guest em evento (auth.md)". Não há guest em evento no sistema atual (ADR 001) e não há `auth.md` no repo — o equivalente funcional hoje é o fluxo de autenticação OAuth + inscrição autenticada, e o candidato futuro é o registro de convidado por token. O desenho abaixo cobre os dois casos sem custo extra.
+| Formulário | Fase | Rota/endpoint | Turnstile |
+|---|---|---|---|
+| **Guest claim de evento** | 2 | `POST /events/public/guest-claim` — [auth.md](auth.md) | **Obrigatório; gate da fase** |
+| **Candidatura de embaixador** | 4b | candidatura autenticada em `/universitario` | **Recomendado** contra automação; auth já reduz anonimato |
+| **Pedido de mentoria** | 5 | `POST /mentorship/sessions` | **Obrigatório** |
+| **Submissão C4P** | 7 | `POST /c4p/:slug/talks` | **Obrigatório** |
+| **Inscrição de membro em evento** | atual | OAuth + inscrição autenticada | Não se aplica ao redirect OAuth |
+| **Doação anônima** | atual | `POST /stripe/checkout-session` | **Fora da 1a**; reavaliar antes de habilitar, medindo fricção e fraude |
 
 ### Arquitetura
 
-- **Frontend (widget):** script oficial `https://challenges.cloudflare.com/turnstile/v0/api.js` + `<div class="cf-turnstile">` no formulário, em ilha React própria (wrapper mínimo, sem lib de terceiros). Preferência pelo modo **managed** (não interativo na maior parte dos casos; checkbox apenas quando o Cloudflare desconfia). Chave pública do site injetada no build via env `PUBLIC_TURNSTILE_SITE_KEY` (mesmo padrão do `PUBLIC_STRIPE_PUBLISHABLE_KEY` em `deploy-astro.yml` — vars do repo por ambiente).
-- **Backend (verificação):** `TurnstileService` em `backend/src/common/` faz POST em `https://challenges.cloudflare.com/turnstile/v0/siteverify` com `secret` + `token` + `remoteip` (opcional), timeout ~5s; resposta exige `success === true` e `hostname` conferindo com o domínio do request. Secret em `TURNSTILE_SECRET_KEY` (backend `.env`, nunca exposta; template em `.env.example`).
-- **Guard:** `TurnstileGuard` (global opt-in por rota, igual ao pattern `JwtAuthGuard`/`RolesGuard`) lendo o token do body (`turnstileToken` no DTO) ou do header `cf-turnstile-token`. Aplicado SOMENTE nos endpoints públicos listados acima — nunca em rotas autenticadas de admin (login já é barreira).
-- **Anti-reuso:** token é single-use com TTL de ~5 min; o service mantém um cache em memória dos tokens já validados (hash) para rejeitar replay dentro da janela.
-- **Chaves por ambiente:** painel Turnstile da conta Cloudflare. Produção restringe os hostnames dos 4 domínios (mesmo account). Dev/homolog usam pares próprios; **CI usa as test keys públicas do Turnstile** (`1x0000000000000000000000000000000AA` sempre aprova, `2x0000000000000000000000000000000AA` sempre bloqueia), mantendo os testes de contrato do guard determinísticos.
+- **Frontend:** script oficial + wrapper `TurnstileField`, sem biblioteca de terceiros; chave pública `PUBLIC_TURNSTILE_SITE_KEY` por ambiente.
+- **Backend:** `backend/src/common/turnstile/` com verificação `siteverify`, timeout de 5s, `success===true`, hostname exato, secret `TURNSTILE_SECRET_KEY` e proteção contra replay por hash em memória por 5 minutos.
+- **Guard:** opt-in por rota, lendo `turnstileToken` do body ou `cf-turnstile-token`. Nenhuma rota existente recebe o guard na 1a.
+- **Chaves por ambiente:** produção restringe os 4 domínios; dev/homologação usam pares próprios. Testes unitários e CI **mockam `fetch`** e não dependem das test keys nem de chamada externa; as test keys só podem ser usadas em um smoke manual explicitamente autorizado.
 
 ### Fallbacks e degradação
 
-1. **Sem secret configurado** (dev local): guard vira no-op com warn — mesmo padrão `SMTP_NOT_CONFIGURED` do módulo de e-mail. Em **produção sem secret** = erro de configuração → **fail-closed** nos formulários públicos ("verificação indisponível, tente novamente") + alerta operacional.
-2. **siteverify fora/down:** erro 503 transiente no endpoint com mensagem amigável e retry no formulário (nunca silenciar o submit).
-3. **Acessibilidade:** modo managed exibe checkbox nativo do Cloudflare (navegável por teclado/screen reader); se o desafio interativo aparecer, instrução clara ao lado do botão de envio.
-4. **LGPD:** a verificação não grava PII no nosso banco — o token transitório não é persistido (só o cache de anti-reuso em memória). Declarar a coleta na política P1 (Fase 1b).
+1. **Sem secret:** no-op com warn somente fora de produção; produção falha fechada com 503 e mensagem acionável.
+2. **siteverify indisponível:** 503 transiente e retry; nunca registrar sucesso silencioso.
+3. **Acessibilidade:** widget oficial navegável por teclado/screen reader e instrução junto ao submit.
+4. **LGPD:** token não é persistido; somente hash temporário anti-reuso. O tratamento pela Cloudflare entra na P1 e no inventário.
 
-**Fase:** infra (service + guard + envs + workflow de chaves) na **1a**; aplicação em cada formulário público conforme a fase do subsistema, com **obrigatoriedade antes da Fase 4b** (primeiro formulário público do 1.0.0). Doação anônima pode receber o widget já na 1b.
+**Fase:** infra testada na **1a**; aplicação no guest claim na **Fase 2** e nos demais formulários conforme suas fases. Doação não muda neste recorte.
 
 ---
 
@@ -133,11 +132,11 @@ Separar em duas classes com retenções distintas:
 ### Implementação proposta (backend, padrões do monorepo)
 
 1. **Coluna `category`** em `audit_logs` (`'governance' \| 'operational'`, migration aditiva, default `'operational'` + índice composto `(category, createdAt)`). O mapeamento action → category vive junto ao enum `AuditAction` (código), não em banco.
-2. **Retenção configurável por painel (✅ ratificado 2026-10-29):** `AUDIT_OPERATIONAL_RETENTION_DAYS` (default **30**) como *fallback de env*; o valor efetivo fica em **configuração editável pelo admin** — tabela `app_settings` (chave-valor simples: `key`, `value`, `updatedById`, `updatedAt` — mesma família do padrão `email_templates`) com `GET/PUT /admin/settings/audit-retention` (role `admin`, audit em governo). O `AuditService` resolve env → settings (settings vence quando presente), validando o range (ex.: 7–365). Sem deploy para ajustar: admin muda no painel e o cron do dia seguinte aplica.
-3. **Painel admin:** seção em `/admin` (Fase 1b/1a-frontend) com campo numérico "Retenção de logs operacionais (dias)" + hint do valor efetivo (env vs. override) — seguindo o padrão de tela admin do repo (guarda, authFetch, Alert).
-4. **Cron de purga:** cron diário (ex.: 03:00, `CronExpression.EVERY_DAY_AT_3AM` — mesmo pattern dos crons do módulo `notifications`) chamando `cleanupOperational()`: `DELETE FROM audit_logs WHERE category='operational' AND createdAt < now() - <retention> days`. Categoria `governance` **nunca** entra na purga. Logar contagem removida.
+2. **Retenção configurável por painel:** `AUDIT_OPERATIONAL_RETENTION_DAYS` (default **30**) como fallback de env; o valor efetivo fica em `app_settings` com `GET/PUT /settings/audit-retention` (role `admin`, audit em governo). O endpoint não usa `/admin/` para não colidir com as páginas estáticas no proxy. `AuditService` resolve env → settings, range 7–365.
+3. **Painel admin:** página `/admin/configuracoes` com campo numérico e hint do valor efetivo/origem, seguindo o padrão de ilha + `authFetch` + `Alert`.
+4. **Cron de purga:** diário às **03:17**, chamando `cleanupOperational()` somente para `category='operational'` fora da retenção efetiva. Categoria `governance` nunca entra na purga; a contagem removida vai ao log da aplicação.
 5. **API admin:** `GET /audit/logs` ganha filtro `category`; `POST /audit/cleanup` executa a mesma política (manual = operacional apenas, com o retention efetivo). Swagger atualizado.
-6. **LGPD/compliance:** retenção de 30 dias do operacional (ajustável pelo painel, declarada na política) e permanência do governo (legítimo interesse/obrigação de prestação de contas de associação sem fins lucrativos) são **declarados na Política de Privacidade** (P1, Fase 1b) e no inventário `docs/modules/privacy/`.
+6. **LGPD/minimização:** retenções e bases legais entram na P1/inventário com revisão jurídica. Novos logs de governo não persistem `ipAddress` (desnecessário para uma trilha permanente); a migration zera esse campo nos registros classificados como governo, preservando ator, ação, alvo e data.
 
 ### O que nunca expira
 

@@ -25,9 +25,11 @@ related-docs:
   - docs/adrs/002-club-sortcoins.md — Clube Codaqui SortCoins
   - docs/adrs/003-club-business-pj.md — Clube Codaqui Business (PJ)
   - docs/adrs/004-multisite-communities.md — multi-tenant frontend
-  - docs/modules/events/CODE_MANUAL.md — manual prático do módulo de eventos
-  - docs/modules/events/ROLES.md — papéis de eventos
-  - docs/modules/community/COMMUNITY_SITES.md — conteúdo whitelabel das comunidades
+  - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
+  - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
+  - docs/modules/events/CODE_MANUAL.md — manual prático do módulo de eventos e áreas adjacentes
+  - docs/modules/events/ROLES.md — papéis manuais, derivados e staff de eventos
+  - docs/modules/community/COMMUNITY_SITES.md — registro e conteúdo whitelabel das comunidades
   - docs/modules/insights/SOCIAL_STATS.md — estatísticas e presença digital
 agent-protocol:
   - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
@@ -117,7 +119,7 @@ Planos futuros:
 | **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
 | **Storage** | ⚠ **Sem upload pelo backend**: comprovantes/recibos são **links externos** que o time sobe manualmente em serviços confiáveis. O `StorageModule` valida URLs (`POST /storage/validate-receipt-url`) — exige HTTPS e hostname numa allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. **Não há S3/MinIO conectado**; o backend não escreve em disco local nem em bucket. |
 | **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
-| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `failed` com `SMTP_NOT_CONFIGURED`) |
+| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `skipped` com `SMTP_NOT_CONFIGURED`, sem contar como falha) |
 | **GitHub-as-Database** | Token OAuth do próprio membro (scope `public_repo`, criptografado em repouso — `GITHUB_TOKEN_ENCRYPTION_KEY` + `GITHUB_REPO_*` no `.env.example`). ⚠️ **Legado:** hoje usado apenas pelo force-sync manual do snapshot interno (`POST /events/internal/snapshot`, abre PR em nome do membro — canônico se colaborador; fork flow senão; será removido, ver `docs/plans/events-sync-improvements/` Camada 3). Overrides e organizers migraram para o PostgreSQL (`event_overrides`, `event_organizer_ownership`) |
 | **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
@@ -179,14 +181,19 @@ institucional/
 │   │   ├── members/             # Membros da Codaqui (multi-role `roles: text[]`, autorização)
 │   │   ├── github-db/           # GitHubDBService — ⚠️ legado: só force-sync de snapshot interno
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
-│   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios
-│   │   ├── notifications/       # ⭐ E-mails transacionais de eventos (nodemailer SMTP Gmail + email_logs + crons D-1/pós-evento + templates editáveis via /admin/emails)
-│   │   ├── ledger/              # ⭐ Contabilidade dupla partida (núcleo financeiro)
+│   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
+│   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
+│   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
+│   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
+│   │   ├── communities/         # ⭐ Registro/seed das 6 comunidades, selo e validação de destino de doação
+│   │   ├── settings/            # app_settings + retenção operacional de auditoria (7–365 dias)
+│   │   ├── common/turnstile/    # Infraestrutura Turnstile opt-in (nenhuma rota usa o guard na Fase 1a)
+│   │   ├── ledger/              # ⭐ Contabilidade dupla partida + exportação CSV server-side por range
 │   │   ├── stripe/              # Stripe Checkout + webhooks (donations, refunds)
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
-│   │   ├── audit/               # Audit log de ações sensíveis
+│   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations
+│   │   └── migrations/          # TypeORM migrations (Fase 1a: 026–031)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -216,12 +223,12 @@ institucional/
 ├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
 │   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
 │   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
-├── static/                      # ⭐ Snapshots gerados por workflows (events/, social-stats/, analytics/, img/)
+├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, social-stats/, analytics/, img/)
 ├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   └── *.mjs                    # sync-events / sync-social-stats / sync-analytics (+ testes .test.mjs)
-│                                #    (os syncs leem os data files canônicos de frontend/src/data/)
+│   └── *.mjs                    # sync-events / sync-communities / sync-social-stats / sync-analytics (+ testes .test.mjs)
+│                                #    (syncs legados leem data files canônicos; communities lê a API PostgreSQL)
 ├── docs/                        # Documentação técnica (ADRs, módulos, planos)
-├── .github/workflows/           # 6 workflows (ver Git Workflow & Deployment)
+├── .github/workflows/           # 7 workflows (ver Git Workflow & Deployment)
 └── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
 ```
 
@@ -412,6 +419,43 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - Enriquecimento: `EmbaixadoresPage.astro` cruza os dados locais com `loadPublicMembers()` (API pública) via `findMemberByAmbassador` (`src/lib/community-devparana.ts`, matching por `githubHandle`); quando encontra o membro, **prefere `member.name`** (e avatar/linkedin/bio) sobre o cadastro local — comportamento conhecido.
 - Sem API disponível no build → fallback nos dados locais (build segue).
 
+### 18. Designations e diretorias (Fase 1a — ADR 006)
+
+- `member_designations` é a única fonte dos vínculos novos. Não criar `directorMemberId`, `responsibleMemberId`, `directorate_members` ou tabelas paralelas. `event_organizer_ownership` e `event_staff` continuam nos modelos próprios.
+- APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
+- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. Regras de `mentor` e `gestor_universitario` existem, mas seus módulos continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
+- Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
+- **Não existe `hour_ledger` na Fase 1a**; horas, aprovações e certificados de horas ficam para fase futura.
+
+### 19. Registro de comunidades (Fase 1a — ADR 007)
+
+- PostgreSQL guarda o registro; `static/communities/index.json` é o snapshot público consumido no build. Branding/conteúdo continuam em `comunidades/<slug>/`, e tenants continuam exigindo `tenants.config.mjs` + workflows + Pages/DNS.
+- Seis seeds: Integradas `devparana`, `elasnocodigo`, `tisocial`, `campostechpg`; Parceiras `cloudnativemaringa`, `cumbucadev`. As Integradas nascem sem responsible fabricado. Só os três tenants têm `siteEnabled=true`; CamposTech tem `siteEnabled=false`.
+- APIs reais: `GET /communities/public`, `GET /communities/manage`, `POST /communities`, `PATCH /communities/:id`, `POST /communities/:id/seal/request`, `POST /communities/:id/seal`. Selo admin exige `responsible @ community` ativo, `sealNotes` e validade futura/default anual.
+- Checkout direcionado aceita somente Integrada ativa; Parceira é recusada antes do Stripe. `tesouro-geral` e CamposTech continuam aceitos. Proxy: somente `/communities/`.
+- `npm run sync:communities` usa `COMMUNITIES_API_URL` (default local) e rename atômico. O workflow `sync-community-snapshots.yml` roda no minuto 7 de cada hora + dispatch; o agregador `npm run sync` não inclui comunidades.
+- Não declarar Autônoma, split/payout, platform fee ou mantenedores como implementados.
+
+### 20. E1 — e-mails skipped, resend e summary
+
+- SMTP ausente grava `email_logs.status=skipped` e `error=SMTP_NOT_CONFIGURED`, sem contar como falha nem desfazer a operação principal. Só `sent`/`failed` deduplicam crons.
+- `GET /notifications/status`, `GET /notifications/emails` e `POST /notifications/emails/:id/resend` sustentam a operação. Resend exige SMTP e registration vinculada, atualiza o mesmo log e retorna 409 sem SMTP. Summary separa `sent`, `failed`, `skipped` por template. Logs expiram em 365 dias.
+
+### 21. R1 — CSV por range e G6 — retenção de auditoria
+
+- `GET /ledger/accounts/:id/transactions/export` é público no conjunto da conta; `GET /ledger/transactions/export` exige admin/finance-analyzer. `from`/`to` são compartilhados com a listagem, `to` inclui o dia inteiro e o CSV exporta todas as linhas do range, com BOM e escape de formula injection.
+- `auditCategory()` separa `governance` (permanente, sem IP) de `operational` (expira). `GET/PUT /settings/audit-retention` configura 7–365 dias; setting vence `AUDIT_OPERATIONAL_RETENTION_DAYS` (default 30). `POST /audit/cleanup`, cron e startup usam a mesma política e nunca apagam governo.
+
+### 22. Turnstile opt-in (G3)
+
+- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_ALLOWED_HOSTNAMES`.
+- **Nenhuma rota existente usa `TurnstileGuard` na Fase 1a.** Sem secret, desenvolvimento faz warn/no-op; produção falha fechada quando o guard for aplicado. `TurnstileField` só renderiza o widget com `PUBLIC_TURNSTILE_SITE_KEY`.
+
+### 23. ECA — eventos 18+ informativos
+
+- Migration 031: `managed_events.adultOnly` boolean default false + `venueType` (`bar`, `restaurante`, `auditorio`, `campus`, `online`, `outro`). Managed events serializam ambos; overrides externos aceitam `adultOnly` boolean.
+- Bar/restaurante a partir das 18h apenas sugere 18+ no formulário; ação humana marca. Badge `+18` e aviso estático não bloqueiam inscrição, não coletam idade/documento e não removem página do sitemap. Mudança pós-publicação grava auditoria de governo com antes/depois.
+
 ---
 
 ## Common Anti-Patterns
@@ -432,7 +476,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `referenceId: \`prefix:${entity.id}\`` antes do `repo.save()` | Factory `persistWithLedger(repo, e, (s) => ({ referenceId: \`prefix:${s.id}\` }))` |
 | `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
 | Hardcode Discord/WhatsApp URLs | Import from `src/data/social.ts` |
-| Inline team/community arrays in pages | Import from `src/data/*.ts` |
+| Inline team arrays ou registros de comunidade em páginas | Team em `src/data/team.ts`; registro de comunidades no PostgreSQL + snapshot (`sync:communities`) |
 | `slug: meu-post` (blog) | `slug: 2024/07/22/meu-post` (preserves Google URLs) |
 | Use "alunos", "escola", "curso" | Use "participantes", "Associação", "programa" |
 | Nova listagem paginada hardcodando limit/page | `src/lib/pagination.ts` (constantes + `PaginatedResponse`) + `PaginationControls` (islands/ui) + DTO backend com envelope `{data,total,page,totalPages,limit}` (decisão 12) |
@@ -450,7 +494,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 6 workflows)
+### CI/CD (`.github/workflows/` — 7 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -458,6 +502,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `pr-check.yml` | PR → `develop`/`main` | Backend (build + jest coverage), Trivy (frontend + backend), builds Astro dos 4 projetos, `astro check` + vitest do codaqui |
 | `publish-backend.yml` | manual | Build + push da imagem Docker multi-arch (amd64 + arm64/v8) p/ GHCR + release `v<versão>-backend` (usa `version` do `backend/package.json`); redeploy em produção manual no Coolify |
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
+| `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 
@@ -555,12 +600,14 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | What | When | Where |
 |------|------|-------|
 | Team changes | As needed | `frontend/src/data/team.ts` |
-| New community partners | As needed | `frontend/src/data/communities.ts` + `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
+| New community partners | As needed | API `/communities` + responsible por designation + `npm run sync:communities`; social stats em `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
+| Community registry changes | As needed | Admin/API → `npm run sync:communities` → novo build; não editar o snapshot |
 | Timeline events | Annually | `frontend/src/data/timeline.ts` |
 | Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
 | Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
 | Event sources/fallbacks | As needed | `events.config.json` |
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
+| Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
 | New tenant onboarding | As needed | `frontend/tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md) |

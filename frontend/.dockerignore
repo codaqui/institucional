@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+.wrangler
+coverage
+.env
+.env.*
+!.env.example

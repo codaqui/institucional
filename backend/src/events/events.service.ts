@@ -326,6 +326,8 @@ export class EventsService {
       tags: [],
       ctaLabel: 'Inscrever-se',
       status: EventsService.deriveItemStatus(event),
+      adultOnly: event.adultOnly,
+      venueType: event.venueType,
       ...(event.imageUrl && { imageUrl: event.imageUrl }),
       userCount: confirmedCount,
       ...(organizers && organizers.length > 0 && { organizers }),
@@ -454,6 +456,8 @@ export class EventsService {
       status: event.status,
       capacity: event.capacity,
       workloadMinutes: event.workloadMinutes,
+      adultOnly: event.adultOnly,
+      venueType: event.venueType,
       createdAt: event.createdAt,
     };
   }
@@ -740,6 +744,8 @@ export class EventsService {
         communityProjectKey: dto.communityProjectKey,
         capacity: dto.capacity ?? null,
         workloadMinutes: dto.workloadMinutes ?? null,
+        adultOnly: dto.adultOnly ?? false,
+        venueType: dto.venueType ?? null,
         status: ManagedEventStatus.DRAFT,
         createdByMemberId: user.sub,
       }),
@@ -751,6 +757,11 @@ export class EventsService {
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
     await this.assertCanEditEvent(user, id);
+    const previousAdultOnly = event.adultOnly;
+    const adultOnlyChanged =
+      dto.adultOnly !== undefined &&
+      dto.adultOnly !== previousAdultOnly &&
+      event.status !== ManagedEventStatus.DRAFT;
 
     if (dto.title !== undefined) event.title = dto.title;
     if (dto.summary !== undefined) event.summary = dto.summary;
@@ -783,8 +794,24 @@ export class EventsService {
       // null volta ao cálculo automático pela duração (endAt - startAt).
       event.workloadMinutes = dto.workloadMinutes ?? null;
     }
+    if (dto.adultOnly !== undefined) event.adultOnly = dto.adultOnly;
+    if (dto.venueType !== undefined) event.venueType = dto.venueType;
 
     await this.eventRepo.save(event);
+    if (adultOnlyChanged) {
+      void this.auditService.log({
+        action: AuditAction.EVENT_ADULT_ONLY_CHANGED,
+        actorId: user.sub,
+        actorHandle: user.handle,
+        targetId: id,
+        targetType: 'event',
+        details: {
+          slug: event.slug,
+          before: previousAdultOnly,
+          after: event.adultOnly,
+        },
+      });
+    }
     return this.withRelations(event);
   }
 
@@ -1088,6 +1115,87 @@ export class EventsService {
     return registration;
   }
 
+  private notifyRegistrationCancellation(
+    registration: EventRegistration,
+    event: ManagedEvent | ExternalEventActivation,
+  ): void {
+    void this.emailService
+      .sendRegistrationCancellation(registration, event)
+      .catch((error: unknown) =>
+        this.logger.warn(
+          `Falha ao enviar cancelamento da inscrição ${registration.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ),
+      );
+  }
+
+  private async assertCanCancelRegistration(
+    registration: EventRegistration,
+    user: JwtPayload,
+  ): Promise<void> {
+    if (registration.memberId === user.sub) return;
+
+    if (registration.eventId) {
+      await this.assertCanViewEvent(user, registration.eventId);
+      return;
+    }
+
+    if (registration.externalActivationId) {
+      const activation = await this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+      if (!activation) {
+        throw new NotFoundException(
+          'Ativação do evento externo não encontrada.',
+        );
+      }
+      await this.assertExternalManager(user, activation, {
+        allowActivator: true,
+      });
+      return;
+    }
+
+    throw new ForbiddenException(
+      'Sem permissão para cancelar esta inscrição.',
+    );
+  }
+
+  private async assertRegistrationCancellationAllowed(
+    registration: EventRegistration,
+  ): Promise<void> {
+    if (registration.status !== RegistrationStatus.CONFIRMED) {
+      throw new BadRequestException(
+        `Inscrição já está ${registration.status}.`,
+      );
+    }
+
+    if (!registration.orderId) return;
+
+    const order = await this.orderRepo.findOneBy({
+      id: registration.orderId,
+    });
+    if (order?.status === OrderStatus.PAID) {
+      throw new ConflictException(
+        'Inscrição vinculada a pedido pago: use o fluxo de estorno (POST /events/orders/:id/refund) para devolver o valor.',
+      );
+    }
+  }
+
+  private findCancellationEvent(
+    registration: EventRegistration,
+  ): Promise<ManagedEvent | ExternalEventActivation | null> | null {
+    if (registration.eventId) {
+      return this.eventRepo.findOneBy({ id: registration.eventId });
+    }
+    if (registration.externalActivationId) {
+      return this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+    }
+    return null;
+  }
+
   /** DELETE /events/registrations/:id — dono, staff do evento ou admin */
   async cancelRegistration(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({
@@ -1095,45 +1203,8 @@ export class EventsService {
     });
     if (!registration) throw new NotFoundException('Inscrição não encontrada.');
 
-    const isOwner = registration.memberId === user.sub;
-    if (!isOwner) {
-      if (registration.eventId) {
-        await this.assertCanViewEvent(user, registration.eventId);
-      } else if (registration.externalActivationId) {
-        const activation = await this.activationRepo.findOneBy({
-          id: registration.externalActivationId,
-        });
-        if (!activation) {
-          throw new NotFoundException(
-            'Ativação do evento externo não encontrada.',
-          );
-        }
-        await this.assertExternalManager(user, activation, {
-          allowActivator: true,
-        });
-      } else {
-        throw new ForbiddenException(
-          'Sem permissão para cancelar esta inscrição.',
-        );
-      }
-    }
-
-    if (registration.status !== RegistrationStatus.CONFIRMED) {
-      throw new BadRequestException(
-        `Inscrição já está ${registration.status}.`,
-      );
-    }
-
-    if (registration.orderId) {
-      const order = await this.orderRepo.findOneBy({
-        id: registration.orderId,
-      });
-      if (order?.status === OrderStatus.PAID) {
-        throw new ConflictException(
-          'Inscrição vinculada a pedido pago: use o fluxo de estorno (POST /events/orders/:id/refund) para devolver o valor.',
-        );
-      }
-    }
+    await this.assertCanCancelRegistration(registration, user);
+    await this.assertRegistrationCancellationAllowed(registration);
 
     registration.status = RegistrationStatus.CANCELLED;
     // Cancelamento + devolução de quota na MESMA transação: se a liberação
@@ -1142,6 +1213,20 @@ export class EventsService {
       await em.save(registration);
       await this.releaseQuota(registration.ticketTypeId, 1, em);
     });
+    const eventPromise = this.findCancellationEvent(registration);
+    if (eventPromise) {
+      void eventPromise
+        .then((event) => {
+          if (event) this.notifyRegistrationCancellation(registration, event);
+        })
+        .catch((error: unknown) =>
+          this.logger.warn(
+            `Falha ao carregar evento para notificar cancelamento da inscrição ${registration.id}: ${
+              error instanceof Error ? error.message : String(error)
+            }`,
+          ),
+        );
+    }
     return registration;
   }
 
@@ -1494,19 +1579,9 @@ export class EventsService {
 
   // ── Refund (admin | event_finance) ────────────────────────────────────────
 
-  /**
-   * POST /events/orders/:id/refund
-   *
-   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve toda a
-   *   quantia restante do charge), order → refunded.
-   * - Com `registrationIds`: estorno PARCIAL (soma unitária dos ingressos
-   *   selecionados). As registrations são marcadas refunded IMEDIATAMENTE e a
-   *   quota é devolvida; o webhook `charge.refunded` reconcilia o restante
-   *   (status final da order e diferença de ledger, se houver).
-   * - O reversal no ledger usa `event-ticket-refund:<orderId>:<ts>`; o webhook
-   *   deduz o que já foi lançado aqui para não duplicar.
-   */
-  async refundOrder(orderId: string, dto: RefundOrderDto, user: JwtPayload) {
+  private async findRefundableOrder(
+    orderId: string,
+  ): Promise<EventOrder & { stripePaymentIntentId: string }> {
     const order = await this.orderRepo.findOneBy({ id: orderId });
     if (!order) throw new NotFoundException('Pedido não encontrado.');
     if (order.status !== OrderStatus.PAID) {
@@ -1520,59 +1595,39 @@ export class EventsService {
     if (!order.eventId && !order.externalActivationId) {
       throw new BadRequestException('Pedido sem evento vinculado.');
     }
+    return order as EventOrder & { stripePaymentIntentId: string };
+  }
 
-    const ticketType = await this.ticketTypeRepo.findOneBy({
-      id: order.ticketTypeId,
-    });
-    // Unitário derivado do valor pago na order; preço atual do lote é só fallback
-    const unitCents =
-      order.quantity > 0 && order.totalCents > 0
-        ? Math.round(order.totalCents / order.quantity)
-        : (ticketType?.priceCents ?? 0);
+  private resolveRefundUnitCents(
+    order: EventOrder,
+    ticketType: TicketType | null,
+  ): number {
+    if (order.quantity > 0 && order.totalCents > 0) {
+      return Math.round(order.totalCents / order.quantity);
+    }
+    return ticketType?.priceCents ?? 0;
+  }
 
-    const confirmedRegs = await this.registrationRepo.findBy({
-      orderId: order.id,
-      status: RegistrationStatus.CONFIRMED,
-    });
-    if (confirmedRegs.length === 0) {
+  private selectRefundTargets(
+    confirmedRegs: EventRegistration[],
+    registrationIds?: string[],
+  ): EventRegistration[] {
+    if (!registrationIds?.length) return confirmedRegs;
+
+    const ids = new Set(registrationIds);
+    const targets = confirmedRegs.filter((r) => ids.has(r.id));
+    if (targets.length !== ids.size) {
       throw new BadRequestException(
-        'Nenhuma inscrição confirmada para estornar.',
+        'registrationIds inválidos: não pertencem ao pedido ou já foram estornados.',
       );
     }
+    return targets;
+  }
 
-    let targets = confirmedRegs;
-    if (dto.registrationIds?.length) {
-      const ids = new Set(dto.registrationIds);
-      targets = confirmedRegs.filter((r) => ids.has(r.id));
-      if (targets.length !== ids.size) {
-        throw new BadRequestException(
-          'registrationIds inválidos: não pertencem ao pedido ou já foram estornados.',
-        );
-      }
-    }
-
-    const refundingAllRemaining = targets.length === confirmedRegs.length;
-    const amountCents = targets.length * unitCents;
-
-    // Sem amount → Stripe devolve toda a quantia restante do charge
-    await this.stripeService.createEventTicketRefund(
-      order.stripePaymentIntentId,
-      refundingAllRemaining ? undefined : amountCents,
-    );
-
-    // Marca registrations + devolve quota imediatamente
-    await this.registrationRepo.update(
-      { id: In(targets.map((t) => t.id)) },
-      { status: RegistrationStatus.REFUNDED },
-    );
-    await this.releaseQuota(order.ticketTypeId, targets.length);
-
-    const remainingConfirmed = confirmedRegs.length - targets.length;
-    if (remainingConfirmed === 0) {
-      order.status = OrderStatus.REFUNDED;
-      await this.orderRepo.save(order);
-    }
-
+  private async recordEventTicketRefund(
+    order: EventOrder,
+    amountCents: number,
+  ) {
     // Reversal no ledger (comunidade → conta externa Stripe)
     const event = order.eventId
       ? await this.eventRepo.findOneBy({ id: order.eventId })
@@ -1609,6 +1664,79 @@ export class EventsService {
         externalActivationId: order.externalActivationId ?? undefined,
       },
     );
+    return { event, activation };
+  }
+
+  private notifyRefundCancellations(
+    registrations: EventRegistration[],
+    event: ManagedEvent | ExternalEventActivation | null,
+  ): void {
+    if (!event) return;
+    for (const registration of registrations) {
+      this.notifyRegistrationCancellation(registration, event);
+    }
+  }
+
+  /**
+   * POST /events/orders/:id/refund
+   *
+   * - Sem `registrationIds`: estorno TOTAL (Stripe sem `amount` devolve toda a
+   *   quantia restante do charge), order → refunded.
+   * - Com `registrationIds`: estorno PARCIAL (soma unitária dos ingressos
+   *   selecionados). As registrations são marcadas refunded IMEDIATAMENTE e a
+   *   quota é devolvida; o webhook `charge.refunded` reconcilia o restante
+   *   (status final da order e diferença de ledger, se houver).
+   * - O reversal no ledger usa `event-ticket-refund:<orderId>:<ts>`; o webhook
+   *   deduz o que já foi lançado aqui para não duplicar.
+   */
+  async refundOrder(orderId: string, dto: RefundOrderDto, user: JwtPayload) {
+    const order = await this.findRefundableOrder(orderId);
+    const ticketType = await this.ticketTypeRepo.findOneBy({
+      id: order.ticketTypeId,
+    });
+    // Unitário derivado do valor pago na order; preço atual do lote é só fallback
+    const unitCents = this.resolveRefundUnitCents(order, ticketType);
+
+    const confirmedRegs = await this.registrationRepo.findBy({
+      orderId: order.id,
+      status: RegistrationStatus.CONFIRMED,
+    });
+    if (confirmedRegs.length === 0) {
+      throw new BadRequestException(
+        'Nenhuma inscrição confirmada para estornar.',
+      );
+    }
+
+    const targets = this.selectRefundTargets(
+      confirmedRegs,
+      dto.registrationIds,
+    );
+    const refundingAllRemaining = targets.length === confirmedRegs.length;
+    const amountCents = targets.length * unitCents;
+
+    // Sem amount → Stripe devolve toda a quantia restante do charge
+    await this.stripeService.createEventTicketRefund(
+      order.stripePaymentIntentId,
+      refundingAllRemaining ? undefined : amountCents,
+    );
+
+    // Marca registrations + devolve quota imediatamente
+    await this.registrationRepo.update(
+      { id: In(targets.map((t) => t.id)) },
+      { status: RegistrationStatus.REFUNDED },
+    );
+    await this.releaseQuota(order.ticketTypeId, targets.length);
+
+    const remainingConfirmed = confirmedRegs.length - targets.length;
+    if (remainingConfirmed === 0) {
+      order.status = OrderStatus.REFUNDED;
+      await this.orderRepo.save(order);
+    }
+
+    const { event, activation } = await this.recordEventTicketRefund(
+      order,
+      amountCents,
+    );
 
     void this.auditService.log({
       action: AuditAction.EVENT_ORDER_REFUNDED,
@@ -1623,6 +1751,8 @@ export class EventsService {
         full: refundingAllRemaining,
       },
     });
+
+    this.notifyRefundCancellations(targets, event ?? activation);
 
     return {
       refundedRegistrations: targets.length,

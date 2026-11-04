@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Consolidação do RBAC do Codaqui 1.0.0 — modelo de 3 camadas (roles globais + designations escopadas + guards derivados), matriz de permissões A–H, concessões auditáveis, derivação de roles, migração e impactos no frontend.
 audience: Presidência, mantenedores, AI agents implementando as fases 1a–7.
-status: design proposto em 2026-10-29 (decisão da presidência de concentrar o RBAC e estruturar tudo que depende dele); aplica-se a partir da Fase 1a — substitui/estrutura a seção "Papéis e permissões" do README.md do plano (que permanece como visão de fase).
+status: contrato aprovado e integrado ao plano executável da Fase 1a (fase-1a.md). Acréscimos entity/program/volunteer/founder e regra diretor⇒voluntario ratificados em 2026-10-29; cutover de ownership de eventos deliberadamente adiado para a Fase 2.
 sections:
   - Contexto e decisão
   - Camada 1 — Roles globais (lista final)
@@ -47,14 +47,14 @@ Enum final de `MemberRole`, dividido em **duas classes**:
 
 | Classe | Roles | Concedida por |
 |---|---|---|
-| **Manual** (escrita por admin via `PATCH /members/:id/roles`, audit `member.role_change`) | `membro` (default), `admin`, `finance-analyzer`, `event_organizer`, `event_finance`, `event_host`, `event_checker` | Admin (bootstrap admin continua via env) |
+| **Manual** (escrita por admin via `PATCH /admin/members/:id`, audit `member.role_change`) | `membro` (default), `admin`, `finance-analyzer`, `event_organizer`, `event_finance`, `event_host`, `event_checker` | Admin (bootstrap admin continua via env) |
 | **Derivada** (escrita **exclusivamente** pelo sync job de designations — seção "Derivação"; rejeitada em PATCH manual) | `diretor`, `voluntario`, `mentor`, `gestor_universitario` | Designation ativa correspondente |
 
 Regras:
 
 - O conjunto derivado é **fechado**: a API de roles valida que PATCH nunca inclui nem remove role derivada (erro 409 com mensagem "role derivada — gerida pelo sync de designations"). Isso mata a dupla fonte de verdade por construção.
 - `RolesGuard` + decorator `@Roles()` continuam como estão (`backend/src/auth/guards/roles.guard.ts`) — nenhuma mudança de contrato. Checagens de designation vão por guard paralelo (Camada 3).
-- O JWT continua carregando `roles` (rápido, sem query). Designations **não** entram no JWT — são checadas no banco com cache curto (Camada 3).
+- O JWT continua carregando `roles`, e o `JwtStrategy` já renova esse conjunto a partir do banco a cada request. Designations **não** entram no JWT — são checadas no banco com cache curto (Camada 3).
 - Nenhuma role nova por subsistema: os papéis de eventos (`event_*`) permanecem globais por decisão histórica (ROLES.md); papéis organizacionais novos só entram como designation, não como role.
 
 > **Por que manter `event_organizer`/`event_finance`/`event_host`/`event_checker` globais:** são credenciais operacionais de plataforma (quem pode operar a máquina de eventos), não nomeações da organização — o escopo fino já é dado por `event_staff` e, para externos, pela designation `organizer`. Reescrevê-las agora quebraria ROLES.md e o check-in 0.11.x sem ganho.
@@ -85,18 +85,11 @@ CREATE TABLE member_designations (
 
 **Enums:**
 
-- `targetType` (base prescrito pela presidência + 2 acréscimos propostos — ver nota):
-  `community` · `event` · `ies` · `c4p_campaign` · `extension_project` · `directorate` · `company` · **`entity`** · **`program`**
-- `designation`:
-  `responsible` · `ambassador` · `organizer` · `evaluator` · `mentor` · `director` · `maintainer` · `manager` · **`volunteer`**
-- `status`: `pending` (candidatura aguardando confirmação) · `active` · `ended` (finalizado/validade esgotada) · `removed` (revogado)
+- `targetType`: `community` · `event` · `ies` · `c4p_campaign` · `extension_project` · `directorate` · `company` · `entity` · `program`.
+- `designation`: `responsible` · `ambassador` · `organizer` · `evaluator` · `mentor` · `director` · `maintainer` · `manager` · `volunteer` · `founder`.
+- `status`: `pending` (candidatura aguardando confirmação) · `active` · `ended` (finalizado/validade esgotada) · `removed` (revogado).
 
-> **Acréscimos propostos pelo design (não estavam no prescrito, justificativa):**
-> - `targetType='entity'` — casa `entities.responsibleMemberId` e `partnerships.directorMemberId` (o alvo é uma entity; `ies` é o caso tipado `instituicao_ensino`).
-> - `targetType='program'` + `targetKey` — designações sem alvo material: mentor do programa de mentoria (`targetKey='mentoria'`), gestor do Universitário (`targetKey='universitario'`). `targetId` fica NULL.
-> - `designation='volunteer'` — vínculo genérico de voluntariado em diretoria (`directorate_members`); sem ele a role `voluntario` não teria designation de origem.
->
-> Se a presidência preferir não ampliar os enums, as alternativas são: mentor/gestor como roles manuais (reabre o gap de dupla fonte) e `directorate_members` permanecendo tabela própria (exceção). Recomendação do design: aceitar os acréscimos — custo zero em relação ao prescrito.
+> **Acréscimos ratificados:** `entity` cobre responsáveis/gestores de entidades; `program` + `targetKey` cobre mentoria, Universitário e a futura fundação de comunidades; `volunteer` origina a role `voluntario`; `founder` @ `program('communities')` substitui a antiga proposta de role `fundador_comunidade` quando D2 for aprovada. Diretor implica voluntário por regra de derivação, sem designation dupla.
 
 ### Resolução do alvo por `targetType`
 
@@ -124,7 +117,7 @@ Implementados como índices únicos parciais + validação no service (o service
 6. `program`/`mentoria`: **1 designation `mentor` active por member** (equivale ao unique de `mentor_profiles.memberId`).
 7. `event`/`organizer`: sem unicidade — um evento pode ter vários organizers (já é assim em `event_organizer_ownerships`).
 
-Nomeações com validade (selo, aliada, embaixador) renovam criando **nova linha** (`since` novo, anterior vai a `ended`) — histórico preservado na própria tabela, independente do TTL de 90 dias do `audit_logs`.
+Nomeações com validade renovam criando **nova linha** (`since` novo, anterior vai a `ended`) — histórico preservado na própria tabela. Na retenção G6, designations e seus atos são governo permanente; logs operacionais expiram em 30 dias por padrão.
 
 ### Exceção justificada: `event_staff` NÃO migra
 
@@ -140,7 +133,7 @@ Critério para futuras exceções: um vínculo só vira designation se for nomea
 
 | Origem (hoje ou planejada) | vira | designation @ targetType | Fase de cutover |
 |---|---|---|---|
-| `event_organizer_ownerships.scope[]` (existe) | 1 linha por scope entry; `organizer` @ `event` (`targetId` p/ ativações, `targetKey` p/ wildcards) | `organizer` @ `event` | **1a** (seed) · tabela legada drop na Fase 2 |
+| `event_organizer_ownerships.scope[]` (existe) | 1 linha por scope entry; `organizer` @ `event` (`targetId` p/ ativações, `targetKey` p/ wildcards) | `organizer` @ `event` | **Fase 2** (dual-write → seed → cutover); sem seed na 1a |
 | `communities.responsibleMemberId` (planejada 1a) | não nasce — tabela `communities` **sem a coluna** | `responsible` @ `community` | 1a (greenfield) |
 | `directorates.directorMemberId` (planejada 1a) | não nasce — sem a coluna | `director` @ `directorate` | 1a (greenfield) |
 | `directorate_members` (planejada 1a) | não nasce — histórico vira linhas `volunteer` | `volunteer` @ `directorate` | 1a (greenfield) |
@@ -153,7 +146,7 @@ Critério para futuras exceções: um vínculo só vira designation se for nomea
 | `mentor_profiles.memberId` + `approvedById` (planejada 5) | designation é a fonte; `mentor_profiles` referencia ou é a view | `mentor` @ `program('mentoria')` | 5 |
 | `c4p_evaluators` (planejada 7) | status de convite/aceite vira `pending`/`active`/`removed` | `evaluator` @ `c4p_campaign` | 7 |
 
-Detalhe do seed 1a (ownership de eventos): para cada `EventOrganizerOwnership`, uma designation por scope — `source:sourceId:eventId` com ativação existente resolve `targetId` via `external_event_activations.eventKey`; wildcard `source:sourceId:*` e evento não ativado viram `targetId=NULL, targetKey=scope`. `appointedById = createdByMemberId`, `since = createdAt`. `GET /events/internal/organizers` (formato `OrganizersFile`) passa a ser montado pela `DesignationsService` a partir de designations `organizer @ event` — contrato externo preservado.
+Detalhe do cutover na Fase 2: primeiro o `EventOrganizerOwnershipService` passa a escrever ownership e designation na mesma transação; depois um seed converte cada scope (`targetId` para ativação existente, `targetKey` para wildcard/não ativado), com relatório de órfãos e reconciliação antes do drop. `GET /events/internal/organizers` preserva `OrganizersFile`. Adiar esse trabalho evita divergência entre seed e edições durante a 1a.
 
 ---
 
@@ -172,7 +165,7 @@ hasDesignation(memberId: string, q: {
 
 requireDesignation(memberId: string, q: {...}): Promise<void>  // 403 padronizado
 
-listActive(memberId: string): Promise<MemberDesignation[]>      // p/ /members/me/designations
+listActive(memberId: string): Promise<MemberDesignation[]>      // p/ /designations/me
 grant(dto, actor): Promise<MemberDesignation>                    // appointment auditado
 revoke(id, actor, reason?): Promise<void>                        // status='removed' + audit
 confirm(id, actor): Promise<MemberDesignation>                   // pending → active + audit
@@ -317,9 +310,9 @@ Regra dura: **não existe concessão sem designation ativa correspondente** — 
 1. **Event-driven:** todo `grant`/`confirm`/`revoke`/`end` chama `syncMember(memberId)` ao final da transação (mesma transação do write — atomicidade). Idempotente: calcula o conjunto derivado esperado, compara com `members.roles`, aplica diferença.
 2. **Cron de reconciliação:** agendado (mesmo padrão dos crons de `notifications` — diário ou a cada 6h) varre todos os membros com designation ativa e reconcilia — self-healing após restauração de backup, edits manuais em banco ou falhas no event-driven.
 3. **Audit:** cada ajuste derivado grava `member.role_derived` com `details: { added: [...], removed: [...], source: 'designation_sync' }` (novo valor em `AuditAction`, distinto de `member.role_change` manual).
-4. **PATCH `/members/:id/roles` rejeita** (409) qualquer tentativa de tocar role derivada — na API e no DTO.
+4. **PATCH `/admin/members/:id` rejeita** (409) qualquer tentativa de tocar role derivada, centralizada no `MembersService` para cobrir todos os callers.
 
-**Latência e JWT:** a role derivada reflete no próximo sync após a mudança de designation; o JWT em mãos do usuário pode até expirar com a role antiga — aceito e documentado (mudanças organizacionais não são hot-path; logout/login ou refresh de token resolve). O frontend de admin deve invalidar sessão/refresh após concessões (hook já existente em fluxos de role).
+**Atualização de roles por request:** o `JwtStrategy.validate()` atual já substitui as roles do token pelas roles frescas do membro no banco a cada request; portanto não há espera por expiração/logout. A sync event-driven torna a mudança visível no próximo request autenticado. O cache de designations pode atrasar no máximo ~60s uma checagem escopada, e writes invalidam esse cache imediatamente.
 
 ---
 
@@ -329,9 +322,9 @@ Regra dura: **não existe concessão sem designation ativa correspondente** — 
 
 | Fase | Entrega RBAC |
 |---|---|
-| **1a** | Migration `member_designations` (nº conforme sequência ≥026 — primeira da fase) + `designations/` module (service, guard, controller `/members/me/designations` + admin CRUD) + **seed** a partir de `event_organizer_ownerships` + sync job (event-driven; cron) + rejeição de PATCH em role derivada. `communities` e `directorates` nascem **sem coluna de vínculo** (greenfield). Roles `diretor`/`voluntario` entram no enum como derivadas. |
-| **1b** | Frontend: `useMyDesignations()`, guards no AppNavIsland, cards de representação no menu de perfil (base do PR #601). |
-| **2** | Cutover de `event_organizer_ownerships` (drop da tabela; `GET /events/internal/organizers` lê de designations). Horas e redesign do `/@handle` já nascem designation-aware (badge de diretor/mentor vêm das designations ativas). Selo embeddável de membro usa designations públicas. |
+| **1a** | Migration 026 + módulo `designations/` + `/designations/me` e admin CRUD + sync event-driven/cron + proteção de PATCH + `useMyDesignations()` e guards no AppNavIsland. `communities` e `directorates` nascem sem coluna de vínculo. **Não há seed de ownership nesta fase.** |
+| **1b** | Cards de representação no menu de perfil e visibilidade pública, junto ao trabalho de `profileVisibility`. |
+| **2** | Dual-write, seed, reconciliação e cutover de `event_organizer_ownerships`; `GET /events/internal/organizers` passa a ler designations somente após reconciliação. Horas e `/@handle` já nascem designation-aware. |
 | **3** | Assembleias: sem vínculo novo (`createdById` é trilha, não permissão). `diretor` derivado já vale para criar/editar. |
 | **4** | entities/partnerships/projects nascem sem `responsibleMemberId`/`directorMemberId`/`mentorMemberId`; designations `responsible`/`manager`/`mentor` @ entity/extension_project com `appointedById`. |
 | **4b** | `institution_ambassadors` vira designation (`pending` na candidatura, gestor propõe, admin confirma); gestor = `manager` @ program; embaixador cria evento via designation @ ies. |
@@ -349,7 +342,7 @@ Regra dura: **não existe concessão sem designation ativa correspondente** — 
 ## Impactos no frontend
 
 1. **`useAuth()` inalterado** — `isAdmin`, `isEventOrganizer` etc. continuam derivados de `user.roles` (as derivadas passam a vir no `/auth/me`). Adiciona-se `isDirector`, `isMentor`, `isVolunteer`, `isUniversityManager` como conveniência (mesmo pattern, mesmo arquivo).
-2. **Hook novo `useMyDesignations()`** (`src/lib/use-designations.ts`): fetch de `GET /members/me/designations` (somente `active`), com cache e refresh pós-ação; retorna agrupado por `targetType` para os guards de UI.
+2. **Hook novo `useMyDesignations()`** (`src/lib/use-designations.ts`): fetch de `GET /designations/me` (somente `active`), com cache e refresh pós-ação; retorna agrupado por `targetType` para os guards de UI.
 3. **AppNavIsland** (`frontend/src/components/islands/AppNavIsland.tsx`): itens de menu deixam de ser só `roles: [...]` — ganham campo opcional `designations: [{ targetType, designation? }]`. Ex.: "Minha comunidade" (`responsible` @ community), "Universitário" (`manager` @ program universitario), "Mentorias" (`mentor`). A regra de filtro atual (linha ~170: `isAdmin || item.roles.some(...)`) vira `isAdmin || roleMatch || designationMatch`. Constants `CHECKIN_ROLES`/`LIST_ROLES` do check-in **não mudam** (staff permanece).
 4. **Perfil público `/@handle` (Fase 2) — seção "Representações":** as designations ativas viram cards/badges agregados: "Diretor(a) — Diretoria X", "Embaixador(a) — IES Y", "Mentor(a) — Projeto Z", "Responsável — Comunidade W". Respeitam `profileVisibility` (nova chave `designations`, default on para as públicas — diretor/mentor/responsável são institucionais; embaixador segue o opt-in da IES). O snapshot por membro (workflow) já emite as designations filtradas — ótimo para SEO e para a Fase 2, que redesenha o perfil.
 5. **Menu de perfil (NavbarAuth):** bloco "Minhas representações" com os vínculos ativos + atalhos (ex.: "Painel da comunidade", "Criar evento na minha IES").
@@ -359,21 +352,20 @@ Regra dura: **não existe concessão sem designation ativa correspondente** — 
 
 ## Riscos e pontos abertos do design
 
-1. **Enum alargado** (`entity`, `program`, `volunteer`): fora do prescrito da presidência — validar na revisão deste documento (alternativas na nota da Camada 2).
-2. **Latência do JWT** para roles derivadas (documentada na Derivação); aceita pela presidência?
-3. **`event_staff` fora da tabela única**: exceção consciente (critérios na Camada 2); reavaliar pós-1.0.0 se surgir demanda de trilha de nomeação de staff.
-4. **Wildcards legados de ownership** (`source:sourceId:*`) vivem em `targetKey` com `targetId=NULL` — migrá-los para alvos reais depende das ativações existirem; script de seed reporta scopes órfãos em vez de descartá-los.
-5. **Índices únicos parciais** exigem migração com `WHERE status='active'` — validar na revisão da migration da 1a (TypeORM não gera partial index nativamente; SQL manual no `migrations/`, padrão já usado no repo).
-6. **Regra de inclusão `diretor` ⇒ `voluntario`** é proposta do design (simplifica o histórico); confirmar com a diretoria.
-7. **Snapshot público de designations**: só designations de membros com visibilade pública e categories institucionais — inventário de tratamentos (P1/P2) deve listar essa nova saída.
-8. **Perfis de mentoria (Fase 5)** viram referência à designation — decidir na implementação se `mentor_profiles` é tabela própria com FK de designation ou view; não trava a 1a.
+1. **Enum alargado e regra `diretor` ⇒ `voluntario`:** ratificados; não são mais bloqueadores.
+2. **Atualização por request:** resolvida pelo refresh de roles já existente em `JwtStrategy`; resta apenas o cache curto de designations, invalidado em writes.
+3. **`event_staff` fora da tabela única**: exceção consciente; reavaliar pós-1.0.0 se surgir demanda de trilha de nomeação de staff.
+4. **Wildcards legados de ownership** (`source:sourceId:*`): cutover adiado para a Fase 2, com dual-write e relatório de scopes órfãos antes do drop.
+5. **Índices únicos parciais:** exigem SQL manual e teste de `up`/`down` na migration 026.
+6. **Snapshot público de designations**: somente categorias institucionais e campos permitidos por `profileVisibility`; inventário P1/P2 deve listar essa saída.
+7. **Perfis de mentoria (Fase 5)**: decidir se `mentor_profiles` referencia a designation ou vira view; não trava a 1a.
 
 ---
 
 ## Critérios de pronto (Fase 1a — recorte RBAC)
 
-- [ ] Migration `member_designations` com índices (incl. únicos parciais das regras 1–6 da Camada 2) e seed auditável a partir de `event_organizer_ownerships`.
-- [ ] Módulo `designations/` (service + `DesignationsGuard` + `/members/me/designations` + admin CRUD) com testes jest.
+- [ ] Migration 026 com índices e únicos parciais; seed/cutover de `event_organizer_ownerships` explicitamente fora da 1a e planejado com dual-write na Fase 2.
+- [ ] Módulo `designations/` (service + `DesignationsGuard` + `/designations/me` + admin CRUD) com testes jest.
 - [ ] Sync job event-driven + cron de reconciliação, com `member.role_derived` em `AuditAction`.
 - [ ] Enum `MemberRole` com as 4 derivadas; PATCH de roles rejeita escrita manual nelas (409).
 - [ ] Roles derivadas refletidas em `/auth/me` e no `GET /members`.

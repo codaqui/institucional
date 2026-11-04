@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { MembersService } from './members.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
@@ -26,7 +27,10 @@ const mockMember = (): Member => ({
 describe('MembersService', () => {
   let service: MembersService;
   let memberRepo: Record<string, jest.Mock>;
+  let transactionMemberRepo: Record<string, jest.Mock>;
   let txRepo: Record<string, jest.Mock>;
+  let dataSource: Record<string, jest.Mock>;
+  let queryRunner: Record<string, jest.Mock>;
 
   beforeEach(() => {
     // Testes de token usam o fallback de dev (plain:) — env sempre limpa
@@ -50,6 +54,28 @@ describe('MembersService', () => {
       update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
 
+    transactionMemberRepo = {
+      findOneOrFail: jest.fn(),
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
+    queryRunner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue(undefined),
+      manager: {
+        getRepository: jest.fn().mockImplementation((entity) => {
+          if (entity === Member) return transactionMemberRepo;
+          throw new Error('Repositório inesperado');
+        }),
+      },
+    };
+    dataSource = {
+      createQueryRunner: jest.fn().mockReturnValue(queryRunner),
+    };
+
     txRepo = {
       createQueryBuilder: jest.fn(),
     };
@@ -59,6 +85,7 @@ describe('MembersService', () => {
         MembersService,
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
+        { provide: DataSource, useValue: dataSource },
         {
           provide: EventsService,
           useValue: {
@@ -347,28 +374,90 @@ describe('MembersService', () => {
   // ─── adminUpdate ──────────────────────────────────────────────────────────
 
   describe('adminUpdate', () => {
-    it('should update role and return member', async () => {
+    it('locks, reads, validates and writes in one transaction', async () => {
       const member = mockMember();
-      memberRepo.findOneOrFail.mockResolvedValue(member);
+      transactionMemberRepo.findOneOrFail.mockResolvedValue(member);
 
       const result = await service.adminUpdate(member.id, {
         roles: [MemberRole.ADMIN],
       });
 
-      expect(memberRepo.update).toHaveBeenCalledWith(member.id, {
+      expect(queryRunner.startTransaction).toHaveBeenCalledTimes(1);
+      expect(queryRunner.query).toHaveBeenCalledWith(
+        'SELECT pg_advisory_xact_lock(hashtext($1))',
+        [member.id],
+      );
+      expect(transactionMemberRepo.update).toHaveBeenCalledWith(member.id, {
         roles: [MemberRole.ADMIN],
       });
+      expect(memberRepo.update).not.toHaveBeenCalled();
+      expect(
+        queryRunner.query.mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        transactionMemberRepo.findOneOrFail.mock.invocationCallOrder[0],
+      );
+      expect(
+        transactionMemberRepo.findOneOrFail.mock.invocationCallOrder[0],
+      ).toBeLessThan(transactionMemberRepo.update.mock.invocationCallOrder[0]);
+      expect(queryRunner.commitTransaction).toHaveBeenCalledTimes(1);
+      expect(queryRunner.release).toHaveBeenCalledTimes(1);
       expect(result).toEqual(member);
     });
 
-    it('should deactivate a member', async () => {
+    it('should deactivate a member using the transactional repository', async () => {
       const member = mockMember();
-      memberRepo.findOneOrFail.mockResolvedValue(member);
+      transactionMemberRepo.findOneOrFail.mockResolvedValue(member);
 
       await service.adminUpdate(member.id, { isActive: false });
 
-      expect(memberRepo.update).toHaveBeenCalledWith(member.id, {
+      expect(transactionMemberRepo.update).toHaveBeenCalledWith(member.id, {
         isActive: false,
+      });
+      expect(queryRunner.commitTransaction).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects manual additions of derived roles and rolls back', async () => {
+      transactionMemberRepo.findOneOrFail.mockResolvedValue(mockMember());
+
+      await expect(
+        service.adminUpdate('member-1', {
+          roles: [MemberRole.MEMBRO, MemberRole.DIRETOR],
+        }),
+      ).rejects.toThrow('role derivada');
+      expect(transactionMemberRepo.update).not.toHaveBeenCalled();
+      expect(queryRunner.rollbackTransaction).toHaveBeenCalledTimes(1);
+      expect(queryRunner.commitTransaction).not.toHaveBeenCalled();
+      expect(queryRunner.release).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejects manual removals of derived roles', async () => {
+      transactionMemberRepo.findOneOrFail.mockResolvedValue({
+        ...mockMember(),
+        roles: [MemberRole.MEMBRO, MemberRole.MENTOR],
+      });
+
+      await expect(
+        service.adminUpdate('member-1', { roles: [MemberRole.MEMBRO] }),
+      ).rejects.toThrow('role derivada');
+      expect(transactionMemberRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('allows manual role updates that preserve derived roles', async () => {
+      const member = {
+        ...mockMember(),
+        roles: [MemberRole.MEMBRO, MemberRole.VOLUNTARIO],
+      };
+      transactionMemberRepo.findOneOrFail.mockResolvedValue(member);
+      const roles = [
+        MemberRole.MEMBRO,
+        MemberRole.VOLUNTARIO,
+        MemberRole.ADMIN,
+      ];
+
+      await service.adminUpdate(member.id, { roles });
+
+      expect(transactionMemberRepo.update).toHaveBeenCalledWith(member.id, {
+        roles,
       });
     });
   });

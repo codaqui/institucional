@@ -1,6 +1,7 @@
 ---
 import PublicLayout from "../../layouts/PublicLayout.astro";
 import EventRegistrationIsland from "../../components/islands/EventRegistrationIsland";
+import AdultContentNotice from "../../components/astro/AdultContentNotice.astro";
 import { loadEventsIndex, type EventSummary } from "../../lib/events";
 import {
   buildEventJsonLd,
@@ -53,6 +54,12 @@ const isPast = event.status === "completed" || event.status === "canceled";
       </ul>
     )}
     <p class="mt-6 text-lg text-text-primary">{event.summary}</p>
+
+    {event.adultOnly && (
+      <div class="mt-6">
+        <AdultContentNotice />
+      </div>
+    )}
 
     {!isPast && (
       <section class="mt-8 rounded-xl border border-border bg-surface p-6 shadow-sm">

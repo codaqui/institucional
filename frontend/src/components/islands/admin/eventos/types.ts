@@ -5,6 +5,7 @@
  */
 
 import type { EventSummary } from "../../../../lib/events";
+import type { VenueType } from "../../../../lib/adult-content";
 import { parseBrlInput } from "../../../../lib/transaction";
 import { fromDateTimeLocal } from "../../../../lib/datetime";
 import { buildEventSlugPath } from "../../../../lib/event-path";
@@ -69,6 +70,8 @@ export interface ManagedEvent {
   status: EventStatus;
   capacity: number | null;
   workloadMinutes: number | null;
+  adultOnly: boolean;
+  venueType: VenueType | null;
   ticketTypes: TicketType[];
   staff: EventStaff[];
 }
@@ -218,6 +221,8 @@ export interface EventForm {
   communityProjectKey: string;
   capacity: string;
   workloadMinutes: string;
+  adultOnly: boolean;
+  venueType: VenueType | "";
 }
 
 export const EMPTY_EVENT_FORM: EventForm = {
@@ -233,6 +238,8 @@ export const EMPTY_EVENT_FORM: EventForm = {
   communityProjectKey: "codaqui",
   capacity: "",
   workloadMinutes: "",
+  adultOnly: false,
+  venueType: "",
 };
 
 export interface TicketForm {
@@ -309,42 +316,61 @@ function applyOptionalEventFields(
   return null;
 }
 
-export function buildEventPayload(
+function validateRequiredEventFields(
   form: EventForm,
   mode: "create" | "edit",
-): ValidationResult {
+): string | null {
   if (mode === "create" && !form.slug.trim()) {
-    return { error: "Preencha slug, título, resumo e local." };
+    return "Preencha slug, título, resumo e local.";
   }
   if (!form.title.trim() || !form.summary.trim() || !form.location.trim()) {
-    return { error: "Preencha título, resumo e local." };
+    return "Preencha título, resumo e local.";
   }
-  if (!isValidDateTimeLocal(form.startAt)) {
+  return null;
+}
+
+function resolveEventStartAt(value: string): { value: string } | { error: string } {
+  if (!isValidDateTimeLocal(value)) {
     return {
       error: "Informe uma data/hora de início válida (incluindo horas e minutos).",
     };
   }
-  const startIso = fromDateTimeLocal(form.startAt);
-  if (!startIso) {
-    return { error: "Data/hora de início inválida." };
+  const startAt = fromDateTimeLocal(value);
+  if (!startAt) return { error: "Data/hora de início inválida." };
+  return { value: startAt };
+}
+
+function applyEventVenue(
+  payload: Record<string, unknown>,
+  form: EventForm,
+  mode: "create" | "edit",
+): void {
+  if (form.venueType) {
+    payload.venueType = form.venueType;
+  } else if (mode === "edit") {
+    payload.venueType = null;
   }
-  const payload: Record<string, unknown> = {
-    title: form.title.trim(),
-    summary: form.summary.trim(),
-    location: form.location.trim(),
-    startAt: startIso,
-    communityProjectKey: form.communityProjectKey,
-  };
-  if (mode === "create") {
-    const slug = form.slug.trim();
-    if (!SLUG_REGEX.test(slug)) {
-      return {
-        error:
-          "Slug inválido: use letras minúsculas, números e hífens (ex.: devpr-conf-2026).",
-      };
-    }
-    payload.slug = slug;
+}
+
+function applyEventSlug(
+  payload: Record<string, unknown>,
+  form: EventForm,
+  mode: "create" | "edit",
+): string | null {
+  if (mode !== "create") return null;
+  const slug = form.slug.trim();
+  if (!SLUG_REGEX.test(slug)) {
+    return "Slug inválido: use letras minúsculas, números e hífens (ex.: devpr-conf-2026).";
   }
+  payload.slug = slug;
+  return null;
+}
+
+function applyEventDescriptionAndImage(
+  payload: Record<string, unknown>,
+  form: EventForm,
+  mode: "create" | "edit",
+): void {
   if (form.imageUrl.trim()) payload.imageUrl = form.imageUrl.trim();
   const description = form.description.trim();
   if (description) {
@@ -352,14 +378,45 @@ export function buildEventPayload(
   } else if (mode === "edit") {
     payload.description = "";
   }
+}
+
+function applyEventEndAt(payload: Record<string, unknown>, form: EventForm): string | null {
   if (form.endAt && !isValidDateTimeLocal(form.endAt)) {
-    return {
-      error:
-        "Data/hora de término inválida. Deixe em branco ou informe data e hora completas.",
-    };
+    return "Data/hora de término inválida. Deixe em branco ou informe data e hora completas.";
   }
-  const endIso = fromDateTimeLocal(form.endAt);
-  if (endIso) payload.endAt = endIso;
+  const endAt = fromDateTimeLocal(form.endAt);
+  if (endAt) payload.endAt = endAt;
+  return null;
+}
+
+export function buildEventPayload(
+  form: EventForm,
+  mode: "create" | "edit",
+): ValidationResult {
+  const requiredError = validateRequiredEventFields(form, mode);
+  if (requiredError) return { error: requiredError };
+
+  const startAt = resolveEventStartAt(form.startAt);
+  if ("error" in startAt) return startAt;
+
+  const payload: Record<string, unknown> = {
+    title: form.title.trim(),
+    summary: form.summary.trim(),
+    location: form.location.trim(),
+    startAt: startAt.value,
+    communityProjectKey: form.communityProjectKey,
+    adultOnly: form.adultOnly,
+  };
+  applyEventVenue(payload, form, mode);
+
+  const slugError = applyEventSlug(payload, form, mode);
+  if (slugError) return { error: slugError };
+
+  applyEventDescriptionAndImage(payload, form, mode);
+
+  const endError = applyEventEndAt(payload, form);
+  if (endError) return { error: endError };
+
   const optionalError = applyOptionalEventFields(payload, form, mode);
   if (optionalError) return { error: optionalError };
   return { payload };

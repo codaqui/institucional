@@ -93,6 +93,8 @@ function buildEvent(overrides: Record<string, unknown> = {}) {
     communityProjectKey: "codaqui",
     status: "draft",
     capacity: 100,
+    adultOnly: false,
+    venueType: null,
     ticketTypes: [],
     staff: [],
     ...overrides,
@@ -310,6 +312,59 @@ describe("/admin/eventos", () => {
       const body = JSON.parse(patchCall![1]!.body as string);
       expect(body).not.toHaveProperty("slug");
       expect(body.description).toBe("Texto longo do evento");
+    });
+  });
+
+  it("sugere 18+ sem marcar ou salvar automaticamente", async () => {
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([
+          buildEvent({
+            startAt: "2026-08-10T21:00:00.000Z",
+            venueType: "bar",
+          }),
+        ]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
+        return jsonResponse(buildEvent({ adultOnly: true, venueType: "bar" }));
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: /^Editar$/i }));
+
+    const adultOnly = screen.getByRole("checkbox", {
+      name: "Evento destinado a maiores de 18 anos",
+    });
+    expect(adultOnly).not.toBeChecked();
+    expect(screen.getByText(/Sugestão: local e horário podem indicar/i)).toBeInTheDocument();
+    expect(authFetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("/events/evt-1"),
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /Aplicar sugestão 18\+/i }));
+    expect(adultOnly).toBeChecked();
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    await waitFor(() => {
+      const patchCall = authFetch.mock.calls.find(
+        ([url, options]: [string, RequestInit?]) =>
+          url.endsWith("/events/evt-1") && options?.method === "PATCH",
+      );
+      expect(patchCall).toBeDefined();
+      expect(JSON.parse(patchCall![1]!.body as string)).toMatchObject({
+        adultOnly: true,
+        venueType: "bar",
+      });
     });
   });
 

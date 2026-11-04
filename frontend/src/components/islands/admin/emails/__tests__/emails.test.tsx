@@ -3,8 +3,6 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import EmailsApp from "../EmailsApp";
 import { renderWithMui } from "../../../../../test/render-mui";
 
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta os
-// campos que precisa no beforeEach/corpo.
 const authState = vi.hoisted(() => ({
   ready: false,
   isLoggedIn: false,
@@ -65,18 +63,45 @@ const sentLog = {
   createdAt: "2026-07-19T10:00:00.000Z",
 };
 
+const skippedLog = {
+  id: "log-3",
+  to: "ignorado@example.com",
+  template: "event-reminder",
+  eventId: "evt-1",
+  status: "skipped",
+  error: "SMTP_NOT_CONFIGURED",
+  createdAt: "2026-07-18T10:00:00.000Z",
+};
+
 const listResponse = {
-  items: [failedLog, sentLog],
-  total: 2,
+  items: [failedLog, sentLog, skippedLog],
+  total: 3,
   summary: {
     sent: 9,
     failed: 1,
+    skipped: 4,
     byTemplate: {
-      "event-confirmation": { sent: 7, failed: 1 },
-      "event-reminder": { sent: 2, failed: 0 },
+      "event-confirmation": { sent: 7, failed: 1, skipped: 2 },
+      "event-reminder": { sent: 2, failed: 0, skipped: 2 },
     },
   },
 };
+
+function mockEmailEndpoints(
+  { configured = true, response = listResponse } = {},
+) {
+  authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+    if (url === "/notifications/status") return jsonResponse({ configured });
+    if (url.includes("/notifications/emails/log-1/resend") && init?.method === "POST") {
+      return jsonResponse({ ...failedLog, status: "sent", error: null });
+    }
+    if (url.includes("/notifications/emails/log-3/resend") && init?.method === "POST") {
+      return jsonResponse({ ...skippedLog, status: "sent", error: null });
+    }
+    if (url.includes("/notifications/emails?")) return jsonResponse(response);
+    return jsonResponse(null, { ok: false, status: 404 });
+  });
+}
 
 describe("/admin/emails", () => {
   beforeEach(() => {
@@ -91,7 +116,7 @@ describe("/admin/emails", () => {
     const replace = stubLocation();
     try {
       authState.ready = true;
-      authState.isLoggedIn = true; // membro comum, sem role admin
+      authState.isLoggedIn = true;
       renderWithMui(<EmailsApp />);
 
       await waitFor(() => {
@@ -102,31 +127,76 @@ describe("/admin/emails", () => {
     }
   });
 
-  it("carrega resumo e tabela paginada de e-mails", async () => {
-    authState.authFetch.mockImplementation(async (url: string) => {
-      if (url.includes("/notifications/emails?")) return jsonResponse(listResponse);
-      return jsonResponse(null, { ok: false, status: 404 });
-    });
+  it("carrega os três status e inclui skipped nos totais sem somá-lo a failed", async () => {
+    mockEmailEndpoints();
     mockAdmin();
 
     renderWithMui(<EmailsApp />);
 
     expect(await screen.findByText("participante@example.com")).toBeInTheDocument();
-    expect(screen.getByText("outro@example.com")).toBeInTheDocument();
-    expect(screen.getByText("Enviados")).toBeInTheDocument();
-    expect(screen.getByText("Falhas")).toBeInTheDocument();
+    expect(screen.getByText("ignorado@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Ignorados")).toBeInTheDocument();
+    expect(screen.getByText("Ignorados").previousSibling).toHaveTextContent("4");
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(
+      screen.getByText("event-confirmation: 7 enviados · 1 falhas · 2 ignorados"),
+    ).toBeInTheDocument();
+    expect(authState.authFetch).toHaveBeenCalledWith("/notifications/status");
     expect(authState.authFetch).toHaveBeenCalledWith(
       expect.stringContaining("page=1&pageSize=20"),
     );
   });
 
+  it("mostra banner e esconde reenvios quando o módulo está desligado", async () => {
+    mockEmailEndpoints({ configured: false });
+    mockAdmin();
+
+    renderWithMui(<EmailsApp />);
+
+    expect(
+      await screen.findByText(/Envios de e-mail estão desativados/i),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Reenviar/i })).not.toBeInTheDocument();
+  });
+
+  it("oferece o filtro skipped", async () => {
+    mockEmailEndpoints();
+    mockAdmin();
+
+    renderWithMui(<EmailsApp />);
+    await screen.findByText("participante@example.com");
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Status" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Ignorados" }));
+
+    await waitFor(() => {
+      expect(authState.authFetch).toHaveBeenCalledWith(
+        expect.stringContaining("status=skipped"),
+      );
+    });
+  });
+
   it("reenvia e-mail com falha e exibe feedback de sucesso", async () => {
-    authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.includes("/notifications/emails/log-1/resend") && init?.method === "POST") {
-        return jsonResponse({ ...failedLog, status: "sent", error: null });
-      }
-      if (url.includes("/notifications/emails?")) return jsonResponse(listResponse);
-      return jsonResponse(null, { ok: false, status: 404 });
+    mockEmailEndpoints();
+    mockAdmin();
+
+    renderWithMui(<EmailsApp />);
+
+    const resendButtons = await screen.findAllByRole("button", { name: /Reenviar/i });
+    fireEvent.click(resendButtons[0]);
+
+    expect(
+      await screen.findByText(/E-mail reenviado com sucesso para participante@example.com/i),
+    ).toBeInTheDocument();
+    expect(authState.authFetch).toHaveBeenCalledWith(
+      expect.stringContaining("/notifications/emails/log-1/resend"),
+      expect.objectContaining({ method: "POST" }),
+    );
+  });
+
+  it("também permite reenviar um e-mail skipped quando o módulo está configurado", async () => {
+    mockEmailEndpoints({
+      response: { ...listResponse, items: [skippedLog], total: 1 },
     });
     mockAdmin();
 
@@ -135,10 +205,10 @@ describe("/admin/emails", () => {
     fireEvent.click(await screen.findByRole("button", { name: /Reenviar/i }));
 
     expect(
-      await screen.findByText(/E-mail reenviado com sucesso para participante@example.com/i),
+      await screen.findByText(/E-mail reenviado com sucesso para ignorado@example.com/i),
     ).toBeInTheDocument();
     expect(authState.authFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/notifications/emails/log-1/resend"),
+      expect.stringContaining("/notifications/emails/log-3/resend"),
       expect.objectContaining({ method: "POST" }),
     );
   });

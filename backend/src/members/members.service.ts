@@ -1,6 +1,13 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import {
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { DERIVED_ROLES } from '../designations/designations.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { Transaction } from '../ledger/entities/transaction.entity';
@@ -58,6 +65,7 @@ export class MembersService {
     private readonly txRepo: Repository<Transaction>,
     @Inject(forwardRef(() => EventsService))
     private readonly eventsService: EventsService,
+    private readonly dataSource: DataSource,
   ) {}
 
   private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -328,15 +336,48 @@ export class MembersService {
 
   /**
    * Admin: atualizar role ou isActive.
-   * Nota: bootstrap admins que fizerem login novamente terão role=admin
-   * restaurada automaticamente — a restrição é por design.
+   * Roles derivadas só mudam pelo sync de designations. Bootstrap admins que
+   * fizerem login novamente terão role=admin restaurada automaticamente.
    */
   async adminUpdate(
     id: string,
     dto: Readonly<AdminUpdateDto>,
   ): Promise<Member> {
-    await this.repo.update(id, dto);
-    return this.repo.findOneOrFail({ where: { id } });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await queryRunner.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+        id,
+      ]);
+      const repo = queryRunner.manager.getRepository(Member);
+      const member = await repo.findOneOrFail({ where: { id } });
+
+      if (dto.roles) {
+        const previousRoles = new Set(member.roles);
+        const nextRoles = new Set(dto.roles);
+        const changesDerivedRole = DERIVED_ROLES.some(
+          (role) =>
+            previousRoles.has(role as MemberRole) !==
+            nextRoles.has(role as MemberRole),
+        );
+        if (changesDerivedRole) {
+          throw new ConflictException(
+            'role derivada — gerida pelo sync de designations',
+          );
+        }
+      }
+
+      await repo.update(id, dto);
+      const updated = await repo.findOneOrFail({ where: { id } });
+      await queryRunner.commitTransaction();
+      return updated;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   // ── Doadores ──────────────────────────────────────────────────────────────

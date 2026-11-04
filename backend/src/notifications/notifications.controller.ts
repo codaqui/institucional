@@ -35,9 +35,15 @@ export class NotificationsController {
     private readonly templateService: EmailTemplateService,
   ) {}
 
+  @Get('status')
+  @ApiOperation({ summary: '🔒 Status de configuração do SMTP [admin]' })
+  getStatus() {
+    return this.emailService.getStatus();
+  }
+
   @Get('emails')
   @ApiOperation({
-    summary: '🔒 Logs de e-mail enviados/falhos + summary [admin]',
+    summary: '🔒 Logs de e-mail enviados/falhos/ignorados + summary [admin]',
   })
   listEmails(
     @Query('status') status?: string,

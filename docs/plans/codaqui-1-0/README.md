@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: design aprovado em 2026-09-21 (mentoria, e-mail, menus, relatórios e UX do membro/perfil público adicionados em 2026-09-21; cadastro de projeto de extensão + comprovantes detalhado em 2026-09-21); revisado em 2026-10-05 após as entregas 0.9.0–0.11.2 (E2 templates, workloadMinutes, check-in atômico): versionamento remapeado a partir de 0.12.0, migrations do 1.0.0 a partir da 026, regra de derivação de horas por evento definida (internos e externos), Fase 1 dividida em 1a/1b; anexada em 2026-10-05 a Fase 0 (refatoração do frontend Docusaurus → Astro, multi-tenant por build matrix no Cloudflare Pages, fim dos workers/) — ver refatoracao-frontend-astro.md; ampliado em 2026-10-20: Design System Codaqui integrado à Fase 0 (tokens novos + correção de contraste WCAG + página pública /design-system — ver design-system.md) e C4P integrado como subsistema G / Fase 7, fechando o 1.0.0 (ver c4p.md — sistema externo validado no DevPR Conf 2026, portado com submissão pública); **atualizado em 2026-10-29: Fase 0 CONCLUÍDA (0.1–0.6 + fases adjuntas, ADR 011 implementada, sites nos 4 domínios servidos por CI a partir de main; backend em 0.11.5 com hardening de segurança) — ordem das fases 1a→7 mantida, com reduções de escopo na 1b já entregues pela Fase 0 (ver nota na tabela de fases); adicionado o subsistema H — Codaqui Universitário (Fase 4b, bases compartilhadas com o subsistema C)**.
+status: Fase 0 e Fase 1a concluídas (Fase 1a em 2026-11-03, backend 0.12.3). Fase 1b pronta para implementação; demais fases permanecem em design. Revisão integral em 2026-10-29: RBAC consolidado como fonte de vínculos, seis comunidades preservadas no seed, E1/R1/transversais confirmados no código e versionamento ajustado para uma versão backend por release.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -36,6 +36,8 @@ related-docs:
   - docs/plans/codaqui-1-0/rbac.md — ⭐ RBAC consolidado: roles × designations × derivação (anexo de design, 2026-10-29)
   - docs/plans/codaqui-1-0/comunidades-plataforma.md — ⭐ Plataforma de comunidades: níveis + criação por membros + split Stripe para Autônomas (anexo de design, 2026-10-29)
   - docs/plans/codaqui-1-0/transversais.md — ⭐ Transversais: Turnstile, busca (Pagefind), certificados sem validade, retenção de auditoria (anexo de design, 2026-10-29)
+  - docs/plans/codaqui-1-0/fase-1a.md — ⭐ Plano executável da Fase 1a: tasks, migrations 026–031, testes e gates concluídos
+  - docs/plans/codaqui-1-0/fase-1b.md — ⭐ Plano executável da Fase 1b: navegação, profileVisibility, P1–P3 e Pagefind; pronto mediante comando
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
@@ -71,7 +73,7 @@ Princípios:
 | Multisite whitelabel (ADR 004, piloto T.I. Social) | Vira privilégio do nível **Integrada** |
 | Giscus (comentários do blog) | Embute a Discussion de cada assembleia |
 | Snapshots estáticos (`static/events/`) | Mesmo pattern para `static/assemblies/` e migração de `communities.ts` |
-| `frontend/src/data/communities.ts` (5 parceiras, frontend-only — antes `src/data/`) | Migra para tabela `communities` + snapshot |
+| `frontend/src/data/communities.ts` (6 comunidades, frontend-only) | Migra integralmente para tabela `communities` + snapshot, preservando descrição, links, perfis sociais e tags |
 | `/participe/mentoria` (estática, Google Calendar externo, mentores hardcoded) | Vira módulo de mentoria: perfis, disponibilidade, agendamento, sessões, insights (subsistema F) |
 | Sistema externo de C4P (validado em produção no DevPR Conf 2026 — curadoria com importação CSV, avaliadores, votação por critérios, PDF) | Portado como subsistema G (Fase 7): módulo NestJS + PostgreSQL, auth por roles, + submissão pública — ver [c4p.md](c4p.md) |
 | Tema MUI/CSS atual (`#57B593` reprova contraste AA como cor acionável) | Design System Codaqui adotado na Fase 0: tokens `--cq-*` + correção de contraste + página pública `/design-system` — ver [design-system.md](design-system.md) |
@@ -106,9 +108,8 @@ Princípios:
 ### B. Diretorias, diretores, voluntários e horas
 
 **Entidades:**
-- `directorates`: `id`, `slug`, `name`, `description`, `directorMemberId`, `isActive`.
-- `directorate_members`: `id`, `directorateId`, `memberId`, `joinedAt`, `leftAt?` (histórico de voluntariado).
-- `hour_ledger`: `id`, `memberId`, `sourceType` ('event_checkin' | 'directorate_activity' | 'extension_project'), `sourceId`, `sourceLabel`, `hours` (numeric), `description`, `occurredAt`, `status` ('pending' | 'approved' | 'rejected'), `reportedById`, `approvedById?`, `approvedAt?`, `rejectReason?`. Guarda de unicidade: 1 entrada approved por (`memberId`, `sourceType`, `sourceId`).
+- `directorates`: `id`, `slug`, `name`, `description`, `isActive`. Diretor e voluntários são `member_designations` (`director`/`volunteer` @ `directorate`); não existe `directorate_members`.
+- `hour_ledger`: `id`, `memberId`, `sourceType` ('event_checkin' | 'directorate_activity' | 'extension_project' | 'mentorship_session'), `sourceId`, `sourceLabel`, `hours` (numeric), `description`, `occurredAt`, `status` ('pending' | 'approved' | 'rejected'), `reportedById`, `approvedById?`, `approvedAt?`, `rejectReason?`, `idempotencyKey?`. A unicidade por (`memberId`, `sourceType`, `sourceId`) vale apenas para fontes automáticas de ocorrência única (check-in/sessão); atividades manuais de diretoria e projetos admitem múltiplos lançamentos e usam `idempotencyKey` para retry seguro.
 
 **Fluxos:**
 - Evento (interno **ou externo com check-in ativado**): check-in aprovado → entrada `event_checkin` **approved** automática (reportedBy = sistema). Horas derivadas por: `workloadMinutes` do evento → fallback duração (`endAt − startAt`; do banco para internos, dos metadados do snapshot para externos) → se nenhuma disponível, a carga horária é **obrigatória** no cadastro/ativação (evento sem carga horária definida não pode ser criado/ativado). O hook é **exactly-once**: dispara somente na transição atômica `checkedInAt` null→valor (o mesmo update condicional introduzido no check-in 0.11.x), e a guarda de unicidade acima elimina qualquer duplicidade residual.
@@ -123,9 +124,9 @@ Princípios:
 ### C. Entidades, parcerias e Projetos de Extensão
 
 **Entidades:**
-- `entities`: `id`, `name`, `type` ('empresa' | 'instituicao_ensino' | 'ong' | 'governo' | 'outro'), `cnpj?`, `website?`, `contactEmail?`, `registeredById`, `responsibleMemberId`, `isActive`.
-- `partnerships`: `id`, `entityId`, `directorMemberId` (diretor responsável), `kind` ('termo' | 'pontual'), `startedAt`, `endsAt?`, `status` ('active' | 'ended' | 'canceled'), `notes?`.
-- `extension_projects`: `id`, `entityId`, `partnershipId?`, `name`, `slug`, `summary`, `description?`, `mentorMemberId` (designado pela diretoria), `designatedById`, `status` ('proposed' | 'active' | 'finished' | 'canceled'), `startsAt?`, `endsAt?`, `isPublic`.
+- `entities`: `id`, `name`, `type` ('empresa' | 'instituicao_ensino' | 'ong' | 'governo' | 'outro'), `cnpj?`, `website?`, `contactEmail?`, `registeredById`, `isActive`. Responsável e gestor são designations @ `entity`.
+- `partnerships`: `id`, `entityId`, `kind` ('termo' | 'pontual'), `startedAt`, `endsAt?`, `status` ('active' | 'ended' | 'canceled'), `notes?`. O diretor responsável é designation `manager` @ `entity`.
+- `extension_projects`: `id`, `entityId`, `partnershipId?`, `name`, `slug`, `summary`, `description?`, `status` ('draft' | 'proposed' | 'active' | 'finished' | 'canceled'), `startsAt?`, `endsAt?`, `isPublic` + campos do anexo. Mentor e quem designou são designation `mentor` @ `extension_project` com `appointedById`.
 - `project_participants`: `id`, `projectId`, `memberId`, `role` ('participant' | 'mentor'), `joinedAt`, `leftAt?`.
 
 **Fluxo:** diretor cadastra entidade → cria parceria → cadastra projeto de extensão → **designa mentor** → projeto público (`isPublic`) recebe inscrições de membros → mentor lança horas (vai ao ledger, subsistema B) → projeto encerra com relatório-resumo.
@@ -136,7 +137,7 @@ Princípios:
 
 ### D. ONG e Comunidades — níveis + Selo Codaqui
 
-**Entidade `communities`** (migra `src/data/communities.ts`): `id`, `slug`, `name`, `level` ('parceira' | 'integrada'), `responsibleMemberId` (obrigatório para selo), `sealStatus` ('none' | 'applied' | 'sealed'), `sealGrantedAt?`, `sealGrantedById?`, `sealValidUntil?`, `sealNotes?`, `logoUrl?`, `website?`, `donationSlug?`, `isActive`.
+**Entidade `communities`** (migra `frontend/src/data/communities.ts`): `id`, `slug`, `name`, `description`, `emoji`, `logoUrl`, `location?`, `founded?`, `links`, `socialProfiles`, `tags`, `level` ('parceira' | 'integrada'), `status` ('proposed' | 'active' | 'suspended' | 'exited'), `sealStatus` ('none' | 'applied' | 'sealed'), `sealGrantedAt?`, `sealGrantedById?`, `sealValidUntil?`, `sealNotes?`, `siteEnabled`, `siteDomain?`. O responsável é designation `responsible` @ `community`, obrigatória para selo/painel. O seed tem quatro Integradas: os três tenants (`siteEnabled=true`) e CamposTech (`siteEnabled=false`, preservando doações/transparência no portal), todas sem responsável fabricado.
 
 **Níveis:**
 - **Parceira** (default): listada no site, acompanhamento pontual (jurídico/fiscal/eventual), sem caixa própria.
@@ -199,7 +200,7 @@ Traz o programa de mentoria (hoje página estática com Google Calendar externo)
 
 Feature muito solicitada pelas comunidades, validada como sistema externo em produção real (C4P do DevPR Conf 2026) e integrada à base na **Fase 7**, fechando o 1.0.0. Escopo: **curadoria portada** (importação CSV, avaliadores por campanha, votação por critérios, dashboard, finalização com PDF) **+ submissão pública** de propostas, substituindo o Google Forms.
 
-**Entidades:** `c4p_calls` (campanha; vínculo opcional a `managed_events` e a `communities`), `c4p_talks` (propostas, com `origin` e consentimento LGPD), `c4p_evaluators` (vínculo membro↔campanha, pattern `event_staff`), `c4p_votes` (scores por critério configurável, upsert).
+**Entidades:** `c4p_calls` (campanha; vínculo opcional a `managed_events` e a `communities`), `c4p_talks` (propostas, com `origin` e consentimento LGPD), `c4p_votes` (scores por critério configurável, upsert, referência à designation do avaliador). O vínculo membro↔campanha é `member_designations` (`evaluator` @ `c4p_campaign`), sem `c4p_evaluators`.
 
 **Fluxo:** abertura da campanha → submissão pública (`/c4p/<slug>/submeter`, com consentimento) ou importação CSV → convite/aceite de avaliadores → votação → finalização (selecionadas + PDF + e-mails de resultado) → resultado público opt-in (`/c4p/<slug>/resultado`, sem notas).
 
@@ -209,12 +210,12 @@ Feature muito solicitada pelas comunidades, validada como sistema externo em pro
 
 Programa de presença em Instituições de Ensino Superior (IES): membro da comunidade **gestiona o programa**, cadastra-se **cidades** e **IES**, seleciona-se um **embaixador por IES** e o foco é **organizar eventos dentro da instituição** — reaproveitando a plataforma de eventos existente (inscrição, check-in, certificado e **horas automáticas**) e as bases do **subsistema C** (entidades/projetos de extensão).
 
-**Gestão:** papel `gestor_universitario` (global, designado pela diretoria — mesmo padrão de concessão com `audit`).
+**Gestão:** designation `manager` @ `program('universitario')`, da qual deriva a role global `gestor_universitario`; concessão e revogação passam por `audit`.
 
 **Entidades (reaproveitamento explícito do subsistema C):**
 - **`cities`** (nova — **base compartilhada**): `id`, `name`, `uf`, `isActive`. Usada por IES (`entities.cityId`) e candidata a uso futuro por comunidades/entidades em geral.
 - **`entities`** (JÁ EXISTE no subsistema C): o cadastro de IES **é uma entity de type `'instituicao_ensino'`** — o Universitário NÃO duplica cadastro. Acréscimo mínimo ao modelo do subsistema C: `entities.cityId?` (FK → `cities`).
-- **`institution_ambassadors`** (nova): `id`, `entityId` (IES), `memberId`, `status` ('appointed' | 'active' | 'removed'), `appointedById`, `confirmedById?`, `since`, `validUntil?`. Guarda: **1 embaixador active por IES** (unique parcial). Substitui o pattern manual de `ambassadors.json` do DevParaná (dados migráveis).
+- **Embaixadores:** designations `ambassador` @ `ies` (`pending` na candidatura, `active` após confirmação admin), com `appointedById`, `since`, `validUntil?` e unique parcial de 1 active por IES. Não existe tabela `institution_ambassadors`; o pattern manual de `ambassadors.json` do DevParaná é migrável para designations.
 - **`managed_events`** (JÁ EXISTE): acréscimo de `institutionId?` (FK → `entities`, somente type IES) — um evento "do Universitário" é um managed event comum **com vínculo à IES**; inscrição, check-in atômico, certificado e o hook de horas (`event_checkin`) funcionam sem mudança.
 
 **Fluxo:**
@@ -249,11 +250,10 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 
 ## Arquitetura de menus e navegação (UX)
 
-**Problema:** o painel admin navega por uma fileira de botões que quebra linha, com um único grupo (Eventos) em dropdown que some ao clicar e estado ativo fraco; com 1.0.0 serão ~25 páginas. O menu de perfil (foto, desktop/mobile) é uma lista plana sem identidade.
+**Problema restante:** o app-shell entregue na Fase 0.4 já tem sidebar e navegação por papel, mas os grupos ainda são rasos para as ~25 páginas previstas; a 1b refina agrupamento, busca e dashboard sem criar outro layout.
 
-**Admin — app-shell com sidebar esquerda persistente:**
-- Novo `AdminLayout` (sidebar 240px, colapsável; drawer hambúrguer no mobile; topbar com breadcrumb seção › página) substitui o `AdminNavbar` nas ~15 páginas existentes.
-- **Base já entregue pela Fase 0.4**: o `AppLayout`/`AppNavIsland` do app Astro já é um app-shell com sidebar + topbar e navegação por papel (ver AGENTS.md, decisão 2). O que a 1b adiciona é o REFINAMENTO: seções agrupadas por sistema de valor com submenus expansíveis, busca no topo, item ativo por prefixo de rota e hub `/admin` como dashboard — não um layout do zero.
+**Admin — refinamento do `AppLayout`/`AppNavIsland` existente:**
+- Manter sidebar 240px, drawer mobile e topbar atuais. A 1b adiciona seções agrupadas por sistema de valor, submenus expansíveis, busca no topo, item ativo por prefixo e hub `/admin` como dashboard — não um `AdminLayout` paralelo.
 - Sidebar com seções agrupadas por **sistema de valor** (submenus expansíveis, item ativo por prefixo de rota, busca no topo, seção some se o usuário não vê nenhum item):
   - **Visão geral** (dashboard) · **Pessoas** (Membros, Diretorias, Voluntários, Horas ▸ Aprovações/Saldos/Declarações) · **Financeiro (R$)** (Lançamento, Transferências, Reembolsos, Fornecedores, Pagamentos, Recebimentos, Relatórios) · **Clube & SortCoins** (Carteiras, Sorteios) · **Empresas** (PJ, tiers F6) · **Eventos** (Visão geral, Overrides, Check-in) · **Governança** (Comunidades & Selo, Assembleias, Entidades, Projetos de Extensão, Mentoria) · **Comunicação** (E-mails, Templates)
 - Regras de nome: "SortCoins" é o único nome da moeda virtual (nunca "VirtualCoins"/"Carteira" soltos); "saldo" sempre qualificado (R$, SortCoins, horas); `hour_ledger` nunca chamada de "ledger" na UI.
@@ -262,7 +262,7 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 **Menu de perfil (NavbarAuth, desktop + mobile):**
 - Cabeçalho de identidade no menu: avatar, nome, `@handle`, chips de roles.
 - Agrupado com rótulos: **Conta** (Perfil · Clube · Empresa) · **Gestão** (Painel Admin) · **Sessão** (Trocar conta · Sair) — doação sai do menu de conta.
-- Mobile: mesmo conteúdo com bloco de identidade e rótulos de seção (mantendo as classes do sidebar Docusaurus); item ativo conforme a página.
+- Mobile: mesmo conteúdo com bloco de identidade e rótulos de seção no drawer atual; item ativo conforme a página.
 
 ## Relatórios & exportações (R1–R3)
 
@@ -330,9 +330,9 @@ Diagnóstico (2026-09-21): no `/@handle`, inscrições em eventos já linkam par
 
 ## Modelo de dados consolidado
 
-Novas tabelas: `communities`, `directorates`, `directorate_members`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`, `cities`, `institution_ambassadors`, `c4p_calls`, `c4p_talks`, `c4p_evaluators`, `c4p_votes`.
-Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`, `gestor_universitario`), `members.profileVisibility` (jsonb — visibilidade por campo no perfil público), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice — ver seção de e-mail), `entities` (+`cityId` — base compartilhada com o Universitário), `managed_events` (+`institutionId` — eventos em IES).
-Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `managed_events.workloadMinutes` já existem). Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
+Novas tabelas: `member_designations`, `communities`, `directorates`, `hour_ledger`, `assemblies`, `entities`, `partnerships`, `extension_projects`, `project_participants`, `mentor_profiles`, `mentor_availability`, `mentorship_sessions`, `cities`, `c4p_calls`, `c4p_talks`, `c4p_votes`, `app_settings`. Vínculos de embaixador, avaliador C4P, diretor, mentor e responsável vivem em `member_designations`, não em tabelas/colunas paralelas.
+Alterações: `members.roles` (+`diretor`, `voluntario`, `mentor`, `gestor_universitario`, sempre derivadas), `members.profileVisibility` (jsonb — Fase 1b), `hour_ledger.sourceType` (+`mentorship_session`), `companies` (+tier e campos aliada), `email_logs` (status +`skipped`, índice), `audit_logs` (+`category`), `entities` (+`cityId`), `managed_events` (+`adultOnly`, `venueType`, `institutionId`).
+Migrations numeradas a partir da **026**; a Fase 1a usa **026–031**, mapeadas em [fase-1a.md](fase-1a.md). Padrões: uuid PK, createdAt/updatedAt, índices em foreign keys, soft semantics por `isActive`/`status` (sem deletes físicos em registros de governo).
 
 > **Nota — duas ledgers, zero mistura:** a `hour_ledger` é independente da ledger financeira (`Account`/`Transaction`): unidade horas vs. BRL, sem double-entry, sem contas compartilhadas. O que ela herda é apenas o *padrão* (trilha de auditoria, status de aprovação, convenção de referências). Dinheiro — incluindo a caixa das comunidades integradas — segue exclusivamente na ledger financeira.
 
@@ -348,7 +348,7 @@ Migrations numeradas a partir da **026** (024 = `email_templates` e 025 = `manag
 | `finance-analyzer` | aprovação de horas + visão financeira |
 | mentor de extensão (não é role; é vínculo) | lança horas nos próprios projetos |
 | responsável de comunidade (vínculo) | painel da própria comunidade |
-| avaliador C4P (não é role global; vínculo via `c4p_evaluators`) | votação nas campanhas em que está vinculado (Fase 7) |
+| avaliador C4P (não é role global; designation `evaluator` @ `c4p_campaign`) | votação nas campanhas em que está vinculado (Fase 7) |
 
 Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação de horas) ficam com admin/presidência; `finance-analyzer` aprova horas.
 
@@ -364,30 +364,31 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | Fase | Entrega | Critério de pronto |
 |---|---|---|
 | **0. Refatoração de frontend** ✅ **CONCLUÍDA (2026-10-29)** (anexada 2026-10-05; DS integrado 2026-10-20) | Docusaurus → **Astro 7 + ilhas React (MUI v9 + Tailwind v4)**; **tokens do Design System Codaqui já no esqueleto (0.1) + página pública `/design-system` (0.3)**; multi-tenant por build matrix no Cloudflare Pages; fim da pasta `workers/` (proxy vira Pages Function) — detalhes e subfases 0.1–0.6: [refatoracao-frontend-astro.md](refatoracao-frontend-astro.md) + [design-system.md](design-system.md) | ✅ Paridade de URLs públicas; tokens novos com contraste AA aplicados; `/design-system` publicada; tisocial.org.br com rotas limpas e login cross-domain; cutover de codaqui.dev com rollback ensaiado; Docusaurus removido — **todos os critérios atendidos; ADR 011 implementada; releases v1.0.0 (site) e v0.11.x-backend; produção servida por CI a partir de `main` (develop = sandbox/preview)** |
-| **1a. Fundações de dados** (split 2026-10-05) | `communities` + níveis/selo + roles `diretor`/`voluntario` + `directorates` + migração de `communities.ts` + **E1 (e-mail) + R1 (relatórios)** | CRUD admin + snapshot público com níveis/selo; roles aplicados no guard; seed das 5 comunidades; NaN do dashboard corrigido; export CSV por datas |
-| **1b. UX e transversal** (split 2026-10-05) | **AdminLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 (privacidade/LGPD/conduta)** | sidebar ativa; visibilidade por campo no endpoint público; política de privacidade publicada; conduta com nova UI |
+| **1a. Fundações de dados** ✅ **CONCLUÍDA (2026-11-03)** — [plano detalhado](fase-1a.md) | `member_designations` + roles derivadas + `communities` + níveis/selo + `directorates` + seed das 6 comunidades + **E1 + R1 + G3/G6 + ECA** | ✅ CRUD admin + snapshot público; roles e guards de designation; seed sem perda de dados; e-mail `skipped` e summary corrigida; CSV por datas; retenção de auditoria; Turnstile testado; eventos 18+ sinalizados; backend `0.12.3` e todos os gates verdes |
+| **1b. UX e transversal** | **Refinamento do AppLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 + Pagefind** | sidebar agrupada; visibilidade por campo no endpoint público; política publicada; conduta com nova UI; busca local no portal |
 | **2. Pessoas e horas** | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | 3 fontes alimentando; fila de aprovação; PDF emitindo só horas approved; audit completo; perfil público com snapshot por membro respeitando visibilidade; derivação `workloadMinutes` → duração aplicada a internos e externos, com carga horária obrigatória quando nenhuma disponível; hook exactly-once no check-in atômico |
 | **3. Assembleias** | `assemblies` + páginas + Giscus + snapshot | CRUD + registro cartorário em oficiais; detalhe embute Discussion; lista pública gerada |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
-| **4b. Codaqui Universitário** (adicionado 2026-10-29) | `cities` + `entities.cityId` + `institution_ambassadors` + `managed_events.institutionId` + papel `gestor_universitario` + página `/universitario` + painel do gestor — **bases compartilhadas com o subsistema C** (IES = entity; ponte de extensão via `extension_projects.entityId`) | Cidade→IES→embaixador (1 active/IES, seleção gestor+confirmação admin)→evento na IES com inscrição/check-in/certificado/horas reais; ação extensionista vira projeto de extensão na mesma entity; snapshot público `static/universities/` |
+| **4b. Codaqui Universitário** (adicionado 2026-10-29) | `cities` + `entities.cityId` + designations `ambassador` @ `ies` e `manager` @ `program('universitario')` + `managed_events.institutionId` + página `/universitario` + painel do gestor — **bases compartilhadas com o subsistema C** | Cidade→IES→embaixador (1 active/IES, gestor propõe+admin confirma)→evento na IES com inscrição/check-in/certificado/horas reais; ação extensionista vira projeto de extensão na mesma entity; snapshot público `static/universities/` |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 | **7. C4P** (anexada 2026-10-20) | Porte do sistema externo de C4P (curadoria: importação CSV, avaliadores, votação por critérios, dashboard, PDF) **+ submissão pública** + resultado público opt-in — detalhes: [c4p.md](c4p.md) | Submissão pública ponta a ponta com consentimento LGPD; curadoria completa (convite→votação→finalização→e-mails); importação CSV compatível com o Google Forms atual; notas nunca públicas; ADR 012 implementada |
 
-> **Nota pós-Fase 0 (2026-10-29) — a ordem 1a → 7 MANTÉM-SE, com escopo reduzido onde a Fase 0 já entregou:**
-> - **1b encolheu**: o app-shell admin (AppLayout/AppNavIsland) e o menu do perfil com os itens originais já existem (Fase 0.4 + PR #601). Restam na 1b: refinamento da sidebar (seções por valor, submenus, busca, item ativo), aba "Meus dados" + `profileVisibility`, P1–P3 (privacidade/LGPD/conduta). Sugestão registrada: o backend de `profileVisibility` (modelagem + endpoint + filtro no snapshot) pode migrar para a **1a** (fundações de dados), deixando a 1b com UI/política — decisão no plano de implementação da 1a.
-> - **Premissas preservadas**: as fases 1a+ nascem no stack Astro (era o objetivo da Fase 0); padrão de snapshots, Giscus, roles guard e ledger seguem válidos; as novas listagens devem usar o padrão de paginação (`frontend/src/lib/pagination.ts` + DTO de query backend — ver AGENTS.md, decisão 12).
-> - **Dependências críticas inalteradas**: F5 (mentoria) precisa de E1 (e-mail) + P1/P2 (LGPD) + hour_ledger (F2); F2 precisa de directorates (1a) e do check-in atômico (✅ 0.11.x); F3 precisa da categoria Giscus "Assembleias" (risco 1 — tarefa manual a fazer antes).
-> - **C4P (F7)** continua independente das fases 1–6 — se a presidência quiser antecipá-la (feature mais solicitada), é possível sem quebrar dependências; por ora mantém-se como fecho do 1.0.0.
-> - **Anexos de design (2026-10-29)** — revisão de reaproveitamento e gaps, com decisões da presidência: [eca-lgpd.md](eca-lgpd.md) (G1 — flag `adultOnly` + `<AdultContentNotice>` + `venueType`), [auth.md](auth.md) (G2/3 — login centralizado + guest token na Fase 2), [rbac.md](rbac.md) (G7 — `member_designations` unificada + roles derivados), [comunidades-plataforma.md](comunidades-plataforma.md) (nível Autônoma + criação por membros + split manual Stripe na Fase 6b/0.16.0), [transversais.md](transversais.md) (G3 Turnstile, G4 busca Pagefind, G5 certificados sem validade, G6 retenção de auditoria governo/operacional). Pontos pendentes de ratificação estão registrados em cada anexo.
+> **Nota de execução — a ordem 1a → 7 MANTÉM-SE:**
+> - **1b encolheu**: o app-shell admin e o menu do perfil já existem. Restam o refinamento da sidebar, aba "Meus dados" + `profileVisibility`, P1–P3 e Pagefind. `profileVisibility` permanece na 1b; não foi antecipado para a 1a.
+> - **Recorte ratificado da 1a**: somente os dois níveis aprovados de comunidade, sem Autônoma/D2/split. Os acréscimos `entity`, `program`, `volunteer` e `founder` do RBAC foram aprovados; diretor implica voluntário. Os três tenants e CamposTech migram como Integradas sem responsável inventado.
+> - **Premissas preservadas**: fases 1a+ em Astro; snapshots, Giscus, roles guard e ledger válidos; novas listagens seguem a decisão 12 do AGENTS.md. APIs novas de gestão não usam o prefixo `/admin/`, preservando a allow-list estreita do proxy.
+> - **Dependências críticas**: F5 precisa de E1 + P1/P2 + `hour_ledger`; F2 precisa de directorates e check-in atômico; F3 precisa da categoria Giscus "Assembleias". O primeiro formulário público novo com coleta de dados é o guest token da Fase 2, portanto Turnstile é gate da Fase 2, não da 4b.
+> - **C4P (F7)** continua independente das fases 1–6 e pode ser antecipado por decisão da presidência.
+> - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O plano executável corrente é [fase-1b.md](fase-1b.md); extensões futuras não entram sem comando específico.
 
-Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora das fases (0.9.0 = E2 templates de e-mail; 0.10.0 = `workloadMinutes`; 0.11.x = check-in atômico/câmera/HTTPS); **0.11.3–0.11.5 consumidas no hardening pós-Fase 0** (whitelist www do tenant, fixes de dependências do Trivy, paginação de membros + `/docs-json` público) — fora do mapa, sem mudar a sequência. Mapa remapeado em 2026-10-05 e novamente em 2026-10-20 (entrada do C4P): **0.12.0** (fases 1a–2) → **0.13.0** (fases 3–4–4b) → **0.14.0** (fase 5, mentoria) → **0.15.0** (fase 6, business) → **1.0.0** (fase 7, C4P — a versão 1.0.0 fecha com a feature mais solicitada pelas comunidades). Cada fase com `npm run build && npx jest` verde no backend e `check && build && test` no frontend (Astro — ver AGENTS.md), além de bump de versão por fase (feat → minor). A **Fase 0 não alterou o backend** (refactor só de apresentação) e não consumiu versão de API — as 0.11.x pós-cutover foram hardening, não funcionalidade.
+Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publica **0.12.3**. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs; o plano da fase correspondente fixa o número antes do primeiro commit. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
 - **011 — Refatoração de frontend para Astro + multi-tenant por build matrix** (Fase 0; supersede parcialmente a ADR 004; inclui as decisões de tokens do Design System — ver [design-system.md](design-system.md)) — ✅ **implementada (2026-10-28, merge da 0.6)**
 - **005 — Assembleias híbridas (Discussion + registro fino)**
-- **006 — Diretorias e ledger de horas**
+- **006 — Diretorias e designations** (Fase 1a; ledger de horas terá ADR própria na Fase 2)
 - **007 — Registro de comunidades, níveis e Selo Codaqui**
 - **008 — Entidades, parcerias e Projetos de Extensão**
 - **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
@@ -398,11 +399,11 @@ Backend: as versões **0.9.0–0.11.2 já foram consumidas** por entregas fora d
 ## Riscos e pontos abertos
 
 1. **Categoria Giscus "Assembleias"** precisa ser criada no repo (`codaqui/institucional` discussions) — config do giscus é por categoria.
-2. **Critérios objetivos** do Selo Comunitário e da Empresa Aliada (checklists) — definir com a diretoria antes da Fase 6 (proposta inicial no plano de implementação).
-3. **Nomenclatura final** "Empresa Aliada Codaqui" e arte do selo — validar marca antes da vitrine pública.
-4. **Validade de 1 ano** (selo comunitário e aliada) é proposta; confirmar periodicidade.
-5. Migração de `communities.ts` → tabela deve manter os campos usados por insights/transparência/doações (script de seed auditável).
-6. Discussion 573 mostra comunidades com "representantes" não cadastrados (ex.: Josi) — o modelo exigirá responsável **membro** do site para selo/painel.
+2. **Critérios objetivos:** o Selo Comunitário usa avaliação manual registrada em `sealNotes` na 1a, sem checklist automatizado; a checklist da Empresa Aliada será definida antes da Fase 6.
+3. **Nomenclatura final** "Empresa Aliada Codaqui" e arte do selo — validar marca antes da vitrine pública da Fase 6.
+4. **Validade inicial de 1 ano** para selo comunitário e aliada, registrada explicitamente em `sealValidUntil`; mudança futura de política exige decisão da diretoria.
+5. **Migração de comunidades:** o seed da 1a preserva todos os campos usados por insights/transparência/doações e tem teste de contagem/shape.
+6. **Responsáveis legados:** as quatro Integradas migram sem responsável fabricado; apenas membro pode receber designation de responsável, obrigatória para selo/painel novo.
 7. **Mentoria:** política de cancelamento/no-show (tolerância, reagendamento) e LGPD básica para mentorandos convidados (e-mail + nome em sessões — consentimento no pedido e remoção sob solicitação).
 8. **Visibilidade do perfil público:** o snapshot por membro é gerado pelo workflow — uma mudança de privacidade leva até o próximo run para refletir em `/@handle` (documentar no painel: "alterações levam até X minutos").
 9. **Horas pós-cancelamento:** não existe fluxo de desfazer check-in (0.11.x); uma entrada `event_checkin` gerada permanece approved mesmo se a inscrição for cancelada/reembolsada depois — definir com a diretoria se cabe reversão manual na fila de aprovação ou política de "hora registrada não se desfaz".

@@ -5,14 +5,28 @@ import {
 } from './default-templates';
 
 describe('default-templates', () => {
-  it('cataloga exatamente os 3 templates de e-mail conhecidos', () => {
+  it('cataloga os 4 templates de e-mail conhecidos, incluindo cancelamento', () => {
     expect(TEMPLATE_IDS).toEqual([
       'event-registration-confirmation',
+      'event-registration-cancelled',
       'event-reminder-d1',
       'event-post-event',
     ]);
-    expect(isKnownTemplate('event-registration-confirmation')).toBe(true);
+    expect(isKnownTemplate('event-registration-cancelled')).toBe(true);
     expect(isKnownTemplate('template-inexistente')).toBe(false);
+  });
+
+  it('documenta o contexto real do e-mail de cancelamento', () => {
+    expect(
+      DEFAULT_TEMPLATES['event-registration-cancelled'].variables,
+    ).toEqual(
+      expect.arrayContaining([
+        'attendeeName',
+        'eventTitle',
+        'eventStartAt',
+        'eventTimeZone',
+      ]),
+    );
   });
 
   it('cada template tem subject, corpo e variáveis resolvidas pelo contexto de exemplo', () => {

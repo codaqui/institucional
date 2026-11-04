@@ -20,6 +20,11 @@ import { GithubDbModule } from './github-db/github-db.module';
 import { EventOrganizerModule } from './event-organizer/event-organizer.module';
 import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { DesignationsModule } from './designations/designations.module';
+import { DirectoratesModule } from './directorates/directorates.module';
+import { CommunitiesModule } from './communities/communities.module';
+import { SettingsModule } from './settings/settings.module';
+import { TurnstileModule } from './common/turnstile/turnstile.module';
 
 @Module({
   imports: [
@@ -39,6 +44,7 @@ import { NotificationsModule } from './notifications/notifications.module';
       autoLoadEntities: true,
       synchronize: false,
       migrations: ['dist/migrations/*.js'],
+      migrationsTransactionMode: 'each',
       migrationsRun: process.env.NODE_ENV === 'production',
     }),
     ThrottlerModule.forRoot([
@@ -63,6 +69,11 @@ import { NotificationsModule } from './notifications/notifications.module';
     EventOrganizerModule,
     EventsModule,
     NotificationsModule,
+    DesignationsModule,
+    DirectoratesModule,
+    CommunitiesModule,
+    SettingsModule,
+    TurnstileModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

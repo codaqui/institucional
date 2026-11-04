@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo do plano Codaqui 1.0.0 — evolução do subsistema D (ONG e Comunidades) em uma PLATAFORMA OFICIAL de comunidades: criação de comunidades por membros designados, mantenedores (Codaqui ou IES), nível Autônoma com split de doações via Stripe, multi-tenant enxuto e política de saída.
 audience: Presidência, mantenedores, AI agents implementando as fases 1a/D2/6b.
-status: design proposto em 2026-10-29 a partir da visão da presidência (sistema oficial de comunidades) — ESTENDE o subsistema D aprovado em 2026-09-21 (não o substitui); depende da ADR 011 (multi-tenant atual, implementada) e se apoia nos subsistemas C/H (entities/IES); aguardando aprovação da presidência (impacta o mapa de versões — ver "Fases e encaixe").
+status: extensão futura proposta, fora do recorte executável da Fase 1a. A 1a implementa somente Parceira/Integrada, selo e designations; Autônoma, mantenedores, D2 e split 6b exigem comando e plano próprios. RBAC founder @ program('communities') já foi ratificado para quando D2 for aprovada.
 sections:
   - Origem — visão da presidência (2026-10-29)
   - Estado atual (o que existe hoje)
@@ -36,14 +36,14 @@ agent-protocol:
 
 > **Origem:** visão da presidência (2026-10-29) — hoje as comunidades são **dados estáticos** (config + dados de apoio); a direção é um **sistema oficial**: comunidades podem ser **criadas por membros específicos** (proposta → aprovação da diretoria), têm **mantenedores** (a própria Codaqui OU uma IES cadastrada) e ganham **split de pagamentos via Stripe** no nível **Autônoma** — usam a plataforma e a rede para receber doações mantendo sua própria estrutura jurídica/contábil.
 >
-> Este anexo estende o [subsistema D do plano-mãe](README.md#d-ong-e-comunidades--níveis--selo-codaqui) (aprovado em 2026-09-21, ainda não implementado) e se apoia no [subsistema H (Universitário)](README.md#h-codaqui-universitário-adicionado-2026-10-29) para o mantenedor IES. Não altera o README do plano-mãe.
+> Este anexo estende o [subsistema D do plano-mãe](README.md#d-ong-e-comunidades--níveis--selo-codaqui) e se apoia no [subsistema H](README.md#h-codaqui-universitário-adicionado-2026-10-29). O plano-mãe e [fase-1a.md](fase-1a.md) delimitam o que está autorizado agora; este anexo não autoriza antecipar campos ou fluxos futuros.
 
 ## Estado atual (o que existe hoje)
 
 | Camada | Estado | Onde |
 |---|---|---|
 | Cadastro de comunidades | 6 comunidades **hardcoded no frontend**, sem tabela no banco | `frontend/src/data/communities.ts` |
-| Sites whitelabel | 3 tenants no build matrix (tisocial, elasnocodigo, devparana) + campostechpg só com página no portal | `frontend/tenants.config.mjs`, `frontend/src-tenants/`, `comunidades/<slug>/` |
+| Sites whitelabel/portal | 3 tenants no build matrix + CamposTech no portal, com doações e transparência ativas | `frontend/tenants.config.mjs`, `frontend/src-tenants/`, `comunidades/<slug>/` |
 | Doações por comunidade | Checkout Stripe com `metadata.communityId` (string livre — qualquer valor é aceito hoje) | `backend/src/stripe/stripe.controller.ts:150` |
 | Caixa por comunidade | Conta virtual no ledger por `projectKey` = slug; `/ledger/community-balances` multi-tenant nativo | `backend/src/ledger/ledger.service.ts:54` |
 | Selo / níveis / responsável | **Não existem** — previstos apenas no design (subsistema D) | — |
@@ -62,7 +62,7 @@ O subsistema D aprovou 2 níveis (**Parceira**, **Integrada**). Acrescenta-se o 
 | Eventos | Listados via fontes externas (hoje) | Eventos próprios na plataforma (`managed_events`, fonte `internal`) | Eventos próprios na plataforma (mesma base) |
 | Site whitelabel | ❌ (só card no portal) | ✅ domínio próprio (projeto Pages) | ✅ opcional — **subdomínio `<slug>.codaqui.dev`** ou domínio próprio |
 | Caixa / doações | Sem caixa própria — não é alvo de doação direcionada | Caixa **no ledger da Codaqui** (conta virtual separada; Codaqui é agente fiscal — dinheiro no CNPJ da associação, transparência pública) | Doações com **split/repasse**: a doação é da comunidade (estrutura jurídica dela); Codaqui retém **taxa de plataforma configurável %**; o grosso é repassado |
-| Responsável (`responsibleMemberId`) | Recomendado | Obrigatório (selo/painel) | Obrigatório + entidade beneficiária (CNPJ) e dados bancários |
+| Responsável (designation `responsible` @ `community`) | Recomendado | Obrigatório para selo/painel; tenants legados podem aguardar mapeamento | Obrigatório + entidade beneficiária (CNPJ) e dados bancários |
 | Responsabilidade jurídica | Nenhuma vinculação — parceria pontual | Codaqui responde fiscal/contabilmente pelo caixa movimentado | **A comunidade responde pelos próprios atos e tributos**; Codaqui é mera facilitadora (repasse + taxa). Termo de responsabilidade obrigatório |
 | Onboarding de dinheiro | — | Automático (conta criada no 1º webhook) | Só após aceite do termo + validação de beneficiário (KYC próprio — ver Riscos) |
 
@@ -70,52 +70,29 @@ O subsistema D aprovou 2 níveis (**Parceira**, **Integrada**). Acrescenta-se o 
 
 ## Modelo de dados
 
-Evolução da entidade `communities` do subsistema D (Fase 1a ainda não implementada — os campos entram **na migration da 1a**, evitando re-migração depois):
+A migration 028 da 1a contém somente o modelo aprovado no plano-mãe: identidade pública completa (`slug`, `name`, `description`, `emoji`, `logoUrl`, `location`, `founded`, `links`, `socialProfiles`, `tags`), `level` Parceira/Integrada, lifecycle, selo e site. Não contém `responsibleMemberId`, `isActive`, `maintainer*`, `payout*` ou `platformFeePct`.
 
-```
-communities
-  id, slug (unique), name
-  level               'parceira' | 'integrada' | 'autonoma'      -- +1 valor vs. subsistema D
-  status              'proposed' | 'active' | 'suspended' | 'exited'  -- lifecycle (substitui o booleano isActive do design D)
-  responsibleMemberId?                    -- obrigatório p/ selo, painel e nível ≥ integrada
-  -- selo (inalterado do subsistema D):
-  sealStatus, sealGrantedAt?, sealGrantedById?, sealValidUntil?, sealNotes?
-  -- criação:
-  proposedById        -- membro com designation (fundador) que abriu a proposta
-  proposedAt
-  approvedById?, approvedAt?              -- aprovação da diretoria (admin); audit
-  -- mantenedor:
-  maintainerType      'codaqui' (default) | 'entity'
-  maintainerEntityId? -- FK → entities (IES = type 'instituicao_ensino'; subsistemas C/H)
-  maintainerDesignatedById?, maintainerDesignatedAt?  -- designation da diretoria; audit
-  -- site/multi-tenant:
-  tenantSlug?         -- vincula ao build matrix quando tiver site whitelabel
-  siteDomain?         -- domínio próprio; null = subdomínio <slug>.codaqui.dev
-  siteEnabled         boolean
-  -- split (só relevante para level='autonoma'):
-  platformFeePct      numeric -- ex.: 10.00; default configurável (env) + override por comunidade
-  payoutData          jsonb   -- dados bancários do beneficiário (CNPJ, banco, PIX/chave) — SÓ admin (LGPD)
-  payoutAgreementVersion?, payoutAgreementAcceptedAt?  -- aceite do termo de responsabilidade
-  -- identidade:
-  logoUrl?, website?, donationSlug?, isActive (mantido p/ compat. do design D)
-```
+Extensões por fase, quando expressamente autorizadas:
 
-**Sem tabela nova para propostas** — uma comunidade `status='proposed'` JÁ É a proposta (princípio "menos banco possível"); aprovar = `status='active'` + `approvedById` + audit. Papéis: novo role **`fundador_comunidade`** (membro com designation da diretoria — mesmo padrão de concessão auditável dos mentores/gestor universitário); diretoria (admin/diretor) também cria direto.
+- **D2:** `level='autonoma'` (somente enum, sem split), `proposedById/At`, `approvedById/At`, `maintainerType`, `maintainerEntityId` e trilha de designação. `maintainerEntityId` ganha FK somente depois que `entities` existir.
+- **6b:** `platformFeePct`, `payoutData`, aceite do termo e demais campos estritamente necessários ao repasse.
 
-**Validação no checkout:** `POST /stripe/checkout-session` passa a exigir `communityId` de comunidade `active` com doações habilitadas para o nível (Parceira não recebe direcionamento; Integrada/Autônoma sim) — fecha o gap da string livre.
+**Sem tabela nova para propostas** — uma comunidade `status='proposed'` já é a proposta. O proponente autorizado terá designation `founder` @ `program('communities')`, não role `fundador_comunidade`; ao ser aprovado, recebe `responsible` @ `community` em vez de uma coluna de vínculo.
+
+**Validação no checkout:** na 1a, `communityId` só é aceito para comunidade `active` e Integrada. Autônoma só passa a receber direcionamento quando a 6b estiver implementada; Parceira nunca recebe direcionamento.
 
 ## Criação de comunidades (fluxo)
 
-1. Membro com role `fundador_comunidade` (ou diretoria) abre a proposta: nome, slug, descrição, nível pretendido, mantenedor proposto, responsável indicado → registro `status='proposed'` (audit).
+1. Membro com designation `founder` @ `program('communities')` (ou diretoria) abre a proposta: nome, slug, descrição, nível pretendido, mantenedor proposto, responsável indicado → registro `status='proposed'` (audit).
 2. Diretoria avalia no admin (`/admin/comunidades`, fila de propostas — mesmo pattern da fila de selo) → aprova → `status='active'`, `level='parceira'` (sempre), `approvedById` (audit). Reprovação exige motivo (audit).
-3. Proponente vira `responsibleMemberId` por default (diretoria pode trocar).
+3. Proponente recebe designation `responsible` @ `community` por default (diretoria pode trocar).
 4. Crescimento de nível é sempre por solicitação futura à diretoria — nunca automático.
 
 ## Mantenedores (`maintainerType`)
 
 - **`'codaqui'` (default)** — a associação é mantenedora: caixa no ledger da Codaqui (Integrada), selo fiscal implícito. É o único tipo permitido para Parceira/Integrada.
 - **`'entity'`** — uma entidade cadastrada é mantenedora: `maintainerEntityId` → `entities.id`. O caso previsto é a **IES** (`instituicao_ensino`, cadastro do subsistema C/H — ponte com o Codaqui Universitário), mas o modelo admite outras entidades (ex.: ONG que abriga a comunidade). A designation é da diretoria (`maintainerDesignatedById`, audit) — **não** é self-service da entidade.
-- **Dependência de fase:** `entities` existe só a partir da Fase 4 → o vínculo `maintainerType='entity'` ganha UI seletora na Fase D2 (0.13.0); o campo existe na modelagem desde a 1a.
+- **Dependência de fase:** `entities` existe só a partir da Fase 4 → campos e seletor de mantenedor entram apenas na migration de D2, com versão backend própria definida no plano dessa fase.
 - **Relação com Autônoma:** uma Autônoma tem mantenedor ≠ Codaqui — seja uma IES/entidade (`maintainerType='entity'`), seja a **própria entidade jurídica da comunidade** (cadastrada em `entities` como type `'ong'`/outro, com CNPJ dela, e vinculada como mantenedora). O `payoutData` (beneficiário do repasse) deve ser coerente com essa entidade.
 
 ## Doações com split — design e recomendação
@@ -197,9 +174,9 @@ Acionada pela própria comunidade (pedido) ou pela diretoria (descumprimento —
 
 | Entrega | Conteúdo | Versão backend | Dependências |
 |---|---|---|---|
-| **Fase 1a** (já prevista — modelo ampliado) | Tabela `communities` **já com** 3 níveis, `status` lifecycle, `maintainerType/EntityId`, proposta/aprovação, role `fundador_comunidade`, validação de `communityId` no checkout, seed das 6 atuais (Parceira default; tisocial/elasnocodigo/devparana = Integrada), snapshot público + cards com nível/selo | **0.12.0** | nenhuma além do plano-mãe |
-| **Fase D2** (nova, junto às Fases 3–4–4b) | Fluxo de criação ponta a ponta (proposta do fundador → fila → aprovação) + seletor de mantenedor **IES** (`entities` do subsistema C já existe) + painel do responsável | **0.13.0** | entities (Fase 4); E1 (e-mail) |
-| **Fase 6b** (nova — Comunidades Autônomas) | Split manual: conta repasse + taxa de plataforma + repasses com comprovante (`community_payouts`) + chargeback pós-repasse + extrato público + termo de responsabilidade (aceite no admin) + transparência de repasse no portal/whitelabel | **0.16.0** (entre a Fase 6 business e a Fase 7 C4P) | 1a + D2; E1 ✅; P1/P2 (LGPD básico da 1b — dados bancários entram no inventário); termo jurídico (tarefa paralela da diretoria); validação com contador (gate) |
+| **Fase 1a** (recorte autorizado) | `communities` com 2 níveis, lifecycle, selo, designations, validação de `communityId`, seed integral e snapshot. Três tenants + CamposTech migram Integradas sem responsável fabricado; CamposTech preserva doações/transparência com `siteEnabled=false`; não há proposta pública, mantenedor ou split | **0.12.0** | plano executável em [fase-1a.md](fase-1a.md) |
+| **Fase D2** (futura, comando próprio) | Fluxo proposta→aprovação com designation `founder` + seletor de mantenedor IES + painel do responsável | minor própria, fixada no plano de D2 | entities (Fase 4); E1; P1/P2 |
+| **Fase 6b** (futura, comando próprio) | Split manual, conta repasse, taxa, repasses, chargeback, extrato e termo | minor própria, fixada no plano de 6b | 1a + D2; P1/P2; termo jurídico; validação com contador |
 
 **Onde NÃO entra:** Stripe Connect **não** é dependência do 6b (split manual usa a conta Stripe atual) — KYC das comunidades deixa de ser risco de cronograma; se aprovado no futuro, entra como incremento com ADR própria. **C4P continua fechando a 1.0.0** — o 6b é infraestrutura da rede de comunidades, não atrasa a feature mais solicitada; alternativa registrada: se a presidência preferir manter o 1.0.0 mais enxuto, o 6b pode escorar para **1.1.0** sem quebrar nenhuma dependência (decisão da presidência no plano de implementação).
 
@@ -221,6 +198,6 @@ Acionada pela própria comunidade (pedido) ou pela diretoria (descumprimento —
 1. **Taxa de plataforma default** (`platformFeePct`): proposta 10% (piso 0% p/ comunidades apoiadas, teto 20%) — definir antes do 6b.
 2. **Política de reserva** dos repasses: valores exatos (proposta: maior entre R$ 100 e 10% dos últimos 90 dias).
 3. **Termo de responsabilidade** (texto jurídico) — versão 1.0 + fluxo de aceite; inclui destino do saldo de Integradas na saída.
-4. **6b antes do C4P (0.16.0)** vs pós-1.0.0 (1.1.0) — recomendação: antes, mas não é dependência do 1.0.0.
+4. **6b antes ou depois do C4P** — decisão de release; não é dependência do 1.0.0 e a versão backend será definida no plano próprio.
 5. **Selo para Autônomas** — confirmar que o Selo Codaqui pode ser exibido por comunidades fora do guarda fiscal da associação (proposta: sim, é reputacional).
-6. **Fase D2 na 0.13.0** — confirmar o empacotamento com as Fases 3–4–4b (alternativa: absorver a criação ponta a ponta na 1a e deixar só o seletor IES para a 0.13.0).
+6. **Momento de D2** — confirmar o empacotamento após a Fase 4; a criação pública não será absorvida pela 1a.

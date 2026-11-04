@@ -5,17 +5,7 @@ import {
   CreateDateColumn,
   Index,
 } from 'typeorm';
-
-/**
- * TTL de retenção dos registros de auditoria.
- *
- * Valor padrão: 90 dias (atende à compliance atual).
- * Se a legislação mudar, basta alterar esta constante e rodar o cleanup.
- *
- * Referência legal: adequar conforme LGPD, Marco Civil da Internet,
- * ou norma interna da Associação Codaqui.
- */
-export const AUDIT_RETENTION_DAYS = 90;
+import type { AuditCategory } from '../audit-category';
 
 export enum AuditAction {
   // Auth
@@ -24,8 +14,24 @@ export enum AuditAction {
 
   // Members
   ROLE_CHANGE = 'member.role_change',
+  ROLE_DERIVED = 'member.role_derived',
   MEMBER_DEACTIVATE = 'member.deactivate',
   MEMBER_ACTIVATE = 'member.activate',
+
+  // Designations
+  DESIGNATION_GRANTED = 'designation.granted',
+  DESIGNATION_CONFIRMED = 'designation.confirmed',
+  DESIGNATION_REVOKED = 'designation.revoked',
+
+  // Communities
+  COMMUNITY_CREATED = 'community.created',
+  COMMUNITY_UPDATED = 'community.updated',
+  COMMUNITY_SEAL_REQUESTED = 'community.seal_requested',
+  COMMUNITY_SEAL_GRANTED = 'community.seal_granted',
+
+  // Directorates
+  DIRECTORATE_CREATED = 'directorate.created',
+  DIRECTORATE_UPDATED = 'directorate.updated',
 
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
@@ -52,6 +58,7 @@ export enum AuditAction {
 
   // Events (managed events — Fase 2)
   EVENT_PUBLISHED = 'event.published',
+  EVENT_ADULT_ONLY_CHANGED = 'event.adult_only_changed',
   EVENT_CANCELED = 'event.canceled',
   EVENT_ORDER_REFUNDED = 'event.order_refunded',
   EVENT_QUOTA_RECONCILED = 'event.quota_reconciled',
@@ -65,11 +72,15 @@ export enum AuditAction {
   // E-mail
   EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',
   EMAIL_TEMPLATE_DELETED = 'email.template_deleted',
+
+  // Settings
+  SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
 }
 
 @Entity('audit_logs')
 @Index('IDX_audit_logs_createdAt', ['createdAt'])
 @Index('IDX_audit_logs_actorId', ['actorId'])
+@Index('IDX_audit_logs_category_createdAt', ['category', 'createdAt'])
 export class AuditLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -77,6 +88,9 @@ export class AuditLog {
   /** Ação realizada (enum legível) */
   @Column({ type: 'varchar', length: 64 })
   action: AuditAction;
+
+  @Column({ type: 'varchar', length: 16, default: 'operational' })
+  category: AuditCategory;
 
   /** UUID do membro que executou a ação */
   @Column({ type: 'uuid' })
@@ -98,7 +112,7 @@ export class AuditLog {
   @Column({ type: 'jsonb', nullable: true })
   details: Record<string, any> | null;
 
-  /** IP do ator (quando disponível) */
+  /** IP somente em logs operacionais; governo permanente não retém esse dado. */
   @Column({ type: 'varchar', length: 45, nullable: true })
   ipAddress: string | null;
 

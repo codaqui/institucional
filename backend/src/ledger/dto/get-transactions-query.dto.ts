@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString, IsUUID, Matches, Max, Min } from 'class-validator';
 
 export class GetTransactionsQueryDto {
   @ApiPropertyOptional({
@@ -80,4 +80,22 @@ export class GetTransactionsQueryDto {
   @IsOptional()
   @IsUUID()
   externalActivationId?: string;
+
+  @ApiPropertyOptional({
+    description: 'Data inicial inclusiva no formato ISO YYYY-MM-DD',
+    example: '2026-10-01',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  from?: string;
+
+  @ApiPropertyOptional({
+    description: 'Data final inclusiva até 23:59:59.999 UTC no formato ISO YYYY-MM-DD',
+    example: '2026-10-31',
+  })
+  @IsOptional()
+  @IsDateString({ strict: true })
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  to?: string;
 }

@@ -1,24 +1,22 @@
 <!-- AGENT-INDEX
 purpose: ADR da Plataforma de Gestão de Eventos da Codaqui. Registra decisões arquiteturais de overrides, eventos próprios, ingressos pagos, check-in, certificados e integração com ledger.
 audience: Devs, AI agents e mantenedores trabalhando no módulo de eventos.
-status: Fase 1 (overrides) + Fase 2a–2d IMPLEMENTADAS (2026-07-30). Fase 2e (Real Network) é plano futuro.
+status: Plataforma 1/2a–2d e extensões E1/R1/G3/G6/ECA da Fase 1a implementadas. Real Network segue futuro.
 sections:
   - Contexto e decisões
-  - Fase 2 — Plataforma de Gestão de Eventos (princípios, roadmap 2a–2e, mapa detalhado de papéis, modelo de dados, ingressos Stripe, sincronização de participantes, check-in, certificados, relatórios, decisões de design)
+  - Plataforma de Gestão de Eventos (roadmap histórico, papéis, dados, ingressos, check-in e certificados)
   - Fontes de Eventos Atuais e Futuras
-  - Schema do Override
-  - CRUD de Overrides (API REST)
+  - Schema e CRUD de Overrides
   - Merge de Dados: Base + Override (snapshots)
   - Backend: Variáveis de Ambiente
-  - UI/UX para Organizadores (hub unificado, plugins, busca, caixa)
-  - Testes Necessários
-  - Checklist de Implementação
-  - Registro de Implementação (2026-07)
+  - UI/UX para Organizadores
+  - Registro de Implementação (2026-07 e extensões 2026-11, itens 41–45)
 related-docs:
-  - ../AGENTS.md §7 Events System — fluxo real de snapshots e overrides
-  - ../modules/events/CODE_MANUAL.md — manual prático do código do módulo de eventos
-  - ../modules/events/ROLES.md — matriz de permissões global e por evento
-agent-protocol: Fases 1 e 2a–2d estão IMPLEMENTADAS. Sempre consulte o "Registro de Implementação (2026-07)" ao final antes de assumir que o desenho textual reflete 100% o código. Para detalhes de implementação (arquivos, métodos, fluxos), use ../modules/events/CODE_MANUAL.md.
+  - ../../AGENTS.md — fluxo real de snapshots, proxy e decisões 18–23
+  - ../modules/events/CODE_MANUAL.md — manual prático do módulo e áreas adjacentes
+  - ../modules/events/ROLES.md — matriz de permissões global, derivada e por evento
+  - 006-directorates-designations.md — vínculos e roles derivadas
+agent-protocol: Consulte o Registro de Implementação ao final antes de assumir que o desenho histórico reflete o código. Os itens 41–45 registram E1, R1, G6, Turnstile opt-in e sinalização informativa 18+ da Fase 1a.
 -->
 
 # ADR 001 — Plataforma de Gestão de Eventos
@@ -1312,7 +1310,8 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     membro (hook no `MembersService`).
 12. **E-mail:** resend atualiza o MESMO log; crons diários com janela (D-1: `startAt` em
     +12h/+36h; pós-evento: fim em −36h/−12h) com dedupe via `email_logs`; confirmação = 1
-    e-mail por registration; sem credenciais SMTP → log `failed` com `SMTP_NOT_CONFIGURED`;
+    e-mail por registration; sem credenciais SMTP → log `skipped` com `SMTP_NOT_CONFIGURED`,
+    sem contar como falha e sem deduplicar uma entrega futura; cancelamento/estorno também notifica;
     `members.eventCommsOptIn` default `false` (pós-evento só com opt-in; transacionais
     ignoram a flag) — UI de toggle do opt-in PENDENTE.
 13. **Painel admin dividido em duas páginas:** `/admin/eventos` (eventos próprios) e
@@ -1458,6 +1457,37 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     O frontend `admin/eventos` passou a buscar ownership via `authFetch('/events/organizers')`.
     O arquivo `organizers.json`, o workflow `validate-event-overrides.yml` e os scripts
     de verificação de PR para ownership foram desativados.
+41. **Operação de e-mails, relatórios e sinalização 18+ (Fase 1a, 2026-11):** a migration 029
+    acrescenta `skipped` aos logs de e-mail. SMTP ausente registra `SMTP_NOT_CONFIGURED` sem
+    contar como falha; `GET /notifications/status`, `GET /notifications/emails` (com summary
+    por status/template) e `POST /notifications/emails/:id/resend` sustentam a operação. O
+    reenvio atualiza o mesmo log e exige inscrição vinculada e SMTP configurado. Cancelamento
+    de inscrição possui template próprio e falha de e-mail não desfaz operação financeira.
+    A retenção de `email_logs` é de 365 dias.
+42. **R1 — exportação server-side (Fase 1a):** listagem e exportação compartilham os filtros,
+    inclusive `from`/`to` ISO com `to` inclusivo até o fim do dia. `GET
+    /ledger/accounts/:id/transactions/export` é público no mesmo conjunto já visível da conta;
+    `GET /ledger/transactions/export` exige admin/finance-analyzer. O CSV traz todas as linhas
+    do range, UTF-8 com BOM, e prefixa valores que poderiam virar fórmula (`=`, `+`, `-`, `@`,
+    tab ou CR) com apóstrofo.
+43. **G6 — retenção de auditoria (Fase 1a):** a migration 030 classifica logs em `governance`
+    ou `operational`. Somente operacionais expiram, pela configuração admin em
+    `GET/PUT /settings/audit-retention` (7–365 dias), com fallback
+    `AUDIT_OPERATIONAL_RETENTION_DAYS=30`. `POST /audit/cleanup` e o cron diário usam a mesma
+    política; governo permanece e não retém IP. Mudanças de retenção também são auditoria de
+    governo.
+44. **G3 — Turnstile opt-in (Fase 1a):** `TurnstileService`, `TurnstileGuard` e
+    `TurnstileField` entregam verificação server-side com timeout de 5 s, hostname exato e
+    cache antirreplay de 5 min. **Nenhuma rota existente recebeu o guard nesta fase.** Sem
+    secret, desenvolvimento registra aviso e ignora; produção falha fechada quando o guard for
+    aplicado. Não houve chamada real à Cloudflare nos testes.
+45. **ECA — classificação informativa 18+ (Fase 1a):** a migration 031 adiciona
+    `managed_events.adultOnly` (boolean, default false) e `venueType` (`bar`, `restaurante`,
+    `auditorio`, `campus`, `online`, `outro`). Eventos próprios serializam ambos nos snapshots;
+    externos aceitam `adultOnly` boolean no override. Bar/restaurante a partir das 18h gera
+    somente sugestão no formulário — a marcação é humana. O build mostra badge `+18` e aviso
+    informativo sem restringir inscrição, indexação ou sitemap, e sem coletar idade/documento.
+    Alterar `adultOnly` após publicação grava antes/depois em auditoria de governo.
 
 
 ---

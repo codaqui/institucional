@@ -20,6 +20,7 @@ export const ALLOWED_ORIGINS_PROD: string[] = [
 
 export const ALLOWED_ORIGINS_DEV: string[] = [
   'http://localhost:3000',
+  'https://localhost:3000',
   'http://localhost:3030',
   'http://localhost:8787',
   'http://localhost:8788',

@@ -4,6 +4,20 @@ import userEvent from "@testing-library/user-event";
 import AppNavIsland from "../AppNavIsland";
 import { renderWithMui } from "../../../test/render-mui";
 import type { AuthUser } from "../../../lib/auth-client";
+import type { MyDesignation } from "../../../lib/use-designations";
+
+const designationsState = vi.hoisted(() => ({
+  data: [] as MyDesignation[],
+}));
+
+vi.mock("../../../lib/use-designations", () => ({
+  useMyDesignations: () => ({
+    data: designationsState.data,
+    loading: false,
+    error: "",
+    refresh: vi.fn(),
+  }),
+}));
 
 // Estado mutável compartilhado com a fábrica do mock — cada teste ajusta
 // os campos que precisa no beforeEach/corpo.
@@ -61,6 +75,7 @@ describe("AppNavIsland", () => {
     authState.isLoggedIn = false;
     authState.isAdmin = false;
     authState.isEventOrganizer = false;
+    designationsState.data = [];
     vi.clearAllMocks();
   });
 
@@ -134,6 +149,8 @@ describe("AppNavIsland", () => {
     expect(
       screen.getByRole("link", { name: /virtualcoins/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Diretorias" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Configurações" })).toBeInTheDocument();
   });
 
   it("ativa item por prefixo de rota (check-in)", () => {
@@ -194,6 +211,45 @@ describe("AppNavIsland", () => {
     expect(
       screen.getByRole("link", { name: /^início$/i }),
     ).not.toHaveAttribute("aria-current");
+  });
+
+  it("shows Minha comunidade only with a responsible designation", async () => {
+    designationsState.data = [
+      {
+        id: "designation-1",
+        targetType: "community",
+        targetId: "community-1",
+        targetKey: null,
+        designation: "responsible",
+      },
+    ];
+    mockLoggedIn(makeUser());
+    renderWithMui(<AppNavIsland currentPath="/membro" />);
+
+    expect(
+      await screen.findByRole("link", { name: "Minha comunidade" }),
+    ).toHaveAttribute("href", "/admin/comunidades");
+  });
+
+  it("shows Diretorias to a director without exposing community or settings admin actions", () => {
+    designationsState.data = [
+      {
+        id: "designation-1",
+        targetType: "directorate",
+        targetId: "directorate-1",
+        targetKey: null,
+        designation: "director",
+      },
+    ];
+    mockLoggedIn(makeUser());
+    renderWithMui(<AppNavIsland currentPath="/membro" />);
+
+    expect(screen.getByRole("link", { name: "Diretorias" })).toHaveAttribute(
+      "href",
+      "/admin/diretorias",
+    );
+    expect(screen.queryByText("Minha comunidade")).not.toBeInTheDocument();
+    expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {

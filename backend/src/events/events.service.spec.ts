@@ -5,7 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventsService, EVENT_TICKET_TERMS_VERSION } from './events.service';
-import { ManagedEventStatus } from './entities/managed-event.entity';
+import {
+  ManagedEvent,
+  ManagedEventStatus,
+  VenueType,
+} from './entities/managed-event.entity';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import { auditCategory } from '../audit/audit-category';
 import { OrderStatus } from './entities/event-order.entity';
 import { RegistrationStatus } from './entities/event-registration.entity';
 import { EventStaffRole } from './entities/event-staff.entity';
@@ -43,6 +49,8 @@ const makeEvent = (overrides: Record<string, unknown> = {}) => ({
   status: ManagedEventStatus.PUBLISHED,
   capacity: null,
   workloadMinutes: null,
+  adultOnly: false,
+  venueType: null,
   createdByMemberId: uuid(90),
   createdAt: new Date(),
   ...overrides,
@@ -93,7 +101,7 @@ describe('EventsService', () => {
   beforeEach(() => {
     eventRepo = {
       find: jest.fn(),
-      findOneBy: jest.fn(),
+      findOneBy: jest.fn().mockResolvedValue(null),
       findBy: jest.fn().mockResolvedValue([]),
       create: jest.fn((d) => d),
       save: jest.fn((e) => Promise.resolve({ id: uuid(10), ...e })),
@@ -170,6 +178,7 @@ describe('EventsService', () => {
     };
     emailService = {
       sendRegistrationConfirmation: jest.fn().mockResolvedValue(undefined),
+      sendRegistrationCancellation: jest.fn().mockResolvedValue(undefined),
     };
     eventOrganizerService = {
       assertCanManage: jest.fn().mockResolvedValue(undefined),
@@ -206,6 +215,41 @@ describe('EventsService', () => {
       eventOverridesService as any,
       reimbursementsService as any,
     );
+  });
+
+  describe('adult content classification', () => {
+    it('serializes adult classification without changing event visibility', () => {
+      const toEventItem = EventsService['toEventItem'] as unknown as (
+        event: ManagedEvent,
+        confirmedCount: number,
+      ) => Record<string, unknown>;
+      const item = toEventItem(
+        Object.assign(new ManagedEvent(), {
+          id: 'event-1',
+          slug: 'evento-18',
+          title: 'Evento',
+          summary: 'Resumo',
+          startAt: new Date('2026-11-01T21:00:00.000Z'),
+          endAt: null,
+          timezone: 'America/Sao_Paulo',
+          adultOnly: true,
+          venueType: VenueType.BAR,
+        }),
+        0,
+      );
+
+      expect(item).toMatchObject({
+        slug: 'evento-18',
+        adultOnly: true,
+        venueType: 'bar',
+      });
+    });
+
+    it('classifies adultOnly changes as governance audit', () => {
+      expect(auditCategory(AuditAction.EVENT_ADULT_ONLY_CHANGED)).toBe(
+        'governance',
+      );
+    });
   });
 
   // ── Endpoint público (snapshots) ─────────────────────────────────────────
@@ -566,6 +610,52 @@ describe('EventsService', () => {
       );
     });
 
+    it('notifica o cancelamento confirmado sem transformar falha de e-mail em rollback', async () => {
+      const cancelled = registration();
+      registrationRepo.findOneBy.mockResolvedValue(cancelled);
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      emailService.sendRegistrationCancellation.mockRejectedValue(
+        new Error('smtp down'),
+      );
+
+      await expect(
+        service.cancelRegistration(uuid(40), user()),
+      ).resolves.toMatchObject({ status: RegistrationStatus.CANCELLED });
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        cancelled,
+        expect.objectContaining({ id: uuid(10), title: 'Evento X' }),
+      );
+      expect(registrationRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: RegistrationStatus.CANCELLED }),
+      );
+    });
+
+    it('notifica cancelamento de evento externo pela ativação', async () => {
+      const cancelled = {
+        ...registration(),
+        eventId: null,
+        externalActivationId: uuid(70),
+      };
+      const activation = {
+        id: uuid(70),
+        eventKey: 'meetup:devpr:1',
+        title: 'Meetup externo',
+        startAt: new Date('2026-08-10T13:00:00Z'),
+      };
+      registrationRepo.findOneBy.mockResolvedValue(cancelled);
+      activationRepo.findOneBy.mockResolvedValue(activation);
+
+      await service.cancelRegistration(uuid(40), user());
+      await new Promise((resolve) => setImmediate(resolve));
+
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        cancelled,
+        activation,
+      );
+    });
+
     it('save de cancelamento e release de quota acontecem na mesma transação', async () => {
       registrationRepo.findOneBy.mockResolvedValue(registration());
 
@@ -918,6 +1008,26 @@ describe('EventsService', () => {
       expect(result.full).toBe(true);
     });
 
+    it('notifica cada estorno sem reverter os efeitos financeiros quando o e-mail falha', async () => {
+      emailService.sendRegistrationCancellation.mockRejectedValue(
+        new Error('smtp down'),
+      );
+
+      const result = await service.refundOrder(uuid(30), {}, adminUser);
+
+      expect(result).toMatchObject({
+        refundedRegistrations: 3,
+        full: true,
+        orderStatus: OrderStatus.REFUNDED,
+      });
+      expect(ledgerService.recordTransaction).toHaveBeenCalledTimes(1);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        { id: expect.anything() },
+        { status: RegistrationStatus.REFUNDED },
+      );
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledTimes(3);
+    });
+
     it('refund parcial: amount = N × unitário, order permanece paid, quota das selecionadas devolvida', async () => {
       const result = await service.refundOrder(
         uuid(30),
@@ -990,6 +1100,11 @@ describe('EventsService', () => {
           communityProjectKey: 'elasnocodigo',
           externalActivationId: uuid(70),
         }),
+      );
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledTimes(3);
+      expect(emailService.sendRegistrationCancellation).toHaveBeenCalledWith(
+        expect.objectContaining({ id: uuid(41) }),
+        expect.objectContaining({ id: uuid(70), title: 'Meetup Elas' }),
       );
     });
 
@@ -1255,6 +1370,81 @@ describe('EventsService', () => {
       expect(eventRepo.create).toHaveBeenCalledWith(
         expect.objectContaining({ description: null }),
       );
+    });
+  });
+
+  describe('adult classification persistence', () => {
+    const baseDto = {
+      slug: 'evento-adulto',
+      title: 'Evento adulto',
+      summary: 'Resumo',
+      location: 'Maringá',
+      startAt: '2026-10-01T19:00',
+      communityProjectKey: 'devparana',
+    };
+
+    it('create defaults adultOnly to false and venueType to null', async () => {
+      eventRepo.findOneBy.mockResolvedValue(null);
+
+      await service.createEvent(baseDto, adminUser);
+
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ adultOnly: false, venueType: null }),
+      );
+    });
+
+    it('create persists adultOnly and venueType', async () => {
+      eventRepo.findOneBy.mockResolvedValue(null);
+
+      await service.createEvent(
+        { ...baseDto, adultOnly: true, venueType: VenueType.BAR },
+        adminUser,
+      );
+
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          adultOnly: true,
+          venueType: VenueType.BAR,
+        }),
+      );
+    });
+
+    it('update after publication audits adultOnly before and after', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ status: ManagedEventStatus.PUBLISHED, adultOnly: false }),
+      );
+
+      await service.updateEvent(
+        uuid(10),
+        { adultOnly: true, venueType: VenueType.RESTAURANTE },
+        adminUser,
+      );
+
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          adultOnly: true,
+          venueType: VenueType.RESTAURANTE,
+        }),
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: AuditAction.EVENT_ADULT_ONLY_CHANGED,
+          actorId: adminUser.sub,
+          targetId: uuid(10),
+          targetType: 'event',
+          details: expect.objectContaining({ before: false, after: true }),
+        }),
+      );
+    });
+
+    it('update before publication does not audit adultOnly', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ status: ManagedEventStatus.DRAFT, adultOnly: false }),
+      );
+
+      await service.updateEvent(uuid(10), { adultOnly: true }, adminUser);
+
+      expect(auditService.log).not.toHaveBeenCalled();
     });
   });
 

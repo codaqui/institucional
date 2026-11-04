@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { EventRegistration } from '../events/entities/event-registration.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
 import { AuditModule } from '../audit/audit.module';
@@ -25,6 +26,7 @@ import { EmailTemplate } from './entities/email-template.entity';
       EmailLog,
       EmailTemplate,
       ManagedEvent,
+      ExternalEventActivation,
       EventRegistration,
       TicketType,
     ]),

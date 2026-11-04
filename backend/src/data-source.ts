@@ -11,5 +11,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'codaqui_db',
   entities: ['src/**/*.entity.ts'],
   migrations: ['src/migrations/*.ts'],
+  migrationsTransactionMode: 'each',
   synchronize: false,
 });

@@ -140,6 +140,7 @@ export class EventOrganizerService {
     this.assertNoForbiddenFields(ext);
     this.assertStringAndUrlFields(ext);
     this.assertFeaturedField(ext);
+    this.assertAdultOnlyField(ext);
     this.assertTagsField(ext);
     this.assertSummaryLength(ext);
     this.assertWorkloadMinutes(ext);
@@ -171,6 +172,14 @@ export class EventOrganizerService {
   private static assertFeaturedField(ext: Record<string, unknown>): void {
     if (ext.featured !== undefined && typeof ext.featured !== 'boolean') {
       throw new BadRequestException('extendData.featured deve ser um boolean.');
+    }
+  }
+
+  private static assertAdultOnlyField(ext: Record<string, unknown>): void {
+    if (ext.adultOnly !== undefined && typeof ext.adultOnly !== 'boolean') {
+      throw new BadRequestException(
+        'extendData.adultOnly deve ser um boolean.',
+      );
     }
   }
 

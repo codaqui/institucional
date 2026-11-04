@@ -69,6 +69,50 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/admin/memberships")).toBe(false);
   });
 
+  it("designations é API sem alargar o prefixo administrativo", () => {
+    expect(isApiProxyPath("/designations")).toBe(true);
+    expect(isApiProxyPath("/designations/me")).toBe(true);
+    expect(isApiProxyPath("/designations/abc/confirm")).toBe(true);
+    expect(isApiProxyPath("/designationsxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/designations")).toBe(false);
+  });
+
+  it("directorates é API sem interceptar a página administrativa", () => {
+    expect(isApiProxyPath("/directorates")).toBe(true);
+    expect(isApiProxyPath("/directorates/public")).toBe(true);
+    expect(isApiProxyPath("/directorates/manage")).toBe(true);
+    expect(isApiProxyPath("/directorates/abc-123")).toBe(true);
+    expect(isApiProxyPath("/directoratesxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/diretorias")).toBe(false);
+  });
+
+  it("communities é API sem interceptar páginas administrativas ou públicas do site", () => {
+    expect(isApiProxyPath("/communities")).toBe(true);
+    expect(isApiProxyPath("/communities/public")).toBe(true);
+    expect(isApiProxyPath("/communities/manage")).toBe(true);
+    expect(isApiProxyPath("/communities/abc-123/seal/request")).toBe(true);
+    expect(isApiProxyPath("/communitiesxyz")).toBe(false);
+    expect(isApiProxyPath("/admin/comunidades")).toBe(false);
+    expect(isApiProxyPath("/comunidades/devparana")).toBe(false);
+  });
+
+  it("communities/index.json é snapshot estático, sem interceptar as demais APIs", () => {
+    expect(isApiProxyPath("/communities/index.json")).toBe(false);
+    expect(isApiProxyPath("/communities/abc-123")).toBe(true);
+    expect(isApiProxyPath("/communities/public")).toBe(true);
+  });
+
+  it("settings e audit são APIs sem interceptar a página de configurações", () => {
+    expect(isApiProxyPath("/settings")).toBe(true);
+    expect(isApiProxyPath("/settings/audit-retention")).toBe(true);
+    expect(isApiProxyPath("/audit")).toBe(true);
+    expect(isApiProxyPath("/audit/logs")).toBe(true);
+    expect(isApiProxyPath("/audit/cleanup")).toBe(true);
+    expect(isApiProxyPath("/settingsxyz")).toBe(false);
+    expect(isApiProxyPath("/auditing")).toBe(false);
+    expect(isApiProxyPath("/admin/configuracoes")).toBe(false);
+  });
+
   it("não-API delega ao estático via context.next()", () => {
     expect(isApiProxyPath("/")).toBe(false);
     expect(isApiProxyPath("/blog")).toBe(false);

@@ -10,9 +10,11 @@ import {
 
 describe('allowed-origins', () => {
   const originalNodeEnv = process.env.NODE_ENV;
+  const originalFrontendUrl = process.env.FRONTEND_URL;
 
   afterEach(() => {
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.FRONTEND_URL = originalFrontendUrl;
   });
 
   describe('isAllowedOrigin', () => {
@@ -87,9 +89,9 @@ describe('allowed-origins', () => {
       expect(resolveReturnUrl('https://evil.com/phish')).toBe(
         'https://codaqui.dev/',
       );
-      expect(
-        resolveReturnUrl('https://evil.com/phish', '/auth/callback'),
-      ).toBe('https://codaqui.dev/auth/callback');
+      expect(resolveReturnUrl('https://evil.com/phish', '/auth/callback')).toBe(
+        'https://codaqui.dev/auth/callback',
+      );
     });
 
     it('falls back when the candidate is not a valid URL', () => {
@@ -102,6 +104,17 @@ describe('allowed-origins', () => {
       expect(resolveReturnUrl(undefined)).toBe('http://localhost:3000/');
       expect(resolveReturnUrl('https://evil.com', '/dash')).toBe(
         'http://localhost:3000/dash',
+      );
+    });
+
+    it('preserves HTTPS localhost redirects when FRONTEND_URL uses HTTPS', () => {
+      process.env.NODE_ENV = 'development';
+      process.env.FRONTEND_URL = 'https://localhost:3000';
+      expect(resolveReturnUrl('https://localhost:3000/auth/callback')).toBe(
+        'https://localhost:3000/auth/callback',
+      );
+      expect(resolveReturnUrl(undefined, '/auth/callback')).toBe(
+        'https://localhost:3000/auth/callback',
       );
     });
   });
@@ -147,9 +160,9 @@ describe('allowed-origins', () => {
     });
 
     it('ignores a Referer whose origin is not whitelisted', () => {
-      expect(
-        resolveOrigin(undefined, undefined, 'https://evil.com/x'),
-      ).toBe('https://codaqui.dev');
+      expect(resolveOrigin(undefined, undefined, 'https://evil.com/x')).toBe(
+        'https://codaqui.dev',
+      );
     });
 
     it('returns the default origin when nothing is allowed', () => {

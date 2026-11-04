@@ -1,0 +1,122 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import {
+  communityLevelLabel,
+  communitySealLabel,
+  getCommunityPrimaryLink,
+  loadCommunitiesIndex,
+} from "../../lib/communities";
+
+const { generatedAt, communities } = loadCommunitiesIndex();
+const integratedCount = communities.filter((community) => community.level === "integrada").length;
+const partnerCount = communities.filter((community) => community.level === "parceira").length;
+const updatedAt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+}).format(new Date(generatedAt));
+---
+
+<PublicLayout
+  title="Comunidades | CODAQUI.dev"
+  ogTitle="Comunidades | CODAQUI.dev"
+  description="Conheça as comunidades Integradas e Parceiras que colaboram com a Associação Codaqui."
+>
+  <PageHero
+    eyebrow="Rede colaborativa"
+    title="Comunidades participantes"
+    subtitle="Iniciativas que ampliam o acesso à tecnologia por meio de encontros, conteúdo e colaboração entre pessoas."
+  />
+
+  <section class="mx-auto max-w-6xl px-4 py-10 md:py-14" aria-labelledby="community-list-title">
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 id="community-list-title" class="mb-2 text-2xl font-extrabold text-text-primary">
+          Nossa rede de comunidades
+        </h2>
+        <p class="text-text-secondary">
+          {integratedCount} Integradas e {partnerCount} Parceiras ativas nesta rede.
+        </p>
+      </div>
+      <p class="text-sm text-text-secondary">Snapshot atualizado em {updatedAt}.</p>
+    </div>
+
+    <ul class="grid list-none grid-cols-1 gap-6 p-0 md:grid-cols-2" role="list">
+      {
+        communities.map((community) => {
+          const primaryLink = getCommunityPrimaryLink(community);
+          const isExternal = primaryLink?.url.startsWith("http") ?? false;
+          const sealLabel = communitySealLabel(community.sealStatus);
+          const isWhiteLogo = community.logo.startsWith("/img/") && community.logo.includes("white");
+          return (
+            <li>
+              <article class="flex h-full flex-col rounded-xl border border-border bg-surface p-6 shadow-sm">
+                <div class="mb-5 flex items-start gap-4">
+                  <img
+                    src={community.logo}
+                    alt={`Logo da ${community.name}`}
+                    width="72"
+                    height="72"
+                    loading="lazy"
+                    class:list={[
+                      "h-18 w-18 shrink-0 rounded-lg object-contain",
+                      { "community-logo-white": isWhiteLogo },
+                    ]}
+                  />
+                  <div>
+                    <h3 class="mb-2 text-xl font-extrabold text-text-primary">{community.name}</h3>
+                    <div class="flex flex-wrap gap-2" aria-label="Classificação da comunidade">
+                      <span class="rounded-full bg-accent px-2.5 py-1 text-xs font-bold text-primary-800">
+                        {communityLevelLabel(community.level)}
+                      </span>
+                      {sealLabel && (
+                        <span class="rounded-full border border-border px-2.5 py-1 text-xs font-bold text-text-secondary">
+                          {sealLabel}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <p class="mb-4 flex-1 leading-relaxed text-text-secondary">{community.description}</p>
+
+                {(community.location || community.founded) && (
+                  <p class="mb-4 text-sm text-text-secondary">
+                    {community.location && <span>{community.location}</span>}
+                    {community.location && community.founded && <span aria-hidden="true"> · </span>}
+                    {community.founded && <span>Desde {community.founded}</span>}
+                  </p>
+                )}
+
+                {community.responsible && (
+                  <p class="mb-4 text-sm text-text-secondary">
+                    Responsável: {community.responsible.name} (@{community.responsible.githubHandle})
+                  </p>
+                )}
+
+                {primaryLink && (
+                  <a
+                    href={primaryLink.url}
+                    {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    class="mt-auto inline-flex w-fit items-center rounded-lg bg-action px-4 py-2 text-sm font-bold text-white no-underline transition-opacity hover:opacity-90"
+                  >
+                    {primaryLink.label}
+                  </a>
+                )}
+              </article>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </section>
+</PublicLayout>
+
+<style>
+  .community-logo-white {
+    filter: brightness(0.15);
+  }
+  :global([data-theme="dark"]) .community-logo-white {
+    filter: none;
+  }
+</style>

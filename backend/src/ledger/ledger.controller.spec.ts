@@ -18,6 +18,9 @@ describe('LedgerController', () => {
       getAccountBalance: jest.fn(),
       getTransactionById: jest.fn(),
       getAccountTransactions: jest.fn(),
+      getAccountTransactionsForExport: jest.fn(),
+      getTransactionsForExport: jest.fn(),
+      getAccountById: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -77,6 +80,8 @@ describe('LedgerController', () => {
       eventId: 'evt-1',
       ticketTypeId: 'tt-1',
       externalActivationId: 'act-1',
+      from: '2026-10-01',
+      to: '2026-10-31',
     } as any);
 
     expect(service.getAccounts).toHaveBeenCalled();
@@ -90,6 +95,8 @@ describe('LedgerController', () => {
       eventId: 'evt-1',
       ticketTypeId: 'tt-1',
       externalActivationId: 'act-1',
+      from: '2026-10-01',
+      to: '2026-10-31',
     });
   });
 
@@ -102,7 +109,65 @@ describe('LedgerController', () => {
       eventId: undefined,
       ticketTypeId: undefined,
       externalActivationId: undefined,
+      from: undefined,
+      to: undefined,
     });
+  });
+
+  it('exports only the public account transaction fields with identical filters', async () => {
+    service.getAccountById.mockResolvedValue({ id: 'acc-1', name: 'Dev Paraná' });
+    service.getAccountTransactionsForExport.mockResolvedValue([
+      {
+        id: 'tx-1',
+        amount: 75,
+        description: '=HYPERLINK("https://evil.example")',
+        referenceId: 'cs_secret',
+        metadata: { private: 'not-visible' },
+        createdAt: new Date('2026-10-31T23:59:59.999Z'),
+        sourceAccount: { id: 'src', name: 'Stripe' },
+        destinationAccount: { id: 'acc-1', name: 'Dev Paraná' },
+      },
+    ]);
+    const res = { setHeader: jest.fn(), send: jest.fn() };
+    res.send.mockReturnValue(res);
+    const query = {
+      type: 'donation', days: 90, search: 'octocat', from: '2026-10-01', to: '2026-10-31',
+    } as any;
+
+    const result = await controller.exportAccountTransactions('acc-1', query, res as any);
+
+    expect(result).toBeUndefined();
+    expect(service.getAccountTransactionsForExport).toHaveBeenCalledWith('acc-1', {
+      type: 'donation', days: 90, search: 'octocat', eventId: undefined,
+      ticketTypeId: undefined, externalActivationId: undefined,
+      from: '2026-10-01', to: '2026-10-31',
+    });
+    expect(res.setHeader).toHaveBeenCalledWith('Content-Type', 'text/csv; charset=utf-8');
+    expect(res.setHeader).toHaveBeenCalledWith(
+      'Content-Disposition',
+      expect.stringMatching(/^attachment; filename="transacoes-dev-parana-\d{4}-\d{2}-\d{2}\.csv"$/),
+    );
+    const csv = res.send.mock.calls[0][0];
+    expect(csv.charCodeAt(0)).toBe(0xfeff);
+    expect(csv).toContain("'=HYPERLINK");
+    expect(csv).toContain('"Crédito"');
+    expect(csv).not.toContain('cs_secret');
+    expect(csv).not.toContain('not-visible');
+  });
+
+  it('exports all accounts for the authorized admin endpoint', async () => {
+    service.getTransactionsForExport.mockResolvedValue([]);
+    const res = { setHeader: jest.fn(), send: jest.fn() };
+    const query = { search: 'PIX', from: '2026-10-01', to: '2026-10-31' } as any;
+
+    await controller.exportTransactions(query, res as any);
+
+    expect(service.getTransactionsForExport).toHaveBeenCalledWith({
+      type: undefined, days: undefined, search: 'PIX', eventId: undefined,
+      ticketTypeId: undefined, externalActivationId: undefined,
+      from: '2026-10-01', to: '2026-10-31',
+    });
+    expect(res.send.mock.calls[0][0].startsWith('\ufeff')).toBe(true);
   });
 
   it('returns transaction by id when found', async () => {

@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import CommunitiesAdminApp from "../../components/islands/admin/communities/CommunitiesAdminApp";
+---
+
+<AppLayout title="Comunidades" pageTitle="Admin — Comunidades | CODAQUI.dev" noindex>
+  <CommunitiesAdminApp client:only="react" />
+</AppLayout>

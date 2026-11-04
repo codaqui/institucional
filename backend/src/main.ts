@@ -151,7 +151,7 @@ async function bootstrap() {
   // Cleanup de audit logs expirados ao iniciar (fire-and-forget)
   try {
     const auditService = app.get(AuditService);
-    await auditService.cleanup();
+    await auditService.cleanupOperational();
   } catch {
     logger.warn(
       'Audit cleanup no startup falhou (tabela pode não existir ainda)',

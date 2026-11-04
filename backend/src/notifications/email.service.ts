@@ -1,16 +1,18 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, LessThan, Repository } from 'typeorm';
 import {
   ManagedEvent,
   ManagedEventStatus,
 } from '../events/entities/managed-event.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import {
   EventRegistration,
   RegistrationStatus,
@@ -21,6 +23,7 @@ import { SmtpEmailProvider } from './email.provider';
 import { EmailTemplateService } from './email-template.service';
 import {
   EMAIL_TEMPLATE_POST_EVENT,
+  EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
   EMAIL_TEMPLATE_REMINDER_D1,
 } from './default-templates';
@@ -32,9 +35,12 @@ export type { RenderedEmail } from './email-template.service';
 // consumidores que importam os IDs de email.service.
 export {
   EMAIL_TEMPLATE_POST_EVENT,
+  EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
   EMAIL_TEMPLATE_REMINDER_D1,
 };
+
+export const EMAIL_LOG_RETENTION_DAYS = 365;
 
 export interface EmailTemplateContext {
   attendeeName: string;
@@ -44,6 +50,14 @@ export interface EmailTemplateContext {
   ticketTypeName?: string | null;
   checkinToken?: string | null;
   eventLocation?: string | null;
+}
+
+export interface RegistrationEmailEvent {
+  title: string | null;
+  startAt: Date | null;
+  timezone?: string;
+  location?: string | null;
+  eventKey?: string;
 }
 
 export interface ListEmailLogsQuery {
@@ -58,7 +72,12 @@ export interface EmailLogsPage {
   total: number;
   page: number;
   pageSize: number;
-  summary: { sent: number; failed: number; byTemplate: Record<string, number> };
+  summary: {
+    sent: number;
+    failed: number;
+    skipped: number;
+    byTemplate: Record<string, { sent: number; failed: number; skipped: number }>;
+  };
 }
 
 const CONFIRMED_LIKE: RegistrationStatus[] = [
@@ -75,6 +94,8 @@ export class EmailService {
     private readonly emailLogRepo: Repository<EmailLog>,
     @InjectRepository(ManagedEvent)
     private readonly eventRepo: Repository<ManagedEvent>,
+    @InjectRepository(ExternalEventActivation)
+    private readonly activationRepo: Repository<ExternalEventActivation>,
     @InjectRepository(EventRegistration)
     private readonly registrationRepo: Repository<EventRegistration>,
     @InjectRepository(TicketType)
@@ -85,14 +106,14 @@ export class EmailService {
 
   private contextFor(
     registration: EventRegistration,
-    event: ManagedEvent,
+    event: RegistrationEmailEvent,
     ticketTypeName: string | null = null,
   ): EmailTemplateContext {
     return {
       attendeeName: registration.attendeeName,
-      eventTitle: event.title,
-      eventStartAt: event.startAt,
-      eventTimeZone: event.timezone,
+      eventTitle: event.title ?? event.eventKey ?? 'Evento',
+      eventStartAt: event.startAt ?? registration.createdAt,
+      eventTimeZone: event.timezone ?? 'America/Sao_Paulo',
       ticketTypeName,
       checkinToken: registration.checkinToken,
       eventLocation: event.location,
@@ -111,7 +132,7 @@ export class EmailService {
 
   /**
    * Renderiza, envia e registra o log. NUNCA lança por falha de SMTP —
-   * a falha fica registrada no email_logs (status=failed) para reenvio.
+   * indisponibilidade de configuração vira skipped; falha real vira failed.
    */
   async sendTemplate(
     template: string,
@@ -120,14 +141,16 @@ export class EmailService {
     refs: { eventId?: string | null; registrationId?: string | null } = {},
   ): Promise<EmailLog> {
     const rendered = await this.templateService.render(template, ctx);
+    const configured = this.provider.isConfigured();
     const log = this.emailLogRepo.create({
       to,
       template,
       eventId: refs.eventId ?? null,
       registrationId: refs.registrationId ?? null,
-      status: EmailStatus.SENT,
-      error: null,
+      status: configured ? EmailStatus.SENT : EmailStatus.SKIPPED,
+      error: configured ? null : 'SMTP_NOT_CONFIGURED',
     });
+    if (!configured) return this.emailLogRepo.save(log);
     try {
       await this.provider.send({
         to,
@@ -158,6 +181,18 @@ export class EmailService {
         names.get(registration.ticketTypeId) ?? null,
       ),
       { eventId: event.id, registrationId: registration.id },
+    );
+  }
+
+  async sendRegistrationCancellation(
+    registration: EventRegistration,
+    event: RegistrationEmailEvent,
+  ): Promise<void> {
+    await this.sendTemplate(
+      EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
+      registration.attendeeEmail,
+      this.contextFor(registration, event),
+      { eventId: registration.eventId, registrationId: registration.id },
     );
   }
 
@@ -233,17 +268,28 @@ export class EmailService {
     const events = await this.eventRepo.findBy({ id: In(eventIds) });
     const eventById = new Map(events.map((e) => [e.id, e]));
 
-    // Dedupe: já existe log do template para a registration?
+    // Apenas tentativas reais deduplicam; skipped pode ser entregue depois.
     const existing = await this.emailLogRepo.find({
-      where: { template, registrationId: In(registrations.map((r) => r.id)) },
-      select: ['registrationId'],
+      where: {
+        template,
+        registrationId: In(registrations.map((r) => r.id)),
+        status: In([EmailStatus.SENT, EmailStatus.FAILED]),
+      },
+      select: ['registrationId', 'status'],
     });
-    const alreadySent = new Set(existing.map((l) => l.registrationId));
+    const alreadyAttempted = new Set(
+      existing
+        .filter(
+          (log) =>
+            log.status === EmailStatus.SENT || log.status === EmailStatus.FAILED,
+        )
+        .map((log) => log.registrationId),
+    );
     const ticketNames = await this.loadTicketTypeNames(registrations);
 
     let sent = 0;
     for (const registration of registrations) {
-      if (alreadySent.has(registration.id)) continue;
+      if (alreadyAttempted.has(registration.id)) continue;
       const event = registration.eventId
         ? eventById.get(registration.eventId)
         : undefined;
@@ -272,12 +318,13 @@ export class EmailService {
     const where: { status?: EmailStatus; template?: string } = {};
     if (
       query.status === EmailStatus.SENT ||
-      query.status === EmailStatus.FAILED
+      query.status === EmailStatus.FAILED ||
+      query.status === EmailStatus.SKIPPED
     ) {
       where.status = query.status;
     } else if (query.status) {
       throw new BadRequestException(
-        `Status inválido: ${query.status}. Use sent|failed.`,
+        `Status inválido: ${query.status}. Use sent|failed|skipped.`,
       );
     }
     if (query.template) where.template = query.template;
@@ -307,16 +354,45 @@ export class EmailService {
     const summary = {
       sent: 0,
       failed: 0,
-      byTemplate: {} as Record<string, number>,
+      skipped: 0,
+      byTemplate: {} as Record<
+        string,
+        { sent: number; failed: number; skipped: number }
+      >,
     };
     for (const row of rows) {
       const count = Number(row.count);
       summary[row.status] += count;
-      summary.byTemplate[row.template] =
-        (summary.byTemplate[row.template] ?? 0) + count;
+      const templateSummary = (summary.byTemplate[row.template] ??= {
+        sent: 0,
+        failed: 0,
+        skipped: 0,
+      });
+      templateSummary[row.status] += count;
     }
 
     return { items, total, page, pageSize, summary };
+  }
+
+  getStatus(): { configured: boolean } {
+    return { configured: this.provider.isConfigured() };
+  }
+
+  @Cron('45 2 * * *')
+  async cleanupOldLogs(): Promise<number> {
+    const cutoff = new Date(
+      Date.now() - EMAIL_LOG_RETENTION_DAYS * 24 * 3_600_000,
+    );
+    const result = await this.emailLogRepo.delete({
+      createdAt: LessThan(cutoff),
+    });
+    const deleted = result.affected ?? 0;
+    if (deleted > 0) {
+      this.logger.log(
+        `Email cleanup: ${deleted} registros removidos (> ${EMAIL_LOG_RETENTION_DAYS} dias)`,
+      );
+    }
+    return deleted;
   }
 
   /**
@@ -324,6 +400,11 @@ export class EmailService {
    * createdAt). Só suportado para logs com registrationId e template conhecido.
    */
   async resend(logId: string): Promise<EmailLog> {
+    if (!this.provider.isConfigured()) {
+      throw new ConflictException(
+        'Reenvio indisponível: SMTP não está configurado. Configure o módulo de e-mail antes de tentar novamente.',
+      );
+    }
     const log = await this.emailLogRepo.findOneBy({ id: logId });
     if (!log) throw new NotFoundException('Log de e-mail não encontrado.');
     if (!log.registrationId) {
@@ -334,12 +415,19 @@ export class EmailService {
     const registration = await this.registrationRepo.findOneBy({
       id: log.registrationId,
     });
-    if (!registration?.eventId) {
+    if (!registration) {
       throw new BadRequestException(
         'Inscrição vinculada ao log não encontrada.',
       );
     }
-    const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    let event: RegistrationEmailEvent | null = null;
+    if (registration.eventId) {
+      event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    } else if (registration.externalActivationId) {
+      event = await this.activationRepo.findOneBy({
+        id: registration.externalActivationId,
+      });
+    }
     if (!event) {
       throw new BadRequestException('Evento vinculado ao log não encontrado.');
     }

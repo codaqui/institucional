@@ -4,6 +4,7 @@ import type { EventSummary, EventSourceSummary } from "../../lib/events";
 import { formatEventOrganizers } from "../../lib/events";
 import { buildEventPublicPath } from "../../lib/event-path";
 import EventOverrideBadge from "./EventOverrideBadge.astro";
+import { ADULT_CONTENT_BADGE } from "../../lib/adult-content";
 
 interface Props {
   event: EventSummary;
@@ -55,6 +56,7 @@ const OPEN_IN_NEW_PATH =
       </span>
       {statusLabel && <span class:list={["chip", statusClass]}>{statusLabel}</span>}
       {event.featured && <span class="chip chip-success">Destaque</span>}
+      {event.adultOnly && <span class="chip chip-warning">{ADULT_CONTENT_BADGE}</span>}
       {event._override && (
         <EventOverrideBadge
           ownerHandle={event._override.ownerHandle}

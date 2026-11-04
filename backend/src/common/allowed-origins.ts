@@ -4,7 +4,8 @@
  *
  * Fonte de verdade: `allowed-origins.config.ts` (arrays TypeScript commitados
  * no repo). Adicionar nova comunidade com domínio próprio = PR adicionando uma
- * entrada nesse arquivo. Sem env vars, sem I/O em runtime, type-safe.
+ * entrada nesse arquivo. Sem I/O externo; em dev, FRONTEND_URL só orienta o
+ * fallback quando sua origem também está na allow-list.
  */
 
 import {
@@ -22,14 +23,16 @@ function getAllowedOrigins(): string[] {
 
 /**
  * Origem default para fallback. Em produção é o primeiro item da whitelist de
- * produção (codaqui.dev, site institucional canônico). Em dev local é
- * `http://localhost:3000` para evitar redirects acidentais para produção
- * durante desenvolvimento — útil enquanto o OAuth callback URL ainda é fixo
- * no GitHub OAuth App e o cookie returnTo não atravessa domínios (ver
- * docs/plans/multisite/README.md §6.10).
+ * produção (codaqui.dev, site institucional canônico). Em dev local respeita
+ * FRONTEND_URL quando sua origem está na whitelist, com HTTP como fallback
+ * para evitar redirects acidentais para produção durante desenvolvimento.
  */
 function getDefaultOrigin(): string {
   if (process.env.NODE_ENV !== 'production') {
+    const frontendUrl = process.env.FRONTEND_URL;
+    if (frontendUrl && isAllowedOrigin(frontendUrl)) {
+      return new URL(frontendUrl).origin;
+    }
     return 'http://localhost:3000';
   }
   return ALLOWED_ORIGINS_PROD[0] ?? 'http://localhost:3000';
@@ -99,4 +102,3 @@ export function resolveOrigin(
   }
   return getDefaultOrigin();
 }
-
