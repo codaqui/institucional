@@ -31,6 +31,8 @@ describe('MembersController', () => {
       findAll: jest.fn(),
       adminUpdate: jest.fn(),
       updateMeById: jest.fn(),
+      getProfileVisibility: jest.fn(),
+      updateProfileVisibility: jest.fn(),
     };
 
     auditService = {
@@ -147,6 +149,47 @@ describe('MembersController', () => {
       expect(membersService.updateMeById).toHaveBeenCalledWith(member.id, {
         bio: 'New bio',
       });
+    });
+  });
+
+  describe('profile visibility (GET/PATCH /members/me/visibility)', () => {
+    const req = {
+      user: {
+        sub: 'member-1',
+        githubId: '12345',
+        handle: 'testuser',
+        name: 'Test',
+        email: 't@t.com',
+        avatarUrl: '',
+        roles: ['membro'],
+      },
+    };
+
+    it('returns the effective visibility', async () => {
+      const response = { visibility: { bio: false }, fields: [] };
+      membersService.getProfileVisibility.mockResolvedValue(response);
+
+      await expect(controller.getProfileVisibility(req)).resolves.toBe(response);
+      expect(membersService.getProfileVisibility).toHaveBeenCalledWith('member-1');
+    });
+
+    it('updates visibility and logs a governance audit', async () => {
+      const response = { visibility: { bio: true }, fields: [] };
+      membersService.updateProfileVisibility.mockResolvedValue(response);
+
+      await expect(
+        controller.updateProfileVisibility(req, { bio: true }),
+      ).resolves.toBe(response);
+      expect(membersService.updateProfileVisibility).toHaveBeenCalledWith(
+        'member-1',
+        { bio: true },
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'member.visibility_updated',
+          targetId: 'member-1',
+        }),
+      );
     });
   });
 

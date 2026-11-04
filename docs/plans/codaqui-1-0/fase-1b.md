@@ -96,17 +96,17 @@ agent-protocol:
 - `PATCH /members/me/visibility`: whitelist estrita de chaves/booleanos, audit e retorno da configuração efetiva.
 - Serialização pública de `/@handle` omite campos ocultos; e-mail nunca aparece, independentemente do payload.
 
-- [ ] **Step 1: Write failing visibility tests**
+- [x] **Step 1: Write failing visibility tests**
   Cobrir default compatível, chave desconhecida, valor não booleano, e-mail sempre privado, ocultar/restaurar campo, audit e ausência de dados ocultos no payload público.
-- [ ] **Step 2: Create migration and visibility helpers**
+- [x] **Step 2: Create migration and visibility helpers**
   `DEFAULT_PROFILE_VISIBILITY` e `resolveProfileVisibility` são a única fonte de defaults/fusão. `up` aditivo; `down` remove somente a coluna.
-- [ ] **Step 3: Implement API and public filtering**
+- [x] **Step 3: Implement API and public filtering**
   Validar com DTO, aplicar no service e testar o payload público antes da geração das páginas.
-- [ ] **Step 4: Validate against restored production copy**
+- [x] **Step 4: Validate against restored production copy**
   Restaurar dump descartável, executar 026–032, conferir membros preservados e defaults inalterados; testar `down`/`up` da 032 no banco descartável.
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
   `cd backend && npx jest src/members src/common/allowed-origins.spec.ts --runInBand`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   `git add backend/src/migrations backend/src/members backend/src/audit backend/src/app.module.ts && git commit -m "feat(fase-1b): adiciona visibilidade por campo ao perfil"`
 
 ### Task 3: Aba Meus dados e autosserviço de privacidade

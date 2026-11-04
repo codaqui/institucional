@@ -17,6 +17,7 @@ export enum AuditAction {
   ROLE_DERIVED = 'member.role_derived',
   MEMBER_DEACTIVATE = 'member.deactivate',
   MEMBER_ACTIVATE = 'member.activate',
+  MEMBER_VISIBILITY_UPDATED = 'member.visibility_updated',
 
   // Designations
   DESIGNATION_GRANTED = 'designation.granted',
