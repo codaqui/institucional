@@ -171,6 +171,65 @@ test("validates every field of every assembly before replacing the snapshot", as
   assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
 });
 
+test("rejects a held assembly without heldAt and preserves the previous snapshot", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const previous = await writePreviousSnapshot(outputFile);
+  const invalidAssembly = validAssembly({
+    type: "ordinaria",
+    number: 1,
+    slug: "ordinaria-1",
+    status: "held",
+    heldAt: null,
+  });
+
+  await assert.rejects(
+    syncAssemblies({ outputFile, fetchImpl: async () => jsonResponse([invalidAssembly]) }),
+    /heldAt é obrigatório/,
+  );
+
+  assert.equal(await readFile(outputFile, "utf8"), previous);
+  assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});
+
+test("rejects heldAt before scheduledAt and preserves the previous snapshot", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const previous = await writePreviousSnapshot(outputFile);
+  const invalidAssembly = validAssembly({
+    type: "ordinaria",
+    number: 1,
+    slug: "ordinaria-1",
+    status: "held",
+    heldAt: "2026-11-20T17:59:59.000Z",
+  });
+
+  await assert.rejects(
+    syncAssemblies({ outputFile, fetchImpl: async () => jsonResponse([invalidAssembly]) }),
+    /heldAt não pode ser anterior a scheduledAt/,
+  );
+
+  assert.equal(await readFile(outputFile, "utf8"), previous);
+  assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});
+
+test("rejects a held official assembly without complete PDF and notary registry", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const previous = await writePreviousSnapshot(outputFile);
+  const invalidAssembly = validAssembly({
+    status: "held",
+    heldAt: "2026-11-20T20:00:00.000Z",
+    ataPdfUrl: null,
+    notaryRegistry: null,
+  });
+
+  await assert.rejects(
+    syncAssemblies({ outputFile, fetchImpl: async () => jsonResponse([invalidAssembly]) }),
+    /oficial realizada exige PDF e cartório completo/,
+  );
+
+  assert.equal(await readFile(outputFile, "utf8"), previous);
+  assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});
+
 test("cleans the temporary file and preserves the previous snapshot when rename fails", async (t) => {
   const outputFile = await temporaryOutput(t);
   const previous = await writePreviousSnapshot(outputFile);

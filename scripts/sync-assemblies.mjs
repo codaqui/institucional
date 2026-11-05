@@ -62,6 +62,20 @@ function validateAssembly(assembly, index) {
       throw invalidAssembly(index, "notaryRegistry.registeredAt deve ser uma data válida.");
     }
   }
+
+  if (assembly.status === "held" && assembly.heldAt === null) {
+    throw invalidAssembly(index, "heldAt é obrigatório para realizar assembleia.");
+  }
+  if (assembly.heldAt !== null && Date.parse(assembly.heldAt) < Date.parse(assembly.scheduledAt)) {
+    throw invalidAssembly(index, "heldAt não pode ser anterior a scheduledAt.");
+  }
+  if (
+    assembly.type === "oficial" &&
+    assembly.status === "held" &&
+    (!assembly.ataPdfUrl || assembly.notaryRegistry === null)
+  ) {
+    throw invalidAssembly(index, "Assembleia oficial realizada exige PDF e cartório completo.");
+  }
 }
 
 function validatePayload(payload) {
