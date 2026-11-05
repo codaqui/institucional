@@ -39,7 +39,7 @@ describe('HoursService', () => {
       sum: jest.fn(),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
-    membersRepo = { findOneBy: jest.fn() };
+    membersRepo = { findOneBy: jest.fn(), find: jest.fn() };
     designations = { hasDesignation: jest.fn().mockResolvedValue(true) };
     audit = { log: jest.fn() };
     statementsRepo = {
@@ -225,5 +225,50 @@ describe('HoursService', () => {
 
     await service.recordEventCheckin({ ...registration, memberId: null } as any, 90, manager as any);
     expect(hourRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('lists approved public totals without leaking hidden hours or hidden years', async () => {
+    const joinedAt = new Date('2024-01-01T00:00:00.000Z');
+    membersRepo.find.mockResolvedValue([
+      { id: 'visible', githubHandle: 'visible', name: 'Visible', joinedAt, profileVisibility: { badge: false } },
+      { id: 'badge-only', githubHandle: 'badge-only', name: 'Badge only', joinedAt, profileVisibility: { hours: false, memberSince: false } },
+      { id: 'private', githubHandle: 'private', name: 'Private', joinedAt, profileVisibility: { hours: false, badge: false } },
+      { id: 'zero', githubHandle: 'zero', name: 'Zero', joinedAt, profileVisibility: {} },
+    ]);
+    const query = {
+      select: jest.fn().mockReturnThis(),
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      groupBy: jest.fn().mockReturnThis(),
+      getRawMany: jest.fn().mockResolvedValue([{ memberId: 'visible', totalHours: '12.50' }]),
+    };
+    repo.createQueryBuilder = jest.fn().mockReturnValue(query);
+
+    const result = await service.publicTotals();
+
+    expect(result).toEqual([
+      { memberId: 'visible', githubHandle: 'visible', name: 'Visible', joinedAt, badge: false, totalHours: 12.5 },
+      { memberId: 'badge-only', githubHandle: 'badge-only', name: 'Badge only', badge: true },
+      { memberId: 'zero', githubHandle: 'zero', name: 'Zero', joinedAt, badge: true, totalHours: 0 },
+    ]);
+    expect(query.where).toHaveBeenCalledWith('entry.status = :status', { status: HourEntryStatus.APPROVED });
+    expect(query.andWhere).toHaveBeenCalledWith('entry.memberId IN (:...memberIds)', {
+      memberIds: ['visible', 'zero'],
+    });
+    expect(result.find((entry) => entry.memberId === 'badge-only')).not.toHaveProperty('totalHours');
+    expect(result.find((entry) => entry.memberId === 'badge-only')).not.toHaveProperty('joinedAt');
+  });
+
+  it('skips the aggregate query when no visible member allows public hours', async () => {
+    membersRepo.find.mockResolvedValue([
+      { id: 'badge-only', githubHandle: 'badge-only', name: 'Badge only', profileVisibility: { hours: false } },
+    ]);
+    repo.createQueryBuilder = jest.fn();
+
+    await expect(service.publicTotals()).resolves.toEqual([
+      { memberId: 'badge-only', githubHandle: 'badge-only', name: 'Badge only', badge: true },
+    ]);
+    expect(repo.createQueryBuilder).not.toHaveBeenCalled();
   });
 });

@@ -187,6 +187,42 @@ export class HoursService {
     };
   }
 
+  async publicTotals() {
+    const members = await this.membersRepo.find({
+      where: { isActive: true },
+      select: ['id', 'githubHandle', 'name', 'joinedAt', 'profileVisibility'],
+      order: { joinedAt: 'ASC' },
+    });
+    const visibleMembers = members
+      .map((member) => ({ member, visibility: resolveProfileVisibility(member.profileVisibility) }))
+      .filter(({ visibility }) => visibility.hours || visibility.badge);
+    const hourMemberIds = visibleMembers
+      .filter(({ visibility }) => visibility.hours)
+      .map(({ member }) => member.id);
+    const totals = new Map<string, number>();
+
+    if (hourMemberIds.length > 0) {
+      const rows: Array<{ memberId: string; totalHours: string }> = await this.repo
+        .createQueryBuilder('entry')
+        .select('entry.memberId', 'memberId')
+        .addSelect('SUM(entry.hours)', 'totalHours')
+        .where('entry.status = :status', { status: HourEntryStatus.APPROVED })
+        .andWhere('entry.memberId IN (:...memberIds)', { memberIds: hourMemberIds })
+        .groupBy('entry.memberId')
+        .getRawMany();
+      for (const row of rows) totals.set(row.memberId, Number(row.totalHours));
+    }
+
+    return visibleMembers.map(({ member, visibility }) => ({
+      memberId: member.id,
+      githubHandle: member.githubHandle,
+      name: member.name,
+      ...(visibility.memberSince ? { joinedAt: member.joinedAt } : {}),
+      badge: visibility.badge,
+      ...(visibility.hours ? { totalHours: totals.get(member.id) ?? 0 } : {}),
+    }));
+  }
+
   async publicSummary(memberId: string) {
     const member = await this.membersRepo.findOneBy({ id: memberId, isActive: true });
     if (!member || !resolveProfileVisibility(member.profileVisibility).hours) {

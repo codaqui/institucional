@@ -25,6 +25,12 @@ import { HoursService } from './hours.service';
 export class HoursController {
   constructor(private readonly hoursService: HoursService) {}
 
+  @Get('public')
+  @ApiOperation({ summary: 'Totais públicos de horas aprovadas e permissões de selo' })
+  publicList() {
+    return this.hoursService.publicTotals();
+  }
+
   @Get('verify/:code')
   @ApiOperation({ summary: 'Verifica uma declaração pública de horas' })
   verify(@Param('code') code: string) {
