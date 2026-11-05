@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, EntityManager, Repository } from 'typeorm';
+import { And, EntityManager, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import type { EventRegistration } from '../events/entities/event-registration.entity';
 import { HourEntrySource } from './entities/hour-entry.entity';
 import { AuditService } from '../audit/audit.service';
@@ -161,6 +161,14 @@ export class HoursService {
     });
   }
 
+  async myApprovedSummary(memberId: string) {
+    const totalHours = await this.repo.sum('hours', {
+      memberId,
+      status: HourEntryStatus.APPROVED,
+    });
+    return { totalHours: Number(totalHours ?? 0) };
+  }
+
   async pending(page = 1, limit = 50) {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(100, Math.max(1, limit));
@@ -255,10 +263,12 @@ export class HoursService {
     if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
       throw new ConflictException('Período inválido para a declaração de horas.');
     }
+    const toExclusive = new Date(to.getTime());
+    toExclusive.setUTCDate(toExclusive.getUTCDate() + 1);
     return {
       memberId,
       status: HourEntryStatus.APPROVED,
-      occurredAt: Between(from, to),
+      occurredAt: And(MoreThanOrEqual(from), LessThan(toExclusive)),
     };
   }
 }

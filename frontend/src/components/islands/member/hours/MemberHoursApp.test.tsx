@@ -126,6 +126,7 @@ describe("MemberHoursApp", () => {
     mocks.authFetch.mockReset();
     mocks.authFetch.mockImplementation(async (path: string) => {
       if (path === "/hours/me") return jsonResponse(entries);
+      if (path === "/hours/me/summary") return jsonResponse({ totalHours: 12.5 });
       if (path.startsWith("/hours/members/member-1/statement")) {
         return jsonResponse(statement);
       }
@@ -148,6 +149,19 @@ describe("MemberHoursApp", () => {
     expect(screen.getByText("Atividade rejeitada")).toBeInTheDocument();
     expect(screen.getByText("Fora do período")).toBeInTheDocument();
     expect(mocks.authFetch).toHaveBeenCalledWith("/hours/me");
+  });
+
+  it("uses the aggregate approved balance instead of summing the limited statement", async () => {
+    mocks.authFetch.mockImplementation(async (path: string) => {
+      if (path === "/hours/me") return jsonResponse(entries);
+      if (path === "/hours/me/summary") return jsonResponse({ totalHours: 1001.25 });
+      return jsonResponse({ message: `Rota inesperada: ${path}` }, { status: 500 });
+    });
+    renderWithMui(<MemberHoursApp />);
+
+    expect(await screen.findByText("1.001,25 horas")).toBeInTheDocument();
+    expect(screen.queryByText("12,50 horas")).not.toBeInTheDocument();
+    expect(mocks.authFetch).toHaveBeenCalledWith("/hours/me/summary");
   });
 
   it("prints only approved hours in the selected period", async () => {
@@ -177,6 +191,7 @@ describe("MemberHoursApp", () => {
     const user = userEvent.setup();
     mocks.authFetch.mockImplementation(async (path: string) => {
       if (path === "/hours/me") return jsonResponse(entries);
+      if (path === "/hours/me/summary") return jsonResponse({ totalHours: 12.5 });
       return jsonResponse({ message: "Período inválido para a declaração de horas." }, { status: 409 });
     });
     renderWithMui(<MemberHoursApp />);

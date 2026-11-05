@@ -116,6 +116,45 @@ describe("HoursApprovalsApp", () => {
     expect(lastCall("/hours/pending?page=1&limit=50")).toBeDefined();
   });
 
+  it("moves from the emptied last page back to page 1 after approval", async () => {
+    const user = userEvent.setup();
+    let reviewed = false;
+    let pageOneLoads = 0;
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/hours/pending?page=1&limit=50") {
+        pageOneLoads += 1;
+        return pendingResponse({
+          total: reviewed ? 1 : 51,
+          totalPages: reviewed ? 1 : 2,
+        });
+      }
+      if (path === "/hours/pending?page=2&limit=50") {
+        return pendingResponse({
+          data: reviewed ? [] : [{ ...pendingEntry, id: "hour-2", description: "Segunda atividade" }],
+          total: reviewed ? 1 : 51,
+          page: 2,
+          totalPages: reviewed ? 1 : 2,
+        });
+      }
+      if (path === "/hours/hour-2/approve" && init?.method === "POST") {
+        reviewed = true;
+        return jsonResponse({ ...pendingEntry, id: "hour-2", status: "approved" });
+      }
+      return jsonResponse({ message: `Rota inesperada: ${path}` }, { status: 500 });
+    });
+    renderWithMui(<HoursApprovalsApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Ir para a página 2 de 2" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Aprovar Segunda atividade" }),
+    );
+
+    await waitFor(() => expect(pageOneLoads).toBe(2));
+    expect(await screen.findByText("Revisão de conteúdo")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ir para a página 2 de 2" })).not.toBeInTheDocument();
+    expect(mocks.authFetch.mock.calls.filter(([path]) => path === "/hours/pending?page=2&limit=50")).toHaveLength(2);
+  });
+
   it("requires a rejection reason, announces validation and submits the trimmed reason", async () => {
     const user = userEvent.setup();
     renderWithMui(<HoursApprovalsApp />);

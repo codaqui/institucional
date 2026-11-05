@@ -37,6 +37,12 @@ export class HoursController {
     return this.hoursService.myEntries(req.user.sub);
   }
 
+  @Get('me/summary')
+  @UseGuards(JwtAuthGuard)
+  mySummary(@Req() req: { user: JwtPayload }) {
+    return this.hoursService.myApprovedSummary(req.user.sub);
+  }
+
   @Get('pending')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(MemberRole.ADMIN, MemberRole.FINANCE_ANALYZER)

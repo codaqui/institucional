@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -94,6 +94,7 @@ const statusLabels = {
 function MemberHoursInner(): React.JSX.Element | null {
   const { user, ready, isLoggedIn, authFetch } = useAuth();
   const [entries, setEntries] = useState<HourEntry[]>([]);
+  const [approvedTotal, setApprovedTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [from, setFrom] = useState("");
@@ -107,9 +108,18 @@ function MemberHoursInner(): React.JSX.Element | null {
     setLoading(true);
     setLoadError("");
     try {
-      const response = await authFetch("/hours/me");
-      const result = await parseAuthJson<HourEntry[]>(response, setLoadError);
-      if (result) setEntries(Array.isArray(result) ? result : []);
+      const [entriesResponse, summaryResponse] = await Promise.all([
+        authFetch("/hours/me"),
+        authFetch("/hours/me/summary"),
+      ]);
+      const result = await parseAuthJson<HourEntry[]>(entriesResponse, setLoadError);
+      const summary = await parseAuthJson<{ totalHours: number | string }>(
+        summaryResponse,
+        setLoadError,
+      );
+      if (!result || !summary) return;
+      setEntries(Array.isArray(result) ? result : []);
+      setApprovedTotal(Number(summary.totalHours));
     } catch {
       setLoadError("Não foi possível carregar seu extrato de horas.");
     } finally {
@@ -131,13 +141,6 @@ function MemberHoursInner(): React.JSX.Element | null {
     setPrintPending(false);
     globalThis.print();
   }, [statement, printPending]);
-
-  const approvedTotal = useMemo(
-    () => entries
-      .filter((entry) => entry.status === "approved")
-      .reduce((total, entry) => total + Number(entry.hours), 0),
-    [entries],
-  );
 
   const emitStatement = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

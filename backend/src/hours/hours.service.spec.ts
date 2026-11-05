@@ -125,6 +125,71 @@ describe('HoursService', () => {
     expect(result.entries[0]).not.toHaveProperty('reportedById');
   });
 
+  it('keeps the statement list limited while summing every approved decimal hour', async () => {
+    const entries = Array.from({ length: 101 }, (_, index) => ({
+      id: `hour-${index + 1}`,
+      memberId: 'member-1',
+      hours: index === 100 ? '1000.25' : '0.01',
+      status: HourEntryStatus.APPROVED,
+    }));
+    repo.find.mockImplementation(({ take }) => Promise.resolve(entries.slice(0, take)));
+    repo.sum.mockResolvedValue(1001.25);
+
+    const [list, summary] = await Promise.all([
+      service.myEntries('member-1'),
+      (service as any).myApprovedSummary('member-1'),
+    ]);
+
+    expect(list).toHaveLength(100);
+    expect(repo.find).toHaveBeenCalledWith({
+      where: { memberId: 'member-1' },
+      order: { occurredAt: 'DESC' },
+      take: 100,
+    });
+    expect(repo.sum).toHaveBeenCalledWith('hours', {
+      memberId: 'member-1',
+      status: HourEntryStatus.APPROVED,
+    });
+    expect(summary).toEqual({ totalHours: 1001.25 });
+  });
+
+  it('includes the end of the last statement day and excludes the following day', async () => {
+    const entries = [
+      {
+        id: 'last-day',
+        memberId: 'member-1',
+        hours: 2.5,
+        status: HourEntryStatus.APPROVED,
+        occurredAt: new Date('2026-12-31T23:59:59.999Z'),
+      },
+      {
+        id: 'next-day',
+        memberId: 'member-1',
+        hours: 4,
+        status: HourEntryStatus.APPROVED,
+        occurredAt: new Date('2027-01-01T00:00:00.000Z'),
+      },
+    ];
+    repo.find.mockImplementation(({ where }) => {
+      const condition = where.occurredAt;
+      if (condition.type === 'between') {
+        const [from, to] = condition.value;
+        return Promise.resolve(entries.filter((entry) => entry.occurredAt >= from && entry.occurredAt <= to));
+      }
+      if (condition.type === 'and') {
+        const [from, to] = condition.value;
+        return Promise.resolve(entries.filter((entry) =>
+          entry.occurredAt >= from.value && entry.occurredAt < to.value));
+      }
+      throw new Error(`Operador inesperado: ${condition.type}`);
+    });
+
+    const statement = await service.statement('member-1', { from: '2026-01-01', to: '2026-12-31' });
+
+    expect(statement.entries.map((entry) => entry.id)).toEqual(['last-day']);
+    expect(statement.totalHours).toBe(2.5);
+  });
+
   it('persists immutable statements and verifies their stored snapshot', async () => {
     repo.find.mockResolvedValue([{ hours: 2.5 }]);
     membersRepo.findOneBy.mockResolvedValue({ profileVisibility: {} });

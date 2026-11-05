@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -70,22 +70,36 @@ function HoursApprovalsInner(): React.JSX.Element | null {
   const [reason, setReason] = useState("");
   const [reasonError, setReasonError] = useState("");
   const [dialogError, setDialogError] = useState("");
+  const requestId = useRef(0);
 
   const loadPending = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
     setLoadError("");
     try {
       const response = await authFetch(`/hours/pending?page=${page}&limit=${DEFAULT_PAGE_SIZE}`);
-      const result = await parseAuthJson<PaginatedResponse<PendingHourEntry>>(response, setLoadError);
-      if (!result) return;
+      const result = await parseAuthJson<PaginatedResponse<PendingHourEntry>>(
+        response,
+        (message) => {
+          if (currentRequest === requestId.current) setLoadError(message);
+        },
+      );
+      if (!result || currentRequest !== requestId.current) return;
+      const validPage = Math.max(1, result.totalPages);
+      if (page > validPage) {
+        setPage(validPage);
+        return;
+      }
       setItems(Array.isArray(result.data) ? result.data : []);
       setTotal(result.total);
       setTotalPages(result.totalPages);
       setLimit(result.limit ?? DEFAULT_PAGE_SIZE);
     } catch {
-      setLoadError("Não foi possível carregar a fila de horas.");
+      if (currentRequest === requestId.current) {
+        setLoadError("Não foi possível carregar a fila de horas.");
+      }
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, [authFetch, page]);
 
