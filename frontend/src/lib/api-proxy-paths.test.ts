@@ -69,6 +69,15 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/admin/memberships")).toBe(false);
   });
 
+  it("hours é API sem interceptar as páginas de horas do app", () => {
+    expect(isApiProxyPath("/hours")).toBe(true);
+    expect(isApiProxyPath("/hours/me")).toBe(true);
+    expect(isApiProxyPath("/hours/pending")).toBe(true);
+    expect(isApiProxyPath("/hoursxyz")).toBe(false);
+    expect(isApiProxyPath("/membro/horas")).toBe(false);
+    expect(isApiProxyPath("/admin/horas")).toBe(false);
+  });
+
   it("designations é API sem alargar o prefixo administrativo", () => {
     expect(isApiProxyPath("/designations")).toBe(true);
     expect(isApiProxyPath("/designations/me")).toBe(true);

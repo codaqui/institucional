@@ -74,6 +74,11 @@ export enum AuditAction {
   EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',
   EMAIL_TEMPLATE_DELETED = 'email.template_deleted',
 
+  // Hours
+  HOUR_CREATED = 'hour.created',
+  HOUR_APPROVED = 'hour.approved',
+  HOUR_REJECTED = 'hour.rejected',
+
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
 }

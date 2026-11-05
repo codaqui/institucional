@@ -12,6 +12,7 @@ export const PROFILE_VISIBILITY_KEYS = [
   'donations',
   'sortcoins',
   'designations',
+  'badge',
 ] as const;
 
 export type ProfileVisibilityKey = (typeof PROFILE_VISIBILITY_KEYS)[number];
@@ -37,6 +38,7 @@ export const DEFAULT_PROFILE_VISIBILITY: ProfileVisibility = {
   donations: true,
   sortcoins: true,
   designations: true,
+  badge: true,
 };
 
 export const PROFILE_VISIBILITY_FIELDS = [
@@ -50,6 +52,7 @@ export const PROFILE_VISIBILITY_FIELDS = [
   { key: 'donations', label: 'Doações', source: 'Ledger financeiro', purpose: 'Histórico de apoio opt-in' },
   { key: 'sortcoins', label: 'SortCoins', source: 'Clube Codaqui', purpose: 'Saldo e histórico públicos por padrão' },
   { key: 'designations', label: 'Designations', source: 'Vínculos ativos', purpose: 'Representações institucionais' },
+  { key: 'badge', label: 'Selo para README', source: 'Perfil e horas públicas', purpose: 'Selo SVG opcional para sites externos' },
 ] as const;
 
 export function resolveProfileVisibility(input: unknown): ProfileVisibility {
