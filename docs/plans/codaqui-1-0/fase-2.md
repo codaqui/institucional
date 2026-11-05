@@ -361,11 +361,18 @@ Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vite
 - [x] Ownership reconciliado em designations, dual-write testado e API compatível.
 - [x] Guest claim protegido por Turnstile, capacidade correta, QR/check-in e retenção de 12 meses.
 - [x] Painel de horas, declaração, perfil e badges respeitam `profileVisibility`.
-- [ ] Gates verdes e backend `0.14.0` publicado a partir do HEAD correto de `main`.
-- [ ] Fase 3 preparada sem antecipar assembleias ou outros subsistemas.
+- [x] Gates verdes e backend `0.14.0` publicado a partir do HEAD correto de `main`.
+- [x] Fase 3 preparada sem antecipar assembleias ou outros subsistemas.
 
 ## Handoff
 
 A Fase 3 começa somente por comando explícito. O handoff deve incluir migration até 035, relatório de reconciliação de ownership, eventos sem carga legados identificados, política de retenção guest, evidência do sync inicial de badges concluído com sucesso **antes da publicação do frontend** (gate de release, sem precisar gerar SVGs reais neste branch) e o estado real da release `v0.14.0-backend`.
 
-Checklist externo de Turnstile: configurar `TURNSTILE_SITE_KEY` como **Variable** do GitHub Actions (o alias `PUBLIC_TURNSTILE_SITE_KEY` também é aceito), `TURNSTILE_SECRET` como secret do backend e `TURNSTILE_HOSTNAMES` com os domínios públicos exatos. Após backend e frontend publicados, validar o widget real em `/eventos/convite`, concluir um claim real com token emitido pelo Cloudflare e confirmar hostname/consentimento/QR; o token `development` e testes com `fetch` mockado não contam como essa evidência. Nenhuma dessas configurações ou validações externas foi realizada no branch.
+Checklist externo de Turnstile concluído: `TURNSTILE_SITE_KEY` configurada como **Variable** do GitHub Actions (o alias `PUBLIC_TURNSTILE_SITE_KEY` também é aceito), `TURNSTILE_SECRET` no backend e `TURNSTILE_HOSTNAMES` com os domínios públicos exatos. O widget real foi validado em `/eventos/convite` com token Cloudflare, hostname/consentimento/QR e e-mail mascarado. O anti-replay está coberto por teste unitário; a reutilização do token real não foi repetida fora da automação.
+
+## Evidência de release
+
+- PR #612 integrada em `main`; release `v0.14.0-backend` publicada no run `42096881496` e API em `0.14.0`.
+- Sync inicial de badges concluído no run `42098199373`, antes do frontend; SVGs públicos retornam `image/svg+xml`.
+- Frontend dos quatro projetos publicado no run `42098283935`; `/admin/horas`, `/membro/horas` e `/eventos/convite` respondem 200.
+- Reconcile e inventário publicado, além de um claim real em produção, exigem sessão admin e permanecem como acompanhamento operacional; não são alegados como concluídos neste documento.

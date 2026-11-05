@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 2 — ledger de horas, carga e crédito no check-in, ownership por designations, guests, declarações e visibilidade/badges.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Implementado na Fase 2 (migrations 033–035 e backend 0.14.0 preparado); publicação, redeploy e sync inicial de badges são gates externos pendentes.
+status: Implementado e publicado na Fase 2 (migrations 033–035 e backend 0.14.0); reconcile e claim real em produção são acompanhamentos operacionais com sessão admin.
 sections:
   - Contexto
   - Decisão
@@ -27,7 +27,7 @@ agent-protocol:
 # ADR 013 — Ledger de horas, ownership, guests e perfil público
 
 - **Data da decisão:** 2026-11-05
-- **Status:** Implementado (Fase 2; release/handoff externo pendente)
+- **Status:** Implementado e publicado (Fase 2; backend 0.14.0)
 - **Escopo:** `backend/src/hours/`, eventos, ownership, guests, migrations 033–035, painéis de horas, perfil público e badges SVG
 
 ## Contexto
@@ -38,7 +38,7 @@ A Fase 2 não introduz assembleias, projetos de extensão, mentoria ou outras fo
 
 ## Decisão
 
-Adotar uma `hour_ledger` independente, conectar o crédito automático à transição atômica do check-in, reconciliar ownership em `organizer @ event`, reutilizar `event_registrations` para guests e aplicar `profileVisibility` a todas as projeções novas. A implementação está no backend `0.14.0`; publicação a partir do HEAD correto de `main`, redeploy manual e o primeiro sync de badges continuam gates de release, não fatos já realizados por esta ADR.
+Adotar uma `hour_ledger` independente, conectar o crédito automático à transição atômica do check-in, reconciliar ownership em `organizer @ event`, reutilizar `event_registrations` para guests e aplicar `profileVisibility` a todas as projeções novas. A implementação está publicada no backend `0.14.0`; o primeiro sync de badges foi concluído antes do frontend, e os acompanhamentos operacionais com sessão admin permanecem separados da decisão arquitetural.
 
 ## Ledger de horas separada
 
@@ -119,5 +119,5 @@ O workflow `Sync Member Badges` roda diariamente às 06:17 UTC e por dispatch. M
 - Horas e finanças evoluem independentemente; nenhum saldo financeiro é afetado por aprovação, check-in, claim ou vínculo de guest.
 - O recorte entrega duas fontes efetivas (`event_checkin` e `directorate_activity`), não as quatro previstas no desenho final.
 - O rollback da migration 035 remove registros guest para restaurar a obrigatoriedade anterior de nome/e-mail; não deve ser executado em produção sem avaliação explícita de dados. O rollback da 034 não apaga designations.
-- O inventário final de ownership e de eventos legados sem carga, a publicação `v0.14.0-backend`, o redeploy manual e a evidência do sync inicial de badges permanecem no handoff de release.
+- A publicação `v0.14.0-backend`, o redeploy e o sync inicial de badges estão concluídos. O inventário final de ownership/eventos legados e um claim real em produção permanecem como acompanhamento operacional com sessão admin.
 - Fase 3 permanece fora do escopo e começa somente por comando explícito.
