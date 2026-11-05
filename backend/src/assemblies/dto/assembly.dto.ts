@@ -2,12 +2,15 @@ import { Transform, Type } from 'class-transformer';
 import {
   IsDate,
   IsIn,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUrl,
   Matches,
+  Max,
   MaxLength,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { ASSEMBLY_DISCUSSION_URL_PATTERN } from '../assembly.rules';
@@ -112,4 +115,27 @@ export class UpdateAssemblyDto {
   @ValidateNested()
   @Type(() => AssemblyNotaryRegistryDto)
   notaryRegistry?: AssemblyNotaryRegistryDto | null;
+}
+
+export class ListAssembliesDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page?: number = 1;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit?: number = 50;
+
+  @IsOptional()
+  @IsIn(['ordinaria', 'oficial'])
+  type?: AssemblyType;
+
+  @IsOptional()
+  @IsIn(['scheduled', 'held', 'canceled'])
+  status?: AssemblyStatus;
 }

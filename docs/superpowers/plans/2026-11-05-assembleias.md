@@ -96,7 +96,7 @@ Expected: PASS.
 - Rotas do spec: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies`, `POST /assemblies`, `PATCH /assemblies/:id`.
 - Novas ações `assembly.created`, `assembly.updated`, `assembly.status_changed`, `assembly.notary_registered` em governo.
 
-- [ ] **Step 1: Write failing service/controller tests**
+- [x] **Step 1: Write failing service/controller tests**
 
 ```ts
 await expect(service.create(baseDto, director)).resolves.toMatchObject({
@@ -109,23 +109,23 @@ await expect(service.update(official.id, { status: 'held', heldAt: later }, admi
 
 Incluir paginação, público sem `createdById`, slug imutável e auditoria de cartório.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd backend && npx jest src/assemblies --runInBand`
 Expected: `AssembliesService`/rotas ausentes.
 
-- [ ] **Step 3: Implement service, authorization and numbering**
+- [x] **Step 3: Implement service, authorization and numbering**
 
 Transação com `pg_advisory_xact_lock(hashtext(:type))`, `MAX(number)+1` por tipo e save; retry apenas de violação `(type,number)` em concorrência. Diretor é validado por `DesignationsService.hasDesignation(actor.sub, { targetType: 'directorate', designation: 'director' })`. Admin tem acesso global; cartório exige admin.
 
-- [ ] **Step 4: Implement controller, audit and public projections**
+- [x] **Step 4: Implement controller, audit and public projections**
 
 Rotas públicas antes de `/:id`, DTOs de query com paginação e audit nas mutações. Retornar slug derivado, nunca `createdById`.
 
 Run: `cd backend && npx jest src/assemblies src/audit --runInBand --silent`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add backend/src/assemblies backend/src/audit backend/src/app.module.ts && git commit -m "feat(fase-3): adiciona API de assembleias"`
 
