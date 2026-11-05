@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T01:01:23.031Z",
+  "generatedAt": "2026-11-05T02:01:32.100Z",
   "events": [
     {
       "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
@@ -17,6 +17,8 @@
       "tags": [],
       "ctaLabel": "Inscrever-se",
       "status": "completed",
+      "adultOnly": false,
+      "venueType": null,
       "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
       "userCount": 81
     }
