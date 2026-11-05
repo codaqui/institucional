@@ -140,28 +140,41 @@ export class MembersService {
       const guests = await this.registrationRepo.find({
         where: { isGuest: true, memberId: IsNull(), attendeeEmail: In(emails) },
       });
+      const guestsByEvent = new Map<string, EventRegistration[]>();
       for (const guest of guests) {
         if (!guest.eventId) continue;
-        const result = await this.eventsService.linkGuestRegistration(
-          guest,
-          member.id,
-        );
-        if (result === 'skipped') continue;
-        void this.auditService.log({
-          action: AuditAction.EVENT_GUEST_LINKED,
-          actorId: member.id,
-          actorHandle: member.githubHandle,
-          targetId: guest.id,
-          targetType: 'event-registration',
-          details: {
-            eventId: guest.eventId,
-            duplicateCancelled: result === 'duplicate_cancelled',
-          },
-        });
+        const eventGuests = guestsByEvent.get(guest.eventId) ?? [];
+        eventGuests.push(guest);
+        guestsByEvent.set(guest.eventId, eventGuests);
       }
+      await Promise.all(
+        [...guestsByEvent.values()].map((eventGuests) =>
+          eventGuests.reduce(
+            (previous, guest) => previous.then(() => this.linkGuestAndAudit(guest, member)),
+            Promise.resolve(),
+          ),
+        ),
+      );
     } catch (error) {
       this.logger.warn(`Falha ao vincular inscrições guest: ${String(error)}`);
     }
+  }
+
+  private async linkGuestAndAudit(guest: EventRegistration, member: Member): Promise<void> {
+    if (!guest.eventId) return;
+    const result = await this.eventsService.linkGuestRegistration(guest, member.id);
+    if (result === 'skipped') return;
+    void this.auditService.log({
+      action: AuditAction.EVENT_GUEST_LINKED,
+      actorId: member.id,
+      actorHandle: member.githubHandle,
+      targetId: guest.id,
+      targetType: 'event-registration',
+      details: {
+        eventId: guest.eventId,
+        duplicateCancelled: result === 'duplicate_cancelled',
+      },
+    });
   }
 
   private applyExistingMemberUpdates(

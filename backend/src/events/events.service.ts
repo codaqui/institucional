@@ -2365,8 +2365,8 @@ export class EventsService {
     for (const guest of guests) {
       guest.attendeeName = null;
       guest.attendeeEmail = null;
-      await this.registrationRepo.save(guest);
     }
+    await Promise.all(guests.map((guest) => this.registrationRepo.save(guest)));
     if (guests.length > 0) {
       this.logger.log(`${guests.length} inscrições guest anonimizadas após 12 meses.`);
     }

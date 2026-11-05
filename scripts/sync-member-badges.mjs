@@ -101,27 +101,37 @@ async function atomicWrite(outputFile, content, renameImpl) {
   }
 }
 
+async function settleAll(promises) {
+  const results = await Promise.allSettled(promises);
+  const failure = results.find((result) => result.status === "rejected");
+  if (failure) throw failure.reason;
+}
+
 async function readExistingBadges(outputDir) {
   const files = await readdir(outputDir, { withFileTypes: true });
-  const badges = new Map();
-  for (const file of files) {
-    if (file.isFile() && file.name.endsWith(".svg")) {
-      badges.set(file.name, await readFile(path.join(outputDir, file.name), "utf8"));
-    }
-  }
-  return badges;
+  const entries = await Promise.all(
+    files
+      .filter((file) => file.isFile() && file.name.endsWith(".svg"))
+      .map(async (file) => [
+        file.name,
+        await readFile(path.join(outputDir, file.name), "utf8"),
+      ]),
+  );
+  return new Map(entries);
 }
 
 async function restoreBadges(outputDir, previousBadges, renameImpl) {
   const currentBadges = await readExistingBadges(outputDir);
-  for (const file of currentBadges.keys()) {
-    if (!previousBadges.has(file)) await rm(path.join(outputDir, file), { force: true });
-  }
-  for (const [file, content] of previousBadges) {
-    if (currentBadges.get(file) !== content) {
-      await atomicWrite(path.join(outputDir, file), content, renameImpl);
-    }
-  }
+  await settleAll(
+    [...currentBadges.keys()]
+      .filter((file) => !previousBadges.has(file))
+      .map((file) => rm(path.join(outputDir, file), { force: true })),
+  );
+  await settleAll(
+    [...previousBadges]
+      .filter(([file, content]) => currentBadges.get(file) !== content)
+      .map(([file, content]) => atomicWrite(path.join(outputDir, file), content, renameImpl)),
+  );
 }
 
 export async function syncMemberBadges({
@@ -145,12 +155,15 @@ export async function syncMemberBadges({
   await mkdir(outputDir, { recursive: true });
   const previousBadges = await readExistingBadges(outputDir);
   try {
-    for (const [file, content] of desiredBadges) {
-      await atomicWrite(path.join(outputDir, file), content, renameImpl);
-    }
-    for (const file of previousBadges.keys()) {
-      if (!desiredBadges.has(file)) await rm(path.join(outputDir, file));
-    }
+    await settleAll(
+      [...desiredBadges].map(([file, content]) =>
+        atomicWrite(path.join(outputDir, file), content, renameImpl)),
+    );
+    await settleAll(
+      [...previousBadges.keys()]
+        .filter((file) => !desiredBadges.has(file))
+        .map((file) => rm(path.join(outputDir, file))),
+    );
   } catch (error) {
     try {
       await restoreBadges(outputDir, previousBadges, renameImpl);

@@ -6,7 +6,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Repository } from 'typeorm';
+import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { MembersService } from '../members/members.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
@@ -248,16 +248,15 @@ export class EventOrganizerOwnershipService {
       { memberId, targetType: 'event', designation: 'organizer', status: 'active' },
       { status: 'removed' },
     );
-    for (const scope of scopes) {
-      const activation = await manager.getRepository(ExternalEventActivation)
-        .findOneBy({ eventKey: scope });
-      await repo.save(repo.create({
-        memberId,
-        ...scopeToDesignation(scope, activation),
-        status: 'active',
-        appointedById: actor.sub,
-      }));
-    }
+    const activations = await manager.getRepository(ExternalEventActivation)
+      .findBy({ eventKey: In(scopes) });
+    const activationsByKey = new Map(activations.map((activation) => [activation.eventKey, activation]));
+    await repo.save(scopes.map((scope) => repo.create({
+      memberId,
+      ...scopeToDesignation(scope, activationsByKey.get(scope) ?? null),
+      status: 'active',
+      appointedById: actor.sub,
+    })));
   }
 
   private assertValidScopes(scopes: string[]): void {
