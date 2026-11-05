@@ -187,7 +187,7 @@ Expected: PASS.
 - `GiscusIsland` aceita `config?: GiscusConfig`; default continua o blog.
 - `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` configura a categoria por ambiente.
 
-- [ ] **Step 1: Write failing public data/Giscus tests**
+- [x] **Step 1: Write failing public data/Giscus tests**
 
 ```tsx
 expect(assemblyPath({ type: 'oficial', number: 2 })).toBe('/assembleias/oficial-2');
@@ -196,12 +196,12 @@ expect(screen.getByTestId('giscus')).toHaveAttribute('data-category-id', 'test-c
 
 Verificar listagem ordenada, detalhe oficial, cancelada, slug inválido e default do blog inalterado.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd frontend && npx vitest run src/data/assemblies.test.ts src/components/islands/__tests__/GiscusIsland.test.tsx`
 Expected: arquivos/contrato ausentes.
 
-- [ ] **Step 3: Implement data loading, Giscus override and public pages**
+- [x] **Step 3: Implement data loading, Giscus override and public pages**
 
 Listagem com cards semânticos e detalhe com OG/JSON-LD. Giscus por pathname, categoria Assembleias via env pública e `config` opcional. Mapear variável no Compose e no build do deploy.
 
@@ -209,7 +209,7 @@ Listagem com cards semânticos e detalhe com OG/JSON-LD. Giscus por pathname, ca
 
 Usuário cria **Assembleias** em `https://github.com/codaqui/institucional/discussions/categories`. Obter o ID com `gh api graphql -f query='query { repository(owner:"codaqui",name:"institucional") { discussionCategories(first:50) { nodes { id name } } } }'` e configurar `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como Variable, sem tratá-lo como segredo.
 
-- [ ] **Step 5: Verify public pages and commit**
+- [x] **Step 5: Verify public pages and commit**
 
 Run: `cd frontend && npm run check && npm run build && npm run test`
 Expected: páginas emitidas, blog inalterado, PASS. Commit: `feat(fase-3): publica assembleias e Giscus`.

@@ -1,3 +1,7 @@
+import type { GiscusProps } from "@giscus/react";
+
+export type GiscusConfig = Omit<GiscusProps, "theme" | "loading">;
+
 // Portado de docusaurus.config.ts themeConfig.giscus — mapping "og:title" exige
 // og:title idêntico ao Docusaurus nos posts (verificado na Task 11, diff de meta).
 export const GISCUS_CONFIG = {
@@ -11,4 +15,18 @@ export const GISCUS_CONFIG = {
   emitMetadata: "1",
   inputPosition: "bottom",
   lang: "pt",
-} as const;
+} as const satisfies GiscusConfig;
+
+export function getAssembliesGiscusConfig(
+  categoryId = import.meta.env.PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID,
+): GiscusConfig | null {
+  const normalizedCategoryId = categoryId?.trim();
+  if (!normalizedCategoryId) return null;
+
+  return {
+    ...GISCUS_CONFIG,
+    category: "Assembleias",
+    categoryId: normalizedCategoryId,
+    mapping: "pathname",
+  };
+}

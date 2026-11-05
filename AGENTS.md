@@ -101,7 +101,7 @@ Planos futuros:
 | **Ilhas React** | React 19 + MUI v9 (`@mui/material` ^9, `@mui/icons-material`) + Emotion — hidratação sob demanda (`client:load` / `client:visible` / `client:only`) |
 | **Styling** | Tailwind CSS v4 (`@tailwindcss/vite`) com tokens `--cq-*` do Design System (`frontend/src/styles/tokens.css`) |
 | **Language** | TypeScript ~5.6 |
-| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`, category: "Blog") |
+| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`; Blog por `og:title`, Assembleias por `pathname` e categoria configurada por `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`) |
 | **Pagamentos** | Stripe.js embutido (`@stripe/react-stripe-js`) no fluxo de doação |
 | **Node** | ≥24 (enforced em `package.json` engines, raiz e `frontend/`) |
 | **Hosting** | Cloudflare Pages — projetos `codaqui`, `tisocial`, `elasnocodigo`, `devparana` |

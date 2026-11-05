@@ -1,0 +1,194 @@
+---
+import GiscusIsland from "../../components/islands/GiscusIsland";
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import {
+  assemblyPath,
+  assemblySlug,
+  loadAssembliesIndex,
+  type Assembly,
+  type AssemblyStatus,
+  type AssemblyType,
+} from "../../data/assemblies";
+import { getAssembliesGiscusConfig } from "../../data/giscus";
+
+export function getStaticPaths() {
+  return loadAssembliesIndex().assemblies.map((assembly) => ({
+    params: { slug: assemblySlug(assembly.type, assembly.number) },
+    props: { assembly },
+  }));
+}
+
+interface Props {
+  assembly: Assembly;
+}
+
+const { assembly } = Astro.props;
+const typeLabels: Record<AssemblyType, string> = {
+  ordinaria: "ordinária",
+  oficial: "oficial",
+};
+const statusLabels: Record<AssemblyStatus, string> = {
+  scheduled: "Agendada",
+  held: "Realizada",
+  canceled: "Cancelada",
+};
+const statusSchema: Record<AssemblyStatus, string> = {
+  scheduled: "EventScheduled",
+  held: "EventCompleted",
+  canceled: "EventCancelled",
+};
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: "America/Sao_Paulo",
+});
+const registeredAtFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "America/Sao_Paulo",
+});
+const absoluteUrl = new URL(assemblyPath(assembly), Astro.site).toString();
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Event",
+  name: assembly.title,
+  description: assembly.agendaSummary,
+  startDate: assembly.scheduledAt,
+  ...(assembly.heldAt ? { endDate: assembly.heldAt } : {}),
+  eventStatus: `https://schema.org/${statusSchema[assembly.status]}`,
+  url: absoluteUrl,
+  sameAs: assembly.discussionUrl,
+  organizer: {
+    "@type": "Organization",
+    name: "Associação Codaqui",
+    url: new URL("/", Astro.site).toString(),
+  },
+};
+const commentsConfig = getAssembliesGiscusConfig();
+---
+
+<PublicLayout
+  title={`${assembly.title} | CODAQUI.dev`}
+  ogTitle={`${assembly.title} | CODAQUI.dev`}
+  description={assembly.agendaSummary}
+  jsonLd={jsonLd}
+>
+  <article class="mx-auto max-w-3xl px-4 py-10 md:py-14">
+    <nav aria-label="Navegação estrutural" class="mb-8 text-sm">
+      <a href="/assembleias" class="font-semibold text-link hover:text-link-hover">← Voltar para assembleias</a>
+    </nav>
+
+    <header>
+      <p class="text-sm font-bold uppercase tracking-wide text-text-secondary">
+        Assembleia {typeLabels[assembly.type]} nº {assembly.number}
+      </p>
+      <h1 class="mt-2 text-3xl font-extrabold text-text-primary md:text-4xl">{assembly.title}</h1>
+      <p class="mt-4">
+        <span class={`assembly-status assembly-status-${assembly.status}`}>{statusLabels[assembly.status]}</span>
+      </p>
+      {assembly.status === "canceled" && (
+        <p class="mt-4 rounded-lg border border-border bg-surface p-4 text-text-primary" role="status">
+          Esta assembleia foi cancelada. A pauta e a discussão pública permanecem disponíveis para consulta.
+        </p>
+      )}
+      <dl class="mt-6 grid gap-4 rounded-xl border border-border bg-surface p-5 sm:grid-cols-2">
+        <div>
+          <dt class="text-sm font-bold text-text-secondary">Data prevista</dt>
+          <dd class="mt-1 text-text-primary">
+            <time datetime={assembly.scheduledAt}>{dateFormatter.format(new Date(assembly.scheduledAt))}</time>
+          </dd>
+        </div>
+        {assembly.heldAt && (
+          <div>
+            <dt class="text-sm font-bold text-text-secondary">Data de realização</dt>
+            <dd class="mt-1 text-text-primary">
+              <time datetime={assembly.heldAt}>{dateFormatter.format(new Date(assembly.heldAt))}</time>
+            </dd>
+          </div>
+        )}
+      </dl>
+    </header>
+
+    <section class="mt-10" aria-labelledby="pauta">
+      <h2 id="pauta" class="text-2xl font-extrabold text-text-primary">Pauta</h2>
+      <p class="mt-3 whitespace-pre-line leading-7 text-text-primary">{assembly.agendaSummary}</p>
+    </section>
+
+    {(assembly.ataPdfUrl || assembly.notaryRegistry || assembly.status !== "held") && (
+      <section class="mt-10" aria-labelledby="documentos">
+        <h2 id="documentos" class="text-2xl font-extrabold text-text-primary">Ata e registro</h2>
+        {assembly.ataPdfUrl ? (
+          <p class="mt-3">
+            <a href={assembly.ataPdfUrl} target="_blank" rel="noopener noreferrer" class="font-bold text-link hover:text-link-hover">
+              Abrir a ata em PDF
+            </a>
+          </p>
+        ) : assembly.status !== "held" ? (
+          <p class="mt-3 text-text-secondary">Nenhuma ata foi publicada para esta assembleia.</p>
+        ) : null}
+        {assembly.notaryRegistry && (
+          <dl class="mt-5 rounded-xl border border-border bg-surface p-5">
+            <div>
+              <dt class="text-sm font-bold text-text-secondary">Livro</dt>
+              <dd class="mt-1 text-text-primary">{assembly.notaryRegistry.book}</dd>
+            </div>
+            <div class="mt-4">
+              <dt class="text-sm font-bold text-text-secondary">Página</dt>
+              <dd class="mt-1 text-text-primary">{assembly.notaryRegistry.page}</dd>
+            </div>
+            <div class="mt-4">
+              <dt class="text-sm font-bold text-text-secondary">Registrada em</dt>
+              <dd class="mt-1 text-text-primary">
+                <time datetime={assembly.notaryRegistry.registeredAt}>
+                  {registeredAtFormatter.format(new Date(assembly.notaryRegistry.registeredAt))}
+                </time>
+              </dd>
+            </div>
+          </dl>
+        )}
+      </section>
+    )}
+
+    <section class="assembly-comments mt-12 border-t border-border pt-8" aria-labelledby="discussao">
+      <h2 id="discussao" class="text-2xl font-extrabold text-text-primary">Discussão pública</h2>
+      <p class="mt-3 text-text-secondary">
+        Participe da conversa sobre esta assembleia no GitHub. Os comentários são carregados somente quando esta seção se aproxima da tela.
+      </p>
+      <p class="mt-4">
+        <a href={assembly.discussionUrl} target="_blank" rel="noopener noreferrer" class="font-bold text-link hover:text-link-hover">
+          Abrir a Discussion no GitHub
+        </a>
+      </p>
+      {commentsConfig ? (
+        <div class="mt-6">
+          <GiscusIsland client:visible config={commentsConfig} />
+        </div>
+      ) : (
+        <p class="mt-6 rounded-lg border border-border bg-surface p-4 text-text-secondary">
+          Os comentários integrados serão exibidos aqui quando a categoria pública de Assembleias estiver configurada.
+        </p>
+      )}
+    </section>
+  </article>
+</PublicLayout>
+
+<style>
+  .assembly-status {
+    display: inline-block;
+    border-radius: 9999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .assembly-status-scheduled {
+    background-color: var(--cq-color-info-bg);
+    color: var(--cq-color-info);
+  }
+  .assembly-status-held {
+    background-color: var(--cq-color-success-bg);
+    color: var(--cq-color-success);
+  }
+  .assembly-status-canceled {
+    background-color: var(--cq-color-warning-bg);
+    color: var(--cq-color-warning);
+  }
+</style>
