@@ -189,6 +189,11 @@ describe("AppNavIsland", () => {
     expect(
       screen.queryByRole("link", { name: /e-mails/i }),
     ).not.toBeInTheDocument();
+    expect(screen.getByText("Pessoas")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Horas" })).toHaveAttribute(
+      "href",
+      "/admin/horas",
+    );
     // sem itens de eventos visíveis, o subgrupo some por completo
     expect(screen.queryByText("Eventos")).not.toBeInTheDocument();
   });
@@ -198,6 +203,7 @@ describe("AppNavIsland", () => {
     renderWithMui(<AppNavIsland currentPath="/membro" />);
 
     expect(screen.queryByText("Gestão")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Horas" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /^início$/i })).toHaveAttribute(
       "aria-current",
       "page",
@@ -205,6 +211,10 @@ describe("AppNavIsland", () => {
     expect(
       screen.getByRole("link", { name: /editar perfil/i }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Minhas horas" })).toHaveAttribute(
+      "href",
+      "/membro/horas",
+    );
   });
 
   it("ativa 'Editar perfil' em /membro/editar sem ativar o hub /membro", () => {

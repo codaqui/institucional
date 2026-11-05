@@ -1,0 +1,37 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import MemberHoursApp from "../../components/islands/member/hours/MemberHoursApp";
+---
+
+<AppLayout title="Minhas horas" pageTitle="Minhas horas | CODAQUI.dev" noindex>
+  <MemberHoursApp client:only="react" />
+</AppLayout>
+
+<style is:global>
+  @media print {
+    body > :not(.hours-statement-dialog) {
+      display: none !important;
+    }
+
+    .hours-statement-dialog {
+      position: static !important;
+    }
+
+    .hours-statement-dialog .MuiBackdrop-root,
+    .hours-statement-dialog .no-print {
+      display: none !important;
+    }
+
+    .hours-statement-dialog .MuiDialog-container {
+      height: auto;
+    }
+
+    .hours-statement-dialog .MuiDialog-paper {
+      width: 100%;
+      max-width: none;
+      max-height: none;
+      margin: 0;
+      box-shadow: none;
+    }
+  }
+</style>

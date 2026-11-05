@@ -274,7 +274,7 @@ Run: `cd frontend && npx vitest run src/components/islands/events src/components
 - `/admin/horas`: fila paginada, aprovar/rejeitar com motivo obrigatório.
 - `/hours/verify/:code` público retorna validade e total do período, respeitando `hours=false`.
 
-- [ ] **Step 1: Write failing member/admin tests**
+- [x] **Step 1: Write failing member/admin tests**
 
 ```tsx
 it('prints only approved hours in the selected period', async () => {
@@ -285,13 +285,13 @@ it('prints only approved hours in the selected period', async () => {
 ```
 
 Run: `cd frontend && npx vitest run src/components/islands/member/hours src/components/islands/admin/hours` → FAIL.
-- [ ] **Step 2: Implement member statement and public verification**
+- [x] **Step 2: Implement member statement and public verification**
   Sem biblioteca PDF nova: documento de impressão com código `HRS-<uuid>` e verificação backend. A verificação pública não revela nome nem total quando horas estão ocultas.
-- [ ] **Step 3: Implement approval queue and navigation**
+- [x] **Step 3: Implement approval queue and navigation**
   Usar `PaginationControls`, `authFetch`, `extractErrorMessage`, `AppLayout` e padrões existentes; adicionar Horas ao grupo Pessoas e ao dashboard do membro.
-- [ ] **Step 4: Run focused and browser tests**
+- [x] **Step 4: Run focused and browser tests**
   `cd frontend && npx vitest run src/components/islands/member src/components/islands/admin/hours src/components/islands/__tests__/AppNavIsland.test.tsx`; validar aprovação, rejeição, declaração e impressão.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/hours frontend/src/pages/membro frontend/src/pages/admin frontend/src/components/islands && git commit -m "feat(fase-2): adiciona painel e declaração de horas"`
 
 ### Task 7: Perfil público com horas, badges e selo SVG

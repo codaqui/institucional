@@ -25,6 +25,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import EventIcon from "@mui/icons-material/Event";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import HomeIcon from "@mui/icons-material/Home";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import HubIcon from "@mui/icons-material/Hub";
@@ -76,6 +77,18 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
     label: "Gestão",
     items: [
       { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "pessoas",
+    label: "Pessoas",
+    items: [
+      {
+        label: "Horas",
+        href: "/admin/horas",
+        icon: <ScheduleIcon />,
+        roles: ["admin", "finance-analyzer"],
+      },
     ],
   },
   {
@@ -144,6 +157,7 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
 
 const CONTA_ITEMS: readonly NavItem[] = [
   { label: "Início", href: "/membro", icon: <HomeIcon /> },
+  { label: "Minhas horas", href: "/membro/horas", icon: <ScheduleIcon /> },
   { label: "Editar perfil", href: "/membro/editar", icon: <EditIcon /> },
 ];
 
