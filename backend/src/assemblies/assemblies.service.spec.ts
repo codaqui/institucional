@@ -4,7 +4,7 @@ import { AuditService } from '../audit/audit.service';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { DesignationsService } from '../designations/designations.service';
 import { AssembliesService } from './assemblies.service';
-import type { CreateAssemblyDto, UpdateAssemblyDto } from './dto/assembly.dto';
+import { UpdateAssemblyDto, type CreateAssemblyDto } from './dto/assembly.dto';
 import { Assembly } from './entities/assembly.entity';
 
 const director = {
@@ -335,6 +335,28 @@ describe('AssembliesService', () => {
     expect(audit.log).toHaveBeenCalledWith(
       expect.objectContaining({ action: 'assembly.updated' }),
     );
+  });
+
+  it('preserves unchanged fields when a transformed patch contains undefined optional properties', async () => {
+    repo.findOne.mockResolvedValue(makeAssembly());
+    const patch = Object.assign(new UpdateAssemblyDto(), {
+      title: undefined,
+      scheduledAt: undefined,
+      heldAt: undefined,
+      status: 'canceled',
+      agendaSummary: undefined,
+      ataPdfUrl: undefined,
+      notaryRegistry: undefined,
+    });
+
+    const updated = await service.update('assembly-1', patch, admin);
+
+    expect(updated).toMatchObject({
+      title: 'Assembleia ordinária',
+      scheduledAt: new Date('2026-12-01T18:00:00Z'),
+      agendaSummary: 'Resumo sintético da pauta.',
+      status: 'canceled',
+    });
   });
 
   it('allows only admin to register notary data and audits that mutation', async () => {

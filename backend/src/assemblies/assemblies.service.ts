@@ -103,7 +103,12 @@ export class AssembliesService {
     const before = this.toView(assembly);
     const previousStatus = assembly.status;
     assertAssemblyTransition(assembly, dto, actor);
-    Object.assign(assembly, dto);
+    Object.assign(
+      assembly,
+      Object.fromEntries(
+        Object.entries(dto).filter(([, value]) => value !== undefined),
+      ),
+    );
     const updated = await this.repo.save(assembly);
     const after = this.toView(updated);
 
