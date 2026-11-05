@@ -1,6 +1,37 @@
 {
-  "generatedAt": "2026-11-05T00:02:16.033Z",
+  "generatedAt": "2026-11-05T01:01:23.031Z",
   "events": [
+    {
+      "id": "317102213",
+      "title": "Meetup DevParaná - Esquenta DevPR Conf",
+      "summary": "ATENÇÃO: As inscrições oficiais devem ser realizadas clicando AQUI, este cadastro é apenas para divulgação. O DevParaná é uma comunidade 100% voluntária focada na troca de conhecimentos, no networking e no fortaleciment…",
+      "startAt": "2026-11-04T19:00:00-03:00",
+      "endAt": "2026-11-04T22:00:00-03:00",
+      "timezone": "America/Sao_Paulo",
+      "platform": "Meetup",
+      "host": "Dev Paraná",
+      "location": "Vale do Pinhão · R. Eng. Rebouças, 1732 - Rebouças, Curitiba - PR, 80230-040, Brazil · Rebouças · PR",
+      "href": "https://www.meetup.com/developerparana/events/317102213/",
+      "tags": [
+        "meetup",
+        "devparana",
+        "presencial"
+      ],
+      "ctaLabel": "Ver evento no Meetup",
+      "featured": false,
+      "status": "completed",
+      "entityType": "external",
+      "userCount": 1,
+      "creatorName": "Welington Oliveira da Silva",
+      "creatorId": "442863629",
+      "organizers": [
+        {
+          "name": "Welington Oliveira da Silva",
+          "id": "442863629"
+        }
+      ],
+      "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/8/f/highres_536753903.jpeg"
+    },
     {
       "id": "317074666",
       "title": "[Ingá.php] Encontro #4 de 2026",
@@ -62,37 +93,6 @@
         }
       ],
       "imageUrl": "https://secure.meetupstatic.com/photos/event/e/0/8/2/highres_536637474.jpeg"
-    },
-    {
-      "id": "317102213",
-      "title": "Meetup DevParaná - Esquenta DevPR Conf",
-      "summary": "ATENÇÃO: As inscrições oficiais devem ser realizadas clicando AQUI, este cadastro é apenas para divulgação. O DevParaná é uma comunidade 100% voluntária focada na troca de conhecimentos, no networking e no fortaleciment…",
-      "startAt": "2026-11-04T19:00:00-03:00",
-      "endAt": "2026-11-04T22:00:00-03:00",
-      "timezone": "America/Sao_Paulo",
-      "platform": "Meetup",
-      "host": "Dev Paraná",
-      "location": "Vale do Pinhão · R. Eng. Rebouças, 1732 - Rebouças, Curitiba - PR, 80230-040, Brazil · Rebouças · PR",
-      "href": "https://www.meetup.com/developerparana/events/317102213/",
-      "tags": [
-        "meetup",
-        "devparana",
-        "presencial"
-      ],
-      "ctaLabel": "Ver evento no Meetup",
-      "featured": false,
-      "status": "active",
-      "entityType": "external",
-      "userCount": 1,
-      "creatorName": "Welington Oliveira da Silva",
-      "creatorId": "442863629",
-      "organizers": [
-        {
-          "name": "Welington Oliveira da Silva",
-          "id": "442863629"
-        }
-      ],
-      "imageUrl": "https://secure.meetupstatic.com/photos/event/d/2/8/f/highres_536753903.jpeg"
     },
     {
       "id": "316756948",
