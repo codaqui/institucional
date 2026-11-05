@@ -6,7 +6,10 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, IsNull, Repository } from 'typeorm';
+import { EventRegistration } from '../events/entities/event-registration.entity';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 import { DERIVED_ROLES } from '../designations/designations.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
@@ -25,11 +28,12 @@ interface GithubProfile {
   githubId: string;
   githubHandle: string;
   name: string;
+  /** E-mail de exibição; não autoriza vínculo sem confirmação da API. */
   email: string;
   avatarUrl: string;
   /** Token OAuth do GitHub (scope public_repo) — persistido criptografado */
   githubAccessToken?: string;
-  /** E-mails verificados da conta GitHub (match de participantes CSV) */
+  /** E-mails verificados da conta GitHub (match de participantes CSV e guests) */
   secondaryEmails?: string[];
 }
 
@@ -73,6 +77,9 @@ export class MembersService {
     @Inject(forwardRef(() => EventsService))
     private readonly eventsService: EventsService,
     private readonly dataSource: DataSource,
+    @InjectRepository(EventRegistration)
+    private readonly registrationRepo: Repository<EventRegistration>,
+    private readonly auditService: AuditService,
   ) {}
 
   private static readonly HANDLE_REGEX = /^[a-zA-Z0-9_-]+$/;
@@ -117,8 +124,44 @@ export class MembersService {
     if (isNew) {
       await this.safeRematchPendingRegistrations(saved);
     }
+    await this.safeLinkGuestRegistrations(saved);
 
     return saved;
+  }
+
+  private async safeLinkGuestRegistrations(member: Member): Promise<void> {
+    try {
+      const emails = [...new Set(
+        (member.secondaryEmails ?? [])
+          .filter(Boolean)
+          .map((email) => email.toLowerCase()),
+      )];
+      if (emails.length === 0) return;
+      const guests = await this.registrationRepo.find({
+        where: { isGuest: true, memberId: IsNull(), attendeeEmail: In(emails) },
+      });
+      for (const guest of guests) {
+        if (!guest.eventId) continue;
+        const result = await this.eventsService.linkGuestRegistration(
+          guest,
+          member.id,
+        );
+        if (result === 'skipped') continue;
+        void this.auditService.log({
+          action: AuditAction.EVENT_GUEST_LINKED,
+          actorId: member.id,
+          actorHandle: member.githubHandle,
+          targetId: guest.id,
+          targetType: 'event-registration',
+          details: {
+            eventId: guest.eventId,
+            duplicateCancelled: result === 'duplicate_cancelled',
+          },
+        });
+      }
+    } catch (error) {
+      this.logger.warn(`Falha ao vincular inscrições guest: ${String(error)}`);
+    }
   }
 
   private applyExistingMemberUpdates(

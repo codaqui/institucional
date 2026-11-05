@@ -29,6 +29,7 @@ agent-protocol:
 | Empresa/PJ | CNPJ, responsável, assinatura e comprovantes | Gestão de apoio e transparência | Stripe, banco Codaqui e serviço externo de comprovantes | Obrigação legal e histórico empresarial |
 | Palestrante C4P (futuro) | Nome, e-mail, telefone, LinkedIn, proposta e consentimento | Submissão, curadoria e resultado | Organizadores/avaliadores; resultado somente opt-in | Política específica da Fase 7; notas nunca públicas |
 | Participante de evento | Nome, e-mail, ingresso, presença e certificado | Inscrição, check-in, emissão e verificação | Banco Codaqui; certificado por código, salvo ocultação pelo membro vinculado | Histórico do evento e verificação pública configurável |
+| Convidado de evento | Nome, e-mail, consentimento e presença | Inscrição sem conta, confirmação, lembrete e check-in | Cloudflare Turnstile, banco Codaqui e SMTP | Nome/e-mail anonimizados 12 meses após o evento se não houver vínculo; token e presença preservados |
 
 ## Compartilhamento com operadores
 

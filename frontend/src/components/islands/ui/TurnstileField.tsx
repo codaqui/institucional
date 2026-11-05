@@ -59,7 +59,12 @@ export default function TurnstileField({
   }, [onTokenChange]);
 
   useEffect(() => {
-    if (!siteKey) return;
+    if (!siteKey) {
+      if (import.meta.env.DEV && import.meta.env.MODE !== "production") {
+        onTokenChangeRef.current("development");
+      }
+      return;
+    }
     let active = true;
     let widgetId: string | undefined;
 

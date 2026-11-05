@@ -102,7 +102,7 @@ describe("TurnstileField", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Verificação de segurança expirada");
   });
 
-  it("shows a development warning without a site key and does not fake success", async () => {
+  it("uses a development-only token without a site key", async () => {
     vi.stubEnv("PUBLIC_TURNSTILE_SITE_KEY", "");
     const onTokenChange = vi.fn();
 
@@ -110,7 +110,7 @@ describe("TurnstileField", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Turnstile não configurado");
     expect(document.head.querySelector(`script[src="${SCRIPT_URL}"]`)).toBeNull();
-    expect(onTokenChange).not.toHaveBeenCalled();
+    expect(onTokenChange).toHaveBeenCalledWith("development");
   });
 
   it("renders no widget or success state without a site key in production", async () => {

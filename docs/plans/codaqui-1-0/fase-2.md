@@ -219,7 +219,7 @@ Run: `cd backend && npx jest src/events src/common/turnstile --runInBand` → FA
 ### Task 5: Jornada guest, e-mail, vínculo e retenção
 
 **Files:**
-- Create: `frontend/src/pages/eventos/convite/[token].astro`
+- Create: `frontend/src/pages/eventos/convite.astro`
 - Create: `frontend/src/components/islands/events/GuestClaimIsland.tsx` e teste
 - Modify: ilhas admin de eventos/inscrições e testes
 - Modify: `backend/src/members/members.service.ts` e spec
@@ -228,11 +228,11 @@ Run: `cd backend && npx jest src/events src/common/turnstile --runInBand` → FA
 - Modify: `docs/modules/privacy/treatments.md` e `frontend/src/pages/sobre/privacidade.astro`
 
 **Interfaces:**
-- `/eventos/convite/<token>` noindex, com `GuestClaimIsland` e `TurnstileField`.
+- `/eventos/convite?token=<uuid>` noindex, com `GuestClaimIsland` e `TurnstileField`.
 - `MembersService.upsertByGithub` vincula somente e-mails verificados e cancela guest duplicado com audit.
 - Cron diário anonimiza guests 12 meses após o evento; nenhum crédito retroativo ao vincular.
 
-- [ ] **Step 1: Write failing island, linking and retention tests**
+- [x] **Step 1: Write failing island, linking and retention tests**
 
 ```tsx
 it('submits consent and Turnstile, then renders the check-in QR', async () => {
@@ -251,13 +251,13 @@ it('links only verified emails and cancels a duplicate guest registration', asyn
 ```
 
 Run: `cd frontend && npx vitest run src/components/islands/events src/components/islands/admin/eventos`; `cd backend && npx jest src/members src/notifications src/events --runInBand` → FAIL.
-- [ ] **Step 2: Implement public and admin journeys**
+- [x] **Step 2: Implement public and admin journeys**
   Formulário Nome/E-mail/consentimento/Turnstile; estados pendente/confirmado/cancelado/lotado; QR após claim. Admin gera link/QR e diferencia guest com badge, sem mudar scanner.
-- [ ] **Step 3: Implement email, account linking and anonymization**
+- [x] **Step 3: Implement email, account linking and anonymization**
   Template de confirmação guest e lembrete D-1. Vínculo por e-mail verificado; duplicata vira `CANCELLED`; nenhuma hora retroativa. Anonimização define nome/e-mail como null e preserva token/check-in.
-- [ ] **Step 4: Verify browser and focused tests**
+- [x] **Step 4: Verify browser and focused tests**
   Executar convite→claim→QR→check-in no Compose; repetir testes focados e conferir que e-mail completo não aparece na projeção pública.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/members backend/src/notifications backend/src/events frontend/src/pages/eventos/convite frontend/src/components/islands docs/modules/privacy && git commit -m "feat(fase-2): completa jornada e retenção de convidados"`
 
 ### Task 6: UI de horas e declaração do membro

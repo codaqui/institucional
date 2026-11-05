@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, In, IsNull } from 'typeorm';
 import { MembersService } from './members.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { EventsService } from '../events/events.service';
 import { resetTokenKeyCache } from '../common/crypto.util';
+import { EventRegistration, RegistrationStatus } from '../events/entities/event-registration.entity';
+import { AuditService } from '../audit/audit.service';
 
 const mockMember = (): Member => ({
   id: '11111111-1111-1111-1111-111111111111',
@@ -32,6 +34,7 @@ describe('MembersService', () => {
   let txRepo: Record<string, jest.Mock>;
   let dataSource: Record<string, jest.Mock>;
   let queryRunner: Record<string, jest.Mock>;
+  let registrationRepo: Record<string, jest.Mock>;
 
   beforeEach(() => {
     // Testes de token usam o fallback de dev (plain:) — env sempre limpa
@@ -76,6 +79,11 @@ describe('MembersService', () => {
     dataSource = {
       createQueryRunner: jest.fn().mockReturnValue(queryRunner),
     };
+    registrationRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOneBy: jest.fn(),
+      save: jest.fn((registration) => Promise.resolve(registration)),
+    };
 
     txRepo = {
       createQueryBuilder: jest.fn(),
@@ -87,6 +95,8 @@ describe('MembersService', () => {
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
         { provide: DataSource, useValue: dataSource },
+        { provide: getRepositoryToken(EventRegistration), useValue: registrationRepo },
+        { provide: AuditService, useValue: { log: jest.fn() } },
         {
           provide: EventsService,
           useValue: {
@@ -123,6 +133,61 @@ describe('MembersService', () => {
         isActive: true,
       });
       expect(memberRepo.save).toHaveBeenCalled();
+    });
+
+    it('does not link guests by display email without verified API evidence', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertByGithub(profile);
+
+      expect(registrationRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('uses only verified emails from the GitHub API for guest matching', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertByGithub({
+        ...profile,
+        email: 'unverified-primary@example.com',
+        secondaryEmails: ['verified-secondary@example.com'],
+      });
+
+      expect(registrationRepo.find).toHaveBeenCalledWith({
+        where: {
+          isGuest: true,
+          memberId: IsNull(),
+          attendeeEmail: In(['verified-secondary@example.com']),
+        },
+      });
+    });
+
+    it('delegates duplicate cancellation to the atomic events flow and audits it', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+      const guest = {
+        id: 'guest-1', eventId: 'event-1', memberId: null, isGuest: true,
+        attendeeEmail: 'test@example.com', status: RegistrationStatus.CONFIRMED,
+      };
+      registrationRepo.find.mockResolvedValue([guest]);
+      const eventsService = (service as any).eventsService;
+      eventsService.linkGuestRegistration = jest.fn().mockResolvedValue('duplicate_cancelled');
+      const auditService = (service as any).auditService;
+
+      await service.upsertByGithub({
+        ...profile,
+        secondaryEmails: ['test@example.com'],
+      });
+
+      expect(eventsService.linkGuestRegistration).toHaveBeenCalledWith(
+        guest,
+        '22222222-2222-2222-2222-222222222222',
+      );
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetId: guest.id,
+          details: { eventId: guest.eventId, duplicateCancelled: true },
+        }),
+      );
     });
 
     it('should update an existing member', async () => {

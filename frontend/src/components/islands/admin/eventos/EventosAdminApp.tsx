@@ -24,6 +24,7 @@ import PageContainer from "../ui/PageContainer";
 import ModalConfirm from "../ui/ModalConfirm";
 import EventOrdersDialog from "../events/EventOrdersDialog";
 import EventReimbursementDialog from "../events/EventReimbursementDialog";
+import GuestInviteDialog from "./GuestInviteDialog";
 import HubAlerts from "./HubAlerts";
 import HubFilters from "./HubFilters";
 import ExternalEventCard from "./ExternalEventCard";
@@ -73,6 +74,8 @@ function EventosAdminInner(): React.JSX.Element {
     | { kind: "external"; eventKey: string; title: string }
     | null
   >(null);
+
+  const [guestInviteEvent, setGuestInviteEvent] = useState<ManagedEvent | null>(null);
 
   const [reimbursementDialog, setReimbursementDialog] = useState<{
     eventId: string;
@@ -349,6 +352,7 @@ function EventosAdminInner(): React.JSX.Element {
                   onOrdersClick={(eventId, title) =>
                     setOrdersDialog({ kind: "internal", eventId, title })
                   }
+                  onGuestInvite={setGuestInviteEvent}
                   onReimbursementClick={(event) =>
                     setReimbursementDialog({
                       eventId: event.id,
@@ -456,6 +460,12 @@ function EventosAdminInner(): React.JSX.Element {
         ticketSaving={mutations.ticketSaving}
         ticketError={mutations.ticketError}
         onSave={mutations.handleCreateTicketType}
+      />
+
+      <GuestInviteDialog
+        event={guestInviteEvent}
+        onClose={() => setGuestInviteEvent(null)}
+        authFetch={authFetch}
       />
 
       <EventOrdersDialog

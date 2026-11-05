@@ -2167,6 +2167,51 @@ export class EventsService {
     return { id: request.id, status: request.status };
   }
 
+  async linkGuestRegistration(
+    guest: EventRegistration,
+    memberId: string,
+  ): Promise<'linked' | 'duplicate_cancelled' | 'skipped'> {
+    return this.registrationRepo.manager.transaction(async (manager) => {
+      const registrations = manager.getRepository(EventRegistration);
+      const current = await registrations.findOneBy({ id: guest.id });
+      if (!current?.eventId || current.memberId) return 'skipped';
+
+      const duplicate = await registrations.findOneBy({
+        eventId: current.eventId,
+        memberId,
+        status: RegistrationStatus.CONFIRMED,
+      });
+      const cancelDuplicate =
+        Boolean(duplicate) && current.status === RegistrationStatus.CONFIRMED;
+      const result = await registrations.update(
+        cancelDuplicate
+          ? {
+              id: current.id,
+              memberId: IsNull(),
+              status: RegistrationStatus.CONFIRMED,
+            }
+          : { id: current.id, memberId: IsNull() },
+        {
+          memberId,
+          ...(cancelDuplicate
+            ? { status: RegistrationStatus.CANCELLED }
+            : {}),
+        },
+      );
+      if (!result.affected) return 'skipped';
+      if (cancelDuplicate) {
+        await this.releaseQuota(current.ticketTypeId, 1, manager);
+      }
+      Object.assign(guest, {
+        memberId,
+        ...(cancelDuplicate
+          ? { status: RegistrationStatus.CANCELLED }
+          : {}),
+      });
+      return cancelDuplicate ? 'duplicate_cancelled' : 'linked';
+    });
+  }
+
   async createGuestInvite(eventId: string, user: JwtPayload) {
     const event = await this.findEventOrFail(eventId);
     await this.assertCanEditEvent(user, eventId);
@@ -2215,7 +2260,7 @@ export class EventsService {
     });
     return {
       token: registration.checkinToken,
-      inviteUrl: `/eventos/convite/${registration.checkinToken}`,
+      inviteUrl: `/eventos/convite?token=${registration.checkinToken}`,
     };
   }
 
@@ -2261,6 +2306,7 @@ export class EventsService {
       throw new BadRequestException('Evento com ingressos pagos não aceita convidados.');
     }
 
+    const now = new Date();
     await this.registrationRepo.manager.transaction(async (manager) => {
       await manager.query('SELECT id FROM managed_events WHERE id = $1 FOR UPDATE', [event.id]);
       if (event.capacity !== null) {
@@ -2272,7 +2318,6 @@ export class EventsService {
       }
       const reserved = await this.reserveQuota(ticketType.id, 1, false, manager);
       if (!reserved) throw new ConflictException('Lote esgotado.');
-      const now = new Date();
       const result = await manager.getRepository(EventRegistration).update(
         { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
         {
@@ -2285,6 +2330,16 @@ export class EventsService {
       );
       if (!result.affected) throw new ConflictException('Convite já utilizado.');
     });
+    Object.assign(registration, {
+      status: RegistrationStatus.CONFIRMED,
+      attendeeName: dto.name,
+      attendeeEmail: dto.email,
+      guestClaimedAt: now,
+      guestConsentAt: now,
+    });
+    void this.emailService.sendRegistrationConfirmation(registration, event).catch((error) => {
+      this.logger.warn(`Falha ao enviar confirmação guest: ${String(error)}`);
+    });
     void this.auditService.log({
       action: AuditAction.EVENT_GUEST_CLAIMED,
       actorId: registration.guestInvitedByMemberId ?? 'system',
@@ -2294,6 +2349,27 @@ export class EventsService {
       details: { eventId: event.id },
     });
     return this.getGuestInvite(dto.token);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async anonymizeExpiredGuests(): Promise<void> {
+    const cutoff = new Date(Date.now() - 365 * 24 * 3_600_000);
+    const guests = await this.registrationRepo
+      .createQueryBuilder('r')
+      .innerJoin(ManagedEvent, 'event', 'event.id = r."eventId"')
+      .where('r."isGuest" = true')
+      .andWhere('r."memberId" IS NULL')
+      .andWhere('(r."attendeeName" IS NOT NULL OR r."attendeeEmail" IS NOT NULL)')
+      .andWhere('event."startAt" < :cutoff', { cutoff })
+      .getMany();
+    for (const guest of guests) {
+      guest.attendeeName = null;
+      guest.attendeeEmail = null;
+      await this.registrationRepo.save(guest);
+    }
+    if (guests.length > 0) {
+      this.logger.log(`${guests.length} inscrições guest anonimizadas após 12 meses.`);
+    }
   }
 
   private maskEmail(email: string | null): string | null {

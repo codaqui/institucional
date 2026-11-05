@@ -141,7 +141,10 @@ describe('EventsService', () => {
             create: (_target: unknown, d: unknown) =>
               registrationRepo.create(d),
             save: (...args: unknown[]) => registrationRepo.save(...args),
-            getRepository: () => ({ update: registrationRepo.update }),
+            getRepository: () => ({
+              findOneBy: registrationRepo.findOneBy,
+              update: registrationRepo.update,
+            }),
           }),
         ),
       } as unknown as jest.Mock,
@@ -1823,6 +1826,54 @@ describe('EventsService', () => {
       })).rejects.toThrow('Convite já utilizado ou indisponível.');
     });
 
+    it('cancels a duplicate guest and returns quota atomically exactly once', async () => {
+      const guest = {
+        id: uuid(40), eventId: uuid(10), ticketTypeId: uuid(20),
+        memberId: null, isGuest: true, status: RegistrationStatus.CONFIRMED,
+        checkinToken: 'guest-token', checkedInAt: null,
+      };
+      registrationRepo.findOneBy.mockImplementation((where) => {
+        if (where.id === guest.id) return guest;
+        if (where.memberId === uuid(1) && where.eventId === guest.eventId) {
+          return { id: uuid(41), status: RegistrationStatus.CONFIRMED };
+        }
+        return null;
+      });
+      registrationRepo.update.mockImplementation((where, values) => {
+        if (where.status === RegistrationStatus.CONFIRMED && guest.status !== RegistrationStatus.CONFIRMED) {
+          return { affected: 0 };
+        }
+        Object.assign(guest, values);
+        return { affected: 1 };
+      });
+
+      await expect(service.linkGuestRegistration(guest as any, uuid(1)))
+        .resolves.toBe('duplicate_cancelled');
+      await expect(service.linkGuestRegistration(guest as any, uuid(1)))
+        .resolves.toBe('skipped');
+
+      expect(registrationRepo.update).toHaveBeenCalledTimes(1);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        {
+          id: guest.id,
+          memberId: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
+        { memberId: uuid(1), status: RegistrationStatus.CANCELLED },
+      );
+      expect(ticketTypeRepo.query).toHaveBeenCalledTimes(1);
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('GREATEST'),
+        [1, uuid(20)],
+      );
+      expect(guest.checkinToken).toBe('guest-token');
+      expect(guest.checkedInAt).toBeNull();
+      expect(registrationRepo.manager.transaction).toHaveBeenCalledTimes(2);
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
     it('rejects pending guest at check-in', async () => {
       registrationRepo.findOneBy.mockResolvedValue({
         id: uuid(40), eventId: uuid(10), checkinToken: 'guest-token',
@@ -1834,6 +1885,25 @@ describe('EventsService', () => {
         .rejects.toThrow('pending_guest');
     });
   });
+
+    it('anonymizes only unlinked guest data after the retention period', async () => {
+      const guest = {
+        id: uuid(40), memberId: null, attendeeName: 'Convidado',
+        attendeeEmail: 'guest@example.test', isGuest: true,
+      };
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([guest]),
+      });
+
+      await service.anonymizeExpiredGuests();
+
+      expect(guest.attendeeName).toBeNull();
+      expect(guest.attendeeEmail).toBeNull();
+      expect(registrationRepo.save).toHaveBeenCalledWith(guest);
+    });
 
   describe('event hours', () => {
     const registrationFor = (memberId: string | null) => ({

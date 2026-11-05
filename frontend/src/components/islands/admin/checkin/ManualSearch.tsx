@@ -111,6 +111,14 @@ export default function ManualSearch({
                         </Typography>
                       )}
                     </Typography>
+                    {reg.isGuest && (
+                      <Chip
+                        label="Convidado"
+                        size="small"
+                        variant="outlined"
+                        sx={{ mt: 0.5 }}
+                      />
+                    )}
                     <Typography
                       variant="caption"
                       color="text.secondary"

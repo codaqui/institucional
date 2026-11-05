@@ -71,6 +71,7 @@ export enum AuditAction {
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
   EVENT_GUEST_INVITED = 'event.guest_invited',
   EVENT_GUEST_CLAIMED = 'event.guest_claimed',
+  EVENT_GUEST_LINKED = 'event.guest_linked',
 
   // E-mail
   EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',

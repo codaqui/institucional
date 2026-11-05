@@ -69,6 +69,7 @@ const registration = {
   status: "confirmed",
   checkedInAt: null,
   checkinToken: "token-abc",
+  isGuest: false,
   member: null,
   payer: null,
   ticketType: { name: "Ingresso Padrão" },
@@ -620,6 +621,20 @@ describe("/admin/eventos-checkin", () => {
       "/events/evt-1/checkin",
       expect.objectContaining({ body: JSON.stringify({ token: "token-abc" }) }),
     );
+  });
+
+  it("exibe badge de convidado na busca manual sem alterar o check-in", async () => {
+    await setupOrganizerPage((url) => {
+      if (url.includes("/registrations")) {
+        return jsonResponse([{ ...registration, isGuest: true }]);
+      }
+      return null;
+    });
+
+    expect(await screen.findByText("Convidado")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Confirmar presença/i }),
+    ).toBeEnabled();
   });
 
   it("event_checker não vê lista de participantes (canUseList=false)", async () => {

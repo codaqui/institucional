@@ -101,7 +101,13 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
   },
   [EMAIL_TEMPLATE_REMINDER_D1]: {
     subject: 'Lembrete: {{eventTitle}} é amanhã',
-    variables: ['attendeeName', 'eventTitle', 'eventStartAt', 'eventLocation'],
+    variables: [
+      'attendeeName',
+      'eventTitle',
+      'eventStartAt',
+      'eventLocation',
+      'checkinUrl',
+    ],
     sample: sampleContext,
     bodyMarkdown: [
       'Olá, {{attendeeName}}!',
@@ -109,6 +115,8 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
       'Lembrete: **{{eventTitle}}** acontece amanhã, {{eventStartAt}}.',
       '',
       '- Local: {{eventLocation}}',
+      '',
+      'Recupere o [QR Code da sua inscrição]({{checkinUrl}}) para apresentar na entrada.',
       '',
       'Nos vemos lá! Qualquer dúvida, fale com a equipe Codaqui.',
       '',
