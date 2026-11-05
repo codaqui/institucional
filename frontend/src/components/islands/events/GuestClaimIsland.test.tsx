@@ -6,9 +6,9 @@ import { renderWithMui } from "../../../test/render-mui";
 import { jsonResponse } from "../../../test/http-mock";
 
 vi.mock("../ui/TurnstileField", () => ({
-  default: ({ onTokenChange }: { onTokenChange: (token: string) => void }) => {
+  default: ({ onTokenChange, resetKey }: { onTokenChange: (token: string) => void; resetKey: number }) => {
     queueMicrotask(() => onTokenChange("turnstile-token"));
-    return <div>Verificação de segurança</div>;
+    return <div data-testid="turnstile" data-reset-key={resetKey}>Verificação de segurança</div>;
   },
 }));
 
@@ -51,5 +51,24 @@ describe("GuestClaimIsland", () => {
     expect(await screen.findByRole("img", { name: /qr code de check-in/i })).toBeInTheDocument();
     expect(screen.getByText("Convidado")).toBeInTheDocument();
     expect(screen.getByText("gu***@example.test")).toBeInTheDocument();
+  });
+
+  it("resets the Turnstile widget after a rejected claim", async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/events/public/guest-claim")) {
+        return jsonResponse({ message: "Verificação Turnstile recusada." }, { status: 403 });
+      }
+      return jsonResponse({ status: "pending_guest", eventTitle: "Evento X" });
+    }));
+    renderWithMui(<GuestClaimIsland token="guest-token" />);
+
+    await user.type(await screen.findByLabelText(/nome completo/i), "Convidado");
+    await user.type(screen.getByLabelText(/e-mail/i), "guest@example.test");
+    await user.click(screen.getByRole("checkbox", { name: /concordo/i }));
+    await user.click(screen.getByRole("button", { name: /confirmar inscrição/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Verificação Turnstile recusada.");
+    expect(screen.getByTestId("turnstile")).toHaveAttribute("data-reset-key", "1");
   });
 });

@@ -245,11 +245,14 @@ Agora cada evento tem uma página estática gerada em build time:
   `GET/PUT /settings/audit-retention` lê/configura 7–365 dias (admin), com precedência sobre
   `AUDIT_OPERATIONAL_RETENTION_DAYS`. `POST /audit/cleanup`, o cron diário e a limpeza no
   startup removem somente operacionais expirados; governo é permanente e tem `ipAddress=null`.
-- **Turnstile:** `src/common/turnstile/` e `TurnstileField.tsx` validam `success` e hostname
-  exato, aplicam timeout de 5 s e cache anti-reuso de token por 5 min. Desde a Fase 2,
-  `POST /events/public/guest-claim` usa `TurnstileGuard`; produção sem secret falha fechada.
-  O widget só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`; o fallback `development` existe apenas
-  no ambiente de desenvolvimento previsto.
+- **Turnstile:** `src/common/turnstile/` e `TurnstileField.tsx` validam `success`, hostname
+  exato e ação `guest_claim`, aplicam timeout de 5 s e cache anti-reuso de token por 5 min.
+  Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`; produção sem secret
+  falha fechada. O widget só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, alimentada por
+  `TURNSTILE_SITE_KEY` ou pelo alias público, e é resetado após recusa para permitir retry.
+  `TURNSTILE_SECRET`/`TURNSTILE_HOSTNAMES` são canônicos; `TURNSTILE_SECRET_KEY` e
+  `TURNSTILE_ALLOWED_HOSTNAMES` permanecem como fallback legado. O token `development` existe
+  apenas no ambiente de desenvolvimento previsto.
 - **ECA:** `ManagedEvent.adultOnly` e `venueType` chegam ao snapshot por `toEventItem`.
   Overrides externos aceitam `payload.adultOnly` boolean. `adult-content.ts` apenas sugere
   18+ para bar/restaurante às 18h ou depois; não salva automaticamente. `EventCard.astro` e

@@ -30,6 +30,7 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
   const [saving, setSaving] = useState(false);
   const actualToken = token || new URLSearchParams(window.location.search).get("token") || "";
 
@@ -73,12 +74,13 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
       setInvite(await res.json() as GuestInvite);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível confirmar a inscrição.");
+      setTurnstileResetKey((current) => current + 1);
     } finally {
       setSaving(false);
     }
   };
 
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (error && !invite) return <Alert severity="error">{error}</Alert>;
   if (!invite) return <CircularProgress aria-label="Carregando convite" />;
 
   if (invite.status === "confirmed") {
@@ -102,6 +104,7 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
   return (
     <Stack spacing={2} component="form" onSubmit={submit}>
       <Typography variant="h5" component="h2">{invite.eventTitle}</Typography>
+      {error ? <Alert severity="error">{error}</Alert> : null}
       <TextField
         label="Nome completo"
         value={name}
@@ -121,7 +124,7 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
         control={<Checkbox checked={consent} onChange={(event) => setConsent(event.target.checked)} required />}
         label="Concordo com o uso dos dados para inscrição e comunicações deste evento, conforme a Política de Privacidade."
       />
-      <TurnstileField onTokenChange={setTurnstileToken} />
+      <TurnstileField onTokenChange={setTurnstileToken} action="guest_claim" resetKey={turnstileResetKey} />
       <Button type="submit" variant="contained" disabled={saving}>
         {saving ? "Confirmando…" : "Confirmar inscrição"}
       </Button>

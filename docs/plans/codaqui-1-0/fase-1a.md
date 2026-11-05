@@ -640,7 +640,7 @@ git commit -m "feat(fase-1a): separa retenção de auditoria operacional e gover
 
 **Interfaces:**
 - `TurnstileService.verify(token, remoteIp?, expectedHostname?)`.
-- `TURNSTILE_ALLOWED_HOSTNAMES=codaqui.dev,www.codaqui.dev,tisocial.org.br,www.tisocial.org.br,elasnocodigo.com.br,www.elasnocodigo.com.br,devparana.org,www.devparana.org`.
+- `TURNSTILE_HOSTNAMES=codaqui.dev,www.codaqui.dev,tisocial.org.br,www.tisocial.org.br,elasnocodigo.com.br,www.elasnocodigo.com.br,devparana.org,www.devparana.org`.
 - `TurnstileGuard` lê `turnstileToken` do body ou `cf-turnstile-token`; nenhuma rota existente recebe o guard nesta fase.
 - Sem nova dependência npm: usar `fetch` global do Node 24 e script oficial no frontend.
 
@@ -664,7 +664,7 @@ Expected: FAIL.
 
 - [x] **Step 2: Implement server verification**
 
-Timeout de 5 segundos com `AbortSignal.timeout(5000)`, POST `application/x-www-form-urlencoded`, exigência de `success===true`, hostname exato e cache em memória do SHA-256 do token por 5 minutos. O guard resolve o frontend pela ordem `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname` por compatibilidade, só aceita um hostname exato presente em `TURNSTILE_ALLOWED_HOSTNAMES` e passa esse valor validado ao service — nunca confia em sufixo nem em um host arbitrário. Sem secret: warn/no-op somente fora de produção; produção falha fechada. Testes mockam `fetch`; nenhum teste chama Cloudflare.
+Timeout de 5 segundos com `AbortSignal.timeout(5000)`, POST `application/x-www-form-urlencoded`, exigência de `success===true`, hostname exato e cache em memória do SHA-256 do token por 5 minutos. O guard resolve o frontend pela ordem `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname` por compatibilidade, só aceita um hostname exato presente em `TURNSTILE_HOSTNAMES` e passa esse valor validado ao service — nunca confia em sufixo nem em um host arbitrário. Sem secret: warn/no-op somente fora de produção; produção falha fechada. Testes mockam `fetch`; nenhum teste chama Cloudflare.
 
 - [x] **Step 3: Implement the reusable frontend field**
 

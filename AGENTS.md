@@ -451,8 +451,8 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 ### 22. Turnstile no guest claim (G3)
 
-- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_ALLOWED_HOSTNAMES`.
-- Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. Sem secret, desenvolvimento faz warn/no-op e aceita o token `development`; produção falha fechada. `TurnstileField` só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, mapeada de `vars` no build do `deploy-astro.yml`.
+- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato, ação `guest_claim` e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_HOSTNAMES`. Os nomes SPIN `TURNSTILE_SECRET`/`TURNSTILE_HOSTNAMES` são canônicos; `TURNSTILE_SECRET_KEY`/`TURNSTILE_ALLOWED_HOSTNAMES` permanecem como fallback legado.
+- Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. Sem secret, desenvolvimento faz warn/no-op e aceita o token `development`; produção falha fechada. `TurnstileField` só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, mapeada no build a partir de `vars.TURNSTILE_SITE_KEY` (ou do alias público) e resetada após uma recusa para permitir retry com token novo.
 
 ### 23. ECA — eventos 18+ informativos
 

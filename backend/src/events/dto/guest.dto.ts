@@ -29,5 +29,6 @@ export class ClaimGuestDto {
 
   @IsString()
   @IsNotEmpty()
+  @MaxLength(2048)
   turnstileToken: string;
 }

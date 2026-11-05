@@ -71,6 +71,7 @@ describe('TurnstileGuard', () => {
       'body-token',
       '192.0.2.1',
       'codaqui.dev',
+      'guest_claim',
     );
   });
 
@@ -92,6 +93,7 @@ describe('TurnstileGuard', () => {
         'token',
         '192.0.2.1',
         expectedHostname,
+        'guest_claim',
       );
     },
   );
@@ -113,6 +115,7 @@ describe('TurnstileGuard', () => {
       'token',
       '192.0.2.1',
       'codaqui.dev',
+      'guest_claim',
     );
   });
 
@@ -152,6 +155,7 @@ describe('TurnstileGuard', () => {
       'header-token',
       '192.0.2.1',
       'codaqui.dev',
+      'guest_claim',
     );
   });
 
@@ -166,7 +170,23 @@ describe('TurnstileGuard', () => {
       'body-token',
       '192.0.2.1',
       'codaqui.dev',
+      'guest_claim',
     );
+  });
+
+  it('accepts the SPIN hostname variable', async () => {
+    delete process.env.TURNSTILE_ALLOWED_HOSTNAMES;
+    process.env.TURNSTILE_HOSTNAMES = 'codaqui.dev';
+    const context = contextFor({ body: { turnstileToken: 'token' } });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+  });
+
+  it('rejects tokens longer than 2048 characters', async () => {
+    const context = contextFor({ body: { turnstileToken: 'x'.repeat(2049) } });
+
+    await expect(guard.canActivate(context)).rejects.toThrow(BadRequestException);
+    expect(service.verify).not.toHaveBeenCalled();
   });
 
   it('rejects a missing token when verification is configured', async () => {
