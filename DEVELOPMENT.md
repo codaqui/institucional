@@ -69,6 +69,7 @@ Variáveis do app Astro (prefixo `PUBLIC_*`, embutidas no bundle cliente em buil
 |----------|-----------|
 | `PUBLIC_API_URL` | URL base da API NestJS (default `http://localhost:3001`) |
 | `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública Stripe (`pk_test_...` em dev) usada pelo checkout embutido de `/participe/apoiar`. Vazia desativa o botão de doação |
+| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | ID público da categoria Assembleias do GitHub Discussions, embutido no build para Giscus por `pathname`. Vazia mantém link/fallback estático; não é segredo |
 
 O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra.
 Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
@@ -132,6 +133,7 @@ chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficie
 | `npm run sync:analytics` | Analytics → `static/analytics/` |
 | `npm run sync:analytics:full` | Re-pagina todo o histórico de analytics |
 | `npm run sync:communities` | `GET /communities/public` → `static/communities/index.json` (rename atômico) |
+| `npm run sync:assemblies` | `GET /assemblies/public` → `static/assemblies/index.json` (validação completa + rename atômico) |
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
 | `npm run test:scripts` | Testes dos scripts de sync/validação (`node --test`) |
@@ -147,9 +149,50 @@ quando os dados permanecem iguais. O workflow `sync-community-snapshots.yml` rod
 no minuto 7 e por dispatch. **O agregador `npm run sync` não inclui comunidades**; rode o sync
 específico quando alterar esse registro.
 
+Para assembleias, `ASSEMBLIES_API_URL` define a base da API (default `http://localhost:3001`).
+O sync valida todos os registros e invariantes, preserva o snapshot anterior em falha e mantém
+`generatedAt` quando os dados não mudam. O workflow `sync-assemblies.yml` roda diariamente às
+06:23 UTC e por dispatch. **O agregador `npm run sync` não inclui assembleias**; mudanças no
+registro exigem esse sync e um novo build para alterar `/assembleias`.
+
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
-Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics` e `make sync-communities` espelham os comandos da tabela.
+Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics`, `make sync-communities` e `make sync-assemblies` espelham os comandos da tabela.
+
+### Operação manual de Assembleias (Fase 3)
+
+A [ADR 014](docs/adrs/014-assemblies.md) é a referência de contratos e limites. A operação da
+Discussion e do Giscus é deliberadamente manual:
+
+1. Crie uma única vez a categoria **Assembleias** em
+   `https://github.com/codaqui/institucional/discussions/categories`. Não use **Reuniões** como
+   substituta. Obtenha o ID público com:
+
+   ```bash
+   gh api graphql -f query='query { repository(owner:"codaqui",name:"institucional") { discussionCategories(first:50) { nodes { id name } } } }'
+   ```
+
+2. Configure `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como **Variable** do GitHub Actions e nos
+   ambientes locais necessários. Sem o ID, o detalhe mantém o link da Discussion e informa que os
+   comentários integrados estão pendentes; o blog continua na categoria Blog e `og:title`.
+3. Antes de cada cadastro, coordene o próximo número do tipo com um único operador. Crie a
+   Discussion na categoria Assembleias com título exatamente `/assembleias/<type>-<number>` e
+   cadastre imediatamente sua URL em `/admin/assembleias`. O banco atribui o número sob lock, mas
+   não reserva a Discussion externa: evite criações simultâneas do mesmo tipo nesse passo e
+   confira o slug retornado. A API valida o formato/repositório da URL, não a categoria ou título.
+4. Mantenha pauta detalhada, quórum, votos, ata narrativa e comentários na Discussion. No banco e
+   no admin, grave somente o resumo e os metadados. Tipo, número, slug e Discussion não mudam após
+   a criação; cancelamento preserva a transparência pública.
+5. Para realizar uma assembleia oficial, um admin informa `heldAt`, URL HTTPS do PDF em host
+   aceito pelo `StorageService` e livro/página/data do cartório. Não há upload nem automação de
+   cartório. Diretores ativos podem criar/editar, mas não alterar dados cartorários.
+6. Depois do backend com a migration 036 estar publicado, rode o sync inicial antes do frontend.
+   Crie Discussions reais para a validação e confira o Giscus com `mapping="pathname"` e a
+   categoria correta. Fallback estático e testes não substituem essa verificação.
+
+Comentários e reações ficam no GitHub, fora do PostgreSQL e do snapshot. A retenção operacional do
+backend não os remove; moderação, exportação e exclusão seguem o GitHub. Remover ou renomear uma
+Discussion pode quebrar o vínculo e o histórico exibido.
 
 ### Convenções do app Astro
 
@@ -360,7 +403,7 @@ make migration-show     # Lista todas as migrations e seus status
 
 Para validar um dump em um banco isolado, crie o banco de destino e passe `DB_NAME` explicitamente: `make db-restore-prod DUMP=pg_dump/arquivo.dmp DB_NAME=codaqui_test && make migration-run DB_NAME=codaqui_test`. A restauração recria o schema `public` do banco informado; confira o nome exibido antes de confirmar.
 
-Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar. `make migration-revert` executa o `down` da última migration aplicada e pode remover colunas/dados: valide reversões em um PostgreSQL descartável, nunca aponte esse teste para desenvolvimento compartilhado ou produção. Na Fase 1a, a sequência aditiva é 026 (designations), 027 (diretorias), 028 (comunidades), 029 (e-mails), 030 (auditoria/settings) e 031 (eventos 18+); após validar o `down` da 031, restaure imediatamente com `make migration-run` no mesmo banco descartável.
+Arquivos gerados em `backend/src/migrations/`. Revise sempre antes de aplicar. `make migration-revert` executa o `down` da última migration aplicada e pode remover colunas/dados: valide reversões em um PostgreSQL descartável, nunca aponte esse teste para desenvolvimento compartilhado ou produção. Na Fase 1a, a sequência aditiva é 026 (designations), 027 (diretorias), 028 (comunidades), 029 (e-mails), 030 (auditoria/settings) e 031 (eventos 18+); após validar o `down` da 031, restaure imediatamente com `make migration-run` no mesmo banco descartável. A Fase 2 adiciona 033–035 e a Fase 3 adiciona 036 (`assemblies`). O down/up da 036 foi validado em dump isolado com preservação dos 174 membros; seu `down` remove a tabela e os dados de assembleias, portanto não é rollback neutro para produção.
 
 ---
 
@@ -627,7 +670,7 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 
 | Nome | Tipo | Workflow | Para quê |
 |------|------|----------|----------|
-| `GH_APP_PRIVATE_KEY` | **Secret** | `sync-event-snapshots`, `sync-social-stats`, `sync-analytics` | Chave privada do GitHub App usado para commitar os snapshots atualizados na `main`. Sem isso os syncs falham ao pushar. |
+| `GH_APP_PRIVATE_KEY` | **Secret** | `sync-event-snapshots`, `sync-social-stats`, `sync-analytics`, `sync-assemblies` | Chave privada do GitHub App usado para commitar os snapshots atualizados na `main`. Sem isso os syncs falham ao pushar. |
 | `GH_APP_ID` | **Variable** (não secret) | Idem | App ID do mesmo GitHub App |
 | `DISCORD_BOT_TOKEN` | **Secret** | `sync-event-snapshots`, `sync-social-stats` | Token do bot Discord. Opcional — sem ele os scripts preservam os snapshots existentes. |
 | `DADOS_DISPATCH_TOKEN` | **Secret** | `sync-analytics` | GitHub PAT com `actions:write` no repo `codaqui/dados` — dispara o relatório mensal de analytics lá. Opcional — o fetch dos dados funciona sem ele. |
@@ -635,6 +678,7 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 | `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
 | `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `deploy-astro` | Chave pública Stripe (`pk_live_...`) reexportada como `PUBLIC_STRIPE_PUBLISHABLE_KEY` no build. Sem isso o botão de doação fica desativado. |
 | `PUBLIC_TURNSTILE_SITE_KEY` | **Variable** (não secret) | `deploy-astro` | Site key pública do Cloudflare Turnstile, encaminhada ao build dos quatro sites. Sem ela o guest claim não renderiza o widget e o DTO rejeita o token vazio. |
+| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | **Variable** (não secret) | `deploy-astro` | ID da categoria Assembleias do GitHub Discussions. Sem ele as páginas mantêm link/fallback estático e a jornada Giscus permanece pendente. |
 
 Na publicação do guest claim, configure também `TURNSTILE_SECRET` e `TURNSTILE_HOSTNAMES` no backend. Depois do deploy do backend e do frontend, abra um convite real, confirme que o widget renderiza sem erro e conclua um claim real, verificando token emitido pelo Cloudflare, hostname aceito, consentimento e QR. Testes locais com token `development` não substituem essa validação.
 
@@ -654,6 +698,8 @@ Na publicação do guest claim, configure também `TURNSTILE_SECRET` e `TURNSTIL
 Sobe: PostgreSQL + Backend. As migrations são executadas automaticamente na inicialização (`migrationsRun: true` em produção).
 
 > **Produção (Coolify):** o ambiente real do servidor ARM64 é gerenciado pelo **Coolify** — após o `publish-backend.yml` pushar a nova imagem, o redeploy do serviço é **manual** no painel do Coolify.
+
+**Handoff da Fase 3:** `backend/package.json` e `backend/package-lock.json` estão preparados em `0.15.0`, mas a release `v0.15.0-backend`, o redeploy e a migration 036 em produção não foram executados neste branch. Depois da integração e publicação do backend, confirme a migration, rode `npm run sync:assemblies` com sucesso e somente então publique o frontend. Configure a categoria/ID do Giscus e valide Discussions reais separadamente; não trate o snapshot vazio do branch como sync inicial de produção.
 
 ---
 

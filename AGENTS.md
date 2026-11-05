@@ -28,6 +28,7 @@ related-docs:
   - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
   - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
   - docs/adrs/013-hour-ledger.md — horas, ownership, guests, declarações e badges da Fase 2
+  - docs/adrs/014-assemblies.md — assembleias, Discussion manual, snapshot, Giscus e cartório da Fase 3
   - docs/modules/events/CODE_MANUAL.md — manual prático de eventos, horas, ownership e guests
   - docs/modules/events/ROLES.md — papéis manuais, derivados e staff de eventos
   - docs/modules/community/COMMUNITY_SITES.md — registro e conteúdo whitelabel das comunidades
@@ -72,6 +73,8 @@ Decisões arquiteturais principais:
 - [Clube Codaqui (SortCoins)](docs/adrs/002-club-sortcoins.md)
 - [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
 - [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
+- [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
+- [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
 
 Manuais de módulos:
 
@@ -186,6 +189,7 @@ institucional/
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
 │   │   ├── hours/               # ⭐ Fase 2/ADR 013: hour_ledger separada, aprovações, declarações e totais públicos
+│   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -197,7 +201,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 035; Fase 2: 033–035)
+│   │   └── migrations/          # TypeORM migrations (até 036; Fase 2: 033–035; Fase 3: 036)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -466,6 +470,15 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `profileVisibility.hours`, `memberSince` e `badge` controlam independentemente totais/timeline, ano e selo. `scripts/sync-member-badges.mjs` lê `GET /hours/public`, valida a resposta completa e escreve `static/badges/<handle>.svg` atomicamente; falhas preservam/restauram arquivos anteriores.
 - O workflow `sync-member-badges.yml` roda diariamente às **06:17 UTC** e por dispatch, e `copy-snapshots.mjs` copia os SVGs no build. **Gate de release:** depois do backend publicado, o sync inicial deve concluir com sucesso **antes da publicação do frontend**; não gerar SVGs de membros reais no branch de implementação. Release `v0.14.0-backend` publicada, sync inicial concluído no run `42098199373` e frontend publicado no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção permanece como acompanhamento operacional.
 
+### 25. Fase 3 — assembleias e Discussion manual (ADR 014)
+
+- Migration 036 e backend 0.15.0 implementam o registro fino `assemblies`; pauta detalhada, quórum, votos, ata narrativa e comentários ficam no GitHub Discussions, nunca no PostgreSQL ou snapshot. `createdById` é somente trilha e não aparece nas projeções. Decisões completas: [ADR 014](docs/adrs/014-assemblies.md).
+- `(type,number)` é único e o slug `<type>-<number>` é imutável. A criação usa advisory lock por tipo + `MAX(number)+1` transacional. Somente `scheduled` vira `held`/`canceled`; `heldAt >= scheduledAt`; oficial realizada exige PDF HTTPS pela allowlist e cartório completo. Não há upload nem automação de Discussion/cartório.
+- APIs: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies` paginado (default 50/cap 100), `POST /assemblies` e `PATCH /assemblies/:id`. Criar/editar exige admin ou diretor ativo; PDF/cartório exige admin; mutações gravam audit de governo. Proxy: `/assemblies/`, com exceção estática para `/assemblies/index.json`, nunca `/admin/`.
+- `npm run sync:assemblies` usa `ASSEMBLIES_API_URL`, valida toda a coleção e grava `static/assemblies/index.json` atomicamente; falha preserva o arquivo anterior. O workflow diário é 06:23 UTC + dispatch; o agregador `npm run sync` não inclui assembleias. Publicação segue backend/migration → sync inicial → build/frontend.
+- A Discussion é criada manualmente na categoria **Assembleias**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública); sem ID há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
+- **Pendências externas:** categoria/ID, Discussions reais e verificação Giscus, PR/CI/Sonar, release `v0.15.0-backend`, redeploy/migration, sync inicial e publicação/validação em produção. Não declarar esses itens concluídos nem iniciar Fase 4 por esta decisão.
+
 ---
 
 ## Common Anti-Patterns
@@ -614,6 +627,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Team changes | As needed | `frontend/src/data/team.ts` |
 | New community partners | As needed | API `/communities` + responsible por designation + `npm run sync:communities`; social stats em `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
 | Community registry changes | As needed | Admin/API → `npm run sync:communities` → novo build; não editar o snapshot |
+| Assembly Discussions e documentos | As needed, operação manual | Categoria Assembleias + título igual ao pathname; cadastro em `/admin/assembleias`; narrativa no GitHub; PDF/cartório por admin → `npm run sync:assemblies` → novo build |
 | Timeline events | Annually | `frontend/src/data/timeline.ts` |
 | Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
 | Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |

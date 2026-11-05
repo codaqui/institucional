@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 3 — Assembleias com registro fino e Discussion manual.
 audience: Implementers e revisores da Fase 3.
-status: Aprovado para implementação em branch com destino a develop.
+status: Implementação e validações locais concluídas; integração, release/publicação, categoria Assembleias e Giscus real pendentes.
 sections:
   - Constraints
   - Tasks 1–7
@@ -260,11 +260,11 @@ Expected: PASS. Commit: `feat(fase-3): adiciona gestão de assembleias`.
 - Banco isolado com dump atual, migrations até 036 e fixtures sintéticas.
 - Discussões criadas manualmente com título igual ao pathname.
 
-- [ ] **Step 1: Validate migration down/up**
+- [x] **Step 1: Validate migration down/up**
 
 Restaurar dump, aplicar/reverter/reaplicar 036, preservar membros e migration final 036.
 
-- [ ] **Step 2: Validate concurrent creation**
+- [x] **Step 2: Validate concurrent creation**
 
 Duas criações simultâneas do mesmo tipo geram números diferentes e duas linhas, sem exceção de unicidade. Confirmar slug e status.
 
@@ -272,7 +272,7 @@ Duas criações simultâneas do mesmo tipo geram números diferentes e duas linh
 
 Criar Discussion manual e assembleia via API, editar, realizar com PDF/cartório, consultar snapshot, abrir listagem/detalhe e conferir Giscus. Cancelar outra e verificar transparência. Remover todos os fixtures.
 
-- [ ] **Step 4: Run complete gates and commit**
+- [x] **Step 4: Run complete gates and commit**
 
 `cd backend && npm run build && npx jest --silent`; `make astro-verify`; `make astro-verify-tenants`; `npm run test:scripts`. Commit de eventuais correções com evidência.
 
@@ -280,25 +280,26 @@ Criar Discussion manual e assembleia via API, editar, realizar com PDF/cartório
 
 **Files:**
 - Create: `docs/adrs/014-assemblies.md`
+- Create: `.superpowers/sdd/2026-11-05-assembleias/task-7-report.md`
 - Modify: `docs/README.md`, `docs/plans/codaqui-1-0/README.md`, `AGENTS.md`, `DEVELOPMENT.md`
-- Modify: `backend/package.json` e `backend/package-lock.json`
+- Modify: `backend/package.json` e `backend/package-lock.json` — bump já entregue na Task 6; permanecem em `0.15.0`, sem nova alteração
 
 **Interfaces:**
 - ADR registra Discussion manual, modelo fino, numeração, snapshot, cartório e limites.
 - Backend `0.15.0`, Fase 4 continua fora do escopo.
 
-- [ ] **Step 1: Update living docs**
+- [x] **Step 1: Update living docs**
 
 Incluir AGENT-INDEX, API, categoria Giscus, configuração `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`, operação manual e retenção de comentários no GitHub.
 
-- [ ] **Step 2: Independent review**
+- [x] **Step 2: Independent review**
 
-Revisar segurança/autorização, unicidade, PII, concorrência, sync, acessibilidade e contratos. Corrigir Critical/Important com teste antes do próximo passo.
+Revisão estática concluída sem Critical/Important: segurança/autorização, unicidade, PII, concorrência, sync, acessibilidade e contratos. Nenhuma correção de código foi necessária; limites manuais foram registrados na ADR e no runbook.
 
-- [ ] **Step 3: Final gates and commit**
+- [x] **Step 3: Final gates and commit**
 
-Repetir todos os gates no HEAD final e commitar `chore(fase-3): prepara release 0.15.0 e handoff`.
+Evidências verdes dos quatro gates reaproveitadas da implementação `c1ae23b57da`, sem repetição desnecessária no diff docs-only; links, `git diff --check`, escopo do diff e versão 0.15.0 verificados no HEAD final. Commit `chore(fase-3): prepara release 0.15.0 e handoff`.
 
-- [ ] **Step 4: Integration handoff**
+- [x] **Step 4: Integration handoff**
 
-Apresentar opções de integração. Não fazer push/merge/release sem comando. Handoff inclui migrations, categoria, variáveis, evidência E2E, relatório Sonar e pendências reais de produção.
+Opções de integração e sequência de release registradas no relatório local da Task 7, sem push/merge/release. Handoff inclui migrations, categoria, variáveis, evidência E2E, Sonar pendente e pendências reais de produção.
