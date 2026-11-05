@@ -6,10 +6,16 @@ import { AuditModule } from '../audit/audit.module';
 import { EventOrganizerService } from './event-organizer.service';
 import { EventOrganizerOwnershipService } from './event-organizer-ownership.service';
 import { EventOrganizerOwnership } from './entities/event-organizer-ownership.entity';
+import { MemberDesignation } from '../designations/entities/member-designation.entity';
+import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([EventOrganizerOwnership]),
+    TypeOrmModule.forFeature([
+      EventOrganizerOwnership,
+      MemberDesignation,
+      ExternalEventActivation,
+    ]),
     GithubDbModule,
     // forwardRef: ciclo Members → Events → EventOrganizer → Members
     forwardRef(() => MembersModule),
