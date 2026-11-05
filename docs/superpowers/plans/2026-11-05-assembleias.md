@@ -53,7 +53,7 @@ agent-protocol:
 - `assertAssemblyTransition(assembly, patch, actor): void` valida transição e cartório.
 - `parseDiscussionUrl(value): string` aceita somente `https://github.com/codaqui/institucional/discussions/<número>`.
 
-- [ ] **Step 1: Write failing domain and migration tests**
+- [x] **Step 1: Write failing domain and migration tests**
 
 ```ts
 expect(assemblySlug('ordinaria', 2)).toBe('ordinaria-2');
@@ -63,23 +63,23 @@ expect(() => assertAssemblyTransition(official, { status: 'held', heldAt: later 
 
 Migration test: verifica tabela, enum e índice único `(type, number)` no `up`/`down`.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd backend && npx jest src/assemblies --runInBand`
 Expected: módulos ausentes.
 
-- [ ] **Step 3: Implement entity, DTO and migration**
+- [x] **Step 3: Implement entity, DTO and migration**
 
 Campos do spec, `jsonb` para `notaryRegistry`, índice único e índice de listagem `(status, scheduledAt DESC)`. DTO usa `class-validator`, transform de datas e limite de texto. Não adicionar colunas de narrativa ou `createdById` ao payload público.
 
-- [ ] **Step 4: Implement and verify domain rules**
+- [x] **Step 4: Implement and verify domain rules**
 
 Validar slug, status, `heldAt >= scheduledAt`, PDF/cartório oficial e URL exata da Discussion. Reusar `StorageService.validateReceiptUrl` para PDF.
 
 Run: `cd backend && npx jest src/assemblies --runInBand`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add backend/src/assemblies backend/src/migrations && git commit -m "feat(fase-3): adiciona modelo e migration de assembleias"`
 
