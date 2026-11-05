@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
+import { TurnstileService } from '../common/turnstile/turnstile.service';
 import { EventsService } from './events.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -73,7 +74,10 @@ describe('EventsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [EventsController],
-      providers: [{ provide: EventsService, useValue: service }],
+      providers: [
+        { provide: EventsService, useValue: service },
+        { provide: TurnstileService, useValue: { verify: jest.fn() } },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })

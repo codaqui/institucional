@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, IsNull, LessThan, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, LessThan, MoreThan, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -52,6 +52,7 @@ import type {
   UpdateTicketTypeDto,
 } from './dto/ticket-operations.dto';
 import type { ActivateExternalDto } from './dto/external.dto';
+import type { ClaimGuestDto } from './dto/guest.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 
 /**
@@ -2166,6 +2167,142 @@ export class EventsService {
     return { id: request.id, status: request.status };
   }
 
+  async createGuestInvite(eventId: string, user: JwtPayload) {
+    const event = await this.findEventOrFail(eventId);
+    await this.assertCanEditEvent(user, eventId);
+    if (event.status !== ManagedEventStatus.PUBLISHED) {
+      throw new BadRequestException('Evento não está publicado.');
+    }
+    const paidTicket = await this.ticketTypeRepo.findOneBy({
+      eventId,
+      priceCents: MoreThan(0),
+      isActive: true,
+    });
+    if (paidTicket) {
+      throw new BadRequestException('Evento com ingressos pagos não aceita convidados.');
+    }
+    const ticketType = await this.ticketTypeRepo.findOneBy({
+      eventId,
+      priceCents: 0,
+      isActive: true,
+    });
+    if (!ticketType) {
+      throw new BadRequestException('Convidados exigem um lote gratuito ativo.');
+    }
+    const registration = await this.registrationRepo.save(
+      this.registrationRepo.create({
+        eventId,
+        externalActivationId: null,
+        ticketTypeId: ticketType.id,
+        memberId: null,
+        orderId: null,
+        payerMemberId: null,
+        attendeeName: null,
+        attendeeEmail: null,
+        checkinToken: randomUUID(),
+        status: RegistrationStatus.PENDING_GUEST,
+        isGuest: true,
+        guestInvitedByMemberId: user.sub,
+      }),
+    );
+    void this.auditService.log({
+      action: AuditAction.EVENT_GUEST_INVITED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventId },
+    });
+    return {
+      token: registration.checkinToken,
+      inviteUrl: `/eventos/convite/${registration.checkinToken}`,
+    };
+  }
+
+  async getGuestInvite(token: string) {
+    const registration = await this.registrationRepo.findOneBy({ checkinToken: token });
+    if (!registration?.isGuest) throw new NotFoundException('Convite não encontrado.');
+    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
+    const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    if (!event) throw new NotFoundException('Evento não encontrado.');
+    const confirmed = registration.status === RegistrationStatus.CONFIRMED;
+    return {
+      status: registration.status,
+      eventTitle: event.title,
+      eventStartAt: event.startAt,
+      attendeeName: confirmed ? registration.attendeeName : null,
+      attendeeEmail: confirmed ? this.maskEmail(registration.attendeeEmail) : null,
+      checkinToken: confirmed ? registration.checkinToken : null,
+    };
+  }
+
+  async claimGuestRegistration(dto: ClaimGuestDto) {
+    if (!dto.consent) throw new BadRequestException('Consentimento obrigatório.');
+    const registration = await this.registrationRepo.findOneBy({
+      checkinToken: dto.token,
+      status: RegistrationStatus.PENDING_GUEST,
+    });
+    if (!registration) throw new ConflictException('Convite já utilizado ou indisponível.');
+    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
+    const event = await this.findEventOrFail(registration.eventId);
+    if (event.status !== ManagedEventStatus.PUBLISHED) {
+      throw new BadRequestException('Evento não está publicado.');
+    }
+    const ticketType = await this.ticketTypeRepo.findOneBy({ id: registration.ticketTypeId });
+    if (!ticketType || ticketType.priceCents !== 0) {
+      throw new BadRequestException('Convidados exigem um lote gratuito.');
+    }
+    const paidTicket = await this.ticketTypeRepo.findOneBy({
+      eventId: event.id,
+      priceCents: MoreThan(0),
+      isActive: true,
+    });
+    if (paidTicket) {
+      throw new BadRequestException('Evento com ingressos pagos não aceita convidados.');
+    }
+
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      await manager.query('SELECT id FROM managed_events WHERE id = $1 FOR UPDATE', [event.id]);
+      if (event.capacity !== null) {
+        const confirmed = await manager.getRepository(EventRegistration).countBy({
+          eventId: event.id,
+          status: RegistrationStatus.CONFIRMED,
+        });
+        if (confirmed >= event.capacity) throw new ConflictException('Evento lotado.');
+      }
+      const reserved = await this.reserveQuota(ticketType.id, 1, false, manager);
+      if (!reserved) throw new ConflictException('Lote esgotado.');
+      const now = new Date();
+      const result = await manager.getRepository(EventRegistration).update(
+        { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
+        {
+          status: RegistrationStatus.CONFIRMED,
+          attendeeName: dto.name,
+          attendeeEmail: dto.email,
+          guestClaimedAt: now,
+          guestConsentAt: now,
+        },
+      );
+      if (!result.affected) throw new ConflictException('Convite já utilizado.');
+    });
+    void this.auditService.log({
+      action: AuditAction.EVENT_GUEST_CLAIMED,
+      actorId: registration.guestInvitedByMemberId ?? 'system',
+      actorHandle: 'guest',
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventId: event.id },
+    });
+    return this.getGuestInvite(dto.token);
+  }
+
+  private maskEmail(email: string | null): string | null {
+    if (!email) return null;
+    const [local, domain] = email.split('@');
+    if (!domain) return null;
+    return `${local.slice(0, 2)}***@${domain}`;
+  }
+
   // ── Check-in (2c) ─────────────────────────────────────────────────────────
 
   /**
@@ -2235,6 +2372,7 @@ export class EventsService {
       registration.status === RegistrationStatus.REFUNDED ||
       registration.status === RegistrationStatus.CANCELLED ||
       registration.status === RegistrationStatus.PENDING_MATCH ||
+      registration.status === RegistrationStatus.PENDING_GUEST ||
       registration.status === RegistrationStatus.WAITLIST
     ) {
       throw new BadRequestException(
@@ -3085,7 +3223,7 @@ export class EventsService {
         .map((r) => `${r.externalSource}|${r.externalId}`),
     );
     const seenIdentifier = new Set(
-      existing.map((r) => r.attendeeEmail.toLowerCase()),
+      existing.map((r) => r.attendeeEmail!.toLowerCase()),
     );
     return [seenExternal, seenIdentifier];
   }
@@ -3108,7 +3246,7 @@ export class EventsService {
     const identifier = row.email.toLowerCase();
     const stuck = existing.find(
       (r) =>
-        r.attendeeEmail.toLowerCase() === identifier &&
+        r.attendeeEmail!.toLowerCase() === identifier &&
         r.status === RegistrationStatus.PENDING_MATCH,
     );
     if (!stuck) return false;
@@ -3164,7 +3302,7 @@ export class EventsService {
     let rematched = 0;
     for (const registration of pending) {
       const member = await this.findMemberByIdentifier(
-        registration.attendeeEmail,
+        registration.attendeeEmail!,
       );
       if (!member) continue;
       registration.memberId = member.id;

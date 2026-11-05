@@ -1774,6 +1774,67 @@ describe('EventsService', () => {
     });
   });
 
+  describe('guest registrations', () => {
+    it('rejects guest invites for events with any active paid ticket', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      ticketTypeRepo.findOneBy.mockResolvedValue(makeTicket({ kind: 'paid', priceCents: 5000 }));
+
+      await expect(service.createGuestInvite(uuid(10), adminUser))
+        .rejects.toThrow('Evento com ingressos pagos não aceita convidados.');
+    });
+
+    it('creates a pending invite and claims it exactly once', async () => {
+      const event = makeEvent({ workloadMinutes: 60 });
+      eventRepo.findOneBy.mockResolvedValue(event);
+      ticketTypeRepo.findOneBy.mockImplementation((where) =>
+        where.priceCents && typeof where.priceCents === 'object' ? null : makeTicket(),
+      );
+      ticketTypeRepo.query.mockResolvedValue([{ id: uuid(20) }]);
+      registrationRepo.countBy.mockResolvedValue(0);
+      const registration = {
+        id: uuid(40), eventId: event.id, ticketTypeId: uuid(20),
+        checkinToken: 'guest-token', status: RegistrationStatus.PENDING_GUEST,
+        isGuest: true, attendeeName: null, attendeeEmail: null,
+      };
+      registrationRepo.findOneBy.mockImplementation((where) =>
+        where.status && registration.status !== RegistrationStatus.PENDING_GUEST
+          ? null
+          : registration,
+      );
+      registrationRepo.update.mockImplementation((_where, values) => {
+        Object.assign(registration, values);
+        return { affected: 1 };
+      });
+
+      await service.claimGuestRegistration({
+        token: 'guest-token', name: 'Convidado', email: 'guest@example.test',
+        consent: true, turnstileToken: 'turnstile-token',
+      });
+
+      expect(registration.status).toBe(RegistrationStatus.CONFIRMED);
+      expect(registration.attendeeEmail).toBe('guest@example.test');
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('FOR UPDATE'),
+        [event.id],
+      );
+      await expect(service.claimGuestRegistration({
+        token: 'guest-token', name: 'Convidado', email: 'guest@example.test',
+        consent: true, turnstileToken: 'turnstile-token',
+      })).rejects.toThrow('Convite já utilizado ou indisponível.');
+    });
+
+    it('rejects pending guest at check-in', async () => {
+      registrationRepo.findOneBy.mockResolvedValue({
+        id: uuid(40), eventId: uuid(10), checkinToken: 'guest-token',
+        attendeeName: null, attendeeEmail: null,
+        status: RegistrationStatus.PENDING_GUEST,
+      });
+
+      await expect(service.checkin(uuid(10), 'guest-token', adminUser))
+        .rejects.toThrow('pending_guest');
+    });
+  });
+
   describe('event hours', () => {
     const registrationFor = (memberId: string | null) => ({
       id: uuid(40),
