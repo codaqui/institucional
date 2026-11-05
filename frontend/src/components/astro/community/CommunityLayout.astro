@@ -54,9 +54,15 @@ const CODAQUI_SITE_URL = "https://codaqui.dev";
 // Nav achatado do config. No build tenant os hrefs nascem limpos (sem o
 // prefixo /comunidades/<slug> e sem o hop 301 do _redirects); nos wrappers
 // do portal os paths prefixados continuam como estão.
-const nav = tenantNav(config).map((item) => ({
-  ...item,
-  to: tenantNavHref(item.to, config.basePath, isTenantBuild, CODAQUI_SITE_URL),
+const navHref = (to: string) =>
+  tenantNavHref(to, config.basePath, isTenantBuild, CODAQUI_SITE_URL);
+const nav = tenantNav(config).map((item) => ({ ...item, to: navHref(item.to) }));
+// Header mantém os submenus (dropdown <details>, mesmo padrão do SiteHeader);
+// o footer segue com o nav achatado.
+const headerNav = config.navMenu.map((item) => ({
+  label: item.label,
+  to: item.to ? navHref(item.to) : undefined,
+  items: item.items?.map((sub) => ({ label: sub.label, to: navHref(sub.to) })) ?? [],
 }));
 const cssVars = tenantCssVars(config);
 const varsStyle = `:root {\n${Object.entries(cssVars)
@@ -142,16 +148,42 @@ const headerLogoDark =
         </a>
         <ul class="ms-auto flex list-none items-center gap-1 overflow-x-auto p-0">
           {
-            nav.map((item) => (
-              <li>
-                <a
-                  href={item.to}
-                  class="block whitespace-nowrap px-3 py-2 text-sm font-bold text-text-primary no-underline hover:text-link"
-                >
-                  {item.label}
-                </a>
-              </li>
-            ))
+            headerNav.map((item) =>
+              item.items.length > 0 ? (
+                <li>
+                  {/* Sem `relative` no <details>: o painel absoluto ancora no
+                      header sticky e não é cortado pelo overflow-x-auto da lista. */}
+                  <details>
+                    <summary class="block cursor-pointer list-none whitespace-nowrap px-3 py-2 text-sm font-bold text-text-primary hover:text-link">
+                      {item.label}
+                    </summary>
+                    <ul class="absolute z-50 w-56 list-none rounded-lg border border-border bg-surface p-2 shadow-md">
+                      {item.items.map((sub) => (
+                        <li>
+                          <a
+                            href={sub.to}
+                            class="block rounded-md px-3 py-2 text-sm text-text-primary no-underline hover:bg-sunken"
+                          >
+                            {sub.label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                </li>
+              ) : (
+                item.to && (
+                  <li>
+                    <a
+                      href={item.to}
+                      class="block whitespace-nowrap px-3 py-2 text-sm font-bold text-text-primary no-underline hover:text-link"
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                )
+              ),
+            )
           }
           {
             codaquiHref && (
@@ -217,5 +249,20 @@ const headerLogoDark =
         display: block;
       }
     </style>
+
+    <script>
+      import { initHeaderDetailsNav, bindHover } from "../../../lib/header-menu";
+
+      // Dropdowns do header: single-open + ESC + clique fora + hover-intent
+      // (mesmo comportamento do SiteHeader do portal).
+      const header = document.querySelector<HTMLElement>("body > header");
+      if (header) {
+        initHeaderDetailsNav(header);
+        header.querySelectorAll<HTMLDetailsElement>("details").forEach((details) => {
+          const summary = details.querySelector("summary");
+          if (summary instanceof HTMLElement) bindHover(details, summary);
+        });
+      }
+    </script>
   </body>
 </html>
