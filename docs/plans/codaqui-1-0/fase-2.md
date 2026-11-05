@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 2 do Codaqui 1.0.0 — horas, ownership, guest claim e perfil público.
 audience: AI agents e mantenedores executando a Fase 2.
-status: pronto para implementação; baseline 1b concluída em develop e validada com 1006/690/54 testes.
+status: implementação, jornadas e gates locais concluídos; handoff externo pendente. Backend 0.14.0 preparado, mas ainda não publicado em main; sync inicial de badges e preparação da Fase 3 permanecem gates externos.
 sections:
   - Escopo e decisões fechadas
   - Arquitetura e migrations
@@ -9,12 +9,14 @@ sections:
   - Gates e handoff
 related-docs:
   - docs/plans/codaqui-1-0/README.md — plano-mãe e subsistema B
+  - docs/adrs/013-hour-ledger.md — comportamento implementado na Fase 2
   - docs/plans/codaqui-1-0/rbac.md — cutover de ownership
   - docs/plans/codaqui-1-0/auth.md — guest token e decisões de risco
   - docs/plans/codaqui-1-0/transversais.md — Turnstile, certificados e retenção
 agent-protocol:
-  - Implementar em ordem, uma branch/PR e um commit por task, sem puxar Fases 3–7.
+  - Não puxar Fases 3–7; Fase 3 começa somente por comando explícito após o handoff.
   - Backend 0.14.0; migrations 033 horas, 034 ownership e 035 guest.
+  - Publicação em main, redeploy e sync inicial de badges não podem ser marcados sem evidência externa.
 -->
 
 # Fase 2 — Pessoas e Horas Implementation Plan
@@ -36,11 +38,11 @@ agent-protocol:
 - `hour_ledger` usa horas decimais; eventos usam minutos na origem e convertem com duas casas.
 - Crédito de evento é `approved` e exige `memberId` no check-in; guest sem conta não gera hora nem retroativo.
 - Eventos legados sem carga horária não recebem backfill automático: registrar warning e seguir o check-in.
-- Novos eventos/ativações exigem `workloadMinutes` ou duração válida; cancelamento posterior não desfaz check-in nem horas.
+- Novos managed events exigem `workloadMinutes` ou duração válida; ativação de check-in externo exige carga no override. Cancelamento posterior não desfaz check-in nem horas.
 - Ownership preserva `OrganizersFile`; a tabela legada não é removida nesta fase.
 - Guest é somente para managed events gratuitos; evento pago e evento externo ficam fora.
 - Guest duplicado ao vincular conta vira `CANCELLED`, com audit, sem duplicar vaga/certificado.
-- Dados de guest são anonimizados 12 meses após o evento; token e trilha de presença permanecem.
+- Nome/e-mail de guests sem conta são anonimizados quando o início do evento tem mais de 365 dias; token, consentimento e trilha de presença permanecem.
 - `profileVisibility` ganha apenas a chave `badge` (default `true`), usada pelo selo SVG; `hours` continua controlando horas públicas.
 - APIs novas não usam `/admin/`; listagens seguem o envelope e os limites da decisão 12.
 - Zero hex fora de `tokens.css`; MUI 9 com `sx`/`slotProps`; Grid com `size`.
@@ -77,7 +79,7 @@ Fontes: `event_checkin`, `directorate_activity`, `extension_project`, `mentorshi
 - `GET /hours/members/:memberId/summary` retorna `{ totalHours, entries }`, vazio quando `hours=false`.
 - `GET /hours/members/:memberId/statement?from&to` exige o próprio membro e devolve dados para declaração.
 
-- [ ] **Step 1: Write failing service and migration tests**
+- [x] **Step 1: Write failing service and migration tests**
 
 ```ts
 it('deduplicates manual entries by member and idempotency key', async () => {
@@ -93,14 +95,14 @@ it('returns no public hours when visibility is disabled', async () => {
 
 Run: `cd backend && npx jest src/hours src/members/profile-visibility.spec.ts --runInBand` → FAIL porque módulo/chave não existem.
 
-- [ ] **Step 2: Create migration 033 and the hours module**
+- [x] **Step 2: Create migration 033 and the hours module**
   `hours numeric(8,2) > 0`; índice único `(memberId,sourceType,sourceId)` apenas para `event_checkin` e `mentorship_session`; índice único `(memberId,idempotencyKey)` quando não nulo. `down` remove somente objetos da 033.
   Adicionar `badge` ao contrato de visibilidade com default `true`, DTO opcional/booleano e metadados em Meus dados.
-- [ ] **Step 3: Implement authorization, idempotency and public filtering**
+- [x] **Step 3: Implement authorization, idempotency and public filtering**
   Diretor lança apenas `directorate_activity`; admin/finance-analyzer aprova/rejeita. Rejeição exige motivo. A summary pública soma somente `approved` e omite entradas quando oculta.
-- [ ] **Step 4: Run focused tests and validate down/up**
+- [x] **Step 4: Run focused tests and validate down/up**
   `cd backend && npx jest src/hours src/members --runInBand`; aplicar/reverter/reaplicar 033 no banco descartável.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/hours backend/src/migrations backend/src/members backend/src/audit backend/src/app.module.ts && git commit -m "feat(fase-2): adiciona ledger de horas e aprovações"`
 
 ### Task 2: Horas automáticas no check-in e carga obrigatória
@@ -116,7 +118,7 @@ Run: `cd backend && npx jest src/hours src/members/profile-visibility.spec.ts --
 - `HoursService.recordEventCheckin(registration, workloadMinutes, manager): Promise<void>` usa o `EntityManager` da transação do check-in.
 - O crédito ocorre somente após o update condicional `checkedInAt null→valor` e na mesma transação.
 
-- [ ] **Step 1: Write failing check-in tests**
+- [x] **Step 1: Write failing check-in tests**
 
 ```ts
 it('credits event hours exactly once for a member check-in', async () => {
@@ -133,13 +135,13 @@ it('does not credit guests or legacy events without workload', async () => {
 ```
 
 Run: `cd backend && npx jest src/hours src/events --runInBand` → FAIL.
-- [ ] **Step 2: Implement workload resolution and validation**
+- [x] **Step 2: Implement workload resolution and validation**
   Prioridade: `workloadMinutes`; fallback `endAt-startAt` inteiro positivo. Create de managed event e ativação externa rejeitam ausência de ambos. Registros legados sem carga seguem sem hora, com warning.
-- [ ] **Step 3: Make check-in and hour credit atomic**
+- [x] **Step 3: Make check-in and hour credit atomic**
   Migrar os dois caminhos de check-in para `DataSource.transaction`; o segundo scan retorna `already_checked_in` sem novo crédito. Conflito de unicidade na mesma transação é tratado como idempotência, nunca como segunda hora.
-- [ ] **Step 4: Run focused and PostgreSQL concurrency tests**
+- [x] **Step 4: Run focused and PostgreSQL concurrency tests**
   `cd backend && npx jest src/hours src/events --runInBand`; executar dois check-ins concorrentes no banco descartável e confirmar uma única entrada.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/hours backend/src/events && git commit -m "feat(fase-2): credita horas no check-in atômico"`
 
 ### Task 3: Dual-write, seed e cutover de ownership
@@ -156,7 +158,7 @@ Run: `cd backend && npx jest src/hours src/events --runInBand` → FAIL.
 - `reconcileOwnerships(manager): { inserted, alreadyPresent, orphanedActivations }`.
 - `getOrganizers()` e `getOwnedScopes()` leem designations após seed; `POST /events/organizers/reconcile` (admin) repete reconciliação idempotente e devolve relatório.
 
-- [ ] **Step 1: Write failing dual-write and reconciliation tests**
+- [x] **Step 1: Write failing dual-write and reconciliation tests**
 
 ```ts
 expect(scopeToDesignation('meetup:devparana:*', null)).toEqual({
@@ -168,13 +170,13 @@ expect(scopeToDesignation('meetup:devparana:123', activation)).toEqual({
 ```
 
 Run: `cd backend && npx jest src/event-organizer --runInBand` → FAIL.
-- [ ] **Step 2: Implement migration 034**
+- [x] **Step 2: Implement migration 034**
   Para cada scope, resolve activation por `eventKey`; usa `targetId` quando existe e o scope literal em `targetKey` caso contrário. `appointedById=updatedByMemberId`; `ON CONFLICT DO NOTHING`; sem drop da tabela antiga.
-- [ ] **Step 3: Implement transactional dual-write and canonical reads**
+- [x] **Step 3: Implement transactional dual-write and canonical reads**
   Upsert/remove sincronizam somente designations `organizer @ event` do membro na mesma transação. Não revogar outros tipos. Reconciliação é idempotente e relativa scopes sem activation como wildcard/não ativado, não como órfão destrutivo.
-- [ ] **Step 4: Run focused and real migration tests**
+- [x] **Step 4: Run focused and real migration tests**
   `cd backend && npx jest src/event-organizer src/designations --runInBand`; validar seed, reexecução, wildcard e activation no dump descartável.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/event-organizer backend/src/designations backend/src/migrations && git commit -m "feat(fase-2): migra ownership para designations"`
 
 ### Task 4: Guest invites e claim público com Turnstile
@@ -192,7 +194,7 @@ Run: `cd backend && npx jest src/event-organizer --runInBand` → FAIL.
 - `POST /events/public/guest-claim` com `{ token,name,email,consent,turnstileToken }`, Turnstile + throttler.
 - `RegistrationStatus.PENDING_GUEST`; `isGuest`, `guestInvitedByMemberId`, `guestClaimedAt`, `guestConsentAt`.
 
-- [ ] **Step 1: Write failing invite/claim tests**
+- [x] **Step 1: Write failing invite/claim tests**
 
 ```ts
 it('claims a pending guest exactly once', async () => {
@@ -207,13 +209,13 @@ it('rejects pending guest at check-in', async () => {
 ```
 
 Run: `cd backend && npx jest src/events src/common/turnstile --runInBand` → FAIL.
-- [ ] **Step 2: Create migration 035 and entity fields**
+- [x] **Step 2: Create migration 035 and entity fields**
   Status enum + colunas guest; nome/e-mail nullable somente para convite pendente/anonimizado. Índices `(isGuest,lower(attendeeEmail))` quando aplicável e `(eventId,status)`.
-- [ ] **Step 3: Implement invite, public projection and atomic claim**
+- [x] **Step 3: Implement invite, public projection and atomic claim**
   Convite exige evento publicado/gratuito e staff autorizado. Claim valida consentimento, Turnstile, capacidade/quota e atualiza condicionalmente `PENDING_GUEST→CONFIRMED`; segunda tentativa = 409. Não vazar e-mail completo nem IDs privados.
-- [ ] **Step 4: Run focused and real migration tests**
+- [x] **Step 4: Run focused and real migration tests**
   `cd backend && npx jest src/events src/common/turnstile --runInBand`; validar down/up da 035 e claim concorrente no PostgreSQL.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/events backend/src/common/turnstile backend/src/migrations && git commit -m "feat(fase-2): adiciona convites e claim de convidados"`
 
 ### Task 5: Jornada guest, e-mail, vínculo e retenção
@@ -339,26 +341,26 @@ Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vite
 - Modify: `docs/modules/events/{CODE_MANUAL,ROLES}.md`, `docs/modules/privacy/treatments.md`
 
 **Interfaces:**
-- ADR registra separação financeira/horas, carga horária, guest, retenção e certificados sem validade.
+- ADR registra separação financeira/horas, carga horária, guest, retenção e declarações sem validade.
 - Plano marca somente entregas verificadas; Fase 3 permanece fora do escopo.
 
-- [ ] **Step 1: Update living documentation and version**
+- [x] **Step 1: Update living documentation and version**
   Registrar decisões fechadas, APIs novas, cutover sem drop legado, latência de badges e comportamento de campos ocultos.
-- [ ] **Step 2: Run all required gates**
+- [x] **Step 2: Run all required gates**
   `cd backend && npm run build && npx jest --silent`; `make astro-verify`; `make astro-verify-tenants`; `npm run test:scripts`.
   Gate de release: o sync inicial de badges deve rodar com sucesso antes da publicação do frontend; não é necessário gerar nem versionar SVGs de membros reais neste branch.
-- [ ] **Step 3: Validate production-like journeys**
+- [x] **Step 3: Validate production-like journeys**
   Aplicar 026–035 no dump descartável; down/up de 033–035; concorrência de check-in/claim; ownership reconciliado; guest→conta; aprovação/declaração; perfil/badges; HTTP e HTTPS.
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git add backend/package.json backend/package-lock.json docs && git commit -m "chore(fase-2): prepara release 0.14.0 e handoff"`
 
 ## Completion Checklist
 
-- [ ] `hour_ledger` separado, aprovado e idempotente, sem horas retroativas ou backfill implícito.
-- [ ] Check-in gera no máximo uma hora por membro/registration, inclusive externo.
-- [ ] Ownership reconciliado em designations, dual-write testado e API compatível.
-- [ ] Guest claim protegido por Turnstile, capacidade correta, QR/check-in e retenção de 12 meses.
-- [ ] Painel de horas, declaração, perfil e badges respeitam `profileVisibility`.
+- [x] `hour_ledger` separado, aprovado e idempotente, sem horas retroativas ou backfill implícito.
+- [x] Check-in gera no máximo uma hora por membro/registration, inclusive externo.
+- [x] Ownership reconciliado em designations, dual-write testado e API compatível.
+- [x] Guest claim protegido por Turnstile, capacidade correta, QR/check-in e retenção de 12 meses.
+- [x] Painel de horas, declaração, perfil e badges respeitam `profileVisibility`.
 - [ ] Gates verdes e backend `0.14.0` publicado a partir do HEAD correto de `main`.
 - [ ] Fase 3 preparada sem antecipar assembleias ou outros subsistemas.
 
