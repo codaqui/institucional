@@ -178,8 +178,11 @@ export class EventOrganizerOwnershipService {
       await manager.query(`
         UPDATE "member_designations" AS "d"
         SET "status" = 'ended', "endedAt" = now(), "updatedAt" = now()
-        FROM "external_event_activations" AS "a"
-        WHERE "a"."eventKey" = "d"."targetKey"
+        FROM "event_organizer_ownerships" AS "o"
+        CROSS JOIN unnest("o"."scope") AS "scopeValue"
+        JOIN "external_event_activations" AS "a" ON "a"."eventKey" = "scopeValue"
+        WHERE "o"."memberId" = "d"."memberId"
+          AND "scopeValue" = "d"."targetKey"
           AND "d"."targetType" = 'event'
           AND "d"."designation" = 'organizer'
           AND "d"."status" = 'active'
@@ -199,10 +202,24 @@ export class EventOrganizerOwnershipService {
         ON CONFLICT DO NOTHING
         RETURNING "id"
       `);
+      const [{ count: orphanedActivations }] = await manager.query(`
+        SELECT COUNT(*)::int AS count
+        FROM "member_designations" AS "d"
+        JOIN "external_event_activations" AS "a" ON "a"."id" = "d"."targetId"
+        WHERE "d"."targetType" = 'event'
+          AND "d"."designation" = 'organizer'
+          AND "d"."status" = 'active'
+          AND NOT EXISTS (
+            SELECT 1
+            FROM "event_organizer_ownerships" AS "o"
+            WHERE "o"."memberId" = "d"."memberId"
+              AND "a"."eventKey" = ANY("o"."scope")
+          )
+      `);
       return {
         inserted: inserted.length,
         alreadyPresent: Math.max(0, totalScopes - inserted.length),
-        orphanedActivations: 0,
+        orphanedActivations,
       };
     });
   }

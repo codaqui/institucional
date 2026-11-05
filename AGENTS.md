@@ -449,10 +449,10 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `GET /ledger/accounts/:id/transactions/export` é público no conjunto da conta; `GET /ledger/transactions/export` exige admin/finance-analyzer. `from`/`to` são compartilhados com a listagem, `to` inclui o dia inteiro e o CSV exporta todas as linhas do range, com BOM e escape de formula injection.
 - `auditCategory()` separa `governance` (permanente, sem IP) de `operational` (expira). `GET/PUT /settings/audit-retention` configura 7–365 dias; setting vence `AUDIT_OPERATIONAL_RETENTION_DAYS` (default 30). `POST /audit/cleanup`, cron e startup usam a mesma política e nunca apagam governo.
 
-### 22. Turnstile opt-in (G3)
+### 22. Turnstile no guest claim (G3)
 
 - `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_ALLOWED_HOSTNAMES`.
-- **Nenhuma rota existente usa `TurnstileGuard` na Fase 1a.** Sem secret, desenvolvimento faz warn/no-op; produção falha fechada quando o guard for aplicado. `TurnstileField` só renderiza o widget com `PUBLIC_TURNSTILE_SITE_KEY`.
+- Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. Sem secret, desenvolvimento faz warn/no-op e aceita o token `development`; produção falha fechada. `TurnstileField` só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, mapeada de `vars` no build do `deploy-astro.yml`.
 
 ### 23. ECA — eventos 18+ informativos
 

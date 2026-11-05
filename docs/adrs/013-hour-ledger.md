@@ -64,7 +64,7 @@ A carga é resolvida antes do crédito:
 
 O valor em horas é `workloadMinutes / 60`, arredondado para duas casas. O crédito `event_checkin` nasce `approved`, somente quando a inscrição tem `memberId` e carga válida.
 
-Os check-ins managed e externo executam update condicional de `checkedInAt IS NULL` e o crédito na mesma transação. Um segundo scan responde `already_checked_in` sem nova entrada; a unicidade da fonte é a segunda proteção contra duplicidade. Cancelamento posterior não desfaz check-in nem horas.
+Os check-ins managed e externo executam update condicional de `checkedInAt IS NULL AND status = 'confirmed'` e o crédito na mesma transação. Se o update não afetar linhas, a inscrição é relida: `confirmed` com presença responde `already_checked_in`; cancelada ou outro estado não permitido é recusada sem horas. O crédito usa `INSERT ... ON CONFLICT DO NOTHING` na unicidade da fonte, portanto uma hora preexistente não aborta a transação nem impede o check-in. Cancelamento posterior não desfaz check-in nem horas.
 
 Eventos legados sem carga não interrompem o check-in: o backend registra warning e não credita horas. Não existe cálculo retroativo para check-ins anteriores nem para guests que depois criam conta. O inventário de eventos nessa condição faz parte do handoff operacional.
 
@@ -78,11 +78,11 @@ A migration 034 reconcilia cada scope legado em uma designation ativa `organizer
 
 `GET /events/organizers` e `getOwnedScopes()` leem as designations canônicas e mantêm o shape `OrganizersFile`. Upsert e remoção continuam usando a tabela `event_organizer_ownerships` **e** atualizam somente designations `organizer @ event` na mesma transação. Outras designations do membro não são tocadas.
 
-`POST /events/organizers/reconcile`, restrito a admin, repete a reconciliação e retorna `{ inserted, alreadyPresent, orphanedActivations }`. A tabela legada não sofre drop nesta fase. O `down` da migration 034 é deliberadamente não destrutivo, pois não é possível distinguir com segurança registros semeados de escritas posteriores.
+`POST /events/organizers/reconcile`, restrito a admin, repete a reconciliação e retorna `{ inserted, alreadyPresent, orphanedActivations }`. Somente um `targetKey` cujo par `memberId + scope` exista no legado e cuja activation tenha aparecido pode ser encerrado para migração a `targetId`; designations criadas somente pela API canônica permanecem ativas. `orphanedActivations` conta designations ativas por `targetId` sem o par `memberId + activation.eventKey` correspondente no legado: é relatório de divergência, não revogação. A tabela legada não sofre drop nesta fase. O `down` da migration 034 é deliberadamente não destrutivo, pois não é possível distinguir com segurança registros semeados de escritas posteriores.
 
 ## Guests, vínculo e retenção
 
-A migration 035 adiciona `pending_guest` e os campos de convite/consentimento a `event_registrations`; não cria uma tabela paralela de participantes.
+A migration 035 adiciona `pending_guest` e os campos de convite/consentimento a `event_registrations`; não cria uma tabela paralela de participantes. Após validar os registros existentes, um CHECK exige nome e e-mail para não-guests e guests vinculados, permitindo nulos em `pending_guest` e em guests sem `memberId` (incluindo anonimização). O vínculo usa índice `(isGuest, lower(attendeeEmail))`.
 
 - `POST /events/:id/guest-invites` exige actor autorizado a editar o evento, managed event publicado, gratuito e com lote gratuito ativo. A resposta contém token e `/eventos/convite?token=<uuid>`.
 - `GET /events/public/guest-invites/:token` expõe apenas estado, título/início do evento e, depois do claim, nome, e-mail mascarado e token de check-in. O token de QR não é exposto enquanto o convite está pendente.

@@ -206,11 +206,8 @@ describe('HoursService', () => {
     });
   });
 
-  it('records approved hours for a member check-in and skips guests', async () => {
-    const hourRepo = {
-      create: jest.fn((value) => value),
-      save: jest.fn(async (value) => value),
-    };
+  it('inserts approved check-in hours with ON CONFLICT DO NOTHING and skips guests', async () => {
+    const hourRepo = { query: jest.fn().mockResolvedValue([]) };
     const manager = { getRepository: jest.fn(() => hourRepo) };
     const registration = {
       id: 'registration-1', memberId: 'member-1', eventId: 'event-1',
@@ -218,13 +215,18 @@ describe('HoursService', () => {
     };
 
     await service.recordEventCheckin(registration as any, 90, manager as any, 'Evento X');
-    expect(hourRepo.save).toHaveBeenCalledWith(expect.objectContaining({
-      memberId: 'member-1', sourceId: 'registration-1', hours: 1.5,
-      status: HourEntryStatus.APPROVED,
-    }));
+    expect(hourRepo.query).toHaveBeenCalledWith(
+      expect.stringContaining('ON CONFLICT ("memberId", "sourceType", "sourceId")'),
+      [
+        'member-1', HourEntrySource.EVENT_CHECKIN, 'registration-1', 'Evento X', 1.5,
+        'Presença confirmada em Evento X', registration.checkedInAt, HourEntryStatus.APPROVED,
+        null, null, registration.checkedInAt, null,
+      ],
+    );
+    expect(hourRepo.query.mock.calls[0][0]).toContain('DO NOTHING');
 
     await service.recordEventCheckin({ ...registration, memberId: null } as any, 90, manager as any);
-    expect(hourRepo.save).toHaveBeenCalledTimes(1);
+    expect(hourRepo.query).toHaveBeenCalledTimes(1);
   });
 
   it('lists approved public totals without leaking hidden hours or hidden years', async () => {

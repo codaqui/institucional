@@ -55,7 +55,7 @@ agent-protocol:
 |---|---|
 | `033_HourLedger` | `hour_ledger`, enums, FK a members e unicidade de fontes automáticas |
 | `034_EventOrganizerDesignations` | seed/reconciliação de ownership em `member_designations`, sem drop legado |
-| `035_EventGuests` | campos guest, `PENDING_GUEST`, nome/e-mail nullable e índices de vínculo/retenção |
+| `035_EventGuests` | campos guest, `PENDING_GUEST`, CHECK de identidade para não-guests/guests vinculados e índices `(isGuest,lower(attendeeEmail))` e `(eventId,status)` |
 
 `HourEntry`: `id`, `memberId`, `sourceType`, `sourceId`, `sourceLabel`, `hours`, `description`, `occurredAt`, `status`, `reportedById`, `approvedById`, `approvedAt`, `rejectReason`, `idempotencyKey`, `createdAt`, `updatedAt`.
 
@@ -366,4 +366,6 @@ Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vite
 
 ## Handoff
 
-A Fase 3 começa somente por comando explícito. O handoff deve incluir migration até 035, relatório de reconciliação de ownership, eventos sem carga legados identificados, política de retenção guest, evidência do sync inicial de badges concluído com sucesso antes da publicação do frontend (gate de release, sem precisar gerar SVGs reais neste branch) e o estado real da release `v0.14.0-backend`.
+A Fase 3 começa somente por comando explícito. O handoff deve incluir migration até 035, relatório de reconciliação de ownership, eventos sem carga legados identificados, política de retenção guest, evidência do sync inicial de badges concluído com sucesso **antes da publicação do frontend** (gate de release, sem precisar gerar SVGs reais neste branch) e o estado real da release `v0.14.0-backend`.
+
+Checklist externo de Turnstile: configurar `PUBLIC_TURNSTILE_SITE_KEY` como **Variable** do GitHub Actions, `TURNSTILE_SECRET_KEY` como secret do backend e `TURNSTILE_ALLOWED_HOSTNAMES` com os domínios públicos exatos. Após backend e frontend publicados, validar o widget real em `/eventos/convite`, concluir um claim real com token emitido pelo Cloudflare e confirmar hostname/consentimento/QR; o token `development` e testes com `fetch` mockado não contam como essa evidência. Nenhuma dessas configurações ou validações externas foi realizada no branch.

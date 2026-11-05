@@ -107,7 +107,7 @@ related-docs:
 2. Organizador acessa `/admin/eventos-checkin?event=<id>`.
 3. Scanner lê o token e chama `POST /events/:id/checkin` ou `POST /events/external/:eventKey/checkin`.
 4. Resposta idempotente: `checked_in` ou `already_checked_in`.
-5. Somente a transição atômica `checkedInAt null → valor` pode gerar `event_checkin`, na mesma transação. O crédito exige `memberId` e carga válida, nasce `approved` e vale no máximo uma vez por membro/registration. Guests sem conta não geram horas.
+5. Somente a transição atômica `checkedInAt null → valor` com `status=confirmed` pode gerar `event_checkin`, na mesma transação. Se o update perder a corrida, a releitura diferencia `already_checked_in` de cancelamento/outro estado recusado. O crédito exige `memberId` e carga válida, nasce `approved` e usa `INSERT ... ON CONFLICT DO NOTHING`: hora preexistente não aborta o check-in nem duplica. Guests sem conta não geram horas.
 6. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
 
 ### 2.4 Certificado
@@ -278,8 +278,8 @@ A declaração em `/membro/horas` usa o snapshot persistido, não muda com lanç
 
 - `GET /events/organizers` preserva o shape `OrganizersFile`, mas lê designations ativas `organizer @ event`, resolvendo `targetId` pela ativação ou usando `targetKey` para wildcard/não ativado.
 - Upsert/remoção pelos endpoints existentes atualiza `event_organizer_ownerships` e somente as designations de organizer do membro na mesma transação. Outras designations não são revogadas.
-- `POST /events/organizers/reconcile` (admin) repete o seed da migration 034 e retorna `{inserted,alreadyPresent,orphanedActivations}`. Scopes legados não viram órfãos destrutivos só por ainda não terem ativação.
-- A migration 034 não faz drop da tabela antiga e seu `down` é não destrutivo. O `down` da 035, por outro lado, remove guests antes de restaurar `attendeeName/Email` obrigatórios; rollback em produção exige avaliação de dados.
+- `POST /events/organizers/reconcile` (admin) repete o seed da migration 034 e retorna `{inserted,alreadyPresent,orphanedActivations}`. Só encerra `targetKey` quando o par `memberId + scope` está no legado e ganhou activation; canonical-only não é revogado. `orphanedActivations` conta designations ativas por `targetId` sem o par correspondente `memberId + activation.eventKey` no legado, como divergência informativa, sem revogar.
+- A migration 034 não faz drop da tabela antiga e seu `down` é não destrutivo. A 035 valida os dados e adiciona CHECK de identidade: nome/e-mail são obrigatórios para não-guests e guests vinculados; `pending_guest` e guests sem `memberId` podem ter nulos para convite/anonimização. O índice de vínculo é `(isGuest,lower(attendeeEmail))`. O `down` da 035 remove guests antes de restaurar `attendeeName/Email` obrigatórios; rollback em produção exige avaliação de dados.
 
 ### 2.15 Convites guest, vínculo e retenção
 

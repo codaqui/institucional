@@ -1738,7 +1738,11 @@ describe('EventsService', () => {
       expect(result.status).toBe('checked_in');
       expect(eventOrganizerService.assertCanManage).not.toHaveBeenCalled();
       expect(registrationRepo.update).toHaveBeenCalledWith(
-        { id: registration.id, checkedInAt: expect.anything() },
+        {
+          id: registration.id,
+          checkedInAt: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
         expect.objectContaining({ checkedInByMemberId: checker.sub }),
       );
     });
@@ -1934,6 +1938,29 @@ describe('EventsService', () => {
         expect.anything(),
         'Evento X',
       );
+    });
+
+    it('rejects a cancellation that wins the race without crediting hours', async () => {
+      const confirmed = registrationFor(uuid(1));
+      const cancelled = { ...confirmed, status: RegistrationStatus.CANCELLED };
+      registrationRepo.findOneBy
+        .mockResolvedValueOnce(confirmed)
+        .mockResolvedValueOnce(cancelled);
+      registrationRepo.update.mockResolvedValue({ affected: 0 });
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 60 }));
+
+      await expect(service.checkin(uuid(10), 'token-1', adminUser))
+        .rejects.toThrow('cancelled: check-in não permitido');
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        {
+          id: confirmed.id,
+          checkedInAt: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
+        expect.objectContaining({ checkedInByMemberId: adminUser.sub }),
+      );
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+      expect(auditService.log).not.toHaveBeenCalled();
     });
 
     it('does not credit guests or legacy events without workload', async () => {

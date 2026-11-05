@@ -2465,7 +2465,11 @@ export class EventsService {
     let affected = 0;
     await this.registrationRepo.manager.transaction(async (manager) => {
       const updateResult = await manager.getRepository(EventRegistration).update(
-        { id: registration.id, checkedInAt: IsNull() },
+        {
+          id: registration.id,
+          checkedInAt: IsNull(),
+          status: RegistrationStatus.CONFIRMED,
+        },
         { checkedInAt, checkedInByMemberId: user.sub },
       );
       affected = updateResult.affected ?? 0;
@@ -2486,6 +2490,11 @@ export class EventsService {
       const current = await this.registrationRepo.findOneBy({
         id: registration.id,
       });
+      if (current && current.status !== RegistrationStatus.CONFIRMED) {
+        throw new BadRequestException(
+          `Inscrição ${current.status}: check-in não permitido.`,
+        );
+      }
       if (current?.checkedInAt) {
         registration.checkedInAt = current.checkedInAt;
         return { status: 'already_checked_in' as const, registration: payload() };

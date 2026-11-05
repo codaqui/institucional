@@ -137,20 +137,28 @@ export class HoursService {
   ): Promise<void> {
     if (!registration.memberId || !workloadMinutes || workloadMinutes <= 0) return;
     const repo = manager.getRepository(HourEntry);
-    await repo.save(repo.create({
-      memberId: registration.memberId,
-      sourceType: HourEntrySource.EVENT_CHECKIN,
-      sourceId: registration.id,
+    await repo.query(`
+      INSERT INTO "hour_ledger" (
+        "memberId", "sourceType", "sourceId", "sourceLabel", "hours", "description",
+        "occurredAt", "status", "reportedById", "approvedById", "approvedAt", "idempotencyKey"
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      ON CONFLICT ("memberId", "sourceType", "sourceId")
+      WHERE "sourceType" IN ('event_checkin', 'mentorship_session')
+      DO NOTHING
+    `, [
+      registration.memberId,
+      HourEntrySource.EVENT_CHECKIN,
+      registration.id,
       sourceLabel,
-      hours: Math.round((workloadMinutes / 60) * 100) / 100,
-      description: `Presença confirmada em ${sourceLabel}`,
-      occurredAt: registration.checkedInAt ?? new Date(),
-      status: HourEntryStatus.APPROVED,
-      reportedById: null,
-      approvedById: null,
-      approvedAt: registration.checkedInAt,
-      idempotencyKey: null,
-    }));
+      Math.round((workloadMinutes / 60) * 100) / 100,
+      `Presença confirmada em ${sourceLabel}`,
+      registration.checkedInAt ?? new Date(),
+      HourEntryStatus.APPROVED,
+      null,
+      null,
+      registration.checkedInAt,
+      null,
+    ]);
   }
 
   myEntries(memberId: string): Promise<HourEntry[]> {

@@ -9,9 +9,15 @@ describe('Migration035_EventGuests', () => {
     expect(up).toContain("ADD VALUE IF NOT EXISTS 'pending_guest'");
     expect(up).toContain('guestInvitedByMemberId');
     expect(up).toContain('DROP NOT NULL');
+    expect(up).toContain('RAISE EXCEPTION');
+    expect(up).toContain('ADD CONSTRAINT "CHK_event_registrations_attendee_identity"');
+    expect(up).toContain('"status"::text = \'pending_guest\'');
+    expect(up).toContain('OR "memberId" IS NULL');
+    expect(up).toContain('("isGuest", (lower("attendeeEmail")))');
 
     await migration.down(queryRunner);
     const down = queryRunner.query.mock.calls.map(([sql]) => sql).join('\n');
+    expect(down).toContain('DROP CONSTRAINT IF EXISTS "CHK_event_registrations_attendee_identity"');
     expect(down).toContain('DROP COLUMN "isGuest"');
     expect(down).not.toContain('DROP TYPE');
   });
