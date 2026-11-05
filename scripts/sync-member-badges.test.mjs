@@ -65,7 +65,7 @@ test("escapes hostile XML, honors independent visibility and removes obsolete ba
   assert.match(visible, /role="img"/);
   assert.match(visible, /<title/);
   assert.match(visible, /&lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt; &amp; &apos;Codaqui&apos;/);
-  assert.doesNotMatch(visible, /<script>/);
+  assert.doesNotMatch(visible, /<script>/i);
   assert.match(visible, /Desde 2024/);
   assert.match(visible, /12,50 horas aprovadas/);
   assert.doesNotMatch(visible, /hiddenHours/);
