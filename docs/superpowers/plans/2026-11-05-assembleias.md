@@ -226,7 +226,7 @@ Expected: páginas emitidas, blog inalterado, PASS. Commit: `feat(fase-3): publi
 - Ilha usa `useAuth`, `authFetch`, `parseAuthJson`, `extractErrorMessage`, `PaginationControls`.
 - Formulário cobre criação/edição, realização/cancelamento e cartório admin.
 
-- [ ] **Step 1: Write failing admin tests**
+- [x] **Step 1: Write failing admin tests**
 
 ```tsx
 await user.click(screen.getByRole('button', { name: /nova assembleia/i }));
@@ -237,16 +237,16 @@ expect(postBody.discussionUrl).toBe(validDiscussionUrl);
 
 Cobrir diretor sem permissão de cartório, admin com cartório, validação e erros visíveis.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/assemblies src/components/islands/__tests__/AppNavIsland.test.tsx`
 Expected: ilha/rota ausentes.
 
-- [ ] **Step 3: Implement admin island and navigation**
+- [x] **Step 3: Implement admin island and navigation**
 
 CRUD com formulários acessíveis, campos de Discussion/PDF/cartório e transições. Adicionar Assembleias a Governança, sem API `/admin/` e sem alterar menu do blog.
 
-- [ ] **Step 4: Verify admin tests and commit**
+- [x] **Step 4: Verify admin tests and commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/assemblies src/components/islands/__tests__/AppNavIsland.test.tsx && npm run check`
 Expected: PASS. Commit: `feat(fase-3): adiciona gestão de assembleias`.

@@ -268,6 +268,29 @@ describe("AppNavIsland", () => {
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
+  it("shows Assembleias in Governança to directors and admins only", () => {
+    mockLoggedIn(makeUser({ roles: ["membro", "diretor"] }));
+    const { unmount } = renderWithMui(
+      <AppNavIsland currentPath="/admin/assembleias" />,
+    );
+
+    expect(screen.getByText("Governança")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Assembleias" })).toHaveAttribute(
+      "href",
+      "/admin/assembleias",
+    );
+    expect(screen.getByRole("link", { name: "Assembleias" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.queryByRole("link", { name: "Configurações" })).not.toBeInTheDocument();
+
+    unmount();
+    mockLoggedIn(makeUser({ roles: ["membro"] }));
+    renderWithMui(<AppNavIsland currentPath="/membro" />);
+    expect(screen.queryByRole("link", { name: "Assembleias" })).not.toBeInTheDocument();
+  });
+
   it("agrupa itens por sistema de valor e filtra a navegação por texto", () => {
     mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
     renderWithMui(<AppNavIsland currentPath="/admin" />);
