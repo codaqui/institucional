@@ -310,7 +310,7 @@ Run: `cd frontend && npx vitest run src/components/islands/member/hours src/comp
 - Perfil mostra horas, marcos 10/50/100 e timeline somente com dados permitidos.
 - `/badges/<handle>.svg` inclui nome, ano se permitido e horas se permitido; `badge=false` remove o arquivo no sync.
 
-- [ ] **Step 1: Write failing profile and sync tests**
+- [x] **Step 1: Write failing profile and sync tests**
 
 ```js
 test('removes the badge when badge visibility is disabled and never exposes hidden hours', async () => {
@@ -321,13 +321,13 @@ test('removes the badge when badge visibility is disabled and never exposes hidd
 ```
 
 Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vitest run src/components/islands/member/profile` → FAIL.
-- [ ] **Step 2: Implement public hours and profile sections**
+- [x] **Step 2: Implement public hours and profile sections**
   Extrair componentes pequenos; preservar bio/OG/JSON-LD, eventos, certificados, doações e SortCoins. Campos ocultos nunca reaparecem como defaults.
-- [ ] **Step 3: Implement atomic badge sync and workflow**
+- [x] **Step 3: Implement atomic badge sync and workflow**
   Escapar XML; gerar por arquivo temporário + rename; apagar somente badges obsoletos após uma resposta completa da API; preservar diretório em caso de falha. Workflow diário + dispatch com permissões mínimas.
-- [ ] **Step 4: Run focused, build and browser tests**
+- [x] **Step 4: Run focused, build and browser tests**
   `npm run test:scripts`; `cd backend && npx jest src/hours`; `cd frontend && npm run build && npx vitest run src/components/islands/member/profile`; conferir SVG e perfil com `hours/badge` ligados e desligados.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add backend/src/hours frontend/src/components frontend/src/pages frontend/scripts scripts .github/workflows static/badges Makefile && git commit -m "feat(fase-2): expõe horas e selos no perfil público"`
 
 ### Task 8: Documentação, release 0.14.0 e handoff
@@ -346,6 +346,7 @@ Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vite
   Registrar decisões fechadas, APIs novas, cutover sem drop legado, latência de badges e comportamento de campos ocultos.
 - [ ] **Step 2: Run all required gates**
   `cd backend && npm run build && npx jest --silent`; `make astro-verify`; `make astro-verify-tenants`; `npm run test:scripts`.
+  Gate de release: o sync inicial de badges deve rodar com sucesso antes da publicação do frontend; não é necessário gerar nem versionar SVGs de membros reais neste branch.
 - [ ] **Step 3: Validate production-like journeys**
   Aplicar 026–035 no dump descartável; down/up de 033–035; concorrência de check-in/claim; ownership reconciliado; guest→conta; aprovação/declaração; perfil/badges; HTTP e HTTPS.
 - [ ] **Step 4: Commit**
@@ -363,4 +364,4 @@ Run: `node --test scripts/sync-member-badges.test.mjs`; `cd frontend && npx vite
 
 ## Handoff
 
-A Fase 3 começa somente por comando explícito. O handoff deve incluir migration até 035, relatório de reconciliação de ownership, eventos sem carga legados identificados, política de retenção guest e o estado real da release `v0.14.0-backend`.
+A Fase 3 começa somente por comando explícito. O handoff deve incluir migration até 035, relatório de reconciliação de ownership, eventos sem carga legados identificados, política de retenção guest, evidência do sync inicial de badges concluído com sucesso antes da publicação do frontend (gate de release, sem precisar gerar SVGs reais neste branch) e o estado real da release `v0.14.0-backend`.
