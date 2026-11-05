@@ -35,6 +35,15 @@ export class EventOrganizerOwnershipController {
     return this.service.getOrganizers();
   }
 
+  @Post('reconcile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: '🔒 Reconciliar ownership legado com designations [admin]' })
+  reconcile(@Req() req: { user: JwtPayload }) {
+    return this.service.reconcile(req.user);
+  }
+
   @Post(':memberId')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

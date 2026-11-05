@@ -20,6 +20,11 @@ for (const dir of snapshotDirs) {
 const copiedIndexes = snapshotDirs.map((d) => `${d}/index.json`).join(", ");
 console.log(`snapshots copiados: ${copiedIndexes}`);
 
+cpSync(join(ROOT, "static", "badges"), join(FRONTEND_PUBLIC, "badges"), {
+  recursive: true,
+});
+console.log("snapshots copiados: badges/ (recursivo)");
+
 // Assets de static/img referenciados pelas páginas portadas (0.3) que ainda
 // não existiam em public/img — cópia cirúrgica, não o diretório todo (4.3 MB).
 // og-elasnocodigo.jpg é o socialImage do config da comunidade (OG das páginas

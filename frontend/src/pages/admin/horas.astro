@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import HoursApprovalsApp from "../../components/islands/admin/hours/HoursApprovalsApp";
+---
+
+<AppLayout title="Horas" pageTitle="Admin — Horas | CODAQUI.dev" noindex>
+  <HoursApprovalsApp client:only="react" />
+</AppLayout>

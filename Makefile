@@ -46,7 +46,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
-        sync sync-events sync-events-full sync-social sync-analytics sync-communities \
+        sync sync-events sync-events-full sync-social sync-analytics sync-communities sync-badges \
         clean clean-volumes
 
 # Target padrão
@@ -284,6 +284,7 @@ astro-verify: ## Verificação completa do app Astro: build + tipos + testes + s
 	@test -f $(ASTRO_DIR)/dist/events/index.json && printf "$(GREEN)✔  snapshot de eventos servido em /events/index.json$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/admin/eventos/index.html && printf "$(GREEN)✔  /admin/eventos gerada$(RESET)\n"
 	@test -f $(ASTRO_DIR)/dist/auth/callback/index.html && printf "$(GREEN)✔  /auth/callback gerada$(RESET)\n"
+	@! grep -Eq '<loc>https://codaqui.dev/(busca<|admin(/|<)|membro(/|<)|auth(/|<))' $(ASTRO_DIR)/dist/sitemap-0.xml && printf "$(GREEN)✔  busca e rotas de app fora do sitemap$(RESET)\n"
 	@printf "$(CYAN)→  Gate de paridade de URLs públicas vs referência versionada (url-reference.json)...$(RESET)\n"
 	node $(ASTRO_DIR)/scripts/diff-urls.mjs
 	@printf "$(GREEN)✔  App Astro verificado. Suba com: make astro-preview$(RESET)\n"
@@ -350,6 +351,9 @@ sync-analytics: ## Sincroniza analytics → static/analytics/
 
 sync-communities: ## Sincroniza comunidades ativas → static/communities/
 	COMMUNITIES_API_URL=http://localhost:3001 npm run sync:communities
+
+sync-badges: ## Sincroniza selos SVG públicos → static/badges/
+	MEMBER_BADGES_API_URL=http://localhost:3001 npm run sync:badges
 
 # =============================================================================
 ##@ 🧹 Limpeza

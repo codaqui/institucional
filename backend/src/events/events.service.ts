@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, IsNull, LessThan, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, LessThan, MoreThan, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -26,6 +26,7 @@ import {
   ExternalEventActivation,
 } from './entities/external-event-activation.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { resolveProfileVisibility } from '../members/profile-visibility';
 import { StripeService } from '../stripe/stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
@@ -38,6 +39,8 @@ import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { CsvParseError, parseCsvText, type ParsedCsvRow } from './csv';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
+import { HoursService } from '../hours/hours.service';
+import { resolveEventWorkloadMinutes } from '../hours/event-hours';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import type { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import type {
@@ -49,6 +52,7 @@ import type {
   UpdateTicketTypeDto,
 } from './dto/ticket-operations.dto';
 import type { ActivateExternalDto } from './dto/external.dto';
+import type { ClaimGuestDto } from './dto/guest.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 
 /**
@@ -189,6 +193,7 @@ export class EventsService {
     private readonly githubDb: GitHubDBService,
     private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
+    private readonly hoursService: HoursService,
   ) {}
 
   // ── Permissões ────────────────────────────────────────────────────────────
@@ -730,6 +735,17 @@ export class EventsService {
       throw new ConflictException(`Slug já em uso: ${dto.slug}.`);
     }
     const tz = dto.timezone ?? 'America/Sao_Paulo';
+    const startAt = parseDateTimeLocal(dto.startAt, tz);
+    const endAt = dto.endAt ? parseDateTimeLocal(dto.endAt, tz) : null;
+    if (!resolveEventWorkloadMinutes({
+      workloadMinutes: dto.workloadMinutes,
+      startAt,
+      endAt,
+    })) {
+      throw new BadRequestException(
+        'Informe workloadMinutes ou um horário de término para calcular as horas.',
+      );
+    }
     const event = await this.eventRepo.save(
       this.eventRepo.create({
         slug: dto.slug,
@@ -757,6 +773,7 @@ export class EventsService {
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
     await this.assertCanEditEvent(user, id);
+    const hadValidWorkload = resolveEventWorkloadMinutes(event) !== null;
     const previousAdultOnly = event.adultOnly;
     const adultOnlyChanged =
       dto.adultOnly !== undefined &&
@@ -796,6 +813,12 @@ export class EventsService {
     }
     if (dto.adultOnly !== undefined) event.adultOnly = dto.adultOnly;
     if (dto.venueType !== undefined) event.venueType = dto.venueType;
+
+    if (hadValidWorkload && !resolveEventWorkloadMinutes(event)) {
+      throw new BadRequestException(
+        'O evento não pode ficar sem workloadMinutes ou duração válida.',
+      );
+    }
 
     await this.eventRepo.save(event);
     if (adultOnlyChanged) {
@@ -2144,6 +2167,218 @@ export class EventsService {
     return { id: request.id, status: request.status };
   }
 
+  linkGuestRegistration(
+    guest: EventRegistration,
+    memberId: string,
+  ): Promise<'linked' | 'duplicate_cancelled' | 'skipped'> {
+    return this.registrationRepo.manager.transaction(async (manager) => {
+      const registrations = manager.getRepository(EventRegistration);
+      const current = await registrations.findOneBy({ id: guest.id });
+      if (!current?.eventId || current.memberId) return 'skipped';
+
+      const duplicate = await registrations.findOneBy({
+        eventId: current.eventId,
+        memberId,
+        status: RegistrationStatus.CONFIRMED,
+      });
+      const cancelDuplicate =
+        Boolean(duplicate) && current.status === RegistrationStatus.CONFIRMED;
+      const result = await registrations.update(
+        cancelDuplicate
+          ? {
+              id: current.id,
+              memberId: IsNull(),
+              status: RegistrationStatus.CONFIRMED,
+            }
+          : { id: current.id, memberId: IsNull() },
+        {
+          memberId,
+          ...(cancelDuplicate
+            ? { status: RegistrationStatus.CANCELLED }
+            : {}),
+        },
+      );
+      if (!result.affected) return 'skipped';
+      if (cancelDuplicate) {
+        await this.releaseQuota(current.ticketTypeId, 1, manager);
+      }
+      Object.assign(guest, {
+        memberId,
+        ...(cancelDuplicate
+          ? { status: RegistrationStatus.CANCELLED }
+          : {}),
+      });
+      return cancelDuplicate ? 'duplicate_cancelled' : 'linked';
+    });
+  }
+
+  async createGuestInvite(eventId: string, user: JwtPayload) {
+    const event = await this.findEventOrFail(eventId);
+    await this.assertCanEditEvent(user, eventId);
+    if (event.status !== ManagedEventStatus.PUBLISHED) {
+      throw new BadRequestException('Evento não está publicado.');
+    }
+    const paidTicket = await this.ticketTypeRepo.findOneBy({
+      eventId,
+      priceCents: MoreThan(0),
+      isActive: true,
+    });
+    if (paidTicket) {
+      throw new BadRequestException('Evento com ingressos pagos não aceita convidados.');
+    }
+    const ticketType = await this.ticketTypeRepo.findOneBy({
+      eventId,
+      priceCents: 0,
+      isActive: true,
+    });
+    if (!ticketType) {
+      throw new BadRequestException('Convidados exigem um lote gratuito ativo.');
+    }
+    const registration = await this.registrationRepo.save(
+      this.registrationRepo.create({
+        eventId,
+        externalActivationId: null,
+        ticketTypeId: ticketType.id,
+        memberId: null,
+        orderId: null,
+        payerMemberId: null,
+        attendeeName: null,
+        attendeeEmail: null,
+        checkinToken: randomUUID(),
+        status: RegistrationStatus.PENDING_GUEST,
+        isGuest: true,
+        guestInvitedByMemberId: user.sub,
+      }),
+    );
+    void this.auditService.log({
+      action: AuditAction.EVENT_GUEST_INVITED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventId },
+    });
+    return {
+      token: registration.checkinToken,
+      inviteUrl: `/eventos/convite?token=${registration.checkinToken}`,
+    };
+  }
+
+  async getGuestInvite(token: string) {
+    const registration = await this.registrationRepo.findOneBy({ checkinToken: token });
+    if (!registration?.isGuest) throw new NotFoundException('Convite não encontrado.');
+    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
+    const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+    if (!event) throw new NotFoundException('Evento não encontrado.');
+    const confirmed = registration.status === RegistrationStatus.CONFIRMED;
+    return {
+      status: registration.status,
+      eventTitle: event.title,
+      eventStartAt: event.startAt,
+      attendeeName: confirmed ? registration.attendeeName : null,
+      attendeeEmail: confirmed ? this.maskEmail(registration.attendeeEmail) : null,
+      checkinToken: confirmed ? registration.checkinToken : null,
+    };
+  }
+
+  async claimGuestRegistration(dto: ClaimGuestDto) {
+    if (!dto.consent) throw new BadRequestException('Consentimento obrigatório.');
+    const registration = await this.registrationRepo.findOneBy({
+      checkinToken: dto.token,
+      status: RegistrationStatus.PENDING_GUEST,
+    });
+    if (!registration) throw new ConflictException('Convite já utilizado ou indisponível.');
+    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
+    const event = await this.findEventOrFail(registration.eventId);
+    if (event.status !== ManagedEventStatus.PUBLISHED) {
+      throw new BadRequestException('Evento não está publicado.');
+    }
+    const ticketType = await this.ticketTypeRepo.findOneBy({ id: registration.ticketTypeId });
+    if (ticketType?.priceCents !== 0) {
+      throw new BadRequestException('Convidados exigem um lote gratuito.');
+    }
+    const paidTicket = await this.ticketTypeRepo.findOneBy({
+      eventId: event.id,
+      priceCents: MoreThan(0),
+      isActive: true,
+    });
+    if (paidTicket) {
+      throw new BadRequestException('Evento com ingressos pagos não aceita convidados.');
+    }
+
+    const now = new Date();
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      await manager.query('SELECT id FROM managed_events WHERE id = $1 FOR UPDATE', [event.id]);
+      if (event.capacity !== null) {
+        const confirmed = await manager.getRepository(EventRegistration).countBy({
+          eventId: event.id,
+          status: RegistrationStatus.CONFIRMED,
+        });
+        if (confirmed >= event.capacity) throw new ConflictException('Evento lotado.');
+      }
+      const reserved = await this.reserveQuota(ticketType.id, 1, false, manager);
+      if (!reserved) throw new ConflictException('Lote esgotado.');
+      const result = await manager.getRepository(EventRegistration).update(
+        { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
+        {
+          status: RegistrationStatus.CONFIRMED,
+          attendeeName: dto.name,
+          attendeeEmail: dto.email,
+          guestClaimedAt: now,
+          guestConsentAt: now,
+        },
+      );
+      if (!result.affected) throw new ConflictException('Convite já utilizado.');
+    });
+    Object.assign(registration, {
+      status: RegistrationStatus.CONFIRMED,
+      attendeeName: dto.name,
+      attendeeEmail: dto.email,
+      guestClaimedAt: now,
+      guestConsentAt: now,
+    });
+    void this.emailService.sendRegistrationConfirmation(registration, event).catch((error) => {
+      this.logger.warn(`Falha ao enviar confirmação guest: ${String(error)}`);
+    });
+    void this.auditService.log({
+      action: AuditAction.EVENT_GUEST_CLAIMED,
+      actorId: registration.guestInvitedByMemberId ?? 'system',
+      actorHandle: 'guest',
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventId: event.id },
+    });
+    return this.getGuestInvite(dto.token);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async anonymizeExpiredGuests(): Promise<void> {
+    const cutoff = new Date(Date.now() - 365 * 24 * 3_600_000);
+    const guests = await this.registrationRepo
+      .createQueryBuilder('r')
+      .innerJoin(ManagedEvent, 'event', 'event.id = r."eventId"')
+      .where('r."isGuest" = true')
+      .andWhere('r."memberId" IS NULL')
+      .andWhere('(r."attendeeName" IS NOT NULL OR r."attendeeEmail" IS NOT NULL)')
+      .andWhere('event."startAt" < :cutoff', { cutoff })
+      .getMany();
+    for (const guest of guests) {
+      guest.attendeeName = null;
+      guest.attendeeEmail = null;
+    }
+    await Promise.all(guests.map((guest) => this.registrationRepo.save(guest)));
+    if (guests.length > 0) {
+      this.logger.log(`${guests.length} inscrições guest anonimizadas após 12 meses.`);
+    }
+  }
+
+  private maskEmail(email: string | null): string | null {
+    if (!email) return null;
+    const [local, domain] = email.split('@');
+    if (!domain) return null;
+    return `${local.slice(0, 2)}***@${domain}`;
+  }
+
   // ── Check-in (2c) ─────────────────────────────────────────────────────────
 
   /**
@@ -2175,6 +2410,31 @@ export class EventsService {
     return this.performCheckin(registration, user);
   }
 
+  private async resolveCheckinHourDetails(registration: EventRegistration): Promise<{
+    eventTitle: string;
+    workloadMinutes: number | null;
+  }> {
+    if (registration.eventId) {
+      const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+      if (!event) throw new NotFoundException('Evento não encontrado.');
+      return {
+        eventTitle: event.title,
+        workloadMinutes: resolveEventWorkloadMinutes(event),
+      };
+    }
+    if (!registration.externalActivationId) {
+      throw new NotFoundException('Evento da inscrição não encontrado.');
+    }
+    const activation = await this.activationRepo.findOneBy({
+      id: registration.externalActivationId,
+    });
+    if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+    return {
+      eventTitle: activation.title ?? activation.eventKey,
+      workloadMinutes: await this.readExternalWorkloadMinutes(activation.eventKey),
+    };
+  }
+
   private async performCheckin(
     registration: EventRegistration,
     user: JwtPayload,
@@ -2188,6 +2448,7 @@ export class EventsService {
       registration.status === RegistrationStatus.REFUNDED ||
       registration.status === RegistrationStatus.CANCELLED ||
       registration.status === RegistrationStatus.PENDING_MATCH ||
+      registration.status === RegistrationStatus.PENDING_GUEST ||
       registration.status === RegistrationStatus.WAITLIST
     ) {
       throw new BadRequestException(
@@ -2198,22 +2459,53 @@ export class EventsService {
       return { status: 'already_checked_in' as const, registration: payload() };
     }
     const checkedInAt = new Date();
-    const updateResult = await this.registrationRepo.update(
-      { id: registration.id, checkedInAt: IsNull() },
-      { checkedInAt, checkedInByMemberId: user.sub },
-    );
-    if (!updateResult.affected) {
+    const details = registration.memberId
+      ? await this.resolveCheckinHourDetails(registration)
+      : null;
+    let affected = 0;
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      const updateResult = await manager.getRepository(EventRegistration).update(
+        {
+          id: registration.id,
+          checkedInAt: IsNull(),
+          status: RegistrationStatus.CONFIRMED,
+        },
+        { checkedInAt, checkedInByMemberId: user.sub },
+      );
+      affected = updateResult.affected ?? 0;
+      if (affected) {
+        registration.checkedInAt = checkedInAt;
+        registration.checkedInByMemberId = user.sub;
+        if (details) {
+          await this.hoursService.recordEventCheckin(
+            registration,
+            details.workloadMinutes,
+            manager,
+            details.eventTitle,
+          );
+        }
+      }
+    });
+    if (!affected) {
       const current = await this.registrationRepo.findOneBy({
         id: registration.id,
       });
+      if (current && current.status !== RegistrationStatus.CONFIRMED) {
+        throw new BadRequestException(
+          `Inscrição ${current.status}: check-in não permitido.`,
+        );
+      }
       if (current?.checkedInAt) {
         registration.checkedInAt = current.checkedInAt;
         return { status: 'already_checked_in' as const, registration: payload() };
       }
       throw new ConflictException('Não foi possível confirmar o check-in.');
     }
-    registration.checkedInAt = checkedInAt;
-    registration.checkedInByMemberId = user.sub;
+    if (registration.memberId && !details?.workloadMinutes) {
+      this.logger.warn(
+        `Check-in ${registration.id} sem carga horária legada; nenhuma hora foi creditada.`,
+      );
+    }
 
     void this.auditService.log({
       action: AuditAction.EVENT_CHECKIN,
@@ -2456,12 +2748,33 @@ export class EventsService {
       return typeof value === 'number' &&
         Number.isInteger(value) &&
         value >= 0 &&
-        value <= 1000
+        value <= 2880
         ? value
         : null;
     } catch {
       return null;
     }
+  }
+
+  private async saveExternalWorkloadMinutes(
+    eventKey: string,
+    workloadMinutes: number,
+    user: JwtPayload,
+  ): Promise<void> {
+    const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
+    const [override] = await this.eventOverridesService.findByKeys([
+      { sourceKey, eventId },
+    ]);
+    const parsed = override
+      ? JSON.parse(override.payload) as Record<string, unknown> & {
+          extendData?: Record<string, unknown>;
+        }
+      : {};
+    const extendData = parsed.extendData ?? parsed;
+    await this.eventOverridesService.upsert(sourceKey, eventId, {
+      payload: { extendData: { ...extendData, workloadMinutes } },
+      reason: 'Carga horária para certificados e ledger de horas.',
+    }, user);
   }
 
   /** GET /events/certificates/verify/:code — PÚBLICO (autenticidade) */
@@ -2478,6 +2791,15 @@ export class EventsService {
       .andWhere('r."checkedInAt" IS NOT NULL')
       .getOne();
     if (!registration) return { valid: false as const };
+
+    if (registration.memberId) {
+      const member = await this.memberRepo.findOneBy({
+        id: registration.memberId,
+      });
+      if (!resolveProfileVisibility(member?.profileVisibility).certificates) {
+        return { valid: false as const };
+      }
+    }
 
     let eventTitle = '';
     let eventStartAt: Date | null = null;
@@ -2703,6 +3025,19 @@ export class EventsService {
     }
 
     const existing = await this.activationRepo.findOneBy({ eventKey });
+    const enablesCheckin = features.includes('checkin') && !existing?.features.includes('checkin');
+    if (enablesCheckin) {
+      const workloadMinutes = dto.workloadMinutes ?? await this.readExternalWorkloadMinutes(eventKey);
+      if (!workloadMinutes) {
+        throw new BadRequestException(
+          'Informe workloadMinutes para ativar o check-in e creditar horas.',
+        );
+      }
+    }
+    if (dto.workloadMinutes !== undefined) {
+      await this.saveExternalWorkloadMinutes(eventKey, dto.workloadMinutes, user);
+    }
+
     const activation = existing ?? this.activationRepo.create({ eventKey });
     activation.features = features;
     activation.communityProjectKey = dto.communityProjectKey;
@@ -2973,7 +3308,7 @@ export class EventsService {
         .map((r) => `${r.externalSource}|${r.externalId}`),
     );
     const seenIdentifier = new Set(
-      existing.map((r) => r.attendeeEmail.toLowerCase()),
+      existing.map((r) => r.attendeeEmail!.toLowerCase()),
     );
     return [seenExternal, seenIdentifier];
   }
@@ -2996,7 +3331,7 @@ export class EventsService {
     const identifier = row.email.toLowerCase();
     const stuck = existing.find(
       (r) =>
-        r.attendeeEmail.toLowerCase() === identifier &&
+        r.attendeeEmail!.toLowerCase() === identifier &&
         r.status === RegistrationStatus.PENDING_MATCH,
     );
     if (!stuck) return false;
@@ -3052,7 +3387,7 @@ export class EventsService {
     let rematched = 0;
     for (const registration of pending) {
       const member = await this.findMemberByIdentifier(
-        registration.attendeeEmail,
+        registration.attendeeEmail!,
       );
       if (!member) continue;
       registration.memberId = member.id;
@@ -3334,9 +3669,13 @@ export class EventsService {
    * GET /events/members/:memberId/registrations — participações públicas do
    * membro (perfil). Só status confirmed/refunded; NUNCA expõe checkinToken,
    * e-mail ou attendeeName (o nome vem do perfil público do membro).
-   * verificationCode só quando houve check-in (publicamente verificável).
+   * verificationCode só com check-in e certificados públicos.
    */
   async listMemberRegistrations(memberId: string) {
+    const member = await this.memberRepo.findOneBy({ id: memberId });
+    const visibility = resolveProfileVisibility(member?.profileVisibility);
+    if (!visibility.events) return [];
+
     const registrations = await this.registrationRepo.find({
       where: {
         memberId,
@@ -3387,7 +3726,7 @@ export class EventsService {
           eventStartAt,
           checkedIn: r.checkedInAt !== null,
           status: r.status,
-          verificationCode: r.checkedInAt
+          verificationCode: r.checkedInAt && visibility.certificates
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,

@@ -1,0 +1,87 @@
+import { BadRequestException } from '@nestjs/common';
+import type { Member } from './entities/member.entity';
+
+export const PROFILE_VISIBILITY_KEYS = [
+  'bio',
+  'linkedin',
+  'roles',
+  'memberSince',
+  'events',
+  'certificates',
+  'hours',
+  'donations',
+  'sortcoins',
+  'designations',
+  'badge',
+] as const;
+
+export type ProfileVisibilityKey = (typeof PROFILE_VISIBILITY_KEYS)[number];
+export type ProfileVisibility = Record<ProfileVisibilityKey, boolean>;
+export type PublicMember = Pick<
+  Member,
+  'id' | 'githubHandle' | 'name' | 'avatarUrl'
+> & {
+  bio?: string | null;
+  linkedinUrl?: string | null;
+  roles?: Member['roles'];
+  joinedAt?: Date;
+};
+
+export const DEFAULT_PROFILE_VISIBILITY: ProfileVisibility = {
+  bio: true,
+  linkedin: true,
+  roles: true,
+  memberSince: true,
+  events: true,
+  certificates: true,
+  hours: true,
+  donations: true,
+  sortcoins: true,
+  designations: true,
+  badge: true,
+};
+
+export const PROFILE_VISIBILITY_FIELDS = [
+  { key: 'bio', label: 'Bio', source: 'Perfil do membro', purpose: 'Apresentação pública' },
+  { key: 'linkedin', label: 'LinkedIn', source: 'Perfil do membro', purpose: 'Link profissional público' },
+  { key: 'roles', label: 'Papéis', source: 'RBAC e designations', purpose: 'Representações institucionais' },
+  { key: 'memberSince', label: 'Membro desde', source: 'Data de entrada', purpose: 'Histórico da associação' },
+  { key: 'events', label: 'Eventos', source: 'Inscrições e check-ins', purpose: 'Histórico de participação' },
+  { key: 'certificates', label: 'Certificados', source: 'Emissões por presença', purpose: 'Comprovação de participação' },
+  { key: 'hours', label: 'Horas', source: 'Aprovações de horas', purpose: 'Total de contribuição' },
+  { key: 'donations', label: 'Doações', source: 'Ledger financeiro', purpose: 'Histórico de apoio opt-in' },
+  { key: 'sortcoins', label: 'SortCoins', source: 'Clube Codaqui', purpose: 'Saldo e histórico públicos por padrão' },
+  { key: 'designations', label: 'Designations', source: 'Vínculos ativos', purpose: 'Representações institucionais' },
+  { key: 'badge', label: 'Selo para README', source: 'Perfil e horas públicas', purpose: 'Selo SVG opcional para sites externos' },
+] as const;
+
+export function resolveProfileVisibility(input: unknown): ProfileVisibility {
+  if (input == null) return { ...DEFAULT_PROFILE_VISIBILITY };
+  if (typeof input !== 'object' || Array.isArray(input)) {
+    throw new BadRequestException('Visibilidade deve ser um objeto com chaves booleanas.');
+  }
+  const values = input as Record<string, unknown>;
+  for (const [key, value] of Object.entries(values)) {
+    if (!PROFILE_VISIBILITY_KEYS.includes(key as ProfileVisibilityKey)) {
+      throw new BadRequestException(`Chave de visibilidade desconhecida: ${key}`);
+    }
+    if (typeof value !== 'boolean') {
+      throw new BadRequestException(`Visibilidade de ${key} deve ser booleana.`);
+    }
+  }
+  return { ...DEFAULT_PROFILE_VISIBILITY, ...values } as ProfileVisibility;
+}
+
+export function applyProfileVisibility(member: Member): PublicMember {
+  const visibility = resolveProfileVisibility(member.profileVisibility);
+  return {
+    id: member.id,
+    githubHandle: member.githubHandle,
+    name: member.name,
+    avatarUrl: member.avatarUrl,
+    ...(visibility.bio ? { bio: member.bio } : {}),
+    ...(visibility.linkedin ? { linkedinUrl: member.linkedinUrl } : {}),
+    ...(visibility.roles ? { roles: member.roles } : {}),
+    ...(visibility.memberSince ? { joinedAt: member.joinedAt } : {}),
+  };
+}

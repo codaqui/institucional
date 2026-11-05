@@ -1,9 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { createHash } from 'node:crypto';
+import { turnstileSecret } from './turnstile-config';
 
 interface TurnstileVerificationResponse {
   success?: unknown;
   hostname?: unknown;
+  action?: unknown;
 }
 
 @Injectable()
@@ -15,12 +17,13 @@ export class TurnstileService {
     token: string,
     remoteIp?: string,
     expectedHostname?: string,
+    expectedAction?: string,
   ): Promise<boolean> {
-    const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
+    const secret = turnstileSecret();
     if (!secret) {
       if (process.env.NODE_ENV === 'production') return false;
       this.logger.warn(
-        'TURNSTILE_SECRET_KEY não configurada; verificação ignorada fora de produção.',
+        'Turnstile secret não configurado; verificação ignorada fora de produção.',
       );
       return true;
     }
@@ -51,6 +54,9 @@ export class TurnstileService {
         expectedHostname !== undefined &&
         result.hostname !== expectedHostname
       ) {
+        return false;
+      }
+      if (expectedAction !== undefined && result.action !== expectedAction) {
         return false;
       }
 

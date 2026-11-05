@@ -77,12 +77,14 @@ function getRoleLabel(role: string): string {
   }
 }
 
-const roles = member.roles?.length ? member.roles : ["membro"];
-const joinedFmt = new Intl.DateTimeFormat("pt-BR", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-}).format(new Date(member.joinedAt));
+const roles = member.roles ?? [];
+const joinedFmt = member.joinedAt
+  ? new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(member.joinedAt))
+  : null;
 const shortId = member.id.slice(0, 8).toUpperCase();
 ---
 
@@ -143,7 +145,7 @@ const shortId = member.id.slice(0, 8).toUpperCase();
           </div>
 
           <div class="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-xs text-text-secondary">
-            <span>📅 Membro desde {joinedFmt}</span>
+            {joinedFmt && <span>📅 Membro desde {joinedFmt}</span>}
             <span class="font-mono">ID: {shortId}</span>
           </div>
 
@@ -187,7 +189,7 @@ const shortId = member.id.slice(0, 8).toUpperCase();
       )}
     </ul>
 
-    {/* Seções dinâmicas públicas (doações, eventos, carteira pública, CLUB Business) */}
+    {/* Seções dinâmicas públicas (horas, selo, doações, eventos, carteira pública, CLUB Business) */}
     <MemberProfileIsland
       client:visible
       variant="public"

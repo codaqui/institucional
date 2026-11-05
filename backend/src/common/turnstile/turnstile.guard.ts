@@ -8,6 +8,9 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { TurnstileService } from './turnstile.service';
+import { turnstileAllowedHostnames, turnstileSecret } from './turnstile-config';
+
+const GUEST_CLAIM_ACTION = 'guest_claim';
 
 type HeaderValue = string | string[] | undefined;
 
@@ -25,14 +28,14 @@ export class TurnstileGuard implements CanActivate {
   constructor(private readonly turnstileService: TurnstileService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    if (!process.env.TURNSTILE_SECRET_KEY?.trim()) {
+    if (!turnstileSecret()) {
       if (process.env.NODE_ENV === 'production') {
         throw new ServiceUnavailableException(
           'Verificação de segurança indisponível.',
         );
       }
       this.logger.warn(
-        'TURNSTILE_SECRET_KEY não configurada; guard ignorado fora de produção.',
+        'Turnstile secret não configurado; guard ignorado fora de produção.',
       );
       return true;
     }
@@ -46,16 +49,11 @@ export class TurnstileGuard implements CanActivate {
     } else if (typeof headerToken === 'string' && headerToken.length > 0) {
       token = headerToken;
     }
-    if (!token) {
-      throw new BadRequestException('Token Turnstile obrigatório.');
+    if (!token || token.length > 2048) {
+      throw new BadRequestException('Token Turnstile obrigatório ou inválido.');
     }
 
-    const allowedHostnames = new Set(
-      (process.env.TURNSTILE_ALLOWED_HOSTNAMES ?? '')
-        .split(',')
-        .map((hostname) => hostname.trim())
-        .filter(Boolean),
-    );
+    const allowedHostnames = turnstileAllowedHostnames();
     const hostname = this.resolveFrontendHostname(request);
     if (!hostname || !allowedHostnames.has(hostname)) {
       throw new ForbiddenException('Hostname não permitido para Turnstile.');
@@ -65,6 +63,7 @@ export class TurnstileGuard implements CanActivate {
       token,
       request.ip,
       hostname,
+      GUEST_CLAIM_ACTION,
     );
     if (!verified) {
       throw new ForbiddenException('Verificação Turnstile recusada.');

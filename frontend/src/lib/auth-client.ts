@@ -3,6 +3,7 @@ export interface AuthUser {
   githubId: string;
   handle: string;
   name: string;
+  email?: string;
   avatarUrl: string;
   roles: string[];
 }

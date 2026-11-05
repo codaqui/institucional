@@ -28,6 +28,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import EventIcon from "@mui/icons-material/Event";
 import PrintIcon from "@mui/icons-material/Print";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../../admin/ui/PageContainer";
 import TabPanel from "../../admin/ui/TabPanel";
@@ -38,6 +39,7 @@ import { formatBRL, parseBrlInput } from "../../../../lib/transaction";
 import type { CommunityBalance } from "../../../../lib/transaction";
 import { MemberProfileCard, MemberQrDialog } from "./MemberHeader";
 import OverviewTab from "./OverviewTab";
+import MyDataTab from "../privacy/MyDataTab";
 import DonationsTab from "./DonationsTab";
 import SubscriptionsTab from "./SubscriptionsTab";
 import WalletTab from "./WalletTab";
@@ -381,6 +383,17 @@ function MemberDashboardInner() {
 
       <Divider sx={{ my: 3 }} />
 
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Button
+          component="a"
+          href="/membro/horas"
+          variant="outlined"
+          startIcon={<ScheduleIcon />}
+        >
+          Minhas horas
+        </Button>
+      </Box>
+
       {/* ── Tabs ── */}
       <Tabs
         value={activeTab}
@@ -394,6 +407,7 @@ function MemberDashboardInner() {
         <Tab label="Assinaturas Recorrentes" />
         <Tab label="Carteira" />
         <Tab label="Eventos" icon={<EventIcon />} iconPosition="start" />
+        <Tab label="Meus dados" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -471,6 +485,10 @@ function MemberDashboardInner() {
           }}
           userName={user?.name}
         />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={5}>
+        <MyDataTab />
       </TabPanel>
 
       {/* ── Dialog: Confirmar cancelamento de assinatura ── */}

@@ -137,6 +137,21 @@ describe('EmailService', () => {
     });
   });
 
+  describe('sendRegistrationConfirmation', () => {
+    it('usa o link público do convite para recuperar o QR do guest', async () => {
+      await service.sendRegistrationConfirmation(
+        makeRegistration({ isGuest: true }) as any,
+        makeEvent() as any,
+      );
+
+      const message = provider.send.mock.calls[0][0];
+      expect(message.html).toContain(
+        'http://localhost:3000/eventos/convite?token=token-abc',
+      );
+      expect(message.html).not.toContain('http://localhost:3000/membro');
+    });
+  });
+
   describe('sendRegistrationCancellation', () => {
     it('usa o contexto real da inscrição e do evento', async () => {
       await service.sendRegistrationCancellation(
@@ -277,6 +292,33 @@ describe('EmailService', () => {
         andWhere: jest.fn().mockReturnThis(),
         getMany: jest.fn().mockResolvedValue([makeRegistration()]),
       });
+    });
+
+    it('D-1 do guest inclui o link público que recupera o QR', async () => {
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          makeRegistration({ isGuest: true }),
+        ]),
+      });
+
+      await service.sendDayBeforeReminders();
+
+      const message = provider.send.mock.calls[0][0];
+      expect(message.html).toContain(
+        'http://localhost:3000/eventos/convite?token=token-abc',
+      );
+      expect(message.text).toContain('QR Code');
+    });
+
+    it('D-1 do membro mantém o link da área do membro', async () => {
+      await service.sendDayBeforeReminders();
+
+      const message = provider.send.mock.calls[0][0];
+      expect(message.html).toContain('http://localhost:3000/membro');
+      expect(message.html).not.toContain('/eventos/convite');
     });
 
     it('does not let a skipped reminder dedupe a later real delivery', async () => {

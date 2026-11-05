@@ -34,7 +34,11 @@ export interface MyDesignation {
   designation: Designation;
 }
 
-export function useMyDesignations(): {
+export function formatDesignationLabel(designation: MyDesignation): string {
+  return `${designation.designation} @ ${designation.targetKey ?? designation.targetId ?? designation.targetType}`;
+}
+
+export function useMyDesignations(enabled = true): {
   data: MyDesignation[];
   loading: boolean;
   error: string;
@@ -47,6 +51,10 @@ export function useMyDesignations(): {
   const [error, setError] = useState("");
 
   const refresh = useCallback(async () => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError("");
     try {
@@ -58,7 +66,7 @@ export function useMyDesignations(): {
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, authFetch]);
+  }, [apiUrl, authFetch, enabled]);
 
   useEffect(() => {
     void refresh();

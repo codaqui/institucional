@@ -128,6 +128,11 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       ),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(),
+      manager: {
+        transaction: jest.fn((cb: (em: unknown) => unknown) => cb({
+          getRepository: () => ({ update: registrationRepo.update }),
+        })),
+      } as unknown as jest.Mock,
     };
     staffRepo = { findBy: jest.fn().mockResolvedValue([]) };
     memberRepo = {
@@ -165,10 +170,12 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     eventOverridesService = {
       findByKeys: jest.fn().mockResolvedValue([]),
       findBySourceKey: jest.fn().mockResolvedValue([]),
+      upsert: jest.fn().mockResolvedValue({}),
     };
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
     };
+    const hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
 
     service = new EventsService(
       eventRepo as any,
@@ -187,6 +194,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       githubDb as any,
       eventOverridesService as any,
       reimbursementsService as any,
+      hoursService as any,
     );
   });
 
@@ -419,6 +427,19 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(result.communityProjectKey).toBe('devparana');
     });
 
+    it('certificado oculto pelo membro → valid: false sem dados pessoais', async () => {
+      mockVerifyQb(makeRegistration({ checkedInAt: new Date() }));
+      memberRepo.findOneBy.mockResolvedValue({
+        id: uuid(1),
+        profileVisibility: { certificates: false },
+      });
+
+      const result = await service.verifyCertificate('CRT-aaaaaaaa-bb');
+
+      expect(result).toEqual({ valid: false });
+      expect(result).not.toHaveProperty('attendeeName');
+    });
+
     it('código inexistente → valid: false', async () => {
       mockVerifyQb(null);
       const result = await service.verifyCertificate('CRT-zzzzzzzzzzzz');
@@ -433,6 +454,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       features: ['checkin'],
       communityProjectKey: 'elasnocodigo',
       title: 'Meetup Elas',
+      workloadMinutes: 90,
     };
 
     it('não-owner → 403 (assertCanManage rejeita)', async () => {
@@ -463,6 +485,23 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
           user(),
         ),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('preserva atualização de ativação legada sem carga horária', async () => {
+      activationRepo.findOneBy.mockResolvedValue({
+        id: uuid(70), eventKey: EVENT_KEY, features: ['checkin'],
+        communityProjectKey: 'devparana', title: 'Título antigo',
+      });
+      eventOverridesService.findByKeys.mockResolvedValue([]);
+
+      const saved = await service.activateExternal(
+        EVENT_KEY,
+        { ...dto, workloadMinutes: undefined, title: 'Título atualizado' },
+        user(),
+      );
+
+      expect(saved.title).toBe('Título atualizado');
+      expect(eventOverridesService.upsert).not.toHaveBeenCalled();
     });
 
     it('certificates força checkin automaticamente', async () => {

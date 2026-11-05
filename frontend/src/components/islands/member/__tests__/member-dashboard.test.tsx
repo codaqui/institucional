@@ -320,6 +320,23 @@ describe("/membro", () => {
     expect(screen.getByRole("button", { name: /Imprimir/i })).toBeInTheDocument();
   });
 
+  it("oferece atalho para o extrato e a declaração de horas", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+
+    renderWithMui(<MemberDashboardApp />);
+
+    expect(await screen.findByRole("link", { name: "Minhas horas" })).toHaveAttribute(
+      "href",
+      "/membro/horas",
+    );
+  });
+
   it.each([
     { roles: ["member"], visible: false, label: "membro comum" },
     { roles: ["member", "event_organizer"], visible: false, label: "organizador de eventos" },

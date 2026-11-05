@@ -53,6 +53,26 @@ describe('TurnstileService', () => {
     expect(timeoutSpy).toHaveBeenCalledWith(5000);
   });
 
+  it('accepts the SPIN secret variable and the guest_claim action', async () => {
+    delete process.env.TURNSTILE_SECRET_KEY;
+    process.env.TURNSTILE_SECRET = 'spin-secret';
+    mockVerification({ success: true, hostname: 'codaqui.dev', action: 'guest_claim' });
+
+    await expect(
+      service.verify('token', undefined, 'codaqui.dev', 'guest_claim'),
+    ).resolves.toBe(true);
+    const body = fetchMock.mock.calls[0][1]?.body;
+    expect(new URLSearchParams(body as string).get('secret')).toBe('spin-secret');
+  });
+
+  it('rejects a successful token for another action', async () => {
+    mockVerification({ success: true, hostname: 'codaqui.dev', action: 'login' });
+
+    await expect(
+      service.verify('token', undefined, 'codaqui.dev', 'guest_claim'),
+    ).resolves.toBe(false);
+  });
+
   it('rejects a valid token for another hostname', async () => {
     mockVerification({ success: true, hostname: 'other.example' });
 

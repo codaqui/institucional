@@ -50,6 +50,7 @@ export interface EmailTemplateContext {
   ticketTypeName?: string | null;
   checkinToken?: string | null;
   eventLocation?: string | null;
+  isGuest?: boolean;
 }
 
 export interface RegistrationEmailEvent {
@@ -110,13 +111,14 @@ export class EmailService {
     ticketTypeName: string | null = null,
   ): EmailTemplateContext {
     return {
-      attendeeName: registration.attendeeName,
+      attendeeName: registration.attendeeName!,
       eventTitle: event.title ?? event.eventKey ?? 'Evento',
       eventStartAt: event.startAt ?? registration.createdAt,
       eventTimeZone: event.timezone ?? 'America/Sao_Paulo',
       ticketTypeName,
       checkinToken: registration.checkinToken,
       eventLocation: event.location,
+      isGuest: registration.isGuest,
     };
   }
 
@@ -174,7 +176,7 @@ export class EmailService {
     const names = await this.loadTicketTypeNames([registration]);
     await this.sendTemplate(
       EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
-      registration.attendeeEmail,
+      registration.attendeeEmail!,
       this.contextFor(
         registration,
         event,
@@ -190,7 +192,7 @@ export class EmailService {
   ): Promise<void> {
     await this.sendTemplate(
       EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
-      registration.attendeeEmail,
+      registration.attendeeEmail!,
       this.contextFor(registration, event),
       { eventId: registration.eventId, registrationId: registration.id },
     );
@@ -246,6 +248,7 @@ export class EmailService {
       .andWhere('event.status = :eventStatus', {
         eventStatus: ManagedEventStatus.PUBLISHED,
       })
+      .andWhere('registration.attendeeEmail IS NOT NULL')
       .andWhere(`${options.windowColumn} BETWEEN :from AND :to`, {
         from: options.from,
         to: options.to,
@@ -296,7 +299,7 @@ export class EmailService {
       if (!event) continue;
       await this.sendTemplate(
         template,
-        registration.attendeeEmail,
+        registration.attendeeEmail!,
         this.contextFor(
           registration,
           event,

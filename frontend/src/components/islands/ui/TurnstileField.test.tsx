@@ -5,6 +5,7 @@ const SCRIPT_URL = "https://challenges.cloudflare.com/turnstile/v0/api.js";
 
 type TurnstileOptions = {
   sitekey: string;
+  action: string;
   callback: (token: string) => void;
   "error-callback": () => void;
   "expired-callback": () => void;
@@ -15,13 +16,14 @@ declare global {
     turnstile?: {
       render: (container: HTMLElement, options: TurnstileOptions) => string;
       remove: (widgetId: string) => void;
+      reset: (widgetId: string) => void;
     };
   }
 }
 
-async function renderField(onTokenChange: (token: string) => void) {
+async function renderField(onTokenChange: (token: string) => void, resetKey = 0) {
   const { default: TurnstileField } = await import("./TurnstileField");
-  return render(<TurnstileField onTokenChange={onTokenChange} />);
+  return render(<TurnstileField onTokenChange={onTokenChange} resetKey={resetKey} />);
 }
 
 function installTurnstile() {
@@ -29,7 +31,7 @@ function installTurnstile() {
     options.callback("verified-token");
     return "widget-id";
   });
-  window.turnstile = { render: renderWidget, remove: vi.fn() };
+  window.turnstile = { render: renderWidget, remove: vi.fn(), reset: vi.fn() };
   return renderWidget;
 }
 
@@ -66,6 +68,7 @@ describe("TurnstileField", () => {
     expect(secondTokenChange).toHaveBeenCalledWith("verified-token");
     expect(renderWidget).toHaveBeenCalledTimes(2);
     expect(renderWidget.mock.calls[0][1].sitekey).toBe("test-site-key");
+    expect(renderWidget.mock.calls[0][1].action).toBe("guest_claim");
   });
 
   it("shows an unavailable state when the official script fails", async () => {
@@ -89,7 +92,7 @@ describe("TurnstileField", () => {
     await renderField(onTokenChange);
     const script = document.head.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_URL}"]`);
     const renderWidget = vi.fn((_container: HTMLElement, _options: TurnstileOptions) => "widget-id");
-    window.turnstile = { render: renderWidget, remove: vi.fn() };
+    window.turnstile = { render: renderWidget, remove: vi.fn(), reset: vi.fn() };
     await act(async () => {
       script?.dispatchEvent(new Event("load"));
     });
@@ -102,7 +105,32 @@ describe("TurnstileField", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("Verificação de segurança expirada");
   });
 
-  it("shows a development warning without a site key and does not fake success", async () => {
+  it("resets the widget and clears the token when a retry is requested", async () => {
+    const onTokenChange = vi.fn();
+    const { rerender } = await renderField(onTokenChange);
+    const script = document.head.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_URL}"]`);
+    const reset = vi.fn();
+    window.turnstile = {
+      render: vi.fn((_container: HTMLElement, options: TurnstileOptions) => {
+        options.callback("verified-token");
+        return "widget-id";
+      }),
+      remove: vi.fn(),
+      reset,
+    };
+    await act(async () => {
+      script?.dispatchEvent(new Event("load"));
+    });
+    await waitFor(() => expect(onTokenChange).toHaveBeenCalledWith("verified-token"));
+    const { default: TurnstileField } = await import("./TurnstileField");
+
+    rerender(<TurnstileField onTokenChange={onTokenChange} resetKey={1} />);
+
+    expect(reset).toHaveBeenCalledWith("widget-id");
+    expect(onTokenChange).toHaveBeenLastCalledWith("");
+  });
+
+  it("uses a development-only token without a site key", async () => {
     vi.stubEnv("PUBLIC_TURNSTILE_SITE_KEY", "");
     const onTokenChange = vi.fn();
 
@@ -110,7 +138,7 @@ describe("TurnstileField", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Turnstile não configurado");
     expect(document.head.querySelector(`script[src="${SCRIPT_URL}"]`)).toBeNull();
-    expect(onTokenChange).not.toHaveBeenCalled();
+    expect(onTokenChange).toHaveBeenCalledWith("development");
   });
 
   it("renders no widget or success state without a site key in production", async () => {

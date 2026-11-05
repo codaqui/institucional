@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { DataSource, In, IsNull } from 'typeorm';
 import { MembersService } from './members.service';
 import { Member, MemberRole } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { EventsService } from '../events/events.service';
 import { resetTokenKeyCache } from '../common/crypto.util';
+import { EventRegistration, RegistrationStatus } from '../events/entities/event-registration.entity';
+import { AuditService } from '../audit/audit.service';
 
 const mockMember = (): Member => ({
   id: '11111111-1111-1111-1111-111111111111',
@@ -22,6 +24,7 @@ const mockMember = (): Member => ({
   githubAccessToken: null,
   secondaryEmails: [],
   joinedAt: new Date('2024-01-01'),
+  profileVisibility: {},
 });
 
 describe('MembersService', () => {
@@ -31,6 +34,7 @@ describe('MembersService', () => {
   let txRepo: Record<string, jest.Mock>;
   let dataSource: Record<string, jest.Mock>;
   let queryRunner: Record<string, jest.Mock>;
+  let registrationRepo: Record<string, jest.Mock>;
 
   beforeEach(() => {
     // Testes de token usam o fallback de dev (plain:) — env sempre limpa
@@ -75,6 +79,11 @@ describe('MembersService', () => {
     dataSource = {
       createQueryRunner: jest.fn().mockReturnValue(queryRunner),
     };
+    registrationRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findOneBy: jest.fn(),
+      save: jest.fn((registration) => Promise.resolve(registration)),
+    };
 
     txRepo = {
       createQueryBuilder: jest.fn(),
@@ -86,6 +95,8 @@ describe('MembersService', () => {
         { provide: getRepositoryToken(Member), useValue: memberRepo },
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
         { provide: DataSource, useValue: dataSource },
+        { provide: getRepositoryToken(EventRegistration), useValue: registrationRepo },
+        { provide: AuditService, useValue: { log: jest.fn() } },
         {
           provide: EventsService,
           useValue: {
@@ -122,6 +133,61 @@ describe('MembersService', () => {
         isActive: true,
       });
       expect(memberRepo.save).toHaveBeenCalled();
+    });
+
+    it('does not link guests by display email without verified API evidence', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertByGithub(profile);
+
+      expect(registrationRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('uses only verified emails from the GitHub API for guest matching', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+
+      await service.upsertByGithub({
+        ...profile,
+        email: 'unverified-primary@example.com',
+        secondaryEmails: ['verified-secondary@example.com'],
+      });
+
+      expect(registrationRepo.find).toHaveBeenCalledWith({
+        where: {
+          isGuest: true,
+          memberId: IsNull(),
+          attendeeEmail: In(['verified-secondary@example.com']),
+        },
+      });
+    });
+
+    it('delegates duplicate cancellation to the atomic events flow and audits it', async () => {
+      memberRepo.findOne.mockResolvedValue(null);
+      const guest = {
+        id: 'guest-1', eventId: 'event-1', memberId: null, isGuest: true,
+        attendeeEmail: 'test@example.com', status: RegistrationStatus.CONFIRMED,
+      };
+      registrationRepo.find.mockResolvedValue([guest]);
+      const eventsService = (service as any).eventsService;
+      eventsService.linkGuestRegistration = jest.fn().mockResolvedValue('duplicate_cancelled');
+      const auditService = (service as any).auditService;
+
+      await service.upsertByGithub({
+        ...profile,
+        secondaryEmails: ['test@example.com'],
+      });
+
+      expect(eventsService.linkGuestRegistration).toHaveBeenCalledWith(
+        guest,
+        '22222222-2222-2222-2222-222222222222',
+      );
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          targetId: guest.id,
+          details: { eventId: guest.eventId, duplicateCancelled: true },
+        }),
+      );
     });
 
     it('should update an existing member', async () => {
@@ -261,12 +327,13 @@ describe('MembersService', () => {
       const result = await service.findAllActive(1, 50);
 
       expect(result).toEqual({
-        data: members,
+        data: [expect.objectContaining({ githubHandle: 'testuser' })],
         total: 1,
         page: 1,
         limit: 50,
         totalPages: 1,
       });
+      expect(result.data[0]).not.toHaveProperty('email');
       expect(memberRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { isActive: true },
@@ -323,7 +390,8 @@ describe('MembersService', () => {
 
       const result = await service.findOne(member.id);
 
-      expect(result).toEqual(member);
+      expect(result).toEqual(expect.objectContaining({ githubHandle: 'testuser' }));
+      expect(result).not.toHaveProperty('email');
       expect(memberRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: member.id, isActive: true },
@@ -338,6 +406,18 @@ describe('MembersService', () => {
     });
   });
 
+  describe('findMe', () => {
+    it('keeps hidden public fields editable by their owner', async () => {
+      const member = mockMember({ profileVisibility: { bio: false } });
+      memberRepo.findOne.mockResolvedValue(member);
+
+      const result = await service.findMe(member.id);
+
+      expect(result?.bio).toBe(member.bio);
+      expect(result?.email).toBe(member.email);
+    });
+  });
+
   describe('findByHandle', () => {
     it('should find a member by GitHub handle', async () => {
       const member = mockMember();
@@ -345,7 +425,8 @@ describe('MembersService', () => {
 
       const result = await service.findByHandle('testuser');
 
-      expect(result).toEqual(member);
+      expect(result).toEqual(expect.objectContaining({ githubHandle: 'testuser' }));
+      expect(result).not.toHaveProperty('email');
       expect(memberRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { githubHandle: 'testuser', isActive: true },
@@ -485,6 +566,7 @@ describe('MembersService', () => {
       const qb = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         addGroupBy: jest.fn().mockReturnThis(),
@@ -519,12 +601,17 @@ describe('MembersService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(1);
+      expect(qb.andWhere).toHaveBeenCalledTimes(2);
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        "COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'",
+      );
     });
 
     it('should clamp page and limit values', async () => {
       const qb = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         addGroupBy: jest.fn().mockReturnThis(),
@@ -594,6 +681,92 @@ describe('MembersService', () => {
       expect(result[1].type).toBe('Assinatura mensal');
       expect(result[2].type).toBe('Assinatura anual');
       expect(result[2].community).toBe('Comunidade');
+    });
+  });
+
+  describe('profileVisibility', () => {
+    it('returns effective visibility and metadata for the member dashboard', async () => {
+      memberRepo.findOneOrFail.mockResolvedValue({
+        ...mockMember(),
+        profileVisibility: { bio: false },
+      });
+
+      const result = await service.getProfileVisibility('member-1');
+
+      expect(result.visibility.bio).toBe(false);
+      expect(result.visibility.linkedin).toBe(true);
+      expect(result.fields).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'bio', label: 'Bio' }),
+          expect.objectContaining({ key: 'sortcoins', label: 'SortCoins' }),
+        ]),
+      );
+    });
+
+    it('merges and saves visibility changes', async () => {
+      const member = {
+        ...mockMember(),
+        profileVisibility: { bio: false, linkedin: false },
+      };
+      memberRepo.findOneOrFail.mockResolvedValue(member);
+      memberRepo.update.mockImplementation((_criteria, updates) => {
+        member.profileVisibility = updates.profileVisibility;
+        return Promise.resolve({ affected: 1 });
+      });
+
+      const result = await service.updateProfileVisibility(member.id, {
+        bio: true,
+        sortcoins: true,
+      });
+
+      expect(memberRepo.update).toHaveBeenCalledWith(
+        { id: member.id },
+        {
+          profileVisibility: expect.objectContaining({
+            bio: true,
+            linkedin: false,
+            sortcoins: true,
+          }),
+        },
+      );
+      expect(result.visibility).toEqual(
+        expect.objectContaining({ bio: true, linkedin: false, sortcoins: true }),
+      );
+    });
+
+    it('filters hidden fields from the public profile and donation history', async () => {
+      const member = {
+        ...mockMember(),
+        bio: 'Bio pública',
+        linkedinUrl: 'https://linkedin.example',
+        joinedAt: new Date('2024-01-01'),
+        profileVisibility: {
+          bio: false,
+          linkedin: false,
+          roles: false,
+          memberSince: false,
+          donations: false,
+        },
+      };
+      memberRepo.findOne.mockResolvedValue(member);
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      txRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findByHandle('testuser');
+      const donations = await service.findMemberDonations(member.id);
+
+      expect(result).not.toHaveProperty('bio');
+      expect(result).not.toHaveProperty('linkedinUrl');
+      expect(result).not.toHaveProperty('roles');
+      expect(result).not.toHaveProperty('joinedAt');
+      expect(result).not.toHaveProperty('email');
+      expect(donations).toEqual([]);
+      expect(qb.getMany).not.toHaveBeenCalled();
     });
   });
 

@@ -56,7 +56,7 @@ agent-protocol:
 ### Arquitetura
 
 - **Frontend:** script oficial + wrapper `TurnstileField`, sem biblioteca de terceiros; chave pública `PUBLIC_TURNSTILE_SITE_KEY` por ambiente.
-- **Backend:** `backend/src/common/turnstile/` com verificação `siteverify`, timeout de 5s, `success===true`, hostname exato, secret `TURNSTILE_SECRET_KEY` e proteção contra replay por hash em memória por 5 minutos.
+- **Backend:** `backend/src/common/turnstile/` com verificação `siteverify`, timeout de 5s, `success===true`, hostname exato, secret `TURNSTILE_SECRET` e proteção contra replay por hash em memória por 5 minutos.
 - **Guard:** opt-in por rota, lendo `turnstileToken` do body ou `cf-turnstile-token`. Nenhuma rota existente recebe o guard na 1a.
 - **Chaves por ambiente:** produção restringe os 4 domínios; dev/homologação usam pares próprios. Testes unitários e CI **mockam `fetch`** e não dependem das test keys nem de chamada externa; as test keys só podem ser usadas em um smoke manual explicitamente autorizado.
 

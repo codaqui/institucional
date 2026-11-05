@@ -11,6 +11,7 @@ export enum RegistrationStatus {
   CANCELLED = 'cancelled',
   REFUNDED = 'refunded',
   WAITLIST = 'waitlist',
+  PENDING_GUEST = 'pending_guest',
 }
 
 /** 1 linha por ingresso individual (gratuito ou pago) */
@@ -49,11 +50,23 @@ export class EventRegistration {
   @Column({ type: 'varchar', nullable: true })
   payerMemberId: string | null;
 
-  @Column()
-  attendeeName: string;
+  @Column({ type: 'varchar', nullable: true })
+  attendeeName: string | null;
 
-  @Column()
-  attendeeEmail: string;
+  @Column({ type: 'varchar', nullable: true })
+  attendeeEmail: string | null;
+
+  @Column({ default: false })
+  isGuest: boolean;
+
+  @Column({ type: 'uuid', nullable: true })
+  guestInvitedByMemberId: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  guestClaimedAt: Date | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  guestConsentAt: Date | null;
 
   /** uuid — vai no QR code */
   @Column({ unique: true })

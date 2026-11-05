@@ -5,6 +5,7 @@ const UNAVAILABLE_MESSAGE = "Verificação de segurança indisponível. Recarreg
 
 type TurnstileOptions = {
   sitekey: string;
+  action: string;
   callback: (token: string) => void;
   "error-callback": () => void;
   "expired-callback": () => void;
@@ -15,6 +16,7 @@ declare global {
     turnstile?: {
       render: (container: HTMLElement, options: TurnstileOptions) => string;
       remove: (widgetId: string) => void;
+      reset: (widgetId: string) => void;
     };
   }
 }
@@ -44,12 +46,17 @@ function loadTurnstileScript(): Promise<void> {
 
 interface TurnstileFieldProps {
   onTokenChange: (token: string) => void;
+  action?: string;
+  resetKey?: number;
 }
 
 export default function TurnstileField({
   onTokenChange,
+  action = "guest_claim",
+  resetKey = 0,
 }: Readonly<TurnstileFieldProps>): React.JSX.Element | null {
   const containerRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef = useRef<string | undefined>(undefined);
   const onTokenChangeRef = useRef(onTokenChange);
   const [error, setError] = useState<string | null>(null);
   const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY?.trim();
@@ -59,9 +66,13 @@ export default function TurnstileField({
   }, [onTokenChange]);
 
   useEffect(() => {
-    if (!siteKey) return;
+    if (!siteKey) {
+      if (import.meta.env.DEV && import.meta.env.MODE !== "production") {
+        onTokenChangeRef.current("development");
+      }
+      return;
+    }
     let active = true;
-    let widgetId: string | undefined;
 
     loadTurnstileScript()
       .then(() => {
@@ -71,8 +82,9 @@ export default function TurnstileField({
           onTokenChangeRef.current("");
           return;
         }
-        widgetId = window.turnstile.render(containerRef.current, {
+        widgetIdRef.current = window.turnstile.render(containerRef.current, {
           sitekey: siteKey,
+          action,
           callback: (token) => {
             if (!active) return;
             setError(null);
@@ -98,9 +110,18 @@ export default function TurnstileField({
 
     return () => {
       active = false;
-      if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
+      if (widgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(widgetIdRef.current);
+        widgetIdRef.current = undefined;
+      }
     };
-  }, [siteKey]);
+  }, [siteKey, action]);
+
+  useEffect(() => {
+    if (resetKey === 0 || !widgetIdRef.current || !window.turnstile) return;
+    window.turnstile.reset(widgetIdRef.current);
+    onTokenChangeRef.current("");
+  }, [resetKey]);
 
   if (!siteKey) {
     if (import.meta.env.MODE === "production") return null;

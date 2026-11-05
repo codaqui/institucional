@@ -97,6 +97,7 @@ describe('EventsService', () => {
   let githubDb: Record<string, jest.Mock>;
   let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
+  let hoursService: Record<string, jest.Mock>;
 
   beforeEach(() => {
     eventRepo = {
@@ -140,6 +141,10 @@ describe('EventsService', () => {
             create: (_target: unknown, d: unknown) =>
               registrationRepo.create(d),
             save: (...args: unknown[]) => registrationRepo.save(...args),
+            getRepository: () => ({
+              findOneBy: registrationRepo.findOneBy,
+              update: registrationRepo.update,
+            }),
           }),
         ),
       } as unknown as jest.Mock,
@@ -192,9 +197,13 @@ describe('EventsService', () => {
     eventOverridesService = {
       findByKeys: jest.fn().mockResolvedValue([]),
       findBySourceKey: jest.fn().mockResolvedValue([]),
+      upsert: jest.fn().mockResolvedValue({}),
     };
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
+    };
+    hoursService = {
+      recordEventCheckin: jest.fn().mockResolvedValue(undefined),
     };
 
     service = new EventsService(
@@ -214,6 +223,7 @@ describe('EventsService', () => {
       githubDb as any,
       eventOverridesService as any,
       reimbursementsService as any,
+      hoursService as any,
     );
   });
 
@@ -1337,6 +1347,25 @@ describe('EventsService', () => {
     });
   });
 
+  describe('updateEvent — workload compatibility', () => {
+    it('rejects removing the last valid workload from a non-legacy event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 60 }));
+
+      await expect(
+        service.updateEvent(uuid(10), { workloadMinutes: null }, adminUser),
+      ).rejects.toThrow(BadRequestException);
+      expect(eventRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('preserves updates for legacy events without workload', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: null }));
+
+      await expect(
+        service.updateEvent(uuid(10), { title: 'Evento legado' }, adminUser),
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe('createEvent — description', () => {
     const baseDto = {
       slug: 'evento-y',
@@ -1344,6 +1373,7 @@ describe('EventsService', () => {
       summary: 'Resumo',
       location: 'Maringá',
       startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
       communityProjectKey: 'devparana',
     };
 
@@ -1380,6 +1410,7 @@ describe('EventsService', () => {
       summary: 'Resumo',
       location: 'Maringá',
       startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
       communityProjectKey: 'devparana',
     };
 
@@ -1707,7 +1738,11 @@ describe('EventsService', () => {
       expect(result.status).toBe('checked_in');
       expect(eventOrganizerService.assertCanManage).not.toHaveBeenCalled();
       expect(registrationRepo.update).toHaveBeenCalledWith(
-        { id: registration.id, checkedInAt: expect.anything() },
+        {
+          id: registration.id,
+          checkedInAt: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
         expect.objectContaining({ checkedInByMemberId: checker.sub }),
       );
     });
@@ -1743,6 +1778,237 @@ describe('EventsService', () => {
         ),
       ).rejects.toThrow(BadRequestException);
       expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('guest registrations', () => {
+    it('rejects guest invites for events with any active paid ticket', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      ticketTypeRepo.findOneBy.mockResolvedValue(makeTicket({ kind: 'paid', priceCents: 5000 }));
+
+      await expect(service.createGuestInvite(uuid(10), adminUser))
+        .rejects.toThrow('Evento com ingressos pagos não aceita convidados.');
+    });
+
+    it('creates a pending invite and claims it exactly once', async () => {
+      const event = makeEvent({ workloadMinutes: 60 });
+      eventRepo.findOneBy.mockResolvedValue(event);
+      ticketTypeRepo.findOneBy.mockImplementation((where) =>
+        where.priceCents && typeof where.priceCents === 'object' ? null : makeTicket(),
+      );
+      ticketTypeRepo.query.mockResolvedValue([{ id: uuid(20) }]);
+      registrationRepo.countBy.mockResolvedValue(0);
+      const registration = {
+        id: uuid(40), eventId: event.id, ticketTypeId: uuid(20),
+        checkinToken: 'guest-token', status: RegistrationStatus.PENDING_GUEST,
+        isGuest: true, attendeeName: null, attendeeEmail: null,
+      };
+      registrationRepo.findOneBy.mockImplementation((where) =>
+        where.status && registration.status !== RegistrationStatus.PENDING_GUEST
+          ? null
+          : registration,
+      );
+      registrationRepo.update.mockImplementation((_where, values) => {
+        Object.assign(registration, values);
+        return { affected: 1 };
+      });
+
+      await service.claimGuestRegistration({
+        token: 'guest-token', name: 'Convidado', email: 'guest@example.test',
+        consent: true, turnstileToken: 'turnstile-token',
+      });
+
+      expect(registration.status).toBe(RegistrationStatus.CONFIRMED);
+      expect(registration.attendeeEmail).toBe('guest@example.test');
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('FOR UPDATE'),
+        [event.id],
+      );
+      await expect(service.claimGuestRegistration({
+        token: 'guest-token', name: 'Convidado', email: 'guest@example.test',
+        consent: true, turnstileToken: 'turnstile-token',
+      })).rejects.toThrow('Convite já utilizado ou indisponível.');
+    });
+
+    it('cancels a duplicate guest and returns quota atomically exactly once', async () => {
+      const guest = {
+        id: uuid(40), eventId: uuid(10), ticketTypeId: uuid(20),
+        memberId: null, isGuest: true, status: RegistrationStatus.CONFIRMED,
+        checkinToken: 'guest-token', checkedInAt: null,
+      };
+      registrationRepo.findOneBy.mockImplementation((where) => {
+        if (where.id === guest.id) return guest;
+        if (where.memberId === uuid(1) && where.eventId === guest.eventId) {
+          return { id: uuid(41), status: RegistrationStatus.CONFIRMED };
+        }
+        return null;
+      });
+      registrationRepo.update.mockImplementation((where, values) => {
+        if (where.status === RegistrationStatus.CONFIRMED && guest.status !== RegistrationStatus.CONFIRMED) {
+          return { affected: 0 };
+        }
+        Object.assign(guest, values);
+        return { affected: 1 };
+      });
+
+      await expect(service.linkGuestRegistration(guest as any, uuid(1)))
+        .resolves.toBe('duplicate_cancelled');
+      await expect(service.linkGuestRegistration(guest as any, uuid(1)))
+        .resolves.toBe('skipped');
+
+      expect(registrationRepo.update).toHaveBeenCalledTimes(1);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        {
+          id: guest.id,
+          memberId: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
+        { memberId: uuid(1), status: RegistrationStatus.CANCELLED },
+      );
+      expect(ticketTypeRepo.query).toHaveBeenCalledTimes(1);
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        expect.stringContaining('GREATEST'),
+        [1, uuid(20)],
+      );
+      expect(guest.checkinToken).toBe('guest-token');
+      expect(guest.checkedInAt).toBeNull();
+      expect(registrationRepo.manager.transaction).toHaveBeenCalledTimes(2);
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+      expect(ledgerService.recordTransaction).not.toHaveBeenCalled();
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
+    it('rejects pending guest at check-in', async () => {
+      registrationRepo.findOneBy.mockResolvedValue({
+        id: uuid(40), eventId: uuid(10), checkinToken: 'guest-token',
+        attendeeName: null, attendeeEmail: null,
+        status: RegistrationStatus.PENDING_GUEST,
+      });
+
+      await expect(service.checkin(uuid(10), 'guest-token', adminUser))
+        .rejects.toThrow('pending_guest');
+    });
+  });
+
+    it('anonymizes only unlinked guest data after the retention period', async () => {
+      const guest = {
+        id: uuid(40), memberId: null, attendeeName: 'Convidado',
+        attendeeEmail: 'guest@example.test', isGuest: true,
+      };
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        innerJoin: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([guest]),
+      });
+
+      await service.anonymizeExpiredGuests();
+
+      expect(guest.attendeeName).toBeNull();
+      expect(guest.attendeeEmail).toBeNull();
+      expect(registrationRepo.save).toHaveBeenCalledWith(guest);
+    });
+
+  describe('event hours', () => {
+    const registrationFor = (memberId: string | null) => ({
+      id: uuid(40),
+      eventId: uuid(10),
+      externalActivationId: null,
+      memberId,
+      attendeeName: 'Ana',
+      attendeeEmail: 'ana@example.test',
+      checkinToken: 'token-1',
+      checkedInAt: null,
+      status: RegistrationStatus.CONFIRMED,
+    });
+
+    it('credits event hours exactly once for a member check-in', async () => {
+      const registration = registrationFor(uuid(1));
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 90 }));
+
+      await service.checkin(uuid(10), 'token-1', adminUser);
+      registration.checkedInAt = new Date();
+      await service.checkin(uuid(10), 'token-1', adminUser);
+
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledTimes(1);
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledWith(
+        registration,
+        90,
+        expect.anything(),
+        'Evento X',
+      );
+    });
+
+    it('rejects a cancellation that wins the race without crediting hours', async () => {
+      const confirmed = registrationFor(uuid(1));
+      const cancelled = { ...confirmed, status: RegistrationStatus.CANCELLED };
+      registrationRepo.findOneBy
+        .mockResolvedValueOnce(confirmed)
+        .mockResolvedValueOnce(cancelled);
+      registrationRepo.update.mockResolvedValue({ affected: 0 });
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 60 }));
+
+      await expect(service.checkin(uuid(10), 'token-1', adminUser))
+        .rejects.toThrow('cancelled: check-in não permitido');
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        {
+          id: confirmed.id,
+          checkedInAt: expect.anything(),
+          status: RegistrationStatus.CONFIRMED,
+        },
+        expect.objectContaining({ checkedInByMemberId: adminUser.sub }),
+      );
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+      expect(auditService.log).not.toHaveBeenCalled();
+    });
+
+    it('does not credit guests or legacy events without workload', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(registrationFor(null));
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: null }));
+
+      await service.checkin(uuid(10), 'token-1', adminUser);
+
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('listMemberRegistrations', () => {
+    it('does not expose event history or certificate codes when events are hidden', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: false },
+      });
+
+      await expect(service.listMemberRegistrations(uuid(1))).resolves.toEqual([]);
+      expect(registrationRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('keeps visible event history without certificate codes when certificates are hidden', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: true, certificates: false },
+      });
+      eventRepo.findBy.mockResolvedValue([]);
+      activationRepo.findBy = jest.fn().mockResolvedValue([]);
+      registrationRepo.find.mockResolvedValue([
+        {
+          id: uuid(40),
+          memberId: uuid(1),
+          payerMemberId: uuid(1),
+          eventId: null,
+          externalActivationId: null,
+          checkedInAt: new Date('2026-01-01'),
+          checkinToken: 'private-token',
+          status: RegistrationStatus.CONFIRMED,
+          createdAt: new Date('2026-01-01'),
+        },
+      ]);
+
+      const result = await service.listMemberRegistrations(uuid(1));
+
+      expect(result).toHaveLength(1);
+      expect(result[0].verificationCode).toBeNull();
     });
   });
 });

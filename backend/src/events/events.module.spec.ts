@@ -18,6 +18,8 @@ import { EventOrganizerService } from '../event-organizer/event-organizer.servic
 import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
+import { HoursService } from '../hours/hours.service';
+import { TurnstileService } from '../common/turnstile/turnstile.service';
 
 const dummyRepo = {
   find: jest.fn(),
@@ -71,6 +73,8 @@ describe('EventsModule DI', () => {
         { provide: GitHubDBService, useValue: dummyService },
         { provide: EventOverridesService, useValue: dummyService },
         { provide: ReimbursementsService, useValue: dummyService },
+        { provide: HoursService, useValue: dummyService },
+        { provide: TurnstileService, useValue: dummyService },
       ],
     }).compile();
 

@@ -1,0 +1,114 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+---
+
+<PublicLayout
+  title="Política de Privacidade | CODAQUI.dev"
+  ogTitle="Política de Privacidade | CODAQUI.dev"
+  description="Como a Codaqui coleta, usa, compartilha e protege dados pessoais."
+>
+  <article class="mx-auto max-w-4xl px-4 py-10">
+    <header class="mb-8 rounded-2xl border border-border bg-surface p-6">
+      <p class="mb-2 text-sm font-bold uppercase tracking-wide text-primary-700">Privacidade e dados</p>
+      <h1 class="mb-3 text-3xl font-extrabold text-text-primary">Política de Privacidade</h1>
+      <p class="max-w-3xl text-text-secondary">
+        Esta página explica como a Associação Codaqui trata dados pessoais, com quem os compartilha,
+        por quanto tempo os mantém e quais controles e direitos você tem.
+      </p>
+      <p class="mt-3 text-sm text-text-secondary">Última revisão: 4 de novembro de 2026.</p>
+    </header>
+
+    <div class="prose-cq">
+      <h2 id="responsavel-e-contato">Responsável e contato</h2>
+      <p>
+        A Associação Codaqui, CNPJ 44.593.429/0001-05, é responsável pelos tratamentos descritos nesta
+        política. Para dúvidas e solicitações, use <a href="mailto:contato@codaqui.dev">contato@codaqui.dev</a>.
+      </p>
+
+      <h2 id="dados-e-finalidades">Dados e finalidades</h2>
+      <h3 id="visitantes">Visitantes</h3>
+      <p>
+        Usamos Google Analytics com IP mascarado para medir páginas, dispositivo e país e melhorar o site.
+        Não usamos esses dados para publicidade.
+      </p>
+      <h3 id="membros">Membros</h3>
+      <ul>
+        <li>GitHub ID, handle, nome, avatar, e-mail e e-mails verificados para autenticação e inscrições.</li>
+        <li>Bio, LinkedIn, roles, designations, data de entrada e histórico para perfil e representações.</li>
+        <li>Doações, assinaturas, SortCoins, eventos e certificados para apoio, participação e prestação de contas.</li>
+      </ul>
+      <h3 id="mentorandos">Mentorandos convidados e palestrantes C4P</h3>
+      <p>
+        Quando esses módulos estiverem ativos, nome, e-mail, tema, sessão, proposta e consentimento serão usados
+        para agendamento, comunicação e curadoria. Notas de avaliação nunca serão públicas e resultados dependerão de opt-in.
+      </p>
+      <h3 id="empresas">Empresas e participantes de eventos</h3>
+      <p>
+        CNPJ, responsável, assinatura e comprovantes apoiam a gestão empresarial. Nome, e-mail, ingresso,
+        presença e certificado permitem inscrição, check-in e verificação de participantes.
+      </p>
+      <h3 id="convidados">Convidados de eventos</h3>
+      <p>
+        Coletamos somente nome, e-mail e consentimento para inscrição, confirmação, lembrete e check-in.
+        A verificação antiabuso usa Cloudflare Turnstile. Se você criar uma conta com e-mail verificado,
+        a inscrição pode ser vinculada; se já houver inscrição no evento, a duplicada é cancelada.
+        Sem vínculo, nome e e-mail são anonimizados 12 meses após o evento, preservando token e presença.
+      </p>
+
+      <h2 id="visibilidade">Seus controles de visibilidade</h2>
+      <p>
+        Em <strong>Meus dados</strong>, na área do membro, você vê fonte e finalidade e escolhe o que aparece
+        no perfil público: bio, LinkedIn, papéis, data de entrada, eventos, certificados, horas, doações,
+        SortCoins e designations. Alterações passam a valer após refresh ou build aplicável e ficam auditadas.
+        <strong>E-mail nunca é público.</strong>
+      </p>
+
+      <h2 id="compartilhamento">Compartilhamento com operadores</h2>
+      <ul>
+        <li><strong>GitHub:</strong> OAuth, avatar, e-mails verificados, comentários Giscus e Discussions públicas.</li>
+        <li><strong>Stripe:</strong> cobrança, assinatura, reembolso e conciliação.</li>
+        <li><strong>Google:</strong> Analytics, SMTP/Gmail e comprovantes escolhidos pela equipe.</li>
+        <li><strong>Cloudflare:</strong> hospedagem, proxy e Turnstile. Não persistimos o token, apenas hash temporário anti-reuso.</li>
+        <li><strong>Dropbox, OneDrive e Imgur:</strong> somente para comprovantes escolhidos pela equipe; não fazemos upload pelo backend.</li>
+      </ul>
+      <p>Não vendemos, alugamos nem cedemos dados pessoais a terceiros.</p>
+
+      <h2 id="retencao">Retenção</h2>
+      <ul>
+        <li>Sessão JWT: até 7 dias; handoff OAuth: até 2 minutos.</li>
+        <li>Logs de e-mail: até 365 dias; logs operacionais de auditoria: 30 dias por padrão, configurável 7–365.</li>
+        <li>Logs de governança e designations: permanentes e sem IP.</li>
+        <li>Registros financeiros e de eventos: preservados conforme obrigação legal e prestação de contas.</li>
+        <li>Preferências de visibilidade: até você alterá-las em Meus dados.</li>
+      </ul>
+
+      <h2 id="criancas-e-adolescentes">Crianças e adolescentes</h2>
+      <p>
+        A Codaqui atende jovens e também usa aviso informativo 18+ em eventos específicos. Não coletamos nem
+        inferimos idade pelo aviso. O cadastro no GitHub não comprova maioridade. Tratamentos envolvendo menores
+        seguem a legislação aplicável e o consentimento de responsável quando exigido. Orientamos acompanhamento
+        de imagem e oferecemos canal para revisão ou remoção.
+      </p>
+
+      <h2 id="cookies">Cookies e armazenamento local</h2>
+      <p>
+        Usamos cookies de sessão e localStorage para autenticação e preferências de interface, como tema claro/escuro.
+        O Google Analytics também usa cookies de medição. Não usamos cookies de publicidade.
+      </p>
+
+      <h2 id="direitos">Seus direitos</h2>
+      <p>
+        Você pode solicitar confirmação e acesso, correção, portabilidade, eliminação quando cabível,
+        informação sobre compartilhamento e revogação do consentimento. Escreva para
+        <a href="mailto:contato@codaqui.dev">contato@codaqui.dev</a> com o assunto
+        <strong>LGPD — Direitos do Titular</strong>. Também é possível reclamar à Autoridade Nacional de Proteção de Dados (ANPD).
+      </p>
+
+      <h2 id="conduta">Documentos relacionados</h2>
+      <p>
+        Consulte também nosso <a href="/sobre/conduta">Código de Conduta</a> e o inventário técnico de tratamentos
+        mantido pela equipe em <code>docs/modules/privacy/</code>.
+      </p>
+    </div>
+  </article>
+</PublicLayout>

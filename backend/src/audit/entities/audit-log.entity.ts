@@ -17,6 +17,7 @@ export enum AuditAction {
   ROLE_DERIVED = 'member.role_derived',
   MEMBER_DEACTIVATE = 'member.deactivate',
   MEMBER_ACTIVATE = 'member.activate',
+  MEMBER_VISIBILITY_UPDATED = 'member.visibility_updated',
 
   // Designations
   DESIGNATION_GRANTED = 'designation.granted',
@@ -68,10 +69,18 @@ export enum AuditAction {
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
+  EVENT_GUEST_INVITED = 'event.guest_invited',
+  EVENT_GUEST_CLAIMED = 'event.guest_claimed',
+  EVENT_GUEST_LINKED = 'event.guest_linked',
 
   // E-mail
   EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',
   EMAIL_TEMPLATE_DELETED = 'email.template_deleted',
+
+  // Hours
+  HOUR_CREATED = 'hour.created',
+  HOUR_APPROVED = 'hour.approved',
+  HOUR_REJECTED = 'hour.rejected',
 
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
