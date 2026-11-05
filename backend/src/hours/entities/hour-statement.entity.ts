@@ -23,7 +23,7 @@ export class HourStatement {
 
   @Column({ type: 'numeric', precision: 8, scale: 2, transformer: {
     to: (value: number) => value,
-    from: (value: string) => Number(value),
+    from: Number,
   } })
   totalHours: number;
 

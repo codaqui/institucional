@@ -62,7 +62,7 @@ export class EventOrganizerOwnershipService {
     return { version: 1, ownerships: [...byMember.values()] };
   }
 
-  async findByMemberId(memberId: string): Promise<EventOrganizerOwnership | null> {
+  findByMemberId(memberId: string): Promise<EventOrganizerOwnership | null> {
     return this.repo.findOne({ where: { memberId } });
   }
 
@@ -167,7 +167,7 @@ export class EventOrganizerOwnershipService {
     });
   }
 
-  async reconcile(actor: JwtPayload) {
+  reconcile(actor: JwtPayload) {
     if (!actor.roles?.includes(MemberRole.ADMIN)) {
       throw new BadRequestException('Reconciliação de ownership requer admin.');
     }

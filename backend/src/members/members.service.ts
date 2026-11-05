@@ -291,7 +291,7 @@ export class MembersService {
     };
   }
 
-  async findMe(id: string): Promise<Member | null> {
+  findMe(id: string): Promise<Member | null> {
     return this.repo.findOne({ where: { id, isActive: true } });
   }
 

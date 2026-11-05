@@ -2167,7 +2167,7 @@ export class EventsService {
     return { id: request.id, status: request.status };
   }
 
-  async linkGuestRegistration(
+  linkGuestRegistration(
     guest: EventRegistration,
     memberId: string,
   ): Promise<'linked' | 'duplicate_cancelled' | 'skipped'> {
@@ -2294,7 +2294,7 @@ export class EventsService {
       throw new BadRequestException('Evento não está publicado.');
     }
     const ticketType = await this.ticketTypeRepo.findOneBy({ id: registration.ticketTypeId });
-    if (!ticketType || ticketType.priceCents !== 0) {
+    if (ticketType?.priceCents !== 0) {
       throw new BadRequestException('Convidados exigem um lote gratuito.');
     }
     const paidTicket = await this.ticketTypeRepo.findOneBy({

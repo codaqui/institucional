@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { And, EntityManager, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import type { EventRegistration } from '../events/entities/event-registration.entity';
-import { HourEntrySource } from './entities/hour-entry.entity';
+import { HourEntry, HourEntrySource, HourEntryStatus } from './entities/hour-entry.entity';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { DesignationsService } from '../designations/designations.service';
@@ -16,7 +16,6 @@ import { Member, MemberRole } from '../members/entities/member.entity';
 import { resolveProfileVisibility } from '../members/profile-visibility';
 import { CreateHourEntryDto } from './dto/create-hour-entry.dto';
 import { HourStatementQueryDto } from './dto/list-hours.dto';
-import { HourEntry, HourEntryStatus } from './entities/hour-entry.entity';
 import { HourStatement } from './entities/hour-statement.entity';
 
 @Injectable()
@@ -307,7 +306,7 @@ export class HoursService {
     if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime()) || from > to) {
       throw new ConflictException('Período inválido para a declaração de horas.');
     }
-    const toExclusive = new Date(to.getTime());
+    const toExclusive = new Date(to);
     toExclusive.setUTCDate(toExclusive.getUTCDate() + 1);
     return {
       memberId,
