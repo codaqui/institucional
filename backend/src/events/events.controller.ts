@@ -33,6 +33,8 @@ import {
 import { ActivateExternalDto, CheckinDto } from './dto/external.dto';
 import { GetTransactionsQueryDto } from '../ledger/dto/get-transactions-query.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
+import { ClaimGuestDto } from './dto/guest.dto';
+import { TurnstileGuard } from '../common/turnstile/turnstile.guard';
 
 @ApiTags('Events')
 @Controller('events')
@@ -647,6 +649,30 @@ export class EventsController {
     @Req() req: { user: JwtPayload },
   ) {
     return this.eventsService.checkinExternal(eventKey, dto.token, req.user);
+  }
+
+  @Get('public/guest-invites/:token')
+  @ApiOperation({ summary: 'Dados públicos mínimos de um convite de evento' })
+  getGuestInvite(@Param('token') token: string) {
+    return this.eventsService.getGuestInvite(token);
+  }
+
+  @Post('public/guest-claim')
+  @UseGuards(TurnstileGuard)
+  @ApiOperation({ summary: 'Confirma uma inscrição de convidado com Turnstile' })
+  claimGuest(@Body() dto: ClaimGuestDto) {
+    return this.eventsService.claimGuestRegistration(dto);
+  }
+
+  @Post(':id/guest-invites')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Emite um convite de convidado para evento gratuito' })
+  createGuestInvite(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.createGuestInvite(id, req.user);
   }
 
   // ── Inscrição / checkout (membro logado) ─────────────────────────────────

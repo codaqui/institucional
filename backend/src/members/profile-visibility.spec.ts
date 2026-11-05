@@ -12,6 +12,7 @@ describe('profile visibility', () => {
     expect(DEFAULT_PROFILE_VISIBILITY.bio).toBe(true);
     expect(DEFAULT_PROFILE_VISIBILITY.linkedin).toBe(true);
     expect(DEFAULT_PROFILE_VISIBILITY.sortcoins).toBe(true);
+    expect(DEFAULT_PROFILE_VISIBILITY.badge).toBe(true);
     expect(PROFILE_VISIBILITY_KEYS).not.toContain('email');
   });
 

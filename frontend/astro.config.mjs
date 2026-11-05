@@ -25,7 +25,7 @@ const https =
 // Páginas que não entram no sitemap: noindex (404, fallback de evento,
 // stubs de redirect legado) e rotas de app das fases 0.4+ (admin, auth).
 const SITEMAP_EXCLUDE =
-  /^\/(404|busca$|eventos\/detalhe|eventos\/comprovante|quero\/|team$|contact$|conduta$|ong$|timeline$|sobre\/timeline$|pais_responsaveis$|blog\/archive\/|admin(?:\/|$)|auth(?:\/|$)|membro(?:\/|$)|membros\/empresa)/;
+  /^\/(404|busca$|eventos\/detalhe|eventos\/comprovante|eventos\/convite|quero\/|team$|contact$|conduta$|ong$|timeline$|sobre\/timeline$|pais_responsaveis$|blog\/archive\/|admin(?:\/|$)|auth(?:\/|$)|membro(?:\/|$)|membros\/empresa)/;
 
 export default defineConfig({
   srcDir: tenantDef ? `./src-tenants/${tenantDef.tenant}` : "./src",

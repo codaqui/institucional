@@ -35,7 +35,7 @@ describe('default-templates', () => {
       expect(def.subject.length).toBeGreaterThan(0);
       expect(def.bodyMarkdown.length).toBeGreaterThan(0);
       const sample = def.sample();
-      // checkinUrl é derivada em tempo de render (FRONTEND_URL + /membro),
+      // checkinUrl é derivada em tempo de render conforme membro/guest,
       // não é propriedade do EmailTemplateContext.
       const sampleKeys = new Set([...Object.keys(sample), 'checkinUrl']);
       for (const variable of def.variables) {

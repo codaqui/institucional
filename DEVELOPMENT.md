@@ -273,7 +273,7 @@ Pela raiz, os atalhos `make backend-start`, `make backend-build`, `make backend-
 | `StorageModule` | `POST /storage/validate-receipt-url` | Valida URLs de comprovante: exige HTTPS e hostname em allowlist (Google Drive/Docs, Dropbox, OneDrive/1drv.ms, Imgur). Os arquivos ficam nos serviços confiáveis (upload manual pelo time); o backend não usa S3/MinIO/disco. |
 | `AuditModule` | `GET /audit/logs` · `POST /audit/cleanup` | Logs de governo permanentes e sem IP; somente operacionais expiram pela política efetiva. |
 
-O Turnstile possui `TurnstileService`, `TurnstileGuard` e `TurnstileField`, mas **nenhuma rota existente usa o guard na Fase 1a**. Não documente nem trate formulários atuais como protegidos por Turnstile sem aplicar e testar o guard explicitamente.
+Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. O widget depende de `PUBLIC_TURNSTILE_SITE_KEY` no build; o backend exige `TURNSTILE_SECRET_KEY` e restringe o hostname por `TURNSTILE_ALLOWED_HOSTNAMES`. O token `development` é aceito somente fora de produção, com aviso e sem secret configurado; produção sem secret falha fechada e nunca simula sucesso.
 
 ### Swagger / OpenAPI
 
@@ -381,8 +381,8 @@ Baseie-se no `.env.example`. Variáveis principais:
 | `GITHUB_BASE_BRANCH` | Backend | Branch base de leitura/escrita do GitHub-as-Database (default: `main`). Em dev use `develop` — os PRs/merges locais vão para lá, e sem a env o backend não enxerga overrides/snapshots |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_SECURE` / `SMTP_USER` / `SMTP_PASS` / `EMAIL_FROM` | Backend | E-mails transacionais via SMTP. Sem credenciais, envios viram `skipped` + `SMTP_NOT_CONFIGURED`, não contam como falha e podem ser reenviados depois por `/notifications/emails/:id/resend` |
 | `AUDIT_OPERATIONAL_RETENTION_DAYS` | Backend | Fallback da retenção de logs operacionais (7–365; default 30). O setting admin vence a env; governo nunca expira |
-| `TURNSTILE_SECRET_KEY` / `TURNSTILE_ALLOWED_HOSTNAMES` | Backend | Infraestrutura opt-in do Turnstile. Nenhuma rota atual usa o guard; produção sem secret falha fechada quando ele for aplicado |
-| `PUBLIC_TURNSTILE_SITE_KEY` | Frontend | Renderiza `TurnstileField`; sem chave não há widget nem token simulado |
+| `TURNSTILE_SECRET_KEY` / `TURNSTILE_ALLOWED_HOSTNAMES` | Backend | Obrigatórias para o guest claim em produção: secret do siteverify e lista de hostnames exatos, separados por vírgula. Produção sem secret falha fechada; o fallback `development` só vale fora de produção |
+| `PUBLIC_TURNSTILE_SITE_KEY` | Frontend | Site key pública que renderiza `TurnstileField`. Configurar como Variable do GitHub Actions; o `deploy-astro.yml` a entrega ao build de todos os sites. Sem ela não há widget nem token simulado em produção |
 | `BACKEND_URL` | Backend | URL pública do backend (default: `http://localhost:3001`; `make setup-https` ajusta para HTTPS) |
 | `PUBLIC_API_URL` | Frontend | URL da API usada pelo Compose e pelas ilhas (default: `http://localhost:3001`; `make setup-https` ajusta para HTTPS) |
 | `FRONTEND_URL` | Backend | URL base do frontend para redirects/links (default: `http://localhost:3000`; `make setup-https` ajusta para HTTPS) |
@@ -634,6 +634,9 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 | `CLOUDFLARE_API_TOKEN` | **Secret** | `deploy-astro` | Token de API da Cloudflare com escopo mínimo *Cloudflare Pages:Edit* no account. Opcional — sem ele o workflow faz o build mas pula o deploy. |
 | `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
 | `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `deploy-astro` | Chave pública Stripe (`pk_live_...`) reexportada como `PUBLIC_STRIPE_PUBLISHABLE_KEY` no build. Sem isso o botão de doação fica desativado. |
+| `PUBLIC_TURNSTILE_SITE_KEY` | **Variable** (não secret) | `deploy-astro` | Site key pública do Cloudflare Turnstile, encaminhada ao build dos quatro sites. Sem ela o guest claim não renderiza o widget e o DTO rejeita o token vazio. |
+
+Na publicação do guest claim, configure também `TURNSTILE_SECRET_KEY` e `TURNSTILE_ALLOWED_HOSTNAMES` no backend. Depois do deploy do backend e do frontend, abra um convite real, confirme que o widget renderiza sem erro e conclua um claim real, verificando token emitido pelo Cloudflare, hostname aceito, consentimento e QR. Testes locais com token `development` não substituem essa validação.
 
 > **Como obter o GitHub App:**
 > Crie um GitHub App em *Settings → Developer settings → GitHub Apps* com permissão de escrita em `Contents` do repositório, gere uma chave privada (`.pem`) e use seu conteúdo como valor de `GH_APP_PRIVATE_KEY`.

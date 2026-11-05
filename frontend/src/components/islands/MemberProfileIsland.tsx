@@ -1,7 +1,7 @@
 // Port das partes dinâmicas de src/pages/membros/perfil.tsx (Docusaurus) para
 // ilha React (MUI v9, deep imports). Duas variantes:
-// - "public": seções dinâmicas públicas (doações, eventos, carteira pública,
-//   afiliação) para a rota estática /@<handle> — o cartão do membro já é HTML
+// - "public": seções dinâmicas públicas (horas, selo, doações, eventos,
+//   carteira pública, afiliação) para a rota estática /@<handle> — o cartão do membro já é HTML
 //   estático na página .astro.
 // - "full": perfil completo (carteirinha + QR + seções auth do dono) para
 //   /membros/perfil?handle= — fallback dinâmico e visão do próprio membro.
@@ -42,6 +42,9 @@ import TokenIcon from "@mui/icons-material/Token";
 import { QRCodeSVG } from "qrcode.react";
 import MuiIslandProvider from "./MuiIslandProvider";
 import ClubWalletTransactionsTable from "./ClubWalletTransactionsTable";
+import HoursSummary from "./member/profile/HoursSummary";
+import ProfileBadges from "./member/profile/ProfileBadges";
+import ProfileTimeline, { type PublicHourEntry } from "./member/profile/ProfileTimeline";
 import { resolveApiUrl } from "../../lib/api-url";
 import { useAuth } from "../../lib/use-auth";
 import { PLATFORM_COLORS } from "../../data/social";
@@ -87,6 +90,15 @@ interface PublicAffiliation {
   responsibleGithubHandle: string | null;
 }
 type BusinessMembershipType = "owner" | "collaborator";
+
+interface PublicHoursMember {
+  memberId: string;
+  githubHandle: string;
+  name: string;
+  joinedAt?: string;
+  badge: boolean;
+  totalHours?: number;
+}
 
 /** Inscrição em evento (endpoint público /events/members/:memberId/registrations). */
 interface PublicEventRegistration {
@@ -710,6 +722,8 @@ function MemberProfileInner({
   const [affiliatedCompany, setAffiliatedCompany] = useState<PublicAffiliation | null>(null);
   const [businessMembershipType, setBusinessMembershipType] = useState<BusinessMembershipType | null>(null);
   const [eventRegistrations, setEventRegistrations] = useState<PublicEventRegistration[]>([]);
+  const [publicHoursMember, setPublicHoursMember] = useState<PublicHoursMember | null>(null);
+  const [publicHourEntries, setPublicHourEntries] = useState<PublicHourEntry[]>([]);
   const [activeTab, setActiveTab] = useState(0);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>; a rota estática /@<handle>
@@ -857,6 +871,38 @@ function MemberProfileInner({
       .catch(() => setAffiliatedCompany(null));
   }, [apiUrl, member]);
 
+  useEffect(() => {
+    let active = true;
+    setPublicHoursMember(null);
+    setPublicHourEntries([]);
+    if (!member) return () => { active = false; };
+
+    void (async () => {
+      try {
+        const response = await fetch(`${apiUrl}/hours/public`);
+        if (!response.ok) return;
+        const payload = (await response.json()) as PublicHoursMember[];
+        if (!Array.isArray(payload)) return;
+        const allowed = payload.find((entry) => entry.memberId === member.id) ?? null;
+        if (!active) return;
+        setPublicHoursMember(allowed);
+        if (!allowed || typeof allowed.totalHours !== "number" || !Number.isFinite(allowed.totalHours)) return;
+
+        const summaryResponse = await fetch(`${apiUrl}/hours/members/${member.id}/summary`);
+        if (!summaryResponse.ok) return;
+        const summary = (await summaryResponse.json()) as { entries?: PublicHourEntry[] };
+        if (active) setPublicHourEntries(Array.isArray(summary.entries) ? summary.entries : []);
+      } catch {
+        if (active) {
+          setPublicHoursMember(null);
+          setPublicHourEntries([]);
+        }
+      }
+    })();
+
+    return () => { active = false; };
+  }, [apiUrl, member]);
+
   // Histórico público de eventos do membro (inscrições + presença).
   useEffect(() => {
     if (!member) return;
@@ -900,8 +946,25 @@ function MemberProfileInner({
     updateMemberHead(member, canonicalUrl, description);
   }, [isFull, member, canonicalUrl, isDonor]);
 
+  const showPublicHours = typeof publicHoursMember?.totalHours === "number" && Number.isFinite(publicHoursMember.totalHours);
+  const showPublicBadge = publicHoursMember?.badge === true;
   const dynamicSections = member && (
     <>
+      {(showPublicHours || showPublicBadge) && publicHoursMember && (
+        <>
+          {showPublicHours && (
+            <>
+              <HoursSummary totalHours={publicHoursMember.totalHours!} />
+              <ProfileTimeline entries={publicHourEntries} />
+            </>
+          )}
+          {showPublicBadge && (
+            <ProfileBadges name={member.name} githubHandle={member.githubHandle} />
+          )}
+          <Divider sx={{ my: 3 }} />
+        </>
+      )}
+
       {/* Histórico público de eventos */}
       <EventHistorySection registrations={eventRegistrations} />
 

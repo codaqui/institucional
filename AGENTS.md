@@ -7,7 +7,7 @@ sections:
   - Tech Stack (site Astro + multi-tenant Pages + backend NestJS)
   - Commands (gates por build, frontend, backend, scripts de sync)
   - Directory Structure
-  - Critical Architecture Decisions (design tokens, build matrix, proxy same-origin, conteúdo canônico, eventos, ledger financeiro, blog SEO)
+  - Critical Architecture Decisions (design tokens, build matrix, proxy same-origin, conteúdo canônico, eventos, ledgers financeira e de horas, badges, blog SEO)
   - Padrões de UI/Listagem pós-Fase 0 (paginação padronizada, admonitions, doc da API no site, header/menus, analytics com fallback, dados de comunidade enriquecidos)
   - Common Anti-Patterns
   - Git Workflow & Deployment (Cloudflare Pages, branch deployments)
@@ -27,7 +27,8 @@ related-docs:
   - docs/adrs/004-multisite-communities.md — multi-tenant frontend
   - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
   - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
-  - docs/modules/events/CODE_MANUAL.md — manual prático do módulo de eventos e áreas adjacentes
+  - docs/adrs/013-hour-ledger.md — horas, ownership, guests, declarações e badges da Fase 2
+  - docs/modules/events/CODE_MANUAL.md — manual prático de eventos, horas, ownership e guests
   - docs/modules/events/ROLES.md — papéis manuais, derivados e staff de eventos
   - docs/modules/community/COMMUNITY_SITES.md — registro e conteúdo whitelabel das comunidades
   - docs/modules/insights/SOCIAL_STATS.md — estatísticas e presença digital
@@ -161,6 +162,7 @@ cd backend && npx jest --silent  # testes unitários
 # Scripts de sync (raiz — leves, sem install pesado)
 npm run test:scripts             # node --test scripts/*.test.mjs
 npm run sync                     # eventos + social-stats + analytics → static/
+npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
@@ -182,6 +184,7 @@ institucional/
 │   │   ├── github-db/           # GitHubDBService — ⚠️ legado: só force-sync de snapshot interno
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
+│   │   ├── hours/               # ⭐ Fase 2/ADR 013: hour_ledger separada, aprovações, declarações e totais públicos
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -193,7 +196,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (Fase 1a: 026–031)
+│   │   └── migrations/          # TypeORM migrations (até 035; Fase 2: 033–035)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -223,12 +226,12 @@ institucional/
 ├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
 │   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
 │   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
-├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, social-stats/, analytics/, img/)
+├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, social-stats/, analytics/, badges/, img/)
 ├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   └── *.mjs                    # sync-events / sync-communities / sync-social-stats / sync-analytics (+ testes .test.mjs)
-│                                #    (syncs legados leem data files canônicos; communities lê a API PostgreSQL)
+│   └── *.mjs                    # sync-events / sync-communities / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
+│                                #    (syncs legados leem data files; communities/badges leem a API PostgreSQL)
 ├── docs/                        # Documentação técnica (ADRs, módulos, planos)
-├── .github/workflows/           # 7 workflows (ver Git Workflow & Deployment)
+├── .github/workflows/           # 8 workflows (ver Git Workflow & Deployment)
 └── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
 ```
 
@@ -265,7 +268,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|social-stats|analytics/index.json` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild.
+- Snapshots (`static/events|communities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -425,7 +428,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
 - `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. Regras de `mentor` e `gestor_universitario` existem, mas seus módulos continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
 - Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
-- **Não existe `hour_ledger` na Fase 1a**; horas, aprovações e certificados de horas ficam para fase futura.
+- **Baseline histórico da Fase 1a:** naquele recorte não existia `hour_ledger`; horas, aprovações e declarações ficavam para fase futura. **A Fase 2 introduziu** `backend/src/hours/` e a migration 033 — ver decisão 24 e [ADR 013](docs/adrs/013-hour-ledger.md).
 
 ### 19. Registro de comunidades (Fase 1a — ADR 007)
 
@@ -446,15 +449,21 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `GET /ledger/accounts/:id/transactions/export` é público no conjunto da conta; `GET /ledger/transactions/export` exige admin/finance-analyzer. `from`/`to` são compartilhados com a listagem, `to` inclui o dia inteiro e o CSV exporta todas as linhas do range, com BOM e escape de formula injection.
 - `auditCategory()` separa `governance` (permanente, sem IP) de `operational` (expira). `GET/PUT /settings/audit-retention` configura 7–365 dias; setting vence `AUDIT_OPERATIONAL_RETENTION_DAYS` (default 30). `POST /audit/cleanup`, cron e startup usam a mesma política e nunca apagam governo.
 
-### 22. Turnstile opt-in (G3)
+### 22. Turnstile no guest claim (G3)
 
 - `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_ALLOWED_HOSTNAMES`.
-- **Nenhuma rota existente usa `TurnstileGuard` na Fase 1a.** Sem secret, desenvolvimento faz warn/no-op; produção falha fechada quando o guard for aplicado. `TurnstileField` só renderiza o widget com `PUBLIC_TURNSTILE_SITE_KEY`.
+- Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. Sem secret, desenvolvimento faz warn/no-op e aceita o token `development`; produção falha fechada. `TurnstileField` só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, mapeada de `vars` no build do `deploy-astro.yml`.
 
 ### 23. ECA — eventos 18+ informativos
 
 - Migration 031: `managed_events.adultOnly` boolean default false + `venueType` (`bar`, `restaurante`, `auditorio`, `campus`, `online`, `outro`). Managed events serializam ambos; overrides externos aceitam `adultOnly` boolean.
 - Bar/restaurante a partir das 18h apenas sugere 18+ no formulário; ação humana marca. Badge `+18` e aviso estático não bloqueiam inscrição, não coletam idade/documento e não removem página do sitemap. Mudança pós-publicação grava auditoria de governo com antes/depois.
+
+### 24. Fase 2 — horas e badges (ADR 013)
+
+- `backend/src/hours/` implementa `hour_ledger` separada da ledger financeira, aprovação/rejeição com audit, crédito exactly-once no check-in, extrato/summary e declarações sem prazo de validade. Somente `event_checkin` e `directorate_activity` estão ativos; não há backfill nem horas retroativas de guests. Decisões completas: [ADR 013](docs/adrs/013-hour-ledger.md).
+- `profileVisibility.hours`, `memberSince` e `badge` controlam independentemente totais/timeline, ano e selo. `scripts/sync-member-badges.mjs` lê `GET /hours/public`, valida a resposta completa e escreve `static/badges/<handle>.svg` atomicamente; falhas preservam/restauram arquivos anteriores.
+- O workflow `sync-member-badges.yml` roda diariamente às **06:17 UTC** e por dispatch, e `copy-snapshots.mjs` copia os SVGs no build. **Gate de release:** depois do backend publicado, o sync inicial deve concluir com sucesso **antes da publicação do frontend**; não gerar SVGs de membros reais no branch de implementação. Publicação, redeploy e sync inicial continuam pendentes até evidência externa.
 
 ---
 
@@ -494,7 +503,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 7 workflows)
+### CI/CD (`.github/workflows/` — 8 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -505,6 +514,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
+| `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
 
 ### Commit Convention
 
@@ -610,6 +620,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
+| Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |
 | New tenant onboarding | As needed | `frontend/tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md) |
 | Dependencies | Quarterly | `frontend/package.json` → `npm update` |
 

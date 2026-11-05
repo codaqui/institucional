@@ -11,4 +11,5 @@ export class UpdateProfileVisibilityDto {
   @IsOptional() @IsBoolean() donations?: boolean;
   @IsOptional() @IsBoolean() sortcoins?: boolean;
   @IsOptional() @IsBoolean() designations?: boolean;
+  @IsOptional() @IsBoolean() badge?: boolean;
 }

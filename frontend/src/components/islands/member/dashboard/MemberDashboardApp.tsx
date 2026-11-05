@@ -28,6 +28,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import EventIcon from "@mui/icons-material/Event";
 import PrintIcon from "@mui/icons-material/Print";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
+import ScheduleIcon from "@mui/icons-material/Schedule";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../../admin/ui/PageContainer";
 import TabPanel from "../../admin/ui/TabPanel";
@@ -381,6 +382,17 @@ function MemberDashboardInner() {
       />
 
       <Divider sx={{ my: 3 }} />
+
+      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+        <Button
+          component="a"
+          href="/membro/horas"
+          variant="outlined"
+          startIcon={<ScheduleIcon />}
+        >
+          Minhas horas
+        </Button>
+      </Box>
 
       {/* ── Tabs ── */}
       <Tabs

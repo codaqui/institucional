@@ -27,6 +27,7 @@ export interface EventRegistration {
   status: string;
   checkedInAt: string | null;
   checkinToken: string;
+  isGuest: boolean;
   member: {
     id: string;
     name: string | null;

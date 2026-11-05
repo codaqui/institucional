@@ -97,7 +97,10 @@ export class EmailTemplateService {
       ticketTypeName: ctx.ticketTypeName ?? '',
       checkinToken: ctx.checkinToken ?? '',
       eventLocation: ctx.eventLocation ?? '',
-      checkinUrl: `${this.frontendUrl}/membro`,
+      checkinUrl:
+        ctx.isGuest && ctx.checkinToken
+          ? `${this.frontendUrl}/eventos/convite?token=${encodeURIComponent(ctx.checkinToken)}`
+          : `${this.frontendUrl}/membro`,
     };
   }
 

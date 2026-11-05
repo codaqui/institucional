@@ -60,6 +60,7 @@ interface InternalEventAccordionProps {
   onPublish: (event: ManagedEvent) => void;
   onCancel: (event: ManagedEvent) => void;
   onOrdersClick: (eventId: string, title: string) => void;
+  onGuestInvite: (event: ManagedEvent) => void;
   onReimbursementClick: (event: ManagedEvent) => void;
   onAddTicketClick: (event: ManagedEvent) => void;
   onEditTicket: (event: ManagedEvent, ticket: TicketType) => void;
@@ -87,6 +88,7 @@ export default function InternalEventAccordion({
   onPublish,
   onCancel,
   onOrdersClick,
+  onGuestInvite,
   onReimbursementClick,
   onAddTicketClick,
   onEditTicket,
@@ -167,6 +169,11 @@ export default function InternalEventAccordion({
               onClick={() => onPublish(event)}
             >
               Publicar
+            </Button>
+          )}
+          {event.status === "published" && (
+            <Button size="small" variant="outlined" onClick={() => onGuestInvite(event)}>
+              Convidado — gerar link/QR
             </Button>
           )}
           <Tooltip

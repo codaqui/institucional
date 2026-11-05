@@ -1,20 +1,20 @@
 <!-- AGENT-INDEX
-purpose: Manual prático do código para futuros agents trabalharem no módulo de eventos e áreas adjacentes.
+purpose: Manual prático do código para futuros agents trabalharem em eventos, horas, ownership e guests.
 audience: AI agents, mantenedores
 sections:
   - Onde vive cada funcionalidade
   - Fluxos principais (criar evento, vender ingresso, check-in, certificado, reconciliação de quota)
   - Páginas estáticas por evento (SEO/OG)
-  - Convensões e anti-patterns
+  - Horas, ownership, guests, declarações e badges
   - E1 — e-mails skipped/resend/summary
   - R1 — filtros e exportação CSV server-side
-  - G6, Turnstile opt-in e classificação informativa 18+
+  - G6, Turnstile e classificação informativa 18+
   - Convenções, testes e debug
-  - Dicas de debug
 related-docs:
   - AGENTS.md — guia geral do monorepo
   - ./ROLES.md — mapa de papéis
-  - ../adrs/001-event-platform.md — decisões arquiteturais da plataforma de eventos
+  - ../../adrs/001-event-platform.md — plataforma de eventos
+  - ../../adrs/013-hour-ledger.md — horas, ownership, guests e badges
 -->
 
 # Manual do Código — Módulo de Eventos
@@ -28,12 +28,14 @@ related-docs:
 | Entidades (eventos, ingressos, orders, registrations, staff, ativações) | `events/entities/*.entity.ts` |
 | Regras de negócio + permissões | `events/events.service.ts` |
 | Endpoints HTTP | `events/events.controller.ts` |
+| Ledger de horas e declarações | `hours/hours.service.ts`, `hours/hours.controller.ts`, `hours/entities/` |
+| Carga e crédito no check-in | `hours/event-hours.ts`, `hours/hours.service.ts`, `events/events.service.ts` |
 | Webhook Stripe para ingressos | `stripe/stripe.service.ts` (`handleEventTicketCheckoutCompleted`) |
-| Ledger / transparência | `ledger/ledger.service.ts`, `ledger/ledger.controller.ts` |
+| Ledger financeira / transparência | `ledger/ledger.service.ts`, `ledger/ledger.controller.ts` |
 | E-mails transacionais | `notifications/email.service.ts` |
-| Overrides de eventos (novo: persistidos no PostgreSQL) | `events/event-overrides.service.ts`, `events/event-overrides.controller.ts` |
+| Overrides de eventos (persistidos no PostgreSQL) | `events/event-overrides.service.ts`, `events/event-overrides.controller.ts` |
 | GitHub-as-Database (apenas snapshots internal:codaqui) | `github-db/github-db.service.ts` |
-| Ownership de eventos externos (PostgreSQL) | `event-organizer/event-organizer-ownership.service.ts` |
+| Ownership canônico + dual-write legado | `event-organizer/event-organizer-ownership.service.ts`, `event-organizer/ownership-reconciliation.ts` |
 | Match de participantes CSV | `events/events.service.ts` (`importParticipants`, `findMemberByIdentifier`) |
 | Reembolsos vinculados a evento | `reimbursements/reimbursements.service.ts`, `events/events.service.ts` |
 | Papéis e permissões | `members/entities/member.entity.ts`, `auth/guards/roles.guard.ts` |
@@ -44,10 +46,13 @@ related-docs:
 |----------------|-----------------------|
 | Listagem pública de eventos | `pages/eventos/index.astro`, `lib/events.ts`, `lib/events-api.ts` |
 | Detalhe do evento | `pages/eventos/detalhe.astro` (redirect para a estática) + `pages/eventos/[...path].astro` (página estática SEO/OG por evento) |
+| Convite e claim guest | `pages/eventos/convite.astro`, `components/islands/events/GuestClaimIsland.tsx` |
 | Hub admin de eventos | `pages/admin/eventos.astro` (`components/islands/admin/eventos/EventosAdminApp.tsx`) |
 | Check-in | `pages/admin/eventos-checkin.astro` (`components/islands/admin/checkin/CheckinApp.tsx`) |
 | Perfil do membro (inscrições/certificados) | `pages/membro/index.astro` (`components/islands/member/`) |
-| Perfil público (histórico de eventos) | `pages/membros/perfil.astro`, `pages/[...handle].astro` |
+| Horas do membro e declaração | `pages/membro/horas.astro`, `components/islands/member/hours/MemberHoursApp.tsx` |
+| Aprovação de horas | `pages/admin/horas.astro`, `components/islands/admin/hours/HoursApprovalsApp.tsx` |
+| Perfil público, horas, timeline e selo | `pages/membros/perfil.astro`, `pages/[...handle].astro`, `components/islands/member/profile/` |
 | Overrides e ativações | `pages/admin/overrides.astro` (`components/islands/admin/overrides/`) |
 | Componente de pedidos | `components/islands/admin/events/EventOrdersDialog.tsx` |
 | Componente de lançar despesa de evento | `components/islands/admin/events/EventReimbursementDialog.tsx` |
@@ -59,14 +64,15 @@ related-docs:
 
 | Papel (role) | Onde é verificado | O que pode fazer no módulo de eventos |
 |---|---|---|
-| `admin` | `RolesGuard` | Tudo em todos os eventos. |
-| `event_organizer` | `EventsService.canManageAll`, ownership em `event_organizer_ownership` | Criar/editar/publicar eventos próprios; criar overrides de eventos externos que possui; ativar features em eventos externos que possui; gerenciar staff de eventos próprios; ver relatórios; lançar despesas. |
+| `admin` | `RolesGuard` | Tudo em todos os eventos; aprova/rejeita horas e reconcilia ownership. |
+| `finance-analyzer` | `RolesGuard` + service de horas | Aprova/rejeita horas pendentes, sem acesso financeiro adicional por isso. |
+| `event_organizer` | `EventsService.canManageAll`, `organizer @ event` | Criar/editar/publicar eventos próprios; criar overrides e ativar features em eventos externos que possui; gerenciar staff; ver relatórios; lançar despesas. |
 | `event_finance` | `RolesGuard` | Aprovar reembolsos; ver relatórios financeiros; exportar pedidos. |
-| `event_host` | `event_staff.staffRole === 'host'` | Editar próprio evento; ver inscritos/pedidos; check-in; certificados; despesa. |
+| `event_host` | `event_staff.staffRole === 'host'` | Editar próprio evento; ver inscritos/pedidos; check-in; certificados; convites guest; despesa. |
 | `event_checker` | `event_staff.staffRole === 'checker'` | **Apenas** check-in (scanner + busca mínima). |
-| `membro` | `JwtAuthGuard` | Comprar/reservar ingressos; ver próprias inscrições; emitir certificado. |
+| `membro` | `JwtAuthGuard` | Comprar/reservar ingressos; ver próprias inscrições; emitir certificado e declaração de horas. |
 
-> Para eventos externos, o organizer precisa de **ownership** (`event_organizer_ownership`) além do role.
+> Para eventos externos, o organizer precisa da role global **e** de designation `organizer @ event` compatível com o scope. A tabela legada continua sem drop e em dual-write.
 > Para eventos próprios, o organizer/admin usa `event_staff` para delegar `host`/`checker`.
 
 ## 2. Fluxos principais
@@ -76,7 +82,9 @@ related-docs:
 1. `POST /events` (organizer/admin) → `ManagedEvent` status `draft`.
    Campos: `slug`, `title`, `summary` (texto curto), `description` (opcional,
    texto longo simples com quebras de linha, máx. 10000 chars), `imageUrl`,
-   `location`, `startAt`/`endAt`, `timezone`, `communityProjectKey`, `capacity`.
+   `location`, `startAt`/`endAt`, `timezone`, `communityProjectKey`, `capacity` e
+   `workloadMinutes`. A criação exige carga explícita positiva ou duração válida;
+   uma edição não pode deixar sem carga um evento que já a possuía.
    `description` vai junto no snapshot (`toEventItem`) e no detalhe público
    (`serializeEvent`) quando preenchida.
 2. `POST /events/:id/ticket-types` → cria lotes.
@@ -90,15 +98,17 @@ related-docs:
 2. Backend reserva quota (`reserveQuota`) e cria `EventOrder` `pending`.
 3. Stripe Checkout Session é criada com metadata `entityType: event-ticket`.
 4. Webhook `checkout.session.completed` marca order `paid`, gera registrations e
-   registra no ledger (`event-ticket:<orderId>`).
+   registra no ledger financeiro (`event-ticket:<orderId>`).
 5. Receita cai na conta da comunidade (`communityProjectKey`).
 
-### 2.3 Check-in
+### 2.3 Check-in e horas automáticas
 
-1. Participante vê QR em `/membro` (aba Eventos) ou no e-mail.
+1. Participante vê QR em `/membro` (aba Eventos), no e-mail ou na página pública do convite guest após o claim.
 2. Organizador acessa `/admin/eventos-checkin?event=<id>`.
-3. Scanner lê o token e chama `POST /events/:id/checkin`.
+3. Scanner lê o token e chama `POST /events/:id/checkin` ou `POST /events/external/:eventKey/checkin`.
 4. Resposta idempotente: `checked_in` ou `already_checked_in`.
+5. Somente a transição atômica `checkedInAt null → valor` com `status=confirmed` pode gerar `event_checkin`, na mesma transação. Se o update perder a corrida, a releitura diferencia `already_checked_in` de cancelamento/outro estado recusado. O crédito exige `memberId` e carga válida, nasce `approved` e usa `INSERT ... ON CONFLICT DO NOTHING`: hora preexistente não aborta o check-in nem duplica. Guests sem conta não geram horas.
+6. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
 
 ### 2.4 Certificado
 
@@ -106,7 +116,8 @@ related-docs:
 2. `GET /events/registrations/:id/certificate` retorna dados.
 3. Frontend renderiza cartão com QR para `/certificado/verificar?codigo=`.
 4. Carga horária (`workloadMinutes`) vem do override (`extendData.workloadMinutes`) para
-   eventos externos, ou de `endAt - startAt` para eventos internos.
+   eventos externos. Managed events usam `workloadMinutes` explícito ou, na ausência dele,
+   `endAt - startAt`.
 
 ### 2.5 Lançar despesa/reembolso vinculado a evento
 
@@ -234,23 +245,68 @@ Agora cada evento tem uma página estática gerada em build time:
   `GET/PUT /settings/audit-retention` lê/configura 7–365 dias (admin), com precedência sobre
   `AUDIT_OPERATIONAL_RETENTION_DAYS`. `POST /audit/cleanup`, o cron diário e a limpeza no
   startup removem somente operacionais expirados; governo é permanente e tem `ipAddress=null`.
-- **Turnstile:** `src/common/turnstile/` e `TurnstileField.tsx` são infraestrutura opt-in.
-  Nenhum controller usa `TurnstileGuard` nesta fase. O service valida `success` e hostname
-  exato, aplica timeout de 5 s e cache de token por 5 min; produção sem secret falha fechada
-  quando o guard é aplicado.
+- **Turnstile:** `src/common/turnstile/` e `TurnstileField.tsx` validam `success` e hostname
+  exato, aplicam timeout de 5 s e cache anti-reuso de token por 5 min. Desde a Fase 2,
+  `POST /events/public/guest-claim` usa `TurnstileGuard`; produção sem secret falha fechada.
+  O widget só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`; o fallback `development` existe apenas
+  no ambiente de desenvolvimento previsto.
 - **ECA:** `ManagedEvent.adultOnly` e `venueType` chegam ao snapshot por `toEventItem`.
   Overrides externos aceitam `payload.adultOnly` boolean. `adult-content.ts` apenas sugere
   18+ para bar/restaurante às 18h ou depois; não salva automaticamente. `EventCard.astro` e
   `AdultContentNotice.astro` mostram badge/aviso estático sem bloquear inscrição ou indexação.
   Mudança pós-publicação de `adultOnly` registra antes/depois em auditoria de governo.
 
+### 2.13 Horas e declarações
+
+`hour_ledger` é separada da ledger financeira: horas decimais, sem contas, BRL ou double-entry. Nesta fase só `event_checkin` e `directorate_activity` alimentam a tabela. Lançamentos manuais ficam pendentes e usam `(memberId,idempotencyKey)` para deduplicar; aprovação/rejeição exige admin ou `finance-analyzer`, faz update condicional de `pending` e grava audit de governo.
+
+| API | Uso corrente |
+|---|---|
+| `POST /hours` | Admin ou diretor da diretoria em `sourceId`; somente `directorate_activity`, para si e com `idempotencyKey`. |
+| `GET /hours/pending?page&limit` | Fila admin/finance-analyzer; envelope `{data,total,page,totalPages,limit}`, default 50, cap 100. |
+| `POST /hours/:id/approve` / `POST /hours/:id/reject` | Revisa uma entrada pendente; rejeição exige motivo. |
+| `GET /hours/me` | Até 100 lançamentos recentes do próprio membro. |
+| `GET /hours/me/summary` | Soma **todas** as horas aprovadas do próprio membro, sem o limite do extrato. |
+| `GET /hours/members/:memberId/statement?from&to` | Somente o próprio membro; grava snapshot de aprovadas, com `to` incluindo o dia inteiro. |
+| `GET /hours/verify/:code` | Verifica `HRS-<uuid>` sem expor nome; com horas ocultas ou membro inativo retorna somente `{valid:false}`. |
+| `GET /hours/members/:memberId/summary` | Total e até 50 entradas aprovadas quando `hours=true`; caso contrário, zero e lista vazia. |
+| `GET /hours/public` | Totais aprovados e permissões de selo; `totalHours` e `joinedAt` só aparecem com suas chaves de visibilidade. |
+
+A declaração em `/membro/horas` usa o snapshot persistido, não muda com lançamentos posteriores e **não tem prazo de validade**. A impressão/PDF é nativa do navegador, sem biblioteca nova. `/admin/horas` implementa a fila com `PaginationControls`; ambas as páginas são noindex e as APIs ficam fora do prefixo `/admin/`.
+
+### 2.14 Ownership e reconciliação sem drop
+
+- `GET /events/organizers` preserva o shape `OrganizersFile`, mas lê designations ativas `organizer @ event`, resolvendo `targetId` pela ativação ou usando `targetKey` para wildcard/não ativado.
+- Upsert/remoção pelos endpoints existentes atualiza `event_organizer_ownerships` e somente as designations de organizer do membro na mesma transação. Outras designations não são revogadas.
+- `POST /events/organizers/reconcile` (admin) repete o seed da migration 034 e retorna `{inserted,alreadyPresent,orphanedActivations}`. Só encerra `targetKey` quando o par `memberId + scope` está no legado e ganhou activation; canonical-only não é revogado. `orphanedActivations` conta designations ativas por `targetId` sem o par correspondente `memberId + activation.eventKey` no legado, como divergência informativa, sem revogar.
+- A migration 034 não faz drop da tabela antiga e seu `down` é não destrutivo. A 035 valida os dados e adiciona CHECK de identidade: nome/e-mail são obrigatórios para não-guests e guests vinculados; `pending_guest` e guests sem `memberId` podem ter nulos para convite/anonimização. O índice de vínculo é `(isGuest,lower(attendeeEmail))`. O `down` da 035 remove guests antes de restaurar `attendeeName/Email` obrigatórios; rollback em produção exige avaliação de dados.
+
+### 2.15 Convites guest, vínculo e retenção
+
+1. `POST /events/:id/guest-invites` exige actor que pode editar o evento, managed event publicado/gratuito e lote gratuito ativo. Retorna token e `/eventos/convite?token=<uuid>`; o admin também mostra o QR do convite.
+2. `GET /events/public/guest-invites/:token` retorna somente projeção mínima. Antes do claim não devolve QR nem nome/e-mail; depois, devolve e-mail mascarado e token para check-in.
+3. `POST /events/public/guest-claim` valida consentimento e Turnstile. A transação bloqueia o evento, confere capacidade, reserva quota e faz update condicional `pending_guest → confirmed`; segunda tentativa responde 409. `pending_guest` não passa no check-in.
+4. `/eventos/convite` é noindex e reutiliza `GuestClaimIsland`; confirmação e D-1 apontam para essa página quando `isGuest=true`.
+5. No próximo `upsertByGithub`, somente e-mails verificados vindos de `GET /user/emails` podem vincular. Se o membro já tiver inscrição confirmada no evento, o guest vira `cancelled`, devolve quota uma única vez e grava audit. Não há horas retroativas nem escrita financeira.
+6. O cron diário das 03:00 anonimiza nome/e-mail de guests sem `memberId` quando `event.startAt` é anterior a 365 dias. Token, consentimento e presença permanecem; registros vinculados não entram no job.
+
+### 2.16 Perfil público e badges
+
+O perfil consulta `GET /hours/public` antes de buscar o extrato. Sem `totalHours` permitido, não renderiza horas nem timeline; não transforma campo oculto em zero visível. `badge=false` oculta o selo. `badge=true&hours=false` mantém o selo sem horas e `memberSince=false` remove somente o ano. Bio, roles, LinkedIn, eventos, certificados, doações e SortCoins continuam nas suas projeções existentes e não reaparecem por defaults dos componentes novos.
+
+`scripts/sync-member-badges.mjs` (`npm run sync:badges`) gera `static/badges/<handle>.svg`: valida a resposta inteira, escapa XML, usa arquivo temporário + rename, apaga obsoletos só após sucesso e restaura o estado anterior se a escrita falhar. O workflow roda às 06:17 UTC e por dispatch; `frontend/scripts/copy-snapshots.mjs` copia os SVGs no build. Mudanças aparecem no próximo sync + build/publicação. Se o SVG ainda não existir, `ProfileBadges` oculta somente a área após erro de carga.
+
+O primeiro sync contra o backend publicado deve concluir **antes** do deploy do frontend. Não é necessário gerar nem versionar SVGs de membros reais no branch de implementação.
+
 ## 3. Convenções e anti-patterns
 
 - **Sempre use `authFetch` em telas admin** — `fetch` direto não trata 401.
 - **Permissões de evento:** verifique `events.service.ts` antes de adicionar novos
   endpoints; existem helpers `canManageAll`, `assertCanViewEvent`, `isStaff`.
-- **Ledger:** toda movimentação financeira usa `recordTransaction` com `referenceId`
+- **Ledger financeira:** toda movimentação financeira usa `recordTransaction` com `referenceId`
   prefixado. Nunca crie conta manualmente — use `getOrCreateCommunityAccount`.
+- **Horas:** nunca chame a ledger financeira, não faça backfill de check-ins/guests e não remova
+  a unicidade de fonte ou a idempotency key. Novas fontes só entram com seus módulos/fases.
 - **Migrations:** nomeie como `MigrationNNN_Descricao.ts` com timestamp crescente.
 - **Frontend:** use MUI v9 Grid com `size={{ xs: 12 }}` (não `item xs={12}`).
 - **Classificação 18+:** não transforme a heurística de formulário em bloqueio, coleta de

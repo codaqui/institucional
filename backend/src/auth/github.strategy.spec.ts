@@ -100,6 +100,29 @@ describe('GithubStrategy', () => {
       );
     });
 
+    it('mantém primário não verificado só como exibição e autoriza secundário verificado', async () => {
+      fetchMock.mockResolvedValue(
+        ghResponse(200, [
+          { email: 'primary@cat.dev', verified: false, primary: true },
+          { email: 'Secondary@Cat.dev', verified: true, primary: false },
+        ]),
+      );
+      const upsertByGithub = jest.fn().mockResolvedValue({});
+      const { strategy } = makeStrategy(upsertByGithub);
+
+      await strategy.validate('gho_token-abc', '', {
+        ...profile,
+        emails: [{ value: 'primary@cat.dev' }],
+      });
+
+      expect(upsertByGithub).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'primary@cat.dev',
+          secondaryEmails: ['secondary@cat.dev'],
+        }),
+      );
+    });
+
     it('falha da API de e-mails NÃO quebra o login (secondaryEmails undefined)', async () => {
       fetchMock.mockRejectedValue(new Error('network down'));
       const upsertByGithub = jest.fn().mockResolvedValue({});
@@ -140,6 +163,7 @@ describe('GithubStrategy', () => {
           name: 'ghost',
           avatarUrl: '',
           githubAccessToken: 'gho_t',
+          secondaryEmails: ['octo@cat.dev', 'alt@cat.dev'],
         }),
       );
     });

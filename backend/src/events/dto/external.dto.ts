@@ -5,6 +5,9 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  IsInt,
+  Max,
+  Min,
 } from 'class-validator';
 
 /** POST /events/external/:eventKey/activate */
@@ -29,6 +32,12 @@ export class ActivateExternalDto {
   @IsISO8601()
   @IsOptional()
   startAt?: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(2880)
+  @IsOptional()
+  workloadMinutes?: number;
 }
 
 /** POST /events/:id/checkin e POST /events/external/:eventKey/checkin */
