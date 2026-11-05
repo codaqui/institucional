@@ -44,6 +44,34 @@ export function renderMemberBadge(member) {
 `;
 }
 
+function validateMemberIdentity(member, handles) {
+  if (typeof member.memberId !== "string" || member.memberId.length === 0) {
+    throw new TypeError("Membro sem memberId em /hours/public.");
+  }
+  if (typeof member.githubHandle !== "string" || !HANDLE_PATTERN.test(member.githubHandle)) {
+    throw new TypeError(`Handle inválido em /hours/public: ${String(member.githubHandle)}`);
+  }
+  const handleKey = member.githubHandle.toLowerCase();
+  if (handles.has(handleKey)) throw new TypeError(`Handle duplicado em /hours/public: ${member.githubHandle}`);
+  handles.add(handleKey);
+  if (typeof member.name !== "string" || typeof member.badge !== "boolean") {
+    throw new TypeError(`Dados inválidos para o handle ${member.githubHandle}.`);
+  }
+}
+
+function validateOptionalFields(member) {
+  if (member.joinedAt !== undefined && (
+    typeof member.joinedAt !== "string" || Number.isNaN(new Date(member.joinedAt).getTime())
+  )) {
+    throw new TypeError(`Ano inválido para o handle ${member.githubHandle}.`);
+  }
+  if (member.totalHours !== undefined && (
+    typeof member.totalHours !== "number" || !Number.isFinite(member.totalHours) || member.totalHours < 0
+  )) {
+    throw new TypeError(`Total de horas inválido para o handle ${member.githubHandle}.`);
+  }
+}
+
 function validatePayload(payload) {
   if (!Array.isArray(payload)) {
     throw new TypeError("Resposta inválida de /hours/public: esperado um array.");
@@ -53,28 +81,8 @@ function validatePayload(payload) {
     if (!member || typeof member !== "object" || Array.isArray(member)) {
       throw new TypeError("Membro inválido em /hours/public.");
     }
-    if (typeof member.memberId !== "string" || member.memberId.length === 0) {
-      throw new TypeError("Membro sem memberId em /hours/public.");
-    }
-    if (typeof member.githubHandle !== "string" || !HANDLE_PATTERN.test(member.githubHandle)) {
-      throw new TypeError(`Handle inválido em /hours/public: ${String(member.githubHandle)}`);
-    }
-    const handleKey = member.githubHandle.toLowerCase();
-    if (handles.has(handleKey)) throw new TypeError(`Handle duplicado em /hours/public: ${member.githubHandle}`);
-    handles.add(handleKey);
-    if (typeof member.name !== "string" || typeof member.badge !== "boolean") {
-      throw new TypeError(`Dados inválidos para o handle ${member.githubHandle}.`);
-    }
-    if (member.joinedAt !== undefined && (
-      typeof member.joinedAt !== "string" || Number.isNaN(new Date(member.joinedAt).getTime())
-    )) {
-      throw new TypeError(`Ano inválido para o handle ${member.githubHandle}.`);
-    }
-    if (member.totalHours !== undefined && (
-      typeof member.totalHours !== "number" || !Number.isFinite(member.totalHours) || member.totalHours < 0
-    )) {
-      throw new TypeError(`Total de horas inválido para o handle ${member.githubHandle}.`);
-    }
+    validateMemberIdentity(member, handles);
+    validateOptionalFields(member);
   }
   return payload;
 }
@@ -122,7 +130,8 @@ export async function syncMemberBadges({
   fetchImpl = fetch,
   renameImpl = rename,
 } = {}) {
-  const response = await fetchImpl(`${apiUrl.replace(/\/+$/, "")}/hours/public`);
+  const baseApiUrl = apiUrl.endsWith("/") ? apiUrl.slice(0, -1) : apiUrl;
+  const response = await fetchImpl(`${baseApiUrl}/hours/public`);
   if (!response.ok) {
     throw new Error(`Falha ao consultar horas públicas: HTTP ${response.status}`);
   }
