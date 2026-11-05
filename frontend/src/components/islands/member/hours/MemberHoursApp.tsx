@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -78,6 +78,12 @@ function formatDate(value: string): string {
   return dateFormatter.format(new Date(value));
 }
 
+function statusColor(status: HourEntry["status"]): "success" | "error" | "default" {
+  if (status === "approved") return "success";
+  if (status === "rejected") return "error";
+  return "default";
+}
+
 function formatPeriod(from: string | null, to: string | null): string {
   if (from && to) return `${formatDate(from)} a ${formatDate(to)}`;
   if (from) return `a partir de ${formatDate(from)}`;
@@ -90,6 +96,28 @@ const statusLabels = {
   pending: "Pendente",
   rejected: "Rejeitada",
 } as const;
+
+function MemberHoursContent({ loading, isEmpty, children }: Readonly<{
+  loading: boolean;
+  isEmpty: boolean;
+  children: ReactNode;
+}>) {
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress aria-label="Carregando extrato de horas" />
+      </Box>
+    );
+  }
+  if (isEmpty) {
+    return (
+      <Typography color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+        Nenhum lançamento de horas encontrado.
+      </Typography>
+    );
+  }
+  return children;
+}
 
 function MemberHoursInner(): React.JSX.Element | null {
   const { user, ready, isLoggedIn, authFetch } = useAuth();
@@ -250,15 +278,7 @@ function MemberHoursInner(): React.JSX.Element | null {
       <Typography variant="h5" component="h3" sx={{ mb: 2 }}>
         Extrato
       </Typography>
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress aria-label="Carregando extrato de horas" />
-        </Box>
-      ) : entries.length === 0 ? (
-        <Typography color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
-          Nenhum lançamento de horas encontrado.
-        </Typography>
-      ) : (
+      <MemberHoursContent loading={loading} isEmpty={entries.length === 0}>
         <TableContainer
           component={Box}
           role="region"
@@ -289,7 +309,7 @@ function MemberHoursInner(): React.JSX.Element | null {
                     <Chip
                       size="small"
                       variant="outlined"
-                      color={entry.status === "approved" ? "success" : entry.status === "rejected" ? "error" : "default"}
+                      color={statusColor(entry.status)}
                       label={statusLabels[entry.status]}
                     />
                     {entry.rejectReason && (
@@ -303,7 +323,7 @@ function MemberHoursInner(): React.JSX.Element | null {
             </TableBody>
           </Table>
         </TableContainer>
-      )}
+      </MemberHoursContent>
 
       <Dialog
         className="hours-statement-dialog"

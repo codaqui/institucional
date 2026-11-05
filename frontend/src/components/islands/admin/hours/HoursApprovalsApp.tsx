@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -52,6 +52,28 @@ const hoursFormatter = new Intl.NumberFormat("pt-BR", {
 });
 
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
+
+function PendingHoursContent({ loading, isEmpty, children }: Readonly<{
+  loading: boolean;
+  isEmpty: boolean;
+  children: ReactNode;
+}>) {
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
+        <CircularProgress aria-label="Carregando fila de horas" />
+      </Box>
+    );
+  }
+  if (isEmpty) {
+    return (
+      <Typography color="text.secondary" sx={{ py: 6, textAlign: "center" }}>
+        Nenhum lançamento pendente.
+      </Typography>
+    );
+  }
+  return children;
+}
 
 function HoursApprovalsInner(): React.JSX.Element | null {
   const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
@@ -192,15 +214,7 @@ function HoursApprovalsInner(): React.JSX.Element | null {
       {reviewError && <Alert severity="error" sx={{ mb: 2 }}>{reviewError}</Alert>}
       {feedback && <Alert severity="success" role="status" sx={{ mb: 2 }}>{feedback}</Alert>}
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}>
-          <CircularProgress aria-label="Carregando fila de horas" />
-        </Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary" sx={{ py: 6, textAlign: "center" }}>
-          Nenhum lançamento pendente.
-        </Typography>
-      ) : (
+      <PendingHoursContent loading={loading} isEmpty={items.length === 0}>
         <>
           <TableContainer
             component={Box}
@@ -267,7 +281,7 @@ function HoursApprovalsInner(): React.JSX.Element | null {
             itemLabel="lançamentos de horas"
           />
         </>
-      )}
+      </PendingHoursContent>
 
       <Dialog
         open={rejectTarget !== null}
