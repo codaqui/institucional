@@ -119,5 +119,5 @@ O workflow `Sync Member Badges` roda diariamente às 06:17 UTC e por dispatch. M
 - Horas e finanças evoluem independentemente; nenhum saldo financeiro é afetado por aprovação, check-in, claim ou vínculo de guest.
 - O recorte entrega duas fontes efetivas (`event_checkin` e `directorate_activity`), não as quatro previstas no desenho final.
 - O rollback da migration 035 remove registros guest para restaurar a obrigatoriedade anterior de nome/e-mail; não deve ser executado em produção sem avaliação explícita de dados. O rollback da 034 não apaga designations.
-- A publicação `v0.14.0-backend`, o redeploy e o sync inicial de badges estão concluídos. O inventário final de ownership/eventos legados e um claim real em produção permanecem como acompanhamento operacional com sessão admin.
+- A publicação `v0.14.0-backend`, o redeploy e o sync inicial de badges estão concluídos. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; um claim real em produção permanece como acompanhamento operacional com sessão admin.
 - Fase 3 permanece fora do escopo e começa somente por comando explícito.

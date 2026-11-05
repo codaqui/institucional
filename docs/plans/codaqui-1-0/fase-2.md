@@ -375,4 +375,4 @@ Checklist externo de Turnstile concluído: `TURNSTILE_SITE_KEY` configurada como
 - PR #612 integrada em `main`; release `v0.14.0-backend` publicada no run `42096881496` e API em `0.14.0`.
 - Sync inicial de badges concluído no run `42098199373`, antes do frontend; SVGs públicos retornam `image/svg+xml`.
 - Frontend dos quatro projetos publicado no run `42098283935`; `/admin/horas`, `/membro/horas` e `/eventos/convite` respondem 200.
-- Reconcile e inventário publicado, além de um claim real em produção, exigem sessão admin e permanecem como acompanhamento operacional; não são alegados como concluídos neste documento.
+- Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`, sem inserções ou divergências. O claim real em produção permanece como acompanhamento operacional com sessão admin e não é alegado como concluído neste documento.
