@@ -111,6 +111,17 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/communities/public")).toBe(true);
   });
 
+  it("assemblies é API sem interceptar as páginas públicas /assembleias", () => {
+    expect(isApiProxyPath("/assemblies")).toBe(true);
+    expect(isApiProxyPath("/assemblies/public")).toBe(true);
+    expect(isApiProxyPath("/assemblies/public/oficial-2")).toBe(true);
+    expect(isApiProxyPath("/assemblies/abc-123")).toBe(true);
+    expect(isApiProxyPath("/assemblies/index.json")).toBe(false);
+    expect(isApiProxyPath("/assembliesxyz")).toBe(false);
+    expect(isApiProxyPath("/assembleias")).toBe(false);
+    expect(isApiProxyPath("/assembleias/oficial-2")).toBe(false);
+  });
+
   it("settings e audit são APIs sem interceptar a página de configurações", () => {
     expect(isApiProxyPath("/settings")).toBe(true);
     expect(isApiProxyPath("/settings/audit-retention")).toBe(true);

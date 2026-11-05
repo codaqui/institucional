@@ -162,6 +162,7 @@ cd backend && npx jest --silent  # testes unitários
 # Scripts de sync (raiz — leves, sem install pesado)
 npm run test:scripts             # node --test scripts/*.test.mjs
 npm run sync                     # eventos + social-stats + analytics → static/
+npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 ```
 
@@ -226,12 +227,12 @@ institucional/
 ├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
 │   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
 │   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
-├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, social-stats/, analytics/, badges/, img/)
+├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, assemblies/, social-stats/, analytics/, badges/, img/)
 ├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   └── *.mjs                    # sync-events / sync-communities / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
-│                                #    (syncs legados leem data files; communities/badges leem a API PostgreSQL)
+│   └── *.mjs                    # sync-events / sync-communities / sync-assemblies / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
+│                                #    (syncs legados leem data files; communities/assemblies/badges leem a API PostgreSQL)
 ├── docs/                        # Documentação técnica (ADRs, módulos, planos)
-├── .github/workflows/           # 8 workflows (ver Git Workflow & Deployment)
+├── .github/workflows/           # 9 workflows (ver Git Workflow & Deployment)
 └── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
 ```
 
@@ -268,7 +269,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild.
+- Snapshots (`static/events|communities|assemblies|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` permanece estático e é exceção ao prefixo de API `/assemblies/`.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -503,7 +504,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 8 workflows)
+### CI/CD (`.github/workflows/` — 9 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -512,6 +513,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `publish-backend.yml` | manual | Build + push da imagem Docker multi-arch (amd64 + arm64/v8) p/ GHCR + release `v<versão>-backend` (usa `version` do `backend/package.json`); redeploy em produção manual no Coolify |
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
+| `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
@@ -618,6 +620,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Event sources/fallbacks | As needed | `events.config.json` |
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
 | Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
+| Assembly snapshots sync | Automatic (06:23 UTC daily) + dispatch | `scripts/sync-assemblies.mjs` → `static/assemblies/` via `sync-assemblies.yml` |
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
 | Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |

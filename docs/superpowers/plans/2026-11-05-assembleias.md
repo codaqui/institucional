@@ -144,7 +144,7 @@ Expected: PASS.
 - `npm run sync:assemblies`; snapshot copiado para `frontend/public/assemblies/index.json`.
 - Proxy aceita `/assemblies/*` e não confunde `/assembleias`.
 
-- [ ] **Step 1: Write failing sync/proxy tests**
+- [x] **Step 1: Write failing sync/proxy tests**
 
 ```js
 await assert.rejects(syncAssemblies({ apiUrl: failingUrl, outputFile }));
@@ -153,21 +153,21 @@ assert.equal(JSON.parse(await readFile(outputFile, 'utf8')).assemblies.length, 1
 
 Testar array inválido, falha HTTP, rename e proxy. Criar `static/assemblies/index.json` inicial vazio com `generatedAt` e `assemblies: []`.
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 Run: `node --test scripts/sync-assemblies.test.mjs && cd frontend && npx vitest run src/lib/api-proxy-paths.test.ts`
 Expected: arquivo/função/prefixo ausentes.
 
-- [ ] **Step 3: Implement atomic sync, proxy and workflow**
+- [x] **Step 3: Implement atomic sync, proxy and workflow**
 
 Seguir `sync-communities.mjs`: validar coleção inteira, temp+rename, não tocar snapshot em erro. Workflow diário `23 6 * * *` + dispatch, GitHub App e `contents: write`, chamando `npm run sync:assemblies` com `ASSEMBLIES_API_URL=https://api.codaqui.dev`.
 
-- [ ] **Step 4: Verify sync and real proxy contracts**
+- [x] **Step 4: Verify sync and real proxy contracts**
 
 Run: `npm run test:scripts && cd frontend && npx vitest run src/lib/api-proxy-paths.test.ts`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 `git add scripts .github/workflows static/assemblies frontend/scripts frontend/src/lib package.json Makefile && git commit -m "feat(fase-3): adiciona snapshot e proxy de assembleias"`
 
