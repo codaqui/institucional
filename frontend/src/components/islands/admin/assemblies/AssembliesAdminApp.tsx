@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -319,8 +319,10 @@ function AssembliesAdminInner(): React.JSX.Element | null {
   const [transitionForm, setTransitionForm] = useState<AssemblyFormState>(EMPTY_FORM);
   const [transitionErrors, setTransitionErrors] = useState<FormErrors>({});
   const [transitionError, setTransitionError] = useState("");
+  const requestId = useRef(0);
 
   const loadAssemblies = useCallback(async () => {
+    const currentRequest = ++requestId.current;
     setLoading(true);
     setLoadError("");
     const params = new URLSearchParams({
@@ -333,16 +335,25 @@ function AssembliesAdminInner(): React.JSX.Element | null {
       const response = await authFetch(`/assemblies?${params.toString()}`);
       const result = await parseAuthJson<PaginatedResponse<Assembly>>(
         response,
-        setLoadError,
+        (message) => {
+          if (currentRequest === requestId.current) setLoadError(message);
+        },
       );
-      if (!result) return;
+      if (!result || currentRequest !== requestId.current) return;
+      const validPage = Math.max(1, result.totalPages);
+      if (page > validPage) {
+        setPage(validPage);
+        return;
+      }
       setItems(Array.isArray(result.data) ? result.data : []);
       setTotal(result.total);
       setTotalPages(result.totalPages);
     } catch {
-      setLoadError("Não foi possível carregar as assembleias.");
+      if (currentRequest === requestId.current) {
+        setLoadError("Não foi possível carregar as assembleias.");
+      }
     } finally {
-      setLoading(false);
+      if (currentRequest === requestId.current) setLoading(false);
     }
   }, [authFetch, page, status, type]);
 

@@ -131,6 +131,113 @@ describe("AssembliesAdminApp", () => {
     });
   });
 
+  it("returns from page 2 to page 1 when a transition shrinks the filtered result", async () => {
+    const user = userEvent.setup();
+    const firstPageAssembly = {
+      ...assembly,
+      id: "b8f3bd20-1b81-4f2f-b5bb-d1867c3f8902",
+      number: 6,
+      slug: "ordinaria-6",
+      title: "Assembleia da primeira página",
+    };
+    let transitioned = false;
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === `/assemblies/${assembly.id}` && init?.method === "PATCH") {
+        transitioned = true;
+        return jsonResponse({ ...assembly, status: "canceled" });
+      }
+      if (path.startsWith("/assemblies?") && !init?.method) {
+        const params = new URL(path, "https://test.local").searchParams;
+        const currentPage = params.get("page");
+        if (currentPage === "2") {
+          return manageResponse({
+            data: transitioned ? [] : [assembly],
+            total: transitioned ? 50 : 51,
+            page: 2,
+            totalPages: transitioned ? 1 : 2,
+          });
+        }
+        return manageResponse({
+          data: [firstPageAssembly],
+          total: transitioned ? 50 : 51,
+          totalPages: transitioned ? 1 : 2,
+        });
+      }
+      return jsonResponse({});
+    });
+    renderWithMui(<AssembliesAdminApp />);
+    await screen.findByText("Assembleia da primeira página");
+
+    await user.click(screen.getByLabelText("Filtrar por status"));
+    await user.click(screen.getByRole("option", { name: "Agendadas" }));
+    await waitFor(() =>
+      expect(lastCall("/assemblies?page=1&limit=50&status=scheduled")).toBeDefined(),
+    );
+    await user.click(screen.getByRole("button", { name: "Ir para a página 2 de 2" }));
+    await user.click(await screen.findByRole("button", { name: /cancelar assembleia/i }));
+    await user.click(screen.getByRole("button", { name: /confirmar cancelamento/i }));
+
+    expect(await screen.findByText("Assembleia da primeira página")).toBeInTheDocument();
+    expect(screen.getByText("Mostrando 1–50 de 50")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Ir para a página/i })).not.toBeInTheDocument();
+    const pageOneLoads = mocks.authFetch.mock.calls.filter(
+      ([path, init]) =>
+        path === "/assemblies?page=1&limit=50&status=scheduled" && !init?.method,
+    );
+    const pageTwoLoads = mocks.authFetch.mock.calls.filter(
+      ([path, init]) =>
+        path === "/assemblies?page=2&limit=50&status=scheduled" && !init?.method,
+    );
+    expect(pageOneLoads).toHaveLength(2);
+    expect(pageTwoLoads).toHaveLength(2);
+  });
+
+  it("ignores an older filter response that arrives after the latest one", async () => {
+    const user = userEvent.setup();
+    let resolveScheduled: ((response: Response) => void) | undefined;
+    let resolveCanceled: ((response: Response) => void) | undefined;
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (init?.method || !path.startsWith("/assemblies?")) return jsonResponse({});
+      if (path.endsWith("&status=scheduled")) {
+        return new Promise<Response>((resolve) => {
+          resolveScheduled = resolve;
+        });
+      }
+      if (path.endsWith("&status=canceled")) {
+        return new Promise<Response>((resolve) => {
+          resolveCanceled = resolve;
+        });
+      }
+      return manageResponse();
+    });
+    renderWithMui(<AssembliesAdminApp />);
+    await screen.findByText("Assembleia de planejamento");
+
+    await user.click(screen.getByLabelText("Filtrar por status"));
+    await user.click(screen.getByRole("option", { name: "Agendadas" }));
+    await waitFor(() => expect(resolveScheduled).toBeDefined());
+    await user.click(screen.getByLabelText("Filtrar por status"));
+    await user.click(screen.getByRole("option", { name: "Canceladas" }));
+    await waitFor(() => expect(resolveCanceled).toBeDefined());
+
+    resolveCanceled?.(
+      manageResponse({
+        data: [{ ...assembly, title: "Cancelada recente", status: "canceled" }],
+      }),
+    );
+    expect(await screen.findByText("Cancelada recente")).toBeInTheDocument();
+    resolveScheduled?.(
+      manageResponse({
+        data: [{ ...assembly, title: "Agendada antiga" }],
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByLabelText("Carregando assembleias")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText("Cancelada recente")).toBeInTheDocument();
+    expect(screen.queryByText("Agendada antiga")).not.toBeInTheDocument();
+  });
+
   it("creates an assembly with the exact Discussion URL", async () => {
     const user = userEvent.setup();
     renderWithMui(<AssembliesAdminApp />);
