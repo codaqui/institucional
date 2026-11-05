@@ -1745,4 +1745,43 @@ describe('EventsService', () => {
       expect(registrationRepo.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('listMemberRegistrations', () => {
+    it('does not expose event history or certificate codes when events are hidden', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: false },
+      });
+
+      await expect(service.listMemberRegistrations(uuid(1))).resolves.toEqual([]);
+      expect(registrationRepo.find).not.toHaveBeenCalled();
+    });
+
+    it('keeps visible event history without certificate codes when certificates are hidden', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: true, certificates: false },
+      });
+      eventRepo.findBy.mockResolvedValue([]);
+      activationRepo.findBy = jest.fn().mockResolvedValue([]);
+      registrationRepo.find.mockResolvedValue([
+        {
+          id: uuid(40),
+          memberId: uuid(1),
+          payerMemberId: uuid(1),
+          eventId: null,
+          externalActivationId: null,
+          checkedInAt: new Date('2026-01-01'),
+          checkinToken: 'private-token',
+          status: RegistrationStatus.CONFIRMED,
+          createdAt: new Date('2026-01-01'),
+        },
+      ]);
+
+      const result = await service.listMemberRegistrations(uuid(1));
+
+      expect(result).toHaveLength(1);
+      expect(result[0].verificationCode).toBeNull();
+    });
+  });
 });

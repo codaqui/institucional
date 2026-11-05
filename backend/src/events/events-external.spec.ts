@@ -419,6 +419,19 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(result.communityProjectKey).toBe('devparana');
     });
 
+    it('certificado oculto pelo membro → valid: false sem dados pessoais', async () => {
+      mockVerifyQb(makeRegistration({ checkedInAt: new Date() }));
+      memberRepo.findOneBy.mockResolvedValue({
+        id: uuid(1),
+        profileVisibility: { certificates: false },
+      });
+
+      const result = await service.verifyCertificate('CRT-aaaaaaaa-bb');
+
+      expect(result).toEqual({ valid: false });
+      expect(result).not.toHaveProperty('attendeeName');
+    });
+
     it('código inexistente → valid: false', async () => {
       mockVerifyQb(null);
       const result = await service.verifyCertificate('CRT-zzzzzzzzzzzz');

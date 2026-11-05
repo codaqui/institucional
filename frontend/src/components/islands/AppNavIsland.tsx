@@ -1,14 +1,17 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   Avatar,
   Box,
   Button,
   Chip,
+  Collapse,
   Divider,
+  InputAdornment,
   List,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  TextField,
   Typography,
 } from "@mui/material";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
@@ -20,6 +23,8 @@ import EditIcon from "@mui/icons-material/Edit";
 import EmailIcon from "@mui/icons-material/Email";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import EventIcon from "@mui/icons-material/Event";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SearchIcon from "@mui/icons-material/Search";
 import HomeIcon from "@mui/icons-material/Home";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import HubIcon from "@mui/icons-material/Hub";
@@ -32,6 +37,7 @@ import TokenIcon from "@mui/icons-material/Token";
 import MuiIslandProvider from "./MuiIslandProvider";
 import { useAuth } from "../../lib/use-auth";
 import {
+  formatDesignationLabel,
   useMyDesignations,
   type MyDesignation,
 } from "../../lib/use-designations";
@@ -57,36 +63,83 @@ interface NavItem {
   }[];
 }
 
-const GESTAO_ITEMS: readonly NavItem[] = [
-  { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
-  {
-    label: "Minha comunidade",
-    href: "/admin/comunidades",
-    icon: <BusinessIcon />,
-    designations: [{ targetType: "community", designation: "responsible" }],
-  },
-  {
-    label: "Diretorias",
-    href: "/admin/diretorias",
-    icon: <HubIcon />,
-    designations: [{ targetType: "directorate", designation: "director" }],
-  },
-  { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
-  { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
-  { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
-  { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon />, roles: ["admin", "finance-analyzer"] },
-  { label: "Empresas", href: "/admin/empresas", icon: <BusinessIcon />, roles: ["admin"] },
-  { label: "Sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon />, roles: ["admin"] },
-  { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
-  { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
-  { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
-  { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
-];
+interface NavGroup {
+  id: string;
+  label: string;
+  icon?: ReactNode;
+  items: readonly NavItem[];
+}
 
-const EVENTO_ITEMS: readonly NavItem[] = [
-  { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
-  { label: "Overrides & externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
-  { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
+const MANAGEMENT_GROUPS: readonly NavGroup[] = [
+  {
+    id: "gestao",
+    label: "Gestão",
+    items: [
+      { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "financeiro",
+    label: "Financeiro (R$)",
+    items: [
+      { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
+    ],
+  },
+  {
+    id: "clube",
+    label: "Clube & SortCoins",
+    items: [
+      { label: "Sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon />, roles: ["admin"] },
+      { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "empresas",
+    label: "Empresas",
+    items: [
+      { label: "Empresas", href: "/admin/empresas", icon: <BusinessIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "eventos",
+    label: "Eventos",
+    icon: <EventIcon fontSize="inherit" />,
+    items: [
+      { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
+      { label: "Overrides & externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
+      { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
+    ],
+  },
+  {
+    id: "governanca",
+    label: "Governança",
+    items: [
+      {
+        label: "Minha comunidade",
+        href: "/admin/comunidades",
+        icon: <BusinessIcon />,
+        designations: [{ targetType: "community", designation: "responsible" }],
+      },
+      {
+        label: "Diretorias",
+        href: "/admin/diretorias",
+        icon: <HubIcon />,
+        designations: [{ targetType: "directorate", designation: "director" }],
+      },
+      { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "comunicacao",
+    label: "Comunicação",
+    items: [
+      { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
+    ],
+  },
 ];
 
 const CONTA_ITEMS: readonly NavItem[] = [
@@ -165,9 +218,55 @@ function NavLink({
   );
 }
 
+function CollapsibleNavGroup({
+  group,
+  currentPath,
+  expanded,
+  onToggle,
+}: {
+  readonly group: NavGroup;
+  readonly currentPath: string;
+  readonly expanded: boolean;
+  readonly onToggle: () => void;
+}) {
+  const contentId = `nav-group-${group.id}`;
+  return (
+    <>
+      <ListItemButton
+        onClick={onToggle}
+        aria-expanded={expanded}
+        aria-controls={contentId}
+        sx={{ px: 2, py: 0.5 }}
+      >
+        <ListItemText
+          primary={
+            <NavGroupLabel icon={group.icon}>{group.label}</NavGroupLabel>
+          }
+        />
+        <ExpandMoreIcon
+          sx={{
+            color: "text.secondary",
+            transform: expanded ? "rotate(180deg)" : "none",
+            transition: "transform 150ms ease",
+          }}
+        />
+      </ListItemButton>
+      <Collapse in={expanded} timeout={150} unmountOnExit>
+        <List dense id={contentId} sx={{ py: 0 }}>
+          {group.items.map((item) => (
+            <NavLink key={item.href} item={item} currentPath={currentPath} />
+          ))}
+        </List>
+      </Collapse>
+    </>
+  );
+}
+
 export function AppNavContent({ currentPath }: AppNavIslandProps) {
   const { user, ready, isLoggedIn, isAdmin, logout } = useAuth();
   const { data: myDesignations } = useMyDesignations();
+  const [search, setSearch] = useState("");
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (ready && !isLoggedIn) window.location.replace("/");
@@ -207,9 +306,25 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
     );
   };
 
-  const gestaoItems = GESTAO_ITEMS.filter(canSee);
-  const eventoItems = EVENTO_ITEMS.filter(canSee);
   const roleChips = userRoles.filter((role) => role !== "membro");
+  const normalizedSearch = search
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("pt-BR")
+    .trim();
+  const visibleGroups = MANAGEMENT_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter(
+      (item) =>
+        canSee(item) &&
+        (!normalizedSearch ||
+          item.label
+            .normalize("NFD")
+            .replace(/\p{Diacritic}/gu, "")
+            .toLocaleLowerCase("pt-BR")
+            .includes(normalizedSearch)),
+    ),
+  })).filter((group) => group.items.length > 0);
 
   return (
     <Box
@@ -235,7 +350,7 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
           </Typography>
         </Box>
       </Box>
-      {roleChips.length > 0 && (
+      {(roleChips.length > 0 || myDesignations.length > 0) && (
         <Box
           sx={{
             display: "flex",
@@ -253,6 +368,14 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
               label={ROLE_LABELS[role] ?? role}
             />
           ))}
+          {myDesignations.map((designation) => (
+            <Chip
+              key={designation.id}
+              size="small"
+              variant="outlined"
+              label={formatDesignationLabel(designation)}
+            />
+          ))}
         </Box>
       )}
       <Divider />
@@ -261,34 +384,39 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
         aria-label="Navegação do painel"
         sx={{ flex: 1, minHeight: 0, overflowY: "auto", py: 1 }}
       >
-        {(gestaoItems.length > 0 || eventoItems.length > 0) && (
-          <>
-            <NavGroupLabel>Gestão</NavGroupLabel>
-            {gestaoItems.length > 0 && (
-              <List dense sx={{ py: 0 }}>
-                {gestaoItems.map((item) => (
-                  <NavLink key={item.href} item={item} currentPath={currentPath} />
-                ))}
-              </List>
-            )}
-            {eventoItems.length > 0 && (
-              <>
-                <NavGroupLabel icon={<EventIcon fontSize="inherit" />}>
-                  Eventos
-                </NavGroupLabel>
-                <List dense sx={{ py: 0 }}>
-                  {eventoItems.map((item) => (
-                    <NavLink
-                      key={item.href}
-                      item={item}
-                      currentPath={currentPath}
-                    />
-                  ))}
-                </List>
-              </>
-            )}
-          </>
+        {visibleGroups.length > 0 && (
+          <TextField
+            fullWidth
+            size="small"
+            label="Buscar no painel"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            sx={{ px: 1.5, pb: 1 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
         )}
+        {visibleGroups.map((group) => (
+          <CollapsibleNavGroup
+            key={group.id}
+            group={group}
+            currentPath={currentPath}
+            expanded={Boolean(normalizedSearch) || !collapsedGroups[group.id]}
+            onToggle={() =>
+              setCollapsedGroups((current) => ({
+                ...current,
+                [group.id]: !current[group.id],
+              }))
+            }
+          />
+        ))}
         <NavGroupLabel>Conta</NavGroupLabel>
         <List dense sx={{ py: 0 }}>
           {CONTA_ITEMS.map((item) => (

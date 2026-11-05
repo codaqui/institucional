@@ -38,6 +38,7 @@ import { formatBRL, parseBrlInput } from "../../../../lib/transaction";
 import type { CommunityBalance } from "../../../../lib/transaction";
 import { MemberProfileCard, MemberQrDialog } from "./MemberHeader";
 import OverviewTab from "./OverviewTab";
+import MyDataTab from "../privacy/MyDataTab";
 import DonationsTab from "./DonationsTab";
 import SubscriptionsTab from "./SubscriptionsTab";
 import WalletTab from "./WalletTab";
@@ -394,6 +395,7 @@ function MemberDashboardInner() {
         <Tab label="Assinaturas Recorrentes" />
         <Tab label="Carteira" />
         <Tab label="Eventos" icon={<EventIcon />} iconPosition="start" />
+        <Tab label="Meus dados" />
       </Tabs>
 
       <TabPanel value={activeTab} index={0}>
@@ -471,6 +473,10 @@ function MemberDashboardInner() {
           }}
           userName={user?.name}
         />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={5}>
+        <MyDataTab />
       </TabPanel>
 
       {/* ── Dialog: Confirmar cancelamento de assinatura ── */}

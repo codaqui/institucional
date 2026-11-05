@@ -242,7 +242,7 @@ function Carteirinha({
                 </Typography>
 
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-                  {(member.roles?.length ? member.roles : ["membro"]).map((role, idx) => (
+                  {(member.roles ?? []).map((role, idx) => (
                     <Chip
                       key={role}
                       icon={idx === 0 ? <BadgeIcon sx={{ fontSize: 16 }} /> : undefined}
@@ -285,14 +285,16 @@ function Carteirinha({
 
             <Box sx={{ mt: 2 }}>
               <Stack direction="row" spacing={3} useFlexGap sx={{ flexWrap: "wrap" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <CalendarMonthIcon
-                    sx={{ fontSize: 16, color: "text.secondary" }}
-                  />
-                  <Typography variant="caption" color="text.secondary">
-                    Membro desde {formatDate(member.joinedAt)}
-                  </Typography>
-                </Box>
+                {member.joinedAt && (
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <CalendarMonthIcon
+                      sx={{ fontSize: 16, color: "text.secondary" }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      Membro desde {formatDate(member.joinedAt)}
+                    </Typography>
+                  </Box>
+                )}
                 <Box>
                   <Typography
                     variant="caption"
@@ -891,7 +893,10 @@ function MemberProfileInner({
   useEffect(() => {
     if (!isFull || !member || !canonicalUrl) return;
     const seoDonorSuffix = isDonor ? " Apoiador(a) da comunidade." : "";
-    const description = `Perfil público de ${member.name} na Associação Codaqui. Membro desde ${formatDate(member.joinedAt)}.${seoDonorSuffix}`;
+    const memberSince = member.joinedAt
+      ? ` Membro desde ${formatDate(member.joinedAt)}.`
+      : "";
+    const description = `Perfil público de ${member.name} na Associação Codaqui.${memberSince}${seoDonorSuffix}`;
     updateMemberHead(member, canonicalUrl, description);
   }, [isFull, member, canonicalUrl, isDonor]);
 

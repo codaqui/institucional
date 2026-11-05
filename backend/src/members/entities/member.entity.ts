@@ -78,6 +78,9 @@ export class Member {
   @Column({ type: 'text', array: true, default: '{}', select: false })
   secondaryEmails: string[];
 
+  @Column({ type: 'jsonb', default: () => "'{}'::jsonb" })
+  profileVisibility: Record<string, boolean>;
+
   @CreateDateColumn()
   joinedAt: Date;
 }

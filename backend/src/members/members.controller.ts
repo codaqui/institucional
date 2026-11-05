@@ -24,6 +24,7 @@ import { MemberRole } from './entities/member.entity';
 import { UpdateMemberDto } from './dto/update-member.dto';
 import { FindMembersBatchDto } from './dto/find-members-batch.dto';
 import { GetMembersQueryDto } from './dto/get-members-query.dto';
+import { UpdateProfileVisibilityDto } from './dto/update-profile-visibility.dto';
 import { PaginatedMembersResultDto } from './dto/paginated-members-result.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
@@ -89,13 +90,40 @@ export class MembersController {
   @UseGuards(JwtAuthGuard)
   getMe(@Req() req: { user: JwtPayload }) {
     // sub é agora o UUID da tabela members (desde a refatoração do JWT)
-    return this.membersService.findOne(req.user.sub);
+    return this.membersService.findMe(req.user.sub);
   }
 
   @Put('members/me')
   @UseGuards(JwtAuthGuard)
   updateMe(@Req() req: { user: JwtPayload }, @Body() body: UpdateMemberDto) {
     return this.membersService.updateMeById(req.user.sub, body);
+  }
+
+  @Get('members/me/visibility')
+  @UseGuards(JwtAuthGuard)
+  getProfileVisibility(@Req() req: { user: JwtPayload }) {
+    return this.membersService.getProfileVisibility(req.user.sub);
+  }
+
+  @Patch('members/me/visibility')
+  @UseGuards(JwtAuthGuard)
+  async updateProfileVisibility(
+    @Req() req: { user: JwtPayload },
+    @Body() body: UpdateProfileVisibilityDto,
+  ) {
+    const result = await this.membersService.updateProfileVisibility(
+      req.user.sub,
+      body,
+    );
+    void this.auditService.log({
+      action: AuditAction.MEMBER_VISIBILITY_UPDATED,
+      actorId: req.user.sub,
+      actorHandle: req.user.handle,
+      targetId: req.user.sub,
+      targetType: 'member',
+      details: body,
+    });
+    return result;
   }
 
   // ── Por ID (público) ──────────────────────────────────────────────────────

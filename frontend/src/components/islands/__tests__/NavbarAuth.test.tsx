@@ -123,6 +123,19 @@ describe("NavbarAuth — dropdown desktop", () => {
     expect(screen.getByRole("menuitem", { name: /sair/i })).toBeInTheDocument();
   });
 
+  it("mostra identidade com chips e link Privacidade e dados", async () => {
+    mockLoggedIn(["membro", "admin"]);
+    renderWithMui(<NavbarAuth />);
+    fireEvent.click(screen.getByRole("button", { name: /menu da conta @octocat/i }));
+
+    expect(await screen.findByText("Monalisa Octocat")).toBeInTheDocument();
+    expect(screen.getByText("Admin")).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /privacidade e dados/i })).toHaveAttribute(
+      "href",
+      "/sobre/privacidade",
+    );
+  });
+
   it("usuário comum não vê Painel Admin nem Minha Empresa", async () => {
     mockLoggedIn(["membro"]);
     renderWithMui(<NavbarAuth />);
@@ -205,6 +218,26 @@ describe("NavbarAuth — dropdown desktop", () => {
     await waitFor(() =>
       expect(state.login).toHaveBeenCalledWith({ switchAccount: true }),
     );
+  });
+
+  it("exibe vínculos ativos de comunidade e diretoria junto aos papéis", async () => {
+    mockLoggedIn();
+    state.authFetch.mockImplementation((url: string) => {
+      if (url.includes("/designations/me")) {
+        return Promise.resolve(jsonResponse([
+          { id: "d1", targetType: "community", targetId: null, targetKey: "devparana", designation: "responsible" },
+          { id: "d2", targetType: "directorate", targetId: "dir-1", targetKey: null, designation: "director" },
+        ]));
+      }
+      return Promise.resolve(url.includes("/companies/me")
+        ? jsonResponse({ message: "not found" }, { status: 404 })
+        : jsonResponse([]));
+    });
+    renderWithMui(<NavbarAuth />);
+    fireEvent.click(screen.getByRole("button", { name: /menu da conta/i }));
+
+    expect(await screen.findByText("responsible @ devparana")).toBeInTheDocument();
+    expect(screen.getByText("director @ dir-1")).toBeInTheDocument();
   });
 
   it("Sair chama logout({ returnTo: '/' })", async () => {

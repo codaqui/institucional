@@ -22,6 +22,7 @@ const mockMember = (): Member => ({
   githubAccessToken: null,
   secondaryEmails: [],
   joinedAt: new Date('2024-01-01'),
+  profileVisibility: {},
 });
 
 describe('MembersService', () => {
@@ -261,12 +262,13 @@ describe('MembersService', () => {
       const result = await service.findAllActive(1, 50);
 
       expect(result).toEqual({
-        data: members,
+        data: [expect.objectContaining({ githubHandle: 'testuser' })],
         total: 1,
         page: 1,
         limit: 50,
         totalPages: 1,
       });
+      expect(result.data[0]).not.toHaveProperty('email');
       expect(memberRepo.findAndCount).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { isActive: true },
@@ -323,7 +325,8 @@ describe('MembersService', () => {
 
       const result = await service.findOne(member.id);
 
-      expect(result).toEqual(member);
+      expect(result).toEqual(expect.objectContaining({ githubHandle: 'testuser' }));
+      expect(result).not.toHaveProperty('email');
       expect(memberRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: member.id, isActive: true },
@@ -338,6 +341,18 @@ describe('MembersService', () => {
     });
   });
 
+  describe('findMe', () => {
+    it('keeps hidden public fields editable by their owner', async () => {
+      const member = mockMember({ profileVisibility: { bio: false } });
+      memberRepo.findOne.mockResolvedValue(member);
+
+      const result = await service.findMe(member.id);
+
+      expect(result?.bio).toBe(member.bio);
+      expect(result?.email).toBe(member.email);
+    });
+  });
+
   describe('findByHandle', () => {
     it('should find a member by GitHub handle', async () => {
       const member = mockMember();
@@ -345,7 +360,8 @@ describe('MembersService', () => {
 
       const result = await service.findByHandle('testuser');
 
-      expect(result).toEqual(member);
+      expect(result).toEqual(expect.objectContaining({ githubHandle: 'testuser' }));
+      expect(result).not.toHaveProperty('email');
       expect(memberRepo.findOne).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { githubHandle: 'testuser', isActive: true },
@@ -485,6 +501,7 @@ describe('MembersService', () => {
       const qb = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         addGroupBy: jest.fn().mockReturnThis(),
@@ -519,12 +536,17 @@ describe('MembersService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(1);
+      expect(qb.andWhere).toHaveBeenCalledTimes(2);
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        "COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'",
+      );
     });
 
     it('should clamp page and limit values', async () => {
       const qb = {
         innerJoin: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
         groupBy: jest.fn().mockReturnThis(),
         addGroupBy: jest.fn().mockReturnThis(),
@@ -594,6 +616,92 @@ describe('MembersService', () => {
       expect(result[1].type).toBe('Assinatura mensal');
       expect(result[2].type).toBe('Assinatura anual');
       expect(result[2].community).toBe('Comunidade');
+    });
+  });
+
+  describe('profileVisibility', () => {
+    it('returns effective visibility and metadata for the member dashboard', async () => {
+      memberRepo.findOneOrFail.mockResolvedValue({
+        ...mockMember(),
+        profileVisibility: { bio: false },
+      });
+
+      const result = await service.getProfileVisibility('member-1');
+
+      expect(result.visibility.bio).toBe(false);
+      expect(result.visibility.linkedin).toBe(true);
+      expect(result.fields).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ key: 'bio', label: 'Bio' }),
+          expect.objectContaining({ key: 'sortcoins', label: 'SortCoins' }),
+        ]),
+      );
+    });
+
+    it('merges and saves visibility changes', async () => {
+      const member = {
+        ...mockMember(),
+        profileVisibility: { bio: false, linkedin: false },
+      };
+      memberRepo.findOneOrFail.mockResolvedValue(member);
+      memberRepo.update.mockImplementation((_criteria, updates) => {
+        member.profileVisibility = updates.profileVisibility;
+        return Promise.resolve({ affected: 1 });
+      });
+
+      const result = await service.updateProfileVisibility(member.id, {
+        bio: true,
+        sortcoins: true,
+      });
+
+      expect(memberRepo.update).toHaveBeenCalledWith(
+        { id: member.id },
+        {
+          profileVisibility: expect.objectContaining({
+            bio: true,
+            linkedin: false,
+            sortcoins: true,
+          }),
+        },
+      );
+      expect(result.visibility).toEqual(
+        expect.objectContaining({ bio: true, linkedin: false, sortcoins: true }),
+      );
+    });
+
+    it('filters hidden fields from the public profile and donation history', async () => {
+      const member = {
+        ...mockMember(),
+        bio: 'Bio pública',
+        linkedinUrl: 'https://linkedin.example',
+        joinedAt: new Date('2024-01-01'),
+        profileVisibility: {
+          bio: false,
+          linkedin: false,
+          roles: false,
+          memberSince: false,
+          donations: false,
+        },
+      };
+      memberRepo.findOne.mockResolvedValue(member);
+      const qb = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+      txRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.findByHandle('testuser');
+      const donations = await service.findMemberDonations(member.id);
+
+      expect(result).not.toHaveProperty('bio');
+      expect(result).not.toHaveProperty('linkedinUrl');
+      expect(result).not.toHaveProperty('roles');
+      expect(result).not.toHaveProperty('joinedAt');
+      expect(result).not.toHaveProperty('email');
+      expect(donations).toEqual([]);
+      expect(qb.getMany).not.toHaveBeenCalled();
     });
   });
 

@@ -23,10 +23,10 @@ interface Member {
   githubHandle: string;
   name: string;
   avatarUrl: string;
-  bio: string | null;
-  linkedinUrl: string | null;
+  bio?: string | null;
+  linkedinUrl?: string | null;
   roles?: string[];
-  joinedAt: string;
+  joinedAt?: string;
   totalDonated?: number;
   donationCount?: number;
   lastDonatedAt?: string;

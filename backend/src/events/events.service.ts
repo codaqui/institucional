@@ -26,6 +26,7 @@ import {
   ExternalEventActivation,
 } from './entities/external-event-activation.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { resolveProfileVisibility } from '../members/profile-visibility';
 import { StripeService } from '../stripe/stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { AccountType } from '../ledger/entities/account.entity';
@@ -2479,6 +2480,15 @@ export class EventsService {
       .getOne();
     if (!registration) return { valid: false as const };
 
+    if (registration.memberId) {
+      const member = await this.memberRepo.findOneBy({
+        id: registration.memberId,
+      });
+      if (!resolveProfileVisibility(member?.profileVisibility).certificates) {
+        return { valid: false as const };
+      }
+    }
+
     let eventTitle = '';
     let eventStartAt: Date | null = null;
     let communityProjectKey: string | null = null;
@@ -3334,9 +3344,13 @@ export class EventsService {
    * GET /events/members/:memberId/registrations — participações públicas do
    * membro (perfil). Só status confirmed/refunded; NUNCA expõe checkinToken,
    * e-mail ou attendeeName (o nome vem do perfil público do membro).
-   * verificationCode só quando houve check-in (publicamente verificável).
+   * verificationCode só com check-in e certificados públicos.
    */
   async listMemberRegistrations(memberId: string) {
+    const member = await this.memberRepo.findOneBy({ id: memberId });
+    const visibility = resolveProfileVisibility(member?.profileVisibility);
+    if (!visibility.events) return [];
+
     const registrations = await this.registrationRepo.find({
       where: {
         memberId,
@@ -3387,7 +3401,7 @@ export class EventsService {
           eventStartAt,
           checkedIn: r.checkedInAt !== null,
           status: r.status,
-          verificationCode: r.checkedInAt
+          verificationCode: r.checkedInAt && visibility.certificates
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,

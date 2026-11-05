@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import AppNavIsland from "../AppNavIsland";
 import { renderWithMui } from "../../../test/render-mui";
@@ -11,6 +11,8 @@ const designationsState = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../lib/use-designations", () => ({
+  formatDesignationLabel: (designation: MyDesignation) =>
+    `${designation.designation} @ ${designation.targetKey ?? designation.targetId ?? designation.targetType}`,
   useMyDesignations: () => ({
     data: designationsState.data,
     loading: false,
@@ -123,6 +125,9 @@ describe("AppNavIsland", () => {
       makeUser({ roles: ["membro", "admin", "event_organizer"] }),
       true,
     );
+    designationsState.data = [
+      { id: "d1", targetType: "community", targetId: null, targetKey: "devparana", designation: "responsible" },
+    ];
     renderWithMui(<AppNavIsland currentPath="/admin/eventos" />);
 
     expect(screen.getByText("Monalisa Octocat")).toBeInTheDocument();
@@ -135,6 +140,7 @@ describe("AppNavIsland", () => {
     expect(screen.getByText("Admin")).toBeInTheDocument();
     expect(screen.getByText("Organizador")).toBeInTheDocument();
     expect(screen.queryByText("Membro")).not.toBeInTheDocument();
+    expect(screen.getByText("responsible @ devparana")).toBeInTheDocument();
 
     const visaoGeral = screen.getByRole("link", { name: /visão geral/i });
     expect(visaoGeral).toHaveAttribute("href", "/admin/eventos");
@@ -250,6 +256,36 @@ describe("AppNavIsland", () => {
     );
     expect(screen.queryByText("Minha comunidade")).not.toBeInTheDocument();
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
+  });
+
+  it("agrupa itens por sistema de valor e filtra a navegação por texto", () => {
+    mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
+    renderWithMui(<AppNavIsland currentPath="/admin" />);
+
+    expect(screen.getByText("Financeiro (R$)")).toBeInTheDocument();
+    expect(screen.getByText("Governança")).toBeInTheDocument();
+    expect(screen.getByText("Comunicação")).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Buscar no painel"), {
+      target: { value: "fornec" },
+    });
+
+    expect(screen.getByRole("link", { name: "Fornecedores" })).toBeVisible();
+    expect(screen.queryByRole("link", { name: "Reembolsos" })).not.toBeInTheDocument();
+  });
+
+  it("expõe expanded nos submenus e fecha um grupo sem remover os demais", async () => {
+    mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
+    renderWithMui(<AppNavIsland currentPath="/admin" />);
+
+    const financeiro = screen.getByRole("button", { name: "Financeiro (R$)" });
+    expect(financeiro).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(financeiro);
+
+    expect(financeiro).toHaveAttribute("aria-expanded", "false");
+    await waitFor(() =>
+      expect(screen.queryByRole("link", { name: "Fornecedores" })).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText("Governança")).toBeVisible();
   });
 
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 1b do Codaqui 1.0.0 — refinamento de navegação, privacidade por campo, Meus dados, P1–P3 e busca Pagefind no portal.
 audience: AI agents e mantenedores executando a Fase 1b.
-status: pronto para implementação mediante comando explícito; baseline Fase 1a concluída e backend 0.12.3 validado em 2026-11-03.
+status: em implementação — tasks 1–6 concluídas; documentação/release e revisão final em andamento; backend 0.13.0.
 sections:
   - Escopo e constraints
   - Baseline e arquitetura
@@ -67,15 +67,15 @@ agent-protocol:
 - Menu de perfil com identidade, chips de roles/designations, grupos Conta/Gestão/Sessão e link para Privacidade.
 - Nenhuma mudança nas regras de autorização do backend.
 
-- [ ] **Step 1: Write failing navigation tests**
+- [x] **Step 1: Write failing navigation tests**
   Cobrir grupos, filtro, item ativo por prefixo, seção vazia, roles/designations, drawer mobile, foco/teclado e link de privacidade. Preservar os casos atuais.
-- [ ] **Step 2: Implement the refined sidebar and profile menu**
+- [x] **Step 2: Implement the refined sidebar and profile menu**
   Manter sidebar 240px, drawer e topbar atuais. Não duplicar menus nem criar outro layout.
-- [ ] **Step 3: Verify behavior in browser**
+- [x] **Step 3: Verify behavior in browser**
   Conferir desktop/mobile, ESC, clique fora, single-open, navegação por teclado e usuários com papéis distintos.
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
   `cd frontend && npx vitest run src/components/islands/__tests__/AppNavIsland.test.tsx src/components/islands/__tests__/NavbarAuth.test.tsx src/lib/header-menu.test.ts`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/layouts/AppLayout.astro frontend/src/components/islands frontend/src/lib/header-menu* && git commit -m "feat(fase-1b): agrupa navegação admin e menu de perfil"`
 
 ### Task 2: Migration 032 e API de visibilidade do perfil
@@ -96,17 +96,17 @@ agent-protocol:
 - `PATCH /members/me/visibility`: whitelist estrita de chaves/booleanos, audit e retorno da configuração efetiva.
 - Serialização pública de `/@handle` omite campos ocultos; e-mail nunca aparece, independentemente do payload.
 
-- [ ] **Step 1: Write failing visibility tests**
+- [x] **Step 1: Write failing visibility tests**
   Cobrir default compatível, chave desconhecida, valor não booleano, e-mail sempre privado, ocultar/restaurar campo, audit e ausência de dados ocultos no payload público.
-- [ ] **Step 2: Create migration and visibility helpers**
+- [x] **Step 2: Create migration and visibility helpers**
   `DEFAULT_PROFILE_VISIBILITY` e `resolveProfileVisibility` são a única fonte de defaults/fusão. `up` aditivo; `down` remove somente a coluna.
-- [ ] **Step 3: Implement API and public filtering**
+- [x] **Step 3: Implement API and public filtering**
   Validar com DTO, aplicar no service e testar o payload público antes da geração das páginas.
-- [ ] **Step 4: Validate against restored production copy**
+- [x] **Step 4: Validate against restored production copy**
   Restaurar dump descartável, executar 026–032, conferir membros preservados e defaults inalterados; testar `down`/`up` da 032 no banco descartável.
-- [ ] **Step 5: Run focused tests**
+- [x] **Step 5: Run focused tests**
   `cd backend && npx jest src/members src/common/allowed-origins.spec.ts --runInBand`
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
   `git add backend/src/migrations backend/src/members backend/src/audit backend/src/app.module.ts && git commit -m "feat(fase-1b): adiciona visibilidade por campo ao perfil"`
 
 ### Task 3: Aba Meus dados e autosserviço de privacidade
@@ -122,15 +122,15 @@ agent-protocol:
 - Salvar usa `authFetch`, exibe sucesso/erro e atualiza a configuração sem exigir logout.
 - Explica quando uma alteração passa a valer no perfil público/build.
 
-- [ ] **Step 1: Write failing island tests**
+- [x] **Step 1: Write failing island tests**
   Cobrir carregamento, defaults, toggles, save, erro da API, e-mail somente leitura e mensagem de propagação.
-- [ ] **Step 2: Implement Meus dados**
+- [x] **Step 2: Implement Meus dados**
   Reutilizar padrões admin/membro, tokens e componentes compartilhados; não criar uma segunda API no cliente.
-- [ ] **Step 3: Verify end to end**
+- [x] **Step 3: Verify end to end**
   Alterar visibilidade, confirmar audit e ausência do campo no payload público após rebuild/refresh aplicável.
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
   `cd frontend && npx vitest run src/components/islands/member src/components/islands/__tests__`
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/src/components/islands frontend/src/lib/api-proxy-paths* && git commit -m "feat(fase-1b): adiciona Meus dados e controles de privacidade"`
 
 ### Task 4: P1/P2 — Política de Privacidade e inventário de tratamentos
@@ -148,13 +148,13 @@ agent-protocol:
 - Inventário: dado → fonte → finalidade → acesso/compartilhamento → retenção → direitos/canal.
 - Seção específica de crianças e adolescentes, operadores, GitHub/Stripe/Google/SMTP/Cloudflare e retenções E1/G6.
 
-- [ ] **Step 1: Draft inventory before legal copy**
+- [x] **Step 1: Draft inventory before legal copy**
   Preencher o inventário com os tratamentos reais do código; marcar revisão jurídica como gate humano.
-- [ ] **Step 2: Publish the privacy page and links**
+- [x] **Step 2: Publish the privacy page and links**
   URL `/sobre/privacidade`, footer e menu do perfil. Conteúdo revisável, sem promessas absolutas.
-- [ ] **Step 3: Verify content and navigation**
+- [x] **Step 3: Verify content and navigation**
   Conferir links, headings, responsividade, contraste e presença no sitemap após revisão humana.
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git add docs/modules/privacy docs/README.md frontend/src/pages/sobre/privacidade.astro frontend/src/components/astro frontend/src/components/islands/NavbarAuth.tsx frontend/src/components/islands/__tests__/NavbarAuth.test.tsx && git commit -m "docs(fase-1b): publica privacidade e inventário de tratamentos"`
 
 ### Task 5: P3 — UI do Código de Conduta sem alterar o texto
@@ -168,13 +168,13 @@ agent-protocol:
 - Hero, resumo em cards, TOC responsivo, destaque para Como reportar, contato e versão print-friendly.
 - Texto canônico preservado integralmente e URL mantida; link para Privacidade.
 
-- [ ] **Step 1: Write failing page smoke tests**
+- [x] **Step 1: Write failing page smoke tests**
   Verificar TOC, heading hierarchy, contato, link cruzado e preservação do conteúdo.
-- [ ] **Step 2: Implement responsive layout**
+- [x] **Step 2: Implement responsive layout**
   Usar tokens e componentes de servidor sempre que possível; sem JS desnecessário.
-- [ ] **Step 3: Verify desktop, mobile and print**
+- [x] **Step 3: Verify desktop, mobile and print**
   Conferir TOC, foco, contraste e impressão.
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
   `git add frontend/src/pages/sobre frontend/src/components && git commit -m "feat(fase-1b): renova apresentação do código de conduta"`
 
 ### Task 6: G4 — Pagefind somente no portal codaqui
@@ -193,15 +193,15 @@ agent-protocol:
 - `/busca` noindex/fora do sitemap, UI pt-BR e carregamento sob demanda.
 - Excluir rotas noindex, app autenticado, `/_*` e o próprio índice; link Buscar e atalho `/` fora de formulários.
 
-- [ ] **Step 1: Write failing search contract tests**
+- [x] **Step 1: Write failing search contract tests**
   Cobrir decisão codaqui × tenant, exclusões, atalho de teclado e presença do índice no build.
-- [ ] **Step 2: Add Pagefind and portal-only build wiring**
+- [x] **Step 2: Add Pagefind and portal-only build wiring**
   Instalar a versão compatível registrada no lockfile; não executar o índice em builds tenant.
-- [ ] **Step 3: Implement search page and navigation**
+- [x] **Step 3: Implement search page and navigation**
   Usar UI oficial, pt-BR, noindex, carregamento sob demanda e fallback sem JS.
-- [ ] **Step 4: Verify real search**
+- [x] **Step 4: Verify real search**
   Executar build codaqui e confirmar que um termo de blog/trilha retorna resultado; builds tenant não contêm `dist/pagefind/`.
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
   `git add frontend/package.json frontend/package-lock.json frontend/astro.config.mjs frontend/src frontend/scripts && git commit -m "feat(fase-1b): adiciona busca Pagefind ao portal"`
 
 ### Task 7: Documentação, release e handoff

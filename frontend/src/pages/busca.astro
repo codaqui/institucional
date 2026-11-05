@@ -1,0 +1,39 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Busca | CODAQUI.dev" ogTitle="Busca | CODAQUI.dev" noindex>
+  <main class="mx-auto max-w-4xl px-4 py-10">
+    <header class="mb-6">
+      <p class="mb-2 text-sm font-bold uppercase tracking-wide text-primary-700">Portal Codaqui</p>
+      <h1 class="mb-3 text-3xl font-extrabold text-text-primary">Buscar no site</h1>
+      <p class="text-text-secondary">
+        Pesquise no blog, trilhas, páginas institucionais, eventos e comunidades.
+      </p>
+    </header>
+    <div id="search" aria-label="Busca no site"></div>
+    <noscript>
+      <p class="rounded-lg border border-border bg-surface p-4 text-text-secondary">
+        A busca local requer JavaScript. Você pode continuar navegando pelos links do site.
+      </p>
+    </noscript>
+  </main>
+</BaseLayout>
+
+<link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+<script src="/pagefind/pagefind-ui.js" is:inline></script>
+<script is:inline>
+  window.addEventListener("DOMContentLoaded", () => {
+    new PagefindUI({
+      element: "#search",
+      showSubResults: true,
+      showImages: false,
+      translations: {
+        placeholder: "Buscar no site",
+        clear_search: "Limpar",
+        load_more: "Carregar mais resultados",
+        search_label: "Busca",
+      },
+    });
+  });
+</script>

@@ -13,6 +13,13 @@ import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { EventsService } from '../events/events.service';
 import { decryptToken, encryptToken } from '../common/crypto.util';
+import {
+  applyProfileVisibility,
+  PROFILE_VISIBILITY_FIELDS,
+  resolveProfileVisibility,
+} from './profile-visibility';
+import type { UpdateProfileVisibilityDto } from './dto/update-profile-visibility.dto';
+import type { PublicMember } from './profile-visibility';
 
 interface GithubProfile {
   githubId: string;
@@ -209,7 +216,7 @@ export class MembersService {
   async findAllActive(
     page = 1,
     limit = 50,
-  ): Promise<PaginatedResultDto<Member>> {
+  ): Promise<PaginatedResultDto<PublicMember>> {
     // safeLimit consistente: take, skip e totalPages usam o MESMO limite
     // efetivo (cap de 100). Antes, take usava o cap mas skip/totalPages usavam
     // o limit bruto — paginação quebrada para limit > 100.
@@ -226,13 +233,14 @@ export class MembersService {
         'linkedinUrl',
         'roles',
         'joinedAt',
+        'profileVisibility',
       ],
       order: { joinedAt: 'ASC' },
       skip: (safePage - 1) * safeLimit,
       take: safeLimit, // hard cap at 100 per page
     });
     return {
-      data,
+      data: data.map(applyProfileVisibility),
       total,
       page: safePage,
       limit: safeLimit,
@@ -240,9 +248,13 @@ export class MembersService {
     };
   }
 
+  async findMe(id: string): Promise<Member | null> {
+    return this.repo.findOne({ where: { id, isActive: true } });
+  }
+
   /** Perfil individual (endpoint público) */
-  findOne(id: string): Promise<Member | null> {
-    return this.repo.findOne({
+  async findOne(id: string) {
+    const member = await this.repo.findOne({
       where: { id, isActive: true },
       select: [
         'id',
@@ -253,13 +265,15 @@ export class MembersService {
         'linkedinUrl',
         'roles',
         'joinedAt',
+        'profileVisibility',
       ],
     });
+    return member ? applyProfileVisibility(member) : null;
   }
 
   /** Busca membro ativo pelo handle do GitHub (público) */
-  findByHandle(handle: string): Promise<Member | null> {
-    return this.repo.findOne({
+  async findByHandle(handle: string) {
+    const member = await this.repo.findOne({
       where: { githubHandle: handle, isActive: true },
       select: [
         'id',
@@ -270,8 +284,10 @@ export class MembersService {
         'linkedinUrl',
         'roles',
         'joinedAt',
+        'profileVisibility',
       ],
     });
+    return member ? applyProfileVisibility(member) : null;
   }
 
   /**
@@ -282,7 +298,7 @@ export class MembersService {
    * Não expõe busca por e-mail para evitar enumeração de endereços.
    * O tamanho do batch é validado no DTO.
    */
-  async findByHandles(handles: string[]): Promise<Member[]> {
+  async findByHandles(handles: string[]): Promise<PublicMember[]> {
     const normalizedHandles = handles
       .map((h) => h.trim().toLowerCase())
       .filter((h) => MembersService.HANDLE_REGEX.test(h));
@@ -291,7 +307,7 @@ export class MembersService {
       return [];
     }
 
-    return this.repo
+    const members = await this.repo
       .createQueryBuilder('m')
       .where('m.isActive = true')
       .andWhere('LOWER(m.githubHandle) IN (:...handles)', { handles: normalizedHandles })
@@ -304,9 +320,11 @@ export class MembersService {
         'm.linkedinUrl',
         'm.roles',
         'm.joinedAt',
+        'm.profileVisibility',
       ])
       .orderBy('m.name', 'ASC')
       .getMany();
+    return members.map(applyProfileVisibility);
   }
 
   /** Perfil completo do usuário logado */
@@ -327,6 +345,34 @@ export class MembersService {
   async updateMeById(id: string, dto: Readonly<UpdateMeDto>): Promise<Member> {
     await this.repo.update({ id }, dto);
     return this.repo.findOneOrFail({ where: { id } });
+  }
+
+  async getProfileVisibility(id: string) {
+    const member = await this.repo.findOneOrFail({
+      where: { id },
+      select: ['id', 'profileVisibility'],
+    });
+    return {
+      visibility: resolveProfileVisibility(member.profileVisibility),
+      fields: PROFILE_VISIBILITY_FIELDS,
+    };
+  }
+
+  async updateProfileVisibility(
+    id: string,
+    dto: Readonly<UpdateProfileVisibilityDto>,
+  ) {
+    const member = await this.repo.findOneOrFail({
+      where: { id },
+      select: ['id', 'profileVisibility'],
+    });
+    resolveProfileVisibility(dto);
+    const visibility = {
+      ...member.profileVisibility,
+      ...dto,
+    };
+    await this.repo.update({ id }, { profileVisibility: visibility });
+    return this.getProfileVisibility(id);
   }
 
   /** Admin: lista todos (incluindo inativos) */
@@ -395,10 +441,10 @@ export class MembersService {
       githubHandle: string;
       name: string;
       avatarUrl: string;
-      bio: string | null;
-      linkedinUrl: string | null;
-      roles: string[];
-      joinedAt: Date;
+      bio?: string | null;
+      linkedinUrl?: string | null;
+      roles?: string[];
+      joinedAt?: Date;
       totalDonated: number;
       lastDonatedAt: Date;
       donationCount: number;
@@ -413,6 +459,7 @@ export class MembersService {
       .createQueryBuilder('tx')
       .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
       .where('m."isActive" = true')
+      .andWhere("COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'")
       .select([
         'm.id AS id',
         'm."githubHandle" AS "githubHandle"',
@@ -422,6 +469,7 @@ export class MembersService {
         'm."linkedinUrl" AS "linkedinUrl"',
         'm.roles AS roles',
         'm."joinedAt" AS "joinedAt"',
+        'm."profileVisibility" AS "profileVisibility"',
         'COALESCE(SUM(tx.amount), 0) AS "totalDonated"',
         'MAX(tx."createdAt") AS "lastDonatedAt"',
         'COUNT(tx.id) AS "donationCount"',
@@ -434,6 +482,7 @@ export class MembersService {
       .addGroupBy('m."linkedinUrl"')
       .addGroupBy('m.roles')
       .addGroupBy('m."joinedAt"')
+      .addGroupBy('m."profileVisibility"')
       .orderBy('"totalDonated"', 'DESC')
       .offset(offset)
       .limit(safeLimit)
@@ -444,6 +493,7 @@ export class MembersService {
       .createQueryBuilder('tx')
       .innerJoin('members', 'm', "tx.description LIKE '%[' || m.id || ']%'")
       .where('m."isActive" = true')
+      .andWhere("COALESCE(m.\"profileVisibility\"->>'donations', 'true') = 'true'")
       .select('COUNT(DISTINCT m.id)', 'count')
       .getRawOne();
 
@@ -455,10 +505,10 @@ export class MembersService {
         githubHandle: r.githubHandle,
         name: r.name,
         avatarUrl: r.avatarUrl,
-        bio: r.bio,
-        linkedinUrl: r.linkedinUrl,
-        roles: r.roles,
-        joinedAt: new Date(r.joinedAt),
+        bio: applyProfileVisibility(r).bio,
+        linkedinUrl: applyProfileVisibility(r).linkedinUrl,
+        roles: applyProfileVisibility(r).roles,
+        joinedAt: applyProfileVisibility(r).joinedAt as Date,
         totalDonated: Number.parseFloat(r.totalDonated) || 0,
         lastDonatedAt: new Date(r.lastDonatedAt),
         donationCount: Number.parseInt(r.donationCount, 10) || 0,
@@ -484,6 +534,14 @@ export class MembersService {
       createdAt: Date;
     }>
   > {
+    const member = await this.repo.findOne({
+      where: { id: memberId },
+      select: ['id', 'profileVisibility'],
+    });
+    if (!resolveProfileVisibility(member?.profileVisibility).donations) {
+      return [];
+    }
+
     const rows = await this.txRepo
       .createQueryBuilder('tx')
       .leftJoinAndSelect('tx.destinationAccount', 'dst')

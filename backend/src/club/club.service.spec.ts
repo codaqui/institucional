@@ -149,6 +149,7 @@ describe('ClubService', () => {
           id: MEMBER_ID,
           githubHandle: 'octocat',
           name: 'Octo',
+          profileVisibility: {},
         }),
       };
       memberRepo.createQueryBuilder.mockReturnValue(memberQb);
@@ -163,6 +164,28 @@ describe('ClubService', () => {
       expect(txRepo.find).toHaveBeenCalledWith(
         expect.objectContaining({ take: 5 }),
       );
+    });
+
+    it('hides wallet and transactions after an explicit SortCoins opt-out', async () => {
+      const memberQb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue({
+          id: MEMBER_ID,
+          githubHandle: 'octocat',
+          name: 'Octo',
+          profileVisibility: { sortcoins: false },
+        }),
+      };
+      memberRepo.createQueryBuilder.mockReturnValue(memberQb);
+
+      const result = await service.getPublicWalletByHandle('octocat');
+
+      expect(result.wallet).toBeNull();
+      expect(result.transactions).toEqual([]);
+      expect(walletRepo.findOne).not.toHaveBeenCalled();
+      expect(txRepo.find).not.toHaveBeenCalled();
     });
 
     it('throws on invalid handle', async () => {
