@@ -140,4 +140,25 @@ describe('HoursService', () => {
       valid: true, from: new Date('2026-01-01'), to: new Date('2026-12-31'), totalHours: 2.5,
     });
   });
+
+  it('records approved hours for a member check-in and skips guests', async () => {
+    const hourRepo = {
+      create: jest.fn((value) => value),
+      save: jest.fn(async (value) => value),
+    };
+    const manager = { getRepository: jest.fn(() => hourRepo) };
+    const registration = {
+      id: 'registration-1', memberId: 'member-1', eventId: 'event-1',
+      externalActivationId: null, checkedInAt: new Date('2026-01-01T12:00:00Z'),
+    };
+
+    await service.recordEventCheckin(registration as any, 90, manager as any, 'Evento X');
+    expect(hourRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      memberId: 'member-1', sourceId: 'registration-1', hours: 1.5,
+      status: HourEntryStatus.APPROVED,
+    }));
+
+    await service.recordEventCheckin({ ...registration, memberId: null } as any, 90, manager as any);
+    expect(hourRepo.save).toHaveBeenCalledTimes(1);
+  });
 });

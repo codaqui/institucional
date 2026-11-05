@@ -39,6 +39,8 @@ import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
 import { CsvParseError, parseCsvText, type ParsedCsvRow } from './csv';
 import { ReimbursementsService } from '../reimbursements/reimbursements.service';
+import { HoursService } from '../hours/hours.service';
+import { resolveEventWorkloadMinutes } from '../hours/event-hours';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import type { CreateEventDto, UpdateEventDto } from './dto/event.dto';
 import type {
@@ -190,6 +192,7 @@ export class EventsService {
     private readonly githubDb: GitHubDBService,
     private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
+    private readonly hoursService: HoursService,
   ) {}
 
   // ── Permissões ────────────────────────────────────────────────────────────
@@ -731,6 +734,17 @@ export class EventsService {
       throw new ConflictException(`Slug já em uso: ${dto.slug}.`);
     }
     const tz = dto.timezone ?? 'America/Sao_Paulo';
+    const startAt = parseDateTimeLocal(dto.startAt, tz);
+    const endAt = dto.endAt ? parseDateTimeLocal(dto.endAt, tz) : null;
+    if (!resolveEventWorkloadMinutes({
+      workloadMinutes: dto.workloadMinutes,
+      startAt,
+      endAt,
+    })) {
+      throw new BadRequestException(
+        'Informe workloadMinutes ou um horário de término para calcular as horas.',
+      );
+    }
     const event = await this.eventRepo.save(
       this.eventRepo.create({
         slug: dto.slug,
@@ -758,6 +772,7 @@ export class EventsService {
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
     await this.assertCanEditEvent(user, id);
+    const hadValidWorkload = resolveEventWorkloadMinutes(event) !== null;
     const previousAdultOnly = event.adultOnly;
     const adultOnlyChanged =
       dto.adultOnly !== undefined &&
@@ -797,6 +812,12 @@ export class EventsService {
     }
     if (dto.adultOnly !== undefined) event.adultOnly = dto.adultOnly;
     if (dto.venueType !== undefined) event.venueType = dto.venueType;
+
+    if (hadValidWorkload && !resolveEventWorkloadMinutes(event)) {
+      throw new BadRequestException(
+        'O evento não pode ficar sem workloadMinutes ou duração válida.',
+      );
+    }
 
     await this.eventRepo.save(event);
     if (adultOnlyChanged) {
@@ -2176,6 +2197,31 @@ export class EventsService {
     return this.performCheckin(registration, user);
   }
 
+  private async resolveCheckinHourDetails(registration: EventRegistration): Promise<{
+    eventTitle: string;
+    workloadMinutes: number | null;
+  }> {
+    if (registration.eventId) {
+      const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+      if (!event) throw new NotFoundException('Evento não encontrado.');
+      return {
+        eventTitle: event.title,
+        workloadMinutes: resolveEventWorkloadMinutes(event),
+      };
+    }
+    if (!registration.externalActivationId) {
+      throw new NotFoundException('Evento da inscrição não encontrado.');
+    }
+    const activation = await this.activationRepo.findOneBy({
+      id: registration.externalActivationId,
+    });
+    if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+    return {
+      eventTitle: activation.title ?? activation.eventKey,
+      workloadMinutes: await this.readExternalWorkloadMinutes(activation.eventKey),
+    };
+  }
+
   private async performCheckin(
     registration: EventRegistration,
     user: JwtPayload,
@@ -2199,11 +2245,30 @@ export class EventsService {
       return { status: 'already_checked_in' as const, registration: payload() };
     }
     const checkedInAt = new Date();
-    const updateResult = await this.registrationRepo.update(
-      { id: registration.id, checkedInAt: IsNull() },
-      { checkedInAt, checkedInByMemberId: user.sub },
-    );
-    if (!updateResult.affected) {
+    const details = registration.memberId
+      ? await this.resolveCheckinHourDetails(registration)
+      : null;
+    let affected = 0;
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      const updateResult = await manager.getRepository(EventRegistration).update(
+        { id: registration.id, checkedInAt: IsNull() },
+        { checkedInAt, checkedInByMemberId: user.sub },
+      );
+      affected = updateResult.affected ?? 0;
+      if (affected) {
+        registration.checkedInAt = checkedInAt;
+        registration.checkedInByMemberId = user.sub;
+        if (details) {
+          await this.hoursService.recordEventCheckin(
+            registration,
+            details.workloadMinutes,
+            manager,
+            details.eventTitle,
+          );
+        }
+      }
+    });
+    if (!affected) {
       const current = await this.registrationRepo.findOneBy({
         id: registration.id,
       });
@@ -2213,8 +2278,11 @@ export class EventsService {
       }
       throw new ConflictException('Não foi possível confirmar o check-in.');
     }
-    registration.checkedInAt = checkedInAt;
-    registration.checkedInByMemberId = user.sub;
+    if (registration.memberId && !details?.workloadMinutes) {
+      this.logger.warn(
+        `Check-in ${registration.id} sem carga horária legada; nenhuma hora foi creditada.`,
+      );
+    }
 
     void this.auditService.log({
       action: AuditAction.EVENT_CHECKIN,
@@ -2457,12 +2525,33 @@ export class EventsService {
       return typeof value === 'number' &&
         Number.isInteger(value) &&
         value >= 0 &&
-        value <= 1000
+        value <= 2880
         ? value
         : null;
     } catch {
       return null;
     }
+  }
+
+  private async saveExternalWorkloadMinutes(
+    eventKey: string,
+    workloadMinutes: number,
+    user: JwtPayload,
+  ): Promise<void> {
+    const { sourceKey, eventId } = EventsService.parseEventKey(eventKey);
+    const [override] = await this.eventOverridesService.findByKeys([
+      { sourceKey, eventId },
+    ]);
+    const parsed = override
+      ? JSON.parse(override.payload) as Record<string, unknown> & {
+          extendData?: Record<string, unknown>;
+        }
+      : {};
+    const extendData = parsed.extendData ?? parsed;
+    await this.eventOverridesService.upsert(sourceKey, eventId, {
+      payload: { extendData: { ...extendData, workloadMinutes } },
+      reason: 'Carga horária para certificados e ledger de horas.',
+    }, user);
   }
 
   /** GET /events/certificates/verify/:code — PÚBLICO (autenticidade) */
@@ -2713,6 +2802,19 @@ export class EventsService {
     }
 
     const existing = await this.activationRepo.findOneBy({ eventKey });
+    const enablesCheckin = features.includes('checkin') && !existing?.features.includes('checkin');
+    if (enablesCheckin) {
+      const workloadMinutes = dto.workloadMinutes ?? await this.readExternalWorkloadMinutes(eventKey);
+      if (!workloadMinutes) {
+        throw new BadRequestException(
+          'Informe workloadMinutes para ativar o check-in e creditar horas.',
+        );
+      }
+    }
+    if (dto.workloadMinutes !== undefined) {
+      await this.saveExternalWorkloadMinutes(eventKey, dto.workloadMinutes, user);
+    }
+
     const activation = existing ?? this.activationRepo.create({ eventKey });
     activation.features = features;
     activation.communityProjectKey = dto.communityProjectKey;

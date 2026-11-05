@@ -5,7 +5,9 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
+import { Between, EntityManager, Repository } from 'typeorm';
+import type { EventRegistration } from '../events/entities/event-registration.entity';
+import { HourEntrySource } from './entities/hour-entry.entity';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { DesignationsService } from '../designations/designations.service';
@@ -125,6 +127,30 @@ export class HoursService {
     if (entry.status !== HourEntryStatus.PENDING) {
       throw new ConflictException('Somente lançamentos pendentes podem ser revisados.');
     }
+  }
+
+  async recordEventCheckin(
+    registration: EventRegistration,
+    workloadMinutes: number | null,
+    manager: EntityManager,
+    sourceLabel = 'Participação em evento',
+  ): Promise<void> {
+    if (!registration.memberId || !workloadMinutes || workloadMinutes <= 0) return;
+    const repo = manager.getRepository(HourEntry);
+    await repo.save(repo.create({
+      memberId: registration.memberId,
+      sourceType: HourEntrySource.EVENT_CHECKIN,
+      sourceId: registration.id,
+      sourceLabel,
+      hours: Math.round((workloadMinutes / 60) * 100) / 100,
+      description: `Presença confirmada em ${sourceLabel}`,
+      occurredAt: registration.checkedInAt ?? new Date(),
+      status: HourEntryStatus.APPROVED,
+      reportedById: null,
+      approvedById: null,
+      approvedAt: registration.checkedInAt,
+      idempotencyKey: null,
+    }));
   }
 
   myEntries(memberId: string): Promise<HourEntry[]> {

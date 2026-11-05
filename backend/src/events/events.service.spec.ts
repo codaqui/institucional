@@ -97,6 +97,7 @@ describe('EventsService', () => {
   let githubDb: Record<string, jest.Mock>;
   let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
+  let hoursService: Record<string, jest.Mock>;
 
   beforeEach(() => {
     eventRepo = {
@@ -140,6 +141,7 @@ describe('EventsService', () => {
             create: (_target: unknown, d: unknown) =>
               registrationRepo.create(d),
             save: (...args: unknown[]) => registrationRepo.save(...args),
+            getRepository: () => ({ update: registrationRepo.update }),
           }),
         ),
       } as unknown as jest.Mock,
@@ -192,9 +194,13 @@ describe('EventsService', () => {
     eventOverridesService = {
       findByKeys: jest.fn().mockResolvedValue([]),
       findBySourceKey: jest.fn().mockResolvedValue([]),
+      upsert: jest.fn().mockResolvedValue({}),
     };
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
+    };
+    hoursService = {
+      recordEventCheckin: jest.fn().mockResolvedValue(undefined),
     };
 
     service = new EventsService(
@@ -214,6 +220,7 @@ describe('EventsService', () => {
       githubDb as any,
       eventOverridesService as any,
       reimbursementsService as any,
+      hoursService as any,
     );
   });
 
@@ -1337,6 +1344,25 @@ describe('EventsService', () => {
     });
   });
 
+  describe('updateEvent — workload compatibility', () => {
+    it('rejects removing the last valid workload from a non-legacy event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 60 }));
+
+      await expect(
+        service.updateEvent(uuid(10), { workloadMinutes: null }, adminUser),
+      ).rejects.toThrow(BadRequestException);
+      expect(eventRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('preserves updates for legacy events without workload', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: null }));
+
+      await expect(
+        service.updateEvent(uuid(10), { title: 'Evento legado' }, adminUser),
+      ).resolves.toBeDefined();
+    });
+  });
+
   describe('createEvent — description', () => {
     const baseDto = {
       slug: 'evento-y',
@@ -1344,6 +1370,7 @@ describe('EventsService', () => {
       summary: 'Resumo',
       location: 'Maringá',
       startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
       communityProjectKey: 'devparana',
     };
 
@@ -1380,6 +1407,7 @@ describe('EventsService', () => {
       summary: 'Resumo',
       location: 'Maringá',
       startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
       communityProjectKey: 'devparana',
     };
 
@@ -1743,6 +1771,47 @@ describe('EventsService', () => {
         ),
       ).rejects.toThrow(BadRequestException);
       expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('event hours', () => {
+    const registrationFor = (memberId: string | null) => ({
+      id: uuid(40),
+      eventId: uuid(10),
+      externalActivationId: null,
+      memberId,
+      attendeeName: 'Ana',
+      attendeeEmail: 'ana@example.test',
+      checkinToken: 'token-1',
+      checkedInAt: null,
+      status: RegistrationStatus.CONFIRMED,
+    });
+
+    it('credits event hours exactly once for a member check-in', async () => {
+      const registration = registrationFor(uuid(1));
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: 90 }));
+
+      await service.checkin(uuid(10), 'token-1', adminUser);
+      registration.checkedInAt = new Date();
+      await service.checkin(uuid(10), 'token-1', adminUser);
+
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledTimes(1);
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledWith(
+        registration,
+        90,
+        expect.anything(),
+        'Evento X',
+      );
+    });
+
+    it('does not credit guests or legacy events without workload', async () => {
+      registrationRepo.findOneBy.mockResolvedValue(registrationFor(null));
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ workloadMinutes: null }));
+
+      await service.checkin(uuid(10), 'token-1', adminUser);
+
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
     });
   });
 
