@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../../test/render-mui";
 import { jsonResponse } from "../../../../test/http-mock";
@@ -335,8 +335,9 @@ describe("AssembliesAdminApp", () => {
     renderWithMui(<AssembliesAdminApp />);
     await user.click(await screen.findByRole("button", { name: /realizar assembleia/i }));
 
-    await user.clear(screen.getByLabelText(/Data e hora da realização/));
-    await user.type(screen.getByLabelText(/Data e hora da realização/), "2026-11-20T19:00");
+    fireEvent.change(screen.getByLabelText(/Data e hora da realização/), {
+      target: { value: "2026-11-20T19:00" },
+    });
     await waitFor(() =>
       expect(screen.getByLabelText(/Data e hora da realização/)).toHaveValue(
         "2026-11-20T19:00",
