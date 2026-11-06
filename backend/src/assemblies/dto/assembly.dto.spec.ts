@@ -146,4 +146,23 @@ describe('UpdateAssemblyDto', () => {
       BadRequestException,
     );
   });
+
+  it.each(['title', 'scheduledAt', 'status', 'agendaSummary'])(
+    'rejects null in non-nullable field %s',
+    async (field) => {
+      await expect(update({ [field]: null })).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    },
+  );
+
+  it('accepts null only in nullable transition and notary fields', async () => {
+    await expect(
+      update({ heldAt: null, ataPdfUrl: null, notaryRegistry: null }),
+    ).resolves.toMatchObject({
+      heldAt: null,
+      ataPdfUrl: null,
+      notaryRegistry: null,
+    });
+  });
 });

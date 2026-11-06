@@ -57,7 +57,7 @@ describe('AssembliesService', () => {
   let txRepo: Record<string, jest.Mock>;
   let manager: Record<string, jest.Mock>;
   let dataSource: { transaction: jest.Mock };
-  let designations: { hasDesignation: jest.Mock };
+  let designations: { hasAnyDesignation: jest.Mock };
   let audit: { log: jest.Mock };
 
   beforeEach(() => {
@@ -70,6 +70,12 @@ describe('AssembliesService', () => {
         .mockImplementation((value: Assembly) => Promise.resolve(value)),
     };
     txRepo = {
+      findOne: jest
+        .fn()
+        .mockImplementation(
+          (options: unknown): Promise<Assembly | null> =>
+            Promise.resolve(repo.findOne(options) as Assembly | null),
+        ),
       create: jest
         .fn()
         .mockImplementation((value: Partial<Assembly>) =>
@@ -100,7 +106,7 @@ describe('AssembliesService', () => {
           Promise.resolve(work(manager)),
         ),
     };
-    designations = { hasDesignation: jest.fn().mockResolvedValue(true) };
+    designations = { hasAnyDesignation: jest.fn().mockResolvedValue(true) };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
     service = new AssembliesService(
       repo as unknown as Repository<Assembly>,
@@ -120,7 +126,7 @@ describe('AssembliesService', () => {
       status: 'scheduled',
     });
     expect(created).not.toHaveProperty('createdById');
-    expect(designations.hasDesignation).toHaveBeenCalledWith('director-1', {
+    expect(designations.hasAnyDesignation).toHaveBeenCalledWith('director-1', {
       targetType: 'directorate',
       designation: 'director',
     });
@@ -162,11 +168,11 @@ describe('AssembliesService', () => {
       expect.stringContaining('MAX(number)'),
       ['oficial'],
     );
-    expect(designations.hasDesignation).not.toHaveBeenCalled();
+    expect(designations.hasAnyDesignation).not.toHaveBeenCalled();
   });
 
   it('rejects creation by a member without an active director designation', async () => {
-    designations.hasDesignation.mockResolvedValue(false);
+    designations.hasAnyDesignation.mockResolvedValue(false);
 
     await expect(service.create(baseDto, member)).rejects.toThrow(
       ForbiddenException,
@@ -290,7 +296,7 @@ describe('AssembliesService', () => {
         admin,
       ),
     ).rejects.toThrow('PDF e cartório');
-    expect(repo.save).not.toHaveBeenCalled();
+    expect(txRepo.save).not.toHaveBeenCalled();
   });
 
   it('keeps type, number and Discussion immutable at the service boundary', async () => {
@@ -313,7 +319,7 @@ describe('AssembliesService', () => {
         director,
       ),
     ).rejects.toThrow('discussionUrl é imutável');
-    expect(repo.save).not.toHaveBeenCalled();
+    expect(txRepo.save).not.toHaveBeenCalled();
   });
 
   it('audits a status transition with before and after states', async () => {
@@ -326,6 +332,11 @@ describe('AssembliesService', () => {
     );
 
     expect(updated).toMatchObject({ status: 'canceled' });
+    expect(txRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 'assembly-1' },
+      lock: { mode: 'pessimistic_write' },
+    });
+    expect(dataSource.transaction).toHaveBeenCalledTimes(1);
     expect(audit.log).toHaveBeenCalledWith(
       expect.objectContaining({
         action: 'assembly.status_changed',
@@ -390,6 +401,6 @@ describe('AssembliesService', () => {
     await expect(
       service.update('missing', { title: 'Novo título' }, admin),
     ).rejects.toThrow(NotFoundException);
-    expect(repo.save).not.toHaveBeenCalled();
+    expect(txRepo.save).not.toHaveBeenCalled();
   });
 });

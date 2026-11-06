@@ -97,20 +97,34 @@ export class AssembliesService {
     actor: JwtPayload,
   ): Promise<AssemblyView> {
     await this.assertCanManage(actor);
-    const assembly = await this.repo.findOne({ where: { id } });
-    if (!assembly) throw new NotFoundException('Assembleia não encontrada.');
+    const { before, after, previousStatus } = await this.dataSource.transaction(
+      async (manager) => {
+        const txRepo = manager.getRepository(Assembly);
+        const assembly = await txRepo.findOne({
+          where: { id },
+          lock: { mode: 'pessimistic_write' },
+        });
+        if (!assembly) {
+          throw new NotFoundException('Assembleia não encontrada.');
+        }
 
-    const before = this.toView(assembly);
-    const previousStatus = assembly.status;
-    assertAssemblyTransition(assembly, dto, actor);
-    Object.assign(
-      assembly,
-      Object.fromEntries(
-        Object.entries(dto).filter(([, value]) => value !== undefined),
-      ),
+        const before = this.toView(assembly);
+        const previousStatus = assembly.status;
+        assertAssemblyTransition(assembly, dto, actor);
+        Object.assign(
+          assembly,
+          Object.fromEntries(
+            Object.entries(dto).filter(([, value]) => value !== undefined),
+          ),
+        );
+        const updated = await txRepo.save(assembly);
+        return {
+          before,
+          after: this.toView(updated),
+          previousStatus,
+        };
+      },
     );
-    const updated = await this.repo.save(assembly);
-    const after = this.toView(updated);
 
     await this.audit.log({
       action: AuditAction.ASSEMBLY_UPDATED,
@@ -120,7 +134,7 @@ export class AssembliesService {
       targetType: 'assembly',
       details: { before, after },
     });
-    if (previousStatus !== updated.status) {
+    if (previousStatus !== after.status) {
       await this.audit.log({
         action: AuditAction.ASSEMBLY_STATUS_CHANGED,
         actorId: actor.sub,
@@ -129,7 +143,7 @@ export class AssembliesService {
         targetType: 'assembly',
         details: {
           beforeStatus: previousStatus,
-          afterStatus: updated.status,
+          afterStatus: after.status,
         },
       });
     }
@@ -202,7 +216,7 @@ export class AssembliesService {
 
   private async assertCanManage(actor: JwtPayload): Promise<void> {
     if (actor.roles?.includes(MemberRole.ADMIN)) return;
-    const isDirector = await this.designations.hasDesignation(actor.sub, {
+    const isDirector = await this.designations.hasAnyDesignation(actor.sub, {
       targetType: 'directorate',
       designation: 'director',
     });

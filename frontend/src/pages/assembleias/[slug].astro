@@ -4,6 +4,7 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
 import {
   assemblyPath,
   assemblySlug,
+  formatAssemblyRegisteredAt,
   loadAssembliesIndex,
   type Assembly,
   type AssemblyStatus,
@@ -40,10 +41,6 @@ const statusSchema: Record<AssemblyStatus, string> = {
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "full",
   timeStyle: "short",
-  timeZone: "America/Sao_Paulo",
-});
-const registeredAtFormatter = new Intl.DateTimeFormat("pt-BR", {
-  dateStyle: "long",
   timeZone: "America/Sao_Paulo",
 });
 const absoluteUrl = new URL(assemblyPath(assembly), Astro.site).toString();
@@ -139,7 +136,7 @@ const commentsConfig = getAssembliesGiscusConfig();
               <dt class="text-sm font-bold text-text-secondary">Registrada em</dt>
               <dd class="mt-1 text-text-primary">
                 <time datetime={assembly.notaryRegistry.registeredAt}>
-                  {registeredAtFormatter.format(new Date(assembly.notaryRegistry.registeredAt))}
+                  {formatAssemblyRegisteredAt(assembly.notaryRegistry.registeredAt)}
                 </time>
               </dd>
             </div>

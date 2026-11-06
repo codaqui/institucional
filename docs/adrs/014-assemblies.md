@@ -63,10 +63,12 @@ A Discussion precisa usar exatamente `https://github.com/codaqui/institucional/d
 
 A unicidade `(type, number)` é garantida pelo índice `UQ_assemblies_type_number`. A criação executa `pg_advisory_xact_lock(hashtext(type))`, calcula `MAX(number)+1` e salva na mesma transação. Uma violação específica desse índice pode ser repetida de forma limitada; outros erros não são convertidos em retry. Assim, criações simultâneas do mesmo tipo recebem números distintos e slugs estáveis.
 
+A atualização lê a assembleia com `pessimistic_write` (`FOR UPDATE`), valida a transição, aplica o PATCH e salva na mesma transação. Os estados `before` e `after` usados na auditoria são capturados sob esse lock. Realização e cancelamento concorrentes ficam serializados: somente a primeira transição válida é persistida e a outra é recusada, sem transição a partir de estado terminal. Edições simultâneas de campos diferentes leem o estado mais recente antes de salvar.
+
 A autorização não depende de `createdById`:
 
 - `GET /assemblies`, `POST /assemblies` e `PATCH /assemblies/:id` exigem JWT e role `admin` ou `diretor`;
-- criação e edição também consultam `DesignationsService` para exigir designation `director @ directorate` ativa quando o ator não é admin;
+- criação e edição também consultam `DesignationsService.hasAnyDesignation` para exigir qualquer designation `director @ directorate` ativa quando o ator não é admin, sem impor `targetId` ou `targetKey` nulos;
 - alterar `ataPdfUrl` ou `notaryRegistry` exige admin, inclusive quando esses dados acompanham a realização;
 - leituras públicas não exigem autenticação.
 
@@ -82,6 +84,8 @@ Criação, edição, mudança de status e registro cartorário gravam ações `a
 | `POST /assemblies` | Admin ou diretor ativo | Cria como `scheduled`, atribui número e devolve o slug derivado |
 | `PATCH /assemblies/:id` | Admin ou diretor ativo; cartório somente admin | Edita campos permitidos e executa transições, sem alterar tipo, número ou Discussion |
 
+No PATCH, campos não anuláveis enviados como `null` são recusados pelo DTO com HTTP 400; `null` permanece válido somente em `heldAt`, `ataPdfUrl` e `notaryRegistry`. PDF fora da allowlist também retorna HTTP 400 na fronteira de assembleias, sem alterar a allowlist do `StorageService`.
+
 O proxy aceita o prefixo `/assemblies/` sem interceptar as páginas `/assembleias`. `/assemblies/index.json` é exceção explícita para continuar servindo o snapshot estático. Não foram criadas rotas de gestão sob `/admin/`.
 
 ## Discussion manual, Giscus e retenção
@@ -96,11 +100,11 @@ Comentários, reações e metadados do Giscus permanecem no GitHub. Eles não s�
 
 ## Snapshot, páginas e admin
 
-`npm run sync:assemblies` consulta `GET /assemblies/public` usando `ASSEMBLIES_API_URL` (default `http://localhost:3001`). O script valida a coleção inteira, inclusive invariantes de realização e ausência de `createdById`, preserva `generatedAt` quando os dados não mudam e grava por arquivo temporário + rename. Falha de HTTP, contrato ou escrita não substitui o snapshot anterior.
+`npm run sync:assemblies` consulta `GET /assemblies/public` usando `ASSEMBLIES_API_URL` (default `http://localhost:3001`). O script valida a coleção inteira, inclusive invariantes de realização, ausência de `createdById`, URL exata da Discussion e PDF HTTPS na mesma allowlist do armazenamento. Ele preserva `generatedAt` quando os dados não mudam e grava por arquivo temporário + rename. Falha de HTTP, contrato ou escrita não substitui o snapshot anterior.
 
 O arquivo canônico é `static/assemblies/index.json`, copiado no build para `frontend/public/assemblies/index.json`. O workflow `sync-assemblies.yml` está configurado para 06:23 UTC diariamente e dispatch manual; ele ainda não representa um sync inicial executado em produção. O agregador `npm run sync` não inclui assembleias.
 
-O build Astro gera `/assembleias` e `/assembleias/<slug>` a partir do snapshot, ordenando da data prevista mais recente para a mais antiga. Canceladas permanecem visíveis. Detalhes incluem resumo, Discussion, data efetiva e, quando existentes, PDF e metadados cartorários, além de OG/JSON-LD. Snapshot ausente ou inválido produz fallback vazio; dados novos exigem sync e novo build.
+O build Astro gera `/assembleias` e `/assembleias/<slug>` a partir do snapshot, ordenando da data prevista mais recente para a mais antiga. Canceladas permanecem visíveis. O loader repete a validação estrita das URLs e descarta um snapshot inválido. Detalhes incluem resumo, Discussion, data efetiva e, quando existentes, PDF e metadados cartorários, além de OG/JSON-LD. `notaryRegistry.registeredAt` é exibido como data civil em UTC, enquanto `scheduledAt` e `heldAt` continuam formatados em `America/Sao_Paulo`. Snapshot ausente ou inválido produz fallback vazio; dados novos exigem sync e novo build.
 
 `/admin/assembleias` usa ilha React/MUI, `useAuth`, `authFetch`, erros visíveis e paginação compartilhada. Diretores não veem nem enviam campos de cartório; a API continua sendo a fronteira de autorização. Filtros, transições, estados de erro e navegação por teclado dos diálogos têm testes.
 

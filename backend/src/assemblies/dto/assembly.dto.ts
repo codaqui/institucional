@@ -11,6 +11,7 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
 import { ASSEMBLY_DISCUSSION_URL_PATTERN } from '../assembly.rules';
@@ -78,39 +79,42 @@ export class CreateAssemblyDto {
 }
 
 export class UpdateAssemblyDto {
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @trimText
   @IsString()
   @IsNotEmpty()
   @MaxLength(160)
   title?: string;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @Type(() => Date)
   @IsDate()
   scheduledAt?: Date;
 
+  @ValidateIf((_, value) => value !== undefined)
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   heldAt?: Date | null;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsIn(['scheduled', 'held', 'canceled'])
   status?: AssemblyStatus;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @trimText
   @IsString()
   @IsNotEmpty()
   @MaxLength(1000)
   agendaSummary?: string;
 
+  @ValidateIf((_, value) => value !== undefined)
   @IsOptional()
   @IsUrl({ require_protocol: true, protocols: ['https'] })
   @MaxLength(2048)
   ataPdfUrl?: string | null;
 
+  @ValidateIf((_, value) => value !== undefined)
   @IsOptional()
   @ValidateNested()
   @Type(() => AssemblyNotaryRegistryDto)

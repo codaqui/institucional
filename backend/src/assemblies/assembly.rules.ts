@@ -116,7 +116,13 @@ export function assertAssemblyTransition(
       : patch.notaryRegistry;
 
   if (ataPdfUrl !== null && ataPdfUrl !== undefined) {
-    storageService.validateReceiptUrl(ataPdfUrl);
+    try {
+      storageService.validateReceiptUrl(ataPdfUrl);
+    } catch (error) {
+      throw new BadRequestException(
+        error instanceof Error ? error.message : 'URL inválida para ata',
+      );
+    }
   }
   if (notaryRegistry && !hasCompleteNotaryRegistry(notaryRegistry)) {
     throw new BadRequestException(

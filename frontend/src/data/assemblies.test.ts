@@ -8,6 +8,7 @@ import {
   loadAssembliesIndex,
   type Assembly,
 } from "./assemblies";
+import * as assemblyData from "./assemblies";
 
 function makeAssembly(overrides: Partial<Assembly> = {}): Assembly {
   return {
@@ -33,6 +34,15 @@ describe("assemblyPath", () => {
   it("deriva a URL pública do tipo e do número", () => {
     expect(assemblySlug("oficial", 2)).toBe("oficial-2");
     expect(assemblyPath({ type: "oficial", number: 2 })).toBe("/assembleias/oficial-2");
+  });
+});
+
+describe("formatAssemblyRegisteredAt", () => {
+  it("preserva o dia civil de uma data enviada à meia-noite UTC", () => {
+    const format = (assemblyData as unknown as Record<string, (value: string) => string>)
+      .formatAssemblyRegisteredAt;
+    expect(format).toBeTypeOf("function");
+    expect(format("2026-11-21T00:00:00.000Z")).toBe("21 de novembro de 2026");
   });
 });
 
@@ -79,7 +89,7 @@ describe("loadAssembliesIndex", () => {
     const official = makeAssembly({
       status: "held",
       heldAt: "2026-12-10T21:00:00.000Z",
-      ataPdfUrl: "https://example.com/atas/oficial-2.pdf",
+      ataPdfUrl: "https://drive.google.com/atas/oficial-2.pdf",
       notaryRegistry: {
         book: "Livro 01",
         page: "42",
@@ -97,6 +107,14 @@ describe("loadAssembliesIndex", () => {
   it.each([
     makeAssembly({ slug: "oficial-999" }),
     makeAssembly({ scheduledAt: "data inválida" }),
+    makeAssembly({ discussionUrl: "javascript:alert(1)" }),
+    makeAssembly({ discussionUrl: "http://github.com/codaqui/institucional/discussions/42" }),
+    makeAssembly({ discussionUrl: "https://github.com.evil.example/codaqui/institucional/discussions/42" }),
+    makeAssembly({ discussionUrl: "https://github.com/codaqui/outro/discussions/42" }),
+    makeAssembly({ ataPdfUrl: "javascript:alert(1)" }),
+    makeAssembly({ ataPdfUrl: "http://drive.google.com/ata.pdf" }),
+    makeAssembly({ ataPdfUrl: "https://evil.example/ata.pdf" }),
+    makeAssembly({ ataPdfUrl: "https://drive.google.com.evil.example/ata.pdf" }),
     { ...makeAssembly(), createdById: "private-member-id" },
   ])("descarta o snapshot quando um item viola o contrato público", (assembly) => {
     writeSnapshot({ generatedAt: "2026-11-05T00:00:00.000Z", assemblies: [assembly] });

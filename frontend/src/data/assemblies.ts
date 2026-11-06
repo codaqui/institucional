@@ -48,8 +48,41 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+const ASSEMBLY_DISCUSSION_URL_PATTERN =
+  /^https:\/\/github\.com\/codaqui\/institucional\/discussions\/[1-9]\d*$/;
+const TRUSTED_PDF_HOSTNAMES = [
+  "drive.google.com",
+  "docs.google.com",
+  "www.dropbox.com",
+  "dropbox.com",
+  "onedrive.live.com",
+  "1drv.ms",
+  "imgur.com",
+  "i.imgur.com",
+];
+const registeredAtFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+
 function isDateString(value: unknown): value is string {
   return isNonEmptyString(value) && !Number.isNaN(Date.parse(value));
+}
+
+export function formatAssemblyRegisteredAt(value: string): string {
+  return registeredAtFormatter.format(new Date(value));
+}
+
+function isTrustedPdfUrl(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" && TRUSTED_PDF_HOSTNAMES.some(
+      (domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`),
+    );
+  } catch {
+    return false;
+  }
 }
 
 function isNotaryRegistry(value: unknown): value is AssemblyNotaryRegistry {
@@ -66,6 +99,7 @@ function isAssembly(value: unknown): value is Assembly {
   if (!["id", "title", "agendaSummary", "discussionUrl"].every((field) => isNonEmptyString(value[field]))) {
     return false;
   }
+  if (!ASSEMBLY_DISCUSSION_URL_PATTERN.test(value.discussionUrl as string)) return false;
   if (value.type !== "ordinaria" && value.type !== "oficial") return false;
   if (!Number.isSafeInteger(value.number) || (value.number as number) < 1) return false;
   if (value.slug !== assemblySlug(value.type, value.number as number)) return false;
@@ -74,7 +108,7 @@ function isAssembly(value: unknown): value is Assembly {
     return false;
   }
   if (value.heldAt !== null && !isDateString(value.heldAt)) return false;
-  if (value.ataPdfUrl !== null && typeof value.ataPdfUrl !== "string") return false;
+  if (value.ataPdfUrl !== null && !isTrustedPdfUrl(value.ataPdfUrl)) return false;
   if (value.notaryRegistry !== null && !isNotaryRegistry(value.notaryRegistry)) return false;
   if (value.status === "held" && value.heldAt === null) return false;
   if (value.heldAt !== null && Date.parse(value.heldAt as string) < Date.parse(value.scheduledAt as string)) {

@@ -8,6 +8,17 @@ const ROOT = path.resolve(import.meta.dirname, "..");
 const DEFAULT_OUTPUT_FILE = path.join(ROOT, "static", "assemblies", "index.json");
 const ASSEMBLY_TYPES = new Set(["ordinaria", "oficial"]);
 const ASSEMBLY_STATUSES = new Set(["scheduled", "held", "canceled"]);
+const ASSEMBLY_DISCUSSION_URL_PATTERN = /^https:\/\/github\.com\/codaqui\/institucional\/discussions\/[1-9]\d*$/;
+const TRUSTED_PDF_HOSTNAMES = [
+  "drive.google.com",
+  "docs.google.com",
+  "www.dropbox.com",
+  "dropbox.com",
+  "onedrive.live.com",
+  "1drv.ms",
+  "imgur.com",
+  "i.imgur.com",
+];
 
 function invalidAssembly(index, detail) {
   return new TypeError(`Assembleia inválida em /assemblies/public no índice ${index}: ${detail}`);
@@ -21,6 +32,18 @@ function isDateString(value) {
   return typeof value === "string" && value.length > 0 && !Number.isNaN(Date.parse(value));
 }
 
+function isTrustedPdfUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" && TRUSTED_PDF_HOSTNAMES.some(
+      (domain) => parsed.hostname === domain || parsed.hostname.endsWith(`.${domain}`),
+    );
+  } catch {
+    return false;
+  }
+}
+
 function validateAssembly(assembly, index) {
   if (!isObject(assembly)) throw invalidAssembly(index, "esperado um objeto.");
   if (Object.hasOwn(assembly, "createdById")) throw invalidAssembly(index, "createdById não é público.");
@@ -29,6 +52,9 @@ function validateAssembly(assembly, index) {
     if (typeof assembly[field] !== "string" || assembly[field].trim().length === 0) {
       throw invalidAssembly(index, `${field} deve ser uma string não vazia.`);
     }
+  }
+  if (!ASSEMBLY_DISCUSSION_URL_PATTERN.test(assembly.discussionUrl)) {
+    throw invalidAssembly(index, "discussionUrl deve ser a URL exata da Discussion do repositório.");
   }
   if (!ASSEMBLY_TYPES.has(assembly.type)) throw invalidAssembly(index, "type inválido.");
   if (!Number.isSafeInteger(assembly.number) || assembly.number < 1) {
@@ -44,8 +70,8 @@ function validateAssembly(assembly, index) {
   if (assembly.heldAt !== null && !isDateString(assembly.heldAt)) {
     throw invalidAssembly(index, "heldAt deve ser null ou uma data válida.");
   }
-  if (assembly.ataPdfUrl !== null && typeof assembly.ataPdfUrl !== "string") {
-    throw invalidAssembly(index, "ataPdfUrl deve ser null ou uma string.");
+  if (assembly.ataPdfUrl !== null && !isTrustedPdfUrl(assembly.ataPdfUrl)) {
+    throw invalidAssembly(index, "ataPdfUrl deve usar HTTPS e a allowlist de armazenamento.");
   }
   if (assembly.notaryRegistry !== null) {
     if (!isObject(assembly.notaryRegistry)) {

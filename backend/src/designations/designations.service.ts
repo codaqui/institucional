@@ -115,6 +115,32 @@ export class DesignationsService {
     return value;
   }
 
+  async hasAnyDesignation(
+    memberId: string,
+    query: Pick<DesignationQuery, 'targetType' | 'designation'>,
+  ): Promise<boolean> {
+    const key = JSON.stringify([
+      'any-target',
+      memberId,
+      query.targetType,
+      query.designation,
+    ]);
+    const cached = this.cache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
+    const designation = await this.repo.findOne({
+      where: {
+        memberId,
+        status: 'active',
+        targetType: query.targetType,
+        designation: query.designation,
+      },
+    });
+    const value = !!designation;
+    this.cache.set(key, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+    return value;
+  }
+
   async grant(
     input: GrantDesignationInput,
     actor: DesignationActor,
