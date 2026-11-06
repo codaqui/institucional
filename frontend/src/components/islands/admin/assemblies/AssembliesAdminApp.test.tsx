@@ -336,11 +336,11 @@ describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
     await user.click(await screen.findByRole("button", { name: /realizar assembleia/i }));
 
     fireEvent.change(screen.getByLabelText(/Data e hora da realização/), {
-      target: { value: "2026-11-20T19:00" },
+      target: { value: "2026-11-20T22:00" },
     });
     await waitFor(() =>
       expect(screen.getByLabelText(/Data e hora da realização/)).toHaveValue(
-        "2026-11-20T19:00",
+        "2026-11-20T22:00",
       ),
     );
     const form = screen.getByRole("button", { name: /confirmar realização/i }).closest("form");
@@ -356,7 +356,7 @@ describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
     );
     expect(payload).toMatchObject({
       status: "held",
-      heldAt: new Date("2026-11-20T19:00").toISOString(),
+      heldAt: new Date("2026-11-20T22:00").toISOString(),
     });
   });
 
