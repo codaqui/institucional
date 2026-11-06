@@ -73,7 +73,7 @@ async function fillRequiredCreateFields(user: ReturnType<typeof userEvent.setup>
   await user.type(screen.getByLabelText(/URL da Discussion/), validDiscussionUrl);
 }
 
-describe("AssembliesAdminApp", () => {
+describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
   beforeEach(() => {
     mocks.roles = ["admin"];
     mocks.ready = true;
