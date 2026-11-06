@@ -122,14 +122,14 @@ function validateAssembly(assembly, index) {
 }
 
 const LOG_CONTROL_ESCAPES = new Map([
-  ["\n", "\\n"],
-  ["\r", "\\r"],
-  ["\t", "\\t"],
+  ["\n", String.raw`\n`],
+  ["\r", String.raw`\r`],
+  ["\t", String.raw`\t`],
 ]);
 
 function escapeLogControlCharacter(character) {
   return LOG_CONTROL_ESCAPES.get(character) ??
-    `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`;
+    `\\x${character.codePointAt(0).toString(16).padStart(2, "0")}`;
 }
 
 export function sanitizeErrorForLog(error) {
@@ -193,7 +193,7 @@ const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath
 if (isCli) {
   try {
     const snapshot = await syncAssemblies();
-    console.log(`✓ ${snapshot.assemblies.length} assembleias sincronizadas em ${DEFAULT_OUTPUT_FILE}`);
+    console.log("✓", snapshot.assemblies.length, "assembleias sincronizadas em", DEFAULT_OUTPUT_FILE);
   } catch (error) {
     console.error(`✖ ${sanitizeErrorForLog(error)}`);
     process.exitCode = 1;
