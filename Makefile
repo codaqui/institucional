@@ -46,7 +46,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
-        sync sync-events sync-events-full sync-social sync-analytics sync-communities sync-badges \
+        sync sync-events sync-events-full sync-social sync-analytics sync-communities sync-assemblies sync-badges \
         clean clean-volumes
 
 # Target padrão
@@ -351,6 +351,9 @@ sync-analytics: ## Sincroniza analytics → static/analytics/
 
 sync-communities: ## Sincroniza comunidades ativas → static/communities/
 	COMMUNITIES_API_URL=http://localhost:3001 npm run sync:communities
+
+sync-assemblies: ## Sincroniza assembleias → static/assemblies/
+	ASSEMBLIES_API_URL=http://localhost:3001 npm run sync:assemblies
 
 sync-badges: ## Sincroniza selos SVG públicos → static/badges/
 	MEMBER_BADGES_API_URL=http://localhost:3001 npm run sync:badges

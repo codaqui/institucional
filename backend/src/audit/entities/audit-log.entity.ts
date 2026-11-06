@@ -82,6 +82,12 @@ export enum AuditAction {
   HOUR_APPROVED = 'hour.approved',
   HOUR_REJECTED = 'hour.rejected',
 
+  // Assemblies
+  ASSEMBLY_CREATED = 'assembly.created',
+  ASSEMBLY_UPDATED = 'assembly.updated',
+  ASSEMBLY_STATUS_CHANGED = 'assembly.status_changed',
+  ASSEMBLY_NOTARY_REGISTERED = 'assembly.notary_registered',
+
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
 }

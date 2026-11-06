@@ -1,0 +1,129 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import {
+  assemblyPath,
+  loadAssembliesIndex,
+  type AssemblyStatus,
+  type AssemblyType,
+} from "../../data/assemblies";
+
+const { assemblies, generatedAt } = loadAssembliesIndex();
+const typeLabels: Record<AssemblyType, string> = {
+  ordinaria: "Ordinária",
+  oficial: "Oficial",
+};
+const statusLabels: Record<AssemblyStatus, string> = {
+  scheduled: "Agendada",
+  held: "Realizada",
+  canceled: "Cancelada",
+};
+const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "full",
+  timeStyle: "short",
+  timeZone: "America/Sao_Paulo",
+});
+const updatedFormatter = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+});
+const description = "Consulte pautas, discussões públicas, atas e registros das assembleias da Associação Codaqui.";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "Assembleias da Codaqui",
+  description,
+  url: new URL("/assembleias", Astro.site).toString(),
+  mainEntity: {
+    "@type": "ItemList",
+    itemListElement: assemblies.map((assembly, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: assembly.title,
+      url: new URL(assemblyPath(assembly), Astro.site).toString(),
+    })),
+  },
+};
+---
+
+<PublicLayout title="Assembleias | CODAQUI.dev" ogTitle="Assembleias | CODAQUI.dev" description={description} jsonLd={jsonLd}>
+  <section class="bg-neutral-900 py-14 text-white md:py-20">
+    <div class="mx-auto max-w-3xl px-4 text-center">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-[0.15em] text-primary-400">Governança e transparência</p>
+      <h1 class="text-4xl font-extrabold leading-tight md:text-5xl">Assembleias da Codaqui</h1>
+      <p class="mt-4 text-base leading-7 text-white/65 md:text-lg">
+        Acompanhe as decisões coletivas da Associação, participe das discussões e consulte os registros públicos de cada encontro.
+      </p>
+    </div>
+  </section>
+
+  <div class="mx-auto max-w-6xl px-4 py-10 md:py-14">
+    <section aria-labelledby="assembleias-publicadas">
+      <div class="mb-6">
+        <h2 id="assembleias-publicadas" class="text-2xl font-extrabold text-text-primary">Assembleias publicadas</h2>
+        <p class="mt-1 text-text-secondary">Da mais recente para a mais antiga, conforme a data prevista.</p>
+        {generatedAt && (
+          <p class="mt-2 text-sm text-text-secondary">
+            Snapshot atualizado em <time datetime={generatedAt}>{updatedFormatter.format(new Date(generatedAt))}</time>.
+          </p>
+        )}
+      </div>
+
+      {assemblies.length === 0 ? (
+        <div class="rounded-xl border border-border bg-surface p-6" role="status">
+          <h3 class="text-xl font-bold text-text-primary">Nenhuma assembleia publicada</h3>
+          <p class="mt-2 text-text-secondary">
+            Quando uma assembleia for registrada e o snapshot público for atualizado, sua pauta e seus documentos aparecerão aqui.
+          </p>
+        </div>
+      ) : (
+        <ul class="grid list-none grid-cols-1 gap-6 p-0 md:grid-cols-2 xl:grid-cols-3" role="list">
+          {assemblies.map((assembly) => (
+            <li>
+              <article class="flex h-full flex-col rounded-xl border border-border bg-surface p-6 shadow-sm">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <p class="text-sm font-bold text-text-secondary">
+                    {typeLabels[assembly.type]} nº {assembly.number}
+                  </p>
+                  <span class={`assembly-status assembly-status-${assembly.status}`}>{statusLabels[assembly.status]}</span>
+                </div>
+                <h3 class="mt-4 text-xl font-extrabold text-text-primary">
+                  <a href={assemblyPath(assembly)} class="text-text-primary no-underline hover:text-link">
+                    {assembly.title}
+                  </a>
+                </h3>
+                <p class="mt-3 text-sm text-text-secondary">
+                  Prevista para <time datetime={assembly.scheduledAt}>{dateFormatter.format(new Date(assembly.scheduledAt))}</time>
+                </p>
+                <p class="mt-4 flex-1 text-text-primary">{assembly.agendaSummary}</p>
+                <a href={assemblyPath(assembly)} class="mt-6 inline-flex min-h-6 items-center font-bold text-link hover:text-link-hover">
+                  Ver detalhes da assembleia
+                </a>
+              </article>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  </div>
+</PublicLayout>
+
+<style>
+  .assembly-status {
+    border-radius: 9999px;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .assembly-status-scheduled {
+    background-color: var(--cq-color-info-bg);
+    color: var(--cq-color-info);
+  }
+  .assembly-status-held {
+    background-color: var(--cq-color-success-bg);
+    color: var(--cq-color-success);
+  }
+  .assembly-status-canceled {
+    background-color: var(--cq-color-warning-bg);
+    color: var(--cq-color-warning);
+  }
+</style>

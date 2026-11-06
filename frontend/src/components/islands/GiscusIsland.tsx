@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import Giscus from "@giscus/react";
-import { GISCUS_CONFIG } from "../../data/giscus";
+import { GISCUS_CONFIG, type GiscusConfig } from "../../data/giscus";
 
-export default function GiscusIsland() {
+interface GiscusIslandProps {
+  config?: GiscusConfig;
+}
+
+export default function GiscusIsland({ config = GISCUS_CONFIG }: GiscusIslandProps) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
@@ -14,5 +18,5 @@ export default function GiscusIsland() {
     return () => observer.disconnect();
   }, []);
 
-  return <Giscus {...GISCUS_CONFIG} theme={theme} loading="lazy" />;
+  return <Giscus {...config} theme={theme} loading="lazy" />;
 }
