@@ -26,6 +26,7 @@ import { CommunitiesModule } from './communities/communities.module';
 import { SettingsModule } from './settings/settings.module';
 import { TurnstileModule } from './common/turnstile/turnstile.module';
 import { HoursModule } from './hours/hours.module';
+import { AssembliesModule } from './assemblies/assemblies.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { HoursModule } from './hours/hours.module';
     SettingsModule,
     TurnstileModule,
     HoursModule,
+    AssembliesModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

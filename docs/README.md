@@ -8,6 +8,7 @@ sections:
 related-docs:
   - AGENTS.md — guia geral do monorepo
   - DEVELOPMENT.md — setup, env vars, migrations, deploy
+  - adrs/014-assemblies.md — assembleias, Discussion manual, snapshot, Giscus e cartório da Fase 3
 -->
 
 # Documentação Técnica — Codaqui
@@ -37,7 +38,8 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 006 | [Diretorias e Designations](adrs/006-directorates-designations.md) | 2026-11 | Implementado (Fase 1a) |
 | 007 | [Registro de Comunidades](adrs/007-community-registry.md) | 2026-11 | Implementado (Fase 1a) |
 | 011 | [Refatoração de Frontend para Astro + Multi-tenant por Build Matrix](adrs/011-frontend-astro-multi-tenant-pages.md) | 2026-10 | Implementado (Fases 0.1–0.6) |
-| 013 | [Ledger de horas, ownership, guests e perfil público](adrs/013-hour-ledger.md) | 2026-11 | Implementado (Fase 2; release externo pendente) |
+| 013 | [Ledger de horas, ownership, guests e perfil público](adrs/013-hour-ledger.md) | 2026-11 | Implementado e publicado (Fase 2; backend 0.14.0) |
+| 014 | [Assembleias híbridas com Discussion manual e registro fino](adrs/014-assemblies.md) | 2026-11 | Implementado no branch (Fase 3; backend 0.15.0; release e Giscus real pendentes) |
 
 ### Módulos — Documentação Viva
 
@@ -56,7 +58,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
-| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0, 1a e 1b concluídas; implementação da Fase 2 concluída com release/handoff pendente ([plano](plans/codaqui-1-0/fase-2.md)); Fase 3 não iniciada. |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–2 concluídas e publicadas; Fase 3 implementada no branch com release/publicação e Giscus real pendentes ([ADR 014](adrs/014-assemblies.md)); Fases 4–7 em design. |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |

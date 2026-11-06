@@ -9,7 +9,7 @@ import { join } from "node:path";
 const ROOT = join(import.meta.dirname, "..", "..");
 const FRONTEND_PUBLIC = join(ROOT, "frontend", "public");
 
-const snapshotDirs = ["events", "social-stats", "analytics", "communities"];
+const snapshotDirs = ["events", "social-stats", "analytics", "communities", "assemblies"];
 for (const dir of snapshotDirs) {
   mkdirSync(join(FRONTEND_PUBLIC, dir), { recursive: true });
   cpSync(

@@ -363,6 +363,25 @@ describe('DesignationsService', () => {
     );
   });
 
+  it('finds an active designation on any concrete target without null filters', async () => {
+    repo.findOne.mockResolvedValue({ id: 'designation-1', status: 'active' });
+
+    await expect(
+      service.hasAnyDesignation('member-1', {
+        targetType: 'directorate',
+        designation: 'director',
+      }),
+    ).resolves.toBe(true);
+    expect(repo.findOne).toHaveBeenCalledWith({
+      where: {
+        memberId: 'member-1',
+        status: 'active',
+        targetType: 'directorate',
+        designation: 'director',
+      },
+    });
+  });
+
   it('caches designation checks for 60 seconds', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-10-30T12:00:00Z'));
     repo.findOne.mockResolvedValue({ id: 'designation-1', status: 'active' });

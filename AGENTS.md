@@ -28,6 +28,7 @@ related-docs:
   - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
   - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
   - docs/adrs/013-hour-ledger.md — horas, ownership, guests, declarações e badges da Fase 2
+  - docs/adrs/014-assemblies.md — assembleias, Discussion manual, snapshot, Giscus e cartório da Fase 3
   - docs/modules/events/CODE_MANUAL.md — manual prático de eventos, horas, ownership e guests
   - docs/modules/events/ROLES.md — papéis manuais, derivados e staff de eventos
   - docs/modules/community/COMMUNITY_SITES.md — registro e conteúdo whitelabel das comunidades
@@ -72,6 +73,8 @@ Decisões arquiteturais principais:
 - [Clube Codaqui (SortCoins)](docs/adrs/002-club-sortcoins.md)
 - [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
 - [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
+- [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
+- [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
 
 Manuais de módulos:
 
@@ -101,7 +104,7 @@ Planos futuros:
 | **Ilhas React** | React 19 + MUI v9 (`@mui/material` ^9, `@mui/icons-material`) + Emotion — hidratação sob demanda (`client:load` / `client:visible` / `client:only`) |
 | **Styling** | Tailwind CSS v4 (`@tailwindcss/vite`) com tokens `--cq-*` do Design System (`frontend/src/styles/tokens.css`) |
 | **Language** | TypeScript ~5.6 |
-| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`, category: "Blog") |
+| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`; Blog por `og:title`, Assembleias por `pathname` e categoria configurada por `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`) |
 | **Pagamentos** | Stripe.js embutido (`@stripe/react-stripe-js`) no fluxo de doação |
 | **Node** | ≥24 (enforced em `package.json` engines, raiz e `frontend/`) |
 | **Hosting** | Cloudflare Pages — projetos `codaqui`, `tisocial`, `elasnocodigo`, `devparana` |
@@ -162,6 +165,7 @@ cd backend && npx jest --silent  # testes unitários
 # Scripts de sync (raiz — leves, sem install pesado)
 npm run test:scripts             # node --test scripts/*.test.mjs
 npm run sync                     # eventos + social-stats + analytics → static/
+npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 ```
 
@@ -185,6 +189,7 @@ institucional/
 │   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
 │   │   ├── hours/               # ⭐ Fase 2/ADR 013: hour_ledger separada, aprovações, declarações e totais públicos
+│   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -196,7 +201,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 035; Fase 2: 033–035)
+│   │   └── migrations/          # TypeORM migrations (até 036; Fase 2: 033–035; Fase 3: 036)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -226,12 +231,12 @@ institucional/
 ├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
 │   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
 │   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
-├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, social-stats/, analytics/, badges/, img/)
+├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, assemblies/, social-stats/, analytics/, badges/, img/)
 ├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   └── *.mjs                    # sync-events / sync-communities / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
-│                                #    (syncs legados leem data files; communities/badges leem a API PostgreSQL)
+│   └── *.mjs                    # sync-events / sync-communities / sync-assemblies / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
+│                                #    (syncs legados leem data files; communities/assemblies/badges leem a API PostgreSQL)
 ├── docs/                        # Documentação técnica (ADRs, módulos, planos)
-├── .github/workflows/           # 8 workflows (ver Git Workflow & Deployment)
+├── .github/workflows/           # 9 workflows (ver Git Workflow & Deployment)
 └── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
 ```
 
@@ -268,7 +273,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild.
+- Snapshots (`static/events|communities|assemblies|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` permanece estático e é exceção ao prefixo de API `/assemblies/`.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -465,6 +470,15 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `profileVisibility.hours`, `memberSince` e `badge` controlam independentemente totais/timeline, ano e selo. `scripts/sync-member-badges.mjs` lê `GET /hours/public`, valida a resposta completa e escreve `static/badges/<handle>.svg` atomicamente; falhas preservam/restauram arquivos anteriores.
 - O workflow `sync-member-badges.yml` roda diariamente às **06:17 UTC** e por dispatch, e `copy-snapshots.mjs` copia os SVGs no build. **Gate de release:** depois do backend publicado, o sync inicial deve concluir com sucesso **antes da publicação do frontend**; não gerar SVGs de membros reais no branch de implementação. Release `v0.14.0-backend` publicada, sync inicial concluído no run `42098199373` e frontend publicado no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção permanece como acompanhamento operacional.
 
+### 25. Fase 3 — assembleias e Discussion manual (ADR 014)
+
+- Migration 036 e backend 0.15.0 implementam o registro fino `assemblies`; pauta detalhada, quórum, votos, ata narrativa e comentários ficam no GitHub Discussions, nunca no PostgreSQL ou snapshot. `createdById` é somente trilha e não aparece nas projeções. Decisões completas: [ADR 014](docs/adrs/014-assemblies.md).
+- `(type,number)` é único e o slug `<type>-<number>` é imutável. A criação usa advisory lock por tipo + `MAX(number)+1` transacional. O PATCH lê com `pessimistic_write`, valida e salva na mesma transação, capturando before/after sob o lock. Somente `scheduled` vira `held`/`canceled`; `heldAt >= scheduledAt`; oficial realizada exige PDF HTTPS pela allowlist e cartório completo. Não há upload nem automação de Discussion/cartório.
+- APIs: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies` paginado (default 50/cap 100), `POST /assemblies` e `PATCH /assemblies/:id`. Criar/editar exige admin ou qualquer designation `director @ directorate` ativa, sem `targetId/targetKey IS NULL`; PDF/cartório exige admin; mutações gravam audit de governo. Null só é aceito no PATCH em `heldAt`, `ataPdfUrl` e `notaryRegistry`; PDF fora da allowlist retorna 400. Proxy: `/assemblies/`, com exceção estática para `/assemblies/index.json`, nunca `/admin/`.
+- `npm run sync:assemblies` usa `ASSEMBLIES_API_URL`, valida toda a coleção, a Discussion exata e o PDF HTTPS pela allowlist, e grava `static/assemblies/index.json` atomicamente; falha preserva o arquivo anterior. O loader repete essas validações. `notaryRegistry.registeredAt` é exibido em UTC; datas do evento continuam em `America/Sao_Paulo`. O workflow diário é 06:23 UTC + dispatch; o agregador `npm run sync` não inclui assembleias. Publicação segue backend/migration → sync inicial → build/frontend.
+- A Discussion é criada manualmente na categoria **Assembleias**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública); sem ID há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
+- **Pendências externas:** categoria/ID, Discussions reais e verificação Giscus, PR/CI/Sonar, release `v0.15.0-backend`, redeploy/migration, sync inicial e publicação/validação em produção. Não declarar esses itens concluídos nem iniciar Fase 4 por esta decisão.
+
 ---
 
 ## Common Anti-Patterns
@@ -503,7 +517,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 8 workflows)
+### CI/CD (`.github/workflows/` — 9 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -512,6 +526,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `publish-backend.yml` | manual | Build + push da imagem Docker multi-arch (amd64 + arm64/v8) p/ GHCR + release `v<versão>-backend` (usa `version` do `backend/package.json`); redeploy em produção manual no Coolify |
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
+| `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
@@ -612,12 +627,14 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Team changes | As needed | `frontend/src/data/team.ts` |
 | New community partners | As needed | API `/communities` + responsible por designation + `npm run sync:communities`; social stats em `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
 | Community registry changes | As needed | Admin/API → `npm run sync:communities` → novo build; não editar o snapshot |
+| Assembly Discussions e documentos | As needed, operação manual | Categoria Assembleias + título igual ao pathname; cadastro em `/admin/assembleias`; narrativa no GitHub; PDF/cartório por admin → `npm run sync:assemblies` → novo build |
 | Timeline events | Annually | `frontend/src/data/timeline.ts` |
 | Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
 | Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
 | Event sources/fallbacks | As needed | `events.config.json` |
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
 | Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
+| Assembly snapshots sync | Automatic (06:23 UTC daily) + dispatch | `scripts/sync-assemblies.mjs` → `static/assemblies/` via `sync-assemblies.yml` |
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
 | Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |
