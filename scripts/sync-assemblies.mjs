@@ -129,7 +129,7 @@ const LOG_CONTROL_ESCAPES = new Map([
 
 function escapeLogControlCharacter(character) {
   return LOG_CONTROL_ESCAPES.get(character) ??
-    `\\x${character.codePointAt(0).toString(16).padStart(2, "0")}`;
+    String.raw`\x${character.codePointAt(0).toString(16).padStart(2, "0")}`;
 }
 
 export function sanitizeErrorForLog(error) {
@@ -189,11 +189,15 @@ export async function syncAssemblies({
   return snapshot;
 }
 
+export function formatSyncSuccessMessage(outputFile) {
+  return `✓ Assembleias sincronizadas em ${outputFile}`;
+}
+
 const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isCli) {
   try {
-    const snapshot = await syncAssemblies();
-    console.log("✓", snapshot.assemblies.length, "assembleias sincronizadas em", DEFAULT_OUTPUT_FILE);
+    await syncAssemblies();
+    console.log(formatSyncSuccessMessage(DEFAULT_OUTPUT_FILE));
   } catch (error) {
     console.error(`✖ ${sanitizeErrorForLog(error)}`);
     process.exitCode = 1;

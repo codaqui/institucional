@@ -286,3 +286,12 @@ test("sanitizes control characters without losing the error cause or safe text",
   );
   assert.equal(sanitize("pauta válida"), "pauta válida");
 });
+
+test("formats the success log without response-derived values", () => {
+  const format = assemblySyncModule.formatSyncSuccessMessage;
+  assert.equal(typeof format, "function");
+  assert.equal(
+    format("/tmp/assemblies/index.json"),
+    "✓ Assembleias sincronizadas em /tmp/assemblies/index.json",
+  );
+});
