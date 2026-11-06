@@ -74,6 +74,12 @@ const STATUS_LABELS: Record<AssemblyStatus, string> = {
   canceled: "Cancelada",
 };
 
+const STATUS_CHIP_COLORS: Record<AssemblyStatus, "success" | "error" | "default"> = {
+  scheduled: "default",
+  held: "success",
+  canceled: "error",
+};
+
 function toDateTimeLocal(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
@@ -107,6 +113,51 @@ function hasNotaryInput(form: AssemblyFormState): boolean {
   );
 }
 
+function validateScheduledAt(value: string): string {
+  if (!value) return "Informe a data e hora agendada.";
+  if (Number.isNaN(new Date(value).getTime())) return "Informe uma data válida.";
+  return "";
+}
+
+function validateDiscussionUrl(value: string, editing: Assembly | null): string {
+  if (editing || DISCUSSION_URL_PATTERN.test(value)) return "";
+  return "Use a URL exata de uma Discussion do repositório codaqui/institucional.";
+}
+
+function validatePdfUrl(value: string, requireOfficialDocuments: boolean): string {
+  if (requireOfficialDocuments && !value) return "Informe a URL do PDF da ata.";
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:") return "A URL do PDF deve usar HTTPS.";
+  } catch {
+    return "Informe uma URL válida para o PDF da ata.";
+  }
+  return "";
+}
+
+type NotaryField = "notaryBook" | "notaryPage" | "notaryRegisteredAt";
+
+const NOTARY_REQUIRED_ERRORS: Record<NotaryField, string> = {
+  notaryBook: "Informe o livro do cartório.",
+  notaryPage: "Informe a página do cartório.",
+  notaryRegisteredAt: "Informe a data de registro.",
+};
+
+function validateNotaryField(
+  field: NotaryField,
+  form: AssemblyFormState,
+  requireOfficialDocuments: boolean,
+): string {
+  if (!requireOfficialDocuments && !hasNotaryInput(form)) return "";
+  const value = form[field].trim();
+  if (!value) return NOTARY_REQUIRED_ERRORS[field];
+  if (field === "notaryRegisteredAt" && Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime())) {
+    return "Informe uma data de registro válida.";
+  }
+  return "";
+}
+
 function validateFormField(
   field: keyof AssemblyFormState,
   form: AssemblyFormState,
@@ -114,41 +165,24 @@ function validateFormField(
   requireOfficialDocuments: boolean,
 ): string {
   const value = form[field].trim();
-  if (field === "title" && !value) return "Informe o título da assembleia.";
-  if (field === "agendaSummary" && !value) return "Informe o resumo da pauta.";
-  if (field === "scheduledAt") {
-    if (!value) return "Informe a data e hora agendada.";
-    if (Number.isNaN(new Date(value).getTime())) return "Informe uma data válida.";
+  switch (field) {
+    case "title":
+      return value ? "" : "Informe o título da assembleia.";
+    case "agendaSummary":
+      return value ? "" : "Informe o resumo da pauta.";
+    case "scheduledAt":
+      return validateScheduledAt(value);
+    case "discussionUrl":
+      return validateDiscussionUrl(value, editing);
+    case "ataPdfUrl":
+      return validatePdfUrl(value, requireOfficialDocuments);
+    case "notaryBook":
+    case "notaryPage":
+    case "notaryRegisteredAt":
+      return validateNotaryField(field, form, requireOfficialDocuments);
+    default:
+      return "";
   }
-  if (field === "discussionUrl" && !editing) {
-    if (!DISCUSSION_URL_PATTERN.test(value)) {
-      return "Use a URL exata de uma Discussion do repositório codaqui/institucional.";
-    }
-  }
-  if (field === "ataPdfUrl") {
-    if (requireOfficialDocuments && !value) return "Informe a URL do PDF da ata.";
-    if (value) {
-      try {
-        const url = new URL(value);
-        if (url.protocol !== "https:") return "A URL do PDF deve usar HTTPS.";
-      } catch {
-        return "Informe uma URL válida para o PDF da ata.";
-      }
-    }
-  }
-  if (field === "notaryBook" && (requireOfficialDocuments || hasNotaryInput(form)) && !value) {
-    return "Informe o livro do cartório.";
-  }
-  if (field === "notaryPage" && (requireOfficialDocuments || hasNotaryInput(form)) && !value) {
-    return "Informe a página do cartório.";
-  }
-  if (field === "notaryRegisteredAt" && (requireOfficialDocuments || hasNotaryInput(form))) {
-    if (!value) return "Informe a data de registro.";
-    if (Number.isNaN(new Date(`${value}T00:00:00.000Z`).getTime())) {
-      return "Informe uma data de registro válida.";
-    }
-  }
-  return "";
 }
 
 function validateForm(
@@ -183,6 +217,40 @@ function notaryPayload(form: AssemblyFormState) {
     page: form.notaryPage.trim(),
     registeredAt: `${form.notaryRegisteredAt}T00:00:00.000Z`,
   };
+}
+
+function validateHeldAtInput(heldAt: string, scheduledAt: string): string {
+  const heldTime = new Date(heldAt).getTime();
+  if (!heldAt || Number.isNaN(heldTime)) {
+    return "Informe a data e hora da realização.";
+  }
+  if (heldTime < new Date(scheduledAt).getTime()) {
+    return "A realização não pode ser anterior ao agendamento.";
+  }
+  return "";
+}
+
+function buildHeldPayload(
+  heldAt: string,
+  form: AssemblyFormState,
+  isAdmin: boolean,
+): Record<string, unknown> {
+  return {
+    status: "held",
+    heldAt: new Date(heldAt).toISOString(),
+    ...(isAdmin
+      ? {
+          ataPdfUrl: form.ataPdfUrl.trim() || null,
+          notaryRegistry: notaryPayload(form),
+        }
+      : {}),
+  };
+}
+
+function transitionFailureMessage(kind: "held" | "canceled"): string {
+  return kind === "held"
+    ? "Não foi possível realizar a assembleia."
+    : "Não foi possível cancelar a assembleia.";
 }
 
 function firstErrorField(errors: FormErrors): keyof AssemblyFormState | undefined {
@@ -477,15 +545,12 @@ function AssembliesAdminInner(): React.JSX.Element | null {
     const { assembly, kind } = transition;
     let payload: Record<string, unknown> = { status: kind };
     if (kind === "held") {
-      const heldTime = new Date(heldAt).getTime();
-      const scheduledTime = new Date(assembly.scheduledAt).getTime();
-      if (!heldAt || Number.isNaN(heldTime)) {
-        setHeldAtError("Informe a data e hora da realização.");
-        document.getElementById("assembly-held-at")?.focus();
-        return;
-      }
-      if (heldTime < scheduledTime) {
-        setHeldAtError("A realização não pode ser anterior ao agendamento.");
+      const heldAtValidationError = validateHeldAtInput(
+        heldAt,
+        assembly.scheduledAt,
+      );
+      if (heldAtValidationError) {
+        setHeldAtError(heldAtValidationError);
         document.getElementById("assembly-held-at")?.focus();
         return;
       }
@@ -501,18 +566,10 @@ function AssembliesAdminInner(): React.JSX.Element | null {
         document.getElementById(`held-${firstError}`)?.focus();
         return;
       }
-      payload = {
-        ...payload,
-        heldAt: new Date(heldAt).toISOString(),
-        ...(isAdmin
-          ? {
-              ataPdfUrl: transitionForm.ataPdfUrl.trim() || null,
-              notaryRegistry: notaryPayload(transitionForm),
-            }
-          : {}),
-      };
+      payload = buildHeldPayload(heldAt, transitionForm, isAdmin);
     }
 
+    const failureMessage = transitionFailureMessage(kind);
     setBusy(true);
     setTransitionError("");
     try {
@@ -522,12 +579,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
       });
       if (!response.ok) {
         setTransitionError(
-          await extractErrorMessage(
-            response,
-            kind === "held"
-              ? "Não foi possível realizar a assembleia."
-              : "Não foi possível cancelar a assembleia.",
-          ),
+          await extractErrorMessage(response, failureMessage),
         );
         return;
       }
@@ -538,11 +590,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
       });
       await loadAssemblies();
     } catch {
-      setTransitionError(
-        kind === "held"
-          ? "Não foi possível realizar a assembleia."
-          : "Não foi possível cancelar a assembleia.",
-      );
+      setTransitionError(failureMessage);
     } finally {
       setBusy(false);
     }
@@ -667,7 +715,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
                       <TableCell>
                         <Chip
                           label={STATUS_LABELS[assembly.status]}
-                          color={assembly.status === "held" ? "success" : assembly.status === "canceled" ? "error" : "default"}
+                          color={STATUS_CHIP_COLORS[assembly.status]}
                           size="small"
                           variant="outlined"
                         />

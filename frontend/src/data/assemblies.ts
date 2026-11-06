@@ -94,22 +94,32 @@ function isNotaryRegistry(value: unknown): value is AssemblyNotaryRegistry {
   );
 }
 
-function isAssembly(value: unknown): value is Assembly {
-  if (!isRecord(value) || Object.hasOwn(value, "createdById")) return false;
+function hasRequiredAssemblyStrings(value: Record<string, unknown>): boolean {
   if (!["id", "title", "agendaSummary", "discussionUrl"].every((field) => isNonEmptyString(value[field]))) {
     return false;
   }
-  if (!ASSEMBLY_DISCUSSION_URL_PATTERN.test(value.discussionUrl as string)) return false;
+  return ASSEMBLY_DISCUSSION_URL_PATTERN.test(value.discussionUrl as string);
+}
+
+function hasValidAssemblyIdentity(value: Record<string, unknown>): boolean {
   if (value.type !== "ordinaria" && value.type !== "oficial") return false;
   if (!Number.isSafeInteger(value.number) || (value.number as number) < 1) return false;
-  if (value.slug !== assemblySlug(value.type, value.number as number)) return false;
-  if (value.status !== "scheduled" && value.status !== "held" && value.status !== "canceled") return false;
+  return value.slug === assemblySlug(value.type, value.number as number);
+}
+
+function hasValidAssemblyDates(value: Record<string, unknown>): boolean {
   if (!["scheduledAt", "createdAt", "updatedAt"].every((field) => isDateString(value[field]))) {
     return false;
   }
-  if (value.heldAt !== null && !isDateString(value.heldAt)) return false;
+  return value.heldAt === null || isDateString(value.heldAt);
+}
+
+function hasValidAssemblyDocuments(value: Record<string, unknown>): boolean {
   if (value.ataPdfUrl !== null && !isTrustedPdfUrl(value.ataPdfUrl)) return false;
-  if (value.notaryRegistry !== null && !isNotaryRegistry(value.notaryRegistry)) return false;
+  return value.notaryRegistry === null || isNotaryRegistry(value.notaryRegistry);
+}
+
+function hasValidAssemblyTransition(value: Record<string, unknown>): boolean {
   if (value.status === "held" && value.heldAt === null) return false;
   if (value.heldAt !== null && Date.parse(value.heldAt as string) < Date.parse(value.scheduledAt as string)) {
     return false;
@@ -118,6 +128,21 @@ function isAssembly(value: unknown): value is Assembly {
     value.type === "oficial" &&
     value.status === "held" &&
     (!value.ataPdfUrl || value.notaryRegistry === null)
+  );
+}
+
+function isAssembly(value: unknown): value is Assembly {
+  if (!isRecord(value) || Object.hasOwn(value, "createdById")) return false;
+  if (!hasRequiredAssemblyStrings(value) || !hasValidAssemblyIdentity(value)) {
+    return false;
+  }
+  if (value.status !== "scheduled" && value.status !== "held" && value.status !== "canceled") {
+    return false;
+  }
+  return (
+    hasValidAssemblyDates(value) &&
+    hasValidAssemblyDocuments(value) &&
+    hasValidAssemblyTransition(value)
   );
 }
 
@@ -142,7 +167,7 @@ export function loadAssembliesIndex(
     const assemblies = payload.assemblies as Assembly[];
     return {
       generatedAt: payload.generatedAt,
-      assemblies: assemblies.sort(
+      assemblies: assemblies.toSorted(
         (a, b) => Date.parse(b.scheduledAt) - Date.parse(a.scheduledAt),
       ),
     };

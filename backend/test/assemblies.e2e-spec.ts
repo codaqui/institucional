@@ -40,6 +40,10 @@ const actors = {
 
 type ActorName = keyof typeof actors;
 
+function as(actor: ActorName) {
+  return { 'x-test-actor': actor };
+}
+
 const createPayload = {
   type: 'ordinaria',
   title: 'Assembleia sintética',
@@ -147,11 +151,7 @@ describe('Assemblies API com PostgreSQL real', () => {
     if (app) await app.close();
   });
 
-  function as(actor: ActorName) {
-    return { 'x-test-actor': actor };
-  }
-
-  async function createAssembly(
+  function createAssembly(
     overrides: Record<string, unknown> = {},
   ): Promise<Assembly> {
     return dataSource.getRepository(Assembly).save({

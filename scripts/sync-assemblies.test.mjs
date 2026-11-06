@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { syncAssemblies } from "./sync-assemblies.mjs";
+import * as assemblySyncModule from "./sync-assemblies.mjs";
 
 const NOW = "2026-11-05T12:00:00.000Z";
 
@@ -272,4 +273,16 @@ test("preserves an unchanged snapshot byte for byte", async (t) => {
   assert.equal(result.generatedAt, "2026-11-04T12:00:00.000Z");
   assert.equal(await readFile(outputFile, "utf8"), previous);
   assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});
+
+test("sanitizes control characters without losing the error cause or safe text", () => {
+  const sanitize = assemblySyncModule.sanitizeErrorForLog;
+  assert.equal(typeof sanitize, "function");
+
+  const error = new Error("Falha de rede\n\u001b[31mFORGED\tregistro\r\ncontinuação");
+  assert.equal(
+    sanitize(error),
+    "Falha de rede\\n\\x1b[31mFORGED\\tregistro\\r\\ncontinuação",
+  );
+  assert.equal(sanitize("pauta válida"), "pauta válida");
 });

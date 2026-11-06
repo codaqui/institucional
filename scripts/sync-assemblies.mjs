@@ -44,10 +44,7 @@ function isTrustedPdfUrl(value) {
   }
 }
 
-function validateAssembly(assembly, index) {
-  if (!isObject(assembly)) throw invalidAssembly(index, "esperado um objeto.");
-  if (Object.hasOwn(assembly, "createdById")) throw invalidAssembly(index, "createdById não é público.");
-
+function validateAssemblyText(assembly, index) {
   for (const field of ["id", "title", "agendaSummary", "discussionUrl"]) {
     if (typeof assembly[field] !== "string" || assembly[field].trim().length === 0) {
       throw invalidAssembly(index, `${field} deve ser uma string não vazia.`);
@@ -56,6 +53,9 @@ function validateAssembly(assembly, index) {
   if (!ASSEMBLY_DISCUSSION_URL_PATTERN.test(assembly.discussionUrl)) {
     throw invalidAssembly(index, "discussionUrl deve ser a URL exata da Discussion do repositório.");
   }
+}
+
+function validateAssemblyIdentity(assembly, index) {
   if (!ASSEMBLY_TYPES.has(assembly.type)) throw invalidAssembly(index, "type inválido.");
   if (!Number.isSafeInteger(assembly.number) || assembly.number < 1) {
     throw invalidAssembly(index, "number deve ser um inteiro positivo.");
@@ -64,6 +64,9 @@ function validateAssembly(assembly, index) {
     throw invalidAssembly(index, "slug não corresponde a type e number.");
   }
   if (!ASSEMBLY_STATUSES.has(assembly.status)) throw invalidAssembly(index, "status inválido.");
+}
+
+function validateAssemblyDatesAndPdf(assembly, index) {
   for (const field of ["scheduledAt", "createdAt", "updatedAt"]) {
     if (!isDateString(assembly[field])) throw invalidAssembly(index, `${field} deve ser uma data válida.`);
   }
@@ -73,22 +76,26 @@ function validateAssembly(assembly, index) {
   if (assembly.ataPdfUrl !== null && !isTrustedPdfUrl(assembly.ataPdfUrl)) {
     throw invalidAssembly(index, "ataPdfUrl deve usar HTTPS e a allowlist de armazenamento.");
   }
-  if (assembly.notaryRegistry !== null) {
-    if (!isObject(assembly.notaryRegistry)) {
-      throw invalidAssembly(index, "notaryRegistry deve ser null ou um objeto.");
-    }
-    const registry = assembly.notaryRegistry;
-    if (typeof registry.book !== "string" || registry.book.trim().length === 0) {
-      throw invalidAssembly(index, "notaryRegistry.book deve ser uma string não vazia.");
-    }
-    if (typeof registry.page !== "string" || registry.page.trim().length === 0) {
-      throw invalidAssembly(index, "notaryRegistry.page deve ser uma string não vazia.");
-    }
-    if (!isDateString(registry.registeredAt)) {
-      throw invalidAssembly(index, "notaryRegistry.registeredAt deve ser uma data válida.");
-    }
-  }
+}
 
+function validateAssemblyNotary(assembly, index) {
+  if (assembly.notaryRegistry === null) return;
+  if (!isObject(assembly.notaryRegistry)) {
+    throw invalidAssembly(index, "notaryRegistry deve ser null ou um objeto.");
+  }
+  const registry = assembly.notaryRegistry;
+  if (typeof registry.book !== "string" || registry.book.trim().length === 0) {
+    throw invalidAssembly(index, "notaryRegistry.book deve ser uma string não vazia.");
+  }
+  if (typeof registry.page !== "string" || registry.page.trim().length === 0) {
+    throw invalidAssembly(index, "notaryRegistry.page deve ser uma string não vazia.");
+  }
+  if (!isDateString(registry.registeredAt)) {
+    throw invalidAssembly(index, "notaryRegistry.registeredAt deve ser uma data válida.");
+  }
+}
+
+function validateAssemblyTransition(assembly, index) {
   if (assembly.status === "held" && assembly.heldAt === null) {
     throw invalidAssembly(index, "heldAt é obrigatório para realizar assembleia.");
   }
@@ -104,11 +111,37 @@ function validateAssembly(assembly, index) {
   }
 }
 
+function validateAssembly(assembly, index) {
+  if (!isObject(assembly)) throw invalidAssembly(index, "esperado um objeto.");
+  if (Object.hasOwn(assembly, "createdById")) throw invalidAssembly(index, "createdById não é público.");
+  validateAssemblyText(assembly, index);
+  validateAssemblyIdentity(assembly, index);
+  validateAssemblyDatesAndPdf(assembly, index);
+  validateAssemblyNotary(assembly, index);
+  validateAssemblyTransition(assembly, index);
+}
+
+const LOG_CONTROL_ESCAPES = new Map([
+  ["\n", "\\n"],
+  ["\r", "\\r"],
+  ["\t", "\\t"],
+]);
+
+function escapeLogControlCharacter(character) {
+  return LOG_CONTROL_ESCAPES.get(character) ??
+    `\\x${character.charCodeAt(0).toString(16).padStart(2, "0")}`;
+}
+
+export function sanitizeErrorForLog(error) {
+  const message = error instanceof Error ? error.message : String(error);
+  return message.replace(/[\u0000-\u001f\u007f-\u009f]/g, escapeLogControlCharacter);
+}
+
 function validatePayload(payload) {
   if (!Array.isArray(payload)) {
     throw new TypeError("Resposta inválida de /assemblies/public: esperado um array.");
   }
-  payload.forEach(validateAssembly);
+  payload.forEach((assembly, index) => validateAssembly(assembly, index));
   return payload;
 }
 
@@ -162,7 +195,7 @@ if (isCli) {
     const snapshot = await syncAssemblies();
     console.log(`✓ ${snapshot.assemblies.length} assembleias sincronizadas em ${DEFAULT_OUTPUT_FILE}`);
   } catch (error) {
-    console.error(`✖ ${error instanceof Error ? error.message : String(error)}`);
+    console.error(`✖ ${sanitizeErrorForLog(error)}`);
     process.exitCode = 1;
   }
 }

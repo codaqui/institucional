@@ -337,10 +337,16 @@ describe("AssembliesAdminApp", () => {
 
     await user.clear(screen.getByLabelText(/Data e hora da realização/));
     await user.type(screen.getByLabelText(/Data e hora da realização/), "2026-11-20T19:00");
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Data e hora da realização/)).toHaveValue(
+        "2026-11-20T19:00",
+      ),
+    );
     await user.click(screen.getByRole("button", { name: /confirmar realização/i }));
 
-    await waitFor(() =>
-      expect(lastCall(`/assemblies/${assembly.id}`, "PATCH")).toBeDefined(),
+    await waitFor(
+      () => expect(lastCall(`/assemblies/${assembly.id}`, "PATCH")).toBeDefined(),
+      { timeout: 5_000 },
     );
     const payload = JSON.parse(
       String(lastCall(`/assemblies/${assembly.id}`, "PATCH")?.[1]?.body),

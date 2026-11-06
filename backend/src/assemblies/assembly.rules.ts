@@ -59,18 +59,22 @@ function hasCompleteNotaryRegistry(
   );
 }
 
-export function assertAssemblyTransition(
+function assertImmutableFields(
   assembly: Assembly,
   patch: Partial<Assembly>,
-  actor: AssemblyActor,
 ): void {
   for (const field of ['type', 'number', 'discussionUrl'] as const) {
     if (patch[field] !== undefined && patch[field] !== assembly[field]) {
       throw new BadRequestException(`${field} é imutável`);
     }
   }
+}
 
-  const nextStatus: AssemblyStatus = patch.status ?? assembly.status;
+function nextAssemblyStatus(
+  assembly: Assembly,
+  patch: Partial<Assembly>,
+): AssemblyStatus {
+  const nextStatus = patch.status ?? assembly.status;
   if (
     patch.status !== undefined &&
     patch.status !== assembly.status &&
@@ -81,49 +85,59 @@ export function assertAssemblyTransition(
       `Transição de status inválida: ${assembly.status} -> ${patch.status}`,
     );
   }
+  return nextStatus;
+}
 
+function assertNotaryPermission(
+  patch: Partial<Assembly>,
+  actor: AssemblyActor,
+): void {
   const touchesNotaryData =
     patch.ataPdfUrl !== undefined || patch.notaryRegistry !== undefined;
   if (touchesNotaryData && !actor.roles?.includes('admin')) {
     throw new ForbiddenException('Dados de cartório somente admin');
   }
+}
 
-  const scheduledAt = patch.scheduledAt ?? assembly.scheduledAt;
-  const heldAt = patch.heldAt === undefined ? assembly.heldAt : patch.heldAt;
+function assertValidHeldAt(
+  nextStatus: AssemblyStatus,
+  scheduledAt: Date,
+  heldAt: Date | null,
+): void {
   if (nextStatus === 'held' && !heldAt) {
     throw new BadRequestException(
       'heldAt é obrigatório para realizar assembleia',
     );
   }
-  if (heldAt) {
-    const heldTime = new Date(heldAt).getTime();
-    const scheduledTime = new Date(scheduledAt).getTime();
-    if (Number.isNaN(heldTime) || Number.isNaN(scheduledTime)) {
-      throw new BadRequestException('Datas da assembleia inválidas');
-    }
-    if (heldTime < scheduledTime) {
-      throw new BadRequestException(
-        'heldAt não pode ser anterior a scheduledAt',
-      );
-    }
-  }
+  if (!heldAt) return;
 
-  const ataPdfUrl =
-    patch.ataPdfUrl === undefined ? assembly.ataPdfUrl : patch.ataPdfUrl;
-  const notaryRegistry =
-    patch.notaryRegistry === undefined
-      ? assembly.notaryRegistry
-      : patch.notaryRegistry;
-
-  if (ataPdfUrl !== null && ataPdfUrl !== undefined) {
-    try {
-      storageService.validateReceiptUrl(ataPdfUrl);
-    } catch (error) {
-      throw new BadRequestException(
-        error instanceof Error ? error.message : 'URL inválida para ata',
-      );
-    }
+  const heldTime = new Date(heldAt).getTime();
+  const scheduledTime = new Date(scheduledAt).getTime();
+  if (Number.isNaN(heldTime) || Number.isNaN(scheduledTime)) {
+    throw new BadRequestException('Datas da assembleia inválidas');
   }
+  if (heldTime < scheduledTime) {
+    throw new BadRequestException('heldAt não pode ser anterior a scheduledAt');
+  }
+}
+
+function assertValidPdfUrl(ataPdfUrl: string): void {
+  try {
+    storageService.validateReceiptUrl(ataPdfUrl);
+  } catch (error) {
+    throw new BadRequestException(
+      error instanceof Error ? error.message : 'URL inválida para ata',
+    );
+  }
+}
+
+function assertValidNotaryDocuments(
+  assembly: Assembly,
+  nextStatus: AssemblyStatus,
+  ataPdfUrl: string | null,
+  notaryRegistry: AssemblyNotaryRegistry | null,
+): void {
+  if (ataPdfUrl !== null) assertValidPdfUrl(ataPdfUrl);
   if (notaryRegistry && !hasCompleteNotaryRegistry(notaryRegistry)) {
     throw new BadRequestException(
       'Dados de cartório completo são obrigatórios',
@@ -138,6 +152,28 @@ export function assertAssemblyTransition(
       'Assembleia oficial realizada exige PDF e cartório completo',
     );
   }
+}
+
+export function assertAssemblyTransition(
+  assembly: Assembly,
+  patch: Partial<Assembly>,
+  actor: AssemblyActor,
+): void {
+  assertImmutableFields(assembly, patch);
+  const nextStatus = nextAssemblyStatus(assembly, patch);
+  assertNotaryPermission(patch, actor);
+
+  const scheduledAt = patch.scheduledAt ?? assembly.scheduledAt;
+  const heldAt = patch.heldAt === undefined ? assembly.heldAt : patch.heldAt;
+  assertValidHeldAt(nextStatus, scheduledAt, heldAt);
+
+  const ataPdfUrl =
+    patch.ataPdfUrl === undefined ? assembly.ataPdfUrl : patch.ataPdfUrl;
+  const notaryRegistry =
+    patch.notaryRegistry === undefined
+      ? assembly.notaryRegistry
+      : patch.notaryRegistry;
+  assertValidNotaryDocuments(assembly, nextStatus, ataPdfUrl, notaryRegistry);
 
   if (patch.discussionUrl !== undefined) {
     parseDiscussionUrl(patch.discussionUrl);

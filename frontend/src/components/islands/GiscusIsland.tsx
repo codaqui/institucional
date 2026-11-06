@@ -6,7 +6,7 @@ interface GiscusIslandProps {
   config?: GiscusConfig;
 }
 
-export default function GiscusIsland({ config = GISCUS_CONFIG }: GiscusIslandProps) {
+export default function GiscusIsland({ config = GISCUS_CONFIG }: Readonly<GiscusIslandProps>) {
   const [theme, setTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
