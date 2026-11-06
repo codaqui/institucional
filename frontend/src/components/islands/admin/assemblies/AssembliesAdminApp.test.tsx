@@ -343,7 +343,9 @@ describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
         "2026-11-20T19:00",
       ),
     );
-    await user.click(screen.getByRole("button", { name: /confirmar realização/i }));
+    const form = screen.getByRole("button", { name: /confirmar realização/i }).closest("form");
+    expect(form).not.toBeNull();
+    fireEvent.submit(form!);
 
     await waitFor(
       () => expect(lastCall(`/assemblies/${assembly.id}`, "PATCH")).toBeDefined(),
