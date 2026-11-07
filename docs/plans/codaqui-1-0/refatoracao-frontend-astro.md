@@ -174,7 +174,7 @@ A Fase 0.5 **substitui** a arquitetura D1 (`docs/plans/multisite/README.md`) e s
 - **`static/events/`, `static/social-stats/`** e snapshots por membro seguem gerados pelos mesmos workflows e commitados no repo; o Astro os consome em **build time** (`getStaticPaths` / collections). Nenhuma mudança em `scripts/sync-*.mjs`, nos JSONs ou nos workflows de sync.
 - **Backend intocado:** mesma API, mesmo OAuth, mesmos cookies, mesmo Swagger. Versionamento 0.12 → 1.0.0 do plano-mãe inalterado.
 - **Stripe:** success/cancel URLs nas mesmas rotas públicas; o retorno `?status=success&session_id=` é tratado na ilha de inscrição (como hoje na página de detalhe).
-- **Giscus:** mesmo repo/categoria ("Blog" e futura "Assembleias"); componente React com `client:visible`.
+- **Giscus:** mesmo repo/categoria ("Blog" e "Reuniões" para assembleias); componente React com `client:visible`.
 - **Analytics:** mesmo gtag `G-CL043JTTND` no `BaseLayout`.
 - **Check-in/câmera:** a ilha usa o mesmo fluxo estabelecido no backend 0.11.x (check-in atômico, `EVENT_CHECKER`); o HTTPS local (mkcert) continua servindo para testar câmera no celular.
 

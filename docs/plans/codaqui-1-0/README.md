@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fases 0, 1a, 1b e 2 concluídas e publicadas com backend 0.14.0; Fase 3 implementada no branch com backend 0.15.0, release/publicação e Giscus real pendentes; Fases 4–7 permanecem em design.
+status: Fases 0, 1a, 1b e 2 concluídas e publicadas; Fase 3 integrada e backend 0.15.0 publicado, com redeploy, sync inicial e Giscus real pendentes; Fase 4 autorizada para início; Fases 4b–7 permanecem em design.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -40,11 +40,11 @@ related-docs:
   - docs/plans/codaqui-1-0/fase-1b.md — Plano executável da Fase 1b concluída: navegação, profileVisibility, P1–P3 e Pagefind
   - docs/plans/codaqui-1-0/fase-2.md — Plano executável da Fase 2 concluída e publicada com backend 0.14.0
   - docs/adrs/013-hour-ledger.md — comportamento implementado de horas, ownership, guests, declarações e badges
-  - docs/adrs/014-assemblies.md — comportamento implementado no branch de assembleias, Discussion manual, snapshot, Giscus e cartório
-  - docs/superpowers/plans/2026-11-05-assembleias.md — plano e handoff da Fase 3; gates locais concluídos e pendências externas explícitas
+  - docs/adrs/014-assemblies.md — comportamento integrado de assembleias, Discussion manual, snapshot, Giscus e cartório
+  - docs/superpowers/plans/2026-11-05-assembleias.md — plano e handoff da Fase 3; merge/release concluídos e pendências externas explícitas
 agent-protocol:
   - Cada fase é independente: migration + módulo backend com testes → páginas/admin → ADR própria.
-  - Fase 3 está implementada no branch, mas não integrada/publicada; não iniciar Fase 4 sem comando explícito e sem concluir o handoff da Fase 3.
+  - Fase 3 foi integrada e o backend publicado; redeploy, sync inicial e Giscus real permanecem no handoff. A Fase 4 foi autorizada pelo usuário em 2026-11-06.
   - Respeite o princípio "menos banco possível": conteúdo narrativo vive no GitHub (Discussions), o banco guarda só registro estruturado.
   - Novas tabelas seguem os padrões de backend existentes (TypeORM, uuid, audit, ledger onde couber).
 -->
@@ -101,12 +101,12 @@ Princípios:
 
 ### A. Assembleias
 
-> **Estado da Fase 3:** implementação concluída no branch com migration 036 e backend 0.15.0; release/publicação, categoria/ID e Giscus real continuam pendentes. Contratos e operação atuais: [ADR 014](../../adrs/014-assemblies.md).
+> **Estado da Fase 3:** PR #613 integrada e backend 0.15.0 publicado; categoria Reuniões configurada. Redeploy/migration 036, sync inicial e Giscus real continuam pendentes. Contratos e operação atuais: [ADR 014](../../adrs/014-assemblies.md).
 
 **Entidade `assemblies`:** `id`, `type` ('ordinaria' | 'oficial'), `number` (sequencial por tipo), `title`, `scheduledAt`, `heldAt?`, `status` ('scheduled' | 'held' | 'canceled'), `agendaSummary` (texto curto), `discussionUrl`, `ataPdfUrl?`, `notaryRegistry?` (jsonb: `{ book, page, registeredAt }`), `createdById`.
 
 **Fluxo:**
-1. Um operador coordena o próximo número, abre manualmente a Discussion na categoria "Assembleias" com o pathname exato e cadastra a assembleia (admin ou diretor ativo). O lock protege a numeração, não a reserva externa da Discussion.
+1. Um operador coordena o próximo número, abre manualmente a Discussion na categoria "Reuniões" com o pathname exato e cadastra a assembleia (admin ou diretor ativo). O lock protege a numeração, não a reserva externa da Discussion.
 2. Antes: resumo da pauta no registro + detalhes na Discussion. Durante/depois: quórum, votos e ata narrativa **só na Discussion**.
 3. Oficial: para realizar, admin informa PDF externo validado pelo `StorageService` e metadados completos de registro. Não há upload nem automação cartorária.
 
@@ -364,7 +364,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 ## Frontend e snapshots
 
 - **Snapshots:** `static/assemblies/index.json`, `static/mentors/` (lista pública de mentores), `static/universities/index.json` (cidades + IES + embaixadores ativos do Universitário), snapshot por membro para o perfil público `/@handle` (campos e históricos **já filtrados por visibilidade**) e migração de comunidades para snapshot gerado (workflow estendido ou novo, seguindo `sync-event-snapshots.yml`).
-- **Giscus:** categoria "Assembleias" por pathname (configuração por página, igual ao blog).
+- **Giscus:** categoria "Reuniões" por pathname (configuração por página, igual ao blog).
 - **Admin:** páginas novas seguem o padrão `/admin/*` (guarda de login, authFetch, Alert de erro).
 - **Dados públicos:** páginas leem snapshots; dados privados (filas de aprovação) vão direto à API.
 
@@ -376,7 +376,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **1a. Fundações de dados** ✅ **CONCLUÍDA (2026-11-03)** — [plano detalhado](fase-1a.md) | `member_designations` + roles derivadas + `communities` + níveis/selo + `directorates` + seed das 6 comunidades + **E1 + R1 + G3/G6 + ECA** | ✅ CRUD admin + snapshot público; roles e guards de designation; seed sem perda de dados; e-mail `skipped` e summary corrigida; CSV por datas; retenção de auditoria; Turnstile testado; eventos 18+ sinalizados; backend `0.12.3` e todos os gates verdes |
 | **1b. UX e transversal** ✅ **CONCLUÍDA (2026-11)** — [plano detalhado](fase-1b.md) | Refinamento do AppLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 + Pagefind | Sidebar agrupada; visibilidade por campo nos endpoints públicos; política e conduta publicadas; busca local no portal; backend 0.13.x e gates da fase verdes |
 | **2. Pessoas e horas** ✅ **CONCLUÍDA E PUBLICADA (2026-11-05)** — [plano](fase-2.md) · [ADR 013](../../adrs/013-hour-ledger.md) | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | Duas fontes efetivas (`event_checkin` e `directorate_activity`); fila e impressão/PDF nativa só com approved; audit e privacidade; check-in exactly-once e carga explícita/fallback por tipo de evento; migrations 033–035 e jornadas validadas. Backend `v0.14.0-backend` publicado; sync inicial no run `42098199373`; frontend no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção é acompanhamento operacional com sessão admin |
-| **3. Assembleias** **IMPLEMENTADA NO BRANCH; RELEASE E GISCUS REAL PENDENTES** — [plano/handoff](../../superpowers/plans/2026-11-05-assembleias.md) · [ADR 014](../../adrs/014-assemblies.md) | `assemblies` + páginas + integração Giscus + snapshot + admin | Migration 036, CRUD/autorização, numeração concorrente, registro cartorário, páginas e gates locais validados. Categoria/ID, Discussions reais, Giscus, PR/CI/Sonar, release `v0.15.0-backend`, redeploy, sync inicial e publicação continuam pendentes |
+| **3. Assembleias** **INTEGRADA; REDEPLOY, SYNC E GISCUS REAL PENDENTES** — [plano/handoff](../../superpowers/plans/2026-11-05-assembleias.md) · [ADR 014](../../adrs/014-assemblies.md) | `assemblies` + páginas + integração Giscus + snapshot + admin | Migration 036, CRUD/autorização, numeração concorrente, registro cartorário, páginas e gates validados. PR #613, CI/Sonar e release `v0.15.0-backend` concluídos; categoria Reuniões configurada. Redeploy/migration, sync inicial, Discussions reais e validação do Giscus continuam pendentes |
 | **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
 | **4b. Codaqui Universitário** (adicionado 2026-10-29) | `cities` + `entities.cityId` + designations `ambassador` @ `ies` e `manager` @ `program('universitario')` + `managed_events.institutionId` + página `/universitario` + painel do gestor — **bases compartilhadas com o subsistema C** | Cidade→IES→embaixador (1 active/IES, gestor propõe+admin confirma)→evento na IES com inscrição/check-in/certificado/horas reais; ação extensionista vira projeto de extensão na mesma entity; snapshot público `static/universities/` |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
@@ -387,11 +387,11 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 > - **1b concluída**: sidebar, "Meus dados" + `profileVisibility`, P1–P3 e Pagefind foram entregues antes da Fase 2.
 > - **Recorte ratificado da 1a**: somente os dois níveis aprovados de comunidade, sem Autônoma/D2/split. Os acréscimos `entity`, `program`, `volunteer` e `founder` do RBAC foram aprovados; diretor implica voluntário. Os três tenants e CamposTech migram como Integradas sem responsável inventado.
 > - **Premissas preservadas**: fases 1a+ em Astro; snapshots, Giscus, roles guard e ledger válidos; novas listagens seguem a decisão 12 do AGENTS.md. APIs novas de gestão não usam o prefixo `/admin/`, preservando a allow-list estreita do proxy.
-> - **Dependências críticas**: F5 precisa de E1 + P1/P2 + `hour_ledger`; F2 precisa de directorates e check-in atômico; a jornada externa da F3 depende da categoria Giscus "Assembleias". O primeiro formulário público novo com coleta de dados é o guest token da Fase 2, portanto Turnstile é gate da Fase 2, não da 4b.
+> - **Dependências críticas**: F5 precisa de E1 + P1/P2 + `hour_ledger`; F2 precisa de directorates e check-in atômico; a jornada externa da F3 depende da categoria Giscus "Reuniões". O primeiro formulário público novo com coleta de dados é o guest token da Fase 2, portanto Turnstile é gate da Fase 2, não da 4b.
 > - **C4P (F7)** continua independente das fases 1–6 e pode ser antecipado por decisão da presidência.
-> - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O handoff corrente é o [plano da Fase 3](../../superpowers/plans/2026-11-05-assembleias.md); Fase 4 e extensões futuras não entram sem comando específico.
+> - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O handoff da Fase 3 está no [plano de Assembleias](../../superpowers/plans/2026-11-05-assembleias.md); a Fase 4 foi autorizada para início em 2026-11-06.
 
-Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x** e a Fase 2 publicou **0.14.0**. A Fase 3 prepara **0.15.0**, sem release/publicação neste branch. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
+Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0** e a Fase 3 publicou **0.15.0**. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
@@ -403,12 +403,12 @@ Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**,
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 - **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))
 - **013 — Ledger de horas, ownership, guests e perfil público** (Fase 2) — ✅ [implementada e publicada](../../adrs/013-hour-ledger.md) com backend 0.14.0
-- **014 — Assembleias híbridas (Discussion manual + registro fino)** (Fase 3) — [implementada no branch](../../adrs/014-assemblies.md); release e Giscus real pendentes
+- **014 — Assembleias híbridas (Discussion manual + registro fino)** (Fase 3) — ✅ [integrada e com backend publicado](../../adrs/014-assemblies.md); redeploy, sync inicial e Giscus real pendentes
 - **015 — Codaqui Universitário (cidades, IES, embaixadores, eventos nas instituições)** (Fase 4b — bases compartilhadas com a ADR 008; número reservado após a ADR 014 da Fase 3)
 
 ## Riscos e pontos abertos
 
-1. **Categoria Giscus "Assembleias"** ainda precisa ser criada no repo (`codaqui/institucional` discussions), ter seu ID configurado em `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` e ser validada com Discussions reais. Release/publicação da Fase 3 e relatório Sonar também permanecem pendentes.
+1. **Giscus real da Fase 3:** a categoria Reuniões e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` já estão configurados, mas ainda é necessário validar Discussions reais. Redeploy/migration 036, sync inicial e publicação da correção de categoria no frontend também permanecem pendentes.
 2. **Critérios objetivos:** o Selo Comunitário usa avaliação manual registrada em `sealNotes` na 1a, sem checklist automatizado; a checklist da Empresa Aliada será definida antes da Fase 6.
 3. **Nomenclatura final** "Empresa Aliada Codaqui" e arte do selo — validar marca antes da vitrine pública da Fase 6.
 4. **Validade inicial de 1 ano** para selo comunitário e aliada, registrada explicitamente em `sealValidUntil`; mudança futura de política exige decisão da diretoria.

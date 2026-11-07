@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 3 — Assembleias com registro fino, Discussion manual e páginas públicas.
 audience: Mantenedores, revisores e implementers da Fase 3.
-status: Aprovado pelo usuário para escrita do plano; nenhuma implementação iniciada.
+status: Implementado e integrado pela PR #613; categoria Reuniões configurada, com validação real de Giscus pendente.
 sections:
   - Decisão e escopo
   - Modelo e invariantes
@@ -73,11 +73,11 @@ O payload público contém `id`, tipo, número, slug, título, datas, status, re
 
 ## Discussion e Giscus
 
-- Criar a categoria **Assembleias** uma única vez no repositório e persistir seu `categoryId` na configuração do frontend.
+- Usar a categoria **Reuniões** já existente no repositório e persistir seu `categoryId` na configuração do frontend.
 - Cada cadastro informa manualmente uma Discussion dessa categoria.
 - O título da Discussion é exatamente `/assembleias/<type>-<number>`, igual ao pathname da página.
 - `discussionUrl` e slug não mudam após a criação; título da assembleia pode mudar sem afetar comentários.
-- Giscus usa `pathname`, `strict=0`, reações e metadados como no blog, com a categoria própria.
+- Giscus usa `pathname`, `strict=0`, reações e metadados como no blog, com a categoria Reuniões.
 - A configuração de Assembleias fica separada de `GISCUS_CONFIG` do blog para não alterar comentários existentes.
 
 ## Snapshot e frontend

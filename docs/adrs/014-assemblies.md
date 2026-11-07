@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 3 — assembleias com registro fino, Discussion manual, snapshot público, Giscus e cartório.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Implementado no branch da Fase 3 (migration 036 e backend 0.15.0); integração, release/publicação e validação real de Giscus pendentes.
+status: Merge e release do backend 0.15.0 concluídos; redeploy, sync inicial e validação real de Giscus pendentes.
 sections:
   - Contexto
   - Decisão
@@ -20,14 +20,15 @@ related-docs:
   - ../superpowers/specs/2026-11-05-assembleias-design.md — design aprovado
 agent-protocol:
   - Não mover narrativa, quórum, votos ou ata para o PostgreSQL; esses dados permanecem na Discussion.
-  - Não automatizar criação de Discussion nem declarar a categoria Assembleias/Giscus como configurados antes da ação externa.
-  - Não publicar release, redeploy, sync inicial ou validação de produção como concluídos a partir desta ADR.
+  - Não automatizar criação de Discussion nem declarar o Giscus real validado antes de uma Discussion real na categoria Reuniões.
+  - Não declarar redeploy, sync inicial ou validação de produção como concluídos sem evidência externa.
 -->
 
 # ADR 014 — Assembleias híbridas com Discussion manual e registro fino
 
 - **Data da decisão:** 2026-11-05
-- **Status:** Implementado no branch; release externo e Giscus real pendentes
+- **Revisão:** 2026-11-06 — uso da categoria existente **Reuniões**
+- **Status:** Merge e release do backend concluídos; redeploy, sync inicial e Giscus real pendentes
 - **Escopo:** Fase 3, migration 036, backend 0.15.0, API NestJS, snapshot, páginas públicas, admin e integração Giscus
 
 ## Contexto
@@ -40,7 +41,7 @@ A Fase 3 não inclui votação eletrônica, automação cartorária, upload de a
 
 Adotar um modelo híbrido: a tabela `assemblies` guarda somente metadados estruturados e o GitHub Discussions guarda pauta detalhada, quórum, votos, ata narrativa e comentários. O vínculo é cadastrado manualmente por uma URL estável; não há criação automática de Discussion.
 
-O backend foi preparado na versão **0.15.0** e a migration **036** cria o modelo. A implementação e as validações locais estão concluídas no branch, mas isso não representa merge, release `v0.15.0-backend`, redeploy, configuração da categoria ou publicação em produção.
+O backend **0.15.0** e a migration **036** foram integrados pela PR #613, e a release `v0.15.0-backend` foi publicada no run `42292647305`. Redeploy no Coolify, execução da migration, sync inicial e validação real do Giscus continuam exigindo evidência operacional própria.
 
 ## Modelo fino e invariantes
 
@@ -90,11 +91,11 @@ O proxy aceita o prefixo `/assemblies/` sem interceptar as páginas `/assembleia
 
 ## Discussion manual, Giscus e retenção
 
-A operação cria manualmente a Discussion na categoria **Assembleias**, com título exatamente igual ao pathname `/assembleias/<type>-<number>`, e informa sua URL no cadastro. A API valida repositório e formato da URL, mas não consulta o GitHub para comprovar categoria, título ou existência: essa conferência é humana.
+A operação cria manualmente a Discussion na categoria **Reuniões**, com título exatamente igual ao pathname `/assembleias/<type>-<number>`, e informa sua URL no cadastro. A API valida repositório e formato da URL, mas não consulta o GitHub para comprovar categoria, título ou existência: essa conferência é humana.
 
 A numeração é atribuída somente no `POST`, enquanto a Discussion precisa existir antes dele. Por isso, a reserva do próximo número e a criação do registro devem ser coordenadas por um único operador, sem criações simultâneas do mesmo tipo durante esse passo. O lock do banco protege a numeração, não reserva recursos externos no GitHub.
 
-`getAssembliesGiscusConfig()` separa a configuração do blog e usa `mapping="pathname"`, `strict="0"` e a categoria Assembleias. O blog continua em `mapping="og:title"` e na categoria Blog. O ID vem de `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`, variável pública de build, não de um segredo. Sem ID, a página mostra o link estático para a Discussion e um aviso de configuração pendente, sem inventar categoria ou substituí-la por Reuniões.
+`getAssembliesGiscusConfig()` separa a configuração do blog e usa `mapping="pathname"`, `strict="0"` e a categoria Reuniões. O blog continua em `mapping="og:title"` e na categoria Blog. O ID vem de `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`, variável pública de build, não de um segredo. A categoria existente tem ID `DIC_kwDOG9s0Ns4CxJVR`, configurado como Variable do repositório. Sem ID no ambiente local, a página mostra o link estático para a Discussion e um aviso de configuração pendente.
 
 Comentários, reações e metadados do Giscus permanecem no GitHub. Eles não são copiados para PostgreSQL nem para `static/assemblies/index.json`, e a retenção operacional do backend não os apaga. Moderação, exportação, exclusão e retenção seguem as permissões e políticas do GitHub; remover ou renomear uma Discussion pode quebrar o vínculo e o histórico apresentado no site.
 
@@ -112,11 +113,11 @@ O build Astro gera `/assembleias` e `/assembleias/<slug>` a partir do snapshot, 
 
 A sequência operacional segura é:
 
-1. criar a categoria **Assembleias** em `codaqui/institucional`, obter seu ID por GraphQL e configurar `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como Variable do GitHub Actions e nos ambientes locais necessários;
+1. usar a categoria **Reuniões** de `codaqui/institucional`, cujo ID público já está configurado em `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como Variable do GitHub Actions;
 2. coordenar o próximo número por tipo, criar a Discussion com o pathname exato e cadastrar a assembleia imediatamente, conferindo o slug retornado;
 3. manter narrativa e comentários na Discussion e somente o resumo no registro;
 4. para oficial realizada, um admin informa `heldAt`, PDF externo válido e cartório completo;
-5. após publicação do backend e migration 036, executar o sync inicial e publicar o frontend; alterações posteriores dependem do próximo sync e build;
+5. após redeploy do backend e migration 036, executar o sync inicial e publicar o frontend; alterações posteriores dependem do próximo sync e build;
 6. criar Discussions reais das fixtures de validação e verificar no HTML/navegador o Giscus carregado com `pathname` e a categoria correta antes de marcar a jornada externa como concluída.
 
 O rollback da migration 036 remove a tabela `assemblies` e seus dados. Só deve ser ensaiado em banco descartável; não é uma operação neutra em produção.
@@ -126,6 +127,6 @@ O rollback da migration 036 remove a tabela `assemblies` e seus dados. Só deve 
 - O banco permanece fino e auditável, mas a disponibilidade e retenção da narrativa/comentários passam a depender também do GitHub.
 - A conferência de categoria/título e a coordenação entre número e Discussion são manuais; não há GitHub App nem reconciliação automática.
 - O snapshot introduz defasagem entre API e site e exige publicação na ordem backend → sync → frontend.
-- A categoria Assembleias, seu ID e qualquer Discussion real não foram criados durante a implementação. O fallback estático foi validado; o carregamento real do Giscus não foi.
+- A categoria Reuniões e seu ID já existem e estão configurados; nenhuma Discussion real foi criada durante a implementação. O fallback estático foi validado; o carregamento real do Giscus ainda não foi.
 - Migration 036 down/up, concorrência de criação, API, snapshot, páginas estáticas e limpeza de fixtures foram validados localmente na Task 6. Os quatro gates passaram nesse HEAD de implementação.
-- Release/publicação, PR/CI externo, relatório Sonar, sync inicial e validação real em produção permanecem pendentes. Nenhum desses itens é declarado concluído por esta ADR.
+- PR #613, CI, Sonar e release `v0.15.0-backend` estão concluídos. Redeploy, sync inicial e validação real em produção permanecem pendentes de evidência operacional.
