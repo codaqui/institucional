@@ -69,7 +69,7 @@ Variáveis do app Astro (prefixo `PUBLIC_*`, embutidas no bundle cliente em buil
 |----------|-----------|
 | `PUBLIC_API_URL` | URL base da API NestJS (default `http://localhost:3001`) |
 | `PUBLIC_STRIPE_PUBLISHABLE_KEY` | Chave pública Stripe (`pk_test_...` em dev) usada pelo checkout embutido de `/participe/apoiar`. Vazia desativa o botão de doação |
-| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | ID público da categoria Assembleias do GitHub Discussions, embutido no build para Giscus por `pathname`. Vazia mantém link/fallback estático; não é segredo |
+| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | ID público da categoria Reuniões do GitHub Discussions, embutido no build para Giscus por `pathname`. Vazia mantém link/fallback estático; não é segredo |
 
 O CORS do backend já aceita qualquer `localhost:<porta>` — nenhuma configuração extra.
 Login GitHub funciona ponta a ponta com o backend local rodando (`compose.yaml`, porta 3001).
@@ -164,19 +164,19 @@ Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-
 A [ADR 014](docs/adrs/014-assemblies.md) é a referência de contratos e limites. A operação da
 Discussion e do Giscus é deliberadamente manual:
 
-1. Crie uma única vez a categoria **Assembleias** em
-   `https://github.com/codaqui/institucional/discussions/categories`. Não use **Reuniões** como
-   substituta. Obtenha o ID público com:
+1. Use a categoria **Reuniões** já existente em `codaqui/institucional`, com ID público
+   `DIC_kwDOG9s0Ns4CxJVR`. Para conferir as categorias atuais:
 
    ```bash
    gh api graphql -f query='query { repository(owner:"codaqui",name:"institucional") { discussionCategories(first:50) { nodes { id name } } } }'
    ```
 
-2. Configure `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como **Variable** do GitHub Actions e nos
-   ambientes locais necessários. Sem o ID, o detalhe mantém o link da Discussion e informa que os
-   comentários integrados estão pendentes; o blog continua na categoria Blog e `og:title`.
+2. A Variable `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` já está configurada no GitHub Actions. Para
+   desenvolvimento local, use o mesmo ID quando quiser testar os comentários integrados. Sem o ID,
+   o detalhe mantém o link da Discussion e informa que os comentários integrados estão pendentes;
+   o blog continua na categoria Blog e `og:title`.
 3. Antes de cada cadastro, coordene o próximo número do tipo com um único operador. Crie a
-   Discussion na categoria Assembleias com título exatamente `/assembleias/<type>-<number>` e
+   Discussion na categoria Reuniões com título exatamente `/assembleias/<type>-<number>` e
    cadastre imediatamente sua URL em `/admin/assembleias`. O banco atribui o número sob lock, mas
    não reserva a Discussion externa: evite criações simultâneas do mesmo tipo nesse passo e
    confira o slug retornado. A API valida o formato/repositório da URL, não a categoria ou título.
@@ -186,9 +186,9 @@ Discussion e do Giscus é deliberadamente manual:
 5. Para realizar uma assembleia oficial, um admin informa `heldAt`, URL HTTPS do PDF em host
    aceito pelo `StorageService` e livro/página/data do cartório. Não há upload nem automação de
    cartório. Diretores ativos podem criar/editar, mas não alterar dados cartorários.
-6. Depois do backend com a migration 036 estar publicado, rode o sync inicial antes do frontend.
-   Crie Discussions reais para a validação e confira o Giscus com `mapping="pathname"` e a
-   categoria correta. Fallback estático e testes não substituem essa verificação.
+6. Depois do redeploy do backend e da confirmação da migration 036, rode o sync inicial antes do
+   frontend. Crie Discussions reais para a validação e confira o Giscus com `mapping="pathname"`
+   e a categoria Reuniões. Fallback estático e testes não substituem essa verificação.
 
 Comentários e reações ficam no GitHub, fora do PostgreSQL e do snapshot. A retenção operacional do
 backend não os remove; moderação, exportação e exclusão seguem o GitHub. Remover ou renomear uma
@@ -678,7 +678,7 @@ Configure em **Settings → Secrets and variables → Actions** do repositório:
 | `CLOUDFLARE_ACCOUNT_ID` | **Secret** | `deploy-astro` | Account ID da Cloudflare (visível no dashboard → sidebar → copy ID). |
 | `STRIPE_PUBLISHABLE_KEY` | **Variable** (não secret) | `deploy-astro` | Chave pública Stripe (`pk_live_...`) reexportada como `PUBLIC_STRIPE_PUBLISHABLE_KEY` no build. Sem isso o botão de doação fica desativado. |
 | `PUBLIC_TURNSTILE_SITE_KEY` | **Variable** (não secret) | `deploy-astro` | Site key pública do Cloudflare Turnstile, encaminhada ao build dos quatro sites. Sem ela o guest claim não renderiza o widget e o DTO rejeita o token vazio. |
-| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | **Variable** (não secret) | `deploy-astro` | ID da categoria Assembleias do GitHub Discussions. Sem ele as páginas mantêm link/fallback estático e a jornada Giscus permanece pendente. |
+| `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` | **Variable** (não secret) | `deploy-astro` | ID da categoria Reuniões do GitHub Discussions. Sem ele as páginas mantêm link/fallback estático e a jornada Giscus permanece pendente. |
 
 Na publicação do guest claim, configure também `TURNSTILE_SECRET` e `TURNSTILE_HOSTNAMES` no backend. Depois do deploy do backend e do frontend, abra um convite real, confirme que o widget renderiza sem erro e conclua um claim real, verificando token emitido pelo Cloudflare, hostname aceito, consentimento e QR. Testes locais com token `development` não substituem essa validação.
 

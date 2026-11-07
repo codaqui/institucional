@@ -41,13 +41,13 @@ describe("GiscusIsland", () => {
     expect(screen.getByTestId("giscus")).toHaveAttribute("data-loading", "lazy");
   });
 
-  it("aceita configuração de Assembleias por pathname sem alterar o default do blog", () => {
+  it("usa a categoria Reuniões por pathname sem alterar o default do blog", () => {
     const config = getAssembliesGiscusConfig(" test-category ");
 
     expect(config).not.toBeNull();
     render(<GiscusIsland config={config!} />);
 
-    expect(screen.getByTestId("giscus")).toHaveAttribute("data-category", "Assembleias");
+    expect(screen.getByTestId("giscus")).toHaveAttribute("data-category", "Reuniões");
     expect(screen.getByTestId("giscus")).toHaveAttribute("data-category-id", "test-category");
     expect(screen.getByTestId("giscus")).toHaveAttribute("data-mapping", "pathname");
     expect(GISCUS_CONFIG.category).toBe("Blog");

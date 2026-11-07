@@ -25,7 +25,7 @@ export function getAssembliesGiscusConfig(
 
   return {
     ...GISCUS_CONFIG,
-    category: "Assembleias",
+    category: "Reuniões",
     categoryId: normalizedCategoryId,
     mapping: "pathname",
   };

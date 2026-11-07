@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 3 — Assembleias com registro fino e Discussion manual.
 audience: Implementers e revisores da Fase 3.
-status: Implementação e validações locais concluídas; integração, release/publicação, categoria Assembleias e Giscus real pendentes.
+status: Implementação, merge e release do backend concluídos; categoria Reuniões configurada; redeploy, sync inicial e Giscus real pendentes.
 sections:
   - Constraints
   - Tasks 1–7
@@ -27,13 +27,13 @@ agent-protocol:
 ## Global Constraints
 
 - Backend `0.15.0`; migration `036_Assemblies`; Fases 4–7 fora do escopo.
-- Discussion manual na categoria Assembleias, título exatamente `/assembleias/<type>-<number>`, sem GitHub App.
+- Discussion manual na categoria Reuniões, título exatamente `/assembleias/<type>-<number>`, sem GitHub App.
 - `(type, number)` único e concorrente; slug imutável `<type>-<number>`.
 - `heldAt` obrigatório para `held` e não anterior a `scheduledAt`; `oficial` realizada exige PDF e cartório.
 - `createdById` é trilha, não permissão nem dado público. Criar/editar: admin ou diretor ativo; cartório: admin.
 - Nenhum upload; PDF HTTPS pela allowlist do `StorageService`. Nenhuma narrativa, voto ou quórum no banco.
 - API nova sem `/admin/`; listagem administrativa paginada no envelope padrão; `/assemblies/` no proxy sem colisão com `/assembleias`.
-- Sync atômico preserva snapshot em falha. Giscus usa `pathname` e categoria própria, sem alterar o blog.
+- Sync atômico preserva snapshot em falha. Giscus usa `pathname` e a categoria Reuniões, sem alterar o blog.
 - MUI 9/tokens `--cq-*`, zero hex solto, acessibilidade, testes e revisão por task. Dados de teste sempre sintéticos.
 
 ---
@@ -203,11 +203,11 @@ Expected: arquivos/contrato ausentes.
 
 - [x] **Step 3: Implement data loading, Giscus override and public pages**
 
-Listagem com cards semânticos e detalhe com OG/JSON-LD. Giscus por pathname, categoria Assembleias via env pública e `config` opcional. Mapear variável no Compose e no build do deploy.
+Listagem com cards semânticos e detalhe com OG/JSON-LD. Giscus por pathname, categoria Reuniões via env pública e `config` opcional. Mapear variável no Compose e no build do deploy.
 
-- [ ] **Step 4: Create category manually and configure it**
+- [x] **Step 4: Use the existing category and configure it**
 
-Usuário cria **Assembleias** em `https://github.com/codaqui/institucional/discussions/categories`. Obter o ID com `gh api graphql -f query='query { repository(owner:"codaqui",name:"institucional") { discussionCategories(first:50) { nodes { id name } } } }'` e configurar `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como Variable, sem tratá-lo como segredo.
+A categoria **Reuniões** já existia em `codaqui/institucional` com ID `DIC_kwDOG9s0Ns4CxJVR`. O ID foi confirmado por GraphQL e configurado em `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` como Variable pública do repositório.
 
 - [x] **Step 5: Verify public pages and commit**
 
@@ -300,6 +300,14 @@ Revisão estática concluída sem Critical/Important: segurança/autorização, 
 
 Evidências verdes dos quatro gates reaproveitadas da implementação `c1ae23b57da`, sem repetição desnecessária no diff docs-only; links, `git diff --check`, escopo do diff e versão 0.15.0 verificados no HEAD final. Commit `chore(fase-3): prepara release 0.15.0 e handoff`.
 
-- [x] **Step 4: Integration handoff**
+- [x] **Step 4: Integration handoff and merge**
 
-Opções de integração e sequência de release registradas no relatório local da Task 7, sem push/merge/release. Handoff inclui migrations, categoria, variáveis, evidência E2E, Sonar pendente e pendências reais de produção.
+PR #613 integrada em `main` pelo merge `922d38a950718ea33bf2917119a3e1a8491576f6`, com CI, Sonar e quatro builds de frontend verdes.
+
+- [x] **Step 5: Publish backend 0.15.0**
+
+Release `v0.15.0-backend` publicada no run `42292647305`, com imagens linux/amd64 e linux/arm64/v8.
+
+- [ ] **Step 6: Complete production rollout**
+
+Redeploy manual no Coolify, confirmação da migration 036, sync inicial, publicação do frontend com a correção da categoria Reuniões e validação com Discussion real continuam pendentes.

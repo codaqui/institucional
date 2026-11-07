@@ -104,7 +104,7 @@ Planos futuros:
 | **Ilhas React** | React 19 + MUI v9 (`@mui/material` ^9, `@mui/icons-material`) + Emotion — hidratação sob demanda (`client:load` / `client:visible` / `client:only`) |
 | **Styling** | Tailwind CSS v4 (`@tailwindcss/vite`) com tokens `--cq-*` do Design System (`frontend/src/styles/tokens.css`) |
 | **Language** | TypeScript ~5.6 |
-| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`; Blog por `og:title`, Assembleias por `pathname` e categoria configurada por `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`) |
+| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`; Blog por `og:title`, Assembleias por `pathname` na categoria Reuniões configurada por `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`) |
 | **Pagamentos** | Stripe.js embutido (`@stripe/react-stripe-js`) no fluxo de doação |
 | **Node** | ≥24 (enforced em `package.json` engines, raiz e `frontend/`) |
 | **Hosting** | Cloudflare Pages — projetos `codaqui`, `tisocial`, `elasnocodigo`, `devparana` |
@@ -476,8 +476,8 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `(type,number)` é único e o slug `<type>-<number>` é imutável. A criação usa advisory lock por tipo + `MAX(number)+1` transacional. O PATCH lê com `pessimistic_write`, valida e salva na mesma transação, capturando before/after sob o lock. Somente `scheduled` vira `held`/`canceled`; `heldAt >= scheduledAt`; oficial realizada exige PDF HTTPS pela allowlist e cartório completo. Não há upload nem automação de Discussion/cartório.
 - APIs: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies` paginado (default 50/cap 100), `POST /assemblies` e `PATCH /assemblies/:id`. Criar/editar exige admin ou qualquer designation `director @ directorate` ativa, sem `targetId/targetKey IS NULL`; PDF/cartório exige admin; mutações gravam audit de governo. Null só é aceito no PATCH em `heldAt`, `ataPdfUrl` e `notaryRegistry`; PDF fora da allowlist retorna 400. Proxy: `/assemblies/`, com exceção estática para `/assemblies/index.json`, nunca `/admin/`.
 - `npm run sync:assemblies` usa `ASSEMBLIES_API_URL`, valida toda a coleção, a Discussion exata e o PDF HTTPS pela allowlist, e grava `static/assemblies/index.json` atomicamente; falha preserva o arquivo anterior. O loader repete essas validações. `notaryRegistry.registeredAt` é exibido em UTC; datas do evento continuam em `America/Sao_Paulo`. O workflow diário é 06:23 UTC + dispatch; o agregador `npm run sync` não inclui assembleias. Publicação segue backend/migration → sync inicial → build/frontend.
-- A Discussion é criada manualmente na categoria **Assembleias**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública); sem ID há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
-- **Pendências externas:** categoria/ID, Discussions reais e verificação Giscus, PR/CI/Sonar, release `v0.15.0-backend`, redeploy/migration, sync inicial e publicação/validação em produção. Não declarar esses itens concluídos nem iniciar Fase 4 por esta decisão.
+- A Discussion é criada manualmente na categoria **Reuniões**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública, ID `DIC_kwDOG9s0Ns4CxJVR` já configurado no repositório); sem ID local há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
+- **Integração:** PR #613, CI/Sonar e release `v0.15.0-backend` concluídos. **Pendências externas:** redeploy/migration 036, sync inicial, publicação da correção de categoria, Discussions reais e verificação do Giscus em produção. A Fase 4 foi autorizada separadamente em 2026-11-06.
 
 ---
 
@@ -627,7 +627,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Team changes | As needed | `frontend/src/data/team.ts` |
 | New community partners | As needed | API `/communities` + responsible por designation + `npm run sync:communities`; social stats em `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
 | Community registry changes | As needed | Admin/API → `npm run sync:communities` → novo build; não editar o snapshot |
-| Assembly Discussions e documentos | As needed, operação manual | Categoria Assembleias + título igual ao pathname; cadastro em `/admin/assembleias`; narrativa no GitHub; PDF/cartório por admin → `npm run sync:assemblies` → novo build |
+| Assembly Discussions e documentos | As needed, operação manual | Categoria Reuniões + título igual ao pathname; cadastro em `/admin/assembleias`; narrativa no GitHub; PDF/cartório por admin → `npm run sync:assemblies` → novo build |
 | Timeline events | Annually | `frontend/src/data/timeline.ts` |
 | Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
 | Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
