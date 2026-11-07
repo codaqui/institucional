@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Mantenedores, revisores, implementers e operadores de release da Fase 4.
-status: Desenho aprovado pelo usuário em 2026-11-06; aguardando revisão da spec escrita antes do plano de implementação.
+status: Spec revisada e aprovada para implementação em 2026-11-07; plano executável em docs/superpowers/plans/2026-11-07-entities-extension.md.
 sections:
   - Decisão e escopo
   - Arquitetura e módulos
