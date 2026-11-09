@@ -2389,11 +2389,19 @@ export class EventsService {
     const cutoff = new Date(Date.now() - 365 * 24 * 3_600_000);
     const guests = await this.registrationRepo
       .createQueryBuilder('r')
-      .innerJoin(ManagedEvent, 'event', 'event.id = r."eventId"')
+      .leftJoin(ManagedEvent, 'event', 'event.id = r."eventId"')
+      .leftJoin(
+        ExternalEventActivation,
+        'activation',
+        'activation.id = r."externalActivationId"',
+      )
       .where('r."isGuest" = true')
       .andWhere('r."memberId" IS NULL')
       .andWhere('(r."attendeeName" IS NOT NULL OR r."attendeeEmail" IS NOT NULL)')
-      .andWhere('event."startAt" < :cutoff', { cutoff })
+      .andWhere(
+        '(event."startAt" < :cutoff OR activation."startAt" < :cutoff)',
+        { cutoff },
+      )
       .getMany();
     for (const guest of guests) {
       guest.attendeeName = null;
@@ -2709,9 +2717,22 @@ export class EventsService {
     if (![RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
       throw new ForbiddenException('Certificado indisponível para esta inscrição.');
     }
-    registration.certificateGrantedAt ??= new Date();
-    registration.certificateGrantedByMemberId ??= user.sub;
-    await this.registrationRepo.save(registration);
+    if (registration.certificateGrantedAt) return registration;
+    const grantedAt = new Date();
+    const result = await this.registrationRepo.update(
+      { id: registration.id, certificateGrantedAt: IsNull() },
+      {
+        certificateGrantedAt: grantedAt,
+        certificateGrantedByMemberId: user.sub,
+      },
+    );
+    if (!result.affected) {
+      const current = await this.registrationRepo.findOneBy({ id: registration.id });
+      if (!current) throw new NotFoundException('Inscrição não encontrada.');
+      return current;
+    }
+    registration.certificateGrantedAt = grantedAt;
+    registration.certificateGrantedByMemberId = user.sub;
     void this.auditService.log({
       action: AuditAction.EVENT_CERTIFICATE_GRANTED,
       actorId: user.sub,

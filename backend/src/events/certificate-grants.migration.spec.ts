@@ -12,7 +12,7 @@ describe('Migration041_CertificateGrants', () => {
     expect(sql).toContain('ALTER TABLE "event_registrations" ADD "certificateGrantedByMemberId" uuid');
     expect(sql).toContain('ALTER TABLE "event_registrations" ADD "certificateInvitedAt" TIMESTAMPTZ');
     expect(sql).toContain('SET "certificateGrantedAt" = "checkedInAt"');
-    expect(sql).toContain('"certificateGrantedByMemberId" = "checkedInByMemberId"');
+    expect(sql).toContain('"certificateGrantedByMemberId" = "checkedInByMemberId"::uuid');
   });
 
   it('drops only certificate grant metadata on rollback', async () => {

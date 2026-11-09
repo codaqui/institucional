@@ -502,6 +502,25 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(verified.valid).toBe(true);
     });
 
+    it('does not overwrite a certificate grant that wins the race', async () => {
+      const grantedAt = new Date('2026-11-09T12:00:00.000Z');
+      const stale = makeRegistration({ certificateGrantedAt: null });
+      const current = makeRegistration({
+        certificateGrantedAt: grantedAt,
+        certificateGrantedByMemberId: uuid(99),
+      });
+      registrationRepo.findOneBy
+        .mockResolvedValueOnce(stale)
+        .mockResolvedValueOnce(current);
+      registrationRepo.update.mockResolvedValue({ affected: 0 });
+
+      const result = await service.grantCertificate(stale.id, checkerUser);
+
+      expect(result.certificateGrantedAt).toBe(grantedAt);
+      expect(result.certificateGrantedByMemberId).toBe(uuid(99));
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
+
     it('checks in a batch independently and reports pending_match', async () => {
       const first = makeRegistration({ id: uuid(41), checkinToken: 'first' });
       const second = makeRegistration({ id: uuid(42), checkinToken: 'second', checkedInAt: new Date() });

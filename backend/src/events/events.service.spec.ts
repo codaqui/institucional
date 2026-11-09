@@ -1890,20 +1890,28 @@ describe('EventsService', () => {
     });
   });
 
-    it('anonymizes only unlinked guest data after the retention period', async () => {
+    it('anonymizes unlinked managed and external guest data after the retention period', async () => {
       const guest = {
         id: uuid(40), memberId: null, attendeeName: 'Convidado',
         attendeeEmail: 'guest@example.test', isGuest: true,
       };
+      const leftJoin = jest.fn().mockReturnThis();
+      const andWhere = jest.fn().mockReturnThis();
       registrationRepo.createQueryBuilder.mockReturnValue({
         innerJoin: jest.fn().mockReturnThis(),
+        leftJoin,
         where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
+        andWhere,
         getMany: jest.fn().mockResolvedValue([guest]),
       });
 
       await service.anonymizeExpiredGuests();
 
+      expect(leftJoin).toHaveBeenCalledTimes(2);
+      expect(andWhere).toHaveBeenCalledWith(
+        '(event."startAt" < :cutoff OR activation."startAt" < :cutoff)',
+        { cutoff: expect.any(Date) },
+      );
       expect(guest.attendeeName).toBeNull();
       expect(guest.attendeeEmail).toBeNull();
       expect(registrationRepo.save).toHaveBeenCalledWith(guest);
