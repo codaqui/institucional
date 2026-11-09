@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fila assíncrona de convites de certificado, paginação e rate limit SMTP.
 audience: Implementers e revisores da PR.
-status: Spec aprovada; pronto para execução inline, sem subagentes.
+status: Implementado e verificado em dump real; PR #620 aberta para develop; merge/release 0.18.0 e lote controlado pendentes de comando explícito.
 sections:
   - Global Constraints
   - Tasks 1–7
@@ -15,7 +15,7 @@ agent-protocol:
 
 # Certificate Invite Queue Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Substituir a rajada síncrona de convites por fila PostgreSQL com progresso, paginação, ritmo SMTP e retries.
 
@@ -50,7 +50,7 @@ agent-protocol:
 - `CertificateInviteJobStatus = queued | processing | retry | completed | failed | skipped`.
 - Entity com os campos da spec e índices/unicidades.
 
-- [ ] **Step 1: Escrever teste da migration**
+- [x] **Step 1: Escrever teste da migration**
 
 ```ts
 expect(upSql).toContain('CREATE TABLE "certificate_invite_jobs"');
@@ -60,12 +60,12 @@ expect(upSql).toContain('CREATE INDEX "IDX_certificate_invite_jobs_available"');
 expect(downSql).toContain('DROP TABLE IF EXISTS "certificate_invite_jobs"');
 ```
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/events/certificate-invite.migration.spec.ts --runInBand`
 Expected: migration inexistente.
 
-- [ ] **Step 3: Implementar entity/migration e bump**
+- [x] **Step 3: Implementar entity/migration e bump**
 
 ```ts
 await queryRunner.query(`CREATE UNIQUE INDEX "UQ_certificate_invite_active_registration"
@@ -75,7 +75,7 @@ await queryRunner.query(`CREATE UNIQUE INDEX "UQ_certificate_invite_active_regis
 
 Adicionar FKs para registrations/members com `ON DELETE RESTRICT`, `UNIQUE (batchId,registrationId)` e índices `batchId` e `(status,availableAt)`. Bump `0.18.0` nos dois manifests.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/events/certificate-invite.migration.spec.ts --runInBand && npm run build`
 Commit: `feat(eventos): adiciona jobs de convites de certificado`
@@ -90,7 +90,7 @@ Commit: `feat(eventos): adiciona jobs de convites de certificado`
 **Interfaces:**
 - `EmailService` mantém `sendTemplate` e `sendProjectEmail`; ambos usam uma cadeia serial privada.
 
-- [ ] **Step 1: Escrever teste de serialização**
+- [x] **Step 1: Escrever teste de serialização**
 
 ```ts
 let releaseFirst!: () => void;
@@ -106,12 +106,12 @@ expect(provider.send).toHaveBeenCalledTimes(2);
 
 Adicionar teste de `EMAIL_SEND_INTERVAL_MS=5` com fake timers para provar espera configurável.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/notifications/email.service.spec.ts --runInBand`
 Expected: segunda chamada inicia antes da primeira terminar.
 
-- [ ] **Step 3: Implementar cadeia serial e intervalo**
+- [x] **Step 3: Implementar cadeia serial e intervalo**
 
 ```ts
 private smtpChain: Promise<void> = Promise.resolve();
@@ -127,7 +127,7 @@ private scheduleSmtpSend(message: EmailMessage): Promise<void> {
 
 `smtpDelay()` lê `EMAIL_SEND_INTERVAL_MS`, usa 2000 somente como default de produção e 0 fora dela. Substituir os dois `provider.send` existentes por `scheduleSmtpSend`. Documentar a env nos exemplos, sem segredo.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/notifications/email.service.spec.ts --runInBand && npm run build`
 Commit: `fix(notifications): serializa envios SMTP`
@@ -143,7 +143,7 @@ Commit: `fix(notifications): serializa envios SMTP`
 - `ListRegistrationsQueryDto { page?, limit?, search?, certificateFilter? }`.
 - `certificateFilter`: `all | eligible | granted | registration_pending`.
 
-- [ ] **Step 1: Escrever testes de envelope e legado**
+- [x] **Step 1: Escrever testes de envelope e legado**
 
 ```ts
 const legacy = await service.listRegistrations('evt-1', { search: 'ana' }, actor);
@@ -155,12 +155,12 @@ expect(qb.andWhere).toHaveBeenCalledWith('r.status IN (:...pendingStatuses)', { 
 
 Repetir contrato para `listExternalParticipants`, verificando `eligible` e `granted` sem depender de dados reais.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/events/events.service.spec.ts src/events/events.controller.spec.ts --runInBand`
 Expected: query DTO/envelope inexistente.
 
-- [ ] **Step 3: Implementar DTO, controller e consulta**
+- [x] **Step 3: Implementar DTO, controller e consulta**
 
 ```ts
 if (query.certificateFilter === 'registration_pending') {
@@ -174,7 +174,7 @@ if (query.page !== undefined && query.limit !== undefined) {
 
 Aplicar `skip/take`, validar `page >= 1`, `1 <= limit <= 100`, manter `search` e array legado. Controller usa `@Query() query` nas duas rotas.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/events/events.service.spec.ts src/events/events.controller.spec.ts --runInBand && npm run build`
 Commit: `feat(eventos): pagina participantes e certificados`
@@ -193,7 +193,7 @@ Commit: `feat(eventos): pagina participantes e certificados`
 - `getBatch(batchId,user): Promise<CertificateInviteBatchProgress>`.
 - `validateCertificateInviteRegistration(id,user): Promise<'ok'|'invalid'|'already_invited'>` extraída no `EventsService`.
 
-- [ ] **Step 1: Escrever testes de enqueue/progresso**
+- [x] **Step 1: Escrever testes de enqueue/progresso**
 
 ```ts
 const result = await queue.enqueue(['reg-1', 'reg-1', 'invalid'], actor);
@@ -204,12 +204,12 @@ await expect(queue.getBatch(result.batchId, otherActor)).rejects.toThrow(Forbidd
 
 Adicionar 23505 da unique ativa convertido em ausência de duplicidade e autorização repetida no worker.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/events/certificate-invite-queue.service.spec.ts --runInBand`
 Expected: service inexistente.
 
-- [ ] **Step 3: Implementar enqueue, entidade no módulo e rotas**
+- [x] **Step 3: Implementar enqueue, entidade no módulo e rotas**
 
 ```ts
 const batchId = randomUUID();
@@ -221,7 +221,7 @@ await this.jobRepo.save(jobs);
 
 Controller injeta `CertificateInviteQueueService`, usa `@HttpCode(202)` no POST atual e adiciona `GET certificate-invites/batches/:batchId` antes das rotas `:id`. Extrair validação no EventsService sem enviar e-mail. Registrar entity em `TypeOrmModule.forFeature`.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/events/certificate-invite-queue.service.spec.ts src/events/events.controller.spec.ts src/events/events.module.spec.ts --runInBand && npm run build`
 Commit: `feat(eventos): enfileira convites de certificado`
@@ -236,7 +236,7 @@ Commit: `feat(eventos): enfileira convites de certificado`
 - `processNextJob(): Promise<void>` chamado por `@Cron('*/10 * * * * *')` e diretamente nos testes.
 - Reuso de `EventsService.inviteCertificates([registrationId], currentActor)`.
 
-- [ ] **Step 1: Escrever testes do ciclo de vida**
+- [x] **Step 1: Escrever testes do ciclo de vida**
 
 ```ts
 expect(job.status).toBe('processing');
@@ -246,12 +246,12 @@ expect(jobRepo.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'com
 
 Adicionar: SMTP skipped; 421 com `retry` e `availableAt`; terceira falha vira `failed`; job travado >2 min volta para `retry`; lock usa `onLocked: 'skip_locked'`; 421/454 atualiza pendentes para +15 minutos.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/events/certificate-invite-queue.service.spec.ts --runInBand`
 Expected: `processNextJob` inexistente.
 
-- [ ] **Step 3: Implementar worker**
+- [x] **Step 3: Implementar worker**
 
 ```ts
 const job = await this.jobRepo.manager.transaction(async (manager) => {
@@ -271,7 +271,7 @@ const job = await this.jobRepo.manager.transaction(async (manager) => {
 
 Processar fora do lock, recarregar ator atual e mapear `sent/completed`, `skipped/skipped`, falha temporária/permanente conforme spec. Recuperar `processing` antigo antes de selecionar. Não lançar erro de SMTP para o cron.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/events/certificate-invite-queue.service.spec.ts src/events/events.service.spec.ts --runInBand && npm run build`
 Commit: `feat(eventos): processa convites com ritmo e retries`
@@ -289,7 +289,7 @@ Commit: `feat(eventos): processa convites com ritmo e retries`
 - `onInvite(ids): Promise<{batchId,total,status:'queued',invalid:string[]}>`.
 - `useCertificateInviteProgress(batchId,loadBatch,onDone)`.
 
-- [ ] **Step 1: Escrever testes de página, batch e visibilidade**
+- [x] **Step 1: Escrever testes de página, batch e visibilidade**
 
 ```tsx
 expect(screen.getByRole('navigation', { name: 'Paginação de certificados' })).toBeInTheDocument();
@@ -301,12 +301,12 @@ expect(await screen.findByRole('progressbar')).toBeInTheDocument();
 
 Mockar 51 registros e provar que somente os 25 da página são enviados; trocar página limpa seleção. Com `visibilityState='hidden'`, avançar timers não chama o batch; ao voltar para `visible`, polling reinicia.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/checkin/__tests__/checkin.test.tsx`
 Expected: sem paginação/progresso e seleção excede a página.
 
-- [ ] **Step 3: Implementar paginação controlada**
+- [x] **Step 3: Implementar paginação controlada**
 
 ```tsx
 const params = new URLSearchParams({ page: String(page), limit: '25', search: query, certificateFilter: filter });
@@ -317,7 +317,7 @@ setTotalPages(data?.totalPages ?? 0);
 
 Manter parse legado para outras chamadas. Filtro/busca/página controlados no `CheckinApp`; `CertificateCenter` limpa seleção quando os registros mudam e informa “nesta página”.
 
-- [ ] **Step 4: Implementar 202, progresso e polling**
+- [x] **Step 4: Implementar 202, progresso e polling**
 
 ```tsx
 if (document.visibilityState !== 'visible' || !batchId || terminal) return;
@@ -327,7 +327,7 @@ return () => window.clearInterval(timer);
 
 Usar `<progress aria-label="Progresso dos convites" max={total} value={done} />` e `role="status"`. Recarregar inscrições ao concluir; erro de consulta oferece retry manual.
 
-- [ ] **Step 5: Verificar e commit**
+- [x] **Step 5: Verificar e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/checkin/__tests__/checkin.test.tsx && npm run check`
 Commit: `feat(eventos): acompanha convites em fila`
@@ -343,7 +343,7 @@ Commit: `feat(eventos): acompanha convites em fila`
 **Interfaces:**
 - Jornada real: enqueue 202 → worker → sent/completed; 421 → retry; nova tentativa → completed; legacy arrays preservados.
 
-- [ ] **Step 1: Escrever e rodar E2E em dump isolado**
+- [x] **Step 1: Escrever e rodar E2E em dump isolado**
 
 ```ts
 const before = await dataSource.query("SELECT status, COUNT(*) FROM email_logs WHERE template = 'certificate-pending-registration' GROUP BY status");
@@ -355,17 +355,17 @@ expect(afterSent).toBe(beforeSent + 1);
 
 Restaurar o dump atual em `codaqui_certificate_queue_test`; validar 28 sent/90 failed preservados antes/depois, migration down/up e provider mockado para 421→sucesso. Remover fixtures e banco.
 
-- [ ] **Step 2: Rodar gates completos**
+- [x] **Step 2: Rodar gates completos**
 
 Run: `cd backend && npm run build && npx jest --silent`
 Run: `npm run test:scripts`
 Run: `make astro-verify && make astro-verify-tenants`
 
-- [ ] **Step 3: Documentar e commit**
+- [x] **Step 3: Documentar e commit**
 
 Registrar ADR 016 com evidências do dump (28/90/130), contratos, limitação exactly-once, rate limit, retries, rollout e privacidade. Atualizar manual, inventário, runbook e guia principal.
 Commit: `docs(eventos): registra fila de convites e handoff`
 
-- [ ] **Step 4: Abrir PR para develop e apresentar integração**
+- [x] **Step 4: Abrir PR para develop e apresentar integração**
 
 Push de `fix/certificate-invite-queue`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.18.0 ou reenvio real sem comando explícito. A PR #618 permanece separada.
