@@ -26,6 +26,8 @@ export interface EventRegistration {
   attendeeEmail: string;
   status: string;
   checkedInAt: string | null;
+  certificateGrantedAt: string | null;
+  certificateInvitedAt: string | null;
   checkinToken: string;
   isGuest: boolean;
   member: {

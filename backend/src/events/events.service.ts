@@ -3364,6 +3364,10 @@ export class EventsService {
       imported: ctx.toSave.length,
       matched: ctx.matched,
       healed: ctx.healed,
+      checkedIn: ctx.toSave.filter((registration) => registration.checkedInAt).length,
+      certificatesGranted: ctx.toSave.filter(
+        (registration) => registration.certificateGrantedAt,
+      ).length,
       unmatched: ctx.unmatched,
       skippedDuplicates: ctx.skippedDuplicates,
       errors: ctx.errors,

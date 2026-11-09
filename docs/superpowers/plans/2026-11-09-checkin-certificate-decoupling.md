@@ -1,8 +1,9 @@
 <!-- AGENT-INDEX
 purpose: Plano do adendo da Fase 4 — presença em lote, concessão independente, CSV e convites para pending_match.
 audience: Implementers e revisores da PR #617.
-status: Aprovado para implementação inline com TDD; nenhuma task iniciada.
+status: Em execução inline com TDD — Tasks 1–5 concluídas; Task 6 está em andamento.
 sections:
+  - Progresso
   - Constraints
   - Tasks 1–6
   - Gates e handoff
@@ -23,6 +24,15 @@ agent-protocol:
 **Tech Stack:** NestJS 11, TypeORM 0.3.28, PostgreSQL 18, Jest 30, React 19, MUI 9, Vitest 3, Node 24.
 
 **Spec:** `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md`
+
+## Progresso
+
+- [x] Task 1 — migration 041, entidade e backfill.
+- [x] Task 2 — concessão independente e check-in em lote.
+- [x] Task 3 — CSV com presença/concessão e crédito único de horas; 54 testes focados e build verdes.
+- [x] Task 4 — convite transacional e guest claim externo.
+- [x] Task 5 — central responsiva, features independentes e relatório CSV; `astro check` sem erros e 898 testes verdes.
+- [ ] Task 6 — E2E real, migration down/up, gates completos, documentação e handoff.
 
 ## Global Constraints
 

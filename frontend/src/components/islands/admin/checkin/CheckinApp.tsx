@@ -14,7 +14,10 @@ import QrScanner from "qr-scanner";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import QrScannerPanel from "./QrScannerPanel";
-import ManualSearch from "./ManualSearch";
+import ManualSearch, { type BatchCheckinResult } from "./ManualSearch";
+import CertificateCenter, { type CertificateInviteResult } from "./CertificateCenter";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import type {
   CheckinResult,
   EventRegistration,
@@ -75,6 +78,7 @@ function CheckinInner(): React.JSX.Element {
   const [manualToken, setManualToken] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
+  const [activeTab, setActiveTab] = useState<"scan" | "participants" | "certificates">("scan");
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
@@ -95,6 +99,10 @@ function CheckinInner(): React.JSX.Element {
     (a) => `${EXTERNAL_PREFIX}${a.eventKey}` === selectedEventId,
   );
   const canUseList = !!(selectedManaged?.canUseList ?? selectedExternal?.canUseList);
+  const canCheckinSelected =
+    !!selectedManaged || !!selectedExternal?.features.includes("checkin");
+  const canCertificateSelected =
+    !!selectedManaged || !!selectedExternal?.features.includes("certificates");
 
   // ── Data loading ──────────────────────────────────────────────────────────
 
@@ -163,7 +171,9 @@ function CheckinInner(): React.JSX.Element {
         setEvents(manageable);
 
         const externals = (Array.isArray(data.external) ? data.external : []).filter(
-          (a) => (a.features ?? []).includes("checkin"),
+          (a) =>
+            (a.features ?? []).includes("checkin") ||
+            (a.features ?? []).includes("certificates"),
         );
         setExternalActivations(externals);
 
@@ -202,6 +212,11 @@ function CheckinInner(): React.JSX.Element {
     fetchRegistrations(selectedEventId, "");
   }, [selectedEventId, canUseList, fetchRegistrations]);
 
+  useEffect(() => {
+    if (!selectedEventId) return;
+    setActiveTab(canCheckinSelected || !canCertificateSelected ? "scan" : "certificates");
+  }, [selectedEventId, canCheckinSelected, canCertificateSelected]);
+
   // ── Check-in ─────────────────────────────────────────────────────────────
 
   const handleCheckin = useCallback(
@@ -213,6 +228,7 @@ function CheckinInner(): React.JSX.Element {
         ? `/events/external/${encodeURIComponent(selectedEventId.slice(EXTERNAL_PREFIX.length))}/checkin`
         : `/events/${selectedEventId}/checkin`;
       setCheckinLoading(true);
+      setActiveTab("scan");
       try {
         const res = await authFetch(checkinUrl, {
           method: "POST",
@@ -271,6 +287,61 @@ function CheckinInner(): React.JSX.Element {
       fetchRegistrations,
       searchQuery,
     ],
+  );
+
+  const handleBatchCheckin = useCallback(
+    async (tokens: string[]): Promise<BatchCheckinResult[]> => {
+      const isExternal = selectedEventId.startsWith(EXTERNAL_PREFIX);
+      const url = isExternal
+        ? `/events/external/${encodeURIComponent(selectedEventId.slice(EXTERNAL_PREFIX.length))}/checkin/batch`
+        : `/events/${selectedEventId}/checkin/batch`;
+      const res = await authFetch(url, {
+        method: "POST",
+        body: JSON.stringify({ tokens }),
+      });
+      if (!res.ok) {
+        throw new Error(await extractErrorMessage(res, "Erro ao confirmar presenças em lote."));
+      }
+      const results = (await res.json()) as BatchCheckinResult[];
+      await fetchRegistrations(selectedEventId, searchQuery);
+      return results;
+    },
+    [authFetch, fetchRegistrations, searchQuery, selectedEventId],
+  );
+
+  const handleGrantCertificate = useCallback(
+    async (registrationId: string): Promise<EventRegistration> => {
+      const res = await authFetch(`/events/registrations/${registrationId}/certificate/grant`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        throw new Error(await extractErrorMessage(res, "Erro ao conceder certificado."));
+      }
+      const updated = (await res.json()) as EventRegistration;
+      setRegistrations((current) =>
+        current.map((registration) =>
+          registration.id === registrationId ? { ...registration, ...updated } : registration,
+        ),
+      );
+      return updated;
+    },
+    [authFetch],
+  );
+
+  const handleInviteCertificates = useCallback(
+    async (registrationIds: string[]): Promise<CertificateInviteResult[]> => {
+      const res = await authFetch("/events/certificate-invites/batch", {
+        method: "POST",
+        body: JSON.stringify({ registrationIds }),
+      });
+      if (!res.ok) {
+        throw new Error(await extractErrorMessage(res, "Erro ao enviar convites."));
+      }
+      const results = (await res.json()) as CertificateInviteResult[];
+      await fetchRegistrations(selectedEventId, searchQuery);
+      return results;
+    },
+    [authFetch, fetchRegistrations, searchQuery, selectedEventId],
   );
 
   // ── Câmera (qr-scanner by Nimiq) ─────────────────────────────────────────
@@ -358,13 +429,12 @@ function CheckinInner(): React.JSX.Element {
   const presentCount = registrations.filter((r) => r.checkedInAt).length;
 
   return (
-    <PageContainer sx={{ maxWidth: { xs: "100%", sm: 640 } }}>
+    <PageContainer sx={{ maxWidth: { xs: "100%", md: 960 } }}>
       <Typography component="h2" variant="h4" sx={{ fontWeight: 800 }} gutterBottom>
         Check-in
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Leia o QR Code do participante
-        {canUseList ? " ou busque pelo nome/e-mail" : ""}.
+        Confirme presenças e gerencie certificados dos participantes.
       </Typography>
 
       {loadError && (
@@ -373,7 +443,6 @@ function CheckinInner(): React.JSX.Element {
         </Alert>
       )}
 
-      {/* ── Seletor de evento ── */}
       <FormControl fullWidth sx={{ mb: 2 }} disabled={eventsLoading}>
         <InputLabel>Evento</InputLabel>
         <Select
@@ -420,79 +489,110 @@ function CheckinInner(): React.JSX.Element {
             )}
           </Box>
 
-          {/* ── Feedback do último check-in ── */}
-          {result?.kind === "checked_in" && (
-            <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 2 }}>
-              {result.message}
-              {result.checkedInAt && ` (${formatDateTime(result.checkedInAt)})`}
-            </Alert>
-          )}
-          {result?.kind === "already_checked_in" && (
-            <Alert severity="warning" icon={<WarningAmberIcon />} sx={{ mb: 2 }}>
-              {result.message}
-              {result.checkedInAt &&
-                ` Check-in original: ${formatDateTime(result.checkedInAt)}.`}
-            </Alert>
-          )}
-          {result?.kind === "invalid" && (
-            <Alert severity="error" icon={<ErrorIcon />} sx={{ mb: 2 }}>
-              {result.message}
-            </Alert>
+          <Tabs
+            value={activeTab}
+            onChange={(_, value) => setActiveTab(value as typeof activeTab)}
+            aria-label="Fluxos de presença e certificados"
+            variant="scrollable"
+            allowScrollButtonsMobile
+            sx={{ mb: 2, borderBottom: 1, borderColor: "divider" }}
+          >
+            {canCheckinSelected && <Tab value="scan" label="Escanear" />}
+            {canUseList && <Tab value="participants" label="Participantes" />}
+            {canUseList && canCertificateSelected && (
+              <Tab value="certificates" label="Certificados" />
+            )}
+          </Tabs>
+
+          {activeTab === "scan" && canCheckinSelected && (
+            <Box role="tabpanel" aria-label="Escanear">
+              {result?.kind === "checked_in" && (
+                <Alert severity="success" icon={<CheckCircleIcon />} sx={{ mb: 2 }}>
+                  {result.message}
+                  {result.checkedInAt && ` (${formatDateTime(result.checkedInAt)})`}
+                </Alert>
+              )}
+              {result?.kind === "already_checked_in" && (
+                <Alert severity="warning" icon={<WarningAmberIcon />} sx={{ mb: 2 }}>
+                  {result.message}
+                  {result.checkedInAt &&
+                    ` Check-in original: ${formatDateTime(result.checkedInAt)}.`}
+                </Alert>
+              )}
+              {result?.kind === "invalid" && (
+                <Alert severity="error" icon={<ErrorIcon />} sx={{ mb: 2 }}>
+                  {result.message}
+                </Alert>
+              )}
+
+              <QrScannerPanel
+                cameraSupported={cameraSupported}
+                cameraActive={cameraActive}
+                cameraStarting={cameraStarting}
+                cameraError={cameraError}
+                videoRef={videoRef}
+                onStart={() => {
+                  void startCamera();
+                }}
+                onStop={stopCamera}
+              />
+
+              <Card variant="outlined" sx={{ mb: 2 }}>
+                <CardContent>
+                  <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+                    Token manual
+                  </Typography>
+                  <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, gap: 1 }}>
+                    <TextField
+                      fullWidth
+                      size="small"
+                      label="Token do QR Code"
+                      value={manualToken}
+                      onChange={(event) => setManualToken(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") handleCheckin(manualToken);
+                      }}
+                      placeholder="Cole ou digite o token"
+                    />
+                    <Button
+                      variant="contained"
+                      disabled={!manualToken.trim() || checkinLoading}
+                      onClick={() => handleCheckin(manualToken)}
+                    >
+                      {checkinLoading ? <CircularProgress size={20} color="inherit" /> : "Confirmar"}
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
           )}
 
-          <QrScannerPanel
-            cameraSupported={cameraSupported}
-            cameraActive={cameraActive}
-            cameraStarting={cameraStarting}
-            cameraError={cameraError}
-            videoRef={videoRef}
-            onStart={() => {
-              void startCamera();
-            }}
-            onStop={stopCamera}
-          />
+          {activeTab === "participants" && canUseList && (
+            <Box role="tabpanel" aria-label="Participantes">
+              <ManualSearch
+                registrations={registrations}
+                regsLoading={regsLoading}
+                searchQuery={searchQuery}
+                checkinLoading={checkinLoading}
+                canCheckinFeature={canCheckinSelected}
+                onSearchQueryChange={setSearchQuery}
+                onSearch={() => fetchRegistrations(selectedEventId, searchQuery)}
+                onCheckin={(token) => {
+                  void handleCheckin(token);
+                }}
+                onBatchCheckin={handleBatchCheckin}
+              />
+            </Box>
+          )}
 
-          {/* ── Token manual ── */}
-          <Card variant="outlined" sx={{ mb: 2 }}>
-            <CardContent>
-              <Typography component="h3" variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
-                Token manual
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Token do QR Code"
-                  value={manualToken}
-                  onChange={(event) => setManualToken(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") handleCheckin(manualToken);
-                  }}
-                  placeholder="Cole ou digite o token"
-                />
-                <Button
-                  variant="contained"
-                  disabled={!manualToken.trim() || checkinLoading}
-                  onClick={() => handleCheckin(manualToken)}
-                >
-                  {checkinLoading ? <CircularProgress size={20} color="inherit" /> : "Confirmar"}
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
-
-          {canUseList && (
-            <ManualSearch
-              registrations={registrations}
-              regsLoading={regsLoading}
-              searchQuery={searchQuery}
-              checkinLoading={checkinLoading}
-              onSearchQueryChange={setSearchQuery}
-              onSearch={() => fetchRegistrations(selectedEventId, searchQuery)}
-              onCheckin={(token) => {
-                void handleCheckin(token);
-              }}
-            />
+          {activeTab === "certificates" && canUseList && canCertificateSelected && (
+            <Box role="tabpanel" aria-label="Certificados">
+              <CertificateCenter
+                registrations={registrations}
+                onGrant={handleGrantCertificate}
+                onInvite={handleInviteCertificates}
+              />
+            </Box>
           )}
         </>
       )}

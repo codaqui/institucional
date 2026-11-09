@@ -42,6 +42,8 @@ export interface ExternalParticipant {
   attendeeEmail: string;
   status: string;
   checkedInAt: string | null;
+  certificateGrantedAt: string | null;
+  certificateInvitedAt: string | null;
   ticketType: { name: string | null } | null;
 }
 
@@ -49,6 +51,8 @@ export interface ImportReport {
   imported: number;
   matched: number;
   healed?: number;
+  checkedIn: number;
+  certificatesGranted: number;
   unmatched: { line: number; email: string }[];
   skippedDuplicates: number;
   errors: { line: number; reason: string }[];

@@ -811,12 +811,13 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       const csv =
         'name,email,checkin,certificate\nAna,ana@x.dev,false,true';
 
-      await service.importParticipants(EVENT_KEY, csv, user());
+      const result = await service.importParticipants(EVENT_KEY, csv, user());
 
       const created = registrationRepo.create.mock.calls[0][0];
       expect(created.checkedInAt).toBeNull();
       expect(created.certificateGrantedAt).toBeInstanceOf(Date);
       expect(created.certificateGrantedByMemberId).toBe(uuid(1));
+      expect(result).toMatchObject({ checkedIn: 0, certificatesGranted: 1 });
       expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
     });
 
