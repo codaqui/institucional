@@ -23,6 +23,7 @@ export interface Assembly {
   discussionUrl: string;
   ataPdfUrl: string | null;
   notaryRegistry: AssemblyNotaryRegistry | null;
+  entity?: { slug: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,8 +37,9 @@ export function assemblySlug(type: AssemblyType, number: number): string {
   return `${type}-${number}`;
 }
 
-export function assemblyPath(assembly: Pick<Assembly, "type" | "number">): string {
-  return `/assembleias/${assemblySlug(assembly.type, assembly.number)}`;
+export function assemblyPath(assembly: Pick<Assembly, "type" | "number" | "entity">): string {
+  const entitySlug = assembly.entity?.slug ?? "codaqui";
+  return `/assembleias/${entitySlug}/${assemblySlug(assembly.type, assembly.number)}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

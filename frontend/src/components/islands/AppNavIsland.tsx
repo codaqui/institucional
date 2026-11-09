@@ -149,6 +149,18 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
         icon: <HubIcon />,
         roles: ["diretor"],
       },
+      {
+        label: "Entidades",
+        href: "/admin/entidades",
+        icon: <BusinessIcon />,
+        designations: [{ targetType: "directorate", designation: "director" }],
+      },
+      {
+        label: "Projetos de extensão",
+        href: "/admin/projetos",
+        icon: <HubIcon />,
+        designations: [{ targetType: "directorate", designation: "director" }],
+      },
       { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
     ],
   },

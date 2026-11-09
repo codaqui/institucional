@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import EntitiesAdminApp from "../../components/islands/admin/entities/EntitiesAdminApp";
+---
+
+<AppLayout title="Entidades" noindex>
+  <EntitiesAdminApp client:only="react" />
+</AppLayout>

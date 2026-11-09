@@ -40,6 +40,7 @@ import type {
 } from "../../../../data/assemblies";
 
 interface AssemblyFormState {
+  entityId: string;
   type: AssemblyType;
   title: string;
   scheduledAt: string;
@@ -57,6 +58,7 @@ const DISCUSSION_URL_PATTERN =
   /^https:\/\/github\.com\/codaqui\/institucional\/discussions\/[1-9]\d*$/;
 
 const EMPTY_FORM: AssemblyFormState = {
+  entityId: "",
   type: "ordinaria",
   title: "",
   scheduledAt: "",
@@ -93,6 +95,7 @@ function toDateInput(value: string): string {
 
 function formFromAssembly(assembly: Assembly): AssemblyFormState {
   return {
+    entityId: "",
     type: assembly.type,
     title: assembly.title,
     scheduledAt: toDateTimeLocal(assembly.scheduledAt),
@@ -268,6 +271,7 @@ function firstErrorField(errors: FormErrors): keyof AssemblyFormState | undefine
 }
 
 const FIELD_IDS: Record<keyof AssemblyFormState, string> = {
+  entityId: "assembly-entity",
   type: "assembly-type",
   title: "assembly-title",
   scheduledAt: "assembly-scheduled-at",
@@ -359,11 +363,13 @@ function AssembliesAdminInner(): React.JSX.Element | null {
   const { ready, isLoggedIn, isAdmin, user, authFetch } = useAuth();
   const canAccess = isAdmin || (user?.roles.includes("diretor") ?? false);
   const [items, setItems] = useState<Assembly[]>([]);
+  const [entities, setEntities] = useState<Array<{ id: string; slug: string; name: string }>>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [status, setStatus] = useState<AssemblyStatus | "">("");
   const [type, setType] = useState<AssemblyType | "">("");
+  const [entityFilter, setEntityFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [feedback, setFeedback] = useState<{
@@ -399,6 +405,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
     });
     if (status) params.set("status", status);
     if (type) params.set("type", type);
+    if (entityFilter) params.set("entityId", entityFilter);
     try {
       const response = await authFetch(`/assemblies?${params.toString()}`);
       const result = await parseAuthJson<PaginatedResponse<Assembly>>(
@@ -423,7 +430,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
     } finally {
       if (currentRequest === requestId.current) setLoading(false);
     }
-  }, [authFetch, page, status, type]);
+  }, [authFetch, page, status, type, entityFilter]);
 
   useEffect(() => {
     if (!ready) return;
@@ -434,9 +441,17 @@ function AssembliesAdminInner(): React.JSX.Element | null {
     void loadAssemblies();
   }, [ready, isLoggedIn, canAccess, loadAssemblies]);
 
+  useEffect(() => {
+    if (!ready || !isLoggedIn || !canAccess) return;
+    void authFetch("/entities/public").then(async (response) => {
+      const result = await parseAuthJson<Array<{ id: string; slug: string; name: string }>>(response, setLoadError);
+      if (result) setEntities(Array.isArray(result) ? result : []);
+    }).catch(() => setLoadError("Não foi possível carregar as entidades."));
+  }, [ready, isLoggedIn, canAccess, authFetch]);
+
   const openCreate = () => {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm({ ...EMPTY_FORM, entityId: entities[0]?.id ?? "" });
     setFormErrors({});
     setFormError("");
     setFormOpen(true);
@@ -495,7 +510,7 @@ function AssembliesAdminInner(): React.JSX.Element | null {
     setBusy(true);
     setFormError("");
     const payload = {
-      ...(!editing ? { type: form.type, discussionUrl: form.discussionUrl.trim() } : {}),
+      ...(!editing ? { entityId: form.entityId, type: form.type, discussionUrl: form.discussionUrl.trim() } : {}),
       title: form.title.trim(),
       scheduledAt: new Date(form.scheduledAt).toISOString(),
       agendaSummary: form.agendaSummary.trim(),
@@ -664,6 +679,22 @@ function AssembliesAdminInner(): React.JSX.Element | null {
           <MenuItem value="ordinaria">Ordinárias</MenuItem>
           <MenuItem value="oficial">Oficiais</MenuItem>
         </TextField>
+        <TextField
+          label="Filtrar por entidade"
+          select
+          size="small"
+          fullWidth
+          value={entityFilter}
+          onChange={(event) => {
+            setPage(1);
+            setEntityFilter(event.target.value);
+          }}
+        >
+          <MenuItem value="">Todas as entidades</MenuItem>
+          {entities.map((entity) => (
+            <MenuItem key={entity.id} value={entity.id}>{entity.name}</MenuItem>
+          ))}
+        </TextField>
       </Stack>
 
       {(() => {
@@ -775,6 +806,22 @@ function AssembliesAdminInner(): React.JSX.Element | null {
           <DialogContent>
             <Stack spacing={2} sx={{ pt: 1 }}>
               {formError && <Alert severity="error">{formError}</Alert>}
+              {!editing && (
+                <TextField
+                  id="assembly-entity"
+                  label="Entidade"
+                  name="entityId"
+                  select
+                  required
+                  value={form.entityId}
+                  onChange={(event) => updateForm("entityId", event.target.value)}
+                  helperText="Define o guarda-chuva e a sequência de numeração da assembleia."
+                >
+                  {entities.map((entity) => (
+                    <MenuItem key={entity.id} value={entity.id}>{entity.name}</MenuItem>
+                  ))}
+                </TextField>
+              )}
               <TextField
                 id="assembly-type"
                 label="Tipo de assembleia"

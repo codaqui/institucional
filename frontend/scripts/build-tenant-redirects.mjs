@@ -9,7 +9,7 @@
 //    então o build tenant sobrescreve com `Sitemap: <site do tenant>`.
 //
 // Sem TENANT (build codaqui), escreve só o `dist/_redirects` com os redirects
-// legados herdados do Docusaurus (Fase 0.6 — substituem as 16 páginas-stub
+// legados herdados do Docusaurus (Fase 0.6 — substituem as 17 páginas-stub
 // RedirectStub deletadas do src/); o robots.txt segue o public/ compartilhado.
 // (302 no /admin/transferencias para não cachear a query de tab no edge; os
 // demais 301. Ordem: específicos antes de splats.)
@@ -46,6 +46,7 @@ export function buildCodaquiRedirectsText() {
     "/blog/archive/2023 /blog 301",
     "/blog/archive/2024 /blog 301",
     "/blog/archive/2025 /blog 301",
+    "/assembleias/* /assembleias/codaqui/:splat 301",
   ].join("\n") + "\n";
 }
 

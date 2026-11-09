@@ -10,6 +10,7 @@ const pipe = new ValidationPipe({
 const validDiscussionUrl =
   'https://github.com/codaqui/institucional/discussions/42';
 const validCreatePayload = {
+  entityId: '00000000-0000-4000-8000-000000000001',
   type: 'ordinaria',
   title: 'Assembleia ordinária',
   scheduledAt: '2026-11-10T18:00:00.000Z',

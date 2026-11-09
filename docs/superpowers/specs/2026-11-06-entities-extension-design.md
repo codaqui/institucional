@@ -168,7 +168,7 @@ Ações novas usam prefixos `entity.*`, `partnership.*` e `project.*`. Lançamen
 - Rascunho exige somente `name` e `entityId`; os demais campos podem permanecer incompletos até o salvamento completo.
 - Salvamento completo produz `proposed`; ativação exige formulário completo, mentor principal e entidade ativa.
 - Nome é normalizado com trim, espaços colapsados, minúsculas e remoção de diacríticos. Duplicidade de nome normalizado ou slug retorna conflito.
-- `startsAt < endsAt`; a janela de inscrição é contida no projeto e termina antes do início da execução.
+- `startsAt < endsAt` e `registrationStartsAt < registrationEndsAt`; inscrições podem começar antes do projeto, mas `registrationEndsAt <= startsAt`, impedindo inscrições após o início da execução.
 - ODS principal está entre 1 e 17; secundárias são únicas e não incluem a principal.
 - Cronograma e horas usam centésimos inteiros na validação, evitando erro de ponto flutuante. Cada encontro tem descrição e carga positiva; a soma é exatamente `totalHours`.
 - `maxParticipants = 0` significa sem limite; valores negativos são inválidos.
@@ -201,7 +201,9 @@ As rotas existentes de assembleias aceitam filtro administrativo por `entityId`.
 - `GET /projects/public/:slug`: detalhe público equivalente.
 - `GET /projects`: listagem administrativa paginada por status/entidade.
 - `POST /projects`, `PATCH /projects/:id`: rascunho, edição e transições sob lock.
-- `GET /projects/my`: inscrições e vínculos do membro autenticado.
+- `GET /projects/my`: inscrições e vínculos do membro autenticado, com status e relatório do projeto.
+- `GET /projects/:id/participants`: participantes com nome/handle para admin ou mentor principal.
+- `GET /projects/:id/hours`: lançamentos do projeto para admin ou mentor principal, sem IDs internos ou idempotency keys.
 - `POST /projects/:id/join`: inscrição atômica.
 - `POST /projects/:id/leave`: saída idempotente do próprio membro.
 - `DELETE /projects/:id/participants/:memberId`: remoção administrativa.

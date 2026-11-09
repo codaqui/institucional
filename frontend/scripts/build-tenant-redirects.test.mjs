@@ -40,7 +40,7 @@ describe("buildRedirectsText", () => {
 });
 
 describe("buildCodaquiRedirectsText", () => {
-  it("emite exatamente as 16 linhas dos redirects legados", () => {
+  it("emite exatamente as 17 linhas dos redirects legados", () => {
     expect(buildCodaquiRedirectsText()).toBe(
       "/quero/estudar /participe/estudar 301\n" +
         "/quero/apoiar /participe/apoiar 301\n" +
@@ -57,7 +57,8 @@ describe("buildCodaquiRedirectsText", () => {
         "/blog/archive/2022 /blog 301\n" +
         "/blog/archive/2023 /blog 301\n" +
         "/blog/archive/2024 /blog 301\n" +
-        "/blog/archive/2025 /blog 301\n",
+        "/blog/archive/2025 /blog 301\n" +
+        "/assembleias/* /assembleias/codaqui/:splat 301\n",
     );
   });
 });
@@ -109,7 +110,7 @@ describe("writeTenantRedirects", () => {
     );
   });
 
-  it("sem TENANT escreve dist/_redirects com as 16 linhas dos redirects legados", () => {
+  it("sem TENANT escreve dist/_redirects com as 17 linhas dos redirects legados", () => {
     const dist = makeDist();
     const wrote = writeTenantRedirects({ tenant: null, distDir: dist });
     expect(wrote).toBe(true);
@@ -129,7 +130,8 @@ describe("writeTenantRedirects", () => {
         "/blog/archive/2022 /blog 301\n" +
         "/blog/archive/2023 /blog 301\n" +
         "/blog/archive/2024 /blog 301\n" +
-        "/blog/archive/2025 /blog 301\n",
+        "/blog/archive/2025 /blog 301\n" +
+        "/assembleias/* /assembleias/codaqui/:splat 301\n",
     );
   });
 

@@ -34,6 +34,21 @@ export enum AuditAction {
   DIRECTORATE_CREATED = 'directorate.created',
   DIRECTORATE_UPDATED = 'directorate.updated',
 
+  // Entities and partnerships
+  ENTITY_CREATED = 'entity.created',
+  ENTITY_UPDATED = 'entity.updated',
+  PARTNERSHIP_CREATED = 'partnership.created',
+  PARTNERSHIP_UPDATED = 'partnership.updated',
+
+  // Extension projects
+  PROJECT_CREATED = 'project.created',
+  PROJECT_UPDATED = 'project.updated',
+  PROJECT_STATUS_CHANGED = 'project.status_changed',
+  PROJECT_MENTOR_DESIGNATED = 'project.mentor_designated',
+  PROJECT_PARTICIPANT_JOINED = 'project.participant_joined',
+  PROJECT_PARTICIPANT_REMOVED = 'project.participant_removed',
+  PROJECT_CERTIFICATE_ISSUED = 'project.certificate_issued',
+
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
   ACCOUNT_CREATED = 'ledger.account_created',

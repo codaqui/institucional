@@ -32,6 +32,14 @@ vi.mock("../../../../lib/use-auth", () => ({
 const validDiscussionUrl =
   "https://github.com/codaqui/institucional/discussions/42";
 
+const entity = {
+  id: "2a4a38de-eacf-49f1-a67f-a8162ec0f631",
+  slug: "codaqui",
+  name: "Associação Codaqui",
+  type: "ong",
+  website: "https://codaqui.dev",
+};
+
 const assembly = {
   id: "a9e2ac1f-0a70-4f1f-a4aa-c9756b2f7901",
   type: "ordinaria",
@@ -45,6 +53,7 @@ const assembly = {
   discussionUrl: validDiscussionUrl,
   ataPdfUrl: null,
   notaryRegistry: null,
+  entity: { slug: entity.slug, name: entity.name },
   createdAt: "2026-11-01T12:00:00.000Z",
   updatedAt: "2026-11-01T12:00:00.000Z",
 };
@@ -80,6 +89,7 @@ describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
     mocks.isLoggedIn = true;
     mocks.authFetch.mockReset();
     mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/entities/public") return jsonResponse([entity]);
       if (path.startsWith("/assemblies?") && !init?.method) {
         return manageResponse();
       }
@@ -110,6 +120,11 @@ describe("AssembliesAdminApp", { timeout: 20_000 }, () => {
     await user.click(screen.getByRole("option", { name: "Canceladas" }));
     await waitFor(() => {
       expect(lastCall("/assemblies?page=1&limit=50&status=canceled")).toBeDefined();
+    });
+    await user.click(screen.getByLabelText("Filtrar por entidade"));
+    await user.click(screen.getByRole("option", { name: entity.name }));
+    await waitFor(() => {
+      expect(lastCall(`/assemblies?page=1&limit=50&status=canceled&entityId=${entity.id}`)).toBeDefined();
     });
   });
 

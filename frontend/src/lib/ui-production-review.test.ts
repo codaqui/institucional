@@ -9,7 +9,7 @@ function readSource(path: string): string {
 describe("revisão de produção — Giscus, header e tema", () => {
   it("hidrata os comentários do blog e das assembleias no carregamento", () => {
     const blog = readSource("layouts/BlogPostLayout.astro");
-    const assembly = readSource("pages/assembleias/[slug].astro");
+    const assembly = readSource("pages/assembleias/[entitySlug]/[slug].astro");
 
     expect(blog).toContain("<GiscusIsland client:load />");
     expect(assembly).toContain("<GiscusIsland client:load config={commentsConfig} />");

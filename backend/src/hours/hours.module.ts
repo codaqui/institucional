@@ -7,10 +7,12 @@ import { HourEntry } from './entities/hour-entry.entity';
 import { HourStatement } from './entities/hour-statement.entity';
 import { HoursController } from './hours.controller';
 import { HoursService } from './hours.service';
+import { ExtensionProject } from '../projects/entities/extension-project.entity';
+import { ProjectParticipant } from '../projects/entities/project-participant.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([HourEntry, HourStatement, Member]),
+    TypeOrmModule.forFeature([HourEntry, HourStatement, Member, ExtensionProject, ProjectParticipant]),
     AuditModule,
     DesignationsModule,
   ],
