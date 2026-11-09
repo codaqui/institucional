@@ -100,6 +100,24 @@ const EMPTY_TICKET_FORM: TicketForm = {
 const formatBRLFromCents = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
+function ImportSuccessAlert({ report }: { readonly report: ImportReport }): JSX.Element {
+  return (
+    <Alert severity="success" sx={{ mb: 1 }}>
+      Importação concluída: <strong>{report.imported}</strong> importados,{" "}
+      <strong>{report.matched}</strong> com conta vinculada,{" "}
+      <strong>{report.checkedIn}</strong> {report.checkedIn === 1 ? "presença" : "presenças"},{" "}
+      <strong>{report.certificatesGranted}</strong> {report.certificatesGranted === 1 ? "certificado concedido" : "certificados concedidos"},{" "}
+      <strong>{report.skippedDuplicates}</strong> duplicados ignorados.
+      {(report.healed ?? 0) > 0 && (
+        <>
+          {" "}<strong>{report.healed}</strong> pendente(s) vinculado(s)
+          agora via coluna <code>github</code>.
+        </>
+      )}
+    </Alert>
+  );
+}
+
 const FEATURE_OPTIONS = [
   {
     key: "checkin",
@@ -617,19 +635,7 @@ export default function ActivationTab({
 
                   {importReport && (
                     <Box sx={{ mt: 2 }}>
-                      <Alert severity="success" sx={{ mb: 1 }}>
-                        Importação concluída: <strong>{importReport.imported}</strong> importados,{" "}
-                        <strong>{importReport.matched}</strong> com conta vinculada,{" "}
-                        <strong>{importReport.checkedIn}</strong> {importReport.checkedIn === 1 ? "presença" : "presenças"},{" "}
-                        <strong>{importReport.certificatesGranted}</strong> {importReport.certificatesGranted === 1 ? "certificado concedido" : "certificados concedidos"},{" "}
-                        <strong>{importReport.skippedDuplicates}</strong> duplicados ignorados.
-                        {(importReport.healed ?? 0) > 0 && (
-                          <>
-                            {" "}<strong>{importReport.healed}</strong> pendente(s) vinculado(s)
-                            agora via coluna <code>github</code>.
-                          </>
-                        )}
-                      </Alert>
+                      <ImportSuccessAlert report={importReport} />
                       {importReport.unmatched.length > 0 && (
                         <Alert severity="warning" sx={{ mb: 1 }}>
                           <strong>{importReport.unmatched.length} sem conta — convite pendente</strong>.

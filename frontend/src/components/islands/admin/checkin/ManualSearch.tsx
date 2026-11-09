@@ -33,6 +33,44 @@ const isRegistrationPending = (registration: EventRegistration) =>
 const canCheckin = (registration: EventRegistration) =>
   registration.status === "confirmed" && !registration.checkedInAt;
 
+function CheckinAction({
+  registration,
+  enabled,
+  loading,
+  onCheckin,
+}: {
+  readonly registration: EventRegistration;
+  readonly enabled: boolean;
+  readonly loading: boolean;
+  readonly onCheckin: (token: string) => void;
+}): React.JSX.Element | null {
+  if (registration.checkedInAt) {
+    return (
+      <Chip
+        icon={<CheckCircleIcon />}
+        label={`Presente · ${formatDateTime(registration.checkedInAt)}`}
+        color="success"
+        size="small"
+        variant="outlined"
+      />
+    );
+  }
+  if (isRegistrationPending(registration)) {
+    return <Chip label="Cadastro pendente" color="warning" size="small" variant="outlined" />;
+  }
+  if (!enabled) return null;
+  return (
+    <Button
+      size="small"
+      variant="outlined"
+      disabled={loading}
+      onClick={() => onCheckin(registration.checkinToken)}
+    >
+      Confirmar presença
+    </Button>
+  );
+}
+
 interface ManualSearchProps {
   readonly registrations: EventRegistration[];
   readonly regsLoading: boolean;
@@ -267,26 +305,12 @@ export default function ManualSearch({
                   </Box>
                   <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap", mt: 1.5 }}>
                     {reg.isGuest && <Chip label="Convidado" size="small" variant="outlined" />}
-                    {reg.checkedInAt ? (
-                      <Chip
-                        icon={<CheckCircleIcon />}
-                        label={`Presente · ${formatDateTime(reg.checkedInAt)}`}
-                        color="success"
-                        size="small"
-                        variant="outlined"
-                      />
-                    ) : isRegistrationPending(reg) ? (
-                      <Chip label="Cadastro pendente" color="warning" size="small" variant="outlined" />
-                    ) : canCheckinFeature ? (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        disabled={checkinLoading || batchLoading}
-                        onClick={() => onCheckin(reg.checkinToken)}
-                      >
-                        Confirmar presença
-                      </Button>
-                    ) : null}
+                    <CheckinAction
+                      registration={reg}
+                      enabled={canCheckinFeature}
+                      loading={checkinLoading || batchLoading}
+                      onCheckin={onCheckin}
+                    />
                   </Box>
                 </CardContent>
               </Card>

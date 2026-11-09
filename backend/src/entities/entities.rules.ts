@@ -1,15 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
+import { slugify } from '../common/slug';
 
 export function entitySlug(value: string): string {
-  const slug = value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .split('-')
-    .filter(Boolean)
-    .join('-');
+  const slug = slugify(
+    value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(),
+  );
   if (!slug) throw new BadRequestException('O nome da entidade deve gerar um slug válido.');
   return slug.slice(0, 80);
 }

@@ -43,6 +43,33 @@ const canGrant = (registration: EventRegistration) =>
 const canInvite = (registration: EventRegistration) =>
   isRegistrationPending(registration) && !registration.certificateInvitedAt;
 
+function summarizeInviteResults(results: CertificateInviteResult[]) {
+  const sent = results.filter((item) => item.status === "sent").length;
+  const failed = results.filter((item) => item.status === "failed").length;
+  const skipped = results.filter((item) => item.status === "skipped").length;
+  const notSent = results.filter(
+    (item) => item.status === "already_invited" || item.status === "invalid",
+  ).length;
+  const messages: string[] = [];
+  if (sent) messages.push(`${sent} ${sent === 1 ? "convite enviado" : "convites enviados"}.`);
+  if (failed) messages.push(`${failed} ${failed === 1 ? "convite falhou" : "convites falharam"}.`);
+  if (skipped) messages.push(`${skipped} ${skipped === 1 ? "envio foi ignorado" : "envios foram ignorados"}; tente novamente.`);
+  if (notSent) {
+    messages.push(
+      notSent === 1
+        ? `${notSent} inscrição não pôde ser convidada.`
+        : `${notSent} inscrições não puderam ser convidadas.`,
+    );
+  }
+  return {
+    messages,
+    hasWarnings: failed > 0 || skipped > 0 || notSent > 0,
+    retryIds: results
+      .filter((item) => item.status === "failed" || item.status === "skipped")
+      .map((item) => item.registrationId),
+  };
+}
+
 export default function CertificateCenter({
   registrations,
   onGrant,
@@ -111,32 +138,9 @@ export default function CertificateCenter({
     setBusy("invite");
     setFeedback(null);
     try {
-      const results = await onInvite(ids);
-      const sent = results.filter((item) => item.status === "sent").length;
-      const failed = results.filter((item) => item.status === "failed").length;
-      const skipped = results.filter((item) => item.status === "skipped").length;
-      const notSent = results.filter(
-        (item) => item.status === "already_invited" || item.status === "invalid",
-      ).length;
-      const messages: string[] = [];
-      if (sent) messages.push(`${sent} ${sent === 1 ? "convite enviado" : "convites enviados"}.`);
-      if (failed) messages.push(`${failed} ${failed === 1 ? "convite falhou" : "convites falharam"}.`);
-      if (skipped) messages.push(`${skipped} ${skipped === 1 ? "envio foi ignorado" : "envios foram ignorados"}; tente novamente.`);
-      if (notSent) {
-        messages.push(
-          notSent === 1
-            ? `${notSent} inscrição não pôde ser convidada.`
-            : `${notSent} inscrições não puderam ser convidadas.`,
-        );
-      }
-      setFeedback({ severity: failed || skipped || notSent ? "warning" : "success", messages });
-      setSelected(
-        new Set(
-          results
-            .filter((item) => item.status === "failed" || item.status === "skipped")
-            .map((item) => item.registrationId),
-        ),
-      );
+      const summary = summarizeInviteResults(await onInvite(ids));
+      setFeedback({ severity: summary.hasWarnings ? "warning" : "success", messages: summary.messages });
+      setSelected(new Set(summary.retryIds));
     } catch (error) {
       setFeedback({
         severity: "error",

@@ -3565,14 +3565,16 @@ export class EventsService {
       activation.eventKey,
     );
     if (!workloadMinutes) return;
-    for (const registration of attended) {
-      await this.hoursService.recordEventCheckin(
-        registration,
-        workloadMinutes,
-        this.registrationRepo.manager,
-        activation.title ?? activation.eventKey,
-      );
-    }
+    await Promise.all(
+      attended.map((registration) =>
+        this.hoursService.recordEventCheckin(
+          registration,
+          workloadMinutes,
+          this.registrationRepo.manager,
+          activation.title ?? activation.eventKey,
+        ),
+      ),
+    );
   }
 
   /**
