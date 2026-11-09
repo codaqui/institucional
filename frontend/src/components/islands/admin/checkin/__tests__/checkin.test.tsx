@@ -344,7 +344,7 @@ describe("/admin/eventos-checkin", () => {
     const authFetch = mockAuthFetchWithEvents((url, init) => {
       if (url === "/events/checkin-scope")
         return jsonResponse({ managed: [], external: [activation] });
-      if (url === `/events/external/${encodedKey}/participants`)
+      if (url.startsWith(`/events/external/${encodedKey}/participants?`))
         return jsonResponse([registration]);
       if (url === `/events/external/${encodedKey}/checkin` && init?.method === "POST") {
         return jsonResponse({
@@ -729,48 +729,66 @@ describe("/admin/eventos-checkin", () => {
     });
   });
 
-  it("envia convites para cadastros pendentes e mostra falhas parciais", async () => {
-    const pendingOne = {
+  it("enfileira somente a página de 25 e limpa a seleção ao mudar de página", async () => {
+    const pending = Array.from({ length: 51 }, (_, index) => ({
       ...registration,
-      id: "reg-pending-1",
+      id: `reg-pending-${index + 1}`,
       status: "pending_match",
-      attendeeName: "Pendente Um",
-    };
-    const pendingTwo = {
-      ...registration,
-      id: "reg-pending-2",
-      status: "pending_match",
-      attendeeName: "Pendente Dois",
-      attendeeEmail: "pendente-dois@example.com",
-      checkinToken: "token-pending-2",
-    };
+      attendeeName: `Pendente ${index + 1}`,
+    }));
     const authFetch = await setupOrganizerPage((url, init) => {
-      if (url.includes("/registrations")) return jsonResponse([pendingOne, pendingTwo]);
+      if (url.includes("/registrations")) {
+        const page = Number(new URLSearchParams(url.split("?")[1]).get("page") ?? "1");
+        return jsonResponse({ data: pending.slice((page - 1) * 25, page * 25), total: 51, page, totalPages: 3, limit: 25 });
+      }
       if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
-        return jsonResponse([
-          { registrationId: "reg-pending-1", status: "sent" },
-          { registrationId: "reg-pending-2", status: "failed" },
-        ]);
+        return jsonResponse({ batchId: "batch-1", total: 25, status: "queued", invalid: [] }, { status: 202 });
+      }
+      if (url === "/events/certificate-invites/batches/batch-1") {
+        return jsonResponse({ batchId: "batch-1", status: "completed", total: 25, completed: 25, queued: 0, processing: 0, retry: 0, failed: 0, skipped: 0, items: [] });
       }
       return null;
     });
 
     fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
-    fireEvent.click(
-      await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }),
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Enviar convite (2)" }));
+    expect(await screen.findByRole("navigation", { name: "Paginação de certificados" })).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(await screen.findByRole("button", { name: "Enfileirar convites (0)" })).toBeDisabled();
 
-    expect(await screen.findByText(/1 convite enviado/i)).toBeInTheDocument();
-    expect(screen.getByText(/1 convite falhou/i)).toBeInTheDocument();
-    expect(authFetch).toHaveBeenCalledWith(
-      "/events/certificate-invites/batch",
-      expect.objectContaining({
-        method: "POST",
-        body: JSON.stringify({
-          registrationIds: ["reg-pending-1", "reg-pending-2"],
-        }),
-      }),
-    );
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (25)" }));
+    await act(async () => {});
+    expect(await screen.findByRole("progressbar")).toBeInTheDocument();
+
+    const createCall = authFetch.mock.calls.find(([url, init]) => url === "/events/certificate-invites/batch" && init?.method === "POST");
+    expect(JSON.parse(String(createCall?.[1]?.body)).registrationIds).toHaveLength(25);
+  });
+
+  it("pausa o acompanhamento do lote quando a aba fica oculta", async () => {
+    const pending = { ...registration, status: "pending_match" };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse({ data: [pending], total: 1, page: 1, totalPages: 1, limit: 25 });
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-hidden", total: 1, status: "queued", invalid: [] }, { status: 202 });
+      }
+      if (url === "/events/certificate-invites/batches/batch-hidden") {
+        return jsonResponse({ batchId: "batch-hidden", status: "completed", total: 1, completed: 1, queued: 0, processing: 0, retry: 0, failed: 0, skipped: 0, items: [] });
+      }
+      return null;
+    });
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "hidden" });
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
+    vi.useFakeTimers();
+    await act(async () => { vi.advanceTimersByTime(10_000); });
+    expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-hidden")).toHaveLength(0);
+
+    Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
+    fireEvent(document, new Event("visibilitychange"));
+    await act(async () => { vi.advanceTimersByTime(5_000); });
+    expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-hidden")).toHaveLength(1);
+    vi.useRealTimers();
   });
 });

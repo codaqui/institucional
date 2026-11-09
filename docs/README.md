@@ -42,6 +42,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 008 | [Entidades e Projetos de Extensão](adrs/008-entities-extension-projects.md) | 2026-11 | Implementado e verificado em banco descartável; integração e release pendentes |
 | 014 | [Assembleias híbridas com Discussion manual e registro fino](adrs/014-assemblies.md) | 2026-11 | Implementado e publicado; Discussion real pendente; escopo por entidade jurídica ampliado na Fase 4 |
 | 015 | [Codaqui Universitário](adrs/015-codaqui-universitario.md) | 2026-11 | Implementado e verificado; integração, release 0.17.0, sync inicial e validação pública pendentes |
+| 016 | [Fila assíncrona de convites de certificado](adrs/016-certificate-invite-queue.md) | 2026-11 | Implementado e verificado em dump real; PR para develop, release 0.18.0 e validação controlada pendentes |
 
 ### Módulos — Documentação Viva
 

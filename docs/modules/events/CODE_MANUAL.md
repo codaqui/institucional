@@ -294,7 +294,9 @@ A declaração em `/membro/horas` usa o snapshot persistido, não muda com lanç
 4. `/eventos/convite` é noindex e reutiliza `GuestClaimIsland`; confirmação e D-1 apontam para essa página quando `isGuest=true`.
 5. No próximo `upsertByGithub`, somente e-mails verificados vindos de `GET /user/emails` podem vincular. Se o membro já tiver inscrição confirmada no evento, o guest vira `cancelled`, devolve quota uma única vez e grava audit. Não há horas retroativas nem escrita financeira.
 6. O cron diário das 03:00 anonimiza nome/e-mail de guests sem `memberId` quando `managed_events.startAt` ou `external_event_activations.startAt` é anterior a 365 dias. Token, consentimento, concessão e presença permanecem; registros vinculados não entram no job.
-7. `POST /events/certificate-invites/batch` reutiliza o mesmo claim para ativações externas. Não cria autenticação paralela nem vínculo por e-mail não verificado; `certificateInvitedAt` só é preenchido com envio `sent`.
+7. `POST /events/certificate-invites/batch` responde **202** e cria jobs em `certificate_invite_jobs`; não envia mais emails em `Promise.all`. O worker processa um job a cada 10 segundos com `FOR UPDATE SKIP LOCKED`, repete a autorização e reutiliza o mesmo claim. `certificateInvitedAt` só é preenchido com envio `sent`.
+8. O progresso fica em `GET /events/certificate-invites/batches/:batchId`, restrito ao admin/solicitante. `EmailService` serializa SMTP e aplica `EMAIL_SEND_INTERVAL_MS` (default 2000 ms em produção, 0 em testes). Falhas temporárias usam 1/5 minutos, terceira falha é definitiva e 421/454 pausa pendentes por 15 minutos. Não há reprocessamento automático de erros antigos nem exactly-once absoluto se o SMTP aceitar e a conexão falhar antes da confirmação.
+9. As listagens aceitam `page`, `limit`, `search` e `certificateFilter`; com página+limite retornam o envelope compartilhado e sem eles preservam o array legado. A Central usa 25 por página, seleção somente da página atual e polling a cada 5 segundos somente quando a aba está visível.
 
 ### 2.16 Perfil público e badges
 
