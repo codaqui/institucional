@@ -3294,7 +3294,14 @@ export class EventsService {
     user: JwtPayload,
   ) {
     const activation = await this.findActivationOrFail(eventKey);
-    EventsService.assertFeature(activation, 'checkin');
+    if (
+      !activation.features.includes('checkin') &&
+      !activation.features.includes('certificates')
+    ) {
+      throw new ForbiddenException(
+        'Features "checkin" ou "certificates" não habilitadas neste evento externo.',
+      );
+    }
     await this.assertExternalManager(user, activation, {
       allowActivator: true,
     });
@@ -3331,7 +3338,11 @@ export class EventsService {
       await this.processImportRow(row, ctx);
     }
 
-    await this.persistImportedRegistrations(ctx.toSave, ctx.ticketIncrements);
+    await this.persistImportedRegistrations(
+      ctx.toSave,
+      ctx.ticketIncrements,
+      activation,
+    );
 
     void this.auditService.log({
       action: AuditAction.EVENT_PARTICIPANTS_IMPORTED,
@@ -3398,6 +3409,10 @@ export class EventsService {
       ctx.ticketCache,
     );
 
+    const certificateGrantedAt =
+      row.checkin || row.certificate ? new Date() : null;
+    const checkedInAt = row.checkin ? certificateGrantedAt : null;
+
     ctx.toSave.push(
       this.registrationRepo.create({
         eventId: null,
@@ -3410,6 +3425,12 @@ export class EventsService {
         attendeeName: row.name,
         attendeeEmail: row.email,
         checkinToken: randomUUID(),
+        checkedInAt,
+        checkedInByMemberId: checkedInAt ? ctx.user.sub : null,
+        certificateGrantedAt,
+        certificateGrantedByMemberId: certificateGrantedAt
+          ? ctx.user.sub
+          : null,
         status: member
           ? RegistrationStatus.CONFIRMED
           : RegistrationStatus.PENDING_MATCH,
@@ -3499,6 +3520,7 @@ export class EventsService {
   private async persistImportedRegistrations(
     toSave: EventRegistration[],
     ticketIncrements: Map<string, number>,
+    activation: ExternalEventActivation,
   ): Promise<void> {
     if (toSave.length === 0) return;
     await this.registrationRepo.save(toSave);
@@ -3507,6 +3529,23 @@ export class EventsService {
       await this.ticketTypeRepo.query(
         `UPDATE ticket_types SET "quantitySold" = "quantitySold" + $1 WHERE id = $2`,
         [n, ticketTypeId],
+      );
+    }
+
+    const attended = toSave.filter(
+      (registration) => registration.memberId && registration.checkedInAt,
+    );
+    if (attended.length === 0) return;
+    const workloadMinutes = await this.readExternalWorkloadMinutes(
+      activation.eventKey,
+    );
+    if (!workloadMinutes) return;
+    for (const registration of attended) {
+      await this.hoursService.recordEventCheckin(
+        registration,
+        workloadMinutes,
+        this.registrationRepo.manager,
+        activation.title ?? activation.eventKey,
       );
     }
   }

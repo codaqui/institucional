@@ -89,6 +89,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
   let githubDb: Record<string, jest.Mock>;
   let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
+  let hoursService: Record<string, jest.Mock>;
 
   const mockMemberQb = (members: unknown[]) => {
     memberRepo.createQueryBuilder.mockReturnValue({
@@ -180,7 +181,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
     };
-    const hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
+    hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
 
     service = new EventsService(
       eventRepo as any,
@@ -794,10 +795,82 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(saved[0].memberId).toBe(uuid(6));
     });
 
-    it('sem feature checkin na ativação → 403', async () => {
+    it('certificate=true concede sem check-in nem horas', async () => {
       activationRepo.findOneBy.mockResolvedValue(
         makeActivation({ features: ['certificates'] }),
       );
+      mockMemberQb([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          isActive: true,
+        },
+      ]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,false,true';
+
+      await service.importParticipants(EVENT_KEY, csv, user());
+
+      const created = registrationRepo.create.mock.calls[0][0];
+      expect(created.checkedInAt).toBeNull();
+      expect(created.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(created.certificateGrantedByMemberId).toBe(uuid(1));
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
+    it('checkin=true registra presença e horas exactly-once no reupload', async () => {
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['checkin', 'certificates'] }),
+      );
+      mockMemberQb([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          isActive: true,
+        },
+      ]);
+      eventOverridesService.findByKeys.mockResolvedValue([
+        {
+          sourceKey: 'sympla:elasnocodigo',
+          eventId: '3321444',
+          payload: JSON.stringify({ workloadMinutes: 120 }),
+        },
+      ]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,true,false';
+
+      await service.importParticipants(EVENT_KEY, csv, user());
+      const created = registrationRepo.create.mock.calls[0][0];
+      registrationRepo.findBy.mockResolvedValue([created]);
+      await service.importParticipants(EVENT_KEY, csv, user());
+
+      expect(created.checkedInAt).toBeInstanceOf(Date);
+      expect(created.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledTimes(1);
+    });
+
+    it('checkin=true sem membro mantém pending_match e não credita horas', async () => {
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['checkin'] }),
+      );
+      mockMemberQb([]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,true,true';
+
+      await service.importParticipants(EVENT_KEY, csv, user());
+
+      const created = registrationRepo.create.mock.calls[0][0];
+      expect(created.status).toBe(RegistrationStatus.PENDING_MATCH);
+      expect(created.checkedInAt).toBeInstanceOf(Date);
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
+    it('sem features checkin e certificates na ativação → 403', async () => {
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: [] }));
       await expect(
         service.importParticipants(EVENT_KEY, 'name,email\nA,a@x.dev', user()),
       ).rejects.toThrow(ForbiddenException);
