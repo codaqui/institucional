@@ -1,5 +1,5 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import { assertDiscussionUrl, DISCUSSION_URL_PATTERN } from '../common/discussion-url';
+import { assertDiscussionUrl } from '../common/discussion-url';
 import { StorageService } from '../storage/storage.service';
 import {
   Assembly,
