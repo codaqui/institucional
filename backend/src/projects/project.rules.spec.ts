@@ -16,6 +16,12 @@ describe('project.rules', () => {
     expect(projectSlug('  Ação   Extensão ')).toBe('acao-extensao');
   });
 
+  it('handles long delimiter runs without polynomial backtracking', () => {
+    const startedAt = performance.now();
+    expect(() => projectSlug('-'.repeat(2_000_000))).toThrow(BadRequestException);
+    expect(performance.now() - startedAt).toBeLessThan(50);
+  });
+
   it('compares schedule totals in integer cents', () => {
     expect(hoursToCents(0.29)).toBe(29);
     expect(() => assertScheduleMatches([

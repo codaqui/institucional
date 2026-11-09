@@ -7,8 +7,9 @@ export function entitySlug(value: string): string {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .replace(/-{2,}/g, '-');
+    .split('-')
+    .filter(Boolean)
+    .join('-');
   if (!slug) throw new BadRequestException('O nome da entidade deve gerar um slug válido.');
   return slug.slice(0, 80);
 }

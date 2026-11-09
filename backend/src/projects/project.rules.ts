@@ -38,7 +38,7 @@ export function normalizeProjectName(name: string): string {
 }
 
 export function projectSlug(name: string): string {
-  const slug = normalizeProjectName(name).replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const slug = normalizeProjectName(name).replace(/[^a-z0-9]+/g, '-').split('-').filter(Boolean).join('-');
   if (!slug) throw new BadRequestException('O nome do projeto deve gerar um slug válido.');
   return slug.slice(0, 160);
 }
