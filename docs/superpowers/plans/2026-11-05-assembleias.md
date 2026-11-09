@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 3 — Assembleias com registro fino e Discussion manual.
 audience: Implementers e revisores da Fase 3.
-status: Implementação, merge e release do backend concluídos; categoria Reuniões configurada; redeploy, sync inicial e Giscus real pendentes.
+status: Implementação e rollout concluídos; categoria Reuniões configurada; validação com Discussion real pendente.
 sections:
   - Constraints
   - Tasks 1–7
@@ -308,6 +308,10 @@ PR #613 integrada em `main` pelo merge `922d38a950718ea33bf2917119a3e1a8491576f6
 
 Release `v0.15.0-backend` publicada no run `42292647305`, com imagens linux/amd64 e linux/arm64/v8.
 
-- [ ] **Step 6: Complete production rollout**
+- [x] **Step 6: Complete production rollout**
 
-Redeploy manual no Coolify, confirmação da migration 036, sync inicial, publicação do frontend com a correção da categoria Reuniões e validação com Discussion real continuam pendentes.
+Redeploy no Coolify confirmado pela API 200, sync inicial no run `42336485122` e frontend no run `42336580942`. PR #615 corrigiu a hidratação do Giscus, validada em produção no blog.
+
+- [ ] **Step 7: Validate a real assembly Discussion**
+
+Criar uma assembleia e Discussion reais na categoria Reuniões, conferir o pathname e os comentários no site e remover os fixtures se necessário.
