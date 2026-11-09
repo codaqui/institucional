@@ -290,6 +290,7 @@ export class UniversitiesService {
     application.status = 'removed';
     application.endedAt = new Date();
     const rejected = await this.designationRepo.save(application);
+    this.designations.invalidateCache();
     await this.audit.log({
       action: AuditAction.UNIVERSITY_AMBASSADOR_REJECTED,
       actorId: actor.sub,
@@ -320,6 +321,7 @@ export class UniversitiesService {
     application.validUntil = dto.validUntil ? new Date(dto.validUntil) : null;
     try {
       const confirmed = await this.designationRepo.save(application);
+      this.designations.invalidateCache();
       await this.audit.log({
         action: AuditAction.UNIVERSITY_AMBASSADOR_CONFIRMED,
         actorId: actor.sub,

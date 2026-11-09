@@ -48,7 +48,7 @@ describe('UniversitiesService — cities and institutions', () => {
       },
     };
     memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
-    designations = { hasDesignation: jest.fn().mockResolvedValue(true) };
+    designations = { hasDesignation: jest.fn().mockResolvedValue(true), invalidateCache: jest.fn() };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
     service = new UniversitiesService(
       cityRepo as any,
@@ -130,7 +130,7 @@ describe('UniversitiesService — ambassador applications', () => {
       },
     };
     memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
-    designations = { hasDesignation: jest.fn().mockResolvedValue(true) };
+    designations = { hasDesignation: jest.fn().mockResolvedValue(true), invalidateCache: jest.fn() };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
     service = new UniversitiesService(
       cityRepo as any,
@@ -177,6 +177,7 @@ describe('UniversitiesService — ambassador applications', () => {
       confirmedById: adminActor.sub,
       validUntil: new Date('2027-11-09'),
     });
+    expect(designations.invalidateCache).toHaveBeenCalledTimes(1);
   });
 
   it('lets the manager reject a pending application', async () => {
@@ -191,5 +192,6 @@ describe('UniversitiesService — ambassador applications', () => {
 
     const rejected = await service.rejectApplication('application-1', managerActor);
     expect(rejected).toMatchObject({ status: 'removed', endedAt: expect.any(Date) });
+    expect(designations.invalidateCache).toHaveBeenCalledTimes(1);
   });
 });

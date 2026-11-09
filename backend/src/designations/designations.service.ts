@@ -88,6 +88,10 @@ export class DesignationsService {
     private readonly audit: AuditService,
   ) {}
 
+  invalidateCache(): void {
+    this.cache.clear();
+  }
+
   async hasDesignation(
     memberId: string,
     query: DesignationQuery,
