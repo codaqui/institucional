@@ -1,6 +1,6 @@
 ---
-import GiscusIsland from "../../components/islands/GiscusIsland";
-import PublicLayout from "../../layouts/PublicLayout.astro";
+import GiscusIsland from "../../../components/islands/GiscusIsland";
+import PublicLayout from "../../../layouts/PublicLayout.astro";
 import {
   assemblyPath,
   assemblySlug,
@@ -9,12 +9,15 @@ import {
   type Assembly,
   type AssemblyStatus,
   type AssemblyType,
-} from "../../data/assemblies";
-import { getAssembliesGiscusConfig } from "../../data/giscus";
+} from "../../../data/assemblies";
+import { getAssembliesGiscusConfig } from "../../../data/giscus";
 
 export function getStaticPaths() {
   return loadAssembliesIndex().assemblies.map((assembly) => ({
-    params: { slug: assemblySlug(assembly.type, assembly.number) },
+    params: {
+      entitySlug: assembly.entity?.slug ?? "codaqui",
+      slug: assemblySlug(assembly.type, assembly.number),
+    },
     props: { assembly },
   }));
 }
@@ -76,7 +79,7 @@ const commentsConfig = getAssembliesGiscusConfig();
 
     <header>
       <p class="text-sm font-bold uppercase tracking-wide text-text-secondary">
-        Assembleia {typeLabels[assembly.type]} nº {assembly.number}
+        Assembleia {typeLabels[assembly.type]} nº {assembly.number} · {assembly.entity?.name ?? "Associação Codaqui"}
       </p>
       <h1 class="mt-2 text-3xl font-extrabold text-text-primary md:text-4xl">{assembly.title}</h1>
       <p class="mt-4">

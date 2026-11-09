@@ -32,17 +32,21 @@ export class AssembliesController {
     return this.assemblies.listPublic();
   }
 
+  @Get('public/:entitySlug/:slug')
+  publicByEntityAndSlug(@Param('entitySlug') entitySlug: string, @Param('slug') slug: string) {
+    return this.assemblies.publicByEntityAndSlug(entitySlug, slug);
+  }
+
   @Get('public/:slug')
   publicBySlug(@Param('slug') slug: string) {
     return this.assemblies.publicBySlug(slug);
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'diretor')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
-  listManage(@Query() query: ListAssembliesDto) {
-    return this.assemblies.listManage(query);
+  listManage(@Query() query: ListAssembliesDto, @Req() req: { user: JwtPayload }) {
+    return this.assemblies.listManage(query, req.user);
   }
 
   @Post()

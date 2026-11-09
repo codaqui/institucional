@@ -24,6 +24,7 @@ function validAssembly(overrides = {}) {
     discussionUrl: "https://github.com/codaqui/institucional/discussions/123",
     ataPdfUrl: null,
     notaryRegistry: null,
+    entity: { slug: "codaqui", name: "Associação Codaqui" },
     createdAt: "2026-11-05T10:00:00.000Z",
     updatedAt: "2026-11-05T10:00:00.000Z",
     ...overrides,
@@ -273,6 +274,18 @@ test("preserves an unchanged snapshot byte for byte", async (t) => {
   assert.equal(result.generatedAt, "2026-11-04T12:00:00.000Z");
   assert.equal(await readFile(outputFile, "utf8"), previous);
   assert.deepEqual(await readdir(path.dirname(outputFile)), ["index.json"]);
+});
+
+test("rejects an assembly without its public entity and preserves the previous snapshot", async (t) => {
+  const outputFile = await temporaryOutput(t);
+  const previous = await writePreviousSnapshot(outputFile);
+  const malformed = validAssembly({ entity: undefined });
+
+  await assert.rejects(
+    syncAssemblies({ outputFile, fetchImpl: async () => jsonResponse([malformed]) }),
+    /entity/,
+  );
+  assert.equal(await readFile(outputFile, "utf8"), previous);
 });
 
 test("sanitizes control characters without losing the error cause or safe text", () => {

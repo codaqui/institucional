@@ -31,6 +31,7 @@ import {
   UpdateTicketTypeDto,
 } from './dto/ticket-operations.dto';
 import { ActivateExternalDto, CheckinDto } from './dto/external.dto';
+import { BatchCheckinDto, BatchCertificateInviteDto } from './dto/certificate-operations.dto';
 import { GetTransactionsQueryDto } from '../ledger/dto/get-transactions-query.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 import { ClaimGuestDto } from './dto/guest.dto';
@@ -96,6 +97,28 @@ export class EventsController {
     @Req() req: { user: JwtPayload },
   ) {
     return this.eventsService.getCertificate(id, req.user);
+  }
+
+  @Post('registrations/:id/certificate/grant')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Concede elegibilidade ao certificado sem exigir check-in' })
+  grantCertificate(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.grantCertificate(id, req.user);
+  }
+
+  @Post('certificate-invites/batch')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Convida inscrições pendentes para aceitar certificado' })
+  inviteCertificates(
+    @Body() dto: BatchCertificateInviteDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.inviteCertificates(dto.registrationIds, req.user);
   }
 
   @Get('certificates/verify/:code')
@@ -320,6 +343,18 @@ export class EventsController {
   }
 
   // ── Check-in / inscrições / relatório (2c/2d) ────────────────────────────
+
+  @Post(':id/checkin/batch')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Check-in em lote por tokens — resultado por inscrição' })
+  checkinBatch(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: BatchCheckinDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.checkinBatch(id, dto.tokens, req.user);
+  }
 
   @Post(':id/checkin')
   @UseGuards(JwtAuthGuard)
@@ -635,6 +670,18 @@ export class EventsController {
       { search },
       req.user,
     );
+  }
+
+  @Post('external/:eventKey/checkin/batch')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Check-in em lote de participantes importados' })
+  checkinExternalBatch(
+    @Param('eventKey') eventKey: string,
+    @Body() dto: BatchCheckinDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.checkinExternalBatch(eventKey, dto.tokens, req.user);
   }
 
   @Post('external/:eventKey/checkin')

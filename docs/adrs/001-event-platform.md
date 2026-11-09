@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Plataforma de Gestão de Eventos da Codaqui. Registra decisões arquiteturais de overrides, eventos próprios, ingressos pagos, check-in, certificados e integração com ledger.
 audience: Devs, AI agents e mantenedores trabalhando no módulo de eventos.
-status: Plataforma 1/2a–2d e extensões E1/R1/G3/G6/ECA da Fase 1a implementadas. Real Network segue futuro.
+status: Plataforma 1/2a–2d, extensões da Fase 1a e certificação desacoplada implementadas. Real Network segue futuro.
 sections:
   - Contexto e decisões
   - Plataforma de Gestão de Eventos (roadmap histórico, papéis, dados, ingressos, check-in e certificados)
@@ -10,13 +10,13 @@ sections:
   - Merge de Dados: Base + Override (snapshots)
   - Backend: Variáveis de Ambiente
   - UI/UX para Organizadores
-  - Registro de Implementação (2026-07 e extensões 2026-11, itens 41–45)
+  - Registro de Implementação (2026-07 e extensões 2026-11, itens 41–46)
 related-docs:
   - ../../AGENTS.md — fluxo real de snapshots, proxy e decisões 18–23
   - ../modules/events/CODE_MANUAL.md — manual prático do módulo e áreas adjacentes
   - ../modules/events/ROLES.md — matriz de permissões global, derivada e por evento
   - 006-directorates-designations.md — vínculos e roles derivadas
-agent-protocol: Consulte o Registro de Implementação ao final antes de assumir que o desenho histórico reflete o código. Os itens 41–45 registram E1, R1, G6, Turnstile opt-in e sinalização informativa 18+ da Fase 1a.
+agent-protocol: Consulte o Registro de Implementação ao final antes de assumir que o desenho histórico reflete o código. Os itens 41–45 registram a Fase 1a; o item 46 registra a certificação desacoplada da Fase 4.
 -->
 
 # ADR 001 — Plataforma de Gestão de Eventos
@@ -353,19 +353,25 @@ enviados/falhas por template e por evento, com reenvio manual de falhas.
 | Lembrete D-1 | cron diário (padrão `companies`) | transacional |
 | Pós-evento (agradecimento, pesquisa) | conclusão do evento | **opt-in obrigatório** |
 
-> Certificados **não** vão por e-mail — ver seção seguinte.
+> O certificado continua sob demanda, sem PDF armazenado. O e-mail transacional de convite é
+> usado somente para participantes com certificado/concessão pendente de cadastro.
 
 ### Certificados sob demanda (2c)
 
 Mesmo sistema dos **comprovantes financeiros**: dados no backend, renderização/impressão no
-frontend, gerado sob demanda — sem PDF armazenado, sem envio de e-mail.
+frontend, gerado sob demanda — sem PDF armazenado.
 
-- `GET /events/registrations/:id/certificate` — dono da inscrição, somente com presença
-  confirmada (`checkedInAt IS NOT NULL`); retorna JSON (nome, evento, data, carga horária,
-  código de verificação derivado do `checkinToken`).
-- **Perfil público do membro** ganha o painel **"Histórico de eventos"** (mesmo espírito da
-  página de transparência): eventos inscritos/presentes e botão **"Emitir certificado"** por
-  evento, com verificação pública do código.
+- `GET /events/registrations/:id/certificate` — dono da inscrição, com `certificateGrantedAt`
+  preenchido e status `confirmed`; retorna JSON (nome, evento, data, carga horária, código de
+  verificação derivado do `checkinToken`). Presença concede automaticamente, sem sobrescrever
+  uma concessão anterior.
+- `POST /events/registrations/:id/certificate/grant` — admin/organizer/host/checker autorizado
+  concede sem presença, com update condicional que preserva a primeira concessão.
+- `POST /events/certificate-invites/batch` — envia convites explícitos para `pending_match` e
+  registra `sent/failed/skipped` por destinatário; o aceite guest torna a inscrição `confirmed`
+  e libera o certificado já concedido.
+- **Perfil público do membro** mantém o painel **"Histórico de eventos"** e a verificação
+  pública do código, respeitando `profileVisibility`.
 - Opt-in de dados: o nome exibido é o do perfil do membro, que controla se o histórico é
   público.
 
@@ -425,32 +431,31 @@ Comportamento por feature em evento externo:
 
 | Feature | Como funciona |
 |---|---|
-| `checkin` | Mesmo endpoint/QR da 2c. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Entrega dos QR codes: download de CSV/PDF pelo organizador ou envio por e-mail (2c implementada) |
-| `certificates` | Exige presença confirmada (check-in) + match com conta no site. Emissão sob demanda no perfil do membro (sem e-mail) |
+| `checkin` | Mesmo endpoint/QR da 2c, mais batch por tokens. Participantes vêm do CSV importado; cada linha gera `checkinToken`. Presença concede certificado automaticamente e horas somente com membro/carga válida. |
+| `certificates` | Independente de `checkin`: concessão explícita ou automática na presença. Exige `certificateGrantedAt` + inscrição `confirmed`; `pending_match` usa convite guest. |
 | `payments` | A Codaqui vende ingressos do evento externo pelo próprio Stripe (ex.: comunidade quer cobrar fora da Sympla). `ticket_types` ligados à ativação; receita na conta `communityProjectKey`. Reconciliação com a lista da fonte via CSV (dedupe por e-mail) |
 
 > Overrides (metadados no repositório) e ativação (participantes/features no Postgres) são
 > **ortogonais**: um evento externo pode ter override sem ativação, ativação sem override,
-> ou ambos.
+> ou ambos. `checkin` e `certificates` também são independentes entre si.
 
 #### Importação CSV de participantes
 
-`POST /events/external/:eventKey/participants/import` (owner do evento ⤴ ou admin):
+`POST /events/external/:eventKey/participants/import` (owner do evento ⤴ ou admin, com `checkin` ou `certificates` ativo):
 
-- **Formato canônico:** UTF-8, header obrigatório `name,email,ticket_type,external_id,github`
-  (separador `;` ou `,` detectado automaticamente; `ticket_type`, `external_id` e `github` opcionais);
+- **Formato canônico:** UTF-8, com `name,email` obrigatórios e `ticket_type,external_id,github,checkin,certificate`
+  opcionais (separador `;` ou `,`). As flags aceitam `true/false` ou `1/0`; `checkin=true`
+  registra presença + concessão e `certificate=true` concede sem presença/horas.
 - **Pipeline:** parse → validação linha a linha (e-mail válido, nome presente) → **match com
   conta no site** (por e-mail da conta ou `githubHandle`) → dedupe → cria `EventRegistration`
   com `orderId: null`, `externalSource` + `externalId`, `memberId` (quando matched) e
   `checkinToken` novo;
-- **Match obrigatório para check-in:** linhas sem match ficam com `memberId: null` e
-  `status: pending_match`, sinalizadas **imediatamente ao organizador** no relatório de
-  importação e na lista de participantes. O participante cria a conta no site e o match é
-  refeito por e-mail — sob demanda via `POST /events/external/:eventKey/participants/rematch`
-  ou automaticamente quando o membro se cadastra;
+- **Match obrigatório para check-in no scanner e horas:** linhas sem match ficam com `memberId: null` e
+  `status: pending_match`. Presença/concessão importadas são preservadas; o organizador envia
+  convite para aceite guest ou aguarda o match por e-mail verificado via `rematch`/cadastro;
 - **Idempotente:** re-upload do mesmo CSV não duplica — dedupe por `(externalSource, externalId)`
-  ou, na ausência de `external_id`, por e-mail normalizado;
-- **Retorno:** relatório `{ imported, matched, unmatched: [{ line, email }], skippedDuplicates, errors: [{ line, reason }] }`;
+  ou, na ausência de `external_id`, por e-mail normalizado; horas usam a unicidade da `hour_ledger`;
+- **Retorno:** relatório `{ imported, matched, checkedIn, certificatesGranted, unmatched, skippedDuplicates, errors }`;
 - **Limite:** 5 MB / 10 mil linhas por upload (eventos maiores: múltiplos uploads).
 
 O mesmo endpoint serve para **reconciliação** quando `payments` está ativo: o CSV exportado da
@@ -496,7 +501,11 @@ nenhuma sub-fase.
 | `POST` | `/events/:id/checkin` | event_checker / staff | Check-in por token (idempotente) |
 | `GET` | `/events/:id/report` | event_organizer, event_finance | Relatório do evento |
 | `GET` | `/events/orders/:id/receipt` | Dono ou event_finance | Comprovante da compra |
-| `GET` | `/events/registrations/:id/certificate` | Dono (presença confirmada) | Dados do certificado (sob demanda) |
+| `GET` | `/events/registrations/:id/certificate` | Dono (concessão + `confirmed`) | Dados do certificado (sob demanda) |
+| `POST` | `/events/registrations/:id/certificate/grant` | Organizer/admin/staff autorizado | Concede certificado sem exigir presença |
+| `POST` | `/events/certificate-invites/batch` | Organizer/admin/staff autorizado | Convida pendências para aceite guest, com logs por destinatário |
+| `POST` | `/events/:id/checkin/batch` | event_checker / staff | Check-in em lote, com resultado por token |
+| `POST` | `/events/external/:eventKey/checkin/batch` | Owner/ativador/admin | Check-in externo em lote |
 | `POST` | `/events/:id/reimbursements` | Organizer/admin/staff do evento | Lança reembolso/despesa vinculada ao evento próprio |
 | `POST` | `/events/external/:eventKey/reimbursements` | Owner/ativador/admin do evento externo | Lança reembolso/despesa vinculada ao evento externo |
 | `POST` | `/events/external/:eventKey/activate` | Owner do evento ⤴ ou admin | Ativa features à la carte no evento externo |
@@ -561,7 +570,7 @@ nenhuma sub-fase.
 - **Ativação externa (2d):** não-owner não ativa features; ativação sem `communityProjectKey` → 400;
 - **Match CSV (2d):** linha com e-mail de conta existente → `memberId` preenchido; sem conta →
   `pending_match` e aparece em `unmatched` no relatório; `rematch` resolve após cadastro;
-- **Certificado (2c):** sem `checkedInAt` → 403; com presença → JSON com código de verificação.
+- **Certificado:** sem `certificateGrantedAt` ou sem `confirmed` → 403; concessão independente ou presença → JSON com código de verificação; corrida de concessão preserva o primeiro registro.
 
 ---
 
@@ -1488,6 +1497,18 @@ O modelo de escrita no repositório foi **substituído** após a implementação
     somente sugestão no formulário — a marcação é humana. O build mostra badge `+18` e aviso
     informativo sem restringir inscrição, indexação ou sitemap, e sem coletar idade/documento.
     Alterar `adultOnly` após publicação grava antes/depois em auditoria de governo.
+46. **Certificação desacoplada e presença em lote (Fase 4, 2026-11):** a migration 041 cria
+    `certificateGrantedAt`, `certificateGrantedByMemberId` e `certificateInvitedAt`, com backfill
+    das presenças e cast `checkedInByMemberId::uuid`. Emissão/verificação exigem concessão +
+    `confirmed`; check-in concede automaticamente e organizer/admin pode conceder sem presença
+    com update condicional. Batch por tokens, CSV com `checkin/certificate`, central responsiva
+    e features externas independentes substituem o acoplamento anterior. Convites explícitos
+    reutilizam guest claim e geram `email_logs` (`sent/failed/skipped`); somente `sent` preenche
+    `certificateInvitedAt`. Horas continuam exactly-once com membro/carga válida e nunca nascem
+    de concessão isolada. O cron anual de anonimização cobre também guests de ativações externas.
+    Em dump real, down/up preservou 265 inscrições e fez backfill de 66 presenças; E2E PostgreSQL
+    cobriu CSV, reupload, batch, concessão, convite, aceite e verificação. Desenho:
+    `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md`.
 
 
 ---

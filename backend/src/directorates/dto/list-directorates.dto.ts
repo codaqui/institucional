@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   IsInt,
   IsOptional,
+  IsUUID,
   IsString,
   Max,
   MaxLength,
@@ -26,4 +27,8 @@ export class ListDirectoratesDto {
   @IsString()
   @MaxLength(100)
   search?: string;
+
+  @IsOptional()
+  @IsUUID()
+  communityId?: string;
 }

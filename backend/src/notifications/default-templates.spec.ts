@@ -5,11 +5,12 @@ import {
 } from './default-templates';
 
 describe('default-templates', () => {
-  it('cataloga os 4 templates de e-mail conhecidos, incluindo cancelamento', () => {
+  it('cataloga os 5 templates de e-mail conhecidos, incluindo cancelamento', () => {
     expect(TEMPLATE_IDS).toEqual([
       'event-registration-confirmation',
       'event-registration-cancelled',
       'event-reminder-d1',
+      'certificate-pending-registration',
       'event-post-event',
     ]);
     expect(isKnownTemplate('event-registration-cancelled')).toBe(true);

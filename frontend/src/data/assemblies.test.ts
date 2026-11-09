@@ -31,9 +31,11 @@ function makeAssembly(overrides: Partial<Assembly> = {}): Assembly {
 }
 
 describe("assemblyPath", () => {
-  it("deriva a URL pública do tipo e do número", () => {
+  it("deriva a URL pública por entidade, tipo e número com fallback legado", () => {
     expect(assemblySlug("oficial", 2)).toBe("oficial-2");
-    expect(assemblyPath({ type: "oficial", number: 2 })).toBe("/assembleias/oficial-2");
+    expect(assemblyPath({ type: "oficial", number: 2 })).toBe("/assembleias/codaqui/oficial-2");
+    expect(assemblyPath({ type: "oficial", number: 2, entity: { slug: "outra-entidade", name: "Outra entidade" } }))
+      .toBe("/assembleias/outra-entidade/oficial-2");
   });
 });
 

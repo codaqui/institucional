@@ -190,7 +190,7 @@ describe("OverridesApp — abas", () => {
     expect(screen.getByRole("button", { name: "Ativar evento" })).toBeDisabled();
   });
 
-  it("ligar Certificados liga Check-in junto", async () => {
+  it("liga Certificados sem exigir Check-in", async () => {
     stubFetch(defaultHandler());
     renderWithMui(<OverridesApp />);
 
@@ -198,8 +198,49 @@ describe("OverridesApp — abas", () => {
     await selectExternalEvent();
 
     await userEvent.click(await screen.findByRole("checkbox", { name: /Certificados/ }));
-    expect(screen.getByRole("checkbox", { name: /Check-in/ })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Check-in/ })).not.toBeChecked();
     expect(screen.getByRole("checkbox", { name: /Certificados/ })).toBeChecked();
+  });
+
+  it("relata presença, concessões e convite pendente após importar CSV", async () => {
+    stubFetch(async (url, init) => {
+      if (url.endsWith("/activation")) {
+        return jsonResponse({
+          id: "act-1",
+          eventKey: "meetup:devparana:evt-1",
+          features: ["checkin", "certificates"],
+          communityProjectKey: "devparana",
+        });
+      }
+      if (url.endsWith("/participants") && !init?.method) return jsonResponse([]);
+      if (url.endsWith("/participants/import") && init?.method === "POST") {
+        return jsonResponse({
+          imported: 2,
+          matched: 1,
+          checkedIn: 1,
+          certificatesGranted: 2,
+          unmatched: [{ line: 3, email: "pendente@example.com" }],
+          skippedDuplicates: 0,
+          errors: [],
+        });
+      }
+      return defaultHandler()(url, init);
+    });
+    renderWithMui(<OverridesApp />);
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Ativação de features" }));
+    await selectExternalEvent();
+    await userEvent.type(
+      await screen.findByLabelText("Ou cole o conteúdo do CSV"),
+      "name,email,checkin,certificate\nAna,ana@example.com,true,true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Importar CSV" }));
+
+    const reportTitle = await screen.findByText(/Importação concluída/i);
+    const report = reportTitle.closest(".MuiAlert-root");
+    expect(report).toHaveTextContent("1 presença");
+    expect(report).toHaveTextContent("2 certificados concedidos");
+    expect(screen.getByText(/sem conta — convite pendente/i)).toBeInTheDocument();
   });
 });
 

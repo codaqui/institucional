@@ -24,6 +24,7 @@ const member = {
 } as JwtPayload;
 
 const baseDto: CreateAssemblyDto = {
+  entityId: 'codaqui-entity',
   type: 'ordinaria',
   title: 'Assembleia ordinária',
   scheduledAt: new Date('2026-12-01T18:00:00Z'),
@@ -44,6 +45,7 @@ function makeAssembly(overrides: Partial<Assembly> = {}): Assembly {
     discussionUrl: baseDto.discussionUrl,
     ataPdfUrl: null,
     notaryRegistry: null,
+    entityId: baseDto.entityId,
     createdById: 'creator-private-id',
     createdAt: new Date('2026-11-01T12:00:00Z'),
     updatedAt: new Date('2026-11-01T12:00:00Z'),
@@ -133,12 +135,12 @@ describe('AssembliesService', () => {
     expect(manager.query).toHaveBeenNthCalledWith(
       1,
       'SELECT pg_advisory_xact_lock(hashtext($1))',
-      ['ordinaria'],
+      ['codaqui-entity:ordinaria'],
     );
     expect(manager.query).toHaveBeenNthCalledWith(
       2,
-      'SELECT COALESCE(MAX(number), 0) + 1 AS number FROM assemblies WHERE type = $1',
-      ['ordinaria'],
+      'SELECT COALESCE(MAX(number), 0) + 1 AS number FROM assemblies WHERE "entityId" = $1 AND type = $2',
+      ['codaqui-entity', 'ordinaria'],
     );
     expect(txRepo.create).toHaveBeenCalledWith(
       expect.objectContaining({ createdById: 'director-1', number: 1 }),
@@ -166,7 +168,7 @@ describe('AssembliesService', () => {
     expect(created).toMatchObject({ type: 'oficial', number: 8 });
     expect(manager.query).toHaveBeenCalledWith(
       expect.stringContaining('MAX(number)'),
-      ['oficial'],
+      ['codaqui-entity', 'oficial'],
     );
     expect(designations.hasAnyDesignation).not.toHaveBeenCalled();
   });
@@ -198,7 +200,7 @@ describe('AssembliesService', () => {
     txRepo.save
       .mockRejectedValueOnce({
         code: '23505',
-        constraint: 'UQ_assemblies_type_number',
+        constraint: 'UQ_assemblies_entity_type_number',
       })
       .mockImplementationOnce((value: Assembly) =>
         Promise.resolve(Object.assign(value, { id: 'assembly-retry' })),
@@ -240,7 +242,7 @@ describe('AssembliesService', () => {
     const result = await service.publicBySlug('oficial-2');
 
     expect(repo.findOne).toHaveBeenCalledWith({
-      where: { type: 'oficial', number: 2 },
+      where: { type: 'oficial', number: 2, entity: { slug: 'codaqui' } },
     });
     expect(result).toMatchObject({ slug: 'oficial-2' });
     expect(result).not.toHaveProperty('createdById');

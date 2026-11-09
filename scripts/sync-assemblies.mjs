@@ -56,6 +56,9 @@ function validateAssemblyText(assembly, index) {
 }
 
 function validateAssemblyIdentity(assembly, index) {
+  if (!isObject(assembly.entity) || typeof assembly.entity.slug !== "string" || assembly.entity.slug.trim().length === 0 || typeof assembly.entity.name !== "string" || assembly.entity.name.trim().length === 0) {
+    throw invalidAssembly(index, "entity deve conter slug e name públicos.");
+  }
   if (!ASSEMBLY_TYPES.has(assembly.type)) throw invalidAssembly(index, "type inválido.");
   if (!Number.isSafeInteger(assembly.number) || assembly.number < 1) {
     throw invalidAssembly(index, "number deve ser um inteiro positivo.");

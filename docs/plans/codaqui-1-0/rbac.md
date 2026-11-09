@@ -193,7 +193,7 @@ Convenção: **L** = leitura · **E** = escrita/Operação · **A** = aprovaçã
 | Ação | Público | Membro | Diretoria/escopo | Aprovação |
 |---|---|---|---|---|
 | Ver assembleias/atas (Discussion) | L | L | L | — |
-| Criar/editar assembleia | — | — | E (`diretor` derivado) | admin |
+| Criar/editar assembleia | — | — | Codaqui: `diretor` derivado; outras entidades: `manager` @ entity | admin |
 | Anexar registro cartorário | — | — | E | admin |
 
 ### B. Diretorias, voluntários e horas
@@ -326,7 +326,7 @@ Regra dura: **não existe concessão sem designation ativa correspondente** — 
 | **1b** | Cards de representação no menu de perfil e visibilidade pública, junto ao trabalho de `profileVisibility`. |
 | **2** | Dual-write, seed, reconciliação e cutover de `event_organizer_ownerships`; `GET /events/internal/organizers` passa a ler designations somente após reconciliação. Horas e `/@handle` já nascem designation-aware. |
 | **3** | Assembleias: sem vínculo novo (`createdById` é trilha, não permissão). `diretor` derivado já vale para criar/editar. |
-| **4** | entities/partnerships/projects nascem sem `responsibleMemberId`/`directorMemberId`/`mentorMemberId`; designations `responsible`/`manager`/`mentor` @ entity/extension_project com `appointedById`. |
+| **4** | entities/partnerships/projects nascem sem `responsibleMemberId`/`directorMemberId`/`mentorMemberId`; designations `responsible`/`manager`/`mentor` @ entity/extension_project com `appointedById`. `directorates.communityId` é opcional; `assemblies.entityId` define o guarda-chuva e, fora da Codaqui, a gestão exige admin ou `manager @ entity`. |
 | **4b** | `institution_ambassadors` vira designation (`pending` na candidatura, gestor propõe, admin confirma); gestor = `manager` @ program; embaixador cria evento via designation @ ies. |
 | **5** | Mentor: designation `mentor` @ program('mentoria') é a fonte; `mentor_profiles` referencia (ou vira view). |
 | **6** | `companies`: designation `responsible` @ company espelha a coluna; cutover drop da coluna na mesma fase (a Fase 6 já reescreve o fluxo PJ para tiers). |

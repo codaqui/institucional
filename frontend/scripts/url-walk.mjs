@@ -83,3 +83,35 @@ export function parseRedirects(text) {
     targets: new Set(rules.map((r) => r.to)),
   };
 }
+
+/**
+ * Confere um target de redirect (inclusive :splat) com rotas dinâmicas Astro.
+ * Assim um snapshot vazio não transforma uma rota válida em redirect órfão.
+ */
+export function matchesDynamicRoute(target, routeFiles, pagesBase) {
+  const targetSegments = target
+    .split(/[?#]/)[0]
+    .replaceAll(":splat", "placeholder")
+    .split("/")
+    .filter(Boolean);
+  return routeFiles.some((file) => {
+    const routeSegments = relative(pagesBase, file)
+      .replaceAll("\\", "/")
+      .replace(/\.astro$/, "")
+      .split("/")
+      .filter(Boolean);
+    if (routeSegments.at(-1) === "index") routeSegments.pop();
+    const dynamicSegments = routeSegments.map((segment) => {
+      if (/^\[\.\.\.[^/]+\]$/.test(segment)) return ":splat";
+      if (/^\[[^/]+\]$/.test(segment)) return ":param";
+      return segment;
+    });
+    const hasRest = dynamicSegments.includes(":splat");
+    if (!hasRest && dynamicSegments.length !== targetSegments.length) return false;
+    return dynamicSegments.every((segment, index) => {
+      if (segment === ":splat") return targetSegments.length >= index;
+      if (segment === ":param") return Boolean(targetSegments[index]);
+      return segment === targetSegments[index];
+    });
+  });
+}

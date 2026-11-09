@@ -3,7 +3,7 @@
  *
  * - Separador detectado pelo header (`;` ou `,` — padrão brasileiro vs. americano).
  * - Suporta aspas duplas com escape `""` (RFC 4180).
- * - Header obrigatório: `name` e `email`; opcionais: `ticket_type`, `external_id`, `github`.
+ * - Header obrigatório: `name` e `email`; opcionais: `ticket_type`, `external_id`, `github`, `checkin`, `certificate`.
  * - Limite de linhas para evitar DoS via upload gigante.
  */
 
@@ -15,9 +15,19 @@ export interface ParsedCsvRow {
   externalId?: string;
   /** handle do GitHub — match secundário quando o e-mail não tem conta */
   github?: string;
+  checkin?: boolean;
+  certificate?: boolean;
 }
 
 export class CsvParseError extends Error {}
+
+function parseOptionalBoolean(value: string | undefined): boolean | undefined {
+  const normalized = value?.trim().toLowerCase();
+  if (!normalized) return undefined;
+  if (normalized === 'true' || normalized === '1') return true;
+  if (normalized === 'false' || normalized === '0') return false;
+  return undefined;
+}
 
 function assertString(value: unknown): asserts value is string {
   if (typeof value !== 'string') {
@@ -140,12 +150,14 @@ export function parseCsvText(text: string, maxRows = 10_000): ParsedCsvRow[] {
   const idxEmail = header.indexOf('email');
   if (idxName === -1 || idxEmail === -1) {
     throw new CsvParseError(
-      'Header inválido: colunas obrigatórias "name" e "email" (opcionais: "ticket_type", "external_id", "github").',
+      'Header inválido: colunas obrigatórias "name" e "email" (opcionais: "ticket_type", "external_id", "github", "checkin", "certificate").',
     );
   }
   const idxTicketType = header.indexOf('ticket_type');
   const idxExternalId = header.indexOf('external_id');
   const idxGithub = header.indexOf('github');
+  const idxCheckin = header.indexOf('checkin');
+  const idxCertificate = header.indexOf('certificate');
 
   const dataRows = records.slice(1);
   if (dataRows.length > maxRows) {
@@ -167,5 +179,13 @@ export function parseCsvText(text: string, maxRows = 10_000): ParsedCsvRow[] {
     ...(idxGithub !== -1 && record[idxGithub]
       ? { github: record[idxGithub].trim().replace(/^@/, '') }
       : {}),
+    checkin:
+      idxCheckin === -1
+        ? undefined
+        : parseOptionalBoolean(record[idxCheckin]),
+    certificate:
+      idxCertificate === -1
+        ? undefined
+        : parseOptionalBoolean(record[idxCertificate]),
   }));
 }

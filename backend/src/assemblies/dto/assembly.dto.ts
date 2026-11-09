@@ -7,6 +7,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   Matches,
   Max,
   MaxLength,
@@ -40,6 +41,9 @@ export class AssemblyNotaryRegistryDto {
 }
 
 export class CreateAssemblyDto {
+  @IsUUID()
+  entityId: string;
+
   @IsIn(['ordinaria', 'oficial'])
   type: AssemblyType;
 
@@ -142,4 +146,8 @@ export class ListAssembliesDto {
   @IsOptional()
   @IsIn(['scheduled', 'held', 'canceled'])
   status?: AssemblyStatus;
+
+  @IsOptional()
+  @IsUUID()
+  entityId?: string;
 }

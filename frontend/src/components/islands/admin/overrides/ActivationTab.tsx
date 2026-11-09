@@ -100,6 +100,24 @@ const EMPTY_TICKET_FORM: TicketForm = {
 const formatBRLFromCents = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
+function ImportSuccessAlert({ report }: { readonly report: ImportReport }): JSX.Element {
+  return (
+    <Alert severity="success" sx={{ mb: 1 }}>
+      Importação concluída: <strong>{report.imported}</strong> importados,{" "}
+      <strong>{report.matched}</strong> com conta vinculada,{" "}
+      <strong>{report.checkedIn}</strong> {report.checkedIn === 1 ? "presença" : "presenças"},{" "}
+      <strong>{report.certificatesGranted}</strong> {report.certificatesGranted === 1 ? "certificado concedido" : "certificados concedidos"},{" "}
+      <strong>{report.skippedDuplicates}</strong> duplicados ignorados.
+      {(report.healed ?? 0) > 0 && (
+        <>
+          {" "}<strong>{report.healed}</strong> pendente(s) vinculado(s)
+          agora via coluna <code>github</code>.
+        </>
+      )}
+    </Alert>
+  );
+}
+
 const FEATURE_OPTIONS = [
   {
     key: "checkin",
@@ -110,7 +128,7 @@ const FEATURE_OPTIONS = [
     key: "certificates",
     label: "Certificados",
     description:
-      "Emissão sob demanda no perfil do membro. Exige check-in (presença confirmada) e match com conta no site.",
+      "Concessão independente ou automática no check-in. Participantes sem conta recebem um convite para aceite.",
   },
   {
     key: "payments",
@@ -247,15 +265,10 @@ export default function ActivationTab({
 
   const toggleFeature = (key: string, enabled: boolean) => {
     setFeatures((prev) => {
-      if (enabled) {
-        // certificates exige check-in: liga junto.
-        const next = new Set(prev);
-        next.add(key);
-        if (key === "certificates") next.add("checkin");
-        return [...next];
-      }
-      // Desligar check-in derruba certificates junto.
-      return prev.filter((f) => f !== key && (key !== "checkin" || f !== "certificates"));
+      const next = new Set(prev);
+      if (enabled) next.add(key);
+      else next.delete(key);
+      return [...next];
     });
   };
 
@@ -564,10 +577,12 @@ export default function ActivationTab({
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Formato canônico: UTF-8 com header{" "}
-                    <code>name,email,ticket_type,external_id,github</code> (separador <code>;</code> ou{" "}
-                    <code>,</code>; <code>ticket_type</code>, <code>external_id</code> e <code>github</code> opcionais).
+                    <code>name,email,ticket_type,external_id,github,checkin,certificate</code> (separador <code>;</code> ou{" "}
+                    <code>,</code>; somente <code>name</code> e <code>email</code> são obrigatórios).
                     O match com a conta no site é feito pelo e-mail; se não houver conta com esse e-mail,
                     a coluna <code>github</code> (handle, sem @) é usada como alternativa.
+                    Use <code>true</code>/<code>false</code> ou <code>1</code>/<code>0</code> em{" "}
+                    <code>checkin</code> e <code>certificate</code> para importar presença e concessão.
                     Re-upload é idempotente (dedupe por e-mail/external_id).
                   </Typography>
 
@@ -620,21 +635,11 @@ export default function ActivationTab({
 
                   {importReport && (
                     <Box sx={{ mt: 2 }}>
-                      <Alert severity="success" sx={{ mb: 1 }}>
-                        Importação concluída: <strong>{importReport.imported}</strong> importados,{" "}
-                        <strong>{importReport.matched}</strong> com conta vinculada,{" "}
-                        <strong>{importReport.skippedDuplicates}</strong> duplicados ignorados.
-                        {(importReport.healed ?? 0) > 0 && (
-                          <>
-                            {" "}<strong>{importReport.healed}</strong> pendente(s) vinculado(s)
-                            agora via coluna <code>github</code>.
-                          </>
-                        )}
-                      </Alert>
+                      <ImportSuccessAlert report={importReport} />
                       {importReport.unmatched.length > 0 && (
                         <Alert severity="warning" sx={{ mb: 1 }}>
-                          <strong>{importReport.unmatched.length} sem conta no site</strong> — check-in
-                          e certificado bloqueados até o match:
+                          <strong>{importReport.unmatched.length} sem conta — convite pendente</strong>.
+                          Envie o convite pela central de certificados para concluir o cadastro:
                           <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
                             {importReport.unmatched.map((u) => (
                               <li key={u.line}>

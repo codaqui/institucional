@@ -22,11 +22,13 @@ related-docs:
   - README.md — repo overview
   - docs/README.md — índice central da documentação técnica
   - docs/adrs/001-event-platform.md — plataforma de eventos
+  - docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md — presença em lote, concessão independente, CSV e convite guest
   - docs/adrs/002-club-sortcoins.md — Clube Codaqui SortCoins
   - docs/adrs/003-club-business-pj.md — Clube Codaqui Business (PJ)
   - docs/adrs/004-multisite-communities.md — multi-tenant frontend
   - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
   - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
+  - docs/adrs/008-entities-extension-projects.md — entidades, parcerias, projetos de extensão e comprovantes da Fase 4
   - docs/adrs/013-hour-ledger.md — horas, ownership, guests, declarações e badges da Fase 2
   - docs/adrs/014-assemblies.md — assembleias, Discussion manual, snapshot, Giscus e cartório da Fase 3
   - docs/modules/events/CODE_MANUAL.md — manual prático de eventos, horas, ownership e guests
@@ -73,6 +75,7 @@ Decisões arquiteturais principais:
 - [Clube Codaqui (SortCoins)](docs/adrs/002-club-sortcoins.md)
 - [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
 - [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
+- [Entidades e Projetos de Extensão](docs/adrs/008-entities-extension-projects.md)
 - [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
 - [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
 
@@ -167,6 +170,7 @@ npm run test:scripts             # node --test scripts/*.test.mjs
 npm run sync                     # eventos + social-stats + analytics → static/
 npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
+npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
@@ -190,6 +194,8 @@ institucional/
 │   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
 │   │   ├── hours/               # ⭐ Fase 2/ADR 013: hour_ledger separada, aprovações, declarações e totais públicos
 │   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
+│   │   ├── entities/            # ⭐ Fase 4/ADR 008: entidades jurídicas e parcerias
+│   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -201,7 +207,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 036; Fase 2: 033–035; Fase 3: 036)
+│   │   └── migrations/          # TypeORM migrations (até 040; Fase 2: 033–035; Fase 3: 036; Fase 4: 037–040)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -355,7 +361,7 @@ date: 2024-07-22      # opcional — ausente, o app infere pela data do nome do 
 
 ### 8. Redirects legados em `dist/_redirects` + paridade de URLs versionada
 
-- Os redirects de URLs legadas (ex.: `/quero/apoiar`, `/team`, `/sobre/timeline`, `/conduta`, `/blog/archive/*`, … — 16 no total) vivem no **`dist/_redirects` gerado em build-time** por `frontend/scripts/build-tenant-redirects.mjs` (build codaqui). Os antigos stubs de página rediretora foram **deletados** — não recrie páginas-sombra; adicione a regra no script.
+- Os redirects de URLs legadas (ex.: `/quero/apoiar`, `/team`, `/sobre/timeline`, `/conduta`, `/blog/archive/*`, … — 17 no total) vivem no **`dist/_redirects` gerado em build-time** por `frontend/scripts/build-tenant-redirects.mjs` (build codaqui). Os antigos stubs de página rediretora foram **deletados** — não recrie páginas-sombra; adicione a regra no script.
 - Builds tenant emitem `_redirects` com 301 de `/comunidades/<slug>[/*]` para `[/][:splat]` (links antigos do portal funcionam no domínio próprio) **e** um `robots.txt` com o Sitemap do domínio do tenant.
 - **Paridade pós-cutover:** `frontend/scripts/url-reference.json` é a referência versionada e **congelada** das URLs públicas do site anterior (gerada por `archive-urls.mjs` antes da remoção do stack antigo). `diff-urls.mjs` (dentro de `make astro-verify`) falha se qualquer URL da referência não for servida pelo build novo (página ou redirect). URLs válidas = páginas do dist ∪ sources ∪ targets do `_redirects`; redirect que aponta para o nada quebra o gate. **Não regenere a referência** — ela é o contrato do cutover.
 
@@ -431,7 +437,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 - `member_designations` é a única fonte dos vínculos novos. Não criar `directorMemberId`, `responsibleMemberId`, `directorate_members` ou tabelas paralelas. `event_organizer_ownership` e `event_staff` continuam nos modelos próprios.
 - APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
-- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. Regras de `mentor` e `gestor_universitario` existem, mas seus módulos continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
+- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `gestor_universitario` e a mentoria da Fase 5 continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
 - Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
 - **Baseline histórico da Fase 1a:** naquele recorte não existia `hour_ledger`; horas, aprovações e declarações ficavam para fase futura. **A Fase 2 introduziu** `backend/src/hours/` e a migration 033 — ver decisão 24 e [ADR 013](docs/adrs/013-hour-ledger.md).
 
@@ -477,7 +483,23 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - APIs: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies` paginado (default 50/cap 100), `POST /assemblies` e `PATCH /assemblies/:id`. Criar/editar exige admin ou qualquer designation `director @ directorate` ativa, sem `targetId/targetKey IS NULL`; PDF/cartório exige admin; mutações gravam audit de governo. Null só é aceito no PATCH em `heldAt`, `ataPdfUrl` e `notaryRegistry`; PDF fora da allowlist retorna 400. Proxy: `/assemblies/`, com exceção estática para `/assemblies/index.json`, nunca `/admin/`.
 - `npm run sync:assemblies` usa `ASSEMBLIES_API_URL`, valida toda a coleção, a Discussion exata e o PDF HTTPS pela allowlist, e grava `static/assemblies/index.json` atomicamente; falha preserva o arquivo anterior. O loader repete essas validações. `notaryRegistry.registeredAt` é exibido em UTC; datas do evento continuam em `America/Sao_Paulo`. O workflow diário é 06:23 UTC + dispatch; o agregador `npm run sync` não inclui assembleias. Publicação segue backend/migration → sync inicial → build/frontend.
 - A Discussion é criada manualmente na categoria **Reuniões**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública, ID `DIC_kwDOG9s0Ns4CxJVR` já configurado no repositório); sem ID local há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
-- **Integração:** PR #613, CI/Sonar e release `v0.15.0-backend` concluídos. **Pendências externas:** redeploy/migration 036, sync inicial, publicação da correção de categoria, Discussions reais e verificação do Giscus em produção. A Fase 4 foi autorizada separadamente em 2026-11-06.
+- **Integração:** PR #613, release `v0.15.0-backend`, redeploy, sync inicial (`42336485122`) e frontend (`42336580942`) concluídos. PR #615 corrigiu a hidratação do Giscus. **Pendência externa:** criar assembleia/Discussion reais e validar o pathname. A Fase 4 amplia `assemblies.entityId`, numeração/URL por entidade jurídica e redirect legado na migration 040, ainda não publicada.
+
+### 26. Fase 4 — entidades e projetos de extensão (ADR 008)
+
+- Migrations 037–040 e backend 0.16.0 implementam entidades, parcerias, projetos, participantes e comprovantes. `draft → proposed → active → finished/canceled`; ativação/cancelamento exige admin ou diretor criador; finalização aceita também o mentor principal com relatório. Mentor principal é `mentor @ extension_project`, sem coluna própria no projeto. Decisões completas: [ADR 008](docs/adrs/008-entities-extension-projects.md).
+- Inscrição e horas são transacionais; mentor lista participantes/horas e edita somente pendências; finance-analyzer aprova. Comprovante é idempotente, com horas congeladas e impressão nativa. Orçamento nunca usa `LedgerService`; `extension_project` usa somente `hour_ledger`.
+- APIs administrativas não usam `/admin/`: `/entities/`, `/partnerships/`, `/projects/` e `/project-certificates/`. `/projects/my` mostra vínculos do membro; `/projects/:id/participants` e `/projects/:id/hours` restringem escopo ao mentor/admin. IDs internos, notas, aprovações e idempotency keys não são públicos.
+- `directorates.communityId=NULL` significa global; `assemblies.entityId` determina lock/número por entidade/tipo e a rota `/assembleias/<entitySlug>/<type>-<number>`. `/assembleias/*` redireciona para Codaqui; snapshots antigos têm fallback Codaqui e respostas novas exigem `entity: {slug,name}`.
+- O E2E PostgreSQL validou down/up com 174 membros e 6 comunidades, concorrência de vagas/horas/comprovantes/assembleias e a jornada completa. Integração/release 0.16.0, redeploy, sync inicial e validação pública continuam pendentes.
+
+### 27. Adendo — certificação desacoplada e presença em lote
+
+- Migration 041 adiciona `certificateGrantedAt`, `certificateGrantedByMemberId` e `certificateInvitedAt`. O backfill converte `checkedInByMemberId::uuid`; certificado e verificação exigem concessão + `confirmed`, não mais presença. Check-in concede automaticamente; `POST /events/registrations/:id/certificate/grant` usa update condicional para preservar a primeira concessão.
+- `POST /events/:id/checkin/batch` e `/events/external/:eventKey/checkin/batch` processam até 100 tokens com resultado parcial. CSV aceita `checkin` e `certificate`; presença gera horas somente com membro/carga válida, concessão isolada não gera horas e reupload não recredita.
+- `checkin` e `certificates` são features externas independentes. `/admin/eventos-checkin` tem abas Escanear/Participantes/Certificados, filtros, seleção em lote e feedback parcial; `/admin/overrides` documenta as flags e o relatório com `checkedIn/certificatesGranted`.
+- `POST /events/certificate-invites/batch` usa o template `certificate-pending-registration`, `email_logs` por destinatário e o guest claim existente. `certificateInvitedAt` exige `sent`; não há campanha nem open tracking. O cron anual anonimiza guests sem conta de eventos próprios **e ativações externas**.
+- E2E real em dump isolado validou down/up com 265 inscrições/66 presenças, CSV, batch, concessão, `sent/failed/skipped`, aceite e verificação. Desenho/plano: `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md` e `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
 
 ---
 
@@ -517,7 +539,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 9 workflows)
+### CI/CD (`.github/workflows/` — 10 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -527,6 +549,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
+| `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |

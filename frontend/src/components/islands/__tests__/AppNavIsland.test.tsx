@@ -264,6 +264,8 @@ describe("AppNavIsland", () => {
       "href",
       "/admin/diretorias",
     );
+    expect(screen.getByRole("link", { name: "Entidades" })).toHaveAttribute("href", "/admin/entidades");
+    expect(screen.getByRole("link", { name: "Projetos de extensão" })).toHaveAttribute("href", "/admin/projetos");
     expect(screen.queryByText("Minha comunidade")).not.toBeInTheDocument();
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });

@@ -68,6 +68,8 @@ const registration = {
   attendeeEmail: "um@example.com",
   status: "confirmed",
   checkedInAt: null,
+  certificateGrantedAt: null,
+  certificateInvitedAt: null,
   checkinToken: "token-abc",
   isGuest: false,
   member: null,
@@ -248,7 +250,7 @@ describe("/admin/eventos-checkin", () => {
       authFetch.mock.calls.some(([url]) => url.includes("/registrations")),
     ).toBe(false);
 
-    // Absorve a cadeia async (scope → seleção via ?event= → registrations).
+    fireEvent.click(await screen.findByRole("tab", { name: "Participantes" }));
     expect(await screen.findByText(/Nenhuma inscrição encontrada/i)).toBeInTheDocument();
   });
 
@@ -613,8 +615,9 @@ describe("/admin/eventos-checkin", () => {
       return null;
     });
 
+    fireEvent.click(screen.getByRole("tab", { name: "Participantes" }));
     expect(await screen.findByText("Participante Um")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: /Confirmar presença/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar presença" }));
 
     expect(await screen.findByText(/Presença confirmada/i)).toBeInTheDocument();
     expect(authFetch).toHaveBeenCalledWith(
@@ -631,9 +634,10 @@ describe("/admin/eventos-checkin", () => {
       return null;
     });
 
+    fireEvent.click(screen.getByRole("tab", { name: "Participantes" }));
     expect(await screen.findByText("Convidado")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /Confirmar presença/i }),
+      screen.getByRole("button", { name: "Confirmar presença" }),
     ).toBeEnabled();
   });
 
@@ -657,5 +661,116 @@ describe("/admin/eventos-checkin", () => {
     expect(
       authFetch.mock.calls.some(([url]) => url.includes("/registrations")),
     ).toBe(false);
+  });
+
+  it("seleciona todos os filtrados e confirma presença em lote", async () => {
+    const second = {
+      ...registration,
+      id: "reg-2",
+      attendeeName: "Participante Dois",
+      attendeeEmail: "dois@example.com",
+      checkinToken: "token-def",
+    };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse([registration, second]);
+      if (url === "/events/evt-1/checkin/batch" && init?.method === "POST") {
+        return jsonResponse([
+          { token: "token-abc", status: "checked_in" },
+          { token: "token-def", status: "checked_in" },
+        ]);
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Participantes" }));
+    fireEvent.click(
+      await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar presença (2)" }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/evt-1/checkin/batch",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ tokens: ["token-abc", "token-def"] }),
+        }),
+      );
+    });
+  });
+
+  it("concede certificado sem passar pelo check-in", async () => {
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse([registration]);
+      if (
+        url === "/events/registrations/reg-1/certificate/grant" &&
+        init?.method === "POST"
+      ) {
+        return jsonResponse({
+          ...registration,
+          certificateGrantedAt: "2026-08-10T18:10:00.000Z",
+        });
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: "Conceder certificado para Participante Um",
+      }),
+    );
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/registrations/reg-1/certificate/grant",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
+  });
+
+  it("envia convites para cadastros pendentes e mostra falhas parciais", async () => {
+    const pendingOne = {
+      ...registration,
+      id: "reg-pending-1",
+      status: "pending_match",
+      attendeeName: "Pendente Um",
+    };
+    const pendingTwo = {
+      ...registration,
+      id: "reg-pending-2",
+      status: "pending_match",
+      attendeeName: "Pendente Dois",
+      attendeeEmail: "pendente-dois@example.com",
+      checkinToken: "token-pending-2",
+    };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse([pendingOne, pendingTwo]);
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse([
+          { registrationId: "reg-pending-1", status: "sent" },
+          { registrationId: "reg-pending-2", status: "failed" },
+        ]);
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    fireEvent.click(
+      await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Enviar convite (2)" }));
+
+    expect(await screen.findByText(/1 convite enviado/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 convite falhou/i)).toBeInTheDocument();
+    expect(authFetch).toHaveBeenCalledWith(
+      "/events/certificate-invites/batch",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          registrationIds: ["reg-pending-1", "reg-pending-2"],
+        }),
+      }),
+    );
   });
 });

@@ -78,6 +78,15 @@ export class EventRegistration {
   @Column({ type: 'varchar', nullable: true })
   checkedInByMemberId: string | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  certificateGrantedAt: Date | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  certificateGrantedByMemberId: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  certificateInvitedAt: Date | null;
+
   @Column({
     type: 'enum',
     enum: RegistrationStatus,

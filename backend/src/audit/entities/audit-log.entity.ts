@@ -34,6 +34,21 @@ export enum AuditAction {
   DIRECTORATE_CREATED = 'directorate.created',
   DIRECTORATE_UPDATED = 'directorate.updated',
 
+  // Entities and partnerships
+  ENTITY_CREATED = 'entity.created',
+  ENTITY_UPDATED = 'entity.updated',
+  PARTNERSHIP_CREATED = 'partnership.created',
+  PARTNERSHIP_UPDATED = 'partnership.updated',
+
+  // Extension projects
+  PROJECT_CREATED = 'project.created',
+  PROJECT_UPDATED = 'project.updated',
+  PROJECT_STATUS_CHANGED = 'project.status_changed',
+  PROJECT_MENTOR_DESIGNATED = 'project.mentor_designated',
+  PROJECT_PARTICIPANT_JOINED = 'project.participant_joined',
+  PROJECT_PARTICIPANT_REMOVED = 'project.participant_removed',
+  PROJECT_CERTIFICATE_ISSUED = 'project.certificate_issued',
+
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
   ACCOUNT_CREATED = 'ledger.account_created',
@@ -66,6 +81,8 @@ export enum AuditAction {
 
   // Events (2c/2d — check-in, ativações externas, importações)
   EVENT_CHECKIN = 'event.checkin',
+  EVENT_CERTIFICATE_GRANTED = 'event.certificate_granted',
+  EVENT_CERTIFICATE_INVITED = 'event.certificate_invited',
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',

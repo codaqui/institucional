@@ -61,9 +61,14 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   checkinToken: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   checkedInAt: null,
   checkedInByMemberId: null,
+  certificateGrantedAt: null,
+  certificateGrantedByMemberId: null,
+  certificateInvitedAt: null,
   status: RegistrationStatus.CONFIRMED,
   createdAt: new Date(),
   ...overrides,
+  certificateGrantedAt: overrides.certificateGrantedAt === undefined ? overrides.checkedInAt ?? null : overrides.certificateGrantedAt,
+  certificateGrantedByMemberId: overrides.certificateGrantedByMemberId === undefined ? overrides.checkedInByMemberId ?? null : overrides.certificateGrantedByMemberId,
 });
 
 describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
@@ -84,6 +89,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
   let githubDb: Record<string, jest.Mock>;
   let eventOverridesService: Record<string, jest.Mock>;
   let reimbursementsService: Record<string, jest.Mock>;
+  let hoursService: Record<string, jest.Mock>;
 
   const mockMemberQb = (members: unknown[]) => {
     memberRepo.createQueryBuilder.mockReturnValue({
@@ -175,7 +181,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     reimbursementsService = {
       createFromEvent: jest.fn().mockResolvedValue({}),
     };
-    const hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
+    hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
 
     service = new EventsService(
       eventRepo as any,
@@ -447,6 +453,92 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     });
   });
 
+  describe('certificate invitations', () => {
+    it('invites pending_match and accepts the external guest claim', async () => {
+      const registration = makeRegistration({
+        eventId: null,
+        externalActivationId: uuid(70),
+        status: RegistrationStatus.PENDING_MATCH,
+        isGuest: false,
+        certificateGrantedAt: new Date(),
+      });
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      emailService.sendCertificatePendingRegistration = jest.fn().mockResolvedValue({ status: 'sent' });
+
+      const [invitation] = await service.inviteCertificates([registration.id], checkerUser);
+      expect(invitation.status).toBe('sent');
+      expect(registration.status).toBe(RegistrationStatus.PENDING_GUEST);
+      expect(registration.certificateInvitedAt).toBeInstanceOf(Date);
+
+      const publicInvite = await service.getGuestInvite(registration.checkinToken);
+      expect(publicInvite.eventTitle).toBe('Meetup Elas');
+      const accepted = await service.claimGuestRegistration({
+        token: registration.checkinToken,
+        name: 'Ana',
+        email: 'ana@x.dev',
+        consent: true,
+        turnstileToken: 'development',
+      });
+      expect(accepted.status).toBe(RegistrationStatus.CONFIRMED);
+      expect(accepted.attendeeName).toBe('Ana');
+    });
+  });
+
+  describe('certificate grants and batch check-in', () => {
+    it('grants and verifies a certificate without check-in', async () => {
+      const registration = makeRegistration();
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(registration),
+      });
+
+      const granted = await service.grantCertificate(registration.id, checkerUser);
+      expect(granted.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(granted.checkedInAt).toBeNull();
+      const verified = await service.verifyCertificate('CRT-aaaaaaaa-bb');
+      expect(verified.valid).toBe(true);
+    });
+
+    it('does not overwrite a certificate grant that wins the race', async () => {
+      const grantedAt = new Date('2026-11-09T12:00:00.000Z');
+      const stale = makeRegistration({ certificateGrantedAt: null });
+      const current = makeRegistration({
+        certificateGrantedAt: grantedAt,
+        certificateGrantedByMemberId: uuid(99),
+      });
+      registrationRepo.findOneBy
+        .mockResolvedValueOnce(stale)
+        .mockResolvedValueOnce(current);
+      registrationRepo.update.mockResolvedValue({ affected: 0 });
+
+      const result = await service.grantCertificate(stale.id, checkerUser);
+
+      expect(result.certificateGrantedAt).toBe(grantedAt);
+      expect(result.certificateGrantedByMemberId).toBe(uuid(99));
+      expect(registrationRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('checks in a batch independently and reports pending_match', async () => {
+      const first = makeRegistration({ id: uuid(41), checkinToken: 'first' });
+      const second = makeRegistration({ id: uuid(42), checkinToken: 'second', checkedInAt: new Date() });
+      const pending = makeRegistration({ id: uuid(43), checkinToken: 'pending', status: RegistrationStatus.PENDING_MATCH });
+      registrationRepo.findOneBy.mockImplementation(async ({ checkinToken }) =>
+        [first, second, pending].find((item) => item.checkinToken === checkinToken) ?? null,
+      );
+
+      const result = await service.checkinBatch(uuid(10), ['first', 'second', 'pending'], checkerUser);
+
+      expect(result).toEqual([
+        { token: 'first', status: 'checked_in' },
+        { token: 'second', status: 'already_checked_in' },
+        { token: 'pending', status: 'invalid' },
+      ]);
+    });
+  });
+
   // ── Ativação externa (2d) ─────────────────────────────────────────────────
 
   describe('activateExternal', () => {
@@ -504,16 +596,14 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(eventOverridesService.upsert).not.toHaveBeenCalled();
     });
 
-    it('certificates força checkin automaticamente', async () => {
+    it('certificates não implica checkin', async () => {
       activationRepo.findOneBy.mockResolvedValue(null);
       const saved = await service.activateExternal(
         EVENT_KEY,
         { ...dto, features: ['certificates'] },
         user(),
       );
-      expect(saved.features).toEqual(
-        expect.arrayContaining(['certificates', 'checkin']),
-      );
+      expect(saved.features).toEqual(['certificates']);
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'event.activation_saved' }),
       );
@@ -724,10 +814,83 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(saved[0].memberId).toBe(uuid(6));
     });
 
-    it('sem feature checkin na ativação → 403', async () => {
+    it('certificate=true concede sem check-in nem horas', async () => {
       activationRepo.findOneBy.mockResolvedValue(
         makeActivation({ features: ['certificates'] }),
       );
+      mockMemberQb([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          isActive: true,
+        },
+      ]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,false,true';
+
+      const result = await service.importParticipants(EVENT_KEY, csv, user());
+
+      const created = registrationRepo.create.mock.calls[0][0];
+      expect(created.checkedInAt).toBeNull();
+      expect(created.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(created.certificateGrantedByMemberId).toBe(uuid(1));
+      expect(result).toMatchObject({ checkedIn: 0, certificatesGranted: 1 });
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
+    it('checkin=true registra presença e horas exactly-once no reupload', async () => {
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['checkin', 'certificates'] }),
+      );
+      mockMemberQb([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          isActive: true,
+        },
+      ]);
+      eventOverridesService.findByKeys.mockResolvedValue([
+        {
+          sourceKey: 'sympla:elasnocodigo',
+          eventId: '3321444',
+          payload: JSON.stringify({ workloadMinutes: 120 }),
+        },
+      ]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,true,false';
+
+      await service.importParticipants(EVENT_KEY, csv, user());
+      const created = registrationRepo.create.mock.calls[0][0];
+      registrationRepo.findBy.mockResolvedValue([created]);
+      await service.importParticipants(EVENT_KEY, csv, user());
+
+      expect(created.checkedInAt).toBeInstanceOf(Date);
+      expect(created.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(hoursService.recordEventCheckin).toHaveBeenCalledTimes(1);
+    });
+
+    it('checkin=true sem membro mantém pending_match e não credita horas', async () => {
+      activationRepo.findOneBy.mockResolvedValue(
+        makeActivation({ features: ['checkin'] }),
+      );
+      mockMemberQb([]);
+      const csv =
+        'name,email,checkin,certificate\nAna,ana@x.dev,true,true';
+
+      await service.importParticipants(EVENT_KEY, csv, user());
+
+      const created = registrationRepo.create.mock.calls[0][0];
+      expect(created.status).toBe(RegistrationStatus.PENDING_MATCH);
+      expect(created.checkedInAt).toBeInstanceOf(Date);
+      expect(hoursService.recordEventCheckin).not.toHaveBeenCalled();
+    });
+
+    it('sem features checkin e certificates na ativação → 403', async () => {
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: [] }));
       await expect(
         service.importParticipants(EVENT_KEY, 'name,email\nA,a@x.dev', user()),
       ).rejects.toThrow(ForbiddenException);

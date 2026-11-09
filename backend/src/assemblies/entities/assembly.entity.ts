@@ -3,9 +3,12 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Institution } from '../../entities/entities/institution.entity';
 
 export type AssemblyType = 'ordinaria' | 'oficial';
 export type AssemblyStatus = 'scheduled' | 'held' | 'canceled';
@@ -59,6 +62,13 @@ export class Assembly {
 
   @Column({ type: 'jsonb', nullable: true })
   notaryRegistry: AssemblyNotaryRegistry | null;
+
+  @Column({ type: 'uuid' })
+  entityId: string;
+
+  @ManyToOne(() => Institution, { nullable: false })
+  @JoinColumn({ name: 'entityId' })
+  entity: Institution;
 
   @Column({ type: 'uuid' })
   createdById: string;

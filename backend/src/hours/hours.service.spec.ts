@@ -78,6 +78,32 @@ describe('HoursService', () => {
     await expect(service.create(baseDto, actor)).rejects.toThrow(ForbiddenException);
   });
 
+  it('lists project entries for the principal mentor without exposing internal keys or actor ids', async () => {
+    repo.find.mockResolvedValue([{
+      id: 'hour-1', memberId: 'member-1', sourceType: HourEntrySource.EXTENSION_PROJECT,
+      sourceId: 'project-1', hours: 2, description: 'Encontro', status: HourEntryStatus.PENDING,
+      occurredAt: new Date('2026-10-01'), idempotencyKey: 'private-key',
+      reportedById: 'mentor-internal', approvedById: 'reviewer-internal',
+    }]);
+
+    const result = await service.listExtensionProjectEntries('project-1', actor);
+
+    expect(designations.hasDesignation).toHaveBeenCalledWith(actor.sub, {
+      targetType: 'extension_project', targetId: 'project-1', designation: 'mentor',
+    });
+    expect(result).toEqual([expect.objectContaining({ id: 'hour-1', memberId: 'member-1', hours: 2 })]);
+    expect(result[0]).not.toHaveProperty('idempotencyKey');
+    expect(result[0]).not.toHaveProperty('reportedById');
+    expect(result[0]).not.toHaveProperty('approvedById');
+  });
+
+  it('rejects project entry listing outside the principal mentor scope', async () => {
+    designations.hasDesignation.mockResolvedValue(false);
+
+    await expect(service.listExtensionProjectEntries('project-1', actor)).rejects.toThrow(ForbiddenException);
+    expect(repo.find).not.toHaveBeenCalled();
+  });
+
   it('approves and rejects with governance audit', async () => {
     const entry = { id: 'hour-1', status: HourEntryStatus.PENDING };
     repo.findOneBy.mockResolvedValue(entry);

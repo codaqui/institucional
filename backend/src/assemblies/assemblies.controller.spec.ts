@@ -59,35 +59,20 @@ describe('AssembliesController', () => {
     const create = { title: 'Nova assembleia' } as CreateAssemblyDto;
     const patch = { title: 'Título editado' } as UpdateAssemblyDto;
 
-    await controller.listManage(query);
+    await controller.listManage(query, { user: actor });
     await controller.create(create, { user: actor });
     await controller.update('assembly-1', patch, { user: actor });
 
-    expect(service.listManage).toHaveBeenCalledWith(query);
+    expect(service.listManage).toHaveBeenCalledWith(query, actor);
     expect(service.create).toHaveBeenCalledWith(create, actor);
     expect(service.update).toHaveBeenCalledWith('assembly-1', patch, actor);
   });
 
-  it('protects management routes from a plain member using the real roles guard', () => {
-    const guard = new RolesGuard(new Reflector());
-    const context = guardContext(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      AssembliesController.prototype.listManage,
-      { roles: ['membro'] } as JwtPayload,
-    );
+  it('delegates public detail by entity and slug', async () => {
+    service.publicByEntityAndSlug = jest.fn().mockResolvedValue({ slug: 'oficial-2' });
+    await controller.publicByEntityAndSlug('codaqui', 'oficial-2');
 
-    expect(() => guard.canActivate(context)).toThrow(ForbiddenException);
-  });
-
-  it('allows directors through the management roles guard', () => {
-    const guard = new RolesGuard(new Reflector());
-    const context = guardContext(
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      AssembliesController.prototype.listManage,
-      actor,
-    );
-
-    expect(guard.canActivate(context)).toBe(true);
+    expect(service.publicByEntityAndSlug).toHaveBeenCalledWith('codaqui', 'oficial-2');
   });
 
   it('accepts valid management filters and pagination', async () => {

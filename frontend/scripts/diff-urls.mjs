@@ -16,16 +16,17 @@
 //   ∪ (sources de dist/_redirects) ∪ (targets de dist/_redirects).
 // O brief da Fase 0.6 lista explicitamente os targets; os sources entram
 // também porque a referência contém as URLs legadas que hoje respondem 301
-// pelo edge (sem os sources o gate quebraria justamente nas 16 URLs que o
+// pelo edge (sem os sources o gate quebraria justamente nas 17 URLs que o
 // _redirects preserva). Além disso cada target precisa resolver para uma
 // página real do dist ou para outro source — redirect que aponta para o
 // nada é quebrado.
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { collectPageUrls, parseRedirects } from "./url-walk.mjs";
+import { collectPageUrls, matchesDynamicRoute, parseRedirects, walkFiles } from "./url-walk.mjs";
 
 const ROOT = join(import.meta.dirname, "..", "..");
+const PAGES = join(ROOT, "frontend", "src", "pages");
 const NEW = join(ROOT, "frontend", "dist");
 const REDIRECTS_FILE = join(NEW, "_redirects");
 const REFERENCE_FILE = join(ROOT, "frontend", "scripts", "url-reference.json");
@@ -65,6 +66,7 @@ if (!existsSync(NEW)) {
 
 const reference = loadReference();
 const distUrls = collectPageUrls(NEW, { exclude: EXCLUDE });
+const dynamicRoutes = walkFiles(PAGES, /\.astro$/);
 
 let redirects = { rules: [], sources: new Set(), targets: new Set() };
 if (existsSync(REDIRECTS_FILE)) {
@@ -88,10 +90,10 @@ const valid = new Set([...distUrls, ...redirects.sources, ...targetPaths]);
 const absent = [...reference].filter((u) => !valid.has(u));
 for (const url of absent) console.error(`✖ FALTA no site novo: ${url}`);
 
-// Redirect para o nada: target (sem query) que não é página do dist nem
-// outro source.
+// Redirect para o nada: target (sem query) que não é página do dist,
+// outro source ou rota dinâmica declarada em src/pages.
 const dangling = [...targetPaths].filter(
-  (t) => !distUrls.has(t) && !redirects.sources.has(t),
+  (t) => !distUrls.has(t) && !redirects.sources.has(t) && !matchesDynamicRoute(t, dynamicRoutes, PAGES),
 );
 for (const target of dangling) console.error(`✖ _redirects com target sem página: ${target}`);
 

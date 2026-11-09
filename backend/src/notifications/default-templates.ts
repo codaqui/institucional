@@ -11,6 +11,7 @@ export const EMAIL_TEMPLATE_REGISTRATION_CANCELLED =
   'event-registration-cancelled';
 export const EMAIL_TEMPLATE_REMINDER_D1 = 'event-reminder-d1';
 export const EMAIL_TEMPLATE_POST_EVENT = 'event-post-event';
+export const EMAIL_TEMPLATE_CERTIFICATE_PENDING = 'certificate-pending-registration';
 
 export interface DefaultTemplateDefinition {
   subject: string;
@@ -119,6 +120,22 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
       'Recupere o [QR Code da sua inscrição]({{checkinUrl}}) para apresentar na entrada.',
       '',
       'Nos vemos lá! Qualquer dúvida, fale com a equipe Codaqui.',
+      '',
+      '— Equipe Codaqui',
+    ].join('\n'),
+  },
+  [EMAIL_TEMPLATE_CERTIFICATE_PENDING]: {
+    subject: 'Certificado pendente de cadastro — {{eventTitle}}',
+    variables: ['attendeeName', 'eventTitle', 'eventStartAt', 'eventLocation', 'checkinToken', 'checkinUrl'],
+    sample: sampleContext,
+    bodyMarkdown: [
+      'Olá, {{attendeeName}}!',
+      '',
+      'Seu certificado de participação em **{{eventTitle}}** está pendente de cadastro.',
+      '',
+      'Para confirmar seus dados e acessar o certificado, [aceite o convite]({{checkinUrl}}).',
+      '',
+      'Se você já tem uma conta na Codaqui, entre com o mesmo e-mail para vincular sua participação.',
       '',
       '— Equipe Codaqui',
     ].join('\n'),
