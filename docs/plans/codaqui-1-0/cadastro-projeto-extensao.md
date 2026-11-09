@@ -163,7 +163,7 @@ draft → proposed → active → finished
 
 1. **RBAC** — criação/edição exclusiva de `diretor`/`admin`; transições restritas ao diretor dono ou `admin`.
 2. **Título único** — normalização (trim, colapsar espaços, case/acento-insensitivo) antes da checagem; duplicidade bloqueia salvar e informa o título existente.
-3. **Datas coerentes** — `startsAt < endsAt`; inscrição contida no período do projeto; nenhuma data de inscrição após o início da execução.
+3. **Datas coerentes** — `startsAt < endsAt`; `registrationStartsAt < registrationEndsAt`; inscrições podem começar antes do projeto, mas `registrationEndsAt <= startsAt`, impedindo inscrições após o início da execução.
 4. **Vagas** — inteiro ≥ 0 (o formulário de referência ajusta negativo para 0 e avisa; aqui apenas bloqueia a digitação de negativo).
 5. **Cronograma** — soma das cargas dos encontros **exatamente igual** a `totalHours` para submeter; descrição de cada encontro obrigatória (limite sugerido: 500 caracteres, como o original).
 6. **Designação de mentor** — só membro ativo; notificado por e-mail ao ativação.

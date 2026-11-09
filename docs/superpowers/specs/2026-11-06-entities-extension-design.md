@@ -168,7 +168,7 @@ Ações novas usam prefixos `entity.*`, `partnership.*` e `project.*`. Lançamen
 - Rascunho exige somente `name` e `entityId`; os demais campos podem permanecer incompletos até o salvamento completo.
 - Salvamento completo produz `proposed`; ativação exige formulário completo, mentor principal e entidade ativa.
 - Nome é normalizado com trim, espaços colapsados, minúsculas e remoção de diacríticos. Duplicidade de nome normalizado ou slug retorna conflito.
-- `startsAt < endsAt`; a janela de inscrição é contida no projeto e termina antes do início da execução.
+- `startsAt < endsAt` e `registrationStartsAt < registrationEndsAt`; inscrições podem começar antes do projeto, mas `registrationEndsAt <= startsAt`, impedindo inscrições após o início da execução.
 - ODS principal está entre 1 e 17; secundárias são únicas e não incluem a principal.
 - Cronograma e horas usam centésimos inteiros na validação, evitando erro de ponto flutuante. Cada encontro tem descrição e carga positiva; a soma é exatamente `totalHours`.
 - `maxParticipants = 0` significa sem limite; valores negativos são inválidos.
