@@ -100,6 +100,12 @@ export enum AuditAction {
   HOUR_APPROVED = 'hour.approved',
   HOUR_REJECTED = 'hour.rejected',
 
+  // Codaqui Universitário
+  CITY_CREATED = 'university.city_created',
+  CITY_UPDATED = 'university.city_updated',
+  UNIVERSITY_INSTITUTION_CREATED = 'university.institution_created',
+  UNIVERSITY_INSTITUTION_UPDATED = 'university.institution_updated',
+
   // Assemblies
   ASSEMBLY_CREATED = 'assembly.created',
   ASSEMBLY_UPDATED = 'assembly.updated',
