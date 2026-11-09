@@ -715,6 +715,8 @@ Sobe: PostgreSQL + Backend. As migrations são executadas automaticamente na ini
 
 **Handoff da Fase 4b — Codaqui Universitário:** backend 0.17.0 e migration 042 implementados e verificados, ainda sem integração/release. O down/up em dump real preservou 1 entity, 1 evento e 3 designations; o E2E PostgreSQL cobriu gestor → cidade → IES → candidatura → confirmação admin → evento do embaixador → inscrição → check-in → certificado e uma única entrada de 2 horas. Após merge autorizado, publique `v0.17.0-backend`, faça redeploy no Coolify, confirme a 042 e execute `npm run sync:universities` (ou `sync-universities.yml`, diário 06:26 UTC + dispatch) antes do frontend. Valide candidatura, posse, primeiro evento e snapshot público sem motivação/e-mail. Detalhes: [ADR 015](docs/adrs/015-codaqui-universitario.md). A publicação 0.16.x continua pendente de forma independente.
 
+**Fila de convites de certificado:** backend 0.18.0 e migration 043 implementados em `fix/certificate-invite-queue`, com PR própria para `develop`. O dump real preservou 28 `sent`/90 `failed`; o E2E cobriu 202, retry 421 e conclusão na segunda tentativa. Após merge autorizado, publique `v0.18.0-backend`, confirme a 043 e só então publique o frontend. `EMAIL_SEND_INTERVAL_MS` tem default 2000 ms em produção e 0 em testes. Comece com um lote pequeno; a migration não reprocessa os 90 erros nem envia e-mails automaticamente. Detalhes: [ADR 016](docs/adrs/016-certificate-invite-queue.md).
+
 ---
 
 ## Git: merge de `main` no branch de feature

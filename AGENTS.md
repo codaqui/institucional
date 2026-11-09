@@ -510,6 +510,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - APIs em `/universities/`; `/universities/index.json` é exceção estática exata do proxy. `npm run sync:universities` usa `UNIVERSITIES_API_URL`, valida a coleção e grava `static/universities/index.json` atomicamente; o workflow diário é 06:26 UTC + dispatch e o agregador `npm run sync` não o inclui. Motivação, e-mail, candidaturas e IDs de atores nunca são públicos.
 - Páginas `/universitario` e `/admin/universitario`; fila usa `PaginationControls`. O E2E PostgreSQL validou gestor → IES → posse → evento → inscrição → check-in → certificado/horas exactly-once; migration down/up preservou 1 entity, 1 evento e 3 designations. Publicação exige backend/migration → sync inicial → frontend. Detalhes: [ADR 015](docs/adrs/015-codaqui-universitario.md).
 
+### 29. Fila assíncrona de convites de certificado (ADR 016)
+
+- Migration 043/backend 0.18.0 criam `certificate_invite_jobs` por inscrição com `batchId`. `POST /events/certificate-invites/batch` responde **202**; o progresso fica em `GET /events/certificate-invites/batches/:batchId`, somente admin/solicitante. Não duplicar nome, e-mail, token ou template na fila.
+- `CertificateInviteQueueService` processa um job a cada 10 segundos com `FOR UPDATE SKIP LOCKED`, recarrega ator e recupera `processing` >2 min. Um índice parcial impede duas filas ativas por inscrição. `certificateInvitedAt` continua exigindo `sent`; não há reprocessamento automático dos 90 erros antigos.
+- `EmailService` serializa todas as chamadas SMTP e aplica `EMAIL_SEND_INTERVAL_MS` (default 2000 ms em produção, 0 em testes). Retry usa 1/5 minutos; terceira falha é definitiva; 421/454 pausa pendentes por 15 minutos. Não prometer exactly-once absoluto após falha ambígua de conexão.
+- Listagens próprias/externas aceitam `page`, `limit`, `search`, `certificateFilter`; envelope somente com página+limite, array legado sem eles. A Central usa 25 por página, seleção só da página atual, `<progress>` acessível e polling a cada 5 segundos somente com a aba visível, sem rajada na retomada.
+- Publicação exige backend/migration → frontend → lote pequeno controlado. E2E no dump preservou 28 `sent`/90 `failed` e validou 202, retry 421 e conclusão. Detalhes: [ADR 016](docs/adrs/016-certificate-invite-queue.md).
+
 ---
 
 ## Common Anti-Patterns
