@@ -105,6 +105,9 @@ export enum AuditAction {
   CITY_UPDATED = 'university.city_updated',
   UNIVERSITY_INSTITUTION_CREATED = 'university.institution_created',
   UNIVERSITY_INSTITUTION_UPDATED = 'university.institution_updated',
+  UNIVERSITY_AMBASSADOR_APPLIED = 'university.ambassador_applied',
+  UNIVERSITY_AMBASSADOR_REJECTED = 'university.ambassador_rejected',
+  UNIVERSITY_AMBASSADOR_CONFIRMED = 'university.ambassador_confirmed',
 
   // Assemblies
   ASSEMBLY_CREATED = 'assembly.created',

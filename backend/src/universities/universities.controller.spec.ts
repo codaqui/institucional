@@ -23,4 +23,27 @@ describe('UniversitiesController', () => {
     expect(service.createInstitution).toHaveBeenCalledWith({ name: 'IES Exemplo', cityId: 'city-1' }, actor);
     expect(service.updateInstitution).toHaveBeenCalledWith('ies-1', { cityId: 'city-2' }, actor);
   });
+
+  it('delegates ambassador application operations', async () => {
+    const service = {
+      applyAmbassador: jest.fn().mockResolvedValue({ id: 'application-1' }),
+      listApplications: jest.fn().mockResolvedValue([]),
+      listMyApplications: jest.fn().mockResolvedValue([]),
+      rejectApplication: jest.fn().mockResolvedValue({ id: 'application-1' }),
+      confirmApplication: jest.fn().mockResolvedValue({ id: 'application-1' }),
+    };
+    const controller = new UniversitiesController(service as any);
+
+    await controller.applyAmbassador('ies-1', { applicationNotes: 'Motivação' }, { user: actor });
+    await controller.listApplications({ user: actor });
+    await controller.listMyApplications({ user: actor });
+    await controller.rejectApplication('application-1', { user: actor });
+    await controller.confirmApplication('application-1', {}, { user: actor });
+
+    expect(service.applyAmbassador).toHaveBeenCalledWith('ies-1', { applicationNotes: 'Motivação' }, actor);
+    expect(service.listApplications).toHaveBeenCalledWith(actor);
+    expect(service.listMyApplications).toHaveBeenCalledWith(actor);
+    expect(service.rejectApplication).toHaveBeenCalledWith('application-1', actor);
+    expect(service.confirmApplication).toHaveBeenCalledWith('application-1', {}, actor);
+  });
 });

@@ -1,5 +1,5 @@
 import { PartialType } from '@nestjs/swagger';
-import { IsBoolean, IsEmail, IsOptional, IsString, IsUrl, IsUUID, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsISO8601, IsOptional, IsString, IsUrl, IsUUID, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateCityDto {
   @IsString()
@@ -47,3 +47,16 @@ export class CreateUniversityInstitutionDto {
 }
 
 export class UpdateUniversityInstitutionDto extends PartialType(CreateUniversityInstitutionDto) {}
+
+export class AmbassadorApplicationDto {
+  @IsString()
+  @MinLength(10)
+  @MaxLength(2000)
+  applicationNotes: string;
+}
+
+export class ConfirmAmbassadorDto {
+  @IsOptional()
+  @IsISO8601()
+  validUntil?: string;
+}

@@ -59,13 +59,16 @@ describe('auditCategory', () => {
     AuditAction.CITY_UPDATED,
     AuditAction.UNIVERSITY_INSTITUTION_CREATED,
     AuditAction.UNIVERSITY_INSTITUTION_UPDATED,
+    AuditAction.UNIVERSITY_AMBASSADOR_APPLIED,
+    AuditAction.UNIVERSITY_AMBASSADOR_REJECTED,
+    AuditAction.UNIVERSITY_AMBASSADOR_CONFIRMED,
   ])('classifies %s as operational', (action) => {
     expect(auditCategory(action)).toBe('operational');
   });
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(69);
+    expect(actions).toHaveLength(72);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }

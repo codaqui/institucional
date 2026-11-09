@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, IsNull, QueryRunner, Repository } from 'typeorm';
+import { DataSource, IsNull, QueryRunner, Raw, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
@@ -49,6 +49,8 @@ export interface GrantDesignationInput {
   designation: Designation;
   appointedById: string;
   status?: DesignationStatus;
+  validUntil?: Date | null;
+  applicationNotes?: string | null;
 }
 
 export interface DesignationQuery {
@@ -108,6 +110,7 @@ export class DesignationsService {
         targetId: query.targetId ?? IsNull(),
         targetKey: query.targetKey ?? IsNull(),
         designation: query.designation,
+        validUntil: Raw((alias) => `(${alias} IS NULL OR ${alias} > NOW())`),
       },
     });
     const value = !!designation;
