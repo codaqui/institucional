@@ -81,6 +81,8 @@ export enum AuditAction {
 
   // Events (2c/2d — check-in, ativações externas, importações)
   EVENT_CHECKIN = 'event.checkin',
+  EVENT_CERTIFICATE_GRANTED = 'event.certificate_granted',
+  EVENT_CERTIFICATE_INVITED = 'event.certificate_invited',
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
