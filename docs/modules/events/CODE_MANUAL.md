@@ -111,6 +111,7 @@ related-docs:
 5. Somente a transição atômica `checkedInAt null → valor` com `status=confirmed` pode gerar `event_checkin`, na mesma transação. Se o update perder a corrida, a releitura diferencia `already_checked_in` de cancelamento/outro estado recusado. O crédito exige `memberId` e carga válida, nasce `approved` e usa `INSERT ... ON CONFLICT DO NOTHING`: hora preexistente não aborta o check-in nem duplica. Guests sem conta não geram horas.
 6. O CSV externo aceita `checkin` e `certificate` (`true/false` ou `1/0`). Presença importada também concede certificado; concessão isolada não gera horas. Reupload mantém dedupe e não recredita. O relatório inclui `checkedIn` e `certificatesGranted`.
 7. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
+8. Para corrigir importações, `DELETE /events/external/:eventKey/participants/:registrationId` exclui apenas participantes sem `orderId` e sem `checkedInAt`, decrementa `quantitySold` na mesma transação e libera reimportação. Presença e pedidos retornam 409 para preservar o histórico; `/admin/overrides` mostra confirmação e feedback.
 
 ### 2.4 Certificado
 

@@ -640,6 +640,24 @@ export class EventsController {
     return this.eventsService.importParticipants(eventKey, csvText, req.user);
   }
 
+  @Delete('external/:eventKey/participants/:registrationId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({
+    summary: 'Excluir participante importado sem pedido ou presença',
+  })
+  deleteExternalParticipant(
+    @Param('eventKey') eventKey: string,
+    @Param('registrationId', ParseUUIDPipe) registrationId: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.deleteExternalParticipant(
+      eventKey,
+      registrationId,
+      req.user,
+    );
+  }
+
   @Post('external/:eventKey/participants/rematch')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')

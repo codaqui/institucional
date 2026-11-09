@@ -61,6 +61,7 @@ describe('EventsController', () => {
       listExternalOrders: jest.fn().mockResolvedValue([]),
       getExternalEventLedger: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       importParticipants: jest.fn().mockResolvedValue({ imported: 0 }),
+      deleteExternalParticipant: jest.fn().mockResolvedValue({ deleted: true }),
       rematchParticipants: jest.fn().mockResolvedValue({ rematched: 0 }),
       listExternalParticipants: jest.fn().mockResolvedValue([]),
       checkinExternal: jest.fn().mockResolvedValue({ status: 'checked_in' }),
@@ -273,6 +274,20 @@ describe('EventsController', () => {
         'name,email\nAna,ana@x.dev',
         user,
       );
+    });
+
+    it('DELETE /events/external/:eventKey/participants/:registrationId', async () => {
+      const result = await controller.deleteExternalParticipant(
+        'meetup:devparana:1',
+        'reg-1',
+        { user },
+      );
+      expect(service.deleteExternalParticipant).toHaveBeenCalledWith(
+        'meetup:devparana:1',
+        'reg-1',
+        user,
+      );
+      expect(result).toEqual({ deleted: true });
     });
   });
 });

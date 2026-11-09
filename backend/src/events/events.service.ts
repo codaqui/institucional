@@ -3577,6 +3577,57 @@ export class EventsService {
     );
   }
 
+  async deleteExternalParticipant(
+    eventKey: string,
+    registrationId: string,
+    user: JwtPayload,
+  ) {
+    const activation = await this.findActivationOrFail(eventKey);
+    await this.assertExternalManager(user, activation, {
+      allowActivator: true,
+    });
+    const registration = await this.registrationRepo.findOneBy({
+      id: registrationId,
+      externalActivationId: activation.id,
+    });
+    if (!registration) {
+      throw new NotFoundException('Participante não encontrado neste evento.');
+    }
+    if (registration.orderId || registration.checkedInAt) {
+      throw new ConflictException(
+        'Participantes com pedido ou presença não podem ser excluídos.',
+      );
+    }
+
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      const result = await manager.getRepository(EventRegistration).delete({
+        id: registration.id,
+        externalActivationId: activation.id,
+        orderId: IsNull(),
+        checkedInAt: IsNull(),
+      });
+      if (!result.affected) {
+        throw new ConflictException(
+          'Não foi possível excluir o participante com segurança.',
+        );
+      }
+      await manager.query(
+        'UPDATE ticket_types SET "quantitySold" = GREATEST("quantitySold" - $1, 0) WHERE id = $2',
+        [1, registration.ticketTypeId],
+      );
+    });
+
+    void this.auditService.log({
+      action: AuditAction.EVENT_PARTICIPANT_DELETED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventKey },
+    });
+    return { deleted: true };
+  }
+
   /**
    * POST /events/external/:eventKey/participants/rematch — re-tenta o match
    * das inscrições pending_match (depois que participantes se cadastraram).

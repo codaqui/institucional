@@ -44,6 +44,7 @@ export interface ExternalParticipant {
   checkedInAt: string | null;
   certificateGrantedAt: string | null;
   certificateInvitedAt: string | null;
+  orderId: string | null;
   ticketType: { name: string | null } | null;
 }
 

@@ -705,6 +705,8 @@ Sobe: PostgreSQL + Backend. As migrations são executadas automaticamente na ini
 
 **Adendo de certificação desacoplada:** a migration 041 e a central `/admin/eventos-checkin` (Escanear/Participantes/Certificados) seguem na mesma release 0.16.0 e PR #617. O E2E real cobriu CSV com `checkin/certificate`, batch, concessão sem presença, horas exactly-once, convite `sent/failed/skipped`, aceite guest externo e verificação. Após o deploy, valide em homologação/produção controlada: ativação `certificates` sem `checkin`, importação com presença e concessão, um convite transacional real, aceite e verificação pública. Não há campanha/open tracking; concessão e convite continuam ações explícitas com escopo no backend.
 
+**Correção 0.16.1 — participantes importados:** `DELETE /events/external/:eventKey/participants/:registrationId` remove somente inscrições sem pedido/presença, decrementa `quantitySold` na transação e libera reimportação. Presença ou pedido retorna 409 para preservar histórico/horas. O E2E real confirmou exclusão, reimportação e contagem do ingresso; `/admin/overrides` tem confirmação e feedback. Publicar `v0.16.1-backend` junto ou depois da 0.16.0, antes de usar a ação em produção.
+
 ---
 
 ## Git: merge de `main` no branch de feature

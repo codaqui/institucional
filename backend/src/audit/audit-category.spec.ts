@@ -51,6 +51,7 @@ describe('auditCategory', () => {
     AuditAction.EVENT_CERTIFICATE_INVITED,
     AuditAction.EVENT_ACTIVATION_SAVED,
     AuditAction.EVENT_PARTICIPANTS_IMPORTED,
+    AuditAction.EVENT_PARTICIPANT_DELETED,
     AuditAction.EVENT_INTERNAL_SYNCED,
     AuditAction.EMAIL_TEMPLATE_UPSERTED,
     AuditAction.EMAIL_TEMPLATE_DELETED,
@@ -60,7 +61,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(64);
+    expect(actions).toHaveLength(65);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }

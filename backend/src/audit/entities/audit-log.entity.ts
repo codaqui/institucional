@@ -85,6 +85,7 @@ export enum AuditAction {
   EVENT_CERTIFICATE_INVITED = 'event.certificate_invited',
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
+  EVENT_PARTICIPANT_DELETED = 'event.participant_deleted',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
   EVENT_GUEST_INVITED = 'event.guest_invited',
   EVENT_GUEST_CLAIMED = 'event.guest_claimed',
