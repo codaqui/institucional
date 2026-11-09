@@ -111,6 +111,12 @@ describe("isApiProxyPath — allow-list de proxy (fonte única atual; paridade c
     expect(isApiProxyPath("/communities/public")).toBe(true);
   });
 
+  it("events/index.json é snapshot estático, sem interceptar as demais APIs", () => {
+    expect(isApiProxyPath("/events/index.json")).toBe(false);
+    expect(isApiProxyPath("/events/public/managed")).toBe(true);
+    expect(isApiProxyPath("/events/organizers/reconcile")).toBe(true);
+  });
+
   it("assemblies é API sem interceptar as páginas públicas /assembleias", () => {
     expect(isApiProxyPath("/assemblies")).toBe(true);
     expect(isApiProxyPath("/assemblies/public")).toBe(true);
