@@ -40,8 +40,10 @@ export class HoursService {
     @Optional()
     private readonly dataSource?: DataSource,
     @Optional()
+    @InjectRepository(ExtensionProject)
     private readonly projects?: Repository<ExtensionProject>,
     @Optional()
+    @InjectRepository(ProjectParticipant)
     private readonly participants?: Repository<ProjectParticipant>,
     @Optional()
     private readonly email?: EmailService,

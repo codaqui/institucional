@@ -1,10 +1,12 @@
 import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { IsIn } from 'class-validator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { ProjectCertificatesService } from './project-certificates.service';
 
 class IssueProjectCertificateDto {
+  @IsIn(['participant', 'mentor_report'])
   kind: 'participant' | 'mentor_report';
 }
 

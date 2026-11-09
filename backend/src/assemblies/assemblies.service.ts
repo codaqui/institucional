@@ -41,6 +41,7 @@ export class AssembliesService {
     private readonly designations: DesignationsService,
     private readonly audit: AuditService,
     @Optional()
+    @InjectRepository(Institution)
     private readonly entities?: Repository<Institution>,
   ) {}
 

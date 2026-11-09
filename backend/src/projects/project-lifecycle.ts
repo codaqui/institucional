@@ -18,6 +18,12 @@ export function assertProjectTransition(
   const nextStatus = patch.status ?? project.status;
   if (nextStatus === project.status) return;
 
+  if (nextStatus === 'proposed') {
+    if (project.status !== 'draft') {
+      throw new BadRequestException(`Transição de status inválida: ${project.status} -> ${nextStatus}`);
+    }
+    return;
+  }
   if (!['active', 'finished', 'canceled'].includes(nextStatus)) {
     throw new BadRequestException(`Transição de status inválida: ${project.status} -> ${nextStatus}`);
   }

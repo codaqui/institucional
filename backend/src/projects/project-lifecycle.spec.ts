@@ -16,6 +16,15 @@ const mentorActor = { sub: 'mentor-1', handle: 'mentor', roles: ['mentor'] } as 
 const activeMentor = { memberId: 'mentor-1' } as any;
 
 describe('project-lifecycle', () => {
+  it('allows a director to complete a draft as proposed', () => {
+    expect(() => assertProjectTransition(
+      { ...project, status: 'draft' },
+      { ...project, status: 'proposed', mentorMemberId: 'mentor-1' },
+      otherDirector,
+      activeMentor,
+    )).not.toThrow();
+  });
+
   it('rejects activation by a director who does not own the project', () => {
     expect(() => assertProjectTransition(project, { status: 'active' }, otherDirector, activeMentor))
       .toThrow(ForbiddenException);

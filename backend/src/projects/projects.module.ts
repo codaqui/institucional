@@ -16,6 +16,9 @@ import { ProjectHoursController } from './project-hours.controller';
 import { ProjectCertificatesController } from './project-certificates.controller';
 import { ProjectCertificatesService } from './project-certificates.service';
 import { ProjectCertificate } from './entities/project-certificate.entity';
+import { StorageModule } from '../storage/storage.module';
+import { HoursModule } from '../hours/hours.module';
+import { HourEntry } from '../hours/entities/hour-entry.entity';
 
 @Module({
   imports: [
@@ -27,9 +30,12 @@ import { ProjectCertificate } from './entities/project-certificate.entity';
       Partnership,
       MemberDesignation,
       Member,
+      HourEntry,
     ]),
     DesignationsModule,
     AuditModule,
+    StorageModule,
+    HoursModule,
   ],
   controllers: [ProjectsController, ParticipantsController, ProjectHoursController, ProjectCertificatesController],
   providers: [ProjectsService, ParticipantsService, ProjectCertificatesService],

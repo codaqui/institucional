@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, IsNull, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
@@ -23,6 +23,7 @@ export class ParticipantsService {
     private readonly designations: DesignationsService,
     private readonly audit: AuditService,
     private readonly email: EmailService,
+    @Optional()
     private readonly now: () => Date = () => new Date(),
   ) {}
 

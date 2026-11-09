@@ -37,6 +37,7 @@ export class ProjectsService {
     private readonly email: EmailService,
     private readonly storage: StorageService,
     @Optional()
+    @InjectRepository(ProjectParticipant)
     private readonly participantsRepo?: Repository<ProjectParticipant>,
   ) {}
 
