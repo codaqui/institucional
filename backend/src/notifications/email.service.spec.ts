@@ -131,6 +131,49 @@ describe('EmailService', () => {
       expect(emailLogRepo.save).toHaveBeenCalledTimes(1);
     });
 
+    it('serializa chamadas SMTP para evitar rajadas de login', async () => {
+      let releaseFirst!: () => void;
+      provider.send
+        .mockImplementationOnce(() => new Promise<void>((resolve) => { releaseFirst = resolve; }))
+        .mockResolvedValue(undefined);
+
+      const first = service.sendTemplate(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, 'a@x.dev', makeContext());
+      const second = service.sendTemplate(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, 'b@x.dev', makeContext());
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(provider.send).toHaveBeenCalledTimes(1);
+
+      releaseFirst();
+      await Promise.all([first, second]);
+      expect(provider.send).toHaveBeenCalledTimes(2);
+    });
+
+    it('aguarda o intervalo configurado entre envios', async () => {
+      jest.useFakeTimers();
+      process.env.EMAIL_SEND_INTERVAL_MS = '5';
+      try {
+        const first = service.sendTemplate(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, 'a@x.dev', makeContext());
+        const second = service.sendTemplate(EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION, 'b@x.dev', makeContext());
+        let secondCompleted = false;
+        void second.then(() => { secondCompleted = true; });
+
+        await jest.advanceTimersByTimeAsync(0);
+        expect(provider.send).toHaveBeenCalledTimes(1);
+        await jest.advanceTimersByTimeAsync(4);
+        expect(provider.send).toHaveBeenCalledTimes(1);
+        await jest.advanceTimersByTimeAsync(1);
+        expect(provider.send).toHaveBeenCalledTimes(2);
+        expect(secondCompleted).toBe(false);
+        await jest.advanceTimersByTimeAsync(4);
+        expect(secondCompleted).toBe(false);
+        await jest.advanceTimersByTimeAsync(1);
+        await Promise.all([first, second]);
+        expect(secondCompleted).toBe(true);
+      } finally {
+        delete process.env.EMAIL_SEND_INTERVAL_MS;
+        jest.useRealTimers();
+      }
+    });
+
     it('rejeita template desconhecido', async () => {
       await expect(
         service.sendTemplate('template-inexistente', 'ana@x.dev', makeContext()),

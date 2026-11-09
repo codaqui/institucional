@@ -19,7 +19,7 @@ import {
 } from '../events/entities/event-registration.entity';
 import { Member } from '../members/entities/member.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
-import { SmtpEmailProvider } from './email.provider';
+import { SmtpEmailProvider, type EmailMessage } from './email.provider';
 import { renderProjectEmail, type ProjectEmailInput } from './project-email';
 import { EmailTemplateService } from './email-template.service';
 import {
@@ -92,6 +92,7 @@ const CONFIRMED_LIKE: RegistrationStatus[] = [
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
+  private smtpChain: Promise<void> = Promise.resolve();
 
   constructor(
     @InjectRepository(EmailLog)
@@ -107,6 +108,26 @@ export class EmailService {
     private readonly provider: SmtpEmailProvider,
     private readonly templateService: EmailTemplateService,
   ) {}
+
+  private smtpDelay(): Promise<void> {
+    const configured = Number.parseInt(process.env.EMAIL_SEND_INTERVAL_MS ?? '', 10);
+    const fallback = process.env.NODE_ENV === 'production' ? 2000 : 0;
+    const delay = Number.isFinite(configured) ? Math.max(0, configured) : fallback;
+    if (delay === 0) return Promise.resolve();
+    return new Promise((resolve) => setTimeout(resolve, delay));
+  }
+
+  private scheduleSmtpSend(message: EmailMessage): Promise<void> {
+    const run = this.smtpChain.then(async () => {
+      try {
+        await this.provider.send(message);
+      } finally {
+        await this.smtpDelay();
+      }
+    });
+    this.smtpChain = run.catch(() => undefined);
+    return run;
+  }
 
   private contextFor(
     registration: EventRegistration,
@@ -157,7 +178,7 @@ export class EmailService {
     });
     if (!configured) return this.emailLogRepo.save(log);
     try {
-      await this.provider.send({
+      await this.scheduleSmtpSend({
         to,
         subject: rendered.subject,
         text: rendered.text,
@@ -184,7 +205,7 @@ export class EmailService {
     });
     if (!configured) return this.emailLogRepo.save(log);
     try {
-      await this.provider.send({
+      await this.scheduleSmtpSend({
         to: input.to,
         subject: rendered.subject,
         text: rendered.text,
@@ -486,7 +507,7 @@ export class EmailService {
       ),
     );
     try {
-      await this.provider.send({
+      await this.scheduleSmtpSend({
         to: log.to,
         subject: rendered.subject,
         text: rendered.text,
