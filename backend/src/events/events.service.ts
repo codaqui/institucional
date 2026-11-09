@@ -2777,25 +2777,41 @@ export class EventsService {
     return activation;
   }
 
+  async validateCertificateInviteRegistration(
+    registrationId: string,
+    user: JwtPayload,
+  ): Promise<'ok' | 'invalid' | 'already_invited'> {
+    const { status } = await this.certificateInviteRegistrationState(registrationId, user);
+    return status;
+  }
+
+  private async certificateInviteRegistrationState(
+    registrationId: string,
+    user: JwtPayload,
+  ): Promise<{ registration: EventRegistration | null; status: 'ok' | 'invalid' | 'already_invited' }> {
+    const registration = await this.registrationRepo.findOneBy({ id: registrationId });
+    if (!registration || ![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
+      return { registration: null, status: 'invalid' };
+    }
+    if (registration.certificateInvitedAt) return { registration: null, status: 'already_invited' };
+    if (registration.eventId) {
+      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
+        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
+      if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
+    } else {
+      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+      EventsService.assertFeature(activation, 'certificates');
+      await this.assertExternalManager(user, activation, { allowActivator: true });
+    }
+    return { registration, status: 'ok' };
+  }
+
   async inviteCertificates(registrationIds: string[], user: JwtPayload) {
     return Promise.all(registrationIds.map(async (registrationId) => {
-      const registration = await this.registrationRepo.findOneBy({ id: registrationId });
-      if (!registration) return { registrationId, status: 'invalid' as const };
-      if (![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
-        return { registrationId, status: 'invalid' as const };
-      }
-      if (registration.certificateInvitedAt) return { registrationId, status: 'already_invited' as const };
-      if (registration.eventId) {
-        const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
-          await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
-        if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
-      } else {
-        if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
-        const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
-        if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
-        EventsService.assertFeature(activation, 'certificates');
-        await this.assertExternalManager(user, activation, { allowActivator: true });
-      }
+      const { registration, status } = await this.certificateInviteRegistrationState(registrationId, user);
+      if (!registration) return { registrationId, status, error: null };
       registration.status = RegistrationStatus.PENDING_GUEST;
       registration.isGuest = true;
       registration.guestInvitedByMemberId = user.sub;
@@ -2813,7 +2829,7 @@ export class EventsService {
         targetType: 'event-registration',
         details: { status: log.status },
       });
-      return { registrationId, status: log.status };
+      return { registrationId, status: log.status, error: log.error };
     }));
   }
 

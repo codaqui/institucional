@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -17,6 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { EventsService } from './events.service';
+import { CertificateInviteQueueService } from './certificate-invite-queue.service';
 import {
   CreateEventDto,
   ListEventsQueryDto,
@@ -40,7 +42,10 @@ import { TurnstileGuard } from '../common/turnstile/turnstile.guard';
 @ApiTags('Events')
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly certificateInvites: CertificateInviteQueueService,
+  ) {}
 
   // ── Público (pipeline de snapshots) ───────────────────────────────────────
   // Rotas estáticas declaradas ANTES de ':id'.
@@ -111,14 +116,26 @@ export class EventsController {
   }
 
   @Post('certificate-invites/batch')
+  @HttpCode(202)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
-  @ApiOperation({ summary: 'Convida inscrições pendentes para aceitar certificado' })
+  @ApiOperation({ summary: 'Enfileira convites de certificado para processamento assíncrono' })
   inviteCertificates(
     @Body() dto: BatchCertificateInviteDto,
     @Req() req: { user: JwtPayload },
   ) {
-    return this.eventsService.inviteCertificates(dto.registrationIds, req.user);
+    return this.certificateInvites.enqueue(dto.registrationIds, req.user);
+  }
+
+  @Get('certificate-invites/batches/:batchId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Progresso de um lote de convites de certificado' })
+  getCertificateInviteBatch(
+    @Param('batchId', ParseUUIDPipe) batchId: string,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.certificateInvites.getBatch(batchId, req.user);
   }
 
   @Get('certificates/verify/:code')

@@ -7,6 +7,7 @@ import { EventRegistration } from './entities/event-registration.entity';
 import { EventStaff } from './entities/event-staff.entity';
 import { ExternalEventActivation } from './entities/external-event-activation.entity';
 import { EventOverride } from './entities/event-override.entity';
+import { CertificateInviteJob } from './entities/certificate-invite-job.entity';
 import { Member } from '../members/entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { LedgerModule } from '../ledger/ledger.module';
@@ -22,6 +23,7 @@ import { TurnstileModule } from '../common/turnstile/turnstile.module';
 import { DesignationsModule } from '../designations/designations.module';
 import { Institution } from '../entities/entities/institution.entity';
 import { EventsService } from './events.service';
+import { CertificateInviteQueueService } from './certificate-invite-queue.service';
 import { EventsController } from './events.controller';
 import { EventOverridesService } from './event-overrides.service';
 import { EventOverridesController } from './event-overrides.controller';
@@ -36,6 +38,7 @@ import { EventOverridesController } from './event-overrides.controller';
       EventStaff,
       ExternalEventActivation,
       EventOverride,
+      CertificateInviteJob,
       Member,
       Transaction,
       Institution,
@@ -62,7 +65,7 @@ import { EventOverridesController } from './event-overrides.controller';
     EventOverridesController,
     EventsController,
   ],
-  providers: [EventsService, EventOverridesService],
-  exports: [EventsService, EventOverridesService],
+  providers: [EventsService, EventOverridesService, CertificateInviteQueueService],
+  exports: [EventsService, EventOverridesService, CertificateInviteQueueService],
 })
 export class EventsModule {}

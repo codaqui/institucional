@@ -2094,6 +2094,26 @@ describe('EventsService', () => {
     });
   });
 
+  describe('certificate invite validation', () => {
+    it('validates pending registrations and reports already invited or invalid states', async () => {
+      const registration = {
+        id: uuid(40),
+        eventId: uuid(10),
+        status: RegistrationStatus.PENDING_MATCH,
+        certificateInvitedAt: null,
+      };
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('ok');
+
+      registration.certificateInvitedAt = new Date();
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('already_invited');
+
+      registration.status = RegistrationStatus.CONFIRMED;
+      registration.certificateInvitedAt = null;
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('invalid');
+    });
+  });
+
   describe('certificate registration pagination', () => {
     function mockRegistrationQuery(total = 55) {
       const qb = {
