@@ -5,9 +5,9 @@
  * `useHistory` → `window.location.replace`, `Layout`/`AdminPageContainer` →
  * `PageContainer` (o h1 fica na topbar do AppLayout — aqui começa em h2).
  *
- * Internos filtram a lista no backend (`?query=`); externos filtram
- * client-side. Deep-link `?event=<id|external:<eventKey>>` pré-seleciona
- * o evento. A câmera exige HTTPS (mkcert local — ver DEVELOPMENT.md).
+ * Internos e externos filtram e paginam no backend. Deep-link
+ * `?event=<id|external:<eventKey>>` pré-seleciona o evento.
+ * A câmera exige HTTPS (mkcert local — ver DEVELOPMENT.md).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import QrScanner from "qr-scanner";
@@ -15,15 +15,19 @@ import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import QrScannerPanel from "./QrScannerPanel";
 import ManualSearch, { type BatchCheckinResult } from "./ManualSearch";
-import CertificateCenter, { type CertificateInviteResult } from "./CertificateCenter";
+import CertificateCenter from "./CertificateCenter";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import type {
+  CertificateFilter,
+  CertificateInviteBatch,
+  CertificateInviteBatchProgress,
   CheckinResult,
   EventRegistration,
   ExternalActivationItem,
   ManagedEvent,
 } from "./types";
+import type { PaginatedResponse } from "../../../../lib/pagination";
 import {
   CAMERA_START_TIMEOUT_MS,
   CHECKIN_ROLES,
@@ -74,6 +78,10 @@ function CheckinInner(): React.JSX.Element {
   const [registrations, setRegistrations] = useState<EventRegistration[]>([]);
   const [regsLoading, setRegsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [registrationsPage, setRegistrationsPage] = useState(1);
+  const [registrationsTotal, setRegistrationsTotal] = useState(0);
+  const [registrationsTotalPages, setRegistrationsTotalPages] = useState(0);
+  const [certificateFilter, setCertificateFilter] = useState<CertificateFilter>("all");
 
   const [manualToken, setManualToken] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
@@ -107,40 +115,26 @@ function CheckinInner(): React.JSX.Element {
   // ── Data loading ──────────────────────────────────────────────────────────
 
   const fetchRegistrations = useCallback(
-    async (selection: string, query: string) => {
+    async (selection: string, query: string, page = 1, filter: CertificateFilter = "all") => {
       setRegsLoading(true);
       try {
-        if (selection.startsWith(EXTERNAL_PREFIX)) {
-          // Externo: backend não filtra por query — busca é client-side.
-          const eventKey = selection.slice(EXTERNAL_PREFIX.length);
-          const res = await authFetch(
-            `/events/external/${encodeURIComponent(eventKey)}/participants`,
-          );
-          const data = await parseAuthJson<EventRegistration[]>(res, setLoadError);
-          if (!data) return;
-          const list = Array.isArray(data) ? data : [];
-          const q = query.trim().toLowerCase();
-          setRegistrations(
-            q
-              ? list.filter(
-                  (r) =>
-                    (r.attendeeName ?? "").toLowerCase().includes(q) ||
-                    r.attendeeEmail.toLowerCase().includes(q),
-                )
-              : list,
-          );
-          return;
-        }
-        const params = new URLSearchParams();
-        if (query.trim()) params.set("query", query.trim());
-        const qs = params.toString();
-        const registrationsUrl = qs
-          ? `/events/${selection}/registrations?${qs}`
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: "25",
+          certificateFilter: filter,
+        });
+        if (query.trim()) params.set("search", query.trim());
+        const path = selection.startsWith(EXTERNAL_PREFIX)
+          ? `/events/external/${encodeURIComponent(selection.slice(EXTERNAL_PREFIX.length))}/participants`
           : `/events/${selection}/registrations`;
-        const res = await authFetch(registrationsUrl);
-        const data = await parseAuthJson<EventRegistration[]>(res, setLoadError);
+        const res = await authFetch(`${path}?${params.toString()}`);
+        const data = await parseAuthJson<EventRegistration[] | PaginatedResponse<EventRegistration>>(res, setLoadError);
         if (!data) return;
-        setRegistrations(Array.isArray(data) ? data : []);
+        const list = Array.isArray(data) ? data : data.data;
+        setRegistrations(Array.isArray(list) ? list : []);
+        setRegistrationsPage(Array.isArray(data) ? 1 : data.page);
+        setRegistrationsTotal(Array.isArray(data) ? list.length : data.total);
+        setRegistrationsTotalPages(Array.isArray(data) ? 1 : data.totalPages);
       } catch {
         setLoadError("Erro inesperado ao carregar inscrições.");
       } finally {
@@ -209,6 +203,7 @@ function CheckinInner(): React.JSX.Element {
     setResult(null);
     setRegistrations([]);
     setSearchQuery("");
+    setCertificateFilter("all");
     fetchRegistrations(selectedEventId, "");
   }, [selectedEventId, canUseList, fetchRegistrations]);
 
@@ -270,7 +265,7 @@ function CheckinInner(): React.JSX.Element {
         }
         // Atualiza a lista (contador de presentes) sem bloquear o fluxo da porta
         if (canUseList) {
-          fetchRegistrations(selectedEventId, searchQuery);
+          fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
         }
       } catch {
         setResult({ kind: "invalid", message: "Erro inesperado ao confirmar presença." });
@@ -303,7 +298,7 @@ function CheckinInner(): React.JSX.Element {
         throw new Error(await extractErrorMessage(res, "Erro ao confirmar presenças em lote."));
       }
       const results = (await res.json()) as BatchCheckinResult[];
-      await fetchRegistrations(selectedEventId, searchQuery);
+      await fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
       return results;
     },
     [authFetch, fetchRegistrations, searchQuery, selectedEventId],
@@ -329,19 +324,32 @@ function CheckinInner(): React.JSX.Element {
   );
 
   const handleInviteCertificates = useCallback(
-    async (registrationIds: string[]): Promise<CertificateInviteResult[]> => {
+    async (registrationIds: string[]): Promise<CertificateInviteBatch> => {
       const res = await authFetch("/events/certificate-invites/batch", {
         method: "POST",
         body: JSON.stringify({ registrationIds }),
       });
       if (!res.ok) {
-        throw new Error(await extractErrorMessage(res, "Erro ao enviar convites."));
+        throw new Error(await extractErrorMessage(res, "Erro ao enfileirar convites."));
       }
-      const results = (await res.json()) as CertificateInviteResult[];
-      await fetchRegistrations(selectedEventId, searchQuery);
-      return results;
+      return (await res.json()) as CertificateInviteBatch;
     },
-    [authFetch, fetchRegistrations, searchQuery, selectedEventId],
+    [authFetch],
+  );
+
+  const loadCertificateInviteBatch = useCallback(
+    async (batchId: string): Promise<CertificateInviteBatchProgress> => {
+      const res = await authFetch(`/events/certificate-invites/batches/${batchId}`);
+      const data = await parseAuthJson<CertificateInviteBatchProgress>(res, setLoadError);
+      if (!data) throw new Error("Não foi possível carregar o lote.");
+      return data;
+    },
+    [authFetch],
+  );
+
+  const refreshCertificates = useCallback(
+    () => fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter),
+    [fetchRegistrations, selectedEventId, searchQuery, registrationsPage, certificateFilter],
   );
 
   // ── Câmera (qr-scanner by Nimiq) ─────────────────────────────────────────
@@ -576,7 +584,7 @@ function CheckinInner(): React.JSX.Element {
                 checkinLoading={checkinLoading}
                 canCheckinFeature={canCheckinSelected}
                 onSearchQueryChange={setSearchQuery}
-                onSearch={() => fetchRegistrations(selectedEventId, searchQuery)}
+                onSearch={() => fetchRegistrations(selectedEventId, searchQuery, 1, certificateFilter)}
                 onCheckin={(token) => {
                   void handleCheckin(token);
                 }}
@@ -591,6 +599,17 @@ function CheckinInner(): React.JSX.Element {
                 registrations={registrations}
                 onGrant={handleGrantCertificate}
                 onInvite={handleInviteCertificates}
+                onLoadBatch={loadCertificateInviteBatch}
+                onRefresh={refreshCertificates}
+                filter={certificateFilter}
+                onFilterChange={(nextFilter) => {
+                  setCertificateFilter(nextFilter);
+                  void fetchRegistrations(selectedEventId, searchQuery, 1, nextFilter);
+                }}
+                page={registrationsPage}
+                total={registrationsTotal}
+                totalPages={registrationsTotalPages}
+                onPageChange={(nextPage) => fetchRegistrations(selectedEventId, searchQuery, nextPage, certificateFilter)}
               />
             </Box>
           )}

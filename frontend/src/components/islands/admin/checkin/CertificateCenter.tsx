@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,21 +10,26 @@ import CircularProgress from "@mui/material/CircularProgress";
 import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import type { EventRegistration } from "./types";
+import PaginationControls from "../../ui/PaginationControls";
+import { rangeLabel } from "../../../../lib/pagination";
+import type { CertificateFilter, CertificateInviteBatch, CertificateInviteBatchProgress, EventRegistration } from "./types";
 import { formatDateTime } from "./checkin-utils";
-
-export interface CertificateInviteResult {
-  registrationId: string;
-  status: "sent" | "failed" | "skipped" | "already_invited" | "invalid";
-}
+import { useCertificateInviteProgress } from "./useCertificateInviteProgress";
 
 interface CertificateCenterProps {
   readonly registrations: EventRegistration[];
   readonly onGrant: (registrationId: string) => Promise<EventRegistration>;
-  readonly onInvite: (registrationIds: string[]) => Promise<CertificateInviteResult[]>;
+  readonly onInvite: (registrationIds: string[]) => Promise<CertificateInviteBatch>;
+  readonly onLoadBatch: (batchId: string) => Promise<CertificateInviteBatchProgress>;
+  readonly onRefresh: () => Promise<void>;
+  readonly filter: CertificateFilter;
+  readonly onFilterChange: (filter: CertificateFilter) => void;
+  readonly page: number;
+  readonly total: number;
+  readonly totalPages: number;
+  readonly onPageChange: (page: number) => void;
 }
 
-type CertificateFilter = "all" | "eligible" | "granted" | "registration_pending";
 
 type Feedback = {
   severity: "success" | "error" | "warning" | "info";
@@ -43,43 +48,34 @@ const canGrant = (registration: EventRegistration) =>
 const canInvite = (registration: EventRegistration) =>
   isRegistrationPending(registration) && !registration.certificateInvitedAt;
 
-function summarizeInviteResults(results: CertificateInviteResult[]) {
-  const sent = results.filter((item) => item.status === "sent").length;
-  const failed = results.filter((item) => item.status === "failed").length;
-  const skipped = results.filter((item) => item.status === "skipped").length;
-  const notSent = results.filter(
-    (item) => item.status === "already_invited" || item.status === "invalid",
-  ).length;
-  const messages: string[] = [];
-  if (sent) messages.push(`${sent} ${sent === 1 ? "convite enviado" : "convites enviados"}.`);
-  if (failed) messages.push(`${failed} ${failed === 1 ? "convite falhou" : "convites falharam"}.`);
-  if (skipped) messages.push(`${skipped} ${skipped === 1 ? "envio foi ignorado" : "envios foram ignorados"}; tente novamente.`);
-  if (notSent) {
-    messages.push(
-      notSent === 1
-        ? `${notSent} inscrição não pôde ser convidada.`
-        : `${notSent} inscrições não puderam ser convidadas.`,
-    );
-  }
-  return {
-    messages,
-    hasWarnings: failed > 0 || skipped > 0 || notSent > 0,
-    retryIds: results
-      .filter((item) => item.status === "failed" || item.status === "skipped")
-      .map((item) => item.registrationId),
-  };
-}
-
 export default function CertificateCenter({
   registrations,
   onGrant,
   onInvite,
+  onLoadBatch,
+  onRefresh,
+  filter,
+  onFilterChange,
+  page,
+  total,
+  totalPages,
+  onPageChange,
 }: Readonly<CertificateCenterProps>): React.JSX.Element {
-  const [filter, setFilter] = useState<CertificateFilter>("all");
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [busy, setBusy] = useState("");
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [activeBatch, setActiveBatch] = useState<{ id: string; total: number } | null>(null);
+  const { progress, error: progressError, refresh: refreshProgress } = useCertificateInviteProgress(
+    activeBatch?.id ?? null,
+    activeBatch?.total ?? 0,
+    onLoadBatch,
+    onRefresh,
+  );
+
+  useEffect(() => {
+    setSelected(new Set());
+  }, [registrations]);
 
   const filtered = useMemo(
     () =>
@@ -138,13 +134,20 @@ export default function CertificateCenter({
     setBusy("invite");
     setFeedback(null);
     try {
-      const summary = summarizeInviteResults(await onInvite(ids));
-      setFeedback({ severity: summary.hasWarnings ? "warning" : "success", messages: summary.messages });
-      setSelected(new Set(summary.retryIds));
+      const batch = await onInvite(ids);
+      setActiveBatch({ id: batch.batchId, total: batch.total });
+      setSelected(new Set());
+      setFeedback({
+        severity: batch.invalid.length > 0 ? "warning" : "success",
+        messages: [
+          `${batch.total} ${batch.total === 1 ? "convite enfileirado" : "convites enfileirados"}. O envio acontecerá em segundo plano.`,
+          ...(batch.invalid.length > 0 ? [`${batch.invalid.length} inscrição(ões) não puderam ser enfileiradas.`] : []),
+        ],
+      });
     } catch (error) {
       setFeedback({
         severity: "error",
-        messages: [error instanceof Error ? error.message : "Erro ao enviar convites."],
+        messages: [error instanceof Error ? error.message : "Erro ao enfileirar convites."],
       });
     } finally {
       setBusy("");
@@ -166,7 +169,7 @@ export default function CertificateCenter({
           size="small"
           label="Filtrar certificados"
           value={filter}
-          onChange={(event) => setFilter(event.target.value as CertificateFilter)}
+          onChange={(event) => onFilterChange(event.target.value as CertificateFilter)}
           sx={{ minWidth: 220 }}
         >
           <MenuItem value="all">Todos</MenuItem>
@@ -182,7 +185,7 @@ export default function CertificateCenter({
             onChange={toggleAll}
             slotProps={{ input: { "aria-label": "Selecionar todos os filtrados para convite" } }}
           />
-          <Typography variant="body2">Selecionar convidáveis</Typography>
+          <Typography variant="body2">Selecionar convidáveis nesta página</Typography>
         </Box>
         <Button
           variant="contained"
@@ -190,7 +193,7 @@ export default function CertificateCenter({
           onClick={() => void invite()}
           startIcon={busy === "invite" ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
-          Enviar convite ({selected.size})
+          Enfileirar convites ({selected.size})
         </Button>
       </Box>
 
@@ -202,6 +205,26 @@ export default function CertificateCenter({
             </Typography>
           ))}
         </Alert>
+      )}
+
+      {progress && (
+        <Box sx={{ mb: 2 }} role="status" aria-live="polite">
+          <Typography variant="body2" sx={{ mb: 0.5 }}>
+            {progress.completed + progress.failed + progress.skipped} de {progress.total} convites processados · {progress.failed} falhas · {progress.retry} aguardando retry
+          </Typography>
+          <Box
+            component="progress"
+            aria-label="Progresso dos convites"
+            max={Math.max(1, progress.total)}
+            value={progress.completed + progress.failed + progress.skipped}
+            sx={{ width: "100%", accentColor: "primary.main" }}
+          />
+          {progressError && (
+            <Alert severity="error" sx={{ mt: 1 }} action={<Button color="inherit" size="small" onClick={() => void refreshProgress()}>Tentar novamente</Button>}>
+              {progressError}
+            </Alert>
+          )}
+        </Box>
       )}
 
       {filtered.length === 0 ? (
@@ -286,6 +309,12 @@ export default function CertificateCenter({
           })}
         </Box>
       )}
+      {total > 0 && (
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 2 }}>
+          {rangeLabel(page, 25, total)}
+        </Typography>
+      )}
+      <PaginationControls page={page} totalPages={totalPages} onChange={onPageChange} itemLabel="certificados" />
     </Box>
   );
 }
