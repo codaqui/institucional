@@ -210,10 +210,19 @@ describe('EventsController', () => {
     });
 
     it('GET /events/:id/registrations', async () => {
-      const result = await controller.listRegistrations('evt-1', 'ana', { user });
+      const result = await controller.listRegistrations('evt-1', { search: 'ana' }, { user });
       expect(service.listRegistrations).toHaveBeenCalledWith(
         'evt-1',
         { search: 'ana' },
+        user,
+      );
+    });
+
+    it('GET /events/external/:eventKey/participants com paginação', async () => {
+      await controller.listExternalParticipants('meetup:devparana:1', { page: 2, limit: 25, certificateFilter: 'registration_pending' }, { user });
+      expect(service.listExternalParticipants).toHaveBeenCalledWith(
+        'meetup:devparana:1',
+        { page: 2, limit: 25, certificateFilter: 'registration_pending' },
         user,
       );
     });

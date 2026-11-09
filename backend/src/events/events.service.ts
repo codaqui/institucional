@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, IsNull, LessThan, MoreThan, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, LessThan, MoreThan, Repository, SelectQueryBuilder } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -57,6 +57,7 @@ import type {
 } from './dto/ticket-operations.dto';
 import type { ActivateExternalDto } from './dto/external.dto';
 import type { ClaimGuestDto } from './dto/guest.dto';
+import type { ListRegistrationsQueryDto } from './dto/certificate-operations.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 
 /**
@@ -2648,10 +2649,54 @@ export class EventsService {
     return { status: 'checked_in' as const, registration: payload() };
   }
 
+  private applyRegistrationFilters(
+    qb: SelectQueryBuilder<EventRegistration>,
+    query: ListRegistrationsQueryDto,
+  ): void {
+    if (query.search?.trim()) {
+      qb.andWhere(
+        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
+        { search: `%${query.search.trim()}%` },
+      );
+    }
+    if (query.certificateFilter === 'registration_pending') {
+      qb.andWhere('r.status IN (:...pendingStatuses)', {
+        pendingStatuses: [RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+    } else if (query.certificateFilter === 'eligible') {
+      qb.andWhere('r.status IN (:...grantableStatuses)', {
+        grantableStatuses: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+      qb.andWhere('r."certificateGrantedAt" IS NULL');
+    } else if (query.certificateFilter === 'granted') {
+      qb.andWhere('r."certificateGrantedAt" IS NOT NULL');
+    }
+  }
+
+  private async readRegistrations(
+    qb: SelectQueryBuilder<EventRegistration>,
+    query: ListRegistrationsQueryDto,
+  ) {
+    if (query.page !== undefined && query.limit !== undefined) {
+      const [rows, total] = await qb
+        .skip((query.page - 1) * query.limit)
+        .take(query.limit)
+        .getManyAndCount();
+      return {
+        data: await this.enrichRegistrations(rows),
+        total,
+        page: query.page,
+        totalPages: Math.ceil(total / query.limit),
+        limit: query.limit,
+      };
+    }
+    return this.enrichRegistrations(await qb.getMany());
+  }
+
   /** GET /events/:id/registrations — lista com filtro opcional (nome/e-mail) */
   async listRegistrations(
     eventId: string,
-    query: { search?: string },
+    query: ListRegistrationsQueryDto,
     user: JwtPayload,
   ) {
     await this.findEventOrFail(eventId);
@@ -2660,14 +2705,8 @@ export class EventsService {
       .createQueryBuilder('r')
       .where('r."eventId" = :eventId', { eventId })
       .orderBy('r."createdAt"', 'ASC');
-    if (query.search?.trim()) {
-      qb.andWhere(
-        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
-        { search: `%${query.search.trim()}%` },
-      );
-    }
-    const rows = await qb.getMany();
-    return this.enrichRegistrations(rows);
+    this.applyRegistrationFilters(qb, query);
+    return this.readRegistrations(qb, query);
   }
 
   private async enrichRegistrations(registrations: EventRegistration[]) {
@@ -3767,7 +3806,7 @@ export class EventsService {
   /** GET /events/external/:eventKey/participants */
   async listExternalParticipants(
     eventKey: string,
-    query: { search?: string },
+    query: ListRegistrationsQueryDto,
     user: JwtPayload,
   ) {
     const activation = await this.findActivationOrFail(eventKey);
@@ -3780,14 +3819,8 @@ export class EventsService {
         activationId: activation.id,
       })
       .orderBy('r."createdAt"', 'ASC');
-    if (query.search?.trim()) {
-      qb.andWhere(
-        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
-        { search: `%${query.search.trim()}%` },
-      );
-    }
-    const rows = await qb.getMany();
-    return this.enrichRegistrations(rows);
+    this.applyRegistrationFilters(qb, query);
+    return this.readRegistrations(qb, query);
   }
 
   /**

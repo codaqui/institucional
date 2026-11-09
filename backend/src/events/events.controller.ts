@@ -31,7 +31,7 @@ import {
   UpdateTicketTypeDto,
 } from './dto/ticket-operations.dto';
 import { ActivateExternalDto, CheckinDto } from './dto/external.dto';
-import { BatchCheckinDto, BatchCertificateInviteDto } from './dto/certificate-operations.dto';
+import { BatchCheckinDto, BatchCertificateInviteDto, ListRegistrationsQueryDto } from './dto/certificate-operations.dto';
 import { GetTransactionsQueryDto } from '../ledger/dto/get-transactions-query.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 import { ClaimGuestDto } from './dto/guest.dto';
@@ -379,10 +379,10 @@ export class EventsController {
   })
   listRegistrations(
     @Param('id', ParseUUIDPipe) id: string,
-    @Query('search') search: string,
+    @Query() query: ListRegistrationsQueryDto,
     @Req() req: { user: JwtPayload },
   ) {
-    return this.eventsService.listRegistrations(id, { search }, req.user);
+    return this.eventsService.listRegistrations(id, query, req.user);
   }
 
   @Get(':id/report')
@@ -679,14 +679,10 @@ export class EventsController {
   })
   listExternalParticipants(
     @Param('eventKey') eventKey: string,
-    @Query('search') search: string,
+    @Query() query: ListRegistrationsQueryDto,
     @Req() req: { user: JwtPayload },
   ) {
-    return this.eventsService.listExternalParticipants(
-      eventKey,
-      { search },
-      req.user,
-    );
+    return this.eventsService.listExternalParticipants(eventKey, query, req.user);
   }
 
   @Post('external/:eventKey/checkin/batch')

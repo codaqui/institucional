@@ -2093,4 +2093,64 @@ describe('EventsService', () => {
       expect(result[0].verificationCode).toBeNull();
     });
   });
+
+  describe('certificate registration pagination', () => {
+    function mockRegistrationQuery(total = 55) {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], total]),
+      };
+      registrationRepo.createQueryBuilder.mockReturnValue(qb);
+      return qb;
+    }
+
+    it('keeps the legacy array and adds a pending envelope when page and limit are present', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      const qb = mockRegistrationQuery();
+
+      const legacy = await service.listRegistrations(uuid(10), { search: 'ana' }, adminUser);
+      expect(Array.isArray(legacy)).toBe(true);
+      expect(qb.getMany).toHaveBeenCalledTimes(1);
+
+      const result = await service.listRegistrations(uuid(10), {
+        page: 2,
+        limit: 25,
+        certificateFilter: 'registration_pending',
+      }, adminUser);
+      expect(result).toMatchObject({ total: 55, page: 2, totalPages: 3, limit: 25 });
+      expect(qb.andWhere).toHaveBeenCalledWith('r.status IN (:...pendingStatuses)', {
+        pendingStatuses: [RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+      expect(qb.skip).toHaveBeenCalledWith(25);
+      expect(qb.take).toHaveBeenCalledWith(25);
+    });
+
+    it('filters eligible external participants and returns certificate grants separately', async () => {
+      activationRepo.findOneBy.mockResolvedValue({ id: uuid(50), eventKey: 'sympla:test:evt', features: ['certificates'] });
+      const qb = mockRegistrationQuery(1);
+
+      const eligible = await service.listExternalParticipants('sympla:test:evt', {
+        page: 1,
+        limit: 25,
+        certificateFilter: 'eligible',
+      }, adminUser);
+      expect(eligible).toMatchObject({ total: 1, totalPages: 1 });
+      expect(qb.andWhere).toHaveBeenCalledWith('r.status IN (:...grantableStatuses)', {
+        grantableStatuses: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+        });
+      expect(qb.andWhere).toHaveBeenCalledWith('r."certificateGrantedAt" IS NULL');
+
+      await service.listExternalParticipants('sympla:test:evt', {
+        page: 1,
+        limit: 25,
+        certificateFilter: 'granted',
+      }, adminUser);
+      expect(qb.andWhere).toHaveBeenCalledWith('r."certificateGrantedAt" IS NOT NULL');
+    });
+  });
 });
