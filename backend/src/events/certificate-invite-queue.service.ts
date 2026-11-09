@@ -31,8 +31,11 @@ export class CertificateInviteQueueService {
     const batchId = randomUUID();
     const invalid: string[] = [];
     const validIds: string[] = [];
-    for (const registrationId of new Set(registrationIds)) {
-      const status = await this.events.validateCertificateInviteRegistration(registrationId, user);
+    const validations = await Promise.all([...new Set(registrationIds)].map(async (registrationId) => ({
+      registrationId,
+      status: await this.events.validateCertificateInviteRegistration(registrationId, user),
+    })));
+    for (const { registrationId, status } of validations) {
       if (status === 'ok') validIds.push(registrationId);
       else invalid.push(registrationId);
     }
@@ -77,9 +80,13 @@ export class CertificateInviteQueueService {
     const processing = count(CertificateInviteJobStatus.PROCESSING);
     const queued = count(CertificateInviteJobStatus.QUEUED);
     const done = completed + failed + skipped;
+    let status: 'completed' | 'retry' | 'processing' | 'queued' = 'queued';
+    if (done === jobs.length) status = 'completed';
+    else if (retry > 0) status = 'retry';
+    else if (processing > 0) status = 'processing';
     return {
       batchId,
-      status: done === jobs.length ? 'completed' : retry > 0 ? 'retry' : processing > 0 ? 'processing' : 'queued',
+      status,
       total: jobs.length,
       completed,
       queued,
@@ -146,7 +153,7 @@ export class CertificateInviteQueueService {
       } else if (result.status === 'skipped') {
         job.status = CertificateInviteJobStatus.SKIPPED;
       } else {
-        await this.handleFailure(job, result.error);
+        await this.handleFailure(job, result.error ?? undefined);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -157,16 +164,15 @@ export class CertificateInviteQueueService {
     await this.jobRepo.save(job);
   }
 
-  private async handleFailure(job: CertificateInviteJob, message: string | null): Promise<void> {
-    const error = message ?? 'UNKNOWN_SMTP_ERROR';
-    const temporary = this.isTemporaryError(error);
+  private async handleFailure(job: CertificateInviteJob, message = 'UNKNOWN_SMTP_ERROR'): Promise<void> {
+    const temporary = this.isTemporaryError(message);
     if (!temporary || job.attempts >= 3) {
       job.status = CertificateInviteJobStatus.FAILED;
       return;
     }
     job.status = CertificateInviteJobStatus.RETRY;
     job.availableAt = new Date(Date.now() + (job.attempts === 1 ? 60_000 : 300_000));
-    if (/421|454|Too many login attempts/i.test(error)) {
+    if (/421|454|Too many login attempts/i.test(message)) {
       const pausedUntil = new Date(Date.now() + 15 * 60_000);
       job.availableAt = pausedUntil;
       await this.jobRepo.update(

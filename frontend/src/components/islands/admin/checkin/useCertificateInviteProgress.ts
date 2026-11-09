@@ -39,11 +39,9 @@ export function useCertificateInviteProgress(
     const start = (immediate: boolean) => {
       if (document.visibilityState !== "visible" || terminalRef.current) return;
       if (immediate) void refresh();
-      if (timer === null) {
-        timer = window.setInterval(() => {
-          if (!terminalRef.current) void refresh();
-        }, 5000);
-      }
+      timer ??= window.setInterval(() => {
+        if (!terminalRef.current) void refresh();
+      }, 5000);
     };
     const onVisibilityChange = () => {
       if (document.visibilityState === "visible") start(false);
