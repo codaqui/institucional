@@ -1,6 +1,6 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -36,6 +36,8 @@ export class ProjectsService {
     private readonly audit: AuditService,
     private readonly email: EmailService,
     private readonly storage: StorageService,
+    @Optional()
+    private readonly participantsRepo?: Repository<ProjectParticipant>,
   ) {}
 
   async create(dto: CreateProjectDto, actor: JwtPayload): Promise<ExtensionProject> {
@@ -120,6 +122,9 @@ export class ProjectsService {
       details: { before: updated.before, after: { ...updated.saved } },
     });
     if (dto.mentorMemberId) await this.notifyMentor(dto.mentorMemberId, updated.saved);
+    if (updated.saved.status === 'finished' && updated.before.status !== 'finished') {
+      await this.notifyProjectFinished(updated.saved);
+    }
     return updated.saved;
   }
 
@@ -192,6 +197,21 @@ export class ProjectsService {
         mentor: mentor ? { name: mentor.name, handle: mentor.githubHandle } : null,
       }];
     });
+  }
+
+  private async notifyProjectFinished(project: ExtensionProject): Promise<void> {
+    if (!this.participantsRepo) return;
+    const participations = await this.participantsRepo.find({ where: { projectId: project.id } });
+    const memberIds = [...new Set(participations.map((item) => item.memberId))];
+    if (memberIds.length === 0) return;
+    const members = await this.membersRepo.findBy({ id: In(memberIds) });
+    await Promise.all(members.map((member) => this.email.sendProjectEmail({
+      template: 'project_finished',
+      to: member.email,
+      memberName: member.name,
+      projectName: project.name,
+      projectId: project.id,
+    })));
   }
 
   private async assertRelations(entityId: string, partnershipId?: string | null): Promise<void> {

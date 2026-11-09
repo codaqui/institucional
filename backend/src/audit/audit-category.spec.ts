@@ -58,7 +58,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(61);
+    expect(actions).toHaveLength(62);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }
