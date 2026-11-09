@@ -1,0 +1,18 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import ProjectCertificateVerificationIsland from "../../components/islands/projects/ProjectCertificateVerificationIsland";
+
+const code = Astro.url.searchParams.get("code") ?? "";
+---
+
+<PublicLayout title="Verificar comprovante | CODAQUI.dev" ogTitle="Verificar comprovante | CODAQUI.dev" description="Verifique a autenticidade de um comprovante de participação em projeto de extensão." noindex>
+  <PageHero eyebrow="Verificação pública" title="Verificar comprovante" subtitle="Consulte os dados públicos de um comprovante emitido pela Codaqui." />
+  <main class="mx-auto max-w-4xl px-4 py-10 md:py-14">
+    {code ? (
+      <ProjectCertificateVerificationIsland client:load code={code} />
+    ) : (
+      <p class="rounded-lg border border-border bg-surface p-4 text-text-secondary">Informe o código do comprovante na URL, no formato <code>?code=PRJ-...</code>.</p>
+    )}
+  </main>
+</PublicLayout>

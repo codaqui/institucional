@@ -14,6 +14,7 @@
     "sync:analytics:full": "node scripts/sync-analytics.mjs --full",
     "sync:communities": "node scripts/sync-communities.mjs",
     "sync:assemblies": "node scripts/sync-assemblies.mjs",
+    "sync:projects": "node scripts/sync-projects.mjs",
     "sync:badges": "node scripts/sync-member-badges.mjs",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",

@@ -1,0 +1,70 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import ProjectRegistrationIsland from "../../components/islands/projects/ProjectRegistrationIsland";
+import { loadProjectsIndex } from "../../data/projects-extension";
+
+export function getStaticPaths() {
+  return loadProjectsIndex().projects.map((project) => ({
+    params: { slug: project.slug },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const description = project.summary;
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Project",
+  name: project.name,
+  description,
+  url: new URL(`/projetos/${project.slug}`, Astro.site).toString(),
+  about: project.targetCommunity,
+  isPartOf: { "@type": "Organization", name: project.entity.name },
+};
+---
+
+<PublicLayout title={`${project.name} | CODAQUI.dev`} ogTitle={`${project.name} | CODAQUI.dev`} description={description} jsonLd={jsonLd}>
+  <PageHero eyebrow={project.entity.name} title={project.name} subtitle={description} />
+  <article class="mx-auto max-w-4xl px-4 py-10 md:py-14">
+    <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Entidade</dt>
+        <dd class="mt-1 text-text-primary">{project.entity.name}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Mentor principal</dt>
+        <dd class="mt-1 text-text-primary">{project.mentor?.name ?? "A definir"}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Período</dt>
+        <dd class="mt-1 text-text-primary">{project.startsAt} a {project.endsAt}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Inscrições</dt>
+        <dd class="mt-1 text-text-primary">{project.registrationStartsAt} a {project.registrationEndsAt}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Carga horária</dt>
+        <dd class="mt-1 text-text-primary">{project.totalHours} horas</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Vagas</dt>
+        <dd class="mt-1 text-text-primary">{project.maxParticipants === 0 ? "Sem limite declarado" : project.maxParticipants}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">ODS principal</dt>
+        <dd class="mt-1 text-text-primary">ODS {project.odsPrimary}</dd>
+      </div>
+      <div class="rounded-lg border border-border bg-surface p-4">
+        <dt class="text-sm font-bold text-text-secondary">Público beneficiado</dt>
+        <dd class="mt-1 text-text-primary">{project.targetCommunity}</dd>
+      </div>
+    </dl>
+
+    <section class="mt-8 rounded-lg border border-border bg-sunken p-5" aria-labelledby="inscricao">
+      <h2 id="inscricao" class="mb-3 text-xl font-bold text-text-primary">Participação</h2>
+      <ProjectRegistrationIsland client:load projectId={project.id} />
+    </section>
+  </article>
+</PublicLayout>
