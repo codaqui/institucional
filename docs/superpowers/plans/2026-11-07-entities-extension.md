@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Implementers e revisores da Fase 4.
-status: Tasks 1–9 concluídas e verificadas; Task 10 (migração real, concorrência, E2E e handoff) pendente.
+status: Tasks 1–9 concluídas; Task 10/etapas 1–4 verificadas e documentadas; handoff de integração e release pendente na etapa 5.
 sections:
   - Constraints
   - Tasks 1–10
@@ -543,15 +543,15 @@ Expected: PASS.
 - PostgreSQL descartável com dump real, migrations 037–040 e fixtures sintéticas removidas ao final.
 - Handoff registra release `v0.16.0-backend`, redeploy, sync inicial e validação pública como etapas separadas.
 
-- [ ] **Step 1: Validate migration down/up and data preservation**
+- [x] **Step 1: Validate migration down/up and data preservation**
 
-Run migrations through 040, revert to 036 and reapply to 040 on a disposable copy. Assert existing members, communities and assemblies survive and all new constraints exist.
+Run migrations through 040, revert to 036 and reapply to 040 on a disposable copy. Assert existing members, communities and assemblies survive and all new constraints exist. Validado com 174 membros, 6 comunidades e uma assembleia sintética com backfill Codaqui; fixtures removidas.
 
-- [ ] **Step 2: Validate real concurrency and E2E**
+- [x] **Step 2: Validate real concurrency and E2E**
 
-Run two joins for the last slot, repeated hour idempotency, concurrent certificate issuance and concurrent creation of assemblies with distinct numbers per entity. Exercise the complete director → mentor → participant → finance-analyzer journey and the legacy assembly redirect. Remove every fixture.
+Run two joins for the last slot, repeated hour idempotency, concurrent certificate issuance and concurrent creation of assemblies with distinct numbers per entity. Exercise the complete director → mentor → participant → finance-analyzer journey and the legacy assembly redirect. Remove every fixture. E2E PostgreSQL e redirect por entidade verificados; fixtures zeradas.
 
-- [ ] **Step 3: Run all gates**
+- [x] **Step 3: Run all gates**
 
 ```bash
 cd backend && npm run build && npx jest --silent
@@ -560,9 +560,9 @@ make astro-verify
 make astro-verify-tenants
 ```
 
-Expected: zero failures; restore any generated snapshots not belonging to the implementation.
+Expected: zero failures; restore any generated snapshots not belonging to the implementation. Resultado: 1.220 testes backend, 894 frontend, 80 scripts e todos os builds verdes.
 
-- [ ] **Step 4: Update living docs and commit**
+- [x] **Step 4: Update living docs and commit**
 
 Record ADR 008, exact API/permissions, privacy, operations, migration evidence and remaining release steps.
 

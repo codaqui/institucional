@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fases 0–3 concluídas e publicadas, restando Discussion real de assembleia; Fase 4 ampliada e aprovada com diretorias comunitárias e assembleias por entidade jurídica; Fases 4b–7 em design.
+status: Fases 0–3 concluídas e publicadas, restando Discussion real de assembleia; Fase 4 implementada e verificada em banco descartável, aguardando integração/release 0.16.0; Fases 4b–7 em design.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -131,6 +131,8 @@ Princípios:
 **Frontend:** `/diretorias` (pública: diretorias ativas + diretores + voluntários — tipo MembersWall), `/membro/horas` com saldo/extrato/declaração e `/admin/horas` com fila de aprovação. Perfil público exibe somente horas, timeline e selo permitidos por `profileVisibility`.
 
 ### C. Entidades, parcerias e Projetos de Extensão
+
+> **Estado da Fase 4:** implementação concluída e verificada em dump real e E2E PostgreSQL, incluindo admin/membro/mentor, concorrência, comprovantes e rotas por entidade. Integração, release 0.16.0, sync inicial e validação pública permanecem pendentes. Decisões e evidências: [ADR 008](../../adrs/008-entities-extension-projects.md) e [plano executável](../../superpowers/plans/2026-11-07-entities-extension.md).
 
 **Entidades:**
 - `entities`: `id`, `slug`, `name`, `type` ('empresa' | 'instituicao_ensino' | 'ong' | 'governo' | 'outro'), `cnpj?`, `website?`, `contactEmail?`, `registeredById`, `isActive`. Responsável e gestor são designations @ `entity`; entidades com CNPJ também são os guarda-chuvas assembleares.
@@ -395,14 +397,14 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 > - **C4P (F7)** continua independente das fases 1–6 e pode ser antecipado por decisão da presidência.
 > - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O handoff da Fase 3 está no [plano de Assembleias](../../superpowers/plans/2026-11-05-assembleias.md); a Fase 4 foi autorizada para início em 2026-11-06.
 
-Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0** e a Fase 3 publicou **0.15.0**. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
+Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0**, a Fase 3 publicou **0.15.0** e a Fase 4 está preparada em **0.16.0**, ainda sem release. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
 - **011 — Refatoração de frontend para Astro + multi-tenant por build matrix** (Fase 0; supersede parcialmente a ADR 004; inclui as decisões de tokens do Design System — ver [design-system.md](design-system.md)) — ✅ **implementada (2026-10-28, merge da 0.6)**
 - **006 — Diretorias e designations** (Fase 1a) — ✅ implementada
 - **007 — Registro de comunidades, níveis e Selo Codaqui** — ✅ implementada
-- **008 — Entidades, parcerias e Projetos de Extensão**
+- **008 — Entidades, parcerias e Projetos de Extensão** — ✅ [implementada e verificada](../../adrs/008-entities-extension-projects.md); integração/release pendentes
 - **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 - **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))

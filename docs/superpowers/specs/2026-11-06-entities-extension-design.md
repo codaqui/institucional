@@ -201,7 +201,9 @@ As rotas existentes de assembleias aceitam filtro administrativo por `entityId`.
 - `GET /projects/public/:slug`: detalhe público equivalente.
 - `GET /projects`: listagem administrativa paginada por status/entidade.
 - `POST /projects`, `PATCH /projects/:id`: rascunho, edição e transições sob lock.
-- `GET /projects/my`: inscrições e vínculos do membro autenticado.
+- `GET /projects/my`: inscrições e vínculos do membro autenticado, com status e relatório do projeto.
+- `GET /projects/:id/participants`: participantes com nome/handle para admin ou mentor principal.
+- `GET /projects/:id/hours`: lançamentos do projeto para admin ou mentor principal, sem IDs internos ou idempotency keys.
 - `POST /projects/:id/join`: inscrição atômica.
 - `POST /projects/:id/leave`: saída idempotente do próprio membro.
 - `DELETE /projects/:id/participants/:memberId`: remoção administrativa.
