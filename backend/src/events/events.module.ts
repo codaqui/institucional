@@ -19,6 +19,8 @@ import { GithubDbModule } from '../github-db/github-db.module';
 import { ReimbursementsModule } from '../reimbursements/reimbursements.module';
 import { HoursModule } from '../hours/hours.module';
 import { TurnstileModule } from '../common/turnstile/turnstile.module';
+import { DesignationsModule } from '../designations/designations.module';
+import { Institution } from '../entities/entities/institution.entity';
 import { EventsService } from './events.service';
 import { EventsController } from './events.controller';
 import { EventOverridesService } from './event-overrides.service';
@@ -36,6 +38,7 @@ import { EventOverridesController } from './event-overrides.controller';
       EventOverride,
       Member,
       Transaction,
+      Institution,
     ]),
     LedgerModule,
     AuditModule,
@@ -45,6 +48,7 @@ import { EventOverridesController } from './event-overrides.controller';
     ReimbursementsModule,
     HoursModule,
     TurnstileModule,
+    DesignationsModule,
   ],
   // ⚠️ Ordem importa: controllers de event-organizer ANTES de EventsController —
   // ambos usam @Controller('events') e as rotas estáticas (/events/organizers,

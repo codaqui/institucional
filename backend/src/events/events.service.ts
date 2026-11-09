@@ -5,6 +5,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -26,6 +27,8 @@ import {
   ExternalEventActivation,
 } from './entities/external-event-activation.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { Institution } from '../entities/entities/institution.entity';
+import { DesignationsService } from '../designations/designations.service';
 import { resolveProfileVisibility } from '../members/profile-visibility';
 import { StripeService } from '../stripe/stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
@@ -195,6 +198,11 @@ export class EventsService {
     private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
     private readonly hoursService: HoursService,
+    @Optional()
+    @InjectRepository(Institution)
+    private readonly institutionRepo?: Repository<Institution>,
+    @Optional()
+    private readonly designations?: DesignationsService,
   ) {}
 
   // ── Permissões ────────────────────────────────────────────────────────────
@@ -204,6 +212,34 @@ export class EventsService {
     return !!user.roles?.some(
       (r) => r === MemberRole.ADMIN || r === MemberRole.EVENT_ORGANIZER,
     );
+  }
+
+  private async assertInstitutionForEvent(
+    user: JwtPayload,
+    institutionId: string,
+  ): Promise<void> {
+    if (!this.institutionRepo || !this.designations) {
+      throw new Error('Dependências de IES não configuradas.');
+    }
+    const institution = await this.institutionRepo.findOneBy({
+      id: institutionId,
+      isActive: true,
+    });
+    if (!institution || institution.type !== 'instituicao_ensino') {
+      throw new BadRequestException('institutionId deve referenciar uma IES ativa.');
+    }
+    if (EventsService.canManageAll(user)) return;
+    if (await this.designations.hasDesignation(user.sub, {
+      targetType: 'program',
+      targetKey: 'universitario',
+      designation: 'manager',
+    })) return;
+    if (await this.designations.hasDesignation(user.sub, {
+      targetType: 'ies',
+      targetId: institutionId,
+      designation: 'ambassador',
+    })) return;
+    throw new ForbiddenException('Requer gestor do Universitário ou embaixador da IES.');
   }
 
   /** staff do evento (host/checker/finance) — usado também pela 2c/2d */
@@ -315,6 +351,7 @@ export class EventsService {
     event: ManagedEvent,
     confirmedCount: number,
     organizers?: Array<{ name: string; id?: string; photoUrl?: string }>,
+    institution?: { id: string; slug: string; name: string },
   ): Record<string, unknown> {
     return {
       id: event.id,
@@ -334,6 +371,8 @@ export class EventsService {
       status: EventsService.deriveItemStatus(event),
       adultOnly: event.adultOnly,
       venueType: event.venueType,
+      institutionId: event.institutionId,
+      ...(institution && { institution }),
       ...(event.imageUrl && { imageUrl: event.imageUrl }),
       userCount: confirmedCount,
       ...(organizers && organizers.length > 0 && { organizers }),
@@ -377,6 +416,26 @@ export class EventsService {
     return map;
   }
 
+  private async loadInstitutionsByEvent(
+    events: ManagedEvent[],
+  ): Promise<Map<string, { id: string; slug: string; name: string }>> {
+    const map = new Map<string, { id: string; slug: string; name: string }>();
+    const institutionIds = [...new Set(
+      events.map((event) => event.institutionId).filter((id): id is string => !!id),
+    )];
+    if (institutionIds.length === 0) return map;
+    if (!this.institutionRepo) throw new Error('Repositório de IES não configurado.');
+    const institutions = await this.institutionRepo.findBy({ id: In(institutionIds) });
+    for (const institution of institutions) {
+      map.set(institution.id, {
+        id: institution.id,
+        slug: institution.slug,
+        name: institution.name,
+      });
+    }
+    return map;
+  }
+
   /** GET /events/public/managed — somente published, shape EventItem + EventSourceConfig */
   async getPublicManagedEvents(): Promise<{
     source: Record<string, unknown>;
@@ -390,6 +449,7 @@ export class EventsService {
     const organizersByEvent = await this.loadOrganizersByEvent(
       events.map((e) => e.id),
     );
+    const institutionsById = await this.loadInstitutionsByEvent(events);
     return {
       source: {
         source: 'internal',
@@ -406,6 +466,7 @@ export class EventsService {
           e,
           counts.get(e.id) ?? 0,
           organizersByEvent.get(e.id),
+          e.institutionId ? institutionsById.get(e.institutionId) : undefined,
         ),
       ),
     };
@@ -427,9 +488,14 @@ export class EventsService {
       order: { priceCents: 'ASC' },
     });
     const organizers = (await this.loadOrganizersByEvent([id])).get(id);
+    const institutionsById = await this.loadInstitutionsByEvent([event]);
+    const institution = event.institutionId
+      ? institutionsById.get(event.institutionId)
+      : undefined;
     return {
       event: {
         ...EventsService.serializeEvent(event),
+        ...(institution && { institution }),
         ...(organizers && organizers.length > 0 && { organizers }),
       },
       ticketTypes: ticketTypes.map((t) => ({
@@ -464,6 +530,7 @@ export class EventsService {
       workloadMinutes: event.workloadMinutes,
       adultOnly: event.adultOnly,
       venueType: event.venueType,
+      institutionId: event.institutionId,
       createdAt: event.createdAt,
     };
   }
@@ -727,7 +794,11 @@ export class EventsService {
 
   /** POST /events — cria draft */
   async createEvent(dto: CreateEventDto, user: JwtPayload) {
-    EventsService.assertGlobalManager(user);
+    if (dto.institutionId) {
+      await this.assertInstitutionForEvent(user, dto.institutionId);
+    } else {
+      EventsService.assertGlobalManager(user);
+    }
     if (!SLUG_REGEX.test(dto.slug)) {
       throw new BadRequestException('slug deve ser kebab-case.');
     }
@@ -763,6 +834,7 @@ export class EventsService {
         workloadMinutes: dto.workloadMinutes ?? null,
         adultOnly: dto.adultOnly ?? false,
         venueType: dto.venueType ?? null,
+        institutionId: dto.institutionId ?? null,
         status: ManagedEventStatus.DRAFT,
         createdByMemberId: user.sub,
       }),
@@ -773,7 +845,12 @@ export class EventsService {
   /** PATCH /events/:id — organizer/admin; host edita dados básicos */
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
-    await this.assertCanEditEvent(user, id);
+    const institutionId = dto.institutionId ?? event.institutionId;
+    if (institutionId) {
+      await this.assertInstitutionForEvent(user, institutionId);
+    } else {
+      await this.assertCanEditEvent(user, id);
+    }
     const hadValidWorkload = resolveEventWorkloadMinutes(event) !== null;
     const previousAdultOnly = event.adultOnly;
     const adultOnlyChanged =
@@ -797,6 +874,7 @@ export class EventsService {
     if (dto.timezone !== undefined) event.timezone = dto.timezone;
     if (dto.communityProjectKey !== undefined)
       event.communityProjectKey = dto.communityProjectKey;
+    if (dto.institutionId !== undefined) event.institutionId = dto.institutionId;
     if (dto.capacity !== undefined && dto.capacity !== null) {
       // Capacity limita só o RSVP gratuito; com lotes pagos o limite é o
       // quantityTotal de cada lote (semântica única — ver DTO).

@@ -1403,6 +1403,80 @@ describe('EventsService', () => {
     });
   });
 
+  describe('university institution events', () => {
+    const baseDto = {
+      slug: 'evento-ies',
+      title: 'Evento IES',
+      summary: 'Resumo',
+      location: 'Maringá',
+      startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
+      communityProjectKey: 'devparana',
+    };
+    const ambassador = user({ sub: uuid(1), roles: ['membro'] });
+    const ownIes = {
+      id: uuid(70),
+      slug: 'ies-exemplo',
+      name: 'IES Exemplo',
+      type: 'instituicao_ensino',
+      isActive: true,
+    };
+
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(null);
+      (service as any).institutionRepo = {
+        findOneBy: jest.fn().mockResolvedValue(ownIes),
+        findBy: jest.fn().mockResolvedValue([ownIes]),
+      };
+      (service as any).designations = {
+        hasDesignation: jest.fn().mockReturnValue(true),
+      };
+    });
+
+    it('lets an ambassador create an event only at their own IES', async () => {
+      await service.createEvent({ ...baseDto, institutionId: ownIes.id }, ambassador);
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ institutionId: ownIes.id }),
+      );
+
+      (service as any).designations.hasDesignation.mockResolvedValue(false);
+      await expect(
+        service.createEvent({ ...baseDto, institutionId: uuid(71) }, ambassador),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects a non-IES institution', async () => {
+      (service as any).institutionRepo.findOneBy.mockResolvedValue({
+        ...ownIes,
+        type: 'ong',
+      });
+      await expect(
+        service.createEvent({ ...baseDto, institutionId: ownIes.id }, adminUser),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('lets the ambassador edit their own IES event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ institutionId: ownIes.id }));
+      await service.updateEvent(uuid(10), { title: 'Evento atualizado' }, ambassador);
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Evento atualizado' }),
+      );
+    });
+
+    it('exposes only the IES summary in the public event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ institutionId: ownIes.id, status: ManagedEventStatus.PUBLISHED }),
+      );
+      const result = await service.getPublicManagedEvent(uuid(10));
+      expect(result.event.institution).toEqual({
+        id: ownIes.id,
+        slug: ownIes.slug,
+        name: ownIes.name,
+      });
+      expect(result.event).not.toHaveProperty('registeredById');
+    });
+  });
+
   describe('adult classification persistence', () => {
     const baseDto = {
       slug: 'evento-adulto',
