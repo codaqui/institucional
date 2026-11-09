@@ -16,6 +16,7 @@ const authState = vi.hoisted(() => ({
   isEventFinance: false,
   isEventHost: false,
   isEventChecker: false,
+  designations: [] as Array<{ id: string; targetType: string; targetId: string | null; targetKey: string | null; designation: string }>,
   authFetch: vi.fn(),
 }));
 
@@ -35,6 +36,10 @@ vi.mock("../../../../../lib/use-auth", () => ({
     refreshUser: vi.fn(),
     authFetch: authState.authFetch,
   }),
+}));
+
+vi.mock("../../../../../lib/use-designations", () => ({
+  useMyDesignations: () => ({ data: authState.designations, loading: false, error: "" }),
 }));
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
@@ -187,6 +192,7 @@ describe("/admin/eventos", () => {
     authState.isEventFinance = false;
     authState.isEventHost = false;
     authState.isEventChecker = false;
+    authState.designations = [];
     authState.authFetch = createAuthFetchMock();
     stubStaticFetches();
   });
@@ -261,6 +267,37 @@ describe("/admin/eventos", () => {
         "/eventos/evento-teste",
       );
     }
+  });
+
+  it("embaixador cria evento com a IES da query string sem poder trocá-la", async () => {
+    vi.stubGlobal("location", { search: "?institutionId=ies-1", replace: vi.fn() });
+    authState.designations = [{ id: "ambassador-1", targetType: "ies", targetId: "ies-1", targetKey: null, designation: "ambassador" }];
+    mockAuth({ roles: ["membro"] });
+    const authFetch = vi.fn(async (url: string, options?: RequestInit) => {
+      if (url === "/events" && options?.method === "POST") return jsonResponse(buildEvent({ institutionId: "ies-1" }), { status: 201 });
+      return jsonResponse({ message: "Rota restrita não deve ser chamada" }, { status: 403 });
+    });
+    authState.authFetch = authFetch;
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByRole("button", { name: /Novo evento/i }));
+    fireEvent.change(screen.getByLabelText(/^Slug/), { target: { value: "evento-ies" } });
+    fireEvent.change(screen.getByLabelText(/^Título/), { target: { value: "Evento na IES" } });
+    fireEvent.change(screen.getByLabelText(/^Resumo/), { target: { value: "Resumo" } });
+    fireEvent.change(screen.getByLabelText(/^Local/), { target: { value: "Auditório" } });
+    fireEvent.change(screen.getByLabelText(/^Início/), { target: { value: "2026-08-10T13:00" } });
+    fireEvent.change(screen.getByLabelText(/^Fim/), { target: { value: "2026-08-10T15:00" } });
+    expect(screen.queryByLabelText("Instituição")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /^Salvar$/i }));
+
+    await waitFor(() => expect(authFetch).toHaveBeenCalledWith(
+      "/events",
+      expect.objectContaining({ method: "POST" }),
+    ));
+    const createCall = authFetch.mock.calls.find(([url, options]) => url === "/events" && options?.method === "POST");
+    expect(JSON.parse(String(createCall?.[1]?.body))).toMatchObject({ institutionId: "ies-1" });
+    expect(authFetch).not.toHaveBeenCalledWith("/events");
+    vi.unstubAllGlobals();
   });
 
   it("valida campos obrigatórios ao criar evento", async () => {

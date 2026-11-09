@@ -72,6 +72,7 @@ export interface ManagedEvent {
   workloadMinutes: number | null;
   adultOnly: boolean;
   venueType: VenueType | null;
+  institutionId?: string | null;
   ticketTypes: TicketType[];
   staff: EventStaff[];
 }
@@ -223,6 +224,7 @@ export interface EventForm {
   workloadMinutes: string;
   adultOnly: boolean;
   venueType: VenueType | "";
+  institutionId: string;
 }
 
 export const EMPTY_EVENT_FORM: EventForm = {
@@ -240,6 +242,7 @@ export const EMPTY_EVENT_FORM: EventForm = {
   workloadMinutes: "",
   adultOnly: false,
   venueType: "",
+  institutionId: "",
 };
 
 export interface TicketForm {
@@ -408,6 +411,7 @@ export function buildEventPayload(
     adultOnly: form.adultOnly,
   };
   applyEventVenue(payload, form, mode);
+  if (form.institutionId) payload.institutionId = form.institutionId;
 
   const slugError = applyEventSlug(payload, form, mode);
   if (slugError) return { error: slugError };

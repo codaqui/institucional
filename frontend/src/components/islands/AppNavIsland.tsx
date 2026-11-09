@@ -138,6 +138,15 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
         designations: [{ targetType: "community", designation: "responsible" }],
       },
       {
+        label: "Universitário",
+        href: "/admin/universitario",
+        icon: <HubIcon />,
+        designations: [
+          { targetType: "program", designation: "manager" },
+          { targetType: "ies", designation: "ambassador" },
+        ],
+      },
+      {
         label: "Diretorias",
         href: "/admin/diretorias",
         icon: <HubIcon />,

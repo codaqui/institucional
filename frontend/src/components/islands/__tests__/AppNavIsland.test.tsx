@@ -323,6 +323,18 @@ describe("AppNavIsland", () => {
     expect(screen.getByText("Governança")).toBeVisible();
   });
 
+  it("shows Universitário to program managers and IES ambassadors", () => {
+    designationsState.data = [
+      { id: "manager-1", targetType: "program", targetId: null, targetKey: "universitario", designation: "manager" },
+      { id: "ambassador-1", targetType: "ies", targetId: "ies-1", targetKey: null, designation: "ambassador" },
+    ];
+    mockLoggedIn(makeUser());
+    renderWithMui(<AppNavIsland currentPath="/admin/universitario" />);
+
+    expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("href", "/admin/universitario");
+    expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("aria-current", "page");
+  });
+
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {
     mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
     renderWithMui(<AppNavIsland currentPath="/admin" />);

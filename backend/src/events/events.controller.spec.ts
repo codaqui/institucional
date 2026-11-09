@@ -131,6 +131,10 @@ describe('EventsController', () => {
       expect(result).toEqual({ id: 'evt-1' });
     });
 
+    it('POST /events deixa o service autorizar o embaixador pela IES', () => {
+      expect(Reflect.getMetadata('roles', controller.createEvent)).toBeUndefined();
+    });
+
     it('GET /events/:id', async () => {
       const result = await controller.getEvent('evt-1', { user });
       expect(service.getEvent).toHaveBeenCalledWith('evt-1', user);

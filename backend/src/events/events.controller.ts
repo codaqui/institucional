@@ -214,11 +214,10 @@ export class EventsController {
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('event_organizer', 'admin')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: '🔒 Criar evento (draft) [event_organizer | admin]',
+    summary: '🔒 Criar evento (draft) [event_organizer | admin | gestor/ies ambassador]',
   })
   createEvent(@Body() dto: CreateEventDto, @Req() req: { user: JwtPayload }) {
     return this.eventsService.createEvent(dto, req.user);

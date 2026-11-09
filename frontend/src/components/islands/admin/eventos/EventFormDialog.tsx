@@ -78,6 +78,9 @@ export default function EventFormDialog({
       </DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
+          {eventForm.institutionId && (
+            <Alert severity="info">Este evento será vinculado à sua IES. O vínculo não pode ser alterado neste formulário.</Alert>
+          )}
           <TextField
             label="Slug"
             value={eventForm.slug}
