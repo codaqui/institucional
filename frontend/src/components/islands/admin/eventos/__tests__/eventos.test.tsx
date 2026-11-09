@@ -164,6 +164,25 @@ function createAuthFetchMock(
   });
 }
 
+function mockEventEditorFetch(
+  eventOverrides: Record<string, unknown> = {},
+  patchOverrides: Record<string, unknown> = eventOverrides,
+) {
+  const authFetch = createAuthFetchMock();
+  authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+    if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+    if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+    if (url.endsWith("/events") && !options) return jsonResponse([buildEvent(eventOverrides)]);
+    if (url.endsWith("/admin/members")) return jsonResponse([]);
+    if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
+      return jsonResponse(buildEvent(patchOverrides));
+    }
+    return jsonResponse(null, { status: 404 });
+  });
+  authState.authFetch = authFetch;
+  return authFetch;
+}
+
 /** Stub do fetch global para os estáticos (/events/index.json + overrides públicos). */
 function stubStaticFetches(index: unknown = EMPTY_INDEX) {
   const fetchMock = vi.fn(async (url: unknown) => {
@@ -314,20 +333,7 @@ describe("/admin/eventos", () => {
   });
 
   it("edição envia PATCH sem slug no payload e com a descrição", async () => {
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ description: "Texto longo do evento" })]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
-        return jsonResponse(buildEvent());
-      }
-      return jsonResponse(null, { status: 404 });
-    });
-    authState.authFetch = authFetch;
+    const authFetch = mockEventEditorFetch({ description: "Texto longo do evento" });
     mockAuth({ roles: ["admin"] });
 
     renderWithMui(<EventosAdminApp />);
@@ -353,25 +359,10 @@ describe("/admin/eventos", () => {
   });
 
   it("sugere 18+ sem marcar ou salvar automaticamente", async () => {
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([
-          buildEvent({
-            startAt: "2026-08-10T21:00:00.000Z",
-            venueType: "bar",
-          }),
-        ]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
-        return jsonResponse(buildEvent({ adultOnly: true, venueType: "bar" }));
-      }
-      return jsonResponse(null, { status: 404 });
-    });
-    authState.authFetch = authFetch;
+    const authFetch = mockEventEditorFetch(
+      { startAt: "2026-08-10T21:00:00.000Z", venueType: "bar" },
+      { adultOnly: true, venueType: "bar" },
+    );
     mockAuth({ roles: ["admin"] });
 
     renderWithMui(<EventosAdminApp />);
@@ -601,20 +592,7 @@ describe("/admin/eventos", () => {
   });
 
   it("editor de descrição insere sintaxe markdown via toolbar", async () => {
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ description: "Texto longo" })]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      if (url.endsWith("/events/evt-1") && options?.method === "PATCH") {
-        return jsonResponse(buildEvent());
-      }
-      return jsonResponse(null, { status: 404 });
-    });
-    authState.authFetch = authFetch;
+    const authFetch = mockEventEditorFetch({ description: "Texto longo" });
     mockAuth({ roles: ["admin"] });
 
     renderWithMui(<EventosAdminApp />);
@@ -682,17 +660,7 @@ describe("/admin/eventos", () => {
   });
 
   it("pré-visualização da descrição renderiza markdown", async () => {
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ description: "Veja **isto** aqui" })]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      return jsonResponse(null, { status: 404 });
-    });
-    authState.authFetch = authFetch;
+    mockEventEditorFetch({ description: "Veja **isto** aqui" });
     mockAuth({ roles: ["admin"] });
 
     renderWithMui(<EventosAdminApp />);

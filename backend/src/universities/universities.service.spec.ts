@@ -16,6 +16,42 @@ const managerActor = actor(['membro', 'gestor_universitario']);
 const adminActor = actor(['admin']);
 const memberActor = actor(['membro']);
 
+function createServiceFixture() {
+  const cityRepo = {
+    create: jest.fn((value) => value),
+    save: jest.fn((value) => Promise.resolve({ id: 'city-1', ...value })),
+    findOneBy: jest.fn().mockResolvedValue({ id: 'city-1', name: 'Maringá', uf: 'PR', isActive: true }),
+  };
+  const institutionRepo = {
+    create: jest.fn((value) => value),
+    save: jest.fn((value) => Promise.resolve({ id: 'ies-1', ...value })),
+    findOneBy: jest.fn().mockResolvedValue({ id: 'ies-1', type: 'instituicao_ensino', isActive: true }),
+  };
+  const designationRepo: Record<string, jest.Mock> = {
+    create: jest.fn((value) => value),
+    save: jest.fn((value) => Promise.resolve({ id: 'application-1', ...value })),
+    findOne: jest.fn().mockResolvedValue(null),
+    find: jest.fn().mockResolvedValue([]),
+    manager: {
+      transaction: jest.fn((callback) => callback({
+        getRepository: () => designationRepo,
+      })),
+    },
+  };
+  const memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
+  const designations = { hasDesignation: jest.fn().mockResolvedValue(true), invalidateCache: jest.fn() };
+  const audit = { log: jest.fn().mockResolvedValue(undefined) };
+  const service = new UniversitiesService(
+    cityRepo as any,
+    institutionRepo as any,
+    designationRepo as any,
+    memberRepo as any,
+    designations as any,
+    audit as any,
+  );
+  return { service, cityRepo, institutionRepo, designationRepo, memberRepo, designations, audit };
+}
+
 describe('UniversitiesService — cities and institutions', () => {
   let service: UniversitiesService;
   let cityRepo: Record<string, jest.Mock>;
@@ -26,38 +62,7 @@ describe('UniversitiesService — cities and institutions', () => {
   let audit: Record<string, jest.Mock>;
 
   beforeEach(() => {
-    cityRepo = {
-      create: jest.fn((value) => value),
-      save: jest.fn((value) => Promise.resolve({ id: 'city-1', ...value })),
-      findOneBy: jest.fn().mockResolvedValue({ id: 'city-1', name: 'Maringá', uf: 'PR', isActive: true }),
-    };
-    institutionRepo = {
-      create: jest.fn((value) => value),
-      save: jest.fn((value) => Promise.resolve({ id: 'ies-1', ...value })),
-      findOneBy: jest.fn().mockResolvedValue({ id: 'ies-1', type: 'instituicao_ensino', isActive: true }),
-    };
-    designationRepo = {
-      create: jest.fn((value) => value),
-      save: jest.fn((value) => Promise.resolve({ id: 'application-1', ...value })),
-      findOne: jest.fn().mockResolvedValue(null),
-      find: jest.fn().mockResolvedValue([]),
-      manager: {
-        transaction: jest.fn((callback) => callback({
-          getRepository: () => designationRepo,
-        })),
-      },
-    };
-    memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
-    designations = { hasDesignation: jest.fn().mockResolvedValue(true), invalidateCache: jest.fn() };
-    audit = { log: jest.fn().mockResolvedValue(undefined) };
-    service = new UniversitiesService(
-      cityRepo as any,
-      institutionRepo as any,
-      designationRepo as any,
-      memberRepo as any,
-      designations as any,
-      audit as any,
-    );
+    ({ service, cityRepo, institutionRepo, designationRepo, memberRepo, designations, audit } = createServiceFixture());
   });
 
   it('rejects a member without the university manager designation', async () => {
@@ -114,32 +119,7 @@ describe('UniversitiesService — ambassador applications', () => {
   let audit: Record<string, jest.Mock>;
 
   beforeEach(() => {
-    cityRepo = {};
-    institutionRepo = {
-      findOneBy: jest.fn().mockResolvedValue({ id: 'ies-1', type: 'instituicao_ensino', isActive: true }),
-    };
-    designationRepo = {
-      create: jest.fn((value) => value),
-      save: jest.fn((value) => Promise.resolve({ id: 'application-1', ...value })),
-      findOne: jest.fn().mockResolvedValue(null),
-      find: jest.fn().mockResolvedValue([]),
-      manager: {
-        transaction: jest.fn((callback) => callback({
-          getRepository: () => designationRepo,
-        })),
-      },
-    };
-    memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
-    designations = { hasDesignation: jest.fn().mockResolvedValue(true), invalidateCache: jest.fn() };
-    audit = { log: jest.fn().mockResolvedValue(undefined) };
-    service = new UniversitiesService(
-      cityRepo as any,
-      institutionRepo as any,
-      designationRepo as any,
-      memberRepo as any,
-      designations as any,
-      audit as any,
-    );
+    ({ service, cityRepo, institutionRepo, designationRepo, memberRepo, designations, audit } = createServiceFixture());
   });
 
   it('creates a pending application and rejects duplicates', async () => {
