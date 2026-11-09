@@ -32,7 +32,7 @@ agent-protocol:
 - [x] Task 3 — CSV com presença/concessão e crédito único de horas; 54 testes focados e build verdes.
 - [x] Task 4 — convite transacional e guest claim externo.
 - [x] Task 5 — central responsiva, features independentes e relatório CSV; `astro check` sem erros e 898 testes verdes.
-- [ ] Task 6 — E2E real, migration down/up, gates completos, documentação e handoff.
+- [ ] Task 6 — E2E real, down/up, gates e documentação concluídos; acompanhamento de CI/Sonar/Copilot na PR em andamento.
 
 ## Global Constraints
 
@@ -266,17 +266,17 @@ Commit: `feat(fase-4): adiciona central de check-in e certificados`
 - Migration 041 down/up com inscrições preservadas.
 - `pending_match → invite → accept → verify` real com atores sintéticos removidos.
 
-- [ ] **Step 1: E2E e migration real**
+- [x] **Step 1: E2E e migration real**
 
 Executar dump descartável Podman, migration 041, down/up e jornada externa real com `sent/failed/skipped`, batch e certificado independente.
 
-- [ ] **Step 2: Gates completos**
+- [x] **Step 2: Gates completos**
 
 Run: `cd backend && npm run build && npx jest --silent`
 Run: `npm run test:scripts`
 Run: `make astro-verify && make astro-verify-tenants`
 
-- [ ] **Step 3: Documentar e commit**
+- [x] **Step 3: Documentar e commit**
 
 Registrar decisão, contratos, privacidade, operação e evidências. Commit: `docs(fase-4): registra certificação desacoplada e handoff`
 

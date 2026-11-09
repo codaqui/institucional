@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Implementers e revisores da Fase 4.
-status: Fase 4 concluída e handoff validado na PR #617; merge, release 0.16.0 e validação pública aguardam comando explícito.
+status: Fase 4 e adendo de certificação desacoplada implementados na PR #617; merge, release 0.16.0 e validação pública aguardam comando explícito.
 sections:
   - Constraints
   - Tasks 1–10
@@ -27,7 +27,7 @@ agent-protocol:
 
 ## Global Constraints
 
-- Backend `0.16.0`; migrations 037–040 na mesma release; Fases 4b–7 fora do escopo.
+- Backend `0.16.0`; migrations 037–041 na mesma release; Fases 4b–7 fora do escopo. O adendo de certificação desacoplada está em `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
 - Diretoria global tem `communityId=NULL`; assembleia pertence a uma entidade jurídica e numera por `entityId + type`.
 - URLs novas de assembleias usam `/assembleias/<entitySlug>/<type>-<number>`; `/assembleias/*` redireciona para a Codaqui.
 - Campanhas/malas diretas ficam em spec própria, fora deste plano.

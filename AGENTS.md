@@ -22,6 +22,7 @@ related-docs:
   - README.md — repo overview
   - docs/README.md — índice central da documentação técnica
   - docs/adrs/001-event-platform.md — plataforma de eventos
+  - docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md — presença em lote, concessão independente, CSV e convite guest
   - docs/adrs/002-club-sortcoins.md — Clube Codaqui SortCoins
   - docs/adrs/003-club-business-pj.md — Clube Codaqui Business (PJ)
   - docs/adrs/004-multisite-communities.md — multi-tenant frontend
@@ -491,6 +492,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - APIs administrativas não usam `/admin/`: `/entities/`, `/partnerships/`, `/projects/` e `/project-certificates/`. `/projects/my` mostra vínculos do membro; `/projects/:id/participants` e `/projects/:id/hours` restringem escopo ao mentor/admin. IDs internos, notas, aprovações e idempotency keys não são públicos.
 - `directorates.communityId=NULL` significa global; `assemblies.entityId` determina lock/número por entidade/tipo e a rota `/assembleias/<entitySlug>/<type>-<number>`. `/assembleias/*` redireciona para Codaqui; snapshots antigos têm fallback Codaqui e respostas novas exigem `entity: {slug,name}`.
 - O E2E PostgreSQL validou down/up com 174 membros e 6 comunidades, concorrência de vagas/horas/comprovantes/assembleias e a jornada completa. Integração/release 0.16.0, redeploy, sync inicial e validação pública continuam pendentes.
+
+### 27. Adendo — certificação desacoplada e presença em lote
+
+- Migration 041 adiciona `certificateGrantedAt`, `certificateGrantedByMemberId` e `certificateInvitedAt`. O backfill converte `checkedInByMemberId::uuid`; certificado e verificação exigem concessão + `confirmed`, não mais presença. Check-in concede automaticamente; `POST /events/registrations/:id/certificate/grant` usa update condicional para preservar a primeira concessão.
+- `POST /events/:id/checkin/batch` e `/events/external/:eventKey/checkin/batch` processam até 100 tokens com resultado parcial. CSV aceita `checkin` e `certificate`; presença gera horas somente com membro/carga válida, concessão isolada não gera horas e reupload não recredita.
+- `checkin` e `certificates` são features externas independentes. `/admin/eventos-checkin` tem abas Escanear/Participantes/Certificados, filtros, seleção em lote e feedback parcial; `/admin/overrides` documenta as flags e o relatório com `checkedIn/certificatesGranted`.
+- `POST /events/certificate-invites/batch` usa o template `certificate-pending-registration`, `email_logs` por destinatário e o guest claim existente. `certificateInvitedAt` exige `sent`; não há campanha nem open tracking. O cron anual anonimiza guests sem conta de eventos próprios **e ativações externas**.
+- E2E real em dump isolado validou down/up com 265 inscrições/66 presenças, CSV, batch, concessão, `sent/failed/skipped`, aceite e verificação. Desenho/plano: `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md` e `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
 
 ---
 

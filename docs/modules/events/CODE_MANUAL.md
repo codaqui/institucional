@@ -3,7 +3,8 @@ purpose: Manual prático do código para futuros agents trabalharem em eventos, 
 audience: AI agents, mantenedores
 sections:
   - Onde vive cada funcionalidade
-  - Fluxos principais (criar evento, vender ingresso, check-in, certificado, reconciliação de quota)
+  - Fluxos principais (criar evento, vender ingresso, check-in em lote, certificado independente, reconciliação de quota)
+  - Certificação desacoplada, CSV com presença/concessão e convites guest externos
   - Páginas estáticas por evento (SEO/OG)
   - Horas, ownership, guests, declarações e badges
   - E1 — e-mails skipped/resend/summary
@@ -104,20 +105,20 @@ related-docs:
 ### 2.3 Check-in e horas automáticas
 
 1. Participante vê QR em `/membro` (aba Eventos), no e-mail ou na página pública do convite guest após o claim.
-2. Organizador acessa `/admin/eventos-checkin?event=<id>`.
-3. Scanner lê o token e chama `POST /events/:id/checkin` ou `POST /events/external/:eventKey/checkin`.
-4. Resposta idempotente: `checked_in` ou `already_checked_in`.
+2. Organizador acessa `/admin/eventos-checkin?event=<id>` e usa as abas **Escanear**, **Participantes** e **Certificados**. A lista tem filtros, seleção múltipla/todos os filtrados e cards responsivos; o scanner individual permanece disponível.
+3. Scanner lê o token e chama `POST /events/:id/checkin` ou `POST /events/external/:eventKey/checkin`. Ações em lote usam `POST /events/:id/checkin/batch` ou `POST /events/external/:eventKey/checkin/batch` com até 100 tokens e resultado por inscrição.
+4. Resposta idempotente: `checked_in`, `already_checked_in` ou `invalid` no lote. `pending_match`/`pending_guest` não passa no scanner.
 5. Somente a transição atômica `checkedInAt null → valor` com `status=confirmed` pode gerar `event_checkin`, na mesma transação. Se o update perder a corrida, a releitura diferencia `already_checked_in` de cancelamento/outro estado recusado. O crédito exige `memberId` e carga válida, nasce `approved` e usa `INSERT ... ON CONFLICT DO NOTHING`: hora preexistente não aborta o check-in nem duplica. Guests sem conta não geram horas.
-6. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
+6. O CSV externo aceita `checkin` e `certificate` (`true/false` ou `1/0`). Presença importada também concede certificado; concessão isolada não gera horas. Reupload mantém dedupe e não recredita. O relatório inclui `checkedIn` e `certificatesGranted`.
+7. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
 
 ### 2.4 Certificado
 
-1. Após check-in, participante clica "Emitir certificado" em `/membro`.
-2. `GET /events/registrations/:id/certificate` retorna dados.
-3. Frontend renderiza cartão com QR para `/certificado/verificar?codigo=`.
-4. Carga horária (`workloadMinutes`) vem do override (`extendData.workloadMinutes`) para
-   eventos externos. Managed events usam `workloadMinutes` explícito ou, na ausência dele,
-   `endAt - startAt`.
+1. O check-in preenche `checkedInAt` e, se ausente, `certificateGrantedAt`. Organizer/admin também pode conceder sem presença em `POST /events/registrations/:id/certificate/grant`; update condicional preserva a primeira concessão.
+2. Participante com concessão e status `confirmed` clica "Emitir certificado" em `/membro`; `GET /events/registrations/:id/certificate` e a verificação pública não dependem mais de `checkedInAt`.
+3. Frontend renderiza cartão com QR para `/certificado/verificar?codigo=`. O código `CRT-<checkinToken>` permanece estável.
+4. Para `pending_match`, a aba Certificados permite `POST /events/certificate-invites/batch`. O template `certificate-pending-registration` aponta para `/eventos/convite?token=...`; o aceite guest confirma a inscrição e libera a concessão. `certificateInvitedAt` só é gravado com `sent`, e cada tentativa gera `email_logs` (`sent/failed/skipped`).
+5. Carga horária (`workloadMinutes`) vem do override (`extendData.workloadMinutes`) para eventos externos. Managed events usam `workloadMinutes` explícito ou, na ausência dele, `endAt - startAt`. Certificado isolado não exige carga nem cria horas.
 
 ### 2.5 Lançar despesa/reembolso vinculado a evento
 
@@ -291,7 +292,8 @@ A declaração em `/membro/horas` usa o snapshot persistido, não muda com lanç
 3. `POST /events/public/guest-claim` valida consentimento e Turnstile. A transação bloqueia o evento, confere capacidade, reserva quota e faz update condicional `pending_guest → confirmed`; segunda tentativa responde 409. `pending_guest` não passa no check-in.
 4. `/eventos/convite` é noindex e reutiliza `GuestClaimIsland`; confirmação e D-1 apontam para essa página quando `isGuest=true`.
 5. No próximo `upsertByGithub`, somente e-mails verificados vindos de `GET /user/emails` podem vincular. Se o membro já tiver inscrição confirmada no evento, o guest vira `cancelled`, devolve quota uma única vez e grava audit. Não há horas retroativas nem escrita financeira.
-6. O cron diário das 03:00 anonimiza nome/e-mail de guests sem `memberId` quando `event.startAt` é anterior a 365 dias. Token, consentimento e presença permanecem; registros vinculados não entram no job.
+6. O cron diário das 03:00 anonimiza nome/e-mail de guests sem `memberId` quando `managed_events.startAt` ou `external_event_activations.startAt` é anterior a 365 dias. Token, consentimento, concessão e presença permanecem; registros vinculados não entram no job.
+7. `POST /events/certificate-invites/batch` reutiliza o mesmo claim para ativações externas. Não cria autenticação paralela nem vínculo por e-mail não verificado; `certificateInvitedAt` só é preenchido com envio `sent`.
 
 ### 2.16 Perfil público e badges
 
