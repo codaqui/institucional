@@ -1,11 +1,13 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { And, EntityManager, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { And, DataSource, EntityManager, In, IsNull, LessThan, MoreThanOrEqual, Repository } from 'typeorm';
 import type { EventRegistration } from '../events/entities/event-registration.entity';
 import { HourEntry, HourEntrySource, HourEntryStatus } from './entities/hour-entry.entity';
 import { AuditService } from '../audit/audit.service';
@@ -17,6 +19,12 @@ import { resolveProfileVisibility } from '../members/profile-visibility';
 import { CreateHourEntryDto } from './dto/create-hour-entry.dto';
 import { HourStatementQueryDto } from './dto/list-hours.dto';
 import { HourStatement } from './entities/hour-statement.entity';
+import { ExtensionProject } from '../projects/entities/extension-project.entity';
+import { ProjectParticipant } from '../projects/entities/project-participant.entity';
+import { MemberDesignation } from '../designations/entities/member-designation.entity';
+import { EmailService } from '../notifications/email.service';
+import { CreateProjectHourDto, UpdateProjectHourDto } from '../projects/dto/project-hour.dto';
+import { hoursToCents } from '../projects/project.rules';
 
 @Injectable()
 export class HoursService {
@@ -29,6 +37,14 @@ export class HoursService {
     private readonly audit: AuditService,
     @InjectRepository(HourStatement)
     private readonly statementsRepo: Repository<HourStatement>,
+    @Optional()
+    private readonly dataSource?: DataSource,
+    @Optional()
+    private readonly projects?: Repository<ExtensionProject>,
+    @Optional()
+    private readonly participants?: Repository<ProjectParticipant>,
+    @Optional()
+    private readonly email?: EmailService,
   ) {}
 
   async create(dto: CreateHourEntryDto, actor: JwtPayload): Promise<HourEntry> {
@@ -71,6 +87,123 @@ export class HoursService {
     }
   }
 
+  async recordExtensionProjectEntry(
+    projectId: string,
+    dto: CreateProjectHourDto,
+    actor: JwtPayload,
+  ): Promise<HourEntry> {
+    const { dataSource } = this.requireProjectDependencies();
+    return dataSource.transaction(async (manager) => {
+      const project = await manager.getRepository(ExtensionProject).findOne({
+        where: { id: projectId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!project) throw new NotFoundException('Projeto não encontrado.');
+      if (project.status !== 'active') throw new ConflictException('Horas só podem ser lançadas em projetos ativos.');
+      await this.assertPrincipalMentor(manager, projectId, actor);
+      await this.assertProjectParticipant(manager, projectId, dto.memberId);
+      const repo = manager.getRepository(HourEntry);
+      const existing = await repo.findOne({
+        where: { memberId: dto.memberId, idempotencyKey: dto.idempotencyKey },
+      });
+      if (existing) throw new ConflictException('Lançamento já registrado para esta chave de idempotência.');
+      const used = await repo.sum('hours', {
+        memberId: dto.memberId,
+        sourceType: HourEntrySource.EXTENSION_PROJECT,
+        sourceId: projectId,
+        status: In([HourEntryStatus.PENDING, HourEntryStatus.APPROVED]),
+      });
+      if (hoursToCents(used ?? 0) + hoursToCents(dto.hours) > hoursToCents(project.totalHours!)) {
+        throw new ConflictException('Carga horária do projeto excedida.');
+      }
+      const entry = await repo.save(repo.create({
+        memberId: dto.memberId,
+        sourceType: HourEntrySource.EXTENSION_PROJECT,
+        sourceId: projectId,
+        sourceLabel: project.name,
+        hours: dto.hours,
+        description: dto.description,
+        occurredAt: new Date(dto.occurredAt),
+        status: HourEntryStatus.PENDING,
+        reportedById: actor.sub,
+        idempotencyKey: dto.idempotencyKey,
+      }));
+      await this.audit.log({
+        action: AuditAction.HOUR_CREATED,
+        actorId: actor.sub,
+        actorHandle: actor.handle,
+        targetId: entry.id,
+        targetType: 'hour-entry',
+        details: { sourceType: entry.sourceType, sourceId: projectId, hours: entry.hours },
+      });
+      return entry;
+    });
+  }
+
+  async updateExtensionProjectEntry(
+    projectId: string,
+    hourId: string,
+    dto: UpdateProjectHourDto,
+    actor: JwtPayload,
+  ): Promise<HourEntry> {
+    const { dataSource } = this.requireProjectDependencies();
+    return dataSource.transaction(async (manager) => {
+      const project = await manager.getRepository(ExtensionProject).findOne({
+        where: { id: projectId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!project) throw new NotFoundException('Projeto não encontrado.');
+      if (project.status !== 'active') throw new ConflictException('Somente projetos ativos permitem edição de horas.');
+      await this.assertPrincipalMentor(manager, projectId, actor);
+      const repo = manager.getRepository(HourEntry);
+      const entry = await repo.findOne({
+        where: { id: hourId, sourceType: HourEntrySource.EXTENSION_PROJECT, sourceId: projectId },
+      });
+      if (!entry) throw new NotFoundException('Lançamento de horas não encontrado.');
+      if (entry.reportedById !== actor.sub) throw new ForbiddenException('Somente o mentor autor pode editar o lançamento.');
+      if (entry.status !== HourEntryStatus.PENDING) {
+        throw new ConflictException('Somente lançamentos pendentes podem ser editados.');
+      }
+      if (dto.idempotencyKey !== undefined && dto.idempotencyKey !== entry.idempotencyKey) {
+        throw new BadRequestException('A chave de idempotência não pode ser alterada.');
+      }
+      const hours = dto.hours ?? entry.hours;
+      const used = await repo.sum('hours', {
+        memberId: entry.memberId,
+        sourceType: HourEntrySource.EXTENSION_PROJECT,
+        sourceId: projectId,
+        status: In([HourEntryStatus.PENDING, HourEntryStatus.APPROVED]),
+      });
+      if (hoursToCents((used ?? 0) - entry.hours) + hoursToCents(hours) > hoursToCents(project.totalHours!)) {
+        throw new ConflictException('Carga horária do projeto excedida.');
+      }
+      Object.assign(entry, dto, { hours });
+      if (dto.occurredAt) entry.occurredAt = new Date(dto.occurredAt);
+      return repo.save(entry);
+    });
+  }
+
+  private requireProjectDependencies() {
+    if (!this.dataSource || !this.projects || !this.participants) {
+      throw new Error('Dependências de projetos não configuradas.');
+    }
+    return { dataSource: this.dataSource, projects: this.projects, participants: this.participants };
+  }
+
+  private async assertPrincipalMentor(manager: EntityManager, projectId: string, actor: JwtPayload) {
+    const designation = await manager.getRepository(MemberDesignation).findOne({
+      where: { targetType: 'extension_project', targetId: projectId, designation: 'mentor', status: 'active', memberId: actor.sub },
+    });
+    if (!designation) throw new ForbiddenException('Somente o mentor principal pode lançar horas neste projeto.');
+  }
+
+  private async assertProjectParticipant(manager: EntityManager, projectId: string, memberId: string) {
+    const participant = await manager.getRepository(ProjectParticipant).findOne({
+      where: { projectId, memberId, leftAt: IsNull() },
+    });
+    if (!participant) throw new ForbiddenException('O titular não possui vínculo ativo com este projeto.');
+  }
+
   async approve(id: string, actor: JwtPayload): Promise<HourEntry> {
     await this.pendingForReview(id, actor);
     const result = await this.repo.update(
@@ -91,7 +224,9 @@ export class HoursService {
       targetType: 'hour-entry',
       details: {},
     });
-    return this.repo.findOneByOrFail({ id });
+    const entry = await this.repo.findOneByOrFail({ id });
+    await this.notifyHourReview(entry, 'project_hours_approved');
+    return entry;
   }
 
   async reject(id: string, actor: JwtPayload, reason: string): Promise<HourEntry> {
@@ -114,7 +249,28 @@ export class HoursService {
       targetType: 'hour-entry',
       details: { reason },
     });
-    return this.repo.findOneByOrFail({ id });
+    const entry = await this.repo.findOneByOrFail({ id });
+    await this.notifyHourReview(entry, 'project_hours_rejected', reason);
+    return entry;
+  }
+
+  private async notifyHourReview(
+    entry: HourEntry,
+    template: 'project_hours_approved' | 'project_hours_rejected',
+    reason?: string,
+  ): Promise<void> {
+    if (!this.email || entry.sourceType !== HourEntrySource.EXTENSION_PROJECT) return;
+    const member = await this.membersRepo.findOneBy({ id: entry.memberId });
+    if (!member) return;
+    await this.email.sendProjectEmail({
+      template,
+      to: member.email,
+      memberName: member.name,
+      projectName: entry.sourceLabel,
+      projectId: entry.sourceId,
+      hours: entry.hours,
+      reason,
+    });
   }
 
   private async pendingForReview(id: string, actor: JwtPayload): Promise<void> {

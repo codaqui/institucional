@@ -12,6 +12,7 @@ import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 import { ParticipantsController } from './participants.controller';
 import { ParticipantsService } from './participants.service';
+import { ProjectHoursController } from './project-hours.controller';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { ParticipantsService } from './participants.service';
     DesignationsModule,
     AuditModule,
   ],
-  controllers: [ProjectsController, ParticipantsController],
+  controllers: [ProjectsController, ParticipantsController, ProjectHoursController],
   providers: [ProjectsService, ParticipantsService],
   exports: [ProjectsService, ParticipantsService],
 })
