@@ -7,6 +7,7 @@ import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession } from './entities/mentorship-session.entity';
 import { MentorshipController } from './mentorship.controller';
 import { MentorshipService } from './mentorship.service';
+import { AvailabilityService } from './availability.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { MentorshipService } from './mentorship.service';
     AuditModule,
   ],
   controllers: [MentorshipController],
-  providers: [MentorshipService],
-  exports: [MentorshipService],
+  providers: [MentorshipService, AvailabilityService],
+  exports: [MentorshipService, AvailabilityService],
 })
 export class MentorshipModule {}

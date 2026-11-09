@@ -84,7 +84,7 @@ const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  * Isso evita o bug de fuso em que o container Node roda em UTC e converte
  * "2026-07-30T15:30" para 15:30 UTC ao invés de 15:30 BRT (18:30 UTC).
  */
-function parseDateTimeLocal(value: string, timeZone: string): Date {
+export function parseDateTimeLocal(value: string, timeZone: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(
     value,
   );
