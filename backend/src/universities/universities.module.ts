@@ -5,13 +5,14 @@ import { DesignationsModule } from '../designations/designations.module';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { Institution } from '../entities/entities/institution.entity';
 import { Member } from '../members/entities/member.entity';
+import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { City } from './entities/city.entity';
 import { UniversitiesController } from './universities.controller';
 import { UniversitiesService } from './universities.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([City, Institution, MemberDesignation, Member]),
+    TypeOrmModule.forFeature([City, Institution, MemberDesignation, Member, ManagedEvent]),
     DesignationsModule,
     AuditModule,
   ],

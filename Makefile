@@ -358,6 +358,9 @@ sync-assemblies: ## Sincroniza assembleias → static/assemblies/
 sync-projects: ## Sincroniza projetos de extensão → static/projects/
 	PROJECTS_API_URL=http://localhost:3001 npm run sync:projects
 
+sync-universities: ## Sincroniza Codaqui Universitário → static/universities/
+	UNIVERSITIES_API_URL=http://localhost:3001 npm run sync:universities
+
 sync-badges: ## Sincroniza selos SVG públicos → static/badges/
 	MEMBER_BADGES_API_URL=http://localhost:3001 npm run sync:badges
 

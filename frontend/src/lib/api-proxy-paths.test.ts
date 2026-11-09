@@ -58,6 +58,11 @@ const apiPaths = [
   "/audit",
   "/audit/logs",
   "/audit/cleanup",
+  "/universities/public",
+  "/universities/manage",
+  "/universities/cities",
+  "/universities/institutions",
+  "/universities/ambassador-applications",
 ] as const;
 
 const staticPaths = [
@@ -87,6 +92,8 @@ const staticPaths = [
   "/events/index.json",
   "/assemblies/index.json",
   "/projects/index.json",
+  "/universities/index.json",
+  "/universitario",
   "/projetos",
   "/projetos/acao-extensao",
   "/assembliesxyz",

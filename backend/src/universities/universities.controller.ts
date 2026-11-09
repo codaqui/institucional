@@ -10,6 +10,18 @@ import { UniversitiesService } from './universities.service';
 export class UniversitiesController {
   constructor(private readonly universities: UniversitiesService) {}
 
+  @Get('public')
+  getPublic() {
+    return this.universities.getPublic();
+  }
+
+  @Get('manage')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  getManage(@Req() req: { user: JwtPayload }) {
+    return this.universities.getManage(req.user);
+  }
+
   @Post('cities')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')

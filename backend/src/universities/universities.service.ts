@@ -1,12 +1,13 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, IsNull, Not, Raw, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { DesignationsService } from '../designations/designations.service';
 import { Institution } from '../entities/entities/institution.entity';
+import { ManagedEvent, ManagedEventStatus } from '../events/entities/managed-event.entity';
 import { entitySlug } from '../entities/entities.rules';
 import { Member, MemberRole } from '../members/entities/member.entity';
 import { City } from './entities/city.entity';
@@ -25,6 +26,8 @@ export class UniversitiesService {
     private readonly memberRepo: Repository<Member>,
     private readonly designations: DesignationsService,
     private readonly audit: AuditService,
+    @InjectRepository(ManagedEvent)
+    private readonly eventRepo: Repository<ManagedEvent>,
   ) {}
 
   async createCity(dto: CreateCityDto, actor: JwtPayload): Promise<City> {
@@ -114,6 +117,78 @@ export class UniversitiesService {
       details: { before, after: { ...updated } },
     });
     return updated;
+  }
+
+  async getPublic() {
+    const [cities, institutions, designations, events] = await Promise.all([
+      this.cityRepo.find({ where: { isActive: true }, order: { name: 'ASC' } }),
+      this.institutionRepo.find({
+        where: { type: 'instituicao_ensino', isActive: true },
+        order: { name: 'ASC' },
+      }),
+      this.designationRepo.find({
+        where: {
+          targetType: 'ies',
+          designation: 'ambassador',
+          status: 'active',
+          validUntil: Raw((alias) => `(${alias} IS NULL OR ${alias} > NOW())`),
+        },
+        order: { createdAt: 'ASC' },
+      }),
+      this.eventRepo.find({
+        where: {
+          institutionId: Not(IsNull()),
+          status: ManagedEventStatus.PUBLISHED,
+        },
+        order: { startAt: 'ASC' },
+      }),
+    ]);
+    const cityById = new Map(cities.map((city) => [city.id, city]));
+    const memberIds = [...new Set(designations.map((designation) => designation.memberId))];
+    const members = memberIds.length > 0
+      ? await this.memberRepo.findBy({ id: In(memberIds) })
+      : [];
+    const memberById = new Map(members.map((member) => [member.id, member]));
+    return {
+      generatedAt: new Date().toISOString(),
+      cities,
+      institutions: institutions.map((institution) => {
+        const city = cityById.get(institution.cityId ?? '');
+        const designation = designations.find(
+          (candidate) => candidate.targetId === institution.id,
+        );
+        const member = designation ? memberById.get(designation.memberId) : undefined;
+        return {
+          id: institution.id,
+          slug: institution.slug,
+          name: institution.name,
+          website: institution.website,
+          city: city ? { id: city.id, name: city.name, uf: city.uf } : null,
+          ambassador: designation && member
+            ? {
+                githubHandle: member.githubHandle,
+                name: member.name,
+                avatarUrl: member.avatarUrl,
+                validUntil: designation.validUntil,
+              }
+            : null,
+        };
+      }),
+      events: events.map((event) => ({
+        id: event.id,
+        slug: event.slug,
+        title: event.title,
+        startAt: event.startAt,
+        status: event.status,
+        location: event.location,
+        institutionId: event.institutionId,
+      })),
+    };
+  }
+
+  async getManage(actor: JwtPayload) {
+    await this.assertUniversityManager(actor);
+    return this.getPublic();
   }
 
   async applyAmbassador(
