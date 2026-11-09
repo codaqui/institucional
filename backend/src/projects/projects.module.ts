@@ -10,6 +10,8 @@ import { ExtensionProject } from './entities/extension-project.entity';
 import { ProjectParticipant } from './entities/project-participant.entity';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
+import { ParticipantsController } from './participants.controller';
+import { ParticipantsService } from './participants.service';
 
 @Module({
   imports: [
@@ -24,8 +26,8 @@ import { ProjectsService } from './projects.service';
     DesignationsModule,
     AuditModule,
   ],
-  controllers: [ProjectsController],
-  providers: [ProjectsService],
-  exports: [ProjectsService],
+  controllers: [ProjectsController, ParticipantsController],
+  providers: [ProjectsService, ParticipantsService],
+  exports: [ProjectsService, ParticipantsService],
 })
 export class ProjectsModule {}

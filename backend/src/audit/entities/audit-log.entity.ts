@@ -45,6 +45,8 @@ export enum AuditAction {
   PROJECT_UPDATED = 'project.updated',
   PROJECT_STATUS_CHANGED = 'project.status_changed',
   PROJECT_MENTOR_DESIGNATED = 'project.mentor_designated',
+  PROJECT_PARTICIPANT_JOINED = 'project.participant_joined',
+  PROJECT_PARTICIPANT_REMOVED = 'project.participant_removed',
 
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
