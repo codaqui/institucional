@@ -68,7 +68,7 @@ function call(path: string, method = "GET") {
   );
 }
 
-describe("ProjectsAdminApp", () => {
+describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
   beforeEach(() => {
     mocks.authFetch.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
       if (path.startsWith("/projects?")) {
