@@ -43,7 +43,7 @@ export class ParticipantsService {
       if (existing?.role === 'mentor' && existing.leftAt === null) {
         throw new ConflictException('Mentores não ocupam vaga de participante.');
       }
-      if (existing && existing.leftAt === null) {
+      if (existing?.leftAt === null) {
         throw new ConflictException('O membro já está inscrito neste projeto.');
       }
       const count = await repo.count({ where: { projectId, role: 'participant', leftAt: IsNull() } });

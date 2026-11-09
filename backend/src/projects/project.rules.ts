@@ -44,11 +44,11 @@ export function projectSlug(name: string): string {
 }
 
 export function assertScheduleMatches(schedule: ScheduleItem[], totalHours: number): void {
-  if (!(totalHours > 0) || schedule.length === 0) {
+  if (totalHours <= 0 || schedule.length === 0) {
     throw new BadRequestException('Informe ao menos um encontro com carga horária positiva.');
   }
   for (const item of schedule) {
-    if (!item.descricao?.trim() || !(item.carga > 0)) {
+    if (!item.descricao?.trim() || item.carga <= 0) {
       throw new BadRequestException('Cada encontro precisa de descrição e carga positiva.');
     }
   }
@@ -63,8 +63,8 @@ export function assertProjectDates(input: ProjectDatesInput): void {
   const end = Date.parse(input.endsAt);
   const registrationStart = Date.parse(input.registrationStartsAt);
   const registrationEnd = Date.parse(input.registrationEndsAt);
-  if (!(start < end)) throw new BadRequestException('O início do projeto deve ser anterior ao fim.');
-  if (!(registrationStart < registrationEnd)) {
+  if (start >= end) throw new BadRequestException('O início do projeto deve ser anterior ao fim.');
+  if (registrationStart >= registrationEnd) {
     throw new BadRequestException('A janela de inscrição deve ter início anterior ao fim.');
   }
   if (registrationEnd > start) {

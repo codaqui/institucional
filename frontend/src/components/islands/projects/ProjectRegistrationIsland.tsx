@@ -58,7 +58,10 @@ export default function ProjectRegistrationIsland({ projectId }: Readonly<Projec
         disabled={busy}
         onClick={() => void changeMembership(joined ? "leave" : "join")}
       >
-        {busy ? "Atualizando…" : joined ? "Sair do projeto" : "Inscrever-se"}
+        {(() => {
+          if (busy) return "Atualizando…";
+          return joined ? "Sair do projeto" : "Inscrever-se";
+        })()}
       </Button>
       <Typography variant="caption" color="text.secondary">
         A janela e o limite de vagas são confirmados pelo servidor na inscrição.

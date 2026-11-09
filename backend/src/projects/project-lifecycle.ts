@@ -9,15 +9,7 @@ interface ProjectActor {
   roles?: string[];
 }
 
-export function assertProjectTransition(
-  project: any,
-  patch: any,
-  actor: ProjectActor,
-  activeMentor: MemberDesignation | null,
-): void {
-  const nextStatus = patch.status ?? project.status;
-  if (nextStatus === project.status) return;
-
+function assertTransitionShape(project: any, nextStatus: string): void {
   if (nextStatus === 'proposed') {
     if (project.status !== 'draft') {
       throw new BadRequestException(`Transição de status inválida: ${project.status} -> ${nextStatus}`);
@@ -27,7 +19,7 @@ export function assertProjectTransition(
   if (!['active', 'finished', 'canceled'].includes(nextStatus)) {
     throw new BadRequestException(`Transição de status inválida: ${project.status} -> ${nextStatus}`);
   }
-  if (project.status === 'finished' || project.status === 'canceled') {
+  if (['finished', 'canceled'].includes(project.status)) {
     throw new BadRequestException('Projetos finalizados ou cancelados são terminais.');
   }
   if (nextStatus === 'active' && project.status !== 'proposed') {
@@ -39,19 +31,35 @@ export function assertProjectTransition(
   if (nextStatus === 'canceled' && !['draft', 'proposed', 'active'].includes(project.status)) {
     throw new BadRequestException('Este projeto não pode ser cancelado.');
   }
+}
 
+function assertTransitionActor(
+  nextStatus: string,
+  project: any,
+  actor: ProjectActor,
+  activeMentor: MemberDesignation | null,
+): void {
   const isAdmin = actor.roles?.includes(MemberRole.ADMIN);
   const isOwnerDirector = actor.sub === project.createdById && actor.roles?.includes(MemberRole.DIRETOR);
   const isPrincipalMentor = activeMentor?.memberId === actor.sub;
-
-  if (nextStatus === 'active' || nextStatus === 'canceled') {
-    if (!isAdmin && !isOwnerDirector) {
-      throw new ForbiddenException('A transição exige admin ou o diretor criador do projeto.');
-    }
+  if (['active', 'canceled'].includes(nextStatus) && !isAdmin && !isOwnerDirector) {
+    throw new ForbiddenException('A transição exige admin ou o diretor criador do projeto.');
   }
   if (nextStatus === 'finished' && !isAdmin && !isOwnerDirector && !isPrincipalMentor) {
     throw new ForbiddenException('A finalização exige admin, diretor criador ou mentor principal.');
   }
+}
+
+export function assertProjectTransition(
+  project: any,
+  patch: any,
+  actor: ProjectActor,
+  activeMentor: MemberDesignation | null,
+): void {
+  const nextStatus = patch.status ?? project.status;
+  if (nextStatus === project.status) return;
+  assertTransitionShape(project, nextStatus);
+  assertTransitionActor(nextStatus, project, actor, activeMentor);
   if (nextStatus === 'active') {
     assertProjectComplete({ ...project, ...patch, mentorMemberId: patch.mentorMemberId ?? activeMentor?.memberId });
   }

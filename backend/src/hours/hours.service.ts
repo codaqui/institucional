@@ -95,7 +95,7 @@ export class HoursService {
     actor: JwtPayload,
   ): Promise<HourEntry> {
     const { dataSource } = this.requireProjectDependencies();
-    return dataSource.transaction(async (manager) => {
+    return await dataSource.transaction(async (manager) => {
       const project = await manager.getRepository(ExtensionProject).findOne({
         where: { id: projectId },
         lock: { mode: 'pessimistic_write' },
@@ -171,7 +171,7 @@ export class HoursService {
     actor: JwtPayload,
   ): Promise<HourEntry> {
     const { dataSource } = this.requireProjectDependencies();
-    return dataSource.transaction(async (manager) => {
+    return await dataSource.transaction(async (manager) => {
       const project = await manager.getRepository(ExtensionProject).findOne({
         where: { id: projectId },
         lock: { mode: 'pessimistic_write' },

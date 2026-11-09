@@ -12,7 +12,7 @@ export interface AssemblyActor {
   roles?: string[];
 }
 
-export const ASSEMBLY_DISCUSSION_URL_PATTERN = DISCUSSION_URL_PATTERN;
+export { DISCUSSION_URL_PATTERN as ASSEMBLY_DISCUSSION_URL_PATTERN } from '../common/discussion-url';
 
 const storageService = new StorageService();
 

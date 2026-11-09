@@ -255,31 +255,35 @@ function EntitiesAdminInner() {
         <Button type="submit" variant="outlined">Buscar</Button>
       </Box>
 
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress aria-label="Carregando entidades" /></Box>
-      ) : items.length === 0 ? (
-        <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>Nenhuma entidade encontrada.</Typography>
-      ) : (
-        <>
-          <TableContainer component={Box} tabIndex={0} role="region" aria-label="Entidades cadastradas" sx={{ overflowX: "auto" }}>
-            <Table size="small">
-              <TableHead><TableRow><TableCell>Nome</TableCell><TableCell>Tipo</TableCell><TableCell>Status</TableCell><TableCell align="right">Ações</TableCell></TableRow></TableHead>
-              <TableBody>
-                {items.map((entity) => (
-                  <TableRow key={entity.id}>
-                    <TableCell><Typography variant="body2" sx={{ fontWeight: 700 }}>{entity.name}</Typography><Typography variant="caption" color="text.secondary">{entity.slug}</Typography></TableCell>
-                    <TableCell>{ENTITY_TYPES.find((item) => item.value === entity.type)?.label ?? entity.type}</TableCell>
-                    <TableCell><Chip size="small" variant="outlined" label={entity.isActive ? "Ativa" : "Inativa"} color={entity.isActive ? "success" : "default"} /></TableCell>
-                    <TableCell align="right"><Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}><Button size="small" onClick={() => openEntity(entity)}>Editar</Button><Button size="small" onClick={() => openPartnerships(entity)}>Parcerias</Button></Stack></TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 1 }}>{rangeLabel(page, DEFAULT_PAGE_SIZE, total)}</Typography>
-          <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="entidades" />
-        </>
-      )}
+      {(() => {
+        if (loading) {
+          return <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress aria-label="Carregando entidades" /></Box>;
+        }
+        if (items.length === 0) {
+          return <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>Nenhuma entidade encontrada.</Typography>;
+        }
+        return (
+          <>
+            <TableContainer component={Box} tabIndex={0} role="region" aria-label="Entidades cadastradas" sx={{ overflowX: "auto" }}>
+              <Table size="small">
+                <TableHead><TableRow><TableCell>Nome</TableCell><TableCell>Tipo</TableCell><TableCell>Status</TableCell><TableCell align="right">Ações</TableCell></TableRow></TableHead>
+                <TableBody>
+                  {items.map((entity) => (
+                    <TableRow key={entity.id}>
+                      <TableCell><Typography variant="body2" sx={{ fontWeight: 700 }}>{entity.name}</Typography><Typography variant="caption" color="text.secondary">{entity.slug}</Typography></TableCell>
+                      <TableCell>{ENTITY_TYPES.find((item) => item.value === entity.type)?.label ?? entity.type}</TableCell>
+                      <TableCell><Chip size="small" variant="outlined" label={entity.isActive ? "Ativa" : "Inativa"} color={entity.isActive ? "success" : "default"} /></TableCell>
+                      <TableCell align="right"><Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}><Button size="small" onClick={() => openEntity(entity)}>Editar</Button><Button size="small" onClick={() => openPartnerships(entity)}>Parcerias</Button></Stack></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 1 }}>{rangeLabel(page, DEFAULT_PAGE_SIZE, total)}</Typography>
+            <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="entidades" />
+          </>
+        );
+      })()}
 
       <Dialog open={formOpen} onClose={() => !saving && setFormOpen(false)} fullWidth maxWidth="sm">
         <form onSubmit={(event) => void saveEntity(event)}>
@@ -302,16 +306,20 @@ function EntitiesAdminInner() {
         <DialogTitle>Parcerias — {partnershipEntity?.name}</DialogTitle>
         <DialogContent><Stack spacing={3} sx={{ pt: 1 }}>
           {partnershipError && <Alert severity="error">{partnershipError}</Alert>}
-          {partnershipsLoading ? <CircularProgress aria-label="Carregando parcerias" /> : partnerships.length === 0 ? <Typography color="text.secondary">Nenhuma parceria cadastrada.</Typography> : (
-            <Stack component="ul" spacing={1} sx={{ listStyle: "none", p: 0, m: 0 }}>
-              {partnerships.map((partnership) => (
-                <Stack component="li" direction={{ xs: "column", sm: "row" }} key={partnership.id} spacing={1} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }}>
-                  <Box><Typography variant="body2">{partnership.kind === "termo" ? "Termo" : "Pontual"} · {partnership.startedAt}</Typography><Typography variant="caption" color="text.secondary">{partnership.notes}</Typography></Box>
-                  {partnership.status === "active" ? <Button size="small" color="error" onClick={() => void endPartnership(partnership)}>Encerrar</Button> : <Chip size="small" label={partnership.status} />}
-                </Stack>
-              ))}
-            </Stack>
-          )}
+          {(() => {
+            if (partnershipsLoading) return <CircularProgress aria-label="Carregando parcerias" />;
+            if (partnerships.length === 0) return <Typography color="text.secondary">Nenhuma parceria cadastrada.</Typography>;
+            return (
+              <Stack component="ul" spacing={1} sx={{ listStyle: "none", p: 0, m: 0 }}>
+                {partnerships.map((partnership) => (
+                  <Stack component="li" direction={{ xs: "column", sm: "row" }} key={partnership.id} spacing={1} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }}>
+                    <Box><Typography variant="body2">{partnership.kind === "termo" ? "Termo" : "Pontual"} · {partnership.startedAt}</Typography><Typography variant="caption" color="text.secondary">{partnership.notes}</Typography></Box>
+                    {partnership.status === "active" ? <Button size="small" color="error" onClick={() => void endPartnership(partnership)}>Encerrar</Button> : <Chip size="small" label={partnership.status} />}
+                  </Stack>
+                ))}
+              </Stack>
+            );
+          })()}
           <Box component="form" onSubmit={(event) => void savePartnership(event)} sx={{ display: "grid", gap: 2 }}>
             <Typography variant="h6" component="h3">Nova parceria</Typography>
             <TextField label="Modalidade" name="kind" select value={partnershipForm.kind} onChange={(event) => setPartnershipForm({ ...partnershipForm, kind: event.target.value as "termo" | "pontual" })}><MenuItem value="termo">Termo</MenuItem><MenuItem value="pontual">Pontual</MenuItem></TextField>

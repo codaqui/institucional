@@ -269,27 +269,35 @@ function ProjectsAdminInner() {
         <TextField fullWidth size="small" label="Filtrar por entidade" select value={entityId} onChange={(event) => { setPage(1); setEntityId(event.target.value); }}><MenuItem value="">Todas</MenuItem>{entities.map((entity) => <MenuItem key={entity.id} value={entity.id}>{entity.name}</MenuItem>)}</TextField>
       </Stack>
 
-      {loading ? <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress aria-label="Carregando projetos" /></Box> : items.length === 0 ? <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>Nenhum projeto encontrado.</Typography> : (
-        <>
-          <TableContainer component={Box} tabIndex={0} role="region" aria-label="Projetos cadastrados" sx={{ overflowX: "auto" }}>
-            <Table size="small"><TableHead><TableRow><TableCell>Projeto</TableCell><TableCell>Status</TableCell><TableCell>Período</TableCell><TableCell align="right">Ações</TableCell></TableRow></TableHead>
-              <TableBody>{items.map((project) => <TableRow key={project.id}>
-                <TableCell><Typography variant="body2" sx={{ fontWeight: 700 }}>{project.name}</Typography><Typography variant="caption" color="text.secondary">{entities.find((entity) => entity.id === project.entityId)?.name ?? "Entidade"}</Typography></TableCell>
-                <TableCell><Chip size="small" variant="outlined" label={STATUS_LABELS[project.status]} /></TableCell>
-                <TableCell>{project.startsAt ? `${project.startsAt} — ${project.endsAt}` : "Não definido"}</TableCell>
-                <TableCell align="right"><Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}>
-                  {["draft", "proposed"].includes(project.status) && <Button size="small" onClick={() => openProject(project)}>Editar</Button>}
-                  {project.status === "proposed" && <Button size="small" variant="contained" disabled={busyId === project.id} onClick={() => void transition(project, "active")}>Ativar</Button>}
-                  {project.status === "active" && <Button size="small" disabled={busyId === project.id} onClick={() => { setReportUrl(""); setFinishTarget(project); }}>Finalizar</Button>}
-                  {!["finished", "canceled"].includes(project.status) && <Button size="small" color="error" disabled={busyId === project.id} onClick={() => void transition(project, "canceled")}>Cancelar</Button>}
-                </Stack></TableCell>
-              </TableRow>)}</TableBody>
-            </Table>
-          </TableContainer>
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 1 }}>{rangeLabel(page, DEFAULT_PAGE_SIZE, total)}</Typography>
-          <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="projetos" />
-        </>
-      )}
+      {(() => {
+        if (loading) {
+          return <Box sx={{ display: "flex", justifyContent: "center", py: 6 }}><CircularProgress aria-label="Carregando projetos" /></Box>;
+        }
+        if (items.length === 0) {
+          return <Typography color="text.secondary" sx={{ textAlign: "center", py: 6 }}>Nenhum projeto encontrado.</Typography>;
+        }
+        return (
+          <>
+            <TableContainer component={Box} tabIndex={0} role="region" aria-label="Projetos cadastrados" sx={{ overflowX: "auto" }}>
+              <Table size="small"><TableHead><TableRow><TableCell>Projeto</TableCell><TableCell>Status</TableCell><TableCell>Período</TableCell><TableCell align="right">Ações</TableCell></TableRow></TableHead>
+                <TableBody>{items.map((project) => <TableRow key={project.id}>
+                  <TableCell><Typography variant="body2" sx={{ fontWeight: 700 }}>{project.name}</Typography><Typography variant="caption" color="text.secondary">{entities.find((entity) => entity.id === project.entityId)?.name ?? "Entidade"}</Typography></TableCell>
+                  <TableCell><Chip size="small" variant="outlined" label={STATUS_LABELS[project.status]} /></TableCell>
+                  <TableCell>{project.startsAt ? `${project.startsAt} — ${project.endsAt}` : "Não definido"}</TableCell>
+                  <TableCell align="right"><Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end", flexWrap: "wrap" }}>
+                    {["draft", "proposed"].includes(project.status) && <Button size="small" onClick={() => openProject(project)}>Editar</Button>}
+                    {project.status === "proposed" && <Button size="small" variant="contained" disabled={busyId === project.id} onClick={() => void transition(project, "active")}>Ativar</Button>}
+                    {project.status === "active" && <Button size="small" disabled={busyId === project.id} onClick={() => { setReportUrl(""); setFinishTarget(project); }}>Finalizar</Button>}
+                    {!["finished", "canceled"].includes(project.status) && <Button size="small" color="error" disabled={busyId === project.id} onClick={() => void transition(project, "canceled")}>Cancelar</Button>}
+                  </Stack></TableCell>
+                </TableRow>)}</TableBody>
+              </Table>
+            </TableContainer>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 1 }}>{rangeLabel(page, DEFAULT_PAGE_SIZE, total)}</Typography>
+            <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="projetos" />
+          </>
+        );
+      })()}
 
       <Dialog open={formOpen} onClose={() => !saving && setFormOpen(false)} fullWidth maxWidth="md">
         <form onSubmit={(event) => event.preventDefault()}>
@@ -321,7 +329,7 @@ function ProjectsAdminInner() {
             <TextField label="Competências desenvolvidas" multiline minRows={2} value={form.skillsDeveloped} onChange={(event) => setForm({ ...form, skillsDeveloped: event.target.value })} />
             <TextField label="Metodologia" multiline minRows={2} value={form.methodology} onChange={(event) => setForm({ ...form, methodology: event.target.value })} />
             <Typography variant="h6" component="h3">Encontros</Typography>
-            {schedule.map((item, index) => <Stack direction={{ xs: "column", sm: "row" }} spacing={1} key={index}>
+            {schedule.map((item, index) => <Stack direction={{ xs: "column", sm: "row" }} spacing={1} key={`schedule-${item.numero}`}>
               <TextField label="Número" type="number" value={item.numero} onChange={(event) => updateSchedule(index, "numero", event.target.value)} sx={{ width: { sm: 100 } }} />
               <TextField fullWidth label={`Descrição do encontro ${index + 1}`} value={item.descricao} onChange={(event) => updateSchedule(index, "descricao", event.target.value)} />
               <TextField label="Carga" type="number" value={item.carga} onChange={(event) => updateSchedule(index, "carga", event.target.value)} sx={{ width: { sm: 120 } }} />

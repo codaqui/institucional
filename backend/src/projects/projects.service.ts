@@ -264,7 +264,7 @@ export class ProjectsService {
       existing.endedAt = new Date();
       await designationRepo.save(existing);
     }
-    if (!existing || existing.memberId !== mentorMemberId) {
+    if (existing?.memberId !== mentorMemberId) {
       await this.designations.grant({
         memberId: mentorMemberId,
         targetType: 'extension_project',
@@ -279,14 +279,14 @@ export class ProjectsService {
       { projectId: project.id, role: 'mentor', leftAt: null },
       { leftAt: new Date() },
     );
-    for (const memberId of [...new Set([mentorMemberId, ...coMentors])]) {
-      await participantRepo.save(participantRepo.create({
+    await Promise.all([...new Set([mentorMemberId, ...coMentors])].map((memberId) =>
+      participantRepo.save(participantRepo.create({
         projectId: project.id,
         memberId,
         role: 'mentor',
         leftAt: null,
-      }));
-    }
+      })),
+    ));
     await this.audit.log({
       action: AuditAction.PROJECT_MENTOR_DESIGNATED,
       actorId: actor.sub,

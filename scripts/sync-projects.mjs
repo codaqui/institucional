@@ -27,11 +27,7 @@ function isOptionalDateString(value) {
   return value === null || isDateString(value);
 }
 
-function validateProject(project, index) {
-  if (!isObject(project)) throw invalidProject(index, "esperado um objeto.");
-  for (const [field, value] of Object.entries(project)) {
-    if (PRIVATE_FIELDS.has(field)) throw invalidProject(index, `${field} não é público.`);
-  }
+function validateProjectText(project, index) {
   for (const field of ["id", "kind", "name", "slug", "summary", "status"]) {
     if (typeof project[field] !== "string" || project[field].trim().length === 0) {
       throw invalidProject(index, `${field} deve ser uma string não vazia.`);
@@ -39,30 +35,36 @@ function validateProject(project, index) {
   }
   if (project.status !== "active") throw invalidProject(index, "somente projetos ativos são públicos.");
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(project.slug)) throw invalidProject(index, "slug inválido.");
+  if (typeof project.targetCommunity !== "string" || project.targetCommunity.trim().length === 0) {
+    throw invalidProject(index, "targetCommunity deve ser uma string não vazia.");
+  }
+}
+
+function validateProjectRelations(project, index) {
   if (!isObject(project.entity) || typeof project.entity.slug !== "string" || typeof project.entity.name !== "string") {
     throw invalidProject(index, "entity precisa conter slug e nome.");
   }
   if (project.mentor !== null && (!isObject(project.mentor) || typeof project.mentor.name !== "string" || typeof project.mentor.handle !== "string")) {
     throw invalidProject(index, "mentor precisa ser null ou conter nome e handle.");
   }
-  for (const field of ["startsAt", "endsAt", "registrationStartsAt", "registrationEndsAt"]) {
-    if (!isOptionalDateString(project[field])) throw invalidProject(index, `${field} deve ser null ou uma data válida.`);
-  }
+}
+
+function validateProjectNumbers(project, index) {
   if (!Number.isInteger(project.odsPrimary) || project.odsPrimary < 1 || project.odsPrimary > 17) {
     throw invalidProject(index, "odsPrimary deve estar entre 1 e 17.");
   }
   if (!Array.isArray(project.odsSecondary) || project.odsSecondary.some((value) => !Number.isInteger(value) || value < 1 || value > 17 || value === project.odsPrimary)) {
     throw invalidProject(index, "odsSecondary inválida.");
   }
-  if (typeof project.targetCommunity !== "string" || project.targetCommunity.trim().length === 0) {
-    throw invalidProject(index, "targetCommunity deve ser uma string não vazia.");
-  }
-  if (typeof project.totalHours !== "number" || !(project.totalHours > 0)) {
+  if (typeof project.totalHours !== "number" || project.totalHours <= 0) {
     throw invalidProject(index, "totalHours deve ser positivo.");
   }
   if (!Number.isInteger(project.maxParticipants) || project.maxParticipants < 0) {
     throw invalidProject(index, "maxParticipants deve ser um inteiro não negativo.");
   }
+}
+
+function validateProjectSchedule(project, index) {
   if (!Array.isArray(project.schedule) || project.schedule.length === 0) {
     throw invalidProject(index, "schedule deve conter encontros.");
   }
@@ -70,6 +72,20 @@ function validateProject(project, index) {
   if (totalCents !== Math.round(project.totalHours * 100)) {
     throw invalidProject(index, "schedule não corresponde a totalHours.");
   }
+}
+
+function validateProject(project, index) {
+  if (!isObject(project)) throw invalidProject(index, "esperado um objeto.");
+  for (const field of Object.keys(project)) {
+    if (PRIVATE_FIELDS.has(field)) throw invalidProject(index, `${field} não é público.`);
+  }
+  validateProjectText(project, index);
+  validateProjectRelations(project, index);
+  for (const field of ["startsAt", "endsAt", "registrationStartsAt", "registrationEndsAt"]) {
+    if (!isOptionalDateString(project[field])) throw invalidProject(index, `${field} deve ser null ou uma data válida.`);
+  }
+  validateProjectNumbers(project, index);
+  validateProjectSchedule(project, index);
 }
 
 export function validateProjectsPayload(payload) {
