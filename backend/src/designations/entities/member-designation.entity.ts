@@ -91,6 +91,12 @@ export class MemberDesignation {
   @Column({ type: 'timestamptz', nullable: true })
   endedAt: Date | null;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  validUntil: Date | null;
+
+  @Column({ type: 'text', nullable: true })
+  applicationNotes: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
