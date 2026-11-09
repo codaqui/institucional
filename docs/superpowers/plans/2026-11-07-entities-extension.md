@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Implementers e revisores da Fase 4.
-status: Tasks 1–9 concluídas; Task 10/etapas 1–4 verificadas e documentadas; handoff de integração e release pendente na etapa 5.
+status: Fase 4 concluída e handoff validado na PR #617; merge, release 0.16.0 e validação pública aguardam comando explícito.
 sections:
   - Constraints
   - Tasks 1–10
@@ -568,6 +568,6 @@ Record ADR 008, exact API/permissions, privacy, operations, migration evidence a
 
 `git add docs AGENTS.md DEVELOPMENT.md && git commit -m "docs(fase-4): registra ADR 008 e handoff 0.16.0"`
 
-- [ ] **Step 5: Present integration state**
+- [x] **Step 5: Present integration state**
 
-Merge local into `develop`, open PR to `main`, watch CI/Sonar and resolve review findings. Do not merge/release/deploy without the user's explicit command at that checkpoint.
+Merge local into `develop`, open PR to `main`, watch CI/Sonar and resolve review findings. Do not merge/release/deploy without the user's explicit command at that checkpoint. PR #617 aberta, CI e deploys verdes, CodeQL/Trivy aprovados e zero issues abertas no Sonar.
