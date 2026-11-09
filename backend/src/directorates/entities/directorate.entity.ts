@@ -20,6 +20,9 @@ export class Directorate {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  communityId: string | null;
+
   @Column({ type: 'boolean', default: true })
   isActive: boolean;
 
