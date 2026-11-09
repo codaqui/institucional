@@ -41,6 +41,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 013 | [Ledger de horas, ownership, guests e perfil público](adrs/013-hour-ledger.md) | 2026-11 | Implementado e publicado (Fase 2; backend 0.14.0) |
 | 008 | [Entidades e Projetos de Extensão](adrs/008-entities-extension-projects.md) | 2026-11 | Implementado e verificado em banco descartável; integração e release pendentes |
 | 014 | [Assembleias híbridas com Discussion manual e registro fino](adrs/014-assemblies.md) | 2026-11 | Implementado e publicado; Discussion real pendente; escopo por entidade jurídica ampliado na Fase 4 |
+| 015 | [Codaqui Universitário](adrs/015-codaqui-universitario.md) | 2026-11 | Implementado e verificado; integração, release 0.17.0, sync inicial e validação pública pendentes |
 
 ### Módulos — Documentação Viva
 
@@ -59,7 +60,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
-| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–3 publicadas, restando Discussion real; Fase 4 implementada e verificada ([ADR 008](adrs/008-entities-extension-projects.md)), aguardando integração/release; campanhas em spec separada. |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–3 publicadas, restando Discussion real; Fase 4 integrada com publicação 0.16.x pendente; Fase 4b implementada ([ADR 015](adrs/015-codaqui-universitario.md)), aguardando integração/release 0.17.0; campanhas em spec separada. |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |

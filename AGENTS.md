@@ -196,6 +196,7 @@ institucional/
 │   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
 │   │   ├── entities/            # ⭐ Fase 4/ADR 008: entidades jurídicas e parcerias
 │   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
+│   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -207,7 +208,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 040; Fase 2: 033–035; Fase 3: 036; Fase 4: 037–040)
+│   │   └── migrations/          # TypeORM migrations (até 042; Fase 4: 037–041; Fase 4b: 042)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -279,7 +280,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|assemblies|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` permanece estático e é exceção ao prefixo de API `/assemblies/`.
+- Snapshots (`static/events|communities|assemblies|projects|universities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` e `/universities/index.json` permanecem estáticos e são exceções aos prefixos de API correspondentes.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -437,7 +438,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 - `member_designations` é a única fonte dos vínculos novos. Não criar `directorMemberId`, `responsibleMemberId`, `directorate_members` ou tabelas paralelas. `event_organizer_ownership` e `event_staff` continuam nos modelos próprios.
 - APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
-- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `gestor_universitario` e a mentoria da Fase 5 continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
+- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `manager @ program('universitario')` deriva `gestor_universitario` na Fase 4b/ADR 015; a mentoria da Fase 5 continua em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
 - Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
 - **Baseline histórico da Fase 1a:** naquele recorte não existia `hour_ledger`; horas, aprovações e declarações ficavam para fase futura. **A Fase 2 introduziu** `backend/src/hours/` e a migration 033 — ver decisão 24 e [ADR 013](docs/adrs/013-hour-ledger.md).
 
@@ -501,6 +502,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `POST /events/certificate-invites/batch` usa o template `certificate-pending-registration`, `email_logs` por destinatário e o guest claim existente. `certificateInvitedAt` exige `sent`; não há campanha nem open tracking. O cron anual anonimiza guests sem conta de eventos próprios **e ativações externas**.
 - E2E real em dump isolado validou down/up com 265 inscrições/66 presenças, CSV, batch, concessão, `sent/failed/skipped`, aceite e verificação. Desenho/plano: `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md` e `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
 
+### 28. Fase 4b — Codaqui Universitário (ADR 015)
+
+- Migration 042 e backend 0.17.0 adicionam `cities`, `entities.cityId`, `managed_events.institutionId`, `member_designations.validUntil` e `applicationNotes`. IES continua sendo `entities.type='instituicao_ensino'`; embaixador é `ambassador @ ies`; gestor é `manager @ program('universitario')`. Não criar tabelas paralelas.
+- Um embaixador ativo por IES e uma candidatura pendente por membro/IES são únicos no banco. Gestor cadastra e avalia; somente admin confirma. Posse expirada não autoriza nem aparece no snapshot. Confirmação/rejeição chama `DesignationsService.invalidateCache()` para liberar imediatamente o primeiro evento.
+- `POST /events` com `institutionId` valida IES ativa e escopo no service; o atalho `/admin/eventos?institutionId=<uuid>` preserva a IES fora dos controles editáveis e no payload. Inscrição, check-in, certificado e horas continuam no fluxo existente.
+- APIs em `/universities/`; `/universities/index.json` é exceção estática exata do proxy. `npm run sync:universities` usa `UNIVERSITIES_API_URL`, valida a coleção e grava `static/universities/index.json` atomicamente; o workflow diário é 06:26 UTC + dispatch e o agregador `npm run sync` não o inclui. Motivação, e-mail, candidaturas e IDs de atores nunca são públicos.
+- Páginas `/universitario` e `/admin/universitario`; fila usa `PaginationControls`. O E2E PostgreSQL validou gestor → IES → posse → evento → inscrição → check-in → certificado/horas exactly-once; migration down/up preservou 1 entity, 1 evento e 3 designations. Publicação exige backend/migration → sync inicial → frontend. Detalhes: [ADR 015](docs/adrs/015-codaqui-universitario.md).
+
 ---
 
 ## Common Anti-Patterns
@@ -539,7 +548,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 10 workflows)
+### CI/CD (`.github/workflows/` — 11 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -550,6 +559,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
 | `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
+| `sync-universities.yml` | diário 06:26 UTC (`26 6 * * *`) + dispatch | Lê `/universities/public`, regera `static/universities/index.json` e commita somente se mudou; sync inicial após backend/migration 042 e antes do frontend |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |

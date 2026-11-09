@@ -304,6 +304,14 @@ O perfil consulta `GET /hours/public` antes de buscar o extrato. Sem `totalHours
 
 O primeiro sync contra o backend publicado deve concluir **antes** do deploy do frontend. Não é necessário gerar nem versionar SVGs de membros reais no branch de implementação.
 
+### 2.17 Eventos vinculados a IES (Codaqui Universitário)
+
+- `managed_events.institutionId` vincula um managed event comum a uma `entities` ativa do tipo `instituicao_ensino`. Não há evento, inscrição, certificado ou ledger paralelos.
+- `POST /events` exige organizer/admin sem vínculo. Com `institutionId`, o service aceita organizer/admin, `manager @ program('universitario')` ou `ambassador @ ies` ativo e válido naquela IES; o controller não aplica uma role global antes dessa verificação.
+- `/admin/universitario` oferece o atalho `/admin/eventos?institutionId=<uuid>`. O formulário lê o UUID somente quando ele pertence ao embaixador (ou quando o ator já gerencia eventos), não oferece troca de IES e mantém o valor no payload.
+- Confirmação e rejeição de candidaturas chamam `DesignationsService.invalidateCache()`. Isso evita que o resultado negativo de `hasDesignation`, consultado antes da candidatura, bloqueie o primeiro evento por até 60 segundos após a posse.
+- `GET /universities/public` e `static/universities/index.json` projetam somente cidades, IES, embaixadores ativos e eventos publicados. Motivação, e-mail e candidaturas não entram no snapshot. O E2E real está em `backend/test/universities.e2e-spec.ts`.
+
 ## 3. Convenções e anti-patterns
 
 - **Sempre use `authFetch` em telas admin** — `fetch` direto não trata 401.
