@@ -8,6 +8,7 @@ import { EventsService } from '../events/events.service';
 import { resetTokenKeyCache } from '../common/crypto.util';
 import { EventRegistration, RegistrationStatus } from '../events/entities/event-registration.entity';
 import { AuditService } from '../audit/audit.service';
+import { MentorshipSession } from '../mentorship/entities/mentorship-session.entity';
 
 const mockMember = (): Member => ({
   id: '11111111-1111-1111-1111-111111111111',
@@ -35,6 +36,7 @@ describe('MembersService', () => {
   let dataSource: Record<string, jest.Mock>;
   let queryRunner: Record<string, jest.Mock>;
   let registrationRepo: Record<string, jest.Mock>;
+  let mentorshipSessionRepo: Record<string, jest.Mock>;
 
   beforeEach(() => {
     // Testes de token usam o fallback de dev (plain:) — env sempre limpa
@@ -84,6 +86,9 @@ describe('MembersService', () => {
       findOneBy: jest.fn(),
       save: jest.fn((registration) => Promise.resolve(registration)),
     };
+    mentorshipSessionRepo = {
+      update: jest.fn().mockResolvedValue({ affected: 1 }),
+    };
 
     txRepo = {
       createQueryBuilder: jest.fn(),
@@ -96,6 +101,7 @@ describe('MembersService', () => {
         { provide: getRepositoryToken(Transaction), useValue: txRepo },
         { provide: DataSource, useValue: dataSource },
         { provide: getRepositoryToken(EventRegistration), useValue: registrationRepo },
+        { provide: getRepositoryToken(MentorshipSession), useValue: mentorshipSessionRepo },
         { provide: AuditService, useValue: { log: jest.fn() } },
         {
           provide: EventsService,
@@ -135,15 +141,16 @@ describe('MembersService', () => {
       expect(memberRepo.save).toHaveBeenCalled();
     });
 
-    it('does not link guests by display email without verified API evidence', async () => {
+    it('does not link guests or mentorship sessions by display email without verified API evidence', async () => {
       memberRepo.findOne.mockResolvedValue(null);
 
       await service.upsertByGithub(profile);
 
       expect(registrationRepo.find).not.toHaveBeenCalled();
+      expect(mentorshipSessionRepo.update).not.toHaveBeenCalled();
     });
 
-    it('uses only verified emails from the GitHub API for guest matching', async () => {
+    it('uses only verified emails from the GitHub API for guest and mentorship matching', async () => {
       memberRepo.findOne.mockResolvedValue(null);
 
       await service.upsertByGithub({
@@ -159,6 +166,13 @@ describe('MembersService', () => {
           attendeeEmail: In(['verified-secondary@example.com']),
         },
       });
+      expect(mentorshipSessionRepo.update).toHaveBeenCalledWith(
+        {
+          menteeMemberId: IsNull(),
+          menteeEmail: In(['verified-secondary@example.com']),
+        },
+        { menteeMemberId: '22222222-2222-2222-2222-222222222222' },
+      );
     });
 
     it('delegates duplicate cancellation to the atomic events flow and audits it', async () => {

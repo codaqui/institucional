@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsDate, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class MentorApplicationDto {
   @IsArray()
@@ -69,5 +69,47 @@ export class ReserveSlotDto {
   topicTags: string[];
 
   @IsOptional()
+  @Type(() => Date)
+  @IsDate()
   guestConsentAt?: Date;
+}
+
+export class ConfirmSessionDto {
+  @IsString()
+  @Matches(/^https:\/\//)
+  @MaxLength(2000)
+  meetLink: string;
+}
+
+export class CancelSessionDto {
+  @IsString()
+  @MinLength(3)
+  @MaxLength(500)
+  reason: string;
+}
+
+export class RateSessionDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(5)
+  rating: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  feedback?: string;
+}
+
+export class ListSessionsQueryDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  page = 1;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(100)
+  limit = 50;
 }

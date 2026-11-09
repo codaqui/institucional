@@ -2,6 +2,7 @@ import { BadRequestException, ConflictException, ForbiddenException } from '@nes
 import { SessionsService } from './sessions.service';
 import { MentorshipSessionStatus } from './entities/mentorship-session.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
+import { MemberRole } from '../members/entities/member.entity';
 
 const mentorActor: JwtPayload = {
   sub: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', githubId: '1', handle: 'ana', name: 'Ana', email: 'ana@example.test', avatarUrl: '', roles: ['mentor'],
@@ -36,10 +37,10 @@ describe('SessionsService', () => {
       save: jest.fn((value) => Promise.resolve(value)),
     };
     profileRepo = {
-      findOneBy: jest.fn().mockImplementation(({ memberId }) => Promise.resolve(
-        memberId === mentorActor.sub
+      findOneBy: jest.fn().mockImplementation(({ id, memberId }) => Promise.resolve(
+        id === 'mentor-1' || memberId === mentorActor.sub
           ? { id: 'mentor-1', memberId: mentorActor.sub, active: true }
-          : { id: 'mentor-2', memberId, active: true },
+          : { id: 'mentor-2', memberId: memberId ?? otherMentor.sub, active: true },
       )),
     };
     hours = { recordMentorshipSession: jest.fn().mockResolvedValue({ id: 'hour-1' }) };
@@ -58,6 +59,16 @@ describe('SessionsService', () => {
       expect.objectContaining({ meetLink: 'https://meet.example.test/session' }),
       expect.objectContaining({ registrationId: 'session-1' }),
     );
+  });
+
+  it('persists confirmation even when the email renderer fails', async () => {
+    emailService.sendTemplate.mockRejectedValue(new Error('template unavailable'));
+
+    await expect(service.confirm('session-1', 'https://meet.example.test/session', mentorActor))
+      .resolves.toMatchObject({ status: MentorshipSessionStatus.CONFIRMED });
+    expect(sessionRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      status: MentorshipSessionStatus.CONFIRMED,
+    }));
   });
 
   it('rejects completion by another mentor and before the scheduled time', async () => {
@@ -87,9 +98,70 @@ describe('SessionsService', () => {
     expect(hours.recordMentorshipSession).not.toHaveBeenCalled();
   });
 
+  it('persists cancellation even when the email renderer fails', async () => {
+    emailService.sendTemplate.mockRejectedValue(new Error('template unavailable'));
+
+    await expect(service.cancel('session-1', 'Conflito de agenda', mentorActor))
+      .resolves.toMatchObject({ status: MentorshipSessionStatus.CANCELED });
+    expect(sessionRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      status: MentorshipSessionStatus.CANCELED,
+    }));
+  });
+
   it('rates a completed session by token', async () => {
     sessionRepo.findOneBy.mockResolvedValue({ ...session, status: MentorshipSessionStatus.COMPLETED });
     const rated = await service.rate('token-1', 5, 'Ótima sessão');
     expect(rated).toMatchObject({ rating: 5, feedback: 'Ótima sessão' });
+  });
+
+  it('cancels a guest session by token without exposing actor ids', async () => {
+    const persisted = { ...session };
+    sessionRepo.findOneBy.mockResolvedValue(persisted);
+
+    const canceled = await service.cancelByToken('token-1', 'Mudança de agenda');
+
+    expect(canceled.status).toBe(MentorshipSessionStatus.CANCELED);
+    expect(canceled).not.toHaveProperty('mentorId');
+    expect(canceled).not.toHaveProperty('menteeMemberId');
+  });
+
+  it('allows an admin to complete and credits the session mentor', async () => {
+    const admin = { ...otherMentor, roles: [MemberRole.ADMIN] };
+    sessionRepo.findOneBy.mockResolvedValue({ ...session, status: MentorshipSessionStatus.CONFIRMED });
+
+    await service.complete('session-1', admin);
+
+    expect(hours.recordMentorshipSession).toHaveBeenCalledWith(
+      expect.objectContaining({ mentorId: mentorActor.sub }),
+    );
+  });
+
+  it('sends the confirmed meet link in the day-before reminder', async () => {
+    sessionRepo.find.mockResolvedValue([{
+      ...session,
+      status: MentorshipSessionStatus.CONFIRMED,
+      meetLink: 'https://meet.example.test/session',
+    }]);
+
+    await service.sendDayBeforeReminders();
+
+    expect(emailService.sendTemplate).toHaveBeenCalledWith(
+      'mentorship-reminder-d1',
+      session.menteeEmail,
+      expect.objectContaining({ meetLink: 'https://meet.example.test/session' }),
+      expect.objectContaining({ registrationId: session.id }),
+    );
+  });
+
+  it('anonymizes only expired guests without a linked member', async () => {
+    sessionRepo.find.mockResolvedValue([{ ...session, menteeMemberId: null }]);
+
+    await service.anonymizeExpiredGuests();
+
+    expect(sessionRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      id: session.id,
+      menteeName: 'Participante anonimizado',
+      menteeEmail: `anon-${session.id}@anon.invalid`,
+    }));
   });
 });

@@ -1,10 +1,11 @@
-import { ConflictException, ForbiddenException, Injectable } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Raw, Repository } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { EmailService } from '../notifications/email.service';
 import { parseDateTimeLocal } from '../events/events.service';
+import { Member } from '../members/entities/member.entity';
 import { MentorAvailability } from './entities/mentor-availability.entity';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
@@ -26,6 +27,8 @@ export class AvailabilityService {
     @InjectRepository(MentorProfile)
     private readonly profileRepo: Repository<MentorProfile>,
     private readonly emailService: EmailService,
+    @InjectRepository(Member)
+    private readonly memberRepo: Repository<Member>,
   ) {}
 
   async replaceAvailability(weekday: number, rules: AvailabilityRuleDto[], actor: JwtPayload) {
@@ -63,13 +66,14 @@ export class AvailabilityService {
       },
     });
     const slots: AvailabilitySlot[] = [];
+    const weekdays: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
     for (const rule of rules) {
+      const formatter = new Intl.DateTimeFormat('en-US', { timeZone: rule.timeZone, weekday: 'short' });
       for (let day = 0; day < 28; day += 1) {
         const date = new Date(from.getTime() + day * 86_400_000);
         const localDate = date.toLocaleDateString('en-CA', { timeZone: rule.timeZone });
-        const weekday = Number(new Intl.DateTimeFormat('en-US', { timeZone: rule.timeZone, weekday: 'short' })
-          .formatToParts(date).find((part) => part.type === 'weekday')?.value === 'Sun' ? 0 : date.getDay());
-        if (weekday !== rule.weekday) continue;
+        const weekdayName = formatter.formatToParts(date).find((part) => part.type === 'weekday')?.value;
+        if (weekdayName === undefined || weekdays[weekdayName] !== rule.weekday) continue;
         const scheduledAt = `${localDate}T${rule.startTime}`;
         const startAt = parseDateTimeLocal(scheduledAt, rule.timeZone);
         if (startAt <= from) continue;
@@ -86,22 +90,26 @@ export class AvailabilityService {
   async reserveSlot(input: ReserveSlotDto, actor?: JwtPayload): Promise<MentorshipSession> {
     const profile = await this.profileRepo.findOneBy({ id: input.mentorId, active: true });
     if (!profile) throw new ConflictException('Mentor indisponível.');
-    const startAt = parseDateTimeLocal(input.scheduledAt, 'America/Sao_Paulo');
-    if (startAt <= new Date()) throw new ConflictException('Escolha um horário futuro.');
-    const endAt = new Date(startAt.getTime() + input.durationMin * 60_000);
-    const weekday = startAt.getDay();
     if (!actor && !input.guestConsentAt) throw new ConflictException('Consentimento obrigatório.');
+    const weekday = new Date(`${input.scheduledAt.slice(0, 10)}T12:00:00Z`).getUTCDay();
 
+    let session: MentorshipSession;
     try {
-      return await this.sessionRepo.manager.transaction(async (manager) => {
+      session = await this.sessionRepo.manager.transaction(async (manager) => {
         const repo = manager.getRepository(MentorshipSession);
-        const rule = await manager.getRepository(MentorAvailability).findOneBy({
-          mentorId: input.mentorId,
-          weekday,
-          startTime: input.scheduledAt.slice(11, 16),
-          endTime: input.scheduledAt.slice(11, 16) === '' ? '' : this.endTime(input.scheduledAt, input.durationMin),
+        const rule = await manager.getRepository(MentorAvailability).findOne({
+          where: {
+            mentorId: input.mentorId,
+            weekday,
+            startTime: input.scheduledAt.slice(11, 16),
+            endTime: this.endTime(input.scheduledAt, input.durationMin),
+          },
+          lock: { mode: 'pessimistic_write' },
         });
         if (!rule) throw new ConflictException('Este horário não está disponível.');
+        const startAt = parseDateTimeLocal(input.scheduledAt, rule.timeZone);
+        if (startAt <= new Date()) throw new ConflictException('Escolha um horário futuro.');
+        const endAt = new Date(startAt.getTime() + input.durationMin * 60_000);
         const conflict = await repo.findOne({
           where: {
             mentorId: input.mentorId,
@@ -118,7 +126,7 @@ export class AvailabilityService {
           topicTags: input.topicTags,
           scheduledAt: startAt,
           durationMin: input.durationMin,
-          timeZone: 'America/Sao_Paulo',
+          timeZone: rule.timeZone,
           status: MentorshipSessionStatus.REQUESTED,
           token: randomUUID(),
           guestConsentAt: actor ? null : input.guestConsentAt,
@@ -129,6 +137,32 @@ export class AvailabilityService {
         throw new ConflictException('Este horário já está reservado.');
       }
       throw error;
+    }
+    await this.notifyRequested(session, profile);
+    return session;
+  }
+
+  private async notifyRequested(session: MentorshipSession, profile: MentorProfile): Promise<void> {
+    const mentor = await this.memberRepo.findOneBy({ id: profile.memberId });
+    const context = {
+      attendeeName: session.menteeName,
+      eventTitle: 'Mentoria Codaqui',
+      eventStartAt: session.scheduledAt,
+      eventTimeZone: session.timeZone,
+    };
+    try {
+      await this.emailService.sendTemplate(
+        'mentorship-requested', session.menteeEmail, context,
+        { eventId: null, registrationId: session.id },
+      );
+      if (mentor?.email) {
+        await this.emailService.sendTemplate(
+          'mentorship-requested', mentor.email, context,
+          { eventId: null, registrationId: session.id },
+        );
+      }
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} salva, mas a notificação falhou: ${String(error)}`, AvailabilityService.name);
     }
   }
 

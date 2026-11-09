@@ -1,6 +1,7 @@
-import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Between, IsNull, LessThan, Like, Not, Repository } from 'typeorm';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { HoursService } from '../hours/hours.service';
 import { EmailService } from '../notifications/email.service';
@@ -61,19 +62,24 @@ export class SessionsService {
     }
     session.status = MentorshipSessionStatus.CONFIRMED;
     session.meetLink = meetLink;
-    await this.emailService.sendTemplate(
-      'mentorship-confirmed',
-      session.menteeEmail,
-      {
-        attendeeName: session.menteeName,
-        eventTitle: 'Mentoria Codaqui',
-        eventStartAt: session.scheduledAt,
-        eventTimeZone: session.timeZone,
-        meetLink,
-      },
-      { eventId: null, registrationId: session.id },
-    );
-    return this.sessionRepo.save(session);
+    const saved = await this.sessionRepo.save(session);
+    try {
+      await this.emailService.sendTemplate(
+        'mentorship-confirmed',
+        session.menteeEmail,
+        {
+          attendeeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          meetLink,
+        },
+        { eventId: null, registrationId: session.id },
+      );
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} confirmada, mas a notificação falhou: ${String(error)}`, SessionsService.name);
+    }
+    return saved;
   }
 
   async complete(id: string, actor: JwtPayload) {
@@ -111,19 +117,24 @@ export class SessionsService {
     }
     session.status = MentorshipSessionStatus.CANCELED;
     session.cancelReason = reason.trim();
-    await this.emailService.sendTemplate(
-      'mentorship-cancelled',
-      session.menteeEmail,
-      {
-        attendeeName: session.menteeName,
-        eventTitle: 'Mentoria Codaqui',
-        eventStartAt: session.scheduledAt,
-        eventTimeZone: session.timeZone,
-        cancelReason: session.cancelReason,
-      },
-      { eventId: null, registrationId: session.id },
-    );
-    return this.sessionRepo.save(session);
+    const saved = await this.sessionRepo.save(session);
+    try {
+      await this.emailService.sendTemplate(
+        'mentorship-cancelled',
+        session.menteeEmail,
+        {
+          attendeeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          cancelReason: session.cancelReason,
+        },
+        { eventId: null, registrationId: session.id },
+      );
+    } catch (error) {
+      Logger.warn(`Sessão ${session.id} cancelada, mas a notificação falhou: ${String(error)}`, SessionsService.name);
+    }
+    return saved;
   }
 
   async rate(token: string, rating: number, feedback?: string) {
@@ -140,6 +151,62 @@ export class SessionsService {
     return this.sessionRepo.save(session);
   }
 
+  async cancelByToken(token: string, reason: string) {
+    const session = await this.sessionRepo.findOneBy({ token });
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+    await this.cancel(session.id, reason);
+    return this.getByToken(token);
+  }
+
+  @Cron('20 9 * * *')
+  async sendDayBeforeReminders(): Promise<void> {
+    const now = Date.now();
+    const sessions = await this.sessionRepo.find({
+      where: {
+        status: MentorshipSessionStatus.CONFIRMED,
+        scheduledAt: Between(
+          new Date(now + 12 * 3_600_000),
+          new Date(now + 36 * 3_600_000),
+        ),
+      },
+    });
+    for (const session of sessions) {
+      if (!session.meetLink) continue;
+      await this.emailService.sendTemplate(
+        'mentorship-reminder-d1',
+        session.menteeEmail,
+        {
+          attendeeName: session.menteeName,
+          eventTitle: 'Mentoria Codaqui',
+          eventStartAt: session.scheduledAt,
+          eventTimeZone: session.timeZone,
+          meetLink: session.meetLink,
+        },
+        { eventId: null, registrationId: session.id },
+      );
+    }
+  }
+
+  @Cron('30 3 * * *')
+  async anonymizeExpiredGuests(): Promise<void> {
+    const cutoff = new Date(Date.now() - 365 * 24 * 3_600_000);
+    const guests = await this.sessionRepo.find({
+      where: {
+        menteeMemberId: IsNull(),
+        scheduledAt: LessThan(cutoff),
+        menteeEmail: Not(Like('anon-%@anon.invalid')),
+      },
+    });
+    for (const guest of guests) {
+      guest.menteeName = 'Participante anonimizado';
+      guest.menteeEmail = `anon-${guest.id}@anon.invalid`;
+      await this.sessionRepo.save(guest);
+    }
+    if (guests.length > 0) {
+      Logger.log(`${guests.length} sessões de convidados anonimizadas após 12 meses.`, SessionsService.name);
+    }
+  }
+
   private async requireSession(id: string): Promise<MentorshipSession> {
     const session = await this.sessionRepo.findOneBy({ id });
     if (!session) throw new NotFoundException('Sessão não encontrada.');
@@ -153,6 +220,11 @@ export class SessionsService {
   }
 
   private async assertMentor(session: MentorshipSession, actor: JwtPayload): Promise<MentorProfile> {
+    if (actor.roles?.includes(MemberRole.ADMIN)) {
+      const profile = await this.profileRepo.findOneBy({ id: session.mentorId, active: true });
+      if (!profile) throw new ForbiddenException('O mentor da sessão não está ativo.');
+      return profile;
+    }
     const profile = await this.requireMentor(actor);
     if (session.mentorId !== profile.id) {
       throw new ForbiddenException('Somente o mentor da sessão pode executar esta ação.');

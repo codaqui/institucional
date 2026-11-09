@@ -8,6 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, In, IsNull, Repository } from 'typeorm';
 import { EventRegistration } from '../events/entities/event-registration.entity';
+import { MentorshipSession } from '../mentorship/entities/mentorship-session.entity';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { DERIVED_ROLES } from '../designations/designations.service';
@@ -79,6 +80,8 @@ export class MembersService {
     private readonly dataSource: DataSource,
     @InjectRepository(EventRegistration)
     private readonly registrationRepo: Repository<EventRegistration>,
+    @InjectRepository(MentorshipSession)
+    private readonly mentorshipSessionRepo: Repository<MentorshipSession>,
     private readonly auditService: AuditService,
   ) {}
 
@@ -125,8 +128,26 @@ export class MembersService {
       await this.safeRematchPendingRegistrations(saved);
     }
     await this.safeLinkGuestRegistrations(saved);
+    await this.safeLinkMentorshipSessions(saved);
 
     return saved;
+  }
+
+  private async safeLinkMentorshipSessions(member: Member): Promise<void> {
+    const emails = [...new Set(
+      (member.secondaryEmails ?? [])
+        .filter(Boolean)
+        .map((email) => email.toLowerCase()),
+    )];
+    if (emails.length === 0) return;
+    try {
+      await this.mentorshipSessionRepo.update(
+        { menteeMemberId: IsNull(), menteeEmail: In(emails) },
+        { menteeMemberId: member.id },
+      );
+    } catch (error) {
+      this.logger.warn(`Falha ao vincular sessões de mentoria: ${String(error)}`);
+    }
   }
 
   private async safeLinkGuestRegistrations(member: Member): Promise<void> {
