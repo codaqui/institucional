@@ -341,7 +341,7 @@ export class UniversitiesService {
 
   private async requireInstitution(id: string): Promise<Institution> {
     const institution = await this.institutionRepo.findOneBy({ id, isActive: true });
-    if (!institution || institution.type !== 'instituicao_ensino') {
+    if (institution?.type !== 'instituicao_ensino') {
       throw new NotFoundException('IES ativa não encontrada.');
     }
     return institution;

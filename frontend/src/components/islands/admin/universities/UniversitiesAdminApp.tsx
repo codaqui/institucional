@@ -56,6 +56,12 @@ interface InstitutionForm {
   isActive: boolean;
 }
 
+const APPLICATION_STATUS_LABELS: Record<AmbassadorApplication["status"], string> = {
+  active: "Ativa",
+  pending: "Pendente",
+  removed: "Encerrada",
+};
+
 const EMPTY_CITY: CityForm = { name: "", uf: "", isActive: true };
 const EMPTY_INSTITUTION: InstitutionForm = { name: "", slug: "", website: "", contactEmail: "", cityId: "", isActive: true };
 
@@ -254,7 +260,7 @@ function UniversitiesAdminInner() {
             {myApplications.map((application) => (
               <Grid key={application.id} size={{ xs: 12, md: 6 }}>
                 <Card variant="outlined"><CardContent>
-                  <Chip size="small" label={application.status === "active" ? "Ativa" : application.status === "pending" ? "Pendente" : "Encerrada"} />
+                  <Chip size="small" label={APPLICATION_STATUS_LABELS[application.status]} />
                   {application.applicationNotes && <Typography variant="body2" sx={{ mt: 2 }}>{application.applicationNotes}</Typography>}
                   {application.status === "active" && application.targetId && (
                     <Button component="a" href={`/admin/eventos?institutionId=${application.targetId}`} variant="contained" sx={{ mt: 2 }}>

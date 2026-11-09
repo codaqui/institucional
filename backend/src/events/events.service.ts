@@ -225,7 +225,7 @@ export class EventsService {
       id: institutionId,
       isActive: true,
     });
-    if (!institution || institution.type !== 'instituicao_ensino') {
+    if (institution?.type !== 'instituicao_ensino') {
       throw new BadRequestException('institutionId deve referenciar uma IES ativa.');
     }
     if (EventsService.canManageAll(user)) return;
