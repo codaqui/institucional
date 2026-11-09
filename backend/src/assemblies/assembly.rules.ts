@@ -1,4 +1,5 @@
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { assertDiscussionUrl, DISCUSSION_URL_PATTERN } from '../common/discussion-url';
 import { StorageService } from '../storage/storage.service';
 import {
   Assembly,
@@ -11,8 +12,7 @@ export interface AssemblyActor {
   roles?: string[];
 }
 
-export const ASSEMBLY_DISCUSSION_URL_PATTERN =
-  /^https:\/\/github\.com\/codaqui\/institucional\/discussions\/[1-9]\d*$/;
+export const ASSEMBLY_DISCUSSION_URL_PATTERN = DISCUSSION_URL_PATTERN;
 
 const storageService = new StorageService();
 
@@ -29,15 +29,7 @@ export function assemblySlug(type: AssemblyType, number: number): string {
 }
 
 export function parseDiscussionUrl(value: string): string {
-  if (
-    typeof value !== 'string' ||
-    !ASSEMBLY_DISCUSSION_URL_PATTERN.test(value)
-  ) {
-    throw new BadRequestException(
-      'Discussion inválida: use https://github.com/codaqui/institucional/discussions/<número>',
-    );
-  }
-  return value;
+  return assertDiscussionUrl(value);
 }
 
 function hasCompleteNotaryRegistry(

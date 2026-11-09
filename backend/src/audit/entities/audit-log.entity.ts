@@ -40,6 +40,12 @@ export enum AuditAction {
   PARTNERSHIP_CREATED = 'partnership.created',
   PARTNERSHIP_UPDATED = 'partnership.updated',
 
+  // Extension projects
+  PROJECT_CREATED = 'project.created',
+  PROJECT_UPDATED = 'project.updated',
+  PROJECT_STATUS_CHANGED = 'project.status_changed',
+  PROJECT_MENTOR_DESIGNATED = 'project.mentor_designated',
+
   // Ledger
   MANUAL_TRANSACTION = 'ledger.manual_transaction',
   ACCOUNT_CREATED = 'ledger.account_created',

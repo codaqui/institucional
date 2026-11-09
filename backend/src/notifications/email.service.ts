@@ -20,6 +20,7 @@ import {
 import { Member } from '../members/entities/member.entity';
 import { TicketType } from '../events/entities/ticket-type.entity';
 import { SmtpEmailProvider } from './email.provider';
+import { renderProjectEmail, type ProjectEmailInput } from './project-email';
 import { EmailTemplateService } from './email-template.service';
 import {
   EMAIL_TEMPLATE_POST_EVENT,
@@ -164,6 +165,33 @@ export class EmailService {
       log.status = EmailStatus.FAILED;
       log.error = error instanceof Error ? error.message : String(error);
       this.logger.warn(`Falha ao enviar ${template} para ${to}: ${log.error}`);
+    }
+    return this.emailLogRepo.save(log);
+  }
+
+  async sendProjectEmail(input: ProjectEmailInput): Promise<EmailLog> {
+    const rendered = renderProjectEmail(input);
+    const configured = this.provider.isConfigured();
+    const log = this.emailLogRepo.create({
+      to: input.to,
+      template: input.template,
+      eventId: null,
+      registrationId: null,
+      status: configured ? EmailStatus.SENT : EmailStatus.SKIPPED,
+      error: configured ? null : 'SMTP_NOT_CONFIGURED',
+    });
+    if (!configured) return this.emailLogRepo.save(log);
+    try {
+      await this.provider.send({
+        to: input.to,
+        subject: rendered.subject,
+        text: rendered.text,
+        html: rendered.html,
+      });
+    } catch (error) {
+      log.status = EmailStatus.FAILED;
+      log.error = error instanceof Error ? error.message : String(error);
+      this.logger.warn(`Falha ao enviar ${input.template} para ${input.to}: ${log.error}`);
     }
     return this.emailLogRepo.save(log);
   }
