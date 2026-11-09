@@ -45,6 +45,8 @@ import SubscriptionsTab from "./SubscriptionsTab";
 import WalletTab from "./WalletTab";
 import EventsTab from "./EventsTab";
 import CertificateCard from "./CertificateCard";
+import MemberProjectsIsland from "../../projects/MemberProjectsIsland";
+import MentorProjectsIsland from "../../projects/MentorProjectsIsland";
 import type {
   CertificateData,
   Donation,
@@ -407,6 +409,7 @@ function MemberDashboardInner() {
         <Tab label="Assinaturas Recorrentes" />
         <Tab label="Carteira" />
         <Tab label="Eventos" icon={<EventIcon />} iconPosition="start" />
+        <Tab label="Projetos" />
         <Tab label="Meus dados" />
       </Tabs>
 
@@ -488,6 +491,11 @@ function MemberDashboardInner() {
       </TabPanel>
 
       <TabPanel value={activeTab} index={5}>
+        <MemberProjectsIsland />
+        <MentorProjectsIsland />
+      </TabPanel>
+
+      <TabPanel value={activeTab} index={6}>
         <MyDataTab />
       </TabPanel>
 

@@ -16,6 +16,13 @@ export class ParticipantsController {
     return this.participants.myProjects(req.user);
   }
 
+  @Get(':id/participants')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  listParticipants(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: JwtPayload }) {
+    return this.participants.listParticipants(id, req.user);
+  }
+
   @Post(':id/join')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')

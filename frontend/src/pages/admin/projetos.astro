@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import ProjectsAdminApp from "../../components/islands/admin/projects/ProjectsAdminApp";
+---
+
+<AppLayout title="Projetos de extensão" noindex>
+  <ProjectsAdminApp client:only="react" />
+</AppLayout>

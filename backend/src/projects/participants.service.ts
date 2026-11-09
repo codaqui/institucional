@@ -107,6 +107,29 @@ export class ParticipantsService {
     return updated;
   }
 
+  async listParticipants(projectId: string, actor: JwtPayload) {
+    const isMentor = await this.designations.hasDesignation(actor.sub, {
+      targetType: 'extension_project', targetId: projectId, designation: 'mentor',
+    });
+    if (!actor.roles?.includes(MemberRole.ADMIN) && !isMentor) {
+      throw new ForbiddenException('Somente o mentor principal pode listar participantes.');
+    }
+    const [participations, members] = await Promise.all([
+      this.participants.find({ where: { projectId, leftAt: IsNull() }, order: { joinedAt: 'ASC' } }),
+      this.members.find(),
+    ]);
+    const memberMap = new Map(members.map((member) => [member.id, member]));
+    return participations.map((participation) => ({
+      id: participation.id,
+      memberId: participation.memberId,
+      role: participation.role,
+      member: {
+        name: memberMap.get(participation.memberId)?.name ?? 'Membro',
+        handle: memberMap.get(participation.memberId)?.githubHandle ?? 'membro',
+      },
+    }));
+  }
+
   async myProjects(actor: JwtPayload) {
     const [participations, projects] = await Promise.all([
       this.participants.find({ where: { memberId: actor.sub, leftAt: IsNull() }, order: { joinedAt: 'DESC' } }),
@@ -120,6 +143,8 @@ export class ParticipantsService {
         projectSlug: project?.slug ?? null,
         projectName: project?.name ?? 'Projeto',
         role: participation.role,
+        status: project?.status ?? null,
+        reportDiscussionUrl: project?.reportDiscussionUrl ?? null,
         joinedAt: participation.joinedAt,
       };
     });

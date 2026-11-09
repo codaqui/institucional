@@ -77,4 +77,29 @@ describe('ProjectsService', () => {
     expect(result[0]).not.toHaveProperty('entityId');
     expect(result[0].entity).toEqual({ slug: 'codaqui', name: 'Associação Codaqui' });
   });
+
+  it('allows the principal mentor to finish with only a report URL', async () => {
+    const mentor = { sub: 'mentor-1', handle: 'mentor', roles: ['mentor'] } as any;
+    designations.hasAnyDesignation.mockResolvedValue(false);
+    designations.hasDesignation = jest.fn().mockResolvedValue(true);
+    repo.findOne
+      .mockResolvedValueOnce({ id: 'project-1', status: 'active', createdById: director.sub })
+      .mockResolvedValueOnce({ memberId: mentor.sub, status: 'active' });
+
+    const result = await service.update('project-1', {
+      status: 'finished',
+      reportDiscussionUrl: 'https://github.com/codaqui/institucional/discussions/42',
+    } as any, mentor);
+
+    expect(result).toMatchObject({ status: 'finished', reportDiscussionUrl: expect.stringContaining('/42') });
+  });
+
+  it('does not let a mentor change editorial project fields', async () => {
+    const mentor = { sub: 'mentor-1', handle: 'mentor', roles: ['mentor'] } as any;
+    designations.hasAnyDesignation.mockResolvedValue(false);
+    designations.hasDesignation = jest.fn().mockResolvedValue(true);
+
+    await expect(service.update('project-1', { summary: 'Alteração indevida' } as any, mentor))
+      .rejects.toThrow('Gestão de projetos requer admin ou diretor ativo.');
+  });
 });

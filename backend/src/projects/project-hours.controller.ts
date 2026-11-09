@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseUUIDPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
@@ -9,6 +9,13 @@ import { CreateProjectHourDto, UpdateProjectHourDto } from './dto/project-hour.d
 @Controller('projects')
 export class ProjectHoursController {
   constructor(private readonly hours: HoursService) {}
+
+  @Get(':id/hours')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  list(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: JwtPayload }) {
+    return this.hours.listExtensionProjectEntries(id, req.user);
+  }
 
   @Post(':id/hours')
   @UseGuards(JwtAuthGuard)

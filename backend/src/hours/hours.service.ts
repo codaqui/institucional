@@ -140,6 +140,28 @@ export class HoursService {
     });
   }
 
+  async listExtensionProjectEntries(projectId: string, actor: JwtPayload) {
+    const isMentor = await this.designations.hasDesignation(actor.sub, {
+      targetType: 'extension_project', targetId: projectId, designation: 'mentor',
+    });
+    if (!actor.roles?.includes(MemberRole.ADMIN) && !isMentor) {
+      throw new ForbiddenException('Somente o mentor principal pode listar as horas deste projeto.');
+    }
+    const entries = await this.repo.find({
+      where: { sourceType: HourEntrySource.EXTENSION_PROJECT, sourceId: projectId },
+      order: { occurredAt: 'DESC' },
+    });
+    return entries.map((entry) => ({
+      id: entry.id,
+      memberId: entry.memberId,
+      hours: entry.hours,
+      description: entry.description,
+      occurredAt: entry.occurredAt,
+      status: entry.status,
+      rejectReason: entry.rejectReason,
+    }));
+  }
+
   async updateExtensionProjectEntry(
     projectId: string,
     hourId: string,

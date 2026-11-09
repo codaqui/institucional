@@ -9,6 +9,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  MenuItem,
   Stack,
   Table,
   TableBody,
@@ -40,20 +41,27 @@ interface Directorate {
   name: string;
   description: string | null;
   isActive: boolean;
+  communityId: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+interface CommunityOption {
+  id: string;
+  name: string;
 }
 
 interface DirectorateForm {
   name: string;
   slug: string;
   description: string;
+  communityId: string;
 }
 
 type FormErrors = Partial<Record<keyof DirectorateForm, string>>;
 type DesignationKind = "director" | "volunteer";
 
-const EMPTY_FORM: DirectorateForm = { name: "", slug: "", description: "" };
+const EMPTY_FORM: DirectorateForm = { name: "", slug: "", description: "", communityId: "" };
 
 function validateFormField(
   field: keyof DirectorateForm,
@@ -90,6 +98,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
   const canAccess = isAdmin || isDirector;
 
   const [items, setItems] = useState<Directorate[]>([]);
+  const [communities, setCommunities] = useState<CommunityOption[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -97,6 +106,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
   const [loadError, setLoadError] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [communityFilter, setCommunityFilter] = useState("");
   const [feedback, setFeedback] = useState<{
     severity: "success" | "error";
     message: string;
@@ -126,6 +136,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
       limit: String(DEFAULT_PAGE_SIZE),
     });
     if (search) params.set("search", search);
+    if (communityFilter) params.set("communityId", communityFilter);
     try {
       const res = await authFetch(`/directorates/manage?${params.toString()}`);
       const result = await parseAuthJson<PaginatedResponse<Directorate>>(
@@ -141,7 +152,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
     } finally {
       setLoading(false);
     }
-  }, [authFetch, page, search]);
+  }, [authFetch, page, search, communityFilter]);
 
   useEffect(() => {
     if (!ready) return;
@@ -151,6 +162,14 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
     }
     void loadDirectorates();
   }, [ready, isLoggedIn, canAccess, loadDirectorates]);
+
+  useEffect(() => {
+    if (!ready || !isLoggedIn || !canAccess) return;
+    void authFetch("/communities/public").then(async (response) => {
+      const result = await parseAuthJson<CommunityOption[]>(response, setLoadError);
+      if (result) setCommunities(Array.isArray(result) ? result : []);
+    }).catch(() => setLoadError("Não foi possível carregar as comunidades."));
+  }, [ready, isLoggedIn, canAccess, authFetch]);
 
   const canEdit = useCallback(
     (directorate: Directorate) =>
@@ -178,6 +197,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
       name: directorate.name,
       slug: directorate.slug,
       description: directorate.description ?? "",
+      communityId: directorate.communityId ?? "",
     });
     setFormErrors({});
     setFormError("");
@@ -217,6 +237,7 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
       name: form.name.trim(),
       slug: form.slug.trim(),
       description: form.description.trim(),
+      communityId: form.communityId || null,
     };
     try {
       const res = await authFetch(
@@ -400,6 +421,24 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
         </Button>
       </Box>
 
+      <TextField
+        label="Filtrar por comunidade"
+        select
+        size="small"
+        fullWidth
+        value={communityFilter}
+        onChange={(event) => {
+          setPage(1);
+          setCommunityFilter(event.target.value);
+        }}
+        sx={{ mb: 3 }}
+      >
+        <MenuItem value="">Todas as comunidades</MenuItem>
+        {communities.map((community) => (
+          <MenuItem key={community.id} value={community.id}>{community.name}</MenuItem>
+        ))}
+      </TextField>
+
       {(() => {
         if (loading) {
           return (
@@ -544,6 +583,20 @@ function DirectoratesAdminInner(): React.JSX.Element | null {
                 onChange={(event) => updateFormField("description", event.target.value)}
                 slotProps={{ htmlInput: { maxLength: 2000 } }}
               />
+              <TextField
+                id="directorate-community"
+                label="Comunidade"
+                name="communityId"
+                select
+                value={form.communityId}
+                onChange={(event) => updateFormField("communityId", event.target.value)}
+                helperText="Global quando nenhuma comunidade for selecionada."
+              >
+                <MenuItem value="">Global (Codaqui)</MenuItem>
+                {communities.map((community) => (
+                  <MenuItem key={community.id} value={community.id}>{community.name}</MenuItem>
+                ))}
+              </TextField>
             </Stack>
           </DialogContent>
           <DialogActions>

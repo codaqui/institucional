@@ -36,12 +36,26 @@ vi.mock("../../../../lib/use-designations", () => ({
   }),
 }));
 
+const community = {
+  id: "2a4a38de-eacf-49f1-a67f-a8162ec0f631",
+  slug: "devparana",
+  name: "DevParaná",
+  description: "Comunidade sintética",
+  emoji: "👥",
+  logoUrl: "/img/devparana.svg",
+  level: "integrada",
+  status: "active",
+  siteEnabled: true,
+  siteDomain: "devparana.org",
+};
+
 const directorate = {
   id: "a9e2ac1f-0a70-4f1f-a4aa-c9756b2f7901",
   slug: "tecnologia",
   name: "Diretoria de Tecnologia",
   description: "Infraestrutura e projetos",
   isActive: true,
+  communityId: null,
   createdAt: "2026-10-30T12:00:00.000Z",
   updatedAt: "2026-10-30T12:00:00.000Z",
 };
@@ -68,6 +82,7 @@ describe("DirectoratesAdminApp", () => {
     mocks.authFetch.mockReset();
     mocks.refreshDesignations.mockReset().mockResolvedValue(undefined);
     mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/communities/public") return jsonResponse([community]);
       if (path.startsWith("/directorates/manage") && !init?.method) {
         return manageResponse();
       }
@@ -109,6 +124,11 @@ describe("DirectoratesAdminApp", () => {
       expect(
         lastCall("/directorates/manage?page=1&limit=50&search=tecnologia"),
       ).toBeDefined();
+    });
+    await user.click(screen.getByLabelText("Filtrar por comunidade"));
+    await user.click(screen.getByRole("option", { name: community.name }));
+    await waitFor(() => {
+      expect(lastCall(`/directorates/manage?page=1&limit=50&search=tecnologia&communityId=${community.id}`)).toBeDefined();
     });
   });
 
@@ -157,6 +177,8 @@ describe("DirectoratesAdminApp", () => {
     await user.type(screen.getByLabelText(/Nome da diretoria/), "Diretoria de Comunicação");
     await user.type(screen.getByLabelText(/Slug/), "comunicacao");
     await user.type(screen.getByLabelText(/Descrição/), "Comunicação da Associação");
+    await user.click(screen.getByRole("combobox", { name: "Comunidade" }));
+    await user.click(screen.getByRole("option", { name: community.name }));
     await user.click(screen.getByRole("button", { name: "Criar diretoria" }));
 
     await waitFor(() => {
@@ -168,6 +190,7 @@ describe("DirectoratesAdminApp", () => {
       name: "Diretoria de Comunicação",
       slug: "comunicacao",
       description: "Comunicação da Associação",
+      communityId: community.id,
     });
   });
 

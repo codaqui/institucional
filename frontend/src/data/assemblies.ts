@@ -23,6 +23,7 @@ export interface Assembly {
   discussionUrl: string;
   ataPdfUrl: string | null;
   notaryRegistry: AssemblyNotaryRegistry | null;
+  entity?: { slug: string; name: string } | null;
   createdAt: string;
   updatedAt: string;
 }

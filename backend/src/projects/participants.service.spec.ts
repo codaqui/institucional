@@ -80,4 +80,28 @@ describe('ParticipantsService', () => {
     expect(participants.save).toHaveBeenCalledWith(expect.objectContaining({ leftAt: expect.any(Date) }));
     expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'project.participant_removed' }));
   });
+
+  it('lists participants with public member labels for the principal mentor', async () => {
+    designations.hasDesignation = jest.fn().mockResolvedValue(true);
+    participants.find.mockResolvedValue([{ id: 'participation-1', memberId: member.sub, role: 'participant' }]);
+    members.find = jest.fn().mockResolvedValue([{ id: member.sub, name: 'Membro', githubHandle: 'member' }]);
+
+    const result = await service.listParticipants(project.id, director);
+
+    expect(result).toEqual([{ id: 'participation-1', memberId: member.sub, role: 'participant', member: { name: 'Membro', handle: 'member' } }]);
+  });
+
+  it('includes project lifecycle and report in own memberships', async () => {
+    participants.find.mockResolvedValue([{ projectId: project.id, role: 'mentor', joinedAt: new Date('2026-03-01') }]);
+    projects.find.mockResolvedValue([{ ...project, status: 'finished', reportDiscussionUrl: 'https://github.com/codaqui/institucional/discussions/42' }]);
+
+    const result = await service.myProjects(member);
+
+    expect(result[0]).toMatchObject({
+      projectId: project.id,
+      role: 'mentor',
+      status: 'finished',
+      reportDiscussionUrl: 'https://github.com/codaqui/institucional/discussions/42',
+    });
+  });
 });

@@ -320,6 +320,23 @@ describe("/membro", () => {
     expect(screen.getByRole("button", { name: /Imprimir/i })).toBeInTheDocument();
   });
 
+  it("abre a área de projetos do membro sem alterar o carregamento sob demanda de eventos", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url === "/projects/my" || url === "/hours/me") return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+    renderWithMui(<MemberDashboardApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Projetos" }));
+
+    expect(await screen.findByText(/Você ainda não participa de projetos de extensão/)).toBeInTheDocument();
+    expect(authFetch).not.toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
+  });
+
   it("oferece atalho para o extrato e a declaração de horas", async () => {
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });

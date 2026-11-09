@@ -5,13 +5,16 @@ describe('ProjectHoursController', () => {
     const hours = {
       recordExtensionProjectEntry: jest.fn(),
       updateExtensionProjectEntry: jest.fn(),
+      listExtensionProjectEntries: jest.fn(),
     } as any;
     const controller = new ProjectHoursController(hours);
     const actor = { sub: 'mentor-1', handle: 'mentor', roles: ['mentor'] } as any;
 
+    await controller.list('project-1', { user: actor });
     await controller.create('project-1', { memberId: 'member-1', hours: 2 } as any, { user: actor });
     await controller.update('project-1', 'hour-1', { hours: 3 } as any, { user: actor });
 
+    expect(hours.listExtensionProjectEntries).toHaveBeenCalledWith('project-1', actor);
     expect(hours.recordExtensionProjectEntry).toHaveBeenCalledWith('project-1', { memberId: 'member-1', hours: 2 }, actor);
     expect(hours.updateExtensionProjectEntry).toHaveBeenCalledWith('project-1', 'hour-1', { hours: 3 }, actor);
   });

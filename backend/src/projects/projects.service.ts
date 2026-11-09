@@ -79,7 +79,18 @@ export class ProjectsService {
   }
 
   async update(id: string, dto: UpdateProjectDto, actor: JwtPayload): Promise<ExtensionProject> {
-    await this.assertDirector(actor);
+    const isDirector = actor.roles?.includes(MemberRole.ADMIN) || await this.designations.hasAnyDesignation(actor.sub, {
+      targetType: 'directorate',
+      designation: 'director',
+    });
+    const isMentorFinish = dto.status === 'finished' &&
+      Object.keys(dto).every((field) => ['status', 'reportDiscussionUrl'].includes(field)) &&
+      await this.designations.hasDesignation(actor.sub, {
+        targetType: 'extension_project', targetId: id, designation: 'mentor',
+      });
+    if (!isDirector && !isMentorFinish) {
+      throw new ForbiddenException('Gestão de projetos requer admin ou diretor ativo.');
+    }
     const updated = await this.dataSource.transaction(async (manager) => {
       const project = await manager.getRepository(ExtensionProject).findOne({
         where: { id },
