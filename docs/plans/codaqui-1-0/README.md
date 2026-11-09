@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fases 0, 1a, 1b e 2 concluídas e publicadas; Fase 3 integrada e backend 0.15.0 publicado, com redeploy, sync inicial e Giscus real pendentes; Fase 4 autorizada para início; Fases 4b–7 permanecem em design.
+status: Fases 0–3 concluídas e publicadas, restando Discussion real de assembleia; Fase 4 ampliada e aprovada com diretorias comunitárias e assembleias por entidade jurídica; Fases 4b–7 em design.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -101,23 +101,23 @@ Princípios:
 
 ### A. Assembleias
 
-> **Estado da Fase 3:** PR #613 integrada e backend 0.15.0 publicado; categoria Reuniões configurada. Redeploy/migration 036, sync inicial e Giscus real continuam pendentes. Contratos e operação atuais: [ADR 014](../../adrs/014-assemblies.md).
+> **Estado da Fase 3:** implementação e rollout publicados; categoria Reuniões configurada e hidratação validada em produção. Discussion real continua pendente. Na Fase 4, `assemblies.entityId` passa a vincular cada assembleia a uma entidade jurídica guarda-chuva. Contratos atuais: [ADR 014](../../adrs/014-assemblies.md) e [spec da Fase 4](../../superpowers/specs/2026-11-06-entities-extension-design.md).
 
-**Entidade `assemblies`:** `id`, `type` ('ordinaria' | 'oficial'), `number` (sequencial por tipo), `title`, `scheduledAt`, `heldAt?`, `status` ('scheduled' | 'held' | 'canceled'), `agendaSummary` (texto curto), `discussionUrl`, `ataPdfUrl?`, `notaryRegistry?` (jsonb: `{ book, page, registeredAt }`), `createdById`.
+**Entidade `assemblies`:** `id`, `entityId` (na migration 040), `type` ('ordinaria' | 'oficial'), `number` (sequencial por entidade e tipo), `title`, `scheduledAt`, `heldAt?`, `status` ('scheduled' | 'held' | 'canceled'), `agendaSummary` (texto curto), `discussionUrl`, `ataPdfUrl?`, `notaryRegistry?` (jsonb: `{ book, page, registeredAt }`), `createdById`.
 
 **Fluxo:**
-1. Um operador coordena o próximo número, abre manualmente a Discussion na categoria "Reuniões" com o pathname exato e cadastra a assembleia (admin ou diretor ativo). O lock protege a numeração, não a reserva externa da Discussion.
+1. Um operador coordena o próximo número por entidade e tipo, abre manualmente a Discussion na categoria "Reuniões" com o pathname exato e cadastra a assembleia. Codaqui preserva admin/diretor ativo; outras entidades exigem admin ou `manager @ entity`.
 2. Antes: resumo da pauta no registro + detalhes na Discussion. Durante/depois: quórum, votos e ata narrativa **só na Discussion**.
 3. Oficial: para realizar, admin informa PDF externo validado pelo `StorageService` e metadados completos de registro. Não há upload nem automação cartorária.
 
-**Frontend:** `/assembleias` (lista, snapshot estático), `/assembleias/:slug` (detalhe com Giscus por `pathname` após configuração + PDF oficial quando houver). Admin: CRUD + marcação de realizada + registro cartorário somente admin.
+**Frontend:** `/assembleias` (lista, snapshot estático), `/assembleias/:entitySlug/:slug` (detalhe com Giscus por `pathname` após configuração + PDF oficial quando houver). URLs antigas redirecionam para a entidade Codaqui. Admin: CRUD + marcação de realizada + registro cartorário somente admin + seletor de entidade.
 
 ### B. Diretorias, diretores, voluntários e horas
 
 > **Estado da Fase 2:** `event_checkin` e `directorate_activity` estão implementados; as demais fontes continuam futuras. O comportamento corrente de APIs, declaração, guests, ownership e privacidade está na [ADR 013](../../adrs/013-hour-ledger.md) e no [manual de eventos](../../modules/events/CODE_MANUAL.md).
 
 **Entidades:**
-- `directorates`: `id`, `slug`, `name`, `description`, `isActive`. Diretor e voluntários são `member_designations` (`director`/`volunteer` @ `directorate`); não existe `directorate_members`.
+- `directorates`: `id`, `slug`, `name`, `description`, `isActive`, `communityId?` (migration 040; `NULL` = diretoria global da Codaqui). Diretor e voluntários são `member_designations` (`director`/`volunteer` @ `directorate`); não existe `directorate_members`.
 - `hour_ledger`: `id`, `memberId`, `sourceType` ('event_checkin' | 'directorate_activity' | 'extension_project' | 'mentorship_session'), `sourceId`, `sourceLabel`, `hours` (numeric), `description`, `occurredAt`, `status` ('pending' | 'approved' | 'rejected'), `reportedById`, `approvedById?`, `approvedAt?`, `rejectReason?`, `idempotencyKey?`. A unicidade por (`memberId`, `sourceType`, `sourceId`) vale apenas para fontes automáticas de ocorrência única (check-in/sessão); atividades manuais de diretoria e projetos admitem múltiplos lançamentos e usam `idempotencyKey` para retry seguro.
 
 **Fluxos:**
@@ -133,7 +133,7 @@ Princípios:
 ### C. Entidades, parcerias e Projetos de Extensão
 
 **Entidades:**
-- `entities`: `id`, `name`, `type` ('empresa' | 'instituicao_ensino' | 'ong' | 'governo' | 'outro'), `cnpj?`, `website?`, `contactEmail?`, `registeredById`, `isActive`. Responsável e gestor são designations @ `entity`.
+- `entities`: `id`, `slug`, `name`, `type` ('empresa' | 'instituicao_ensino' | 'ong' | 'governo' | 'outro'), `cnpj?`, `website?`, `contactEmail?`, `registeredById`, `isActive`. Responsável e gestor são designations @ `entity`; entidades com CNPJ também são os guarda-chuvas assembleares.
 - `partnerships`: `id`, `entityId`, `kind` ('termo' | 'pontual'), `startedAt`, `endsAt?`, `status` ('active' | 'ended' | 'canceled'), `notes?`. O diretor responsável é designation `manager` @ `entity`.
 - `extension_projects`: `id`, `entityId`, `partnershipId?`, `name`, `slug`, `summary`, `description?`, `status` ('draft' | 'proposed' | 'active' | 'finished' | 'canceled'), `startsAt?`, `endsAt?`, `isPublic` + campos do anexo. Mentor e quem designou são designation `mentor` @ `extension_project` com `appointedById`.
 - `project_participants`: `id`, `projectId`, `memberId`, `role` ('participant' | 'mentor'), `joinedAt`, `leftAt?`.
@@ -257,6 +257,10 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 2. **Visualização no admin** — ✅ entregue: aba "Templates" em `/admin/emails` com chips Padrão/Personalizado, editor Markdown, preview renderizado lado a lado, variáveis disponíveis e envio de teste.
 3. **Edição com override em banco + fallback em código** — ✅ entregue (supere o "fora de escopo" original após a demanda surgir): tabela `email_templates` (um registro por template); PUT/DELETE em `/notifications/templates/:id`; pipeline único de render (interpolação `{{var}}` → Markdown → HTML sanitizado → texto) com **fallback garantido para o padrão em código** — ausência de registro, erro de BD ou erro de render nunca derruba o envio; e-mails saem multipart (text + html).
 
+### E3 — Campanhas e malas diretas (spec própria, aguardando revisão)
+
+Campanhas com segmentos por papel/designation/comunidade, prévia/teste, confirmação, envio idempotente, rate limit, retries e logs por destinatário. Comunicação promocional exige opt-in e descadastro; não há open tracking. A implementação não pertence à Fase 4 e seguirá a [spec de campanhas](../../superpowers/specs/2026-11-09-email-campaigns-design.md).
+
 ## Arquitetura de menus e navegação (UX)
 
 **Problema restante:** o app-shell entregue na Fase 0.4 já tem sidebar e navegação por papel, mas os grupos ainda são rasos para as ~25 páginas previstas; a 1b refina agrupamento, busca e dashboard sem criar outro layout.
@@ -376,8 +380,8 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **1a. Fundações de dados** ✅ **CONCLUÍDA (2026-11-03)** — [plano detalhado](fase-1a.md) | `member_designations` + roles derivadas + `communities` + níveis/selo + `directorates` + seed das 6 comunidades + **E1 + R1 + G3/G6 + ECA** | ✅ CRUD admin + snapshot público; roles e guards de designation; seed sem perda de dados; e-mail `skipped` e summary corrigida; CSV por datas; retenção de auditoria; Turnstile testado; eventos 18+ sinalizados; backend `0.12.3` e todos os gates verdes |
 | **1b. UX e transversal** ✅ **CONCLUÍDA (2026-11)** — [plano detalhado](fase-1b.md) | Refinamento do AppLayout/sidebar + menu de perfil + aba "Meus dados" (`profileVisibility`) + P1–P3 + Pagefind | Sidebar agrupada; visibilidade por campo nos endpoints públicos; política e conduta publicadas; busca local no portal; backend 0.13.x e gates da fase verdes |
 | **2. Pessoas e horas** ✅ **CONCLUÍDA E PUBLICADA (2026-11-05)** — [plano](fase-2.md) · [ADR 013](../../adrs/013-hour-ledger.md) | `hour_ledger` + aprovações + declaração de horas com verificação + **redesign do perfil público `/@handle` (badges, timeline, stats) + aba "Minhas horas" no `/membro` + selo embeddável para README (membro)** | Duas fontes efetivas (`event_checkin` e `directorate_activity`); fila e impressão/PDF nativa só com approved; audit e privacidade; check-in exactly-once e carga explícita/fallback por tipo de evento; migrations 033–035 e jornadas validadas. Backend `v0.14.0-backend` publicado; sync inicial no run `42098199373`; frontend no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção é acompanhamento operacional com sessão admin |
-| **3. Assembleias** **INTEGRADA; REDEPLOY, SYNC E GISCUS REAL PENDENTES** — [plano/handoff](../../superpowers/plans/2026-11-05-assembleias.md) · [ADR 014](../../adrs/014-assemblies.md) | `assemblies` + páginas + integração Giscus + snapshot + admin | Migration 036, CRUD/autorização, numeração concorrente, registro cartorário, páginas e gates validados. PR #613, CI/Sonar e release `v0.15.0-backend` concluídos; categoria Reuniões configurada. Redeploy/migration, sync inicial, Discussions reais e validação do Giscus continuam pendentes |
-| **4. Entidades e extensão** | entities/partnerships/projects + inscrição + vitrine (detalhe do cadastro e comprovantes: [cadastro-projeto-extensao.md](cadastro-projeto-extensao.md)) | Fluxo ponta a ponta: entidade→parceria→projeto→mentor→inscrição→horas→aprovação |
+| **3. Assembleias** ✅ **PUBLICADA (2026-11-07); DISCUSSION REAL PENDENTE** — [plano/handoff](../../superpowers/plans/2026-11-05-assembleias.md) · [ADR 014](../../adrs/014-assemblies.md) | `assemblies` + páginas + integração Giscus + snapshot + admin | Migration 036, CRUD/autorização, numeração concorrente, registro cartorário, páginas e gates validados. PR #613 e release `v0.15.0-backend` publicados; sync inicial no run `42336485122`; frontend no run `42336580942`. Categoria Reuniões configurada e hidratação corrigida pela PR #615; validação com Discussion real continua pendente |
+| **4. Entidades e extensão** **EM IMPLEMENTAÇÃO** — [spec](../../superpowers/specs/2026-11-06-entities-extension-design.md) · [plano](../../superpowers/plans/2026-11-07-entities-extension.md) | entities/partnerships/projects + inscrição + vitrine + diretorias comunitárias + assembleias por entidade jurídica | Fluxo entidade→parceria→projeto→mentor→inscrição→horas→aprovação; `directorates.communityId` opcional; `assemblies.entityId` com numeração/URL por guarda-chuva; migrations 037–040 e backend 0.16.0 |
 | **4b. Codaqui Universitário** (adicionado 2026-10-29) | `cities` + `entities.cityId` + designations `ambassador` @ `ies` e `manager` @ `program('universitario')` + `managed_events.institutionId` + página `/universitario` + painel do gestor — **bases compartilhadas com o subsistema C** | Cidade→IES→embaixador (1 active/IES, gestor propõe+admin confirma)→evento na IES com inscrição/check-in/certificado/horas reais; ação extensionista vira projeto de extensão na mesma entity; snapshot público `static/universities/` |
 | **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
@@ -403,12 +407,12 @@ Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**,
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 - **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))
 - **013 — Ledger de horas, ownership, guests e perfil público** (Fase 2) — ✅ [implementada e publicada](../../adrs/013-hour-ledger.md) com backend 0.14.0
-- **014 — Assembleias híbridas (Discussion manual + registro fino)** (Fase 3) — ✅ [integrada e com backend publicado](../../adrs/014-assemblies.md); redeploy, sync inicial e Giscus real pendentes
+- **014 — Assembleias híbridas (Discussion manual + registro fino)** (Fase 3) — ✅ [implementada e publicada](../../adrs/014-assemblies.md); Discussion real pendente; escopo por entidade jurídica ampliado pela Fase 4
 - **015 — Codaqui Universitário (cidades, IES, embaixadores, eventos nas instituições)** (Fase 4b — bases compartilhadas com a ADR 008; número reservado após a ADR 014 da Fase 3)
 
 ## Riscos e pontos abertos
 
-1. **Giscus real da Fase 3:** a categoria Reuniões e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` já estão configurados, mas ainda é necessário validar Discussions reais. Redeploy/migration 036, sync inicial e publicação da correção de categoria no frontend também permanecem pendentes.
+1. **Discussion real da Fase 3:** categoria Reuniões, variável pública e hidratação já estão configurados e validados em produção. Falta criar uma assembleia e sua Discussion real, conferindo categoria e `pathname` no Giscus.
 2. **Critérios objetivos:** o Selo Comunitário usa avaliação manual registrada em `sealNotes` na 1a, sem checklist automatizado; a checklist da Empresa Aliada será definida antes da Fase 6.
 3. **Nomenclatura final** "Empresa Aliada Codaqui" e arte do selo — validar marca antes da vitrine pública da Fase 6.
 4. **Validade inicial de 1 ano** para selo comunitário e aliada, registrada explicitamente em `sealValidUntil`; mudança futura de política exige decisão da diretoria.

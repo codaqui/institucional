@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Mantenedores, revisores, implementers e operadores de release da Fase 4.
-status: Spec revisada e aprovada para implementação em 2026-11-07; plano executável em docs/superpowers/plans/2026-11-07-entities-extension.md.
+status: Spec ampliada e aprovada em 2026-11-09, incluindo diretorias comunitárias e assembleias por entidade jurídica; plano executável em docs/superpowers/plans/2026-11-07-entities-extension.md.
 sections:
   - Decisão e escopo
   - Arquitetura e módulos
@@ -34,7 +34,7 @@ A Fase 4 entrega a jornada **entidade → parceria → projeto → mentor → in
 
 A arquitetura usa dois módulos novos, `entities` e `projects`, mais integrações pontuais com `designations`, `hours`, `notifications`, `storage`, `audit` e os snapshots Astro. Não haverá módulo único acumulando todas as responsabilidades nem três releases independentes.
 
-Ficam fora desta fase: `cities`, embaixadores, Codaqui Universitário, lista de espera, upload de arquivos, votação ou comitê, integração do orçamento com dinheiro, trilhas, métricas agregadas por ODS, mentoria da Fase 5 e qualquer automação de GitHub Discussions.
+Ficam fora desta fase: `cities`, embaixadores, Codaqui Universitário, lista de espera, upload de arquivos, votação ou comitê, integração do orçamento com dinheiro, trilhas, métricas agregadas por ODS, mentoria da Fase 5, automação de GitHub Discussions e campanhas/malas diretas de e-mail (spec própria).
 
 ## Arquitetura e módulos
 
@@ -76,6 +76,7 @@ A versão do backend passa para **0.16.0**. As migrations são aditivas e agrupa
 `entities`:
 
 - `id` UUID;
+- `slug` único, usado em rotas públicas;
 - `name`, `type` (`empresa | instituicao_ensino | ong | governo | outro`);
 - `cnpj?`, `website?`, `contactEmail?`;
 - `registeredById` FK para `members`;
@@ -127,9 +128,20 @@ Um índice único parcial em `(projectId, memberId) WHERE leftAt IS NULL` impede
 
 A unicidade `(projectId, memberId, kind)` torna a emissão idempotente. Reemitir retorna o registro e o código já existentes.
 
+### Migration 040 — diretorias comunitárias e assembleias por guarda-chuva
+
+`directorates` recebe `communityId` FK opcional para `communities`. `NULL` representa uma diretoria global da Codaqui; cada diretoria pertence a no máximo uma comunidade e cada comunidade pode ter várias diretorias. Registros existentes permanecem globais.
+
+`assemblies` recebe `entityId` FK obrigatória para `entities`, após backfill. A migration registra ou reutiliza a entidade `codaqui` (`Associação Codaqui`, tipo `ong`, CNPJ `44.593.429/0001-05`), usando um admin existente somente como autor da trilha técnica, não como responsável organizacional inventado. Todas as assembleias atuais recebem essa entidade.
+
+A unicidade anterior `(type, number)` é substituída por `(entityId, type, number)`. A criação passa a usar advisory lock por `entityId + type`; numeração e slug são independentes por guarda-chuva. A URL pública passa a ser `/assembleias/<entitySlug>/<type>-<number>`, e a Discussion usa exatamente esse pathname. O redirect `/assembleias/* → /assembleias/codaqui/*` preserva os endereços anteriores.
+
+Comunidade e entidade jurídica não são intercambiáveis: comunidades organizam pessoas/projetos; entidades com CNPJ possuem obrigações assembleares. Novas entidades guarda-chuva podem ter assembleias sem possuir site tenant ou comunidade integrada.
+
 ## Autorização e auditoria
 
 - Criar/editar entidade, parceria ou projeto: `admin` ou diretor com designation `director @ directorate` ativa.
+- Criar/editar assembleia da entidade Codaqui: regra atual de admin/diretor ativo. Em outras entidades guarda-chuva: admin ou `manager @ entity` ativo. Cartório continua somente admin e `entityId` é imutável após a criação.
 - Ativar ou cancelar projeto: `admin` ou diretor ativo que seja `createdById` do projeto.
 - Finalizar projeto: `admin`, diretor criador ativo ou mentor principal ativo. Isso consolida o painel do mentor aprovado; cancelar continua restrito ao diretor criador/admin.
 - Designar/substituir mentor: diretor/admin; somente um mentor principal ativo por projeto. A substituição bloqueia o projeto, encerra a designation anterior e concede a nova na mesma transação, mantendo os vínculos de co-mentor separados.
@@ -180,6 +192,8 @@ Todas as listagens administrativas seguem `{data,total,page,totalPages,limit}`, 
 - `GET /entities/:id/partnerships`: vínculos da entidade.
 - `POST /entities/:id/partnerships`: cria parceria.
 - `PATCH /partnerships/:id`: edita/encerra/cancela parceria.
+
+As rotas existentes de assembleias aceitam filtro administrativo por `entityId`. `GET /assemblies/public/:entitySlug/:slug` passa a resolver entidade e tipo/número; a coleção pública inclui somente `entity: {slug,name}` além dos campos já permitidos. `entityId` é obrigatório no POST e imutável no PATCH.
 
 ### Projetos e participação
 
@@ -233,6 +247,7 @@ Verificação pública retorna somente validade, tipo, nome do titular, projeto,
 - `/membro` recebe projetos, estado das horas e links para declarações.
 - O painel do mentor permite participantes, lançamento/edição de horas e finalização com relatório.
 - `/admin/entidades` e `/admin/projetos` seguem páginas `.astro` finas, ilhas MUI, `useAuth`, `authFetch`, erros visíveis e paginação compartilhada.
+- `/assembleias/:entitySlug/:slug` apresenta o guarda-chuva e mantém Giscus por `pathname`; `/admin/assembleias` ganha seletor/filtro de entidade, e `/admin/diretorias` ganha seletor de comunidade global ou específica.
 
 ### Snapshot
 
@@ -257,7 +272,8 @@ Templates novos cobrem mentor designado/ativo, inscrição confirmada, horas apr
 
 A implementação deve incluir:
 
-- testes de migrations 037–039 em `up/down` e restauração real de dump descartável;
+- testes de migrations 037–040 em `up/down` e restauração real de dump descartável;
+- criações concorrentes da mesma assembleia por entidade recebendo números distintos, preservação do backfill Codaqui e redirects das URLs antigas;
 - testes unitários de validações, autorização, projeções e máquina de estados;
 - testes PostgreSQL reais para duas inscrições concorrentes na última vaga, retry de horas, edição de pendente e emissão repetida;
 - E2E da jornada completa, incluindo diretor não-admin, mentor, participante e `finance-analyzer`;

@@ -279,8 +279,8 @@ function TransparencyInner(): React.JSX.Element {
         Os saldos são atualizados em tempo real pelo backend. Para contribuir, acesse{" "}
         <Link href="/participe/apoiar">a página de Apoio</Link>. A API completa está
         documentada em{" "}
-        <Link href={`${apiUrl}/docs`} target="_blank" rel="noopener noreferrer">
-          {apiUrl}/docs
+        <Link href="/desenvolvedores/api">
+          a documentação pública da API
         </Link>
         .
       </Alert>

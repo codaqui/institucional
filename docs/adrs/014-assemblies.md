@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 3 — assembleias com registro fino, Discussion manual, snapshot público, Giscus e cartório.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Merge e release do backend 0.15.0 concluídos; redeploy, sync inicial e validação real de Giscus pendentes.
+status: Implementado e publicado; validação com Discussion real pendente. Escopo por entidade jurídica ampliado e aprovado para a Fase 4.
 sections:
   - Contexto
   - Decisão
@@ -27,8 +27,8 @@ agent-protocol:
 # ADR 014 — Assembleias híbridas com Discussion manual e registro fino
 
 - **Data da decisão:** 2026-11-05
-- **Revisão:** 2026-11-06 — uso da categoria existente **Reuniões**
-- **Status:** Merge e release do backend concluídos; redeploy, sync inicial e Giscus real pendentes
+- **Revisões:** 2026-11-06 — categoria Reuniões; 2026-11-09 — rollout concluído e escopo por entidade jurídica aprovado para a Fase 4
+- **Status:** Implementado e publicado; validação com Discussion real pendente
 - **Escopo:** Fase 3, migration 036, backend 0.15.0, API NestJS, snapshot, páginas públicas, admin e integração Giscus
 
 ## Contexto
@@ -41,7 +41,9 @@ A Fase 3 não inclui votação eletrônica, automação cartorária, upload de a
 
 Adotar um modelo híbrido: a tabela `assemblies` guarda somente metadados estruturados e o GitHub Discussions guarda pauta detalhada, quórum, votos, ata narrativa e comentários. O vínculo é cadastrado manualmente por uma URL estável; não há criação automática de Discussion.
 
-O backend **0.15.0** e a migration **036** foram integrados pela PR #613, e a release `v0.15.0-backend` foi publicada no run `42292647305`. Redeploy no Coolify, execução da migration, sync inicial e validação real do Giscus continuam exigindo evidência operacional própria.
+O backend **0.15.0** e a migration **036** foram integrados pela PR #613, e a release `v0.15.0-backend` foi publicada no run `42292647305`. O sync inicial ocorreu no run `42336485122` e o frontend no run `42336580942`. A PR #615 corrigiu a hidratação do Giscus, validada em produção no blog; criar uma assembleia e Discussion reais continua pendente.
+
+Na Fase 4, a migration 040 adicionará `entityId` e numeração/URL por entidade jurídica, com backfill Codaqui e redirect das URLs antigas. Esse desenho foi aprovado em 2026-11-09 e ainda não altera o comportamento publicado descrito nesta ADR.
 
 ## Modelo fino e invariantes
 
@@ -127,6 +129,6 @@ O rollback da migration 036 remove a tabela `assemblies` e seus dados. Só deve 
 - O banco permanece fino e auditável, mas a disponibilidade e retenção da narrativa/comentários passam a depender também do GitHub.
 - A conferência de categoria/título e a coordenação entre número e Discussion são manuais; não há GitHub App nem reconciliação automática.
 - O snapshot introduz defasagem entre API e site e exige publicação na ordem backend → sync → frontend.
-- A categoria Reuniões e seu ID já existem e estão configurados; nenhuma Discussion real foi criada durante a implementação. O fallback estático foi validado; o carregamento real do Giscus ainda não foi.
+- A categoria Reuniões e seu ID já existem e estão configurados; nenhuma assembleia ou Discussion real foi criada durante a implementação. A hidratação do Giscus foi corrigida pela PR #615 e validada em produção no blog; a jornada com assembleia real continua pendente.
 - Migration 036 down/up, concorrência de criação, API, snapshot, páginas estáticas e limpeza de fixtures foram validados localmente na Task 6. Os quatro gates passaram nesse HEAD de implementação.
-- PR #613, CI, Sonar e release `v0.15.0-backend` estão concluídos. Redeploy, sync inicial e validação real em produção permanecem pendentes de evidência operacional.
+- PR #613, CI, Sonar, release `v0.15.0-backend`, redeploy, sync inicial e publicação do frontend estão concluídos. A ampliação por entidade jurídica será implementada somente na Fase 4.

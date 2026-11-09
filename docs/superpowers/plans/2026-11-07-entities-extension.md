@@ -4,7 +4,7 @@ audience: Implementers e revisores da Fase 4.
 status: Aprovado para implementação inline; nenhuma task de código iniciada.
 sections:
   - Constraints
-  - Tasks 1–9
+  - Tasks 1–10
   - Gates e handoff
 related-docs:
   - docs/superpowers/specs/2026-11-06-entities-extension-design.md — design aprovado
@@ -27,7 +27,10 @@ agent-protocol:
 
 ## Global Constraints
 
-- Backend `0.16.0`; migrations 037–039 na mesma release; Fases 4b–7 fora do escopo.
+- Backend `0.16.0`; migrations 037–040 na mesma release; Fases 4b–7 fora do escopo.
+- Diretoria global tem `communityId=NULL`; assembleia pertence a uma entidade jurídica e numera por `entityId + type`.
+- URLs novas de assembleias usam `/assembleias/<entitySlug>/<type>-<number>`; `/assembleias/*` redireciona para a Codaqui.
+- Campanhas/malas diretas ficam em spec própria, fora deste plano.
 - Orçamento é descritivo e nunca chama `LedgerService`; horas usam exclusivamente `hour_ledger`.
 - Mentor principal é designation `mentor @ extension_project`; não criar `mentorMemberId`.
 - Rascunho mínimo: `name + entityId`; projeto completo usa `draft → proposed → active → finished/canceled`.
@@ -69,7 +72,7 @@ it('requires an active director to create an entity', async () => {
 });
 ```
 
-Migration assertions must cover `entities`, `partnerships`, FKs and down dropping both tables.
+Migration assertions must cover `entities`, `partnerships`, unique `slug`, FKs and down dropping both tables. Creation derives a unique slug from the entity name for public assembly routes.
 
 - [ ] **Step 2: Run tests to verify they fail**
 
@@ -362,7 +365,62 @@ Expected: PASS.
 
 `git add backend/src && git commit -m "feat(fase-4): emite comprovantes de projetos"`
 
-### Task 7: Snapshot, proxy e páginas públicas
+### Task 7: Diretorias comunitárias e assembleias por entidade
+
+**Files:**
+- Create: `backend/src/migrations/1794330000000-Migration040_OrganizationalScopes.ts`
+- Create: `backend/src/assemblies/assembly-scopes.migration.spec.ts`
+- Modify: `backend/src/directorates/entities/directorate.entity.ts` e DTOs
+- Modify: `backend/src/assemblies/entities/assembly.entity.ts`, DTOs, service e testes
+- Modify: `backend/src/entities/entities.rules.ts`, DTOs e testes
+
+**Interfaces:**
+- `directorates.communityId: string | null`; `null` mantém diretoria global.
+- `assemblies.entityId: string` é obrigatório na criação e imutável.
+- Numeração e advisory lock usam `entityId + type`; detalhe público usa `entitySlug + slug`.
+- Entidade Codaqui tem `slug='codaqui'`; outras entidades exigem admin ou `manager @ entity`.
+
+- [ ] **Step 1: Write failing scope, backfill and numbering tests**
+
+```ts
+await Promise.all([
+  service.create({ ...baseAssembly, entityId: codaqui.id }, director),
+  service.create({ ...baseAssembly, entityId: codaqui.id }, director),
+]);
+expect(assemblies.map((assembly) => assembly.number)).toEqual([1, 2]);
+expect(publicAssembly.entity).toEqual({ slug: 'codaqui', name: 'Associação Codaqui' });
+expect(publicAssembly).not.toHaveProperty('entityId');
+```
+
+Migration tests cover `directorates.communityId`, required `assemblies.entityId`, backfill Codaqui and unique `(entityId,type,number)` in up/down.
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `cd backend && npx jest src/assemblies src/directorates src/entities --runInBand`
+Expected: FAIL because migration/scope does not exist.
+
+- [ ] **Step 3: Implement migration 040 and scoped authorization**
+
+```ts
+await queryRunner.query(`ALTER TABLE "directorates" ADD "communityId" uuid`);
+await queryRunner.query(`ALTER TABLE "assemblies" ADD "entityId" uuid`);
+// Seed/reuse Associação Codaqui, backfill and only then make entityId required.
+await queryRunner.query(`DROP INDEX "UQ_assemblies_type_number"`);
+await queryRunner.query(`CREATE UNIQUE INDEX "UQ_assemblies_entity_type_number" ON "assemblies" ("entityId", "type", "number")`);
+```
+
+Use `pg_advisory_xact_lock(hashtext(entityId || ':' || type))`, preserve Codaqui authorization and require `manager @ entity` for other umbrellas. Keep `entityId` out of public payloads and expose only `entity: {slug,name}`.
+
+- [ ] **Step 4: Run focused tests**
+
+Run: `cd backend && npx jest src/assemblies src/directorates src/entities --runInBand --silent`
+Expected: PASS.
+
+- [ ] **Step 5: Commit**
+
+`git add backend/src && git commit -m "feat(fase-4): vincula diretorias e assembleias às organizações"`
+
+### Task 8: Snapshot, proxy e páginas públicas
 
 **Files:**
 - Create: `scripts/sync-projects.mjs`, `sync-projects.test.mjs`, `.github/workflows/sync-projects.yml`
@@ -370,13 +428,18 @@ Expected: PASS.
 - Create: `frontend/src/data/projects-extension.ts`, `projects-extension.test.ts`
 - Create: `frontend/src/pages/projetos/[slug].astro`, `frontend/src/pages/projetos/comprovante.astro`
 - Create: `frontend/src/components/islands/projects/{ProjectRegistrationIsland,ProjectCertificateVerificationIsland}.tsx` e testes
+- Move: `frontend/src/pages/assembleias/[slug].astro` → `frontend/src/pages/assembleias/[entitySlug]/[slug].astro`
 - Modify: `frontend/src/pages/projetos.astro`, `frontend/scripts/copy-snapshots.mjs`
+- Modify: `frontend/src/data/assemblies.ts` e `assemblies.test.ts`
+- Modify: `scripts/sync-assemblies.mjs` e `sync-assemblies.test.mjs`
+- Modify: `frontend/scripts/build-tenant-redirects.mjs` e teste
 - Modify: `frontend/src/lib/api-proxy-paths.ts`, `api-proxy-paths.test.ts`, `package.json`, `Makefile`
 
 **Interfaces:**
 - `syncProjects({apiUrl,outputFile,now,fetchImpl,renameImpl})`.
 - `validateProjectsPayload(payload): PublicProject[]` valida a coleção inteira antes de escrever.
 - `loadProjectsIndex(): {generatedAt,projects}`, `projectPath(project): '/projetos/<slug>'`.
+- `assemblyPath(assembly): '/assembleias/<entitySlug>/<type>-<number>'`; redirect legado `/assembleias/* → /assembleias/codaqui/*`.
 - Registration island calls `POST /projects/:id/join|leave` via `authFetch`.
 
 - [ ] **Step 1: Write failing sync, proxy and public UI tests**
@@ -415,7 +478,7 @@ Expected: PASS.
 
 `git add scripts static .github frontend package.json Makefile && git commit -m "feat(fase-4): publica vitrine e inscrições de projetos"`
 
-### Task 8: Admin, membro e mentor
+### Task 9: Admin, membro e mentor
 
 **Files:**
 - Create: `frontend/src/pages/admin/{entidades,projetos}.astro`
@@ -423,11 +486,14 @@ Expected: PASS.
 - Create: `frontend/src/components/islands/admin/projects/ProjectsAdminApp.tsx` e teste
 - Create: `frontend/src/components/islands/projects/MemberProjectsIsland.tsx`, `MentorProjectsIsland.tsx` e testes
 - Modify: `frontend/src/components/islands/AppNavIsland.tsx` e teste
+- Modify: `frontend/src/components/islands/admin/assemblies/AssembliesAdminApp.tsx` e teste
+- Modify: `frontend/src/components/islands/admin/directorates/DirectoratesAdminApp.tsx` e teste
 - Modify: `frontend/src/components/islands/member/dashboard/MemberDashboardApp.tsx`
 - Modify: `frontend/src/components/islands/member/__tests__/member-dashboard.test.tsx`
 
 **Interfaces:**
 - Admin uses `EntitiesService`/`ProjectsService` endpoints through `authFetch` and shared pagination.
+- Assembly form/filter uses `entityId`; directorate form/filter uses nullable `communityId`.
 - Mentor hour form emits `{memberId,hours,occurredAt,description,idempotencyKey: crypto.randomUUID()}`.
 - Member page exposes own certificates; admin/director/mentor visibility follows API errors, never client-only authorization.
 
@@ -466,7 +532,7 @@ Expected: PASS.
 
 `git add frontend && git commit -m "feat(fase-4): adiciona gestão de projetos e horas"`
 
-### Task 9: Migração real, concorrência, E2E e handoff
+### Task 10: Migração real, concorrência, E2E e handoff
 
 **Files:**
 - Create: `docs/adrs/008-entities-extension-projects.md`
@@ -474,16 +540,16 @@ Expected: PASS.
 - Modify: `docs/superpowers/specs/2026-11-06-entities-extension-design.md` somente se uma decisão real mudar
 
 **Interfaces:**
-- PostgreSQL descartável com dump real, migrations 037–039 e fixtures sintéticas removidas ao final.
+- PostgreSQL descartável com dump real, migrations 037–040 e fixtures sintéticas removidas ao final.
 - Handoff registra release `v0.16.0-backend`, redeploy, sync inicial e validação pública como etapas separadas.
 
 - [ ] **Step 1: Validate migration down/up and data preservation**
 
-Run migrations through 039, revert to 036 and reapply to 039 on a disposable copy. Assert existing members and assemblies survive and all new constraints exist.
+Run migrations through 040, revert to 036 and reapply to 040 on a disposable copy. Assert existing members, communities and assemblies survive and all new constraints exist.
 
 - [ ] **Step 2: Validate real concurrency and E2E**
 
-Run two joins for the last slot, repeated hour idempotency, concurrent certificate issuance and the complete director → mentor → participant → finance-analyzer journey. Remove every fixture.
+Run two joins for the last slot, repeated hour idempotency, concurrent certificate issuance and concurrent creation of assemblies with distinct numbers per entity. Exercise the complete director → mentor → participant → finance-analyzer journey and the legacy assembly redirect. Remove every fixture.
 
 - [ ] **Step 3: Run all gates**
 
