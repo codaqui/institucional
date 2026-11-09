@@ -19,6 +19,8 @@
  */
 
 :root {
+  color-scheme: light;
+
   /* ---------------------------------------------------------
    * 1. PRIMITIVOS — Escala Primary (verde Codaqui)
    *    500 = cor oficial da marca (#57B593)
@@ -152,6 +154,8 @@
  * TEMA ESCURO
  * ============================================================ */
 [data-theme="dark"] {
+  color-scheme: dark;
+
   --cq-bg-body:        #2A2130;
   --cq-bg-surface:     #3A2F39;
   --cq-bg-sunken:      #241C2B;

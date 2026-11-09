@@ -157,7 +157,7 @@ const commentsConfig = getAssembliesGiscusConfig();
       </p>
       {commentsConfig ? (
         <div class="mt-6">
-          <GiscusIsland client:visible config={commentsConfig} />
+          <GiscusIsland client:load config={commentsConfig} />
         </div>
       ) : (
         <p class="mt-6 rounded-lg border border-border bg-surface p-4 text-text-secondary">
