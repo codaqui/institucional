@@ -33,7 +33,8 @@ import { AccountType } from '../ledger/entities/account.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
-import { EmailService } from '../notifications/email.service';
+import { EmailService, type RegistrationEmailEvent } from '../notifications/email.service';
+import { EmailStatus } from '../notifications/entities/email-log.entity';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
 import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
@@ -2267,9 +2268,7 @@ export class EventsService {
   async getGuestInvite(token: string) {
     const registration = await this.registrationRepo.findOneBy({ checkinToken: token });
     if (!registration?.isGuest) throw new NotFoundException('Convite não encontrado.');
-    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
-    const event = await this.eventRepo.findOneBy({ id: registration.eventId });
-    if (!event) throw new NotFoundException('Evento não encontrado.');
+    const event = await this.registrationEmailEvent(registration);
     const confirmed = registration.status === RegistrationStatus.CONFIRMED;
     return {
       status: registration.status,
@@ -2288,7 +2287,41 @@ export class EventsService {
       status: RegistrationStatus.PENDING_GUEST,
     });
     if (!registration) throw new ConflictException('Convite já utilizado ou indisponível.');
-    if (!registration.eventId) throw new NotFoundException('Evento não encontrado.');
+    if (!registration.eventId) {
+      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+      const now = new Date();
+      await this.registrationRepo.manager.transaction(async (manager) => {
+        const result = await manager.getRepository(EventRegistration).update(
+          { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
+          {
+            status: RegistrationStatus.CONFIRMED,
+            attendeeName: dto.name,
+            attendeeEmail: dto.email,
+            guestClaimedAt: now,
+            guestConsentAt: now,
+          },
+        );
+        if (!result.affected) throw new ConflictException('Convite já utilizado.');
+      });
+      Object.assign(registration, {
+        status: RegistrationStatus.CONFIRMED,
+        attendeeName: dto.name,
+        attendeeEmail: dto.email,
+        guestClaimedAt: now,
+        guestConsentAt: now,
+      });
+      void this.auditService.log({
+        action: AuditAction.EVENT_GUEST_CLAIMED,
+        actorId: registration.guestInvitedByMemberId ?? 'system',
+        actorHandle: 'guest',
+        targetId: registration.id,
+        targetType: 'event-registration',
+        details: { eventKey: activation.eventKey },
+      });
+      return this.getGuestInvite(dto.token);
+    }
     const event = await this.findEventOrFail(registration.eventId);
     if (event.status !== ManagedEventStatus.PUBLISHED) {
       throw new BadRequestException('Evento não está publicado.');
@@ -2470,12 +2503,19 @@ export class EventsService {
           checkedInAt: IsNull(),
           status: RegistrationStatus.CONFIRMED,
         },
-        { checkedInAt, checkedInByMemberId: user.sub },
+        {
+          checkedInAt,
+          checkedInByMemberId: user.sub,
+          certificateGrantedAt: registration.certificateGrantedAt ?? checkedInAt,
+          certificateGrantedByMemberId: registration.certificateGrantedByMemberId ?? user.sub,
+        },
       );
       affected = updateResult.affected ?? 0;
       if (affected) {
         registration.checkedInAt = checkedInAt;
         registration.checkedInByMemberId = user.sub;
+        registration.certificateGrantedAt ??= checkedInAt;
+        registration.certificateGrantedByMemberId ??= user.sub;
         if (details) {
           await this.hoursService.recordEventCheckin(
             registration,
@@ -2600,6 +2640,111 @@ export class EventsService {
 
   // ── Certificados (2c) ─────────────────────────────────────────────────────
 
+  private async registrationEmailEvent(registration: EventRegistration): Promise<RegistrationEmailEvent> {
+    if (registration.eventId) {
+      const event = await this.eventRepo.findOneBy({ id: registration.eventId });
+      if (!event) throw new NotFoundException('Evento não encontrado.');
+      return event;
+    }
+    if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+    const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+    if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+    return activation;
+  }
+
+  async inviteCertificates(registrationIds: string[], user: JwtPayload) {
+    return Promise.all(registrationIds.map(async (registrationId) => {
+      const registration = await this.registrationRepo.findOneBy({ id: registrationId });
+      if (!registration) return { registrationId, status: 'invalid' as const };
+      if (![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
+        return { registrationId, status: 'invalid' as const };
+      }
+      if (registration.certificateInvitedAt) return { registrationId, status: 'already_invited' as const };
+      if (registration.eventId) {
+        const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
+          await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
+        if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
+      } else {
+        if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+        const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+        if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+        EventsService.assertFeature(activation, 'certificates');
+        await this.assertExternalManager(user, activation, { allowActivator: true });
+      }
+      registration.status = RegistrationStatus.PENDING_GUEST;
+      registration.isGuest = true;
+      registration.guestInvitedByMemberId = user.sub;
+      const log = await this.emailService.sendCertificatePendingRegistration(
+        registration,
+        await this.registrationEmailEvent(registration),
+      );
+      if (log.status === EmailStatus.SENT) registration.certificateInvitedAt = new Date();
+      await this.registrationRepo.save(registration);
+      void this.auditService.log({
+        action: AuditAction.EVENT_CERTIFICATE_INVITED,
+        actorId: user.sub,
+        actorHandle: user.handle,
+        targetId: registration.id,
+        targetType: 'event-registration',
+        details: { status: log.status },
+      });
+      return { registrationId, status: log.status };
+    }));
+  }
+
+  async grantCertificate(registrationId: string, user: JwtPayload) {
+    const registration = await this.registrationRepo.findOneBy({ id: registrationId });
+    if (!registration) throw new NotFoundException('Inscrição não encontrada.');
+    if (registration.eventId) {
+      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
+        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
+      if (!allowed) throw new ForbiddenException('Sem permissão para conceder certificado neste evento.');
+    } else {
+      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+      EventsService.assertFeature(activation, 'certificates');
+      await this.assertExternalManager(user, activation, { allowActivator: true });
+    }
+    if (![RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
+      throw new ForbiddenException('Certificado indisponível para esta inscrição.');
+    }
+    registration.certificateGrantedAt ??= new Date();
+    registration.certificateGrantedByMemberId ??= user.sub;
+    await this.registrationRepo.save(registration);
+    void this.auditService.log({
+      action: AuditAction.EVENT_CERTIFICATE_GRANTED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: {},
+    });
+    return registration;
+  }
+
+  async checkinBatch(eventId: string, tokens: string[], user: JwtPayload) {
+    return Promise.all(tokens.map(async (token) => {
+      try {
+        const result = await this.checkin(eventId, token, user);
+        return { token, status: result.status };
+      } catch {
+        return { token, status: 'invalid' as const };
+      }
+    }));
+  }
+
+  async checkinExternalBatch(eventKey: string, tokens: string[], user: JwtPayload) {
+    return Promise.all(tokens.map(async (token) => {
+      try {
+        const result = await this.checkinExternal(eventKey, token, user);
+        return { token, status: result.status };
+      } catch {
+        return { token, status: 'invalid' as const };
+      }
+    }));
+  }
+
   private static certificateCode(checkinToken: string): string {
     return `CRT-${checkinToken.slice(0, 12)}`;
   }
@@ -2626,9 +2771,9 @@ export class EventsService {
         'Certificado indisponível: inscrição estornada ou cancelada.',
       );
     }
-    if (!registration.checkedInAt) {
+    if (!registration.certificateGrantedAt || registration.status !== RegistrationStatus.CONFIRMED) {
       throw new ForbiddenException(
-        'Certificado disponível apenas após o check-in no evento.',
+        'Certificado indisponível para esta inscrição.',
       );
     }
 
@@ -2788,7 +2933,8 @@ export class EventsService {
     const registration = await this.registrationRepo
       .createQueryBuilder('r')
       .where('r."checkinToken" LIKE :prefix', { prefix: `${sanitized}%` })
-      .andWhere('r."checkedInAt" IS NOT NULL')
+      .andWhere('r."certificateGrantedAt" IS NOT NULL')
+      .andWhere('r.status = :status', { status: RegistrationStatus.CONFIRMED })
       .getOne();
     if (!registration) return { valid: false as const };
 
@@ -3019,11 +3165,6 @@ export class EventsService {
       );
     }
     const features = [...new Set(dto.features)];
-    // Certificado exige check-in (a emissão depende do checkedInAt)
-    if (features.includes('certificates') && !features.includes('checkin')) {
-      features.push('checkin');
-    }
-
     const existing = await this.activationRepo.findOneBy({ eventKey });
     const enablesCheckin = features.includes('checkin') && !existing?.features.includes('checkin');
     if (enablesCheckin) {

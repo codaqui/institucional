@@ -23,6 +23,7 @@ import { SmtpEmailProvider } from './email.provider';
 import { renderProjectEmail, type ProjectEmailInput } from './project-email';
 import { EmailTemplateService } from './email-template.service';
 import {
+  EMAIL_TEMPLATE_CERTIFICATE_PENDING,
   EMAIL_TEMPLATE_POST_EVENT,
   EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
@@ -35,6 +36,7 @@ export type { RenderedEmail } from './email-template.service';
 // Re-exportados de default-templates (fonte canônica) para compatibilidade com
 // consumidores que importam os IDs de email.service.
 export {
+  EMAIL_TEMPLATE_CERTIFICATE_PENDING,
   EMAIL_TEMPLATE_POST_EVENT,
   EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
@@ -211,6 +213,18 @@ export class EmailService {
         names.get(registration.ticketTypeId) ?? null,
       ),
       { eventId: event.id, registrationId: registration.id },
+    );
+  }
+
+  async sendCertificatePendingRegistration(
+    registration: EventRegistration,
+    event: RegistrationEmailEvent,
+  ): Promise<EmailLog> {
+    return this.sendTemplate(
+      EMAIL_TEMPLATE_CERTIFICATE_PENDING,
+      registration.attendeeEmail!,
+      this.contextFor(registration, event),
+      { eventId: registration.eventId, registrationId: registration.id },
     );
   }
 

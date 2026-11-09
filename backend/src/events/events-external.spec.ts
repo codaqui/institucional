@@ -61,9 +61,14 @@ const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   checkinToken: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   checkedInAt: null,
   checkedInByMemberId: null,
+  certificateGrantedAt: null,
+  certificateGrantedByMemberId: null,
+  certificateInvitedAt: null,
   status: RegistrationStatus.CONFIRMED,
   createdAt: new Date(),
   ...overrides,
+  certificateGrantedAt: overrides.certificateGrantedAt === undefined ? overrides.checkedInAt ?? null : overrides.certificateGrantedAt,
+  certificateGrantedByMemberId: overrides.certificateGrantedByMemberId === undefined ? overrides.checkedInByMemberId ?? null : overrides.certificateGrantedByMemberId,
 });
 
 describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
@@ -447,6 +452,73 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     });
   });
 
+  describe('certificate invitations', () => {
+    it('invites pending_match and accepts the external guest claim', async () => {
+      const registration = makeRegistration({
+        eventId: null,
+        externalActivationId: uuid(70),
+        status: RegistrationStatus.PENDING_MATCH,
+        isGuest: false,
+        certificateGrantedAt: new Date(),
+      });
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      emailService.sendCertificatePendingRegistration = jest.fn().mockResolvedValue({ status: 'sent' });
+
+      const [invitation] = await service.inviteCertificates([registration.id], checkerUser);
+      expect(invitation.status).toBe('sent');
+      expect(registration.status).toBe(RegistrationStatus.PENDING_GUEST);
+      expect(registration.certificateInvitedAt).toBeInstanceOf(Date);
+
+      const publicInvite = await service.getGuestInvite(registration.checkinToken);
+      expect(publicInvite.eventTitle).toBe('Meetup Elas');
+      const accepted = await service.claimGuestRegistration({
+        token: registration.checkinToken,
+        name: 'Ana',
+        email: 'ana@x.dev',
+        consent: true,
+        turnstileToken: 'development',
+      });
+      expect(accepted.status).toBe(RegistrationStatus.CONFIRMED);
+      expect(accepted.attendeeName).toBe('Ana');
+    });
+  });
+
+  describe('certificate grants and batch check-in', () => {
+    it('grants and verifies a certificate without check-in', async () => {
+      const registration = makeRegistration();
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      registrationRepo.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getOne: jest.fn().mockResolvedValue(registration),
+      });
+
+      const granted = await service.grantCertificate(registration.id, checkerUser);
+      expect(granted.certificateGrantedAt).toBeInstanceOf(Date);
+      expect(granted.checkedInAt).toBeNull();
+      const verified = await service.verifyCertificate('CRT-aaaaaaaa-bb');
+      expect(verified.valid).toBe(true);
+    });
+
+    it('checks in a batch independently and reports pending_match', async () => {
+      const first = makeRegistration({ id: uuid(41), checkinToken: 'first' });
+      const second = makeRegistration({ id: uuid(42), checkinToken: 'second', checkedInAt: new Date() });
+      const pending = makeRegistration({ id: uuid(43), checkinToken: 'pending', status: RegistrationStatus.PENDING_MATCH });
+      registrationRepo.findOneBy.mockImplementation(async ({ checkinToken }) =>
+        [first, second, pending].find((item) => item.checkinToken === checkinToken) ?? null,
+      );
+
+      const result = await service.checkinBatch(uuid(10), ['first', 'second', 'pending'], checkerUser);
+
+      expect(result).toEqual([
+        { token: 'first', status: 'checked_in' },
+        { token: 'second', status: 'already_checked_in' },
+        { token: 'pending', status: 'invalid' },
+      ]);
+    });
+  });
+
   // ── Ativação externa (2d) ─────────────────────────────────────────────────
 
   describe('activateExternal', () => {
@@ -504,16 +576,14 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       expect(eventOverridesService.upsert).not.toHaveBeenCalled();
     });
 
-    it('certificates força checkin automaticamente', async () => {
+    it('certificates não implica checkin', async () => {
       activationRepo.findOneBy.mockResolvedValue(null);
       const saved = await service.activateExternal(
         EVENT_KEY,
         { ...dto, features: ['certificates'] },
         user(),
       );
-      expect(saved.features).toEqual(
-        expect.arrayContaining(['certificates', 'checkin']),
-      );
+      expect(saved.features).toEqual(['certificates']);
       expect(auditService.log).toHaveBeenCalledWith(
         expect.objectContaining({ action: 'event.activation_saved' }),
       );

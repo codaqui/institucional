@@ -7,6 +7,7 @@ import {
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
 } from './email.service';
 import { EmailTemplateService } from './email-template.service';
+import { EMAIL_TEMPLATE_CERTIFICATE_PENDING } from './default-templates';
 import { EmailStatus } from './entities/email-log.entity';
 
 const uuid = (n: number) =>
@@ -149,6 +150,24 @@ describe('EmailService', () => {
         'http://localhost:3000/eventos/convite?token=token-abc',
       );
       expect(message.html).not.toContain('http://localhost:3000/membro');
+    });
+  });
+
+  describe('sendCertificatePendingRegistration', () => {
+    it('usa o convite de certificado pendente de cadastro', async () => {
+      const log = await service.sendCertificatePendingRegistration(
+        makeRegistration({ isGuest: true }) as any,
+        makeEvent() as any,
+      );
+
+      const message = provider.send.mock.calls[0][0];
+      expect(message.subject).toContain('Certificado pendente de cadastro');
+      expect(message.html).toContain('http://localhost:3000/eventos/convite?token=token-abc');
+      expect(emailLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
+        template: EMAIL_TEMPLATE_CERTIFICATE_PENDING,
+        registrationId: uuid(40),
+      }));
+      expect(log.status).toBe(EmailStatus.SENT);
     });
   });
 
