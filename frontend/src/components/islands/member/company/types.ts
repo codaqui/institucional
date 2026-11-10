@@ -11,6 +11,9 @@ export interface Company {
   logoUrl?: string;
   websiteUrl?: string;
   status: string;
+  tier: "amiga" | "aliada";
+  sealValidUntil: string | null;
+  sealActive: boolean;
   responsibleMemberId: string;
   subscriptionAmountCents?: number;
 }
