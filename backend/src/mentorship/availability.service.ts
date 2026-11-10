@@ -34,16 +34,16 @@ export class AvailabilityService {
   async replaceAvailability(weekday: number, rules: AvailabilityRuleDto[], actor: JwtPayload) {
     const profile = await this.profileRepo.findOneBy({ memberId: actor.sub, active: true });
     if (!profile) throw new ForbiddenException('É necessário ser um mentor ativo.');
-    const existing = await this.availabilityRepo.find({ where: { mentorId: profile.id, weekday } });
+    const validated: MentorAvailability[] = [];
     for (const rule of rules) {
       const duration = this.durationMinutes(rule.startTime, rule.endTime);
       if (duration <= 0) throw new ConflictException('O início deve ser anterior ao fim.');
-      for (const other of existing) {
+      for (const other of validated) {
         if (this.timesOverlap(rule.startTime, rule.endTime, other.startTime, other.endTime)) {
           throw new ConflictException('As regras de disponibilidade se sobrepõem.');
         }
       }
-      existing.push({ startTime: rule.startTime, endTime: rule.endTime } as MentorAvailability);
+      validated.push({ startTime: rule.startTime, endTime: rule.endTime } as MentorAvailability);
     }
     await this.availabilityRepo.delete({ mentorId: profile.id, weekday });
     return this.availabilityRepo.save(rules.map((rule) => this.availabilityRepo.create({

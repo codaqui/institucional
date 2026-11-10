@@ -112,6 +112,10 @@ describe('SessionsService', () => {
     sessionRepo.findOneBy.mockResolvedValue({ ...session, status: MentorshipSessionStatus.COMPLETED });
     const rated = await service.rate('token-1', 5, 'Ótima sessão');
     expect(rated).toMatchObject({ rating: 5, feedback: 'Ótima sessão' });
+    expect(rated).not.toHaveProperty('mentorId');
+    expect(rated).not.toHaveProperty('menteeMemberId');
+    expect(rated).not.toHaveProperty('notes');
+    expect(rated).not.toHaveProperty('token');
   });
 
   it('cancels a guest session by token without exposing actor ids', async () => {

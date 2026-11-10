@@ -148,7 +148,8 @@ export class SessionsService {
     }
     session.rating = rating;
     session.feedback = feedback?.trim() || null;
-    return this.sessionRepo.save(session);
+    await this.sessionRepo.save(session);
+    return this.getByToken(token);
   }
 
   async cancelByToken(token: string, reason: string) {

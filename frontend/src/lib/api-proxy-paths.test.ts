@@ -63,6 +63,12 @@ const apiPaths = [
   "/universities/cities",
   "/universities/institutions",
   "/universities/ambassador-applications",
+  "/mentorship/public",
+  "/mentorship/availability?mentorId=abc",
+  "/mentorship/sessions",
+  "/mentorship/sessions/token-1/cancel",
+  "/mentorship/applications",
+  "/mentorship/insights",
 ] as const;
 
 const staticPaths = [
@@ -93,6 +99,11 @@ const staticPaths = [
   "/assemblies/index.json",
   "/projects/index.json",
   "/universities/index.json",
+  "/mentors/index.json",
+  "/mentoria",
+  "/mentoria/sessao/token-1",
+  "/membro/mentoria",
+  "/admin/mentoria",
   "/universitario",
   "/projetos",
   "/projetos/acao-extensao",

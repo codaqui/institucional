@@ -48,12 +48,21 @@ describe('AvailabilityService', () => {
     service = new AvailabilityService(availabilityRepo as any, sessionRepo as any, profileRepo as any, emailService as any, memberRepo as any);
   });
 
-  it('rejects invalid and overlapping availability rules', async () => {
+  it('rejects invalid rules and overlaps only between the replacement rules', async () => {
     await expect(service.replaceAvailability(1, [{ startTime: '20:00', endTime: '19:00', timeZone: 'America/Sao_Paulo' }], mentorActor))
       .rejects.toThrow(ConflictException);
+    await expect(service.replaceAvailability(1, [
+      { startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' },
+      { startTime: '19:30', endTime: '20:30', timeZone: 'America/Sao_Paulo' },
+    ], mentorActor)).rejects.toThrow(ConflictException);
+  });
+
+  it('allows a replacement that overlaps the previous persisted rule', async () => {
     availabilityRepo.find.mockResolvedValue([{ startTime: '19:30', endTime: '20:30' }]);
+
     await expect(service.replaceAvailability(1, [{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }], mentorActor))
-      .rejects.toThrow(ConflictException);
+      .resolves.toEqual([expect.objectContaining({ startTime: '19:00', endTime: '20:00' })]);
+    expect(availabilityRepo.delete).toHaveBeenCalledWith({ mentorId: 'mentor-1', weekday: 1 });
   });
 
   it('locks the rule, saves and notifies both participants before rejecting a conflict without email', async () => {
