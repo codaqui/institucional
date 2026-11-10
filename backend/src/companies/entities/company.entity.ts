@@ -14,6 +14,17 @@ export enum CompanyStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum CompanyTier {
+  AMIGA = 'amiga',
+  ALIADA = 'aliada',
+}
+
+export enum EngagementCriterion {
+  WORKSHOP = 'workshop',
+  HIRING = 'hiring',
+  BUSINESS_EVENT = 'business_event',
+}
+
 /**
  * Empresa apoiadora (CNPJ obrigatório).
  * Um único responsável por empresa (FK exclusivo no members.id).
@@ -42,6 +53,27 @@ export class Company {
 
   @Column({ type: 'enum', enum: CompanyStatus, default: CompanyStatus.PENDING })
   status: CompanyStatus;
+
+  @Column({ type: 'enum', enum: CompanyTier, default: CompanyTier.AMIGA })
+  tier: CompanyTier;
+
+  @Column({ type: 'enum', enum: EngagementCriterion, nullable: true })
+  engagementCriterion: EngagementCriterion | null;
+
+  @Column({ nullable: true, type: 'text' })
+  evidenceUrl: string | null;
+
+  @Column({ nullable: true, type: 'text' })
+  validationNotes: string | null;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  validatedAt: Date | null;
+
+  @Column({ nullable: true, type: 'uuid' })
+  validatedByMemberId: string | null;
+
+  @Column({ nullable: true, type: 'timestamptz' })
+  sealValidUntil: Date | null;
 
   /** FK → members.id — único: um responsável por empresa */
   @Column({ unique: true })
