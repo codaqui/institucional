@@ -72,7 +72,7 @@ describe('AvailabilityService', () => {
       menteeName: 'Ana', menteeEmail: 'ana@example.test', topicTags: ['DevOps'], guestConsentAt: new Date(),
     };
 
-    await expect(service.reserveSlot(input)).resolves.toMatchObject({ status: 'requested', scheduledAt: new Date(scheduledAt) });
+    await expect(service.reserveSlot(input)).resolves.toMatchObject({ status: 'requested', scheduledAt: new Date(`${scheduledAt}:00-03:00`) });
     expect(availabilityRepo.findOne).toHaveBeenCalledWith(expect.objectContaining({
       lock: { mode: 'pessimistic_write' },
     }));
