@@ -11,7 +11,7 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, LessThan, Repository } from 'typeorm';
 import Stripe from 'stripe';
-import { Company, CompanyStatus, CompanyTier, EngagementCriterion } from './entities/company.entity';
+import { Company, CompanyStatus, CompanyTier } from './entities/company.entity';
 import { StorageService } from '../storage/storage.service';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';

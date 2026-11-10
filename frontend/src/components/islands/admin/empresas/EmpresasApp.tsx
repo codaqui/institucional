@@ -105,6 +105,11 @@ const STATUS_COLORS: Record<string, "warning" | "success" | "error" | "default">
   cancelled: "default",
 };
 
+function tierActionLabel(company: Company): string {
+  if (company.tier !== "aliada") return "Validar como Aliada";
+  return company.sealActive ? "Definir como Amiga" : "Renovar como Aliada";
+}
+
 function formatCnpj(cnpj: string): string {
   if (cnpj.length !== 14) return cnpj;
   return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
@@ -361,9 +366,7 @@ function EmpresasInner() {
                       </Select>
 
                       <Button size="small" variant="outlined" onClick={() => openTierDialog(company)}>
-                        {company.tier === "aliada"
-                          ? company.sealActive ? "Definir como Amiga" : "Renovar como Aliada"
-                          : "Validar como Aliada"}
+                        {tierActionLabel(company)}
                       </Button>
 
                       <IconButton

@@ -34,36 +34,44 @@ export function renderCompanyBadge(company) {
 `;
 }
 
+function validateCompanyIdentity(company, ids) {
+  if (!company || typeof company !== "object" || Array.isArray(company)) {
+    throw new TypeError("Empresa inválida em /companies/badges/public.");
+  }
+  for (const field of Object.keys(company)) {
+    if (!PUBLIC_FIELDS.has(field)) throw new TypeError(`Campo não público em /companies/badges/public: ${field}.`);
+  }
+  if (typeof company.id !== "string" || !UUID_PATTERN.test(company.id)) {
+    throw new TypeError(`UUID inválido em /companies/badges/public: ${String(company.id)}`);
+  }
+  if (ids.has(company.id)) throw new TypeError(`Empresa duplicada: ${company.id}.`);
+  ids.add(company.id);
+}
+
+function validateCompanyFields(company) {
+  if (typeof company.name !== "string" || company.name.trim().length === 0) {
+    throw new TypeError(`Nome inválido para ${company.id}.`);
+  }
+  if (company.tradeName !== null && typeof company.tradeName !== "string") {
+    throw new TypeError(`Nome fantasia inválido para ${company.id}.`);
+  }
+  if (company.tier !== "amiga" && company.tier !== "aliada") {
+    throw new TypeError(`Tier inválido para ${company.id}.`);
+  }
+  if (company.tier === "aliada" && (typeof company.sealValidUntil !== "string" || Number.isNaN(Date.parse(company.sealValidUntil)))) {
+    throw new TypeError(`Validade inválida para ${company.id}.`);
+  }
+  if (company.tier === "amiga" && company.sealValidUntil !== null) {
+    throw new TypeError(`Empresa Amiga não deve ter validade de selo: ${company.id}.`);
+  }
+}
+
 function validatePayload(payload) {
   if (!Array.isArray(payload)) throw new TypeError("Resposta inválida de /companies/badges/public: esperado um array.");
   const ids = new Set();
   for (const company of payload) {
-    if (!company || typeof company !== "object" || Array.isArray(company)) {
-      throw new TypeError("Empresa inválida em /companies/badges/public.");
-    }
-    for (const field of Object.keys(company)) {
-      if (!PUBLIC_FIELDS.has(field)) throw new TypeError(`Campo não público em /companies/badges/public: ${field}.`);
-    }
-    if (typeof company.id !== "string" || !UUID_PATTERN.test(company.id)) {
-      throw new TypeError(`UUID inválido em /companies/badges/public: ${String(company.id)}`);
-    }
-    if (ids.has(company.id)) throw new TypeError(`Empresa duplicada: ${company.id}.`);
-    ids.add(company.id);
-    if (typeof company.name !== "string" || company.name.trim().length === 0) {
-      throw new TypeError(`Nome inválido para ${company.id}.`);
-    }
-    if (company.tradeName !== null && typeof company.tradeName !== "string") {
-      throw new TypeError(`Nome fantasia inválido para ${company.id}.`);
-    }
-    if (company.tier !== "amiga" && company.tier !== "aliada") {
-      throw new TypeError(`Tier inválido para ${company.id}.`);
-    }
-    if (company.tier === "aliada" && (typeof company.sealValidUntil !== "string" || Number.isNaN(Date.parse(company.sealValidUntil)))) {
-      throw new TypeError(`Validade inválida para ${company.id}.`);
-    }
-    if (company.tier === "amiga" && company.sealValidUntil !== null) {
-      throw new TypeError(`Empresa Amiga não deve ter validade de selo: ${company.id}.`);
-    }
+    validateCompanyIdentity(company, ids);
+    validateCompanyFields(company);
   }
   return payload;
 }
