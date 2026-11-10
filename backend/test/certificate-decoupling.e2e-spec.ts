@@ -10,6 +10,7 @@ import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { TurnstileGuard } from '../src/common/turnstile/turnstile.guard';
 import { SmtpEmailProvider } from '../src/notifications/email.provider';
 import { EMAIL_TEMPLATE_CERTIFICATE_PENDING } from '../src/notifications/default-templates';
+import { CertificateInviteQueueService } from '../src/events/certificate-invite-queue.service';
 
 const testDatabase = process.env.DB_NAME ?? '';
 if (!testDatabase.endsWith('_test')) {
@@ -42,6 +43,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
   let provider: SmtpEmailProvider;
+  let inviteQueue: CertificateInviteQueueService;
 
   async function registrationByEmail(email: string): Promise<RegistrationRow> {
     const rows = await dataSource.query(
@@ -56,6 +58,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
     await dataSource.query('DELETE FROM email_logs WHERE "to" LIKE $1', ['%@e2e.invalid']);
     await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
     await dataSource.query('DELETE FROM hour_ledger WHERE "memberId" = ANY($1::uuid[])', [actorIds]);
+    await dataSource.query('DELETE FROM certificate_invite_jobs WHERE "requestedById" = ANY($1::uuid[])', [actorIds]);
     await dataSource.query('DELETE FROM event_registrations WHERE "attendeeEmail" LIKE $1', ['%@e2e.invalid']);
     await dataSource.query('DELETE FROM ticket_types WHERE "externalActivationId" IN (SELECT id FROM external_event_activations WHERE "eventKey" = $1)', [EVENT_KEY]);
     await dataSource.query('DELETE FROM event_overrides WHERE "sourceKey" = $1', ['sympla:e2e-certificate']);
@@ -84,6 +87,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
     await app.init();
     dataSource = moduleFixture.get(DataSource);
     provider = moduleFixture.get(SmtpEmailProvider);
+    inviteQueue = moduleFixture.get(CertificateInviteQueueService);
     await removeFixtures();
 
     await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
@@ -221,29 +225,32 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       });
 
     jest.spyOn(provider, 'isConfigured').mockReturnValue(false);
-    const skippedResponse = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/events/certificate-invites/batch')
       .set(as('admin'))
       .send({ registrationIds: [(await registrationByEmail('skipped@e2e.invalid')).id] })
-      .expect(201);
-    expect(skippedResponse.body[0].status).toBe('skipped');
+      .expect(202)
+      .expect((response) => expect(response.body.total).toBe(1));
+    await inviteQueue.processNextJob();
 
     jest.spyOn(provider, 'isConfigured').mockReturnValue(true);
     jest.spyOn(provider, 'send').mockRejectedValueOnce(new Error('SMTP sintético indisponível'));
-    const failedResponse = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/events/certificate-invites/batch')
       .set(as('admin'))
       .send({ registrationIds: [(await registrationByEmail('failed@e2e.invalid')).id] })
-      .expect(201);
-    expect(failedResponse.body[0].status).toBe('failed');
+      .expect(202)
+      .expect((response) => expect(response.body.total).toBe(1));
+    await inviteQueue.processNextJob();
 
     jest.spyOn(provider, 'send').mockResolvedValue(undefined);
-    const sentResponse = await request(app.getHttpServer())
+    await request(app.getHttpServer())
       .post('/events/certificate-invites/batch')
       .set(as('admin'))
       .send({ registrationIds: [pendingSent.id] })
-      .expect(201);
-    expect(sentResponse.body[0].status).toBe('sent');
+      .expect(202)
+      .expect((response) => expect(response.body.total).toBe(1));
+    await inviteQueue.processNextJob();
 
     const emailResults = await dataSource.query(
       'SELECT "registrationId", status FROM email_logs WHERE template = $1 AND "registrationId" = ANY($2::text[]) ORDER BY status',
@@ -254,12 +261,30 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
     expect((await registrationByEmail('failed@e2e.invalid')).certificateInvitedAt).toBeNull();
     expect((await registrationByEmail('skipped@e2e.invalid')).certificateInvitedAt).toBeNull();
 
+    await dataSource.query(
+      'UPDATE event_registrations SET "certificateInvitedAt" = NULL WHERE id = $1',
+      [pendingSent.id],
+    );
     await request(app.getHttpServer())
       .get(`/events/public/guest-invites/${pendingSent.checkinToken}`)
       .expect(200)
       .expect((response) => {
-        expect(response.body).toMatchObject({ status: 'pending_guest', eventTitle: 'Evento E2E de certificados' });
+        expect(response.body).toMatchObject({
+          status: 'pending_guest',
+          eventTitle: 'Evento E2E de certificados',
+          requiresAccount: true,
+        });
       });
+    expect((await registrationByEmail('sent@e2e.invalid')).certificateInvitedAt).not.toBeNull();
+
+    const duplicateInvite = await request(app.getHttpServer())
+      .post('/events/certificate-invites/batch')
+      .set(as('admin'))
+      .send({ registrationIds: [pendingSent.id] })
+      .expect(202);
+    expect(duplicateInvite.body.total).toBe(0);
+    expect(duplicateInvite.body.invalid).toContain(pendingSent.id);
+
     await request(app.getHttpServer())
       .post('/events/public/guest-claim')
       .send({
@@ -269,17 +294,41 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
         consent: true,
         turnstileToken: 'e2e-turnstile',
       })
+      .expect(409);
+
+    await dataSource.query(
+      'UPDATE members SET "secondaryEmails" = $1 WHERE id = $2',
+      [['sent@e2e.invalid'], actors.certificate.sub],
+    );
+    await request(app.getHttpServer())
+      .post('/events/public/guest-claim/github')
+      .set(as('certificate'))
+      .send({ token: pendingSent.checkinToken, consent: true })
       .expect(201)
       .expect((response) => {
-        expect(response.body.status).toBe('confirmed');
+        expect(response.body).toMatchObject({ status: 'confirmed', requiresAccount: true });
       });
-    expect((await registrationByEmail('sent@e2e.invalid')).status).toBe('confirmed');
+    await request(app.getHttpServer())
+      .post('/events/public/guest-claim/github')
+      .set(as('certificate'))
+      .send({ token: pendingSent.checkinToken, consent: true })
+      .expect(201);
+
+    const linked = await dataSource.query(
+      'SELECT status, "memberId", "certificateGrantedAt" FROM event_registrations WHERE id = $1',
+      [pendingSent.id],
+    );
+    expect(linked[0]).toMatchObject({
+      status: 'confirmed',
+      memberId: actors.certificate.sub,
+      certificateGrantedAt: pendingSent.certificateGrantedAt,
+    });
 
     await request(app.getHttpServer())
       .get(`/events/certificates/verify/CRT-${pendingSent.checkinToken}`)
       .expect(200)
       .expect((response) => {
-        expect(response.body).toMatchObject({ valid: true, attendeeName: 'Convite Enviado' });
+        expect(response.body).toMatchObject({ valid: true, attendeeName: 'Ator certificado certificate' });
       });
   });
 });

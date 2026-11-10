@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventsService, EVENT_TICKET_TERMS_VERSION } from './events.service';
+import { createEventsService } from '../../test/events-service.factory';
 import {
   ManagedEvent,
   ManagedEventStatus,
@@ -206,25 +207,35 @@ describe('EventsService', () => {
       recordEventCheckin: jest.fn().mockResolvedValue(undefined),
     };
 
-    service = new EventsService(
-      eventRepo as any,
-      ticketTypeRepo as any,
-      orderRepo as any,
-      registrationRepo as any,
-      staffRepo as any,
-      memberRepo as any,
-      activationRepo as any,
-      txRepo as any,
-      stripeService as any,
-      ledgerService as any,
-      auditService as any,
-      emailService as any,
-      eventOrganizerService as any,
-      githubDb as any,
-      eventOverridesService as any,
-      reimbursementsService as any,
-      hoursService as any,
-    );
+    service = createEventsService({
+      eventRepo,
+      ticketTypeRepo,
+      orderRepo,
+      registrationRepo,
+      staffRepo,
+      memberRepo,
+      activationRepo,
+      emailLogRepo: { findOne: jest.fn().mockResolvedValue(null) },
+      txRepo,
+      stripeService,
+      ledgerService,
+      auditService,
+      emailService,
+      eventOrganizerService,
+      githubDb,
+      eventOverridesService,
+      reimbursementsService,
+      hoursService,
+    } as any);
+  });
+
+  const mockEmptyRegistrationQuery = () => registrationRepo.createQueryBuilder.mockReturnValue({
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn().mockResolvedValue([]),
   });
 
   describe('adult content classification', () => {
@@ -267,14 +278,7 @@ describe('EventsService', () => {
   describe('getPublicManagedEvents', () => {
     it('queries only published events (draft nunca aparece)', async () => {
       eventRepo.find.mockResolvedValue([]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
 
       const result = await service.getPublicManagedEvents();
 
@@ -323,14 +327,7 @@ describe('EventsService', () => {
         makeEvent({ description: 'Texto longo\ncom quebras' }),
         makeEvent({ id: uuid(11) }),
       ]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
 
       const { events } = await service.getPublicManagedEvents();
 
@@ -340,14 +337,7 @@ describe('EventsService', () => {
 
     it('evento com 2 hosts → organizers com name/id/photoUrl (sem e-mail)', async () => {
       eventRepo.find.mockResolvedValue([makeEvent()]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
       staffRepo.findBy.mockResolvedValue([
         { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
         { eventId: uuid(10), memberId: uuid(2), staffRole: EventStaffRole.HOST },
@@ -387,14 +377,7 @@ describe('EventsService', () => {
 
     it('evento sem host → campo organizers omitido', async () => {
       eventRepo.find.mockResolvedValue([makeEvent()]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
       staffRepo.findBy.mockResolvedValue([]);
 
       const { events } = await service.getPublicManagedEvents();

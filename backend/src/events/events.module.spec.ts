@@ -16,6 +16,7 @@ import { StripeService } from '../stripe/stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../notifications/email.service';
+import { EmailLog } from '../notifications/entities/email-log.entity';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
 import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
@@ -68,6 +69,7 @@ describe('EventsModule DI', () => {
         { provide: getRepositoryToken(EventStaff), useValue: dummyRepo },
         { provide: getRepositoryToken(Member), useValue: dummyRepo },
         { provide: getRepositoryToken(ExternalEventActivation), useValue: dummyRepo },
+        { provide: getRepositoryToken(EmailLog), useValue: dummyRepo },
         { provide: getRepositoryToken(Transaction), useValue: dummyRepo },
         { provide: StripeService, useValue: dummyService },
         { provide: LedgerService, useValue: dummyService },
