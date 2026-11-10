@@ -48,6 +48,16 @@ const makeActivation = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
+const makeCertificateGuest = (overrides: Record<string, unknown> = {}) => makeRegistration({
+  eventId: null,
+  externalActivationId: uuid(70),
+  memberId: null,
+  status: RegistrationStatus.PENDING_GUEST,
+  isGuest: true,
+  certificateInvitedAt: null,
+  ...overrides,
+});
+
 const makeRegistration = (overrides: Record<string, unknown> = {}) => ({
   id: uuid(40),
   eventId: uuid(10),
@@ -495,13 +505,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
     it('reconciles a sent email without an invitation timestamp', async () => {
       const sentAt = new Date('2026-11-09T22:25:26.828Z');
-      const registration = makeRegistration({
-        eventId: null,
-        externalActivationId: uuid(70),
-        status: RegistrationStatus.PENDING_GUEST,
-        isGuest: true,
-        certificateInvitedAt: null,
-      });
+      const registration = makeCertificateGuest();
       registrationRepo.findOneBy.mockResolvedValue(registration);
       activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
       (service as any).emailLogRepo.findOne.mockResolvedValue({ createdAt: sentAt });
@@ -518,13 +522,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
     it('prevents another invitation after reconciling a sent email', async () => {
       const sentAt = new Date('2026-11-09T22:25:26.828Z');
-      const registration = makeRegistration({
-        eventId: null,
-        externalActivationId: uuid(70),
-        status: RegistrationStatus.PENDING_GUEST,
-        isGuest: true,
-        certificateInvitedAt: null,
-      });
+      const registration = makeCertificateGuest();
       registrationRepo.findOneBy.mockResolvedValue(registration);
       activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
       (service as any).emailLogRepo.findOne.mockResolvedValue({ createdAt: sentAt });
@@ -539,12 +537,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
     it('links an external certificate invitation to the authenticated GitHub account', async () => {
       const grantedAt = new Date('2026-11-08T12:00:00.000Z');
-      const registration = makeRegistration({
-        eventId: null,
-        externalActivationId: uuid(70),
-        memberId: null,
-        status: RegistrationStatus.PENDING_GUEST,
-        isGuest: true,
+      const registration = makeCertificateGuest({
         certificateInvitedAt: new Date(),
         certificateGrantedAt: grantedAt,
       });
@@ -586,14 +579,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     });
 
     it('rejects an invitation when the email is not verified in the GitHub account', async () => {
-      const registration = makeRegistration({
-        eventId: null,
-        externalActivationId: uuid(70),
-        memberId: null,
-        status: RegistrationStatus.PENDING_GUEST,
-        isGuest: true,
-        certificateInvitedAt: new Date(),
-      });
+      const registration = makeCertificateGuest({ certificateInvitedAt: new Date() });
       registrationRepo.findOneBy.mockResolvedValue(registration);
       memberRepo.findOneBy.mockResolvedValue({
         id: uuid(1), isActive: true, secondaryEmails: ['other@x.dev'],
@@ -607,10 +593,9 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     });
 
     it('does not allow another account to claim an already linked invitation', async () => {
-      const registration = makeRegistration({
+      const registration = makeCertificateGuest({
         memberId: uuid(99),
         status: RegistrationStatus.CONFIRMED,
-        isGuest: true,
         certificateInvitedAt: new Date(),
       });
       registrationRepo.findOneBy.mockResolvedValue(registration);
@@ -626,12 +611,9 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     });
 
     it('returns an already linked invitation without another mutation', async () => {
-      const registration = makeRegistration({
-        eventId: null,
-        externalActivationId: uuid(70),
+      const registration = makeCertificateGuest({
         memberId: uuid(1),
         status: RegistrationStatus.CONFIRMED,
-        isGuest: true,
         certificateInvitedAt: new Date(),
       });
       registrationRepo.findOneBy.mockResolvedValue(registration);

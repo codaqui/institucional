@@ -209,6 +209,64 @@ export class EventsService {
     private readonly designations?: DesignationsService,
   ) {}
 
+  private static registrationScopeIds(registrations: EventRegistration[]) {
+    return {
+      eventIds: [...new Set(registrations.map((r) => r.eventId).filter((id): id is string => id !== null))],
+      activationIds: [...new Set(registrations.map((r) => r.externalActivationId).filter((id): id is string => id !== null))],
+    };
+  }
+
+  private static assertPaidTicket(
+    ticketType: TicketType | null,
+    quantity: number,
+    freeMessage: string,
+  ): asserts ticketType is TicketType {
+    if (!ticketType) throw new NotFoundException('Tipo de ingresso não encontrado.');
+    if (ticketType.priceCents <= 0) throw new BadRequestException(freeMessage);
+    if (quantity > ticketType.maxPerOrder) {
+      throw new BadRequestException(`Máximo de ${ticketType.maxPerOrder} ingressos por pedido neste lote.`);
+    }
+  }
+
+  private async claimGuestRecord(
+    registration: EventRegistration,
+    dto: ClaimGuestDto,
+    now: Date,
+    manager: EntityManager,
+  ): Promise<void> {
+    const values = {
+      status: RegistrationStatus.CONFIRMED,
+      attendeeName: dto.name,
+      attendeeEmail: dto.email,
+      guestClaimedAt: now,
+      guestConsentAt: now,
+    };
+    const result = await manager.getRepository(EventRegistration).update(
+      { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
+      values,
+    );
+    if (!result.affected) throw new ConflictException('Convite já utilizado.');
+    Object.assign(registration, values);
+  }
+
+  private async assertCertificateOperation(
+    registration: EventRegistration,
+    user: JwtPayload,
+    permissionMessage: string,
+  ): Promise<void> {
+    if (registration.eventId) {
+      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
+        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
+      if (!allowed) throw new ForbiddenException(permissionMessage);
+      return;
+    }
+    if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+    const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+    if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+    EventsService.assertFeature(activation, 'certificates');
+    await this.assertExternalManager(user, activation, { allowActivator: true });
+  }
+
   // ── Permissões ────────────────────────────────────────────────────────────
 
   /** event_organizer/admin globais acessam tudo */
@@ -1431,20 +1489,7 @@ export class EventsService {
     });
     if (registrations.length === 0) return [];
 
-    const eventIds = [
-      ...new Set(
-        registrations
-          .map((r) => r.eventId)
-          .filter((id): id is string => id !== null),
-      ),
-    ];
-    const activationIds = [
-      ...new Set(
-        registrations
-          .map((r) => r.externalActivationId)
-          .filter((id): id is string => id !== null),
-      ),
-    ];
+    const { eventIds, activationIds } = EventsService.registrationScopeIds(registrations);
     const ticketTypeIds = [
       ...new Set(registrations.map((r) => r.ticketTypeId)),
     ];
@@ -1518,19 +1563,11 @@ export class EventsService {
       id: dto.ticketTypeId,
       eventId,
     });
-    if (!ticketType) {
-      throw new NotFoundException('Tipo de ingresso não encontrado.');
-    }
-    if (ticketType.priceCents <= 0) {
-      throw new BadRequestException(
-        'Ingresso gratuito: use a inscrição direta (POST /events/:id/register).',
-      );
-    }
-    if (dto.quantity > ticketType.maxPerOrder) {
-      throw new BadRequestException(
-        `Máximo de ${ticketType.maxPerOrder} ingressos por pedido neste lote.`,
-      );
-    }
+    EventsService.assertPaidTicket(
+      ticketType,
+      dto.quantity,
+      'Ingresso gratuito: use a inscrição direta (POST /events/:id/register).',
+    );
 
     const member = await this.memberRepo.findOneBy({
       id: user.sub,
@@ -2463,24 +2500,7 @@ export class EventsService {
       if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
       const now = new Date();
       await this.registrationRepo.manager.transaction(async (manager) => {
-        const result = await manager.getRepository(EventRegistration).update(
-          { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
-          {
-            status: RegistrationStatus.CONFIRMED,
-            attendeeName: dto.name,
-            attendeeEmail: dto.email,
-            guestClaimedAt: now,
-            guestConsentAt: now,
-          },
-        );
-        if (!result.affected) throw new ConflictException('Convite já utilizado.');
-      });
-      Object.assign(registration, {
-        status: RegistrationStatus.CONFIRMED,
-        attendeeName: dto.name,
-        attendeeEmail: dto.email,
-        guestClaimedAt: now,
-        guestConsentAt: now,
+        await this.claimGuestRecord(registration, dto, now, manager);
       });
       void this.auditService.log({
         action: AuditAction.EVENT_GUEST_CLAIMED,
@@ -2521,24 +2541,7 @@ export class EventsService {
       }
       const reserved = await this.reserveQuota(ticketType.id, 1, false, manager);
       if (!reserved) throw new ConflictException('Lote esgotado.');
-      const result = await manager.getRepository(EventRegistration).update(
-        { id: registration.id, status: RegistrationStatus.PENDING_GUEST },
-        {
-          status: RegistrationStatus.CONFIRMED,
-          attendeeName: dto.name,
-          attendeeEmail: dto.email,
-          guestClaimedAt: now,
-          guestConsentAt: now,
-        },
-      );
-      if (!result.affected) throw new ConflictException('Convite já utilizado.');
-    });
-    Object.assign(registration, {
-      status: RegistrationStatus.CONFIRMED,
-      attendeeName: dto.name,
-      attendeeEmail: dto.email,
-      guestClaimedAt: now,
-      guestConsentAt: now,
+      await this.claimGuestRecord(registration, dto, now, manager);
     });
     void this.emailService.sendRegistrationConfirmation(registration, event).catch((error) => {
       this.logger.warn(`Falha ao enviar confirmação guest: ${String(error)}`);
@@ -2886,17 +2889,11 @@ export class EventsService {
     }
     await this.reconcileCertificateInvitation(registration);
     if (registration.certificateInvitedAt) return { registration: null, status: 'already_invited' };
-    if (registration.eventId) {
-      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
-        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
-      if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
-    } else {
-      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
-      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
-      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
-      EventsService.assertFeature(activation, 'certificates');
-      await this.assertExternalManager(user, activation, { allowActivator: true });
-    }
+    await this.assertCertificateOperation(
+      registration,
+      user,
+      'Sem permissão para convidar participantes deste evento.',
+    );
     return { registration, status: 'ok' };
   }
 
@@ -2928,17 +2925,11 @@ export class EventsService {
   async grantCertificate(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({ id: registrationId });
     if (!registration) throw new NotFoundException('Inscrição não encontrada.');
-    if (registration.eventId) {
-      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
-        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
-      if (!allowed) throw new ForbiddenException('Sem permissão para conceder certificado neste evento.');
-    } else {
-      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
-      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
-      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
-      EventsService.assertFeature(activation, 'certificates');
-      await this.assertExternalManager(user, activation, { allowActivator: true });
-    }
+    await this.assertCertificateOperation(
+      registration,
+      user,
+      'Sem permissão para conceder certificado neste evento.',
+    );
     if (![RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
       throw new ForbiddenException('Certificado indisponível para esta inscrição.');
     }
@@ -4093,19 +4084,11 @@ export class EventsService {
       id: dto.ticketTypeId,
       externalActivationId: activation.id,
     });
-    if (!ticketType) {
-      throw new NotFoundException('Tipo de ingresso não encontrado.');
-    }
-    if (ticketType.priceCents <= 0) {
-      throw new BadRequestException(
-        'Ingresso gratuito: use a inscrição/RSVP da fonte do evento.',
-      );
-    }
-    if (dto.quantity > ticketType.maxPerOrder) {
-      throw new BadRequestException(
-        `Máximo de ${ticketType.maxPerOrder} ingressos por pedido neste lote.`,
-      );
-    }
+    EventsService.assertPaidTicket(
+      ticketType,
+      dto.quantity,
+      'Ingresso gratuito: use a inscrição/RSVP da fonte do evento.',
+    );
 
     const member = await this.memberRepo.findOneBy({
       id: user.sub,
@@ -4165,20 +4148,7 @@ export class EventsService {
     });
     if (registrations.length === 0) return [];
 
-    const eventIds = [
-      ...new Set(
-        registrations
-          .map((r) => r.eventId)
-          .filter((id): id is string => id !== null),
-      ),
-    ];
-    const activationIds = [
-      ...new Set(
-        registrations
-          .map((r) => r.externalActivationId)
-          .filter((id): id is string => id !== null),
-      ),
-    ];
+    const { eventIds, activationIds } = EventsService.registrationScopeIds(registrations);
     const [events, activations] = await Promise.all([
       this.eventRepo.findBy({ id: In(eventIds) }),
       this.activationRepo.findBy({ id: In(activationIds) }),

@@ -30,6 +30,63 @@ async function readApiError(res: Response, fallback: string): Promise<Error> {
   return new Error(message ?? fallback);
 }
 
+function AccountClaimResult({ invite }: Readonly<{ invite: GuestInvite }>) {
+  return (
+    <Stack spacing={2} role="status" sx={{ alignItems: "center", textAlign: "center" }}>
+      <Typography variant="h5" component="h2">Participação vinculada à sua conta</Typography>
+      <Typography>{invite.attendeeName}</Typography>
+      <Typography color="text.secondary">{invite.attendeeEmail}</Typography>
+      <Typography color="text.secondary">Acompanhe a concessão e os seus certificados na área do membro.</Typography>
+      <Button variant="contained" href="/membro">Ver meus certificados</Button>
+    </Stack>
+  );
+}
+
+function AccountClaimPanel({
+  invite,
+  error,
+  saving,
+  userHandle,
+  isLoggedIn,
+  login,
+  claimWithAccount,
+}: Readonly<{
+  invite: GuestInvite;
+  error: string;
+  saving: boolean;
+  userHandle?: string;
+  isLoggedIn: boolean;
+  login: (options?: { returnTo?: string; switchAccount?: boolean }) => void;
+  claimWithAccount: () => void;
+}>) {
+  const returnTo = window.location.pathname + window.location.search;
+  return (
+    <Stack spacing={2}>
+      <Typography variant="h5" component="h2">{invite.eventTitle}</Typography>
+      <Typography>
+        Entre ou crie sua conta Codaqui com GitHub para associar esta participação e o certificado.
+        O e-mail do convite precisa estar verificado na conta GitHub utilizada.
+      </Typography>
+      {error ? <Alert severity="error">{error}</Alert> : null}
+      {isLoggedIn ? (
+        <>
+          <Typography color="text.secondary">Conta conectada: @{userHandle}</Typography>
+          <Button type="button" variant="contained" onClick={claimWithAccount} disabled={saving}>
+            {saving ? "Associando…" : "Associar certificado à minha conta"}
+          </Button>
+          <Button type="button" variant="text" disabled={saving} onClick={() => login({ returnTo, switchAccount: true })}>
+            Trocar conta GitHub
+          </Button>
+        </>
+      ) : (
+        <Button type="button" variant="contained" onClick={() => login({ returnTo })}>
+          Entrar com GitHub e associar certificado
+        </Button>
+      )}
+    </Stack>
+  );
+}
+
 function GuestClaim({ token }: Readonly<{ token: string }>) {
   const apiUrl = resolveApiUrl(import.meta.env.SITE);
   const { user, ready, isLoggedIn, login, authFetch } = useAuth();
@@ -102,21 +159,11 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
     }
   };
 
-  const returnToInvite = () => window.location.pathname + window.location.search;
-
   if (error && !invite) return <Alert severity="error">{error}</Alert>;
   if (!invite || !ready) return <CircularProgress aria-label="Carregando convite" />;
 
   if (invite.status === "confirmed" && invite.requiresAccount) {
-    return (
-      <Stack spacing={2} role="status" sx={{ alignItems: "center", textAlign: "center" }}>
-        <Typography variant="h5" component="h2">Participação vinculada à sua conta</Typography>
-        <Typography>{invite.attendeeName}</Typography>
-        <Typography color="text.secondary">{invite.attendeeEmail}</Typography>
-        <Typography color="text.secondary">Acompanhe a concessão e os seus certificados na área do membro.</Typography>
-        <Button variant="contained" href="/membro">Ver meus certificados</Button>
-      </Stack>
-    );
+    return <AccountClaimResult invite={invite} />;
   }
 
   if (invite.status === "confirmed") {
@@ -139,34 +186,15 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
 
   if (invite.requiresAccount) {
     return (
-      <Stack spacing={2}>
-        <Typography variant="h5" component="h2">{invite.eventTitle}</Typography>
-        <Typography>
-          Entre ou crie sua conta Codaqui com GitHub para associar esta participação e o certificado.
-          O e-mail do convite precisa estar verificado na conta GitHub utilizada.
-        </Typography>
-        {error ? <Alert severity="error">{error}</Alert> : null}
-        {isLoggedIn ? (
-          <>
-            <Typography color="text.secondary">Conta conectada: @{user?.handle}</Typography>
-            <Button type="button" variant="contained" onClick={claimWithAccount} disabled={saving}>
-              {saving ? "Associando…" : "Associar certificado à minha conta"}
-            </Button>
-            <Button
-              type="button"
-              variant="text"
-              disabled={saving}
-              onClick={() => login({ returnTo: returnToInvite(), switchAccount: true })}
-            >
-              Trocar conta GitHub
-            </Button>
-          </>
-        ) : (
-          <Button type="button" variant="contained" onClick={() => login({ returnTo: returnToInvite() })}>
-            Entrar com GitHub e associar certificado
-          </Button>
-        )}
-      </Stack>
+      <AccountClaimPanel
+        invite={invite}
+        error={error}
+        saving={saving}
+        userHandle={user?.handle}
+        isLoggedIn={isLoggedIn}
+        login={login}
+        claimWithAccount={claimWithAccount}
+      />
     );
   }
 
