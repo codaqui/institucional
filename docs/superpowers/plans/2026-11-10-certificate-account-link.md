@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD para exigir conta GitHub e e-mail verificado no aceite de convites de certificado.
 audience: Implementers e revisores da branch feat/certificate-account-link.
-status: Aprovado em conversa; execução inline, sem subagentes.
+status: Implementado na PR #623; checks e SonarCloud verdes; aguardando decisão de merge/deploy.
 sections:
   - Constraints globais
   - Contrato do convite e reconciliação
@@ -18,7 +18,7 @@ agent-protocol:
 
 # Certificate Account Link Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Exigir conta GitHub com e-mail verificado para associar convites de certificado, preservando o guest claim comum e os 84 links do DevPR Conf 26.
 
@@ -49,9 +49,9 @@ agent-protocol:
 - Consumes: evidências do dump `doity:devpr:devpr-conf-26`.
 - Produces: contrato aprovado para backend, frontend e E2E.
 
-- [ ] **Step 1: Escrever a spec com os 84 convites, 52 falhas e um envio sem marcação**
-- [ ] **Step 2: Revisar placeholders, contradições e cobertura de segurança**
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Escrever a spec com os 84 convites, 52 falhas e um envio sem marcação**
+- [x] **Step 2: Revisar placeholders, contradições e cobertura de segurança**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/superpowers/specs/2026-11-10-certificate-account-link-design.md docs/superpowers/plans/2026-11-10-certificate-account-link.md
@@ -71,7 +71,7 @@ git commit -m "docs(certificados): desenha vínculo com conta GitHub"
 - Consumes: `EmailLog { template, registrationId, status, createdAt }` e `EMAIL_TEMPLATE_CERTIFICATE_PENDING`.
 - Produces: `getGuestInvite(token)` com `requiresAccount: boolean`; `reconcileCertificateInvitation(registration): Promise<void>` idempotente.
 
-- [ ] **Step 1: Escrever testes que falham**
+- [x] **Step 1: Escrever testes que falham**
 
 ```ts
 expect(invite.requiresAccount).toBe(true);
@@ -86,12 +86,12 @@ expect(registrationRepo.update).not.toHaveBeenCalledWith(
 
 Adicionar caso com `certificateInvitedAt = null` e log `sent`: o GET grava a data do log e retorna `requiresAccount = true`; logs `failed/skipped` não marcam.
 
-- [ ] **Step 2: Rodar os testes e confirmar RED**
+- [x] **Step 2: Rodar os testes e confirmar RED**
 
 Run: `cd backend && npx jest --silent src/events/events-external.spec.ts src/events/events.service.spec.ts`
 Expected: falha por ausência de `requiresAccount` e pelo guest antigo ainda aceitar.
 
-- [ ] **Step 3: Implementar a reconciliação e o contrato**
+- [x] **Step 3: Implementar a reconciliação e o contrato**
 
 Registrar `EmailLog` em `TypeOrmModule.forFeature`, injetar seu repositório e adicionar:
 
@@ -117,12 +117,12 @@ private async reconcileCertificateInvitation(registration: EventRegistration): P
 
 Chamar a reconciliação no GET, no guest claim e em `certificateInviteRegistrationState`. Retornar `requiresAccount: registration.certificateInvitedAt !== null`; no guest antigo, lançar `ConflictException` antes de qualquer mutação quando esse campo for verdadeiro.
 
-- [ ] **Step 4: Rodar os testes e confirmar GREEN**
+- [x] **Step 4: Rodar os testes e confirmar GREEN**
 
 Run: `cd backend && npx jest --silent src/events/events-external.spec.ts src/events/events.service.spec.ts`
 Expected: todos os testes das duas suites passam.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/events backend/test/certificate-decoupling.e2e-spec.ts
@@ -150,7 +150,7 @@ export class ClaimCertificateAccountDto {
 }
 ```
 
-- [ ] **Step 1: Escrever testes de sucesso, divergência, replay e outra conta**
+- [x] **Step 1: Escrever testes de sucesso, divergência, replay e outra conta**
 
 ```ts
 await request(app.getHttpServer())
@@ -165,12 +165,12 @@ await request(app.getHttpServer())
 
 No E2E, `certificate` tem `secondaryEmails = ['sent@e2e.invalid']`. Verificar membro, status, concessão preservada e replay. Divergência retorna 403; outra conta retorna 409; consentimento falso retorna 400.
 
-- [ ] **Step 2: Rodar e confirmar RED**
+- [x] **Step 2: Rodar e confirmar RED**
 
 Run: `cd backend && npx jest --silent src/events/events-external.spec.ts src/events/events.controller.spec.ts`
 Expected: método/rota inexistente.
 
-- [ ] **Step 3: Implementar DTO, rota e transação**
+- [x] **Step 3: Implementar DTO, rota e transação**
 
 ```ts
 @Post('public/guest-claim/github')
@@ -182,12 +182,12 @@ claimCertificateAccount(@Body() dto: ClaimCertificateAccountDto, @Req() req: { u
 
 Na service, validar consentimento, carregar membro ativo e usar transação com lock. Aceitar somente `pending_guest/confirmed`; comparar e-mail em lowercase com `secondaryEmails`. Para outro `memberId`, lançar `ConflictException`; para o mesmo, retornar sem salvar. Preencher membro/nome/e-mail verificado, confirmar pendente, gravar consentimento e auditar sem token/e-mail nos detalhes.
 
-- [ ] **Step 4: Rodar e confirmar GREEN**
+- [x] **Step 4: Rodar e confirmar GREEN**
 
 Run: `cd backend && npx jest --silent src/events/events-external.spec.ts src/events/events.controller.spec.ts`
 Expected: todos os testes passam.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/events backend/test/certificate-decoupling.e2e-spec.ts
@@ -204,7 +204,7 @@ git commit -m "feat(certificados): vincula convite à conta GitHub"
 - Consumes: `useAuth().login({ returnTo, switchAccount })`, `authFetch`, convite com `requiresAccount`.
 - Produces: jornada guest comum inalterada e jornada de certificado autenticada.
 
-- [ ] **Step 1: Escrever testes que falham**
+- [x] **Step 1: Escrever testes que falham**
 
 ```tsx
 window.history.pushState({}, '', '/eventos/convite?token=guest-token');
@@ -216,12 +216,12 @@ expect(authState.login).toHaveBeenCalledWith({
 
 Adicionar usuário logado: o botão chama `/events/public/guest-claim/github` com `{ token, consent: true }` e `credentials: include`; o estado final mostra vínculo e link `/membro`. Um 403 mostra orientação e permite trocar de conta.
 
-- [ ] **Step 2: Rodar e confirmar RED**
+- [x] **Step 2: Rodar e confirmar RED**
 
 Run: `cd frontend && npx vitest run src/components/islands/events/GuestClaimIsland.test.tsx`
 Expected: ausência do botão GitHub e do novo claim.
 
-- [ ] **Step 3: Implementar a jornada condicional**
+- [x] **Step 3: Implementar a jornada condicional**
 
 Adicionar `requiresAccount?: boolean` ao tipo do convite e `useAuth`. Para certificado sem sessão, usar:
 
@@ -235,12 +235,12 @@ Adicionar `requiresAccount?: boolean` ao tipo do convite e `useAuth`. Para certi
 
 Com sessão, enviar `authFetch` com JSON e consentimento. Não renderizar o formulário/Turnstile para certificado. Após confirmado com `requiresAccount`, mostrar “Participação vinculada à sua conta” e link `/membro`; guest comum mantém QR.
 
-- [ ] **Step 4: Rodar e confirmar GREEN**
+- [x] **Step 4: Rodar e confirmar GREEN**
 
 Run: `cd frontend && npx vitest run src/components/islands/events/GuestClaimIsland.test.tsx`
 Expected: todos os testes da ilha passam.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add frontend/src/components/islands/events/GuestClaimIsland.tsx frontend/src/components/islands/events/GuestClaimIsland.test.tsx
@@ -260,22 +260,22 @@ git commit -m "feat(certificados): adiciona aceite via GitHub"
 - Consumes: jornada implementada nas Tasks 2–4.
 - Produces: instruções coerentes para futuros convites e backend 0.20.0.
 
-- [ ] **Step 1: Ajustar o teste do template para exigir GitHub e e-mail verificado**
-- [ ] **Step 2: Rodar o teste e confirmar RED**
+- [x] **Step 1: Ajustar o teste do template para exigir GitHub e e-mail verificado**
+- [x] **Step 2: Rodar o teste e confirmar RED**
 
 Run: `cd backend && npx jest --silent src/notifications/default-templates.spec.ts src/notifications/email.service.spec.ts`
 Expected: novo texto ainda ausente.
 
-- [ ] **Step 3: Atualizar template, manual, auth e versão**
+- [x] **Step 3: Atualizar template, manual, auth e versão**
 
 O e-mail deve dizer: “Entre ou crie sua conta Codaqui com GitHub. O e-mail deste convite precisa estar verificado na sua conta GitHub para associar a participação e o certificado.” Documentar que o guest antigo retorna 409 para certificados. Alterar `backend/package.json` de 0.19.0 para 0.20.0.
 
-- [ ] **Step 4: Rodar e confirmar GREEN**
+- [x] **Step 4: Rodar e confirmar GREEN**
 
 Run: `cd backend && npx jest --silent src/notifications/default-templates.spec.ts src/notifications/email.service.spec.ts`
 Expected: testes passam.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add backend/src/notifications backend/package.json docs/modules/events/CODE_MANUAL.md docs/plans/codaqui-1-0/auth.md
@@ -292,18 +292,18 @@ git commit -m "docs(certificados): atualiza jornada de conta e versão"
 - Consumes: dump local já restaurado e SMTP local desativado.
 - Produces: evidência de funcionamento e PR para `main`.
 
-- [ ] **Step 1: Rodar o E2E PostgreSQL real**
+- [x] **Step 1: Rodar o E2E PostgreSQL real**
 
 Restaurar o dump em banco `_test` pelo `make db-restore-prod DB_NAME=<banco_test>`, configurar o processo E2E para esse banco e executar:
 
 Run: `cd backend && DB_NAME=<banco_test> npx jest --runInBand test/certificate-decoupling.e2e-spec.ts`
 Expected: convite reconciliado, guest antigo 409, claim GitHub 201, replay e certificado preservado.
 
-- [ ] **Step 2: Conferir os 84 convites reais no banco de teste**
+- [x] **Step 2: Conferir os 84 convites reais no banco de teste**
 
 Executar GET sem escrita para uma amostra e query agregada. Expected: 84 registros com `certificateInvitedAt` expõem `requiresAccount = true`; nenhum e-mail é enviado.
 
-- [ ] **Step 3: Rodar todos os gates**
+- [x] **Step 3: Rodar todos os gates**
 
 ```bash
 cd backend && npm run build && npx jest --silent
@@ -314,7 +314,7 @@ make astro-verify-tenants
 
 Expected: zero falhas; warnings preexistentes permanecem fora do escopo.
 
-- [ ] **Step 4: Revisar diff e commit final**
+- [x] **Step 4: Revisar diff e commit final**
 
 ```bash
 git diff --check
@@ -323,7 +323,7 @@ git status --short
 
 Não adicionar dumps, `.env`, `.ui-sweep.tmp.mjs` ou `Dashboard - Mentoria - Schedules.csv`.
 
-- [ ] **Step 5: Publicar branch, abrir PR e aguardar SonarCloud**
+- [x] **Step 5: Publicar branch, abrir PR e aguardar SonarCloud**
 
 ```bash
 git push -u origin feat/certificate-account-link
