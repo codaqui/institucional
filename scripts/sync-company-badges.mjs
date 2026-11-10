@@ -136,11 +136,9 @@ export async function syncCompanyBadges({
       .filter((file) => !desiredBadges.has(file))
       .map((file) => rm(path.join(outputDir, file))));
   } catch (error) {
-    try {
-      await restoreBadges(outputDir, previousBadges, renameImpl);
-    } catch (restoreError) {
+    await restoreBadges(outputDir, previousBadges, renameImpl).catch((restoreError) => {
       throw new AggregateError([error, restoreError], "Falha ao sincronizar e restaurar os selos de empresas.");
-    }
+    });
     throw error;
   }
 

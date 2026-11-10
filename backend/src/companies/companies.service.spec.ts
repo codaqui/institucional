@@ -61,13 +61,13 @@ const makeWallet = (): CompanyWallet =>
     company: null as any,
   });
 
-const makeMockEm = (balances?: Record<string, number>) => {
+const makeMockEm = (balances?: Record<string, number>, walletExists = true) => {
   const wallet = makeWallet();
   wallet.balances = balances ?? { sort_coin: 50 };
   const qb = {
     setLock: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
-    getOne: jest.fn().mockResolvedValue(wallet),
+    getOne: jest.fn().mockResolvedValue(walletExists ? wallet : null),
   };
   const walletRepo = {
     createQueryBuilder: jest.fn().mockReturnValue(qb),
@@ -80,6 +80,33 @@ const makeMockEm = (balances?: Record<string, number>) => {
   };
   return { wallet, walletRepo, txRepo };
 };
+
+const makeSupportQuery = (rows: Array<Record<string, unknown>> = []) => ({
+  select: jest.fn().mockReturnThis(),
+  addSelect: jest.fn().mockReturnThis(),
+  innerJoin: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  groupBy: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn().mockResolvedValue(rows),
+});
+
+const mockCompanyTransaction = (
+  dataSource: { transaction: jest.Mock },
+  emWalletRepo: Record<string, jest.Mock>,
+  emTxRepo: Record<string, jest.Mock>,
+) => {
+  dataSource.transaction.mockImplementation(async (cb: any) => cb({
+    getRepository: (entity: unknown) => entity === CompanyWallet ? emWalletRepo : emTxRepo,
+  }));
+};
+
+const expectDistributionError = (service: CompaniesService, requesterId: string) =>
+  expect(service.distributeCoins(
+    COMPANY_ID,
+    [{ githubHandle: 'collaborator', amount: 10 }],
+    requesterId,
+  )).rejects.toThrow(BadRequestException);
 
 // ─── validateCnpj standalone ────────────────────────────────────────────────
 
@@ -407,15 +434,7 @@ describe('CompaniesService', () => {
     });
 
     it('returns support summary fallback when no invoices exist', async () => {
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      };
+      const qb = makeSupportQuery();
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.getSupportSummary(COMPANY_ID);
@@ -473,15 +492,7 @@ describe('CompaniesService', () => {
       companyRepo.find.mockResolvedValue(companies);
       memberEntityRepo.findOne.mockResolvedValue(null);
       walletRepo.findOne.mockResolvedValue(null);
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      };
+      const qb = makeSupportQuery();
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAllAdmin();
@@ -671,12 +682,7 @@ describe('CompaniesService', () => {
       walletRepo.save.mockResolvedValue(makeWallet());
 
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.activateFromInvoice('sub_123', 'cus_abc', 20, 'stripe-pi:pi_123');
 
@@ -902,12 +908,7 @@ describe('CompaniesService', () => {
   describe('debitForRaffle', () => {
     it('deducts coins and saves transaction', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 100 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.debitForRaffle(WALLET_ID, 30, 'raffle-id');
 
@@ -924,12 +925,7 @@ describe('CompaniesService', () => {
 
     it('throws when balance insufficient', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 5 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.debitForRaffle(WALLET_ID, 30, 'raffle-id'),
@@ -954,12 +950,7 @@ describe('CompaniesService', () => {
         save: jest.fn(),
       };
 
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.debitForRaffle(WALLET_ID, 10, 'raffle-id'),
@@ -971,12 +962,7 @@ describe('CompaniesService', () => {
   describe('refundFromRaffle', () => {
     it('refunds coins and records transaction', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 40 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.refundFromRaffle(WALLET_ID, 15, 'raffle-1');
 
@@ -992,24 +978,8 @@ describe('CompaniesService', () => {
     });
 
     it('throws NotFoundException when wallet does not exist', async () => {
-      const emWalletRepo = {
-        createQueryBuilder: jest.fn().mockReturnValue({
-          setLock: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          getOne: jest.fn().mockResolvedValue(null),
-        }),
-        save: jest.fn(),
-      };
-      const emTxRepo = {
-        create: jest.fn(),
-        save: jest.fn(),
-      };
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm(undefined, false);
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.refundFromRaffle(WALLET_ID, 10, 'raffle-1'),
@@ -1082,13 +1052,7 @@ describe('CompaniesService', () => {
       };
       memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
 
-      await expect(
-        service.distributeCoins(
-          COMPANY_ID,
-          [{ githubHandle: 'collaborator', amount: 10 }],
-          requesterId,
-        ),
-      ).rejects.toThrow(BadRequestException);
+      await expectDistributionError(service, requesterId);
     });
 
     it('throws when company wallet has insufficient balance', async () => {
@@ -1111,19 +1075,9 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
         sort_coin: 5,
       });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
-      await expect(
-        service.distributeCoins(
-          COMPANY_ID,
-          [{ githubHandle: 'collaborator', amount: 10 }],
-          requesterId,
-        ),
-      ).rejects.toThrow(BadRequestException);
+      await expectDistributionError(service, requesterId);
     });
 
     it('distributes coins successfully with merged handles', async () => {
@@ -1147,11 +1101,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
         sort_coin: 100,
       });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       const result = await service.distributeCoins(
         COMPANY_ID,
@@ -1281,12 +1231,7 @@ describe('CompaniesService', () => {
       walletRepo.save.mockResolvedValue(makeWallet());
 
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.manualAdjust(COMPANY_ID, 100, 'sort_coin', 'Bônus evento');
 
@@ -1304,12 +1249,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce({ id: 'existing-company-tx' });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       const result = await service.manualAdjust(COMPANY_ID, 10, 'sort_coin', 'dup');
       expect(result).toEqual({ id: 'existing-company-tx' });
@@ -1320,12 +1260,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce(null);
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.manualAdjust(COMPANY_ID, 10, 'sort_coin', 'dup'),
