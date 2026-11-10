@@ -37,6 +37,8 @@ describe('CompaniesController', () => {
       removeCollaborator: jest.fn(),
       findAllAdminPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateTier: jest.fn(),
+      listPublicBadges: jest.fn(),
       manualAdjust: jest.fn(),
     };
 
@@ -169,5 +171,20 @@ describe('CompaniesController', () => {
     await controller.adminUpdateStatus('company-1', { status: 'active' });
     expect(service.findAllAdminPaginated).toHaveBeenCalledWith(1, 20);
     expect(service.updateStatus).toHaveBeenCalledWith('company-1', 'active');
+  });
+
+  it('delegates tier validation with the authenticated admin actor', async () => {
+    const actor = req({ sub: 'admin-1', roles: [MemberRole.ADMIN] });
+    const dto = { tier: 'aliada', engagementCriterion: 'workshop', evidenceUrl: 'https://drive.google.com/evidence' };
+
+    await controller.adminUpdateTier('company-1', dto as any, actor);
+
+    expect(service.updateTier).toHaveBeenCalledWith('company-1', dto, actor.user);
+  });
+
+  it('lists only active public badges', async () => {
+    await controller.listPublicBadges();
+
+    expect(service.listPublicBadges).toHaveBeenCalled();
   });
 });

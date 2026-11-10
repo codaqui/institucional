@@ -1,49 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+  authState,
+  jsonResponse,
+  mockLoggedIn,
+  resetAuthState,
+  stubLocation,
+} from "../../../../../test/admin-auth-fixtures";
 import EmpresasApp from "../EmpresasApp";
 import { renderWithMui } from "../../../../../test/render-mui";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta os
-// campos que precisa no beforeEach/corpo.
-const authState = vi.hoisted(() => ({
-  ready: false,
-  isLoggedIn: false,
-  isAdmin: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: null,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.isAdmin,
-    isFinanceAnalyzer: false,
-    login: vi.fn(),
-    logout: vi.fn(),
-    authFetch: authState.authFetch,
-  }),
-}));
-
-function jsonResponse(body: unknown, init: { ok?: boolean; status?: number } = {}) {
-  return {
-    ok: init.ok ?? true,
-    status: init.status ?? 200,
-    json: async () => body,
-  } as unknown as Response;
-}
-
-function mockAdmin() {
-  authState.ready = true;
-  authState.isLoggedIn = true;
-  authState.isAdmin = true;
-}
-
-function stubLocation() {
-  const replace = vi.fn();
-  vi.stubGlobal("location", { replace });
-  return replace;
-}
 
 const company = {
   id: "c-1",
@@ -52,6 +17,9 @@ const company = {
   logoUrl: null,
   websiteUrl: "https://codaqui.dev",
   status: "active",
+  tier: "amiga",
+  sealValidUntil: null,
+  sealActive: true,
   responsibleMemberId: "owner-1",
   responsibleGithubHandle: "mentoriacodaqui",
   subscriptionAmountCents: 50000,
@@ -64,9 +32,7 @@ const company = {
 
 describe("/admin/empresas", () => {
   beforeEach(() => {
-    authState.ready = false;
-    authState.isLoggedIn = false;
-    authState.isAdmin = false;
+    resetAuthState();
     authState.authFetch = vi.fn();
     vi.clearAllMocks();
   });
@@ -101,9 +67,9 @@ describe("/admin/empresas", () => {
       if (url.includes(`/companies/${company.id}/wallet`)) {
         return jsonResponse({ balances: { sort_coin: 300 }, frozenTypes: [] });
       }
-      return jsonResponse(null, { ok: false, status: 404 });
+      return jsonResponse(null, { status: 404 });
     });
-    mockAdmin();
+    mockLoggedIn(["admin"]);
 
     renderWithMui(<EmpresasApp />);
 
@@ -126,9 +92,9 @@ describe("/admin/empresas", () => {
       if (url.includes("/companies/admin/list?page=2&limit=10")) {
         return jsonResponse({ items: [], total: 20, page: 2, limit: 10 });
       }
-      return jsonResponse(null, { ok: false, status: 404 });
+      return jsonResponse(null, { status: 404 });
     });
-    mockAdmin();
+    mockLoggedIn(["admin"]);
 
     renderWithMui(<EmpresasApp />);
 
@@ -150,9 +116,9 @@ describe("/admin/empresas", () => {
       if (url.includes(`/companies/${company.id}/status`) && init?.method === "PATCH") {
         return jsonResponse({ ok: true });
       }
-      return jsonResponse(null, { ok: false, status: 404 });
+      return jsonResponse(null, { status: 404 });
     });
-    mockAdmin();
+    mockLoggedIn(["admin"]);
 
     renderWithMui(<EmpresasApp />);
 
@@ -170,5 +136,49 @@ describe("/admin/empresas", () => {
         }),
       );
     });
+  });
+
+  it("valida Aliada com evidência e permite voltar para Amiga", async () => {
+    let currentTier = "amiga";
+    authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
+      if (url.includes("/companies/admin/list?page=1&limit=10")) {
+        return jsonResponse({ items: [{ ...company, tier: currentTier }], total: 1, page: 1, limit: 10 });
+      }
+      if (url.includes(`/companies/${company.id}/tier`) && init?.method === "PATCH") {
+        currentTier = JSON.parse(String(init.body)).tier;
+        return jsonResponse({ ...company, tier: currentTier, sealActive: true });
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(["admin"]);
+    renderWithMui(<EmpresasApp />);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Validar como Aliada" }));
+    fireEvent.change(screen.getByLabelText(/^Critério/), { target: { value: "workshop" } });
+    fireEvent.change(screen.getByLabelText(/^URL da evidência/), { target: { value: "https://drive.google.com/evidence" } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar validação" }));
+
+    await waitFor(() => {
+      expect(authState.authFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/companies/${company.id}/tier`),
+        expect.objectContaining({ method: "PATCH" }),
+      );
+    });
+    const validationCall = authState.authFetch.mock.calls.find(([url]) => url.includes(`/companies/${company.id}/tier`));
+    expect(JSON.parse(String(validationCall?.[1]?.body))).toMatchObject({
+      tier: "aliada",
+      engagementCriterion: "workshop",
+      evidenceUrl: "https://drive.google.com/evidence",
+    });
+    expect(await screen.findByText(/empresa validada como Aliada/i)).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole("button", { name: "Definir como Amiga" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Confirmar mudança" }));
+    await waitFor(() => {
+      const calls = authState.authFetch.mock.calls.filter(([url]) => url.includes(`/companies/${company.id}/tier`));
+      expect(calls.length).toBeGreaterThanOrEqual(2);
+    });
+    const downgradeCall = authState.authFetch.mock.calls.filter(([url]) => url.includes(`/companies/${company.id}/tier`)).at(-1);
+    expect(JSON.parse(String(downgradeCall?.[1]?.body))).toEqual({ tier: "amiga" });
   });
 });

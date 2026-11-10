@@ -3,7 +3,10 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { CompaniesService, formatCnpj, validateCnpj } from './companies.service';
-import { Company, CompanyStatus } from './entities/company.entity';
+import { Company, CompanyStatus, CompanyTier, EngagementCriterion } from './entities/company.entity';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import { StorageService } from '../storage/storage.service';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import { CompanyMember } from './entities/company-member.entity';
 import {
@@ -30,6 +33,13 @@ const makeCompany = (overrides: Partial<Company> = {}): Company =>
     logoUrl: null,
     websiteUrl: null,
     status: CompanyStatus.PENDING,
+    tier: CompanyTier.AMIGA,
+    engagementCriterion: null,
+    evidenceUrl: null,
+    validationNotes: null,
+    validatedAt: null,
+    validatedByMemberId: null,
+    sealValidUntil: null,
     responsibleMemberId: MEMBER_ID,
     stripeCustomerId: null,
     stripeSubscriptionId: null,
@@ -51,13 +61,13 @@ const makeWallet = (): CompanyWallet =>
     company: null as any,
   });
 
-const makeMockEm = (balances?: Record<string, number>) => {
+const makeMockEm = (balances?: Record<string, number>, walletExists = true) => {
   const wallet = makeWallet();
   wallet.balances = balances ?? { sort_coin: 50 };
   const qb = {
     setLock: jest.fn().mockReturnThis(),
     where: jest.fn().mockReturnThis(),
-    getOne: jest.fn().mockResolvedValue(wallet),
+    getOne: jest.fn().mockResolvedValue(walletExists ? wallet : null),
   };
   const walletRepo = {
     createQueryBuilder: jest.fn().mockReturnValue(qb),
@@ -69,6 +79,47 @@ const makeMockEm = (balances?: Record<string, number>) => {
     findOne: jest.fn().mockResolvedValue(null),
   };
   return { wallet, walletRepo, txRepo };
+};
+
+const makeSupportQuery = (rows: Array<Record<string, unknown>> = []) => ({
+  select: jest.fn().mockReturnThis(),
+  addSelect: jest.fn().mockReturnThis(),
+  innerJoin: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  groupBy: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn().mockResolvedValue(rows),
+});
+
+const mockCompanyTransaction = (
+  dataSource: { transaction: jest.Mock },
+  emWalletRepo: Record<string, jest.Mock>,
+  emTxRepo: Record<string, jest.Mock>,
+) => {
+  dataSource.transaction.mockImplementation(async (cb: any) => cb({
+    getRepository: (entity: unknown) => entity === CompanyWallet ? emWalletRepo : emTxRepo,
+  }));
+};
+
+const expectDistributionError = (service: CompaniesService, requesterId: string) =>
+  expect(service.distributeCoins(
+    COMPANY_ID,
+    [{ githubHandle: 'collaborator', amount: 10 }],
+    requesterId,
+  )).rejects.toThrow(BadRequestException);
+
+const mockDistributionMembers = (
+  memberEntityRepo: Record<string, jest.Mock>,
+  memberRepo: Record<string, jest.Mock>,
+  members: Array<Record<string, unknown>>,
+) => {
+  memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
+  memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
+  memberEntityRepo.createQueryBuilder.mockReturnValue({
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(members),
+  });
 };
 
 // ─── validateCnpj standalone ────────────────────────────────────────────────
@@ -119,6 +170,8 @@ describe('CompaniesService', () => {
   let subscriptionTrackingRepo: Record<string, jest.Mock>;
   let dataSource: { transaction: jest.Mock };
   let clubService: { creditDistribution: jest.Mock };
+  let storage: { validateReceiptUrl: jest.Mock };
+  let audit: { log: jest.Mock };
 
   beforeEach(async () => {
     companyRepo = {
@@ -168,6 +221,13 @@ describe('CompaniesService', () => {
 
     dataSource = { transaction: jest.fn() };
     clubService = { creditDistribution: jest.fn().mockResolvedValue(undefined) };
+    storage = {
+      validateReceiptUrl: jest.fn((url) => {
+        if (!url.startsWith('https://')) throw new BadRequestException('URL deve usar https');
+        return url;
+      }),
+    };
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -180,6 +240,8 @@ describe('CompaniesService', () => {
         { provide: getRepositoryToken(CompanySubscriptionTracking), useValue: subscriptionTrackingRepo },
         { provide: DataSource, useValue: dataSource },
         { provide: ClubService, useValue: clubService },
+        { provide: StorageService, useValue: storage },
+        { provide: AuditService, useValue: audit },
       ],
     }).compile();
 
@@ -386,15 +448,7 @@ describe('CompaniesService', () => {
     });
 
     it('returns support summary fallback when no invoices exist', async () => {
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      };
+      const qb = makeSupportQuery();
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.getSupportSummary(COMPANY_ID);
@@ -420,17 +474,9 @@ describe('CompaniesService', () => {
         makeWallet(),
       );
 
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '500', supportCount: '1' },
-        ]),
-      };
+      const qb = makeSupportQuery([
+        { companyId: COMPANY_ID, totalSupportedReais: '500', supportCount: '1' },
+      ]);
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAllAdmin();
@@ -452,15 +498,7 @@ describe('CompaniesService', () => {
       companyRepo.find.mockResolvedValue(companies);
       memberEntityRepo.findOne.mockResolvedValue(null);
       walletRepo.findOne.mockResolvedValue(null);
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      };
+      const qb = makeSupportQuery();
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAllAdmin();
@@ -475,34 +513,105 @@ describe('CompaniesService', () => {
     });
   });
 
+  describe('updateTier', () => {
+    const admin = { sub: 'admin-1', handle: 'admin', roles: ['admin'] } as any;
+    const evidenceUrl = 'https://drive.google.com/evidence';
+
+    it('validates an active company as Aliada for one year and audits it', async () => {
+      companyRepo.findOne.mockResolvedValue(makeCompany({ status: CompanyStatus.ACTIVE }));
+
+      const result = await service.updateTier(COMPANY_ID, {
+        tier: CompanyTier.ALIADA,
+        engagementCriterion: EngagementCriterion.WORKSHOP,
+        evidenceUrl,
+        validationNotes: 'Reunião registrada.',
+      }, admin);
+
+      expect(result).toMatchObject({
+        tier: CompanyTier.ALIADA,
+        engagementCriterion: EngagementCriterion.WORKSHOP,
+        evidenceUrl,
+        validatedByMemberId: admin.sub,
+      });
+      expect(result.validatedAt).toBeInstanceOf(Date);
+      expect(result.sealValidUntil!.getUTCFullYear()).toBe(result.validatedAt!.getUTCFullYear() + 1);
+      expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({
+        action: AuditAction.COMPANY_TIER_VALIDATED,
+        actorId: admin.sub,
+        targetId: COMPANY_ID,
+      }));
+    });
+
+    it('rejects Aliada without complete and trusted evidence', async () => {
+      companyRepo.findOne.mockResolvedValue(makeCompany({ status: CompanyStatus.ACTIVE }));
+
+      await expect(service.updateTier(COMPANY_ID, { tier: CompanyTier.ALIADA }, admin))
+        .rejects.toThrow(BadRequestException);
+      await expect(service.updateTier(COMPANY_ID, {
+        tier: CompanyTier.ALIADA,
+        engagementCriterion: EngagementCriterion.WORKSHOP,
+        evidenceUrl: 'http://insecure.test',
+      }, admin)).rejects.toThrow(BadRequestException);
+      expect(companyRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('rejects Aliada when the company is not active', async () => {
+      companyRepo.findOne.mockResolvedValue(makeCompany({ status: CompanyStatus.PENDING }));
+
+      await expect(service.updateTier(COMPANY_ID, {
+        tier: CompanyTier.ALIADA,
+        engagementCriterion: EngagementCriterion.WORKSHOP,
+        evidenceUrl,
+      }, admin)).rejects.toThrow(BadRequestException);
+    });
+
+    it('reuses previous evidence and allows returning to Amiga with audit', async () => {
+      companyRepo.findOne.mockResolvedValue(makeCompany({
+        status: CompanyStatus.ACTIVE,
+        tier: CompanyTier.ALIADA,
+        engagementCriterion: EngagementCriterion.HIRING,
+        evidenceUrl,
+      }));
+
+      const aliada = await service.updateTier(COMPANY_ID, { tier: CompanyTier.ALIADA }, admin);
+      expect(aliada.evidenceUrl).toBe(evidenceUrl);
+
+      const amiga = await service.updateTier(COMPANY_ID, { tier: CompanyTier.AMIGA }, admin);
+      expect(amiga.tier).toBe(CompanyTier.AMIGA);
+      expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({
+        action: AuditAction.COMPANY_TIER_DOWNGRADED,
+        actorId: admin.sub,
+      }));
+    });
+  });
+
   // ─── listSponsors ─────────────────────────────────────────────────────────
 
   describe('listSponsors', () => {
     it('returns only active companies with support metrics', async () => {
       const sponsors = [makeCompany({ status: CompanyStatus.ACTIVE, showOnSponsorsPage: true })];
       companyRepo.find.mockResolvedValue(sponsors);
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '1250', supportCount: '6' },
-        ]),
-      };
+      const qb = makeSupportQuery([
+        { companyId: COMPANY_ID, totalSupportedReais: '1250', supportCount: '6' },
+      ]);
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.listSponsors();
       expect(result).toEqual([
         expect.objectContaining({
           id: COMPANY_ID,
+          tier: CompanyTier.AMIGA,
+          sealActive: true,
           totalSupportedReais: 1250,
           supportCount: 6,
           monthsSupporting: 6,
         }),
       ]);
+      expect(result[0]).not.toHaveProperty('responsibleMemberId');
+      expect(result[0]).not.toHaveProperty('stripeCustomerId');
+      expect(result[0]).not.toHaveProperty('stripeSubscriptionId');
+      expect(result[0]).not.toHaveProperty('evidenceUrl');
+      expect(result[0]).not.toHaveProperty('validationNotes');
       expect(companyRepo.find).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { status: CompanyStatus.ACTIVE },
@@ -518,6 +627,48 @@ describe('CompaniesService', () => {
     });
   });
 
+  describe('listPublicBadges', () => {
+    it('includes Amiga and vigent Aliada without private fields', async () => {
+      const future = new Date(Date.now() + 86_400_000);
+      companyRepo.find.mockResolvedValue([
+        makeCompany({ status: CompanyStatus.ACTIVE }),
+        makeCompany({
+          id: 'aliada-1', status: CompanyStatus.ACTIVE, tier: CompanyTier.ALIADA,
+          engagementCriterion: EngagementCriterion.WORKSHOP,
+          evidenceUrl: 'https://drive.google.com/evidence', sealValidUntil: future,
+        }),
+      ]);
+
+      const result = await service.listPublicBadges();
+
+      expect(result).toEqual([
+        { id: COMPANY_ID, name: 'Empresa Teste Ltda', tradeName: null, tier: CompanyTier.AMIGA, sealValidUntil: null },
+        { id: 'aliada-1', name: 'Empresa Teste Ltda', tradeName: null, tier: CompanyTier.ALIADA, sealValidUntil: future },
+      ]);
+      expect(JSON.stringify(result)).not.toContain('responsibleMemberId');
+      expect(JSON.stringify(result)).not.toContain('evidenceUrl');
+    });
+
+    it('excludes expired Aliada from badges but keeps it in sponsors with sealActive false', async () => {
+      companyRepo.find.mockResolvedValue([makeCompany({
+        status: CompanyStatus.ACTIVE,
+        tier: CompanyTier.ALIADA,
+        sealValidUntil: new Date(Date.now() - 86_400_000),
+      })]);
+      txRepo.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(), addSelect: jest.fn().mockReturnThis(),
+        innerJoin: jest.fn().mockReturnThis(), where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(), groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
+
+      await expect(service.listPublicBadges()).resolves.toEqual([]);
+      const sponsors = await service.listSponsors();
+      expect(sponsors).toHaveLength(1);
+      expect(sponsors[0]).toMatchObject({ tier: CompanyTier.ALIADA, sealActive: false });
+    });
+  });
+
   // ─── activateFromInvoice ──────────────────────────────────────────────────
 
   describe('activateFromInvoice', () => {
@@ -529,12 +680,7 @@ describe('CompaniesService', () => {
       walletRepo.save.mockResolvedValue(makeWallet());
 
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.activateFromInvoice('sub_123', 'cus_abc', 20, 'stripe-pi:pi_123');
 
@@ -760,12 +906,7 @@ describe('CompaniesService', () => {
   describe('debitForRaffle', () => {
     it('deducts coins and saves transaction', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 100 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.debitForRaffle(WALLET_ID, 30, 'raffle-id');
 
@@ -782,12 +923,7 @@ describe('CompaniesService', () => {
 
     it('throws when balance insufficient', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 5 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.debitForRaffle(WALLET_ID, 30, 'raffle-id'),
@@ -812,12 +948,7 @@ describe('CompaniesService', () => {
         save: jest.fn(),
       };
 
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.debitForRaffle(WALLET_ID, 10, 'raffle-id'),
@@ -829,12 +960,7 @@ describe('CompaniesService', () => {
   describe('refundFromRaffle', () => {
     it('refunds coins and records transaction', async () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 40 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.refundFromRaffle(WALLET_ID, 15, 'raffle-1');
 
@@ -850,24 +976,8 @@ describe('CompaniesService', () => {
     });
 
     it('throws NotFoundException when wallet does not exist', async () => {
-      const emWalletRepo = {
-        createQueryBuilder: jest.fn().mockReturnValue({
-          setLock: jest.fn().mockReturnThis(),
-          where: jest.fn().mockReturnThis(),
-          getOne: jest.fn().mockResolvedValue(null),
-        }),
-        save: jest.fn(),
-      };
-      const emTxRepo = {
-        create: jest.fn(),
-        save: jest.fn(),
-      };
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm(undefined, false);
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.refundFromRaffle(WALLET_ID, 10, 'raffle-1'),
@@ -931,35 +1041,15 @@ describe('CompaniesService', () => {
     });
 
     it('throws when recipient member is missing/inactive', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, []);
 
-      await expect(
-        service.distributeCoins(
-          COMPANY_ID,
-          [{ githubHandle: 'collaborator', amount: 10 }],
-          requesterId,
-        ),
-      ).rejects.toThrow(BadRequestException);
+      await expectDistributionError(service, requesterId);
     });
 
     it('throws when company wallet has insufficient balance', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
-        ]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, [
+        { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
+      ]);
       walletRepo.findOne.mockResolvedValue({
         id: WALLET_ID,
         companyId: COMPANY_ID,
@@ -969,33 +1059,16 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
         sort_coin: 5,
       });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
-      await expect(
-        service.distributeCoins(
-          COMPANY_ID,
-          [{ githubHandle: 'collaborator', amount: 10 }],
-          requesterId,
-        ),
-      ).rejects.toThrow(BadRequestException);
+      await expectDistributionError(service, requesterId);
     });
 
     it('distributes coins successfully with merged handles', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
-          { id: 'member-owner', githubHandle: 'owner', isActive: true },
-        ]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, [
+        { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
+        { id: 'member-owner', githubHandle: 'owner', isActive: true },
+      ]);
       walletRepo.findOne.mockResolvedValue({
         id: WALLET_ID,
         companyId: COMPANY_ID,
@@ -1005,11 +1078,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({
         sort_coin: 100,
       });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) => (e === CompanyWallet ? emWalletRepo : emTxRepo),
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       const result = await service.distributeCoins(
         COMPANY_ID,
@@ -1139,12 +1208,7 @@ describe('CompaniesService', () => {
       walletRepo.save.mockResolvedValue(makeWallet());
 
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await service.manualAdjust(COMPANY_ID, 100, 'sort_coin', 'Bônus evento');
 
@@ -1162,12 +1226,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce({ id: 'existing-company-tx' });
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       const result = await service.manualAdjust(COMPANY_ID, 10, 'sort_coin', 'dup');
       expect(result).toEqual({ id: 'existing-company-tx' });
@@ -1178,12 +1237,7 @@ describe('CompaniesService', () => {
       const { walletRepo: emWalletRepo, txRepo: emTxRepo } = makeMockEm({ sort_coin: 0 });
       emTxRepo.save.mockRejectedValueOnce({ code: '23505' });
       emTxRepo.findOne.mockResolvedValueOnce(null);
-      dataSource.transaction.mockImplementation(async (cb: any) =>
-        cb({
-          getRepository: (e: any) =>
-            e === CompanyWallet ? emWalletRepo : emTxRepo,
-        }),
-      );
+      mockCompanyTransaction(dataSource, emWalletRepo, emTxRepo);
 
       await expect(
         service.manualAdjust(COMPANY_ID, 10, 'sort_coin', 'dup'),

@@ -1,13 +1,10 @@
-import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import express from 'express';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../src/app.module';
-import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard';
+import { createE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
-import { TurnstileGuard } from '../src/common/turnstile/turnstile.guard';
 import { SmtpEmailProvider } from '../src/notifications/email.provider';
 import { EMAIL_TEMPLATE_CERTIFICATE_PENDING } from '../src/notifications/default-templates';
 import { CertificateInviteQueueService } from '../src/events/certificate-invite-queue.service';
@@ -54,6 +51,21 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
     return rows[0];
   }
 
+  async function processNextInviteJob() {
+    for (let attempt = 0; attempt < 50; attempt += 1) {
+      const eligible = await dataSource.query(
+        'SELECT 1 FROM certificate_invite_jobs WHERE status IN ($1, $2) AND "availableAt" <= $3 LIMIT 1',
+        ['queued', 'retry', new Date()],
+      );
+      if (eligible.length > 0) {
+        await inviteQueue.processNextJob();
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    throw new Error('O job de convite não ficou elegível para processamento.');
+  }
+
   async function removeFixtures() {
     await dataSource.query('DELETE FROM email_logs WHERE "to" LIKE $1', ['%@e2e.invalid']);
     await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
@@ -67,27 +79,16 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
   }
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({ imports: [AppModule] })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({
-        canActivate: (context: ExecutionContext) => {
-          const req = context.switchToHttp().getRequest<{ headers: Record<string, string | undefined>; user?: JwtPayload }>();
-          const actor = req.headers['x-test-actor'] as ActorName | undefined;
-          req.user = actor ? actors[actor] : undefined;
-          return true;
-        },
-      })
-      .overrideGuard(TurnstileGuard)
-      .useValue({ canActivate: () => true })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    app.use(express.text({ limit: '6mb', type: ['text/csv', 'text/plain'] }));
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
-    await app.init();
-    dataSource = moduleFixture.get(DataSource);
-    provider = moduleFixture.get(SmtpEmailProvider);
-    inviteQueue = moduleFixture.get(CertificateInviteQueueService);
+    const bootstrap = await createE2eApplication(actors, {
+      turnstile: true,
+      configureApp: (application) => application.use(
+        express.text({ limit: '6mb', type: ['text/csv', 'text/plain'] }),
+      ),
+    });
+    app = bootstrap.app;
+    dataSource = bootstrap.dataSource;
+    provider = bootstrap.moduleFixture.get(SmtpEmailProvider);
+    inviteQueue = bootstrap.moduleFixture.get(CertificateInviteQueueService);
     await removeFixtures();
 
     await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
@@ -231,7 +232,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       .send({ registrationIds: [(await registrationByEmail('skipped@e2e.invalid')).id] })
       .expect(202)
       .expect((response) => expect(response.body.total).toBe(1));
-    await inviteQueue.processNextJob();
+    await processNextInviteJob();
 
     jest.spyOn(provider, 'isConfigured').mockReturnValue(true);
     jest.spyOn(provider, 'send').mockRejectedValueOnce(new Error('SMTP sintético indisponível'));
@@ -241,7 +242,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       .send({ registrationIds: [(await registrationByEmail('failed@e2e.invalid')).id] })
       .expect(202)
       .expect((response) => expect(response.body.total).toBe(1));
-    await inviteQueue.processNextJob();
+    await processNextInviteJob();
 
     jest.spyOn(provider, 'send').mockResolvedValue(undefined);
     await request(app.getHttpServer())
@@ -250,7 +251,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       .send({ registrationIds: [pendingSent.id] })
       .expect(202)
       .expect((response) => expect(response.body.total).toBe(1));
-    await inviteQueue.processNextJob();
+    await processNextInviteJob();
 
     const emailResults = await dataSource.query(
       'SELECT "registrationId", status FROM email_logs WHERE template = $1 AND "registrationId" = ANY($2::text[]) ORDER BY status',
