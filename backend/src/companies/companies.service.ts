@@ -11,7 +11,11 @@ import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, FindOptionsWhere, In, IsNull, LessThan, Repository } from 'typeorm';
 import Stripe from 'stripe';
-import { Company, CompanyStatus } from './entities/company.entity';
+import { Company, CompanyStatus, CompanyTier, EngagementCriterion } from './entities/company.entity';
+import { StorageService } from '../storage/storage.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import type { JwtPayload } from '../auth/jwt.strategy';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import {
   CompanyWalletTransaction,
@@ -19,8 +23,8 @@ import {
 } from './entities/company-wallet-transaction.entity';
 import { CompanyMember } from './entities/company-member.entity';
 import { CompanySubscriptionTracking } from './entities/company-subscription-tracking.entity';
-import { Member } from '../members/entities/member.entity';
-import { CreateCompanyDto, UpdateCompanyDto } from './dto/company.dto';
+import { Member, MemberRole } from '../members/entities/member.entity';
+import { CreateCompanyDto, UpdateCompanyDto, UpdateCompanyTierDto } from './dto/company.dto';
 import { CoinDistributionItemDto } from './dto/distribute-coins.dto';
 import { ClubService } from '../club/club.service';
 
@@ -52,6 +56,8 @@ export class CompaniesService {
     private readonly dataSource: DataSource,
     @Inject(forwardRef(() => ClubService))
     private readonly clubService: ClubService,
+    private readonly storage: StorageService,
+    private readonly audit: AuditService,
   ) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_fake');
   }
@@ -286,7 +292,65 @@ export class CompaniesService {
     return this.companyRepo.save(company);
   }
 
-  async listSponsors(): Promise<Array<Company & { totalSupportedReais: number; supportCount: number; monthsSupporting: number }>> {
+  async updateTier(id: string, dto: UpdateCompanyTierDto, actor: JwtPayload): Promise<Company> {
+    if (!actor.roles?.includes(MemberRole.ADMIN)) {
+      throw new BadRequestException('Somente admin pode alterar o tier da empresa.');
+    }
+    const company = await this.findById(id);
+    if (dto.tier === CompanyTier.ALIADA) {
+      if (company.status !== CompanyStatus.ACTIVE) {
+        throw new BadRequestException('Empresa Aliada exige apoio ativo.');
+      }
+      const criterion = dto.engagementCriterion ?? company.engagementCriterion;
+      const evidence = dto.evidenceUrl ?? company.evidenceUrl;
+      if (!criterion || !evidence) {
+        throw new BadRequestException('Informe critério e evidência para validar a Empresa Aliada.');
+      }
+      this.storage.validateReceiptUrl(evidence);
+      company.engagementCriterion = criterion;
+      company.evidenceUrl = evidence;
+      company.validationNotes = dto.validationNotes ?? company.validationNotes;
+      company.validatedAt = new Date();
+      company.sealValidUntil = new Date(company.validatedAt);
+      company.sealValidUntil.setUTCFullYear(company.sealValidUntil.getUTCFullYear() + 1);
+      company.validatedByMemberId = actor.sub;
+    }
+    company.tier = dto.tier;
+    const saved = await this.companyRepo.save(company);
+    await this.audit.log({
+      action: dto.tier === CompanyTier.ALIADA ? AuditAction.COMPANY_TIER_VALIDATED : AuditAction.COMPANY_TIER_DOWNGRADED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: company.id,
+      targetType: 'company',
+      details: { tier: dto.tier },
+    });
+    return saved;
+  }
+
+  isSealActive(company: Company, now = new Date()): boolean {
+    if (company.status !== CompanyStatus.ACTIVE) return false;
+    if (company.tier === CompanyTier.AMIGA) return true;
+    return company.sealValidUntil !== null && company.sealValidUntil > now;
+  }
+
+  async listPublicBadges(now = new Date()): Promise<Array<Pick<Company, 'id' | 'name' | 'tradeName' | 'tier' | 'sealValidUntil'>>> {
+    const companies = await this.companyRepo.find({
+      where: { status: CompanyStatus.ACTIVE },
+      order: { createdAt: 'ASC' },
+    });
+    return companies
+      .filter((company) => this.isSealActive(company, now))
+      .map((company) => ({
+        id: company.id,
+        name: company.name,
+        tradeName: company.tradeName,
+        tier: company.tier,
+        sealValidUntil: company.sealValidUntil,
+      }));
+  }
+
+  async listSponsors(): Promise<Array<Pick<Company, 'id' | 'name' | 'tradeName' | 'logoUrl' | 'websiteUrl' | 'tier' | 'sealValidUntil'> & { sealActive: boolean; totalSupportedReais: number; supportCount: number; monthsSupporting: number }>> {
     const sponsors = await this.companyRepo.find({
       where: { status: CompanyStatus.ACTIVE },
       order: { createdAt: 'ASC' },
@@ -305,7 +369,14 @@ export class CompaniesService {
         monthsSupporting: 0,
       };
       return {
-        ...company,
+        id: company.id,
+        name: company.name,
+        tradeName: company.tradeName,
+        logoUrl: company.logoUrl,
+        websiteUrl: company.websiteUrl,
+        tier: company.tier,
+        sealValidUntil: company.sealValidUntil,
+        sealActive: this.isSealActive(company),
         totalSupportedReais: metric.totalSupportedReais,
         supportCount: metric.supportCount,
         monthsSupporting: metric.monthsSupporting,
@@ -317,7 +388,7 @@ export class CompaniesService {
     page = DEFAULT_PAGE,
     limit = DEFAULT_LIMIT,
   ): Promise<{
-    items: Array<Company & { totalSupportedReais: number; supportCount: number; monthsSupporting: number }>;
+    items: Awaited<ReturnType<CompaniesService['listSponsors']>>;
     total: number;
     page: number;
     limit: number;

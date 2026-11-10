@@ -66,6 +66,10 @@ export enum AuditAction {
   // Stripe
   SUBSCRIPTION_CANCELLED = 'stripe.subscription_cancelled',
 
+  // Companies
+  COMPANY_TIER_VALIDATED = 'company.tier_validated',
+  COMPANY_TIER_DOWNGRADED = 'company.tier_downgraded',
+
   // Events (organizers + overrides via GitHub-as-Database)
   EVENT_ORGANIZER_GRANTED = 'event.organizer_granted',
   EVENT_ORGANIZER_REVOKED = 'event.organizer_revoked',
