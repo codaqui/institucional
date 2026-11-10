@@ -207,26 +207,26 @@ describe('EventsService', () => {
       recordEventCheckin: jest.fn().mockResolvedValue(undefined),
     };
 
-    service = createEventsService(
-      eventRepo as any,
-      ticketTypeRepo as any,
-      orderRepo as any,
-      registrationRepo as any,
-      staffRepo as any,
-      memberRepo as any,
-      activationRepo as any,
-      { findOne: jest.fn().mockResolvedValue(null) } as any,
-      txRepo as any,
-      stripeService as any,
-      ledgerService as any,
-      auditService as any,
-      emailService as any,
-      eventOrganizerService as any,
-      githubDb as any,
-      eventOverridesService as any,
-      reimbursementsService as any,
-      hoursService as any,
-    );
+    service = createEventsService({
+      eventRepo,
+      ticketTypeRepo,
+      orderRepo,
+      registrationRepo,
+      staffRepo,
+      memberRepo,
+      activationRepo,
+      emailLogRepo: { findOne: jest.fn().mockResolvedValue(null) },
+      txRepo,
+      stripeService,
+      ledgerService,
+      auditService,
+      emailService,
+      eventOrganizerService,
+      githubDb,
+      eventOverridesService,
+      reimbursementsService,
+      hoursService,
+    } as any);
   });
 
   describe('adult content classification', () => {
