@@ -7,6 +7,16 @@ import {
   MaxLength,
 } from 'class-validator';
 
+export class ClaimCertificateAccountDto {
+  @IsString()
+  @IsNotEmpty()
+  token: string;
+
+  @IsBoolean()
+  @Transform(({ value }) => value === true || value === 'true')
+  consent: boolean;
+}
+
 export class ClaimGuestDto {
   @IsString()
   @IsNotEmpty()

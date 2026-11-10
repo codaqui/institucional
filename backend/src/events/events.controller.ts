@@ -36,7 +36,7 @@ import { ActivateExternalDto, CheckinDto } from './dto/external.dto';
 import { BatchCheckinDto, BatchCertificateInviteDto, ListRegistrationsQueryDto } from './dto/certificate-operations.dto';
 import { GetTransactionsQueryDto } from '../ledger/dto/get-transactions-query.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
-import { ClaimGuestDto } from './dto/guest.dto';
+import { ClaimCertificateAccountDto, ClaimGuestDto } from './dto/guest.dto';
 import { TurnstileGuard } from '../common/turnstile/turnstile.guard';
 
 @ApiTags('Events')
@@ -732,6 +732,17 @@ export class EventsController {
   @ApiOperation({ summary: 'Dados públicos mínimos de um convite de evento' })
   getGuestInvite(@Param('token') token: string) {
     return this.eventsService.getGuestInvite(token);
+  }
+
+  @Post('public/guest-claim/github')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  @ApiOperation({ summary: 'Associa um convite de certificado ao membro autenticado com e-mail verificado' })
+  claimCertificateAccount(
+    @Body() dto: ClaimCertificateAccountDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.eventsService.claimCertificateWithAccount(dto, req.user);
   }
 
   @Post('public/guest-claim')

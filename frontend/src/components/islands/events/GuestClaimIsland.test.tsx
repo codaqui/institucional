@@ -5,6 +5,22 @@ import GuestClaimIsland from "./GuestClaimIsland";
 import { renderWithMui } from "../../../test/render-mui";
 import { jsonResponse } from "../../../test/http-mock";
 
+const authState = vi.hoisted(() => ({
+  user: null as null | { sub: string; handle: string; name: string },
+  login: vi.fn(),
+  authFetch: vi.fn(),
+}));
+
+vi.mock("../../../lib/use-auth", () => ({
+  useAuth: () => ({
+    user: authState.user,
+    ready: true,
+    isLoggedIn: authState.user !== null,
+    login: authState.login,
+    authFetch: authState.authFetch,
+  }),
+}));
+
 vi.mock("../ui/TurnstileField", () => ({
   default: ({ onTokenChange, resetKey }: { onTokenChange: (token: string) => void; resetKey: number }) => {
     queueMicrotask(() => onTokenChange("turnstile-token"));
@@ -15,6 +31,10 @@ vi.mock("../ui/TurnstileField", () => ({
 describe("GuestClaimIsland", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    authState.user = null;
+    authState.login = vi.fn();
+    authState.authFetch = vi.fn();
   });
 
   it("submits consent and Turnstile, then renders the check-in QR", async () => {
@@ -70,5 +90,77 @@ describe("GuestClaimIsland", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Verificação Turnstile recusada.");
     expect(screen.getByTestId("turnstile")).toHaveAttribute("data-reset-key", "1");
+  });
+
+  function mockCertificateInvite() {
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponse({
+      status: "pending_guest",
+      eventTitle: "DevPR Conf 26",
+      requiresAccount: true,
+    })));
+  }
+
+  function mockGitHubAccount() {
+    authState.user = { sub: "member-1", handle: "ana", name: "Ana GitHub" };
+  }
+
+  it("starts GitHub login preserving the certificate invitation", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", "/eventos/convite?token=guest-token");
+    mockCertificateInvite();
+    renderWithMui(<GuestClaimIsland token="guest-token" />);
+
+    await user.click(await screen.findByRole("button", { name: /entrar com github e associar certificado/i }));
+
+    expect(authState.login).toHaveBeenCalledWith({
+      returnTo: "/eventos/convite?token=guest-token",
+    });
+    expect(screen.queryByLabelText(/nome completo/i)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("turnstile")).not.toBeInTheDocument();
+  });
+
+  it("claims a certificate with the authenticated GitHub account", async () => {
+    const user = userEvent.setup();
+    mockGitHubAccount();
+    mockCertificateInvite();
+    authState.authFetch.mockResolvedValue(jsonResponse({
+      status: "confirmed",
+      attendeeName: "Ana GitHub",
+      attendeeEmail: "an***@example.test",
+      requiresAccount: true,
+    }));
+    renderWithMui(<GuestClaimIsland token="guest-token" />);
+
+    await user.click(await screen.findByRole("button", { name: /associar certificado à minha conta/i }));
+
+    expect(authState.authFetch).toHaveBeenCalledWith(
+      "/events/public/guest-claim/github",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ token: "guest-token", consent: true }),
+      }),
+    );
+    expect(await screen.findByText(/participação vinculada à sua conta/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /ver meus certificados/i })).toHaveAttribute("href", "/membro");
+  });
+
+  it("explains an email mismatch and offers account switching", async () => {
+    const user = userEvent.setup();
+    window.history.pushState({}, "", "/eventos/convite?token=guest-token");
+    mockGitHubAccount();
+    mockCertificateInvite();
+    authState.authFetch.mockResolvedValue(jsonResponse({
+      message: "O e-mail do convite precisa estar verificado no GitHub da conta autenticada.",
+    }, { status: 403 }));
+    renderWithMui(<GuestClaimIsland token="guest-token" />);
+
+    await user.click(await screen.findByRole("button", { name: /associar certificado à minha conta/i }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/precisa estar verificado no github/i);
+
+    await user.click(screen.getByRole("button", { name: /trocar conta github/i }));
+    expect(authState.login).toHaveBeenCalledWith({
+      returnTo: "/eventos/convite?token=guest-token",
+      switchAccount: true,
+    });
   });
 });

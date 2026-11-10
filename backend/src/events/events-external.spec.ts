@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { EventsService } from './events.service';
+import { createEventsService } from '../../test/events-service.factory';
 import { RegistrationStatus } from './entities/event-registration.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 
@@ -45,6 +45,16 @@ const makeActivation = (overrides: Record<string, unknown> = {}) => ({
   title: 'Meetup Elas',
   enabledByMemberId: uuid(1),
   createdAt: new Date(),
+  ...overrides,
+});
+
+const makeCertificateGuest = (overrides: Record<string, unknown> = {}) => makeRegistration({
+  eventId: null,
+  externalActivationId: uuid(70),
+  memberId: null,
+  status: RegistrationStatus.PENDING_GUEST,
+  isGuest: true,
+  certificateInvitedAt: null,
   ...overrides,
 });
 
@@ -139,6 +149,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       manager: {
         transaction: jest.fn((cb: (em: unknown) => unknown) => cb({
           getRepository: () => ({
+            findOne: registrationRepo.findOneBy,
             update: registrationRepo.update,
             delete: registrationRepo.delete,
           }),
@@ -152,6 +163,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       findBy: jest.fn().mockResolvedValue([]),
       createQueryBuilder: jest.fn(),
     };
+    memberRepo.findOne = memberRepo.findOneBy;
     mockMemberQb([]);
     activationRepo = {
       findOneBy: jest.fn(),
@@ -189,25 +201,26 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     };
     hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
 
-    service = new EventsService(
-      eventRepo as any,
-      ticketTypeRepo as any,
-      orderRepo as any,
-      registrationRepo as any,
-      staffRepo as any,
-      memberRepo as any,
-      activationRepo as any,
-      txRepo as any,
-      stripeService as any,
-      ledgerService as any,
-      auditService as any,
-      emailService as any,
-      eventOrganizerService as any,
-      githubDb as any,
-      eventOverridesService as any,
-      reimbursementsService as any,
-      hoursService as any,
-    );
+    service = createEventsService({
+      eventRepo,
+      ticketTypeRepo,
+      orderRepo,
+      registrationRepo,
+      staffRepo,
+      memberRepo,
+      activationRepo,
+      emailLogRepo: { findOne: jest.fn().mockResolvedValue(null) },
+      txRepo,
+      stripeService,
+      ledgerService,
+      auditService,
+      emailService,
+      eventOrganizerService,
+      githubDb,
+      eventOverridesService,
+      reimbursementsService,
+      hoursService,
+    } as any);
   });
 
   // ── Check-in (2c) ─────────────────────────────────────────────────────────
@@ -460,7 +473,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
   });
 
   describe('certificate invitations', () => {
-    it('invites pending_match and accepts the external guest claim', async () => {
+    it('invites pending_match, requires an account and rejects the legacy guest claim', async () => {
       const registration = makeRegistration({
         eventId: null,
         externalActivationId: uuid(70),
@@ -479,15 +492,150 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
       const publicInvite = await service.getGuestInvite(registration.checkinToken);
       expect(publicInvite.eventTitle).toBe('Meetup Elas');
-      const accepted = await service.claimGuestRegistration({
+      expect(publicInvite.requiresAccount).toBe(true);
+      await expect(service.claimGuestRegistration({
         token: registration.checkinToken,
         name: 'Ana',
         email: 'ana@x.dev',
         consent: true,
         turnstileToken: 'development',
+      })).rejects.toThrow('Este convite de certificado exige login com GitHub.');
+      expect(registration.status).toBe(RegistrationStatus.PENDING_GUEST);
+    });
+
+    it('reconciles a sent email without an invitation timestamp', async () => {
+      const sentAt = new Date('2026-11-09T22:25:26.828Z');
+      const registration = makeCertificateGuest();
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      (service as any).emailLogRepo.findOne.mockResolvedValue({ createdAt: sentAt });
+
+      const invite = await service.getGuestInvite(registration.checkinToken);
+
+      expect(invite.requiresAccount).toBe(true);
+      expect(registration.certificateInvitedAt).toBe(sentAt);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        { id: registration.id, certificateInvitedAt: expect.anything() },
+        { certificateInvitedAt: sentAt },
+      );
+    });
+
+    it('prevents another invitation after reconciling a sent email', async () => {
+      const sentAt = new Date('2026-11-09T22:25:26.828Z');
+      const registration = makeCertificateGuest();
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      (service as any).emailLogRepo.findOne.mockResolvedValue({ createdAt: sentAt });
+      emailService.sendCertificatePendingRegistration = jest.fn();
+
+      const [invitation] = await service.inviteCertificates([registration.id], checkerUser);
+
+      expect(invitation.status).toBe('already_invited');
+      expect(registration.certificateInvitedAt).toBe(sentAt);
+      expect(emailService.sendCertificatePendingRegistration).not.toHaveBeenCalled();
+    });
+
+    it('links an external certificate invitation to the authenticated GitHub account', async () => {
+      const grantedAt = new Date('2026-11-08T12:00:00.000Z');
+      const registration = makeCertificateGuest({
+        certificateInvitedAt: new Date(),
+        certificateGrantedAt: grantedAt,
       });
-      expect(accepted.status).toBe(RegistrationStatus.CONFIRMED);
-      expect(accepted.attendeeName).toBe('Ana');
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      registrationRepo.update.mockImplementation((_where, values) => {
+        Object.assign(registration, values);
+        return { affected: 1 };
+      });
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      memberRepo.findOneBy.mockResolvedValue({
+        id: uuid(1), name: 'Ana GitHub', isActive: true,
+        secondaryEmails: ['ANA@X.DEV'],
+      });
+
+      const result = await service.claimCertificateWithAccount({
+        token: registration.checkinToken,
+        consent: true,
+      }, user());
+
+      expect(result).toMatchObject({
+        status: RegistrationStatus.CONFIRMED,
+        attendeeName: 'Ana GitHub',
+        requiresAccount: true,
+      });
+      expect(registration.memberId).toBe(uuid(1));
+      expect(memberRepo.findOne).toHaveBeenCalledWith({
+        where: { id: uuid(1), isActive: true },
+        select: { id: true, name: true, githubHandle: true, secondaryEmails: true },
+      });
+      expect(registration.certificateGrantedAt).toBe(grantedAt);
+      expect(registrationRepo.update).toHaveBeenCalledWith(
+        { id: registration.id },
+        expect.objectContaining({
+          memberId: uuid(1),
+          attendeeEmail: 'ana@x.dev',
+          status: RegistrationStatus.CONFIRMED,
+        }),
+      );
+    });
+
+    it.each([
+      {
+        title: 'email is not verified in the GitHub account',
+        memberId: null,
+        secondaryEmails: ['other@x.dev'],
+        error: 'e-mail do convite precisa estar verificado no GitHub',
+      },
+      {
+        title: 'invitation is already linked to another account',
+        memberId: uuid(99),
+        secondaryEmails: ['ana@x.dev'],
+        error: 'Convite já vinculado a outra conta.',
+      },
+    ])('rejects the account claim when $title', async ({ memberId, secondaryEmails, error }) => {
+      const registration = makeCertificateGuest({
+        memberId,
+        status: memberId ? RegistrationStatus.CONFIRMED : RegistrationStatus.PENDING_GUEST,
+        certificateInvitedAt: new Date(),
+      });
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      memberRepo.findOneBy.mockResolvedValue({
+        id: uuid(1), isActive: true, secondaryEmails,
+      });
+
+      await expect(service.claimCertificateWithAccount({
+        token: registration.checkinToken,
+        consent: true,
+      }, user())).rejects.toThrow(error);
+      expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('returns an already linked invitation without another mutation', async () => {
+      const registration = makeCertificateGuest({
+        memberId: uuid(1),
+        status: RegistrationStatus.CONFIRMED,
+        certificateInvitedAt: new Date(),
+      });
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      activationRepo.findOneBy.mockResolvedValue(makeActivation({ features: ['certificates'] }));
+      memberRepo.findOneBy.mockResolvedValue({
+        id: uuid(1), isActive: true, secondaryEmails: ['ana@x.dev'],
+      });
+
+      const result = await service.claimCertificateWithAccount({
+        token: registration.checkinToken,
+        consent: true,
+      }, user());
+
+      expect(result.status).toBe(RegistrationStatus.CONFIRMED);
+      expect(registrationRepo.update).not.toHaveBeenCalled();
+    });
+
+    it('requires consent before loading the account', async () => {
+      await expect(service.claimCertificateWithAccount({
+        token: 'guest-token',
+        consent: false,
+      }, user())).rejects.toThrow('Consentimento obrigatório.');
+      expect(memberRepo.findOneBy).not.toHaveBeenCalled();
     });
   });
 

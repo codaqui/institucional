@@ -205,6 +205,8 @@ describe('EmailService', () => {
 
       const message = provider.send.mock.calls[0][0];
       expect(message.subject).toContain('Certificado pendente de cadastro');
+      expect(message.text).toContain('Entre ou crie sua conta Codaqui com GitHub');
+      expect(message.html).toContain('verificado na sua conta GitHub');
       expect(message.html).toContain('http://localhost:3000/eventos/convite?token=token-abc');
       expect(emailLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
         template: EMAIL_TEMPLATE_CERTIFICATE_PENDING,

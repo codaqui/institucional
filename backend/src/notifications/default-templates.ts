@@ -49,6 +49,10 @@ function sampleContext(): EmailTemplateContext {
   };
 }
 
+function mentorshipBody(...content: string[]): string {
+  return ['Olá, {{attendeeName}}!', '', ...content, '', '— Equipe Codaqui'].join('\n');
+}
+
 export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
   [EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION]: {
     subject: 'Inscrição confirmada — {{eventTitle}}',
@@ -135,9 +139,9 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
       '',
       'Seu certificado de participação em **{{eventTitle}}** está pendente de cadastro.',
       '',
-      'Para confirmar seus dados e acessar o certificado, [aceite o convite]({{checkinUrl}}).',
+      'Para associar sua participação e acessar o certificado, [aceite o convite]({{checkinUrl}}).',
       '',
-      'Se você já tem uma conta na Codaqui, entre com o mesmo e-mail para vincular sua participação.',
+      'Entre ou crie sua conta Codaqui com GitHub. O e-mail deste convite precisa estar verificado na sua conta GitHub.',
       '',
       '— Equipe Codaqui',
     ].join('\n'),
@@ -160,59 +164,43 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
     subject: 'Sessão de mentoria solicitada',
     variables: ['attendeeName', 'eventStartAt', 'eventTimeZone'],
     sample: sampleContext,
-    bodyMarkdown: [
-      'Olá, {{attendeeName}}!',
-      '',
+    bodyMarkdown: mentorshipBody(
       'Sua sessão de mentoria foi solicitada para {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'O mentor revisará o pedido e enviará a confirmação com o link.',
-      '',
-      '— Equipe Codaqui',
-    ].join('\n'),
+    ),
   },
   'mentorship-confirmed': {
     subject: 'Sessão de mentoria confirmada',
     variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'meetLink'],
     sample: sampleContext,
-    bodyMarkdown: [
-      'Olá, {{attendeeName}}!',
-      '',
+    bodyMarkdown: mentorshipBody(
       'Sua sessão de mentoria está confirmada para {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'Acesse: {{meetLink}}',
-      '',
-      '— Equipe Codaqui',
-    ].join('\n'),
+    ),
   },
   'mentorship-reminder-d1': {
     subject: 'Lembrete: sua mentoria é amanhã',
     variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'meetLink'],
     sample: sampleContext,
-    bodyMarkdown: [
-      'Olá, {{attendeeName}}!',
-      '',
+    bodyMarkdown: mentorshipBody(
       'Lembrete: sua mentoria acontece amanhã, {{eventStartAt}} ({{eventTimeZone}}).',
       '',
       'Acesse: {{meetLink}}',
-      '',
-      '— Equipe Codaqui',
-    ].join('\n'),
+    ),
   },
   'mentorship-cancelled': {
     subject: 'Sessão de mentoria cancelada',
     variables: ['attendeeName', 'eventStartAt', 'eventTimeZone', 'cancelReason'],
     sample: sampleContext,
-    bodyMarkdown: [
-      'Olá, {{attendeeName}}!',
-      '',
+    bodyMarkdown: mentorshipBody(
       'Sua sessão de mentoria prevista para {{eventStartAt}} ({{eventTimeZone}}) foi cancelada.',
       '',
       'Motivo: {{cancelReason}}',
       '',
       'Você pode escolher um novo horário na página do programa.',
-      '',
-      '— Equipe Codaqui',
-    ].join('\n'),
+    ),
   },
 };
 

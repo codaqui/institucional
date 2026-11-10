@@ -8,6 +8,7 @@ import { EventStaff } from './entities/event-staff.entity';
 import { ExternalEventActivation } from './entities/external-event-activation.entity';
 import { EventOverride } from './entities/event-override.entity';
 import { CertificateInviteJob } from './entities/certificate-invite-job.entity';
+import { EmailLog } from '../notifications/entities/email-log.entity';
 import { Member } from '../members/entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { LedgerModule } from '../ledger/ledger.module';
@@ -37,6 +38,7 @@ import { EventOverridesController } from './event-overrides.controller';
       EventRegistration,
       EventStaff,
       ExternalEventActivation,
+      EmailLog,
       EventOverride,
       CertificateInviteJob,
       Member,
