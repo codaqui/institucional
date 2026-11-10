@@ -27,7 +27,7 @@ agent-protocol:
 
 ## Global Constraints
 
-- Backend **0.20.0**, migration **045**, branch `feat/business-tiers-phase6`, PR para `develop`; merge/release somente por comando explícito.
+- Backend **0.21.0**, migration **045**, branch `feat/business-tiers-phase6`, PR para `develop`; merge/release somente por comando explícito.
 - Não alterar Stripe, cobrança, assinatura, wallet, SortCoins ou congelamento por inadimplência.
 - Aliada exige `active`, critério, evidência HTTPS e validação admin; Amiga é o default.
 - Aliada vencida não recebe badge e não sofre downgrade/remoção automática.
@@ -71,7 +71,7 @@ export enum CompanyTier { AMIGA = 'amiga', ALIADA = 'aliada' }
 export enum EngagementCriterion { WORKSHOP = 'workshop', HIRING = 'hiring', BUSINESS_EVENT = 'business_event' }
 ```
 
-Adicionar defaults/checks, FK e down em ordem reversa. Bump `0.20.0`.
+Adicionar defaults/checks, FK e down em ordem reversa. Bump `0.21.0`.
 
 - [x] **Step 4: Verificar e commit**
 
@@ -390,4 +390,4 @@ Commit: `docs(fase-6): registra Business tiers e handoff`
 
 - [ ] **Step 4: Abrir PR e apresentar integração**
 
-Push de `feat/business-tiers-phase6`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.20.0, sync real ou alterar produção sem comando explícito.
+Push de `feat/business-tiers-phase6`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.21.0, sync real ou alterar produção sem comando explícito.

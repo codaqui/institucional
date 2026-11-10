@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 6 — Empresa Amiga/Aliada, due diligence, vitrine e badges SVG.
 audience: AI agents, mantenedores, administração e operadores de release.
-status: Implementado e verificado em dump real; PR para develop, release 0.20.0, sync inicial e validação controlada pendentes.
+status: Implementado e verificado em dump real; PR para develop, release 0.21.0, sync inicial e validação controlada pendentes.
 sections:
   - Contexto e decisão
   - Modelo e regras
@@ -24,7 +24,7 @@ agent-protocol:
 
 - **Data da decisão:** 2026-11-10
 - **Status:** Implementado e verificado; integração e publicação pendentes
-- **Escopo:** Backend 0.20.0, migration 045, due diligence, hotpage e badges PJ
+- **Escopo:** Backend 0.21.0, migration 045, due diligence, hotpage e badges PJ
 
 ## Contexto e decisão
 
@@ -67,4 +67,4 @@ Evidências, notas, responsável, critérios, aprovadores e IDs Stripe não entr
 - Testes cobrem migration, validação incompleta/inválida, validade anual, downgrade, expiração, renovação, projeções sem campos internos, admin, membro, vitrine e sync atômico.
 - E2E PostgreSQL em dump real executou Amiga → ativação → validação Aliada → badge → expiração → ausência → renovação, sem alterar Stripe ou wallet.
 - Migration 045 down/up preservou empresa, assinatura e carteira. Banco descartável e fixtures foram removidos.
-- Rollout: merge autorizado → `v0.20.0-backend` → redeploy/migration 045 → sync inicial de badges → frontend → validação Aliada controlada. Nenhum release ou sync real ocorre sem comando explícito.
+- Rollout: merge autorizado → `v0.21.0-backend` → redeploy/migration 045 → sync inicial de badges → frontend → validação Aliada controlada. Nenhum release ou sync real ocorre sem comando explícito.

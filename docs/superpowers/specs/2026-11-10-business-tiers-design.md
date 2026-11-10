@@ -58,7 +58,7 @@ A Fase 6 cria **Empresa Amiga** e **Empresa Aliada** sem alterar o fluxo finance
 
 ## Modelo da migration 045
 
-Backend **0.20.0**, migration **045**, adiciona:
+Backend **0.21.0**, migration **045**, adiciona:
 
 - `tier` varchar(32), default `amiga`, check em `amiga|aliada`;
 - `engagementCriterion` varchar(32), nullable, check em `workshop|hiring|business_event`;
@@ -125,4 +125,4 @@ Evidências, notas, responsável, critérios, aprovadores e IDs Stripe nunca ent
 - E2E real: Amiga → validação Aliada → badge → expiração → ausência do badge → renovação, sem alterar Stripe/wallet.
 - Gates: backend build/Jest, scripts, Vitest/astro check, `make astro-verify` e `make astro-verify-tenants`.
 
-Rollout: merge autorizado → release `v0.20.0-backend` → redeploy/migration 045 → sync inicial de badges → frontend → uma validação Aliada controlada. Nenhum release ou sync real ocorre sem comando explícito.
+Rollout: merge autorizado → release `v0.21.0-backend` → redeploy/migration 045 → sync inicial de badges → frontend → uma validação Aliada controlada. Nenhum release ou sync real ocorre sem comando explícito.
