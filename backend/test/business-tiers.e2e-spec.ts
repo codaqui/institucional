@@ -1,10 +1,8 @@
-import { ExecutionContext, INestApplication, ValidationPipe } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../src/app.module';
-import { JwtAuthGuard } from '../src/auth/guards/jwt-auth.guard';
+import { createE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration045BusinessTiers1794700000000 } from '../src/migrations/1794700000000-Migration045_BusinessTiers';
 
@@ -37,22 +35,7 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
   }
 
   beforeAll(async () => {
-    const moduleFixture = await Test.createTestingModule({ imports: [AppModule] })
-      .overrideGuard(JwtAuthGuard)
-      .useValue({
-        canActivate: (context: ExecutionContext) => {
-          const req = context.switchToHttp().getRequest<{ headers: Record<string, string | undefined>; user?: JwtPayload }>();
-          const actor = req.headers['x-test-actor'] as ActorName | undefined;
-          req.user = actor ? actors[actor] : undefined;
-          return true;
-        },
-      })
-      .compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ transform: true, whitelist: true, forbidNonWhitelisted: true }));
-    await app.init();
-    dataSource = moduleFixture.get(DataSource);
+    ({ app, dataSource } = await createE2eApplication(actors));
     await removeFixtures();
     await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
       id: actor.sub,

@@ -108,6 +108,20 @@ const expectDistributionError = (service: CompaniesService, requesterId: string)
     requesterId,
   )).rejects.toThrow(BadRequestException);
 
+const mockDistributionMembers = (
+  memberEntityRepo: Record<string, jest.Mock>,
+  memberRepo: Record<string, jest.Mock>,
+  members: Array<Record<string, unknown>>,
+) => {
+  memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
+  memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
+  memberEntityRepo.createQueryBuilder.mockReturnValue({
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(members),
+  });
+};
+
 // ─── validateCnpj standalone ────────────────────────────────────────────────
 
 describe('validateCnpj', () => {
@@ -1027,29 +1041,15 @@ describe('CompaniesService', () => {
     });
 
     it('throws when recipient member is missing/inactive', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, []);
 
       await expectDistributionError(service, requesterId);
     });
 
     it('throws when company wallet has insufficient balance', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
-        ]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, [
+        { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
+      ]);
       walletRepo.findOne.mockResolvedValue({
         id: WALLET_ID,
         companyId: COMPANY_ID,
@@ -1065,17 +1065,10 @@ describe('CompaniesService', () => {
     });
 
     it('distributes coins successfully with merged handles', async () => {
-      memberEntityRepo.findOne.mockResolvedValue({ githubHandle: 'owner' });
-      memberRepo.find.mockResolvedValue([{ memberId: 'collaborator' }]);
-      const qb = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
-          { id: 'member-owner', githubHandle: 'owner', isActive: true },
-        ]),
-      };
-      memberEntityRepo.createQueryBuilder.mockReturnValue(qb);
+      mockDistributionMembers(memberEntityRepo, memberRepo, [
+        { id: 'member-collab', githubHandle: 'collaborator', isActive: true },
+        { id: 'member-owner', githubHandle: 'owner', isActive: true },
+      ]);
       walletRepo.findOne.mockResolvedValue({
         id: WALLET_ID,
         companyId: COMPANY_ID,
