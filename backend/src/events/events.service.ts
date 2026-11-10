@@ -5,10 +5,11 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, IsNull, LessThan, MoreThan, Repository } from 'typeorm';
+import { EntityManager, In, IsNull, LessThan, MoreThan, Repository, SelectQueryBuilder } from 'typeorm';
 import { randomUUID } from 'node:crypto';
 import {
   ManagedEvent,
@@ -26,6 +27,8 @@ import {
   ExternalEventActivation,
 } from './entities/external-event-activation.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { Institution } from '../entities/entities/institution.entity';
+import { DesignationsService } from '../designations/designations.service';
 import { resolveProfileVisibility } from '../members/profile-visibility';
 import { StripeService } from '../stripe/stripe.service';
 import { LedgerService } from '../ledger/ledger.service';
@@ -54,6 +57,7 @@ import type {
 } from './dto/ticket-operations.dto';
 import type { ActivateExternalDto } from './dto/external.dto';
 import type { ClaimGuestDto } from './dto/guest.dto';
+import type { ListRegistrationsQueryDto } from './dto/certificate-operations.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 
 /**
@@ -80,7 +84,7 @@ const SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
  * Isso evita o bug de fuso em que o container Node roda em UTC e converte
  * "2026-07-30T15:30" para 15:30 UTC ao invés de 15:30 BRT (18:30 UTC).
  */
-function parseDateTimeLocal(value: string, timeZone: string): Date {
+export function parseDateTimeLocal(value: string, timeZone: string): Date {
   const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(
     value,
   );
@@ -195,6 +199,11 @@ export class EventsService {
     private readonly eventOverridesService: EventOverridesService,
     private readonly reimbursementsService: ReimbursementsService,
     private readonly hoursService: HoursService,
+    @Optional()
+    @InjectRepository(Institution)
+    private readonly institutionRepo?: Repository<Institution>,
+    @Optional()
+    private readonly designations?: DesignationsService,
   ) {}
 
   // ── Permissões ────────────────────────────────────────────────────────────
@@ -204,6 +213,34 @@ export class EventsService {
     return !!user.roles?.some(
       (r) => r === MemberRole.ADMIN || r === MemberRole.EVENT_ORGANIZER,
     );
+  }
+
+  private async assertInstitutionForEvent(
+    user: JwtPayload,
+    institutionId: string,
+  ): Promise<void> {
+    if (!this.institutionRepo || !this.designations) {
+      throw new Error('Dependências de IES não configuradas.');
+    }
+    const institution = await this.institutionRepo.findOneBy({
+      id: institutionId,
+      isActive: true,
+    });
+    if (institution?.type !== 'instituicao_ensino') {
+      throw new BadRequestException('institutionId deve referenciar uma IES ativa.');
+    }
+    if (EventsService.canManageAll(user)) return;
+    if (await this.designations.hasDesignation(user.sub, {
+      targetType: 'program',
+      targetKey: 'universitario',
+      designation: 'manager',
+    })) return;
+    if (await this.designations.hasDesignation(user.sub, {
+      targetType: 'ies',
+      targetId: institutionId,
+      designation: 'ambassador',
+    })) return;
+    throw new ForbiddenException('Requer gestor do Universitário ou embaixador da IES.');
   }
 
   /** staff do evento (host/checker/finance) — usado também pela 2c/2d */
@@ -315,6 +352,7 @@ export class EventsService {
     event: ManagedEvent,
     confirmedCount: number,
     organizers?: Array<{ name: string; id?: string; photoUrl?: string }>,
+    institution?: { id: string; slug: string; name: string },
   ): Record<string, unknown> {
     return {
       id: event.id,
@@ -334,6 +372,8 @@ export class EventsService {
       status: EventsService.deriveItemStatus(event),
       adultOnly: event.adultOnly,
       venueType: event.venueType,
+      institutionId: event.institutionId,
+      ...(institution && { institution }),
       ...(event.imageUrl && { imageUrl: event.imageUrl }),
       userCount: confirmedCount,
       ...(organizers && organizers.length > 0 && { organizers }),
@@ -377,6 +417,26 @@ export class EventsService {
     return map;
   }
 
+  private async loadInstitutionsByEvent(
+    events: ManagedEvent[],
+  ): Promise<Map<string, { id: string; slug: string; name: string }>> {
+    const map = new Map<string, { id: string; slug: string; name: string }>();
+    const institutionIds = [...new Set(
+      events.map((event) => event.institutionId).filter((id): id is string => !!id),
+    )];
+    if (institutionIds.length === 0) return map;
+    if (!this.institutionRepo) throw new Error('Repositório de IES não configurado.');
+    const institutions = await this.institutionRepo.findBy({ id: In(institutionIds) });
+    for (const institution of institutions) {
+      map.set(institution.id, {
+        id: institution.id,
+        slug: institution.slug,
+        name: institution.name,
+      });
+    }
+    return map;
+  }
+
   /** GET /events/public/managed — somente published, shape EventItem + EventSourceConfig */
   async getPublicManagedEvents(): Promise<{
     source: Record<string, unknown>;
@@ -390,6 +450,7 @@ export class EventsService {
     const organizersByEvent = await this.loadOrganizersByEvent(
       events.map((e) => e.id),
     );
+    const institutionsById = await this.loadInstitutionsByEvent(events);
     return {
       source: {
         source: 'internal',
@@ -406,6 +467,7 @@ export class EventsService {
           e,
           counts.get(e.id) ?? 0,
           organizersByEvent.get(e.id),
+          e.institutionId ? institutionsById.get(e.institutionId) : undefined,
         ),
       ),
     };
@@ -427,9 +489,14 @@ export class EventsService {
       order: { priceCents: 'ASC' },
     });
     const organizers = (await this.loadOrganizersByEvent([id])).get(id);
+    const institutionsById = await this.loadInstitutionsByEvent([event]);
+    const institution = event.institutionId
+      ? institutionsById.get(event.institutionId)
+      : undefined;
     return {
       event: {
         ...EventsService.serializeEvent(event),
+        ...(institution && { institution }),
         ...(organizers && organizers.length > 0 && { organizers }),
       },
       ticketTypes: ticketTypes.map((t) => ({
@@ -464,6 +531,7 @@ export class EventsService {
       workloadMinutes: event.workloadMinutes,
       adultOnly: event.adultOnly,
       venueType: event.venueType,
+      institutionId: event.institutionId,
       createdAt: event.createdAt,
     };
   }
@@ -727,7 +795,11 @@ export class EventsService {
 
   /** POST /events — cria draft */
   async createEvent(dto: CreateEventDto, user: JwtPayload) {
-    EventsService.assertGlobalManager(user);
+    if (dto.institutionId) {
+      await this.assertInstitutionForEvent(user, dto.institutionId);
+    } else {
+      EventsService.assertGlobalManager(user);
+    }
     if (!SLUG_REGEX.test(dto.slug)) {
       throw new BadRequestException('slug deve ser kebab-case.');
     }
@@ -763,6 +835,7 @@ export class EventsService {
         workloadMinutes: dto.workloadMinutes ?? null,
         adultOnly: dto.adultOnly ?? false,
         venueType: dto.venueType ?? null,
+        institutionId: dto.institutionId ?? null,
         status: ManagedEventStatus.DRAFT,
         createdByMemberId: user.sub,
       }),
@@ -773,7 +846,12 @@ export class EventsService {
   /** PATCH /events/:id — organizer/admin; host edita dados básicos */
   async updateEvent(id: string, dto: UpdateEventDto, user: JwtPayload) {
     const event = await this.findEventOrFail(id);
-    await this.assertCanEditEvent(user, id);
+    const institutionId = dto.institutionId ?? event.institutionId;
+    if (institutionId) {
+      await this.assertInstitutionForEvent(user, institutionId);
+    } else {
+      await this.assertCanEditEvent(user, id);
+    }
     const hadValidWorkload = resolveEventWorkloadMinutes(event) !== null;
     const previousAdultOnly = event.adultOnly;
     const adultOnlyChanged =
@@ -797,6 +875,7 @@ export class EventsService {
     if (dto.timezone !== undefined) event.timezone = dto.timezone;
     if (dto.communityProjectKey !== undefined)
       event.communityProjectKey = dto.communityProjectKey;
+    if (dto.institutionId !== undefined) event.institutionId = dto.institutionId;
     if (dto.capacity !== undefined && dto.capacity !== null) {
       // Capacity limita só o RSVP gratuito; com lotes pagos o limite é o
       // quantityTotal de cada lote (semântica única — ver DTO).
@@ -2570,10 +2649,54 @@ export class EventsService {
     return { status: 'checked_in' as const, registration: payload() };
   }
 
+  private applyRegistrationFilters(
+    qb: SelectQueryBuilder<EventRegistration>,
+    query: ListRegistrationsQueryDto,
+  ): void {
+    if (query.search?.trim()) {
+      qb.andWhere(
+        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
+        { search: `%${query.search.trim()}%` },
+      );
+    }
+    if (query.certificateFilter === 'registration_pending') {
+      qb.andWhere('r.status IN (:...pendingStatuses)', {
+        pendingStatuses: [RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+    } else if (query.certificateFilter === 'eligible') {
+      qb.andWhere('r.status IN (:...grantableStatuses)', {
+        grantableStatuses: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+      qb.andWhere('r."certificateGrantedAt" IS NULL');
+    } else if (query.certificateFilter === 'granted') {
+      qb.andWhere('r."certificateGrantedAt" IS NOT NULL');
+    }
+  }
+
+  private async readRegistrations(
+    qb: SelectQueryBuilder<EventRegistration>,
+    query: ListRegistrationsQueryDto,
+  ) {
+    if (query.page !== undefined && query.limit !== undefined) {
+      const [rows, total] = await qb
+        .skip((query.page - 1) * query.limit)
+        .take(query.limit)
+        .getManyAndCount();
+      return {
+        data: await this.enrichRegistrations(rows),
+        total,
+        page: query.page,
+        totalPages: Math.ceil(total / query.limit),
+        limit: query.limit,
+      };
+    }
+    return this.enrichRegistrations(await qb.getMany());
+  }
+
   /** GET /events/:id/registrations — lista com filtro opcional (nome/e-mail) */
   async listRegistrations(
     eventId: string,
-    query: { search?: string },
+    query: ListRegistrationsQueryDto,
     user: JwtPayload,
   ) {
     await this.findEventOrFail(eventId);
@@ -2582,14 +2705,8 @@ export class EventsService {
       .createQueryBuilder('r')
       .where('r."eventId" = :eventId', { eventId })
       .orderBy('r."createdAt"', 'ASC');
-    if (query.search?.trim()) {
-      qb.andWhere(
-        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
-        { search: `%${query.search.trim()}%` },
-      );
-    }
-    const rows = await qb.getMany();
-    return this.enrichRegistrations(rows);
+    this.applyRegistrationFilters(qb, query);
+    return this.readRegistrations(qb, query);
   }
 
   private async enrichRegistrations(registrations: EventRegistration[]) {
@@ -2660,25 +2777,41 @@ export class EventsService {
     return activation;
   }
 
+  async validateCertificateInviteRegistration(
+    registrationId: string,
+    user: JwtPayload,
+  ): Promise<'ok' | 'invalid' | 'already_invited'> {
+    const { status } = await this.certificateInviteRegistrationState(registrationId, user);
+    return status;
+  }
+
+  private async certificateInviteRegistrationState(
+    registrationId: string,
+    user: JwtPayload,
+  ): Promise<{ registration: EventRegistration | null; status: 'ok' | 'invalid' | 'already_invited' }> {
+    const registration = await this.registrationRepo.findOneBy({ id: registrationId });
+    if (!registration || ![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
+      return { registration: null, status: 'invalid' };
+    }
+    if (registration.certificateInvitedAt) return { registration: null, status: 'already_invited' };
+    if (registration.eventId) {
+      const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
+        await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
+      if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
+    } else {
+      if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
+      const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
+      if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
+      EventsService.assertFeature(activation, 'certificates');
+      await this.assertExternalManager(user, activation, { allowActivator: true });
+    }
+    return { registration, status: 'ok' };
+  }
+
   async inviteCertificates(registrationIds: string[], user: JwtPayload) {
     return Promise.all(registrationIds.map(async (registrationId) => {
-      const registration = await this.registrationRepo.findOneBy({ id: registrationId });
-      if (!registration) return { registrationId, status: 'invalid' as const };
-      if (![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
-        return { registrationId, status: 'invalid' as const };
-      }
-      if (registration.certificateInvitedAt) return { registrationId, status: 'already_invited' as const };
-      if (registration.eventId) {
-        const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||
-          await this.isStaff(registration.eventId, user.sub, [EventStaffRole.HOST, EventStaffRole.CHECKER]);
-        if (!allowed) throw new ForbiddenException('Sem permissão para convidar participantes deste evento.');
-      } else {
-        if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
-        const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
-        if (!activation) throw new NotFoundException('Ativação externa não encontrada.');
-        EventsService.assertFeature(activation, 'certificates');
-        await this.assertExternalManager(user, activation, { allowActivator: true });
-      }
+      const { registration, status } = await this.certificateInviteRegistrationState(registrationId, user);
+      if (!registration) return { registrationId, status, error: null };
       registration.status = RegistrationStatus.PENDING_GUEST;
       registration.isGuest = true;
       registration.guestInvitedByMemberId = user.sub;
@@ -2696,7 +2829,7 @@ export class EventsService {
         targetType: 'event-registration',
         details: { status: log.status },
       });
-      return { registrationId, status: log.status };
+      return { registrationId, status: log.status, error: log.error };
     }));
   }
 
@@ -3577,6 +3710,57 @@ export class EventsService {
     );
   }
 
+  async deleteExternalParticipant(
+    eventKey: string,
+    registrationId: string,
+    user: JwtPayload,
+  ) {
+    const activation = await this.findActivationOrFail(eventKey);
+    await this.assertExternalManager(user, activation, {
+      allowActivator: true,
+    });
+    const registration = await this.registrationRepo.findOneBy({
+      id: registrationId,
+      externalActivationId: activation.id,
+    });
+    if (!registration) {
+      throw new NotFoundException('Participante não encontrado neste evento.');
+    }
+    if (registration.orderId || registration.checkedInAt) {
+      throw new ConflictException(
+        'Participantes com pedido ou presença não podem ser excluídos.',
+      );
+    }
+
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      const result = await manager.getRepository(EventRegistration).delete({
+        id: registration.id,
+        externalActivationId: activation.id,
+        orderId: IsNull(),
+        checkedInAt: IsNull(),
+      });
+      if (!result.affected) {
+        throw new ConflictException(
+          'Não foi possível excluir o participante com segurança.',
+        );
+      }
+      await manager.query(
+        'UPDATE ticket_types SET "quantitySold" = GREATEST("quantitySold" - $1, 0) WHERE id = $2',
+        [1, registration.ticketTypeId],
+      );
+    });
+
+    void this.auditService.log({
+      action: AuditAction.EVENT_PARTICIPANT_DELETED,
+      actorId: user.sub,
+      actorHandle: user.handle,
+      targetId: registration.id,
+      targetType: 'event-registration',
+      details: { eventKey },
+    });
+    return { deleted: true };
+  }
+
   /**
    * POST /events/external/:eventKey/participants/rematch — re-tenta o match
    * das inscrições pending_match (depois que participantes se cadastraram).
@@ -3638,7 +3822,7 @@ export class EventsService {
   /** GET /events/external/:eventKey/participants */
   async listExternalParticipants(
     eventKey: string,
-    query: { search?: string },
+    query: ListRegistrationsQueryDto,
     user: JwtPayload,
   ) {
     const activation = await this.findActivationOrFail(eventKey);
@@ -3651,14 +3835,8 @@ export class EventsService {
         activationId: activation.id,
       })
       .orderBy('r."createdAt"', 'ASC');
-    if (query.search?.trim()) {
-      qb.andWhere(
-        '(r."attendeeName" ILIKE :search OR r."attendeeEmail" ILIKE :search)',
-        { search: `%${query.search.trim()}%` },
-      );
-    }
-    const rows = await qb.getMany();
-    return this.enrichRegistrations(rows);
+    this.applyRegistrationFilters(qb, query);
+    return this.readRegistrations(qb, query);
   }
 
   /**

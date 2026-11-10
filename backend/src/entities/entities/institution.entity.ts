@@ -26,6 +26,9 @@ export class Institution {
   @Column({ type: 'varchar', length: 255, nullable: true })
   contactEmail: string | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  cityId: string | null;
+
   @Column({ type: 'uuid' })
   registeredById: string;
 

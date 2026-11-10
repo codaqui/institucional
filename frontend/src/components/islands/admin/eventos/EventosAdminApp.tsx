@@ -32,6 +32,7 @@ import InternalEventAccordion from "./InternalEventAccordion";
 import EventFormDialog from "./EventFormDialog";
 import TicketTypeDialog from "./TicketTypeDialog";
 import { useAuth } from "../../../../lib/use-auth";
+import { useMyDesignations } from "../../../../lib/use-designations";
 import { API_URL } from "../../../../lib/config";
 import { extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
 import Alert from "@mui/material/Alert";
@@ -65,9 +66,19 @@ function EventosAdminInner(): React.JSX.Element {
     user,
     authFetch,
   } = useAuth();
+  const { data: designations, loading: designationsLoading } = useMyDesignations();
   const apiUrl = API_URL;
-
-  const canAccess = isAdmin || isEventOrganizer;
+  const canManageEvents = isAdmin || isEventOrganizer;
+  const ambassadorInstitutionIds = designations
+    .filter((item) => item.targetType === "ies" && item.designation === "ambassador" && item.targetId)
+    .map((item) => item.targetId as string);
+  const isUniversityAmbassador = ambassadorInstitutionIds.length > 0;
+  const ambassadorOnly = !canManageEvents && isUniversityAmbassador;
+  const canAccess = canManageEvents || isUniversityAmbassador;
+  const requestedInstitutionId = new URLSearchParams(globalThis.location?.search ?? "").get("institutionId") ?? "";
+  const institutionId = canManageEvents || ambassadorInstitutionIds.includes(requestedInstitutionId)
+    ? requestedInstitutionId
+    : "";
 
   const [ordersDialog, setOrdersDialog] = useState<
     | { kind: "internal"; eventId: string; title: string }
@@ -106,11 +117,11 @@ function EventosAdminInner(): React.JSX.Element {
   } = data;
 
   const refreshEvents = useCallback(
-    () => fetchEvents(page, useBackendPagination),
-    [fetchEvents, page, useBackendPagination],
+    () => ambassadorOnly ? Promise.resolve() : fetchEvents(page, useBackendPagination),
+    [ambassadorOnly, fetchEvents, page, useBackendPagination],
   );
 
-  const mutations = useAdminEventosMutations(authFetch, refreshEvents);
+  const mutations = useAdminEventosMutations(authFetch, refreshEvents, institutionId);
 
   const snapshot = useAdminEventosSnapshot(authFetch);
 
@@ -168,12 +179,12 @@ function EventosAdminInner(): React.JSX.Element {
   );
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || designationsLoading) return;
     if (!isLoggedIn) {
       window.location.replace("/");
       return;
     }
-    if (canAccess) {
+    if (canManageEvents) {
       void fetchEvents(page, useBackendPagination);
       void fetchMembers();
       void fetchExternalData();
@@ -182,8 +193,9 @@ function EventosAdminInner(): React.JSX.Element {
     }
   }, [
     ready,
+    designationsLoading,
     isLoggedIn,
-    canAccess,
+    canManageEvents,
     fetchEvents,
     fetchMembers,
     fetchExternalData,
@@ -195,7 +207,7 @@ function EventosAdminInner(): React.JSX.Element {
 
   const canReimburse = isAdmin || isFinanceAnalyzer || isEventFinance;
 
-  if (!ready || !isLoggedIn) {
+  if (!ready || designationsLoading || !isLoggedIn) {
     return (
       <PageContainer sx={{ textAlign: "center" }}>
         <CircularProgress />
@@ -212,6 +224,28 @@ function EventosAdminInner(): React.JSX.Element {
         <Alert severity="warning">
           Acesso restrito a administradores e organizadores de eventos.
         </Alert>
+      </PageContainer>
+    );
+  }
+
+  if (ambassadorOnly) {
+    return (
+      <PageContainer>
+        <Typography variant="h4" component="h2" sx={{ fontWeight: 800 }}>Eventos na minha IES</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Crie um evento vinculado à instituição em que você é embaixador ativo.
+        </Typography>
+        {mutations.saveSuccess && <Alert severity="success" sx={{ mb: 2 }}>Evento criado como rascunho.</Alert>}
+        <Button variant="contained" startIcon={<AddIcon />} onClick={mutations.openCreateDialog}>Novo evento</Button>
+        <EventFormDialog
+          eventDialog={mutations.eventDialog}
+          onClose={() => mutations.setEventDialog(null)}
+          eventForm={mutations.eventForm}
+          setEventForm={mutations.setEventForm}
+          eventSaving={mutations.eventSaving}
+          eventError={mutations.eventError}
+          onSave={mutations.handleSaveEvent}
+        />
       </PageContainer>
     );
   }

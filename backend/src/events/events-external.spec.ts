@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
@@ -133,10 +134,15 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         Promise.resolve(Array.isArray(r) ? r : { id: uuid(40), ...r }),
       ),
       update: jest.fn().mockResolvedValue({ affected: 1 }),
+      delete: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(),
       manager: {
         transaction: jest.fn((cb: (em: unknown) => unknown) => cb({
-          getRepository: () => ({ update: registrationRepo.update }),
+          getRepository: () => ({
+            update: registrationRepo.update,
+            delete: registrationRepo.delete,
+          }),
+          query: ticketTypeRepo.query,
         })),
       } as unknown as jest.Mock,
     };
@@ -900,6 +906,76 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       await expect(
         service.importParticipants(EVENT_KEY, 'foo,bar\n1,2', user()),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('deleteExternalParticipant', () => {
+    it('exclui importado sem histórico, decrementa ingresso e libera reimportação', async () => {
+      const registration = makeRegistration({
+        externalActivationId: uuid(70),
+        externalSource: 'sympla:elasnocodigo',
+        externalId: 'e1',
+        orderId: null,
+        checkedInAt: null,
+      });
+      activationRepo.findOneBy.mockResolvedValue(makeActivation());
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+
+      const result = await service.deleteExternalParticipant(
+        EVENT_KEY,
+        registration.id,
+        user(),
+      );
+
+      expect(result).toEqual({ deleted: true });
+      expect(registrationRepo.delete).toHaveBeenCalledWith({
+        id: registration.id,
+        externalActivationId: uuid(70),
+        orderId: expect.anything(),
+        checkedInAt: expect.anything(),
+      });
+      expect(ticketTypeRepo.query).toHaveBeenCalledWith(
+        'UPDATE ticket_types SET "quantitySold" = GREATEST("quantitySold" - $1, 0) WHERE id = $2',
+        [1, registration.ticketTypeId],
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: 'event.participant_deleted' }),
+      );
+
+      registrationRepo.findBy.mockResolvedValue([]);
+      mockMemberQb([
+        {
+          id: uuid(1),
+          githubHandle: 'ana',
+          name: 'Ana',
+          email: 'ana@x.dev',
+          isActive: true,
+        },
+      ]);
+      const imported = await service.importParticipants(
+        EVENT_KEY,
+        'name,email,external_id\nAna,ana@x.dev,e1',
+        user(),
+      );
+      expect(imported.imported).toBe(1);
+    });
+
+    it.each([
+      [{ checkedInAt: new Date(), orderId: null }],
+      [{ checkedInAt: null, orderId: uuid(30) }],
+    ])('preserva participante com presença ou pedido: %p', async (history) => {
+      const registration = makeRegistration({
+        externalActivationId: uuid(70),
+        ...history,
+      });
+      activationRepo.findOneBy.mockResolvedValue(makeActivation());
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+
+      await expect(
+        service.deleteExternalParticipant(EVENT_KEY, registration.id, user()),
+      ).rejects.toThrow(ConflictException);
+      expect(registrationRepo.delete).not.toHaveBeenCalled();
+      expect(ticketTypeRepo.query).not.toHaveBeenCalled();
     });
   });
 

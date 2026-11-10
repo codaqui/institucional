@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import UniversitiesAdminApp from "../../components/islands/admin/universities/UniversitiesAdminApp";
+---
+
+<AppLayout title="Codaqui Universitário" noindex>
+  <UniversitiesAdminApp client:only="react" />
+</AppLayout>

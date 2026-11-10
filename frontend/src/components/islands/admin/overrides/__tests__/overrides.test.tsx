@@ -242,6 +242,73 @@ describe("OverridesApp — abas", () => {
     expect(report).toHaveTextContent("2 certificados concedidos");
     expect(screen.getByText(/sem conta — convite pendente/i)).toBeInTheDocument();
   });
+
+  it("remove participante importado após confirmação e permite nova importação", async () => {
+    Object.defineProperty(HTMLDialogElement.prototype, "showModal", {
+      configurable: true,
+      value: vi.fn(function (this: HTMLDialogElement) {
+        this.open = true;
+      }),
+    });
+    Object.defineProperty(HTMLDialogElement.prototype, "close", {
+      configurable: true,
+      value: vi.fn(function (this: HTMLDialogElement) {
+        this.open = false;
+      }),
+    });
+    let deleted = false;
+    const fetchMock = stubFetch(async (url, init) => {
+      if (url.endsWith("/activation")) {
+        return jsonResponse({
+          id: "act-1",
+          eventKey: "meetup:devparana:evt-1",
+          features: ["checkin"],
+          communityProjectKey: "devparana",
+        });
+      }
+      if (url.endsWith("/participants") && !init?.method) {
+        return jsonResponse(
+          deleted
+            ? []
+            : [{
+                id: "reg-imported",
+                attendeeName: "Participante Importado",
+                attendeeEmail: "importado@example.com",
+                status: "pending_match",
+                checkedInAt: null,
+                certificateGrantedAt: null,
+                certificateInvitedAt: null,
+                orderId: null,
+                ticketType: { name: "Importado" },
+              }],
+        );
+      }
+      if (url.endsWith("/participants/reg-imported") && init?.method === "DELETE") {
+        deleted = true;
+        return jsonResponse({ deleted: true });
+      }
+      return defaultHandler()(url, init);
+    });
+    renderWithMui(<OverridesApp />);
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Ativação de features" }));
+    await selectExternalEvent();
+    await userEvent.click(
+      await screen.findByRole("button", {
+        name: "Remover participante Participante Importado",
+      }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Remover participante definitivamente" }),
+    );
+
+    expect(await screen.findByText(/reimportação está liberada/i)).toBeInTheDocument();
+    expect(screen.queryByText("Participante Importado")).not.toBeInTheDocument();
+    expect(fetchCall(
+      fetchMock,
+      (url, init) => url.endsWith("/participants/reg-imported") && init?.method === "DELETE",
+    )).toBeDefined();
+  });
 });
 
 // ---------------------------------------------------------------------------

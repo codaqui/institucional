@@ -52,6 +52,33 @@ export interface EventRegistration {
   } | null;
 }
 
+export type CertificateFilter = "all" | "eligible" | "granted" | "registration_pending";
+
+export interface CertificateInviteBatch {
+  batchId: string;
+  total: number;
+  status: "queued";
+  invalid: string[];
+}
+
+export interface CertificateInviteBatchProgress {
+  batchId: string;
+  status: "queued" | "processing" | "retry" | "completed";
+  total: number;
+  completed: number;
+  queued: number;
+  processing: number;
+  retry: number;
+  failed: number;
+  skipped: number;
+  items: Array<{
+    registrationId: string;
+    status: string;
+    attempts: number;
+    lastError: string | null;
+  }>;
+}
+
 export interface CheckinResult {
   kind: "checked_in" | "already_checked_in" | "invalid";
   attendeeName?: string;

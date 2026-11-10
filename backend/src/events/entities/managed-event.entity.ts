@@ -82,6 +82,9 @@ export class ManagedEvent {
   @Column({ type: 'varchar', nullable: true })
   venueType: VenueType | null;
 
+  @Column({ type: 'uuid', nullable: true })
+  institutionId: string | null;
+
   @Column()
   createdByMemberId: string;
 

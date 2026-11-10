@@ -75,6 +75,7 @@ Decisões arquiteturais principais:
 - [Clube Codaqui (SortCoins)](docs/adrs/002-club-sortcoins.md)
 - [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
 - [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
+- [Mentoria no sistema](docs/adrs/009-mentorship.md)
 - [Entidades e Projetos de Extensão](docs/adrs/008-entities-extension-projects.md)
 - [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
 - [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
@@ -171,6 +172,7 @@ npm run sync                     # eventos + social-stats + analytics → static
 npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
+npm run sync:mentors             # /mentorship/public → static/mentors/ (fora do agregador sync)
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
@@ -196,6 +198,8 @@ institucional/
 │   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
 │   │   ├── entities/            # ⭐ Fase 4/ADR 008: entidades jurídicas e parcerias
 │   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
+│   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
+│   │   ├── mentorship/          # ⭐ Fase 5/ADR 009: mentores, disponibilidade, sessões, horas e insights
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -207,7 +211,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 040; Fase 2: 033–035; Fase 3: 036; Fase 4: 037–040)
+│   │   └── migrations/          # TypeORM migrations (até 042; Fase 4: 037–041; Fase 4b: 042)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -279,7 +283,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|assemblies|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` permanece estático e é exceção ao prefixo de API `/assemblies/`.
+- Snapshots (`static/events|communities|assemblies|projects|universities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` e `/universities/index.json` permanecem estáticos e são exceções aos prefixos de API correspondentes.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -437,7 +441,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 - `member_designations` é a única fonte dos vínculos novos. Não criar `directorMemberId`, `responsibleMemberId`, `directorate_members` ou tabelas paralelas. `event_organizer_ownership` e `event_staff` continuam nos modelos próprios.
 - APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
-- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `gestor_universitario` e a mentoria da Fase 5 continuam em design. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
+- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `manager @ program('universitario')` deriva `gestor_universitario` na Fase 4b/ADR 015; `mentor @ program('mentoria')` autoriza a Fase 5/ADR 009. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
 - Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
 - **Baseline histórico da Fase 1a:** naquele recorte não existia `hour_ledger`; horas, aprovações e declarações ficavam para fase futura. **A Fase 2 introduziu** `backend/src/hours/` e a migration 033 — ver decisão 24 e [ADR 013](docs/adrs/013-hour-ledger.md).
 
@@ -472,7 +476,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 ### 24. Fase 2 — horas e badges (ADR 013)
 
-- `backend/src/hours/` implementa `hour_ledger` separada da ledger financeira, aprovação/rejeição com audit, crédito exactly-once no check-in, extrato/summary e declarações sem prazo de validade. Somente `event_checkin` e `directorate_activity` estão ativos; não há backfill nem horas retroativas de guests. Decisões completas: [ADR 013](docs/adrs/013-hour-ledger.md).
+- `backend/src/hours/` implementa `hour_ledger` separada da ledger financeira, aprovação/rejeição com audit, crédito exactly-once no check-in, extrato/summary e declarações sem prazo de validade. `event_checkin` e `directorate_activity` começaram na Fase 2; `extension_project` e `mentorship_session` foram adicionados pelas fases 4 e 5. Não há backfill nem horas retroativas de guests. Decisões completas: [ADR 013](docs/adrs/013-hour-ledger.md).
 - `profileVisibility.hours`, `memberSince` e `badge` controlam independentemente totais/timeline, ano e selo. `scripts/sync-member-badges.mjs` lê `GET /hours/public`, valida a resposta completa e escreve `static/badges/<handle>.svg` atomicamente; falhas preservam/restauram arquivos anteriores.
 - O workflow `sync-member-badges.yml` roda diariamente às **06:17 UTC** e por dispatch, e `copy-snapshots.mjs` copia os SVGs no build. **Gate de release:** depois do backend publicado, o sync inicial deve concluir com sucesso **antes da publicação do frontend**; não gerar SVGs de membros reais no branch de implementação. Release `v0.14.0-backend` publicada, sync inicial concluído no run `42098199373` e frontend publicado no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção permanece como acompanhamento operacional.
 
@@ -497,9 +501,33 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 - Migration 041 adiciona `certificateGrantedAt`, `certificateGrantedByMemberId` e `certificateInvitedAt`. O backfill converte `checkedInByMemberId::uuid`; certificado e verificação exigem concessão + `confirmed`, não mais presença. Check-in concede automaticamente; `POST /events/registrations/:id/certificate/grant` usa update condicional para preservar a primeira concessão.
 - `POST /events/:id/checkin/batch` e `/events/external/:eventKey/checkin/batch` processam até 100 tokens com resultado parcial. CSV aceita `checkin` e `certificate`; presença gera horas somente com membro/carga válida, concessão isolada não gera horas e reupload não recredita.
-- `checkin` e `certificates` são features externas independentes. `/admin/eventos-checkin` tem abas Escanear/Participantes/Certificados, filtros, seleção em lote e feedback parcial; `/admin/overrides` documenta as flags e o relatório com `checkedIn/certificatesGranted`.
+- `checkin` e `certificates` são features externas independentes. `/admin/eventos-checkin` tem abas Escanear/Participantes/Certificados, filtros, seleção em lote e feedback parcial; `/admin/overrides` documenta as flags e o relatório com `checkedIn/certificatesGranted`. Para corrigir importações, `DELETE /events/external/:eventKey/participants/:registrationId` remove somente participantes sem pedido/presença, decrementa `quantitySold` na transação e libera reimportação (backend 0.16.1).
 - `POST /events/certificate-invites/batch` usa o template `certificate-pending-registration`, `email_logs` por destinatário e o guest claim existente. `certificateInvitedAt` exige `sent`; não há campanha nem open tracking. O cron anual anonimiza guests sem conta de eventos próprios **e ativações externas**.
 - E2E real em dump isolado validou down/up com 265 inscrições/66 presenças, CSV, batch, concessão, `sent/failed/skipped`, aceite e verificação. Desenho/plano: `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md` e `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
+
+### 28. Fase 4b — Codaqui Universitário (ADR 015)
+
+- Migration 042 e backend 0.17.0 adicionam `cities`, `entities.cityId`, `managed_events.institutionId`, `member_designations.validUntil` e `applicationNotes`. IES continua sendo `entities.type='instituicao_ensino'`; embaixador é `ambassador @ ies`; gestor é `manager @ program('universitario')`. Não criar tabelas paralelas.
+- Um embaixador ativo por IES e uma candidatura pendente por membro/IES são únicos no banco. Gestor cadastra e avalia; somente admin confirma. Posse expirada não autoriza nem aparece no snapshot. Confirmação/rejeição chama `DesignationsService.invalidateCache()` para liberar imediatamente o primeiro evento.
+- `POST /events` com `institutionId` valida IES ativa e escopo no service; o atalho `/admin/eventos?institutionId=<uuid>` preserva a IES fora dos controles editáveis e no payload. Inscrição, check-in, certificado e horas continuam no fluxo existente.
+- APIs em `/universities/`; `/universities/index.json` é exceção estática exata do proxy. `npm run sync:universities` usa `UNIVERSITIES_API_URL`, valida a coleção e grava `static/universities/index.json` atomicamente; o workflow diário é 06:26 UTC + dispatch e o agregador `npm run sync` não o inclui. Motivação, e-mail, candidaturas e IDs de atores nunca são públicos.
+- Páginas `/universitario` e `/admin/universitario`; fila usa `PaginationControls`. O E2E PostgreSQL validou gestor → IES → posse → evento → inscrição → check-in → certificado/horas exactly-once; migration down/up preservou 1 entity, 1 evento e 3 designations. Publicação exige backend/migration → sync inicial → frontend. Detalhes: [ADR 015](docs/adrs/015-codaqui-universitario.md).
+
+### 29. Fila assíncrona de convites de certificado (ADR 016)
+
+- Migration 043/backend 0.18.0 criam `certificate_invite_jobs` por inscrição com `batchId`. `POST /events/certificate-invites/batch` responde **202**; o progresso fica em `GET /events/certificate-invites/batches/:batchId`, somente admin/solicitante. Não duplicar nome, e-mail, token ou template na fila.
+- `CertificateInviteQueueService` processa um job a cada 10 segundos com `FOR UPDATE SKIP LOCKED`, recarrega ator e recupera `processing` >2 min. Um índice parcial impede duas filas ativas por inscrição. `certificateInvitedAt` continua exigindo `sent`; não há reprocessamento automático dos 90 erros antigos.
+- `EmailService` serializa todas as chamadas SMTP e aplica `EMAIL_SEND_INTERVAL_MS` (default 2000 ms em produção, 0 em testes). Retry usa 1/5 minutos; terceira falha é definitiva; 421/454 pausa pendentes por 15 minutos. Não prometer exactly-once absoluto após falha ambígua de conexão.
+- Listagens próprias/externas aceitam `page`, `limit`, `search`, `certificateFilter`; envelope somente com página+limite, array legado sem eles. A Central usa 25 por página, seleção só da página atual, `<progress>` acessível e polling a cada 5 segundos somente com a aba visível, sem rajada na retomada.
+- Publicação exige backend/migration → frontend → lote pequeno controlado. E2E no dump preservou 28 `sent`/90 `failed` e validou 202, retry 421 e conclusão. Detalhes: [ADR 016](docs/adrs/016-certificate-invite-queue.md).
+
+### 30. Fase 5 — mentoria no sistema (ADR 009)
+
+- Migration 044/backend 0.19.0 criam perfil, disponibilidade semanal e sessões. `mentor @ program('mentoria')` é a autorização; admin confirma a designation e ativa o perfil, sem papel paralelo. Admin pode operar, mas horas pertencem ao mentor da sessão.
+- Reserva usa lock da regra, validação SQL de sobreposição e unique `(mentorId,scheduledAt)`; conflito retorna 409 sem e-mail. Fuso IANA vale para weekday, slot e instante persistido. Confirmação exige HTTPS; conclusão/no-show só após o horário; remarcação é cancelar e reservar novamente.
+- `completed` cria uma única entrada `mentorship_session` pendente com `hours=durationMin/60`; canceled/no_show não geram horas. Templates e SMTP são os existentes; falha de e-mail não desfaz transição. Apenas e-mail verificado vincula `menteeMemberId` e o cron anual anonimiza somente convidados sem membro.
+- APIs ficam em `/mentorship/`; o UUID público é o perfil, nunca o membro. `static/mentors/index.json` usa `sync:mentors` e workflow diário 06:21 UTC, sem PII/sessões individuais. Páginas: `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` e `/mentoria/sessao/<token>` (rewrite 200 no build estático).
+- E2E PostgreSQL validou reserva concorrente 201/409, ciclo, hora única, avaliação e migration down/up. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → sessão controlada. Detalhes: [ADR 009](docs/adrs/009-mentorship.md).
 
 ---
 
@@ -539,7 +567,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 10 workflows)
+### CI/CD (`.github/workflows/` — 12 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -550,6 +578,8 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
 | `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
+| `sync-universities.yml` | diário 06:26 UTC (`26 6 * * *`) + dispatch | Lê `/universities/public`, regera `static/universities/index.json` e commita somente se mudou; sync inicial após backend/migration 042 e antes do frontend |
+| `sync-mentors.yml` | diário 06:21 UTC (`21 6 * * *`) + dispatch | Lê `/mentorship/public`, regera `static/mentors/index.json` sem PII e commita somente se mudou; sync inicial após backend/migration 044 e antes do frontend |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |

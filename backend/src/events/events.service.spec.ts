@@ -1403,6 +1403,80 @@ describe('EventsService', () => {
     });
   });
 
+  describe('university institution events', () => {
+    const baseDto = {
+      slug: 'evento-ies',
+      title: 'Evento IES',
+      summary: 'Resumo',
+      location: 'Maringá',
+      startAt: '2026-10-01T19:00',
+      workloadMinutes: 60,
+      communityProjectKey: 'devparana',
+    };
+    const ambassador = user({ sub: uuid(1), roles: ['membro'] });
+    const ownIes = {
+      id: uuid(70),
+      slug: 'ies-exemplo',
+      name: 'IES Exemplo',
+      type: 'instituicao_ensino',
+      isActive: true,
+    };
+
+    beforeEach(() => {
+      eventRepo.findOneBy.mockResolvedValue(null);
+      (service as any).institutionRepo = {
+        findOneBy: jest.fn().mockResolvedValue(ownIes),
+        findBy: jest.fn().mockResolvedValue([ownIes]),
+      };
+      (service as any).designations = {
+        hasDesignation: jest.fn().mockReturnValue(true),
+      };
+    });
+
+    it('lets an ambassador create an event only at their own IES', async () => {
+      await service.createEvent({ ...baseDto, institutionId: ownIes.id }, ambassador);
+      expect(eventRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ institutionId: ownIes.id }),
+      );
+
+      (service as any).designations.hasDesignation.mockResolvedValue(false);
+      await expect(
+        service.createEvent({ ...baseDto, institutionId: uuid(71) }, ambassador),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('rejects a non-IES institution', async () => {
+      (service as any).institutionRepo.findOneBy.mockResolvedValue({
+        ...ownIes,
+        type: 'ong',
+      });
+      await expect(
+        service.createEvent({ ...baseDto, institutionId: ownIes.id }, adminUser),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('lets the ambassador edit their own IES event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent({ institutionId: ownIes.id }));
+      await service.updateEvent(uuid(10), { title: 'Evento atualizado' }, ambassador);
+      expect(eventRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ title: 'Evento atualizado' }),
+      );
+    });
+
+    it('exposes only the IES summary in the public event', async () => {
+      eventRepo.findOneBy.mockResolvedValue(
+        makeEvent({ institutionId: ownIes.id, status: ManagedEventStatus.PUBLISHED }),
+      );
+      const result = await service.getPublicManagedEvent(uuid(10));
+      expect(result.event.institution).toEqual({
+        id: ownIes.id,
+        slug: ownIes.slug,
+        name: ownIes.name,
+      });
+      expect(result.event).not.toHaveProperty('registeredById');
+    });
+  });
+
   describe('adult classification persistence', () => {
     const baseDto = {
       slug: 'evento-adulto',
@@ -2017,6 +2091,86 @@ describe('EventsService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].verificationCode).toBeNull();
+    });
+  });
+
+  describe('certificate invite validation', () => {
+    it('validates pending registrations and reports already invited or invalid states', async () => {
+      const registration = {
+        id: uuid(40),
+        eventId: uuid(10),
+        status: RegistrationStatus.PENDING_MATCH,
+        certificateInvitedAt: null,
+      };
+      registrationRepo.findOneBy.mockResolvedValue(registration);
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('ok');
+
+      registration.certificateInvitedAt = new Date();
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('already_invited');
+
+      registration.status = RegistrationStatus.CONFIRMED;
+      registration.certificateInvitedAt = null;
+      await expect(service.validateCertificateInviteRegistration(uuid(40), adminUser)).resolves.toBe('invalid');
+    });
+  });
+
+  describe('certificate registration pagination', () => {
+    function mockRegistrationQuery(total = 55) {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], total]),
+      };
+      registrationRepo.createQueryBuilder.mockReturnValue(qb);
+      return qb;
+    }
+
+    it('keeps the legacy array and adds a pending envelope when page and limit are present', async () => {
+      eventRepo.findOneBy.mockResolvedValue(makeEvent());
+      const qb = mockRegistrationQuery();
+
+      const legacy = await service.listRegistrations(uuid(10), { search: 'ana' }, adminUser);
+      expect(Array.isArray(legacy)).toBe(true);
+      expect(qb.getMany).toHaveBeenCalledTimes(1);
+
+      const result = await service.listRegistrations(uuid(10), {
+        page: 2,
+        limit: 25,
+        certificateFilter: 'registration_pending',
+      }, adminUser);
+      expect(result).toMatchObject({ total: 55, page: 2, totalPages: 3, limit: 25 });
+      expect(qb.andWhere).toHaveBeenCalledWith('r.status IN (:...pendingStatuses)', {
+        pendingStatuses: [RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+      });
+      expect(qb.skip).toHaveBeenCalledWith(25);
+      expect(qb.take).toHaveBeenCalledWith(25);
+    });
+
+    it('filters eligible external participants and returns certificate grants separately', async () => {
+      activationRepo.findOneBy.mockResolvedValue({ id: uuid(50), eventKey: 'sympla:test:evt', features: ['certificates'] });
+      const qb = mockRegistrationQuery(1);
+
+      const eligible = await service.listExternalParticipants('sympla:test:evt', {
+        page: 1,
+        limit: 25,
+        certificateFilter: 'eligible',
+      }, adminUser);
+      expect(eligible).toMatchObject({ total: 1, totalPages: 1 });
+      expect(qb.andWhere).toHaveBeenCalledWith('r.status IN (:...grantableStatuses)', {
+        grantableStatuses: [RegistrationStatus.CONFIRMED, RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST],
+        });
+      expect(qb.andWhere).toHaveBeenCalledWith('r."certificateGrantedAt" IS NULL');
+
+      await service.listExternalParticipants('sympla:test:evt', {
+        page: 1,
+        limit: 25,
+        certificateFilter: 'granted',
+      }, adminUser);
+      expect(qb.andWhere).toHaveBeenCalledWith('r."certificateGrantedAt" IS NOT NULL');
     });
   });
 });

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EventsController } from './events.controller';
 import { TurnstileService } from '../common/turnstile/turnstile.service';
 import { EventsService } from './events.service';
+import { CertificateInviteQueueService } from './certificate-invite-queue.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
@@ -19,8 +20,13 @@ const user: JwtPayload = {
 describe('EventsController', () => {
   let controller: EventsController;
   let service: Record<string, jest.Mock>;
+  let inviteQueue: Record<string, jest.Mock>;
 
   beforeEach(async () => {
+    inviteQueue = {
+      enqueue: jest.fn().mockResolvedValue({ batchId: 'batch-1', total: 1, status: 'queued', invalid: [] }),
+      getBatch: jest.fn().mockResolvedValue({ batchId: 'batch-1', status: 'completed', total: 1, completed: 1 }),
+    };
     service = {
       getPublicManagedEvents: jest.fn().mockResolvedValue({ source: {}, events: [] }),
       getPublicManagedEvent: jest.fn().mockResolvedValue({ event: {}, ticketTypes: [] }),
@@ -61,6 +67,7 @@ describe('EventsController', () => {
       listExternalOrders: jest.fn().mockResolvedValue([]),
       getExternalEventLedger: jest.fn().mockResolvedValue({ data: [], total: 0 }),
       importParticipants: jest.fn().mockResolvedValue({ imported: 0 }),
+      deleteExternalParticipant: jest.fn().mockResolvedValue({ deleted: true }),
       rematchParticipants: jest.fn().mockResolvedValue({ rematched: 0 }),
       listExternalParticipants: jest.fn().mockResolvedValue([]),
       checkinExternal: jest.fn().mockResolvedValue({ status: 'checked_in' }),
@@ -76,6 +83,7 @@ describe('EventsController', () => {
       controllers: [EventsController],
       providers: [
         { provide: EventsService, useValue: service },
+        { provide: CertificateInviteQueueService, useValue: inviteQueue },
         { provide: TurnstileService, useValue: { verify: jest.fn() } },
       ],
     })
@@ -128,6 +136,10 @@ describe('EventsController', () => {
       const result = await controller.createEvent(dto, { user });
       expect(service.createEvent).toHaveBeenCalledWith(dto, user);
       expect(result).toEqual({ id: 'evt-1' });
+    });
+
+    it('POST /events deixa o service autorizar o embaixador pela IES', () => {
+      expect(Reflect.getMetadata('roles', controller.createEvent)).toBeUndefined();
     });
 
     it('GET /events/:id', async () => {
@@ -205,12 +217,30 @@ describe('EventsController', () => {
     });
 
     it('GET /events/:id/registrations', async () => {
-      const result = await controller.listRegistrations('evt-1', 'ana', { user });
+      const result = await controller.listRegistrations('evt-1', { search: 'ana' }, { user });
       expect(service.listRegistrations).toHaveBeenCalledWith(
         'evt-1',
         { search: 'ana' },
         user,
       );
+    });
+
+    it('GET /events/external/:eventKey/participants com paginação', async () => {
+      await controller.listExternalParticipants('meetup:devparana:1', { page: 2, limit: 25, certificateFilter: 'registration_pending' }, { user });
+      expect(service.listExternalParticipants).toHaveBeenCalledWith(
+        'meetup:devparana:1',
+        { page: 2, limit: 25, certificateFilter: 'registration_pending' },
+        user,
+      );
+    });
+
+    it('POST /events/certificate-invites/batch enfileira e GET acompanha o lote', async () => {
+      const result = await controller.inviteCertificates({ registrationIds: ['reg-1'] }, { user });
+      expect(inviteQueue.enqueue).toHaveBeenCalledWith(['reg-1'], user);
+      expect(result).toMatchObject({ batchId: 'batch-1', status: 'queued' });
+
+      await controller.getCertificateInviteBatch('batch-1', { user });
+      expect(inviteQueue.getBatch).toHaveBeenCalledWith('batch-1', user);
     });
 
     it('GET /events/:id/report', async () => {
@@ -273,6 +303,20 @@ describe('EventsController', () => {
         'name,email\nAna,ana@x.dev',
         user,
       );
+    });
+
+    it('DELETE /events/external/:eventKey/participants/:registrationId', async () => {
+      const result = await controller.deleteExternalParticipant(
+        'meetup:devparana:1',
+        'reg-1',
+        { user },
+      );
+      expect(service.deleteExternalParticipant).toHaveBeenCalledWith(
+        'meetup:devparana:1',
+        'reg-1',
+        user,
+      );
+      expect(result).toEqual({ deleted: true });
     });
   });
 });

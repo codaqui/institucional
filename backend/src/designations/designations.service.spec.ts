@@ -77,6 +77,18 @@ describe('DesignationsService', () => {
     jest.useRealTimers();
   });
 
+  it('requires validUntil to be null or in the future when checking a designation', async () => {
+    await service.hasDesignation('member-1', {
+      targetType: 'ies',
+      targetId: 'ies-1',
+      designation: 'ambassador',
+    });
+
+    expect(repo.findOne).toHaveBeenCalledWith({
+      where: expect.objectContaining({ validUntil: expect.anything() }),
+    });
+  });
+
   it('grants a director and derives both organizational roles', async () => {
     repo.find.mockResolvedValue([{ ...directorInput, status: 'active' }]);
 

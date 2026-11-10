@@ -6,6 +6,8 @@ import { ManagedEvent } from './entities/managed-event.entity';
 import { TicketType } from './entities/ticket-type.entity';
 import { EventOrder } from './entities/event-order.entity';
 import { EventRegistration } from './entities/event-registration.entity';
+import { CertificateInviteJob } from './entities/certificate-invite-job.entity';
+import { CertificateInviteQueueService } from './certificate-invite-queue.service';
 import { EventStaff } from './entities/event-staff.entity';
 import { ExternalEventActivation } from './entities/external-event-activation.entity';
 import { Member } from '../members/entities/member.entity';
@@ -57,10 +59,12 @@ describe('EventsModule DI', () => {
       controllers: [EventsController],
       providers: [
         EventsService,
+        CertificateInviteQueueService,
         { provide: getRepositoryToken(ManagedEvent), useValue: dummyRepo },
         { provide: getRepositoryToken(TicketType), useValue: dummyRepo },
         { provide: getRepositoryToken(EventOrder), useValue: dummyRepo },
         { provide: getRepositoryToken(EventRegistration), useValue: dummyRepo },
+        { provide: getRepositoryToken(CertificateInviteJob), useValue: dummyRepo },
         { provide: getRepositoryToken(EventStaff), useValue: dummyRepo },
         { provide: getRepositoryToken(Member), useValue: dummyRepo },
         { provide: getRepositoryToken(ExternalEventActivation), useValue: dummyRepo },
@@ -79,6 +83,7 @@ describe('EventsModule DI', () => {
     }).compile();
 
     expect(moduleRef.get(EventsService)).toBeInstanceOf(EventsService);
+    expect(moduleRef.get(CertificateInviteQueueService)).toBeInstanceOf(CertificateInviteQueueService);
     expect(moduleRef.get(EventsController)).toBeInstanceOf(EventsController);
   });
 });

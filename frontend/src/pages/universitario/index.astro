@@ -1,0 +1,83 @@
+---
+import PublicLayout from "../../layouts/PublicLayout.astro";
+import PageHero from "../../components/astro/PageHero.astro";
+import UniversityApplicationIsland from "../../components/islands/universities/UniversityApplicationIsland";
+import { loadUniversitiesIndex } from "../../data/universities";
+
+const { generatedAt, cities, institutions, events } = loadUniversitiesIndex();
+---
+
+<PublicLayout
+  title="Codaqui Universitário | CODAQUI.dev"
+  ogTitle="Codaqui Universitário | CODAQUI.dev"
+  description="Cidades, instituições de ensino, embaixadores e eventos do Codaqui Universitário"
+>
+  <PageHero
+    eyebrow="Presença universitária"
+    title="Codaqui Universitário"
+    subtitle="Conectamos instituições de ensino, embaixadores e participantes em encontros de tecnologia."
+  />
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    {!generatedAt && (
+      <section class="mb-8 rounded-lg border border-warning bg-surface p-4" aria-labelledby="universities-unavailable">
+        <h2 id="universities-unavailable" class="mb-2 text-lg font-bold text-text-primary">Dados temporariamente indisponíveis</h2>
+        <p class="mb-3 text-text-secondary">Não foi possível carregar o snapshot do programa. Tente novamente.</p>
+        <a href="/universitario" class="font-semibold text-link">Recarregar página</a>
+      </section>
+    )}
+
+    <section class="mb-12" aria-labelledby="universities-cities">
+      <h2 id="universities-cities" class="mb-4 text-2xl font-extrabold text-text-primary">Cidades e instituições</h2>
+      {cities.length === 0 && generatedAt ? (
+        <p class="text-text-secondary">Nenhuma cidade cadastrada ainda.</p>
+      ) : (
+        <div class="mb-6 flex flex-wrap gap-2">
+          {cities.map((city) => (
+            <span class="rounded-full border border-border px-3 py-1 text-sm text-text-secondary">{city.name}/{city.uf}</span>
+          ))}
+        </div>
+      )}
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {institutions.map((institution) => (
+          <article class="flex h-full flex-col rounded-lg border border-border bg-surface p-4">
+            <p class="mb-2 text-xs font-bold uppercase tracking-wide text-primary-700">{institution.city ? `${institution.city.name}/${institution.city.uf}` : "IES"}</p>
+            <h3 class="mb-2 text-lg font-bold text-text-primary">{institution.name}</h3>
+            {institution.website && (
+              <a href={institution.website} target="_blank" rel="noopener noreferrer" class="mb-3 text-sm font-semibold text-link">Site da instituição</a>
+            )}
+            {institution.ambassador ? (
+              <p class="mt-auto text-sm text-text-secondary">Embaixador: <strong>{institution.ambassador.name}</strong> (@{institution.ambassador.githubHandle})</p>
+            ) : (
+              <p class="mt-auto text-sm text-text-secondary">Sem embaixador ativo.</p>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+
+    <section class="mb-12" aria-labelledby="universities-events">
+      <h2 id="universities-events" class="mb-4 text-2xl font-extrabold text-text-primary">Eventos nas IES</h2>
+      {events.length === 0 && generatedAt ? (
+        <p class="text-text-secondary">Nenhum evento publicado nas instituições ainda.</p>
+      ) : (
+        <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+          {events.map((event) => (
+            <article class="rounded-lg border border-border bg-surface p-4">
+              <h3 class="mb-2 text-lg font-bold text-text-primary">{event.title}</h3>
+              <p class="mb-3 text-sm text-text-secondary">{event.location} · {new Date(event.startAt).toLocaleString("pt-BR")}</p>
+              <a href={`/eventos/${event.slug}`} class="text-sm font-semibold text-link">Ver evento</a>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+
+    {institutions.length > 0 && (
+      <section aria-labelledby="universities-application">
+        <h2 id="universities-application" class="sr-only">Candidatura a embaixador</h2>
+        <UniversityApplicationIsland institutions={institutions} client:load />
+      </section>
+    )}
+  </div>
+</PublicLayout>

@@ -111,6 +111,7 @@ related-docs:
 5. Somente a transição atômica `checkedInAt null → valor` com `status=confirmed` pode gerar `event_checkin`, na mesma transação. Se o update perder a corrida, a releitura diferencia `already_checked_in` de cancelamento/outro estado recusado. O crédito exige `memberId` e carga válida, nasce `approved` e usa `INSERT ... ON CONFLICT DO NOTHING`: hora preexistente não aborta o check-in nem duplica. Guests sem conta não geram horas.
 6. O CSV externo aceita `checkin` e `certificate` (`true/false` ou `1/0`). Presença importada também concede certificado; concessão isolada não gera horas. Reupload mantém dedupe e não recredita. O relatório inclui `checkedIn` e `certificatesGranted`.
 7. A carga vem de `workloadMinutes`; managed events podem usar `endAt - startAt` como fallback. Externos usam o override persistido e exigem carga ao ativar check-in. Legados sem carga seguem o check-in com warning, sem crédito ou backfill.
+8. Para corrigir importações, `DELETE /events/external/:eventKey/participants/:registrationId` exclui apenas participantes sem `orderId` e sem `checkedInAt`, decrementa `quantitySold` na mesma transação e libera reimportação. Presença e pedidos retornam 409 para preservar o histórico; `/admin/overrides` mostra confirmação e feedback.
 
 ### 2.4 Certificado
 
@@ -262,7 +263,7 @@ Agora cada evento tem uma página estática gerada em build time:
 
 ### 2.13 Horas e declarações
 
-`hour_ledger` é separada da ledger financeira: horas decimais, sem contas, BRL ou double-entry. Nesta fase só `event_checkin` e `directorate_activity` alimentam a tabela. Lançamentos manuais ficam pendentes e usam `(memberId,idempotencyKey)` para deduplicar; aprovação/rejeição exige admin ou `finance-analyzer`, faz update condicional de `pending` e grava audit de governo.
+`hour_ledger` é separada da ledger financeira: horas decimais, sem contas, BRL ou double-entry. As fontes são `event_checkin`, `directorate_activity`, `extension_project` e `mentorship_session`. Lançamentos manuais ficam pendentes e usam `(memberId,idempotencyKey)` para deduplicar; sessões concluídas criam uma entrada pendente única por membro/tipo/sessão com `hours = durationMin / 60`. Aprovação/rejeição exige admin ou `finance-analyzer`, faz update condicional de `pending` e grava audit de governo.
 
 | API | Uso corrente |
 |---|---|
@@ -293,7 +294,9 @@ A declaração em `/membro/horas` usa o snapshot persistido, não muda com lanç
 4. `/eventos/convite` é noindex e reutiliza `GuestClaimIsland`; confirmação e D-1 apontam para essa página quando `isGuest=true`.
 5. No próximo `upsertByGithub`, somente e-mails verificados vindos de `GET /user/emails` podem vincular. Se o membro já tiver inscrição confirmada no evento, o guest vira `cancelled`, devolve quota uma única vez e grava audit. Não há horas retroativas nem escrita financeira.
 6. O cron diário das 03:00 anonimiza nome/e-mail de guests sem `memberId` quando `managed_events.startAt` ou `external_event_activations.startAt` é anterior a 365 dias. Token, consentimento, concessão e presença permanecem; registros vinculados não entram no job.
-7. `POST /events/certificate-invites/batch` reutiliza o mesmo claim para ativações externas. Não cria autenticação paralela nem vínculo por e-mail não verificado; `certificateInvitedAt` só é preenchido com envio `sent`.
+7. `POST /events/certificate-invites/batch` responde **202** e cria jobs em `certificate_invite_jobs`; não envia mais emails em `Promise.all`. O worker processa um job a cada 10 segundos com `FOR UPDATE SKIP LOCKED`, repete a autorização e reutiliza o mesmo claim. `certificateInvitedAt` só é preenchido com envio `sent`.
+8. O progresso fica em `GET /events/certificate-invites/batches/:batchId`, restrito ao admin/solicitante. `EmailService` serializa SMTP e aplica `EMAIL_SEND_INTERVAL_MS` (default 2000 ms em produção, 0 em testes). Falhas temporárias usam 1/5 minutos, terceira falha é definitiva e 421/454 pausa pendentes por 15 minutos. Não há reprocessamento automático de erros antigos nem exactly-once absoluto se o SMTP aceitar e a conexão falhar antes da confirmação.
+9. As listagens aceitam `page`, `limit`, `search` e `certificateFilter`; com página+limite retornam o envelope compartilhado e sem eles preservam o array legado. A Central usa 25 por página, seleção somente da página atual e polling a cada 5 segundos somente quando a aba está visível.
 
 ### 2.16 Perfil público e badges
 
@@ -302,6 +305,14 @@ O perfil consulta `GET /hours/public` antes de buscar o extrato. Sem `totalHours
 `scripts/sync-member-badges.mjs` (`npm run sync:badges`) gera `static/badges/<handle>.svg`: valida a resposta inteira, escapa XML, usa arquivo temporário + rename, apaga obsoletos só após sucesso e restaura o estado anterior se a escrita falhar. O workflow roda às 06:17 UTC e por dispatch; `frontend/scripts/copy-snapshots.mjs` copia os SVGs no build. Mudanças aparecem no próximo sync + build/publicação. Se o SVG ainda não existir, `ProfileBadges` oculta somente a área após erro de carga.
 
 O primeiro sync contra o backend publicado deve concluir **antes** do deploy do frontend. Não é necessário gerar nem versionar SVGs de membros reais no branch de implementação.
+
+### 2.17 Eventos vinculados a IES (Codaqui Universitário)
+
+- `managed_events.institutionId` vincula um managed event comum a uma `entities` ativa do tipo `instituicao_ensino`. Não há evento, inscrição, certificado ou ledger paralelos.
+- `POST /events` exige organizer/admin sem vínculo. Com `institutionId`, o service aceita organizer/admin, `manager @ program('universitario')` ou `ambassador @ ies` ativo e válido naquela IES; o controller não aplica uma role global antes dessa verificação.
+- `/admin/universitario` oferece o atalho `/admin/eventos?institutionId=<uuid>`. O formulário lê o UUID somente quando ele pertence ao embaixador (ou quando o ator já gerencia eventos), não oferece troca de IES e mantém o valor no payload.
+- Confirmação e rejeição de candidaturas chamam `DesignationsService.invalidateCache()`. Isso evita que o resultado negativo de `hasDesignation`, consultado antes da candidatura, bloqueie o primeiro evento por até 60 segundos após a posse.
+- `GET /universities/public` e `static/universities/index.json` projetam somente cidades, IES, embaixadores ativos e eventos publicados. Motivação, e-mail e candidaturas não entram no snapshot. O E2E real está em `backend/test/universities.e2e-spec.ts`.
 
 ## 3. Convenções e anti-patterns
 

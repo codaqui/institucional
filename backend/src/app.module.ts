@@ -29,6 +29,8 @@ import { HoursModule } from './hours/hours.module';
 import { AssembliesModule } from './assemblies/assemblies.module';
 import { EntitiesModule } from './entities/entities.module';
 import { ProjectsModule } from './projects/projects.module';
+import { UniversitiesModule } from './universities/universities.module';
+import { MentorshipModule } from './mentorship/mentorship.module';
 
 @Module({
   imports: [
@@ -82,6 +84,8 @@ import { ProjectsModule } from './projects/projects.module';
     AssembliesModule,
     EntitiesModule,
     ProjectsModule,
+    UniversitiesModule,
+    MentorshipModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

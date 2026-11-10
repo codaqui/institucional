@@ -455,6 +455,9 @@ Comportamento por feature em evento externo:
   convite para aceite guest ou aguarda o match por e-mail verificado via `rematch`/cadastro;
 - **Idempotente:** re-upload do mesmo CSV não duplica — dedupe por `(externalSource, externalId)`
   ou, na ausência de `external_id`, por e-mail normalizado; horas usam a unicidade da `hour_ledger`;
+- **Correção por exclusão:** `DELETE /events/external/:eventKey/participants/:registrationId`
+  remove somente importados sem pedido/presença, decrementa o ingresso na mesma transação e
+  libera reimportação. Check-in ou pedido retorna 409, preservando histórico e horas;
 - **Retorno:** relatório `{ imported, matched, checkedIn, certificatesGranted, unmatched, skippedDuplicates, errors }`;
 - **Limite:** 5 MB / 10 mil linhas por upload (eventos maiores: múltiplos uploads).
 

@@ -74,6 +74,7 @@ export interface UseAdminEventosMutationsReturn {
 export function useAdminEventosMutations(
   authFetch: (path: string, init?: RequestInit) => Promise<Response>,
   fetchEvents: () => Promise<void>,
+  initialInstitutionId = "",
 ): UseAdminEventosMutationsReturn {
   const [eventDialog, setEventDialog] = useState<EventDialogState>(null);
   const [eventForm, setEventForm] = useState<EventForm>(EMPTY_EVENT_FORM);
@@ -107,10 +108,10 @@ export function useAdminEventosMutations(
   } | null>(null);
 
   const openCreateDialog = useCallback(() => {
-    setEventForm(EMPTY_EVENT_FORM);
+    setEventForm({ ...EMPTY_EVENT_FORM, institutionId: initialInstitutionId });
     setEventError("");
     setEventDialog({ mode: "create" });
-  }, []);
+  }, [initialInstitutionId]);
 
   const openEditDialog = useCallback((event: ManagedEvent) => {
     setEventForm({
@@ -128,6 +129,7 @@ export function useAdminEventosMutations(
       workloadMinutes: event.workloadMinutes != null ? String(event.workloadMinutes) : "",
       adultOnly: event.adultOnly,
       venueType: event.venueType ?? "",
+      institutionId: event.institutionId ?? "",
     });
     setEventError("");
     setEventDialog({ mode: "edit", event });

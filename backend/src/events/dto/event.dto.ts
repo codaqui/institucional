@@ -8,6 +8,7 @@ import {
   IsOptional,
   IsString,
   IsUrl,
+  IsUUID,
   Matches,
   Max,
   MaxLength,
@@ -112,6 +113,10 @@ export class CreateEventDto {
   @IsOptional()
   @IsEnum(VenueType)
   venueType?: VenueType | null;
+
+  @IsOptional()
+  @IsUUID()
+  institutionId?: string | null;
 }
 
 export class UpdateEventDto {
@@ -187,4 +192,8 @@ export class UpdateEventDto {
   @IsOptional()
   @IsEnum(VenueType)
   venueType?: VenueType | null;
+
+  @IsOptional()
+  @IsUUID()
+  institutionId?: string | null;
 }

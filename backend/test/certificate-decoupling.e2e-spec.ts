@@ -123,6 +123,7 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       'Convite Ignorado,skipped@e2e.invalid,false,true',
       'Participante Lote,batch@e2e.invalid,false,false',
       'Certificado Independente,certificate@e2e.invalid,false,false',
+      'Para Excluir,delete@e2e.invalid,false,false',
     ].join('\n');
     const importResponse = await request(app.getHttpServer())
       .post(`/events/external/${encodeURIComponent(EVENT_KEY)}/participants/import`)
@@ -134,13 +135,13 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       })
       .expect(201);
     expect(importResponse.body).toMatchObject({
-      imported: 6,
+      imported: 7,
       matched: 3,
       checkedIn: 1,
       certificatesGranted: 4,
       skippedDuplicates: 0,
     });
-    expect(importResponse.body.unmatched).toHaveLength(3);
+    expect(importResponse.body.unmatched).toHaveLength(4);
 
     const participant = await registrationByEmail('participant@e2e.invalid');
     expect(participant.checkedInAt).not.toBeNull();
@@ -156,11 +157,30 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       .set('Content-Type', 'text/csv')
       .send(csv)
       .expect(201);
-    expect(reupload.body).toMatchObject({ imported: 0, skippedDuplicates: 6 });
+    expect(reupload.body).toMatchObject({ imported: 0, skippedDuplicates: 7 });
     expect(await dataSource.query(
       'SELECT id FROM hour_ledger WHERE "memberId" = $1 AND "sourceType" = $2',
       [actors.participant.sub, 'event_checkin'],
     )).toHaveLength(1);
+
+    const deletedRegistration = await registrationByEmail('delete@e2e.invalid');
+    await request(app.getHttpServer())
+      .delete(`/events/external/${encodeURIComponent(EVENT_KEY)}/participants/${deletedRegistration.id}`)
+      .set(as('admin'))
+      .expect(200)
+      .expect({ deleted: true });
+    const correctedImport = await request(app.getHttpServer())
+      .post(`/events/external/${encodeURIComponent(EVENT_KEY)}/participants/import`)
+      .set(as('admin'))
+      .set('Content-Type', 'text/csv')
+      .send('name,email,checkin,certificate\nCorrigido,delete@e2e.invalid,false,false')
+      .expect(201);
+    expect(correctedImport.body).toMatchObject({ imported: 1 });
+    const ticketQuantity = await dataSource.query(
+      'SELECT "quantitySold" FROM ticket_types WHERE "externalActivationId" = (SELECT id FROM external_event_activations WHERE "eventKey" = $1) AND name = $2',
+      [EVENT_KEY, 'Importado'],
+    );
+    expect(ticketQuantity[0].quantitySold).toBe(7);
 
     const batch = await registrationByEmail('batch@e2e.invalid');
     const pendingSent = await registrationByEmail('sent@e2e.invalid');

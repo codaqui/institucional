@@ -170,6 +170,9 @@ export default function ActivationTab({
   const [importError, setImportError] = useState("");
   const [rematching, setRematching] = useState(false);
   const [rematchResult, setRematchResult] = useState<{ rematched: number; stillUnmatched: number } | null>(null);
+  const [participantToDelete, setParticipantToDelete] = useState<ExternalParticipant | null>(null);
+  const [deletingParticipant, setDeletingParticipant] = useState(false);
+  const deleteDialogRef = useRef<HTMLDialogElement>(null);
 
   // Ingressos do evento externo (feature payments)
   const [ticketTypes, setTicketTypes] = useState<ExternalTicketType[]>([]);
@@ -184,6 +187,10 @@ export default function ActivationTab({
 
   const eventKey = selected ? `${selected.sourceKey}:${selected.id}` : null;
   const initialApplied = useRef(false);
+
+  useEffect(() => {
+    if (participantToDelete) deleteDialogRef.current?.showModal();
+  }, [participantToDelete]);
 
   const fetchParticipants = useCallback(
     async (key: string) => {
@@ -461,6 +468,37 @@ export default function ActivationTab({
     }
   };
 
+  const closeDeleteDialog = () => {
+    deleteDialogRef.current?.close();
+    setParticipantToDelete(null);
+  };
+
+  const handleDeleteParticipant = async () => {
+    if (!eventKey || !participantToDelete) return;
+    setDeletingParticipant(true);
+    setParticipantsError("");
+    setSuccess("");
+    try {
+      const res = await authFetch(
+        `${externalApiUrl(eventKey)}/participants/${participantToDelete.id}`,
+        { method: "DELETE" },
+      );
+      if (!res.ok) {
+        setParticipantsError(
+          await extractErrorMessage(res, "Erro ao remover participante."),
+        );
+        return;
+      }
+      setSuccess("Participante removido. A reimportação está liberada.");
+      closeDeleteDialog();
+      await fetchParticipants(eventKey);
+    } catch {
+      setParticipantsError("Erro inesperado ao remover participante.");
+    } finally {
+      setDeletingParticipant(false);
+    }
+  };
+
   const statusChip = (p: ExternalParticipant) => {
     if (p.status === "pending_match") {
       return <Chip label="Pendente de match" color="warning" size="small" variant="outlined" />;
@@ -698,6 +736,7 @@ export default function ActivationTab({
                           <TableCell>Status</TableCell>
                           <TableCell>Check-in</TableCell>
                           <TableCell>Ingresso</TableCell>
+                          <TableCell align="right">Ações</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -710,6 +749,18 @@ export default function ActivationTab({
                               {p.checkedInAt ? formatDateTime(p.checkedInAt) : "—"}
                             </TableCell>
                             <TableCell>{p.ticketType?.name ?? "—"}</TableCell>
+                            <TableCell align="right">
+                              <IconButton
+                                size="small"
+                                color="error"
+                                aria-label={`Remover participante ${p.attendeeName ?? p.attendeeEmail}`}
+                                title={p.checkedInAt || p.orderId ? "Presença e pedidos protegem o histórico" : "Remover participante"}
+                                disabled={!!p.checkedInAt || !!p.orderId || deletingParticipant}
+                                onClick={() => setParticipantToDelete(p)}
+                              >
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
@@ -717,6 +768,38 @@ export default function ActivationTab({
                   )}
                 </CardContent>
               </Card>
+
+              <dialog
+                ref={deleteDialogRef}
+                aria-labelledby="delete-participant-title"
+                onClose={() => setParticipantToDelete(null)}
+              >
+                <h2 id="delete-participant-title">Remover participante?</h2>
+                <p>
+                  {participantToDelete?.attendeeName ?? participantToDelete?.attendeeEmail} será excluído.
+                  A reimportação do participante corrigido ficará liberada.
+                </p>
+                {participantsError && <Alert severity="error">{participantsError}</Alert>}
+                <form method="dialog">
+                  <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 1 }}>
+                    <Button type="submit" autoFocus disabled={deletingParticipant} onClick={closeDeleteDialog}>
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      color="error"
+                      variant="contained"
+                      disabled={deletingParticipant}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        void handleDeleteParticipant();
+                      }}
+                    >
+                      {deletingParticipant ? "Removendo…" : "Remover participante definitivamente"}
+                    </Button>
+                  </Box>
+                </form>
+              </dialog>
 
               {/* Ingressos (feature payments) */}
               {features.includes("payments") && (

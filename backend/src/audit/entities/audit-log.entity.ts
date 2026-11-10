@@ -85,6 +85,7 @@ export enum AuditAction {
   EVENT_CERTIFICATE_INVITED = 'event.certificate_invited',
   EVENT_ACTIVATION_SAVED = 'event.activation_saved',
   EVENT_PARTICIPANTS_IMPORTED = 'event.participants_imported',
+  EVENT_PARTICIPANT_DELETED = 'event.participant_deleted',
   EVENT_INTERNAL_SYNCED = 'event.internal_synced',
   EVENT_GUEST_INVITED = 'event.guest_invited',
   EVENT_GUEST_CLAIMED = 'event.guest_claimed',
@@ -98,6 +99,15 @@ export enum AuditAction {
   HOUR_CREATED = 'hour.created',
   HOUR_APPROVED = 'hour.approved',
   HOUR_REJECTED = 'hour.rejected',
+
+  // Codaqui Universitário
+  CITY_CREATED = 'university.city_created',
+  CITY_UPDATED = 'university.city_updated',
+  UNIVERSITY_INSTITUTION_CREATED = 'university.institution_created',
+  UNIVERSITY_INSTITUTION_UPDATED = 'university.institution_updated',
+  UNIVERSITY_AMBASSADOR_APPLIED = 'university.ambassador_applied',
+  UNIVERSITY_AMBASSADOR_REJECTED = 'university.ambassador_rejected',
+  UNIVERSITY_AMBASSADOR_CONFIRMED = 'university.ambassador_confirmed',
 
   // Assemblies
   ASSEMBLY_CREATED = 'assembly.created',
