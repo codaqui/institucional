@@ -44,6 +44,7 @@ const GOVERNANCE_ACTIONS = new Set<AuditAction>([
   AuditAction.HOUR_CREATED,
   AuditAction.HOUR_APPROVED,
   AuditAction.HOUR_REJECTED,
+  AuditAction.MENTOR_PROFILE_UPDATED,
   AuditAction.EVENT_ORDER_REFUNDED,
   AuditAction.ASSEMBLY_CREATED,
   AuditAction.ASSEMBLY_UPDATED,

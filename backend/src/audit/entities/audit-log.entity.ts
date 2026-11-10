@@ -99,6 +99,9 @@ export enum AuditAction {
   EMAIL_TEMPLATE_UPSERTED = 'email.template_upserted',
   EMAIL_TEMPLATE_DELETED = 'email.template_deleted',
 
+  // Mentorship
+  MENTOR_PROFILE_UPDATED = 'mentorship.mentor_updated',
+
   // Hours
   HOUR_CREATED = 'hour.created',
   HOUR_APPROVED = 'hour.approved',

@@ -7,7 +7,7 @@ import type { JwtPayload } from '../auth/jwt.strategy';
 import { DesignationsService } from '../designations/designations.service';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
-import { MentorApplicationDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
+import { MentorApplicationDto, UpdateMentorAdminDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorAvailability } from './entities/mentor-availability.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
@@ -93,6 +93,131 @@ export class MentorshipService {
       details: { designationId: id, mentorProfileId: profile.id },
     });
     return this.profileRepo.save(profile);
+  }
+
+  async listMentors(actor: JwtPayload, page = 1, limit = 50) {
+    this.assertAdmin(actor);
+    const [profiles, total] = await this.profileRepo.findAndCount({
+      order: { createdAt: 'ASC' },
+      skip: (page - 1) * limit,
+      take: limit,
+    });
+    const members = await this.memberRepo.findBy({ id: In(profiles.map((profile) => profile.memberId)) });
+    const membersById = new Map(members.map((member) => [member.id, member]));
+    return {
+      data: profiles.map((profile) => {
+        const member = membersById.get(profile.memberId)!;
+        return {
+          id: profile.id,
+          memberId: profile.memberId,
+          name: member.name,
+          githubHandle: member.githubHandle,
+          avatarUrl: member.avatarUrl,
+          areas: profile.areas,
+          focus: profile.focus,
+          active: profile.active,
+          isPlaceholder: !member.isActive && member.email.endsWith('@anon.invalid'),
+        };
+      }),
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    };
+  }
+
+  async updateMentor(id: string, dto: UpdateMentorAdminDto, actor: JwtPayload): Promise<MentorProfile> {
+    this.assertAdmin(actor);
+    const { profile, memberIds, audit: auditDetails } = await this.profileRepo.manager.transaction(async (manager) => {
+      const profiles = manager.getRepository(MentorProfile);
+      const members = manager.getRepository(Member);
+      const designations = manager.getRepository(MemberDesignation);
+      const current = await profiles.findOneBy({ id });
+      if (!current) throw new NotFoundException('Perfil de mentor não encontrado.');
+      const targetMember = await members.findOneBy({ id: dto.memberId, isActive: true });
+      if (!targetMember) throw new NotFoundException('Membro ativo não encontrado.');
+      const conflict = await profiles.findOneBy({ memberId: dto.memberId });
+      if (conflict && conflict.id !== id) {
+        throw new ConflictException('O membro já possui um perfil de mentor.');
+      }
+
+      const before = {
+        memberId: current.memberId,
+        areas: [...current.areas],
+        focus: current.focus,
+        active: current.active,
+      };
+      const previousMemberId = current.memberId;
+      const affectedMemberIds = [...new Set([previousMemberId, dto.memberId])];
+      const mentorshipDesignations = await designations.find({
+        where: {
+          memberId: In(affectedMemberIds),
+          targetType: 'program',
+          targetKey: 'mentoria',
+          designation: 'mentor',
+        },
+      });
+      const reassigned = previousMemberId !== dto.memberId;
+      for (const designation of mentorshipDesignations) {
+        if (designation.memberId === previousMemberId
+          && (reassigned || !dto.active)
+          && ['pending', 'active'].includes(designation.status)) {
+          designation.status = 'removed';
+          designation.endedAt = new Date();
+          await designations.save(designation);
+        }
+      }
+      if (dto.active) {
+        let targetDesignation = mentorshipDesignations.find((designation) => designation.memberId === dto.memberId);
+        if (!targetDesignation) {
+          targetDesignation = designations.create({
+            memberId: dto.memberId,
+            targetType: 'program',
+            targetKey: 'mentoria',
+            designation: 'mentor',
+            appointedById: actor.sub,
+          });
+        }
+        targetDesignation.status = 'active';
+        targetDesignation.confirmedById = actor.sub;
+        targetDesignation.confirmedAt = new Date();
+        targetDesignation.endedAt = null;
+        await designations.save(targetDesignation);
+      }
+
+      current.memberId = dto.memberId;
+      current.areas = dto.areas;
+      current.focus = dto.focus?.trim() || null;
+      current.active = dto.active;
+      current.approvedById = actor.sub;
+      const saved = await profiles.save(current);
+      return {
+        profile: saved,
+        memberIds: affectedMemberIds,
+        audit: {
+          before,
+          after: {
+            memberId: saved.memberId,
+            areas: saved.areas,
+            focus: saved.focus,
+            active: saved.active,
+          },
+        },
+      };
+    });
+    for (const memberId of memberIds) {
+      await this.designations.syncMember(memberId);
+    }
+    this.designations.invalidateCache();
+    await this.audit.log({
+      action: AuditAction.MENTOR_PROFILE_UPDATED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: profile.memberId,
+      targetType: 'member',
+      details: { mentorProfileId: profile.id, ...auditDetails },
+    });
+    return profile;
   }
 
   async getProfile(actor: JwtPayload): Promise<MentorProfile> {
