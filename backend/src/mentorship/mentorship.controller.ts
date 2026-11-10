@@ -17,6 +17,18 @@ export class MentorshipController {
     private readonly sessions: SessionsService,
   ) {}
 
+  @Get('public')
+  listPublic() {
+    return this.mentorship.listPublic();
+  }
+
+  @Get('insights')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  listInsights(@Req() req: { user: JwtPayload }) {
+    return this.mentorship.listInsights(req.user);
+  }
+
   @Put('availability/:weekday')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')

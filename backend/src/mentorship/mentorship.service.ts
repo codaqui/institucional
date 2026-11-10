@@ -1,14 +1,16 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { DesignationsService } from '../designations/designations.service';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
-import { MemberRole } from '../members/entities/member.entity';
+import { Member, MemberRole } from '../members/entities/member.entity';
 import { MentorApplicationDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
 import { MentorProfile } from './entities/mentor-profile.entity';
+import { MentorAvailability } from './entities/mentor-availability.entity';
+import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 
 @Injectable()
 export class MentorshipService {
@@ -19,6 +21,12 @@ export class MentorshipService {
     private readonly designationRepo: Repository<MemberDesignation>,
     private readonly designations: DesignationsService,
     private readonly audit: AuditService,
+    @InjectRepository(Member)
+    private readonly memberRepo: Repository<Member>,
+    @InjectRepository(MentorAvailability)
+    private readonly availabilityRepo: Repository<MentorAvailability>,
+    @InjectRepository(MentorshipSession)
+    private readonly sessionRepo: Repository<MentorshipSession>,
   ) {}
 
   async apply(dto: MentorApplicationDto, user: JwtPayload) {
@@ -96,6 +104,102 @@ export class MentorshipService {
     profile.areas = dto.areas;
     profile.focus = dto.focus?.trim() || null;
     return this.profileRepo.save(profile);
+  }
+
+  async listPublic() {
+    const { sessions: _sessions, ...payload } = await this.buildSnapshot();
+    return payload;
+  }
+
+  private async buildSnapshot() {
+    const profiles = await this.profileRepo.find({ where: { active: true }, order: { createdAt: 'ASC' } });
+    if (profiles.length === 0) {
+      return {
+        mentors: [],
+        insights: { completed: 0, activeMentors: 0, areas: [], noShowRate: 0 },
+        sessions: [],
+      };
+    }
+    const members = await this.memberRepo.findBy({
+      id: In(profiles.map((profile) => profile.memberId)),
+      isActive: true,
+    });
+    const membersById = new Map(members.map((member) => [member.id, member]));
+    const activeProfiles = profiles.filter((profile) => membersById.has(profile.memberId));
+    const profileIds = activeProfiles.map((profile) => profile.id);
+    if (profileIds.length === 0) {
+      return {
+        mentors: [],
+        insights: { completed: 0, activeMentors: 0, areas: [], noShowRate: 0 },
+        sessions: [],
+      };
+    }
+    const [availability, sessions] = await Promise.all([
+      this.availabilityRepo.find({ where: { mentorId: In(profileIds) } }),
+      this.sessionRepo.find({
+        where: { mentorId: In(profileIds) },
+        select: { mentorId: true, status: true },
+      }),
+    ]);
+    const mentors = activeProfiles.map((profile) => {
+      const member = membersById.get(profile.memberId)!;
+      return {
+        id: profile.id,
+        handle: member.githubHandle,
+        name: member.name,
+        avatarUrl: member.avatarUrl,
+        areas: profile.areas,
+        focus: profile.focus,
+        availability: availability
+          .filter((rule) => rule.mentorId === profile.id)
+          .map((rule) => ({
+            weekday: rule.weekday,
+            startTime: rule.startTime,
+            endTime: rule.endTime,
+            timeZone: rule.timeZone,
+          })),
+      };
+    });
+    const completed = sessions.filter((session) => session.status === MentorshipSessionStatus.COMPLETED).length;
+    const noShow = sessions.filter((session) => session.status === MentorshipSessionStatus.NO_SHOW).length;
+    const areas = [...new Set(activeProfiles.flatMap((profile) => profile.areas))]
+      .sort((left, right) => left.localeCompare(right))
+      .map((area) => {
+        const areaProfileIds = activeProfiles
+          .filter((profile) => profile.areas.includes(area))
+          .map((profile) => profile.id);
+        return {
+          area,
+          mentors: areaProfileIds.length,
+          completed: sessions.filter((session) => session.status === MentorshipSessionStatus.COMPLETED
+            && areaProfileIds.includes(session.mentorId)).length,
+        };
+      });
+    return {
+      mentors,
+      insights: {
+        completed,
+        activeMentors: mentors.length,
+        areas,
+        noShowRate: completed + noShow === 0 ? 0 : Number((noShow / (completed + noShow)).toFixed(4)),
+      },
+      sessions,
+    };
+  }
+
+  async listInsights(actor: JwtPayload) {
+    this.assertAdmin(actor);
+    const { sessions, ...publicPayload } = await this.buildSnapshot();
+    const count = (status: MentorshipSessionStatus) => sessions
+      .filter((session) => session.status === status).length;
+    return {
+      ...publicPayload.insights,
+      requested: count(MentorshipSessionStatus.REQUESTED),
+      confirmed: count(MentorshipSessionStatus.CONFIRMED),
+      completed: count(MentorshipSessionStatus.COMPLETED),
+      canceled: count(MentorshipSessionStatus.CANCELED),
+      noShow: count(MentorshipSessionStatus.NO_SHOW),
+    };
   }
 
   private async requireActiveProfile(actor: JwtPayload): Promise<MentorProfile> {

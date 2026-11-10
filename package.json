@@ -16,6 +16,7 @@
     "sync:assemblies": "node scripts/sync-assemblies.mjs",
     "sync:projects": "node scripts/sync-projects.mjs",
     "sync:universities": "node scripts/sync-universities.mjs",
+    "sync:mentors": "node scripts/sync-mentors.mjs",
     "sync:badges": "node scripts/sync-member-badges.mjs",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
