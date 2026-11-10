@@ -229,6 +229,15 @@ describe('EventsService', () => {
     } as any);
   });
 
+  const mockEmptyRegistrationQuery = () => registrationRepo.createQueryBuilder.mockReturnValue({
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn().mockResolvedValue([]),
+  });
+
   describe('adult content classification', () => {
     it('serializes adult classification without changing event visibility', () => {
       const toEventItem = EventsService['toEventItem'] as unknown as (
@@ -269,14 +278,7 @@ describe('EventsService', () => {
   describe('getPublicManagedEvents', () => {
     it('queries only published events (draft nunca aparece)', async () => {
       eventRepo.find.mockResolvedValue([]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
 
       const result = await service.getPublicManagedEvents();
 
@@ -325,14 +327,7 @@ describe('EventsService', () => {
         makeEvent({ description: 'Texto longo\ncom quebras' }),
         makeEvent({ id: uuid(11) }),
       ]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
 
       const { events } = await service.getPublicManagedEvents();
 
@@ -342,14 +337,7 @@ describe('EventsService', () => {
 
     it('evento com 2 hosts → organizers com name/id/photoUrl (sem e-mail)', async () => {
       eventRepo.find.mockResolvedValue([makeEvent()]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
       staffRepo.findBy.mockResolvedValue([
         { eventId: uuid(10), memberId: uuid(1), staffRole: EventStaffRole.HOST },
         { eventId: uuid(10), memberId: uuid(2), staffRole: EventStaffRole.HOST },
@@ -389,14 +377,7 @@ describe('EventsService', () => {
 
     it('evento sem host → campo organizers omitido', async () => {
       eventRepo.find.mockResolvedValue([makeEvent()]);
-      registrationRepo.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
+      mockEmptyRegistrationQuery();
       staffRepo.findBy.mockResolvedValue([]);
 
       const { events } = await service.getPublicManagedEvents();

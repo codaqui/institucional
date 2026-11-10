@@ -578,35 +578,34 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       );
     });
 
-    it('rejects an invitation when the email is not verified in the GitHub account', async () => {
-      const registration = makeCertificateGuest({ certificateInvitedAt: new Date() });
-      registrationRepo.findOneBy.mockResolvedValue(registration);
-      memberRepo.findOneBy.mockResolvedValue({
-        id: uuid(1), isActive: true, secondaryEmails: ['other@x.dev'],
-      });
-
-      await expect(service.claimCertificateWithAccount({
-        token: registration.checkinToken,
-        consent: true,
-      }, user())).rejects.toThrow('e-mail do convite precisa estar verificado no GitHub');
-      expect(registrationRepo.update).not.toHaveBeenCalled();
-    });
-
-    it('does not allow another account to claim an already linked invitation', async () => {
-      const registration = makeCertificateGuest({
+    it.each([
+      {
+        title: 'email is not verified in the GitHub account',
+        memberId: null,
+        secondaryEmails: ['other@x.dev'],
+        error: 'e-mail do convite precisa estar verificado no GitHub',
+      },
+      {
+        title: 'invitation is already linked to another account',
         memberId: uuid(99),
-        status: RegistrationStatus.CONFIRMED,
+        secondaryEmails: ['ana@x.dev'],
+        error: 'Convite já vinculado a outra conta.',
+      },
+    ])('rejects the account claim when $title', async ({ memberId, secondaryEmails, error }) => {
+      const registration = makeCertificateGuest({
+        memberId,
+        status: memberId ? RegistrationStatus.CONFIRMED : RegistrationStatus.PENDING_GUEST,
         certificateInvitedAt: new Date(),
       });
       registrationRepo.findOneBy.mockResolvedValue(registration);
       memberRepo.findOneBy.mockResolvedValue({
-        id: uuid(1), isActive: true, secondaryEmails: ['ana@x.dev'],
+        id: uuid(1), isActive: true, secondaryEmails,
       });
 
       await expect(service.claimCertificateWithAccount({
         token: registration.checkinToken,
         consent: true,
-      }, user())).rejects.toThrow('Convite já vinculado a outra conta.');
+      }, user())).rejects.toThrow(error);
       expect(registrationRepo.update).not.toHaveBeenCalled();
     });
 
