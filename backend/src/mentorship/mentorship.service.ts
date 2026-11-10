@@ -63,7 +63,7 @@ export class MentorshipService {
     });
   }
 
-  async listApplications(actor: JwtPayload) {
+  listApplications(actor: JwtPayload) {
     this.assertAdmin(actor);
     return this.designationRepo.find({
       where: { targetType: 'program', targetKey: 'mentoria', designation: 'mentor', status: 'pending' },

@@ -114,7 +114,7 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
       request(app.getHttpServer()).post('/mentorship/sessions').send(slot),
       request(app.getHttpServer()).post('/mentorship/sessions').send(slot),
     ]);
-    expect([first.status, second.status].sort()).toEqual([201, 409]);
+    expect([first.status, second.status].sort((left, right) => left - right)).toEqual([201, 409]);
     const saved = first.status === 201 ? first : second;
     const sessionId = saved.body.id as string;
     const token = saved.body.token as string;

@@ -171,9 +171,9 @@ export class SessionsService {
         ),
       },
     });
-    for (const session of sessions) {
-      if (!session.meetLink) continue;
-      await this.emailService.sendTemplate(
+    await Promise.all(sessions
+      .filter((session) => session.meetLink)
+      .map((session) => this.emailService.sendTemplate(
         'mentorship-reminder-d1',
         session.menteeEmail,
         {
@@ -184,8 +184,7 @@ export class SessionsService {
           meetLink: session.meetLink,
         },
         { eventId: null, registrationId: session.id },
-      );
-    }
+      )));
   }
 
   @Cron('30 3 * * *')
@@ -198,11 +197,11 @@ export class SessionsService {
         menteeEmail: Not(Like('anon-%@anon.invalid')),
       },
     });
-    for (const guest of guests) {
+    await Promise.all(guests.map((guest) => {
       guest.menteeName = 'Participante anonimizado';
       guest.menteeEmail = `anon-${guest.id}@anon.invalid`;
-      await this.sessionRepo.save(guest);
-    }
+      return this.sessionRepo.save(guest);
+    }));
     if (guests.length > 0) {
       Logger.log(`${guests.length} sessões de convidados anonimizadas após 12 meses.`, SessionsService.name);
     }
