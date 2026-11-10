@@ -23,6 +23,7 @@ import {
   CreateCompanyDto,
   UpdateCompanyStatusDto,
   UpdateCompanyDto,
+  UpdateCompanyTierDto,
 } from './dto/company.dto';
 import { DistributeCoinsDto } from './dto/distribute-coins.dto';
 import { AdjustCompanyWalletDto } from '../club/dto/wallet.dto';
@@ -89,6 +90,11 @@ export class CompaniesController {
   @Get('member/:handle/public-affiliation')
   async getPublicAffiliationByHandle(@Param('handle') handle: string) {
     return this.companiesService.findPublicAffiliationByHandle(handle);
+  }
+
+  @Get('badges/public')
+  async listPublicBadges() {
+    return this.companiesService.listPublicBadges();
   }
 
   @Get(':id/public')
@@ -253,6 +259,18 @@ export class CompaniesController {
     @Body() body: UpdateCompanyStatusDto,
   ) {
     return this.companiesService.updateStatus(id, body.status);
+  }
+
+  @Patch(':id/tier')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(MemberRole.ADMIN)
+  @ApiBearerAuth()
+  async adminUpdateTier(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: UpdateCompanyTierDto,
+    @Req() req: Request,
+  ) {
+    return this.companiesService.updateTier(id, body, req.user as JwtPayload);
   }
 
   @Post('admin/wallet/adjust')

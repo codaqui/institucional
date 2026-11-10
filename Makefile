@@ -46,7 +46,7 @@ RED    := \033[31m
         backend-start backend-build backend-test backend-lint \
         astro-install astro-dev astro-build astro-check astro-test astro-preview \
         astro-verify astro-verify-tenants astro-lighthouse \
-        sync sync-events sync-events-full sync-social sync-analytics sync-communities sync-assemblies sync-mentors sync-badges \
+        sync sync-events sync-events-full sync-social sync-analytics sync-communities sync-assemblies sync-mentors sync-company-badges sync-badges \
         clean clean-volumes
 
 # Target padrão
@@ -363,6 +363,9 @@ sync-universities: ## Sincroniza Codaqui Universitário → static/universities/
 
 sync-mentors: ## Sincroniza mentores e insights agregados → static/mentors/
 	MENTORS_API_URL=http://localhost:3001 npm run sync:mentors
+
+sync-company-badges: ## Sincroniza selos de empresas → static/badges/empresas/
+	COMPANY_BADGES_API_URL=http://localhost:3001 npm run sync:company-badges
 
 sync-badges: ## Sincroniza selos SVG públicos → static/badges/
 	MEMBER_BADGES_API_URL=http://localhost:3001 npm run sync:badges

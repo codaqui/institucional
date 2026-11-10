@@ -44,6 +44,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 015 | [Codaqui Universitário](adrs/015-codaqui-universitario.md) | 2026-11 | Implementado e verificado; integração, release 0.17.0, sync inicial e validação pública pendentes |
 | 016 | [Fila assíncrona de convites de certificado](adrs/016-certificate-invite-queue.md) | 2026-11 | Implementado e verificado em dump real; PR para develop, release 0.18.0 e validação controlada pendentes |
 | 009 | [Mentoria no sistema](adrs/009-mentorship.md) | 2026-11 | Implementado e verificado em dump real; PR para develop, release 0.19.0, sync inicial e validação controlada pendentes |
+| 010 | [Business tiers](adrs/010-business-tiers.md) | 2026-11 | Implementado e verificado em dump real; PR para develop, release 0.20.0, sync inicial e validação controlada pendentes |
 
 ### Módulos — Documentação Viva
 
@@ -62,7 +63,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | ⭐ Consolidação de próximos passos de todas as áreas (snapshot 2026-09-10) — ponto de partida para coordenação. |
-| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–3 publicadas, restando Discussion real; Fase 4 integrada com publicação 0.16.x pendente; Fase 4b aguardando integração/release 0.17.0; Fase 5 implementada ([ADR 009](adrs/009-mentorship.md)), aguardando PR/release 0.19.0; campanhas em spec separada. |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–3 publicadas, restando Discussion real; Fase 4 integrada com publicação 0.16.x pendente; Fase 4b aguardando integração/release 0.17.0; Fase 5 implementada ([ADR 009](adrs/009-mentorship.md)), aguardando PR/release 0.19.0; Fase 6 implementada ([ADR 010](adrs/010-business-tiers.md)), aguardando PR/release 0.20.0; campanhas em spec separada. |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |

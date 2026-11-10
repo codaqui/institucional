@@ -136,6 +136,7 @@ chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficie
 | `npm run sync:assemblies` | `GET /assemblies/public` → `static/assemblies/index.json` (validação completa + rename atômico) |
 | `npm run sync:universities` | `GET /universities/public` → `static/universities/index.json` (validação completa + rename atômico) |
 | `npm run sync:mentors` | `GET /mentorship/public` → `static/mentors/index.json` (perfis públicos + insights agregados, validação completa + rename atômico) |
+| `npm run sync:company-badges` | `GET /companies/badges/public` → `static/badges/empresas/<uuid>.svg` (somente selos vigentes, escrita atômica) |
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
 | `npm run test:scripts` | Testes dos scripts de sync/validação (`node --test`) |
@@ -167,9 +168,14 @@ campos fora da projeção pública e preserva o snapshot anterior em falha. O wo
 roda diariamente às 06:21 UTC e por dispatch, fora do agregador `npm run sync`. O UUID público é o do
 perfil de mentoria; membros, aprovadores, mentorandos e sessões individuais nunca entram no snapshot.
 
+Para selos de empresas, `COMPANY_BADGES_API_URL` define a base da API (default `http://localhost:3001`).
+O sync rejeita qualquer campo fora da projeção pública, escreve `static/badges/empresas/<uuid>.svg`
+atomicamente e restaura os arquivos anteriores em falha. O workflow `sync-company-badges.yml` roda
+diariamente às 06:19 UTC e por dispatch, fora do agregador `npm run sync`.
+
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
-Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics`, `make sync-communities`, `make sync-assemblies` e `make sync-mentors` espelham os comandos da tabela.
+Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics`, `make sync-communities`, `make sync-assemblies`, `make sync-mentors` e `make sync-company-badges` espelham os comandos da tabela.
 
 ### Operação manual de Assembleias (Fase 3)
 

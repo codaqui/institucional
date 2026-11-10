@@ -10,6 +10,8 @@ import { Member } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
 import { CompaniesController } from './companies.controller';
 import { ClubModule } from '../club/club.module';
+import { StorageModule } from '../storage/storage.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { ClubModule } from '../club/club.module';
     ]),
     ScheduleModule.forRoot(),
     forwardRef(() => ClubModule),
+    StorageModule,
+    AuditModule,
   ],
   controllers: [CompaniesController],
   providers: [CompaniesService],

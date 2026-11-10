@@ -8,7 +8,7 @@ import {
   Matches,
   IsEnum,
 } from 'class-validator';
-import { CompanyStatus } from '../entities/company.entity';
+import { CompanyStatus, CompanyTier, EngagementCriterion } from '../entities/company.entity';
 
 export class CreateCompanyDto {
   /** Somente dígitos — o service valida formato CNPJ */
@@ -71,4 +71,22 @@ export class CreateCompanyCheckoutDto {
 export class UpdateCompanyStatusDto {
   @IsEnum(CompanyStatus)
   status: CompanyStatus;
+}
+
+export class UpdateCompanyTierDto {
+  @IsEnum(CompanyTier)
+  tier: CompanyTier;
+
+  @IsOptional()
+  @IsEnum(EngagementCriterion)
+  engagementCriterion?: EngagementCriterion;
+
+  @IsOptional()
+  @IsUrl()
+  evidenceUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(3, 5000)
+  validationNotes?: string;
 }

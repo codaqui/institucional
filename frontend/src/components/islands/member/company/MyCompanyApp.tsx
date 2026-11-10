@@ -41,6 +41,7 @@ import {
   resolveCompanyLookup,
 } from "./types";
 import { CompanyHeader, CompanyEditForm, CompanyInfo } from "./CompanyHeader";
+import CompanyBadgeCard from "./CompanyBadgeCard";
 import CollaboratorsPanel from "./CollaboratorsPanel";
 import { DistributePanel, WalletTransactions } from "./CompanyWalletPanel";
 
@@ -385,6 +386,8 @@ function MyCompanyInner({ companyId }: Readonly<Props>): React.JSX.Element | nul
           onEdit={startEdit}
         />
       )}
+
+      <CompanyBadgeCard company={company} />
 
       <Divider sx={{ mb: 2 }} />
       <CollaboratorsPanel

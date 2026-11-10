@@ -16,12 +16,17 @@ import MuiIslandProvider from "../../MuiIslandProvider";
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Collapse from "@mui/material/Collapse";
 import Divider from "@mui/material/Divider";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogTitle from "@mui/material/DialogTitle";
 import IconButton from "@mui/material/IconButton";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -38,13 +43,14 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import BusinessIcon from "@mui/icons-material/Business";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useAuth } from "../../../../lib/use-auth";
-import { parseAuthJson } from "../../../../lib/auth-fetch-helpers";
+import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
 import {
   formatSupportCountLabel,
   formatSupportCurrency,
@@ -58,6 +64,12 @@ interface Company {
   logoUrl: string | null;
   websiteUrl: string | null;
   status: string;
+  tier: "amiga" | "aliada";
+  engagementCriterion: "workshop" | "hiring" | "business_event" | null;
+  evidenceUrl: string | null;
+  validationNotes: string | null;
+  sealValidUntil: string | null;
+  sealActive: boolean;
   responsibleMemberId: string;
   responsibleGithubHandle: string | null;
   subscriptionAmountCents: number | null;
@@ -93,6 +105,11 @@ const STATUS_COLORS: Record<string, "warning" | "success" | "error" | "default">
   cancelled: "default",
 };
 
+function tierActionLabel(company: Company): string {
+  if (company.tier !== "aliada") return "Validar como Aliada";
+  return company.sealActive ? "Definir como Amiga" : "Renovar como Aliada";
+}
+
 function formatCnpj(cnpj: string): string {
   if (cnpj.length !== 14) return cnpj;
   return `${cnpj.slice(0, 2)}.${cnpj.slice(2, 5)}.${cnpj.slice(5, 8)}/${cnpj.slice(8, 12)}-${cnpj.slice(12)}`;
@@ -109,6 +126,13 @@ function EmpresasInner() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [limit] = useState(10);
+  const [editingTier, setEditingTier] = useState<Company | null>(null);
+  const [criterion, setCriterion] = useState<Company["engagementCriterion"]>("workshop");
+  const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [validationNotes, setValidationNotes] = useState("");
+  const [tierError, setTierError] = useState("");
+  const [tierFeedback, setTierFeedback] = useState("");
+  const [savingTier, setSavingTier] = useState(false);
 
   const loadCompanies = useCallback(async () => {
     setLoading(true);
@@ -196,6 +220,40 @@ function EmpresasInner() {
     }
   };
 
+  const openTierDialog = (company: Company) => {
+    setEditingTier(company);
+    setCriterion(company.engagementCriterion ?? "workshop");
+    setEvidenceUrl(company.evidenceUrl ?? "");
+    setValidationNotes(company.validationNotes ?? "");
+    setTierError("");
+  };
+
+  const updateTier = async (tier: "amiga" | "aliada") => {
+    if (!editingTier) return;
+    setSavingTier(true);
+    setTierError("");
+    setTierFeedback("");
+    try {
+      const response = await authFetch(`/companies/${editingTier.id}/tier`, {
+        method: "PATCH",
+        body: JSON.stringify(tier === "aliada"
+          ? { tier, engagementCriterion: criterion, evidenceUrl, validationNotes }
+          : { tier }),
+      });
+      if (!response.ok) {
+        setTierError(await extractErrorMessage(response, "Não foi possível alterar o tier."));
+        return;
+      }
+      setTierFeedback(tier === "aliada" ? "Empresa validada como Aliada." : "Empresa definida como Amiga.");
+      setEditingTier(null);
+      await loadCompanies();
+    } catch {
+      setTierError("Não foi possível alterar o tier.");
+    } finally {
+      setSavingTier(false);
+    }
+  };
+
   return (
     <PageContainer>
       <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 2 }}>
@@ -206,6 +264,7 @@ function EmpresasInner() {
       </Box>
 
       {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
+      {tierFeedback && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setTierFeedback("")}>{tierFeedback}</Alert>}
 
       {loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
@@ -246,6 +305,15 @@ function EmpresasInner() {
                             size="small"
                             color={STATUS_COLORS[company.status] ?? "default"}
                           />
+                          <Chip
+                            label={company.tier === "aliada" ? "Empresa Aliada" : "Empresa Amiga"}
+                            size="small"
+                            color={company.tier === "aliada" ? "primary" : "default"}
+                            variant="outlined"
+                          />
+                          {company.tier === "aliada" && !company.sealActive && (
+                            <Chip label="Renovação pendente" size="small" color="warning" />
+                          )}
                           {hasConfiguredRecurring && (
                             <Chip
                               label={`Recorrência: R$ ${((company.subscriptionAmountCents ?? 0) / 100).toFixed(0)}/mês`}
@@ -296,6 +364,10 @@ function EmpresasInner() {
                         <MenuItem value="suspended">Suspensa</MenuItem>
                         <MenuItem value="cancelled">Cancelada</MenuItem>
                       </Select>
+
+                      <Button size="small" variant="outlined" onClick={() => openTierDialog(company)}>
+                        {tierActionLabel(company)}
+                      </Button>
 
                       <IconButton
                         size="small"
@@ -394,6 +466,56 @@ function EmpresasInner() {
           )}
         </>
       )}
+
+      <Dialog open={editingTier !== null} onClose={() => !savingTier && setEditingTier(null)} fullWidth maxWidth="sm">
+        <form onSubmit={(event) => { event.preventDefault(); void updateTier(editingTier?.tier === "aliada" && editingTier.sealActive ? "amiga" : "aliada"); }}>
+          <DialogTitle>{editingTier?.tier === "aliada" && editingTier.sealActive ? "Definir como Amiga" : "Validar como Aliada"}</DialogTitle>
+          <DialogContent>
+            <Stack spacing={2} sx={{ pt: 1 }}>
+              {tierError && <Alert severity="error">{tierError}</Alert>}
+              {editingTier?.tier === "aliada" && editingTier.sealActive ? (
+                <Typography color="text.secondary">A evidência atual será preservada no histórico, mas a empresa voltará ao nível Amiga.</Typography>
+              ) : (
+                <>
+                  <TextField
+                    select
+                    label="Critério"
+                    required
+                    value={criterion}
+                    onChange={(event) => setCriterion(event.target.value as Company["engagementCriterion"])}
+                    slotProps={{ select: { native: true } }}
+                  >
+                    <option value="workshop">Apoio a workshops</option>
+                    <option value="hiring">Contratação de membros</option>
+                    <option value="business_event">Participação em Business Events</option>
+                  </TextField>
+                  <TextField
+                    label="URL da evidência"
+                    type="url"
+                    required
+                    value={evidenceUrl}
+                    onChange={(event) => setEvidenceUrl(event.target.value)}
+                    helperText="Link HTTPS em um serviço aceito pela Codaqui."
+                  />
+                  <TextField
+                    label="Notas da validação"
+                    multiline
+                    minRows={2}
+                    value={validationNotes}
+                    onChange={(event) => setValidationNotes(event.target.value)}
+                  />
+                </>
+              )}
+            </Stack>
+          </DialogContent>
+          <DialogActions>
+            <Button type="button" onClick={() => setEditingTier(null)} disabled={savingTier}>Fechar</Button>
+            <Button type="submit" variant="contained" disabled={savingTier}>
+              {editingTier?.tier === "aliada" && editingTier.sealActive ? "Confirmar mudança" : "Confirmar validação"}
+            </Button>
+          </DialogActions>
+        </form>
+      </Dialog>
     </PageContainer>
   );
 }

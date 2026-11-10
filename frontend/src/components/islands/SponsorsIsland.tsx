@@ -24,6 +24,9 @@ interface Sponsor {
   logoUrl: string | null;
   websiteUrl: string | null;
   status: string;
+  tier: "amiga" | "aliada";
+  sealValidUntil: string | null;
+  sealActive: boolean;
   totalSupportedReais: number;
   supportCount: number;
   monthsSupporting: number;
@@ -207,12 +210,15 @@ function SponsorsInner(): React.JSX.Element {
                     </Typography>
                   )}
                   <Chip
-                    label="Patrocinador"
+                    label={s.tier === "aliada" ? "Empresa Aliada Codaqui" : "Empresa Amiga Codaqui"}
                     color="primary"
                     size="small"
                     variant="outlined"
                     sx={{ mt: 1, mb: 1.5 }}
                   />
+                  {s.tier === "aliada" && !s.sealActive && (
+                    <Chip label="Renovação pendente" color="warning" size="small" sx={{ mb: 1.5 }} />
+                  )}
                   <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
                     <strong>{formatCurrency(s.totalSupportedReais ?? 0)}</strong>
                     {" em "}
