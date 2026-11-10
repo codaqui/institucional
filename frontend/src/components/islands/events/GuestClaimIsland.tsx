@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import MuiIslandProvider from "../MuiIslandProvider";
 import TurnstileField from "../ui/TurnstileField";
 import { resolveApiUrl } from "../../../lib/api-url";
+import { useAuth } from "../../../lib/use-auth";
 
 interface GuestInvite {
   status: string;
@@ -20,10 +21,18 @@ interface GuestInvite {
   attendeeName?: string | null;
   attendeeEmail?: string | null;
   checkinToken?: string | null;
+  requiresAccount?: boolean;
+}
+
+async function readApiError(res: Response, fallback: string): Promise<Error> {
+  const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
+  const message = Array.isArray(body?.message) ? body.message.join(" ") : body?.message;
+  return new Error(message ?? fallback);
 }
 
 function GuestClaim({ token }: Readonly<{ token: string }>) {
   const apiUrl = resolveApiUrl(import.meta.env.SITE);
+  const { user, ready, isLoggedIn, login, authFetch } = useAuth();
   const [invite, setInvite] = useState<GuestInvite | null>(null);
   const [error, setError] = useState("");
   const [name, setName] = useState("");
@@ -66,11 +75,7 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
           turnstileToken,
         }),
       });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null) as { message?: string | string[] } | null;
-        const message = Array.isArray(body?.message) ? body.message.join(" ") : body?.message;
-        throw new Error(message ?? "Não foi possível confirmar a inscrição.");
-      }
+      if (!res.ok) throw await readApiError(res, "Não foi possível confirmar a inscrição.");
       setInvite(await res.json() as GuestInvite);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Não foi possível confirmar a inscrição.");
@@ -80,8 +85,39 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
     }
   };
 
+  const claimWithAccount = async () => {
+    setSaving(true);
+    setError("");
+    try {
+      const res = await authFetch("/events/public/guest-claim/github", {
+        method: "POST",
+        body: JSON.stringify({ token: actualToken, consent: true }),
+      });
+      if (!res.ok) throw await readApiError(res, "Não foi possível associar o certificado.");
+      setInvite(await res.json() as GuestInvite);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "Não foi possível associar o certificado.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const returnToInvite = () => window.location.pathname + window.location.search;
+
   if (error && !invite) return <Alert severity="error">{error}</Alert>;
-  if (!invite) return <CircularProgress aria-label="Carregando convite" />;
+  if (!invite || !ready) return <CircularProgress aria-label="Carregando convite" />;
+
+  if (invite.status === "confirmed" && invite.requiresAccount) {
+    return (
+      <Stack spacing={2} role="status" sx={{ alignItems: "center", textAlign: "center" }}>
+        <Typography variant="h5" component="h2">Participação vinculada à sua conta</Typography>
+        <Typography>{invite.attendeeName}</Typography>
+        <Typography color="text.secondary">{invite.attendeeEmail}</Typography>
+        <Typography color="text.secondary">Acompanhe a concessão e os seus certificados na área do membro.</Typography>
+        <Button variant="contained" href="/membro">Ver meus certificados</Button>
+      </Stack>
+    );
+  }
 
   if (invite.status === "confirmed") {
     return (
@@ -99,6 +135,39 @@ function GuestClaim({ token }: Readonly<{ token: string }>) {
 
   if (invite.status !== "pending_guest") {
     return <Alert severity="info">Este convite não está mais disponível.</Alert>;
+  }
+
+  if (invite.requiresAccount) {
+    return (
+      <Stack spacing={2}>
+        <Typography variant="h5" component="h2">{invite.eventTitle}</Typography>
+        <Typography>
+          Entre ou crie sua conta Codaqui com GitHub para associar esta participação e o certificado.
+          O e-mail do convite precisa estar verificado na conta GitHub utilizada.
+        </Typography>
+        {error ? <Alert severity="error">{error}</Alert> : null}
+        {isLoggedIn ? (
+          <>
+            <Typography color="text.secondary">Conta conectada: @{user?.handle}</Typography>
+            <Button type="button" variant="contained" onClick={claimWithAccount} disabled={saving}>
+              {saving ? "Associando…" : "Associar certificado à minha conta"}
+            </Button>
+            <Button
+              type="button"
+              variant="text"
+              disabled={saving}
+              onClick={() => login({ returnTo: returnToInvite(), switchAccount: true })}
+            >
+              Trocar conta GitHub
+            </Button>
+          </>
+        ) : (
+          <Button type="button" variant="contained" onClick={() => login({ returnTo: returnToInvite() })}>
+            Entrar com GitHub e associar certificado
+          </Button>
+        )}
+      </Stack>
+    );
   }
 
   return (
