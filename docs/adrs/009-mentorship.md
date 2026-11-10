@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 5 — candidatura, disponibilidade, agendamento concorrente, sessões, horas e insights de mentoria.
 audience: AI agents, mantenedores, mentores e operadores de release.
-status: Implementado e verificado em dump real; PR para develop, release 0.19.0, sync inicial e validação controlada pendentes.
+status: Implementado e integrado em develop pelo merge 85fae64047c; release 0.19.0, sync inicial e validação controlada pendentes.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -25,7 +25,7 @@ agent-protocol:
 # ADR 009 — Mentoria no sistema
 
 - **Data da decisão:** 2026-11-09
-- **Status:** Implementado e verificado; integração e publicação pendentes
+- **Status:** Implementado e integrado em develop pelo merge `85fae64047c`; publicação pendente
 - **Escopo:** Backend 0.19.0, migration 044, disponibilidade, sessões, notificações, horas, páginas e snapshot
 
 ## Contexto e decisão

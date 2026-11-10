@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 5 — Mentoria com disponibilidade, sessões, notificações, horas e insights.
 audience: Implementers e revisores da PR.
-status: Implementação e verificação concluídas; PR #621 aberta para develop com CI/Sonar/Trivy verdes; revisão humana e merge pendentes; separado da PR #618.
+status: Implementação e verificação concluídas; integrada em develop pelo merge 85fae64047c; PR #618 permanece aberta para main; release 0.19.0 e rollout pendentes.
 sections:
   - Global Constraints
   - Tasks 1–8
@@ -397,4 +397,4 @@ Commit: `docs(fase-5): registra mentoria e handoff`
 
 Push de `feat/mentorship-phase5`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.19.0, sync real ou e-mails reais sem comando explícito. PR #618 permanece separada.
 
-**Resultado:** PR [#621](https://github.com/codaqui/institucional/pull/621) aberta, mergeable e com Backend CI, Coverage, Astro, tenants, Trivy e SonarCloud verdes. Sem comentários pendentes do Copilot; revisão humana e decisão de merge permanecem com o usuário.
+**Resultado:** PR [#621](https://github.com/codaqui/institucional/pull/621) integrada em `develop` pelo merge `85fae64047cedcbede01a72814d304ebd1712a5c`, sem squash. Backend CI, Coverage, Astro, tenants, Trivy e SonarCloud verdes no resultado integrado. PR [#618](https://github.com/codaqui/institucional/pull/618) permanece aberta para `main`; para reverter somente mentoria, usar `git revert -m 1 85fae64047cedcbede01a72814d304ebd1712a5c`. Release e rollout continuam pendentes.
