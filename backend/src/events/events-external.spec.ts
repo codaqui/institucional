@@ -153,6 +153,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       findBy: jest.fn().mockResolvedValue([]),
       createQueryBuilder: jest.fn(),
     };
+    memberRepo.findOne = memberRepo.findOneBy;
     mockMemberQb([]);
     activationRepo = {
       findOneBy: jest.fn(),
@@ -210,7 +211,6 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       reimbursementsService as any,
       hoursService as any,
     );
-    (service as any).emailLogRepo = { findOne: jest.fn().mockResolvedValue(null) };
   });
 
   // ── Check-in (2c) ─────────────────────────────────────────────────────────
@@ -570,6 +570,10 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         requiresAccount: true,
       });
       expect(registration.memberId).toBe(uuid(1));
+      expect(memberRepo.findOne).toHaveBeenCalledWith({
+        where: { id: uuid(1), isActive: true },
+        select: { id: true, name: true, githubHandle: true, secondaryEmails: true },
+      });
       expect(registration.certificateGrantedAt).toBe(grantedAt);
       expect(registrationRepo.update).toHaveBeenCalledWith(
         { id: registration.id },

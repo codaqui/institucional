@@ -226,7 +226,6 @@ describe('EventsService', () => {
       reimbursementsService as any,
       hoursService as any,
     );
-    (service as any).emailLogRepo = { findOne: jest.fn().mockResolvedValue(null) };
   });
 
   describe('adult content classification', () => {

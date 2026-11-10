@@ -2384,7 +2384,10 @@ export class EventsService {
 
   async claimCertificateWithAccount(dto: ClaimCertificateAccountDto, user: JwtPayload) {
     if (!dto.consent) throw new BadRequestException('Consentimento obrigatório.');
-    const member = await this.memberRepo.findOneBy({ id: user.sub, isActive: true });
+    const member = await this.memberRepo.findOne({
+      where: { id: user.sub, isActive: true },
+      select: { id: true, name: true, githubHandle: true, secondaryEmails: true },
+    });
     if (!member) throw new ForbiddenException('Conta de membro ativa não encontrada.');
 
     await this.registrationRepo.manager.transaction(async (manager) => {
