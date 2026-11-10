@@ -174,6 +174,12 @@ Quando uma pessoa cria conta (GitHub OAuth) com o **mesmo e-mail** do guest:
 - **Merge de duplicata:** se o membro já tem inscrição `CONFIRMED` no mesmo evento, a linha guest é `CANCELLED` (mantém trilha em `audit`) em vez de duplicar vaga/certificado. Decisão a confirmar (seção 5, risco 4).
 - Depois do vínculo, a inscrição aparece em **Minhas inscrições** (`myRegistrations` consulta por `memberId` — sem mudança nenhuma no endpoint) e no histórico do `/@handle` (respeitando `profileVisibility` da Fase 1b/2).
 
+### 2.7 Exceção — convites de certificado exigem conta no aceite
+
+O guest token continua válido para inscrições comuns, mas convites com `certificateInvitedAt` não seguem mais o cadastro anônimo da seção 2.2. `GET /events/public/guest-invites/:token` expõe `requiresAccount=true`; a ilha inicia o OAuth com `returnTo` preservando o token e `POST /events/public/guest-claim/github` exige sessão, consentimento e correspondência do e-mail do convite com `secondaryEmails` verificados. O endpoint guest comum responde 409 para esses registros, impedindo bypass fora da UI.
+
+A associação confirma a inscrição e preenche `memberId`, mas não concede certificado, presença ou horas. Um registro `confirmed` legado ainda sem membro pode ser vinculado pela mesma rota; outro membro não pode reivindicá-lo. Logs `sent` de `certificate-pending-registration` sem `certificateInvitedAt` são reconciliados idempotentemente para impedir reenvio e ativar `requiresAccount`. Contrato completo: `docs/superpowers/specs/2026-11-10-certificate-account-link-design.md`.
+
 ## 3. Check-in de guest (integração com o fluxo atômico existente)
 
 O token do convite **é a credential** — e o check-in reutiliza o fluxo atômico de hoje sem ramificação:
