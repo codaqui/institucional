@@ -174,6 +174,7 @@ npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fo
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
 npm run sync:mentors             # /mentorship/public → static/mentors/ (fora do agregador sync)
+npm run sync:company-badges      # /companies/badges/public → static/badges/empresas/ (fora do agregador sync)
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
