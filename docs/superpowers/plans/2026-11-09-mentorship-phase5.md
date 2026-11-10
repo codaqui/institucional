@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 5 — Mentoria com disponibilidade, sessões, notificações, horas e insights.
 audience: Implementers e revisores da PR.
-status: Implementação e verificação concluídas; PR para develop e revisões de integração pendentes; separado da PR #618.
+status: Implementação e verificação concluídas; PR #621 aberta para develop com CI/Sonar/Trivy verdes; revisão humana e merge pendentes; separado da PR #618.
 sections:
   - Global Constraints
   - Tasks 1–8
@@ -393,6 +393,8 @@ Run: `make astro-verify && make astro-verify-tenants`
 Registrar ADR 009 com reúso, concorrência, contratos, privacidade, snapshot e rollout. Marcar Fase 5 sem apagar publicações/releases pendentes.
 Commit: `docs(fase-5): registra mentoria e handoff`
 
-- [ ] **Step 4: Abrir PR e apresentar integração**
+- [x] **Step 4: Abrir PR e apresentar integração**
 
 Push de `feat/mentorship-phase5`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.19.0, sync real ou e-mails reais sem comando explícito. PR #618 permanece separada.
+
+**Resultado:** PR [#621](https://github.com/codaqui/institucional/pull/621) aberta, mergeable e com Backend CI, Coverage, Astro, tenants, Trivy e SonarCloud verdes. Sem comentários pendentes do Copilot; revisão humana e decisão de merge permanecem com o usuário.
