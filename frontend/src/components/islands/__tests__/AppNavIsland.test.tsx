@@ -335,6 +335,22 @@ describe("AppNavIsland", () => {
     expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("aria-current", "page");
   });
 
+  it("shows Mentoria only with an active program mentor designation", () => {
+    designationsState.data = [
+      { id: "mentor-1", targetType: "program", targetId: null, targetKey: "mentoria", designation: "mentor" },
+    ];
+    mockLoggedIn(makeUser());
+    const { unmount } = renderWithMui(<AppNavIsland currentPath="/membro/mentoria" />);
+
+    expect(screen.getByRole("link", { name: "Mentoria" })).toHaveAttribute("href", "/membro/mentoria");
+    expect(screen.getByRole("link", { name: "Mentoria" })).toHaveAttribute("aria-current", "page");
+
+    unmount();
+    designationsState.data = [];
+    renderWithMui(<AppNavIsland currentPath="/membro" />);
+    expect(screen.queryByRole("link", { name: "Mentoria" })).not.toBeInTheDocument();
+  });
+
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {
     mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
     renderWithMui(<AppNavIsland currentPath="/admin" />);

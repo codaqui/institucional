@@ -263,7 +263,7 @@ Agora cada evento tem uma página estática gerada em build time:
 
 ### 2.13 Horas e declarações
 
-`hour_ledger` é separada da ledger financeira: horas decimais, sem contas, BRL ou double-entry. Nesta fase só `event_checkin` e `directorate_activity` alimentam a tabela. Lançamentos manuais ficam pendentes e usam `(memberId,idempotencyKey)` para deduplicar; aprovação/rejeição exige admin ou `finance-analyzer`, faz update condicional de `pending` e grava audit de governo.
+`hour_ledger` é separada da ledger financeira: horas decimais, sem contas, BRL ou double-entry. As fontes são `event_checkin`, `directorate_activity`, `extension_project` e `mentorship_session`. Lançamentos manuais ficam pendentes e usam `(memberId,idempotencyKey)` para deduplicar; sessões concluídas criam uma entrada pendente única por membro/tipo/sessão com `hours = durationMin / 60`. Aprovação/rejeição exige admin ou `finance-analyzer`, faz update condicional de `pending` e grava audit de governo.
 
 | API | Uso corrente |
 |---|---|

@@ -54,6 +54,8 @@ export interface EmailTemplateContext {
   checkinToken?: string | null;
   eventLocation?: string | null;
   isGuest?: boolean;
+  meetLink?: string | null;
+  cancelReason?: string | null;
 }
 
 export interface RegistrationEmailEvent {

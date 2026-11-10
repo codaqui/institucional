@@ -308,6 +308,35 @@ export class HoursService {
     }
   }
 
+  async recordMentorshipSession(session: import('../mentorship/entities/mentorship-session.entity').MentorshipSession): Promise<HourEntry> {
+    const existing = await this.repo.findOneBy({
+      memberId: session.mentorId,
+      sourceType: HourEntrySource.MENTORSHIP_SESSION,
+      sourceId: session.id,
+    });
+    if (existing) return existing;
+    const entry = await this.repo.save(this.repo.create({
+      memberId: session.mentorId,
+      sourceType: HourEntrySource.MENTORSHIP_SESSION,
+      sourceId: session.id,
+      sourceLabel: 'Mentoria Codaqui',
+      hours: session.durationMin / 60,
+      description: `Mentoria de ${session.durationMin} minutos`,
+      occurredAt: session.completedAt ?? new Date(),
+      status: HourEntryStatus.PENDING,
+      reportedById: session.mentorId,
+    }));
+    void this.audit.log({
+      action: AuditAction.HOUR_CREATED,
+      actorId: session.mentorId,
+      actorHandle: 'mentor',
+      targetId: entry.id,
+      targetType: 'hour-entry',
+      details: { sourceType: entry.sourceType, sourceId: session.id, hours: entry.hours },
+    });
+    return entry;
+  }
+
   async recordEventCheckin(
     registration: EventRegistration,
     workloadMinutes: number | null,

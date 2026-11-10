@@ -1,0 +1,66 @@
+{
+  "generatedAt": null,
+  "mentors": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "handle": "endersonmenezes",
+      "name": "Enderson Menezes",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/11020807?v=4",
+      "areas": ["DevOps", "Iniciantes"],
+      "focus": "Carreira em tecnologia, ferramentas, dicas e projetos",
+      "availability": [{ "weekday": 1, "startTime": "19:30", "endTime": "21:00", "timeZone": "America/Sao_Paulo" }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "handle": "guiseek",
+      "name": "Guilherme Siquinelli",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/5638096?v=4",
+      "areas": ["Frontend", "Arquitetura"],
+      "focus": "Primeiros passos em Frontend e arquitetura de software",
+      "availability": [{ "weekday": 3, "startTime": "19:00", "endTime": "21:00", "timeZone": "America/Sao_Paulo" }]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "handle": "causticsudo",
+      "name": "Matheus Luis",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/66440299?v=4",
+      "areas": ["Backend", ".NET"],
+      "focus": "Aprender e seguir carreira no ecossistema .NET",
+      "availability": [
+        { "weekday": 1, "startTime": "19:00", "endTime": "20:00", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 3, "startTime": "19:00", "endTime": "20:00", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 5, "startTime": "19:00", "endTime": "20:00", "timeZone": "America/Sao_Paulo" }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "handle": "byivo",
+      "name": "Ivo Batistela",
+      "avatarUrl": "https://avatars.githubusercontent.com/u/5186894?v=4",
+      "areas": ["Organização de Eventos"],
+      "focus": "Como organizar um evento de tecnologia na sua cidade",
+      "availability": [
+        { "weekday": 1, "startTime": "18:00", "endTime": "18:30", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 2, "startTime": "18:00", "endTime": "18:30", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 3, "startTime": "18:00", "endTime": "18:30", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 4, "startTime": "18:00", "endTime": "18:30", "timeZone": "America/Sao_Paulo" },
+        { "weekday": 5, "startTime": "18:00", "endTime": "18:30", "timeZone": "America/Sao_Paulo" }
+      ]
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "handle": "renanceratto",
+      "name": "Renan Ceratto",
+      "avatarUrl": "https://github.com/renanceratto.png",
+      "areas": ["Empreendedorismo"],
+      "focus": "Empreender em tecnologia — por onde começar",
+      "availability": [{ "weekday": 4, "startTime": "19:00", "endTime": "20:00", "timeZone": "America/Sao_Paulo" }]
+    }
+  ],
+  "insights": {
+    "completed": 0,
+    "activeMentors": 5,
+    "areas": [],
+    "noShowRate": 0
+  }
+}

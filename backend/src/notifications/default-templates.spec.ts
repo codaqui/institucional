@@ -5,13 +5,17 @@ import {
 } from './default-templates';
 
 describe('default-templates', () => {
-  it('cataloga os 5 templates de e-mail conhecidos, incluindo cancelamento', () => {
+  it('cataloga os templates de eventos, certificados e mentoria', () => {
     expect(TEMPLATE_IDS).toEqual([
       'event-registration-confirmation',
       'event-registration-cancelled',
       'event-reminder-d1',
       'certificate-pending-registration',
       'event-post-event',
+      'mentorship-requested',
+      'mentorship-confirmed',
+      'mentorship-reminder-d1',
+      'mentorship-cancelled',
     ]);
     expect(isKnownTemplate('event-registration-cancelled')).toBe(true);
     expect(isKnownTemplate('template-inexistente')).toBe(false);

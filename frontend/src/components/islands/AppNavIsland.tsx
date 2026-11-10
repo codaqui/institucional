@@ -26,6 +26,7 @@ import EventIcon from "@mui/icons-material/Event";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import SearchIcon from "@mui/icons-material/Search";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import SchoolIcon from "@mui/icons-material/School";
 import HomeIcon from "@mui/icons-material/Home";
 import HowToRegIcon from "@mui/icons-material/HowToReg";
 import HubIcon from "@mui/icons-material/Hub";
@@ -88,6 +89,24 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
         href: "/admin/horas",
         icon: <ScheduleIcon />,
         roles: ["admin", "finance-analyzer"],
+      },
+      {
+        label: "Gestão de mentoria",
+        href: "/admin/mentoria",
+        icon: <SchoolIcon />,
+        roles: ["admin"],
+      },
+    ],
+  },
+  {
+    id: "programas",
+    label: "Programas",
+    items: [
+      {
+        label: "Mentoria",
+        href: "/membro/mentoria",
+        icon: <SchoolIcon />,
+        designations: [{ targetType: "program", designation: "mentor" }],
       },
     ],
   },

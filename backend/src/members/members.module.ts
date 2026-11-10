@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Member } from './entities/member.entity';
 import { Transaction } from '../ledger/entities/transaction.entity';
 import { EventRegistration } from '../events/entities/event-registration.entity';
+import { MentorshipSession } from '../mentorship/entities/mentorship-session.entity';
 import { MembersService } from './members.service';
 import { MembersController } from './members.controller';
 import { AuditModule } from '../audit/audit.module';
@@ -10,7 +11,7 @@ import { EventsModule } from '../events/events.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Member, Transaction, EventRegistration]),
+    TypeOrmModule.forFeature([Member, Transaction, EventRegistration, MentorshipSession]),
     AuditModule,
     // forwardRef: ciclo Members → Events → EventOrganizer → Members
     forwardRef(() => EventsModule),

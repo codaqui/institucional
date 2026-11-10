@@ -135,6 +135,7 @@ chaves ao browser. Dependências leves da raiz (`npm install` na raiz é suficie
 | `npm run sync:communities` | `GET /communities/public` → `static/communities/index.json` (rename atômico) |
 | `npm run sync:assemblies` | `GET /assemblies/public` → `static/assemblies/index.json` (validação completa + rename atômico) |
 | `npm run sync:universities` | `GET /universities/public` → `static/universities/index.json` (validação completa + rename atômico) |
+| `npm run sync:mentors` | `GET /mentorship/public` → `static/mentors/index.json` (perfis públicos + insights agregados, validação completa + rename atômico) |
 | `npm run sync` | `sync:events` + `sync:social` + `sync:analytics` em sequência |
 | `npm run sync:full` | Versão completa (full) de todos os syncs |
 | `npm run test:scripts` | Testes dos scripts de sync/validação (`node --test`) |
@@ -161,9 +162,14 @@ O sync valida a coleção completa, rejeita motivação/e-mail/candidaturas e pr
 em falha. O workflow `sync-universities.yml` roda diariamente às 06:26 UTC e por dispatch. **O agregador
 `npm run sync` não inclui o Universitário**; mudanças públicas exigem sync e novo build de `/universitario`.
 
+Para mentoria, `MENTORS_API_URL` define a base da API (default `http://localhost:3001`). O sync rejeita
+campos fora da projeção pública e preserva o snapshot anterior em falha. O workflow `sync-mentors.yml`
+roda diariamente às 06:21 UTC e por dispatch, fora do agregador `npm run sync`. O UUID público é o do
+perfil de mentoria; membros, aprovadores, mentorandos e sessões individuais nunca entram no snapshot.
+
 **Secret necessário:** `DISCORD_BOT_TOKEN` — sem ele os scripts preservam os snapshots existentes.
 
-Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics`, `make sync-communities` e `make sync-assemblies` espelham os comandos da tabela.
+Pela raiz, `make sync`, `make sync-events`, `make sync-events-full`, `make sync-social`, `make sync-analytics`, `make sync-communities`, `make sync-assemblies` e `make sync-mentors` espelham os comandos da tabela.
 
 ### Operação manual de Assembleias (Fase 3)
 
