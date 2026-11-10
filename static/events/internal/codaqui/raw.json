@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-10T12:04:27.541Z",
+  "generatedAt": "2026-11-10T14:05:02.628Z",
   "events": [
     {
       "id": "f61aad40-8d23-4833-afcf-2ad020027bdf",
@@ -19,6 +19,7 @@
       "status": "completed",
       "adultOnly": false,
       "venueType": null,
+      "institutionId": null,
       "imageUrl": "https://i.ibb.co/pvN1Sk2B/Gemini-Generated-Image-ozk55gozk55gozk5.jpg",
       "userCount": 81
     }
