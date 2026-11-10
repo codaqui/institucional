@@ -4,6 +4,7 @@ const EXCLUDED_PATHS = new Set([
   "/eventos/detalhe",
   "/eventos/comprovante",
   "/eventos/convite",
+  "/mentoria/sessao",
   "/team",
   "/contact",
   "/conduta",

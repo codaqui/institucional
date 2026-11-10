@@ -47,6 +47,7 @@ export function buildCodaquiRedirectsText() {
     "/blog/archive/2024 /blog 301",
     "/blog/archive/2025 /blog 301",
     "/assembleias/* /assembleias/codaqui/:splat 301",
+    "/mentoria/sessao/* /mentoria/sessao/index.html 200",
   ].join("\n") + "\n";
 }
 
