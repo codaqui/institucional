@@ -460,17 +460,9 @@ describe('CompaniesService', () => {
         makeWallet(),
       );
 
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '500', supportCount: '1' },
-        ]),
-      };
+      const qb = makeSupportQuery([
+        { companyId: COMPANY_ID, totalSupportedReais: '500', supportCount: '1' },
+      ]);
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.findAllAdmin();
@@ -585,17 +577,9 @@ describe('CompaniesService', () => {
     it('returns only active companies with support metrics', async () => {
       const sponsors = [makeCompany({ status: CompanyStatus.ACTIVE, showOnSponsorsPage: true })];
       companyRepo.find.mockResolvedValue(sponsors);
-      const qb = {
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        innerJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([
-          { companyId: COMPANY_ID, totalSupportedReais: '1250', supportCount: '6' },
-        ]),
-      };
+      const qb = makeSupportQuery([
+        { companyId: COMPANY_ID, totalSupportedReais: '1250', supportCount: '6' },
+      ]);
       txRepo.createQueryBuilder.mockReturnValue(qb);
 
       const result = await service.listSponsors();
