@@ -1,0 +1,76 @@
+---
+import PublicLayout from "../layouts/PublicLayout.astro";
+import PageHero from "../components/astro/PageHero.astro";
+import SponsorsIsland from "../components/islands/SponsorsIsland";
+---
+
+<PublicLayout
+  title="Empresas | CODAQUI.dev"
+  ogTitle="Empresas | CODAQUI.dev"
+  description="Apoie a Codaqui como Empresa Amiga ou Aliada e ajude a criar oportunidades em tecnologia."
+>
+  <PageHero
+    eyebrow="Empresas"
+    title="Apoio que vira oportunidade"
+    subtitle="Sua empresa pode financiar educação, engajar pessoas e fortalecer o ecossistema de tecnologia brasileiro."
+  >
+    <a href="/participe/apoiar?modo=empresa" class="rounded-lg bg-white px-6 py-3 font-bold text-primary-900 no-underline">Apoiar como empresa</a>
+  </PageHero>
+
+  <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
+    <section class="mb-16" aria-labelledby="proposta-valor">
+      <h2 id="proposta-valor" class="mb-4 text-3xl font-bold">Impacto com transparência</h2>
+      <p class="max-w-3xl text-lg text-text-secondary">
+        A Associação Codaqui conecta participantes, comunidades e oportunidades. O apoio empresarial mantém encontros, mentorias, projetos de extensão e reconhecimento público de quem faz esse trabalho acontecer.
+      </p>
+    </section>
+
+    <section class="mb-16" aria-labelledby="niveis">
+      <h2 id="niveis" class="mb-6 text-3xl font-bold">Dois níveis de participação</h2>
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <article class="rounded-lg border border-border bg-surface p-6">
+          <h3 class="mb-3 text-2xl font-bold text-link">Empresa Amiga</h3>
+          <p class="mb-4 text-text-secondary">Para quem quer apoiar financeiramente o ecossistema com recorrência.</p>
+          <ul class="list-inside list-disc space-y-2 text-text-secondary">
+            <li>A partir de R$ 200/mês pelo fluxo Stripe.</li>
+            <li>Vitrine de patrocinadores e selo enquanto o apoio estiver ativo.</li>
+            <li>SortCoins na carteira da empresa.</li>
+          </ul>
+        </article>
+        <article class="rounded-lg border border-link bg-surface p-6">
+          <h3 class="mb-3 text-2xl font-bold text-link">Empresa Aliada</h3>
+          <p class="mb-4 text-text-secondary">Para quem também comprova engajamento com a comunidade.</p>
+          <ul class="list-inside list-disc space-y-2 text-text-secondary">
+            <li>Todos os benefícios da Empresa Amiga.</li>
+            <li>Selo anual validado pela diretoria.</li>
+            <li>Ponte com projetos e Codaqui Business Events.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="mb-16" aria-labelledby="jornada">
+      <h2 id="jornada" class="mb-4 text-3xl font-bold">Como se tornar Aliada</h2>
+      <ol class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <li class="rounded-lg bg-sunken p-5"><strong class="mb-2 block text-link">1. Apoie um critério</strong><span class="text-text-secondary">Participe de workshops, contrate membros da comunidade ou participe de Business Events.</span></li>
+        <li class="rounded-lg bg-sunken p-5"><strong class="mb-2 block text-link">2. Compartilhe evidências</strong><span class="text-text-secondary">Envie um link seguro que comprove o engajamento, sem upload pelo backend.</span></li>
+        <li class="rounded-lg bg-sunken p-5"><strong class="mb-2 block text-link">3. Valide e renove</strong><span class="text-text-secondary">A diretoria revisa a evidência e concede o selo por um ano, renovável.</span></li>
+      </ol>
+    </section>
+
+    <section class="mb-16 rounded-2xl bg-sunken p-6 text-center md:p-10" aria-labelledby="captacao">
+      <h2 id="captacao" class="mb-3 text-2xl font-extrabold">Comece como Empresa Amiga</h2>
+      <p class="mx-auto mb-6 max-w-2xl text-text-secondary">Ative o apoio recorrente, apareça na vitrine e evolua para Aliada quando estiver pronta para comprovar engajamento.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="/participe/apoiar?modo=empresa" class="rounded-lg bg-action px-6 py-3 font-bold text-on-action no-underline">Apoiar a partir de R$ 200/mês</a>
+        <a href="/membros/empresa" class="rounded-lg border border-link px-6 py-3 font-bold text-link no-underline">Gerenciar minha empresa</a>
+      </div>
+    </section>
+
+    <section aria-labelledby="vitrine">
+      <h2 id="vitrine" class="mb-4 text-3xl font-bold">Quem já apoia</h2>
+      <p class="mb-6 text-text-secondary">Empresas Amigas e Aliadas que tornam esse trabalho possível.</p>
+      <SponsorsIsland client:visible />
+    </section>
+  </div>
+</PublicLayout>
