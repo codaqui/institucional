@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import { EventsService } from './events.service';
+import { createEventsService } from '../../test/events-service.factory';
 import { RegistrationStatus } from './entities/event-registration.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 
@@ -201,7 +201,7 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
     };
     hoursService = { recordEventCheckin: jest.fn().mockResolvedValue(undefined) };
 
-    service = new EventsService(
+    service = createEventsService(
       eventRepo as any,
       ticketTypeRepo as any,
       orderRepo as any,

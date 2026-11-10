@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventsService, EVENT_TICKET_TERMS_VERSION } from './events.service';
+import { createEventsService } from '../../test/events-service.factory';
 import {
   ManagedEvent,
   ManagedEventStatus,
@@ -206,7 +207,7 @@ describe('EventsService', () => {
       recordEventCheckin: jest.fn().mockResolvedValue(undefined),
     };
 
-    service = new EventsService(
+    service = createEventsService(
       eventRepo as any,
       ticketTypeRepo as any,
       orderRepo as any,
