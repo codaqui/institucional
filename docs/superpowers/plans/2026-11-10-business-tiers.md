@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 6 — Business tiers, due diligence, hotpage e badges PJ.
 audience: Implementers e revisores da PR.
-status: Spec aprovada; pronto para execução inline, sem subagentes e sem release/deploy automático.
+status: Implementação e verificação concluídas; PR para develop e revisões de integração pendentes; sem release/deploy automático.
 sections:
   - Global Constraints
   - Tasks 1–8
@@ -49,7 +49,7 @@ agent-protocol:
 - `EngagementCriterion = 'workshop' | 'hiring' | 'business_event'`.
 - Campos `tier`, `engagementCriterion`, `evidenceUrl`, `validationNotes`, `validatedAt`, `validatedByMemberId`, `sealValidUntil`.
 
-- [ ] **Step 1: Escrever teste da migration**
+- [x] **Step 1: Escrever teste da migration**
 
 ```ts
 expect(upSql).toContain('ALTER TABLE "companies" ADD "tier" character varying(32) NOT NULL DEFAULT \'amiga\'');
@@ -59,12 +59,12 @@ expect(upSql).toContain('FOREIGN KEY ("validatedByMemberId") REFERENCES "members
 expect(downSql).toContain('ALTER TABLE "companies" DROP COLUMN "sealValidUntil"');
 ```
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/companies/company-tier.migration.spec.ts --runInBand`
 Expected: migration inexistente.
 
-- [ ] **Step 3: Implementar entidade e migration**
+- [x] **Step 3: Implementar entidade e migration**
 
 ```ts
 export enum CompanyTier { AMIGA = 'amiga', ALIADA = 'aliada' }
@@ -73,7 +73,7 @@ export enum EngagementCriterion { WORKSHOP = 'workshop', HIRING = 'hiring', BUSI
 
 Adicionar defaults/checks, FK e down em ordem reversa. Bump `0.20.0`.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/companies/company-tier.migration.spec.ts --runInBand && npm run build`
 Commit: `feat(fase-6): adiciona modelo de Business tiers`
@@ -92,7 +92,7 @@ Commit: `feat(fase-6): adiciona modelo de Business tiers`
 - `updateTier(id,dto,actor): Promise<Company>`.
 - Novas ações `COMPANY_TIER_VALIDATED` e `COMPANY_TIER_DOWNGRADED`.
 
-- [ ] **Step 1: Escrever testes de validação**
+- [x] **Step 1: Escrever testes de validação**
 
 ```ts
 await expect(service.updateTier('company-1', { tier: 'aliada' }, admin)).rejects.toThrow(BadRequestException);
@@ -106,12 +106,12 @@ expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ action: AuditAc
 
 Incluir status não `active`, evidência prévia reutilizada e admin obrigatório.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/companies/companies.service.spec.ts src/companies/companies.controller.spec.ts --runInBand`
 Expected: método/DTO inexistente.
 
-- [ ] **Step 3: Implementar validação e rota**
+- [x] **Step 3: Implementar validação e rota**
 
 ```ts
 if (dto.tier === CompanyTier.ALIADA) {
@@ -132,7 +132,7 @@ company.tier = dto.tier;
 
 Salvar uma única entidade e auditar depois do save. Importar `StorageModule` e `AuditModule`. `PATCH /companies/:id/tier` usa `JwtAuthGuard` + `RolesGuard(ADMIN)` e recebe o ator.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/companies src/audit/audit-category.spec.ts --runInBand && npm run build`
 Commit: `feat(fase-6): valida Empresa Aliada com evidência`
@@ -148,7 +148,7 @@ Commit: `feat(fase-6): valida Empresa Aliada com evidência`
 - `listPublicBadges(now = new Date())`: `{id,name,tradeName,tier,sealValidUntil}[]`.
 - Sponsors ganham `tier`, `sealValidUntil`, `sealActive`.
 
-- [ ] **Step 1: Escrever testes de projeção**
+- [x] **Step 1: Escrever testes de projeção**
 
 ```ts
 const payload = await service.listSponsors();
@@ -163,12 +163,12 @@ await expect(service.listPublicBadges()).resolves.toEqual([{
 
 Cobrir Amiga ativa, Aliada vencida fora do badge e apoio inativo fora dos dois públicos.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/companies --runInBand`
 Expected: projeção ausente ou campos internos expostos.
 
-- [ ] **Step 3: Implementar allowlists**
+- [x] **Step 3: Implementar allowlists**
 
 ```ts
 const sealActive = company.status === CompanyStatus.ACTIVE
@@ -179,7 +179,7 @@ return { id: company.id, name: company.name, tradeName: company.tradeName, tier:
 
 Manter métricas públicas atuais, removendo o spread da entidade. `GET /companies/badges/public` antes de `GET /companies/:id/public`.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/companies --runInBand && npm run build`
 Commit: `feat(fase-6): projeta patrocinadores e selos sem dados internos`
@@ -194,7 +194,7 @@ Commit: `feat(fase-6): projeta patrocinadores e selos sem dados internos`
 - `PATCH /companies/:id/tier` com critério, evidência e notas.
 - Empresa exibe tier, validade e `sealActive`.
 
-- [ ] **Step 1: Escrever teste do diálogo**
+- [x] **Step 1: Escrever teste do diálogo**
 
 ```tsx
 await user.click(await screen.findByRole('button', { name: 'Validar como Aliada' }));
@@ -207,12 +207,12 @@ expect(await screen.findByText(/empresa validada como Aliada/i)).toBeInTheDocume
 
 Adicionar erro de evidência exibido e ação `Definir como Amiga`.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/empresas`
 Expected: controles inexistentes.
 
-- [ ] **Step 3: Implementar tier e diálogo**
+- [x] **Step 3: Implementar tier e diálogo**
 
 ```tsx
 const response = await authFetch(`/companies/${editing.id}/tier`, {
@@ -223,7 +223,7 @@ const response = await authFetch(`/companies/${editing.id}/tier`, {
 
 Usar `Dialog`, labels nativos, `Alert`, erro server-side e estado renovação pendente. Recarregar a lista após sucesso.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/empresas && npm run check`
 Commit: `feat(fase-6): adiciona due diligence ao admin de empresas`
@@ -239,7 +239,7 @@ Commit: `feat(fase-6): adiciona due diligence ao admin de empresas`
 - `Company` ganha `tier`, `sealValidUntil`, `sealActive`.
 - `CompanyBadgeCard({ company })` usa `/badges/empresas/${company.id}.svg`.
 
-- [ ] **Step 1: Escrever teste de elegibilidade**
+- [x] **Step 1: Escrever teste de elegibilidade**
 
 ```tsx
 renderWithMui(<CompanyBadgeCard company={{ ...company, tier: 'aliada', sealActive: true }} />);
@@ -250,12 +250,12 @@ expect(screen.getByText(/renovação pendente/i)).toBeInTheDocument();
 expect(screen.queryByRole('img')).not.toBeInTheDocument();
 ```
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/member/company/CompanyBadgeCard.test.tsx`
 Expected: componente inexistente.
 
-- [ ] **Step 3: Implementar preview e snippets**
+- [x] **Step 3: Implementar preview e snippets**
 
 ```tsx
 const badgePath = `/badges/empresas/${company.id}.svg`;
@@ -264,7 +264,7 @@ const markdown = `![Selo ${label}](${origin}${badgePath})`;
 
 Mostrar preview, campo somente leitura Markdown/HTML e estado sem badge. Integrar na tela de Minha Empresa sem alterar distribuição/carteira.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/member/company && npm run check`
 Commit: `feat(fase-6): mostra selo na área da empresa`
@@ -280,7 +280,7 @@ Commit: `feat(fase-6): mostra selo na área da empresa`
 - `Sponsor` ganha `tier`, `sealValidUntil`, `sealActive`.
 - `/participe/apoiar?modo=empresa` continua como CTA de captação.
 
-- [ ] **Step 1: Escrever teste da vitrine**
+- [x] **Step 1: Escrever teste da vitrine**
 
 ```tsx
 renderWithMui(<SponsorsIsland />);
@@ -291,12 +291,12 @@ expect(screen.getByText('Renovação pendente')).toBeInTheDocument();
 
 Mockar Amiga ativa, Aliada vigente e Aliada vencida; apoiador vencido continua visível.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/SponsorsIsland.test.tsx`
 Expected: labels inexistentes.
 
-- [ ] **Step 3: Implementar hotpage e chips**
+- [x] **Step 3: Implementar hotpage e chips**
 
 ```astro
 <PublicLayout title="Empresas | CODAQUI.dev" description="Apoie a Codaqui como Empresa Amiga ou Aliada.">
@@ -307,7 +307,7 @@ Expected: labels inexistentes.
 
 Incluir proposta de valor, tabela Amiga × Aliada, benefícios, captação, jornada de validação e vitrine. `SponsorsIsland` usa os novos campos sem esconder Aliada vencida.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/SponsorsIsland.test.tsx && npm run check`
 Commit: `feat(fase-6): publica hotpage e tiers de apoiadores`
@@ -324,7 +324,7 @@ Commit: `feat(fase-6): publica hotpage e tiers de apoiadores`
 - `GET /companies/badges/public` → `static/badges/empresas/<uuid>.svg`.
 - Workflow diário 06:19 UTC + dispatch, fora do agregador `npm run sync`.
 
-- [ ] **Step 1: Escrever testes do sync**
+- [x] **Step 1: Escrever testes do sync**
 
 ```js
 await syncCompanyBadges({ outputDir, fetchImpl: async () => jsonResponse([validCompany]) });
@@ -335,12 +335,12 @@ assert.equal(await readFile(previousBadge, 'utf8'), previousContent);
 
 Cobrir XML hostil, validação completa, remoção de obsoletos, erro de rename e restauração.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `node --test scripts/sync-company-badges.test.mjs`
 Expected: script inexistente.
 
-- [ ] **Step 3: Implementar script e workflow**
+- [x] **Step 3: Implementar script e workflow**
 
 ```js
 const desired = new Map(companies.map((company) => [`${company.id}.svg`, renderCompanyBadge(company)]));
@@ -349,7 +349,7 @@ await writeFileAtomic(outputFile, svg);
 
 Escapar XML, validar UUID/nome/tier/data, escrever temporário + rename, apagar obsoletos só após sucesso e restaurar em falha. Criar `sync:company-badges` e `make sync-company-badges`.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `npm run test:scripts`
 Commit: `feat(fase-6): sincroniza badges de empresas atomicamente`
@@ -366,7 +366,7 @@ Commit: `feat(fase-6): sincroniza badges de empresas atomicamente`
 - Jornada real `Amiga → Aliada → badge → expiração → ausência → renovação`.
 - Migration 045 down/up preservando empresas, assinaturas e wallets.
 
-- [ ] **Step 1: Escrever e rodar E2E em dump isolado**
+- [x] **Step 1: Escrever e rodar E2E em dump isolado**
 
 ```ts
 await request(app.getHttpServer()).patch(`/companies/${companyId}/tier`).set(asAdmin).send({ tier: 'aliada', engagementCriterion: 'workshop', evidenceUrl: 'https://drive.google.com/evidence' }).expect(200);
@@ -377,13 +377,13 @@ expect((await request(app.getHttpServer()).get('/companies/badges/public').expec
 
 Usar banco `codaqui_business_test`, validar down/up, renovar e limpar fixtures/banco. Confirmar que Stripe/wallet não mudam e que sponsors não contém campos internos.
 
-- [ ] **Step 2: Rodar gates completos**
+- [x] **Step 2: Rodar gates completos**
 
 Run: `cd backend && npm run build && npx jest --silent`
 Run: `npm run test:scripts`
 Run: `make astro-verify && make astro-verify-tenants`
 
-- [ ] **Step 3: Documentar e commit**
+- [x] **Step 3: Documentar e commit**
 
 Registrar ADR 010 com tier, evidência, validade, projeções, badges e rollout. Marcar Fase 6 sem apagar releases anteriores pendentes.
 Commit: `docs(fase-6): registra Business tiers e handoff`

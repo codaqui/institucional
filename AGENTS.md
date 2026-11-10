@@ -76,6 +76,7 @@ Decisões arquiteturais principais:
 - [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
 - [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
 - [Mentoria no sistema](docs/adrs/009-mentorship.md)
+- [Business tiers](docs/adrs/010-business-tiers.md)
 - [Entidades e Projetos de Extensão](docs/adrs/008-entities-extension-projects.md)
 - [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
 - [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
@@ -529,6 +530,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - APIs ficam em `/mentorship/`; o UUID público é o perfil, nunca o membro. `static/mentors/index.json` usa `sync:mentors` e workflow diário 06:21 UTC, sem PII/sessões individuais. Páginas: `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` e `/mentoria/sessao/<token>` (rewrite 200 no build estático).
 - E2E PostgreSQL validou reserva concorrente 201/409, ciclo, hora única, avaliação e migration down/up. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → sessão controlada. Detalhes: [ADR 009](docs/adrs/009-mentorship.md).
 
+### 31. Fase 6 — Business tiers (ADR 010)
+
+- Migration 045/backend 0.20.0 adicionam `tier`, critério, evidência, notas e validade. Empresas existentes ficam `amiga`; Aliada exige `active`, critério e evidência HTTPS validada pelo `StorageService` e admin. Validação/retorno para Amiga grava auditoria.
+- Amiga tem selo com apoio ativo; Aliada somente com validade vigente. Aliada vencida fica como renovação pendente, fora do badge e sem downgrade automático. Stripe, assinatura, ativação manual, wallet e congelamento não mudam.
+- APIs: `PATCH /companies/:id/tier` e `GET /companies/badges/public`. Sponsors usa allowlist e inclui `tier`, `sealValidUntil`, `sealActive`; responsável, evidência, notas e IDs Stripe nunca são públicos.
+- `/empresas` é a hotpage; `/admin/empresas` faz due diligence; `/membros/empresa` mostra preview e snippets. `sync:company-badges` grava `static/badges/empresas/<uuid>.svg` atomicamente, restaura em erro e usa workflow diário 06:19 UTC, fora do agregador `npm run sync`.
+- E2E real validou Amiga → Aliada → badge → expiração → renovação e migration down/up preservando empresa/wallet. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → validação controlada. Detalhes: [ADR 010](docs/adrs/010-business-tiers.md).
+
 ---
 
 ## Common Anti-Patterns
@@ -567,7 +576,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 12 workflows)
+### CI/CD (`.github/workflows/` — 13 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -580,6 +589,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
 | `sync-universities.yml` | diário 06:26 UTC (`26 6 * * *`) + dispatch | Lê `/universities/public`, regera `static/universities/index.json` e commita somente se mudou; sync inicial após backend/migration 042 e antes do frontend |
 | `sync-mentors.yml` | diário 06:21 UTC (`21 6 * * *`) + dispatch | Lê `/mentorship/public`, regera `static/mentors/index.json` sem PII e commita somente se mudou; sync inicial após backend/migration 044 e antes do frontend |
+| `sync-company-badges.yml` | diário 06:19 UTC (`19 6 * * *`) + dispatch | Lê `/companies/badges/public`, regera `static/badges/empresas/` sem evidência e commita somente se mudou; sync inicial após backend/migration 045 e antes do frontend |
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
