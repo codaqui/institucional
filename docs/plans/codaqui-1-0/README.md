@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fases 0–3 concluídas e publicadas, restando Discussion real de assembleia; Fase 4 integrada na main e verificada, com publicação 0.16.x pendente; Fase 4b implementada e verificada, aguardando integração/release 0.17.0; Fases 5–7 em design.
+status: Fases 0–3 concluídas e publicadas, restando Discussion real de assembleia; Fase 4 integrada na main e verificada, com publicação 0.16.x pendente; Fase 4b implementada e verificada, aguardando integração/release 0.17.0; Fase 5 implementada e verificada, aguardando PR/release 0.19.0; Fases 6–7 em design.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -187,7 +187,9 @@ Princípios:
 
 ### F. Mentoria (#QueroMentoria)
 
-Traz o programa de mentoria (hoje página estática com Google Calendar externo) para dentro do sistema: disponibilidade estruturada, agendamento completo, realização registrada e insights.
+> **Estado da Fase 5:** implementação e verificação concluídas; PR, release 0.19.0, sync inicial e sessão controlada pendentes. Contratos e evidências: [ADR 009](../../adrs/009-mentorship.md) e [plano TDD](../../superpowers/plans/2026-11-09-mentorship-phase5.md).
+
+Traz o programa de mentoria (antes página estática com Google Calendar externo) para dentro do sistema: disponibilidade estruturada, agendamento completo, realização registrada e insights.
 
 **Decisões alinhadas (2026-09-21):** agendamento 100% no sistema; mentorando pode ser convidado sem login (nome + e-mail); sessão gera horas para o mentor no ledger + registro de participação para o mentorando; insights agregados públicos, detalhes só no admin.
 
@@ -387,7 +389,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **3. Assembleias** ✅ **PUBLICADA (2026-11-07); DISCUSSION REAL PENDENTE** — [plano/handoff](../../superpowers/plans/2026-11-05-assembleias.md) · [ADR 014](../../adrs/014-assemblies.md) | `assemblies` + páginas + integração Giscus + snapshot + admin | Migration 036, CRUD/autorização, numeração concorrente, registro cartorário, páginas e gates validados. PR #613 e release `v0.15.0-backend` publicados; sync inicial no run `42336485122`; frontend no run `42336580942`. Categoria Reuniões configurada e hidratação corrigida pela PR #615; validação com Discussion real continua pendente |
 | **4. Entidades e extensão** ✅ **IMPLEMENTADA E INTEGRADA; PUBLICAÇÃO 0.16.x PENDENTE** — [spec](../../superpowers/specs/2026-11-06-entities-extension-design.md) · [plano](../../superpowers/plans/2026-11-07-entities-extension.md) | entities/partnerships/projects + inscrição + vitrine + diretorias comunitárias + assembleias por entidade jurídica + certificação desacoplada | PR #617 integrada; migrations 037–041 e E2E verificados; release/redeploy e sync inicial continuam pendentes |
 | **4b. Codaqui Universitário** ✅ **IMPLEMENTADA E VERIFICADA; INTEGRAÇÃO/RELEASE 0.17.0 PENDENTES** — [ADR 015](../../adrs/015-codaqui-universitario.md) · [plano](../../superpowers/plans/2026-11-09-codaqui-universitario.md) | `cities` + `entities.cityId` + designations `ambassador` @ `ies` e `manager` @ `program('universitario')` + `managed_events.institutionId` + páginas pública/admin + snapshot | Migration 042 down/up preservou dados; E2E real cobriu cidade→IES→posse→evento→inscrição→check-in→certificado/horas exactly-once. Publicação segue backend/migration → sync inicial → frontend |
-| **5. Mentoria** | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Agendamento ponta a ponta no sistema (pedir→confirmar→realizar); sessão completada gera horas do mentor no ledger; agregados públicos e painel do mentor |
+| **5. Mentoria** ✅ **IMPLEMENTADA E VERIFICADA; PR/RELEASE 0.19.0 PENDENTES** — [ADR 009](../../adrs/009-mentorship.md) · [plano TDD](../../superpowers/plans/2026-11-09-mentorship-phase5.md) | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Migration 044 down/up e E2E real: candidatura→aprovação→reserva concorrente 201/409→confirmação→conclusão→uma hora pendente→avaliação. Frontend e snapshot sem PII verificados; release/redeploy, sync inicial e sessão controlada pendentes |
 | **6. Business tiers** | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migração para 'amiga'; validação Aliada com 1+ critério comprovado; hotpage com captação/níveis/benefícios/Business Events; badge SVG para README/site |
 | **7. C4P** (anexada 2026-10-20) | Porte do sistema externo de C4P (curadoria: importação CSV, avaliadores, votação por critérios, dashboard, PDF) **+ submissão pública** + resultado público opt-in — detalhes: [c4p.md](c4p.md) | Submissão pública ponta a ponta com consentimento LGPD; curadoria completa (convite→votação→finalização→e-mails); importação CSV compatível com o Google Forms atual; notas nunca públicas; ADR 012 implementada |
 
@@ -399,7 +401,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 > - **C4P (F7)** continua independente das fases 1–6 e pode ser antecipado por decisão da presidência.
 > - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O handoff da Fase 3 está no [plano de Assembleias](../../superpowers/plans/2026-11-05-assembleias.md); a Fase 4 foi autorizada para início em 2026-11-06.
 
-Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0**, a Fase 3 publicou **0.15.0**, a Fase 4 está integrada em **0.16.x** com release pendente e a Fase 4b está preparada em **0.17.0**, também sem release. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
+Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0**, a Fase 3 publicou **0.15.0**, a Fase 4 está integrada em **0.16.x** com release pendente, a Fase 4b está preparada em **0.17.0** e a Fase 5 em **0.19.0**, ambas sem release. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 
@@ -407,7 +409,7 @@ Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**,
 - **006 — Diretorias e designations** (Fase 1a) — ✅ implementada
 - **007 — Registro de comunidades, níveis e Selo Codaqui** — ✅ implementada
 - **008 — Entidades, parcerias e Projetos de Extensão** — ✅ [implementada e verificada](../../adrs/008-entities-extension-projects.md); integração/release pendentes
-- **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)**
+- **009 — Mentoria no sistema (disponibilidade, agendamento, sessões, insights)** — ✅ [implementada e verificada](../../adrs/009-mentorship.md); PR/release 0.19.0 pendentes
 - **010 — Business tiers (Empresa Amiga / Empresa Aliada)**
 - **012 — C4P integrado (submissão pública + curadoria)** (Fase 7 — ver [c4p.md](c4p.md))
 - **013 — Ledger de horas, ownership, guests e perfil público** (Fase 2) — ✅ [implementada e publicada](../../adrs/013-hour-ledger.md) com backend 0.14.0

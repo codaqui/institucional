@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 5 — Mentoria com disponibilidade, sessões, notificações, horas e insights.
 audience: Implementers e revisores da PR.
-status: Spec aprovada; pronto para execução inline, sem subagentes e separado da PR #618.
+status: Implementação e verificação concluídas; PR para develop e revisões de integração pendentes; separado da PR #618.
 sections:
   - Global Constraints
   - Tasks 1–8
@@ -50,7 +50,7 @@ agent-protocol:
 - `MentorProfile`, `MentorAvailability`, `MentorshipSession` com campos e estados da spec.
 - `MentorshipSessionStatus = requested | confirmed | completed | canceled | no_show`.
 
-- [ ] **Step 1: Escrever teste da migration**
+- [x] **Step 1: Escrever teste da migration**
 
 ```ts
 expect(upSql).toContain('CREATE TABLE "mentor_profiles"');
@@ -61,12 +61,12 @@ expect(upSql).toContain('"menteeMemberId" uuid');
 expect(downSql).toContain('DROP TABLE IF EXISTS "mentorship_sessions"');
 ```
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship/mentorship.migration.spec.ts --runInBand`
 Expected: migration inexistente.
 
-- [ ] **Step 3: Implementar entidades e migration**
+- [x] **Step 3: Implementar entidades e migration**
 
 ```ts
 await queryRunner.query('CREATE UNIQUE INDEX "UQ_mentorship_session_slot" ON "mentorship_sessions" ("mentorId", "scheduledAt")');
@@ -74,7 +74,7 @@ await queryRunner.query('CREATE UNIQUE INDEX "UQ_mentorship_session_slot" ON "me
 
 Adicionar FKs, índices por `token` e `status`, checks de `durationMin` e `rating`. `mentor_availability` usa `ON DELETE CASCADE`; demais relações usam `ON DELETE RESTRICT`. Bump `0.19.0`.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship/mentorship.migration.spec.ts --runInBand && npm run build`
 Commit: `feat(fase-5): adiciona modelo de mentoria`
@@ -94,7 +94,7 @@ Commit: `feat(fase-5): adiciona modelo de mentoria`
 - `apply(dto,user)`, `listMyApplications(user)`, `listApplications(actor)`, `confirmApplication(id,actor)`.
 - `getProfile(actor)`, `updateProfile(dto,actor)`.
 
-- [ ] **Step 1: Escrever testes de candidatura e aprovação**
+- [x] **Step 1: Escrever testes de candidatura e aprovação**
 
 ```ts
 const pending = await service.apply({ areas: ['DevOps'], focus: 'Carreira' }, candidate);
@@ -105,12 +105,12 @@ await expect(service.confirmApplication(pending.id, adminActor)).resolves.toMatc
 
 Incluir duplicidade pendente, escopo do mentor ativo e atualização de foco/áreas.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship --runInBand`
 Expected: módulo/service inexistente.
 
-- [ ] **Step 3: Implementar fluxo**
+- [x] **Step 3: Implementar fluxo**
 
 ```ts
 await this.designations.grant({
@@ -121,7 +121,7 @@ await this.designations.grant({
 
 Confirmação admin chama `designations.confirm`, cria perfil com `approvedById/since` e invalida cache. Rotas sem `/admin/`: applications, profile e availability futura. Registrar ações de auditoria governança.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship src/audit/audit-category.spec.ts --runInBand && npm run build`
 Commit: `feat(fase-5): abre candidaturas de mentores`
@@ -139,7 +139,7 @@ Commit: `feat(fase-5): abre candidaturas de mentores`
 - `listAvailability(mentorId,from): Promise<AvailabilitySlot[]>`.
 - `reserveSlot(input,actor): Promise<MentorshipSession>`.
 
-- [ ] **Step 1: Escrever testes de regra e reserva dupla**
+- [x] **Step 1: Escrever testes de regra e reserva dupla**
 
 ```ts
 await service.replaceAvailability(1, [{ startTime: '19:00', endTime: '20:00', timeZone: 'America/Sao_Paulo' }], mentorActor);
@@ -150,12 +150,12 @@ expect(emailService.sendTemplate).not.toHaveBeenCalled();
 
 Adicionar `startTime >= endTime`, regra sobreposta e sessão fora da disponibilidade.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship/availability.service.spec.ts --runInBand`
 Expected: service inexistente.
 
-- [ ] **Step 3: Implementar slots e reserva transacional**
+- [x] **Step 3: Implementar slots e reserva transacional**
 
 ```ts
 const conflict = await sessions.findOne({
@@ -170,7 +170,7 @@ if (conflict) throw new ConflictException('Este horário já está reservado.');
 
 Lock da regra e filtro `existing.start < requested.end AND existing.end > requested.start`; unique `(mentorId,scheduledAt)` vira 409. Converter wall-clock pelo helper de timezone existente, sem dependência nova. `guestConsentAt` obrigatório sem membro.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship --runInBand && npm run build`
 Commit: `feat(fase-5): agenda slots de mentoria sem conflito`
@@ -185,7 +185,7 @@ Commit: `feat(fase-5): agenda slots de mentoria sem conflito`
 **Interfaces:**
 - `getByToken(token)`, `confirm(id,meetLink,actor)`, `complete(id,actor)`, `noShow(id,actor)`, `cancel(id,reason,actor)`, `rate(token,rating,feedback?)`.
 
-- [ ] **Step 1: Escrever testes de estado e escopo**
+- [x] **Step 1: Escrever testes de estado e escopo**
 
 ```ts
 await expect(service.complete(id, otherMentor)).rejects.toThrow(ForbiddenException);
@@ -196,12 +196,12 @@ await expect(service.rate(token, 5, 'Ótima sessão')).resolves.toMatchObject({ 
 
 Concluir depois do horário, impedir conclusão antes, impedir avaliação fora de `completed` e impedir confirmação sem HTTPS.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship/sessions.service.spec.ts --runInBand`
 Expected: service inexistente.
 
-- [ ] **Step 3: Implementar transições**
+- [x] **Step 3: Implementar transições**
 
 ```ts
 if (session.status !== 'confirmed') throw new ConflictException('Somente sessões confirmadas podem ser concluídas.');
@@ -212,7 +212,7 @@ session.completedAt = new Date();
 
 Cancelamento exige motivo 3–500 e vale apenas antes de `completed`; `no_show` somente depois do horário. Projeção por token não expõe IDs de atores nem notas privadas.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship --runInBand && npm run build`
 Commit: `feat(fase-5): gerencia ciclo das sessões`
@@ -230,7 +230,7 @@ Commit: `feat(fase-5): gerencia ciclo das sessões`
 - `HoursService.recordMentorshipSession(session)` cria uma única entrada pending.
 - `upsertByGithub` vincula somente e-mails verificados a `menteeMemberId`.
 
-- [ ] **Step 1: Escrever testes de horas e vínculo**
+- [x] **Step 1: Escrever testes de horas e vínculo**
 
 ```ts
 await service.complete(id, mentorActor);
@@ -244,12 +244,12 @@ expect(sessionRepo.update).toHaveBeenCalledWith({ menteeEmail: 'ana@x.dev', ment
 
 Adicionar `no_show` sem horas, e-mail não verificado sem vínculo e anonimização somente de convidados antigos sem membro.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship src/members/members.service.spec.ts src/notifications/default-templates.spec.ts --runInBand`
 Expected: métodos/templates inexistentes.
 
-- [ ] **Step 3: Implementar horas e notificações**
+- [x] **Step 3: Implementar horas e notificações**
 
 ```ts
 await this.hours.recordMentorshipSession(session);
@@ -257,7 +257,7 @@ await this.hours.recordMentorshipSession(session);
 
 Implementar método em `HoursService` com `sourceType = 'mentorship_session'`, `hours = durationMin / 60`, `sourceId = session.id`, `status = pending` e dedupe por fonte. Templates no registry atual; falha de e-mail não desfaz a transição. Cron diário anonimiza convidados antigos sem membro.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship src/members/members.service.spec.ts src/hours src/notifications/default-templates.spec.ts --runInBand && npm run build`
 Commit: `feat(fase-5): notifica sessões e credita horas uma vez`
@@ -275,7 +275,7 @@ Commit: `feat(fase-5): notifica sessões e credita horas uma vez`
 - `GET /mentorship/public` e `GET /mentorship/insights` (admin).
 - `MENTORS_API_URL` default `http://localhost:3001`.
 
-- [ ] **Step 1: Escrever testes de projeção e sync atômico**
+- [x] **Step 1: Escrever testes de projeção e sync atômico**
 
 ```ts
 expect(publicPayload.mentors[0]).toEqual({ handle: 'ana', name: 'Ana', avatarUrl: 'avatar', areas: ['DevOps'], focus: 'Carreira', availability: [] });
@@ -287,12 +287,12 @@ expect(readJson(tempSnapshot)).toEqual(previousSnapshot);
 
 O último caso simula HTTP 500 e exige preservação do snapshot anterior.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd backend && npx jest src/mentorship --runInBand && cd .. && node --test scripts/sync-mentors.test.mjs`
 Expected: projeção/script inexistente.
 
-- [ ] **Step 3: Implementar projeção e workflow**
+- [x] **Step 3: Implementar projeção e workflow**
 
 ```ts
 const payload = { generatedAt: new Date().toISOString(), mentors: publicMentors, insights };
@@ -301,7 +301,7 @@ await writeFileAtomic(snapshotPath, `${JSON.stringify(payload, null, 2)}\n`);
 
 Validar payload completo, escrever atomicamente e preservar em erro. Workflow diário 06:21 UTC + dispatch, fora do agregador `npm run sync`. Insights públicos agregados por área, conclusão e no-show, sem sessões individuais.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd backend && npx jest src/mentorship --runInBand && cd .. && npm run test:scripts`
 Commit: `feat(fase-5): publica mentores e insights em snapshot`
@@ -324,7 +324,7 @@ Commit: `feat(fase-5): publica mentores e insights em snapshot`
 - `loadMentorsIndex()` valida snapshot sem PII.
 - Dashboard usa `useAuth`, `authFetch`, `parseAuthJson`, `extractErrorMessage` e `PaginationControls`.
 
-- [ ] **Step 1: Escrever testes das jornadas**
+- [x] **Step 1: Escrever testes das jornadas**
 
 ```tsx
 await user.click(screen.getByRole('button', { name: 'Agendar 19:00' }));
@@ -337,12 +337,12 @@ expect(await screen.findByText(/sessão solicitada/i)).toBeInTheDocument();
 
 Adicionar confirmação do mentor, cancelamento por token, avaliação, aprovação admin e lista paginada.
 
-- [ ] **Step 2: Confirmar falha**
+- [x] **Step 2: Confirmar falha**
 
 Run: `cd frontend && npx vitest run src/data/mentors.test.ts src/components/islands/mentorship src/components/islands/admin/mentorship`
 Expected: componentes/rotas inexistentes.
 
-- [ ] **Step 3: Implementar páginas e ilhas**
+- [x] **Step 3: Implementar páginas e ilhas**
 
 ```tsx
 const response = await authFetch('/mentorship/sessions', {
@@ -352,7 +352,7 @@ const response = await authFetch('/mentorship/sessions', {
 
 Manter os cinco perfis iniciais no snapshot bootstrap. Formulários nativos acessíveis, estados de erro e teclado. `.astro` fino + `AppLayout` para membro/admin. Nav mostra mentoria por designation ativa.
 
-- [ ] **Step 4: Verificar e commit**
+- [x] **Step 4: Verificar e commit**
 
 Run: `cd frontend && npm run check && npx vitest run src/data/mentors.test.ts src/components/islands/mentorship src/components/islands/admin/mentorship`
 Commit: `feat(fase-5): entrega jornada de mentoria no site`
@@ -369,7 +369,7 @@ Commit: `feat(fase-5): entrega jornada de mentoria no site`
 - Jornada real `candidate → admin confirm → availability → concurrent reservations → confirm → complete → hours → rating`.
 - Migration 044 down/up preservando perfis, sessões e designations.
 
-- [ ] **Step 1: Escrever e rodar E2E em dump isolado**
+- [x] **Step 1: Escrever e rodar E2E em dump isolado**
 
 ```ts
 const [first, second] = await Promise.all([
@@ -382,13 +382,13 @@ expect(hourRows[0].status).toBe('pending');
 
 Restaurar dump em `codaqui_mentorship_test`, validar migration down/up e fixtures sintéticas limpas. Cobrir token, avaliação, vínculo verificado e anonimização quando aplicável.
 
-- [ ] **Step 2: Rodar gates completos**
+- [x] **Step 2: Rodar gates completos**
 
 Run: `cd backend && npm run build && npx jest --silent`
 Run: `npm run test:scripts`
 Run: `make astro-verify && make astro-verify-tenants`
 
-- [ ] **Step 3: Documentar e commit**
+- [x] **Step 3: Documentar e commit**
 
 Registrar ADR 009 com reúso, concorrência, contratos, privacidade, snapshot e rollout. Marcar Fase 5 sem apagar publicações/releases pendentes.
 Commit: `docs(fase-5): registra mentoria e handoff`
