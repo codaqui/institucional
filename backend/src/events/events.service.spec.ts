@@ -214,6 +214,7 @@ describe('EventsService', () => {
       staffRepo as any,
       memberRepo as any,
       activationRepo as any,
+      { findOne: jest.fn().mockResolvedValue(null) } as any,
       txRepo as any,
       stripeService as any,
       ledgerService as any,
@@ -225,6 +226,7 @@ describe('EventsService', () => {
       reimbursementsService as any,
       hoursService as any,
     );
+    (service as any).emailLogRepo = { findOne: jest.fn().mockResolvedValue(null) };
   });
 
   describe('adult content classification', () => {

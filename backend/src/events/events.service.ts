@@ -37,7 +37,8 @@ import { Transaction } from '../ledger/entities/transaction.entity';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { EmailService, type RegistrationEmailEvent } from '../notifications/email.service';
-import { EmailStatus } from '../notifications/entities/email-log.entity';
+import { EmailLog, EmailStatus } from '../notifications/entities/email-log.entity';
+import { EMAIL_TEMPLATE_CERTIFICATE_PENDING } from '../notifications/default-templates';
 import { EventOrganizerService } from '../event-organizer/event-organizer.service';
 import { EventOverridesService } from './event-overrides.service';
 import { GitHubDBService } from '../github-db/github-db.service';
@@ -56,7 +57,7 @@ import type {
   UpdateTicketTypeDto,
 } from './dto/ticket-operations.dto';
 import type { ActivateExternalDto } from './dto/external.dto';
-import type { ClaimGuestDto } from './dto/guest.dto';
+import type { ClaimCertificateAccountDto, ClaimGuestDto } from './dto/guest.dto';
 import type { ListRegistrationsQueryDto } from './dto/certificate-operations.dto';
 import { CreateReimbursementDto } from '../reimbursements/dto/create-reimbursement.dto';
 
@@ -188,6 +189,8 @@ export class EventsService {
     private readonly memberRepo: Repository<Member>,
     @InjectRepository(ExternalEventActivation)
     private readonly activationRepo: Repository<ExternalEventActivation>,
+    @InjectRepository(EmailLog)
+    private readonly emailLogRepo: Repository<EmailLog>,
     @InjectRepository(Transaction)
     private readonly txRepo: Repository<Transaction>,
     private readonly stripeService: StripeService,
@@ -2344,9 +2347,28 @@ export class EventsService {
     };
   }
 
+  private async reconcileCertificateInvitation(registration: EventRegistration): Promise<void> {
+    if (registration.certificateInvitedAt) return;
+    const sent = await this.emailLogRepo.findOne({
+      where: {
+        registrationId: registration.id,
+        template: EMAIL_TEMPLATE_CERTIFICATE_PENDING,
+        status: EmailStatus.SENT,
+      },
+      order: { createdAt: 'ASC' },
+    });
+    if (!sent) return;
+    await this.registrationRepo.update(
+      { id: registration.id, certificateInvitedAt: IsNull() },
+      { certificateInvitedAt: sent.createdAt },
+    );
+    registration.certificateInvitedAt = sent.createdAt;
+  }
+
   async getGuestInvite(token: string) {
     const registration = await this.registrationRepo.findOneBy({ checkinToken: token });
     if (!registration?.isGuest) throw new NotFoundException('Convite não encontrado.');
+    await this.reconcileCertificateInvitation(registration);
     const event = await this.registrationEmailEvent(registration);
     const confirmed = registration.status === RegistrationStatus.CONFIRMED;
     return {
@@ -2356,7 +2378,69 @@ export class EventsService {
       attendeeName: confirmed ? registration.attendeeName : null,
       attendeeEmail: confirmed ? this.maskEmail(registration.attendeeEmail) : null,
       checkinToken: confirmed ? registration.checkinToken : null,
+      requiresAccount: registration.certificateInvitedAt !== null,
     };
+  }
+
+  async claimCertificateWithAccount(dto: ClaimCertificateAccountDto, user: JwtPayload) {
+    if (!dto.consent) throw new BadRequestException('Consentimento obrigatório.');
+    const member = await this.memberRepo.findOneBy({ id: user.sub, isActive: true });
+    if (!member) throw new ForbiddenException('Conta de membro ativa não encontrada.');
+
+    await this.registrationRepo.manager.transaction(async (manager) => {
+      const registrations = manager.getRepository(EventRegistration);
+      const registration = await registrations.findOne({
+        where: { checkinToken: dto.token },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!registration) throw new NotFoundException('Convite não encontrado.');
+      if (!registration.isGuest || !registration.certificateInvitedAt) {
+        throw new ConflictException('Este convite não é um convite de certificado.');
+      }
+      if (![RegistrationStatus.PENDING_GUEST, RegistrationStatus.CONFIRMED].includes(registration.status)) {
+        throw new ConflictException('Convite já utilizado ou indisponível.');
+      }
+      if (registration.memberId && registration.memberId !== member.id) {
+        throw new ConflictException('Convite já vinculado a outra conta.');
+      }
+      if (registration.memberId === member.id) return;
+
+      const verifiedEmail = (member.secondaryEmails ?? []).find(
+        (email) => email.toLowerCase() === registration.attendeeEmail?.toLowerCase(),
+      );
+      if (!verifiedEmail) {
+        throw new ForbiddenException('O e-mail do convite precisa estar verificado no GitHub da conta autenticada.');
+      }
+
+      const now = new Date();
+      const wasPending = registration.status === RegistrationStatus.PENDING_GUEST;
+      const values = {
+        memberId: member.id,
+        attendeeName: member.name,
+        attendeeEmail: verifiedEmail.toLowerCase(),
+        status: RegistrationStatus.CONFIRMED,
+        guestClaimedAt: registration.guestClaimedAt ?? now,
+        guestConsentAt: registration.guestConsentAt ?? now,
+      };
+      const result = await registrations.update({ id: registration.id }, values);
+      if (!result.affected) throw new ConflictException('Convite já vinculado a outra conta.');
+      Object.assign(registration, values);
+      void this.auditService.log({
+        action: AuditAction.EVENT_GUEST_LINKED,
+        actorId: member.id,
+        actorHandle: member.githubHandle,
+        targetId: registration.id,
+        targetType: 'event-registration',
+        details: {
+          eventId: registration.eventId,
+          externalActivationId: registration.externalActivationId,
+          certificateAccountClaim: true,
+          confirmedFromPending: wasPending,
+        },
+      });
+    });
+
+    return this.getGuestInvite(dto.token);
   }
 
   async claimGuestRegistration(dto: ClaimGuestDto) {
@@ -2366,6 +2450,10 @@ export class EventsService {
       status: RegistrationStatus.PENDING_GUEST,
     });
     if (!registration) throw new ConflictException('Convite já utilizado ou indisponível.');
+    await this.reconcileCertificateInvitation(registration);
+    if (registration.certificateInvitedAt) {
+      throw new ConflictException('Este convite de certificado exige login com GitHub.');
+    }
     if (!registration.eventId) {
       if (!registration.externalActivationId) throw new NotFoundException('Ativação externa não encontrada.');
       const activation = await this.activationRepo.findOneBy({ id: registration.externalActivationId });
@@ -2793,6 +2881,7 @@ export class EventsService {
     if (!registration || ![RegistrationStatus.PENDING_MATCH, RegistrationStatus.PENDING_GUEST].includes(registration.status)) {
       return { registration: null, status: 'invalid' };
     }
+    await this.reconcileCertificateInvitation(registration);
     if (registration.certificateInvitedAt) return { registration: null, status: 'already_invited' };
     if (registration.eventId) {
       const allowed = EventsService.canManageAll(user) || !!user.roles?.includes(MemberRole.EVENT_CHECKER) ||

@@ -62,6 +62,7 @@ describe('EventsController', () => {
       createExternalTicketType: jest.fn().mockResolvedValue({ id: 'tt-ext-1' }),
       updateExternalTicketType: jest.fn().mockResolvedValue({ id: 'tt-ext-1' }),
       checkoutExternal: jest.fn().mockResolvedValue({ url: 'https://checkout' }),
+      claimCertificateWithAccount: jest.fn().mockResolvedValue({ status: 'confirmed', requiresAccount: true }),
       activateExternal: jest.fn().mockResolvedValue({ id: 'act-1' }),
       getActivation: jest.fn().mockResolvedValue({ id: 'act-1' }),
       listExternalOrders: jest.fn().mockResolvedValue([]),
@@ -317,6 +318,14 @@ describe('EventsController', () => {
         user,
       );
       expect(result).toEqual({ deleted: true });
+    });
+
+    it('POST /events/public/guest-claim/github delega o token e o membro autenticado', async () => {
+      const dto = { token: 'guest-token', consent: true };
+      const result = await controller.claimCertificateAccount(dto, { user });
+
+      expect(service.claimCertificateWithAccount).toHaveBeenCalledWith(dto, user);
+      expect(result).toEqual({ status: 'confirmed', requiresAccount: true });
     });
   });
 });
