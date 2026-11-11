@@ -48,6 +48,17 @@ const canGrant = (registration: EventRegistration) =>
 const canInvite = (registration: EventRegistration) =>
   isRegistrationPending(registration) && !registration.certificateInvitedAt;
 
+function inviteSeverity(batch: CertificateInviteBatch): Feedback["severity"] {
+  if (batch.invalid.length > 0) return "warning";
+  return batch.total > 0 ? "success" : "info";
+}
+
+function inviteMessage(batch: CertificateInviteBatch): string {
+  if (batch.total === 0) return "Nenhum convite novo foi enfileirado.";
+  const label = batch.total === 1 ? "convite enfileirado" : "convites enfileirados";
+  return `${batch.total} ${label}. O envio acontecerá em segundo plano.`;
+}
+
 export default function CertificateCenter({
   registrations,
   onGrant,
@@ -139,11 +150,9 @@ export default function CertificateCenter({
       setActiveBatch(hasNewInvites ? { id: batch.batchId, total: batch.total } : null);
       setSelected(new Set());
       setFeedback({
-        severity: batch.invalid.length > 0 ? "warning" : hasNewInvites ? "success" : "info",
+        severity: inviteSeverity(batch),
         messages: [
-          hasNewInvites
-            ? `${batch.total} ${batch.total === 1 ? "convite enfileirado" : "convites enfileirados"}. O envio acontecerá em segundo plano.`
-            : "Nenhum convite novo foi enfileirado.",
+          inviteMessage(batch),
           ...(batch.invalid.length > 0 ? [`${batch.invalid.length} inscrição(ões) não puderam ser enfileiradas.`] : []),
         ],
       });

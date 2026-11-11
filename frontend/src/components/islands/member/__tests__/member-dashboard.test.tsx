@@ -321,6 +321,10 @@ describe("/membro", () => {
     expect(screen.getByText("ABCD-1234", { exact: false })).toBeInTheDocument();
     expect(screen.getByText("Emitido em", { exact: false })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Imprimir / salvar PDF" })).toBeInTheDocument();
+    fireEvent(window, new Event("beforeprint"));
+    expect(screen.getAllByText("CERTIFICADO DE PARTICIPAÇÃO")).toHaveLength(2);
+    fireEvent(window, new Event("afterprint"));
+    expect(screen.getByText("CERTIFICADO DE PARTICIPAÇÃO")).toBeInTheDocument();
   });
 
   it("mostra o erro real do certificado sem alegar presença obrigatória", async () => {

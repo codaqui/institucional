@@ -8,11 +8,11 @@ describe("impressão de certificados", () => {
     expect(globalCss).toMatch(/@media\s+print\s*\{/);
     expect(globalCss).toMatch(/@page\s*\{[^}]*size:\s*A4/s);
     expect(globalCss).toMatch(/@page\s*\{[^}]*margin:\s*12mm/s);
-    expect(globalCss).toContain("body:has(.certificate-print-area) > :not(.MuiDialog-root)");
-    expect(globalCss).toContain(".MuiBackdrop-root");
-    expect(globalCss).toContain(".no-print");
+    expect(globalCss).toContain("body > *:not(.print-certificate)");
+    expect(globalCss).toContain("body > .print-certificate");
     expect(globalCss).toContain(".certificate-print-area");
     expect(globalCss).toMatch(/\.certificate-print-area\s*\{[^}]*break-inside:\s*avoid/s);
     expect(globalCss).toMatch(/\.certificate-print-area\s*\{[^}]*print-color-adjust:\s*exact/s);
+    expect(globalCss).not.toContain("!important");
   });
 });

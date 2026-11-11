@@ -106,6 +106,7 @@ function MemberDashboardInner() {
   const [cancelRegLoading, setCancelRegLoading] = useState(false);
   const [cancelRegError, setCancelRegError] = useState("");
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [certLoadingId, setCertLoadingId] = useState<string | null>(null);
   const [certError, setCertError] = useState("");
 
@@ -353,6 +354,17 @@ function MemberDashboardInner() {
       setCancelSubId(null);
     }
   };
+
+  useEffect(() => {
+    const beforePrint = () => setIsPrinting(true);
+    const afterPrint = () => setIsPrinting(false);
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", beforePrint);
+      window.removeEventListener("afterprint", afterPrint);
+    };
+  }, []);
 
   if (!ready || !isLoggedIn) {
     return (
@@ -637,6 +649,7 @@ function MemberDashboardInner() {
           </Button>
         </DialogActions>
       </Dialog>
+      {isPrinting && certificate && <Box className="print-certificate" aria-hidden={true}><CertificateCard certificate={certificate} origin={origin} /></Box>}
     </PageContainer>
   );
 }
