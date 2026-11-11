@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Box, Button, Card, CardContent, Chip, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
+import { Alert, Avatar, Box, Button, Card, CardContent, Chip, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import PaginationControls from "../../ui/PaginationControls";
@@ -8,7 +8,16 @@ import { useAuth } from "../../../../lib/use-auth";
 import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
 import { DEFAULT_PAGE_SIZE, rangeLabel, type PaginatedResponse } from "../../../../lib/pagination";
 
-interface Application { id: string; memberId: string; status: string }
+interface Application {
+  id: string;
+  memberId: string;
+  status: string;
+  name: string;
+  githubHandle: string;
+  avatarUrl: string;
+  areas: string[];
+  focus: string | null;
+}
 interface AdminSession { id: string; menteeName: string; scheduledAt: string; status: string }
 interface Insights { completed: number; activeMentors: number; requested: number; confirmed: number; canceled: number; noShow: number; noShowRate: number }
 
@@ -95,9 +104,20 @@ function MentorshipAdmin() {
         <Box>
           <Typography variant="h5" component="h3" sx={{ mb: 2 }}>Candidaturas pendentes</Typography>
           <Stack spacing={1}>{applications.length === 0 ? <Typography color="text.secondary">Nenhuma candidatura pendente.</Typography> : applications.map((application) => (
-            <Card key={application.id} variant="outlined"><CardContent><Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }} spacing={1}>
-              <Typography>Membro {application.memberId}</Typography><Chip label={application.status} size="small" />
-              <Button variant="contained" disabled={busy} onClick={() => void approve(application.id)}>Aprovar mentor</Button>
+            <Card key={application.id} variant="outlined" component="article"><CardContent><Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }} spacing={2}>
+              <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", flex: 1 }}>
+                <Avatar src={application.avatarUrl} alt={`Avatar de ${application.name}`} />
+                <Box>
+                  <Typography component="h4" variant="h6">{application.name}</Typography>
+                  <Typography variant="body2" color="text.secondary">@{application.githubHandle}</Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>{application.areas.join(", ")}</Typography>
+                  {application.focus && <Typography variant="body2" color="text.secondary">{application.focus}</Typography>}
+                </Box>
+              </Stack>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Chip label={application.status} size="small" />
+                <Button variant="contained" disabled={busy} onClick={() => void approve(application.id)}>Aprovar mentor</Button>
+              </Stack>
             </Stack></CardContent></Card>
           ))}</Stack>
         </Box>

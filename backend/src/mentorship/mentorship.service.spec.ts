@@ -55,6 +55,27 @@ describe('MentorshipService — applications and profile', () => {
     await expect(service.apply({ areas: ['DevOps'], focus: 'Carreira' }, candidate)).rejects.toThrow(ConflictException);
   });
 
+  it('lists only real pending candidates with public member and profile data', async () => {
+    designationRepo.find.mockResolvedValue([
+      { id: 'placeholder-application', memberId: 'placeholder-1', status: 'pending', designation: 'mentor' },
+      { id: 'application-1', memberId: candidate.sub, status: 'pending', designation: 'mentor' },
+    ]);
+    memberRepo.findBy.mockResolvedValue([{
+      id: candidate.sub, name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true,
+      email: 'private@example.test',
+    }]);
+    profileRepo.find.mockResolvedValue([{ memberId: candidate.sub, areas: ['DevOps'], focus: 'Carreira' }]);
+
+    const applications = await service.listApplications(adminActor);
+
+    expect(applications).toEqual([{
+      id: 'application-1', memberId: candidate.sub, status: 'pending', designation: 'mentor',
+      name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', areas: ['DevOps'], focus: 'Carreira',
+    }]);
+    expect(JSON.stringify(applications)).not.toContain('placeholder-application');
+    expect(JSON.stringify(applications)).not.toContain('private@example.test');
+  });
+
   it('allows only admin to confirm and creates the active profile', async () => {
     designationRepo.findOneBy.mockResolvedValue({ id: 'application-1', status: 'pending', memberId: candidate.sub });
     await expect(service.confirmApplication('application-1', managerActor)).rejects.toThrow(ForbiddenException);
