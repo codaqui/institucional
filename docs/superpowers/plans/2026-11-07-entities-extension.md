@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 4 — entidades, parcerias, projetos de extensão, participantes, horas e comprovantes.
 audience: Implementers e revisores da Fase 4.
-status: Fase 4 e adendo de certificação desacoplada implementados na PR #617; merge, release 0.16.0 e validação pública aguardam comando explícito.
+status: Concluída e publicada em v0.16.0-backend; proteções administrativas de IES ampliadas em 0.24.0.
 sections:
   - Constraints
   - Tasks 1–10

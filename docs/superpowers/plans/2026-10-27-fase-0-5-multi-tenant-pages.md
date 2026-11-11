@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação da Fase 0.5 (Multi-tenant por build matrix no Cloudflare Pages) — tenants com rotas limpas em /, Pages Function de proxy, migração dos 3 domínios live e fim da pasta workers/.
 audience: AI agents executando com superpowers:subagent-driven-development.
-status: pronto para execução (2026-10-27); rulings serão registrados no ledger SDD em .superpowers/sdd/2026-10-27-fase-0-5-multi-tenant-pages/ durante a execução.
+status: Concluída — build matrix e proxy Pages Function entregues com os três tenants e o portal Codaqui.
 related-docs:
   - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — spec da Fase 0 (§Multi-tenant sem workers/)
   - docs/plans/codaqui-1-0/README.md — plano-mãe 1.0.0

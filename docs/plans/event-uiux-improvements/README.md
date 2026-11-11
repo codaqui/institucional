@@ -16,8 +16,8 @@ related-docs:
 
 # Plano de Melhorias de UI/UX — Módulo de Eventos
 
-> Status: **em implementação** — Sprints 1–5 concluídas; Sprint 6 (hub unificado) em planejamento.
-> Última atualização: 2026-07-31.
+> Status: **histórico parcial** — Sprints 1–5 concluídas; Sprint 6 não executada e várias dores foram suplantadas pelas Fases 1a–6 e pela spec de Experiência do Membro.
+> Última atualização: 2026-07-31; revisão de escopo em 2026-11-11.
 
 ## 1. Resumo executivo
 

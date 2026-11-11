@@ -530,6 +530,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `completed` cria uma única entrada `mentorship_session` pendente com `hours=durationMin/60`; canceled/no_show não geram horas. Templates e SMTP são os existentes; falha de e-mail não desfaz transição. Apenas e-mail verificado vincula `menteeMemberId` e o cron anual anonimiza somente convidados sem membro.
 - APIs ficam em `/mentorship/`; o UUID público é o perfil, nunca o membro. `static/mentors/index.json` usa `sync:mentors` e workflow diário 06:21 UTC, sem PII/sessões individuais. Páginas: `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` e `/mentoria/sessao/<token>` (rewrite 200 no build estático).
 - E2E PostgreSQL validou reserva concorrente 201/409, ciclo, hora única, avaliação e migration down/up. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → sessão controlada. Detalhes: [ADR 009](docs/adrs/009-mentorship.md).
+- Migration 046/backend 0.22.0 importa 173 sessões históricas deduplicadas com `legacy-import:` sem horas, consentimentos ou Meet retroativos. Enderson usa e-mail verificado; cinco placeholders inativos `@anon.invalid` preservam perfis e sessões. `GET /mentorship/admin/mentors` pagina sem e-mails; `PATCH /mentorship/admin/mentors/:id` edita/ativa/desativa/reatribui em transação com auditoria antes/depois e roles derivadas. Placeholders não são candidaturas reais: a fila mostra somente membros ativos com nome, handle, avatar, áreas e foco.
 
 ### 31. Fase 6 — Business tiers (ADR 010)
 

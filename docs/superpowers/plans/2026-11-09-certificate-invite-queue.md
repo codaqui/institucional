@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fila assíncrona de convites de certificado, paginação e rate limit SMTP.
 audience: Implementers e revisores da PR.
-status: Implementado e verificado em dump real; PR #620 aberta para develop; merge/release 0.18.0 e lote controlado pendentes de comando explícito.
+status: Fila publicada em v0.19.0-backend; serialização SMTP global entre processos e réplicas ampliada em 0.23.0.
 sections:
   - Global Constraints
   - Tasks 1–7
@@ -368,4 +368,4 @@ Commit: `docs(eventos): registra fila de convites e handoff`
 
 - [x] **Step 4: Abrir PR para develop e apresentar integração**
 
-Push de `fix/certificate-invite-queue`, abrir PR para `develop`, acompanhar CI/Sonar/Copilot e corrigir apontamentos. Não fazer merge, release 0.18.0 ou reenvio real sem comando explícito. A PR #618 permanece separada.
+Concluído: PR #620 integrada e fila publicada em `v0.19.0-backend`; serialização global ampliada em `v0.23.0-backend`. Não reenviar históricos automaticamente.

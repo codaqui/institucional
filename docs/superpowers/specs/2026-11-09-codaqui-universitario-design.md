@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 4b — Codaqui Universitário, cidades, IES, embaixadores e eventos nas instituições.
 audience: Mantenedores, implementers e revisores da próxima PR.
-status: Aprovado em conversa para registro e planejamento; nenhuma implementação iniciada.
+status: Implementado e publicado em v0.19.0-backend; administração de IES ampliada em 0.24.0.
 sections:
   - Contexto e decisão
   - Escopo e não escopo
@@ -29,7 +29,7 @@ O Codaqui Universitário organiza presença da associação em Instituições de
 
 A alternativa de criar instituições/embaixadores/eventos paralelos foi descartada por duplicar regras da Fase 4 e da plataforma de eventos. Controle apenas em JSON foi descartado porque não atende candidaturas, confirmação, permissões e ciclo operacional.
 
-Backend previsto: **0.17.0**, com **migration 042**. Trabalho em `develop`, sem relação com a publicação manual pendente da 0.16.0.
+Backend publicado: **0.19.0**, com **migration 042**. A versão prevista 0.17.0 foi substituída pela minor final da PR #618; administração de IES foi ampliada em 0.24.0.
 
 ## Escopo e não escopo
 

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 2 do Codaqui 1.0.0 — horas, ownership, guest claim e perfil público.
 audience: AI agents e mantenedores executando a Fase 2.
-status: implementação, jornadas e gates locais concluídos; handoff externo pendente. Backend 0.14.0 preparado, mas ainda não publicado em main; sync inicial de badges e preparação da Fase 3 permanecem gates externos.
+status: concluída e publicada em v0.14.0-backend; Fase 3 já publicada em 0.15.0. Discussion real de assembleia continua como acompanhamento operacional.
 sections:
   - Escopo e decisões fechadas
   - Arquitetura e migrations

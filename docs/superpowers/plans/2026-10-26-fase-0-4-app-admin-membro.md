@@ -1,3 +1,8 @@
+<!-- AGENT-INDEX
+purpose: Plano concluído da Fase 0.4 — AppLayout e páginas autenticadas como ilhas React.
+audience: Mantenedores e revisores.
+status: Concluída — AppLayout e páginas app migrados para Astro.
+-->
 # Fase 0.4 — App (admin/membro) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.

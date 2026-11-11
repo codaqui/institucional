@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo transversal do plano Codaqui 1.0.0 — autenticação. (1) Centralização do login em um único fluxo OAuth (GitHub), com o handoff #token + /auth/finalize como contrato provider-agnostic e checklist de onboarding de novos provedores. (2) Token de convidado para eventos — design completo reaproveitando o pattern do mentorando convidado da mentoria (subsistema F), com extensão da tabela event_registrations (sem tabela nova), check-in pelo token como credential e vínculo automático ao criar conta com o mesmo e-mail.
 audience: Presidência, mantenedores, AI agents implementando as fases 2 (eventos/guest) e futuros provedores OAuth.
-status: design proposto em 2026-10-29 a partir de duas decisões da presidência (2026-10-29): (1) todos os eventos hoje usam GitHub — um único fluxo de login centralizado; novo provedor, se houver, passa pelo mesmo handoff; (2) eventos podem ter token de convidado emitido pelo admin — cadastro de Nome/E-mail sem conta, com vínculo automático se a pessoa criar conta validada depois (mesma regra de menteeMemberId do subsistema F). Anexo documental — a centralização do login não exige código hoje; o guest token é recomendado junto à Fase 2 (ver "Mapeamento").
+status: Login centralizado e guest token implementados; convites de certificado exigem GitHub + e-mail verificado (PR #624). O anexo preserva o contrato e os riscos, sem reabrir a arquitetura.
 sections:
   - 1. Centralização do login (decisão arquitetural)
   - 2. Guest token para eventos (design completo — extensão de event_registrations)

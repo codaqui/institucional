@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano Codaqui 1.0.0 — reestruturação da gestão da ONG no site (assembleias, diretorias, voluntários, horas, entidades, projetos de extensão, mentoria, comunidades com selo, business tiers, C4P).
 audience: Presidência, mantenedores, AI agents implementando as fases.
-status: Fases 0–6 e Mentoria Operations publicadas, restando acompanhamentos operacionais; fila global de e-mails preparada em 0.23.0; Fase 7 em design.
+status: Fases 0–6 e Mentoria Operations publicadas; fila global 0.23.0 e patches 0.24.0 integrados em develop; próximas fases Experiência do Membro, Announcements, Campanhas E3 e C4P.
 sections:
   - Visão e princípios
   - Estado atual revisado
@@ -187,7 +187,7 @@ Princípios:
 
 ### F. Mentoria (#QueroMentoria)
 
-> **Estado da Fase 5:** implementação e verificação concluídas; PR, release 0.19.0, sync inicial e sessão controlada pendentes. Contratos e evidências: [ADR 009](../../adrs/009-mentorship.md) e [plano TDD](../../superpowers/plans/2026-11-09-mentorship-phase5.md).
+> **Estado da Fase 5:** publicada em `v0.19.0-backend`; Mentoria Operations publicada em `v0.22.0-backend`. Contratos e evidências: [ADR 009](../../adrs/009-mentorship.md) e [plano TDD](../../superpowers/plans/2026-11-09-mentorship-phase5.md).
 
 Traz o programa de mentoria (antes página estática com Google Calendar externo) para dentro do sistema: disponibilidade estruturada, agendamento completo, realização registrada e insights.
 
@@ -392,6 +392,8 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 | **5. Mentoria** ✅ **PUBLICADA** — [ADR 009](../../adrs/009-mentorship.md) · [plano TDD](../../superpowers/plans/2026-11-09-mentorship-phase5.md) | mentor_profiles + availability + sessions + e-mails + insights + página reescrita | Migration 044 down/up e E2E real: candidatura→aprovação→reserva concorrente 201/409→confirmação→conclusão→uma hora pendente→avaliação. PR #618 integrada e `v0.19.0-backend` publicada |
 | **6. Business tiers** ✅ **PUBLICADA** — [ADR 010](../../adrs/010-business-tiers.md) · [plano TDD](../../superpowers/plans/2026-11-10-business-tiers.md) | tier amiga/aliada (com critérios e evidências) + due diligence + **hotpage `/empresas`** + selo embeddável (empresa) | Migration 045 down/up e E2E real: Amiga→validação Aliada→badge→expiração→renovação, sem alterar Stripe/wallet. PRs #622/#625 integradas; `v0.21.0-backend` publicada |
 | **5b. Mentoria Operations** ✅ **PUBLICADA** — [ADR 009](../../adrs/009-mentorship.md) · [plano TDD](../../superpowers/plans/2026-11-10-mentorship-operations.md) | histórico de 173 sessões + 6 perfis + 5 placeholders + admin de vínculos/ativação + redirect admin | Migration 046 idempotente e rollback seguro em dump real; E2E de mentoria e administração verificados; PR #626 integrada e `v0.22.0-backend` publicada; vinculação manual dos placeholders é acompanhamento operacional |
+| **6a. Experiência do Membro** (próxima) — [spec](../../superpowers/specs/2026-11-11-member-experience-design.md) | Reorganização de `/membro` e `/@handle`, certificados por persona e selo compartilhável para README | Depende dos patches 0.24.0; sem migration nova; implementar com TDD antes de Announcements |
+| **6b. Announcements** (seguinte) — [spec](../../superpowers/specs/2026-11-11-announcements-design.md) · [plano](../../superpowers/plans/2026-11-11-announcements.md) | CRUD admin, janela de exibição, snapshot público e barra no BaseLayout | Backend 0.25.0/migration 047 após Experiência do Membro; campanhas E3 depois, C4P por último |
 | **7. C4P** (anexada 2026-10-20) | Porte do sistema externo de C4P (curadoria: importação CSV, avaliadores, votação por critérios, dashboard, PDF) **+ submissão pública** + resultado público opt-in — detalhes: [c4p.md](c4p.md) | Submissão pública ponta a ponta com consentimento LGPD; curadoria completa (convite→votação→finalização→e-mails); importação CSV compatível com o Google Forms atual; notas nunca públicas; ADR 012 implementada |
 
 > **Nota de execução — a ordem 1a → 7 MANTÉM-SE:**
@@ -402,7 +404,7 @@ Decisões de concessão (selo, tier aliada, aprovação de mentores, aprovação
 > - **C4P (F7)** continua independente das fases 1–6 e pode ser antecipado por decisão da presidência.
 > - **Anexos**: [eca-lgpd.md](eca-lgpd.md), [auth.md](auth.md), [rbac.md](rbac.md), [comunidades-plataforma.md](comunidades-plataforma.md) e [transversais.md](transversais.md). O handoff da Fase 3 está no [plano de Assembleias](../../superpowers/plans/2026-11-05-assembleias.md); a Fase 4 foi autorizada para início em 2026-11-06.
 
-Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0**, a Fase 3 publicou **0.15.0**, a Fase 4 publicou **0.16.0**, as Fases 4b/5 publicaram **0.19.0** e a Fase 6 publicou **0.21.0**. Mentoria Operations publicou **0.22.0**; a fila global de e-mails está preparada em **0.23.0**, sem release. Cada release posterior com mudança em `backend/` recebe a próxima minor própria, sem reutilizar versão entre fases ou PRs. **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
+Backend: **0.9.0–0.11.5 já foram consumidas**. A Fase 1a publicou **0.12.3**, a 1b consumiu **0.13.x**, a Fase 2 publicou **0.14.0**, a Fase 3 publicou **0.15.0**, a Fase 4 publicou **0.16.0**, as Fases 4b/5 publicaram **0.19.0**, a Fase 6 publicou **0.21.0** e Mentoria Operations publicou **0.22.0**. Fila global (**0.23.0**) e patches (**0.24.0**) estão integrados em develop; somente a minor final será tagueada quando a PR central for mergeada. Announcements usa **0.25.0** e **1.0.0** permanece reservada à Fase 7/C4P. Todos os releases seguem `npm run build && npx jest` no backend, `make astro-verify`, `make astro-verify-tenants` quando houver impacto compartilhado e `npm run test:scripts` quando houver scripts.
 
 ## ADRs a produzir (uma por fase, status "implementado" ao merge)
 

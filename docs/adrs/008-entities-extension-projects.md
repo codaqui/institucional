@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 4 — entidades jurídicas, parcerias, projetos de extensão, participantes, horas, comprovantes e escopos organizacionais.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Implementado e verificado em banco descartável; integração, release v0.16.0-backend, sync inicial e validação pública pendentes.
+status: Implementado e publicado em v0.16.0-backend; patches administrativos de IES incluídos em 0.24.0.
 sections:
   - Contexto
   - Decisão
