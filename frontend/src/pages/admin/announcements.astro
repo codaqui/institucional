@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import AnnouncementsAdminApp from "../../components/islands/admin/announcements/AnnouncementsAdminApp";
+---
+
+<AppLayout title="Anúncios" noindex>
+  <AnnouncementsAdminApp client:only="react" />
+</AppLayout>

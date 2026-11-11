@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 6 — Empresa Amiga/Aliada, due diligence, vitrine e badges SVG.
 audience: AI agents, mantenedores, administração e operadores de release.
-status: Implementado e publicado em v0.21.0-backend; validação controlada é acompanhamento operacional.
+status: Implementado e publicado em v0.21.0-backend; patch 0.25.1 em integração; validação controlada é acompanhamento operacional.
 sections:
   - Contexto e decisão
   - Modelo e regras
@@ -23,8 +23,8 @@ agent-protocol:
 # ADR 010 — Business tiers
 
 - **Data da decisão:** 2026-11-10
-- **Status:** Implementado e verificado; integração e publicação pendentes
-- **Escopo:** Backend 0.21.0, migration 045, due diligence, hotpage e badges PJ
+- **Status:** Implementado e publicado em v0.21.0-backend; patch 0.25.1 em integração
+- **Escopo:** Backend 0.21.0, migration 045, due diligence, hotpage e badges PJ; correção de vínculos mixed-case em 0.25.1
 
 ## Contexto e decisão
 
@@ -68,3 +68,5 @@ Evidências, notas, responsável, critérios, aprovadores e IDs Stripe não entr
 - E2E PostgreSQL em dump real executou Amiga → ativação → validação Aliada → badge → expiração → ausência → renovação, sem alterar Stripe ou wallet.
 - Migration 045 down/up preservou empresa, assinatura e carteira. Banco descartável e fixtures foram removidos.
 - Rollout: merge autorizado → `v0.21.0-backend` → redeploy/migration 045 → sync inicial de badges → frontend → validação Aliada controlada. Nenhum release ou sync real ocorre sem comando explícito.
+- Incidente de rollout: o dump restaurado sem 045/046 fazia a listagem admin falhar por colunas ausentes; as duas migrations foram aplicadas com sucesso na cópia local e os endpoints públicos de produção responderam 200 ao final da revisão. Todo deploy com mudança de schema deve confirmar as migrations aplicadas antes da validação das rotas.
+- Patch 0.25.1: a resolução de colaboradores Business passou a comparar `githubHandle` sem distinção entre maiúsculas e minúsculas. O dump tinha 4 vínculos mixed-case omitidos; E2E PostgreSQL cobre `/companies/admin/list`, o colaborador mixed-case e o fluxo Amiga/Aliada completo. Não há migration nova.

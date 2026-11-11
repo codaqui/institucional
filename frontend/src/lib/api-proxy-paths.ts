@@ -22,10 +22,10 @@ const API_EXACT_PATHS = new Set([
 // inteiro sumia no edge. Forma com trailing slash de propósito: o helper
 // normaliza bare paths adicionando "/", então "/admin/members" casa; e
 // "/admin/memberships" (falso positivo de startsWith) NÃO casa.
-const API_PREFIXES = ["/api/", "/auth/github", "/auth/me", "/auth/logout", "/auth/finalize", "/stripe/", "/ledger/", "/members/", "/events/", "/reimbursements/", "/companies/", "/club/", "/vendors/", "/account-transfers/", "/admin/members/", "/notifications/", "/hours/", "/designations/", "/directorates/", "/communities/", "/assemblies/", "/entities/", "/partnerships/", "/projects/", "/project-certificates/", "/settings/", "/audit/", "/universities/", "/mentorship/"];
+const API_PREFIXES = ["/api/", "/auth/github", "/auth/me", "/auth/logout", "/auth/finalize", "/stripe/", "/ledger/", "/members/", "/events/", "/reimbursements/", "/companies/", "/club/", "/vendors/", "/account-transfers/", "/admin/members/", "/notifications/", "/hours/", "/designations/", "/directorates/", "/communities/", "/assemblies/", "/entities/", "/partnerships/", "/projects/", "/project-certificates/", "/settings/", "/audit/", "/universities/", "/mentorship/", "/announcements/"];
 
 export function isApiProxyPath(pathname: string): boolean {
-  if (pathname === "/events/index.json" || pathname === "/communities/index.json" || pathname === "/assemblies/index.json" || pathname === "/projects/index.json" || pathname === "/universities/index.json" || pathname === "/mentors/index.json") return false;
+  if (pathname === "/events/index.json" || pathname === "/communities/index.json" || pathname === "/assemblies/index.json" || pathname === "/projects/index.json" || pathname === "/universities/index.json" || pathname === "/mentors/index.json" || pathname === "/announcements/index.json") return false;
   if (API_EXACT_PATHS.has(pathname)) return true;
   const p = pathname.endsWith("/") && pathname !== "/" ? pathname : pathname + "/";
   return API_PREFIXES.some((prefix) => p.startsWith(prefix));

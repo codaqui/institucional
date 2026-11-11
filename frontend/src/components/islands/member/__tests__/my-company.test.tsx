@@ -157,8 +157,8 @@ describe("/membros/empresa", () => {
     expect(screen.getByText("150 SortCoins")).toBeInTheDocument();
     expect(screen.getByText("Recorrência configurada: R$ 200/mês")).toBeInTheDocument();
 
-    const receipt = screen.getByRole("link", { name: /Baixar comprovante de doação/i });
-    expect(receipt).toHaveAttribute("href", "https://api.test/companies/company-1/receipt");
+    expect(screen.getByRole("button", { name: "Baixar comprovante PDF" })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Mês do comprovante/)).toHaveAttribute("type", "month");
 
     // Resumo de apoio — plural correto de "mês" é "meses"
     expect(screen.getByText("R$ 2.400 apoiados")).toBeInTheDocument();

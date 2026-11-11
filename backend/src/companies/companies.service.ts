@@ -454,13 +454,14 @@ export class CompaniesService {
     )];
 
     const collaboratorMembers = collaboratorHandles.length
-      ? await this.memberEntityRepo.find({
-          where: {
-            githubHandle: In(collaboratorHandles),
-            isActive: true,
-          },
-          select: ['id'],
-        })
+      ? await this.memberEntityRepo
+          .createQueryBuilder('member')
+          .where('LOWER(member."githubHandle") IN (:...handles)', {
+            handles: collaboratorHandles,
+          })
+          .andWhere('member."isActive" = true')
+          .select(['member.id'])
+          .getMany()
       : [];
     const collaboratorRows = collaboratorMembers.map((member) => ({
       memberId: member.id,

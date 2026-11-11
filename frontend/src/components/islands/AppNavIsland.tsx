@@ -197,6 +197,7 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
     label: "Comunicação",
     items: [
       { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
+      { label: "Anúncios", href: "/admin/announcements", icon: <EmailIcon />, roles: ["admin"] },
     ],
   },
 ];

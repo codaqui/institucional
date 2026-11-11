@@ -538,7 +538,7 @@ describe("/membro", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("tab", { name: "Futuros" })).toHaveAttribute(
+    expect(await screen.findByRole("tab", { name: "Futuros" })).toHaveAttribute(
       "aria-selected",
       "true",
     );

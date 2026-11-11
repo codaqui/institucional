@@ -171,6 +171,7 @@ cd backend && npx jest --silent  # testes unitários
 npm run test:scripts             # node --test scripts/*.test.mjs
 npm run sync                     # eventos + social-stats + analytics → static/
 npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
+npm run sync:announcements       # /announcements/public → static/announcements/ (fora do agregador sync)
 npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
 npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
 npm run sync:mentors             # /mentorship/public → static/mentors/ (fora do agregador sync)
@@ -202,6 +203,7 @@ institucional/
 │   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
 │   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
 │   │   ├── mentorship/          # ⭐ Fase 5/ADR 009: mentores, disponibilidade, sessões, horas e insights
+│   │   ├── announcements/       # ⭐ ADR 017: anúncios institucionais, CRUD admin e projeção pública
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
@@ -213,7 +215,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 042; Fase 4: 037–041; Fase 4b: 042)
+│   │   └── migrations/          # TypeORM migrations (até 047; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -285,7 +287,7 @@ institucional/
 - `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
 - A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
 - Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|assemblies|projects|universities|social-stats|analytics/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json` e `/universities/index.json` permanecem estáticos e são exceções aos prefixos de API correspondentes.
+- Snapshots (`static/events|communities|assemblies|projects|universities|social-stats|analytics|announcements/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json`, `/universities/index.json` e `/announcements/index.json` permanecem estáticos e são exceções aos prefixos de API correspondentes.
 - Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
 - `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
 
@@ -540,6 +542,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `/empresas` é a hotpage; `/admin/empresas` faz due diligence; `/membros/empresa` mostra preview e snippets. `sync:company-badges` grava `static/badges/empresas/<uuid>.svg` atomicamente, restaura em erro e usa workflow diário 06:19 UTC, fora do agregador `npm run sync`.
 - E2E real validou Amiga → Aliada → badge → expiração → renovação e migration down/up preservando empresa/wallet. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → validação controlada. Detalhes: [ADR 010](docs/adrs/010-business-tiers.md).
 
+### 32. Announcements (ADR 017)
+
+- Migration 047/backend 0.26.0 criam `announcements`: texto simples 3–280 sem HTML/Markdown, severidade, link interno ou HTTPS com rótulo, janela e ativação lógica. Somente admin gerencia, inclusive no service; DELETE faz `active=false` com auditoria antes/depois.
+- APIs em `/announcements/`: CRUD admin paginado e projeção pública somente com campos públicos, sem autores/membros. `/announcements/index.json` é asset estático fora do proxy; o restante do prefixo encaminha API.
+- `npm run sync:announcements` valida a coleção completa e grava `static/announcements/index.json` com temp + rename, preservando em erro e evitando escrita inalterada. Workflow diário 06:31 UTC + dispatch, fora do agregador `npm run sync`.
+- `BaseLayout` inclui uma ilha que lê o snapshot em runtime: região nomeada, artigos com severidade textual, texto escapado e links seguros. Vazio/erro não reserva espaço; tokens `--cq-*` nos dois temas. `/admin/announcements` usa Dialog com prévia, validação e confirmação.
+- Publicação exige backend/migration → sync inicial → frontend → aviso real com link para issues. Detalhes: [ADR 017](docs/adrs/017-announcements.md).
+
 ---
 
 ## Common Anti-Patterns
@@ -578,7 +588,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 13 workflows)
+### CI/CD (`.github/workflows/` — 14 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -588,6 +598,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
 | `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
 | `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
+| `sync-announcements.yml` | diário 06:31 UTC (`31 6 * * *`) + dispatch | Lê `/announcements/public`, regera `static/announcements/index.json` e commita somente se mudou; sync inicial após backend/migration 047 e antes do frontend |
 | `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
 | `sync-universities.yml` | diário 06:26 UTC (`26 6 * * *`) + dispatch | Lê `/universities/public`, regera `static/universities/index.json` e commita somente se mudou; sync inicial após backend/migration 042 e antes do frontend |
 | `sync-mentors.yml` | diário 06:21 UTC (`21 6 * * *`) + dispatch | Lê `/mentorship/public`, regera `static/mentors/index.json` sem PII e commita somente se mudou; sync inicial após backend/migration 044 e antes do frontend |
@@ -700,6 +711,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
 | Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
 | Assembly snapshots sync | Automatic (06:23 UTC daily) + dispatch | `scripts/sync-assemblies.mjs` → `static/assemblies/` via `sync-assemblies.yml` |
+| Announcement snapshots sync | Automatic (06:31 UTC daily) + dispatch; sync inicial após backend/migration 047 | `scripts/sync-announcements.mjs` → `static/announcements/` via `sync-announcements.yml`; backend publicado primeiro |
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
 | Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |
