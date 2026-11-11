@@ -95,7 +95,7 @@ export class EventsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('jwt')
   @ApiOperation({
-    summary: 'Certificado da inscrição (dono; exige check-in feito)',
+    summary: 'Certificado da inscrição (dono; exige inscrição confirmada e concessão)',
   })
   getCertificate(
     @Param('id', ParseUUIDPipe) id: string,

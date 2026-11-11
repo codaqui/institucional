@@ -743,13 +743,13 @@ export class EventsService {
    *
    * Regras de acesso:
    * - admin / event_organizer global: todos os eventos, lista habilitada.
-   * - event_checker global: todos os eventos, somente scanner (lista bloqueada).
+   * - event_checker global: eventos com check-in, somente scanner (lista bloqueada).
    * - Demais membros: apenas eventos onde são staff (host/checker) ou onde são
    *   owner/ativador de evento externo.
    *
    * A flag `canUseList` indica se o usuário pode ver a lista de inscritos e
-   * buscar manualmente (admin/organizer/host/owner/ativador); caso contrário,
-   * fica restrito ao scanner de QR Code.
+   * buscar manualmente (admin/organizer/staff host/checker/owner/ativador);
+   * caso contrário, fica restrito ao scanner de QR Code.
    */
   async getCheckinScope(user: JwtPayload): Promise<{
     managed: Array<{
@@ -792,7 +792,9 @@ export class EventsService {
     const managed = managedEvents.map((e) => {
       const staffRole = staffRoleByEventId.get(e.id);
       const canUseList =
-        isManager || staffRole === EventStaffRole.HOST;
+        isManager ||
+        staffRole === EventStaffRole.HOST ||
+        staffRole === EventStaffRole.CHECKER;
       return {
         id: e.id,
         title: e.title,
@@ -809,7 +811,10 @@ export class EventsService {
     const ownedScopes = isManager ? [] : await this.eventOrganizerService.getOwnedScopes(user);
 
     const external = allActivations
-      .filter((a) => a.features.includes('checkin'))
+      .filter(
+        (a) =>
+          a.features.includes('checkin') || a.features.includes('certificates'),
+      )
       .map((a) => {
         const { sourceKey } = EventsService.parseEventKey(a.eventKey);
         const isOwner =
@@ -826,7 +831,10 @@ export class EventsService {
           canUseList,
         };
       })
-      .filter((a) => a.canUseList || isGlobalChecker);
+      .filter(
+        (a) =>
+          a.canUseList || (isGlobalChecker && a.features.includes('checkin')),
+      );
 
     return { managed, external };
   }
@@ -1512,6 +1520,7 @@ export class EventsService {
         id: r.id,
         status: r.status,
         checkedInAt: r.checkedInAt,
+        certificateGrantedAt: r.certificateGrantedAt,
         checkinToken: r.checkinToken,
         attendeeName: r.attendeeName,
         attendeeEmail: r.attendeeEmail,
@@ -2988,7 +2997,7 @@ export class EventsService {
 
   /**
    * GET /events/registrations/:id/certificate — dono da inscrição.
-   * Exige check-in feito (403 caso contrário).
+   * Exige inscrição confirmada e certificado concedido (403 caso contrário).
    */
   async getCertificate(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({
@@ -3021,7 +3030,7 @@ export class EventsService {
       attendeeEmail: registration.attendeeEmail,
       ...details,
       checkedInAt: registration.checkedInAt,
-      issuedAt: new Date().toISOString(),
+      issuedAt: registration.certificateGrantedAt.toISOString(),
       verificationCode: EventsService.certificateCode(
         registration.checkinToken,
       ),
@@ -4129,7 +4138,7 @@ export class EventsService {
    * GET /events/members/:memberId/registrations — participações públicas do
    * membro (perfil). Só status confirmed/refunded; NUNCA expõe checkinToken,
    * e-mail ou attendeeName (o nome vem do perfil público do membro).
-   * verificationCode só com check-in e certificados públicos.
+   * verificationCode só com concessão e certificados públicos.
    */
   async listMemberRegistrations(memberId: string) {
     const member = await this.memberRepo.findOneBy({ id: memberId });
@@ -4173,7 +4182,7 @@ export class EventsService {
           eventStartAt,
           checkedIn: r.checkedInAt !== null,
           status: r.status,
-          verificationCode: r.checkedInAt && visibility.certificates
+          verificationCode: r.certificateGrantedAt && visibility.certificates
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,

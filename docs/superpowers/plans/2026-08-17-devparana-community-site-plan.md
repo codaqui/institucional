@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação passo a passo para criar o site da comunidade DevParaná dentro do portal Codaqui, seguindo o design spec.
 audience: AI agents, mantenedores
-status: Draft / pronto para execução
+status: Supersedido — site DevParaná entregue na Fase 0.5 por build matrix.
 sections:
   - Global constraints
   - File structure

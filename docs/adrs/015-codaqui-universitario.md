@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 4b — Codaqui Universitário com cidades, IES, embaixadores e eventos vinculados.
 audience: AI agents, mantenedores, gestores do programa e operadores de release.
-status: Implementado e verificado em banco descartável; integração, release 0.17.0, sync inicial e validação pública pendentes.
+status: Implementado e publicado em v0.19.0-backend; administração de IES ampliada em 0.24.0.
 sections:
   - Contexto
   - Decisão
@@ -81,6 +81,8 @@ As transições de candidatura invalidam o cache de designations. Sem essa inval
 | `GET` | `/universities/ambassador-applications/my` | Próprio membro |
 | `POST` | `/universities/ambassador-applications/:id/reject` | Gestor/admin |
 | `POST` | `/universities/ambassador-applications/:id/confirm` | Somente admin |
+
+`GET /universities/manage` lista também cidades e IES inativas e acrescenta `isActive`, `contactEmail` e `cityId` às IES para edição; a projeção pública permanece restrita a registros ativos e sem contato. O CRUD genérico `/entities` não cria IES nem converte tipos de/para `instituicao_ensino`, orientando o operador a usar `/admin/universitario`. Novas IES e novos vínculos exigem cidade ativa; atualizar uma IES sem trocar sua cidade histórica inativa é permitido para manutenção e reativação.
 
 `CreateEventDto` e `UpdateEventDto` aceitam `institutionId` opcional. A projeção pública de eventos inclui o resumo da IES sem `registeredById` ou contato.
 

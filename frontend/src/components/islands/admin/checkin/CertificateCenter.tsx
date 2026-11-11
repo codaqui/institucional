@@ -11,7 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import PaginationControls from "../../ui/PaginationControls";
-import { rangeLabel } from "../../../../lib/pagination";
+import { CHECKIN_PAGE_SIZE, rangeLabel } from "../../../../lib/pagination";
 import type { CertificateFilter, CertificateInviteBatch, CertificateInviteBatchProgress, EventRegistration } from "./types";
 import { formatDateTime } from "./checkin-utils";
 import { useCertificateInviteProgress } from "./useCertificateInviteProgress";
@@ -47,6 +47,17 @@ const canGrant = (registration: EventRegistration) =>
 
 const canInvite = (registration: EventRegistration) =>
   isRegistrationPending(registration) && !registration.certificateInvitedAt;
+
+function inviteSeverity(batch: CertificateInviteBatch): Feedback["severity"] {
+  if (batch.invalid.length > 0) return "warning";
+  return batch.total > 0 ? "success" : "info";
+}
+
+function inviteMessage(batch: CertificateInviteBatch): string {
+  if (batch.total === 0) return "Nenhum convite novo foi enfileirado.";
+  const label = batch.total === 1 ? "convite enfileirado" : "convites enfileirados";
+  return `${batch.total} ${label}. O envio acontecerá em segundo plano.`;
+}
 
 export default function CertificateCenter({
   registrations,
@@ -135,12 +146,13 @@ export default function CertificateCenter({
     setFeedback(null);
     try {
       const batch = await onInvite(ids);
-      setActiveBatch({ id: batch.batchId, total: batch.total });
+      const hasNewInvites = batch.total > 0;
+      setActiveBatch(hasNewInvites ? { id: batch.batchId, total: batch.total } : null);
       setSelected(new Set());
       setFeedback({
-        severity: batch.invalid.length > 0 ? "warning" : "success",
+        severity: inviteSeverity(batch),
         messages: [
-          `${batch.total} ${batch.total === 1 ? "convite enfileirado" : "convites enfileirados"}. O envio acontecerá em segundo plano.`,
+          inviteMessage(batch),
           ...(batch.invalid.length > 0 ? [`${batch.invalid.length} inscrição(ões) não puderam ser enfileiradas.`] : []),
         ],
       });
@@ -311,7 +323,7 @@ export default function CertificateCenter({
       )}
       {total > 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 2 }}>
-          {rangeLabel(page, 25, total)}
+          {rangeLabel(page, CHECKIN_PAGE_SIZE, total)}
         </Typography>
       )}
       <PaginationControls page={page} totalPages={totalPages} onChange={onPageChange} itemLabel="certificados" />

@@ -106,6 +106,7 @@ function MemberDashboardInner() {
   const [cancelRegLoading, setCancelRegLoading] = useState(false);
   const [cancelRegError, setCancelRegError] = useState("");
   const [certificate, setCertificate] = useState<CertificateData | null>(null);
+  const [isPrinting, setIsPrinting] = useState(false);
   const [certLoadingId, setCertLoadingId] = useState<string | null>(null);
   const [certError, setCertError] = useState("");
 
@@ -227,9 +228,10 @@ function MemberDashboardInner() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setCertError(
-          res.status === 403
-            ? "O certificado só pode ser emitido após a confirmação de presença (check-in) no evento."
-            : (data?.message ?? "Erro ao emitir certificado."),
+          data?.message ??
+            (res.status === 403
+              ? "O certificado não está disponível para esta inscrição."
+              : "Erro ao abrir certificado."),
         );
         return;
       }
@@ -352,6 +354,17 @@ function MemberDashboardInner() {
       setCancelSubId(null);
     }
   };
+
+  useEffect(() => {
+    const beforePrint = () => setIsPrinting(true);
+    const afterPrint = () => setIsPrinting(false);
+    window.addEventListener("beforeprint", beforePrint);
+    window.addEventListener("afterprint", afterPrint);
+    return () => {
+      window.removeEventListener("beforeprint", beforePrint);
+      window.removeEventListener("afterprint", afterPrint);
+    };
+  }, []);
 
   if (!ready || !isLoggedIn) {
     return (
@@ -632,10 +645,11 @@ function MemberDashboardInner() {
             Fechar
           </Button>
           <Button variant="contained" startIcon={<PrintIcon />} onClick={() => globalThis.print()}>
-            Imprimir
+            Imprimir / salvar PDF
           </Button>
         </DialogActions>
       </Dialog>
+      {isPrinting && certificate && <Box className="print-certificate" aria-hidden={true}><CertificateCard certificate={certificate} origin={origin} /></Box>}
     </PageContainer>
   );
 }

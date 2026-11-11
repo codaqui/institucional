@@ -63,11 +63,34 @@ export class MentorshipService {
     });
   }
 
-  listApplications(actor: JwtPayload) {
+  async listApplications(actor: JwtPayload) {
     this.assertAdmin(actor);
-    return this.designationRepo.find({
+    const applications = await this.designationRepo.find({
       where: { targetType: 'program', targetKey: 'mentoria', designation: 'mentor', status: 'pending' },
       order: { createdAt: 'ASC' },
+    });
+    if (applications.length === 0) return [];
+    const members = await this.memberRepo.findBy({
+      id: In(applications.map((application) => application.memberId)),
+      isActive: true,
+    });
+    const activeMembers = new Map(members.map((member) => [member.id, member]));
+    const profiles = await this.profileRepo.find({
+      where: { memberId: In(members.map((member) => member.id)) },
+    });
+    const profilesByMember = new Map(profiles.map((profile) => [profile.memberId, profile]));
+    return applications.flatMap((application) => {
+      const member = activeMembers.get(application.memberId);
+      if (!member) return [];
+      const profile = profilesByMember.get(application.memberId);
+      return [{
+        ...application,
+        name: member.name,
+        githubHandle: member.githubHandle,
+        avatarUrl: member.avatarUrl,
+        areas: profile?.areas ?? [],
+        focus: profile?.focus ?? null,
+      }];
     });
   }
 

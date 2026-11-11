@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 5 — candidatura, disponibilidade, agendamento concorrente, sessões, horas e insights de mentoria.
 audience: AI agents, mantenedores, mentores e operadores de release.
-status: Fase 5 publicada; Mentoria Operations implementada em 0.22.0 com migration 046, aguardando integração e release.
+status: Fase 5 e Mentoria Operations publicadas em 0.19.0 e 0.22.0; vinculação manual dos placeholders é acompanhamento operacional.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -25,7 +25,7 @@ agent-protocol:
 # ADR 009 — Mentoria no sistema
 
 - **Data da decisão:** 2026-11-09
-- **Status:** Fase 5 publicada em `v0.19.0-backend`; Mentoria Operations implementada em 0.22.0, aguardando integração/release
+- **Status:** Fase 5 publicada em `v0.19.0-backend`; Mentoria Operations publicada em `v0.22.0-backend`
 - **Escopo:** Backend 0.19.0 e 0.22.0, migrations 044 e 046, disponibilidade, sessões, notificações, horas, histórico, gestão de mentores, páginas e snapshot
 
 ## Contexto e decisão
@@ -49,6 +49,8 @@ A migration 044 cria:
 A migration 046 importa 173 sessões válidas e deduplicadas do histórico autorizado, sem criar horas, consentimentos ou links retroativos. Seis perfis são preservados: Enderson é associado somente por e-mail GitHub verificado; os cinco demais começam como placeholders inativos com endereços reservados `@anon.invalid`. Mentorandos também só são vinculados por `secondaryEmails`. O rollback remove sessões marcadas `legacy-import:` e somente placeholders ainda inativos e sem dependências.
 
 `GET /mentorship/admin/mentors` pagina perfis sem expor e-mails. `PATCH /mentorship/admin/mentors/:id` edita áreas/foco, ativa/desativa e reatribui o perfil a um membro ativo. Perfil e designations são alterados em transação; após o commit, as roles derivadas são sincronizadas, o cache é invalidado e a auditoria registra antes/depois. Reatribuir preserva o UUID do perfil e, portanto, todas as sessões. O admin em `/membro/mentoria` é encaminhado a `/admin/mentoria` antes de consultar endpoints que exigem perfil ativo.
+
+A fila de candidaturas considera somente designations pendentes de membros ativos, para não apresentar placeholders históricos como candidatos. Cada item projeta nome, handle, avatar, áreas e foco, sem e-mail; o UUID permanece apenas como identificador técnico, não como apresentação principal.
 
 ## Disponibilidade e concorrência
 

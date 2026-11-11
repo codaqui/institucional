@@ -259,8 +259,9 @@ describe("/membro", () => {
     ).toBeInTheDocument();
   });
 
-  it("emite certificado somente com presença confirmada e abre dialog imprimível", async () => {
+  it("abre certificado concedido sem presença e oferece impressão em PDF", async () => {
     const pastStart = new Date(Date.now() - 86_400_000).toISOString();
+    const grantedAt = "2026-08-10T18:10:00.000Z";
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
       if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
@@ -273,7 +274,7 @@ describe("/membro", () => {
           eventEndAt: pastStart,
           workloadMinutes: 240,
           verificationCode: "ABCD-1234",
-          issuedAt: new Date().toISOString(),
+          issuedAt: grantedAt,
         });
       }
       if (url.includes("/events/my-registrations")) {
@@ -281,7 +282,8 @@ describe("/membro", () => {
           {
             id: "reg-2",
             status: "confirmed",
-            checkedInAt: pastStart,
+            checkedInAt: null,
+            certificateGrantedAt: grantedAt,
             checkinToken: "token-xyz",
             attendeeName: "Mentoria Codaqui",
             memberId: "user-1",
@@ -313,11 +315,60 @@ describe("/membro", () => {
     fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
     expect(await screen.findByText("Workshop GitHub")).toBeInTheDocument();
 
-    fireEvent.click(await screen.findByRole("button", { name: /Emitir certificado/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
 
     expect(await screen.findByText("CERTIFICADO DE PARTICIPAÇÃO")).toBeInTheDocument();
     expect(screen.getByText("ABCD-1234", { exact: false })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Imprimir/i })).toBeInTheDocument();
+    expect(screen.getByText("Emitido em", { exact: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Imprimir / salvar PDF" })).toBeInTheDocument();
+    fireEvent(window, new Event("beforeprint"));
+    expect(screen.getAllByText("CERTIFICADO DE PARTICIPAÇÃO")).toHaveLength(2);
+    fireEvent(window, new Event("afterprint"));
+    expect(screen.getByText("CERTIFICADO DE PARTICIPAÇÃO")).toBeInTheDocument();
+  });
+
+  it("mostra o erro real do certificado sem alegar presença obrigatória", async () => {
+    const pastStart = new Date(Date.now() - 86_400_000).toISOString();
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/registrations/reg-3/certificate")) {
+        return jsonResponse({ message: "Certificado indisponível para esta inscrição." }, { status: 403 });
+      }
+      if (url.includes("/events/my-registrations")) {
+        return jsonResponse([
+          {
+            id: "reg-3",
+            status: "confirmed",
+            checkedInAt: null,
+            certificateGrantedAt: "2026-08-10T18:10:00.000Z",
+            checkinToken: "token-403",
+            attendeeName: "Mentoria Codaqui",
+            memberId: "user-1",
+            event: {
+              id: "evt-3",
+              title: "Workshop com erro",
+              startAt: pastStart,
+              location: null,
+              status: "completed",
+            },
+            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+          },
+        ]);
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+
+    mockLoggedIn(makeUser(), authFetch);
+    renderWithMui(<MemberDashboardApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
+
+    expect(await screen.findByText("Certificado indisponível para esta inscrição.")).toBeInTheDocument();
+    expect(screen.queryByText(/presença.*obrigatória|após a confirmação de presença|check-in.*evento/i)).not.toBeInTheDocument();
   });
 
   it("abre a área de projetos do membro sem alterar o carregamento sob demanda de eventos", async () => {

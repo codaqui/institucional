@@ -98,6 +98,7 @@ export interface EventRegistration {
   id: string;
   status: RegistrationStatus;
   checkedInAt: string | null;
+  certificateGrantedAt: string | null;
   checkinToken: string;
   attendeeName: string;
   attendeeEmail?: string;
