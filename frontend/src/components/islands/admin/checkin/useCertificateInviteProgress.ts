@@ -17,6 +17,10 @@ export function useCertificateInviteProgress(
     try {
       const next = await loadBatch(batchId);
       setProgress(next);
+      if (next.total === 0) {
+        terminalRef.current = true;
+        return;
+      }
       if (next.status === "completed") {
         terminalRef.current = true;
         await onDone();

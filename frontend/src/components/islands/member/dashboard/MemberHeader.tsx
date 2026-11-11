@@ -1,7 +1,5 @@
 /**
- * Header do dashboard do membro: cartão de perfil (avatar, papéis, ações)
- * + dialog com o QR Code da vanity URL.
- * Port de `MemberProfileCard`/`MemberQrDialog` em `src/pages/membro/index.tsx`.
+ * Identidade compacta do membro e dialog reutilizável do QR da vanity URL.
  */
 import { useTheme } from "@mui/material/styles";
 import Avatar from "@mui/material/Avatar";
@@ -20,9 +18,7 @@ import Typography from "@mui/material/Typography";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/Edit";
 import GitHubIcon from "@mui/icons-material/GitHub";
-import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
-import QrCode2Icon from "@mui/icons-material/QrCode2";
 import { QRCodeSVG } from "qrcode.react";
 import type { AuthUser } from "../../../../lib/auth-client";
 import {
@@ -33,32 +29,26 @@ import {
 
 interface MemberProfileCardProps {
   readonly user: AuthUser;
-  readonly vanityUrl: string;
-  readonly copied: boolean;
-  readonly canAccessReimbursements: boolean;
-  readonly onCopy: () => void;
-  readonly onShowQr: () => void;
-  readonly onLogout: () => void;
 }
 
-export function MemberProfileCard({
-  user,
-  vanityUrl,
-  copied,
-  canAccessReimbursements,
-  onCopy,
-  onShowQr,
-  onLogout,
-}: MemberProfileCardProps): React.JSX.Element {
+export function MemberProfileCard({ user }: MemberProfileCardProps): React.JSX.Element {
   const roles = getUserRoles(user);
 
   return (
-    <Card variant="outlined" sx={{ mb: 4 }}>
-      <CardContent sx={{ display: "flex", gap: 3, alignItems: "flex-start", flexWrap: "wrap" }}>
-        <Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 80, height: 80 }} />
-        <Box sx={{ flex: 1 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.5, flexWrap: "wrap" }}>
-            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+    <Card variant="outlined" sx={{ mb: 2 }}>
+      <CardContent
+        sx={{
+          display: "flex",
+          gap: 2,
+          alignItems: "center",
+          flexWrap: "wrap",
+          "&:last-child": { pb: 2 },
+        }}
+      >
+        <Avatar src={user.avatarUrl} alt={user.name} sx={{ width: 56, height: 56 }} />
+        <Box sx={{ flex: 1, minWidth: 180 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            <Typography component="h1" variant="h6" sx={{ fontWeight: 800 }}>
               {user.name}
             </Typography>
             {roles.map((role) => (
@@ -71,54 +61,23 @@ export function MemberProfileCard({
               />
             ))}
           </Box>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
             <GitHubIcon sx={{ fontSize: "0.9rem", mr: 0.5, verticalAlign: "middle" }} />
             @{user.handle}
           </Typography>
-          <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap", alignItems: "center" }}>
-            <Button variant="outlined" size="small" startIcon={<EditIcon />} href="/membro/editar">
-              Editar perfil
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<PersonIcon />}
-              href={`/@${user.handle}`}
-            >
-              Ver perfil público
-            </Button>
-            <Tooltip title="Exibir QR Code do perfil">
-              <IconButton size="small" onClick={onShowQr} aria-label="Exibir QR Code">
-                <QrCode2Icon />
-              </IconButton>
-            </Tooltip>
-            {canAccessReimbursements && (
-              <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
-                Painel de Reembolsos
-              </Button>
-            )}
-            <Button
-              variant="text"
-              size="small"
-              color="inherit"
-              startIcon={<LogoutIcon />}
-              onClick={onLogout}
-              sx={{ color: "text.secondary" }}
-            >
-              Sair
-            </Button>
-          </Box>
-
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1.5 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontFamily: "monospace" }}>
-              {vanityUrl}
-            </Typography>
-            <Tooltip title={copied ? "Copiado!" : "Copiar URL"}>
-              <IconButton size="small" onClick={onCopy} aria-label="Copiar URL do perfil">
-                <ContentCopyIcon sx={{ fontSize: 14 }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
+        </Box>
+        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+          <Button variant="outlined" size="small" startIcon={<EditIcon />} href="/membro/editar">
+            Editar perfil
+          </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<PersonIcon />}
+            href={`/@${user.handle}`}
+          >
+            Ver perfil público
+          </Button>
         </Box>
       </CardContent>
     </Card>
