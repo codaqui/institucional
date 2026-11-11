@@ -179,6 +179,6 @@ make astro-verify
 make astro-verify-tenants
 ```
 
-- [ ] **Step 4: Publicar branch, abrir PR e aguardar SonarCloud**
+- [x] **Step 4: Publicar branch, abrir PR e aguardar SonarCloud**
 
 Não adicionar CSV/dumps. PR para `main` somente depois de integrar e validar `develop`; depois acompanhar `develop → main` com SonarCloud verde.
