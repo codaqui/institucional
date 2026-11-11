@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { createE2eApplication, saveE2eActors } from './e2e-app.helper';
+import { bootstrapE2eActors, closeE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration045BusinessTiers1794700000000 } from '../src/migrations/1794700000000-Migration045_BusinessTiers';
 
@@ -25,25 +25,22 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
 
-  async function removeFixtures() {
-    await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
-    await dataSource.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
+  async function removeFixtures(database: DataSource) {
+    await database.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
+    await database.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+    await database.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+    await database.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+    await database.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
   }
 
   beforeAll(async () => {
-    ({ app, dataSource } = await createE2eApplication(actors));
-    await removeFixtures();
-    await saveE2eActors(dataSource, actors, 'Business');
+    ({ app, dataSource } = await bootstrapE2eActors(actors, 'Business', removeFixtures));
   });
 
   afterAll(async () => {
-    if (dataSource) await removeFixtures();
-    if (app) await app.close();
+    await closeE2eApplication(app, dataSource, removeFixtures);
   });
 
   it('executa admin, colaborador mixed-case, Amiga, Aliada, badge, expiração, renovação e migration down/up', async () => {

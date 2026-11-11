@@ -41,12 +41,14 @@ export async function createE2eApplication<T extends Record<string, JwtPayload>>
   return { app, dataSource: moduleFixture.get(DataSource), moduleFixture };
 }
 
-export async function saveE2eActors(
-  dataSource: DataSource,
+export async function bootstrapE2eActors(
   actors: Record<string, JwtPayload>,
   prefix: string,
-): Promise<void> {
-  await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
+  removeFixtures: (dataSource: DataSource) => Promise<void>,
+) {
+  const context = await createE2eApplication(actors);
+  await removeFixtures(context.dataSource);
+  await context.dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
     id: actor.sub,
     githubId: `e2e-${prefix.toLowerCase()}-${key}`,
     githubHandle: actor.handle,
@@ -55,4 +57,14 @@ export async function saveE2eActors(
     avatarUrl: '',
     roles: actor.roles,
   })));
+  return context;
+}
+
+export async function closeE2eApplication(
+  app: INestApplication<App> | undefined,
+  dataSource: DataSource | undefined,
+  removeFixtures: (dataSource: DataSource) => Promise<void>,
+): Promise<void> {
+  if (dataSource) await removeFixtures(dataSource);
+  if (app) await app.close();
 }

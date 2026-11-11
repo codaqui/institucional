@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { createE2eApplication, saveE2eActors } from './e2e-app.helper';
+import { bootstrapE2eActors, closeE2eApplication } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration044Mentorship1794600000000 } from '../src/migrations/1794600000000-Migration044_Mentorship';
 
@@ -30,26 +30,23 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
 
-  async function removeFixtures() {
-    await dataSource.query('DELETE FROM email_logs WHERE "to" LIKE $1', ['%@e2e.invalid']);
-    await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM hour_ledger WHERE "memberId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM mentorship_sessions WHERE "mentorId" IN (SELECT id FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM mentor_availability WHERE "mentorId" IN (SELECT id FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM member_designations WHERE "memberId" = ANY($1::uuid[]) OR "appointedById" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
+  async function removeFixtures(database: DataSource) {
+    await database.query('DELETE FROM email_logs WHERE "to" LIKE $1', ['%@e2e.invalid']);
+    await database.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM hour_ledger WHERE "memberId" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM mentorship_sessions WHERE "mentorId" IN (SELECT id FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[]))', [actorIds]);
+    await database.query('DELETE FROM mentor_availability WHERE "mentorId" IN (SELECT id FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[]))', [actorIds]);
+    await database.query('DELETE FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM member_designations WHERE "memberId" = ANY($1::uuid[]) OR "appointedById" = ANY($1::uuid[])', [actorIds]);
+    await database.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
   }
 
   beforeAll(async () => {
-    ({ app, dataSource } = await createE2eApplication(actors));
-    await removeFixtures();
-    await saveE2eActors(dataSource, actors, 'Mentoria');
+    ({ app, dataSource } = await bootstrapE2eActors(actors, 'Mentoria', removeFixtures));
   });
 
   afterAll(async () => {
-    if (dataSource) await removeFixtures();
-    if (app) await app.close();
+    await closeE2eApplication(app, dataSource, removeFixtures);
   });
 
   it('executa candidatura, reserva concorrente, ciclo, horas, avaliação e migration down/up', async () => {
