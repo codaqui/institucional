@@ -63,7 +63,7 @@ describe('EntitiesService', () => {
     repo.findOneBy.mockResolvedValue({ id: 'ies-1', name: 'IES Exemplo', type: 'instituicao_ensino' });
 
     await expect(service.update('ies-1', { type: 'ong' } as any, adminActor))
-      .rejects.toThrow('/admin/universitario');
+      .rejects.toThrow('O tipo de uma instituição de ensino não pode ser alterado pelo cadastro genérico.');
     expect(repo.save).not.toHaveBeenCalled();
   });
 

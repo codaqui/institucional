@@ -52,7 +52,7 @@ export class EntitiesService {
     if (!entity) throw new NotFoundException('Entidade não encontrada.');
     if (dto.type !== undefined && dto.type !== entity.type
       && (entity.type === 'instituicao_ensino' || dto.type === 'instituicao_ensino')) {
-      throw new BadRequestException('Altere o tipo de instituições de ensino somente em /admin/universitario.');
+      throw new BadRequestException('O tipo de uma instituição de ensino não pode ser alterado pelo cadastro genérico.');
     }
     const before = { ...entity };
     Object.assign(entity, dto);
