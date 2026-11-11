@@ -59,8 +59,17 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
+function certificateFilterFromSearch(value: string | null): CertificateFilter {
+  return value === "eligible" || value === "granted" || value === "registration_pending"
+    ? value
+    : "all";
+}
+
 function CheckinInner(): React.JSX.Element {
   const { ready, isLoggedIn, authFetch } = useAuth();
+  const [initialQuery] = useState(() => new URLSearchParams(window.location.search));
+  const initialFilterApplied = useRef(false);
+  const initialTabApplied = useRef(false);
 
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [externalActivations, setExternalActivations] = useState<
@@ -76,12 +85,16 @@ function CheckinInner(): React.JSX.Element {
   const [registrationsPage, setRegistrationsPage] = useState(1);
   const [registrationsTotal, setRegistrationsTotal] = useState(0);
   const [registrationsTotalPages, setRegistrationsTotalPages] = useState(0);
-  const [certificateFilter, setCertificateFilter] = useState<CertificateFilter>("all");
+  const [certificateFilter, setCertificateFilter] = useState<CertificateFilter>(() =>
+    certificateFilterFromSearch(initialQuery.get("filter")),
+  );
 
   const [manualToken, setManualToken] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"scan" | "participants" | "certificates">("scan");
+  const [activeTab, setActiveTab] = useState<"scan" | "participants" | "certificates">(
+    initialQuery.get("tab") === "certificates" ? "certificates" : "scan",
+  );
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
@@ -198,14 +211,22 @@ function CheckinInner(): React.JSX.Element {
     setResult(null);
     setRegistrations([]);
     setSearchQuery("");
-    setCertificateFilter("all");
-    fetchRegistrations(selectedEventId, "");
-  }, [selectedEventId, canUseList, fetchRegistrations]);
+    const queryFilter = initialFilterApplied.current
+      ? "all"
+      : certificateFilterFromSearch(initialQuery.get("filter"));
+    initialFilterApplied.current = true;
+    setCertificateFilter(queryFilter);
+    fetchRegistrations(selectedEventId, "", 1, queryFilter);
+  }, [selectedEventId, canUseList, fetchRegistrations, initialQuery]);
 
   useEffect(() => {
     if (!selectedEventId) return;
-    setActiveTab(canCheckinSelected || !canCertificateSelected ? "scan" : "certificates");
-  }, [selectedEventId, canCheckinSelected, canCertificateSelected]);
+    const wantsCertificates = !initialTabApplied.current &&
+      initialQuery.get("tab") === "certificates" &&
+      canCertificateSelected;
+    initialTabApplied.current = true;
+    setActiveTab(wantsCertificates || !canCheckinSelected ? "certificates" : "scan");
+  }, [selectedEventId, canCheckinSelected, canCertificateSelected, initialQuery]);
 
   // ── Check-in ─────────────────────────────────────────────────────────────
 

@@ -11,6 +11,7 @@ describe("impressão de certificados", () => {
     expect(globalCss).toContain("body > *:not(.print-certificate)");
     expect(globalCss).toContain("body > .print-certificate");
     expect(globalCss).toContain(".certificate-print-area");
+    expect(globalCss).toMatch(/\.print-certificate\s+\.no-print\s*\{[^}]*display:\s*none/s);
     expect(globalCss).toMatch(/\.certificate-print-area\s*\{[^}]*break-inside:\s*avoid/s);
     expect(globalCss).toMatch(/\.certificate-print-area\s*\{[^}]*print-color-adjust:\s*exact/s);
     expect(globalCss).not.toContain("!important");

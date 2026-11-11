@@ -170,6 +170,10 @@ body {
     margin: 0 auto;
   }
 
+  .print-certificate .no-print {
+    display: none;
+  }
+
   .print-certificate .certificate-print-area {
     box-sizing: border-box;
     width: 100%;

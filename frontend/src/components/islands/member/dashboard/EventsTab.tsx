@@ -306,8 +306,7 @@ export default function EventsTab({
 
       {purchaseSuccess && (
         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setPurchaseSuccess(false)}>
-          Compra aprovada! Seus ingressos já estão disponíveis na aba “Próximos
-          ingressos”.
+          Compra aprovada! Seus ingressos já estão disponíveis na aba “Futuros”.
         </Alert>
       )}
 
@@ -346,7 +345,7 @@ export default function EventsTab({
             onChange={(_, v) => setEventsSubTab(v as EventsSubTab)}
             sx={{ mb: 2 }}
           >
-            <Tab value="future" label="Próximos ingressos" />
+            <Tab value="future" label="Futuros" />
             <Tab value="purchased" label="Comprei para outros" />
             <Tab value="history" label="Histórico" />
           </Tabs>

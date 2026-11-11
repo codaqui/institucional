@@ -2425,6 +2425,8 @@ export class EventsService {
       attendeeEmail: confirmed ? this.maskEmail(registration.attendeeEmail) : null,
       checkinToken: confirmed ? registration.checkinToken : null,
       requiresAccount: registration.certificateInvitedAt !== null,
+      registrationId: registration.id,
+      certificateGranted: registration.certificateGrantedAt !== null,
     };
   }
 

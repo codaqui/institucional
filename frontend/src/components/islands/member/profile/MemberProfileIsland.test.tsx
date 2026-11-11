@@ -78,8 +78,16 @@ describe("MemberProfileIsland public hours and badge", () => {
     expect(screen.getByRole("list", { name: "Marcos de horas" })).toBeInTheDocument();
     expect(screen.getByText("Presença aprovada")).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Selo Codaqui de Membro Sintético" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Histórico de eventos" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Histórico de Doações" })).toBeInTheDocument();
+    const hours = screen.getByRole("heading", { name: "Horas aprovadas" });
+    const badge = screen.getByRole("heading", { name: "Selo público" });
+    const timeline = screen.getByText("Presença aprovada");
+    const history = screen.getByRole("heading", { name: "Histórico de eventos" });
+    expect(hours.compareDocumentPosition(badge) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(badge.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(timeline.compareDocumentPosition(history) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(screen.queryByText(/ainda não fez doações públicas/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Histórico de Doações" })).not.toBeInTheDocument();
   });
 
   it("does not recreate hidden hours or a disabled badge with zero-value defaults", async () => {
