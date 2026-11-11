@@ -3,9 +3,8 @@
  * port de `CompanyHeader`, `CompanyInfo` e `CompanyEditForm`
  * (MyCompanySection, Docusaurus).
  *
- * O link do comprovante de doação recebe a URL completa via prop
- * (`receiptUrl`) — no Astro o `useAuth` prefixa a API_URL nas chamadas
- * autenticadas, mas o <a> precisa do absoluto.
+ * O download do comprovante recebe a URL completa via prop (`receiptUrl`)
+ * e permite escolher o mês da fatura antes de gerar o PDF autenticado.
  */
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
@@ -21,6 +20,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import type { Company, CompanySupportSummary } from "./types";
 import { formatCnpj } from "./types";
+import CompanyReceiptDownload from "./CompanyReceiptDownload";
 import SupportSummary from "./SupportSummary";
 
 interface CompanyHeaderProps {
@@ -139,16 +139,7 @@ export function CompanyInfo({
           Recorrência configurada: inativa
         </Typography>
       )}
-      <Button
-        size="small"
-        variant="text"
-        href={receiptUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        sx={{ alignSelf: "flex-start", textTransform: "none", mt: 0.5 }}
-      >
-        Baixar comprovante de doação
-      </Button>
+      <CompanyReceiptDownload receiptUrl={receiptUrl} />
       <SupportSummary supportSummary={supportSummary} />
       <Button
         size="small"
