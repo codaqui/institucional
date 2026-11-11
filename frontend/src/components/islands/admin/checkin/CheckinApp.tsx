@@ -27,13 +27,11 @@ import type {
   ExternalActivationItem,
   ManagedEvent,
 } from "./types";
-import type { PaginatedResponse } from "../../../../lib/pagination";
+import { CHECKIN_PAGE_SIZE, type PaginatedResponse } from "../../../../lib/pagination";
 import {
   CAMERA_START_TIMEOUT_MS,
-  CHECKIN_ROLES,
   EXTERNAL_PREFIX,
   formatDateTime,
-  getUserRoles,
   isCameraAvailable,
   translateCameraError,
   withTimeout,
@@ -62,10 +60,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 function CheckinInner(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, user, authFetch } = useAuth();
-
-  const roles = getUserRoles(user);
-  const canAccess = isAdmin || CHECKIN_ROLES.some((r) => roles.includes(r));
+  const { ready, isLoggedIn, authFetch } = useAuth();
 
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [externalActivations, setExternalActivations] = useState<
@@ -100,8 +95,8 @@ function CheckinInner(): React.JSX.Element {
 
   const cameraSupported = isCameraAvailable();
 
-  // A lista fica habilitada por evento: admin/organizer/host/owner/ativador podem buscar;
-  // event_checker puro fica restrito ao scanner.
+  // O escopo do backend habilita a lista por evento; o checker global sem staff
+  // local permanece restrito ao scanner.
   const selectedManaged = events.find((e) => e.id === selectedEventId);
   const selectedExternal = externalActivations.find(
     (a) => `${EXTERNAL_PREFIX}${a.eventKey}` === selectedEventId,
@@ -120,7 +115,7 @@ function CheckinInner(): React.JSX.Element {
       try {
         const params = new URLSearchParams({
           page: String(page),
-          limit: "25",
+          limit: String(CHECKIN_PAGE_SIZE),
           certificateFilter: filter,
         });
         if (query.trim()) params.set("search", query.trim());
@@ -146,7 +141,7 @@ function CheckinInner(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !canAccess) {
+    if (!isLoggedIn) {
       window.location.replace("/");
       return;
     }
@@ -191,9 +186,9 @@ function CheckinInner(): React.JSX.Element {
         setEventsLoading(false);
       }
     })();
-  }, [ready, isLoggedIn, canAccess, authFetch]);
+  }, [ready, isLoggedIn, authFetch]);
 
-  // Carrega a lista completa (contador de presentes) ao trocar de evento
+  // Carrega a primeira página e os contadores locais ao trocar de evento
   useEffect(() => {
     if (!selectedEventId || !canUseList) {
       setRegistrations([]);
@@ -263,7 +258,7 @@ function CheckinInner(): React.JSX.Element {
             message: `Presença confirmada: ${data.registration?.attendeeName ?? "participante"}.`,
           });
         }
-        // Atualiza a lista (contador de presentes) sem bloquear o fluxo da porta
+        // Atualiza a página e os contadores locais sem bloquear o fluxo da porta
         if (canUseList) {
           fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
         }
@@ -301,7 +296,7 @@ function CheckinInner(): React.JSX.Element {
       await fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
       return results;
     },
-    [authFetch, fetchRegistrations, searchQuery, selectedEventId],
+    [authFetch, certificateFilter, fetchRegistrations, registrationsPage, searchQuery, selectedEventId],
   );
 
   const handleGrantCertificate = useCallback(
@@ -421,7 +416,7 @@ function CheckinInner(): React.JSX.Element {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  if (!ready || !isLoggedIn || !canAccess) {
+  if (!ready || !isLoggedIn) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>
         <CircularProgress />
@@ -482,20 +477,20 @@ function CheckinInner(): React.JSX.Element {
 
       {hasSelection && (
         <>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
-            <Chip
-              icon={<CheckCircleIcon />}
-              label={`${presentCount} presente${presentCount === 1 ? "" : "s"}`}
-              color="success"
-              variant="outlined"
-            />
-            {canUseList && (
+          {canUseList && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
               <Chip
-                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`}
+                icon={<CheckCircleIcon />}
+                label={`${presentCount} presente${presentCount === 1 ? "" : "s"} nesta página`}
+                color="success"
                 variant="outlined"
               />
-            )}
-          </Box>
+              <Chip
+                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} nesta página`}
+                variant="outlined"
+              />
+            </Box>
+          )}
 
           <Tabs
             value={activeTab}
@@ -578,13 +573,18 @@ function CheckinInner(): React.JSX.Element {
           {activeTab === "participants" && canUseList && (
             <Box role="tabpanel" aria-label="Participantes">
               <ManualSearch
+                key={selectedEventId}
                 registrations={registrations}
                 regsLoading={regsLoading}
                 searchQuery={searchQuery}
                 checkinLoading={checkinLoading}
                 canCheckinFeature={canCheckinSelected}
+                page={registrationsPage}
+                total={registrationsTotal}
+                totalPages={registrationsTotalPages}
                 onSearchQueryChange={setSearchQuery}
                 onSearch={() => fetchRegistrations(selectedEventId, searchQuery, 1, certificateFilter)}
+                onPageChange={(nextPage) => fetchRegistrations(selectedEventId, searchQuery, nextPage, certificateFilter)}
                 onCheckin={(token) => {
                   void handleCheckin(token);
                 }}

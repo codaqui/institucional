@@ -82,6 +82,8 @@ As transições de candidatura invalidam o cache de designations. Sem essa inval
 | `POST` | `/universities/ambassador-applications/:id/reject` | Gestor/admin |
 | `POST` | `/universities/ambassador-applications/:id/confirm` | Somente admin |
 
+`GET /universities/manage` lista também cidades e IES inativas e acrescenta `isActive`, `contactEmail` e `cityId` às IES para edição; a projeção pública permanece restrita a registros ativos e sem contato. O CRUD genérico `/entities` não cria IES nem converte tipos de/para `instituicao_ensino`, orientando o operador a usar `/admin/universitario`. Novas IES e novos vínculos exigem cidade ativa; atualizar uma IES sem trocar sua cidade histórica inativa é permitido para manutenção e reativação.
+
 `CreateEventDto` e `UpdateEventDto` aceitam `institutionId` opcional. A projeção pública de eventos inclui o resumo da IES sem `registeredById` ou contato.
 
 `GET /universities/public` e `static/universities/index.json` contêm `{generatedAt,cities,institutions,events}`. IES expõe `id`, `slug`, `name`, `website`, `city` e embaixador com `githubHandle`, `name`, `avatarUrl`, `validUntil`. Eventos expõem somente `id`, `slug`, `title`, `startAt`, `status`, `location`, `institutionId`. Não há e-mail, motivação, candidaturas ou IDs de atores.

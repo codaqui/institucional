@@ -26,10 +26,20 @@ import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-h
 import { DEFAULT_PAGE_SIZE } from "../../../../lib/pagination";
 import type { PublicCity, PublicInstitution } from "../../../../data/universities";
 
+interface ManageCity extends PublicCity {
+  isActive: boolean;
+}
+
+interface ManageInstitution extends PublicInstitution {
+  contactEmail: string | null;
+  cityId: string | null;
+  isActive: boolean;
+}
+
 interface ManagePayload {
   generatedAt: string;
-  cities: PublicCity[];
-  institutions: PublicInstitution[];
+  cities: ManageCity[];
+  institutions: ManageInstitution[];
 }
 
 interface AmbassadorApplication {
@@ -71,8 +81,8 @@ function UniversitiesAdminInner() {
   const canManage = isAdmin || designations.some((item) =>
     item.targetType === "program" && item.targetKey === "universitario" && item.designation === "manager",
   );
-  const [cities, setCities] = useState<PublicCity[]>([]);
-  const [institutions, setInstitutions] = useState<PublicInstitution[]>([]);
+  const [cities, setCities] = useState<ManageCity[]>([]);
+  const [institutions, setInstitutions] = useState<ManageInstitution[]>([]);
   const [applications, setApplications] = useState<AmbassadorApplication[]>([]);
   const [myApplications, setMyApplications] = useState<AmbassadorApplication[]>([]);
   const [loading, setLoading] = useState(false);
@@ -82,10 +92,10 @@ function UniversitiesAdminInner() {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [cityDialog, setCityDialog] = useState(false);
-  const [editingCity, setEditingCity] = useState<PublicCity | null>(null);
+  const [editingCity, setEditingCity] = useState<ManageCity | null>(null);
   const [cityForm, setCityForm] = useState<CityForm>(EMPTY_CITY);
   const [institutionDialog, setInstitutionDialog] = useState(false);
-  const [editingInstitution, setEditingInstitution] = useState<PublicInstitution | null>(null);
+  const [editingInstitution, setEditingInstitution] = useState<ManageInstitution | null>(null);
   const [institutionForm, setInstitutionForm] = useState<InstitutionForm>(EMPTY_INSTITUTION);
   const [formError, setFormError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -132,23 +142,23 @@ function UniversitiesAdminInner() {
     if (canManage) void loadManage();
   }, [ready, designationsLoading, isLoggedIn, canManage, loadOwnApplications, loadManage]);
 
-  const openCity = (city: PublicCity | null) => {
+  const openCity = (city: ManageCity | null) => {
     setEditingCity(city);
-    setCityForm(city ? { name: city.name, uf: city.uf, isActive: city.isActive ?? true } : EMPTY_CITY);
+    setCityForm(city ? { name: city.name, uf: city.uf, isActive: city.isActive } : EMPTY_CITY);
     setFormError("");
     setCityDialog(true);
   };
 
-  const openInstitution = (institution: PublicInstitution | null) => {
+  const openInstitution = (institution: ManageInstitution | null) => {
     setEditingInstitution(institution);
     setInstitutionForm(institution ? {
       name: institution.name,
       slug: institution.slug,
       website: institution.website ?? "",
-      contactEmail: "",
-      cityId: institution.city?.id ?? "",
-      isActive: true,
-    } : { ...EMPTY_INSTITUTION, cityId: cities[0]?.id ?? "" });
+      contactEmail: institution.contactEmail ?? "",
+      cityId: institution.cityId ?? institution.city?.id ?? "",
+      isActive: institution.isActive,
+    } : { ...EMPTY_INSTITUTION, cityId: cities.find((city) => city.isActive)?.id ?? "" });
     setFormError("");
     setInstitutionDialog(true);
   };
@@ -286,7 +296,14 @@ function UniversitiesAdminInner() {
               {cities.map((city) => (
                 <Grid key={city.id} size={{ xs: 12, sm: 6, md: 4 }}><Card variant="outlined"><CardContent>
                   <Typography variant="h6" component="h4">{city.name}/{city.uf}</Typography>
-                  <Button size="small" onClick={() => openCity(city)}>Editar cidade</Button>
+                  {!city.isActive && <Chip size="small" label="Cidade inativa" sx={{ mb: 1 }} />}
+                  <Button
+                    size="small"
+                    aria-label={`${city.isActive ? "Editar" : "Reativar"} cidade ${city.name}`}
+                    onClick={() => openCity(city)}
+                  >
+                    {city.isActive ? "Editar cidade" : "Reativar cidade"}
+                  </Button>
                 </CardContent></Card></Grid>
               ))}
             </Grid>
@@ -302,7 +319,14 @@ function UniversitiesAdminInner() {
                 <Grid key={institution.id} size={{ xs: 12, sm: 6, md: 4 }}><Card variant="outlined"><CardContent>
                   <Typography variant="h6" component="h4">{institution.name}</Typography>
                   <Typography variant="body2" color="text.secondary">{institution.city ? `${institution.city.name}/${institution.city.uf}` : "Sem cidade"}</Typography>
-                  <Button size="small" onClick={() => openInstitution(institution)}>Editar IES</Button>
+                  {!institution.isActive && <Chip size="small" label="IES inativa" sx={{ mb: 1 }} />}
+                  <Button
+                    size="small"
+                    aria-label={`${institution.isActive ? "Editar" : "Reativar"} IES ${institution.name}`}
+                    onClick={() => openInstitution(institution)}
+                  >
+                    {institution.isActive ? "Editar IES" : "Reativar IES"}
+                  </Button>
                 </CardContent></Card></Grid>
               ))}
             </Grid>
@@ -349,7 +373,13 @@ function UniversitiesAdminInner() {
           <TextField label="Site (opcional)" value={institutionForm.website} onChange={(event) => setInstitutionForm({ ...institutionForm, website: event.target.value })} fullWidth />
           <TextField label="E-mail de contato (opcional)" value={institutionForm.contactEmail} onChange={(event) => setInstitutionForm({ ...institutionForm, contactEmail: event.target.value })} fullWidth />
           <TextField select label="Cidade" value={institutionForm.cityId} onChange={(event) => setInstitutionForm({ ...institutionForm, cityId: event.target.value })} fullWidth>
-            {cities.map((city) => <MenuItem key={city.id} value={city.id}>{city.name}/{city.uf}</MenuItem>)}
+            {cities
+              .filter((city) => city.isActive || city.id === editingInstitution?.cityId)
+              .map((city) => (
+                <MenuItem key={city.id} value={city.id} disabled={!city.isActive}>
+                  {city.name}/{city.uf}{!city.isActive ? " (inativa)" : ""}
+                </MenuItem>
+              ))}
           </TextField>
           <FormControlLabel control={<Checkbox checked={institutionForm.isActive} onChange={(event) => setInstitutionForm({ ...institutionForm, isActive: event.target.checked })} />} label="IES ativa" />
           {formError && <Alert severity="error">{formError}</Alert>}

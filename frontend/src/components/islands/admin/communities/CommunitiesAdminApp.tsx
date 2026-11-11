@@ -49,6 +49,7 @@ interface ManagedCommunity {
   level: "parceira" | "integrada";
   status: "proposed" | "active" | "suspended" | "exited";
   sealStatus: "none" | "applied" | "sealed";
+  sealValidUntil: string | null;
   siteEnabled: boolean;
   siteDomain: string | null;
 }
@@ -82,6 +83,16 @@ const EMPTY_FORM: CommunityForm = {
   siteEnabled: false,
   siteDomain: "",
 };
+
+function SealRequestButton({ community, busy, onClick }: Readonly<{ community: ManagedCommunity; busy: boolean; onClick: () => void }>) {
+  if (community.sealStatus === "applied") {
+    return <Button size="small" disabled>Solicitação pendente</Button>;
+  }
+  if (community.sealStatus === "sealed" && (!community.sealValidUntil || new Date(community.sealValidUntil) > new Date())) {
+    return <Button size="small" disabled>Selo vigente</Button>;
+  }
+  return <Button size="small" disabled={busy} onClick={onClick}>Solicitar selo</Button>;
+}
 
 function validateName(value: string): string {
   if (!value.trim()) return "Informe o nome da comunidade.";
@@ -544,9 +555,9 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                             {community.level === "integrada" ? "Tornar parceira" : "Tornar integrada"}
                           </Button>
                         )}
-                        <Button
-                          size="small"
-                          disabled={busyId === community.id}
+                        <SealRequestButton
+                          community={community}
+                          busy={busyId === community.id}
                           onClick={() => void runAction(
                             community,
                             `Solicitar selo para "${community.name}"?`,
@@ -555,9 +566,7 @@ function CommunitiesAdminInner(): React.JSX.Element | null {
                             "Solicitação de selo registrada.",
                             "Não foi possível solicitar o selo.",
                           )}
-                        >
-                          Solicitar selo
-                        </Button>
+                        />
                         {isAdmin && (
                           <>
                             <Button size="small" onClick={() => openSeal(community)}>Conceder selo</Button>

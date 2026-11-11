@@ -1690,7 +1690,22 @@ describe('EventsService', () => {
       });
     });
 
-    it('event_checker global vê todos os eventos, mas canUseList=false', async () => {
+    it('admin vê ativação somente com certificates', async () => {
+      activationRepo.find.mockResolvedValue([
+        { ...externalActivation, features: ['certificates'] },
+      ]);
+
+      const result = await service.getCheckinScope(adminUser);
+
+      expect(result.external).toHaveLength(1);
+      expect(result.external[0]).toMatchObject({
+        eventKey: externalActivation.eventKey,
+        features: ['certificates'],
+        canUseList: true,
+      });
+    });
+
+    it('event_checker global vê todos os eventos com checkin, mas canUseList=false', async () => {
       const checker = user({ roles: ['membro', 'event_checker'] });
       const result = await service.getCheckinScope(checker);
 
@@ -1698,6 +1713,17 @@ describe('EventsService', () => {
       expect(result.managed[0].canUseList).toBe(false);
       expect(result.external).toHaveLength(1);
       expect(result.external[0].canUseList).toBe(false);
+    });
+
+    it('event_checker global não recebe ativação somente com certificates', async () => {
+      activationRepo.find.mockResolvedValue([
+        { ...externalActivation, features: ['certificates'] },
+      ]);
+      const checker = user({ roles: ['membro', 'event_checker'] });
+
+      const result = await service.getCheckinScope(checker);
+
+      expect(result.external).toHaveLength(0);
     });
 
     it('staff host local vê apenas o próprio evento com canUseList=true', async () => {
@@ -1720,7 +1746,7 @@ describe('EventsService', () => {
       expect(result.external).toHaveLength(0);
     });
 
-    it('staff checker local vê apenas o próprio evento com canUseList=false', async () => {
+    it('staff checker local vê apenas o próprio evento com canUseList=true', async () => {
       const checker = user({ sub: uuid(2), handle: 'checker' });
       staffRepo.findBy.mockResolvedValue([
         {
@@ -1735,7 +1761,7 @@ describe('EventsService', () => {
       expect(result.managed).toHaveLength(1);
       expect(result.managed[0]).toMatchObject({
         id: uuid(10),
-        canUseList: false,
+        canUseList: true,
       });
       expect(result.external).toHaveLength(0);
     });
@@ -1752,6 +1778,25 @@ describe('EventsService', () => {
       expect(result.external).toHaveLength(1);
       expect(result.external[0]).toMatchObject({
         eventKey: 'meetup:devparana:abc123',
+        canUseList: true,
+      });
+    });
+
+    it('owner externo vê ativação somente com certificates', async () => {
+      activationRepo.find.mockResolvedValue([
+        { ...externalActivation, features: ['certificates'] },
+      ]);
+      const owner = user({ sub: uuid(5), handle: 'owner' });
+      eventOrganizerService.getOwnedScopes.mockResolvedValue([
+        'meetup:devparana:*',
+      ]);
+
+      const result = await service.getCheckinScope(owner);
+
+      expect(result.external).toHaveLength(1);
+      expect(result.external[0]).toMatchObject({
+        eventKey: externalActivation.eventKey,
+        features: ['certificates'],
         canUseList: true,
       });
     });
@@ -2074,6 +2119,41 @@ describe('EventsService', () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].verificationCode).toBeNull();
+    });
+
+    it('exposes the certificate code after a grant without check-in when public visibility allows it', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: true, certificates: true },
+      });
+      eventRepo.findBy.mockResolvedValue([]);
+      activationRepo.findBy = jest.fn().mockResolvedValue([]);
+      registrationRepo.find.mockResolvedValue([
+        {
+          id: uuid(40),
+          memberId: uuid(1),
+          payerMemberId: uuid(1),
+          eventId: null,
+          externalActivationId: null,
+          checkedInAt: null,
+          certificateGrantedAt: new Date('2026-01-02T00:00:00.000Z'),
+          checkinToken: 'private-token',
+          attendeeName: 'Nome privado',
+          attendeeEmail: 'private@example.com',
+          status: RegistrationStatus.CONFIRMED,
+          createdAt: new Date('2026-01-01'),
+        },
+      ]);
+
+      const result = await service.listMemberRegistrations(uuid(1));
+
+      expect(result[0]).toMatchObject({
+        checkedIn: false,
+        verificationCode: 'CRT-private-toke',
+      });
+      expect(result[0]).not.toHaveProperty('checkinToken');
+      expect(result[0]).not.toHaveProperty('attendeeName');
+      expect(result[0]).not.toHaveProperty('attendeeEmail');
     });
   });
 

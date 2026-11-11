@@ -50,6 +50,8 @@ A migration 046 importa 173 sessões válidas e deduplicadas do histórico autor
 
 `GET /mentorship/admin/mentors` pagina perfis sem expor e-mails. `PATCH /mentorship/admin/mentors/:id` edita áreas/foco, ativa/desativa e reatribui o perfil a um membro ativo. Perfil e designations são alterados em transação; após o commit, as roles derivadas são sincronizadas, o cache é invalidado e a auditoria registra antes/depois. Reatribuir preserva o UUID do perfil e, portanto, todas as sessões. O admin em `/membro/mentoria` é encaminhado a `/admin/mentoria` antes de consultar endpoints que exigem perfil ativo.
 
+A fila de candidaturas considera somente designations pendentes de membros ativos, para não apresentar placeholders históricos como candidatos. Cada item projeta nome, handle, avatar, áreas e foco, sem e-mail; o UUID permanece apenas como identificador técnico, não como apresentação principal.
+
 ## Disponibilidade e concorrência
 
 A disponibilidade usa horário civil recorrente e fuso IANA. Slots futuros são derivados por 28 dias, sem sessões `requested/confirmed` sobrepostas. O cálculo de weekday usa `Intl.DateTimeFormat` no fuso da regra, cobrindo virada de dia entre fusos.
