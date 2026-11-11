@@ -37,12 +37,17 @@ interface ReceiptViewModel {
 const normalizeSiteUrl = (siteUrl: string) => siteUrl.replace(/\/$/, "");
 
 async function renderAndDownload(model: ReceiptViewModel, siteUrl: string): Promise<void> {
-  const [{ default: jsPDF }, { default: html2canvas }, { QRCodeSVG }, { createRoot }] = await Promise.all([
+  const [jspdfModule, html2canvasModule, qrcodeModule, reactDomClient] = await Promise.all([
     import("jspdf"),
     import("html2canvas"),
     import("qrcode.react"),
     import("react-dom/client"),
   ]);
+  const jsPDF = jspdfModule.default;
+  const html2canvas = html2canvasModule.default;
+  const QRCodeSVG = qrcodeModule.QRCodeSVG;
+  const createRoot = reactDomClient.createRoot ?? reactDomClient.default?.createRoot;
+  if (!createRoot) throw new Error("ReactDOM.createRoot indisponível.");
 
   const container = document.createElement("div");
   container.id = "__receipt_pdf_container__";

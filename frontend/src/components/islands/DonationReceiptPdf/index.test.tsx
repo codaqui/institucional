@@ -17,6 +17,11 @@ vi.mock("jspdf", () => ({
 
 vi.mock("html2canvas", () => ({ default: mocks.html2canvas }));
 
+vi.mock("react-dom/client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react-dom/client")>();
+  return { ...actual, createRoot: undefined, default: { createRoot: actual.createRoot } };
+});
+
 const accountId = "acc-codaqui";
 const baseTx: Transaction = {
   id: "tx-abc12345",
