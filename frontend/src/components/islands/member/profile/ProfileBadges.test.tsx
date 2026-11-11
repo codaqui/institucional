@@ -96,7 +96,9 @@ describe("ProfileBadges", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Copiar Markdown" }));
 
-    expect(await screen.findByRole("status")).toHaveTextContent(/Não foi possível copiar/);
+    await waitFor(() => {
+      expect(screen.getByRole("status")).toHaveTextContent(/Não foi possível copiar/);
+    });
     expect(document.querySelector("textarea")).not.toBeInTheDocument();
   });
 
