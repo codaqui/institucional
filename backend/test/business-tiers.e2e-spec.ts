@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { createE2eApplication } from './e2e-app.helper';
+import { bootstrapE2eActors, closeE2eApplication, removeBusinessE2eFixtures } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration045BusinessTiers1794700000000 } from '../src/migrations/1794700000000-Migration045_BusinessTiers';
 
@@ -14,6 +14,7 @@ if (!testDatabase.endsWith('_test')) {
 const actors = {
   admin: { sub: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', handle: 'e2e-business-admin', roles: ['admin'] },
   responsible: { sub: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', handle: 'e2e-business-owner', roles: ['membro'] },
+  collaborator: { sub: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', handle: 'E2E-Business-Collab', roles: ['membro'] },
 } satisfies Record<string, JwtPayload>;
 
 type ActorName = keyof typeof actors;
@@ -24,36 +25,17 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
 
-  async function removeFixtures() {
-    await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
-    await dataSource.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await dataSource.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
-  }
+  const removeFixtures = (database: DataSource) => removeBusinessE2eFixtures(database, actorIds);
 
   beforeAll(async () => {
-    ({ app, dataSource } = await createE2eApplication(actors));
-    await removeFixtures();
-    await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
-      id: actor.sub,
-      githubId: `e2e-business-${key}`,
-      githubHandle: actor.handle,
-      name: `Ator Business ${key}`,
-      email: `${key}@e2e.invalid`,
-      avatarUrl: '',
-      roles: actor.roles,
-    })));
+    ({ app, dataSource } = await bootstrapE2eActors(actors, 'Business', removeFixtures));
   });
 
   afterAll(async () => {
-    if (dataSource) await removeFixtures();
-    if (app) await app.close();
+    await closeE2eApplication(app, dataSource, removeFixtures);
   });
 
-  it('executa Amiga, validação Aliada, badge, expiração, renovação e migration down/up', async () => {
+  it('executa admin, colaborador mixed-case, Amiga, Aliada, badge, expiração, renovação e migration down/up', async () => {
     const registration = await request(app.getHttpServer())
       .post('/companies')
       .set(as('responsible'))
@@ -67,6 +49,24 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
       .set(as('admin'))
       .send({ status: 'active' })
       .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`/companies/${companyId}/members`)
+      .set(as('responsible'))
+      .send({ githubHandle: actors.collaborator.handle })
+      .expect(201);
+
+    const adminList = await request(app.getHttpServer())
+      .get('/companies/admin/list?page=1&limit=10')
+      .set(as('admin'))
+      .expect(200);
+    expect(adminList.body.items.find((item: { id: string }) => item.id === companyId))
+      .toMatchObject({ responsibleGithubHandle: actors.responsible.handle, tier: 'amiga' });
+
+    const businessMembers = await request(app.getHttpServer())
+      .get('/companies/business-members')
+      .expect(200);
+    expect(businessMembers.body).toContain(actors.collaborator.sub);
 
     await request(app.getHttpServer())
       .patch(`/companies/${companyId}/tier`)
