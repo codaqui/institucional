@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fase Experiência do Membro — painel, perfil público, certificados e selos.
 audience: Implementers e revisores da fase posterior à PR #628.
-status: Preparado; implementação não iniciada.
+status: Implementação concluída; revisão, integração e validação em produção pendentes.
 sections:
   - Navegação e visão geral
   - Perfil público e selo
@@ -256,3 +256,13 @@ Merge feature em `develop`, PR para `main`, SonarCloud sem issues. Não iniciar 
 - [ ] **Step 3: Validar produção**
 
 Verificar `/membro`, `/@endersonmenezes`, convite, concessão, retry, impressão e guia do selo em claro/escuro.
+
+---
+
+## Registro de implementação (2026-11-11)
+
+- Tasks 1–5 concluídas com RED→GREEN e commits na branch `feat/member-experience`: navegação, participação/certificados, perfil/selo, fila do concessor e acessibilidade.
+- Backend **0.25.0**, sem migration: `getGuestInvite` projeta apenas `registrationId` da inscrição convidada e `certificateGranted` booleano para viabilizar o deep link exigido.
+- Evidências: frontend **116 arquivos/997 testes**; backend **107 suites/1.356 testes** (2 skipped); scripts **94/94**; `make astro-verify` com paridade de **646 URLs**; quatro builds multi-tenant verdes.
+- Announcements passa a usar backend **0.26.0/migration 047** para evitar colisão de versão.
+- Pendem: revisão independente da branch, integração em `develop`, PR/release e validação visual/manual em claro/escuro de `/membro`, `/@endersonmenezes`, convite, concessão, retry, impressão e guia do selo. Essas etapas não foram marcadas como validadas em produção.

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da fase de experiência do membro — /membro, /@handle, certificados e selos compartilháveis.
 audience: Mantenedores, designers, implementers e revisores.
-status: Preparado para revisão; implementação não iniciada.
+status: Implementada; integração e validação visual/produção pendentes.
 sections:
   - Evidências e princípios
   - Arquitetura de /membro
