@@ -263,6 +263,7 @@ Verificar `/membro`, `/@endersonmenezes`, convite, concessão, retry, impressão
 
 - Tasks 1–5 concluídas com RED→GREEN e commits na branch `feat/member-experience`: navegação, participação/certificados, perfil/selo, fila do concessor e acessibilidade.
 - Backend **0.25.0**, sem migration: `getGuestInvite` projeta apenas `registrationId` da inscrição convidada e `certificateGranted` booleano para viabilizar o deep link exigido.
-- Evidências: frontend **116 arquivos/997 testes**; backend **107 suites/1.356 testes** (2 skipped); scripts **94/94**; `make astro-verify` com paridade de **646 URLs**; quatro builds multi-tenant verdes.
+- Evidências: frontend **116 arquivos/1.000 testes**; backend **107 suites/1.356 testes** (2 skipped); scripts **94/94**; `make astro-verify` com paridade de **646 URLs**; quatro builds multi-tenant verdes.
+- Revisão independente concluída. O bug crítico de impressão foi corrigido com portal direto para `document.body` e `flushSync`; ownership de certificados, consumo único do deep link do check-in e persistência da subaba também foram corrigidos com testes RED→GREEN.
 - Announcements passa a usar backend **0.26.0/migration 047** para evitar colisão de versão.
-- Pendem: revisão independente da branch, integração em `develop`, PR/release e validação visual/manual em claro/escuro de `/membro`, `/@endersonmenezes`, convite, concessão, retry, impressão e guia do selo. Essas etapas não foram marcadas como validadas em produção.
+- Pendem: integração em `develop`, PR/release e validação visual/manual em claro/escuro de `/membro`, `/@endersonmenezes`, convite, concessão, retry, impressão e guia do selo. Essas etapas não foram marcadas como validadas em produção.

@@ -14,7 +14,11 @@ import { formatDateSafe } from "./types";
 
 export function certificateAvailability(
   registration: EventRegistration,
+  memberSub?: string,
 ): "available" | "pending_account" | "unavailable" {
+  if (memberSub && (registration.isPayerOnly || registration.memberId !== memberSub)) {
+    return "unavailable";
+  }
   if (registration.status === "pending_match") return "pending_account";
   if (registration.status === "confirmed" && registration.certificateGrantedAt) {
     return "available";
@@ -28,6 +32,7 @@ interface MemberCertificatesTabProps {
   readonly error: string;
   readonly selectedCertificateId?: string | null;
   readonly certLoadingId?: string | null;
+  readonly memberSub?: string;
   readonly onEmitCertificate: (registrationId: string) => void;
 }
 
@@ -37,6 +42,7 @@ export default function MemberCertificatesTab({
   error,
   selectedCertificateId,
   certLoadingId,
+  memberSub,
   onEmitCertificate,
 }: Readonly<MemberCertificatesTabProps>): React.JSX.Element {
   const requestedCertificate = useRef<string | null>(null);
@@ -49,10 +55,10 @@ export default function MemberCertificatesTab({
     if (loading || requestedCertificate.current === selectedCertificateId) return;
     const registration = registrations.find(({ id }) => id === selectedCertificateId);
     requestedCertificate.current = selectedCertificateId;
-    if (registration && certificateAvailability(registration) === "available") {
+    if (registration && certificateAvailability(registration, memberSub) === "available") {
       onEmitCertificate(selectedCertificateId);
     }
-  }, [loading, onEmitCertificate, registrations, selectedCertificateId]);
+  }, [loading, memberSub, onEmitCertificate, registrations, selectedCertificateId]);
 
   return (
     <Box>
@@ -71,7 +77,7 @@ export default function MemberCertificatesTab({
       ) : null}
       <Stack component="ul" spacing={2} sx={{ p: 0, m: 0, listStyle: "none" }}>
         {registrations.map((registration) => {
-          const availability = certificateAvailability(registration);
+          const availability = certificateAvailability(registration, memberSub);
           const eventTitle = registration.event?.title ?? registration.activation?.title ?? "Evento";
           const grantedAt = formatDateSafe(registration.certificateGrantedAt);
           return (

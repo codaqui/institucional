@@ -7,6 +7,7 @@
  * virou `<a>` nativo nas sub-árvores.
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { createPortal, flushSync } from "react-dom";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -234,7 +235,14 @@ function MemberDashboardInner() {
   const selectSection = (section: MemberSection) => {
     setActiveSection(section);
     setSelectedCertificateId(null);
-    updateMemberLocation(section);
+    const tab = section === "participation"
+      ? participationTab === "events"
+        ? eventsSubTab
+        : participationTab
+      : section === "finance"
+        ? financeTab
+        : undefined;
+    updateMemberLocation(section, tab);
   };
 
   const selectParticipationTab = (tab: ParticipationTab) => {
@@ -423,8 +431,8 @@ function MemberDashboardInner() {
   };
 
   useEffect(() => {
-    const beforePrint = () => setIsPrinting(true);
-    const afterPrint = () => setIsPrinting(false);
+    const beforePrint = () => flushSync(() => setIsPrinting(true));
+    const afterPrint = () => flushSync(() => setIsPrinting(false));
     window.addEventListener("beforeprint", beforePrint);
     window.addEventListener("afterprint", afterPrint);
     return () => {
@@ -543,6 +551,7 @@ function MemberDashboardInner() {
             error={regsError || certError}
             selectedCertificateId={selectedCertificateId}
             certLoadingId={certLoadingId}
+            memberSub={user?.sub}
             onEmitCertificate={openCertificate}
           />
         </TabPanel>
@@ -745,7 +754,12 @@ function MemberDashboardInner() {
           </Button>
         </DialogActions>
       </Dialog>
-      {isPrinting && certificate && <Box className="print-certificate" aria-hidden={true}><CertificateCard certificate={certificate} origin={origin} /></Box>}
+      {isPrinting && certificate && createPortal(
+        <Box className="print-certificate" aria-hidden={true}>
+          <CertificateCard certificate={certificate} origin={origin} />
+        </Box>,
+        document.body,
+      )}
     </PageContainer>
   );
 }

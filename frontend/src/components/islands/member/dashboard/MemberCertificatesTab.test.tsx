@@ -85,6 +85,22 @@ describe("MemberCertificatesTab", () => {
     expect(screen.getByText(/organização ainda não concedeu/i)).toBeInTheDocument();
   });
 
+  it("não oferece abrir um certificado que pertence a outro participante", () => {
+    const registration = makeRegistration({ isPayerOnly: true, memberId: "another-member" });
+    renderWithMui(
+      <MemberCertificatesTab
+        registrations={[registration]}
+        loading={false}
+        error=""
+        memberSub="member-1"
+        onEmitCertificate={vi.fn()}
+      />,
+    );
+
+    expect(certificateAvailability(registration, "member-1")).toBe("unavailable");
+    expect(screen.queryByRole("button", { name: "Ver certificado" })).not.toBeInTheDocument();
+  });
+
   it("abre somente o certificado indicado pelo deep link", async () => {
     const onEmitCertificate = vi.fn();
     const selected = makeRegistration({ id: "reg-selected" });

@@ -68,6 +68,8 @@ function certificateFilterFromSearch(value: string | null): CertificateFilter {
 function CheckinInner(): React.JSX.Element {
   const { ready, isLoggedIn, authFetch } = useAuth();
   const [initialQuery] = useState(() => new URLSearchParams(window.location.search));
+  const initialFilterApplied = useRef(false);
+  const initialTabApplied = useRef(false);
 
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [externalActivations, setExternalActivations] = useState<
@@ -209,14 +211,20 @@ function CheckinInner(): React.JSX.Element {
     setResult(null);
     setRegistrations([]);
     setSearchQuery("");
-    const queryFilter = certificateFilterFromSearch(initialQuery.get("filter"));
+    const queryFilter = initialFilterApplied.current
+      ? "all"
+      : certificateFilterFromSearch(initialQuery.get("filter"));
+    initialFilterApplied.current = true;
     setCertificateFilter(queryFilter);
     fetchRegistrations(selectedEventId, "", 1, queryFilter);
   }, [selectedEventId, canUseList, fetchRegistrations, initialQuery]);
 
   useEffect(() => {
     if (!selectedEventId) return;
-    const wantsCertificates = initialQuery.get("tab") === "certificates" && canCertificateSelected;
+    const wantsCertificates = !initialTabApplied.current &&
+      initialQuery.get("tab") === "certificates" &&
+      canCertificateSelected;
+    initialTabApplied.current = true;
     setActiveTab(wantsCertificates || !canCheckinSelected ? "certificates" : "scan");
   }, [selectedEventId, canCheckinSelected, canCertificateSelected, initialQuery]);
 

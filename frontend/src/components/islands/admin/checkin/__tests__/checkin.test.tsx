@@ -969,6 +969,9 @@ describe("/admin/eventos-checkin", () => {
     expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute("aria-selected", "true");
 
     fireEvent.click(await screen.findByRole("button", { name: "Selecionar falhas para um novo lote (1)" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar Participante Um para convite" }));
+    expect(screen.getByRole("button", { name: "Enfileirar convites (0)" })).toBeDisabled();
+    fireEvent.click(await screen.findByRole("button", { name: "Selecionar falhas para um novo lote (1)" }));
     fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
 
     await waitFor(() => {
@@ -977,6 +980,42 @@ describe("/admin/eventos-checkin", () => {
       );
       expect(JSON.parse(String(retryCall?.[1]?.body)).registrationIds).toEqual(["reg-fail"]);
     });
+  });
+
+  it("consome o deep link somente na primeira seleção de evento", async () => {
+    const secondEvent = { ...managedEvent, id: "evt-2", title: "Outro evento" };
+    const authFetch = mockAuthFetchWithEvents((url) => {
+      if (url === "/events/checkin-scope") {
+        return jsonResponse({ managed: [managedEvent, secondEvent], external: [] });
+      }
+      if (url.includes("/registrations")) {
+        return jsonResponse({ data: [], total: 0, page: 1, totalPages: 0, limit: 25 });
+      }
+      return null;
+    });
+    mockAuthFor(organizerUser, authFetch);
+    window.history.pushState(
+      {},
+      "",
+      "/admin/eventos-checkin?event=evt-1&tab=certificates&filter=registration_pending",
+    );
+    renderWithMui(<CheckinApp />);
+
+    expect(await screen.findByRole("tab", { name: "Certificados" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    fireEvent.mouseDown(screen.getAllByRole("combobox")[0]);
+    fireEvent.click(await screen.findByRole("option", { name: /Outro evento/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "Escanear" })).toHaveAttribute("aria-selected", "true");
+    });
+    const lastRegistrationsUrl = authFetch.mock.calls
+      .map(([url]) => url)
+      .filter((url) => url.includes("/registrations"))
+      .at(-1);
+    expect(lastRegistrationsUrl).toContain("certificateFilter=all");
   });
 
   it("distingue estados e executa conceder antes de convidar como ações explícitas", async () => {

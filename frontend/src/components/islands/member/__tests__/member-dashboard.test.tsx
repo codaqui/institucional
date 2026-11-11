@@ -340,8 +340,34 @@ describe("/membro", () => {
     expect(screen.getByRole("button", { name: "Imprimir / salvar PDF" })).toBeInTheDocument();
     fireEvent(window, new Event("beforeprint"));
     expect(screen.getAllByText("CERTIFICADO DE PARTICIPAÇÃO")).toHaveLength(2);
+    expect(document.querySelector("body > .print-certificate")).toBeInTheDocument();
     fireEvent(window, new Event("afterprint"));
     expect(screen.getByText("CERTIFICADO DE PARTICIPAÇÃO")).toBeInTheDocument();
+    expect(document.querySelector("body > .print-certificate")).not.toBeInTheDocument();
+  });
+
+  it("preserva a subaba ao sair e voltar para Participação", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/my-registrations")) return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+    renderWithMui(<MemberDashboardApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Certificados" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Financeiro" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Participação" }));
+
+    expect(window.location.search).toContain("section=participation");
+    expect(window.location.search).toContain("tab=certificates");
+    expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
   });
 
   it("mostra o erro real do certificado sem alegar presença obrigatória", async () => {
