@@ -29,7 +29,12 @@ describe('Announcements — API e migration 047 com PostgreSQL real', () => {
   beforeAll(async () => {
     ({ app, dataSource } = await createE2eApplication(actors));
     const queryRunner = dataSource.createQueryRunner();
-    await new Migration047Announcements1795000000000().up(queryRunner);
+    const existingTable = await queryRunner.query(
+      `SELECT to_regclass('public.announcements') AS table_name`,
+    );
+    if (!existingTable[0]?.table_name) {
+      await new Migration047Announcements1795000000000().up(queryRunner);
+    }
     await queryRunner.release();
     await removeFixtures();
     await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({

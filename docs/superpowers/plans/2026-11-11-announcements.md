@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fase Announcements, derivado da spec homônima.
 audience: Implementers e revisores da fase posterior aos patches operacionais.
-status: Preparado; execução não iniciada.
+status: Implementação e verificação concluídas; integração e rollout pendentes.
 sections:
   - Backend e migration 047
   - Snapshot público

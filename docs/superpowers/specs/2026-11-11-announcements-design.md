@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da fase Announcements — barras de aviso administráveis no portal Codaqui.
 audience: Mantenedores, implementers e revisores da fase posterior à PR de patches operacionais.
-status: Preparado para revisão; implementação ainda não iniciada.
+status: Implementada e verificada; integração e publicação pendentes.
 sections:
   - Contexto e objetivo
   - Modelo e APIs
