@@ -11,7 +11,7 @@ import MenuItem from "@mui/material/MenuItem";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import PaginationControls from "../../ui/PaginationControls";
-import { rangeLabel } from "../../../../lib/pagination";
+import { CHECKIN_PAGE_SIZE, rangeLabel } from "../../../../lib/pagination";
 import type { CertificateFilter, CertificateInviteBatch, CertificateInviteBatchProgress, EventRegistration } from "./types";
 import { formatDateTime } from "./checkin-utils";
 import { useCertificateInviteProgress } from "./useCertificateInviteProgress";
@@ -311,7 +311,7 @@ export default function CertificateCenter({
       )}
       {total > 0 && (
         <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", mt: 2 }}>
-          {rangeLabel(page, 25, total)}
+          {rangeLabel(page, CHECKIN_PAGE_SIZE, total)}
         </Typography>
       )}
       <PaginationControls page={page} totalPages={totalPages} onChange={onPageChange} itemLabel="certificados" />

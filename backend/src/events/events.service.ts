@@ -743,13 +743,13 @@ export class EventsService {
    *
    * Regras de acesso:
    * - admin / event_organizer global: todos os eventos, lista habilitada.
-   * - event_checker global: todos os eventos, somente scanner (lista bloqueada).
+   * - event_checker global: eventos com check-in, somente scanner (lista bloqueada).
    * - Demais membros: apenas eventos onde são staff (host/checker) ou onde são
    *   owner/ativador de evento externo.
    *
    * A flag `canUseList` indica se o usuário pode ver a lista de inscritos e
-   * buscar manualmente (admin/organizer/host/owner/ativador); caso contrário,
-   * fica restrito ao scanner de QR Code.
+   * buscar manualmente (admin/organizer/staff host/checker/owner/ativador);
+   * caso contrário, fica restrito ao scanner de QR Code.
    */
   async getCheckinScope(user: JwtPayload): Promise<{
     managed: Array<{
@@ -792,7 +792,9 @@ export class EventsService {
     const managed = managedEvents.map((e) => {
       const staffRole = staffRoleByEventId.get(e.id);
       const canUseList =
-        isManager || staffRole === EventStaffRole.HOST;
+        isManager ||
+        staffRole === EventStaffRole.HOST ||
+        staffRole === EventStaffRole.CHECKER;
       return {
         id: e.id,
         title: e.title,
@@ -809,7 +811,10 @@ export class EventsService {
     const ownedScopes = isManager ? [] : await this.eventOrganizerService.getOwnedScopes(user);
 
     const external = allActivations
-      .filter((a) => a.features.includes('checkin'))
+      .filter(
+        (a) =>
+          a.features.includes('checkin') || a.features.includes('certificates'),
+      )
       .map((a) => {
         const { sourceKey } = EventsService.parseEventKey(a.eventKey);
         const isOwner =
@@ -826,7 +831,10 @@ export class EventsService {
           canUseList,
         };
       })
-      .filter((a) => a.canUseList || isGlobalChecker);
+      .filter(
+        (a) =>
+          a.canUseList || (isGlobalChecker && a.features.includes('checkin')),
+      );
 
     return { managed, external };
   }
