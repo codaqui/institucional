@@ -48,7 +48,7 @@ const failedLog = {
   to: "participante@example.com",
   template: "event-confirmation",
   eventId: "evt-1",
-  registrationId: "registration-1",
+  registrationId: "registration-1" as string | null,
   status: "failed",
   error: "SMTP timeout",
   createdAt: "2026-07-20T10:00:00.000Z",
