@@ -8,7 +8,10 @@ const admin = {
 } as JwtPayload;
 
 describe('MentorshipController sessions', () => {
-  const mentorship = {};
+  const mentorship = {
+    listMentors: jest.fn(),
+    updateMentor: jest.fn(),
+  };
   const availability = {};
   const sessions = {
     cancel: jest.fn(),

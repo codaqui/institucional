@@ -3,6 +3,7 @@ import { Alert, Box, Button, Card, CardContent, Chip, Stack, Table, TableBody, T
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import PaginationControls from "../../ui/PaginationControls";
+import MentorDirectory from "./MentorDirectory";
 import { useAuth } from "../../../../lib/use-auth";
 import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
 import { DEFAULT_PAGE_SIZE, rangeLabel, type PaginatedResponse } from "../../../../lib/pagination";
@@ -90,6 +91,7 @@ function MentorshipAdmin() {
           <Card variant="outlined" sx={{ flex: 1 }}><CardContent><Typography variant="h4">{insights.completed}</Typography><Typography color="text.secondary">Sessões concluídas</Typography></CardContent></Card>
           <Card variant="outlined" sx={{ flex: 1 }}><CardContent><Typography variant="h4">{Math.round(insights.noShowRate * 100)}%</Typography><Typography color="text.secondary">No-show</Typography></CardContent></Card>
         </Stack>}
+        <MentorDirectory authFetch={authFetch} onError={setError} onFeedback={setFeedback} />
         <Box>
           <Typography variant="h5" component="h3" sx={{ mb: 2 }}>Candidaturas pendentes</Typography>
           <Stack spacing={1}>{applications.length === 0 ? <Typography color="text.secondary">Nenhuma candidatura pendente.</Typography> : applications.map((application) => (
