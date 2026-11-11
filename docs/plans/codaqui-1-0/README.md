@@ -263,9 +263,9 @@ Revisão do módulo `notifications` (2026-09-21) originou ajustes que devem entr
 2. **Visualização no admin** — ✅ entregue: aba "Templates" em `/admin/emails` com chips Padrão/Personalizado, editor Markdown, preview renderizado lado a lado, variáveis disponíveis e envio de teste.
 3. **Edição com override em banco + fallback em código** — ✅ entregue (supere o "fora de escopo" original após a demanda surgir): tabela `email_templates` (um registro por template); PUT/DELETE em `/notifications/templates/:id`; pipeline único de render (interpolação `{{var}}` → Markdown → HTML sanitizado → texto) com **fallback garantido para o padrão em código** — ausência de registro, erro de BD ou erro de render nunca derruba o envio; e-mails saem multipart (text + html).
 
-### E3 — Campanhas e malas diretas (spec própria, aguardando revisão)
+### E3 — Campanhas e malas diretas (spec revisada; pronta para plano próprio)
 
-Campanhas com segmentos por papel/designation/comunidade, prévia/teste, confirmação, envio idempotente, rate limit, retries e logs por destinatário. Comunicação promocional exige opt-in e descadastro; não há open tracking. A implementação não pertence à Fase 4 e seguirá a [spec de campanhas](../../superpowers/specs/2026-11-09-email-campaigns-design.md).
+Campanhas com segmentos por papel/designation/comunidade, prévia/teste, confirmação, fila persistente idempotente, ritmo global, retries e logs por destinatário. Comunicação promocional exige opt-in e descadastro; não há open/click tracking. Backend proposto 0.27.0/migration 048, após Announcements. A implementação não pertence à Fase 4 e seguirá a [spec revisada de campanhas](../../superpowers/specs/2026-11-09-email-campaigns-design.md), com plano TDD e revisão independente antes do merge.
 
 ## Arquitetura de menus e navegação (UX)
 
