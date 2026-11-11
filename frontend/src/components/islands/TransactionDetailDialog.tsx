@@ -1,11 +1,10 @@
-// Port de src/components/TransactionDetailDialog (Docusaurus) para ilha React.
-// Desvio: botão "Baixar comprovante PDF" NÃO portado — generateReceiptPdf
-// (DonationReceiptPdf/jspdf) ainda não existe no frontend Astro (follow-up).
 import { useEffect, useState } from "react";
+import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Chip from "@mui/material/Chip";
+import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -17,6 +16,7 @@ import Typography from "@mui/material/Typography";
 import BusinessIcon from "@mui/icons-material/Business";
 import CloseIcon from "@mui/icons-material/Close";
 import CompareArrowsIcon from "@mui/icons-material/CompareArrows";
+import DownloadIcon from "@mui/icons-material/Download";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import StorefrontIcon from "@mui/icons-material/Storefront";
@@ -30,6 +30,7 @@ import {
 } from "../../lib/transaction";
 import { formatDocument } from "../../lib/document";
 import { buildEventPublicPath } from "../../lib/event-path";
+import { generateReceiptPdf } from "./DonationReceiptPdf/index.tsx";
 import { txTypeIcon } from "./tx-icons";
 
 // ---------------------------------------------------------------------------
@@ -98,6 +99,8 @@ export default function TransactionDetailDialog({
   const [reimbLoading, setReimbLoading] = useState(false);
   const [vendorInfo, setVendorInfo] = useState<VendorPaymentPublicInfo | null>(null);
   const [vendorLoading, setVendorLoading] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState("");
   const [companyPublicInfo, setCompanyPublicInfo] = useState<{
     id: string;
     name: string;
@@ -165,6 +168,29 @@ export default function TransactionDetailDialog({
     stripeFeeBalanceTransactionId, stripeFeeChargeId,
     stripeFeeOriginalPaymentIntentId, stripeFeeOriginalDashboardUrl, eventTicketInfo,
   } = meta;
+
+  const isDonation = type === "donation" || type === "donation-business";
+  const siteUrl = import.meta.env.SITE || "https://codaqui.dev";
+  const handleDownloadPdf = async () => {
+    setGeneratingPdf(true);
+    setPdfError("");
+    try {
+      await generateReceiptPdf({
+        tx,
+        accountId,
+        siteUrl,
+        apiUrl,
+        companyData: companyPublicInfo
+          ? { name: companyPublicInfo.name, cnpj: companyPublicInfo.cnpj }
+          : null,
+        donorHandle: donorHandle ?? undefined,
+      });
+    } catch (error) {
+      setPdfError(error instanceof Error ? error.message : "Não foi possível gerar o comprovante PDF.");
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
 
   return (
     <Dialog
@@ -779,6 +805,7 @@ export default function TransactionDetailDialog({
           </Box>
         )}
 
+        {pdfError && <Alert severity="error" sx={{ mb: 2 }}>{pdfError}</Alert>}
         <Divider sx={{ mb: 2 }} />
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           {stripeDashboardUrl && paymentIntentId && (
@@ -804,6 +831,22 @@ export default function TransactionDetailDialog({
           )}
           {!tx.referenceId && (
             <Typography variant="caption" color="text.disabled">Sem referência externa vinculada.</Typography>
+          )}
+          {isDonation && (
+            <Box sx={{ ml: "auto" }}>
+              <Button
+                type="button"
+                size="small"
+                variant="outlined"
+                color="success"
+                startIcon={generatingPdf ? <CircularProgress size={14} color="inherit" /> : <DownloadIcon fontSize="small" />}
+                disabled={generatingPdf}
+                onClick={handleDownloadPdf}
+                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.75rem" }}
+              >
+                {generatingPdf ? "Gerando…" : "Baixar comprovante PDF"}
+              </Button>
+            </Box>
           )}
         </Box>
       </DialogContent>

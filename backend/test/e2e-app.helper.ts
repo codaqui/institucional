@@ -40,3 +40,41 @@ export async function createE2eApplication<T extends Record<string, JwtPayload>>
   await app.init();
   return { app, dataSource: moduleFixture.get(DataSource), moduleFixture };
 }
+
+export async function bootstrapE2eActors(
+  actors: Record<string, JwtPayload>,
+  prefix: string,
+  removeFixtures: (dataSource: DataSource) => Promise<void>,
+) {
+  const context = await createE2eApplication(actors);
+  await removeFixtures(context.dataSource);
+  await context.dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
+    id: actor.sub,
+    githubId: `e2e-${prefix.toLowerCase()}-${key}`,
+    githubHandle: actor.handle,
+    name: `Ator ${prefix} ${key}`,
+    email: `${key}@e2e.invalid`,
+    avatarUrl: '',
+    roles: actor.roles,
+  })));
+  return context;
+}
+
+export async function closeE2eApplication(
+  app: INestApplication<App> | undefined,
+  dataSource: DataSource | undefined,
+  removeFixtures: (dataSource: DataSource) => Promise<void>,
+): Promise<void> {
+  if (dataSource) await removeFixtures(dataSource);
+  if (app) await app.close();
+}
+
+export async function removeBusinessE2eFixtures(dataSource: DataSource, actorIds: string[]): Promise<void> {
+  await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
+  await dataSource.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
+  await dataSource.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
+  await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
+}
