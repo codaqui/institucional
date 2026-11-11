@@ -61,6 +61,10 @@ export class Member {
   @Column({ default: false })
   eventCommsOptIn: boolean;
 
+  /** Opt-in independente para comunicações promocionais / campanhas de marketing */
+  @Column({ default: false })
+  marketingEmailOptIn: boolean;
+
   /**
    * Token OAuth do GitHub do membro (scope public_repo) — criptografado em
    * repouso (AES-256-GCM via crypto.util; `plain:` em dev sem a env).
