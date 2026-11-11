@@ -43,7 +43,7 @@ function assertSafeLink(linkUrl, linkLabel, index) {
 
 function hasMarkdownLink(text) {
   const labelEnd = text.indexOf("](");
-  return labelEnd > 0 && text.lastIndexOf("[", labelEnd) >= 0 && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
+  return labelEnd > 0 && text.slice(0, labelEnd).includes("[") && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
 }
 
 function validateAnnouncement(announcement, index) {

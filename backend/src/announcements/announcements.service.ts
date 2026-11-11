@@ -34,7 +34,7 @@ export class AnnouncementsService {
   private validateText(text: string | undefined): void {
     const normalized = text?.trim() ?? '';
     const labelEnd = normalized.indexOf('](');
-    const hasMarkdownLink = labelEnd > 0 && normalized.lastIndexOf('[', labelEnd) >= 0 && normalized.indexOf(')', labelEnd + 2) > labelEnd + 2;
+    const hasMarkdownLink = labelEnd > 0 && normalized.slice(0, labelEnd).includes('[') && normalized.indexOf(')', labelEnd + 2) > labelEnd + 2;
     if (normalized.length < 3 || normalized.length > 280 || /[<>]/.test(normalized) || hasMarkdownLink) {
       throw new BadRequestException('O texto deve ter 3–280 caracteres, sem HTML ou Markdown.');
     }

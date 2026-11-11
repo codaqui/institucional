@@ -43,7 +43,7 @@ function toDateTimeLocal(value: string | null): string {
 
 function validateText(text: string): string {
   const labelEnd = text.indexOf("](");
-  const hasMarkdownLink = labelEnd > 0 && text.lastIndexOf("[", labelEnd) >= 0 && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
+  const hasMarkdownLink = labelEnd > 0 && text.slice(0, labelEnd).includes("[") && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
   return text.length < 3 || text.length > 280 || /[<>]/.test(text) || hasMarkdownLink
     ? "Use 3–280 caracteres, sem HTML ou Markdown."
     : "";
