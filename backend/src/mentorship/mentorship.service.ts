@@ -164,7 +164,7 @@ export class MentorshipService {
           && ['pending', 'active'].includes(designation.status)) {
           designation.status = 'removed';
           designation.endedAt = new Date();
-          await designations.save(designation);
+          await designations.save(designation); // NOSONAR -- a transação usa uma única conexão PostgreSQL.
         }
       }
       if (dto.active) {
@@ -206,7 +206,7 @@ export class MentorshipService {
       };
     });
     for (const memberId of memberIds) {
-      await this.designations.syncMember(memberId);
+      await this.designations.syncMember(memberId); // NOSONAR -- cada sincronização usa lock transacional por membro.
     }
     this.designations.invalidateCache();
     await this.audit.log({
