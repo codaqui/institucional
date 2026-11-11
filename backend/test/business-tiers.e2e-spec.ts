@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { bootstrapE2eActors, closeE2eApplication } from './e2e-app.helper';
+import { bootstrapE2eActors, closeE2eApplication, removeBusinessE2eFixtures } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration045BusinessTiers1794700000000 } from '../src/migrations/1794700000000-Migration045_BusinessTiers';
 
@@ -25,15 +25,7 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
   let app: INestApplication<App>;
   let dataSource: DataSource;
 
-  async function removeFixtures(database: DataSource) {
-    await database.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
-    await database.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
-    await database.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await database.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await database.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
-    await database.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
-    await database.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
-  }
+  const removeFixtures = (database: DataSource) => removeBusinessE2eFixtures(database, actorIds);
 
   beforeAll(async () => {
     ({ app, dataSource } = await bootstrapE2eActors(actors, 'Business', removeFixtures));

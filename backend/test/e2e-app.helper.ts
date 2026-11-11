@@ -68,3 +68,13 @@ export async function closeE2eApplication(
   if (dataSource) await removeFixtures(dataSource);
   if (app) await app.close();
 }
+
+export async function removeBusinessE2eFixtures(dataSource: DataSource, actorIds: string[]): Promise<void> {
+  await dataSource.query('DELETE FROM audit_logs WHERE "actorId" = ANY($1::uuid[])', [actorIds]);
+  await dataSource.query('DELETE FROM company_wallet_transactions WHERE "walletId" IN (SELECT id FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])))', [actorIds]);
+  await dataSource.query('DELETE FROM company_wallets WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM company_subscription_tracking WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM company_members WHERE "companyId" IN (SELECT id FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[]))', [actorIds]);
+  await dataSource.query('DELETE FROM companies WHERE "responsibleMemberId" = ANY($1::uuid[])', [actorIds]);
+  await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
+}
