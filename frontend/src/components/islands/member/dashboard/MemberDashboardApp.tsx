@@ -15,7 +15,6 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Divider from "@mui/material/Divider";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
@@ -25,7 +24,6 @@ import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import CancelIcon from "@mui/icons-material/Cancel";
-import EventIcon from "@mui/icons-material/Event";
 import PrintIcon from "@mui/icons-material/Print";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ScheduleIcon from "@mui/icons-material/Schedule";
@@ -35,9 +33,14 @@ import TabPanel from "../../admin/ui/TabPanel";
 import ModalConfirm from "../../admin/ui/ModalConfirm";
 import { useAuth } from "../../../../lib/use-auth";
 import { API_URL } from "../../../../lib/config";
+import {
+  buildMemberHref,
+  memberSectionFromSearchParams,
+} from "../../../../lib/member-navigation";
+import type { MemberSection } from "../../../../lib/member-navigation";
 import { formatBRL, parseBrlInput } from "../../../../lib/transaction";
 import type { CommunityBalance } from "../../../../lib/transaction";
-import { MemberProfileCard, MemberQrDialog } from "./MemberHeader";
+import { MemberProfileCard } from "./MemberHeader";
 import OverviewTab from "./OverviewTab";
 import MyDataTab from "../privacy/MyDataTab";
 import DonationsTab from "./DonationsTab";
@@ -58,11 +61,18 @@ import type {
 } from "./types";
 import { isUpcomingEvent } from "./types";
 
-const EVENTS_TAB_INDEX = 4;
+type ParticipationTab = "events" | "projects";
+type FinanceTab = "donations" | "subscriptions" | "wallet";
+
+const SECTION_INDEX: Record<MemberSection, number> = {
+  overview: 0,
+  participation: 1,
+  finance: 2,
+  account: 3,
+};
 
 function MemberDashboardInner() {
-  const { user, ready, isLoggedIn, isAdmin, isFinanceAnalyzer, logout, authFetch } =
-    useAuth();
+  const { user, ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
 
   const [donations, setDonations] = useState<Donation[]>([]);
   const [txLoading, setTxLoading] = useState(true);
@@ -80,7 +90,6 @@ function MemberDashboardInner() {
   const [reimbLoading, setReimbLoading] = useState(true);
   const [accounts, setAccounts] = useState<CommunityBalance[]>([]);
 
-  // Reimbursement form state
   const [reimbDialog, setReimbDialog] = useState(false);
   const [accountId, setAccountId] = useState("");
   const [amount, setAmount] = useState("");
@@ -88,11 +97,9 @@ function MemberDashboardInner() {
   const [receiptUrl, setReceiptUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [showQr, setShowQr] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [activeTab, setActiveTab] = useState(0);
-
-  // Sub-abas da seção Eventos
+  const [activeSection, setActiveSection] = useState<MemberSection>("overview");
+  const [participationTab, setParticipationTab] = useState<ParticipationTab>("events");
+  const [financeTab, setFinanceTab] = useState<FinanceTab>("donations");
   const [eventsSubTab, setEventsSubTab] = useState<EventsSubTab>("future");
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
 
@@ -111,7 +118,6 @@ function MemberDashboardInner() {
   const [certError, setCertError] = useState("");
 
   const origin = globalThis.window === undefined ? "" : globalThis.location.origin;
-  const vanityUrl = user ? `${origin}/@${user.handle}` : "";
 
   const groupedRegistrations = useMemo(() => {
     const future: EventRegistration[] = [];
@@ -137,13 +143,6 @@ function MemberDashboardInner() {
     }
     return { future, purchased, history };
   }, [registrations, user]);
-
-  const copyVanityUrl = () => {
-    void navigator.clipboard.writeText(vanityUrl).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
 
   const fetchReimbursements = useCallback(() => {
     setReimbLoading(true);
@@ -173,30 +172,68 @@ function MemberDashboardInner() {
       });
   }, [authFetch]);
 
-  // Carrega o histórico de eventos sob demanda ao abrir a aba pela 1ª vez
   useEffect(() => {
-    if (activeTab === EVENTS_TAB_INDEX && !regsLoaded && !regsLoading)
+    if (
+      activeSection === "participation" &&
+      participationTab === "events" &&
+      !regsLoaded &&
+      !regsLoading
+    ) {
       fetchRegistrations();
-  }, [activeTab, regsLoaded, regsLoading, fetchRegistrations]);
+    }
+  }, [activeSection, participationTab, regsLoaded, regsLoading, fetchRegistrations]);
 
-  // Detecta redirecionamento pós-compra de ingresso
   useEffect(() => {
     if (typeof window === "undefined") return;
     const search = new URLSearchParams(window.location.search);
-    if (search.get("purchase") === "success") {
-      setPurchaseSuccess(true);
-      setActiveTab(EVENTS_TAB_INDEX);
-      setEventsSubTab("future");
-      // limpa o parâmetro da URL sem recarregar
-      const next = new URL(window.location.href);
-      next.searchParams.delete("purchase");
-      window.history.replaceState({}, "", next.toString());
+    const location = memberSectionFromSearchParams(window.location.search);
+    setActiveSection(location.section);
+    if (location.section === "participation") {
+      setParticipationTab(location.tab === "projects" ? "projects" : "events");
+      if (location.tab === "future" || location.tab === "history") {
+        setEventsSubTab(location.tab);
+      }
     }
-    if (search.get("tab") === "future") {
-      setActiveTab(EVENTS_TAB_INDEX);
-      setEventsSubTab("future");
+    if (
+      location.section === "finance" &&
+      (location.tab === "donations" ||
+        location.tab === "subscriptions" ||
+        location.tab === "wallet")
+    ) {
+      setFinanceTab(location.tab);
     }
+    if (search.get("purchase") === "success") setPurchaseSuccess(true);
+
+    const next = new URL(window.location.href);
+    next.search = buildMemberHref(location.section, location.tab);
+    window.history.replaceState({}, "", next.toString());
   }, []);
+
+  const updateMemberLocation = (section: MemberSection, tab?: string) => {
+    const next = new URL(window.location.href);
+    next.search = buildMemberHref(section, tab);
+    window.history.replaceState({}, "", next.toString());
+  };
+
+  const selectSection = (section: MemberSection) => {
+    setActiveSection(section);
+    updateMemberLocation(section);
+  };
+
+  const selectParticipationTab = (tab: ParticipationTab) => {
+    setParticipationTab(tab);
+    updateMemberLocation("participation", tab === "projects" ? "projects" : eventsSubTab);
+  };
+
+  const selectFinanceTab = (tab: FinanceTab) => {
+    setFinanceTab(tab);
+    updateMemberLocation("finance", tab);
+  };
+
+  const selectEventsSubTab = (tab: EventsSubTab) => {
+    setEventsSubTab(tab);
+    updateMemberLocation("participation", tab);
+  };
 
   const handleCancelRegistration = async () => {
     if (!cancelRegId) return;
@@ -376,57 +413,28 @@ function MemberDashboardInner() {
 
   return (
     <PageContainer sx={{ maxWidth: "md" }}>
-      {/* Perfil */}
-      <MemberProfileCard
-        user={user!}
-        vanityUrl={vanityUrl}
-        copied={copied}
-        canAccessReimbursements={isAdmin || isFinanceAnalyzer}
-        onCopy={copyVanityUrl}
-        onShowQr={() => setShowQr(true)}
-        onLogout={() => logout()}
-      />
+      <MemberProfileCard user={user!} />
 
-      {/* ── QR Code Dialog ── */}
-      <MemberQrDialog
-        open={showQr}
-        vanityUrl={vanityUrl}
-        copied={copied}
-        onCopy={copyVanityUrl}
-        onClose={() => setShowQr(false)}
-      />
-
-      <Divider sx={{ my: 3 }} />
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button
-          component="a"
-          href="/membro/horas"
-          variant="outlined"
-          startIcon={<ScheduleIcon />}
-        >
-          Minhas horas
-        </Button>
-      </Box>
-
-      {/* ── Tabs ── */}
       <Tabs
-        value={activeTab}
-        onChange={(_, v) => setActiveTab(v)}
+        value={SECTION_INDEX[activeSection]}
+        onChange={(_, value: number) => {
+          const section = (Object.keys(SECTION_INDEX) as MemberSection[]).find(
+            (key) => SECTION_INDEX[key] === value,
+          );
+          if (section) selectSection(section);
+        }}
         variant="scrollable"
         allowScrollButtonsMobile
+        aria-label="Seções do perfil"
         sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
       >
-        <Tab label="Visão Geral" />
-        <Tab label="Histórico de Doações" />
-        <Tab label="Assinaturas Recorrentes" />
-        <Tab label="Carteira" />
-        <Tab label="Eventos" icon={<EventIcon />} iconPosition="start" />
-        <Tab label="Projetos" />
-        <Tab label="Meus dados" />
+        <Tab label="Visão geral" />
+        <Tab label="Participação" />
+        <Tab label="Financeiro" />
+        <Tab label="Conta e privacidade" />
       </Tabs>
 
-      <TabPanel value={activeTab} index={0}>
+      <TabPanel value={SECTION_INDEX[activeSection]} index={0}>
         <OverviewTab
           donations={donations}
           txLoading={txLoading}
@@ -434,81 +442,126 @@ function MemberDashboardInner() {
           subsLoading={subsLoading}
           reimbursements={reimbursements}
           reimbLoading={reimbLoading}
-          onOpenDonationsTab={() => setActiveTab(1)}
-          onOpenSubscriptionsTab={() => setActiveTab(2)}
+          onOpenDonationsTab={() => {
+            selectSection("finance");
+            selectFinanceTab("donations");
+          }}
+          onOpenSubscriptionsTab={() => {
+            selectSection("finance");
+            selectFinanceTab("subscriptions");
+          }}
           onOpenWalletTab={() => {
-            setActiveTab(3);
+            selectSection("finance");
+            selectFinanceTab("wallet");
             setReimbDialog(true);
             setSubmitError("");
           }}
         />
       </TabPanel>
 
-      <TabPanel value={activeTab} index={1}>
-        <DonationsTab
-          loading={txLoading}
-          donations={donations}
-          page={donationsPage}
-          total={donationsTotal}
-          limit={donationsLimit}
-          onPageChange={setDonationsPage}
-        />
+      <TabPanel value={SECTION_INDEX[activeSection]} index={1}>
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <Button
+            component="a"
+            href="/membro/horas"
+            variant="outlined"
+            startIcon={<ScheduleIcon />}
+          >
+            Minhas horas
+          </Button>
+        </Box>
+        <Tabs
+          value={participationTab}
+          onChange={(_, value: ParticipationTab) => selectParticipationTab(value)}
+          aria-label="Áreas de participação"
+          sx={{ mb: 2 }}
+        >
+          <Tab value="events" label="Eventos" />
+          <Tab value="projects" label="Projetos" />
+        </Tabs>
+        <TabPanel value={participationTab} index="events">
+          <EventsTab
+            purchaseSuccess={purchaseSuccess}
+            setPurchaseSuccess={setPurchaseSuccess}
+            regsError={regsError}
+            regsLoading={regsLoading}
+            regsLoaded={regsLoaded}
+            registrations={registrations}
+            groupedRegistrations={groupedRegistrations}
+            eventsSubTab={eventsSubTab}
+            setEventsSubTab={selectEventsSubTab}
+            expandedQrId={expandedQrId}
+            setExpandedQrId={setExpandedQrId}
+            certLoadingId={certLoadingId}
+            certError={certError}
+            setCertError={setCertError}
+            onEmitCertificate={handleEmitCertificate}
+            onCancel={(id) => {
+              setCancelRegId(id);
+              setCancelRegError("");
+            }}
+            userName={user?.name}
+          />
+        </TabPanel>
+        <TabPanel value={participationTab} index="projects">
+          <MemberProjectsIsland />
+          <MentorProjectsIsland />
+        </TabPanel>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={2}>
-        <SubscriptionsTab
-          loading={subsLoading}
-          subscriptions={subscriptions}
-          page={subsPage}
-          total={subsTotal}
-          limit={subsLimit}
-          onPageChange={setSubsPage}
-          onCancelClick={setCancelSubId}
-        />
+      <TabPanel value={SECTION_INDEX[activeSection]} index={2}>
+        <Tabs
+          value={financeTab}
+          onChange={(_, value: FinanceTab) => selectFinanceTab(value)}
+          aria-label="Áreas financeiras"
+          variant="scrollable"
+          sx={{ mb: 2 }}
+        >
+          <Tab value="donations" label="Doações" />
+          <Tab value="subscriptions" label="Assinaturas" />
+          <Tab value="wallet" label="SortCoins e reembolsos" />
+        </Tabs>
+        <TabPanel value={financeTab} index="donations">
+          <DonationsTab
+            loading={txLoading}
+            donations={donations}
+            page={donationsPage}
+            total={donationsTotal}
+            limit={donationsLimit}
+            onPageChange={setDonationsPage}
+          />
+        </TabPanel>
+        <TabPanel value={financeTab} index="subscriptions">
+          <SubscriptionsTab
+            loading={subsLoading}
+            subscriptions={subscriptions}
+            page={subsPage}
+            total={subsTotal}
+            limit={subsLimit}
+            onPageChange={setSubsPage}
+            onCancelClick={setCancelSubId}
+          />
+        </TabPanel>
+        <TabPanel value={financeTab} index="wallet">
+          {(isAdmin || isFinanceAnalyzer) && (
+            <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+              <Button variant="outlined" size="small" color="secondary" href="/admin/reembolsos">
+                Painel de Reembolsos
+              </Button>
+            </Box>
+          )}
+          <WalletTab
+            loading={reimbLoading}
+            reimbursements={reimbursements}
+            onRequestReimbursement={() => {
+              setReimbDialog(true);
+              setSubmitError("");
+            }}
+          />
+        </TabPanel>
       </TabPanel>
 
-      <TabPanel value={activeTab} index={3}>
-        <WalletTab
-          loading={reimbLoading}
-          reimbursements={reimbursements}
-          onRequestReimbursement={() => {
-            setReimbDialog(true);
-            setSubmitError("");
-          }}
-        />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={4}>
-        <EventsTab
-          purchaseSuccess={purchaseSuccess}
-          setPurchaseSuccess={setPurchaseSuccess}
-          regsError={regsError}
-          regsLoading={regsLoading}
-          regsLoaded={regsLoaded}
-          registrations={registrations}
-          groupedRegistrations={groupedRegistrations}
-          eventsSubTab={eventsSubTab}
-          setEventsSubTab={setEventsSubTab}
-          expandedQrId={expandedQrId}
-          setExpandedQrId={setExpandedQrId}
-          certLoadingId={certLoadingId}
-          certError={certError}
-          setCertError={setCertError}
-          onEmitCertificate={handleEmitCertificate}
-          onCancel={(id) => {
-            setCancelRegId(id);
-            setCancelRegError("");
-          }}
-          userName={user?.name}
-        />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={5}>
-        <MemberProjectsIsland />
-        <MentorProjectsIsland />
-      </TabPanel>
-
-      <TabPanel value={activeTab} index={6}>
+      <TabPanel value={SECTION_INDEX[activeSection]} index={3}>
         <MyDataTab />
       </TabPanel>
 

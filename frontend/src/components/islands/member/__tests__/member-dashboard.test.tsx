@@ -62,8 +62,14 @@ function stubFetch() {
   );
 }
 
+async function openFinanceTab(name: "Doações" | "Assinaturas" | "SortCoins e reembolsos") {
+  fireEvent.click(await screen.findByRole("tab", { name: "Financeiro" }));
+  fireEvent.click(await screen.findByRole("tab", { name }));
+}
+
 describe("/membro", () => {
   beforeEach(() => {
+    window.history.replaceState({}, "", "/membro");
     authState.user = null;
     authState.ready = false;
     authState.isLoggedIn = false;
@@ -80,7 +86,11 @@ describe("/membro", () => {
     authState.ready = true;
     authState.isLoggedIn = false;
     const replace = vi.fn();
-    vi.stubGlobal("location", { replace });
+    vi.stubGlobal("location", {
+      href: "http://localhost/membro",
+      search: "",
+      replace,
+    });
 
     renderWithMui(<MemberDashboardApp />);
 
@@ -158,13 +168,13 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     expect(await screen.findByText(/1 pessoal · 1 business/i)).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("tab", { name: /Histórico de Doações/i }));
+    await openFinanceTab("Doações");
 
     expect(await screen.findAllByText("Pessoal")).toHaveLength(1);
     expect(await screen.findAllByText("Business")).toHaveLength(1);
     expect(screen.queryByText("Mensal")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("tab", { name: /Assinaturas Recorrentes/i }));
+    await openFinanceTab("Assinaturas");
     expect(await screen.findAllByText("Mensal")).toHaveLength(2);
     expect(await screen.findAllByText("Pessoal")).toHaveLength(1);
     expect(await screen.findAllByText("Business")).toHaveLength(1);
@@ -192,11 +202,11 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Histórico de Doações/i }));
-    fireEvent.click(await screen.findByRole("tab", { name: /Assinaturas Recorrentes/i }));
+    await openFinanceTab("Doações");
+    await openFinanceTab("Assinaturas");
 
     fireEvent.click(await screen.findByRole("button", { name: /go to page 2/i }));
-    fireEvent.click(screen.getByRole("tab", { name: /Histórico de Doações/i }));
+    await openFinanceTab("Doações");
     fireEvent.click(await screen.findByRole("button", { name: /go to page 2/i }));
 
     await waitFor(() => {
@@ -246,7 +256,8 @@ describe("/membro", () => {
       expect.stringContaining("/events/my-registrations"),
     );
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
 
     expect(await screen.findByText("Encontro DevParaná")).toBeInTheDocument();
     expect(screen.getByText("Confirmada")).toBeInTheDocument();
@@ -305,7 +316,8 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
     expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
 
     await waitFor(() => {
@@ -363,7 +375,8 @@ describe("/membro", () => {
     mockLoggedIn(makeUser(), authFetch);
     renderWithMui(<MemberDashboardApp />);
 
-    fireEvent.click(await screen.findByRole("tab", { name: /Eventos/i }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
     fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
     fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
 
@@ -372,6 +385,7 @@ describe("/membro", () => {
   });
 
   it("abre a área de projetos do membro sem alterar o carregamento sob demanda de eventos", async () => {
+    window.history.replaceState({}, "", "/membro?section=participation&tab=projects");
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
       if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
@@ -381,8 +395,6 @@ describe("/membro", () => {
     });
     mockLoggedIn(makeUser(), authFetch);
     renderWithMui(<MemberDashboardApp />);
-
-    fireEvent.click(await screen.findByRole("tab", { name: "Projetos" }));
 
     expect(await screen.findByText(/Você ainda não participa de projetos de extensão/)).toBeInTheDocument();
     expect(authFetch).not.toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
@@ -399,6 +411,7 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
     expect(await screen.findByRole("link", { name: "Minhas horas" })).toHaveAttribute(
       "href",
       "/membro/horas",
@@ -426,6 +439,7 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     await screen.findByText("Mentoria Codaqui");
+    await openFinanceTab("SortCoins e reembolsos");
 
     const button = screen.queryByRole("link", { name: /Painel de Reembolsos/i });
     if (visible) {
@@ -434,5 +448,71 @@ describe("/membro", () => {
     } else {
       expect(button).not.toBeInTheDocument();
     }
+  });
+
+  it("agrupa o painel em quatro seções por intenção", async () => {
+    window.history.replaceState({}, "", "/membro");
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+
+    renderWithMui(<MemberDashboardApp />);
+
+    expect(await screen.findByRole("tab", { name: "Visão geral" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Participação" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Financeiro" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Conta e privacidade" })).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+  });
+
+  it("abre eventos futuros a partir do deep link legado e do retorno de compra", async () => {
+    window.history.replaceState({}, "", "/membro?purchase=success");
+    const futureStart = new Date(Date.now() + 86_400_000).toISOString();
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/my-registrations")) {
+        return jsonResponse([
+          {
+            id: "reg-purchase",
+            memberId: "user-1",
+            status: "confirmed",
+            checkedInAt: null,
+            checkinToken: "token-purchase",
+            attendeeName: "Mentoria Codaqui",
+            event: {
+              id: "evt-purchase",
+              title: "Encontro recém-comprado",
+              startAt: futureStart,
+              location: "Maringá",
+              status: "scheduled",
+            },
+            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+          },
+        ]);
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+
+    renderWithMui(<MemberDashboardApp />);
+
+    expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Participação" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByRole("tab", { name: "Futuros" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(window.location.search).toContain("section=participation");
+    expect(window.location.search).toContain("tab=future");
+    expect(window.location.search).not.toContain("purchase=success");
   });
 });
