@@ -1520,6 +1520,7 @@ export class EventsService {
         id: r.id,
         status: r.status,
         checkedInAt: r.checkedInAt,
+        certificateGrantedAt: r.certificateGrantedAt,
         checkinToken: r.checkinToken,
         attendeeName: r.attendeeName,
         attendeeEmail: r.attendeeEmail,
@@ -2996,7 +2997,7 @@ export class EventsService {
 
   /**
    * GET /events/registrations/:id/certificate — dono da inscrição.
-   * Exige check-in feito (403 caso contrário).
+   * Exige inscrição confirmada e certificado concedido (403 caso contrário).
    */
   async getCertificate(registrationId: string, user: JwtPayload) {
     const registration = await this.registrationRepo.findOneBy({
@@ -3029,7 +3030,7 @@ export class EventsService {
       attendeeEmail: registration.attendeeEmail,
       ...details,
       checkedInAt: registration.checkedInAt,
-      issuedAt: new Date().toISOString(),
+      issuedAt: registration.certificateGrantedAt.toISOString(),
       verificationCode: EventsService.certificateCode(
         registration.checkinToken,
       ),
@@ -4137,7 +4138,7 @@ export class EventsService {
    * GET /events/members/:memberId/registrations — participações públicas do
    * membro (perfil). Só status confirmed/refunded; NUNCA expõe checkinToken,
    * e-mail ou attendeeName (o nome vem do perfil público do membro).
-   * verificationCode só com check-in e certificados públicos.
+   * verificationCode só com concessão e certificados públicos.
    */
   async listMemberRegistrations(memberId: string) {
     const member = await this.memberRepo.findOneBy({ id: memberId });
@@ -4181,7 +4182,7 @@ export class EventsService {
           eventStartAt,
           checkedIn: r.checkedInAt !== null,
           status: r.status,
-          verificationCode: r.checkedInAt && visibility.certificates
+          verificationCode: r.certificateGrantedAt && visibility.certificates
             ? EventsService.certificateCode(r.checkinToken)
             : null,
           eventId: r.eventId,

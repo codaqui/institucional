@@ -2120,6 +2120,41 @@ describe('EventsService', () => {
       expect(result).toHaveLength(1);
       expect(result[0].verificationCode).toBeNull();
     });
+
+    it('exposes the certificate code after a grant without check-in when public visibility allows it', async () => {
+      memberRepo.findOneBy.mockResolvedValue({
+        ...makeMember(),
+        profileVisibility: { events: true, certificates: true },
+      });
+      eventRepo.findBy.mockResolvedValue([]);
+      activationRepo.findBy = jest.fn().mockResolvedValue([]);
+      registrationRepo.find.mockResolvedValue([
+        {
+          id: uuid(40),
+          memberId: uuid(1),
+          payerMemberId: uuid(1),
+          eventId: null,
+          externalActivationId: null,
+          checkedInAt: null,
+          certificateGrantedAt: new Date('2026-01-02T00:00:00.000Z'),
+          checkinToken: 'private-token',
+          attendeeName: 'Nome privado',
+          attendeeEmail: 'private@example.com',
+          status: RegistrationStatus.CONFIRMED,
+          createdAt: new Date('2026-01-01'),
+        },
+      ]);
+
+      const result = await service.listMemberRegistrations(uuid(1));
+
+      expect(result[0]).toMatchObject({
+        checkedIn: false,
+        verificationCode: 'CRT-private-toke',
+      });
+      expect(result[0]).not.toHaveProperty('checkinToken');
+      expect(result[0]).not.toHaveProperty('attendeeName');
+      expect(result[0]).not.toHaveProperty('attendeeEmail');
+    });
   });
 
   describe('certificate invite validation', () => {

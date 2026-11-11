@@ -227,9 +227,10 @@ function MemberDashboardInner() {
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         setCertError(
-          res.status === 403
-            ? "O certificado só pode ser emitido após a confirmação de presença (check-in) no evento."
-            : (data?.message ?? "Erro ao emitir certificado."),
+          data?.message ??
+            (res.status === 403
+              ? "O certificado não está disponível para esta inscrição."
+              : "Erro ao abrir certificado."),
         );
         return;
       }
@@ -632,7 +633,7 @@ function MemberDashboardInner() {
             Fechar
           </Button>
           <Button variant="contained" startIcon={<PrintIcon />} onClick={() => globalThis.print()}>
-            Imprimir
+            Imprimir / salvar PDF
           </Button>
         </DialogActions>
       </Dialog>
