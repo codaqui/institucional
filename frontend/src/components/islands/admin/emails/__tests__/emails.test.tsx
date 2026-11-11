@@ -48,6 +48,7 @@ const failedLog = {
   to: "participante@example.com",
   template: "event-confirmation",
   eventId: "evt-1",
+  registrationId: "registration-1",
   status: "failed",
   error: "SMTP timeout",
   createdAt: "2026-07-20T10:00:00.000Z",
@@ -58,6 +59,7 @@ const sentLog = {
   to: "outro@example.com",
   template: "event-reminder",
   eventId: "evt-1",
+  registrationId: null,
   status: "sent",
   error: null,
   createdAt: "2026-07-19T10:00:00.000Z",
@@ -68,6 +70,7 @@ const skippedLog = {
   to: "ignorado@example.com",
   template: "event-reminder",
   eventId: "evt-1",
+  registrationId: "registration-3",
   status: "skipped",
   error: "SMTP_NOT_CONFIGURED",
   createdAt: "2026-07-18T10:00:00.000Z",
@@ -192,6 +195,24 @@ describe("/admin/emails", () => {
       expect.stringContaining("/notifications/emails/log-1/resend"),
       expect.objectContaining({ method: "POST" }),
     );
+  });
+
+  it("oferece reenvio somente para logs vinculados a uma inscrição", async () => {
+    mockEmailEndpoints({
+      response: {
+        ...listResponse,
+        items: [
+          { ...failedLog, registrationId: null },
+          { ...failedLog, id: "log-4", registrationId: "registration-4" },
+        ],
+        total: 2,
+      },
+    });
+    mockAdmin();
+
+    renderWithMui(<EmailsApp />);
+
+    expect(await screen.findAllByRole("button", { name: /Reenviar/i })).toHaveLength(1);
   });
 
   it("também permite reenviar um e-mail skipped quando o módulo está configurado", async () => {
