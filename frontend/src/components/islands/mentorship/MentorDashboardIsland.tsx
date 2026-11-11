@@ -23,7 +23,7 @@ interface MentorSession {
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
 function MentorDashboard() {
-  const { ready, isLoggedIn, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
   const [profile, setProfile] = useState<MentorProfile | null>(null);
   const [areas, setAreas] = useState("");
   const [focus, setFocus] = useState("");
@@ -63,8 +63,12 @@ function MentorDashboard() {
       window.location.replace("/");
       return;
     }
+    if (isAdmin) {
+      window.location.replace("/admin/mentoria");
+      return;
+    }
     void load();
-  }, [ready, isLoggedIn, load]);
+  }, [ready, isLoggedIn, isAdmin, load]);
 
   const mutate = async (path: string, body: object | undefined, message: string, method = "POST") => {
     setBusy(true);
@@ -87,7 +91,7 @@ function MentorDashboard() {
     }
   };
 
-  if (!ready || !profile) {
+  if (!ready || isAdmin || !profile) {
     return <PageContainer>{error ? <Alert severity="error">{error}</Alert> : <Typography>Carregando mentoria…</Typography>}</PageContainer>;
   }
 

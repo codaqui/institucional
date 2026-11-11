@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { ArrayMaxSize, ArrayMinSize, IsArray, IsDate, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { ArrayMaxSize, ArrayMinSize, IsArray, IsBoolean, IsDate, IsEmail, IsInt, IsISO8601, IsOptional, IsString, IsUUID, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
 
 export class MentorApplicationDto {
   @IsArray()
@@ -112,4 +112,14 @@ export class ListSessionsQueryDto {
   @Min(1)
   @Max(100)
   limit = 50;
+}
+
+export class ListMentorsQueryDto extends ListSessionsQueryDto {}
+
+export class UpdateMentorAdminDto extends UpdateMentorProfileDto {
+  @IsUUID()
+  memberId: string;
+
+  @IsBoolean()
+  active: boolean;
 }
