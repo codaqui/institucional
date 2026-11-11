@@ -1,5 +1,9 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
-import { LessThan } from 'typeorm';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { Between, ILike, LessThan } from 'typeorm';
 import {
   EMAIL_LOG_RETENTION_DAYS,
   EmailService,
@@ -570,6 +574,83 @@ describe('EmailService', () => {
       await expect(service.listLogs({ status: 'queued' })).rejects.toThrow(
         'Use sent|failed|skipped.',
       );
+    });
+
+    it('filtra por destinatário, período e campanha, e oculta PII para finance-analyzer', async () => {
+      emailLogRepo.findAndCount.mockResolvedValueOnce([
+        [
+          {
+            id: uuid(81),
+            to: 'ana@codaqui.dev',
+            template: 'campaign-promotional',
+            campaignId: uuid(90),
+            status: EmailStatus.SENT,
+            error: null,
+            createdAt: new Date('2026-11-10T10:00:00Z'),
+          },
+        ],
+        1,
+      ]);
+
+      await service.listLogs({
+        recipient: 'ana@codaqui.dev',
+        from: '2026-11-01T00:00:00Z',
+        to: '2026-11-12T00:00:00Z',
+        campaignId: uuid(90),
+        isAdmin: true,
+      });
+
+      expect(emailLogRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            to: ILike('%ana@codaqui.dev%'),
+            campaignId: uuid(90),
+            createdAt: Between(
+              new Date('2026-11-01T00:00:00Z'),
+              new Date('2026-11-12T00:00:00Z'),
+            ),
+          },
+        }),
+      );
+
+      await expect(
+        service.listLogs({ recipient: 'ana@codaqui.dev', isAdmin: false }),
+      ).rejects.toThrow(ForbiddenException);
+
+      emailLogRepo.findAndCount.mockResolvedValueOnce([
+        [
+          {
+            id: uuid(81),
+            to: 'ana@codaqui.dev',
+            template: 'campaign-promotional',
+            campaignId: uuid(90),
+            status: EmailStatus.SENT,
+            error: null,
+            createdAt: new Date('2026-11-10T10:00:00Z'),
+          },
+        ],
+        1,
+      ]);
+      const analyzerLogs = await service.listLogs({ isAdmin: false });
+      expect(analyzerLogs.items[0].to).toBe('[redacted]');
+
+      emailLogRepo.findAndCount.mockResolvedValueOnce([
+        [
+          {
+            id: uuid(81),
+            to: 'ana@codaqui.dev',
+            template: 'campaign-promotional',
+            campaignId: uuid(90),
+            status: EmailStatus.SENT,
+            error: null,
+            createdAt: new Date('2026-11-10T10:00:00Z'),
+          },
+        ],
+        1,
+      ]);
+      const analyzerCsv = await service.exportLogsCsv({ isAdmin: false });
+      expect(analyzerCsv).not.toContain('ana@codaqui.dev');
+      expect(analyzerCsv).toContain('campaign-promotional');
     });
   });
 

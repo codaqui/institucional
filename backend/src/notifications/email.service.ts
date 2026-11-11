@@ -1,13 +1,24 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, Repository } from 'typeorm';
+import {
+  Between,
+  type FindOptionsWhere,
+  ILike,
+  In,
+  LessThan,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
+import { toCsv } from '../common/csv';
 import {
   ManagedEvent,
   ManagedEventStatus,
@@ -69,15 +80,24 @@ export interface RegistrationEmailEvent {
 export interface ListEmailLogsQuery {
   status?: string;
   template?: string;
+  recipient?: string;
+  from?: string;
+  to?: string;
+  campaignId?: string;
   page?: number;
   pageSize?: number;
+  limit?: number;
+  isAdmin?: boolean;
 }
 
 export interface EmailLogsPage {
   items: EmailLog[];
+  data: EmailLog[];
   total: number;
   page: number;
   pageSize: number;
+  limit: number;
+  totalPages: number;
   summary: {
     sent: number;
     failed: number;
@@ -455,9 +475,13 @@ export class EmailService {
 
   async listLogs(query: ListEmailLogsQuery): Promise<EmailLogsPage> {
     const page = Math.max(1, query.page ?? 1);
-    const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20));
+    const pageSize = Math.min(
+      5000,
+      Math.max(1, query.pageSize ?? query.limit ?? 20),
+    );
+    const isAdmin = query.isAdmin ?? true;
 
-    const where: { status?: EmailStatus; template?: string } = {};
+    const where: FindOptionsWhere<EmailLog> = {};
     if (
       query.status === EmailStatus.SENT ||
       query.status === EmailStatus.FAILED ||
@@ -470,13 +494,43 @@ export class EmailService {
       );
     }
     if (query.template) where.template = query.template;
+    if (query.campaignId) where.campaignId = query.campaignId;
 
-    const [items, total] = await this.emailLogRepo.findAndCount({
+    if (query.recipient?.trim()) {
+      if (!isAdmin) {
+        throw new ForbiddenException(
+          'Filtro por destinatário é restrito a administradores.',
+        );
+      }
+      where.to = ILike(`%${query.recipient.trim()}%`);
+    }
+
+    const fromDate = query.from ? new Date(query.from) : null;
+    const toDate = query.to ? new Date(query.to) : null;
+    if (fromDate && Number.isNaN(fromDate.getTime())) {
+      throw new BadRequestException('Parâmetro from inválido.');
+    }
+    if (toDate && Number.isNaN(toDate.getTime())) {
+      throw new BadRequestException('Parâmetro to inválido.');
+    }
+    if (fromDate && toDate) {
+      where.createdAt = Between(fromDate, toDate);
+    } else if (fromDate) {
+      where.createdAt = MoreThanOrEqual(fromDate);
+    } else if (toDate) {
+      where.createdAt = LessThanOrEqual(toDate);
+    }
+
+    const [rawItems, total] = await this.emailLogRepo.findAndCount({
       where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
+
+    const items = isAdmin
+      ? rawItems
+      : rawItems.map((item) => ({ ...item, to: '[redacted]' }));
 
     // Summary respeita o filtro de template (ignora o de status, para dar visão geral).
     const summaryQb = this.emailLogRepo
@@ -513,7 +567,40 @@ export class EmailService {
       templateSummary[row.status] += count;
     }
 
-    return { items, total, page, pageSize, summary };
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    return {
+      items,
+      data: items,
+      total,
+      page,
+      pageSize,
+      limit: pageSize,
+      totalPages,
+      summary,
+    };
+  }
+
+  async exportLogsCsv(query: ListEmailLogsQuery): Promise<string> {
+    const isAdmin = query.isAdmin ?? true;
+    const pageResult = await this.listLogs({
+      ...query,
+      page: 1,
+      pageSize: 5000,
+      isAdmin,
+    });
+    const headers = isAdmin
+      ? ['id', 'createdAt', 'to', 'template', 'campaignId', 'status', 'error']
+      : ['id', 'createdAt', 'template', 'campaignId', 'status', 'error'];
+    const rows = pageResult.items.map((log) => ({
+      id: log.id,
+      createdAt: log.createdAt,
+      to: log.to,
+      template: log.template,
+      campaignId: log.campaignId ?? '',
+      status: log.status,
+      error: log.error ?? '',
+    }));
+    return toCsv(headers, rows);
   }
 
   getStatus(): { configured: boolean } {

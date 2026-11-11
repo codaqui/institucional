@@ -72,6 +72,11 @@ const apiPaths = [
   "/announcements/public",
   "/announcements/admin",
   "/announcements/admin/abc-123",
+  "/campaigns",
+  "/campaigns/abc-123",
+  "/campaigns/abc-123/preview",
+  "/campaigns/unsubscribe",
+  "/campaigns/suppressions",
 ] as const;
 
 const staticPaths = [
@@ -105,6 +110,7 @@ const staticPaths = [
   "/mentors/index.json",
   "/announcements/index.json",
   "/admin/announcements",
+  "/descadastro",
   "/mentoria",
   "/mentoria/sessao/token-1",
   "/membro/mentoria",
