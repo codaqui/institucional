@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
-import { AvailabilityRuleDto, CancelSessionDto, ConfirmSessionDto, ListSessionsQueryDto, MentorApplicationDto, RateSessionDto, ReserveSlotDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
+import { AvailabilityRuleDto, CancelSessionDto, ConfirmSessionDto, ListMentorsQueryDto, ListSessionsQueryDto, MentorApplicationDto, RateSessionDto, ReserveSlotDto, UpdateMentorAdminDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
 import { AvailabilityService } from './availability.service';
 import { MentorshipService } from './mentorship.service';
 import { SessionsService } from './sessions.service';
@@ -137,6 +137,24 @@ export class MentorshipController {
   @ApiBearerAuth('jwt')
   confirmApplication(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: JwtPayload }) {
     return this.mentorship.confirmApplication(id, req.user);
+  }
+
+  @Get('admin/mentors')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  listMentors(@Query() query: ListMentorsQueryDto, @Req() req: { user: JwtPayload }) {
+    return this.mentorship.listMentors(req.user, query.page, query.limit);
+  }
+
+  @Patch('admin/mentors/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  updateMentor(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateMentorAdminDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.mentorship.updateMentor(id, dto, req.user);
   }
 
   @Get('profile')

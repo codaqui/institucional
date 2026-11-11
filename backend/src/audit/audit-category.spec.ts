@@ -10,6 +10,7 @@ describe('auditCategory', () => {
     AuditAction.DESIGNATION_GRANTED,
     AuditAction.DESIGNATION_CONFIRMED,
     AuditAction.DESIGNATION_REVOKED,
+    AuditAction.MENTOR_PROFILE_UPDATED,
     AuditAction.COMMUNITY_CREATED,
     AuditAction.COMMUNITY_UPDATED,
     AuditAction.COMMUNITY_SEAL_REQUESTED,
@@ -68,7 +69,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(74);
+    expect(actions).toHaveLength(75);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }
