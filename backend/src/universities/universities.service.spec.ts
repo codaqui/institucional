@@ -107,6 +107,47 @@ describe('UniversitiesService — cities and institutions', () => {
     expect(updated.uf).toBe('SP');
     expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'university.city_updated' }));
   });
+
+  it('updates only entities with the IES type', async () => {
+    await service.updateInstitution('ies-1', { name: 'IES Atualizada' }, managerActor);
+
+    expect(institutionRepo.findOneBy).toHaveBeenCalledWith({ id: 'ies-1', type: 'instituicao_ensino' });
+
+    institutionRepo.findOneBy.mockResolvedValue(null);
+    await expect(service.updateInstitution('entity-1', { name: 'Não é IES' }, managerActor))
+      .rejects.toThrow(NotFoundException);
+    expect(institutionRepo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves an unchanged historical city when reactivating an IES', async () => {
+    institutionRepo.findOneBy.mockResolvedValue({
+      id: 'ies-1',
+      type: 'instituicao_ensino',
+      cityId: 'city-inactive',
+      isActive: false,
+    });
+    cityRepo.findOneBy.mockResolvedValue(null);
+
+    await expect(service.updateInstitution('ies-1', {
+      cityId: 'city-inactive',
+      isActive: true,
+    }, managerActor)).resolves.toMatchObject({ cityId: 'city-inactive', isActive: true });
+    expect(cityRepo.findOneBy).not.toHaveBeenCalled();
+  });
+
+  it('rejects changing an IES to an inactive city', async () => {
+    institutionRepo.findOneBy.mockResolvedValue({
+      id: 'ies-1',
+      type: 'instituicao_ensino',
+      cityId: 'city-active',
+      isActive: true,
+    });
+    cityRepo.findOneBy.mockResolvedValue(null);
+
+    await expect(service.updateInstitution('ies-1', { cityId: 'city-inactive' }, managerActor))
+      .rejects.toThrow(NotFoundException);
+    expect(institutionRepo.save).not.toHaveBeenCalled();
+  });
 });
 
 describe('UniversitiesService — ambassador applications', () => {

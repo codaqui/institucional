@@ -100,9 +100,11 @@ export class UniversitiesService {
 
   async updateInstitution(id: string, dto: UpdateUniversityInstitutionDto, actor: JwtPayload): Promise<Institution> {
     await this.assertUniversityManager(actor);
-    const institution = await this.institutionRepo.findOneBy({ id });
+    const institution = await this.institutionRepo.findOneBy({ id, type: 'instituicao_ensino' });
     if (!institution) throw new NotFoundException('IES não encontrada.');
-    if (dto.cityId !== undefined) await this.requireActiveCity(dto.cityId);
+    if (dto.cityId !== undefined && dto.cityId !== institution.cityId) {
+      await this.requireActiveCity(dto.cityId);
+    }
     const before = { ...institution };
     Object.assign(institution, dto);
     if (dto.name !== undefined) institution.name = dto.name.trim();
@@ -120,10 +122,23 @@ export class UniversitiesService {
   }
 
   async getPublic() {
+    return this.getSnapshot(false);
+  }
+
+  async getManage(actor: JwtPayload) {
+    await this.assertUniversityManager(actor);
+    return this.getSnapshot(true);
+  }
+
+  private async getSnapshot(manage: boolean) {
     const [cities, institutions, designations, events] = await Promise.all([
-      this.cityRepo.find({ where: { isActive: true }, order: { name: 'ASC' } }),
+      this.cityRepo.find(manage
+        ? { order: { name: 'ASC' } }
+        : { where: { isActive: true }, order: { name: 'ASC' } }),
       this.institutionRepo.find({
-        where: { type: 'instituicao_ensino', isActive: true },
+        where: manage
+          ? { type: 'instituicao_ensino' }
+          : { type: 'instituicao_ensino', isActive: true },
         order: { name: 'ASC' },
       }),
       this.designationRepo.find({
@@ -164,6 +179,11 @@ export class UniversitiesService {
           name: institution.name,
           website: institution.website,
           city: city ? { id: city.id, name: city.name, uf: city.uf } : null,
+          ...(manage ? {
+            cityId: institution.cityId,
+            contactEmail: institution.contactEmail,
+            isActive: institution.isActive,
+          } : {}),
           ambassador: designation && member
             ? {
                 githubHandle: member.githubHandle,
@@ -184,11 +204,6 @@ export class UniversitiesService {
         institutionId: event.institutionId,
       })),
     };
-  }
-
-  async getManage(actor: JwtPayload) {
-    await this.assertUniversityManager(actor);
-    return this.getPublic();
   }
 
   async applyAmbassador(

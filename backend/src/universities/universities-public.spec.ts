@@ -60,6 +60,9 @@ describe('UniversitiesService — public snapshot', () => {
       validUntil: null,
     });
     expect(payload.institutions[0]).not.toHaveProperty('applicationNotes');
+    expect(payload.institutions[0]).not.toHaveProperty('contactEmail');
+    expect(payload.institutions[0]).not.toHaveProperty('isActive');
+    expect(payload.institutions[0]).not.toHaveProperty('cityId');
     expect(payload).not.toHaveProperty('applications');
     expect(payload.events).toEqual([{
       id: event.id,
@@ -69,6 +72,51 @@ describe('UniversitiesService — public snapshot', () => {
       status: event.status,
       location: event.location,
       institutionId: ies.id,
+    }]);
+  });
+
+  it('includes inactive records and editing fields only in the management projection', async () => {
+    const inactiveCity = { id: 'city-inactive', name: 'Cidade Histórica', uf: 'PR', isActive: false };
+    const inactiveIes = {
+      id: 'ies-inactive',
+      slug: 'ies-inactive',
+      name: 'IES Inativa',
+      type: 'instituicao_ensino',
+      website: null,
+      contactEmail: 'contato@ies.example.test',
+      cityId: inactiveCity.id,
+      isActive: false,
+    };
+    const cityRepo = { find: jest.fn().mockResolvedValue([inactiveCity]) };
+    const institutionRepo = { find: jest.fn().mockResolvedValue([inactiveIes]) };
+    const service = new UniversitiesService(
+      cityRepo as any,
+      institutionRepo as any,
+      { find: jest.fn().mockResolvedValue([]) } as any,
+      { findBy: jest.fn().mockResolvedValue([]) } as any,
+      { hasDesignation: jest.fn().mockResolvedValue(true) } as any,
+      { log: jest.fn() } as any,
+      { find: jest.fn().mockResolvedValue([]) } as any,
+    );
+
+    const payload = await service.getManage(manager);
+
+    expect(cityRepo.find).toHaveBeenCalledWith({ order: { name: 'ASC' } });
+    expect(institutionRepo.find).toHaveBeenCalledWith({
+      where: { type: 'instituicao_ensino' },
+      order: { name: 'ASC' },
+    });
+    expect(payload.cities).toEqual([inactiveCity]);
+    expect(payload.institutions).toEqual([{
+      id: inactiveIes.id,
+      slug: inactiveIes.slug,
+      name: inactiveIes.name,
+      website: null,
+      city: { id: inactiveCity.id, name: inactiveCity.name, uf: inactiveCity.uf },
+      cityId: inactiveCity.id,
+      contactEmail: inactiveIes.contactEmail,
+      isActive: false,
+      ambassador: null,
     }]);
   });
 

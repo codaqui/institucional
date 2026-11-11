@@ -74,7 +74,7 @@ Projeções públicas omitem `createdById`, `registeredById`, contatos, notas in
 
 ## APIs e frontend
 
-- Entidades: `GET /entities/public`, `GET/POST /entities`, `PATCH /entities/:id`, `GET/POST /entities/:id/partnerships`, `PATCH /partnerships/:id`.
+- Entidades: `GET /entities/public`, `GET/POST /entities`, `PATCH /entities/:id`, `GET/POST /entities/:id/partnerships`, `PATCH /partnerships/:id`. O CRUD genérico preserva os demais tipos, mas não cria IES nem altera tipos de/para `instituicao_ensino`; o fluxo canônico de IES é `/admin/universitario` (ADR 015), sem `cityId` no DTO genérico.
 - Projetos: `GET /projects/public`, `GET /projects/public/:slug`, `GET/POST /projects`, `PATCH /projects/:id`.
 - Participação: `GET /projects/my`, `GET /projects/:id/participants`, `POST /projects/:id/join`, `POST /projects/:id/leave`, `DELETE /projects/:id/participants/:memberId`.
 - Horas: `GET/POST /projects/:id/hours`, `PATCH /projects/:id/hours/:hourId`; revisão permanece em `/hours`.
