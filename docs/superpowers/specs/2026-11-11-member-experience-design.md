@@ -87,6 +87,10 @@ A imagem continua sendo exibida apenas quando o selo existe e é público; nenhu
 
 ## Certificados por persona
 
+### Correções prévias incluídas na PR #628
+
+Antes desta fase, a PR de patches corrige rupturas comprovadas: `/my-registrations` e o perfil público passam a projetar concessão sem presença, o membro abre “Ver certificado” por `certificateGrantedAt`, a data de emissão permanece estável, lote com `total=0` não inicia polling e a impressão isola somente o certificado. Essas correções não serão reabertas nesta fase.
+
 ### Participante
 
 Criar um destino explícito **Participação → Certificados**, reutilizando as inscrições existentes. Cada item apresenta evento, presença/concessão, disponibilidade, pendência e ação correspondente:
@@ -98,6 +102,10 @@ Criar um destino explícito **Participação → Certificados**, reutilizando as
 
 `AccountClaimResult` deixa de apontar para `/membro` genérico e usa o deep link de certificados. Prévia, QR e verificação pública mantêm os mesmos dados e regras de privacidade. Não haverá download alternativo que altere o certificado canônico.
 
+O fluxo de OAuth explica as etapas: verificar o e-mail no GitHub, voltar ao convite e confirmar a associação. O aceite explícito permanece obrigatório. Erro de rede oferece retry; e-mail divergente orienta verificar o endereço ou trocar de conta sem flexibilizar o match.
+
+A impressão usa o botão “Imprimir / salvar PDF” e uma folha A4 sem navegação/backdrop/ações. Complementos: **Copiar código**, **Copiar link de verificação** e **Abrir verificação**. A verificação pública usa copy neutra para qualquer `{valid:false}` — “Não foi possível validar este código. Confira a digitação; se o problema persistir, fale com o participante ou com a organização.” — sem alterar a privacidade da resposta. Um link público de verificação entra no rodapé.
+
 ### Concessor
 
 Reorganizar a Central em três regiões progressivas, sem wizard obrigatório:
@@ -107,6 +115,12 @@ Reorganizar a Central em três regiões progressivas, sem wizard obrigatório:
 3. **Acompanhar** — progresso global, processados, falhas, retries e conclusão em região de status.
 
 Disclosures ocultam detalhes técnicos e histórico do lote. Concessão individual não exige confirmação extra; erro fica no item. Convite em lote mostra a quantidade de IDs e a página de origem, sem sugerir seleção global. A fila persistente e o lock global da PR #627 são preservados.
+
+O relatório de importação distingue sucesso de **Importação concluída com pendências** e oferece **Abrir Central de certificados** com deep link para evento/aba/filtro. O atalho existe para `certificates` mesmo sem `checkin` ou `payments`.
+
+Os estados por participante diferenciam elegível, concedido aguardando cadastro, cadastro pendente sem concessão e convite aguardando aceite. Quando o convite não inclui concessão, a copy explica que ele vincula a participação, não o certificado. Pode existir ação explícita **Conceder e depois convidar**, executando as duas operações existentes, nunca uma concessão implícita.
+
+O acompanhamento aceita `batch=<uuid>` na URL para reload/retomada, sempre com autorização do admin/solicitante. `total=0` informa que nenhum convite novo foi enfileirado. O resumo final separa enviados, retry, falhas e ignorados por SMTP ausente. Os itens do lote mostram erro técnico e tentativas, vinculados à inscrição sem acrescentar nome/e-mail à fila. **Selecionar falhas para um novo lote** é ação explícita, sem reprocessamento automático nem repetição de quem já recebeu convite.
 
 O trabalho da PR de patches — escopo por feature, staff local e paginação — é pré-requisito e não será redesenhado.
 
