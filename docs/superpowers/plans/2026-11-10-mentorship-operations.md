@@ -17,7 +17,7 @@ agent-protocol:
 
 # Mentoria Operations Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Importar 173 sessões históricas e permitir que admin vincule, ative, desative e edite mentores sem quebrar o fluxo da Fase 5.
 
@@ -42,9 +42,9 @@ agent-protocol:
 - Create: `docs/superpowers/specs/2026-11-10-mentorship-operations-design.md`
 - Create: `docs/superpowers/plans/2026-11-10-mentorship-operations.md`
 
-- [ ] **Step 1: Registrar contagens e regras de identidade/deduplicação**
-- [ ] **Step 2: Revisar placeholders, rollback e escopo**
-- [ ] **Step 3: Commit**
+- [x] **Step 1: Registrar contagens e regras de identidade/deduplicação**
+- [x] **Step 2: Revisar placeholders, rollback e escopo**
+- [x] **Step 3: Commit**
 
 ```bash
 git add docs/superpowers && git commit -m "docs(mentoria): desenha importação e gestão de mentores"
@@ -62,7 +62,7 @@ git add docs/superpowers && git commit -m "docs(mentoria): desenha importação 
 - `Migration046MentorshipHistory1794800000000 implements MigrationInterface`.
 - Seed: 173 sessões, 6 perfis, 1 ativo, 5 placeholders, 8 inválidas e 4 duplicidades ignoradas.
 
-- [ ] **Step 1: Escrever testes que falham**
+- [x] **Step 1: Escrever testes que falham**
 
 ```ts
 expect(seed.sessions).toHaveLength(173);
@@ -72,20 +72,20 @@ expect(seed.mentors.filter((mentor) => mentor.placeholder)).toHaveLength(5);
 
 Adicionar asserções de `legacy-import`, nenhuma hora, consentimento ou Meet link e rollback condicionado a placeholders inativos.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/mentorship/mentorship-history.migration.spec.ts`
 Expected: migration inexistente.
 
-- [ ] **Step 3: Gerar seed do CSV sem commitá-lo**
+- [x] **Step 3: Gerar seed do CSV sem commitá-lo**
 
 Gerar o array TypeScript com datas ISO, duração calculada/fallback, `legacy-import:<id>` e canal. Conflitos mantêm menor `scheduled_at`. Não criar script ou CSV versionado.
 
-- [ ] **Step 4: Implementar upserts idempotentes**
+- [x] **Step 4: Implementar upserts idempotentes**
 
 Usar placeholders determinísticos, perfis/designations existentes, `WHERE NOT EXISTS` e `ON CONFLICT (mentorId, scheduledAt) DO NOTHING`. Vincular mentorandos somente por `secondaryEmails`. Rollback só apaga sessões importadas e placeholders inativos sem dependências.
 
-- [ ] **Step 5: Confirmar GREEN e E2E real**
+- [x] **Step 5: Confirmar GREEN e E2E real**
 
 ```bash
 cd backend && npx jest --silent src/mentorship/mentorship-history.migration.spec.ts
@@ -107,20 +107,20 @@ Expected: 173 sessões, 6 perfis, 5 placeholders, zero horas e down sem apagar d
 - `GET /mentorship/admin/mentors` com envelope compartilhado.
 - `PATCH /mentorship/admin/mentors/:id` com `{memberId, areas, focus?, active}`.
 
-- [ ] **Step 1: Escrever testes que falham**
+- [x] **Step 1: Escrever testes que falham**
 
 Cobrir admin proibido, paginação, ativação, desativação, edição, membro inexistente, conflito de perfil e reatribuição com revogação/concessão/auditoria.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/mentorship`
 Expected: endpoints/métodos inexistentes.
 
-- [ ] **Step 3: Implementar listagem e atualização transacional**
+- [x] **Step 3: Implementar listagem e atualização transacional**
 
 Projetar placeholders sem e-mail, validar membro ativo e conflito `memberId`. Reatribuir revogando designation antiga, ativando a correta quando necessário e revogando em desativação. Invalidar cache e auditar antes/depois.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd backend && npx jest --silent src/mentorship`
 Expected: todos os testes passam.
@@ -137,20 +137,20 @@ Expected: todos os testes passam.
 - Cards com `areas`, `focus`, `active`, `isPlaceholder`; seleção de membro ativo.
 - `PATCH /mentorship/admin/mentors/:id` com feedback e paginação.
 
-- [ ] **Step 1: Escrever testes que falham**
+- [x] **Step 1: Escrever testes que falham**
 
 Testar edição/reatribuição, desativação, placeholder e admin redirecionado de `/membro/mentoria` para `/admin/mentoria` antes de requests.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/mentorship src/components/islands/mentorship/MentorDashboardIsland.test.tsx`
 Expected: ausência da nova seção e redirect.
 
-- [ ] **Step 3: Implementar UI e redirect**
+- [x] **Step 3: Implementar UI e redirect**
 
 Carregar `/admin/members` uma vez, filtrar client-side, editar áreas/foco, ativar/desativar e reatribuir com confirmação. Admin é detectado por `isAdmin` antes de `/mentorship/profile` e `/mentorship/sessions`.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/mentorship src/components/islands/mentorship/MentorDashboardIsland.test.tsx`
 Expected: todos os testes passam.
@@ -162,14 +162,14 @@ Expected: todos os testes passam.
 - Modify: `docs/plans/codaqui-1-0/README.md`
 - Modify: `docs/superpowers/plans/2026-11-10-mentorship-operations.md`
 
-- [ ] **Step 1: Atualizar comportamento implementado e checklist**
-- [ ] **Step 2: Rodar E2E completo em dump**
+- [x] **Step 1: Atualizar comportamento implementado e checklist**
+- [x] **Step 2: Rodar E2E completo em dump**
 
 ```bash
 DB_NAME=codaqui_certificate_test NODE_ENV=test npm run test:e2e -- --runInBand test/mentorship.e2e-spec.ts test/mentorship-history.e2e-spec.ts
 ```
 
-- [ ] **Step 3: Rodar gates**
+- [x] **Step 3: Rodar gates**
 
 ```bash
 cd backend && npm run build && npx jest --silent

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 5 — candidatura, disponibilidade, agendamento concorrente, sessões, horas e insights de mentoria.
 audience: AI agents, mantenedores, mentores e operadores de release.
-status: Implementado e integrado em develop pelo merge 85fae64047c; release 0.19.0, sync inicial e validação controlada pendentes.
+status: Fase 5 publicada; Mentoria Operations implementada em 0.22.0 com migration 046, aguardando integração e release.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -25,8 +25,8 @@ agent-protocol:
 # ADR 009 — Mentoria no sistema
 
 - **Data da decisão:** 2026-11-09
-- **Status:** Implementado e integrado em develop pelo merge `85fae64047c`; publicação pendente
-- **Escopo:** Backend 0.19.0, migration 044, disponibilidade, sessões, notificações, horas, páginas e snapshot
+- **Status:** Fase 5 publicada em `v0.19.0-backend`; Mentoria Operations implementada em 0.22.0, aguardando integração/release
+- **Escopo:** Backend 0.19.0 e 0.22.0, migrations 044 e 046, disponibilidade, sessões, notificações, horas, histórico, gestão de mentores, páginas e snapshot
 
 ## Contexto e decisão
 
@@ -43,6 +43,12 @@ A migration 044 cria:
 - `mentorship_sessions`: participante, instante, duração, fuso, estado, link, avaliação, cancelamento, consentimento e token.
 
 `mentor @ program('mentoria')` é a autorização. A candidatura cria a designation pendente e um perfil inativo; admin confirma a designation e ativa o perfil. O perfil não é uma fonte paralela de papéis. Admin pode operar sessões, mas o crédito de horas sempre pertence ao mentor da sessão.
+
+### Histórico e administração de mentores (0.22.0)
+
+A migration 046 importa 173 sessões válidas e deduplicadas do histórico autorizado, sem criar horas, consentimentos ou links retroativos. Seis perfis são preservados: Enderson é associado somente por e-mail GitHub verificado; os cinco demais começam como placeholders inativos com endereços reservados `@anon.invalid`. Mentorandos também só são vinculados por `secondaryEmails`. O rollback remove sessões marcadas `legacy-import:` e somente placeholders ainda inativos e sem dependências.
+
+`GET /mentorship/admin/mentors` pagina perfis sem expor e-mails. `PATCH /mentorship/admin/mentors/:id` edita áreas/foco, ativa/desativa e reatribui o perfil a um membro ativo. Perfil e designations são alterados em transação; após o commit, as roles derivadas são sincronizadas, o cache é invalidado e a auditoria registra antes/depois. Reatribuir preserva o UUID do perfil e, portanto, todas as sessões. O admin em `/membro/mentoria` é encaminhado a `/admin/mentoria` antes de consultar endpoints que exigem perfil ativo.
 
 ## Disponibilidade e concorrência
 
@@ -91,5 +97,7 @@ O cron diário anonimiza `menteeName/menteeEmail` de sessões com mais de 365 di
 
 - Unitários e integração cobrem candidatura, escopo, slots/fusos, lock, conflito sem e-mail, estados, falha de template, horas exactly-once, vínculo verificado, retenção, projeção e sync atômico.
 - E2E PostgreSQL em dump real cobriu candidatura → aprovação → disponibilidade → duas reservas simultâneas (201/409) → confirmação → conclusão → uma hora pendente → avaliação.
-- A migration 044 foi aplicada e exercitada down/up com backup/restauração das fixtures; a designation e as horas permaneceram consistentes. Banco descartável e fixtures foram removidos.
-- Rollout: merge autorizado → `v0.19.0-backend` → redeploy/migration 044 → sync inicial de mentores → frontend → uma sessão controlada. Nenhum release, sync real ou e-mail real ocorre sem comando explícito.
+- A migration 044 foi aplicada e exercitada down/up com backup/restauração das fixtures; a designation e as horas permaneceram consistentes.
+- A migration 046 foi exercitada duas vezes e revertida no dump: 173 sessões, 6 perfis, 5 placeholders e zero horas retroativas; a conta real foi preservada.
+- O E2E administrativo cobriu autorização, paginação sem e-mail, desativação e reatribuição, verificando designations e roles no PostgreSQL.
+- `v0.19.0-backend` foi publicada. Mentoria Operations segue: merge autorizado → `v0.22.0-backend` → redeploy/migration 046 → vinculação manual dos placeholders → validação controlada. Nenhum release, sync real ou e-mail real ocorre sem comando explícito.

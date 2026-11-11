@@ -61,6 +61,7 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
   });
 
   it('executa candidatura, reserva concorrente, ciclo, horas, avaliação e migration down/up', async () => {
+    const initialPublic = await request(app.getHttpServer()).get('/mentorship/public').expect(200);
     const application = await request(app.getHttpServer())
       .post('/mentorship/applications')
       .set(as('candidate'))
@@ -146,7 +147,10 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
       .expect((response) => {
         expect(JSON.stringify(response.body)).not.toContain('guest@e2e.invalid');
         expect(response.body).not.toHaveProperty('sessions');
-        expect(response.body.insights).toMatchObject({ completed: 1, activeMentors: 1, noShowRate: 0 });
+        expect(response.body.insights).toMatchObject({
+          completed: initialPublic.body.insights.completed + 1,
+          activeMentors: initialPublic.body.insights.activeMentors + 1,
+        });
       });
 
     await dataSource.query('CREATE TABLE e2e_backup_mentor_profiles AS SELECT * FROM mentor_profiles WHERE "memberId" = $1', [actors.candidate.sub]);
@@ -167,6 +171,56 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
     const restored = await dataSource.query('SELECT token, rating FROM mentorship_sessions WHERE id = $1', [sessionId]);
     expect(restored[0]).toMatchObject({ token, rating: 5 });
     expect(await dataSource.query('SELECT id FROM hour_ledger WHERE "sourceId" = $1', [sessionId])).toHaveLength(1);
+  });
+
+  it('admin lista, desativa e reatribui mentores com designations e roles coerentes', async () => {
+    await request(app.getHttpServer())
+      .get('/mentorship/admin/mentors')
+      .set(as('candidate'))
+      .expect(403);
+    const listing = await request(app.getHttpServer())
+      .get('/mentorship/admin/mentors?page=1&limit=50')
+      .set(as('admin'))
+      .expect(200);
+    expect(listing.body).toMatchObject({ page: 1, limit: 50 });
+    const candidateMentor = listing.body.data.find((mentor: { memberId: string }) => mentor.memberId === actors.candidate.sub);
+    expect(candidateMentor).toMatchObject({ active: true, isPlaceholder: false });
+    expect(JSON.stringify(listing.body)).not.toContain('candidate@e2e.invalid');
+
+    await request(app.getHttpServer())
+      .patch(`/mentorship/admin/mentors/${candidateMentor.id}`)
+      .set(as('admin'))
+      .send({ memberId: actors.candidate.sub, areas: ['DevOps', 'Carreira'], focus: 'Liderança', active: false })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toMatchObject({ active: false, areas: ['DevOps', 'Carreira'], focus: 'Liderança' });
+      });
+    const deactivated = await dataSource.query(
+      'SELECT status FROM member_designations WHERE "memberId" = $1 AND "targetKey" = $2 ORDER BY "createdAt" DESC LIMIT 1',
+      [actors.candidate.sub, 'mentoria'],
+    );
+    expect(deactivated[0].status).toBe('removed');
+    const candidateRoles = await dataSource.query('SELECT roles FROM members WHERE id = $1', [actors.candidate.sub]);
+    expect(candidateRoles[0].roles).not.toContain('mentor');
+
+    await request(app.getHttpServer())
+      .patch(`/mentorship/admin/mentors/${candidateMentor.id}`)
+      .set(as('admin'))
+      .send({ memberId: actors.admin.sub, areas: ['DevOps', 'Carreira'], focus: 'Liderança', active: true })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toMatchObject({ memberId: actors.admin.sub, active: true });
+      });
+    const reassigned = await dataSource.query(
+      'SELECT "memberId", status FROM member_designations WHERE "memberId" = ANY($1::uuid[]) AND "targetKey" = $2 ORDER BY "createdAt"',
+      [[actors.candidate.sub, actors.admin.sub], 'mentoria'],
+    );
+    expect(reassigned).toEqual(expect.arrayContaining([
+      { memberId: actors.candidate.sub, status: 'removed' },
+      { memberId: actors.admin.sub, status: 'active' },
+    ]));
+    const adminRoles = await dataSource.query('SELECT roles FROM members WHERE id = $1', [actors.admin.sub]);
+    expect(adminRoles[0].roles).toContain('mentor');
   });
 });
 
