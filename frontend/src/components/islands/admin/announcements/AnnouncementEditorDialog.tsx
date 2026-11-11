@@ -35,7 +35,10 @@ const EMPTY_FORM: AnnouncementInput = {
 };
 
 function toDateTimeLocal(value: string | null): string {
-  return value ? value.slice(0, 16) : "";
+  if (!value) return "";
+  const date = new Date(value);
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export default function AnnouncementEditorDialog({
@@ -78,6 +81,10 @@ export default function AnnouncementEditorDialog({
       setValidationError("Informe um rótulo para o link.");
       return;
     }
+    if (!form.linkUrl && form.linkLabel?.trim()) {
+      setValidationError("Remova o rótulo ou informe um link.");
+      return;
+    }
     if (form.linkUrl) {
       if (form.linkUrl.includes("://") || form.linkUrl.startsWith("//")) {
         let url: URL;
@@ -101,7 +108,12 @@ export default function AnnouncementEditorDialog({
       return;
     }
     setValidationError("");
-    await onSave({ ...form, text });
+    await onSave({
+      ...form,
+      text,
+      startsAt: form.startsAt ? new Date(form.startsAt).toISOString() : "",
+      endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : "",
+    });
   };
 
   return (

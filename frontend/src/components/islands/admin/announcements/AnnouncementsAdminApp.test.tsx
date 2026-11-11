@@ -91,6 +91,36 @@ describe("AnnouncementsAdminApp", () => {
     });
   });
 
+  it("preserves the instant and offset when editing a display window", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<AnnouncementsAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    await user.click(screen.getByRole("button", { name: "Salvar alterações" }));
+
+    await waitFor(() => {
+      const call = mocks.authFetch.mock.calls.find(
+        ([path, init]) => path === "/announcements/admin/announcement-1" && init?.method === "PATCH",
+      );
+      const body = JSON.parse(String(call?.[1]?.body));
+      expect(body.startsAt).toBe(announcement.startsAt);
+      expect(body.endsAt).toBe(announcement.endsAt);
+    });
+  });
+
+  it("rejects a link label without a link without making a request", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<AnnouncementsAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Novo anúncio" }));
+    await user.type(screen.getByRole("textbox", { name: "Texto do anúncio" }), "Aviso institucional");
+    await user.type(screen.getByRole("textbox", { name: "Rótulo do link" }), "Saiba mais");
+    await user.click(screen.getByRole("button", { name: "Criar anúncio" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Remova o rótulo ou informe um link.");
+    expect(mocks.authFetch.mock.calls.some(([, init]) => init?.method === "POST")).toBe(false);
+  });
+
   it("requires confirmation before logical deactivation", async () => {
     const user = userEvent.setup();
     renderWithMui(<AnnouncementsAdminApp />);

@@ -54,9 +54,9 @@ O snapshot não contém autores, notas internas, IP nem dados de membros. Não h
 
 ## Verificação e rollout
 
-- Backend: 108 suites/1.368 testes, incluindo validação, autorização, janela, CRUD e projeção pública; E2E PostgreSQL de criação → público → encerramento → desativação e migration down/up preservando dados.
+- Backend: 108 suites/1.372 testes, incluindo validação, autorização, janela, CRUD e projeção pública; E2E PostgreSQL de criação → público → encerramento → desativação e migration down/up preservando dados.
 - Sync: 5 testes de escrita completa, preservação em erro, validação, rollback e conteúdo inalterado; proxy com 126 testes.
-- Frontend: 118 arquivos/1.011 testes, cobrindo admin, snapshot vazio/erro, múltiplas severidades, links e texto escapado.
+- Frontend: 118 arquivos/1.013 testes, cobrindo admin, snapshot vazio/erro, múltiplas severidades, links e texto escapado.
 - Gates: backend build, frontend `astro check`, scripts 99/99, `make astro-verify` e quatro builds multi-tenant.
 
 Publicação: integrar `develop`, abrir PR para `main`, publicar backend 0.26.0/migration 047, executar o sync inicial e então publicar o frontend. A validação real deve criar aviso de manutenção com link para `https://github.com/codaqui/institucional/issues` e verificar texto/link em claro/escuro sem expor autores.

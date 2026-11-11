@@ -39,6 +39,9 @@ export class AnnouncementsService {
     if (dto.linkUrl && !dto.linkLabel?.trim()) {
       throw new BadRequestException('Informe um rótulo para o link.');
     }
+    if (!dto.linkUrl && dto.linkLabel?.trim()) {
+      throw new BadRequestException('Remova o rótulo ou informe um link.');
+    }
     if (dto.linkUrl) {
       if (dto.linkUrl.includes('://') || dto.linkUrl.startsWith('//')) {
         let url: URL;
@@ -95,7 +98,7 @@ export class AnnouncementsService {
       updatedById: actor.sub,
     }));
     await this.audit.log({
-      action: 'announcement.created' as AuditAction,
+      action: AuditAction.ANNOUNCEMENT_CREATED,
       actorId: actor.sub,
       actorHandle: actor.handle,
       targetId: created.id,
@@ -114,7 +117,7 @@ export class AnnouncementsService {
     Object.assign(current, this.normalize(dto), { updatedById: actor.sub });
     const updated = await this.repo.save(current);
     await this.audit.log({
-      action: 'announcement.updated' as AuditAction,
+      action: AuditAction.ANNOUNCEMENT_UPDATED,
       actorId: actor.sub,
       actorHandle: actor.handle,
       targetId: id,
@@ -133,7 +136,7 @@ export class AnnouncementsService {
     current.updatedById = actor.sub;
     const updated = await this.repo.save(current);
     await this.audit.log({
-      action: 'announcement.deactivated' as AuditAction,
+      action: AuditAction.ANNOUNCEMENT_DEACTIVATED,
       actorId: actor.sub,
       actorHandle: actor.handle,
       targetId: id,

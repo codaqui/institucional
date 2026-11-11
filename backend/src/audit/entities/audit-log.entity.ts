@@ -122,6 +122,11 @@ export enum AuditAction {
   ASSEMBLY_STATUS_CHANGED = 'assembly.status_changed',
   ASSEMBLY_NOTARY_REGISTERED = 'assembly.notary_registered',
 
+  // Announcements
+  ANNOUNCEMENT_CREATED = 'announcement.created',
+  ANNOUNCEMENT_UPDATED = 'announcement.updated',
+  ANNOUNCEMENT_DEACTIVATED = 'announcement.deactivated',
+
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
 }

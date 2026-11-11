@@ -49,6 +49,14 @@ describe('AnnouncementsService', () => {
     );
   });
 
+  it('rejects a label without a link before it can freeze the public sync', async () => {
+    const { service, repo } = makeService();
+    await expect(service.create({ ...validInput, linkUrl: undefined }, admin)).rejects.toThrow(
+      'Remova o rótulo ou informe um link.',
+    );
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
   it('rejects an inverted display window', async () => {
     const { service } = makeService();
     await expect(service.create({
