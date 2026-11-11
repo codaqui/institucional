@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 6 — Empresa Amiga/Aliada, due diligence, vitrine e badges SVG.
 audience: Mantenedores, implementers, administração e revisores da PR.
-status: Aprovado em conversa; pronto para plano TDD, branch feat/business-tiers-phase6.
+status: Concluído e publicado em v0.21.0-backend; validação controlada é acompanhamento operacional.
 sections:
   - Contexto e decisão
   - Escopo e não escopo

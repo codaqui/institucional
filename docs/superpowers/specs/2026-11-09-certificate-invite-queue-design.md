@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da fila assíncrona de convites de certificado, paginação e envio SMTP com ritmo e retries.
 audience: Mantenedores, implementers e revisores da PR.
-status: Aprovado em conversa; pronto para plano e implementação com TDD.
+status: Fila publicada em v0.19.0-backend; serialização SMTP global entre processos e réplicas ampliada em 0.23.0.
 sections:
   - Contexto e evidências
   - Escopo e não escopo
@@ -196,4 +196,4 @@ Quando `page` e `limit` são informados, retornam `{data,total,page,totalPages,l
 - E2E no dump real: preservar 28 `sent`/90 `failed`, criar jobs sintéticos, processar com provider mockado, verificar retry e ausência de duplicidade, e remover fixtures/banco descartável.
 - Gates: build/Jest do backend, scripts, Vitest/astro check, `make astro-verify` e `make astro-verify-tenants` quando compartilhado.
 
-Rollout: merge autorizado → `v0.18.0-backend` → redeploy/migration 043 → frontend → enfileirar um lote pequeno controlado e observar logs/progresso antes dos 130 pendentes. Nenhum release ou merge ocorre sem comando explícito.
+Rollout concluído: fila publicada em `v0.19.0-backend` e serialização global ampliada em `v0.23.0-backend`; novos lotes continuam pequenos e controlados, sem reenvio automático dos pendentes.

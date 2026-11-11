@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 5 — Mentoria com disponibilidade, agendamento, sessões, notificações, horas e insights.
 audience: Mantenedores, implementers, mentores e revisores da PR.
-status: Aprovado em conversa; pronto para plano TDD, sem relação com a PR #618.
+status: Concluído e publicado em v0.19.0-backend; Mentoria Operations publicada em 0.22.0.
 sections:
   - Contexto e decisão
   - Escopo e não escopo

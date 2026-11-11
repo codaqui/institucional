@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação da Fase 0.1 (Esqueleto + POC) — app Astro 5 em frontend/ com tokens do Design System, auth-client para a API NestJS atual e 3 páginas representativas (/, /eventos/<slug>, /admin/eventos).
 audience: AI agents executores, mantenedores (review por task).
-status: pronto para execução (2026-10-20), branch develop.
+status: Concluída — esqueleto Astro, tokens e prova de conceito entregues; stack atual segue Astro 7.
 sections:
   - Global Constraints
   - Tasks 1–11 (scaffold → tokens → libs → layouts → páginas → docs → verificação)

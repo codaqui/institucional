@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da fila assíncrona de convites de certificado, paginação e envio SMTP com ritmo e retries.
 audience: AI agents, mantenedores e operadores de release.
-status: Implementado e verificado em dump real; PR para develop, release 0.18.0 e validação controlada pendentes.
+status: Fila publicada em v0.19.0-backend; serialização SMTP global entre processos e réplicas ampliada em 0.23.0.
 sections:
   - Contexto e evidências
   - Decisão
@@ -78,7 +78,7 @@ O acompanhamento usa `<progress>` com rótulo e região `role="status"`/`aria-li
 
 Jobs são privados ao admin/solicitante. `email_logs` continua guardando cada tentativa e sua retenção atual. A fila não altera perfil público, guest claim, certificado, check-in, horas ou templates.
 
-Publicação: merge autorizado → `v0.18.0-backend` → redeploy/migration 043 → frontend → lote pequeno controlado → observação de logs/progresso antes dos 130 pendentes. Não há envio automático na migration.
+Publicação concluída: fila em `v0.19.0-backend` e serialização global em `v0.23.0-backend`; novos lotes continuam pequenos, sem envio automático na migration.
 
 ## Verificação e pendências
 

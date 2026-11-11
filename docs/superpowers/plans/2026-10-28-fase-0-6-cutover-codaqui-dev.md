@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação da Fase 0.6 (Cutover do codaqui.dev para o Cloudflare Pages) — redirects legados em _redirects, remoção do Docusaurus e dos workflows gh-pages, reescrita do AGENTS.md, ADR 011 e corte de DNS com rollback ensaiado.
 audience: AI agents executando com superpowers:subagent-driven-development.
-status: pronto para execução (2026-10-28); rulings no ledger SDD.
+status: Concluída e publicada em 2026-10-29; codaqui.dev servido por Astro/Cloudflare Pages com redirects e paridade validados.
 related-docs:
   - docs/plans/codaqui-1-0/refatoracao-frontend-astro.md — spec da Fase 0 (linha 0.6 da tabela)
   - docs/superpowers/plans/2026-10-27-fase-0-5-multi-tenant-pages.md — fase anterior (multi-tenant)

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 4b — Codaqui Universitário com cidades, IES, embaixadores e eventos vinculados.
 audience: AI agents, mantenedores, gestores do programa e operadores de release.
-status: Implementado e verificado em banco descartável; integração, release 0.17.0, sync inicial e validação pública pendentes.
+status: Implementado e publicado em v0.19.0-backend; administração de IES ampliada em 0.24.0.
 sections:
   - Contexto
   - Decisão

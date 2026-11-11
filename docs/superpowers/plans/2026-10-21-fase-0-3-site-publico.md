@@ -1,3 +1,8 @@
+<!-- AGENT-INDEX
+purpose: Plano concluído da Fase 0.3 — páginas públicas e Design System.
+audience: Mantenedores e revisores.
+status: Concluída — páginas públicas, OG/JSON-LD, sitemap e paridade de URLs entregues.
+-->
 # Fase 0.3 — Site Público Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

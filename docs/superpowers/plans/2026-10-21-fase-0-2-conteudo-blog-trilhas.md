@@ -1,3 +1,8 @@
+<!-- AGENT-INDEX
+purpose: Plano concluído da Fase 0.2 — blog e trilhas em content collections.
+audience: Mantenedores e revisores.
+status: Concluída — conteúdo canônico, Giscus, assets e paridade de URLs entregues.
+-->
 # Fase 0.2 — Conteúdo (Blog + Trilhas) Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
