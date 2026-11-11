@@ -8,7 +8,7 @@ export class Migration046MentorshipHistory1794800000000 implements MigrationInte
   async up(queryRunner: QueryRunner): Promise<void> {
     for (const mentor of MENTOR_HISTORY_SEED.mentors) {
       const matchSql = 'SELECT id FROM "members" WHERE "isActive" = true AND EXISTS (SELECT 1 FROM UNNEST("secondaryEmails") AS email WHERE LOWER(email) = LOWER($1)) LIMIT 1';
-      await queryRunner.query(
+      await queryRunner.query( // NOSONAR -- a migration serializa queries na mesma conexão.
         `WITH match AS (${matchSql})
          INSERT INTO "members" (id, "githubId", "githubHandle", name, email, "avatarUrl", roles, "isActive")
          SELECT $2, $3, $4, $5, $6::varchar, '', ARRAY['membro'], false
@@ -16,14 +16,14 @@ export class Migration046MentorshipHistory1794800000000 implements MigrationInte
            AND NOT EXISTS (SELECT 1 FROM "members" WHERE email = $6::varchar OR id = $2)`,
         [mentor.email, mentor.id, `seed-${mentor.slug}`, `seed-${mentor.slug}`, `Mentor histórico (${mentor.slug})`, `seed-${mentor.slug}@anon.invalid`],
       );
-      await queryRunner.query(
+      await queryRunner.query( // NOSONAR -- a migration serializa queries na mesma conexão.
         `WITH match AS (${matchSql})
          INSERT INTO "mentor_profiles" (id, "memberId", areas, focus, active, "approvedById", since)
          SELECT $2, COALESCE((SELECT id FROM match), $2), $3::text[], $4::text, $5::boolean, COALESCE((SELECT id FROM match), $2), $6::timestamptz
          ON CONFLICT ("memberId") DO NOTHING`,
         [mentor.email, mentor.id, mentor.areas, mentor.focus, mentor.active, mentor.since],
       );
-      await queryRunner.query(
+      await queryRunner.query( // NOSONAR -- a migration serializa queries na mesma conexão.
         `WITH match AS (${matchSql})
          INSERT INTO "member_designations" ("memberId", "targetType", "targetKey", designation, status, "appointedById", "confirmedById", "confirmedAt")
          SELECT COALESCE((SELECT id FROM match), $2), 'program', 'mentoria', 'mentor',
@@ -41,7 +41,7 @@ export class Migration046MentorshipHistory1794800000000 implements MigrationInte
     }
 
     for (const session of MENTOR_HISTORY_SEED.sessions) {
-      await queryRunner.query(
+      await queryRunner.query( // NOSONAR -- a migration serializa queries na mesma conexão.
         `WITH mentor_match AS (
            SELECT id FROM "members" WHERE "isActive" = true AND EXISTS (
              SELECT 1 FROM UNNEST("secondaryEmails") AS email WHERE LOWER(email) = LOWER($1::text)
