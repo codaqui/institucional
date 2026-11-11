@@ -47,6 +47,7 @@ import DonationsTab from "./DonationsTab";
 import SubscriptionsTab from "./SubscriptionsTab";
 import WalletTab from "./WalletTab";
 import EventsTab from "./EventsTab";
+import MemberCertificatesTab from "./MemberCertificatesTab";
 import CertificateCard from "./CertificateCard";
 import MemberProjectsIsland from "../../projects/MemberProjectsIsland";
 import MentorProjectsIsland from "../../projects/MentorProjectsIsland";
@@ -61,7 +62,7 @@ import type {
 } from "./types";
 import { isUpcomingEvent } from "./types";
 
-type ParticipationTab = "events" | "projects";
+type ParticipationTab = "events" | "projects" | "certificates";
 type FinanceTab = "donations" | "subscriptions" | "wallet";
 
 const SECTION_INDEX: Record<MemberSection, number> = {
@@ -97,6 +98,7 @@ function MemberDashboardInner() {
   const [receiptUrl, setReceiptUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [navigationReady, setNavigationReady] = useState(false);
   const [activeSection, setActiveSection] = useState<MemberSection>("overview");
   const [participationTab, setParticipationTab] = useState<ParticipationTab>("events");
   const [financeTab, setFinanceTab] = useState<FinanceTab>("donations");
@@ -116,6 +118,7 @@ function MemberDashboardInner() {
   const [isPrinting, setIsPrinting] = useState(false);
   const [certLoadingId, setCertLoadingId] = useState<string | null>(null);
   const [certError, setCertError] = useState("");
+  const [selectedCertificateId, setSelectedCertificateId] = useState<string | null>(null);
 
   const origin = globalThis.window === undefined ? "" : globalThis.location.origin;
 
@@ -173,23 +176,34 @@ function MemberDashboardInner() {
   }, [authFetch]);
 
   useEffect(() => {
-    if (
-      activeSection === "participation" &&
-      participationTab === "events" &&
-      !regsLoaded &&
-      !regsLoading
-    ) {
+    const needsRegistrations = activeSection === "overview" ||
+      (activeSection === "participation" && participationTab !== "projects");
+    if (navigationReady && isLoggedIn && needsRegistrations && !regsLoaded && !regsLoading) {
       fetchRegistrations();
     }
-  }, [activeSection, participationTab, regsLoaded, regsLoading, fetchRegistrations]);
+  }, [
+    navigationReady,
+    isLoggedIn,
+    activeSection,
+    participationTab,
+    regsLoaded,
+    regsLoading,
+    fetchRegistrations,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const search = new URLSearchParams(window.location.search);
     const location = memberSectionFromSearchParams(window.location.search);
+    const certificateId = location.tab === "certificates" ? search.get("certificate") : null;
     setActiveSection(location.section);
+    setSelectedCertificateId(certificateId);
     if (location.section === "participation") {
-      setParticipationTab(location.tab === "projects" ? "projects" : "events");
+      setParticipationTab(
+        location.tab === "projects" || location.tab === "certificates"
+          ? location.tab
+          : "events",
+      );
       if (location.tab === "future" || location.tab === "history") {
         setEventsSubTab(location.tab);
       }
@@ -206,7 +220,9 @@ function MemberDashboardInner() {
 
     const next = new URL(window.location.href);
     next.search = buildMemberHref(location.section, location.tab);
+    if (certificateId) next.searchParams.set("certificate", certificateId);
     window.history.replaceState({}, "", next.toString());
+    setNavigationReady(true);
   }, []);
 
   const updateMemberLocation = (section: MemberSection, tab?: string) => {
@@ -217,12 +233,17 @@ function MemberDashboardInner() {
 
   const selectSection = (section: MemberSection) => {
     setActiveSection(section);
+    setSelectedCertificateId(null);
     updateMemberLocation(section);
   };
 
   const selectParticipationTab = (tab: ParticipationTab) => {
     setParticipationTab(tab);
-    updateMemberLocation("participation", tab === "projects" ? "projects" : eventsSubTab);
+    setSelectedCertificateId(null);
+    updateMemberLocation(
+      "participation",
+      tab === "projects" || tab === "certificates" ? tab : eventsSubTab,
+    );
   };
 
   const selectFinanceTab = (tab: FinanceTab) => {
@@ -278,6 +299,15 @@ function MemberDashboardInner() {
     } finally {
       setCertLoadingId(null);
     }
+  };
+
+  const openCertificate = (registrationId: string) => {
+    setSelectedCertificateId(registrationId);
+    const next = new URL(window.location.href);
+    next.search = buildMemberHref("participation", "certificates");
+    next.searchParams.set("certificate", registrationId);
+    window.history.replaceState({}, "", next.toString());
+    void handleEmitCertificate(registrationId);
   };
 
   useEffect(() => {
@@ -442,6 +472,8 @@ function MemberDashboardInner() {
           subsLoading={subsLoading}
           reimbursements={reimbursements}
           reimbLoading={reimbLoading}
+          registrations={registrations}
+          regsLoading={regsLoading}
           onOpenDonationsTab={() => {
             selectSection("finance");
             selectFinanceTab("donations");
@@ -477,6 +509,7 @@ function MemberDashboardInner() {
           sx={{ mb: 2 }}
         >
           <Tab value="events" label="Eventos" />
+          <Tab value="certificates" label="Certificados" />
           <Tab value="projects" label="Projetos" />
         </Tabs>
         <TabPanel value={participationTab} index="events">
@@ -501,6 +534,16 @@ function MemberDashboardInner() {
               setCancelRegError("");
             }}
             userName={user?.name}
+          />
+        </TabPanel>
+        <TabPanel value={participationTab} index="certificates">
+          <MemberCertificatesTab
+            registrations={registrations}
+            loading={regsLoading}
+            error={regsError || certError}
+            selectedCertificateId={selectedCertificateId}
+            certLoadingId={certLoadingId}
+            onEmitCertificate={openCertificate}
           />
         </TabPanel>
         <TabPanel value={participationTab} index="projects">

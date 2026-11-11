@@ -219,7 +219,7 @@ describe("/membro", () => {
     });
   });
 
-  it("carrega histórico de eventos sob demanda ao abrir a aba e expande QR de check-in", async () => {
+  it("carrega inscrições uma vez na visão geral e reutiliza ao expandir QR de check-in", async () => {
     const futureStart = new Date(Date.now() + 86_400_000).toISOString();
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
@@ -251,15 +251,20 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    // Sob demanda: ainda não chamou antes de abrir a aba
-    expect(authFetch).not.toHaveBeenCalledWith(
-      expect.stringContaining("/events/my-registrations"),
-    );
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith("/events/my-registrations");
+    });
+    const initialRegistrationCalls = authFetch.mock.calls.filter(
+      ([url]) => url === "/events/my-registrations",
+    ).length;
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
     fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
 
     expect(await screen.findByText("Encontro DevParaná")).toBeInTheDocument();
+    expect(
+      authFetch.mock.calls.filter(([url]) => url === "/events/my-registrations"),
+    ).toHaveLength(initialRegistrationCalls);
     expect(screen.getByText("Confirmada")).toBeInTheDocument();
     expect(screen.getByText("Gratuito")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Cancelar inscrição/i })).toBeInTheDocument();

@@ -509,6 +509,8 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       const publicInvite = await service.getGuestInvite(registration.checkinToken);
       expect(publicInvite.eventTitle).toBe('Meetup Elas');
       expect(publicInvite.requiresAccount).toBe(true);
+      expect(publicInvite.registrationId).toBe(registration.id);
+      expect(publicInvite.certificateGranted).toBe(true);
       await expect(service.claimGuestRegistration({
         token: registration.checkinToken,
         name: 'Ana',
@@ -577,6 +579,8 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         status: RegistrationStatus.CONFIRMED,
         attendeeName: 'Ana GitHub',
         requiresAccount: true,
+        registrationId: registration.id,
+        certificateGranted: true,
       });
       expect(registration.memberId).toBe(uuid(1));
       expect(memberRepo.findOne).toHaveBeenCalledWith({
