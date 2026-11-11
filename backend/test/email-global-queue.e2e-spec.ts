@@ -51,7 +51,7 @@ function makeService(dataSource: DataSource, provider: SmtpEmailProvider) {
 
 async function waitFor(condition: () => Promise<boolean>): Promise<void> {
   for (let attempt = 0; attempt < 200; attempt += 1) {
-    if (await condition()) return;
+    if (await condition()) return; // NOSONAR -- polling limitado até observar o lock no PostgreSQL real.
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error('Condição não atingida dentro do limite.');
