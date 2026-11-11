@@ -1,4 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { EntitiesService } from './entities.service';
 
 const adminActor = { sub: 'admin-1', handle: 'admin', roles: ['admin'] } as any;
@@ -45,6 +45,50 @@ describe('EntitiesService', () => {
     expect(created.slug).toBe('associacao-codaqui');
     expect(created.registeredById).toBe(directorActor.sub);
     expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ action: 'entity.created' }));
+  });
+
+  it('rejects IES creation through the generic entity CRUD', async () => {
+    await expect(service.create({
+      name: 'IES Exemplo',
+      type: 'instituicao_ensino',
+    } as any, adminActor)).rejects.toThrow(BadRequestException);
+    await expect(service.create({
+      name: 'IES Exemplo',
+      type: 'instituicao_ensino',
+    } as any, adminActor)).rejects.toThrow('/admin/universitario');
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects changing an existing IES type through the generic entity CRUD', async () => {
+    repo.findOneBy.mockResolvedValue({ id: 'ies-1', name: 'IES Exemplo', type: 'instituicao_ensino' });
+
+    await expect(service.update('ies-1', { type: 'ong' } as any, adminActor))
+      .rejects.toThrow('/admin/universitario');
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('rejects converting another entity into an IES through the generic entity CRUD', async () => {
+    repo.findOneBy.mockResolvedValue({ id: 'entity-1', name: 'Entidade', type: 'ong' });
+
+    await expect(service.update('entity-1', { type: 'instituicao_ensino' } as any, adminActor))
+      .rejects.toThrow(BadRequestException);
+    expect(repo.save).not.toHaveBeenCalled();
+  });
+
+  it('preserves generic updates that do not change an IES type', async () => {
+    repo.findOneBy.mockResolvedValue({ id: 'ies-1', name: 'IES Exemplo', type: 'instituicao_ensino' });
+
+    await expect(service.update('ies-1', {
+      name: 'IES Atualizada',
+      type: 'instituicao_ensino',
+    } as any, adminActor)).resolves.toMatchObject({ name: 'IES Atualizada', type: 'instituicao_ensino' });
+  });
+
+  it('preserves type changes between non-IES entities', async () => {
+    repo.findOneBy.mockResolvedValue({ id: 'entity-1', name: 'Entidade', type: 'ong' });
+
+    await expect(service.update('entity-1', { type: 'governo' } as any, adminActor))
+      .resolves.toMatchObject({ id: 'entity-1', type: 'governo' });
   });
 
   it('returns only public entity fields', async () => {
