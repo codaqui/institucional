@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { createE2eApplication } from './e2e-app.helper';
+import { createE2eApplication, saveE2eActors } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration045BusinessTiers1794700000000 } from '../src/migrations/1794700000000-Migration045_BusinessTiers';
 
@@ -38,15 +38,7 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
   beforeAll(async () => {
     ({ app, dataSource } = await createE2eApplication(actors));
     await removeFixtures();
-    await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
-      id: actor.sub,
-      githubId: `e2e-business-${key}`,
-      githubHandle: actor.handle,
-      name: `Ator Business ${key}`,
-      email: `${key}@e2e.invalid`,
-      avatarUrl: '',
-      roles: actor.roles,
-    })));
+    await saveE2eActors(dataSource, actors, 'Business');
   });
 
   afterAll(async () => {

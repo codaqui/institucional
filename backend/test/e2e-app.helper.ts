@@ -40,3 +40,19 @@ export async function createE2eApplication<T extends Record<string, JwtPayload>>
   await app.init();
   return { app, dataSource: moduleFixture.get(DataSource), moduleFixture };
 }
+
+export async function saveE2eActors(
+  dataSource: DataSource,
+  actors: Record<string, JwtPayload>,
+  prefix: string,
+): Promise<void> {
+  await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
+    id: actor.sub,
+    githubId: `e2e-${prefix.toLowerCase()}-${key}`,
+    githubHandle: actor.handle,
+    name: `Ator ${prefix} ${key}`,
+    email: `${key}@e2e.invalid`,
+    avatarUrl: '',
+    roles: actor.roles,
+  })));
+}

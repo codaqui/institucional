@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { createE2eApplication } from './e2e-app.helper';
+import { createE2eApplication, saveE2eActors } from './e2e-app.helper';
 import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration044Mentorship1794600000000 } from '../src/migrations/1794600000000-Migration044_Mentorship';
 
@@ -44,15 +44,7 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
   beforeAll(async () => {
     ({ app, dataSource } = await createE2eApplication(actors));
     await removeFixtures();
-    await dataSource.getRepository('members').save(Object.entries(actors).map(([key, actor]) => ({
-      id: actor.sub,
-      githubId: `e2e-mentorship-${key}`,
-      githubHandle: actor.handle,
-      name: `Ator Mentoria ${key}`,
-      email: `${key}@e2e.invalid`,
-      avatarUrl: '',
-      roles: actor.roles,
-    })));
+    await saveE2eActors(dataSource, actors, 'Mentoria');
   });
 
   afterAll(async () => {
