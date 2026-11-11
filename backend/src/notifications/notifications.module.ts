@@ -33,6 +33,6 @@ import { EmailTemplate } from './entities/email-template.entity';
   ],
   controllers: [NotificationsController],
   providers: [SmtpEmailProvider, EmailService, EmailTemplateService],
-  exports: [EmailService],
+  exports: [EmailService, EmailTemplateService],
 })
 export class NotificationsModule {}

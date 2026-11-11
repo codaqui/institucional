@@ -591,5 +591,32 @@ describe('EmailService', () => {
         jest.useRealTimers();
       }
     });
+
+    it('sanitiza erros operacionais de campanha sem vazar segredos, tokens ou stack trace', async () => {
+      provider.send.mockRejectedValueOnce(
+        new Error(
+          '535 Authentication failed password=supersecret token=rawtok123\n    at SmtpConnection (/app/node_modules/nodemailer/index.js:10:2)',
+        ),
+      );
+
+      const log = await service.sendCampaignEmail({
+        to: 'ana@codaqui.dev',
+        subject: 'Campanha',
+        text: 'Olá',
+        html: '<p>Olá</p>',
+        template: 'campaign-promotional',
+        campaignId: uuid(90),
+        campaignRecipientId: uuid(91),
+      });
+
+      expect(log.status).toBe(EmailStatus.FAILED);
+      expect(log.campaignId).toBe(uuid(90));
+      expect(log.campaignRecipientId).toBe(uuid(91));
+      expect(log.error).not.toContain('supersecret');
+      expect(log.error).not.toContain('rawtok123');
+      expect(log.error).not.toContain('at SmtpConnection');
+      expect(log.error).toContain('password=[REDACTED]');
+      expect(log.error).toContain('token=[REDACTED]');
+    });
   });
 });

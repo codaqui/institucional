@@ -192,4 +192,23 @@ describe('EmailTemplateService CRUD', () => {
       service.removeTemplate('event-registration-confirmation', actor),
     ).rejects.toThrow(NotFoundException);
   });
+
+  it('renderCampaignMarkdown sanitiza HTML perigoso e anexa link de descadastro em campanhas promocionais', () => {
+    const rendered = service.renderCampaignMarkdown({
+      subject: 'Novidades para {{name}}',
+      bodyMarkdown:
+        'Olá **{{name}}**! <script>alert(1)</script> [link](javascript:evil())',
+      purpose: 'promotional',
+      recipientName: 'Ana',
+      unsubscribeUrl: 'https://codaqui.dev/descadastro?token=abc123',
+    });
+
+    expect(rendered.subject).toBe('Novidades para Ana');
+    expect(rendered.html).toContain('<strong>Ana</strong>');
+    expect(rendered.html).not.toContain('<script>');
+    expect(rendered.html).not.toContain('javascript:');
+    expect(rendered.html).toContain(
+      'https://codaqui.dev/descadastro?token=abc123',
+    );
+  });
 });

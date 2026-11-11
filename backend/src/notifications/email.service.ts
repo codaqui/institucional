@@ -154,6 +154,57 @@ export class EmailService {
     return run;
   }
 
+  sanitizeOperationalError(rawError: unknown): string {
+    const raw =
+      rawError instanceof Error ? rawError.message : String(rawError ?? '');
+    const firstLine = raw.split(/\r?\n/)[0] ?? 'Erro operacional de envio';
+    const redacted = firstLine
+      .replace(/token=[^&\s"']+/gi, 'token=[REDACTED]')
+      .replace(/(password|pass|secret|key)\s*[=:]\s*\S+/gi, '$1=[REDACTED]')
+      .replace(/(Bearer|Basic)\s+\S+/gi, '$1 [REDACTED]')
+      .replace(/\b(plain|enc):[^\s"']+/gi, '[REDACTED]')
+      .trim();
+    return (redacted || 'Erro operacional de envio').slice(0, 240);
+  }
+
+  async sendCampaignEmail(input: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+    template: string;
+    campaignId: string;
+    campaignRecipientId?: string | null;
+  }): Promise<EmailLog> {
+    const configured = this.provider.isConfigured();
+    const log = this.emailLogRepo.create({
+      to: input.to,
+      template: input.template,
+      eventId: null,
+      registrationId: null,
+      campaignId: input.campaignId,
+      campaignRecipientId: input.campaignRecipientId ?? null,
+      status: configured ? EmailStatus.SENT : EmailStatus.SKIPPED,
+      error: configured ? null : 'SMTP_NOT_CONFIGURED',
+    });
+    if (!configured) return this.emailLogRepo.save(log);
+    try {
+      await this.scheduleSmtpSend({
+        to: input.to,
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
+      });
+    } catch (error) {
+      log.status = EmailStatus.FAILED;
+      log.error = this.sanitizeOperationalError(error);
+      this.logger.warn(
+        `Falha ao enviar campanha ${input.campaignId} para ${input.to}: ${log.error}`,
+      );
+    }
+    return this.emailLogRepo.save(log);
+  }
+
   private contextFor(
     registration: EventRegistration,
     event: RegistrationEmailEvent,
