@@ -54,7 +54,11 @@ Não há exactly-once absoluto quando o SMTP aceita a mensagem e a conexão falh
 
 ## Rate limit e retries
 
-`EmailService` serializa todas as chamadas `provider.send` numa cadeia única, inclusive templates, projetos e reenvio. `EMAIL_SEND_INTERVAL_MS` define espera entre mensagens: default **2000 ms em produção**, **0 em desenvolvimento/testes**.
+`EmailService` serializa todas as chamadas `provider.send`, inclusive templates, projetos, mentoria e reenvio. Uma cadeia estática reduz concorrência local e um advisory lock de sessão PostgreSQL, numa chave fixa compartilhada, serializa admins, fluxos e réplicas. Cada envio usa um `QueryRunner` dedicado: conecta, adquire `pg_advisory_lock`, executa SMTP fora de transações de negócio e libera com `pg_advisory_unlock` e `release()` em `finally`, inclusive em erro.
+
+`EMAIL_SEND_INTERVAL_MS` é aplicado antes de liberar o lock, tornando a espera global entre mensagens: default **2000 ms em produção**, **0 em desenvolvimento/testes**. Para convites de certificado, o índice parcial único por inscrição ativa e o claim `FOR UPDATE SKIP LOCKED` continuam impedindo jobs duplicados entre admins e réplicas no fluxo normal. O lock serializa os demais fluxos, mas não lhes adiciona deduplicação; a incerteza de uma falha SMTP ambígua permanece.
+
+Cada envio retém uma conexão do pool durante SMTP e espera. Um SMTP lento ou travado bloqueia os demais envios e pode exaurir conexões; as cadeias locais não formam uma fila FIFO persistente entre réplicas. A queda da conexão encerra o lock de sessão no PostgreSQL, mas não resolve a incerteza de entrega da mensagem em trânsito.
 
 O worker processa no máximo um convite a cada 10 segundos. Falhas temporárias têm backoff de **1 e 5 minutos**; a terceira falha é definitiva. Erros 421/454 pausam jobs pendentes por **15 minutos**. Validação, autorização e payload inválido não são repetidos.
 
@@ -80,6 +84,7 @@ Publicação: merge autorizado → `v0.18.0-backend` → redeploy/migration 043 
 
 - Migration 043 down/up em dump real preservou os **28 `sent` e 90 `failed`** históricos.
 - E2E PostgreSQL validou resposta 202, array legado, envelope, falha 421, retry, conclusão na segunda tentativa e progresso. Fixtures e banco descartável são removidos.
+- E2E da serialização global, com dois `DataSource` reais num banco `_test` descartável e provider mockado, observou o segundo advisory lock em espera, manteve `maxActive = 1` e confirmou zero locks após a conclusão.
 - Gates locais: **1.285 testes Jest**, **920 testes Vitest**, **84 testes de scripts**, build NestJS e `astro check`. `make astro-verify` passou com paridade de **646 URLs** e `make astro-verify-tenants` passou nos quatro projetos.
 - Integração na `develop`, CI/Sonar/Copilot, release/redeploy e lote controlado em produção permanecem pendentes de comando explícito.
 - Campanhas E3, open tracking e nova infraestrutura ficam fora desta ADR.

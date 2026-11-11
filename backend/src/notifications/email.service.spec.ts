@@ -47,8 +47,18 @@ describe('EmailService', () => {
   let ticketTypeRepo: Record<string, jest.Mock>;
   let provider: Record<string, jest.Mock>;
   let templateService: EmailTemplateService;
+  let queryRunner: Record<string, jest.Mock>;
+  let dataSource: Record<string, jest.Mock>;
 
   beforeEach(() => {
+    queryRunner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      query: jest.fn().mockResolvedValue([]),
+      release: jest.fn().mockResolvedValue(undefined),
+    };
+    dataSource = {
+      createQueryRunner: jest.fn().mockReturnValue(queryRunner),
+    };
     emailLogRepo = {
       create: jest.fn((d) => ({ ...d })),
       save: jest.fn((l) => Promise.resolve({ id: uuid(80), ...l })),
@@ -57,6 +67,7 @@ describe('EmailService', () => {
       findAndCount: jest.fn().mockResolvedValue([[], 0]),
       delete: jest.fn().mockResolvedValue({ affected: 1 }),
       createQueryBuilder: jest.fn(),
+      manager: { connection: dataSource },
     };
     eventRepo = {
       findOneBy: jest.fn().mockResolvedValue(makeEvent()),
@@ -129,6 +140,11 @@ describe('EmailService', () => {
       expect(log.status).toBe(EmailStatus.FAILED);
       expect(log.error).toBe('SMTP timeout');
       expect(emailLogRepo.save).toHaveBeenCalledTimes(1);
+      expect(queryRunner.query).toHaveBeenCalledWith(
+        expect.stringContaining('pg_advisory_unlock'),
+        expect.any(Array),
+      );
+      expect(queryRunner.release).toHaveBeenCalledTimes(1);
     });
 
     it('serializa chamadas SMTP para evitar rajadas de login', async () => {
@@ -145,6 +161,125 @@ describe('EmailService', () => {
       releaseFirst();
       await Promise.all([first, second]);
       expect(provider.send).toHaveBeenCalledTimes(2);
+    });
+
+    it('compartilha uma única fila entre instâncias e fluxos de e-mail', async () => {
+      const secondService = new EmailService(
+        emailLogRepo as any,
+        eventRepo as any,
+        activationRepo as any,
+        registrationRepo as any,
+        ticketTypeRepo as any,
+        provider as any,
+        templateService,
+      );
+      let releaseFirst!: () => void;
+      provider.send
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve) => {
+              releaseFirst = resolve;
+            }),
+        )
+        .mockResolvedValue(undefined);
+
+      const first = service.sendTemplate(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        'a@x.dev',
+        makeContext(),
+      );
+      const second = secondService.sendProjectEmail({
+        template: 'project_mentor_assigned',
+        to: 'b@x.dev',
+        memberName: 'Bia',
+        projectName: 'Projeto Y',
+        projectId: uuid(50),
+      });
+      await new Promise((resolve) => setImmediate(resolve));
+      try {
+        expect(provider.send).toHaveBeenCalledTimes(1);
+      } finally {
+        releaseFirst();
+      }
+      await Promise.all([first, second]);
+      expect(provider.send).toHaveBeenCalledTimes(2);
+    });
+
+    it('serializa processos independentes com advisory lock e libera as conexões', async () => {
+      let lockTail = Promise.resolve();
+      const makeIndependentQueryRunner = () => {
+        let releaseLock!: () => void;
+        return {
+          connect: jest.fn().mockResolvedValue(undefined),
+          query: jest.fn((sql: string) => {
+            if (sql.includes('pg_advisory_unlock')) {
+              releaseLock();
+              return Promise.resolve([]);
+            }
+            if (sql.includes('pg_advisory_lock')) {
+              const previous = lockTail;
+              lockTail = new Promise<void>((resolve) => {
+                releaseLock = resolve;
+              });
+              return previous;
+            }
+            return Promise.resolve([]);
+          }),
+          release: jest.fn().mockResolvedValue(undefined),
+        };
+      };
+      const runners = [makeIndependentQueryRunner(), makeIndependentQueryRunner()];
+      dataSource.createQueryRunner
+        .mockReturnValueOnce(runners[0])
+        .mockReturnValueOnce(runners[1]);
+      const secondService = new EmailService(
+        emailLogRepo as any,
+        eventRepo as any,
+        activationRepo as any,
+        registrationRepo as any,
+        ticketTypeRepo as any,
+        provider as any,
+        templateService,
+      );
+      let releaseFirst!: () => void;
+      provider.send
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve) => {
+              releaseFirst = resolve;
+            }),
+        )
+        .mockResolvedValue(undefined);
+
+      const first = service.sendTemplate(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        'a@x.dev',
+        makeContext(),
+      );
+      await new Promise((resolve) => setImmediate(resolve));
+      (EmailService as any).smtpChain = Promise.resolve();
+      const second = secondService.sendTemplate(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        'b@x.dev',
+        makeContext(),
+      );
+      await new Promise((resolve) => setImmediate(resolve));
+      try {
+        expect(provider.send).toHaveBeenCalledTimes(1);
+      } finally {
+        releaseFirst();
+      }
+      await Promise.all([first, second]);
+
+      expect(provider.send).toHaveBeenCalledTimes(2);
+      for (const runner of runners) {
+        expect(runner.connect).toHaveBeenCalledTimes(1);
+        expect(runner.query).toHaveBeenCalledWith(
+          expect.stringContaining('pg_advisory_unlock'),
+          expect.any(Array),
+        );
+        expect(runner.release).toHaveBeenCalledTimes(1);
+      }
     });
 
     it('aguarda o intervalo configurado entre envios', async () => {
