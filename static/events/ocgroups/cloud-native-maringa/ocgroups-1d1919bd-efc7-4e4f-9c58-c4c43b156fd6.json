@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-11T18:01:12.294Z",
+  "generatedAt": "2026-11-11T19:00:58.900Z",
   "source": {
     "source": "ocgroups",
     "sourceId": "cloud-native-maringa",
@@ -10,12 +10,12 @@
     "ctaLabel": "Ver no CNCF Open Community Groups",
     "ctaHref": "https://ocgroups.dev/cncf/group/sq5vsqs",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-11-11T18:01:12.294Z"
+    "generatedAt": "2026-11-11T19:00:58.900Z"
   },
   "event": {
     "id": "ocgroups-1d1919bd-efc7-4e4f-9c58-c4c43b156fd6",
     "title": "Cloud Native Maringá #5 - Esquenta para o Python Brasil",
-    "summary": "Cloud Native Maringá #5 - Esquenta para o Python Brasil Contact organizers Contact organizers Close modal Agenda 9:30 AM - 9:45 AM -03 O que é a Cloud Native Maringá? O que é a Python Brasil? in-person Cloud Native = O…",
+    "summary": "Cloud Native Maringá #5 - Esquenta para o Python Brasil Read more Contact organizers Contact organizers Close modal Agenda 9:30 AM - 9:45 AM -03 in-person O que é a Cloud Native Maringá? O que é a Python Brasil? in-pers…",
     "startAt": "2026-09-19T09:30:00-03:00",
     "endAt": "2026-09-19T12:00:00-03:00",
     "timezone": "America/Sao_Paulo",
