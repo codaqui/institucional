@@ -31,6 +31,7 @@ import { EntitiesModule } from './entities/entities.module';
 import { ProjectsModule } from './projects/projects.module';
 import { UniversitiesModule } from './universities/universities.module';
 import { MentorshipModule } from './mentorship/mentorship.module';
+import { AnnouncementsModule } from './announcements/announcements.module';
 
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { MentorshipModule } from './mentorship/mentorship.module';
     ProjectsModule,
     UniversitiesModule,
     MentorshipModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
