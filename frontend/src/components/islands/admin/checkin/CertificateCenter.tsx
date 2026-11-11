@@ -135,12 +135,15 @@ export default function CertificateCenter({
     setFeedback(null);
     try {
       const batch = await onInvite(ids);
-      setActiveBatch({ id: batch.batchId, total: batch.total });
+      const hasNewInvites = batch.total > 0;
+      setActiveBatch(hasNewInvites ? { id: batch.batchId, total: batch.total } : null);
       setSelected(new Set());
       setFeedback({
-        severity: batch.invalid.length > 0 ? "warning" : "success",
+        severity: batch.invalid.length > 0 ? "warning" : hasNewInvites ? "success" : "info",
         messages: [
-          `${batch.total} ${batch.total === 1 ? "convite enfileirado" : "convites enfileirados"}. O envio acontecerá em segundo plano.`,
+          hasNewInvites
+            ? `${batch.total} ${batch.total === 1 ? "convite enfileirado" : "convites enfileirados"}. O envio acontecerá em segundo plano.`
+            : "Nenhum convite novo foi enfileirado.",
           ...(batch.invalid.length > 0 ? [`${batch.invalid.length} inscrição(ões) não puderam ser enfileiradas.`] : []),
         ],
       });

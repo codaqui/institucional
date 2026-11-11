@@ -218,6 +218,44 @@ describe('Certificação desacoplada — PostgreSQL real', () => {
       .expect(201);
     expect(grantResponse.body.checkedInAt).toBeNull();
     expect(grantResponse.body.certificateGrantedAt).not.toBeNull();
+
+    const ownRegistrations = await request(app.getHttpServer())
+      .get('/events/my-registrations')
+      .set(as('certificate'))
+      .expect(200);
+    const ownIndependent = ownRegistrations.body.find((item: { id: string }) => item.id === independent.id);
+    expect(ownIndependent).toMatchObject({
+      checkedInAt: null,
+      certificateGrantedAt: grantResponse.body.certificateGrantedAt,
+    });
+
+    const firstCertificate = await request(app.getHttpServer())
+      .get(`/events/registrations/${independent.id}/certificate`)
+      .set(as('certificate'))
+      .expect(200);
+    const secondCertificate = await request(app.getHttpServer())
+      .get(`/events/registrations/${independent.id}/certificate`)
+      .set(as('certificate'))
+      .expect(200);
+    expect(firstCertificate.body).toMatchObject({
+      checkedInAt: null,
+      issuedAt: grantResponse.body.certificateGrantedAt,
+      verificationCode: `CRT-${independent.checkinToken.slice(0, 12)}`,
+    });
+    expect(secondCertificate.body.issuedAt).toBe(firstCertificate.body.issuedAt);
+    expect(secondCertificate.body.verificationCode).toBe(firstCertificate.body.verificationCode);
+
+    const publicHistory = await request(app.getHttpServer())
+      .get(`/events/members/${actors.certificate.sub}/registrations`)
+      .expect(200);
+    const publicIndependent = publicHistory.body.find((item: { id: string }) => item.id === independent.id);
+    expect(publicIndependent).toMatchObject({
+      checkedIn: false,
+      verificationCode: firstCertificate.body.verificationCode,
+    });
+    expect(publicIndependent).not.toHaveProperty('checkinToken');
+    expect(publicIndependent).not.toHaveProperty('attendeeEmail');
+
     await request(app.getHttpServer())
       .get(`/events/certificates/verify/CRT-${independent.checkinToken}`)
       .expect(200)

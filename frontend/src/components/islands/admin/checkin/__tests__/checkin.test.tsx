@@ -877,6 +877,28 @@ describe("/admin/eventos-checkin", () => {
     expect(JSON.parse(String(createCall?.[1]?.body)).registrationIds).toHaveLength(25);
   });
 
+  it("não inicia acompanhamento quando nenhum convite novo é enfileirado", async () => {
+    const pending = { ...registration, status: "pending_match" };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse({ data: [pending], total: 1, page: 1, totalPages: 1, limit: 25 });
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-empty", total: 0, status: "queued", invalid: [pending.id] }, { status: 202 });
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
+
+    expect(await screen.findByText("Nenhum convite novo foi enfileirado.")).toBeInTheDocument();
+    expect(screen.getByText("1 inscrição(ões) não puderam ser enfileiradas.")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Enfileirar convites (0)" })).toBeDisabled();
+    expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-empty")).toHaveLength(0);
+  });
+
   it("pausa o acompanhamento do lote quando a aba fica oculta", async () => {
     const pending = { ...registration, status: "pending_match" };
     const authFetch = await setupOrganizerPage((url, init) => {

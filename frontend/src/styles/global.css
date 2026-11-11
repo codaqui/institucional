@@ -148,3 +148,43 @@ body {
 .prose-cq details summary + * { margin-top: var(--cq-space-2); }
 .prose-cq details[open] summary { margin-bottom: var(--cq-space-2); }
 .prose-cq details > :last-child { margin-bottom: 0; }
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body:has(.certificate-print-area) > :not(.MuiDialog-root),
+  body:has(.certificate-print-area) .MuiBackdrop-root,
+  body:has(.certificate-print-area) .no-print {
+    display: none !important;
+  }
+
+  body:has(.certificate-print-area) .MuiDialog-root,
+  body:has(.certificate-print-area) .MuiDialog-container,
+  body:has(.certificate-print-area) .MuiDialog-paper,
+  body:has(.certificate-print-area) .MuiDialogContent-root {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  .certificate-print-area {
+    box-sizing: border-box;
+    width: 100% !important;
+    max-width: 186mm;
+    margin: 0 auto !important;
+    padding: 10mm !important;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

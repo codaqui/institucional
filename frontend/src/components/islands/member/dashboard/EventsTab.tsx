@@ -185,7 +185,7 @@ function EventRegistrationsList({
                     QR de check-in
                   </Button>
                 )}
-                {reg.checkedInAt && (
+                {reg.status === "confirmed" && reg.certificateGrantedAt && (
                   <Button
                     size="small"
                     variant="outlined"
@@ -200,7 +200,7 @@ function EventRegistrationsList({
                     disabled={certLoadingId === reg.id}
                     onClick={() => onEmitCertificate(reg.id)}
                   >
-                    Emitir certificado
+                    Ver certificado
                   </Button>
                 )}
                 {canCancel && (
