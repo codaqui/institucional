@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import AnnouncementsBarIsland from "../components/islands/AnnouncementsBarIsland";
 
 interface Props {
   title: string;
@@ -76,6 +77,7 @@ const isProd = import.meta.env.PROD;
     )}
   </head>
   <body data-pagefind-ignore={noindex ? true : undefined}>
+    <AnnouncementsBarIsland client:load />
     <slot />
     {!import.meta.env.PUBLIC_TENANT && (
       <script>

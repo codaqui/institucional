@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da fase Announcements — barras de aviso administráveis no portal Codaqui.
 audience: Mantenedores, implementers e revisores da fase posterior à PR de patches operacionais.
-status: Preparado para revisão; implementação ainda não iniciada.
+status: Implementada e verificada; integração e publicação pendentes.
 sections:
   - Contexto e objetivo
   - Modelo e APIs
@@ -27,7 +27,7 @@ O recorte é deliberadamente pequeno: não é campanha de e-mail, CMS, sistema d
 
 ## Modelo e APIs
 
-Criar a entidade `announcements` na migration **047**, após a sequência atual 046 e somente quando a versão de backend da PR anterior estiver confirmada. Estimativa de escopo: backend **0.25.0**, após fila global 0.23.0 e patches 0.24.0.
+Criar a entidade `announcements` na migration **047**, após a sequência atual 046 e somente quando a versão de backend da PR anterior estiver confirmada. Escopo confirmado: backend **0.26.0**, após fila global 0.23.0, patches 0.24.0 e Experiência do Membro 0.25.0.
 
 Campos:
 

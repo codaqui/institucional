@@ -69,6 +69,9 @@ const apiPaths = [
   "/mentorship/sessions/token-1/cancel",
   "/mentorship/applications",
   "/mentorship/insights",
+  "/announcements/public",
+  "/announcements/admin",
+  "/announcements/admin/abc-123",
 ] as const;
 
 const staticPaths = [
@@ -100,6 +103,8 @@ const staticPaths = [
   "/projects/index.json",
   "/universities/index.json",
   "/mentors/index.json",
+  "/announcements/index.json",
+  "/admin/announcements",
   "/mentoria",
   "/mentoria/sessao/token-1",
   "/membro/mentoria",

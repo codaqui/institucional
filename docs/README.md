@@ -43,6 +43,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 014 | [Assembleias híbridas com Discussion manual e registro fino](adrs/014-assemblies.md) | 2026-11 | Implementado e publicado; Discussion real pendente; escopo por entidade jurídica ampliado na Fase 4 |
 | 015 | [Codaqui Universitário](adrs/015-codaqui-universitario.md) | 2026-11 | Implementado e publicado (Fase 4b; backend 0.19.0) |
 | 016 | [Fila assíncrona de convites de certificado](adrs/016-certificate-invite-queue.md) | 2026-11 | Implementado e publicado (backend 0.19.0); serialização global ampliada em 0.23.0 |
+| 017 | [Announcements](adrs/017-announcements.md) | 2026-11 | Implementado e verificado; integração e publicação pendentes (backend 0.26.0/migration 047) |
 | 009 | [Mentoria no sistema](adrs/009-mentorship.md) | 2026-11 | Fase 5 publicada em 0.19.0; Mentoria Operations publicada em 0.22.0 |
 | 010 | [Business tiers](adrs/010-business-tiers.md) | 2026-11 | Implementado e publicado (Fase 6; backend 0.21.0) |
 
@@ -63,7 +64,7 @@ Cada plano vive numa pasta própria (`plans/<topico>/`) com um `README.md` (e, q
 | Pasta | Descrição |
 |-------|-----------|
 | [PROXIMOS_PASSOS.md](plans/PROXIMOS_PASSOS.md) | Arquivado — snapshot histórico de 2026-09-10; usar o plano-mãe e as ADRs como fonte atual. |
-| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–6 e Mentoria Operations publicadas; patches operacionais 0.24.0; próximas fases: Experiência do Membro, Announcements, Campanhas E3 e C4P. |
+| [codaqui-1-0/](plans/codaqui-1-0/README.md) | Plano-mãe Codaqui 1.0.0; Fases 0–6, Mentoria Operations e Experiência do Membro publicadas; Announcements implementada e aguardando integração; próximas: Campanhas E3 e C4P. |
 | [real-network/](plans/real-network/README.md) | RFC exploratório de rede social local federada. Não implementado. |
 | [multisite/](plans/multisite/README.md) | Multi-tenant frontend para comunidades (Fases 1 e 2 pendentes). |
 | [update/](plans/update/README.md) | Plano de upgrades majors de dependências. |
