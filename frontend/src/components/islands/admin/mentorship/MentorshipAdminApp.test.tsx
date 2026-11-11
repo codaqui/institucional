@@ -27,7 +27,7 @@ describe("MentorshipAdminApp", () => {
     };
     mocks.authFetch.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
       if (path === "/mentorship/applications") {
-        return jsonResponse(init?.method === "POST" ? [] : [{ id: "application-1", memberId: "member-1", status: "pending", designation: "mentor" }]);
+        return jsonResponse(init?.method === "POST" ? [] : [{ id: "application-1", memberId: "member-1", status: "pending", designation: "mentor", name: "Ana", githubHandle: "ana", avatarUrl: "", areas: ["DevOps", "Carreira"], focus: "Transição de carreira" }]);
       }
       if (path.startsWith("/mentorship/sessions/admin")) {
         return jsonResponse({ data: [], total: 51, page: 1, totalPages: 2, limit: 50 });
@@ -49,6 +49,11 @@ describe("MentorshipAdminApp", () => {
     const user = userEvent.setup();
     renderWithMui(<MentorshipAdminApp />);
 
+    expect(await screen.findByText("Ana")).toBeInTheDocument();
+    expect(screen.getByText("@ana")).toBeInTheDocument();
+    expect(screen.getByText("DevOps, Carreira")).toBeInTheDocument();
+    expect(screen.getByText("Transição de carreira")).toBeInTheDocument();
+    expect(screen.queryByText("Membro member-1")).not.toBeInTheDocument();
     await user.click(await screen.findByRole("button", { name: "Aprovar mentor" }));
     await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/applications/application-1/confirm", expect.objectContaining({ method: "POST" })));
     expect(await screen.findByText(/mentor aprovado/i)).toBeInTheDocument();

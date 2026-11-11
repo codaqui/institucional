@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Consolidação dos próximos passos do monorepo (investigação de 2026-09-10) para avaliação e coordenação pelo mantenedor. Resume status de cada área, pendências concretas, prioridades sugeridas e riscos.
 audience: mantenedores, AI agents
-status: snapshot de coordenação — atualizar ou regenerar após cada rodada de execução
+status: Arquivado — snapshot histórico de 2026-09-10; usar docs/plans/codaqui-1-0/README.md e ADRs como fonte atual.
 sections:
   - Resumo executivo
   - Prioridade imediata (bugs e validações)

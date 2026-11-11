@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design do vínculo obrigatório de convites de certificado a uma conta Codaqui via GitHub e e-mail verificado.
 audience: Mantenedores, revisores e implementers da PR feat/certificate-account-link.
-status: Integrado em develop (merge ca2339d0bcb); PR #624 develop→main com dump real, E2E, gates e SonarCloud verdes; aguardando decisão de merge/deploy.
+status: Concluído e publicado em v0.20.0-backend; aceite exige GitHub + e-mail verificado.
 sections:
   - Contexto e evidências
   - Decisão e limites

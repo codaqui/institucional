@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 5 — Mentoria com disponibilidade, sessões, notificações, horas e insights.
 audience: Implementers e revisores da PR.
-status: Implementação e verificação concluídas; integrada em develop pelo merge 85fae64047c; PR #618 permanece aberta para main; release 0.19.0 e rollout pendentes.
+status: Concluída e publicada em v0.19.0-backend; Mentoria Operations publicada em 0.22.0.
 sections:
   - Global Constraints
   - Tasks 1–8

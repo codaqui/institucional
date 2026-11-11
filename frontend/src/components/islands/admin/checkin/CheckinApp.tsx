@@ -27,13 +27,11 @@ import type {
   ExternalActivationItem,
   ManagedEvent,
 } from "./types";
-import type { PaginatedResponse } from "../../../../lib/pagination";
+import { CHECKIN_PAGE_SIZE, type PaginatedResponse } from "../../../../lib/pagination";
 import {
   CAMERA_START_TIMEOUT_MS,
-  CHECKIN_ROLES,
   EXTERNAL_PREFIX,
   formatDateTime,
-  getUserRoles,
   isCameraAvailable,
   translateCameraError,
   withTimeout,
@@ -61,11 +59,17 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
-function CheckinInner(): React.JSX.Element {
-  const { ready, isLoggedIn, isAdmin, user, authFetch } = useAuth();
+function certificateFilterFromSearch(value: string | null): CertificateFilter {
+  return value === "eligible" || value === "granted" || value === "registration_pending"
+    ? value
+    : "all";
+}
 
-  const roles = getUserRoles(user);
-  const canAccess = isAdmin || CHECKIN_ROLES.some((r) => roles.includes(r));
+function CheckinInner(): React.JSX.Element {
+  const { ready, isLoggedIn, authFetch } = useAuth();
+  const [initialQuery] = useState(() => new URLSearchParams(window.location.search));
+  const initialFilterApplied = useRef(false);
+  const initialTabApplied = useRef(false);
 
   const [events, setEvents] = useState<ManagedEvent[]>([]);
   const [externalActivations, setExternalActivations] = useState<
@@ -81,12 +85,16 @@ function CheckinInner(): React.JSX.Element {
   const [registrationsPage, setRegistrationsPage] = useState(1);
   const [registrationsTotal, setRegistrationsTotal] = useState(0);
   const [registrationsTotalPages, setRegistrationsTotalPages] = useState(0);
-  const [certificateFilter, setCertificateFilter] = useState<CertificateFilter>("all");
+  const [certificateFilter, setCertificateFilter] = useState<CertificateFilter>(() =>
+    certificateFilterFromSearch(initialQuery.get("filter")),
+  );
 
   const [manualToken, setManualToken] = useState("");
   const [checkinLoading, setCheckinLoading] = useState(false);
   const [result, setResult] = useState<CheckinResult | null>(null);
-  const [activeTab, setActiveTab] = useState<"scan" | "participants" | "certificates">("scan");
+  const [activeTab, setActiveTab] = useState<"scan" | "participants" | "certificates">(
+    initialQuery.get("tab") === "certificates" ? "certificates" : "scan",
+  );
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStarting, setCameraStarting] = useState(false);
@@ -100,8 +108,8 @@ function CheckinInner(): React.JSX.Element {
 
   const cameraSupported = isCameraAvailable();
 
-  // A lista fica habilitada por evento: admin/organizer/host/owner/ativador podem buscar;
-  // event_checker puro fica restrito ao scanner.
+  // O escopo do backend habilita a lista por evento; o checker global sem staff
+  // local permanece restrito ao scanner.
   const selectedManaged = events.find((e) => e.id === selectedEventId);
   const selectedExternal = externalActivations.find(
     (a) => `${EXTERNAL_PREFIX}${a.eventKey}` === selectedEventId,
@@ -120,7 +128,7 @@ function CheckinInner(): React.JSX.Element {
       try {
         const params = new URLSearchParams({
           page: String(page),
-          limit: "25",
+          limit: String(CHECKIN_PAGE_SIZE),
           certificateFilter: filter,
         });
         if (query.trim()) params.set("search", query.trim());
@@ -146,7 +154,7 @@ function CheckinInner(): React.JSX.Element {
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !canAccess) {
+    if (!isLoggedIn) {
       window.location.replace("/");
       return;
     }
@@ -191,9 +199,9 @@ function CheckinInner(): React.JSX.Element {
         setEventsLoading(false);
       }
     })();
-  }, [ready, isLoggedIn, canAccess, authFetch]);
+  }, [ready, isLoggedIn, authFetch]);
 
-  // Carrega a lista completa (contador de presentes) ao trocar de evento
+  // Carrega a primeira página e os contadores locais ao trocar de evento
   useEffect(() => {
     if (!selectedEventId || !canUseList) {
       setRegistrations([]);
@@ -203,14 +211,22 @@ function CheckinInner(): React.JSX.Element {
     setResult(null);
     setRegistrations([]);
     setSearchQuery("");
-    setCertificateFilter("all");
-    fetchRegistrations(selectedEventId, "");
-  }, [selectedEventId, canUseList, fetchRegistrations]);
+    const queryFilter = initialFilterApplied.current
+      ? "all"
+      : certificateFilterFromSearch(initialQuery.get("filter"));
+    initialFilterApplied.current = true;
+    setCertificateFilter(queryFilter);
+    fetchRegistrations(selectedEventId, "", 1, queryFilter);
+  }, [selectedEventId, canUseList, fetchRegistrations, initialQuery]);
 
   useEffect(() => {
     if (!selectedEventId) return;
-    setActiveTab(canCheckinSelected || !canCertificateSelected ? "scan" : "certificates");
-  }, [selectedEventId, canCheckinSelected, canCertificateSelected]);
+    const wantsCertificates = !initialTabApplied.current &&
+      initialQuery.get("tab") === "certificates" &&
+      canCertificateSelected;
+    initialTabApplied.current = true;
+    setActiveTab(wantsCertificates || !canCheckinSelected ? "certificates" : "scan");
+  }, [selectedEventId, canCheckinSelected, canCertificateSelected, initialQuery]);
 
   // ── Check-in ─────────────────────────────────────────────────────────────
 
@@ -263,7 +279,7 @@ function CheckinInner(): React.JSX.Element {
             message: `Presença confirmada: ${data.registration?.attendeeName ?? "participante"}.`,
           });
         }
-        // Atualiza a lista (contador de presentes) sem bloquear o fluxo da porta
+        // Atualiza a página e os contadores locais sem bloquear o fluxo da porta
         if (canUseList) {
           fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
         }
@@ -301,7 +317,7 @@ function CheckinInner(): React.JSX.Element {
       await fetchRegistrations(selectedEventId, searchQuery, registrationsPage, certificateFilter);
       return results;
     },
-    [authFetch, fetchRegistrations, searchQuery, selectedEventId],
+    [authFetch, certificateFilter, fetchRegistrations, registrationsPage, searchQuery, selectedEventId],
   );
 
   const handleGrantCertificate = useCallback(
@@ -421,7 +437,7 @@ function CheckinInner(): React.JSX.Element {
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  if (!ready || !isLoggedIn || !canAccess) {
+  if (!ready || !isLoggedIn) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", pt: 10 }}>
         <CircularProgress />
@@ -482,20 +498,20 @@ function CheckinInner(): React.JSX.Element {
 
       {hasSelection && (
         <>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
-            <Chip
-              icon={<CheckCircleIcon />}
-              label={`${presentCount} presente${presentCount === 1 ? "" : "s"}`}
-              color="success"
-              variant="outlined"
-            />
-            {canUseList && (
+          {canUseList && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2, flexWrap: "wrap" }}>
               <Chip
-                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} na lista`}
+                icon={<CheckCircleIcon />}
+                label={`${presentCount} presente${presentCount === 1 ? "" : "s"} nesta página`}
+                color="success"
                 variant="outlined"
               />
-            )}
-          </Box>
+              <Chip
+                label={`${registrations.length} inscrito${registrations.length === 1 ? "" : "s"} nesta página`}
+                variant="outlined"
+              />
+            </Box>
+          )}
 
           <Tabs
             value={activeTab}
@@ -578,13 +594,18 @@ function CheckinInner(): React.JSX.Element {
           {activeTab === "participants" && canUseList && (
             <Box role="tabpanel" aria-label="Participantes">
               <ManualSearch
+                key={selectedEventId}
                 registrations={registrations}
                 regsLoading={regsLoading}
                 searchQuery={searchQuery}
                 checkinLoading={checkinLoading}
                 canCheckinFeature={canCheckinSelected}
+                page={registrationsPage}
+                total={registrationsTotal}
+                totalPages={registrationsTotalPages}
                 onSearchQueryChange={setSearchQuery}
                 onSearch={() => fetchRegistrations(selectedEventId, searchQuery, 1, certificateFilter)}
+                onPageChange={(nextPage) => fetchRegistrations(selectedEventId, searchQuery, nextPage, certificateFilter)}
                 onCheckin={(token) => {
                   void handleCheckin(token);
                 }}

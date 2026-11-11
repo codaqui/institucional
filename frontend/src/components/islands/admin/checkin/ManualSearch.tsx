@@ -14,6 +14,8 @@ import Typography from "@mui/material/Typography";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PersonSearchIcon from "@mui/icons-material/PersonSearch";
 import SearchIcon from "@mui/icons-material/Search";
+import PaginationControls from "../../ui/PaginationControls";
+import { CHECKIN_PAGE_SIZE, rangeLabel } from "../../../../lib/pagination";
 import type { EventRegistration } from "./types";
 import { formatDateTime, formatOrderStatus } from "./checkin-utils";
 
@@ -77,8 +79,12 @@ interface ManualSearchProps {
   readonly searchQuery: string;
   readonly checkinLoading: boolean;
   readonly canCheckinFeature: boolean;
+  readonly page: number;
+  readonly total: number;
+  readonly totalPages: number;
   readonly onSearchQueryChange: (query: string) => void;
   readonly onSearch: () => void;
+  readonly onPageChange: (page: number) => void;
   readonly onCheckin: (token: string) => void;
   readonly onBatchCheckin: (tokens: string[]) => Promise<BatchCheckinResult[]>;
 }
@@ -89,8 +95,12 @@ export default function ManualSearch({
   searchQuery,
   checkinLoading,
   canCheckinFeature,
+  page,
+  total,
+  totalPages,
   onSearchQueryChange,
   onSearch,
+  onPageChange,
   onCheckin,
   onBatchCheckin,
 }: Readonly<ManualSearchProps>): React.JSX.Element {
@@ -186,7 +196,10 @@ export default function ManualSearch({
           size="small"
           label="Nome ou e-mail"
           value={searchQuery}
-          onChange={(event) => onSearchQueryChange(event.target.value)}
+          onChange={(event) => {
+            setSelected(new Set());
+            onSearchQueryChange(event.target.value);
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter") onSearch();
           }}
@@ -220,7 +233,7 @@ export default function ManualSearch({
                 onChange={toggleAll}
                 slotProps={{ input: { "aria-label": "Selecionar todos os filtrados para check-in" } }}
               />
-              <Typography variant="body2">Selecionar elegíveis</Typography>
+              <Typography variant="body2">Selecionar elegíveis nesta página</Typography>
             </Box>
             <Button
               variant="contained"
@@ -318,6 +331,20 @@ export default function ManualSearch({
           })}
         </Box>
       )}
+      {total > 0 && (
+        <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 2 }}>
+          {rangeLabel(page, CHECKIN_PAGE_SIZE, total)}
+        </Typography>
+      )}
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onChange={(nextPage) => {
+          setSelected(new Set());
+          onPageChange(nextPage);
+        }}
+        itemLabel="participantes"
+      />
     </Box>
   );
 }

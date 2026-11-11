@@ -11,7 +11,7 @@ related-docs:
   - docs/superpowers/specs/2026-11-11-announcements-design.md — contrato da fase
 agent-protocol:
   - Executar RED-GREEN em cada etapa, sem misturar campanhas, C4P ou check-in.
-  - Confirmar que 0.23.0 e 0.24.0 foram integradas antes de usar 0.25.0/047.
+  - Confirmar que 0.23.0 e 0.24.0 foram integradas antes de usar 0.26.0/047.
 -->
 
 # Announcements Implementation Plan
@@ -28,7 +28,7 @@ agent-protocol:
 
 ## Global Constraints
 
-- Confirmar integração de backend 0.23.0 e 0.24.0; esta fase usa **0.25.0** e migration **047**.
+- Confirmar integração de backend 0.23.0 e 0.24.0; esta fase usa **0.26.0** e migration **047**.
 - Texto simples, sem HTML; links internos começam por `/` (exceto `//`) ou HTTPS.
 - Não incluir autores nem dados de membros no snapshot; não criar dismiss, tracking ou segmentação.
 - Não alterar C4P, campanhas de e-mail ou fluxos de check-in.
@@ -45,7 +45,7 @@ agent-protocol:
 - Create: `backend/src/migrations/1795000000000-Migration047_Announcements.ts`
 - Create: `backend/test/announcements.e2e-spec.ts`
 - Modify: `backend/src/app.module.ts`
-- Modify: `backend/package.json` e lock para 0.25.0.
+- Modify: `backend/package.json` e lock para 0.26.0.
 
 **Interfaces:**
 - `Announcement`: campos da spec, severidades `info|success|warning|error`.
@@ -218,7 +218,7 @@ make astro-verify-tenants
 
 - [ ] **Step 3: Integrar e revisar**
 
-Merge feature em `develop`, PR para `main`, SonarCloud sem issues abertas. Publicar 0.25.0 somente após merge e aplicar migration 047 antes do sync inicial.
+Merge feature em `develop`, PR para `main`, SonarCloud sem issues abertas. Publicar 0.26.0 somente após merge e aplicar migration 047 antes do sync inicial.
 
 - [ ] **Step 4: Validar anúncio real**
 

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano de implementação passo a passo (TDD) para tornar os templates de e-mail transacionais editáveis via painel admin — tabela email_templates, pipeline Markdown→HTML sanitizado com fallback, API admin e aba Templates em /admin/emails.
 audience: AI agents, mantenedores
-status: Pronto para execução
+status: Concluído — registry, overrides, fallback, preview e envio de teste implementados.
 sections:
   - Contexto e goal
   - Estrutura de arquivos

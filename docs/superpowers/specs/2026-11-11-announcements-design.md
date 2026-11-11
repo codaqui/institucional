@@ -27,7 +27,7 @@ O recorte é deliberadamente pequeno: não é campanha de e-mail, CMS, sistema d
 
 ## Modelo e APIs
 
-Criar a entidade `announcements` na migration **047**, após a sequência atual 046 e somente quando a versão de backend da PR anterior estiver confirmada. Estimativa de escopo: backend **0.25.0**, após fila global 0.23.0 e patches 0.24.0.
+Criar a entidade `announcements` na migration **047**, após a sequência atual 046 e somente quando a versão de backend da PR anterior estiver confirmada. Escopo confirmado: backend **0.26.0**, após fila global 0.23.0, patches 0.24.0 e Experiência do Membro 0.25.0.
 
 Campos:
 
@@ -76,6 +76,6 @@ A validação impede javascript:, URLs com credenciais e links sem rótulo. O te
 - Frontend: vazio, múltiplas severidades, links seguros, formulário, desativação, paginação e dark mode sem regressão.
 - Gates: backend build/Jest, frontend check/Vitest, scripts, `make astro-verify`, tenants e SonarCloud.
 
-Sequência: concluir PR de patches → integrar fila global quando revisada → implementar esta fase em TDD → `develop` → PR para `main` → release/migration → sync inicial → validar um aviso real de manutenção com link para issues do GitHub.
+Sequência: concluir PR de patches e fila global → implementar Experiência do Membro → implementar esta fase em TDD → `develop` → PR para `main` → release/migration → sync inicial → validar um aviso real de manutenção com link para issues do GitHub.
 
 Announcements não depende de C4P. A Fase 7 permanece como fechamento do 1.0.0; esta fase operacional pode antecedê-la sem alterar seu escopo.

@@ -7,8 +7,8 @@ import Box from "@mui/material/Box";
 
 interface TabPanelProps {
   children?: ReactNode;
-  index: number;
-  value: number;
+  index: number | string;
+  value: number | string;
 }
 
 export default function TabPanel({

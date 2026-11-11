@@ -2,17 +2,8 @@
  * Helpers puros da tela de check-in — port de
  * `src/pages/admin/eventos-checkin.tsx` (Docusaurus) para Astro.
  */
-import type { AuthUser } from "../../../../lib/auth-client";
-
 /** Prefixo do valor do seletor para eventos externos: `external:<eventKey>`. */
 export const EXTERNAL_PREFIX = "external:";
-
-/** Multi-role: o backend expõe `roles: string[]` na sessão (migração Fase 2). */
-export function getUserRoles(user: AuthUser | null): string[] {
-  return user?.roles ?? [];
-}
-
-export const CHECKIN_ROLES = ["admin", "event_organizer", "event_checker"];
 
 export const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", {

@@ -93,8 +93,8 @@ const CONFIRMED_LIKE: RegistrationStatus[] = [
 
 @Injectable()
 export class EmailService {
+  private static smtpChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(EmailService.name);
-  private smtpChain: Promise<void> = Promise.resolve();
 
   constructor(
     @InjectRepository(EmailLog)
@@ -119,15 +119,38 @@ export class EmailService {
     return new Promise((resolve) => setTimeout(resolve, delay));
   }
 
-  private scheduleSmtpSend(message: EmailMessage): Promise<void> {
-    const run = this.smtpChain.then(async () => {
+  private async sendWithPostgresLock(message: EmailMessage): Promise<void> {
+    const queryRunner = this.emailLogRepo.manager.connection.createQueryRunner();
+    const lockParams = [0x436f6461, 1];
+    let locked = false;
+    try {
+      await queryRunner.connect();
+      await queryRunner.query('SELECT pg_advisory_lock($1, $2)', lockParams);
+      locked = true;
       try {
         await this.provider.send(message);
       } finally {
         await this.smtpDelay();
       }
-    });
-    this.smtpChain = run.catch(() => undefined);
+    } finally {
+      try {
+        if (locked) {
+          await queryRunner.query(
+            'SELECT pg_advisory_unlock($1, $2)',
+            lockParams,
+          );
+        }
+      } finally {
+        await queryRunner.release();
+      }
+    }
+  }
+
+  private scheduleSmtpSend(message: EmailMessage): Promise<void> {
+    const run = EmailService.smtpChain.then(() =>
+      this.sendWithPostgresLock(message),
+    );
+    EmailService.smtpChain = run.catch(() => undefined);
     return run;
   }
 

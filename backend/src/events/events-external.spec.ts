@@ -291,11 +291,27 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
   // ── Certificados (2c) ─────────────────────────────────────────────────────
 
   describe('getCertificate', () => {
-    it('403 quando a inscrição ainda não tem check-in', async () => {
+    it('403 quando a inscrição ainda não tem concessão de certificado', async () => {
       registrationRepo.findOneBy.mockResolvedValue(makeRegistration());
       await expect(service.getCertificate(uuid(40), user())).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('dono com concessão e sem check-in recebe código e data de emissão estáveis', async () => {
+      const grantedAt = new Date('2026-08-10T13:05:00.000Z');
+      registrationRepo.findOneBy.mockResolvedValue(
+        makeRegistration({ checkedInAt: null, certificateGrantedAt: grantedAt }),
+      );
+
+      const first = await service.getCertificate(uuid(40), user());
+      const second = await service.getCertificate(uuid(40), user());
+
+      expect(first.checkedInAt).toBeNull();
+      expect(first.issuedAt).toBe(grantedAt.toISOString());
+      expect(second.issuedAt).toBe(first.issuedAt);
+      expect(second.verificationCode).toBe(first.verificationCode);
+      expect(first.verificationCode).toBe('CRT-aaaaaaaa-bbb');
     });
 
     it('dono com check-in recebe certificado com verificationCode e carga horária', async () => {
@@ -493,6 +509,8 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
       const publicInvite = await service.getGuestInvite(registration.checkinToken);
       expect(publicInvite.eventTitle).toBe('Meetup Elas');
       expect(publicInvite.requiresAccount).toBe(true);
+      expect(publicInvite.registrationId).toBe(registration.id);
+      expect(publicInvite.certificateGranted).toBe(true);
       await expect(service.claimGuestRegistration({
         token: registration.checkinToken,
         name: 'Ana',
@@ -561,6 +579,8 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
         status: RegistrationStatus.CONFIRMED,
         attendeeName: 'Ana GitHub',
         requiresAccount: true,
+        registrationId: registration.id,
+        certificateGranted: true,
       });
       expect(registration.memberId).toBe(uuid(1));
       expect(memberRepo.findOne).toHaveBeenCalledWith({
@@ -1467,6 +1487,8 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
           memberId: uuid(1),
           payerMemberId: uuid(1),
           attendeeEmail: 'ana@x.dev',
+          checkedInAt: null,
+          certificateGrantedAt: new Date('2026-08-10T13:05:00.000Z'),
         }),
         makeRegistration({
           id: uuid(41),
@@ -1489,6 +1511,9 @@ describe('EventsService — 2c/2d (check-in, certificados, externos)', () => {
 
       expect(result).toHaveLength(2);
       expect(result[0].isPayerOnly).toBe(false);
+      expect(result[0].certificateGrantedAt).toEqual(
+        new Date('2026-08-10T13:05:00.000Z'),
+      );
       expect(result[1].isPayerOnly).toBe(true);
       expect(result[1].attendeeEmail).toBe('outra@x.dev');
     });

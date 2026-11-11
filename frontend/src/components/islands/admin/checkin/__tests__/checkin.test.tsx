@@ -141,7 +141,7 @@ function renderAtCheckin(eventId = "evt-1") {
 
 async function waitForRegistrationsList() {
   await waitFor(() =>
-    expect(screen.queryByText(/inscritos? na lista/i)).toBeInTheDocument(),
+    expect(screen.queryByText(/inscritos? nesta página/i)).toBeInTheDocument(),
   );
 }
 
@@ -225,16 +225,39 @@ describe("/admin/eventos-checkin", () => {
 
   // ── Acesso / autorização ─────────────────────────────────────────────────
 
-  it("redireciona para home quando usuário não tem role de evento", async () => {
-    const replace = vi.fn();
-    vi.stubGlobal("location", { replace });
-    mockAuthFor(makeUser(["membro"]), vi.fn());
-
-    renderWithMui(<CheckinApp />);
-
-    await waitFor(() => {
-      expect(replace).toHaveBeenCalledWith("/");
+  it("membro autenticado sem escopo não recebe dados de participantes", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url === "/events/checkin-scope") {
+        return jsonResponse({ managed: [], external: [] });
+      }
+      if (url.includes("/registrations")) return jsonResponse([registration]);
+      return jsonResponse(null, { status: 404 });
     });
+    mockAuthFor(makeUser(["membro"]), authFetch);
+
+    renderAtCheckin();
+
+    expect(await screen.findByText("Nenhum evento gerenciável encontrado.")).toBeInTheDocument();
+    expect(authFetch).toHaveBeenCalledWith("/events/checkin-scope");
+    expect(
+      authFetch.mock.calls.some(([url]) => url.includes("/registrations")),
+    ).toBe(false);
+    expect(screen.queryByText("Participante Um")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["staff host local", ["membro"]],
+    ["event_host explícito", ["membro", "event_host"]],
+    ["staff checker local", ["membro"]],
+  ])("%s acessa o evento retornado pelo escopo sem role global de gestão", async (_label, roles) => {
+    const authFetch = mockAuthFetchWithEvents(noRegistrations);
+    mockAuthFor(makeUser(roles), authFetch);
+
+    renderAtCheckin();
+
+    await waitForRegistrationsList();
+    expect(authFetch).toHaveBeenCalledWith("/events/checkin-scope");
+    expect(await screen.findByRole("tab", { name: "Participantes" })).toBeInTheDocument();
   });
 
   it("event_checker tem acesso (role de check-in)", async () => {
@@ -366,7 +389,7 @@ describe("/admin/eventos-checkin", () => {
       expect(authFetch).toHaveBeenCalledWith("/events/checkin-scope");
     });
 
-    expect(await screen.findByText(/1 inscrito na lista/i)).toBeInTheDocument();
+    expect(await screen.findByText(/1 inscrito nesta página/i)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Token do QR Code"), {
       target: { value: "token-abc" },
@@ -699,6 +722,95 @@ describe("/admin/eventos-checkin", () => {
     });
   });
 
+  it("pagina 51 participantes, limpa seleção na navegação/busca e envia somente a página atual", async () => {
+    const participants = Array.from({ length: 51 }, (_, index) => {
+      const number = String(index + 1).padStart(3, "0");
+      return {
+        ...registration,
+        id: `reg-${number}`,
+        attendeeName: `Participante ${number}`,
+        attendeeEmail: `participante-${number}@example.com`,
+        checkinToken: `token-${number}`,
+      };
+    });
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) {
+        const params = new URLSearchParams(url.split("?")[1]);
+        const page = Number(params.get("page") ?? "1");
+        const search = params.get("search") ?? "";
+        const filtered = participants.filter((item) =>
+          `${item.attendeeName} ${item.attendeeEmail}`.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
+        );
+        return jsonResponse({
+          data: filtered.slice((page - 1) * 25, page * 25),
+          total: filtered.length,
+          page,
+          totalPages: Math.ceil(filtered.length / 25),
+          limit: 25,
+        });
+      }
+      if (url === "/events/evt-1/checkin/batch" && init?.method === "POST") {
+        const { tokens } = JSON.parse(String(init.body));
+        return jsonResponse(tokens.map((token: string) => ({ token, status: "checked_in" })));
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Participantes" }));
+    expect(await screen.findByRole("navigation", { name: "Paginação de participantes" })).toBeInTheDocument();
+    expect(screen.getByText("25 inscritos nesta página")).toBeInTheDocument();
+    expect(screen.getByText("0 presentes nesta página")).toBeInTheDocument();
+
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    expect(screen.getByRole("button", { name: "Confirmar presença (25)" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+
+    expect(await screen.findByText("Participante 026")).toBeInTheDocument();
+    expect(screen.queryByText("Participante 001")).not.toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Confirmar presença (0)" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    expect(await screen.findByText("Participante 051")).toBeInTheDocument();
+    expect(screen.getByText("Mostrando 51–51 de 51")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ir para a página 2 de 3" }));
+    expect(await screen.findByText("Participante 026")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText("Participante 051")).not.toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    expect(screen.getByRole("button", { name: "Confirmar presença (25)" })).toBeEnabled();
+
+    fireEvent.change(screen.getByLabelText("Nome ou e-mail"), {
+      target: { value: "Participante 026" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Buscar participante" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Participante 027")).not.toBeInTheDocument();
+    });
+    expect(screen.getByText("Participante 026")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirmar presença (0)" })).toBeDisabled();
+    expect(screen.queryByRole("navigation", { name: "Paginação de participantes" })).not.toBeInTheDocument();
+    const registrationUrls = authFetch.mock.calls
+      .map(([url]) => url)
+      .filter((url) => url.includes("/registrations"));
+    expect(registrationUrls.at(-1)).toContain("page=1");
+    expect(registrationUrls.at(-1)).toContain("search=Participante+026");
+
+    fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar Participante 026 para check-in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar presença (1)" }));
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/evt-1/checkin/batch",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ tokens: ["token-026"] }),
+        }),
+      );
+    });
+  });
+
   it("concede certificado sem passar pelo check-in", async () => {
     const authFetch = await setupOrganizerPage((url, init) => {
       if (url.includes("/registrations")) return jsonResponse([registration]);
@@ -765,6 +877,28 @@ describe("/admin/eventos-checkin", () => {
     expect(JSON.parse(String(createCall?.[1]?.body)).registrationIds).toHaveLength(25);
   });
 
+  it("não inicia acompanhamento quando nenhum convite novo é enfileirado", async () => {
+    const pending = { ...registration, status: "pending_match" };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) return jsonResponse({ data: [pending], total: 1, page: 1, totalPages: 1, limit: 25 });
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-empty", total: 0, status: "queued", invalid: [pending.id] }, { status: 202 });
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    fireEvent.click(await screen.findByRole("checkbox", { name: /selecionar todos os filtrados/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
+
+    expect(await screen.findByText("Nenhum convite novo foi enfileirado.")).toBeInTheDocument();
+    expect(screen.getByText("1 inscrição(ões) não puderam ser enfileiradas.")).toBeInTheDocument();
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tentar novamente" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Enfileirar convites (0)" })).toBeDisabled();
+    expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-empty")).toHaveLength(0);
+  });
+
   it("pausa o acompanhamento do lote quando a aba fica oculta", async () => {
     const pending = { ...registration, status: "pending_match" };
     const authFetch = await setupOrganizerPage((url, init) => {
@@ -790,5 +924,151 @@ describe("/admin/eventos-checkin", () => {
     await act(async () => { vi.advanceTimersByTime(5_000); });
     expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-hidden")).toHaveLength(1);
     vi.useRealTimers();
+  });
+
+  it("retoma o lote pelo deep link, separa o resumo e seleciona falhas explicitamente", async () => {
+    const pending = { ...registration, id: "reg-fail", status: "pending_match" };
+    const authFetch = mockAuthFetchWithEvents((url, init) => {
+      if (url.includes("/registrations")) {
+        expect(url).toContain("certificateFilter=registration_pending");
+        return jsonResponse({ data: [pending], total: 1, page: 1, totalPages: 1, limit: 25 });
+      }
+      if (url === "/events/certificate-invites/batches/batch-resume") {
+        return jsonResponse({
+          batchId: "batch-resume",
+          status: "completed",
+          total: 4,
+          completed: 1,
+          queued: 0,
+          processing: 0,
+          retry: 1,
+          failed: 1,
+          skipped: 1,
+          items: [
+            { registrationId: "reg-fail", status: "failed", attempts: 3, lastError: "SMTP timeout" },
+          ],
+        });
+      }
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-retry", total: 0, status: "queued", invalid: [] }, { status: 202 });
+      }
+      return null;
+    });
+    mockAuthFor(organizerUser, authFetch);
+    window.history.pushState(
+      {},
+      "",
+      "/admin/eventos-checkin?event=evt-1&tab=certificates&filter=registration_pending&batch=batch-resume",
+    );
+    renderWithMui(<CheckinApp />);
+
+    expect(await screen.findByText(/1 enviados/)).toBeInTheDocument();
+    expect(screen.getByText(/1 aguardando retry/)).toBeInTheDocument();
+    expect(screen.getByText(/1 falhas/)).toBeInTheDocument();
+    expect(screen.getByText(/1 ignorados por SMTP ausente/)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Selecionar falhas para um novo lote (1)" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: "Selecionar Participante Um para convite" }));
+    expect(screen.getByRole("button", { name: "Enfileirar convites (0)" })).toBeDisabled();
+    fireEvent.click(await screen.findByRole("button", { name: "Selecionar falhas para um novo lote (1)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
+
+    await waitFor(() => {
+      const retryCall = authFetch.mock.calls.find(
+        ([url, init]) => url === "/events/certificate-invites/batch" && init?.method === "POST",
+      );
+      expect(JSON.parse(String(retryCall?.[1]?.body)).registrationIds).toEqual(["reg-fail"]);
+    });
+  });
+
+  it("consome o deep link somente na primeira seleção de evento", async () => {
+    const secondEvent = { ...managedEvent, id: "evt-2", title: "Outro evento" };
+    const authFetch = mockAuthFetchWithEvents((url) => {
+      if (url === "/events/checkin-scope") {
+        return jsonResponse({ managed: [managedEvent, secondEvent], external: [] });
+      }
+      if (url.includes("/registrations")) {
+        return jsonResponse({ data: [], total: 0, page: 1, totalPages: 0, limit: 25 });
+      }
+      return null;
+    });
+    mockAuthFor(organizerUser, authFetch);
+    window.history.pushState(
+      {},
+      "",
+      "/admin/eventos-checkin?event=evt-1&tab=certificates&filter=registration_pending",
+    );
+    renderWithMui(<CheckinApp />);
+
+    expect(await screen.findByRole("tab", { name: "Certificados" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    fireEvent.mouseDown(screen.getAllByRole("combobox")[0]);
+    fireEvent.click(await screen.findByRole("option", { name: /Outro evento/ }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("tab", { name: "Escanear" })).toHaveAttribute("aria-selected", "true");
+    });
+    const lastRegistrationsUrl = authFetch.mock.calls
+      .map(([url]) => url)
+      .filter((url) => url.includes("/registrations"))
+      .at(-1);
+    expect(lastRegistrationsUrl).toContain("certificateFilter=all");
+  });
+
+  it("distingue estados e executa conceder antes de convidar como ações explícitas", async () => {
+    const grantedPending = {
+      ...registration,
+      id: "reg-granted-pending",
+      attendeeName: "Concedido Pendente",
+      status: "pending_match",
+      certificateGrantedAt: "2026-11-01T12:00:00.000Z",
+    };
+    const ungrantedPending = {
+      ...registration,
+      id: "reg-ungranted-pending",
+      attendeeName: "Pendente Sem Concessão",
+      status: "pending_match",
+    };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) {
+        return jsonResponse({ data: [grantedPending, ungrantedPending], total: 2, page: 1, totalPages: 1, limit: 25 });
+      }
+      if (url === "/events/registrations/reg-ungranted-pending/certificate/grant" && init?.method === "POST") {
+        return jsonResponse({ ...ungrantedPending, certificateGrantedAt: "2026-11-11T12:00:00.000Z" });
+      }
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-combined", total: 0, status: "queued", invalid: [] }, { status: 202 });
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    expect(await screen.findByText("Concedido aguardando cadastro")).toBeInTheDocument();
+    expect(screen.getByText("Cadastro pendente sem concessão")).toBeInTheDocument();
+    expect(screen.getByText(/convite vincula a participação, não o certificado/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Conceder e depois convidar para Pendente Sem Concessão",
+    }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/registrations/reg-ungranted-pending/certificate/grant",
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/certificate-invites/batch",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ registrationIds: ["reg-ungranted-pending"] }),
+        }),
+      );
+    });
+    const grantCall = authFetch.mock.calls.findIndex(([url]) => url.endsWith("/certificate/grant"));
+    const inviteCall = authFetch.mock.calls.findIndex(([url]) => url === "/events/certificate-invites/batch");
+    expect(grantCall).toBeLessThan(inviteCall);
   });
 });

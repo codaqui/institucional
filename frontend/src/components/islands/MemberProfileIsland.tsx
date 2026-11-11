@@ -20,14 +20,12 @@ import Link from "@mui/material/Link";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
-import Tab from "@mui/material/Tab";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
 import GitHubIcon from "@mui/icons-material/GitHub";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
@@ -159,25 +157,6 @@ function getRoleLabel(role: string): string {
     default:
       return "Membro";
   }
-}
-
-/** TabPanel (port de src/components/TabPanel). */
-function TabPanel({
-  children,
-  value,
-  index,
-}: Readonly<{ children?: React.ReactNode; index: number; value: number }>) {
-  return (
-    <Box
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tab-panel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      sx={{ width: "100%" }}
-    >
-      {value === index ? children : null}
-    </Box>
-  );
 }
 
 // ── Carteirinha ────────────────────────────────────────────────────────────
@@ -724,7 +703,6 @@ function MemberProfileInner({
   const [eventRegistrations, setEventRegistrations] = useState<PublicEventRegistration[]>([]);
   const [publicHoursMember, setPublicHoursMember] = useState<PublicHoursMember | null>(null);
   const [publicHourEntries, setPublicHourEntries] = useState<PublicHourEntry[]>([]);
-  const [activeTab, setActiveTab] = useState(0);
 
   // Suporta ?id=<uuid> ou ?handle=<github_handle>; a rota estática /@<handle>
   // injeta o handle via prop (routeHandle) e dispensa o query param.
@@ -948,177 +926,61 @@ function MemberProfileInner({
 
   const showPublicHours = typeof publicHoursMember?.totalHours === "number" && Number.isFinite(publicHoursMember.totalHours);
   const showPublicBadge = publicHoursMember?.badge === true;
-  const dynamicSections = member && (
-    <>
-      {(showPublicHours || showPublicBadge) && publicHoursMember && (
-        <>
-          {showPublicHours && (
-            <>
-              <HoursSummary totalHours={publicHoursMember.totalHours!} />
-              <ProfileTimeline entries={publicHourEntries} />
-            </>
-          )}
-          {showPublicBadge && (
-            <ProfileBadges name={member.name} githubHandle={member.githubHandle} />
-          )}
-          <Divider sx={{ my: 3 }} />
-        </>
-      )}
+  const dynamicSections = member && (() => {
+    const isOwner = isFull && loggedUser?.handle === member.githubHandle;
+    return (
+      <>
+        {showPublicHours && publicHoursMember && (
+          <HoursSummary totalHours={publicHoursMember.totalHours!} />
+        )}
+        {showPublicBadge && (
+          <ProfileBadges name={member.name} githubHandle={member.githubHandle} />
+        )}
+        {showPublicHours && <ProfileTimeline entries={publicHourEntries} />}
+        <EventHistorySection registrations={eventRegistrations} />
 
-      {/* Histórico público de eventos */}
-      <EventHistorySection registrations={eventRegistrations} />
-
-      <Divider sx={{ my: 3 }} />
-
-      {/* ── Tabs ── */}
-      {(() => {
-        const isOwner = isFull && loggedUser?.handle === member.githubHandle;
-        const showWalletTab = isOwner || !!publicWallet;
-        return (
-          <>
-            <Tabs
-              value={activeTab}
-              onChange={(_, v) => setActiveTab(v)}
-              variant="scrollable"
-              allowScrollButtonsMobile
-              sx={{ mb: 3, borderBottom: 1, borderColor: "divider" }}
-            >
-              <Tab label="Visão Geral" />
-              <Tab label="Histórico de Doações" />
-              {showWalletTab && (
-                <Tab label={isOwner ? "Carteira" : "Carteira pública"} />
+        {affiliatedCompany && (
+          <Card variant="outlined" sx={{ mt: 4 }}>
+            <CardContent>
+              <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+                {businessMembershipType === "collaborator" ? "Vínculo Business Member" : "Vínculo CLUB Business"}
+              </Typography>
+              <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                {affiliatedCompany.name}
+              </Typography>
+              {affiliatedCompany.responsibleGithubHandle && (
+                <Typography variant="caption" color="text.secondary">
+                  Responsável: @{affiliatedCompany.responsibleGithubHandle}
+                </Typography>
               )}
-            </Tabs>
-
-            <TabPanel value={activeTab} index={0}>
-              <Box>
-                {affiliatedCompany && (
-                  <Card variant="outlined" sx={{ mb: 2 }}>
-                    <CardContent sx={{ py: "12px !important" }}>
-                      <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                        CLUB Business
-                      </Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                        {affiliatedCompany.name}
-                      </Typography>
-                      {affiliatedCompany.responsibleGithubHandle && (
-                        <Typography variant="caption" color="text.secondary">
-                          Responsável: @{affiliatedCompany.responsibleGithubHandle}
-                        </Typography>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
-                {isDonor ? (
-                  <Grid container spacing={2} sx={{ mb: 3 }}>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Card variant="outlined">
-                        <CardContent sx={{ py: "12px !important" }}>
-                          <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                            Total doado
-                          </Typography>
-                          <Typography variant="h5" color="success.main" sx={{ fontWeight: 800 }}>
-                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-                              donations.reduce((s, d) => s + d.amount, 0)
-                            )}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 6 }}>
-                      <Card variant="outlined">
-                        <CardContent sx={{ py: "12px !important" }}>
-                          <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                            Apoios registrados
-                          </Typography>
-                          <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                            {donations.length}
-                          </Typography>
-                        </CardContent>
-                      </Card>
-                    </Grid>
-                  </Grid>
-                ) : (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <FavoriteIcon sx={{ fontSize: 48, color: "action.disabled", mb: 1 }} />
-                    <Typography variant="body1" color="text.secondary" gutterBottom>
-                      Este membro ainda não fez doações públicas.
-                    </Typography>
-                    <Button variant="contained" size="small" href="/participe/apoiar" sx={{ mt: 1 }}>
-                      Apoie a Codaqui
-                    </Button>
-                  </Box>
-                )}
-              </Box>
-            </TabPanel>
-
-            <TabPanel value={activeTab} index={1}>
-              <Box>
-                {isDonor ? (
-                  <DonationHistory donations={donations} />
-                ) : (
-                  <Box sx={{ textAlign: "center", py: 4 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      Este membro ainda não fez doações públicas.
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </TabPanel>
-
-            {showWalletTab && (
-              <TabPanel value={activeTab} index={2}>
-                <Box>
-                  {isOwner && clubWallet && (
-                    <SortCoinsSection wallet={clubWallet} transactions={walletTxs} />
-                  )}
-                  {!isOwner && publicWallet && (
-                    <SortCoinsSection wallet={publicWallet} transactions={publicWalletTxs} />
-                  )}
-                  {affiliatedCompany && (
-                    <>
-                      <Divider sx={{ my: 3 }} />
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                        <BusinessIcon sx={{ color: "secondary.main" }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                          {businessMembershipType === "collaborator" ? "Vínculo Business Member" : "Vínculo CLUB Business"}
-                        </Typography>
-                      </Box>
-                      <Typography variant="body2" color="text.secondary">
-                        {member.name} participa da empresa <strong>{affiliatedCompany.name}</strong>
-                        {affiliatedCompany.responsibleGithubHandle && (
-                          <> (responsável: @{affiliatedCompany.responsibleGithubHandle})</>
-                        )}.
-                      </Typography>
-                    </>
-                  )}
-                  {isOwner && (
-                    <>
-                      <Divider sx={{ my: 3 }} />
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
-                        <BusinessIcon sx={{ color: "success.main" }} />
-                        <Typography variant="h6" sx={{ fontWeight: 700 }}>Minha Empresa</Typography>
-                      </Box>
-                      <Button
-                        variant="outlined"
-                        color="success"
-                        size="small"
-                        startIcon={<BusinessIcon />}
-                        href="/membros/empresa"
-                        sx={{ textTransform: "none", fontWeight: 600 }}
-                      >
-                        Gerenciar empresa e carteira CLUB Business
-                      </Button>
-                    </>
-                  )}
-                </Box>
-              </TabPanel>
-            )}
-          </>
-        );
-      })()}
-    </>
-  );
+            </CardContent>
+          </Card>
+        )}
+        {isDonor && <DonationHistory donations={donations} />}
+        {isOwner && clubWallet && (
+          <SortCoinsSection wallet={clubWallet} transactions={walletTxs} />
+        )}
+        {!isOwner && publicWallet && (
+          <SortCoinsSection wallet={publicWallet} transactions={publicWalletTxs} />
+        )}
+        {isOwner && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>Minha Empresa</Typography>
+            <Button
+              variant="outlined"
+              color="success"
+              size="small"
+              startIcon={<BusinessIcon />}
+              href="/membros/empresa"
+              sx={{ textTransform: "none", fontWeight: 600 }}
+            >
+              Gerenciar empresa e carteira CLUB Business
+            </Button>
+          </Box>
+        )}
+      </>
+    );
+  })();
 
   // ── Variante "public": apenas as seções dinâmicas (o cartão é estático) ──
   if (!isFull) {

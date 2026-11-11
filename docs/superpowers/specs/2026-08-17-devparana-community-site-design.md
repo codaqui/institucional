@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design spec para criação do site da comunidade DevParaná dentro do portal Codaqui, seguindo o modelo multi-tenant de comunidades e integrando as RFCs 001 (Embaixadores) e 002 (DevParaná na Estrada).
 audience: AI agents, mantenedores
-status: Draft / aguardando aprovação
+status: Supersedido — site DevParaná entregue na Fase 0.5 por build matrix.
 sections:
   - Contexto e objetivo
   - Escopo

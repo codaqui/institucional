@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 6 — Empresa Amiga/Aliada, due diligence, vitrine e badges SVG.
 audience: AI agents, mantenedores, administração e operadores de release.
-status: Implementado e verificado em dump real; PR para develop, release 0.21.0, sync inicial e validação controlada pendentes.
+status: Implementado e publicado em v0.21.0-backend; validação controlada é acompanhamento operacional.
 sections:
   - Contexto e decisão
   - Modelo e regras

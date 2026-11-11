@@ -63,9 +63,9 @@ const community = {
   updatedAt: "2026-10-30T12:00:00.000Z",
 };
 
-function manageResponse(overrides: Record<string, unknown> = {}) {
+function manageResponse(overrides: Record<string, unknown> = {}, communityOverrides: Record<string, unknown> = {}) {
   return jsonResponse({
-    data: [community],
+    data: [{ ...community, ...communityOverrides }],
     total: 1,
     page: 1,
     totalPages: 1,
@@ -283,6 +283,37 @@ describe("CommunitiesAdminApp", () => {
       founded: null,
       siteDomain: null,
     });
+  });
+
+  it.each([
+    { sealStatus: "applied", sealValidUntil: null, label: "Solicitação pendente" },
+    { sealStatus: "sealed", sealValidUntil: "2099-01-01T00:00:00.000Z", label: "Selo vigente" },
+  ])("disables seal request for $label", async ({ sealStatus, sealValidUntil, label }) => {
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path.startsWith("/communities/manage") && !init?.method) {
+        return manageResponse({}, { sealStatus, sealValidUntil });
+      }
+      return jsonResponse(community);
+    });
+    renderWithMui(<CommunitiesAdminApp />);
+
+    expect(await screen.findByRole("button", { name: label })).toBeDisabled();
+    expect(screen.queryByRole("button", { name: "Solicitar selo" })).not.toBeInTheDocument();
+  });
+
+  it("allows renewing an expired seal", async () => {
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path.startsWith("/communities/manage") && !init?.method) {
+        return manageResponse({}, { sealStatus: "sealed", sealValidUntil: "2020-01-01T00:00:00.000Z" });
+      }
+      return jsonResponse(community, { status: init?.method === "POST" ? 201 : 200 });
+    });
+    const user = userEvent.setup();
+    renderWithMui(<CommunitiesAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Solicitar selo" }));
+
+    await waitFor(() => expect(lastCall(`/communities/${community.id}/seal/request`, "POST")).toBeDefined());
   });
 
   it("surfaces API errors in an accessible alert", async () => {

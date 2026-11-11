@@ -52,6 +52,7 @@ interface EmailLog {
   to: string;
   template: string;
   eventId: string | null;
+  registrationId: string | null;
   status: "sent" | "failed" | "skipped";
   error: string | null;
   createdAt: string;
@@ -226,7 +227,7 @@ function EmailsInner(): React.JSX.Element | null {
                   </TableCell>
                   <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDateTime(log.createdAt)}</TableCell>
                   <TableCell align="right">
-                    {configured === true && (log.status === "failed" || log.status === "skipped") && (
+                    {configured === true && log.registrationId && (log.status === "failed" || log.status === "skipped") && (
                       <Button
                         size="small"
                         variant="outlined"

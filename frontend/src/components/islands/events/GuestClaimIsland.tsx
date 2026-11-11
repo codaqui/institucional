@@ -12,6 +12,7 @@ import { QRCodeSVG } from "qrcode.react";
 import MuiIslandProvider from "../MuiIslandProvider";
 import TurnstileField from "../ui/TurnstileField";
 import { resolveApiUrl } from "../../../lib/api-url";
+import { buildMemberHref } from "../../../lib/member-navigation";
 import { useAuth } from "../../../lib/use-auth";
 
 interface GuestInvite {
@@ -22,6 +23,8 @@ interface GuestInvite {
   attendeeEmail?: string | null;
   checkinToken?: string | null;
   requiresAccount?: boolean;
+  registrationId?: string;
+  certificateGranted?: boolean;
 }
 
 async function readApiError(res: Response, fallback: string): Promise<Error> {
@@ -31,13 +34,28 @@ async function readApiError(res: Response, fallback: string): Promise<Error> {
 }
 
 function AccountClaimResult({ invite }: Readonly<{ invite: GuestInvite }>) {
+  const certificateHref = invite.registrationId
+    ? `/membro${buildMemberHref("participation", "certificates")}&certificate=${encodeURIComponent(invite.registrationId)}`
+    : `/membro${buildMemberHref("participation", "certificates")}`;
+  const hasCertificate = invite.certificateGranted === true;
   return (
     <Stack spacing={2} role="status" sx={{ alignItems: "center", textAlign: "center" }}>
       <Typography variant="h5" component="h2">Participação vinculada à sua conta</Typography>
       <Typography>{invite.attendeeName}</Typography>
       <Typography color="text.secondary">{invite.attendeeEmail}</Typography>
-      <Typography color="text.secondary">Acompanhe a concessão e os seus certificados na área do membro.</Typography>
-      <Button variant="contained" href="/membro">Ver meus certificados</Button>
+      <Typography color="text.secondary">
+        {hasCertificate
+          ? "Seu certificado já foi concedido e está pronto para abrir."
+          : "A organização ainda não concedeu o certificado. Acompanhe sua participação na área do membro."}
+      </Typography>
+      <Button
+        variant="contained"
+        href={hasCertificate
+          ? certificateHref
+          : `/membro${buildMemberHref("participation", "history")}`}
+      >
+        {hasCertificate ? "Abrir meu certificado" : "Ver histórico de participação"}
+      </Button>
     </Stack>
   );
 }

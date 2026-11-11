@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
@@ -26,6 +26,9 @@ export class EntitiesService {
 
   async create(dto: CreateInstitutionDto, actor: JwtPayload): Promise<Institution> {
     await this.assertDirector(actor);
+    if (dto.type === 'instituicao_ensino') {
+      throw new BadRequestException('Cadastre instituições de ensino em /admin/universitario.');
+    }
     const entity = await this.repo.save(this.repo.create({
       ...dto,
       slug: entitySlug(dto.slug ?? dto.name),
@@ -47,6 +50,10 @@ export class EntitiesService {
     await this.assertDirector(actor);
     const entity = await this.repo.findOneBy({ id });
     if (!entity) throw new NotFoundException('Entidade não encontrada.');
+    if (dto.type !== undefined && dto.type !== entity.type
+      && (entity.type === 'instituicao_ensino' || dto.type === 'instituicao_ensino')) {
+      throw new BadRequestException('O tipo de uma instituição de ensino não pode ser alterado pelo cadastro genérico.');
+    }
     const before = { ...entity };
     Object.assign(entity, dto);
     if (dto.slug !== undefined) entity.slug = entitySlug(dto.slug);

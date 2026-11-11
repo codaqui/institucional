@@ -128,6 +128,8 @@ describe("GuestClaimIsland", () => {
       attendeeName: "Ana GitHub",
       attendeeEmail: "an***@example.test",
       requiresAccount: true,
+      registrationId: "reg-certificate-1",
+      certificateGranted: true,
     }));
     renderWithMui(<GuestClaimIsland token="guest-token" />);
 
@@ -141,7 +143,32 @@ describe("GuestClaimIsland", () => {
       }),
     );
     expect(await screen.findByText(/participação vinculada à sua conta/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /ver meus certificados/i })).toHaveAttribute("href", "/membro");
+    expect(screen.getByRole("link", { name: /abrir meu certificado/i })).toHaveAttribute(
+      "href",
+      "/membro?section=participation&tab=certificates&certificate=reg-certificate-1",
+    );
+  });
+
+  it("links to participation history when the invitation has no certificate grant", async () => {
+    const user = userEvent.setup();
+    mockGitHubAccount();
+    mockCertificateInvite();
+    authState.authFetch.mockResolvedValue(jsonResponse({
+      status: "confirmed",
+      attendeeName: "Ana GitHub",
+      requiresAccount: true,
+      registrationId: "reg-without-grant",
+      certificateGranted: false,
+    }));
+    renderWithMui(<GuestClaimIsland token="guest-token" />);
+
+    await user.click(await screen.findByRole("button", { name: /associar certificado à minha conta/i }));
+
+    expect(await screen.findByText(/ainda não concedeu o certificado/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /ver histórico de participação/i })).toHaveAttribute(
+      "href",
+      "/membro?section=participation&tab=history",
+    );
   });
 
   it("explains an email mismatch and offers account switching", async () => {
