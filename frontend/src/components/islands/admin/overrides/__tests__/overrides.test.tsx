@@ -236,11 +236,41 @@ describe("OverridesApp — abas", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: "Importar CSV" }));
 
-    const reportTitle = await screen.findByText(/Importação concluída/i);
+    const reportTitle = await screen.findByText(/Importação concluída com pendências/i);
     const report = reportTitle.closest(".MuiAlert-root");
     expect(report).toHaveTextContent("1 presença");
     expect(report).toHaveTextContent("2 certificados concedidos");
     expect(screen.getByText(/sem conta — convite pendente/i)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir Central de certificados" })).toHaveAttribute(
+      "href",
+      "/admin/eventos-checkin?event=external%3Ameetup%3Adevparana%3Aevt-1&tab=certificates&filter=registration_pending",
+    );
+  });
+
+  it("oferece a Central quando somente Certificados está ativo", async () => {
+    stubFetch(async (url, init) => {
+      if (url.endsWith("/activation")) {
+        return jsonResponse({
+          id: "act-cert-only",
+          eventKey: "meetup:devparana:evt-1",
+          features: ["certificates"],
+          communityProjectKey: "devparana",
+        });
+      }
+      if (url.endsWith("/participants") && !init?.method) return jsonResponse([]);
+      return defaultHandler()(url, init);
+    });
+    renderWithMui(<OverridesApp />);
+
+    await userEvent.click(await screen.findByRole("tab", { name: "Ativação de features" }));
+    await selectExternalEvent();
+
+    expect(await screen.findByRole("link", { name: "Abrir Central de certificados" })).toHaveAttribute(
+      "href",
+      "/admin/eventos-checkin?event=external%3Ameetup%3Adevparana%3Aevt-1&tab=certificates&filter=registration_pending",
+    );
+    expect(screen.queryByRole("link", { name: "Check-in" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Adicionar tipo" })).not.toBeInTheDocument();
   });
 
   it("remove participante importado após confirmação e permite nova importação", async () => {

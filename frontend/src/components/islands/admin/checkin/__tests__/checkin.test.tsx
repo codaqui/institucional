@@ -925,4 +925,111 @@ describe("/admin/eventos-checkin", () => {
     expect(authFetch.mock.calls.filter(([url]) => url === "/events/certificate-invites/batches/batch-hidden")).toHaveLength(1);
     vi.useRealTimers();
   });
+
+  it("retoma o lote pelo deep link, separa o resumo e seleciona falhas explicitamente", async () => {
+    const pending = { ...registration, id: "reg-fail", status: "pending_match" };
+    const authFetch = mockAuthFetchWithEvents((url, init) => {
+      if (url.includes("/registrations")) {
+        expect(url).toContain("certificateFilter=registration_pending");
+        return jsonResponse({ data: [pending], total: 1, page: 1, totalPages: 1, limit: 25 });
+      }
+      if (url === "/events/certificate-invites/batches/batch-resume") {
+        return jsonResponse({
+          batchId: "batch-resume",
+          status: "completed",
+          total: 4,
+          completed: 1,
+          queued: 0,
+          processing: 0,
+          retry: 1,
+          failed: 1,
+          skipped: 1,
+          items: [
+            { registrationId: "reg-fail", status: "failed", attempts: 3, lastError: "SMTP timeout" },
+          ],
+        });
+      }
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-retry", total: 0, status: "queued", invalid: [] }, { status: 202 });
+      }
+      return null;
+    });
+    mockAuthFor(organizerUser, authFetch);
+    window.history.pushState(
+      {},
+      "",
+      "/admin/eventos-checkin?event=evt-1&tab=certificates&filter=registration_pending&batch=batch-resume",
+    );
+    renderWithMui(<CheckinApp />);
+
+    expect(await screen.findByText(/1 enviados/)).toBeInTheDocument();
+    expect(screen.getByText(/1 aguardando retry/)).toBeInTheDocument();
+    expect(screen.getByText(/1 falhas/)).toBeInTheDocument();
+    expect(screen.getByText(/1 ignorados por SMTP ausente/)).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.click(await screen.findByRole("button", { name: "Selecionar falhas para um novo lote (1)" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enfileirar convites (1)" }));
+
+    await waitFor(() => {
+      const retryCall = authFetch.mock.calls.find(
+        ([url, init]) => url === "/events/certificate-invites/batch" && init?.method === "POST",
+      );
+      expect(JSON.parse(String(retryCall?.[1]?.body)).registrationIds).toEqual(["reg-fail"]);
+    });
+  });
+
+  it("distingue estados e executa conceder antes de convidar como ações explícitas", async () => {
+    const grantedPending = {
+      ...registration,
+      id: "reg-granted-pending",
+      attendeeName: "Concedido Pendente",
+      status: "pending_match",
+      certificateGrantedAt: "2026-11-01T12:00:00.000Z",
+    };
+    const ungrantedPending = {
+      ...registration,
+      id: "reg-ungranted-pending",
+      attendeeName: "Pendente Sem Concessão",
+      status: "pending_match",
+    };
+    const authFetch = await setupOrganizerPage((url, init) => {
+      if (url.includes("/registrations")) {
+        return jsonResponse({ data: [grantedPending, ungrantedPending], total: 2, page: 1, totalPages: 1, limit: 25 });
+      }
+      if (url === "/events/registrations/reg-ungranted-pending/certificate/grant" && init?.method === "POST") {
+        return jsonResponse({ ...ungrantedPending, certificateGrantedAt: "2026-11-11T12:00:00.000Z" });
+      }
+      if (url === "/events/certificate-invites/batch" && init?.method === "POST") {
+        return jsonResponse({ batchId: "batch-combined", total: 0, status: "queued", invalid: [] }, { status: 202 });
+      }
+      return null;
+    });
+
+    fireEvent.click(screen.getByRole("tab", { name: "Certificados" }));
+    expect(await screen.findByText("Concedido aguardando cadastro")).toBeInTheDocument();
+    expect(screen.getByText("Cadastro pendente sem concessão")).toBeInTheDocument();
+    expect(screen.getByText(/convite vincula a participação, não o certificado/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", {
+      name: "Conceder e depois convidar para Pendente Sem Concessão",
+    }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/registrations/reg-ungranted-pending/certificate/grant",
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/certificate-invites/batch",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ registrationIds: ["reg-ungranted-pending"] }),
+        }),
+      );
+    });
+    const grantCall = authFetch.mock.calls.findIndex(([url]) => url.endsWith("/certificate/grant"));
+    const inviteCall = authFetch.mock.calls.findIndex(([url]) => url === "/events/certificate-invites/batch");
+    expect(grantCall).toBeLessThan(inviteCall);
+  });
 });

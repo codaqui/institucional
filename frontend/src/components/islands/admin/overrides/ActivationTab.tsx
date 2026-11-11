@@ -55,6 +55,15 @@ import {
 
 const EXTERNAL_PREFIX = "external:";
 
+function certificateCenterHref(eventKey: string): string {
+  const params = new URLSearchParams({
+    event: `${EXTERNAL_PREFIX}${eventKey}`,
+    tab: "certificates",
+    filter: "registration_pending",
+  });
+  return `/admin/eventos-checkin?${params.toString()}`;
+}
+
 type TicketKind = "free" | "paid" | "community" | "company";
 
 const KIND_LABEL: Record<TicketKind, string> = {
@@ -101,9 +110,11 @@ const formatBRLFromCents = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
 function ImportSuccessAlert({ report }: { readonly report: ImportReport }): JSX.Element {
+  const hasPending = report.unmatched.length > 0 || report.errors.length > 0;
   return (
-    <Alert severity="success" sx={{ mb: 1 }}>
-      Importação concluída: <strong>{report.imported}</strong> importados,{" "}
+    <Alert severity={hasPending ? "warning" : "success"} sx={{ mb: 1 }}>
+      {hasPending ? "Importação concluída com pendências: " : "Importação concluída: "}
+      <strong>{report.imported}</strong> importados,{" "}
       <strong>{report.matched}</strong> com conta vinculada,{" "}
       <strong>{report.checkedIn}</strong> {report.checkedIn === 1 ? "presença" : "presenças"},{" "}
       <strong>{report.certificatesGranted}</strong> {report.certificatesGranted === 1 ? "certificado concedido" : "certificados concedidos"},{" "}
@@ -610,9 +621,16 @@ export default function ActivationTab({
               {/* Importação CSV */}
               <Card variant="outlined">
                 <CardContent>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }} gutterBottom>
-                    Participantes — importação CSV
-                  </Typography>
+                  <Box sx={{ display: "flex", gap: 1, justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      Participantes — importação CSV
+                    </Typography>
+                    {eventKey && features.includes("certificates") && (
+                      <Button component="a" size="small" variant="outlined" href={certificateCenterHref(eventKey)}>
+                        Abrir Central de certificados
+                      </Button>
+                    )}
+                  </Box>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                     Formato canônico: UTF-8 com header{" "}
                     <code>name,email,ticket_type,external_id,github,checkin,certificate</code> (separador <code>;</code> ou{" "}

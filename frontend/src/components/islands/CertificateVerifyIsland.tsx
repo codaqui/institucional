@@ -161,11 +161,11 @@ function CertificateVerifyInner(): React.JSX.Element {
               variant="h6"
               sx={{ fontWeight: 800, color: "error.contrastText" }}
             >
-              Certificado inválido
+              Não foi possível validar
             </Typography>
             <Typography variant="body2" sx={{ color: "error.contrastText" }}>
-              Nenhum certificado válido foi encontrado para este código. Confira se o
-              código foi digitado corretamente.
+              Não foi possível validar este código. Confira a digitação; se o problema persistir,
+              fale com o participante ou com a organização.
             </Typography>
           </CardContent>
         </Card>
