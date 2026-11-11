@@ -14,6 +14,7 @@ if (!testDatabase.endsWith('_test')) {
 const actors = {
   admin: { sub: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', handle: 'e2e-business-admin', roles: ['admin'] },
   responsible: { sub: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', handle: 'e2e-business-owner', roles: ['membro'] },
+  collaborator: { sub: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', handle: 'E2E-Business-Collab', roles: ['membro'] },
 } satisfies Record<string, JwtPayload>;
 
 type ActorName = keyof typeof actors;
@@ -53,7 +54,7 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
     if (app) await app.close();
   });
 
-  it('executa Amiga, validação Aliada, badge, expiração, renovação e migration down/up', async () => {
+  it('executa admin, colaborador mixed-case, Amiga, Aliada, badge, expiração, renovação e migration down/up', async () => {
     const registration = await request(app.getHttpServer())
       .post('/companies')
       .set(as('responsible'))
@@ -67,6 +68,24 @@ describe('Fase 6 — Business tiers com PostgreSQL real', () => {
       .set(as('admin'))
       .send({ status: 'active' })
       .expect(200);
+
+    await request(app.getHttpServer())
+      .post(`/companies/${companyId}/members`)
+      .set(as('responsible'))
+      .send({ githubHandle: actors.collaborator.handle })
+      .expect(201);
+
+    const adminList = await request(app.getHttpServer())
+      .get('/companies/admin/list?page=1&limit=10')
+      .set(as('admin'))
+      .expect(200);
+    expect(adminList.body.items.find((item: { id: string }) => item.id === companyId))
+      .toMatchObject({ responsibleGithubHandle: actors.responsible.handle, tier: 'amiga' });
+
+    const businessMembers = await request(app.getHttpServer())
+      .get('/companies/business-members')
+      .expect(200);
+    expect(businessMembers.body).toContain(actors.collaborator.sub);
 
     await request(app.getHttpServer())
       .patch(`/companies/${companyId}/tier`)
