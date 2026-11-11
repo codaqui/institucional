@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fase Experiência do Membro — painel, perfil público, certificados e selos.
 audience: Implementers e revisores da fase posterior à PR #628.
-status: Implementação concluída; revisão, integração e validação em produção pendentes.
+status: Implementação e revisão concluídas; integrada em develop pela PR #630, PR para main e validação em produção pendentes.
 sections:
   - Navegação e visão geral
   - Perfil público e selo
