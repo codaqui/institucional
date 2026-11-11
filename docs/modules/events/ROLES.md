@@ -111,7 +111,7 @@ O crédito `event_checkin` não depende de uma role do participante: depende de 
 - **Horas:** `backend/src/hours/hours.controller.ts` aplica JWT/Roles; `hours.service.ts` repete escopo do diretor, transição pendente, idempotência e visibilidade.
 - **Ownership:** `backend/src/event-organizer/event-organizer-ownership.service.ts` lê designations, faz dual-write e restringe reconcile a admin.
 - **Eventos/guests:** `backend/src/events/events.service.ts` — `canManageAll`, `assertCanViewEvent`, `assertCanEditEvent`, `isStaff`, check-in, claim, vínculo e retenção.
-- **Frontend check-in:** `frontend/src/components/islands/admin/checkin/CheckinApp.tsx` — `CHECKIN_ROLES` e `LIST_ROLES` separam scanner e busca manual.
+- **Frontend check-in:** `frontend/src/components/islands/admin/checkin/CheckinApp.tsx` — todo membro autenticado consulta `/events/checkin-scope`; somente os eventos retornados entram no seletor e `canUseList` separa scanner e busca manual.
 - **Frontend admin:** controles de visibilidade complementam, nunca substituem, os guards do backend.
 
 ## 7. Adicionar uma nova role
