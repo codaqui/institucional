@@ -41,6 +41,39 @@ function toDateTimeLocal(value: string | null): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
+function validateText(text: string): string {
+  const labelEnd = text.indexOf("](");
+  const hasMarkdownLink = labelEnd > 0 && text.lastIndexOf("[", labelEnd) >= 0 && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
+  return text.length < 3 || text.length > 280 || /[<>]/.test(text) || hasMarkdownLink
+    ? "Use 3–280 caracteres, sem HTML ou Markdown."
+    : "";
+}
+
+function validateLink(form: AnnouncementInput): string {
+  if (form.linkUrl && !form.linkLabel?.trim()) return "Informe um rótulo para o link.";
+  if (!form.linkUrl && form.linkLabel?.trim()) return "Remova o rótulo ou informe um link.";
+  if (!form.linkUrl) return "";
+  if (!form.linkUrl.includes("://") && !form.linkUrl.startsWith("//")) {
+    return form.linkUrl.startsWith("/") ? "" : "Use um caminho interno iniciado por / ou uma URL HTTPS.";
+  }
+  let url: URL;
+  try {
+    url = new URL(form.linkUrl);
+  } catch {
+    return "Informe uma URL HTTPS válida.";
+  }
+  return url.protocol === "https:" && !url.username && !url.password
+    ? ""
+    : "O link externo deve usar HTTPS e não conter credenciais.";
+}
+
+function validateForm(form: AnnouncementInput, text: string): string {
+  if (form.startsAt && form.endsAt && new Date(form.endsAt) <= new Date(form.startsAt)) {
+    return "O fim da exibição deve ser posterior ao início.";
+  }
+  return validateText(text) || validateLink(form);
+}
+
 export default function AnnouncementEditorDialog({
   open,
   announcement,
@@ -73,38 +106,9 @@ export default function AnnouncementEditorDialog({
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const text = form.text.trim();
-    if (text.length < 3 || text.length > 280 || /[<>]|\[[^\]]+\]\([^)]+\)/.test(text)) {
-      setValidationError("Use 3–280 caracteres, sem HTML ou Markdown.");
-      return;
-    }
-    if (form.linkUrl && !form.linkLabel?.trim()) {
-      setValidationError("Informe um rótulo para o link.");
-      return;
-    }
-    if (!form.linkUrl && form.linkLabel?.trim()) {
-      setValidationError("Remova o rótulo ou informe um link.");
-      return;
-    }
-    if (form.linkUrl) {
-      if (form.linkUrl.includes("://") || form.linkUrl.startsWith("//")) {
-        let url: URL;
-        try {
-          url = new URL(form.linkUrl);
-        } catch {
-          setValidationError("Informe uma URL HTTPS válida.");
-          return;
-        }
-        if (url.protocol !== "https:" || url.username || url.password) {
-          setValidationError("O link externo deve usar HTTPS e não conter credenciais.");
-          return;
-        }
-      } else if (!form.linkUrl.startsWith("/")) {
-        setValidationError("Use um caminho interno iniciado por / ou uma URL HTTPS.");
-        return;
-      }
-    }
-    if (form.startsAt && form.endsAt && new Date(form.endsAt) <= new Date(form.startsAt)) {
-      setValidationError("O fim da exibição deve ser posterior ao início.");
+    const validation = validateForm(form, text);
+    if (validation) {
+      setValidationError(validation);
       return;
     }
     setValidationError("");
@@ -115,6 +119,9 @@ export default function AnnouncementEditorDialog({
       endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : "",
     });
   };
+
+  let submitLabel = announcement ? "Salvar alterações" : "Criar anúncio";
+  if (saving) submitLabel = "Salvando…";
 
   return (
     <Dialog open={open} onClose={() => !saving && onClose()} maxWidth="sm" fullWidth>
@@ -197,7 +204,7 @@ export default function AnnouncementEditorDialog({
       <DialogActions>
         <Button type="button" onClick={onClose} disabled={saving}>Cancelar</Button>
         <Button type="submit" form="announcement-editor" variant="contained" disabled={saving}>
-          {saving ? "Salvando…" : announcement ? "Salvar alterações" : "Criar anúncio"}
+          {submitLabel}
         </Button>
       </DialogActions>
     </Dialog>

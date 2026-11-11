@@ -41,6 +41,11 @@ function assertSafeLink(linkUrl, linkLabel, index) {
   }
 }
 
+function hasMarkdownLink(text) {
+  const labelEnd = text.indexOf("](");
+  return labelEnd > 0 && text.lastIndexOf("[", labelEnd) >= 0 && text.indexOf(")", labelEnd + 2) > labelEnd + 2;
+}
+
 function validateAnnouncement(announcement, index) {
   if (!isObject(announcement)) throw new TypeError(`Anúncio inválido no índice ${index}: esperado um objeto.`);
   if (Object.hasOwn(announcement, "createdById") || Object.hasOwn(announcement, "updatedById")) {
@@ -49,7 +54,7 @@ function validateAnnouncement(announcement, index) {
   if (typeof announcement.id !== "string" || announcement.id.trim().length === 0) {
     throw new TypeError(`Anúncio inválido no índice ${index}: id deve ser uma string não vazia.`);
   }
-  if (typeof announcement.text !== "string" || announcement.text.trim().length < 3 || announcement.text.length > 280 || /[<>]|\[[^\]]+\]\([^)]+\)/.test(announcement.text)) {
+  if (typeof announcement.text !== "string" || announcement.text.trim().length < 3 || announcement.text.length > 280 || /[<>]/.test(announcement.text) || hasMarkdownLink(announcement.text)) {
     throw new TypeError(`Anúncio inválido no índice ${index}: texto deve ter 3–280 caracteres, sem HTML/Markdown.`);
   }
   if (!SEVERITIES.has(announcement.severity)) {
@@ -69,7 +74,7 @@ function validateAnnouncement(announcement, index) {
 
 function validatePayload(payload) {
   if (!Array.isArray(payload)) throw new TypeError("Resposta inválida de /announcements/public: esperado um array.");
-  payload.forEach(validateAnnouncement);
+  payload.forEach((announcement, index) => validateAnnouncement(announcement, index));
   return payload;
 }
 
@@ -111,7 +116,8 @@ const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath
 if (isCli) {
   try {
     const snapshot = await syncAnnouncements();
-    console.log(`✓ Announcements sincronizados em ${DEFAULT_OUTPUT_FILE} (${snapshot.announcements.length})`);
+    const announcementCount = Number.parseInt(String(snapshot.announcements.length), 10);
+    console.log(`✓ Announcements sincronizados em ${DEFAULT_OUTPUT_FILE} (${announcementCount})`);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error(`✖ ${message.replace(/[\u0000-\u001f\u007f-\u009f]/g, " ")}`);

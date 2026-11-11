@@ -31,32 +31,43 @@ export class AnnouncementsService {
     }
   }
 
-  private validateInput(dto: AnnouncementValidationInput): void {
-    const text = dto.text?.trim() ?? '';
-    if (text.length < 3 || text.length > 280 || /[<>]|\[[^\]]+\]\([^)]+\)/.test(text)) {
+  private validateText(text: string | undefined): void {
+    const normalized = text?.trim() ?? '';
+    const labelEnd = normalized.indexOf('](');
+    const hasMarkdownLink = labelEnd > 0 && normalized.lastIndexOf('[', labelEnd) >= 0 && normalized.indexOf(')', labelEnd + 2) > labelEnd + 2;
+    if (normalized.length < 3 || normalized.length > 280 || /[<>]/.test(normalized) || hasMarkdownLink) {
       throw new BadRequestException('O texto deve ter 3–280 caracteres, sem HTML ou Markdown.');
     }
+  }
+
+  private validateLink(dto: AnnouncementValidationInput): void {
     if (dto.linkUrl && !dto.linkLabel?.trim()) {
       throw new BadRequestException('Informe um rótulo para o link.');
     }
     if (!dto.linkUrl && dto.linkLabel?.trim()) {
       throw new BadRequestException('Remova o rótulo ou informe um link.');
     }
-    if (dto.linkUrl) {
-      if (dto.linkUrl.includes('://') || dto.linkUrl.startsWith('//')) {
-        let url: URL;
-        try {
-          url = new URL(dto.linkUrl);
-        } catch {
-          throw new BadRequestException('O link deve ser um caminho interno ou URL HTTPS válida.');
-        }
-        if (url.protocol !== 'https:' || url.username || url.password) {
-          throw new BadRequestException('O link externo deve usar HTTPS e não conter credenciais.');
-        }
-      } else if (!dto.linkUrl.startsWith('/')) {
+    if (!dto.linkUrl) return;
+    if (!dto.linkUrl.includes('://') && !dto.linkUrl.startsWith('//')) {
+      if (!dto.linkUrl.startsWith('/')) {
         throw new BadRequestException('O link deve ser um caminho interno iniciado por / ou URL HTTPS.');
       }
+      return;
     }
+    let url: URL;
+    try {
+      url = new URL(dto.linkUrl);
+    } catch {
+      throw new BadRequestException('O link deve ser um caminho interno ou URL HTTPS válida.');
+    }
+    if (url.protocol !== 'https:' || url.username || url.password) {
+      throw new BadRequestException('O link externo deve usar HTTPS e não conter credenciais.');
+    }
+  }
+
+  private validateInput(dto: AnnouncementValidationInput): void {
+    this.validateText(dto.text);
+    this.validateLink(dto);
     if (dto.startsAt && dto.endsAt) {
       const startsAt = dto.startsAt instanceof Date ? dto.startsAt.getTime() : new Date(dto.startsAt).getTime();
       const endsAt = dto.endsAt instanceof Date ? dto.endsAt.getTime() : new Date(dto.endsAt).getTime();
