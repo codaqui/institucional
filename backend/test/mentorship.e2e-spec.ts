@@ -69,6 +69,22 @@ describe('Fase 5 — jornada de mentoria com PostgreSQL real', () => {
       .expect(201);
     expect(application.body).toMatchObject({ status: 'pending', targetKey: 'mentoria', designation: 'mentor' });
 
+    const pendingApplications = await request(app.getHttpServer())
+      .get('/mentorship/applications')
+      .set(as('admin'))
+      .expect(200);
+    expect(pendingApplications.body).toEqual([
+      expect.objectContaining({
+        id: application.body.id,
+        memberId: actors.candidate.sub,
+        name: 'Ator Mentoria candidate',
+        githubHandle: 'e2e-mentor-candidate',
+        areas: ['DevOps'],
+        focus: 'Carreira',
+      }),
+    ]);
+    expect(JSON.stringify(pendingApplications.body)).not.toContain('seed-');
+
     await request(app.getHttpServer())
       .post(`/mentorship/applications/${application.body.id}/confirm`)
       .set(as('admin'))

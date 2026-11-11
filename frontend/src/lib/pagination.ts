@@ -12,6 +12,9 @@ export const DEFAULT_PAGE_SIZE = 50;
 /** Tamanho de página do diretório de membros (max de itens por fetch). */
 export const MEMBERS_PAGE_SIZE = 100;
 
+/** Tamanho de página da Central de check-in e certificados. */
+export const CHECKIN_PAGE_SIZE = 25;
+
 /** Tamanho padrão da janela de páginas visíveis nos controles de paginação. */
 export const PAGE_WINDOW_SIZE = 5;
 

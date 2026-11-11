@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 4b — Codaqui Universitário, cidades, IES, embaixadores e eventos.
 audience: Implementers e revisores da próxima PR.
-status: Implementado e verificado; PR #618 aberta para main; merge/release 0.17.0, sync inicial e validação pública pendentes de comando explícito.
+status: Concluída e publicada em v0.19.0-backend; administração de IES ampliada em 0.24.0.
 sections:
   - Global Constraints
   - Tasks 1–8

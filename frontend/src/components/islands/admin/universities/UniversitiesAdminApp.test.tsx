@@ -27,12 +27,27 @@ vi.mock("../../../../lib/use-designations", () => ({
 }));
 
 const city = { id: "city-1", name: "Maringá", uf: "PR", isActive: true };
+const inactiveCity = { id: "city-inactive", name: "Cidade Histórica", uf: "PR", isActive: false };
 const institution = {
   id: "ies-1",
   slug: "ies-exemplo",
   name: "IES Exemplo",
   website: null,
+  contactEmail: "contato@ies.example.test",
+  cityId: city.id,
+  isActive: true,
   city: { id: city.id, name: city.name, uf: city.uf },
+  ambassador: null,
+};
+const inactiveInstitution = {
+  id: "ies-inactive",
+  slug: "ies-historica",
+  name: "IES Histórica",
+  website: null,
+  contactEmail: "historica@ies.example.test",
+  cityId: inactiveCity.id,
+  isActive: false,
+  city: { id: inactiveCity.id, name: inactiveCity.name, uf: inactiveCity.uf },
   ambassador: null,
 };
 const application = {
@@ -42,7 +57,12 @@ const application = {
   applicationNotes: "Quero apoiar o programa.",
   member: { id: "member-2", name: "Ana", githubHandle: "ana", avatarUrl: "" },
 };
-const managePayload = { generatedAt: "2026-11-09T12:00:00.000Z", cities: [city], institutions: [institution], events: [] };
+const managePayload = {
+  generatedAt: "2026-11-09T12:00:00.000Z",
+  cities: [city, inactiveCity],
+  institutions: [institution, inactiveInstitution],
+  events: [],
+};
 
 function mockApi(applications = [application]) {
   mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
@@ -143,5 +163,67 @@ describe("UniversitiesAdminApp", () => {
       "/universities/cities",
       expect.objectContaining({ method: "POST", body: JSON.stringify({ name: "Curitiba", uf: "PR", isActive: true }) }),
     ));
+  });
+
+  it("shows an inactive city and reactivates it with its real state", async () => {
+    asManager();
+    const user = userEvent.setup();
+    renderWithMui(<UniversitiesAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Reativar cidade Cidade Histórica" }));
+    const activeCheckbox = screen.getByRole("checkbox", { name: "Cidade ativa" });
+    expect(activeCheckbox).not.toBeChecked();
+    await user.click(activeCheckbox);
+    await user.click(screen.getByRole("button", { name: "Salvar cidade" }));
+
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith(
+      "/universities/cities/city-inactive",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({ name: inactiveCity.name, uf: inactiveCity.uf, isActive: true }),
+      }),
+    ));
+  });
+
+  it("loads real IES editing fields and reactivates it without changing its historical city", async () => {
+    asManager();
+    const user = userEvent.setup();
+    renderWithMui(<UniversitiesAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Reativar IES IES Histórica" }));
+    expect(screen.getByLabelText("E-mail de contato (opcional)")).toHaveValue(inactiveInstitution.contactEmail);
+    expect(screen.getByRole("combobox", { name: "Cidade" })).toHaveTextContent("Cidade Histórica/PR");
+    const activeCheckbox = screen.getByRole("checkbox", { name: "IES ativa" });
+    expect(activeCheckbox).not.toBeChecked();
+    await user.click(activeCheckbox);
+    await user.click(screen.getByRole("button", { name: "Salvar IES" }));
+
+    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith(
+      "/universities/institutions/ies-inactive",
+      expect.objectContaining({
+        method: "PATCH",
+        body: JSON.stringify({
+          name: inactiveInstitution.name,
+          slug: inactiveInstitution.slug,
+          website: undefined,
+          contactEmail: inactiveInstitution.contactEmail,
+          cityId: inactiveCity.id,
+          isActive: true,
+        }),
+      }),
+    ));
+  });
+
+  it("offers only active cities when creating an IES", async () => {
+    asManager();
+    const user = userEvent.setup();
+    renderWithMui(<UniversitiesAdminApp />);
+    await screen.findByText("IES Exemplo");
+
+    await user.click(screen.getByRole("button", { name: "Nova IES" }));
+    await user.click(screen.getByRole("combobox", { name: "Cidade" }));
+
+    expect(screen.getByRole("option", { name: "Maringá/PR" })).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Cidade Histórica/PR" })).not.toBeInTheDocument();
   });
 });

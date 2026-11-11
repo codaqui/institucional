@@ -12,6 +12,7 @@ if (!testDatabase.endsWith('_test')) {
 
 const EVENT_SLUG = 'e2e-university-event';
 const CITY_NAME = 'Cidade E2E Universitário';
+const PATCH_CITY_NAME = 'Cidade E2E Universitário Patches';
 const actors = {
   manager: { sub: '11111111-1111-4111-8111-111111111111', handle: 'e2e-university-manager', roles: ['membro'] },
   admin: { sub: '22222222-2222-4222-8222-222222222222', handle: 'e2e-university-admin', roles: ['admin'] },
@@ -38,7 +39,7 @@ describe('Codaqui Universitário — PostgreSQL real', () => {
     await dataSource.query('DELETE FROM managed_events WHERE slug = $1', [EVENT_SLUG]);
     await dataSource.query('DELETE FROM member_designations WHERE "memberId" = ANY($1::uuid[]) OR "appointedById" = ANY($1::uuid[])', [actorIds]);
     await dataSource.query('DELETE FROM entities WHERE "registeredById" = ANY($1::uuid[])', [actorIds]);
-    await dataSource.query('DELETE FROM cities WHERE name = $1 AND uf = $2', [CITY_NAME, 'PR']);
+    await dataSource.query('DELETE FROM cities WHERE name = ANY($1::text[]) AND uf = $2', [[CITY_NAME, PATCH_CITY_NAME], 'PR']);
     await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [actorIds]);
   }
 
@@ -195,6 +196,113 @@ describe('Codaqui Universitário — PostgreSQL real', () => {
     );
     expect(hourRows).toHaveLength(1);
     expect(Number(hourRows[0].hours)).toBe(2);
+  });
+
+  it('protege o CRUD genérico e reabre IES inativa sem trocar sua cidade histórica', async () => {
+    await request(app.getHttpServer())
+      .post('/entities')
+      .set(as('admin'))
+      .send({ name: 'IES E2E pelo genérico', type: 'instituicao_ensino' })
+      .expect(400)
+      .expect((response) => {
+        expect(response.body.message).toContain('/admin/universitario');
+      });
+
+    const genericResponse = await request(app.getHttpServer())
+      .post('/entities')
+      .set(as('admin'))
+      .send({ name: 'Entidade E2E Patches', slug: 'e2e-generic-patches', type: 'ong' })
+      .expect(201);
+    const genericId = genericResponse.body.id as string;
+
+    await request(app.getHttpServer())
+      .patch(`/entities/${genericId}`)
+      .set(as('admin'))
+      .send({ type: 'instituicao_ensino' })
+      .expect(400);
+
+    const cityResponse = await request(app.getHttpServer())
+      .post('/universities/cities')
+      .set(as('manager'))
+      .send({ name: PATCH_CITY_NAME, uf: 'PR' })
+      .expect(201);
+    const cityId = cityResponse.body.id as string;
+    const institutionResponse = await request(app.getHttpServer())
+      .post('/universities/institutions')
+      .set(as('manager'))
+      .send({
+        name: 'IES E2E Patches',
+        slug: 'e2e-ies-patches',
+        cityId,
+        contactEmail: 'patches@e2e.invalid',
+      })
+      .expect(201);
+    const institutionId = institutionResponse.body.id as string;
+
+    await request(app.getHttpServer())
+      .patch(`/entities/${institutionId}`)
+      .set(as('admin'))
+      .send({ type: 'ong' })
+      .expect(400);
+    await request(app.getHttpServer())
+      .patch(`/universities/institutions/${genericId}`)
+      .set(as('manager'))
+      .send({ name: 'Não deve atualizar' })
+      .expect(404);
+
+    await request(app.getHttpServer())
+      .patch(`/universities/cities/${cityId}`)
+      .set(as('manager'))
+      .send({ isActive: false })
+      .expect(200);
+    await request(app.getHttpServer())
+      .post('/universities/institutions')
+      .set(as('manager'))
+      .send({ name: 'IES E2E cidade inativa', cityId })
+      .expect(404);
+    await request(app.getHttpServer())
+      .patch(`/universities/institutions/${institutionId}`)
+      .set(as('manager'))
+      .send({ cityId, isActive: false })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .get('/universities/manage')
+      .set(as('manager'))
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.cities).toEqual(expect.arrayContaining([
+          expect.objectContaining({ id: cityId, isActive: false }),
+        ]));
+        expect(response.body.institutions).toEqual(expect.arrayContaining([
+          expect.objectContaining({
+            id: institutionId,
+            cityId,
+            contactEmail: 'patches@e2e.invalid',
+            isActive: false,
+          }),
+        ]));
+      });
+    await request(app.getHttpServer())
+      .get('/universities/public')
+      .expect(200)
+      .expect((response) => {
+        expect(response.body.cities).not.toEqual(expect.arrayContaining([
+          expect.objectContaining({ id: cityId }),
+        ]));
+        expect(response.body.institutions).not.toEqual(expect.arrayContaining([
+          expect.objectContaining({ id: institutionId }),
+        ]));
+      });
+
+    await request(app.getHttpServer())
+      .patch(`/universities/institutions/${institutionId}`)
+      .set(as('manager'))
+      .send({ cityId, isActive: true })
+      .expect(200)
+      .expect((response) => {
+        expect(response.body).toMatchObject({ id: institutionId, cityId, isActive: true });
+      });
   });
 });
 

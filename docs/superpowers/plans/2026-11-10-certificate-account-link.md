@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD para exigir conta GitHub e e-mail verificado no aceite de convites de certificado.
 audience: Implementers e revisores da branch feat/certificate-account-link.
-status: Integrado em develop (merge ca2339d0bcb); PR #624 develop→main com checks e SonarCloud verdes; aguardando decisão de merge/deploy.
+status: Concluída e publicada em v0.20.0-backend; aceite exige GitHub + e-mail verificado.
 sections:
   - Constraints globais
   - Contrato do convite e reconciliação

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano do adendo da Fase 4 — presença em lote, concessão independente, CSV e convites para pending_match.
 audience: Implementers e revisores da PR #617.
-status: Em execução inline com TDD — Tasks 1–5 concluídas; Task 6 está em andamento.
+status: Concluída — Tasks 1–6 publicadas na PR #617; jornada do membro ampliada em 0.24.0.
 sections:
   - Progresso
   - Constraints
@@ -32,7 +32,7 @@ agent-protocol:
 - [x] Task 3 — CSV com presença/concessão e crédito único de horas; 54 testes focados e build verdes.
 - [x] Task 4 — convite transacional e guest claim externo.
 - [x] Task 5 — central responsiva, features independentes e relatório CSV; `astro check` sem erros e 898 testes verdes.
-- [ ] Task 6 — E2E real, down/up, gates e documentação concluídos; acompanhamento de CI/Sonar/Copilot na PR em andamento.
+- [x] Task 6 — E2E real, down/up, gates e documentação concluídos; CI/Sonar/Copilot verdes na PR #617.
 
 ## Global Constraints
 

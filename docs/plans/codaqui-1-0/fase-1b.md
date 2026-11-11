@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano executável da Fase 1b do Codaqui 1.0.0 — refinamento de navegação, privacidade por campo, Meus dados, P1–P3 e busca Pagefind no portal.
 audience: AI agents e mantenedores executando a Fase 1b.
-status: em implementação — tasks 1–6 concluídas; documentação/release e revisão final em andamento; backend 0.13.0.
+status: concluída e publicada — navegação, privacidade, Meus dados, P1–P3 e Pagefind entregues na linha 0.13.x.
 sections:
   - Escopo e constraints
   - Baseline e arquitetura

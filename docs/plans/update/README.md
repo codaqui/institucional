@@ -89,8 +89,8 @@ Use o output bruto (incluindo coluna `Wanted`/`Latest`) para preencher as tabela
 |---|---------|-------|---------|----------|
 | 1 | Stripe SDK 21 → 22 | 🟢 baixo (escopo isolado) | 2-4h | nenhum |
 | 2 | ESLint 9 → 10 + class-validator 0.15 (juntos) | 🟢 baixo | 1-2h | nenhum |
-| 3 | MUI 7 → 9 (skipped v8) | 🟡 médio | 1-2 dias | janela dedicada |
-| 4 | TypeScript 5.x → 6 (frontend + backend) | 🟡 médio | 2-4h | aguardar Docusaurus declarar suporte oficial a TS 6 |
+| 3 | MUI 7 → 9 (skipped v8) | ✅ concluído na Fase 0 | — | entregue com Astro + MUI v9 |
+| 4 | TypeScript 5.x → 6 (frontend + backend) | 🟡 médio | 2-4h | validar suporte de Astro 7 e NestJS 11 antes de iniciar |
 
 ---
 

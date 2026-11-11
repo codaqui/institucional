@@ -148,3 +148,34 @@ body {
 .prose-cq details summary + * { margin-top: var(--cq-space-2); }
 .prose-cq details[open] summary { margin-bottom: var(--cq-space-2); }
 .prose-cq details > :last-child { margin-bottom: 0; }
+
+.print-certificate {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body > *:not(.print-certificate) {
+    display: none;
+  }
+
+  body > .print-certificate {
+    display: block;
+    width: 100%;
+    max-width: 186mm;
+    margin: 0 auto;
+  }
+
+  .print-certificate .certificate-print-area {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10mm;
+    break-inside: avoid;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

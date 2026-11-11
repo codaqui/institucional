@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 6 — Business tiers, due diligence, hotpage e badges PJ.
 audience: Implementers e revisores da PR.
-status: Implementação e verificação concluídas; PR para develop e revisões de integração pendentes; sem release/deploy automático.
+status: Concluída e publicada em v0.21.0-backend; validação controlada é acompanhamento operacional.
 sections:
   - Global Constraints
   - Tasks 1–8
