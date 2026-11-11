@@ -54,7 +54,9 @@ Não há exactly-once absoluto quando o SMTP aceita a mensagem e a conexão falh
 
 ## Rate limit e retries
 
-`EmailService` serializa todas as chamadas `provider.send` numa cadeia única, inclusive templates, projetos e reenvio. `EMAIL_SEND_INTERVAL_MS` define espera entre mensagens: default **2000 ms em produção**, **0 em desenvolvimento/testes**.
+`EmailService` serializa todas as chamadas `provider.send` numa única cadeia compartilhada por suas instâncias no processo Node, inclusive templates, projetos, mentoria e reenvio. `EMAIL_SEND_INTERVAL_MS` define espera entre mensagens: default **2000 ms em produção**, **0 em desenvolvimento/testes**.
+
+A cadeia SMTP é global somente dentro de cada processo; múltiplas réplicas mantêm uma cadeia por processo, sem lock SMTP distribuído. Para convites de certificado, o índice parcial único por inscrição ativa e o claim `FOR UPDATE SKIP LOCKED` continuam impedindo jobs duplicados entre admins e réplicas no fluxo normal. Os demais fluxos não ganham deduplicação distribuída, e a incerteza de uma falha SMTP ambígua permanece.
 
 O worker processa no máximo um convite a cada 10 segundos. Falhas temporárias têm backoff de **1 e 5 minutos**; a terceira falha é definitiva. Erros 421/454 pausam jobs pendentes por **15 minutos**. Validação, autorização e payload inválido não são repetidos.
 

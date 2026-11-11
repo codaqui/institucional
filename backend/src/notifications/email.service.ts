@@ -93,8 +93,8 @@ const CONFIRMED_LIKE: RegistrationStatus[] = [
 
 @Injectable()
 export class EmailService {
+  private static smtpChain: Promise<void> = Promise.resolve();
   private readonly logger = new Logger(EmailService.name);
-  private smtpChain: Promise<void> = Promise.resolve();
 
   constructor(
     @InjectRepository(EmailLog)
@@ -120,14 +120,14 @@ export class EmailService {
   }
 
   private scheduleSmtpSend(message: EmailMessage): Promise<void> {
-    const run = this.smtpChain.then(async () => {
+    const run = EmailService.smtpChain.then(async () => {
       try {
         await this.provider.send(message);
       } finally {
         await this.smtpDelay();
       }
     });
-    this.smtpChain = run.catch(() => undefined);
+    EmailService.smtpChain = run.catch(() => undefined);
     return run;
   }
 

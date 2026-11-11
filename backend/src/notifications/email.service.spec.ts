@@ -147,6 +147,48 @@ describe('EmailService', () => {
       expect(provider.send).toHaveBeenCalledTimes(2);
     });
 
+    it('compartilha uma única fila entre instâncias e fluxos de e-mail', async () => {
+      const secondService = new EmailService(
+        emailLogRepo as any,
+        eventRepo as any,
+        activationRepo as any,
+        registrationRepo as any,
+        ticketTypeRepo as any,
+        provider as any,
+        templateService,
+      );
+      let releaseFirst!: () => void;
+      provider.send
+        .mockImplementationOnce(
+          () =>
+            new Promise<void>((resolve) => {
+              releaseFirst = resolve;
+            }),
+        )
+        .mockResolvedValue(undefined);
+
+      const first = service.sendTemplate(
+        EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
+        'a@x.dev',
+        makeContext(),
+      );
+      const second = secondService.sendProjectEmail({
+        template: 'project_mentor_assigned',
+        to: 'b@x.dev',
+        memberName: 'Bia',
+        projectName: 'Projeto Y',
+        projectId: uuid(50),
+      });
+      await new Promise((resolve) => setImmediate(resolve));
+      try {
+        expect(provider.send).toHaveBeenCalledTimes(1);
+      } finally {
+        releaseFirst();
+      }
+      await Promise.all([first, second]);
+      expect(provider.send).toHaveBeenCalledTimes(2);
+    });
+
     it('aguarda o intervalo configurado entre envios', async () => {
       jest.useFakeTimers();
       process.env.EMAIL_SEND_INTERVAL_MS = '5';

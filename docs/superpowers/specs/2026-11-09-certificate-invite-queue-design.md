@@ -116,7 +116,7 @@ O job não oferece garantia absoluta de exactly-once diante de uma falha ambígu
 
 ## Rate limit e retries
 
-`EmailService` passa a serializar todas as chamadas a `provider.send`, inclusive `sendTemplate` e `sendProjectEmail`, numa cadeia única por instância. Entre chamadas consecutivas aplica `EMAIL_SEND_INTERVAL_MS`:
+`EmailService` passa a serializar todas as chamadas a `provider.send`, inclusive `sendTemplate` e `sendProjectEmail`, numa única cadeia compartilhada por suas instâncias no processo Node. Entre chamadas consecutivas aplica `EMAIL_SEND_INTERVAL_MS`:
 
 - produção: default **2000 ms**;
 - desenvolvimento/testes: default **0 ms**, salvo configuração explícita;
