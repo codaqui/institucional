@@ -175,8 +175,12 @@ export class EmailService {
   }
 
   sanitizeOperationalError(rawError: unknown): string {
-    const raw =
-      rawError instanceof Error ? rawError.message : String(rawError ?? '');
+    let raw = '';
+    if (rawError instanceof Error) {
+      raw = rawError.message;
+    } else if (typeof rawError === 'string' || typeof rawError === 'number') {
+      raw = String(rawError);
+    }
     const firstLine = raw.split(/\r?\n/)[0] ?? 'Erro operacional de envio';
     const redacted = firstLine
       .replace(/token=[^&\s"']+/gi, 'token=[REDACTED]')
@@ -473,14 +477,28 @@ export class EmailService {
     }
   }
 
-  async listLogs(query: ListEmailLogsQuery): Promise<EmailLogsPage> {
-    const page = Math.max(1, query.page ?? 1);
-    const pageSize = Math.min(
-      5000,
-      Math.max(1, query.pageSize ?? query.limit ?? 20),
-    );
-    const isAdmin = query.isAdmin ?? true;
+  private buildDateRangeFilter(
+    from?: string,
+    to?: string,
+  ): FindOptionsWhere<EmailLog>['createdAt'] {
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+    if (fromDate && Number.isNaN(fromDate.getTime())) {
+      throw new BadRequestException('Parâmetro from inválido.');
+    }
+    if (toDate && Number.isNaN(toDate.getTime())) {
+      throw new BadRequestException('Parâmetro to inválido.');
+    }
+    if (fromDate && toDate) return Between(fromDate, toDate);
+    if (fromDate) return MoreThanOrEqual(fromDate);
+    if (toDate) return LessThanOrEqual(toDate);
+    return undefined;
+  }
 
+  private buildLogsWhere(
+    query: ListEmailLogsQuery,
+    isAdmin: boolean,
+  ): FindOptionsWhere<EmailLog> {
     const where: FindOptionsWhere<EmailLog> = {};
     if (
       query.status === EmailStatus.SENT ||
@@ -505,21 +523,21 @@ export class EmailService {
       where.to = ILike(`%${query.recipient.trim()}%`);
     }
 
-    const fromDate = query.from ? new Date(query.from) : null;
-    const toDate = query.to ? new Date(query.to) : null;
-    if (fromDate && Number.isNaN(fromDate.getTime())) {
-      throw new BadRequestException('Parâmetro from inválido.');
+    const createdAtFilter = this.buildDateRangeFilter(query.from, query.to);
+    if (createdAtFilter) {
+      where.createdAt = createdAtFilter;
     }
-    if (toDate && Number.isNaN(toDate.getTime())) {
-      throw new BadRequestException('Parâmetro to inválido.');
-    }
-    if (fromDate && toDate) {
-      where.createdAt = Between(fromDate, toDate);
-    } else if (fromDate) {
-      where.createdAt = MoreThanOrEqual(fromDate);
-    } else if (toDate) {
-      where.createdAt = LessThanOrEqual(toDate);
-    }
+    return where;
+  }
+
+  async listLogs(query: ListEmailLogsQuery): Promise<EmailLogsPage> {
+    const page = Math.max(1, query.page ?? 1);
+    const pageSize = Math.min(
+      5000,
+      Math.max(1, query.pageSize ?? query.limit ?? 20),
+    );
+    const isAdmin = query.isAdmin ?? true;
+    const where = this.buildLogsWhere(query, isAdmin);
 
     const [rawItems, total] = await this.emailLogRepo.findAndCount({
       where,

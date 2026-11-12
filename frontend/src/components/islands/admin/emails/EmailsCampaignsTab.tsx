@@ -193,10 +193,28 @@ const DESIGNATION_OPTIONS = [
 ] as const;
 
 function makeIdempotencyKey() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return `camp-${crypto.randomUUID()}`;
+  return `camp-${crypto.randomUUID()}`;
+}
+
+function computeCampaignProgress(campaign: CampaignDetail | null): number {
+  if (!campaign || campaign.metrics.total <= 0) {
+    return 0;
   }
-  return `camp-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const processed =
+    campaign.metrics.sent +
+    campaign.metrics.failed +
+    campaign.metrics.skipped +
+    campaign.metrics.suppressed;
+  return Math.round((processed / campaign.metrics.total) * 100);
+}
+
+function recipientChipColor(
+  status: string,
+): "success" | "error" | "warning" | "default" {
+  if (status === "sent") return "success";
+  if (status === "failed") return "error";
+  if (status === "suppressed") return "warning";
+  return "default";
 }
 
 export default function EmailsCampaignsTab() {
@@ -652,18 +670,7 @@ export default function EmailsCampaignsTab() {
     }
   };
 
-  const progressPercent = selectedCampaign
-    ? selectedCampaign.metrics.total > 0
-      ? Math.round(
-          ((selectedCampaign.metrics.sent +
-            selectedCampaign.metrics.failed +
-            selectedCampaign.metrics.skipped +
-            selectedCampaign.metrics.suppressed) /
-            selectedCampaign.metrics.total) *
-            100,
-        )
-      : 0
-    : 0;
+  const progressPercent = computeCampaignProgress(selectedCampaign);
 
   return (
     <Stack spacing={3}>
@@ -1169,15 +1176,7 @@ export default function EmailsCampaignsTab() {
                               label={rec.status}
                               size="small"
                               variant="outlined"
-                              color={
-                                rec.status === "sent"
-                                  ? "success"
-                                  : rec.status === "failed"
-                                    ? "error"
-                                    : rec.status === "suppressed"
-                                      ? "warning"
-                                      : "default"
-                              }
+                              color={recipientChipColor(rec.status)}
                             />
                           </TableCell>
                           <TableCell>{rec.attempts}</TableCell>
@@ -1221,15 +1220,17 @@ export default function EmailsCampaignsTab() {
           <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 2 }}>
             Histórico de campanhas ({total})
           </Typography>
-          {loading ? (
+          {loading && (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
               <CircularProgress size={28} />
             </Box>
-          ) : campaigns.length === 0 ? (
+          )}
+          {!loading && campaigns.length === 0 && (
             <Typography color="text.secondary">
               Nenhuma campanha registrada até o momento.
             </Typography>
-          ) : (
+          )}
+          {!loading && campaigns.length > 0 && (
             <TableContainer>
               <Table size="small">
                 <TableHead>

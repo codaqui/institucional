@@ -57,17 +57,22 @@ export class NotificationsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('pageSize', new DefaultValuePipe(20), ParseIntPipe)
     pageSize?: number,
-    @Query('recipient') recipient?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
-    @Query('campaignId') campaignId?: string,
+    @Query()
+    filters?: {
+      recipient?: string;
+      from?: string;
+      to?: string;
+      campaignId?: string;
+    },
     @Req() req?: { user?: JwtPayload },
   ) {
     const extra: Record<string, unknown> = {};
-    if (recipient !== undefined) extra.recipient = recipient;
-    if (from !== undefined) extra.from = from;
-    if (to !== undefined) extra.to = to;
-    if (campaignId !== undefined) extra.campaignId = campaignId;
+    if (filters?.recipient !== undefined) extra.recipient = filters.recipient;
+    if (filters?.from !== undefined) extra.from = filters.from;
+    if (filters?.to !== undefined) extra.to = filters.to;
+    if (filters?.campaignId !== undefined) {
+      extra.campaignId = filters.campaignId;
+    }
     if (req?.user?.roles) {
       extra.isAdmin = req.user.roles.includes(MemberRole.ADMIN);
     }
@@ -87,12 +92,15 @@ export class NotificationsController {
       '🔒 Exporta logs de e-mail filtrados em CSV (respeitando escopo de PII) [admin|finance-analyzer]',
   })
   async exportEmails(
-    @Query('status') status?: string,
-    @Query('template') template?: string,
-    @Query('recipient') recipient?: string,
-    @Query('from') from?: string,
-    @Query('to') to?: string,
-    @Query('campaignId') campaignId?: string,
+    @Query()
+    query?: {
+      status?: string;
+      template?: string;
+      recipient?: string;
+      from?: string;
+      to?: string;
+      campaignId?: string;
+    },
     @Req() req?: { user?: JwtPayload },
     @Res() res?: Response,
   ) {
@@ -100,12 +108,12 @@ export class NotificationsController {
       ? req.user.roles.includes(MemberRole.ADMIN)
       : true;
     const csv = await this.emailService.exportLogsCsv({
-      status,
-      template,
-      recipient,
-      from,
-      to,
-      campaignId,
+      status: query?.status,
+      template: query?.template,
+      recipient: query?.recipient,
+      from: query?.from,
+      to: query?.to,
+      campaignId: query?.campaignId,
       isAdmin,
     });
     if (res) {

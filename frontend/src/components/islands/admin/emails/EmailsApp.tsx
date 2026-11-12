@@ -255,9 +255,10 @@ function EmailsInner(): React.JSX.Element | null {
     try {
       const params = buildFilterParams();
       const queryStr = params.toString();
-      const res = await authFetch(
-        `/notifications/emails/export${queryStr ? `?${queryStr}` : ""}`,
-      );
+      const exportUrl = queryStr
+        ? `/notifications/emails/export?${queryStr}`
+        : "/notifications/emails/export";
+      const res = await authFetch(exportUrl);
       if (!res.ok) {
         setResendFeedback({
           kind: "error",

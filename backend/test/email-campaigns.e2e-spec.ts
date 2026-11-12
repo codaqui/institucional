@@ -398,7 +398,8 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
     ]);
 
     // Cada destinatário deve receber exatamente 1 envio (sem duplicação)
-    expect(sentRecipients.sort()).toEqual([
+    sentRecipients.sort((a, b) => a.localeCompare(b));
+    expect(sentRecipients).toEqual([
       'dir@e2e-camp.example.org',
       'leader@e2e-camp.example.org',
     ]);

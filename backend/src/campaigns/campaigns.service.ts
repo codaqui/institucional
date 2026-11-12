@@ -45,10 +45,7 @@ import {
   type CampaignStatus,
   EmailCampaign,
 } from './entities/email-campaign.entity';
-import {
-  type CampaignRecipientStatus,
-  EmailCampaignRecipient,
-} from './entities/email-campaign-recipient.entity';
+import { EmailCampaignRecipient } from './entities/email-campaign-recipient.entity';
 import {
   EmailSuppression,
   type SuppressionSource,
@@ -134,11 +131,22 @@ export class CampaignsService {
     return (raw ?? '').trim().toLowerCase();
   }
 
+  private isValidEmailShape(emailNormalized: string): boolean {
+    if (!emailNormalized || emailNormalized.includes(' ')) return false;
+    const atIndex = emailNormalized.indexOf('@');
+    if (atIndex <= 0 || atIndex !== emailNormalized.lastIndexOf('@')) {
+      return false;
+    }
+    const domain = emailNormalized.slice(atIndex + 1);
+    const dotIndex = domain.indexOf('.');
+    return dotIndex > 0 && dotIndex < domain.length - 1;
+  }
+
   private isPlaceholderOrSyntheticEmail(
     emailNormalized: string,
     githubHandle?: string | null,
   ): boolean {
-    if (!emailNormalized || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalized)) {
+    if (!this.isValidEmailShape(emailNormalized)) {
       return true;
     }
     if (
@@ -207,6 +215,49 @@ export class CampaignsService {
     );
   }
 
+  private validateDesignationConfig(config: CampaignSegmentConfig): void {
+    const validTargets = TARGET_TYPES as readonly string[];
+    const validDesignations = DESIGNATIONS as readonly string[];
+    const hasTargetRef = Boolean(
+      config.targetId?.trim() || config.targetKey?.trim(),
+    );
+    if (
+      !config.targetType ||
+      !validTargets.includes(config.targetType) ||
+      !config.designation ||
+      !validDesignations.includes(config.designation) ||
+      !hasTargetRef
+    ) {
+      throw new BadRequestException(
+        'Segmento por designation exige targetType, designation e targetId/targetKey válidos.',
+      );
+    }
+  }
+
+  private validateManualConfig(
+    purpose: CampaignPurpose,
+    config: CampaignSegmentConfig,
+  ): void {
+    if (
+      !Array.isArray(config.emails) ||
+      config.emails.length === 0 ||
+      config.emails.length > 500
+    ) {
+      throw new BadRequestException(
+        'Segmento manual exige entre 1 e 500 endereços.',
+      );
+    }
+    if (
+      purpose === 'promotional' &&
+      (typeof config.consentEvidence !== 'string' ||
+        config.consentEvidence.trim().length < 5)
+    ) {
+      throw new BadRequestException(
+        'Segmento manual promocional exige evidência de consentimento documentada.',
+      );
+    }
+  }
+
   private validateSegmentConfig(
     purpose: CampaignPurpose,
     segmentType: CampaignSegmentType,
@@ -237,52 +288,19 @@ export class CampaignsService {
         }
         break;
       }
-      case 'designation': {
-        const validTargets = TARGET_TYPES as readonly string[];
-        const validDesignations = DESIGNATIONS as readonly string[];
-        if (
-          !config.targetType ||
-          !validTargets.includes(config.targetType) ||
-          !config.designation ||
-          !validDesignations.includes(config.designation) ||
-          (!config.targetId?.trim() && !config.targetKey?.trim())
-        ) {
-          throw new BadRequestException(
-            'Segmento por designation exige targetType, designation e targetId/targetKey válidos.',
-          );
-        }
+      case 'designation':
+        this.validateDesignationConfig(config);
         break;
-      }
-      case 'community_governance': {
-        if (!config.communityId || !config.communityId.trim()) {
+      case 'community_governance':
+        if (!config.communityId?.trim()) {
           throw new BadRequestException(
             'Segmento community_governance exige communityId.',
           );
         }
         break;
-      }
-      case 'manual': {
-        if (
-          !Array.isArray(config.emails) ||
-          config.emails.length === 0 ||
-          config.emails.length > 500
-        ) {
-          throw new BadRequestException(
-            'Segmento manual exige entre 1 e 500 endereços.',
-          );
-        }
-        if (
-          purpose === 'promotional' &&
-          (!config.consentEvidence ||
-            typeof config.consentEvidence !== 'string' ||
-            config.consentEvidence.trim().length < 5)
-        ) {
-          throw new BadRequestException(
-            'Segmento manual promocional exige evidência de consentimento documentada.',
-          );
-        }
+      case 'manual':
+        this.validateManualConfig(purpose, config);
         break;
-      }
       default:
         throw new BadRequestException(`Segmento inválido: ${String(segmentType)}`);
     }
@@ -389,6 +407,45 @@ export class CampaignsService {
     return saved;
   }
 
+  private applyCampaignUpdateFields(
+    campaign: EmailCampaign,
+    dto: UpdateCampaignDto,
+  ): void {
+    const simpleAssignments: Array<
+      [keyof UpdateCampaignDto, keyof EmailCampaign]
+    > = [
+      ['bodyMarkdown', 'bodyMarkdown'],
+      ['templateId', 'templateId'],
+      ['purpose', 'purpose'],
+      ['segmentType', 'segmentType'],
+      ['segmentConfig', 'segmentConfig'],
+    ];
+    for (const [dtoKey, entityKey] of simpleAssignments) {
+      if (dto[dtoKey] !== undefined) {
+        (campaign as unknown as Record<string, unknown>)[entityKey] =
+          dto[dtoKey];
+      }
+    }
+    if (dto.name !== undefined) campaign.name = dto.name.trim();
+    if (dto.subject !== undefined) campaign.subject = dto.subject.trim();
+    if (dto.scheduledAt !== undefined) {
+      campaign.scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
+    }
+
+    const requiresRepreview = [
+      dto.subject,
+      dto.bodyMarkdown,
+      dto.templateId,
+      dto.purpose,
+      dto.segmentType,
+      dto.segmentConfig,
+    ].some((value) => value !== undefined);
+
+    if (campaign.status === 'preview' && requiresRepreview) {
+      campaign.status = 'draft';
+    }
+  }
+
   async update(
     id: string,
     dto: UpdateCampaignDto,
@@ -416,31 +473,7 @@ export class CampaignsService {
       nextSegmentConfig,
       nextTemplateId,
     );
-
-    if (dto.name !== undefined) campaign.name = dto.name.trim();
-    if (dto.subject !== undefined) campaign.subject = dto.subject.trim();
-    if (dto.bodyMarkdown !== undefined) campaign.bodyMarkdown = dto.bodyMarkdown;
-    if (dto.templateId !== undefined) campaign.templateId = dto.templateId;
-    if (dto.purpose !== undefined) campaign.purpose = dto.purpose;
-    if (dto.segmentType !== undefined) campaign.segmentType = dto.segmentType;
-    if (dto.segmentConfig !== undefined) {
-      campaign.segmentConfig = dto.segmentConfig;
-    }
-    if (dto.scheduledAt !== undefined) {
-      campaign.scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
-    }
-
-    const requiresRepreview =
-      dto.subject !== undefined ||
-      dto.bodyMarkdown !== undefined ||
-      dto.templateId !== undefined ||
-      dto.purpose !== undefined ||
-      dto.segmentType !== undefined ||
-      dto.segmentConfig !== undefined;
-
-    if (campaign.status === 'preview' && requiresRepreview) {
-      campaign.status = 'draft';
-    }
+    this.applyCampaignUpdateFields(campaign, dto);
 
     const saved = await this.campaignRepo.save(campaign);
     await this.auditService.log({
@@ -547,6 +580,273 @@ export class CampaignsService {
     return true;
   }
 
+  private createPreviewContext(
+    campaign: EmailCampaign,
+    suppressionByEmail: Map<string, EmailSuppression>,
+    memberById: Map<string, Member>,
+  ) {
+    const exclusionsByReason: Record<ExclusionReason, number> = {
+      suppressed: 0,
+      inactiveRole: 0,
+      invalidEmail: 0,
+      noOptIn: 0,
+      duplicate: 0,
+    };
+    const excluded: CampaignPreviewResult['excluded'] = [];
+    const included: CampaignPreviewResult['included'] = [];
+    const recipientsToSave: EmailCampaignRecipient[] = [];
+    const seenEmails = new Set<string>();
+
+    const recordExclusion = (
+      reason: ExclusionReason,
+      info: {
+        memberId: string | null;
+        email: string | null;
+        name: string | null;
+      },
+    ) => {
+      exclusionsByReason[reason] += 1;
+      excluded.push({ ...info, reason });
+    };
+
+    const buildRecipientRow = (
+      member: Member,
+      verifiedEmail: string,
+      status: 'pending' | 'suppressed',
+    ) => {
+      const recId = randomUUID();
+      const rawToken = this.buildUnsubscribeToken(recId);
+      return this.recipientRepo.create({
+        id: recId,
+        campaignId: campaign.id,
+        memberId: member.id,
+        email: verifiedEmail,
+        name: member.name ?? null,
+        emailNormalized: verifiedEmail,
+        status,
+        attempts: 0,
+        unsubscribeTokenHash: this.hashUnsubscribeToken(rawToken),
+      });
+    };
+
+    const evaluateCandidateMember = (member: Member) => {
+      const baseInfo = {
+        memberId: member.id,
+        email: member.email ?? null,
+        name: member.name ?? null,
+      };
+      if (!member.isActive) {
+        recordExclusion('inactiveRole', baseInfo);
+        return;
+      }
+
+      const verifiedEmail = this.resolveVerifiedMemberEmail(member);
+      if (!verifiedEmail) {
+        recordExclusion('invalidEmail', baseInfo);
+        return;
+      }
+
+      const verifiedInfo = { ...baseInfo, email: verifiedEmail };
+      if (seenEmails.has(verifiedEmail)) {
+        recordExclusion('duplicate', verifiedInfo);
+        return;
+      }
+      seenEmails.add(verifiedEmail);
+
+      const suppression = suppressionByEmail.get(verifiedEmail);
+      if (this.isSuppressedForPurpose(suppression, campaign.purpose)) {
+        recordExclusion('suppressed', verifiedInfo);
+        recipientsToSave.push(
+          buildRecipientRow(member, verifiedEmail, 'suppressed'),
+        );
+        return;
+      }
+
+      const needsOptIn =
+        campaign.purpose === 'promotional' ||
+        campaign.segmentType === 'all_opted_in_members';
+      if (needsOptIn && !member.marketingEmailOptIn) {
+        recordExclusion('noOptIn', verifiedInfo);
+        return;
+      }
+
+      included.push(verifiedInfo);
+      recipientsToSave.push(buildRecipientRow(member, verifiedEmail, 'pending'));
+    };
+
+    return {
+      campaign,
+      memberById,
+      exclusionsByReason,
+      excluded,
+      included,
+      recipientsToSave,
+      recordExclusion,
+      evaluateCandidateMember,
+    };
+  }
+
+  private evaluateDesignationRows(
+    designations: MemberDesignation[],
+    ctx: ReturnType<CampaignsService['createPreviewContext']>,
+    now: Date,
+    isExtraTargetActive?: (d: MemberDesignation) => boolean,
+  ): void {
+    const seenActiveMembers = new Set<string>();
+    for (const d of designations) {
+      const member = ctx.memberById.get(d.memberId);
+      const targetOk = isExtraTargetActive ? isExtraTargetActive(d) : true;
+      if (!member || !targetOk || !this.isDesignationLinkActive(d, now)) {
+        ctx.recordExclusion('inactiveRole', {
+          memberId: d.memberId,
+          email: member?.email ?? null,
+          name: member?.name ?? null,
+        });
+        continue;
+      }
+      if (seenActiveMembers.has(member.id)) {
+        ctx.recordExclusion('duplicate', {
+          memberId: member.id,
+          email: member.email ?? null,
+          name: member.name ?? null,
+        });
+        continue;
+      }
+      seenActiveMembers.add(member.id);
+      ctx.evaluateCandidateMember(member);
+    }
+  }
+
+  private async evaluateCommunityGovernanceSegment(
+    ctx: ReturnType<CampaignsService['createPreviewContext']>,
+    now: Date,
+  ): Promise<void> {
+    const communityId = ctx.campaign.segmentConfig.communityId!;
+    const community = await this.communityRepo.findOneBy({ id: communityId });
+    if (!community) {
+      throw new BadRequestException('Comunidade informada não encontrada.');
+    }
+    const directorates = await this.directorateRepo.find({
+      where: { communityId },
+    });
+    const activeDirectorateIds = new Set(
+      directorates.filter((dir) => dir.isActive).map((dir) => dir.id),
+    );
+    const allDirectorateIds = new Set(directorates.map((dir) => dir.id));
+
+    const allDesignations = await this.designationRepo.find();
+    const matchingDesignations = allDesignations.filter(
+      (d) =>
+        (d.targetType === 'community' && d.targetId === communityId) ||
+        (d.targetType === 'directorate' &&
+          d.targetId !== null &&
+          allDirectorateIds.has(d.targetId)),
+    );
+
+    this.evaluateDesignationRows(
+      matchingDesignations,
+      ctx,
+      now,
+      (d) =>
+        d.targetType !== 'directorate' ||
+        (d.targetId !== null && activeDirectorateIds.has(d.targetId)),
+    );
+  }
+
+  private buildVerifiedEmailMemberIndex(members: Member[]): Map<string, Member> {
+    const memberByVerifiedEmail = new Map<string, Member>();
+    for (const member of members) {
+      const primaryVerified = this.resolveVerifiedMemberEmail(member);
+      if (primaryVerified) {
+        memberByVerifiedEmail.set(primaryVerified, member);
+      }
+      if (!Array.isArray(member.secondaryEmails)) continue;
+      for (const sec of member.secondaryEmails) {
+        const norm = this.normalizeEmail(sec);
+        if (!this.isPlaceholderOrSyntheticEmail(norm, member.githubHandle)) {
+          memberByVerifiedEmail.set(norm, member);
+        }
+      }
+    }
+    return memberByVerifiedEmail;
+  }
+
+  private evaluateManualSegment(
+    ctx: ReturnType<CampaignsService['createPreviewContext']>,
+    members: Member[],
+  ): void {
+    const memberByVerifiedEmail = this.buildVerifiedEmailMemberIndex(members);
+    const rawEmails = ctx.campaign.segmentConfig.emails ?? [];
+    const seenManual = new Set<string>();
+
+    for (const raw of rawEmails) {
+      const norm = this.normalizeEmail(raw);
+      if (seenManual.has(norm)) {
+        ctx.recordExclusion('duplicate', {
+          memberId: null,
+          email: norm || raw,
+          name: null,
+        });
+        continue;
+      }
+      seenManual.add(norm);
+      const member = memberByVerifiedEmail.get(norm);
+      if (!member) {
+        ctx.recordExclusion('invalidEmail', {
+          memberId: null,
+          email: norm || raw,
+          name: null,
+        });
+        continue;
+      }
+      ctx.evaluateCandidateMember(member);
+    }
+  }
+
+  private async resolveSegmentRecipients(
+    ctx: ReturnType<CampaignsService['createPreviewContext']>,
+    members: Member[],
+    now: Date,
+  ): Promise<void> {
+    const { campaign } = ctx;
+    if (campaign.segmentType === 'all_opted_in_members') {
+      for (const member of members) {
+        ctx.evaluateCandidateMember(member);
+      }
+      return;
+    }
+    if (campaign.segmentType === 'role') {
+      const targetRole = campaign.segmentConfig.role as MemberRole | undefined;
+      for (const member of members) {
+        if (targetRole && member.roles?.includes(targetRole)) {
+          ctx.evaluateCandidateMember(member);
+        }
+      }
+      return;
+    }
+    if (campaign.segmentType === 'designation') {
+      const cfg = campaign.segmentConfig;
+      const allDesignations = await this.designationRepo.find({
+        where: {
+          targetType: cfg.targetType as TargetType | undefined,
+          designation: cfg.designation as Designation | undefined,
+          ...(cfg.targetId
+            ? { targetId: cfg.targetId }
+            : { targetKey: cfg.targetKey }),
+        },
+      });
+      this.evaluateDesignationRows(allDesignations, ctx, now);
+      return;
+    }
+    if (campaign.segmentType === 'community_governance') {
+      await this.evaluateCommunityGovernanceSegment(ctx, now);
+      return;
+    }
+    if (campaign.segmentType === 'manual') {
+      this.evaluateManualSegment(ctx, members);
+    }
+  }
+
   async preview(
     id: string,
     actor: JwtPayload,
@@ -560,9 +860,7 @@ export class CampaignsService {
         'A prévia só pode ser gerada para campanhas em rascunho ou prévia.',
       );
     }
-
-    const isAdmin = Boolean(actor.roles?.includes(MemberRole.ADMIN));
-    if (!isAdmin) {
+    if (!actor.roles?.includes(MemberRole.ADMIN)) {
       throw new ForbiddenException('Apenas administradores podem gerar prévias.');
     }
 
@@ -584,262 +882,20 @@ export class CampaignsService {
       ],
     });
     const memberById = new Map(members.map((m) => [m.id, m]));
+    const ctx = this.createPreviewContext(
+      campaign,
+      suppressionByEmail,
+      memberById,
+    );
 
-    const exclusionsByReason: Record<ExclusionReason, number> = {
-      suppressed: 0,
-      inactiveRole: 0,
-      invalidEmail: 0,
-      noOptIn: 0,
-      duplicate: 0,
-    };
-    const excluded: CampaignPreviewResult['excluded'] = [];
-    const included: CampaignPreviewResult['included'] = [];
-    const recipientsToSave: EmailCampaignRecipient[] = [];
-
-    const recordExclusion = (
-      reason: ExclusionReason,
-      info: { memberId: string | null; email: string | null; name: string | null },
-    ) => {
-      exclusionsByReason[reason] += 1;
-      excluded.push({ ...info, reason });
-    };
-
-    const evaluateCandidateMember = (
-      member: Member,
-      seenEmails: Set<string>,
-    ) => {
-      if (!member.isActive) {
-        recordExclusion('inactiveRole', {
-          memberId: member.id,
-          email: member.email ?? null,
-          name: member.name ?? null,
-        });
-        return;
-      }
-
-      const verifiedEmail = this.resolveVerifiedMemberEmail(member);
-      if (!verifiedEmail) {
-        recordExclusion('invalidEmail', {
-          memberId: member.id,
-          email: member.email ?? null,
-          name: member.name ?? null,
-        });
-        return;
-      }
-
-      if (seenEmails.has(verifiedEmail)) {
-        recordExclusion('duplicate', {
-          memberId: member.id,
-          email: verifiedEmail,
-          name: member.name ?? null,
-        });
-        return;
-      }
-      seenEmails.add(verifiedEmail);
-
-      const suppression = suppressionByEmail.get(verifiedEmail);
-      if (this.isSuppressedForPurpose(suppression, campaign.purpose)) {
-        recordExclusion('suppressed', {
-          memberId: member.id,
-          email: verifiedEmail,
-          name: member.name ?? null,
-        });
-        const recId = randomUUID();
-        const rawToken = this.buildUnsubscribeToken(recId);
-        recipientsToSave.push(
-          this.recipientRepo.create({
-            id: recId,
-            campaignId: campaign.id,
-            memberId: member.id,
-            email: verifiedEmail,
-            name: member.name ?? null,
-            emailNormalized: verifiedEmail,
-            status: 'suppressed',
-            attempts: 0,
-            unsubscribeTokenHash: this.hashUnsubscribeToken(rawToken),
-          }),
-        );
-        return;
-      }
-
-      if (
-        (campaign.purpose === 'promotional' ||
-          campaign.segmentType === 'all_opted_in_members') &&
-        !member.marketingEmailOptIn
-      ) {
-        recordExclusion('noOptIn', {
-          memberId: member.id,
-          email: verifiedEmail,
-          name: member.name ?? null,
-        });
-        return;
-      }
-
-      const recId = randomUUID();
-      const rawToken = this.buildUnsubscribeToken(recId);
-      included.push({
-        memberId: member.id,
-        email: verifiedEmail,
-        name: member.name ?? null,
-      });
-      recipientsToSave.push(
-        this.recipientRepo.create({
-          id: recId,
-          campaignId: campaign.id,
-          memberId: member.id,
-          email: verifiedEmail,
-          name: member.name ?? null,
-          emailNormalized: verifiedEmail,
-          status: 'pending',
-          attempts: 0,
-          unsubscribeTokenHash: this.hashUnsubscribeToken(rawToken),
-        }),
-      );
-    };
-
-    const now = new Date();
-    const seenEmails = new Set<string>();
-
-    if (campaign.segmentType === 'all_opted_in_members') {
-      for (const member of members) {
-        evaluateCandidateMember(member, seenEmails);
-      }
-    } else if (campaign.segmentType === 'role') {
-      const targetRole = campaign.segmentConfig.role as MemberRole | undefined;
-      for (const member of members) {
-        if (!targetRole || !member.roles?.includes(targetRole)) continue;
-        evaluateCandidateMember(member, seenEmails);
-      }
-    } else if (campaign.segmentType === 'designation') {
-      const cfg = campaign.segmentConfig;
-      const allDesignations = await this.designationRepo.find({
-        where: {
-          targetType: cfg.targetType as TargetType | undefined,
-          designation: cfg.designation as Designation | undefined,
-          ...(cfg.targetId
-            ? { targetId: cfg.targetId }
-            : { targetKey: cfg.targetKey }),
-        },
-      });
-      const seenActiveMembers = new Set<string>();
-      for (const d of allDesignations) {
-        const member = memberById.get(d.memberId);
-        if (!member || !this.isDesignationLinkActive(d, now)) {
-          recordExclusion('inactiveRole', {
-            memberId: d.memberId,
-            email: member?.email ?? null,
-            name: member?.name ?? null,
-          });
-          continue;
-        }
-        if (seenActiveMembers.has(member.id)) {
-          recordExclusion('duplicate', {
-            memberId: member.id,
-            email: member.email ?? null,
-            name: member.name ?? null,
-          });
-          continue;
-        }
-        seenActiveMembers.add(member.id);
-        evaluateCandidateMember(member, seenEmails);
-      }
-    } else if (campaign.segmentType === 'community_governance') {
-      const communityId = campaign.segmentConfig.communityId!;
-      const community = await this.communityRepo.findOneBy({ id: communityId });
-      if (!community) {
-        throw new BadRequestException('Comunidade informada não encontrada.');
-      }
-      const directorates = await this.directorateRepo.find({
-        where: { communityId },
-      });
-      const activeDirectorateIds = new Set(
-        directorates.filter((dir) => dir.isActive).map((dir) => dir.id),
-      );
-      const allDirectorateIds = new Set(directorates.map((dir) => dir.id));
-
-      const allDesignations = await this.designationRepo.find();
-      const matchingDesignations = allDesignations.filter(
-        (d) =>
-          (d.targetType === 'community' && d.targetId === communityId) ||
-          (d.targetType === 'directorate' &&
-            d.targetId !== null &&
-            allDirectorateIds.has(d.targetId)),
-      );
-
-      const seenActiveMembers = new Set<string>();
-      for (const d of matchingDesignations) {
-        const member = memberById.get(d.memberId);
-        const dirIsActive =
-          d.targetType !== 'directorate' ||
-          (d.targetId !== null && activeDirectorateIds.has(d.targetId));
-        if (!member || !dirIsActive || !this.isDesignationLinkActive(d, now)) {
-          recordExclusion('inactiveRole', {
-            memberId: d.memberId,
-            email: member?.email ?? null,
-            name: member?.name ?? null,
-          });
-          continue;
-        }
-        if (seenActiveMembers.has(member.id)) {
-          recordExclusion('duplicate', {
-            memberId: member.id,
-            email: member.email ?? null,
-            name: member.name ?? null,
-          });
-          continue;
-        }
-        seenActiveMembers.add(member.id);
-        evaluateCandidateMember(member, seenEmails);
-      }
-    } else if (campaign.segmentType === 'manual') {
-      const memberByVerifiedEmail = new Map<string, Member>();
-      for (const member of members) {
-        const primaryVerified = this.resolveVerifiedMemberEmail(member);
-        if (primaryVerified) {
-          memberByVerifiedEmail.set(primaryVerified, member);
-        }
-        if (Array.isArray(member.secondaryEmails)) {
-          for (const sec of member.secondaryEmails) {
-            const norm = this.normalizeEmail(sec);
-            if (!this.isPlaceholderOrSyntheticEmail(norm, member.githubHandle)) {
-              memberByVerifiedEmail.set(norm, member);
-            }
-          }
-        }
-      }
-
-      const rawEmails = campaign.segmentConfig.emails ?? [];
-      const seenManual = new Set<string>();
-      for (const raw of rawEmails) {
-        const norm = this.normalizeEmail(raw);
-        if (seenManual.has(norm)) {
-          recordExclusion('duplicate', {
-            memberId: null,
-            email: norm || raw,
-            name: null,
-          });
-          continue;
-        }
-        seenManual.add(norm);
-        const member = memberByVerifiedEmail.get(norm);
-        if (!member) {
-          recordExclusion('invalidEmail', {
-            memberId: null,
-            email: norm || raw,
-            name: null,
-          });
-          continue;
-        }
-        evaluateCandidateMember(member, seenEmails);
-      }
-    }
+    await this.resolveSegmentRecipients(ctx, members, new Date());
 
     await this.dataSource.transaction(async (manager) => {
       const txRecipientRepo = manager.getRepository(EmailCampaignRecipient);
       const txCampaignRepo = manager.getRepository(EmailCampaign);
       await txRecipientRepo.delete({ campaignId: campaign.id });
-      if (recipientsToSave.length > 0) {
-        await txRecipientRepo.save(recipientsToSave);
+      if (ctx.recipientsToSave.length > 0) {
+        await txRecipientRepo.save(ctx.recipientsToSave);
       }
       campaign.status = 'preview';
       await txCampaignRepo.save(campaign);
@@ -854,11 +910,11 @@ export class CampaignsService {
     return {
       campaignId: campaign.id,
       status: 'preview',
-      includedCount: included.length,
-      excludedCount: excluded.length,
-      included,
-      excluded,
-      exclusionsByReason,
+      includedCount: ctx.included.length,
+      excludedCount: ctx.excluded.length,
+      included: ctx.included,
+      excluded: ctx.excluded,
+      exclusionsByReason: ctx.exclusionsByReason,
       rendered,
     };
   }
@@ -949,12 +1005,10 @@ export class CampaignsService {
       );
     }
 
-    const scheduledAt =
-      dto.scheduledAt !== undefined
-        ? dto.scheduledAt
-          ? new Date(dto.scheduledAt)
-          : null
-        : campaign.scheduledAt;
+    let scheduledAt = campaign.scheduledAt;
+    if (dto.scheduledAt !== undefined) {
+      scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : null;
+    }
 
     const now = new Date();
     campaign.confirmedById = actor.sub;
@@ -1113,7 +1167,7 @@ export class CampaignsService {
     const recipient = await this.recipientRepo.findOneBy({
       unsubscribeTokenHash: tokenHash,
     });
-    if (!recipient || !recipient.emailNormalized) {
+    if (!recipient?.emailNormalized) {
       return {
         ok: false,
         status: 'invalid_or_expired',
@@ -1164,7 +1218,7 @@ export class CampaignsService {
     };
   }
 
-  async listSuppressions(): Promise<EmailSuppression[]> {
+  listSuppressions(): Promise<EmailSuppression[]> {
     return this.suppressionRepo.find({
       order: { createdAt: 'DESC' },
     });
@@ -1235,7 +1289,17 @@ export class CampaignsService {
     });
   }
 
-  private async claimPendingRecipients(
+  private extractReturningRows(rows: unknown): EmailCampaignRecipient[] {
+    if (!Array.isArray(rows)) {
+      return [];
+    }
+    if (Array.isArray(rows[0])) {
+      return rows[0] as EmailCampaignRecipient[];
+    }
+    return rows as EmailCampaignRecipient[];
+  }
+
+  private claimPendingRecipients(
     campaignId: string,
     batchSize: number,
     now: Date,
@@ -1263,12 +1327,7 @@ export class CampaignsService {
           [now, campaignId, batchSize],
         )) as unknown;
 
-        const claimedRows: EmailCampaignRecipient[] = Array.isArray(rows)
-          ? Array.isArray(rows[0])
-            ? (rows[0] as EmailCampaignRecipient[])
-            : (rows as EmailCampaignRecipient[])
-          : [];
-        return claimedRows;
+        return this.extractReturningRows(rows);
       }
 
       const txRecipientRepo = manager.getRepository(EmailCampaignRecipient);
@@ -1294,15 +1353,24 @@ export class CampaignsService {
     });
   }
 
-  @Cron('*/10 * * * * *')
-  async processCampaignQueue(batchSize = 10): Promise<void> {
-    const now = new Date();
-    const staleCutoff = new Date(now.getTime() - STALE_SENDING_MS);
+  private async runSequentially<T>(
+    items: readonly T[],
+    handler: (item: T) => Promise<boolean | void>,
+    index = 0,
+  ): Promise<void> {
+    if (index >= items.length) return;
+    const shouldContinue = await handler(items[index]);
+    if (shouldContinue === false) return;
+    await this.runSequentially(items, handler, index + 1);
+  }
 
-    // 1. Recupera itens presos em 'sending' há mais de 2 minutos.
+  private async recoverStaleSendingRecipients(now: Date): Promise<void> {
+    const staleCutoff = new Date(now.getTime() - STALE_SENDING_MS);
     const allSendingRecipients = await this.recipientRepo.find({
       where: { status: 'sending', lockedAt: LessThan(staleCutoff) },
     });
+    if (allSendingRecipients.length === 0) return;
+
     for (const stale of allSendingRecipients) {
       if (stale.attempts >= MAX_RECIPIENT_ATTEMPTS) {
         stale.status = 'failed';
@@ -1313,205 +1381,240 @@ export class CampaignsService {
         stale.lockedAt = null;
         stale.nextAttemptAt = now;
       }
-      await this.recipientRepo.save(stale);
     }
+    await this.recipientRepo.save(allSendingRecipients);
+  }
 
-    // 2. Promove campanhas agendadas cujo horário já chegou.
+  private async promoteDueScheduledCampaigns(now: Date): Promise<void> {
     const scheduledCampaigns = await this.campaignRepo.find({
       where: { status: 'scheduled' },
     });
-    for (const scheduled of scheduledCampaigns) {
-      if (
+    const dueCampaigns = scheduledCampaigns.filter(
+      (scheduled) =>
         !scheduled.scheduledAt ||
-        new Date(scheduled.scheduledAt).getTime() <= now.getTime()
-      ) {
-        scheduled.status = 'sending';
-        scheduled.startedAt = scheduled.startedAt ?? now;
-        await this.campaignRepo.save(scheduled);
-      }
+        new Date(scheduled.scheduledAt).getTime() <= now.getTime(),
+    );
+    if (dueCampaigns.length === 0) return;
+
+    for (const scheduled of dueCampaigns) {
+      scheduled.status = 'sending';
+      scheduled.startedAt = scheduled.startedAt ?? now;
+    }
+    await this.campaignRepo.save(dueCampaigns);
+  }
+
+  private async failCampaignAndPendingRecipients(
+    campaign: EmailCampaign,
+    reason: string,
+  ): Promise<void> {
+    campaign.status = 'failed';
+    campaign.completedAt = new Date();
+    await this.campaignRepo.save(campaign);
+    await this.recipientRepo.update(
+      { campaignId: campaign.id, status: 'pending' },
+      {
+        status: 'failed',
+        lockedAt: null,
+        lastError: reason,
+      },
+    );
+  }
+
+  private async applyRecipientSendFailure(
+    campaignId: string,
+    recipient: EmailCampaignRecipient,
+    sanitizedError: string,
+  ): Promise<boolean> {
+    recipient.lastError = sanitizedError;
+
+    const isThrottleError =
+      /(?:^|\b)(421|454)(?:\b|$)|too many login attempts|rate limit|throttl/i.test(
+        sanitizedError,
+      );
+    if (isThrottleError) {
+      const pauseUntil = new Date(Date.now() + THROTTLE_PAUSE_MS);
+      const exhausted = recipient.attempts >= MAX_RECIPIENT_ATTEMPTS;
+      recipient.status = exhausted ? 'failed' : 'pending';
+      recipient.nextAttemptAt = exhausted ? null : pauseUntil;
+      await this.recipientRepo.save(recipient);
+      await this.recipientRepo.update(
+        { campaignId, status: 'pending' },
+        { nextAttemptAt: pauseUntil },
+      );
+      return false;
     }
 
-    // 3. Processa lotes das campanhas em 'sending'.
+    const isPermanentInvalid =
+      /invalid recipient|invalid address|malformed|550 5\.1\.1/i.test(
+        sanitizedError,
+      );
+    if (isPermanentInvalid || recipient.attempts >= MAX_RECIPIENT_ATTEMPTS) {
+      recipient.status = 'failed';
+      recipient.nextAttemptAt = null;
+    } else {
+      const backoffMs =
+        RETRY_BACKOFF_MS[recipient.attempts - 1] ?? RETRY_BACKOFF_MS[1];
+      recipient.status = 'pending';
+      recipient.nextAttemptAt = new Date(Date.now() + backoffMs);
+    }
+    await this.recipientRepo.save(recipient);
+    return true;
+  }
+
+  private async processClaimedRecipient(
+    campaign: EmailCampaign,
+    recipient: EmailCampaignRecipient,
+  ): Promise<boolean> {
+    const freshCampaign = await this.campaignRepo.findOneBy({
+      id: campaign.id,
+    });
+    if (!freshCampaign || freshCampaign.status === 'canceled') {
+      recipient.status = 'skipped';
+      recipient.lockedAt = null;
+      recipient.lastError = 'Campanha cancelada pelo administrador.';
+      await this.recipientRepo.save(recipient);
+      return true;
+    }
+
+    const normEmail = this.normalizeEmail(
+      recipient.emailNormalized ?? recipient.email,
+    );
+    if (!normEmail || !recipient.email) {
+      recipient.status = 'failed';
+      recipient.lockedAt = null;
+      recipient.lastError = 'Destinatário sem e-mail válido.';
+      await this.recipientRepo.save(recipient);
+      return true;
+    }
+
+    const suppression = await this.suppressionRepo.findOneBy({
+      emailNormalized: normEmail,
+    });
+    if (
+      this.isSuppressedForPurpose(suppression ?? undefined, campaign.purpose)
+    ) {
+      recipient.status = 'suppressed';
+      recipient.lockedAt = null;
+      recipient.lastError = null;
+      await this.recipientRepo.save(recipient);
+      return true;
+    }
+
+    const rawToken = this.buildUnsubscribeToken(recipient.id);
+    const unsubscribeUrl = `${this.frontendUrl}/descadastro?token=${encodeURIComponent(rawToken)}`;
+    const rendered = this.templateService.renderCampaignMarkdown({
+      subject: campaign.subject,
+      bodyMarkdown: campaign.bodyMarkdown,
+      purpose: campaign.purpose,
+      recipientName: recipient.name,
+      unsubscribeUrl,
+    });
+
+    const log = await this.emailService.sendCampaignEmail({
+      to: recipient.email,
+      subject: rendered.subject,
+      text: rendered.text,
+      html: rendered.html,
+      template: this.resolveTemplateName(campaign),
+      campaignId: campaign.id,
+      campaignRecipientId: recipient.id,
+    });
+
+    recipient.attempts = (recipient.attempts ?? 0) + 1;
+    recipient.emailLogId = log.id;
+    recipient.lockedAt = null;
+
+    if (log.status === EmailStatus.SENT) {
+      recipient.status = 'sent';
+      recipient.sentAt = new Date();
+      recipient.nextAttemptAt = null;
+      recipient.lastError = null;
+      await this.recipientRepo.save(recipient);
+      return true;
+    }
+
+    const sanitizedError = this.emailService.sanitizeOperationalError(
+      log.error ?? 'Falha operacional no envio SMTP',
+    );
+    return this.applyRecipientSendFailure(
+      campaign.id,
+      recipient,
+      sanitizedError,
+    );
+  }
+
+  private async finalizeCampaignIfComplete(campaignId: string): Promise<void> {
+    const refreshedCampaign = await this.campaignRepo.findOneBy({
+      id: campaignId,
+    });
+    if (refreshedCampaign?.status !== 'sending') {
+      return;
+    }
+    const allRecipients = await this.recipientRepo.find({
+      where: { campaignId },
+    });
+    const hasDuePending = allRecipients.some(
+      (r) => r.status === 'pending' || r.status === 'sending',
+    );
+    if (!hasDuePending) {
+      const metrics = this.computeMetrics(allRecipients);
+      refreshedCampaign.status =
+        metrics.failed > 0 ? 'completed_with_errors' : 'completed';
+      refreshedCampaign.completedAt = new Date();
+      await this.campaignRepo.save(refreshedCampaign);
+    }
+  }
+
+  private async processActiveCampaign(
+    campaign: EmailCampaign,
+    batchSize: number,
+    now: Date,
+  ): Promise<void> {
+    const confirmerId = campaign.confirmedById ?? campaign.createdById;
+    const confirmer = await this.memberRepo.findOneBy({ id: confirmerId });
+    if (
+      !confirmer?.isActive ||
+      !confirmer.roles?.includes(MemberRole.ADMIN)
+    ) {
+      await this.failCampaignAndPendingRecipients(
+        campaign,
+        'Envio interrompido: autorização de administrador do confirmador ausente ou inativa.',
+      );
+      return;
+    }
+
+    if (!this.emailService.getStatus().configured) {
+      await this.failCampaignAndPendingRecipients(
+        campaign,
+        'SMTP_NOT_CONFIGURED',
+      );
+      return;
+    }
+
+    const claimed = await this.claimPendingRecipients(
+      campaign.id,
+      batchSize,
+      now,
+    );
+    await this.runSequentially(claimed, (recipient) =>
+      this.processClaimedRecipient(campaign, recipient),
+    );
+    await this.finalizeCampaignIfComplete(campaign.id);
+  }
+
+  @Cron('*/10 * * * * *')
+  async processCampaignQueue(batchSize = 10): Promise<void> {
+    const now = new Date();
+    await this.recoverStaleSendingRecipients(now);
+    await this.promoteDueScheduledCampaigns(now);
+
     const activeCampaigns = await this.campaignRepo.find({
       where: { status: 'sending' },
       order: { createdAt: 'ASC' },
     });
-
-    for (const campaign of activeCampaigns) {
-      const confirmerId = campaign.confirmedById ?? campaign.createdById;
-      const confirmer = await this.memberRepo.findOneBy({ id: confirmerId });
-      if (
-        !confirmer ||
-        !confirmer.isActive ||
-        !confirmer.roles?.includes(MemberRole.ADMIN)
-      ) {
-        campaign.status = 'failed';
-        campaign.completedAt = new Date();
-        await this.campaignRepo.save(campaign);
-        await this.recipientRepo.update(
-          { campaignId: campaign.id, status: 'pending' },
-          {
-            status: 'failed',
-            lockedAt: null,
-            lastError:
-              'Envio interrompido: autorização de administrador do confirmador ausente ou inativa.',
-          },
-        );
-        continue;
-      }
-
-      if (!this.emailService.getStatus().configured) {
-        campaign.status = 'failed';
-        campaign.completedAt = new Date();
-        await this.campaignRepo.save(campaign);
-        await this.recipientRepo.update(
-          { campaignId: campaign.id, status: 'pending' },
-          {
-            status: 'failed',
-            lockedAt: null,
-            lastError: 'SMTP_NOT_CONFIGURED',
-          },
-        );
-        continue;
-      }
-
-      const claimed = await this.claimPendingRecipients(
-        campaign.id,
-        batchSize,
-        now,
-      );
-
-      for (const recipient of claimed) {
-        const freshCampaign = await this.campaignRepo.findOneBy({
-          id: campaign.id,
-        });
-        if (!freshCampaign || freshCampaign.status === 'canceled') {
-          recipient.status = 'skipped';
-          recipient.lockedAt = null;
-          recipient.lastError = 'Campanha cancelada pelo administrador.';
-          await this.recipientRepo.save(recipient);
-          continue;
-        }
-
-        const normEmail = this.normalizeEmail(
-          recipient.emailNormalized ?? recipient.email,
-        );
-        if (!normEmail || !recipient.email) {
-          recipient.status = 'failed';
-          recipient.lockedAt = null;
-          recipient.lastError = 'Destinatário sem e-mail válido.';
-          await this.recipientRepo.save(recipient);
-          continue;
-        }
-
-        const suppression = await this.suppressionRepo.findOneBy({
-          emailNormalized: normEmail,
-        });
-        if (this.isSuppressedForPurpose(suppression ?? undefined, campaign.purpose)) {
-          recipient.status = 'suppressed';
-          recipient.lockedAt = null;
-          recipient.lastError = null;
-          await this.recipientRepo.save(recipient);
-          continue;
-        }
-
-        const rawToken = this.buildUnsubscribeToken(recipient.id);
-        const unsubscribeUrl = `${this.frontendUrl}/descadastro?token=${encodeURIComponent(rawToken)}`;
-        const rendered = this.templateService.renderCampaignMarkdown({
-          subject: campaign.subject,
-          bodyMarkdown: campaign.bodyMarkdown,
-          purpose: campaign.purpose,
-          recipientName: recipient.name,
-          unsubscribeUrl,
-        });
-
-        const log = await this.emailService.sendCampaignEmail({
-          to: recipient.email,
-          subject: rendered.subject,
-          text: rendered.text,
-          html: rendered.html,
-          template: this.resolveTemplateName(campaign),
-          campaignId: campaign.id,
-          campaignRecipientId: recipient.id,
-        });
-
-        recipient.attempts = (recipient.attempts ?? 0) + 1;
-        recipient.emailLogId = log.id;
-        recipient.lockedAt = null;
-
-        if (log.status === EmailStatus.SENT) {
-          recipient.status = 'sent';
-          recipient.sentAt = new Date();
-          recipient.nextAttemptAt = null;
-          recipient.lastError = null;
-          await this.recipientRepo.save(recipient);
-          continue;
-        }
-
-        const sanitizedError = this.emailService.sanitizeOperationalError(
-          log.error ?? 'Falha operacional no envio SMTP',
-        );
-        recipient.lastError = sanitizedError;
-
-        const isThrottleError =
-          /(?:^|\b)(421|454)(?:\b|$)|too many login attempts|rate limit|throttl/i.test(
-            sanitizedError,
-          );
-        const isPermanentInvalid =
-          /invalid recipient|invalid address|malformed|550 5\.1\.1/i.test(
-            sanitizedError,
-          );
-
-        if (isThrottleError) {
-          const pauseUntil = new Date(Date.now() + THROTTLE_PAUSE_MS);
-          if (recipient.attempts >= MAX_RECIPIENT_ATTEMPTS) {
-            recipient.status = 'failed';
-            recipient.nextAttemptAt = null;
-          } else {
-            recipient.status = 'pending';
-            recipient.nextAttemptAt = pauseUntil;
-          }
-          await this.recipientRepo.save(recipient);
-          await this.recipientRepo.update(
-            { campaignId: campaign.id, status: 'pending' },
-            { nextAttemptAt: pauseUntil },
-          );
-          break;
-        }
-
-        if (isPermanentInvalid || recipient.attempts >= MAX_RECIPIENT_ATTEMPTS) {
-          recipient.status = 'failed';
-          recipient.nextAttemptAt = null;
-        } else {
-          const backoffMs =
-            RETRY_BACKOFF_MS[recipient.attempts - 1] ?? RETRY_BACKOFF_MS[1];
-          recipient.status = 'pending';
-          recipient.nextAttemptAt = new Date(Date.now() + backoffMs);
-        }
-        await this.recipientRepo.save(recipient);
-      }
-
-      // Verifica se a campanha concluiu todos os envios
-      const refreshedCampaign = await this.campaignRepo.findOneBy({
-        id: campaign.id,
-      });
-      if (!refreshedCampaign || refreshedCampaign.status !== 'sending') {
-        continue;
-      }
-      const allRecipients = await this.recipientRepo.find({
-        where: { campaignId: campaign.id },
-      });
-      const metrics = this.computeMetrics(allRecipients);
-      const hasDuePending = allRecipients.some(
-        (r) => r.status === 'pending' || r.status === 'sending',
-      );
-      if (!hasDuePending) {
-        refreshedCampaign.status =
-          metrics.failed > 0 ? 'completed_with_errors' : 'completed';
-        refreshedCampaign.completedAt = new Date();
-        await this.campaignRepo.save(refreshedCampaign);
-      }
-    }
+    await this.runSequentially(activeCampaigns, (campaign) =>
+      this.processActiveCampaign(campaign, batchSize, now),
+    );
   }
 
   @Cron('50 2 * * *')

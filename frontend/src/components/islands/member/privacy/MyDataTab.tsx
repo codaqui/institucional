@@ -96,6 +96,13 @@ export default function MyDataTab() {
     );
   }
 
+  let marketingButtonLabel = "Salvar preferência promocional";
+  if (savingMarketing) {
+    marketingButtonLabel = "Salvando preferência…";
+  } else if (marketingSuppressed && marketingEmailOptIn) {
+    marketingButtonLabel = "Confirmar reativação promocional";
+  }
+
   return (
     <Stack spacing={3}>
       <Box>
@@ -236,11 +243,7 @@ export default function MyDataTab() {
                   }
                 }}
               >
-                {savingMarketing
-                  ? "Salvando preferência…"
-                  : marketingSuppressed && marketingEmailOptIn
-                    ? "Confirmar reativação promocional"
-                    : "Salvar preferência promocional"}
+                {marketingButtonLabel}
               </Button>
             </Box>
           </Stack>
