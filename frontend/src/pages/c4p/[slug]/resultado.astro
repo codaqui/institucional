@@ -1,0 +1,62 @@
+---
+// Resultado público de uma chamada C4P — páginas estáticas geradas em build
+// para campanhas fechadas com publicResults. Somente os 4 campos públicos das
+// propostas selecionadas (título, palestrante, trilha, nível): notas e
+// comentários de avaliação nunca são expostos (whitelist no backend e no
+// loader do snapshot).
+import PublicLayout from "../../../layouts/PublicLayout.astro";
+import PageHero from "../../../components/astro/PageHero.astro";
+import { loadC4pIndex, type C4pSnapshotCall } from "../../../lib/c4p";
+
+export function getStaticPaths() {
+  return loadC4pIndex().calls.map((call) => ({
+    params: { slug: call.slug },
+    props: { call },
+  }));
+}
+
+interface Props {
+  call: C4pSnapshotCall;
+}
+
+const { call } = Astro.props;
+const talks = call.results?.talks ?? [];
+---
+
+<PublicLayout
+  title={`Resultado — ${call.name} | CODAQUI.dev`}
+  ogTitle={`Palestras aprovadas — ${call.name}`}
+  description={`Confira as palestras aprovadas em ${call.name}.`}
+>
+  <PageHero
+    eyebrow="Resultado da chamada"
+    title={call.name}
+    subtitle={
+      call.finalizedAt
+        ? `Chamada finalizada em ${new Date(call.finalizedAt).toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" })}.`
+        : "Resultado da curadoria."
+    }
+  />
+
+  <main id="conteudo" class="mx-auto max-w-3xl px-4 py-12">
+    {talks.length === 0 ? (
+      <p class="text-neutral-700 dark:text-neutral-300">
+        O resultado desta chamada ainda não foi publicado.
+      </p>
+    ) : (
+      <ul class="grid gap-4">
+        {talks.map((talk) => (
+          <li class="rounded-xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <h2 class="text-xl font-bold text-neutral-900 dark:text-neutral-50">
+              {talk.title}
+            </h2>
+            <p class="mt-1 text-neutral-700 dark:text-neutral-300">{talk.speakerName}</p>
+            <p class="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
+              {[talk.track, talk.level].filter(Boolean).join(" · ")}
+            </p>
+          </li>
+        ))}
+      </ul>
+    )}
+  </main>
+</PublicLayout>
