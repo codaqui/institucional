@@ -97,4 +97,53 @@ describe("MyDataTab", () => {
     expect(await screen.findByText("Não foi possível salvar.")).toBeInTheDocument();
     expect(bioSwitch).not.toBeChecked();
   });
+
+  it("permite atualizar consentimento promocional independente e reativar após descadastro", async () => {
+    authState.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/members/me/visibility") {
+        return jsonResponse({
+          fields,
+          visibility,
+          marketingEmailOptIn: false,
+          marketingSuppressed: true,
+        });
+      }
+      if (path === "/members/me/marketing-consent" && init?.method === "PATCH") {
+        return jsonResponse({
+          marketingEmailOptIn: true,
+          marketingSuppressed: false,
+        });
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+
+    renderWithMui(<MyDataTab />);
+
+    expect(
+      await screen.findByText(/descadastro promocional ativo/i),
+    ).toBeInTheDocument();
+    const marketingSwitch = screen.getByRole("switch", {
+      name: /receber comunicações promocionais/i,
+    });
+    expect(marketingSwitch).not.toBeChecked();
+
+    fireEvent.click(marketingSwitch);
+    fireEvent.click(
+      screen.getByRole("button", { name: /confirmar reativação promocional/i }),
+    );
+
+    expect(
+      await screen.findByText(/preferência de comunicações promocionais atualizada/i),
+    ).toBeInTheDocument();
+    expect(authState.authFetch).toHaveBeenCalledWith(
+      "/members/me/marketing-consent",
+      {
+        method: "PATCH",
+        body: JSON.stringify({
+          marketingEmailOptIn: true,
+          confirmReactivation: true,
+        }),
+      },
+    );
+  });
 });

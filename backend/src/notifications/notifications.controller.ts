@@ -13,13 +13,16 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtPayload } from '../auth/jwt.strategy';
+import { MemberRole } from '../members/entities/member.entity';
 import { EmailService } from './email.service';
 import { EmailTemplateService } from './email-template.service';
 import { EmailTemplateContentDto } from './dto/email-template-content.dto';
@@ -36,14 +39,17 @@ export class NotificationsController {
   ) {}
 
   @Get('status')
-  @ApiOperation({ summary: '🔒 Status de configuração do SMTP [admin]' })
+  @Roles('admin', 'finance-analyzer')
+  @ApiOperation({ summary: '🔒 Status de configuração do SMTP [admin|finance-analyzer]' })
   getStatus() {
     return this.emailService.getStatus();
   }
 
   @Get('emails')
+  @Roles('admin', 'finance-analyzer')
   @ApiOperation({
-    summary: '🔒 Logs de e-mail enviados/falhos/ignorados + summary [admin]',
+    summary:
+      '🔒 Logs de e-mail enviados/falhos/ignorados + summary [admin|finance-analyzer]',
   })
   listEmails(
     @Query('status') status?: string,
@@ -51,8 +57,75 @@ export class NotificationsController {
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('pageSize', new DefaultValuePipe(20), ParseIntPipe)
     pageSize?: number,
+    @Query()
+    filters?: {
+      recipient?: string;
+      from?: string;
+      to?: string;
+      campaignId?: string;
+    },
+    @Req() req?: { user?: JwtPayload },
   ) {
-    return this.emailService.listLogs({ status, template, page, pageSize });
+    const extra: Record<string, unknown> = {};
+    if (filters?.recipient !== undefined) extra.recipient = filters.recipient;
+    if (filters?.from !== undefined) extra.from = filters.from;
+    if (filters?.to !== undefined) extra.to = filters.to;
+    if (filters?.campaignId !== undefined) {
+      extra.campaignId = filters.campaignId;
+    }
+    if (req?.user?.roles) {
+      extra.isAdmin = req.user.roles.includes(MemberRole.ADMIN);
+    }
+    return this.emailService.listLogs({
+      status,
+      template,
+      page,
+      pageSize,
+      ...extra,
+    });
+  }
+
+  @Get('emails/export')
+  @Roles('admin', 'finance-analyzer')
+  @ApiOperation({
+    summary:
+      '🔒 Exporta logs de e-mail filtrados em CSV (respeitando escopo de PII) [admin|finance-analyzer]',
+  })
+  async exportEmails(
+    @Query()
+    query?: {
+      status?: string;
+      template?: string;
+      recipient?: string;
+      from?: string;
+      to?: string;
+      campaignId?: string;
+    },
+    @Req() req?: { user?: JwtPayload },
+    @Res() res?: Response,
+  ) {
+    const isAdmin = req?.user?.roles
+      ? req.user.roles.includes(MemberRole.ADMIN)
+      : true;
+    const csv = await this.emailService.exportLogsCsv({
+      status: query?.status,
+      template: query?.template,
+      recipient: query?.recipient,
+      from: query?.from,
+      to: query?.to,
+      campaignId: query?.campaignId,
+      isAdmin,
+    });
+    if (res) {
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader(
+        'Content-Disposition',
+        'attachment; filename="email-logs.csv"',
+      );
+      res.send(csv);
+      return;
+    }
+    return csv;
   }
 
   @Post('emails/:id/resend')

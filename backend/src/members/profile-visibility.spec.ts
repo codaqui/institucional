@@ -46,6 +46,7 @@ describe('profile visibility', () => {
       roles: [MemberRole.ADMIN],
       isActive: true,
       eventCommsOptIn: false,
+      marketingEmailOptIn: false,
       githubAccessToken: null,
       secondaryEmails: [],
       joinedAt: new Date('2024-01-01'),

@@ -15,7 +15,7 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
         Esta página explica como a Associação Codaqui trata dados pessoais, com quem os compartilha,
         por quanto tempo os mantém e quais controles e direitos você tem.
       </p>
-      <p class="mt-3 text-sm text-text-secondary">Última revisão: 4 de novembro de 2026.</p>
+      <p class="mt-3 text-sm text-text-secondary">Última revisão: 11 de novembro de 2026.</p>
     </header>
 
     <div class="prose-cq">
@@ -36,6 +36,12 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
         <li>GitHub ID, handle, nome, avatar, e-mail e e-mails verificados para autenticação e inscrições.</li>
         <li>Bio, LinkedIn, roles, designations, data de entrada e histórico para perfil e representações.</li>
         <li>Doações, assinaturas, SortCoins, eventos e certificados para apoio, participação e prestação de contas.</li>
+        <li>
+          Preferência de comunicação promocional (<code>marketingEmailOptIn</code>), opcional e independente dos avisos
+          transacionais de conta, eventos, mentoria, assembleias e certificados. Toda mensagem promocional inclui link
+          de descadastro imediato sem necessidade de login em <code>/descadastro</code>, sem pixels de rastreamento de
+          abertura ou cliques.
+        </li>
       </ul>
       <h3 id="mentorandos">Mentorandos convidados e palestrantes C4P</h3>
       <p>
@@ -77,9 +83,14 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
       <ul>
         <li>Sessão JWT: até 7 dias; handoff OAuth: até 2 minutos.</li>
         <li>Logs de e-mail: até 365 dias; logs operacionais de auditoria: 30 dias por padrão, configurável 7–365.</li>
+        <li>
+          Destinatários de campanhas de e-mail: nome, e-mail e hash do token de descadastro são anonimizados após 365
+          dias, preservando apenas contagens agregadas. Supressões e descadastros promocionais permanecem enquanto
+          necessários para respeitar sua revogação.
+        </li>
         <li>Logs de governança e designations: permanentes e sem IP.</li>
         <li>Registros financeiros e de eventos: preservados conforme obrigação legal e prestação de contas.</li>
-        <li>Preferências de visibilidade: até você alterá-las em Meus dados.</li>
+        <li>Preferências de visibilidade e consentimento promocional: até você alterá-las em Meus dados ou por descadastro.</li>
       </ul>
 
       <h2 id="criancas-e-adolescentes">Crianças e adolescentes</h2>

@@ -322,5 +322,54 @@ describe('MembersController', () => {
 
       expect(auditService.log).not.toHaveBeenCalled();
     });
+
+    it('should forbid admin from modifying marketingEmailOptIn', async () => {
+      await expect(
+        controller.adminUpdate('some-id', req, {
+          marketingEmailOptIn: true,
+        } as any),
+      ).rejects.toThrow('O consentimento promocional pertence exclusivamente ao titular');
+      expect(membersService.adminUpdate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('marketing consent (PATCH /members/me/marketing-consent)', () => {
+    it('updates marketingEmailOptIn for the authenticated member and logs governance audit', async () => {
+      const req = {
+        user: {
+          sub: 'member-1',
+          githubId: '12345',
+          handle: 'testuser',
+          name: 'Test',
+          email: 't@t.com',
+          avatarUrl: '',
+          roles: ['membro'],
+        },
+      };
+      membersService.updateMarketingConsent = jest.fn().mockResolvedValue({
+        marketingEmailOptIn: true,
+        marketingSuppressed: false,
+      });
+
+      const result = await controller.updateMarketingConsent(req, {
+        marketingEmailOptIn: true,
+        confirmReactivation: true,
+      });
+
+      expect(result).toEqual({
+        marketingEmailOptIn: true,
+        marketingSuppressed: false,
+      });
+      expect(membersService.updateMarketingConsent).toHaveBeenCalledWith(
+        'member-1',
+        { marketingEmailOptIn: true, confirmReactivation: true },
+      );
+      expect(auditService.log).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'member.marketing_consent_updated',
+          targetId: 'member-1',
+        }),
+      );
+    });
   });
 });

@@ -18,6 +18,7 @@ export enum AuditAction {
   MEMBER_DEACTIVATE = 'member.deactivate',
   MEMBER_ACTIVATE = 'member.activate',
   MEMBER_VISIBILITY_UPDATED = 'member.visibility_updated',
+  MEMBER_MARKETING_CONSENT_UPDATED = 'member.marketing_consent_updated',
 
   // Designations
   DESIGNATION_GRANTED = 'designation.granted',
@@ -126,6 +127,15 @@ export enum AuditAction {
   ANNOUNCEMENT_CREATED = 'announcement.created',
   ANNOUNCEMENT_UPDATED = 'announcement.updated',
   ANNOUNCEMENT_DEACTIVATED = 'announcement.deactivated',
+
+  // Email campaigns & suppressions
+  EMAIL_CAMPAIGN_CREATED = 'email_campaign.created',
+  EMAIL_CAMPAIGN_UPDATED = 'email_campaign.updated',
+  EMAIL_CAMPAIGN_CONFIRMED = 'email_campaign.confirmed',
+  EMAIL_CAMPAIGN_CANCELED = 'email_campaign.canceled',
+  EMAIL_CAMPAIGN_RECIPIENT_RETRIED = 'email_campaign.recipient_retried',
+  EMAIL_SUPPRESSION_CREATED = 'email_suppression.created',
+  EMAIL_SUPPRESSION_DELETED = 'email_suppression.deleted',
 
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',

@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Inject,
   Injectable,
   Logger,
@@ -427,11 +428,97 @@ export class MembersService {
   async getProfileVisibility(id: string) {
     const member = await this.repo.findOneOrFail({
       where: { id },
-      select: ['id', 'profileVisibility'],
+      select: [
+        'id',
+        'email',
+        'secondaryEmails',
+        'marketingEmailOptIn',
+        'profileVisibility',
+      ],
     });
+    const emails = this.collectNormalizedMemberEmails(member);
+    const marketingSuppressed = await this.hasUnsubscribeSuppression(emails);
     return {
       visibility: resolveProfileVisibility(member.profileVisibility),
       fields: PROFILE_VISIBILITY_FIELDS,
+      marketingEmailOptIn: Boolean(member.marketingEmailOptIn),
+      marketingSuppressed,
+    };
+  }
+
+  private collectNormalizedMemberEmails(
+    member: Pick<Member, 'email' | 'secondaryEmails'>,
+  ): string[] {
+    return [
+      ...new Set(
+        [member.email, ...(member.secondaryEmails ?? [])]
+          .filter((value): value is string => Boolean(value?.trim()))
+          .map((value) => value.trim().toLowerCase()),
+      ),
+    ];
+  }
+
+  private async hasUnsubscribeSuppression(emails: string[]): Promise<boolean> {
+    if (emails.length === 0) return false;
+    const queryRunner = this.dataSource.createQueryRunner();
+    try {
+      await queryRunner.connect();
+      const rows = (await queryRunner.query(
+        'SELECT source FROM email_suppressions WHERE "emailNormalized" = ANY($1::text[])',
+        [emails],
+      )) as Array<{ source?: string }> | undefined;
+      if (!Array.isArray(rows)) return false;
+      return rows.some((row) => row.source === 'unsubscribe');
+    } catch {
+      return false;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateMarketingConsent(
+    id: string,
+    dto: Readonly<{
+      marketingEmailOptIn: boolean;
+      confirmReactivation?: boolean;
+    }>,
+  ) {
+    const member = await this.repo.findOneOrFail({
+      where: { id },
+      select: [
+        'id',
+        'email',
+        'secondaryEmails',
+        'marketingEmailOptIn',
+        'profileVisibility',
+      ],
+    });
+    const emails = this.collectNormalizedMemberEmails(member);
+    const suppressed = await this.hasUnsubscribeSuppression(emails);
+    const nextOptIn = Boolean(dto.marketingEmailOptIn);
+
+    if (nextOptIn && suppressed) {
+      if (!dto.confirmReactivation) {
+        throw new ConflictException(
+          'Este endereço realizou descadastro anteriormente. Confirme explicitamente a reativação pelo titular para voltar a receber comunicações promocionais.',
+        );
+      }
+      const queryRunner = this.dataSource.createQueryRunner();
+      try {
+        await queryRunner.connect();
+        await queryRunner.query(
+          'DELETE FROM email_suppressions WHERE "emailNormalized" = ANY($1::text[]) AND source = $2',
+          [emails, 'unsubscribe'],
+        );
+      } finally {
+        await queryRunner.release();
+      }
+    }
+
+    await this.repo.update({ id }, { marketingEmailOptIn: nextOptIn });
+    return {
+      marketingEmailOptIn: nextOptIn,
+      marketingSuppressed: nextOptIn && dto.confirmReactivation ? false : suppressed,
     };
   }
 
@@ -466,6 +553,11 @@ export class MembersService {
     id: string,
     dto: Readonly<AdminUpdateDto>,
   ): Promise<Member> {
+    if ('marketingEmailOptIn' in (dto as Record<string, unknown>)) {
+      throw new ForbiddenException(
+        'O consentimento promocional pertence exclusivamente ao titular e não pode ser alterado por administrador.',
+      );
+    }
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

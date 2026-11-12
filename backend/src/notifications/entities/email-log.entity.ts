@@ -20,6 +20,8 @@ export enum EmailStatus {
 @Index('IDX_email_logs_createdAt', ['createdAt'])
 @Index('IDX_email_logs_template_status', ['template', 'status'])
 @Index('IDX_email_logs_template_registration', ['template', 'registrationId'])
+@Index('IDX_email_logs_campaignId', ['campaignId'])
+@Index('IDX_email_logs_campaignRecipientId', ['campaignRecipientId'])
 export class EmailLog {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -36,6 +38,12 @@ export class EmailLog {
 
   @Column({ type: 'varchar', nullable: true })
   registrationId: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  campaignId: string | null;
+
+  @Column({ type: 'uuid', nullable: true })
+  campaignRecipientId: string | null;
 
   @Column({ type: 'enum', enum: EmailStatus })
   status: EmailStatus;

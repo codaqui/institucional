@@ -204,7 +204,8 @@ institucional/
 │   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
 │   │   ├── mentorship/          # ⭐ Fase 5/ADR 009: mentores, disponibilidade, sessões, horas e insights
 │   │   ├── announcements/       # ⭐ ADR 017: anúncios institucionais, CRUD admin e projeção pública
-│   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary e crons)
+│   │   ├── campaigns/           # ⭐ ADR 018: campanhas de e-mail E3, segmentos, supressões, fila persistente e descadastro
+│   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary, export CSV e crons)
 │   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
 │   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
 │   │   ├── communities/         # ⭐ Registro/seed das 6 comunidades, selo e validação de destino de doação
@@ -215,7 +216,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 047; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047)
+│   │   └── migrations/          # TypeORM migrations (até 048; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047; Campanhas E3: 048)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
