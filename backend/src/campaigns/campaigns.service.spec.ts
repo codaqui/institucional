@@ -166,8 +166,23 @@ describe('CampaignsService — segmentos, prévia, supressões e descadastro', (
     expect(campaignRepo.save).not.toHaveBeenCalled();
   });
 
-  it('rejeita segmento manual promocional sem evidência de consentimento', async () => {
+  it('rejeita segmento manual promocional sem evidência de consentimento e all_opted_in_members em campanha transacional', async () => {
     campaignRepo.findOneBy.mockResolvedValue(null);
+
+    await expect(
+      service.create(
+        {
+          name: 'Transacional indevida',
+          subject: 'Aviso',
+          bodyMarkdown: 'Conteúdo',
+          purpose: 'transactional',
+          segmentType: 'all_opted_in_members',
+          segmentConfig: {},
+          idempotencyKey: 'key-trans-opt',
+        },
+        adminActor,
+      ),
+    ).rejects.toThrow(BadRequestException);
 
     await expect(
       service.create(

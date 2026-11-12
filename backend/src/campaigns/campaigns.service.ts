@@ -222,6 +222,11 @@ export class CampaignsService {
 
     switch (segmentType) {
       case 'all_opted_in_members':
+        if (purpose !== 'promotional') {
+          throw new BadRequestException(
+            'O segmento all_opted_in_members é exclusivo para campanhas promocionais.',
+          );
+        }
         break;
       case 'role': {
         const validRoles = Object.values(MemberRole) as string[];
@@ -657,7 +662,11 @@ export class CampaignsService {
         return;
       }
 
-      if (campaign.purpose === 'promotional' && !member.marketingEmailOptIn) {
+      if (
+        (campaign.purpose === 'promotional' ||
+          campaign.segmentType === 'all_opted_in_members') &&
+        !member.marketingEmailOptIn
+      ) {
         recordExclusion('noOptIn', {
           memberId: member.id,
           email: verifiedEmail,
@@ -876,7 +885,13 @@ export class CampaignsService {
     if (!campaign) {
       throw new NotFoundException('Campanha não encontrada.');
     }
-    const to = this.normalizeEmail(actor.email);
+    let to = this.normalizeEmail(actor.email);
+    if (!to || this.isPlaceholderOrSyntheticEmail(to, actor.handle)) {
+      const actorMember = await this.memberRepo.findOneBy({ id: actor.sub });
+      to = actorMember
+        ? (this.resolveVerifiedMemberEmail(actorMember) ?? '')
+        : '';
+    }
     if (!to || this.isPlaceholderOrSyntheticEmail(to, actor.handle)) {
       throw new BadRequestException(
         'O administrador autenticado não possui um endereço de e-mail válido para teste.',

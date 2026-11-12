@@ -7,64 +7,79 @@ import type { JwtPayload } from '../src/auth/jwt.strategy';
 import { Migration048EmailCampaigns1795100000000 } from '../src/migrations/1795100000000-Migration048_EmailCampaigns';
 import { CampaignsService } from '../src/campaigns/campaigns.service';
 import { EmailService } from '../src/notifications/email.service';
+import { SmtpEmailProvider } from '../src/notifications/email.provider';
 import { EmailTemplateService } from '../src/notifications/email-template.service';
 import { AuditService } from '../src/audit/audit.service';
-import { EmailStatus } from '../src/notifications/entities/email-log.entity';
 import { EmailCampaign } from '../src/campaigns/entities/email-campaign.entity';
 import { EmailCampaignRecipient } from '../src/campaigns/entities/email-campaign-recipient.entity';
 import { EmailSuppression } from '../src/campaigns/entities/email-suppression.entity';
+import { MemberRole } from '../src/members/entities/member.entity';
 
 const testDatabase = process.env.DB_NAME ?? '';
 if (!testDatabase.endsWith('_test')) {
   throw new Error('O E2E de campanhas exige DB_NAME terminado em _test.');
 }
 
+const makeActor = (
+  sub: string,
+  handle: string,
+  roles: MemberRole[],
+): JwtPayload => ({
+  sub,
+  githubId: `gh-${handle}`,
+  handle,
+  name: handle,
+  email: `${handle}@e2e-camp.example.org`,
+  avatarUrl: '',
+  roles,
+});
+
 const actors = {
-  admin: {
-    sub: '11111111-e300-4000-8000-000000000001',
-    handle: 'e2e-camp-admin',
-    roles: ['admin'],
-  },
-  analyzer: {
-    sub: '11111111-e300-4000-8000-000000000002',
-    handle: 'e2e-camp-analyzer',
-    roles: ['finance-analyzer'],
-  },
-  optedMember: {
-    sub: '11111111-e300-4000-8000-000000000003',
-    handle: 'e2e-camp-opted',
-    roles: ['membro', 'mentor'],
-  },
-  noOptMember: {
-    sub: '11111111-e300-4000-8000-000000000004',
-    handle: 'e2e-camp-noopt',
-    roles: ['membro', 'mentor'],
-  },
-  communityLeader: {
-    sub: '11111111-e300-4000-8000-000000000005',
-    handle: 'e2e-camp-comm-leader',
-    roles: ['membro'],
-  },
-  communityDirMember: {
-    sub: '11111111-e300-4000-8000-000000000006',
-    handle: 'e2e-camp-comm-dir',
-    roles: ['membro', 'diretor'],
-  },
-  unlinkedMember: {
-    sub: '11111111-e300-4000-8000-000000000007',
-    handle: 'e2e-camp-unlinked',
-    roles: ['membro'],
-  },
-  inactiveMember: {
-    sub: '11111111-e300-4000-8000-000000000008',
-    handle: 'e2e-camp-inactive',
-    roles: ['membro', 'mentor'],
-  },
-  noreplyMember: {
-    sub: '11111111-e300-4000-8000-000000000009',
-    handle: 'e2e-camp-noreply',
-    roles: ['membro', 'mentor'],
-  },
+  admin: makeActor(
+    '11111111-e300-4000-8000-000000000001',
+    'e2e-camp-admin',
+    [MemberRole.ADMIN],
+  ),
+  analyzer: makeActor(
+    '11111111-e300-4000-8000-000000000002',
+    'e2e-camp-analyzer',
+    [MemberRole.FINANCE_ANALYZER],
+  ),
+  optedMember: makeActor(
+    '11111111-e300-4000-8000-000000000003',
+    'e2e-camp-opted',
+    [MemberRole.MEMBRO, MemberRole.MENTOR],
+  ),
+  noOptMember: makeActor(
+    '11111111-e300-4000-8000-000000000004',
+    'e2e-camp-noopt',
+    [MemberRole.MEMBRO, MemberRole.MENTOR],
+  ),
+  communityLeader: makeActor(
+    '11111111-e300-4000-8000-000000000005',
+    'e2e-camp-comm-leader',
+    [MemberRole.MEMBRO],
+  ),
+  communityDirMember: makeActor(
+    '11111111-e300-4000-8000-000000000006',
+    'e2e-camp-comm-dir',
+    [MemberRole.MEMBRO, MemberRole.DIRETOR],
+  ),
+  unlinkedMember: makeActor(
+    '11111111-e300-4000-8000-000000000007',
+    'e2e-camp-unlinked',
+    [MemberRole.MEMBRO],
+  ),
+  inactiveMember: makeActor(
+    '11111111-e300-4000-8000-000000000008',
+    'e2e-camp-inactive',
+    [MemberRole.MEMBRO, MemberRole.MENTOR],
+  ),
+  noreplyMember: makeActor(
+    '11111111-e300-4000-8000-000000000009',
+    'e2e-camp-noreply',
+    [MemberRole.MEMBRO, MemberRole.MENTOR],
+  ),
 } satisfies Record<string, JwtPayload>;
 
 const actorIds = Object.values(actors).map((a) => a.sub);
@@ -81,6 +96,7 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
   let dataSource: DataSource;
   let campaignsService: CampaignsService;
   let emailService: EmailService;
+  let smtpProvider: SmtpEmailProvider;
 
   async function removeFixtures() {
     await dataSource.query(
@@ -122,6 +138,7 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
     ({ app, dataSource } = await createE2eApplication(actors));
     campaignsService = app.get(CampaignsService);
     emailService = app.get(EmailService);
+    smtpProvider = app.get(SmtpEmailProvider);
 
     const queryRunner = dataSource.createQueryRunner();
     const existingTable = (await queryRunner.query(
@@ -333,30 +350,32 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
     expect(confirmRes.body.status).toBe('sending');
 
     // 4. Dois workers concorrentes disputando a mesma fila com FOR UPDATE SKIP LOCKED
+    //    e exercitando o advisory lock global real do PostgreSQL no EmailService
     const sentRecipients: string[] = [];
-    jest.spyOn(emailService, 'getStatus').mockReturnValue({
-      configured: true,
-      host: 'smtp.e2e.invalid',
-      from: 'noreply@codaqui.dev',
+    const advisoryLockHeldDuringSend: boolean[] = [];
+    jest.spyOn(smtpProvider, 'isConfigured').mockReturnValue(true);
+    jest.spyOn(smtpProvider, 'send').mockImplementation(async (message) => {
+      sentRecipients.push(message.to);
+      const checkRunner = dataSource.createQueryRunner();
+      try {
+        await checkRunner.connect();
+        const tryRes = (await checkRunner.query(
+          'SELECT pg_try_advisory_lock($1, $2) AS acquired',
+          [0x436f6461, 1],
+        )) as Array<{ acquired: boolean }>;
+        const acquiredByOtherSession = Boolean(tryRes[0]?.acquired);
+        if (acquiredByOtherSession) {
+          await checkRunner.query(
+            'SELECT pg_advisory_unlock($1, $2)',
+            [0x436f6461, 1],
+          );
+        }
+        advisoryLockHeldDuringSend.push(!acquiredByOtherSession);
+      } finally {
+        await checkRunner.release();
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
     });
-
-    const originalSendCampaignEmail =
-      emailService.sendCampaignEmail.bind(emailService);
-    jest
-      .spyOn(emailService, 'sendCampaignEmail')
-      .mockImplementation(async (params) => {
-        sentRecipients.push(params.to);
-        await new Promise((resolve) => setTimeout(resolve, 25));
-        const logRepo = dataSource.getRepository('email_logs');
-        const savedLog = await logRepo.save({
-          to: params.to,
-          template: params.template,
-          status: EmailStatus.SENT,
-          campaignId: params.campaignId,
-          campaignRecipientId: params.campaignRecipientId,
-        });
-        return savedLog as Awaited<ReturnType<typeof originalSendCampaignEmail>>;
-      });
 
     // Instancia um segundo worker apontando para o mesmo PostgreSQL real
     const secondWorker = new CampaignsService(
@@ -383,6 +402,8 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
       'dir@e2e-camp.example.org',
       'leader@e2e-camp.example.org',
     ]);
+    // Confirma que o advisory lock global de sessão do PostgreSQL estava ativo durante cada envio
+    expect(advisoryLockHeldDuringSend).toEqual([true, true]);
 
     const detailAfterSend = await request(app.getHttpServer())
       .get(`/campaigns/${firstCreate.body.id}`)
@@ -395,13 +416,6 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
       pending: 0,
       failed: 0,
     });
-
-    // 5. Advisory lock global do PostgreSQL compartilhado no EmailService
-    const lockCheck = (await dataSource.query(
-      `SELECT pg_try_advisory_lock(2147483047) AS locked`,
-    )) as Array<{ locked: boolean }>;
-    expect(lockCheck[0]?.locked).toBe(true);
-    await dataSource.query(`SELECT pg_advisory_unlock(2147483047)`);
   });
 
   it('impede campanha promocional após descadastro público mesmo se admin reativar marketingEmailOptIn no banco, permite reativação pelo titular e testa retry/cancelamento/retenção/logs', async () => {
@@ -447,19 +461,12 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
       .expect(200);
 
     // Simula falha no primeiro envio para testar retry sem reenviar quem já está sent
+    jest.spyOn(smtpProvider, 'isConfigured').mockReturnValue(true);
     jest
-      .spyOn(emailService, 'sendCampaignEmail')
-      .mockImplementationOnce(async (params) => {
-        const logRepo = dataSource.getRepository('email_logs');
-        return (await logRepo.save({
-          to: params.to,
-          template: params.template,
-          status: EmailStatus.FAILED,
-          error: '550 5.1.1 Invalid recipient address simulated',
-          campaignId: params.campaignId,
-          campaignRecipientId: params.campaignRecipientId,
-        })) as never;
-      });
+      .spyOn(smtpProvider, 'send')
+      .mockRejectedValueOnce(
+        new Error('550 5.1.1 Invalid recipient address simulated'),
+      );
 
     await campaignsService.processCampaignQueue(5);
 
@@ -481,18 +488,7 @@ describe('Email Campaigns (E3) — API, fila concorrente, descadastro e migratio
       .set(as('admin'))
       .expect(200);
 
-    jest
-      .spyOn(emailService, 'sendCampaignEmail')
-      .mockImplementationOnce(async (params) => {
-        const logRepo = dataSource.getRepository('email_logs');
-        return (await logRepo.save({
-          to: params.to,
-          template: params.template,
-          status: EmailStatus.SENT,
-          campaignId: params.campaignId,
-          campaignRecipientId: params.campaignRecipientId,
-        })) as never;
-      });
+    jest.spyOn(smtpProvider, 'send').mockResolvedValueOnce(undefined);
 
     await campaignsService.processCampaignQueue(5);
 

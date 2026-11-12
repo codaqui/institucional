@@ -715,9 +715,16 @@ export default function EmailsCampaignsTab() {
                       labelId={`${baseId}-purpose-label`}
                       label="Finalidade"
                       value={purpose}
-                      onChange={(e) =>
-                        setPurpose(e.target.value as CampaignPurpose)
-                      }
+                      onChange={(e) => {
+                        const nextPurpose = e.target.value as CampaignPurpose;
+                        setPurpose(nextPurpose);
+                        if (
+                          nextPurpose === "transactional" &&
+                          segmentType === "all_opted_in_members"
+                        ) {
+                          setSegmentType("role");
+                        }
+                      }}
                     >
                       <MenuItem value="promotional">
                         Promocional (exige opt-in e descadastro)
@@ -781,7 +788,10 @@ export default function EmailsCampaignsTab() {
                         setSegmentType(e.target.value as CampaignSegmentType)
                       }
                     >
-                      <MenuItem value="all_opted_in_members">
+                      <MenuItem
+                        value="all_opted_in_members"
+                        disabled={purpose !== "promotional"}
+                      >
                         Todos os membros ativos com opt-in promocional
                       </MenuItem>
                       <MenuItem value="role">Papel global (role)</MenuItem>

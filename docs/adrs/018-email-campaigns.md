@@ -34,33 +34,33 @@ Não há open/click tracking, pixels, anexos, construtor drag-and-drop ou automa
 ## Consentimento, segmentos e supressões
 
 - `members.marketingEmailOptIn` (`boolean NOT NULL DEFAULT false`) controla o opt-in promocional, editável pelo próprio titular em **Meus dados** (`PATCH /members/me/marketing-consent`) e auditado em governança (`MEMBER_MARKETING_CONSENT_UPDATED`).
-- `email_suppressions` armazena endereços normalizados (`emailNormalized`) com motivos `unsubscribe_promotional`, `hard_bounce`, `manual_block` e `invalid_email`.
+- `email_suppressions` armazena endereços normalizados (`emailNormalized`) com origens `source` em `'unsubscribe' | 'admin' | 'complaint' | 'bounce_manual'`.
 - Supressão precede qualquer segmento:
-  - `hard_bounce`, `manual_block` e `invalid_email` bloqueiam campanhas promocionais e transacionais;
-  - `unsubscribe_promotional` bloqueia campanhas promocionais mesmo que um administrador tente reativar `marketingEmailOptIn` diretamente no banco. Somente o próprio titular autenticado pode reativar seu opt-in promocional em **Meus dados**, o que remove a supressão `unsubscribe_promotional`.
+  - `admin`, `complaint` e `bounce_manual` bloqueiam campanhas promocionais e transacionais;
+  - `unsubscribe` bloqueia campanhas promocionais mesmo que um administrador tente reativar `marketingEmailOptIn` diretamente no banco. Somente o próprio titular autenticado pode reativar seu opt-in promocional em **Meus dados** (`confirmReactivation: true`), o que remove a supressão `unsubscribe`.
 - Segmentos suportados:
   - `all_opted_in_members` (exclusivo para promocionais);
   - `role` (membros ativos com role ativa);
   - `designation` (membros ativos com designation ativa e dentro da vigência);
   - `community_governance` (somente membros ativos com vínculo explícito e vigente na comunidade ou em diretoria ativa da comunidade);
-  - `manual` (lista explícita validada, deduplicada por `emailNormalized`, exigindo `marketingEmailOptIn = true` quando promocional).
-- Apenas membros com `isActive = true` e e-mail verificado no GitHub (`githubEmailVerified = true`) entram nos segmentos de membros.
+  - `manual` (lista explícita validada, deduplicada por `emailNormalized`, exigindo evidência de consentimento e `marketingEmailOptIn = true` quando promocional).
+- Apenas membros com `isActive = true` e e-mail verificado no GitHub (resolvido via `resolveVerifiedMemberEmail` a partir de `email` e `secondaryEmails`, excluindo endereços `@users.noreply.github.com` ou sintéticos) entram nos segmentos de membros.
 
 ## Fila persistente, ritmo global e idempotência
 
-- `POST /campaigns` aceita `idempotencyKey` (retornando a campanha existente quando repetida pelo mesmo ator).
-- `POST /campaigns/:id/confirm` exige prévia recente para a revisão atual do rascunho, materializa `email_campaign_recipients` deduplicados por `(campaign_id, email_normalized)` e move a campanha para `queued` ou `scheduled`.
-- O worker (`@Cron('*/15 * * * * *')`) promove campanhas `scheduled` vencidas, recupera recipients `sending` órfãos há mais de 2 minutos e reclama lotes curtos com `FOR UPDATE SKIP LOCKED` fora da chamada SMTP.
-- O envio usa `EmailService.sendRenderedEmail`, compartilhando o advisory lock global de sessão do PostgreSQL e `EMAIL_SEND_INTERVAL_MS`.
-- Erros transitórios aplicam backoff de 1 min e 5 min (máximo de 3 tentativas); respostas SMTP `421`/`454` pausam a campanha por 15 minutos (`pausedUntil`).
-- `POST /campaigns/:id/recipients/:recipientId/retry` reprocessa apenas destinatários `failed`, nunca reenvia `sent`.
+- `POST /campaigns` aceita `idempotencyKey` (retornando a campanha existente quando repetida).
+- `POST /campaigns/:id/preview` resolve o segmento, congela `email_campaign_recipients` deduplicados por `("campaignId", "emailNormalized")` e move a campanha para `preview`; `POST /campaigns/:id/confirm` valida a prévia com destinatários pendentes e move a campanha para `sending` ou `scheduled`.
+- O worker (`@Cron('*/10 * * * * *')`) promove campanhas `scheduled` vencidas, recupera recipients `sending` órfãos há mais de 2 minutos, recarrega o ator confirmador e reclama lotes curtos com `FOR UPDATE SKIP LOCKED` fora da chamada SMTP.
+- O envio usa `EmailService.sendCampaignEmail`, compartilhando o advisory lock global de sessão do PostgreSQL (`0x436f6461, 1`) e `EMAIL_SEND_INTERVAL_MS`.
+- Erros transitórios aplicam backoff de 1 min e 5 min (máximo de 3 tentativas); respostas SMTP `421`/`454` pausam os recipients pendentes da campanha por 15 minutos (`nextAttemptAt`).
+- `POST /campaigns/:id/recipients/:recipientId/retry` reprocessa apenas destinatários `failed` ou `skipped`, nunca reenvia `sent` ou `suppressed`.
 
 ## APIs, frontend e privacidade
 
 - Rotas de gestão fora de `/admin/`: `GET/POST /campaigns`, `GET/PATCH /campaigns/:id`, `POST /campaigns/:id/preview`, `POST /campaigns/:id/test`, `POST /campaigns/:id/confirm`, `POST /campaigns/:id/cancel`, `POST /campaigns/:id/recipients/:recipientId/retry` e `GET/POST/DELETE /campaigns/suppressions`.
-- Descadastro público sem login: `GET /campaigns/unsubscribe?token=...` e página `/descadastro?token=...` (`noindex`, fora do sitemap), que aplicam `marketingEmailOptIn = false` e supressão `unsubscribe_promotional` usando apenas o hash SHA-256 do token (`unsubscribeTokenHash`), sem expor e-mail ou outros dados pessoais.
-- `/admin/emails` organiza **Campanhas**, **Logs** e **Templates**, com jornada Conteúdo → Público → Prévia e Teste → Confirmação → Acompanhamento, polling visível sem concorrência, filtros de logs por destinatário/período/status/template/campanha e exportação CSV autorizada (`GET /notifications/emails/export`). Para `finance-analyzer`, `email_normalized` nas supressões e motivos sensíveis em logs são redigidos.
-- Retenção: `cleanupOldRecipients` (`@Cron('0 45 3 * * *')`) anonimiza `email`, `name`, `emailNormalized` e `unsubscribeTokenHash` em `email_campaign_recipients` após 365 dias, preservando contagens agregadas; `email_suppressions` permanecem enquanto necessário para respeitar a revogação.
+- Descadastro público sem login: `GET /campaigns/unsubscribe?token=...` e página `/descadastro?token=...` (`noindex`, fora do sitemap), que aplicam `marketingEmailOptIn = false` e supressão `source = 'unsubscribe'` usando apenas o hash SHA-256 do token (`unsubscribeTokenHash`), sem expor e-mail ou outros dados pessoais.
+- `/admin/emails` organiza **Campanhas**, **Logs** e **Templates**, com jornada Conteúdo → Público → Prévia e Teste → Confirmação → Acompanhamento, polling visível sem concorrência, filtros de logs por destinatário/período/status/template/campanha e exportação CSV autorizada (`GET /notifications/emails/export`). Para `finance-analyzer`, `name`, `email` e `emailNormalized` dos recipients de campanha em `GET /campaigns/:id` vêm nulos e `to` em `GET /notifications/emails` é redigido (`[redacted]`), enquanto `/campaigns/suppressions` é exclusivo de `admin`.
+- Retenção: `cleanupOldRecipients` (`@Cron('50 2 * * *')`, às 02:50) anonimiza `email`, `name`, `emailNormalized` e `unsubscribeTokenHash` em `email_campaign_recipients` após 365 dias, preservando contagens agregadas; `email_suppressions` permanecem enquanto necessário para respeitar a revogação.
 
 ## Verificação e rollout
 

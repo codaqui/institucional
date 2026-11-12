@@ -139,7 +139,10 @@ describe("MyDataTab", () => {
       "/members/me/marketing-consent",
       {
         method: "PATCH",
-        body: JSON.stringify({ marketingEmailOptIn: true }),
+        body: JSON.stringify({
+          marketingEmailOptIn: true,
+          confirmReactivation: true,
+        }),
       },
     );
   });

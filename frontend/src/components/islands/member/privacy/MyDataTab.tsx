@@ -206,7 +206,11 @@ export default function MyDataTab() {
                   try {
                     const res = await authFetch("/members/me/marketing-consent", {
                       method: "PATCH",
-                      body: JSON.stringify({ marketingEmailOptIn }),
+                      body: JSON.stringify(
+                        marketingSuppressed && marketingEmailOptIn
+                          ? { marketingEmailOptIn, confirmReactivation: true }
+                          : { marketingEmailOptIn },
+                      ),
                     });
                     if (!res.ok) {
                       const data = (await res.json().catch(() => null)) as { message?: string } | null;

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fase Campanhas E3 (malas diretas, segmentação, consentimento promocional, descadastro, fila persistente e logs).
 audience: Implementers e revisores independentes da fase posterior a Announcements (0.26.0/047).
-status: Plano TDD elaborado; em execução na branch feat/email-campaigns-phase.
+status: Plano TDD executado, verificado em todos os gates e revisado independentemente na branch feat/email-campaigns-phase.
 sections:
   - Global Constraints & Review Focus
   - Task 1: Migration 048, entidades, consentimento independente e descadastro
@@ -318,7 +318,7 @@ make astro-verify
 make astro-verify-tenants
 ```
 
-- [ ] **Step 4: Realizar revisão independente da branch via subagente e tratar apontamentos**
+- [x] **Step 4: Realizar revisão independente da branch via subagente e tratar apontamentos**
 
 Invocar subagente revisor independente para inspecionar o diff completo da branch contra a spec E3, corrigir qualquer achado e reexecutar os gates antes do handoff para merge.
 
