@@ -23,14 +23,19 @@ interface VisibilityField {
 interface VisibilityResponse {
   visibility: Record<string, boolean>;
   fields: VisibilityField[];
+  marketingEmailOptIn?: boolean;
+  marketingSuppressed?: boolean;
 }
 
 export default function MyDataTab() {
   const { user, ready, isLoggedIn, authFetch } = useAuth();
   const [fields, setFields] = useState<VisibilityField[]>([]);
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
+  const [marketingEmailOptIn, setMarketingEmailOptIn] = useState(false);
+  const [marketingSuppressed, setMarketingSuppressed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingMarketing, setSavingMarketing] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -45,6 +50,8 @@ export default function MyDataTab() {
         if (!cancelled) {
           setFields(data.fields);
           setVisibility(data.visibility);
+          setMarketingEmailOptIn(Boolean(data.marketingEmailOptIn));
+          setMarketingSuppressed(Boolean(data.marketingSuppressed));
         }
       } catch {
         if (!cancelled) setError("Não foi possível carregar a visibilidade.");
@@ -158,6 +165,83 @@ export default function MyDataTab() {
           {saving ? "Salvando…" : "Salvar visibilidade"}
         </Button>
       </Box>
+
+      <Card variant="outlined">
+        <CardContent>
+          <Stack spacing={2}>
+            <Box>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }} gutterBottom>
+                Comunicações promocionais e campanhas
+              </Typography>
+              <Typography id="marketing-consent-help" variant="body2" color="text.secondary">
+                Preferência independente para receber boletins, novidades, divulgação de iniciativas e campanhas promocionais da Codaqui. Esta escolha não afeta e-mails estritamente transacionais (como confirmações de inscrição, certificados, doações ou segurança da conta) nem o opt-in de acompanhamento pós-evento.
+              </Typography>
+            </Box>
+
+            {marketingSuppressed && (
+              <Alert severity="info">
+                Este endereço possui um descadastro promocional ativo. Para voltar a receber comunicações promocionais, ative a chave abaixo e confirme explicitamente a reativação.
+              </Alert>
+            )}
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={marketingEmailOptIn}
+                  slotProps={{ input: { "aria-describedby": "marketing-consent-help" } }}
+                  onChange={(_, checked) => setMarketingEmailOptIn(checked)}
+                />
+              }
+              label="Receber comunicações promocionais e campanhas de divulgação"
+            />
+
+            <Box>
+              <Button
+                variant="outlined"
+                disabled={savingMarketing}
+                onClick={async () => {
+                  setSavingMarketing(true);
+                  setError("");
+                  setSuccess("");
+                  try {
+                    const res = await authFetch("/members/me/marketing-consent", {
+                      method: "PATCH",
+                      body: JSON.stringify({ marketingEmailOptIn }),
+                    });
+                    if (!res.ok) {
+                      const data = (await res.json().catch(() => null)) as { message?: string } | null;
+                      setError(
+                        data?.message ??
+                          "Não foi possível atualizar a preferência promocional.",
+                      );
+                      return;
+                    }
+                    const data = (await res.json()) as {
+                      marketingEmailOptIn: boolean;
+                      marketingSuppressed: boolean;
+                    };
+                    setMarketingEmailOptIn(Boolean(data.marketingEmailOptIn));
+                    setMarketingSuppressed(Boolean(data.marketingSuppressed));
+                    setSuccess("Preferência de comunicações promocionais atualizada.");
+                  } catch {
+                    setError(
+                      "Erro inesperado ao salvar a preferência promocional.",
+                    );
+                  } finally {
+                    setSavingMarketing(false);
+                  }
+                }}
+              >
+                {savingMarketing
+                  ? "Salvando preferência…"
+                  : marketingSuppressed && marketingEmailOptIn
+                    ? "Confirmar reativação promocional"
+                    : "Salvar preferência promocional"}
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
     </Stack>
   );
 }

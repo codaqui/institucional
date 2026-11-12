@@ -15,6 +15,7 @@ const EXCLUDED_PATHS = new Set([
   "/admin",
   "/auth",
   "/membro",
+  "/descadastro",
 ]);
 
 const EXCLUDED_PREFIXES = [
