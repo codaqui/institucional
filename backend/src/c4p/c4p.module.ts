@@ -11,6 +11,7 @@ import { C4pEvaluatorsService } from './c4p-evaluators.service';
 import { C4pPublicController } from './c4p-public.controller';
 import { C4pSubmissionsService } from './c4p-submissions.service';
 import { C4pTalksService } from './c4p-talks.service';
+import { C4pVotesService } from './c4p-votes.service';
 import { C4pCall } from './entities/c4p-call.entity';
 import { C4pTalk } from './entities/c4p-talk.entity';
 import { C4pVote } from './entities/c4p-vote.entity';
@@ -35,6 +36,7 @@ import { C4pVote } from './entities/c4p-vote.entity';
     C4pSubmissionsService,
     C4pTalksService,
     C4pEvaluatorsService,
+    C4pVotesService,
   ],
   exports: [C4pCallsService],
 })
