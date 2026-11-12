@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 6 — Empresa Amiga/Aliada, due diligence, vitrine e badges SVG.
 audience: AI agents, mantenedores, administração e operadores de release.
-status: Implementado e publicado em v0.21.0-backend; patch 0.25.1 em integração; validação controlada é acompanhamento operacional.
+status: Implementado e publicado em v0.21.0-backend; patch mixed-case integrado e publicado em v0.26.0-backend (PRs #633/#635); validação controlada é acompanhamento operacional.
 sections:
   - Contexto e decisão
   - Modelo e regras
@@ -23,7 +23,7 @@ agent-protocol:
 # ADR 010 — Business tiers
 
 - **Data da decisão:** 2026-11-10
-- **Status:** Implementado e publicado em v0.21.0-backend; patch 0.25.1 em integração
+- **Status:** Implementado e publicado em v0.21.0-backend; patch mixed-case publicado em v0.26.0-backend (PRs #633/#635)
 - **Escopo:** Backend 0.21.0, migration 045, due diligence, hotpage e badges PJ; correção de vínculos mixed-case em 0.25.1
 
 ## Contexto e decisão

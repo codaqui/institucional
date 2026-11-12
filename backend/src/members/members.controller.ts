@@ -10,6 +10,7 @@ import {
   UseGuards,
   Req,
   BadRequestException,
+  ForbiddenException,
   NotFoundException,
   ParseUUIDPipe,
 } from '@nestjs/common';
@@ -25,6 +26,7 @@ import { UpdateMemberDto } from './dto/update-member.dto';
 import { FindMembersBatchDto } from './dto/find-members-batch.dto';
 import { GetMembersQueryDto } from './dto/get-members-query.dto';
 import { UpdateProfileVisibilityDto } from './dto/update-profile-visibility.dto';
+import { UpdateMarketingConsentDto } from './dto/update-marketing-consent.dto';
 import { PaginatedMembersResultDto } from './dto/paginated-members-result.dto';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
@@ -126,6 +128,30 @@ export class MembersController {
     return result;
   }
 
+  @Patch('members/me/marketing-consent')
+  @UseGuards(JwtAuthGuard)
+  async updateMarketingConsent(
+    @Req() req: { user: JwtPayload },
+    @Body() body: UpdateMarketingConsentDto,
+  ) {
+    const result = await this.membersService.updateMarketingConsent(
+      req.user.sub,
+      body,
+    );
+    void this.auditService.log({
+      action: AuditAction.MEMBER_MARKETING_CONSENT_UPDATED,
+      actorId: req.user.sub,
+      actorHandle: req.user.handle,
+      targetId: req.user.sub,
+      targetType: 'member',
+      details: {
+        marketingEmailOptIn: body.marketingEmailOptIn,
+        confirmReactivation: Boolean(body.confirmReactivation),
+      },
+    });
+    return result;
+  }
+
   // ── Por ID (público) ──────────────────────────────────────────────────────
   // Deve vir DEPOIS de /members/me.
 
@@ -177,8 +203,14 @@ export class MembersController {
       name?: string;
       bio?: string;
       linkedinUrl?: string;
+      marketingEmailOptIn?: boolean;
     },
   ) {
+    if (body.marketingEmailOptIn !== undefined) {
+      throw new ForbiddenException(
+        'O consentimento promocional pertence exclusivamente ao titular e não pode ser alterado por administrador.',
+      );
+    }
     if (body.roles !== undefined) {
       const validRoles = new Set<string>(Object.values(MemberRole));
       if (

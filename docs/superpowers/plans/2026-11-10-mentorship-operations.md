@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD para importar o histórico de mentoria e administrar mentores.
 audience: Implementers e revisores da branch feat/mentorship-operations.
-status: Aprovado em conversa; execução inline sem subagentes.
+status: Concluído e publicado em v0.22.0-backend (PR #626); vinculação manual dos placeholders é acompanhamento operacional.
 sections:
   - Constraints
   - Migration 046

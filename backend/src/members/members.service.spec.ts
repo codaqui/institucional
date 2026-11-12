@@ -22,6 +22,7 @@ const mockMember = (): Member => ({
   roles: [MemberRole.MEMBRO],
   isActive: true,
   eventCommsOptIn: false,
+  marketingEmailOptIn: false,
   githubAccessToken: null,
   secondaryEmails: [],
   joinedAt: new Date('2024-01-01'),
@@ -709,11 +710,71 @@ describe('MembersService', () => {
 
       expect(result.visibility.bio).toBe(false);
       expect(result.visibility.linkedin).toBe(true);
+      expect(result.marketingEmailOptIn).toBe(false);
       expect(result.fields).toEqual(
         expect.arrayContaining([
           expect.objectContaining({ key: 'bio', label: 'Bio' }),
           expect.objectContaining({ key: 'sortcoins', label: 'SortCoins' }),
         ]),
+      );
+    });
+
+    it('updates marketingEmailOptIn independently of eventCommsOptIn and clears unsubscribe suppression only on explicit reactivation', async () => {
+      const member = {
+        ...mockMember(),
+        email: 'user@example.com',
+        secondaryEmails: ['user@example.com'],
+        eventCommsOptIn: true,
+        marketingEmailOptIn: false,
+      };
+      memberRepo.findOneOrFail.mockResolvedValue(member);
+      memberRepo.update.mockImplementation((_criteria, updates) => {
+        Object.assign(member, updates);
+        return Promise.resolve({ affected: 1 });
+      });
+
+      const updated = await service.updateMarketingConsent(member.id, {
+        marketingEmailOptIn: true,
+      });
+
+      expect(updated.marketingEmailOptIn).toBe(true);
+      expect(member.eventCommsOptIn).toBe(true);
+      expect(memberRepo.update).toHaveBeenCalledWith(
+        { id: member.id },
+        { marketingEmailOptIn: true },
+      );
+    });
+
+    it('requires confirmReactivation when email is suppressed by unsubscribe and clears only unsubscribe suppression', async () => {
+      const member = {
+        ...mockMember(),
+        email: 'user@example.com',
+        secondaryEmails: ['user@example.com'],
+        marketingEmailOptIn: false,
+      };
+      memberRepo.findOneOrFail.mockResolvedValue(member);
+      queryRunner.query.mockResolvedValue([{ source: 'unsubscribe' }]);
+
+      await expect(
+        service.updateMarketingConsent(member.id, {
+          marketingEmailOptIn: true,
+        }),
+      ).rejects.toThrow(
+        'Este endereço realizou descadastro anteriormente. Confirme explicitamente a reativação pelo titular',
+      );
+
+      const reactivated = await service.updateMarketingConsent(member.id, {
+        marketingEmailOptIn: true,
+        confirmReactivation: true,
+      });
+
+      expect(reactivated).toEqual({
+        marketingEmailOptIn: true,
+        marketingSuppressed: false,
+      });
+      expect(queryRunner.query).toHaveBeenCalledWith(
+        'DELETE FROM email_suppressions WHERE "emailNormalized" = ANY($1::text[]) AND source = $2',
+        [['user@example.com'], 'unsubscribe'],
       );
     });
 

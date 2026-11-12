@@ -1,10 +1,10 @@
 /**
- * /admin/emails — Painel de e-mails transacionais da plataforma de eventos.
+ * /admin/emails — Painel de campanhas, logs e templates de e-mail.
  *
- * Duas abas: Logs (volume, filtros, tabela paginada e resend de falhas/ignorados)
- * e Templates (edição de subject/corpo — ver EmailsTemplatesTab).
- *
- * Port de src/pages/admin/emails.tsx (Docusaurus).
+ * Três abas: Campanhas (jornada de criação, segmentação, prévia, teste,
+ * confirmação e acompanhamento), Logs (volume, filtros por destinatário,
+ * período, status, template e campanha, exportação CSV e resend) e
+ * Templates (edição de subject/corpo — ver EmailsTemplatesTab).
  */
 
 import { useCallback, useEffect, useState } from "react";
@@ -30,17 +30,22 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import DownloadIcon from "@mui/icons-material/Download";
 import ErrorIcon from "@mui/icons-material/Error";
 import MailOutlineIcon from "@mui/icons-material/MailOutlined";
 import SendIcon from "@mui/icons-material/Send";
 import { useAuth } from "../../../../lib/use-auth";
-import { parseAuthJson, extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
+import {
+  parseAuthJson,
+  extractErrorMessage,
+} from "../../../../lib/auth-fetch-helpers";
 import PageContainer from "../ui/PageContainer";
 import StatCard from "../ui/StatCard";
-import TabPanel from "../ui/TabPanel";
+import EmailsCampaignsTab from "./EmailsCampaignsTab";
 import EmailsTemplatesTab from "./EmailsTemplatesTab";
 
 // ---------------------------------------------------------------------------
@@ -53,6 +58,7 @@ interface EmailLog {
   template: string;
   eventId: string | null;
   registrationId: string | null;
+  campaignId?: string | null;
   status: "sent" | "failed" | "skipped";
   error: string | null;
   createdAt: string;
@@ -69,6 +75,8 @@ interface EmailLogsResponse {
   };
 }
 
+type EmailsTabKey = "campanhas" | "logs" | "templates";
+
 const PAGE_SIZE = 20;
 
 const formatDateTime = (iso: string) =>
@@ -81,36 +89,87 @@ const formatDateTime = (iso: string) =>
   });
 
 const statusConfig = {
-  sent: { label: "Enviado", color: "success" as const, icon: <CheckCircleIcon fontSize="small" /> },
-  failed: { label: "Falha", color: "error" as const, icon: <ErrorIcon fontSize="small" /> },
-  skipped: { label: "Ignorado", color: "default" as const, icon: <MailOutlineIcon fontSize="small" /> },
+  sent: {
+    label: "Enviado",
+    color: "success" as const,
+    icon: <CheckCircleIcon fontSize="small" />,
+  },
+  failed: {
+    label: "Falha",
+    color: "error" as const,
+    icon: <ErrorIcon fontSize="small" />,
+  },
+  skipped: {
+    label: "Ignorado",
+    color: "default" as const,
+    icon: <MailOutlineIcon fontSize="small" />,
+  },
 };
 
 function EmailsInner(): React.JSX.Element | null {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
+  const canViewEmails = isAdmin || isFinanceAnalyzer;
 
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [total, setTotal] = useState(0);
-  const [summary, setSummary] = useState<EmailLogsResponse["summary"] | null>(null);
+  const [summary, setSummary] = useState<EmailLogsResponse["summary"] | null>(
+    null,
+  );
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   const [statusFilter, setStatusFilter] = useState("");
   const [templateFilter, setTemplateFilter] = useState("");
+  const [recipientFilter, setRecipientFilter] = useState("");
+  const [fromFilter, setFromFilter] = useState("");
+  const [toFilter, setToFilter] = useState("");
+  const [campaignIdFilter, setCampaignIdFilter] = useState("");
   const [page, setPage] = useState(1);
 
   const [resendingId, setResendingId] = useState<string | null>(null);
-  const [resendFeedback, setResendFeedback] = useState<{ kind: "success" | "error"; message: string } | null>(null);
-  const [tab, setTab] = useState(0);
+  const [resendFeedback, setResendFeedback] = useState<{
+    kind: "success" | "error";
+    message: string;
+  } | null>(null);
+  const [exportingCsv, setExportingCsv] = useState(false);
+
+  const [tab, setTab] = useState<EmailsTabKey>(() => {
+    if (typeof window !== "undefined") {
+      const q = new URLSearchParams(window.location.search).get("tab");
+      if (q === "campanhas" || q === "logs" || q === "templates") return q;
+    }
+    return "logs";
+  });
+
+  const buildFilterParams = useCallback(() => {
+    const params = new URLSearchParams();
+    if (statusFilter) params.set("status", statusFilter);
+    if (templateFilter) params.set("template", templateFilter);
+    if (isAdmin && recipientFilter.trim()) {
+      params.set("recipient", recipientFilter.trim());
+    }
+    if (fromFilter) params.set("from", `${fromFilter}T00:00:00.000Z`);
+    if (toFilter) params.set("to", `${toFilter}T23:59:59.999Z`);
+    if (campaignIdFilter.trim()) {
+      params.set("campaignId", campaignIdFilter.trim());
+    }
+    return params;
+  }, [
+    statusFilter,
+    templateFilter,
+    isAdmin,
+    recipientFilter,
+    fromFilter,
+    toFilter,
+    campaignIdFilter,
+  ]);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     setLoadError("");
     try {
-      const params = new URLSearchParams();
-      if (statusFilter) params.set("status", statusFilter);
-      if (templateFilter) params.set("template", templateFilter);
+      const params = buildFilterParams();
       params.set("page", String(page));
       params.set("pageSize", String(PAGE_SIZE));
       const [res, statusRes] = await Promise.all([
@@ -131,16 +190,16 @@ function EmailsInner(): React.JSX.Element | null {
     } finally {
       setLoading(false);
     }
-  }, [authFetch, statusFilter, templateFilter, page]);
+  }, [authFetch, buildFilterParams, page]);
 
   useEffect(() => {
     if (!ready) return;
-    if (!isLoggedIn || !isAdmin) {
+    if (!isLoggedIn || !canViewEmails) {
       window.location.replace("/");
       return;
     }
-    fetchLogs();
-  }, [ready, isLoggedIn, isAdmin, fetchLogs]);
+    void fetchLogs();
+  }, [ready, isLoggedIn, canViewEmails, fetchLogs]);
 
   if (!ready) {
     return (
@@ -148,24 +207,31 @@ function EmailsInner(): React.JSX.Element | null {
     );
   }
 
-  if (!isLoggedIn || !isAdmin) {
-    return null; // redirect para "/" em curso
+  if (!isLoggedIn || !canViewEmails) {
+    return null;
   }
 
   const handleResend = async (log: EmailLog) => {
     setResendingId(log.id);
     setResendFeedback(null);
     try {
-      const res = await authFetch(`/notifications/emails/${log.id}/resend`, { method: "POST" });
+      const res = await authFetch(`/notifications/emails/${log.id}/resend`, {
+        method: "POST",
+      });
       if (!res.ok) {
         setResendFeedback({
           kind: "error",
-          message: await extractErrorMessage(res, `Erro ao reenviar e-mail para ${log.to}.`),
+          message: await extractErrorMessage(
+            res,
+            `Erro ao reenviar e-mail para ${log.to}.`,
+          ),
         });
         return;
       }
       const updated = (await res.json()) as EmailLog;
-      setLogs((prev) => prev.map((l) => (l.id === log.id ? { ...l, ...updated } : l)));
+      setLogs((prev) =>
+        prev.map((l) => (l.id === log.id ? { ...l, ...updated } : l)),
+      );
       setResendFeedback({
         kind: updated.status === "sent" ? "success" : "error",
         message:
@@ -173,12 +239,55 @@ function EmailsInner(): React.JSX.Element | null {
             ? `E-mail reenviado com sucesso para ${updated.to}.`
             : `Reenvio para ${updated.to} falhou novamente.`,
       });
-      // Atualiza os cards de resumo
-      fetchLogs();
+      void fetchLogs();
     } catch {
-      setResendFeedback({ kind: "error", message: "Erro inesperado ao reenviar e-mail." });
+      setResendFeedback({
+        kind: "error",
+        message: "Erro inesperado ao reenviar e-mail.",
+      });
     } finally {
       setResendingId(null);
+    }
+  };
+
+  const handleExportCsv = async () => {
+    setExportingCsv(true);
+    try {
+      const params = buildFilterParams();
+      const queryStr = params.toString();
+      const exportUrl = queryStr
+        ? `/notifications/emails/export?${queryStr}`
+        : "/notifications/emails/export";
+      const res = await authFetch(exportUrl);
+      if (!res.ok) {
+        setResendFeedback({
+          kind: "error",
+          message: await extractErrorMessage(
+            res,
+            "Não foi possível exportar os logs em CSV.",
+          ),
+        });
+        return;
+      }
+      const csvText = await res.text();
+      if (typeof URL !== "undefined" && typeof URL.createObjectURL === "function") {
+        const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "email-logs.csv";
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      setResendFeedback({
+        kind: "error",
+        message: "Erro inesperado ao exportar CSV.",
+      });
+    } finally {
+      setExportingCsv(false);
     }
   };
 
@@ -208,7 +317,7 @@ function EmailsInner(): React.JSX.Element | null {
               <TableCell>Template</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Data</TableCell>
-              <TableCell align="right">Ações</TableCell>
+              {isAdmin && <TableCell align="right">Ações</TableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -216,36 +325,55 @@ function EmailsInner(): React.JSX.Element | null {
               const sc = statusConfig[log.status];
               return (
                 <TableRow key={log.id} hover>
-                  <TableCell sx={{ wordBreak: "break-all" }}>{log.to}</TableCell>
+                  <TableCell sx={{ wordBreak: "break-all" }}>
+                    {isAdmin ? log.to : "[redacted]"}
+                  </TableCell>
                   <TableCell>
                     <Chip label={log.template} size="small" variant="outlined" />
                   </TableCell>
                   <TableCell>
-                    <Tooltip title={log.error ?? ""} arrow disableHoverListener={!log.error}>
-                      <Chip icon={sc.icon} label={sc.label} color={sc.color} size="small" variant="outlined" />
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell sx={{ whiteSpace: "nowrap" }}>{formatDateTime(log.createdAt)}</TableCell>
-                  <TableCell align="right">
-                    {configured === true && log.registrationId && (log.status === "failed" || log.status === "skipped") && (
-                      <Button
+                    <Tooltip
+                      title={log.error ?? ""}
+                      arrow
+                      disableHoverListener={!log.error}
+                    >
+                      <Chip
+                        icon={sc.icon}
+                        label={sc.label}
+                        color={sc.color}
                         size="small"
                         variant="outlined"
-                        color="warning"
-                        disabled={resendingId === log.id}
-                        onClick={() => handleResend(log)}
-                        startIcon={
-                          resendingId === log.id ? (
-                            <CircularProgress size={14} color="inherit" />
-                          ) : (
-                            <SendIcon />
-                          )
-                        }
-                      >
-                        Reenviar
-                      </Button>
-                    )}
+                      />
+                    </Tooltip>
                   </TableCell>
+                  <TableCell sx={{ whiteSpace: "nowrap" }}>
+                    {formatDateTime(log.createdAt)}
+                  </TableCell>
+                  {isAdmin && (
+                    <TableCell align="right">
+                      {configured === true &&
+                        log.registrationId &&
+                        (log.status === "failed" || log.status === "skipped") && (
+                          <Button
+                            type="button"
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            disabled={resendingId === log.id}
+                            onClick={() => handleResend(log)}
+                            startIcon={
+                              resendingId === log.id ? (
+                                <CircularProgress size={14} color="inherit" />
+                              ) : (
+                                <SendIcon />
+                              )
+                            }
+                          >
+                            Reenviar
+                          </Button>
+                        )}
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}
@@ -262,152 +390,265 @@ function EmailsInner(): React.JSX.Element | null {
           E-mails
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Envios transacionais da plataforma de eventos (confirmação, cancelamento, lembrete, pós-evento)
+          Campanhas segmentadas, logs de entregas e templates transacionais da plataforma
         </Typography>
       </Box>
 
-      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 3 }}>
-        <Tab label="Logs" />
-        <Tab label="Templates" />
+      <Tabs
+        value={tab}
+        onChange={(_e, v: EmailsTabKey) => setTab(v)}
+        sx={{ mb: 3 }}
+      >
+        <Tab label="Campanhas" value="campanhas" />
+        <Tab label="Logs" value="logs" />
+        {isAdmin && <Tab label="Templates" value="templates" />}
       </Tabs>
 
-      <TabPanel index={0} value={tab}>
-        {configured === false && (
-          <Alert severity="warning" sx={{ mb: 3 }}>
-            Envios de e-mail estão desativados porque o SMTP não está configurado. Novos envios serão registrados como ignorados.
-          </Alert>
-        )}
-        {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
-        {resendFeedback && (
-          <Alert severity={resendFeedback.kind} sx={{ mb: 3 }} onClose={() => setResendFeedback(null)}>
-            {resendFeedback.message}
-          </Alert>
-        )}
+      {tab === "campanhas" && (
+        <Box role="tabpanel" aria-label="Campanhas">
+          <EmailsCampaignsTab />
+        </Box>
+      )}
 
-        {/* ── Cards de resumo ── */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard
-              icon={<SendIcon fontSize="large" />}
-              value={summary?.sent ?? "—"}
-              label="Enviados"
-              color="success.main"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard
-              icon={<ErrorIcon fontSize="large" />}
-              value={summary?.failed ?? "—"}
-              label="Falhas"
-              color="error.main"
-            />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <StatCard
-              icon={<MailOutlineIcon fontSize="large" />}
-              value={summary?.skipped ?? "—"}
-              label="Ignorados"
-              color="warning.main"
-            />
-          </Grid>
-          {templateKeys.slice(0, 2).map((tpl) => (
-            <Grid key={tpl} size={{ xs: 6, sm: 3 }}>
+      {tab === "logs" && (
+        <Box role="tabpanel" aria-label="Logs">
+          {configured === false && (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              Envios de e-mail estão desativados porque o SMTP não está configurado. Novos envios serão registrados como ignorados.
+            </Alert>
+          )}
+          {loadError && (
+            <Alert severity="error" sx={{ mb: 3 }}>
+              {loadError}
+            </Alert>
+          )}
+          {resendFeedback && (
+            <Alert
+              severity={resendFeedback.kind}
+              sx={{ mb: 3 }}
+              onClose={() => setResendFeedback(null)}
+            >
+              {resendFeedback.message}
+            </Alert>
+          )}
+
+          {/* ── Cards de resumo ── */}
+          <Grid container spacing={2} sx={{ mb: 3 }}>
+            <Grid size={{ xs: 6, sm: 3 }}>
               <StatCard
-                icon={<MailOutlineIcon fontSize="large" />}
-                value={summary!.byTemplate[tpl].sent + summary!.byTemplate[tpl].failed + summary!.byTemplate[tpl].skipped}
-                label={tpl}
-                color="info.main"
+                icon={<SendIcon fontSize="large" />}
+                value={summary?.sent ?? "—"}
+                label="Enviados"
+                color="success.main"
               />
             </Grid>
-          ))}
-        </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <StatCard
+                icon={<ErrorIcon fontSize="large" />}
+                value={summary?.failed ?? "—"}
+                label="Falhas"
+                color="error.main"
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 3 }}>
+              <StatCard
+                icon={<MailOutlineIcon fontSize="large" />}
+                value={summary?.skipped ?? "—"}
+                label="Ignorados"
+                color="warning.main"
+              />
+            </Grid>
+            {templateKeys.slice(0, 2).map((tpl) => (
+              <Grid key={tpl} size={{ xs: 6, sm: 3 }}>
+                <StatCard
+                  icon={<MailOutlineIcon fontSize="large" />}
+                  value={
+                    summary!.byTemplate[tpl].sent +
+                    summary!.byTemplate[tpl].failed +
+                    summary!.byTemplate[tpl].skipped
+                  }
+                  label={tpl}
+                  color="info.main"
+                />
+              </Grid>
+            ))}
+          </Grid>
 
-        {/* ── Por template (chips) ── */}
-        {templateKeys.length > 0 && (
-          <Card variant="outlined" sx={{ mb: 3 }}>
-            <CardContent sx={{ py: "12px !important" }}>
-              <Typography variant="overline" color="text.secondary" sx={{ display: "block", mb: 1 }}>
-                Por template
-              </Typography>
-              <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {templateKeys.map((tpl) => {
-                  const stats = summary!.byTemplate[tpl];
-                  return (
-                    <Chip
-                      key={tpl}
-                      label={`${tpl}: ${stats.sent} enviados · ${stats.failed} falhas · ${stats.skipped} ignorados`}
-                      size="small"
-                      variant="outlined"
-                      color={stats.failed > 0 ? "warning" : "default"}
-                      onClick={() => {
-                        setTemplateFilter(tpl);
-                        setPage(1);
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </CardContent>
-          </Card>
-        )}
+          {/* ── Por template (chips) ── */}
+          {templateKeys.length > 0 && (
+            <Card variant="outlined" sx={{ mb: 3 }}>
+              <CardContent sx={{ py: "12px !important" }}>
+                <Typography
+                  variant="overline"
+                  color="text.secondary"
+                  sx={{ display: "block", mb: 1 }}
+                >
+                  Por template
+                </Typography>
+                <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+                  {templateKeys.map((tpl) => {
+                    const stats = summary!.byTemplate[tpl];
+                    return (
+                      <Chip
+                        key={tpl}
+                        label={`${tpl}: ${stats.sent} enviados · ${stats.failed} falhas · ${stats.skipped} ignorados`}
+                        size="small"
+                        variant="outlined"
+                        color={stats.failed > 0 ? "warning" : "default"}
+                        onClick={() => {
+                          setTemplateFilter(tpl);
+                          setPage(1);
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              </CardContent>
+            </Card>
+          )}
 
-        {/* ── Filtros ── */}
-        <Box sx={{ display: "flex", gap: 2, mb: 2, flexWrap: "wrap" }}>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="email-status-filter-label">Status</InputLabel>
-            <Select
-              labelId="email-status-filter-label"
-              value={statusFilter}
-              label="Status"
+          {/* ── Filtros e Exportação ── */}
+          <Box
+            role="search"
+            sx={{
+              display: "flex",
+              gap: 2,
+              mb: 2,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
+            <FormControl size="small" sx={{ minWidth: 150 }}>
+              <InputLabel id="email-status-filter-label">Status</InputLabel>
+              <Select
+                labelId="email-status-filter-label"
+                value={statusFilter}
+                label="Status"
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                <MenuItem value="sent">Enviados</MenuItem>
+                <MenuItem value="failed">Falhas</MenuItem>
+                <MenuItem value="skipped">Ignorados</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl size="small" sx={{ minWidth: 190 }}>
+              <InputLabel id="email-template-filter-label">Template</InputLabel>
+              <Select
+                labelId="email-template-filter-label"
+                value={templateFilter}
+                label="Template"
+                onChange={(e) => {
+                  setTemplateFilter(e.target.value);
+                  setPage(1);
+                }}
+              >
+                <MenuItem value="">Todos</MenuItem>
+                {templateKeys.map((tpl) => (
+                  <MenuItem key={tpl} value={tpl}>
+                    {tpl}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {isAdmin && (
+              <TextField
+                label="Destinatário"
+                size="small"
+                value={recipientFilter}
+                slotProps={{
+                  htmlInput: {
+                    autoCorrect: "off",
+                    autoCapitalize: "none",
+                    spellCheck: false,
+                  },
+                }}
+                onChange={(e) => {
+                  setRecipientFilter(e.target.value);
+                  setPage(1);
+                }}
+              />
+            )}
+
+            <TextField
+              label="De (data)"
+              type="date"
+              size="small"
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={fromFilter}
               onChange={(e) => {
-                setStatusFilter(e.target.value);
+                setFromFilter(e.target.value);
                 setPage(1);
               }}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              <MenuItem value="sent">Enviados</MenuItem>
-              <MenuItem value="failed">Falhas</MenuItem>
-              <MenuItem value="skipped">Ignorados</MenuItem>
-            </Select>
-          </FormControl>
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>Template</InputLabel>
-            <Select
-              value={templateFilter}
-              label="Template"
-              onChange={(e) => {
-                setTemplateFilter(e.target.value);
-                setPage(1);
-              }}
-            >
-              <MenuItem value="">Todos</MenuItem>
-              {templateKeys.map((tpl) => (
-                <MenuItem key={tpl} value={tpl}>
-                  {tpl}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-
-        {/* ── Tabela ── */}
-        {logsSection}
-
-        {total > PAGE_SIZE && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
-            <Pagination
-              page={page}
-              count={pageCount}
-              onChange={(_, value) => setPage(value)}
-              color="primary"
             />
-          </Box>
-        )}
-      </TabPanel>
 
-      <TabPanel index={1} value={tab}>
-        <EmailsTemplatesTab />
-      </TabPanel>
+            <TextField
+              label="Até (data)"
+              type="date"
+              size="small"
+              slotProps={{ inputLabel: { shrink: true } }}
+              value={toFilter}
+              onChange={(e) => {
+                setToFilter(e.target.value);
+                setPage(1);
+              }}
+            />
+
+            <TextField
+              label="Campanha (ID)"
+              size="small"
+              value={campaignIdFilter}
+              slotProps={{
+                htmlInput: {
+                  autoCorrect: "off",
+                  autoCapitalize: "none",
+                  spellCheck: false,
+                },
+              }}
+              onChange={(e) => {
+                setCampaignIdFilter(e.target.value);
+                setPage(1);
+              }}
+            />
+
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              startIcon={<DownloadIcon />}
+              disabled={exportingCsv}
+              onClick={handleExportCsv}
+            >
+              {exportingCsv ? "Exportando…" : "Exportar CSV"}
+            </Button>
+          </Box>
+
+          {/* ── Tabela ── */}
+          {logsSection}
+
+          {total > PAGE_SIZE && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+              <Pagination
+                page={page}
+                count={pageCount}
+                onChange={(_, value) => setPage(value)}
+                color="primary"
+              />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {tab === "templates" && isAdmin && (
+        <Box role="tabpanel" aria-label="Templates">
+          <EmailsTemplatesTab />
+        </Box>
+      )}
     </PageContainer>
   );
 }

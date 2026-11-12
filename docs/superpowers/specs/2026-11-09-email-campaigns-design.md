@@ -1,51 +1,57 @@
 <!-- AGENT-INDEX
-purpose: Design de campanhas e malas diretas com segmentação, consentimento, envio idempotente e logs.
-audience: Presidência, mantenedores, implementers e revisores de privacidade/backend/frontend.
-status: Desenho inicial aprovado para detalhamento; aguardando revisão da spec antes do plano executável.
+purpose: Spec revisada de campanhas e malas diretas E3, com segmentação, consentimento, fila persistente e logs por destinatário.
+audience: Presidência, mantenedores e o agente responsável pelo plano TDD, implementação e revisão.
+status: Implementada e integrada em develop pela PR #637 (backend 0.27.0 / migration 048); PR #638 aberta para main.
 sections:
-  - Objetivo e escopo
+  - Objetivo e recorte
   - Consentimento e privacidade
-  - Modelo de dados
+  - Modelo e migrations
   - Segmentos e destinatários
-  - Envio e idempotência
+  - Fila e idempotência
   - APIs e frontend
   - Logs, retenção e erros
   - Verificação e rollout
 related-docs:
-  - docs/plans/codaqui-1-0/eca-lgpd.md — consentimento e direitos dos titulares
-  - docs/plans/codaqui-1-0/transversais.md — retenção e auditoria
-  - docs/adrs/006-directorates-designations.md — segmentos por designations
-  - docs/modules/privacy/treatments.md — inventário de dados pessoais
+  - ../plans/codaqui-1-0/eca-lgpd.md — consentimento e direitos dos titulares
+  - ../plans/codaqui-1-0/transversais.md — retenção e auditoria
+  - ../adrs/006-directorates-designations.md — segmentos por designations
+  - ../adrs/016-certificate-invite-queue.md — fila, advisory lock e ritmo global de SMTP
+  - ../adrs/017-announcements.md — avisos públicos, sem relação com campanhas
+  - ../modules/privacy/treatments.md — inventário de dados pessoais
 agent-protocol:
-  - Não implementar antes da revisão desta spec e da aprovação de um plano próprio.
-  - Comunicação promocional exige opt-in e descadastro; não reutilizar o consentimento de transações.
-  - Não incluir open tracking, pixels ou envio em massa sem confirmação e rate limit.
+  - O outro agente deve escrever um plano TDD próprio antes de implementar e revisar a branch completa.
+  - Comunicação promocional exige opt-in e descadastro; não reutilizar consentimento transacional.
+  - Não incluir open/click tracking, pixels, anexos ou envio em massa sem preview/teste, confirmação e ritmo global.
 -->
 
-# Campanhas de E-mail — design
+# Campanhas de E-mail E3 — especificação
 
-## Objetivo e escopo
+## Objetivo e recorte
 
-Adicionar ao painel `/admin/emails` uma área de **Campanhas** para divulgar ações e conversar com públicos segmentados, com preview, teste, confirmação, envio idempotente e histórico por destinatário. A funcionalidade usa o SMTP e os `email_logs` existentes, sem introduzir um novo provedor.
+Adicionar à área `/admin/emails` uma seção **Campanhas** para divulgar ações e conversar com públicos segmentados, com prévia, teste, confirmação, envio persistente e histórico por destinatário. A implementação reutiliza SMTP, templates, `email_logs`, designations e a serialização global de envios já existentes; não introduz provedor, Redis ou BullMQ.
 
-O recorte inicial inclui campanhas manuais ou agendadas, segmentos determinísticos, templates em Markdown, consentimento, descadastro, rate limit, retries e filtros de logs. Não inclui automações por jornada, A/B testing, open/click tracking, anexos, importação livre de CSV, SMS, bounce handling automático ou editor HTML irrestrito.
+A base é `develop` com backend **0.26.0** e migration **047**. Esta fase propõe backend **0.27.0** e migration **048**. A versão **1.0.0 permanece reservada à Fase 7/C4P**.
+
+Inclui campanhas manuais ou agendadas, segmentos determinísticos, Markdown, consentimento, descadastro, rate limit, retries, cancelamento e filtros de logs. Não inclui jornadas automáticas, A/B testing, open/click tracking, anexos, importação livre de CSV, SMS, bounce handling automático, editor HTML irrestrito, Announcements, C4P ou alterações de check-in/Stripe.
 
 ## Consentimento e privacidade
 
-Toda campanha tem `purpose`:
+Toda campanha declara `purpose`:
 
-- `transactional`: informação necessária sobre uma relação já existente. Não pode conter promoção.
+- `transactional`: informação necessária sobre uma relação existente, sem conteúdo promocional. Não exige opt-in de marketing, mas continua sujeita a reclamação/bounce manual e à finalidade declarada.
 - `promotional`: divulgação, novidades, captação ou marketing. Exige opt-in explícito e descadastro funcional.
 
-Membros recebem em “Meus dados” uma preferência `marketingEmailOptIn`, default `false` para registros existentes. Ela é independente de e-mails transacionais. A política de privacidade e o inventário devem registrar finalidade, base legal, segmentos, retenção e canal de revogação.
+Membros recebem em “Meus dados” a preferência independente `marketingEmailOptIn`, default `false` para registros existentes. Ela não reutiliza `eventCommsOptIn` nem o consentimento de doações, inscrições ou guests. Alterações são auditadas em governança.
 
-`email_suppressions` é global e antecede qualquer segmento. Um titular suprimido nunca recebe nova campanha promocional, mesmo que um admin altere o segmento ou o opt-in manualmente. Alterações de consentimento ficam em auditoria.
+`email_suppressions` antecede qualquer segmento. Descadastro promocional impede novas campanhas promocionais mesmo que o opt-in seja reativado depois; reativação exige nova ação explícita do titular, nunca do admin. Reclamação/bounce manual também pode bloquear transacional quando a finalidade exigir.
 
-Não haverá pixel, rastreamento de abertura ou de cliques. Métricas são somente contagens operacionais: destinatários, enviados, falhas, ignorados e suprimidos.
+A página pública de privacidade e o inventário devem registrar finalidade, base legal, segmentos, operadores, retenção e canal de revogação. Não haverá pixel ou rastreamento de abertura/cliques. Métricas são apenas contagens operacionais: destinatários, enviados, falhas, ignorados e suprimidos.
 
-## Modelo de dados
+## Modelo e migrations
 
-A versão e as migrations serão definidas no plano próprio, sem reutilizar a versão da Fase 4.
+### Migration 048
+
+Cria as estruturas abaixo, com UUIDs, índices nas FKs e constraints para status/unicidade. Down remove somente os objetos da fase; não altera dados anteriores.
 
 ### `email_campaigns`
 
@@ -59,14 +65,13 @@ A versão e as migrations serão definidas no plano próprio, sem reutilizar a v
 
 ### `email_campaign_recipients`
 
-- `id`, `campaignId`, `memberId?`, `email`, `name?`;
-- `emailNormalized` para deduplicação;
+- `id`, `campaignId`, `memberId?`, `email`, `name?`, `emailNormalized`;
 - `status`: `pending | sending | sent | failed | skipped | suppressed`;
 - `attempts`, `nextAttemptAt?`, `lastError?`, `sentAt?`;
 - `emailLogId?`, `unsubscribeTokenHash`;
 - `createdAt`, `updatedAt`.
 
-Único por `(campaignId, emailNormalized)`. O token de descadastro aparece somente no link enviado; banco e logs guardam somente hash.
+Único por `(campaignId,emailNormalized)`. O token cru aparece somente no link enviado; banco/logs guardam apenas hash.
 
 ### `email_suppressions`
 
@@ -74,46 +79,47 @@ A versão e as migrations serão definidas no plano próprio, sem reutilizar a v
 - `reason`, `source`: `unsubscribe | admin | complaint | bounce_manual`;
 - `createdById?`, `createdAt`.
 
-### `email_logs`
+### `members` e `email_logs`
 
-Adicionar `campaignId?` e `campaignRecipientId?`. O log individual continua indicando destinatário, template, status, erro e data. Campanhas usam templates próprios `campaign-<purpose>` ou um template específico selecionado na campanha.
+- `members.marketingEmailOptIn`: boolean não nulo, default `false`.
+- `email_logs.campaignId?` e `campaignRecipientId?`: vínculos opcionais com a campanha e o recipient.
+- O log individual preserva destinatário, template, status, erro e data. Campanhas usam `campaign-transactional` ou `campaign-promotional`, exceto quando um template válido for explicitamente escolhido.
 
 ## Segmentos e destinatários
 
 Segmentos são enums e consultas parametrizadas, nunca SQL livre:
 
-- `all_opted_in_members`: membros ativos com e-mail verificado e opt-in promocional.
+- `all_opted_in_members`: ativos com e-mail verificado e opt-in promocional.
 - `role`: uma role global escolhida, respeitando opt-in quando promocional.
-- `designation`: `targetType + targetId + designation`, como responsáveis de uma comunidade ou mentores de um projeto.
-- `community_governance`: responsáveis, diretores e voluntários ligados a uma comunidade por designation ou por `directorates.communityId`.
-- `manual`: e-mails verificados escolhidos explicitamente por um admin, com prova de consentimento quando promocional.
+- `designation`: `targetType + targetId + designation`, como responsáveis de comunidade ou mentores de projeto.
+- `community_governance`: responsáveis, diretores e voluntários ligados à comunidade por designation ou `directorates.communityId`.
+- `manual`: endereços verificados escolhidos por admin, com evidência de consentimento para promoção.
 
-O segmento `community_governance` depende da migration 040 da Fase 4 para vínculos via diretoria; antes dela, somente designations diretas são usadas.
+A migration 040 e as designations atuais são a fonte de vínculos; comunidade não seleciona todos os membros da plataforma, apenas vínculos explícitos. Contatos com papel inativo, e-mail inválido/não verificado, duplicidade ou supressão são excluídos e contados separadamente.
 
-A prévia mostra total, nomes/handles e e-mails restritos a admin antes da confirmação. Também mostra quantos foram removidos por falta de consentimento, e-mail inválido, duplicidade ou supressão. Comunidade não é tratada como lista genérica de todos os membros da plataforma: somente os vínculos explícitos acima entram.
+A prévia resolve e congela a lista, mostrando inclusões, exclusões e motivos. Nomes/handles/e-mails são visíveis somente a admin. Reprocessar a prévia não duplica recipients.
 
-O opt-in não é exigido para transacional, mas supressões por reclamação/bounce continuam aplicáveis. Uma campanha transacional fora da finalidade declarada deve ser bloqueada na revisão.
-
-## Envio e idempotência
+## Fila, envio e idempotência
 
 1. Admin cria rascunho e segmento.
-2. Sistema resolve e congela a lista na prévia, mostrando inclusões e exclusões.
-3. Admin envia um teste para si e confirma conteúdo/público.
-4. Outro admin ou o mesmo admin com uma segunda confirmação explícita aprova a campanha; `confirmedById` registra a decisão.
-5. Workers processam recipients por lotes pequenos, com rate limit configurável e atraso entre tentativas.
-6. Cada recipient é marcado `sending` condicionalmente antes da tentativa, evitando envio duplo em workers concorrentes.
-7. Sucesso grava `emailLogId`; falha respeita `attempts` e `nextAttemptAt`, com backoff e máximo definido no plano.
-8. O término produz `completed` ou `completed_with_errors`; nunca reenvia automaticamente para quem já tem `sent`.
+2. Sistema apresenta a prévia congelada e as exclusões.
+3. Admin envia um teste apenas para si e revisa conteúdo/público.
+4. Admin confirma explicitamente; `confirmedById` registra a decisão de governança.
+5. Recipients são processados em pequenos lotes, com ritmo e atraso entre tentativas.
+6. O worker marca `sending` condicionalmente com `FOR UPDATE SKIP LOCKED`, antes do SMTP, e libera a linha ao concluir. O SMTP ocorre fora do lock da linha.
+7. `EmailService` continua serializando `provider.send` com advisory lock de sessão PostgreSQL compartilhado. O intervalo global usa `EMAIL_SEND_INTERVAL_MS` (default 2000 ms em produção), sem fila separada por página/admin.
+8. Sucesso grava `emailLogId`; falha usa `attempts`/`nextAttemptAt`, com backoff de 1 e 5 minutos e no máximo 3 tentativas. Erros 421/454 pausam pendentes por 15 minutos. Validação/autorização/payload inválido não é repetido.
+9. O resultado é `completed` ou `completed_with_errors`; nunca reenvia automaticamente quem já está `sent`.
 
-Criar a mesma campanha com a mesma `idempotencyKey` retorna a campanha existente. Resolver a prévia novamente não duplica recipients. Reenvio manual de uma falha cria tentativa somente para o recipient escolhido.
+`processing` antigo volta para retry após 2 minutos. A autorização do ator é recarregada no processamento. Reenvio manual de falha cria tentativa somente para o recipient escolhido. Criar com a mesma `idempotencyKey` retorna a campanha existente. Cancelamento impede novos envios sem alterar logs anteriores. SMTP ausente marca falha operacional sem apagar a campanha.
 
-Cancelamento impede novos envios, mas não altera logs anteriores. SMTP ausente marca falhas operacionais sem apagar a campanha. Não há rollback de e-mails já enviados.
+Não há exactly-once absoluto se o SMTP aceitar e a conexão falhar antes da confirmação; essa incerteza fica documentada. Não há rollback de mensagens enviadas.
 
 ## APIs e frontend
 
-Rotas administrativas novas não usam `/admin/`:
+Rotas de gestão fora de `/admin/`:
 
-- `GET/POST /campaigns`;
+- `GET/POST /campaigns` com paginação `{data,total,page,totalPages,limit}`;
 - `GET/PATCH /campaigns/:id`;
 - `POST /campaigns/:id/preview`;
 - `POST /campaigns/:id/test`;
@@ -121,29 +127,36 @@ Rotas administrativas novas não usam `/admin/`:
 - `POST /campaigns/:id/cancel`;
 - `POST /campaigns/:id/recipients/:recipientId/retry`.
 
-Apenas admin cria, edita, testa, confirma e cancela. `finance-analyzer` pode ler campanhas/logs. A página pública `/descadastro?token=...` valida o token, aplica supressão e mostra confirmação sem exigir login nem expor outros dados.
+Somente admin cria, edita, testa, confirma, cancela e faz retry. `finance-analyzer` lê campanhas/logs. Endpoints públicos são apenas descadastro e preferência autenticada do próprio membro.
 
-`/admin/emails` passa a ter três áreas: **Campanhas**, **Logs** e **Templates**. Logs ganham filtros por destinatário, período, status, template e campanha. A tela de campanha tem etapas de conteúdo → público → prévia/teste → confirmação → acompanhamento, com contagens e erros visíveis.
+`GET /descadastro?token=...` valida token, aplica supressão e apresenta confirmação sem login, sem revelar e-mail ou outros dados. Token inválido/expirado usa resposta neutra. A página usa texto simples e HTTPS, sem formulário de dados adicionais.
+
+`/admin/emails` passa a ter **Campanhas**, **Logs** e **Templates**. A jornada da campanha é conteúdo → público → prévia/teste → confirmação → acompanhamento, com estados, contagens, erros e progresso acessível. Polling somente com documento visível e sem requests concorrentes.
+
+Logs ganham filtros por destinatário, período, status, template e campanha, com paginação padrão e exportação apenas de dados já autorizados. “Meus dados” recebe a preferência de marketing com explicação independente das transacionais.
 
 ## Logs, retenção e erros
 
-Cada recipient aponta para o log individual; a campanha guarda somente agregados derivados, evitando divergência. Falhas são visíveis por destinatário, sem expor stack traces ou segredos SMTP.
+Cada recipient aponta para o log individual; agregados são derivados para evitar divergência. Falhas mostram causa operacional sanitizada, sem stack trace, segredo SMTP ou token.
 
-Logs seguem a retenção atual de 365 dias. Recipients e tokens são anonimizados após o mesmo período: e-mail e hash são removidos, preservando contagens e trilha administrativa mínima. Supressões permanecem enquanto necessárias para respeitar a revogação.
+Logs seguem retenção atual de 365 dias. Após o mesmo período, recipients têm e-mail e hash removidos, preservando contagens e trilha mínima. Supressões permanecem enquanto necessárias para respeitar revogação.
 
-Erros de validação retornam 400; estado incompatível retorna 409; escopo insuficiente retorna 403; token inválido/expirado não confirma nem revela o e-mail.
+Validação retorna 400; estado incompatível 409; escopo insuficiente 403; inexistente 404; token inválido/expirado não confirma nem revela dados. Ações administrativas de campanha, confirmação, cancelamento, retry e alterações de consentimento entram em auditoria de governança.
 
 ## Verificação e rollout
 
-Antes de produção:
+O agente implementador deve escrever plano TDD e obter revisão independente da branch, cobrindo no mínimo:
 
-- Testes de segmentos, consentimento, supressão, deduplicação e retenção.
-- Dois workers concorrentes não enviam duas vezes para o mesmo recipient.
-- Retry não reenvia `sent`; campanha repetida com a mesma chave não duplica.
-- Teste de descadastro impede campanha posterior, mesmo com opt-in reativado por admin.
-- Teste comprovando que comunidade não seleciona membros sem vínculo explícito.
-- Testes de filtros de logs e navegação por teclado no fluxo completo.
+- Segmentos, opt-in independente, supressão, deduplicação, retenção e anonimização.
+- `community_governance` sem membros sem vínculo explícito.
+- Dois workers/DataSources concorrentes sem envio duplicado para o mesmo recipient.
+- Advisory lock e intervalo global entre campanhas e demais fluxos.
+- Retry sem reenviar `sent`; mesma chave sem duplicar campanha; cancelamento e agendamento.
+- Descadastro impedindo campanha posterior, inclusive após tentativa de reativação indevida pelo admin.
+- Filtros de logs, paginação, Markdown seguro, teclado, estados de erro e dark mode.
+- Migration 048 down/up em dump real, sem reprocessar campanhas/logs históricos.
 - SMTP sintético, sem destinatários reais; fixtures removidas.
-- Backend build/Jest, frontend Vitest/Astro check, tenants e Sonar verdes.
 
-Rollout: migration e backend → preview com campanha sintética → validação de descadastro e logs → ativação para admin. Nenhuma campanha real é enviada durante implementação ou testes automatizados.
+Gates obrigatórios: backend build/Jest, E2E PostgreSQL real, frontend Vitest/Astro check, `make astro-verify`, `make astro-verify-tenants`, scripts afetados, CI e SonarCloud sem issues.
+
+Rollout: backend/migration 048 → preview com campanha sintética → validação de descadastro/fila/logs → ativação admin → primeira campanha real pequena e explicitamente autorizada. Nenhuma campanha real é enviada durante implementação, testes automatizados ou rollout técnico.

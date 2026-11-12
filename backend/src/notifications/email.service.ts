@@ -1,13 +1,24 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, Repository } from 'typeorm';
+import {
+  Between,
+  type FindOptionsWhere,
+  ILike,
+  In,
+  LessThan,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
+import { toCsv } from '../common/csv';
 import {
   ManagedEvent,
   ManagedEventStatus,
@@ -69,15 +80,24 @@ export interface RegistrationEmailEvent {
 export interface ListEmailLogsQuery {
   status?: string;
   template?: string;
+  recipient?: string;
+  from?: string;
+  to?: string;
+  campaignId?: string;
   page?: number;
   pageSize?: number;
+  limit?: number;
+  isAdmin?: boolean;
 }
 
 export interface EmailLogsPage {
   items: EmailLog[];
+  data: EmailLog[];
   total: number;
   page: number;
   pageSize: number;
+  limit: number;
+  totalPages: number;
   summary: {
     sent: number;
     failed: number;
@@ -152,6 +172,61 @@ export class EmailService {
     );
     EmailService.smtpChain = run.catch(() => undefined);
     return run;
+  }
+
+  sanitizeOperationalError(rawError: unknown): string {
+    let raw = '';
+    if (rawError instanceof Error) {
+      raw = rawError.message;
+    } else if (typeof rawError === 'string' || typeof rawError === 'number') {
+      raw = String(rawError);
+    }
+    const firstLine = raw.split(/\r?\n/)[0] ?? 'Erro operacional de envio';
+    const redacted = firstLine
+      .replace(/token=[^&\s"']+/gi, 'token=[REDACTED]')
+      .replace(/(password|pass|secret|key)\s*[=:]\s*\S+/gi, '$1=[REDACTED]')
+      .replace(/(Bearer|Basic)\s+\S+/gi, '$1 [REDACTED]')
+      .replace(/\b(plain|enc):[^\s"']+/gi, '[REDACTED]')
+      .trim();
+    return (redacted || 'Erro operacional de envio').slice(0, 240);
+  }
+
+  async sendCampaignEmail(input: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+    template: string;
+    campaignId: string;
+    campaignRecipientId?: string | null;
+  }): Promise<EmailLog> {
+    const configured = this.provider.isConfigured();
+    const log = this.emailLogRepo.create({
+      to: input.to,
+      template: input.template,
+      eventId: null,
+      registrationId: null,
+      campaignId: input.campaignId,
+      campaignRecipientId: input.campaignRecipientId ?? null,
+      status: configured ? EmailStatus.SENT : EmailStatus.SKIPPED,
+      error: configured ? null : 'SMTP_NOT_CONFIGURED',
+    });
+    if (!configured) return this.emailLogRepo.save(log);
+    try {
+      await this.scheduleSmtpSend({
+        to: input.to,
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
+      });
+    } catch (error) {
+      log.status = EmailStatus.FAILED;
+      log.error = this.sanitizeOperationalError(error);
+      this.logger.warn(
+        `Falha ao enviar campanha ${input.campaignId} para ${input.to}: ${log.error}`,
+      );
+    }
+    return this.emailLogRepo.save(log);
   }
 
   private contextFor(
@@ -402,11 +477,29 @@ export class EmailService {
     }
   }
 
-  async listLogs(query: ListEmailLogsQuery): Promise<EmailLogsPage> {
-    const page = Math.max(1, query.page ?? 1);
-    const pageSize = Math.min(100, Math.max(1, query.pageSize ?? 20));
+  private buildDateRangeFilter(
+    from?: string,
+    to?: string,
+  ): FindOptionsWhere<EmailLog>['createdAt'] {
+    const fromDate = from ? new Date(from) : null;
+    const toDate = to ? new Date(to) : null;
+    if (fromDate && Number.isNaN(fromDate.getTime())) {
+      throw new BadRequestException('Parâmetro from inválido.');
+    }
+    if (toDate && Number.isNaN(toDate.getTime())) {
+      throw new BadRequestException('Parâmetro to inválido.');
+    }
+    if (fromDate && toDate) return Between(fromDate, toDate);
+    if (fromDate) return MoreThanOrEqual(fromDate);
+    if (toDate) return LessThanOrEqual(toDate);
+    return undefined;
+  }
 
-    const where: { status?: EmailStatus; template?: string } = {};
+  private buildLogsWhere(
+    query: ListEmailLogsQuery,
+    isAdmin: boolean,
+  ): FindOptionsWhere<EmailLog> {
+    const where: FindOptionsWhere<EmailLog> = {};
     if (
       query.status === EmailStatus.SENT ||
       query.status === EmailStatus.FAILED ||
@@ -419,13 +512,43 @@ export class EmailService {
       );
     }
     if (query.template) where.template = query.template;
+    if (query.campaignId) where.campaignId = query.campaignId;
 
-    const [items, total] = await this.emailLogRepo.findAndCount({
+    if (query.recipient?.trim()) {
+      if (!isAdmin) {
+        throw new ForbiddenException(
+          'Filtro por destinatário é restrito a administradores.',
+        );
+      }
+      where.to = ILike(`%${query.recipient.trim()}%`);
+    }
+
+    const createdAtFilter = this.buildDateRangeFilter(query.from, query.to);
+    if (createdAtFilter) {
+      where.createdAt = createdAtFilter;
+    }
+    return where;
+  }
+
+  async listLogs(query: ListEmailLogsQuery): Promise<EmailLogsPage> {
+    const page = Math.max(1, query.page ?? 1);
+    const pageSize = Math.min(
+      5000,
+      Math.max(1, query.pageSize ?? query.limit ?? 20),
+    );
+    const isAdmin = query.isAdmin ?? true;
+    const where = this.buildLogsWhere(query, isAdmin);
+
+    const [rawItems, total] = await this.emailLogRepo.findAndCount({
       where,
       order: { createdAt: 'DESC' },
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
+
+    const items = isAdmin
+      ? rawItems
+      : rawItems.map((item) => ({ ...item, to: '[redacted]' }));
 
     // Summary respeita o filtro de template (ignora o de status, para dar visão geral).
     const summaryQb = this.emailLogRepo
@@ -462,7 +585,40 @@ export class EmailService {
       templateSummary[row.status] += count;
     }
 
-    return { items, total, page, pageSize, summary };
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    return {
+      items,
+      data: items,
+      total,
+      page,
+      pageSize,
+      limit: pageSize,
+      totalPages,
+      summary,
+    };
+  }
+
+  async exportLogsCsv(query: ListEmailLogsQuery): Promise<string> {
+    const isAdmin = query.isAdmin ?? true;
+    const pageResult = await this.listLogs({
+      ...query,
+      page: 1,
+      pageSize: 5000,
+      isAdmin,
+    });
+    const headers = isAdmin
+      ? ['id', 'createdAt', 'to', 'template', 'campaignId', 'status', 'error']
+      : ['id', 'createdAt', 'template', 'campaignId', 'status', 'error'];
+    const rows = pageResult.items.map((log) => ({
+      id: log.id,
+      createdAt: log.createdAt,
+      to: log.to,
+      template: log.template,
+      campaignId: log.campaignId ?? '',
+      status: log.status,
+      error: log.error ?? '',
+    }));
+    return toCsv(headers, rows);
   }
 
   getStatus(): { configured: boolean } {

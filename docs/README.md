@@ -44,6 +44,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 | 015 | [Codaqui Universitário](adrs/015-codaqui-universitario.md) | 2026-11 | Implementado e publicado (Fase 4b; backend 0.19.0) |
 | 016 | [Fila assíncrona de convites de certificado](adrs/016-certificate-invite-queue.md) | 2026-11 | Implementado e publicado (backend 0.19.0); serialização global ampliada em 0.23.0 |
 | 017 | [Announcements](adrs/017-announcements.md) | 2026-11 | Implementado e verificado; integração e publicação pendentes (backend 0.26.0/migration 047) |
+| 018 | [Campanhas de E-mail (E3)](adrs/018-email-campaigns.md) | 2026-11 | Implementado e verificado; integração e publicação pendentes (backend 0.27.0/migration 048) |
 | 009 | [Mentoria no sistema](adrs/009-mentorship.md) | 2026-11 | Fase 5 publicada em 0.19.0; Mentoria Operations publicada em 0.22.0 |
 | 010 | [Business tiers](adrs/010-business-tiers.md) | 2026-11 | Implementado e publicado (Fase 6; backend 0.21.0) |
 

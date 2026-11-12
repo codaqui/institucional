@@ -38,6 +38,14 @@ describe('auditCategory', () => {
     'announcement.created' as AuditAction,
     'announcement.updated' as AuditAction,
     'announcement.deactivated' as AuditAction,
+    'member.marketing_consent_updated' as AuditAction,
+    'email_campaign.created' as AuditAction,
+    'email_campaign.updated' as AuditAction,
+    'email_campaign.confirmed' as AuditAction,
+    'email_campaign.canceled' as AuditAction,
+    'email_campaign.recipient_retried' as AuditAction,
+    'email_suppression.created' as AuditAction,
+    'email_suppression.deleted' as AuditAction,
   ])('classifies %s as governance', (action) => {
     expect(auditCategory(action)).toBe('governance');
   });
@@ -72,7 +80,7 @@ describe('auditCategory', () => {
 
   it('covers every current audit action', () => {
     const actions = Object.values(AuditAction);
-    expect(actions).toHaveLength(78);
+    expect(actions).toHaveLength(86);
     for (const action of actions) {
       expect(['governance', 'operational']).toContain(auditCategory(action));
     }

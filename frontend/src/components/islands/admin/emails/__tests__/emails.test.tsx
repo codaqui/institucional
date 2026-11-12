@@ -233,4 +233,31 @@ describe("/admin/emails", () => {
       expect.objectContaining({ method: "POST" }),
     );
   });
+
+  it("filtra logs por destinatário, período e campanha, e exibe a aba Campanhas", async () => {
+    mockEmailEndpoints();
+    mockAdmin();
+
+    renderWithMui(<EmailsApp />);
+    await screen.findByText("participante@example.com");
+
+    expect(screen.getByRole("tab", { name: "Campanhas" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Logs" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Templates" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Destinatário"), {
+      target: { value: "participante@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Campanha (ID)"), {
+      target: { value: "camp-123" },
+    });
+
+    await waitFor(() => {
+      expect(authState.authFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          "recipient=participante%40example.com&campaignId=camp-123",
+        ),
+      );
+    });
+  });
 });

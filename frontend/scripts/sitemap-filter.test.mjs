@@ -5,6 +5,7 @@ describe("isExcludedFromSitemap", () => {
   it.each([
     "/404",
     "/busca",
+    "/descadastro",
     "/eventos/detalhe",
     "/eventos/comprovante",
     "/eventos/convite",

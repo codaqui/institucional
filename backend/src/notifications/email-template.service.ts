@@ -266,4 +266,31 @@ export class EmailTemplateService {
       this.contextValues(this.sampleContext(id)),
     );
   }
+
+  renderCampaignMarkdown(input: {
+    subject: string;
+    bodyMarkdown: string;
+    purpose: 'transactional' | 'promotional';
+    recipientName?: string | null;
+    unsubscribeUrl?: string | null;
+  }): RenderedEmail {
+    const name = input.recipientName?.trim() || 'Membro Codaqui';
+    const unsubscribeUrl =
+      input.unsubscribeUrl?.trim() ||
+      `${this.frontendUrl}/descadastro?token=preview`;
+    const values: Record<string, string> = {
+      name,
+      attendeeName: name,
+      unsubscribeUrl,
+    };
+    let markdown = input.bodyMarkdown;
+    if (
+      input.purpose === 'promotional' &&
+      !markdown.includes('{{unsubscribeUrl}}') &&
+      !markdown.includes(unsubscribeUrl)
+    ) {
+      markdown = `${markdown}\n\n---\n\n[Cancelar recebimento de comunicações promocionais](${unsubscribeUrl})`;
+    }
+    return this.renderSource(input.subject, markdown, values);
+  }
 }

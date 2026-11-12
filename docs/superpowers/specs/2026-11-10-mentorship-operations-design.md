@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da importação histórica de mentoria e administração operacional de mentores.
 audience: Mantenedores, implementers e revisores da branch feat/mentorship-operations.
-status: Aprovado em conversa após análise do CSV e do dump; pronto para TDD.
+status: Concluído e publicado em v0.22.0-backend (PR #626); vinculação manual dos placeholders é acompanhamento operacional.
 sections:
   - Evidências e decisão
   - Migration 046
