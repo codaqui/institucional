@@ -105,6 +105,30 @@ describe('EmailTemplateService.render', () => {
     expect(r.text).toContain('Local: Maringá, PR');
     expect(r.html).toContain('http://localhost:3000/membro');
   });
+
+  it('interpola as variáveis de C4P no template de resultado', async () => {
+    const r = await service.render(
+      'c4p-talk-result',
+      makeCtx({
+        c4pCallName: 'C4P DevPR Conf 2026',
+        c4pTalkTitle: 'Intro ao TypeScript',
+        c4pResultStatus: 'aprovada',
+        c4pActionUrl: 'https://codaqui.dev/c4p/devpr-conf-2026/resultado',
+      }),
+    );
+    expect(r.subject).toContain('C4P DevPR Conf 2026');
+    expect(r.text).toContain('Intro ao TypeScript');
+    expect(r.text).toContain('aprovada');
+    expect(r.html).toContain(
+      'https://codaqui.dev/c4p/devpr-conf-2026/resultado',
+    );
+  });
+
+  it('esvazia variáveis de C4P ausentes no contexto', async () => {
+    const r = await service.render('c4p-submission-confirmation', makeCtx());
+    expect(r.subject).not.toMatch(/\{\{/);
+    expect(r.text).not.toMatch(/\{\{c4p/);
+  });
 });
 
 describe('EmailTemplateService CRUD', () => {
@@ -125,9 +149,9 @@ describe('EmailTemplateService CRUD', () => {
 
   const actor = { actorId: 'm1', actorHandle: 'octocat' };
 
-  it('lista os 9 templates com isOverride=false quando não há overrides', async () => {
+  it('lista os 12 templates com isOverride=false quando não há overrides', async () => {
     const list = await service.listTemplates();
-    expect(list).toHaveLength(9);
+    expect(list).toHaveLength(12);
     expect(list.every((t) => t.isOverride === false)).toBe(true);
   });
 

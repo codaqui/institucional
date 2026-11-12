@@ -12,6 +12,10 @@ export const EMAIL_TEMPLATE_REGISTRATION_CANCELLED =
 export const EMAIL_TEMPLATE_REMINDER_D1 = 'event-reminder-d1';
 export const EMAIL_TEMPLATE_POST_EVENT = 'event-post-event';
 export const EMAIL_TEMPLATE_CERTIFICATE_PENDING = 'certificate-pending-registration';
+export const EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION =
+  'c4p-submission-confirmation';
+export const EMAIL_TEMPLATE_C4P_EVALUATOR_INVITE = 'c4p-evaluator-invite';
+export const EMAIL_TEMPLATE_C4P_TALK_RESULT = 'c4p-talk-result';
 
 export interface DefaultTemplateDefinition {
   subject: string;
@@ -46,6 +50,10 @@ function sampleContext(): EmailTemplateContext {
     eventLocation: SAMPLE.eventLocation,
     meetLink: 'https://meet.example.test/mentoria',
     cancelReason: 'Conflito de agenda',
+    c4pCallName: 'C4P Exemplo 2026',
+    c4pTalkTitle: 'Uma palestra de exemplo',
+    c4pResultStatus: 'aprovada',
+    c4pActionUrl: 'https://codaqui.dev/c4p/c4p-exemplo-2026/resultado',
   };
 }
 
@@ -201,6 +209,58 @@ export const DEFAULT_TEMPLATES: Record<string, DefaultTemplateDefinition> = {
       '',
       'Você pode escolher um novo horário na página do programa.',
     ),
+  },
+  [EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION]: {
+    subject: 'Submissão recebida — {{c4pCallName}}',
+    variables: ['attendeeName', 'c4pCallName', 'c4pTalkTitle'],
+    sample: sampleContext,
+    bodyMarkdown: [
+      'Olá, {{attendeeName}}!',
+      '',
+      'Recebemos sua proposta **{{c4pTalkTitle}}** na chamada **{{c4pCallName}}**.',
+      '',
+      'A curadoria avaliará todas as propostas e o resultado será comunicado por e-mail.',
+      '',
+      '— Equipe Codaqui',
+    ].join('\n'),
+  },
+  [EMAIL_TEMPLATE_C4P_EVALUATOR_INVITE]: {
+    subject: 'Convite para avaliar — {{c4pCallName}}',
+    variables: ['attendeeName', 'c4pCallName', 'c4pActionUrl'],
+    sample: sampleContext,
+    bodyMarkdown: [
+      'Olá, {{attendeeName}}!',
+      '',
+      'Você foi convidado(a) para avaliar as propostas da chamada **{{c4pCallName}}**.',
+      '',
+      'Para aceitar o convite e começar a avaliar, acesse: {{c4pActionUrl}}',
+      '',
+      '— Equipe Codaqui',
+    ].join('\n'),
+  },
+  [EMAIL_TEMPLATE_C4P_TALK_RESULT]: {
+    subject: 'Resultado da chamada {{c4pCallName}}',
+    variables: [
+      'attendeeName',
+      'c4pCallName',
+      'c4pTalkTitle',
+      'c4pResultStatus',
+      'c4pActionUrl',
+    ],
+    sample: sampleContext,
+    bodyMarkdown: [
+      'Olá, {{attendeeName}}!',
+      '',
+      'A chamada **{{c4pCallName}}** foi finalizada.',
+      '',
+      'Sua proposta **{{c4pTalkTitle}}** foi {{c4pResultStatus}}.',
+      '',
+      '{{c4pActionUrl}}',
+      '',
+      'Obrigado por contribuir com a comunidade!',
+      '',
+      '— Equipe Codaqui',
+    ].join('\n'),
   },
 };
 

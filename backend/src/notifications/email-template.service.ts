@@ -101,6 +101,10 @@ export class EmailTemplateService {
         ctx.isGuest && ctx.checkinToken
           ? `${this.frontendUrl}/eventos/convite?token=${encodeURIComponent(ctx.checkinToken)}`
           : `${this.frontendUrl}/membro`,
+      c4pCallName: ctx.c4pCallName ?? '',
+      c4pTalkTitle: ctx.c4pTalkTitle ?? '',
+      c4pResultStatus: ctx.c4pResultStatus ?? '',
+      c4pActionUrl: ctx.c4pActionUrl ?? '',
     };
   }
 
