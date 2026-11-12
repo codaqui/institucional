@@ -73,13 +73,13 @@ export class C4pEvaluatorsService {
       : [];
     const byId = new Map(members.map((m) => [m.id, m]));
     return designations
-      .map((designation) => {
+      .map((designation): EvaluatorSummary | null => {
         const member = byId.get(designation.memberId);
         if (!member) return null;
         return {
           designationId: designation.id,
           status: designation.status,
-          since: designation.since,
+          since: designation.createdAt,
           member: {
             id: member.id,
             name: member.name,
