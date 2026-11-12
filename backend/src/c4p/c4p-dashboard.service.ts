@@ -200,6 +200,41 @@ export class C4pDashboardService {
     };
   }
 
+  async getPublicResults(slug: string): Promise<{
+    slug: string;
+    name: string;
+    finalizedAt: Date | null;
+    talks: Array<{
+      title: string;
+      speakerName: string;
+      track: string | null;
+      level: string | null;
+    }>;
+  }> {
+    const call = await this.callsRepo.findOneBy({ slug });
+    if (!call || call.status !== 'closed' || !call.publicResults) {
+      throw new NotFoundException('Resultado não publicado.');
+    }
+    const talks = call.selectedTalkIds?.length
+      ? await this.talksRepo.findBy({ id: In(call.selectedTalkIds) })
+      : [];
+    const byId = new Map(talks.map((talk) => [talk.id, talk]));
+    return {
+      slug: call.slug,
+      name: call.name,
+      finalizedAt: call.finalizedAt,
+      talks: (call.selectedTalkIds ?? [])
+        .map((talkId) => byId.get(talkId))
+        .filter((talk): talk is C4pTalk => !!talk)
+        .map((talk) => ({
+          title: talk.title,
+          speakerName: talk.speakerName,
+          track: talk.track,
+          level: talk.level,
+        })),
+    };
+  }
+
   async getSnapshot(): Promise<C4pSnapshotPayload> {
     const calls = await this.callsRepo.find({
       where: [{ status: 'open' }, { status: 'closed', publicResults: true }],

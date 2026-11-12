@@ -35,6 +35,17 @@ const MANAGE_ROLES: MemberRole[] = [
   MemberRole.DIRETOR,
 ];
 
+export interface PublicCallSummary {
+  slug: string;
+  name: string;
+  description: string | null;
+  status: C4pCall['status'];
+  submissionOpenAt: Date | null;
+  submissionCloseAt: Date | null;
+  community: { slug: string; name: string } | null;
+  event: { slug: string; title: string } | null;
+}
+
 @Injectable()
 export class C4pCallsService {
   private readonly logger = new Logger(C4pCallsService.name);
@@ -211,6 +222,69 @@ export class C4pCallsService {
     const call = await this.repo.findOneBy({ slug });
     if (!call) throw new NotFoundException('Campanha não encontrada.');
     return call;
+  }
+
+  async listPublic(): Promise<PublicCallSummary[]> {
+    const calls = await this.repo.find({
+      where: { status: 'open' },
+      order: { submissionCloseAt: 'ASC', createdAt: 'ASC' },
+    });
+    return this.toPublicSummaries(calls);
+  }
+
+  async getPublicBySlug(slug: string): Promise<PublicCallSummary> {
+    const call = await this.getBySlug(slug);
+    const [summary] = await this.toPublicSummaries([call]);
+    return summary;
+  }
+
+  private async toPublicSummaries(
+    calls: C4pCall[],
+  ): Promise<PublicCallSummary[]> {
+    const communityIds = [
+      ...new Set(
+        calls
+          .map((call) => call.communityId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const eventIds = [
+      ...new Set(
+        calls
+          .map((call) => call.managedEventId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const [communities, events] = await Promise.all([
+      communityIds.length
+        ? this.communitiesRepo.findBy({ id: In(communityIds) })
+        : Promise.resolve([] as Community[]),
+      eventIds.length
+        ? this.eventsRepo.findBy({ id: In(eventIds) })
+        : Promise.resolve([] as ManagedEvent[]),
+    ]);
+    const communityById = new Map(communities.map((c) => [c.id, c]));
+    const eventById = new Map(events.map((e) => [e.id, e]));
+    return calls.map((call) => {
+      const community = call.communityId
+        ? communityById.get(call.communityId)
+        : undefined;
+      const event = call.managedEventId
+        ? eventById.get(call.managedEventId)
+        : undefined;
+      return {
+        slug: call.slug,
+        name: call.name,
+        description: call.description,
+        status: call.status,
+        submissionOpenAt: call.submissionOpenAt,
+        submissionCloseAt: call.submissionCloseAt,
+        community: community
+          ? { slug: community.slug, name: community.name }
+          : null,
+        event: event ? { slug: event.slug, title: event.title } : null,
+      };
+    });
   }
 
   async finalize(
