@@ -33,6 +33,7 @@ import { UniversitiesModule } from './universities/universities.module';
 import { MentorshipModule } from './mentorship/mentorship.module';
 import { AnnouncementsModule } from './announcements/announcements.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
+import { C4pModule } from './c4p/c4p.module';
 
 @Module({
   imports: [
@@ -90,6 +91,7 @@ import { CampaignsModule } from './campaigns/campaigns.module';
     MentorshipModule,
     AnnouncementsModule,
     CampaignsModule,
+    C4pModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
