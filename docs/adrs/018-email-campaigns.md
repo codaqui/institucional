@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR das campanhas de e-mail (E3), com segmentação, consentimento promocional independente, supressões, fila persistente e descadastro sem login.
 audience: AI agents, mantenedores e operadores de release.
-status: Implementado e verificado; integração e publicação pendentes.
+status: Implementado e integrado em develop pela PR #637 (backend 0.27.0 / migration 048); PR #638 aberta para main e publicação pendente.
 sections:
   - Contexto e decisão
   - Consentimento, segmentos e supressões
@@ -22,7 +22,7 @@ agent-protocol:
 # ADR 018 — Campanhas de E-mail (E3)
 
 - **Data da decisão:** 2026-11-11
-- **Status:** Implementado e verificado; integração e publicação pendentes
+- **Status:** Implementado e integrado em develop pela PR #637; PR #638 aberta para main (release v0.27.0-backend)
 - **Escopo:** Backend 0.27.0, migration 048, módulo `campaigns`, consentimento promocional, descadastro público, fila persistente e aba Campanhas em `/admin/emails`
 
 ## Contexto e decisão

@@ -1,3 +1,16 @@
+<!-- AGENT-INDEX
+purpose: Plano TDD para restaurar comprovantes PDF de doações PF/PJ na Transparência e na área autenticada da empresa.
+audience: Implementers e revisores da PR #634.
+status: Concluído e publicado em v0.26.0-backend (PRs #634/#635).
+sections:
+  - Global Constraints & Review Focus
+  - Tasks 1–3: Gerador compartilhado, Transparência e Minha Empresa
+related-docs:
+  - docs/superpowers/specs/2026-11-11-donation-receipts-design.md — spec da entrega
+agent-protocol:
+  - Seguir dynamic import para jsPDF e html2canvas.
+-->
+
 # Comprovantes de doação PF/PJ Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

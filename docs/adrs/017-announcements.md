@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR das barras de anúncio institucional administráveis por admin e publicadas por snapshot.
 audience: AI agents, mantenedores e operadores de release.
-status: Implementado e verificado; integração e publicação pendentes.
+status: Implementado e publicado em v0.26.0-backend (PRs #632/#635); sync inicial e aviso real em produção pendentes.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -20,7 +20,7 @@ agent-protocol:
 # ADR 017 — Announcements
 
 - **Data da decisão:** 2026-11-11
-- **Status:** Implementado e verificado; integração e publicação pendentes
+- **Status:** Implementado e publicado em v0.26.0-backend (PRs #632/#635); sync inicial e aviso real pendentes
 - **Escopo:** Backend 0.26.0, migration 047, CRUD admin, snapshot público e barra no BaseLayout
 
 ## Contexto e decisão

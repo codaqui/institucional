@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Restaurar comprovantes PDF de doações PF/PJ na Transparência e na área da empresa.
 audience: Implementers, revisores e operadores de rollout.
-status: Desenho derivado da solicitação explícita de reativação; pronto para plano.
+status: Concluído e publicado em v0.26.0-backend (PRs #634/#635).
 sections:
   - Contexto e evidências
   - Objetivos e recorte

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Spec revisada de campanhas e malas diretas E3, com segmentação, consentimento, fila persistente e logs por destinatário.
 audience: Presidência, mantenedores e o agente responsável pelo plano TDD, implementação e revisão.
-status: Revisada em 2026-11-11 após Announcements; pronta para um plano próprio, sem implementação iniciada.
+status: Implementada e integrada em develop pela PR #637 (backend 0.27.0 / migration 048); PR #638 aberta para main.
 sections:
   - Objetivo e recorte
   - Consentimento e privacidade

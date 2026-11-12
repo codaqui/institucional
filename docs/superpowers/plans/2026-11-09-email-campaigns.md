@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da fase Campanhas E3 (malas diretas, segmentação, consentimento promocional, descadastro, fila persistente e logs).
 audience: Implementers e revisores independentes da fase posterior a Announcements (0.26.0/047).
-status: Plano TDD executado, verificado em todos os gates e revisado independentemente na branch feat/email-campaigns-phase.
+status: Concluído e integrado em develop pela PR #637 (11 checks + SonarCloud 0 issues); PR #638 aberta para main.
 sections:
   - Global Constraints & Review Focus
   - Task 1: Migration 048, entidades, consentimento independente e descadastro
