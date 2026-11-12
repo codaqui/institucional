@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,6 +16,8 @@ import { DesignationsService } from '../designations/designations.service';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { MemberRole } from '../members/entities/member.entity';
+import { EmailService } from '../notifications/email.service';
+import { EMAIL_TEMPLATE_C4P_TALK_RESULT } from '../notifications/default-templates';
 import { DEFAULT_CRITERIA, RESERVED_C4P_SLUGS, C4P_SLUG_PATTERN } from './c4p.constants';
 import {
   CreateC4pCallDto,
@@ -34,6 +37,8 @@ const MANAGE_ROLES: MemberRole[] = [
 
 @Injectable()
 export class C4pCallsService {
+  private readonly logger = new Logger(C4pCallsService.name);
+
   constructor(
     @InjectRepository(C4pCall)
     private readonly repo: Repository<C4pCall>,
@@ -46,6 +51,7 @@ export class C4pCallsService {
     @InjectRepository(Community)
     private readonly communitiesRepo: Repository<Community>,
     private readonly designations: DesignationsService,
+    private readonly emailService: EmailService,
     private readonly audit: AuditService,
   ) {}
 
@@ -205,6 +211,105 @@ export class C4pCallsService {
     const call = await this.repo.findOneBy({ slug });
     if (!call) throw new NotFoundException('Campanha não encontrada.');
     return call;
+  }
+
+  async finalize(
+    id: string,
+    talkIds: string[],
+    actor: JwtPayload,
+  ): Promise<C4pCall> {
+    this.assertAdmin(actor);
+    const call = await this.repo.findOneBy({ id });
+    if (!call) throw new NotFoundException('Campanha não encontrada.');
+    if (call.status === 'closed') {
+      throw new ConflictException('Esta campanha já foi finalizada.');
+    }
+
+    const talks = await this.talksRepo.find({ where: { callId: id } });
+    const talkById = new Map(talks.map((talk) => [talk.id, talk]));
+    const selected = [...new Set(talkIds)].filter((talkId) =>
+      talkById.has(talkId),
+    );
+    if (selected.length === 0) {
+      throw new BadRequestException('Nenhuma proposta válida selecionada.');
+    }
+
+    const before = { ...call };
+    call.status = 'closed';
+    call.selectedTalkIds = selected;
+    call.finalizedAt = new Date();
+    const saved = await this.repo.save(call);
+
+    this.dispatchResultEmails(saved, talks, new Set(selected)).catch(
+      (error: Error) =>
+        this.logger.warn(
+          `Falha ao despachar e-mails de resultado da campanha ${id}: ${error.message}`,
+        ),
+    );
+
+    await this.audit.log({
+      action: AuditAction.C4P_CALL_FINALIZED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: id,
+      targetType: 'c4p_call',
+      details: {
+        before,
+        after: { ...saved },
+        selectedTalkIds: selected,
+      },
+    });
+    return saved;
+  }
+
+  async reopen(id: string, actor: JwtPayload): Promise<C4pCall> {
+    this.assertAdmin(actor);
+    const call = await this.repo.findOneBy({ id });
+    if (!call) throw new NotFoundException('Campanha não encontrada.');
+
+    const before = { ...call };
+    call.status = 'open';
+    call.selectedTalkIds = null;
+    call.finalizedAt = null;
+    const saved = await this.repo.save(call);
+    await this.audit.log({
+      action: AuditAction.C4P_CALL_REOPENED,
+      actorId: actor.sub,
+      actorHandle: actor.handle,
+      targetId: id,
+      targetType: 'c4p_call',
+      details: { before, after: { ...saved } },
+    });
+    return saved;
+  }
+
+  private async dispatchResultEmails(
+    call: C4pCall,
+    talks: C4pTalk[],
+    selected: Set<string>,
+  ): Promise<void> {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const actionUrl = call.publicResults
+      ? `${frontendUrl}/c4p/${call.slug}/resultado`
+      : '';
+    for (const talk of talks) {
+      if (!talk.speakerEmail) continue;
+      await this.emailService.sendTemplate(
+        EMAIL_TEMPLATE_C4P_TALK_RESULT,
+        talk.speakerEmail,
+        {
+          attendeeName: talk.speakerName,
+          eventTitle: call.name,
+          eventStartAt: new Date(),
+          eventTimeZone: 'America/Sao_Paulo',
+          c4pCallName: call.name,
+          c4pTalkTitle: talk.title,
+          c4pResultStatus: selected.has(talk.id) ? 'aprovada' : 'não aprovada',
+          c4pActionUrl: actionUrl,
+        },
+        { eventId: null, registrationId: talk.id },
+      );
+    }
   }
 
   private validateSlug(slug: string): void {

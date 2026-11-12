@@ -42,6 +42,7 @@ describe('C4pCallsService', () => {
   let eventsRepo: Record<string, jest.Mock>;
   let communitiesRepo: Record<string, jest.Mock>;
   let designations: Record<string, jest.Mock>;
+  let emailService: Record<string, jest.Mock>;
   let audit: Record<string, jest.Mock>;
   let service: C4pCallsService;
 
@@ -61,6 +62,7 @@ describe('C4pCallsService', () => {
       findOneBy: jest.fn().mockResolvedValue({ id: 'community-1' }),
     };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
+    emailService = { sendTemplate: jest.fn().mockResolvedValue(undefined) };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
     service = new C4pCallsService(
       repo as never,
@@ -69,6 +71,7 @@ describe('C4pCallsService', () => {
       eventsRepo as never,
       communitiesRepo as never,
       designations as never,
+      emailService as never,
       audit as never,
     );
   });
@@ -261,6 +264,115 @@ describe('C4pCallsService', () => {
         totalPages: 1,
         limit: 50,
       });
+    });
+  });
+
+  describe('finalize', () => {
+    const talks = [
+      { id: 't1', callId: 'call-1', title: 'A', speakerEmail: 'a@example.com', speakerName: 'A' },
+      { id: 't2', callId: 'call-1', title: 'B', speakerEmail: 'b@example.com', speakerName: 'B' },
+      { id: 't3', callId: 'call-1', title: 'C', speakerEmail: null, speakerName: 'C' },
+    ];
+
+    beforeEach(() => {
+      repo.findOneBy.mockResolvedValue(makeCall({ status: 'open' }));
+      talksRepo.find.mockResolvedValue(talks);
+    });
+
+    it('rejeita event_organizer com 403 (finalização é só admin)', async () => {
+      await expect(
+        service.finalize('call-1', ['t1'], actor(['event_organizer'])),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('deduplica e intersecta com as propostas da campanha', async () => {
+      const call = await service.finalize(
+        'call-1',
+        ['t1', 't1', 't2', 'inexistente'],
+        actor(),
+      );
+      expect(call.status).toBe('closed');
+      expect(call.selectedTalkIds).toEqual(['t1', 't2']);
+      expect(call.finalizedAt).toBeInstanceOf(Date);
+    });
+
+    it('rejeita quando nenhuma proposta válida resta', async () => {
+      await expect(
+        service.finalize('call-1', ['inexistente'], actor()),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejeita finalizar campanha já fechada com 409', async () => {
+      repo.findOneBy.mockResolvedValue(makeCall({ status: 'closed' }));
+      await expect(service.finalize('call-1', ['t1'], actor())).rejects.toThrow(
+        ConflictException,
+      );
+    });
+
+    it('dispara e-mails de resultado fire-and-forget só para talks com e-mail', async () => {
+      await service.finalize('call-1', ['t1'], actor());
+      expect(emailService.sendTemplate).toHaveBeenCalledTimes(2);
+      expect(emailService.sendTemplate).toHaveBeenCalledWith(
+        'c4p-talk-result',
+        'a@example.com',
+        expect.objectContaining({ c4pResultStatus: 'aprovada' }),
+        expect.any(Object),
+      );
+      expect(emailService.sendTemplate).toHaveBeenCalledWith(
+        'c4p-talk-result',
+        'b@example.com',
+        expect.objectContaining({ c4pResultStatus: 'não aprovada' }),
+        expect.any(Object),
+      );
+    });
+
+    it('usa URL de resultado pública somente quando publicResults', async () => {
+      repo.findOneBy.mockResolvedValue(
+        makeCall({ status: 'open', publicResults: true }),
+      );
+      process.env.FRONTEND_URL = 'https://codaqui.dev';
+      await service.finalize('call-1', ['t1'], actor());
+      expect(emailService.sendTemplate).toHaveBeenCalledWith(
+        'c4p-talk-result',
+        'a@example.com',
+        expect.objectContaining({
+          c4pActionUrl: 'https://codaqui.dev/c4p/devpr-conf-2026/resultado',
+        }),
+        expect.any(Object),
+      );
+      delete process.env.FRONTEND_URL;
+    });
+
+    it('grava audit c4p_call.finalized', async () => {
+      await service.finalize('call-1', ['t1'], actor());
+      expect(audit.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: AuditAction.C4P_CALL_FINALIZED }),
+      );
+    });
+  });
+
+  describe('reopen', () => {
+    it('rejeita não admin com 403', async () => {
+      await expect(
+        service.reopen('call-1', actor(['diretor'])),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('reabre limpando seleção e finalização, com audit', async () => {
+      repo.findOneBy.mockResolvedValue(
+        makeCall({
+          status: 'closed',
+          selectedTalkIds: ['t1'],
+          finalizedAt: new Date(),
+        }),
+      );
+      const call = await service.reopen('call-1', actor());
+      expect(call.status).toBe('open');
+      expect(call.selectedTalkIds).toBeNull();
+      expect(call.finalizedAt).toBeNull();
+      expect(audit.log).toHaveBeenCalledWith(
+        expect.objectContaining({ action: AuditAction.C4P_CALL_REOPENED }),
+      );
     });
   });
 });
