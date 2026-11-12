@@ -1,0 +1,12 @@
+---
+import AppLayout from "../../../layouts/AppLayout.astro";
+import C4pAdminDetailApp from "../../../components/islands/admin/c4p/C4pAdminDetailApp";
+
+// Em build estático o query param não está disponível; a ilha (client:only)
+// lê window.location no runtime (mesmo pattern de /eventos/convite).
+const callId = Astro.url.searchParams.get("id") ?? "";
+---
+
+<AppLayout title="C4P — Detalhe" noindex>
+  <C4pAdminDetailApp client:only="react" callId={callId} />
+</AppLayout>
