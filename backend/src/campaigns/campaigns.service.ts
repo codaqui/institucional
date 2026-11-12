@@ -1131,7 +1131,7 @@ export class CampaignsService {
 
     await this.auditService.log({
       action: AuditAction.EMAIL_SUPPRESSION_CREATED,
-      actorId: recipient.memberId ?? 'public-unsubscribe',
+      actorId: recipient.memberId ?? recipient.id,
       actorHandle: 'unsubscribe-link',
       targetType: 'email_suppression',
       details: {

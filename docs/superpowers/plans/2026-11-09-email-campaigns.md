@@ -77,23 +77,23 @@ agent-protocol:
 - `EmailSuppression`: `id`, `emailNormalized` (unique), `reason`, `source` (`unsubscribe | admin | complaint | bounce_manual`), `createdById?`, `createdAt`.
 - `PATCH /members/me/marketing-consent`: `{ marketingEmailOptIn: boolean, confirmReactivation?: boolean }`.
 
-- [ ] **Step 1: Escrever testes RED da migration 048, auditoria de governança e consentimento do titular**
+- [x] **Step 1: Escrever testes RED da migration 048, auditoria de governança e consentimento do titular**
 
 Cobrir:
 - SQL `up`/`down` da `Migration048EmailCampaigns1795100000000` (tabelas `email_campaigns`, `email_campaign_recipients`, `email_suppressions`, coluna `members.marketingEmailOptIn`, colunas `email_logs.campaignId` e `campaignRecipientId`, constraints `UNIQUE ("campaignId", "emailNormalized")` e checks de status/purpose/source).
 - Classificação `governance` para as novas `AuditAction` de campanhas, supressões e consentimento de marketing.
 - `GET /members/me/visibility` incluindo `marketingEmailOptIn` e `marketingSuppressed`; `PATCH /members/me/marketing-consent` atualizando consentimento pelo titular, exigindo `confirmReactivation: true` quando suprimido por `unsubscribe`, e bloqueio `403` em `PATCH /admin/members/:id` ao tentar alterar `marketingEmailOptIn`.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/campaigns/email-campaigns.migration.spec.ts src/audit/audit-category.spec.ts src/members/members.service.spec.ts`
 Expected: arquivos/métodos inexistentes.
 
-- [ ] **Step 3: Implementar entidades, migration 048, actions de governança, consentimento e bump 0.27.0**
+- [x] **Step 3: Implementar entidades, migration 048, actions de governança, consentimento e bump 0.27.0**
 
 Criar entidades TypeORM, migration 048 reversível, actions de auditoria e endpoints de consentimento do titular. Atualizar versão do backend para `0.27.0`.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd backend && npx jest --silent src/campaigns/email-campaigns.migration.spec.ts src/audit/audit-category.spec.ts src/members/ && npm run build`
 Expected: todos os testes verdes e build limpo.
@@ -122,7 +122,7 @@ git add backend && git commit -m "feat(campanhas): adiciona migration 048 e cons
 - `GET /campaigns/unsubscribe?token=...` e `GET /descadastro?token=...` (valida hash SHA-256 sem login, registra supressão `unsubscribe`, desativa `marketingEmailOptIn` e responde mensagem neutra em token inválido/expirado sem expor e-mail).
 - `GET/POST/DELETE /campaigns/suppressions` (admin cria supressões manuais/complaint/bounce; proibido remover `source = 'unsubscribe'`).
 
-- [ ] **Step 1: Escrever testes RED de segmentos, prévia, supressões e descadastro**
+- [x] **Step 1: Escrever testes RED de segmentos, prévia, supressões e descadastro**
 
 Testar:
 - `all_opted_in_members`, `role`, `designation`, `community_governance` (excluindo membros sem vínculo explícito ou com designation/diretoria inativa) e `manual` (exigindo `consentEvidence` e opt-in em campanhas promocionais, e e-mail verificado em `secondaryEmails`).
@@ -130,16 +130,16 @@ Testar:
 - Deduplicação por `emailNormalized`, contagens de exclusão por motivo (`suppressed`, `inactive_role`, `invalid_email`, `no_opt_in`, `duplicate`) e idempotência ao reprocessar `preview`.
 - Idempotência de criação por `idempotencyKey`, restrição de PII para `finance-analyzer`, e descadastro por token hash sem vazar dados.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/campaigns/campaigns.service.spec.ts src/campaigns/campaigns.controller.spec.ts`
 Expected: módulo/serviço inexistentes.
 
-- [ ] **Step 3: Implementar DTOs, resolução de segmentos, preview, descadastro e CRUD**
+- [x] **Step 3: Implementar DTOs, resolução de segmentos, preview, descadastro e CRUD**
 
 Implementar `CampaignsService` e `CampaignsController` com validação estrita e auditoria de governança.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd backend && npx jest --silent src/campaigns/ && npm run build`
 Expected: todos verdes.
@@ -170,7 +170,7 @@ git add backend && git commit -m "feat(campanhas): resolve segmentos, previa con
 - Worker `@Cron('*/10 * * * * *') processCampaignQueue()`: recupera `sending` estagnado (> 2 min), ativa `scheduled` vencidas, recarrega autorização admin de `confirmedById`, reclama lotes pequenos com `FOR UPDATE SKIP LOCKED` liberando lock da linha antes do SMTP, usa `EmailService.sendCampaignEmail` (advisory lock global + `EMAIL_SEND_INTERVAL_MS`), aplica backoff de 1 e 5 min (máx. 3 tentativas) e pausa global de 15 min em erros 421/454, finaliza em `completed` ou `completed_with_errors` (ou `failed` se SMTP ausente).
 - Cron de retenção (365 dias): remove `email`, `name`, `emailNormalized` e `unsubscribeTokenHash` de `email_campaign_recipients` com mais de 365 dias, preservando contagens e trilha mínima.
 
-- [ ] **Step 1: Escrever testes RED da fila, serialização, retries, cancelamento e retenção**
+- [x] **Step 1: Escrever testes RED da fila, serialização, retries, cancelamento e retenção**
 
 Cobrir:
 - Renderização Markdown segura sem `<script>` ou `<img>` e rodapé automático de descadastro em campanhas promocionais.
@@ -178,16 +178,16 @@ Cobrir:
 - Claim `FOR UPDATE SKIP LOCKED`, recuperação de `sending` > 2 min, recarga do ator confirmador, backoff 1m/5m, limite de 3 tentativas, pausa de 15m em 421/454, falha operacional com SMTP ausente sem apagar campanha.
 - Retry manual individual (`409` para `sent`), cancelamento preservando logs e anonimização após 365 dias.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/notifications/ src/campaigns/`
 Expected: novos testes falhando.
 
-- [ ] **Step 3: Implementar renderização de campanha, envio no EmailService, worker e retenção**
+- [x] **Step 3: Implementar renderização de campanha, envio no EmailService, worker e retenção**
 
 Integrar `EmailTemplateService.renderCampaignMarkdown`, `EmailService.sendCampaignEmail`, worker de campanhas e limpeza de 365 dias.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd backend && npx jest --silent src/notifications/ src/campaigns/ && npm run build`
 Expected: todos verdes.
@@ -213,20 +213,20 @@ git add backend && git commit -m "feat(campanhas): processa fila persistente com
 - `GET /notifications/emails/export`: exporta CSV UTF-8 BOM (`toCsv`) com os filtros aplicados, contendo apenas campos autorizados ao perfil.
 - `api-proxy-paths.ts`: adiciona `"/campaigns/"` em `API_PREFIXES`, mantendo `/descadastro` como rota estática.
 
-- [ ] **Step 1: Escrever testes RED de filtros de logs, exportação CSV e proxy**
+- [x] **Step 1: Escrever testes RED de filtros de logs, exportação CSV e proxy**
 
 Cobrir filtros por destinatário, período (`from`/`to`), campanha (`campaignId`), paginação, restrição de PII para `finance-analyzer`, CSV export e roteamento no proxy.
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd backend && npx jest --silent src/notifications/ && cd ../frontend && npx vitest run src/lib/api-proxy-paths.test.ts`
 Expected: falhas nos novos contratos.
 
-- [ ] **Step 3: Implementar filtros, exportação CSV e entrada `/campaigns/` no proxy**
+- [x] **Step 3: Implementar filtros, exportação CSV e entrada `/campaigns/` no proxy**
 
 Estender `EmailService.listLogs`, `EmailService.exportLogsCsv`, `NotificationsController` e `api-proxy-paths.ts`.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd backend && npx jest --silent src/notifications/ && cd ../frontend && npx vitest run src/lib/api-proxy-paths.test.ts`
 Expected: todos verdes.
@@ -258,20 +258,20 @@ git add backend frontend/src/lib/api-proxy-paths* && git commit -m "feat(emails)
   - **Campanhas**: jornada conteúdo → público → prévia/teste → confirmação → acompanhamento (`<progress>`, `role="status"`/`aria-live="polite"`, polling a cada 5s apenas com `document.visibilityState === "visible"` e sem requests concorrentes, cancelamento e retry por recipient).
   - **Logs**: filtros por destinatário, período (`from`/`to`), status, template e campanha, paginação e botão de exportar CSV.
 
-- [ ] **Step 1: Consultar `modern-web-guidance` e escrever testes RED**
+- [x] **Step 1: Consultar `modern-web-guidance` e escrever testes RED**
 
 Executar `modern-web-guidance` para forms/tabs/dialogs/accessibility. Escrever testes cobrindo `/descadastro` (token válido, inválido/expirado, ausente), `MyDataTab` (opt-in promocional independente e reativação), `EmailsCampaignsTab` (jornada completa, prévia com exclusões, teste, confirmação, polling visível sem concorrência, cancelamento e retry) e `EmailsApp` (novos filtros e exportação CSV).
 
-- [ ] **Step 2: Confirmar RED**
+- [x] **Step 2: Confirmar RED**
 
 Run: `cd frontend && npx vitest run src/components/islands/campaigns src/components/islands/member/privacy src/components/islands/admin/emails`
 Expected: componentes/comportamentos novos ausentes.
 
-- [ ] **Step 3: Implementar páginas e ilhas**
+- [x] **Step 3: Implementar páginas e ilhas**
 
 Usar tokens `--cq-*` e tema MUI, sem hex solto, preservando acessibilidade por teclado e dark mode.
 
-- [ ] **Step 4: Confirmar GREEN e commit**
+- [x] **Step 4: Confirmar GREEN e commit**
 
 Run: `cd frontend && npx vitest run src/components/islands/campaigns src/components/islands/member/privacy src/components/islands/admin/emails && npm run check`
 Expected: zero erros de tipos e todos os testes verdes.
@@ -293,11 +293,11 @@ git add frontend && git commit -m "feat(frontend): adiciona descadastro, opt-in 
 - Modify: `docs/plans/codaqui-1-0/README.md`
 - Modify: `AGENTS.md`
 
-- [ ] **Step 1: Atualizar página de privacidade, inventário de tratamentos e ADR 018**
+- [x] **Step 1: Atualizar página de privacidade, inventário de tratamentos e ADR 018**
 
 Registrar finalidade (`transactional` vs `promotional`), base legal, segmentos, operadores, retenção de 365 dias com anonimização de recipients, preservação de supressões e canal de revogação (`/descadastro` e "Meus dados"). Documentar a decisão arquitetural em `docs/adrs/018-email-campaigns.md`.
 
-- [ ] **Step 2: Implementar e rodar E2E PostgreSQL real + migration 048 down/up em dump real**
+- [x] **Step 2: Implementar e rodar E2E PostgreSQL real + migration 048 down/up em dump real**
 
 Em `backend/test/email-campaigns.e2e-spec.ts`, validar contra PostgreSQL real:
 1. Segmentos (`all_opted_in_members`, `role`, `designation`, `community_governance` sem membros sem vínculo explícito, `manual`), opt-in independente, supressão, deduplicação, retenção e anonimização (>365 dias).
@@ -307,7 +307,7 @@ Em `backend/test/email-campaigns.e2e-spec.ts`, validar contra PostgreSQL real:
 5. Descadastro impedindo campanha promocional posterior, inclusive após tentativa de reativação indevida pelo admin (403 na API e bloqueio por `email_suppressions` mesmo com `marketingEmailOptIn = true` no banco), e reativação explícita pelo próprio titular.
 6. Migration 048 `down`/`up` em dump real preservando campanhas e logs históricos sem reprocessamento automático.
 
-- [ ] **Step 3: Executar todos os gates obrigatórios**
+- [x] **Step 3: Executar todos os gates obrigatórios**
 
 ```bash
 cd backend && npm run build && npx jest --silent
@@ -321,3 +321,4 @@ make astro-verify-tenants
 - [ ] **Step 4: Realizar revisão independente da branch via subagente e tratar apontamentos**
 
 Invocar subagente revisor independente para inspecionar o diff completo da branch contra a spec E3, corrigir qualquer achado e reexecutar os gates antes do handoff para merge.
+
