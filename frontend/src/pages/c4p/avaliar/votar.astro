@@ -1,0 +1,24 @@
+---
+import PublicLayout from "../../../layouts/PublicLayout.astro";
+import C4pVotingIsland from "../../../components/islands/c4p/C4pVotingIsland";
+
+// Em build estático o query param não está disponível; a ilha (client:only)
+// lê window.location no runtime (mesmo pattern de /eventos/convite).
+const callId = Astro.url.searchParams.get("call") ?? "";
+---
+
+<PublicLayout
+  title="Votação C4P | CODAQUI.dev"
+  ogTitle="Votação de propostas C4P"
+  description="Avalie as propostas da chamada de trabalhos."
+  noindex
+>
+  <main id="conteudo" class="mx-auto max-w-3xl px-4 py-10">
+    <C4pVotingIsland client:only="react" callId={callId} />
+    <noscript>
+      <p class="rounded-lg border border-border bg-surface p-4 text-text-secondary">
+        A votação requer JavaScript.
+      </p>
+    </noscript>
+  </main>
+</PublicLayout>
