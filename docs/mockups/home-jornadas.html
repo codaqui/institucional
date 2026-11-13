@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proposta visual — Home por visões (Codaqui)</title>
+  <title>Proposta visual — Home: Associação Codaqui e suas comunidades</title>
   <meta name="description" content="Mockup estático da Main da Codaqui aplicando as melhorias da revisão de jornadas: nav com C4P, h1, contraste correto, cards com thumbnail e texto contido, footer ampliado." />
   <style>
     /* Tokens do Design System Codaqui (espelho dos --cq-* reais) */
@@ -241,6 +241,43 @@
     .live { border-left: 3px solid var(--cq-color-primary-700); padding: 4px 0 4px 12px; font-size: 14px; }
     .live small { display: block; color: var(--cq-color-text-secondary); }
     @media (max-width: 860px) { .persona-box { grid-template-columns: 1fr; padding: 20px; } }
+
+    /* ===== Revisão: Codaqui como guarda-chuva de comunidades ===== */
+    .hero .cta-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
+    .umbrella-tag{display:inline-flex;gap:8px;align-items:center;background:rgb(255 255 255/.16);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700}
+    .stats{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border);padding:0}
+    .stats ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:16px 0;text-align:center}
+    .stats strong{display:block;font-size:24px;font-weight:800;color:var(--cq-color-primary-800)}[data-theme="dark"] .stats strong{color:var(--cq-color-primary-500)}
+    .stats span{font-size:13px;color:var(--cq-color-text-secondary)}
+    .stats .note{font-size:12px;text-align:center;color:var(--cq-color-text-secondary);padding-bottom:10px}
+
+    .comm-card{display:flex;flex-direction:column;gap:10px;padding:18px;border-top:5px solid var(--cc,var(--cq-color-primary-700))}
+    .comm-card .top{display:flex;gap:12px;align-items:center}
+    .comm-card .logo-c{width:46px;height:46px;border-radius:50%;background:var(--cc);color:#fff;display:grid;place-items:center;font-size:22px;flex:none}
+    .comm-card h3{font-size:18px;font-weight:800}.comm-card .where{font-size:13px;color:var(--cq-color-text-secondary)}
+    .comm-card .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;text-align:center;background:var(--cq-color-sunken);border-radius:8px;padding:8px}
+    .comm-card .mini strong{display:block;font-size:17px}.comm-card .mini span{font-size:11px;color:var(--cq-color-text-secondary)}
+    .comm-card .links{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto}
+    .join-card{border:2px dashed var(--cq-color-primary-700);background:var(--cq-color-primary-50);align-items:flex-start;justify-content:center}
+    .join-card h3{font-size:18px}
+
+    .steps{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));list-style:none;counter-reset:s}
+    .steps li{counter-increment:s;padding:18px;background:var(--cq-color-surface);border:1px solid var(--cq-color-border);border-radius:var(--cq-radius);box-shadow:var(--cq-shadow)}
+    .steps li::before{content:counter(s);display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--cq-color-primary-800);color:#fff;font-weight:800;margin-bottom:8px}
+    .steps strong{display:block;font-size:16px;margin-bottom:4px}.steps span{font-size:14px;color:var(--cq-color-text-secondary)}
+    .umb{margin-top:16px;padding:16px 18px;border-radius:var(--cq-radius);background:var(--cq-color-primary-50);border:1px solid var(--cq-color-primary-500);font-size:14px}
+
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--cq-color-border)}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--cq-color-text-secondary)}
+    td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+    tfoot td{font-weight:800;background:var(--cq-color-sunken)}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;background:var(--cc)}
+    .tlinks{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .three{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .three .card .body{gap:6px}
+    .legend{font-size:13px;color:var(--cq-color-text-secondary);padding:14px 16px;border:1px dashed var(--cq-color-border);border-radius:10px;margin:30px 0 8px}
   </style>
 </head>
 <body>
@@ -249,200 +286,160 @@
   <div class="announcement" role="region" aria-label="Anúncios institucionais">
     <div class="container">
       <span class="badge">Aviso</span>
-      <p><strong>C4P aberto:</strong> submeta sua palestra para a DevPR Conf 2027 até 15/12. <a href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a></p>
+      <p><strong>C4P aberto:</strong> DevPR Conf 2027 recebe propostas até 15/12. <a href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a></p>
     </div>
   </div>
 
   <header class="site">
     <div class="container">
-      <a class="logo" href="/" aria-label="Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
-      <!-- Navegação organizada pelas 4 visões -->
+      <a class="logo" href="/" aria-label="Associação Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
       <nav class="main-nav" aria-label="Navegação principal">
-        <a href="/participe/estudar">Aprender</a>
         <a href="/comunidades">Comunidades</a>
-        <a href="/eventos">Eventos</a>
+        <a href="/eventos">Atividades</a>
+        <a href="/transparencia">Transparência e insights</a>
+        <a href="/participe/estudar">Aprender</a>
         <a href="/participe/apoiar">Apoiar</a>
-        <a href="/transparencia">Transparência</a>
-        <a href="/blog">Blog</a>
-        <a href="/participe/apoiar" class="btn btn-primary btn-sm">Apoiar</a>
+        <a href="/sobre/ong" class="btn btn-primary btn-sm">Integrar minha comunidade</a>
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">◐ Tema</button>
       </nav>
     </div>
   </header>
 
   <main id="conteudo">
-    <section class="hero" style="padding-bottom:44px">
+    <section class="hero">
       <div class="container">
-        <p class="eyebrow">Associação Codaqui</p>
-        <h1>Tecnologia que se aprende junto, se apoia junto e se acompanha às claras</h1>
-        <p class="sub">Uma associação sem fins lucrativos que une comunidades, quem quer aprender, quem quer apoiar e a sociedade que acompanha — tudo aberto e verificável.</p>
-        <ul class="persona-pills" aria-label="Escolha sua visão">
-          <li><a href="#estudar">📚 Quero aprender</a></li>
-          <li><a href="#comunidades">🌱 Tenho/Quero uma comunidade</a></li>
-          <li><a href="#apoiar">💚 Quero apoiar</a></li>
-          <li><a href="#transparencia">🔍 Quero acompanhar</a></li>
-        </ul>
+        <span class="umbrella-tag">☂️ Associação Codaqui · CNPJ 44.593.429/0001-05</span>
+        <h1>Uma associação que reúne comunidades de tecnologia</h1>
+        <p class="sub">As comunidades fazem acontecer. A Codaqui é o guarda-chuva: dá estrutura jurídica, contábil e de governança — e presta contas de tudo, de todas elas, em um só lugar.</p>
+        <div class="cta-row">
+          <a class="btn btn-light" href="/comunidades">Conhecer as comunidades</a>
+          <a class="btn btn-ghost-light" href="/sobre/ong">Integrar minha comunidade</a>
+          <a class="btn btn-ghost-light" href="/transparencia">Ver prestação de contas</a>
+        </div>
       </div>
     </section>
 
     <div class="stats">
       <div class="container">
-        <ul aria-label="A Codaqui em números (exemplo — virão dos snapshots)">
-          <li><strong>415+</strong><span>eventos realizados</span></li>
+        <ul aria-label="O ecossistema em números (exemplo — virão dos snapshots agregados)">
           <li><strong>6</strong><span>comunidades integradas</span></li>
-          <li><strong>54</strong><span>mentorias concluídas</span></li>
+          <li><strong>415+</strong><span>atividades realizadas</span></li>
+          <li><strong>1.200h</strong><span>de voluntariado aprovadas</span></li>
           <li><strong>100%</strong><span>das contas públicas</span></li>
+          <li><strong>12</strong><span>assembleias e atas</span></li>
         </ul>
+        <p class="note">Números agregados de todas as comunidades — cada uma tem a sua própria página de transparência.</p>
       </div>
     </div>
 
-    <!-- 1. ESTUDAR -->
-    <section class="persona container" id="estudar" aria-labelledby="estudar-title">
-      <div class="persona-box">
-        <div>
-          <p class="who">Para quem quer aprender</p>
-          <h2 id="estudar-title">Estude de graça, com trilha e com gente do lado</h2>
-          <p class="lead">Do primeiro “Olá, mundo” ao primeiro emprego: cursos abertos, mentoria 1:1 e eventos com certificado verificável.</p>
-          <div class="primary-cta">
-            <a class="btn btn-primary" href="/participe/estudar">Começar a estudar</a>
-            <a class="btn btn-outline" href="/participe/mentoria">Encontrar mentor</a>
-          </div>
-        </div>
-        <ul class="paths">
-          <li><a href="/trilhas"><strong>Trilhas e cursos</strong><span class="d">Python, GitHub e turmas abertas.</span><span class="go">Ver trilhas →</span></a></li>
-          <li><a href="/participe/mentoria"><strong>Mentoria</strong><span class="d">Sessões com profissionais voluntários.</span><span class="go">Agendar →</span></a></li>
-          <li><a href="/eventos"><strong>Eventos e meetups</strong><span class="d">Próximo: DevPR Conf, 12/12.</span><span class="go">Ver agenda →</span></a></li>
-          <li><a href="/certificado/verificar"><strong>Certificados</strong><span class="d">Emitidos e verificáveis publicamente.</span><span class="go">Verificar →</span></a></li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- 2. COMUNIDADES E DONOS -->
-    <section class="persona container" id="comunidades" aria-labelledby="comunidades-title">
-      <div class="persona-box alt">
-        <div>
-          <p class="who">Para comunidades e seus organizadores</p>
-          <h2 id="comunidades-title">Sua comunidade com estrutura, visibilidade e CNPJ ao lado</h2>
-          <p class="lead">Participe do ecossistema: site próprio, agenda unificada, recebimento de apoio com prestação de contas, horas e certificados para voluntários.</p>
-          <div class="primary-cta">
-            <a class="btn btn-primary" href="/comunidades/participar">Integrar minha comunidade</a>
-            <a class="btn btn-outline" href="/comunidades">Conhecer as comunidades</a>
-          </div>
-        </div>
-        <div>
-          <ul class="paths">
-            <li><a href="/comunidades"><strong>Descobrir comunidades</strong><span class="d">DevParaná, Elas no Código, T.I. Social, Cloud Native…</span><span class="go">Explorar →</span></a></li>
-            <li><a href="/eventos"><strong>Agenda unificada</strong><span class="d">Publique e divulgue seus encontros.</span><span class="go">Ver agenda →</span></a></li>
-            <li><a href="/c4p"><strong>Chamada de trabalhos (C4P)</strong><span class="d">Receba e avalie propostas de palestra.</span><span class="go">Conhecer →</span></a></li>
-            <li><a href="/desenvolvedores/api"><strong>Recursos para organizadores</strong><span class="d">Manual, papéis, API aberta.</span><span class="go">Abrir →</span></a></li>
-          </ul>
-          <div class="live-row" aria-label="Comunidades do ecossistema">
-            <div class="live">🌵 <strong>DevParaná</strong><small>integrada · Paraná</small></div>
-            <div class="live">💜 <strong>Elas no Código</strong><small>integrada · Maringá</small></div>
-            <div class="live">☸️ <strong>Cloud Native Maringá</strong><small>parceira · Maringá</small></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3. APOIAR -->
-    <section class="persona container" id="apoiar" aria-labelledby="apoiar-title">
-      <div class="persona-box">
-        <div>
-          <p class="who">Para quem quer apoiar</p>
-          <h2 id="apoiar-title">Apoie pessoas, comunidades e projetos — e veja o destino de cada real</h2>
-          <p class="lead">Escolha o que apoiar: a associação, uma comunidade específica ou um projeto de extensão. Pessoa física ou empresa.</p>
-          <div class="primary-cta">
-            <a class="btn btn-primary" href="/participe/apoiar">Apoiar agora</a>
-            <a class="btn btn-outline" href="/empresas">Sou empresa</a>
-          </div>
-        </div>
-        <ul class="paths">
-          <li><a href="/participe/apoiar"><strong>Doação única ou recorrente</strong><span class="d">Para a associação ou para uma comunidade.</span><span class="go">Doar →</span></a></li>
-          <li><a href="/clube"><strong>Clube Codaqui</strong><span class="d">Assinatura com benefícios e sorteios.</span><span class="go">Conhecer →</span></a></li>
-          <li><a href="/projetos"><strong>Projetos de extensão</strong><span class="d">Escolha um projeto e acompanhe o resultado.</span><span class="go">Ver projetos →</span></a></li>
-          <li><a href="/patrocinadores"><strong>Patrocínio empresarial</strong><span class="d">Níveis, contrapartidas e selo.</span><span class="go">Patrocinar →</span></a></li>
-          <li><a href="/membros"><strong>Mural de apoiadores</strong><span class="d">Quem já faz parte (com consentimento).</span><span class="go">Ver →</span></a></li>
-        </ul>
-      </div>
-    </section>
-
-    <!-- 4. SOCIEDADE / AUDITORIA -->
-    <section class="persona container" id="transparencia" aria-labelledby="transp-title">
-      <div class="persona-box alt">
-        <div>
-          <p class="who">Para a sociedade e quem audita</p>
-          <h2 id="transp-title">Tudo o que a Codaqui e as comunidades fazem, aberto e verificável</h2>
-          <p class="lead">Contas, atas, horas, projetos e dados abertos. Sem login, sem pedir permissão.</p>
-          <div class="primary-cta">
-            <a class="btn btn-primary" href="/transparencia">Ver prestação de contas</a>
-            <a class="btn btn-outline" href="/desenvolvedores/api">API de dados abertos</a>
-          </div>
-        </div>
-        <ul class="paths">
-          <li><a href="/transparencia"><strong>Receitas e despesas</strong><span class="d">Lançamentos e comprovantes por período.</span><span class="go">Auditar →</span></a></li>
-          <li><a href="/assembleias"><strong>Assembleias e atas</strong><span class="d">Convocações, presença, deliberações.</span><span class="go">Acompanhar →</span></a></li>
-          <li><a href="/sobre/insights"><strong>Insights e impacto</strong><span class="d">Eventos, pessoas e horas por comunidade.</span><span class="go">Ver números →</span></a></li>
-          <li><a href="/projetos"><strong>Projetos e comprovantes</strong><span class="d">Cada projeto com ODS, horas e relatório.</span><span class="go">Verificar →</span></a></li>
-          <li><a href="/sobre/ong"><strong>Estatuto e quem somos</strong><span class="d">CNPJ 44.593.429/0001-05, diretoria, equipe.</span><span class="go">Conhecer →</span></a></li>
-          <li><a href="/certificado/verificar"><strong>Verificar documento</strong><span class="d">Certificados e comprovantes por código.</span><span class="go">Verificar →</span></a></li>
-        </ul>
-      </div>
-      <p class="public-note">Atividade por comunidade: a Home leva à visão agregada; cada comunidade terá o mesmo bloco “contas e atividade” em <code>/comunidades/&lt;slug&gt;/transparencia</code>.</p>
-    </section>
-
-    <!-- Vitrine viva -->
-    <section class="container" aria-labelledby="eventos-title">
-      <div class="section-head"><h2 id="eventos-title">Acontecendo agora no ecossistema</h2><a href="/eventos">Ver agenda completa →</a></div>
+    <!-- 1. COMUNIDADES -->
+    <section class="container" aria-labelledby="com-title">
+      <div class="section-head"><h2 id="com-title">Comunidades integradas</h2><a href="/comunidades">Ver todas →</a></div>
       <div class="grid">
-        <article class="card">
-          <div class="thumb thumb-event-1" role="img" aria-label="DevPR Conf 2026">DevPR Conf 2026</div>
-          <div class="body">
-            <p class="kicker">Evento · Maringá, PR</p>
-            <h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3>
-            <p class="meta">12 de dezembro de 2026 · 09h00</p>
-            <p class="desc">Conferência de desenvolvedores com trilhas de frontend, backend, DevOps e comunidade, e certificado de participação.</p>
-          </div>
+        <article class="card comm-card" style="--cc:#2c6955">
+          <div class="top"><span class="logo-c" aria-hidden="true">🌵</span><div><h3>DevParaná</h3><p class="where">Paraná · integrada</p></div></div>
+          <div class="mini"><div><strong>38</strong><span>atividades</span></div><div><strong>420h</strong><span>voluntariado</span></div><div><strong>R$ 8,4k</strong><span>movimentado</span></div></div>
+          <div class="links"><a class="btn btn-outline btn-sm" href="/comunidades/devparana">Conhecer</a><a class="btn btn-outline btn-sm" href="/comunidades/devparana/transparencia">Transparência</a></div>
         </article>
-        <article class="card">
-          <div class="thumb thumb-blog-1" role="img" aria-label="C4P">C4P aberto</div>
-          <div class="body">
-            <p class="kicker">Chamada de trabalhos</p>
-            <h3><a href="/c4p/devpr-conf-2027/submeter">DevPR Conf 2027 recebe propostas até 15/12</a></h3>
-            <p class="meta">Curadoria por avaliadores · resultado público</p>
-            <p class="desc">Submissão aberta e critérios de avaliação transparentes. Sua palestra pode estar no palco.</p>
-          </div>
+        <article class="card comm-card" style="--cc:#9c27b0">
+          <div class="top"><span class="logo-c" aria-hidden="true">💜</span><div><h3>Elas no Código</h3><p class="where">Maringá, PR · integrada</p></div></div>
+          <div class="mini"><div><strong>12</strong><span>atividades</span></div><div><strong>54h</strong><span>voluntariado</span></div><div><strong>R$ 3,2k</strong><span>movimentado</span></div></div>
+          <div class="links"><a class="btn btn-outline btn-sm" href="/comunidades/elasnocodigo">Conhecer</a><a class="btn btn-outline btn-sm" href="/comunidades/elasnocodigo/transparencia">Transparência</a></div>
         </article>
-        <article class="card">
-          <div class="thumb thumb-blog-2" role="img" aria-label="Blog">Do blog</div>
-          <div class="body">
-            <p class="kicker">Blog · Comunidade</p>
-            <h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Elas no Código: maternidade e carreira em tecnologia</a></h3>
-            <p class="meta">12 de maio de 2026 · 6 min de leitura</p>
-            <p class="desc">Roda de conversa com relatos e caminhos práticos de apoio.</p>
-          </div>
+        <article class="card comm-card" style="--cc:#378369">
+          <div class="top"><span class="logo-c" aria-hidden="true">🤝</span><div><h3>T.I. Social</h3><p class="where">Impacto social · integrada</p></div></div>
+          <div class="mini"><div><strong>9</strong><span>atividades</span></div><div><strong>210h</strong><span>voluntariado</span></div><div><strong>R$ 2,1k</strong><span>movimentado</span></div></div>
+          <div class="links"><a class="btn btn-outline btn-sm" href="/comunidades/tisocial">Conhecer</a><a class="btn btn-outline btn-sm" href="/comunidades/tisocial/transparencia">Transparência</a></div>
+        </article>
+        <article class="card comm-card" style="--cc:#3f3f46">
+          <div class="top"><span class="logo-c" aria-hidden="true">☸️</span><div><h3>Cloud Native Maringá</h3><p class="where">Maringá, PR · parceira</p></div></div>
+          <div class="mini"><div><strong>14</strong><span>atividades</span></div><div><strong>—</strong><span>voluntariado</span></div><div><strong>—</strong><span>movimentado</span></div></div>
+          <div class="links"><a class="btn btn-outline btn-sm" href="/comunidades/cloudnative">Conhecer</a></div>
+        </article>
+        <article class="card comm-card join-card">
+          <h3>Sua comunidade aqui</h3>
+          <p class="meta">Mantenha a sua identidade e ganhe CNPJ, contabilidade, site whitelabel e transparência prontos.</p>
+          <div class="links"><a class="btn btn-primary btn-sm" href="/sobre/ong">Como integrar</a></div>
         </article>
       </div>
     </section>
+
+    <!-- 2. GUARDA-CHUVA -->
+    <section class="container" aria-labelledby="como-title">
+      <div class="section-head"><h2 id="como-title">Como o guarda-chuva funciona</h2><a href="/sobre/ong">Estatuto e programa de apoio →</a></div>
+      <ol class="steps">
+        <li><strong>A comunidade se integra</strong><span>Mantém identidade, líderes e autonomia; entra com site whitelabel e designações de responsáveis.</span></li>
+        <li><strong>A Associação dá estrutura</strong><span>CNPJ, conta contábil segregada, recebimento de apoio, seguro de dados, jurídico e contábil.</span></li>
+        <li><strong>A comunidade executa</strong><span>Eventos, mentorias, trilhas, C4P e projetos — com horas e certificados registrados.</span></li>
+        <li><strong>Todos prestam contas</strong><span>Atas, assembleias, ledger e insights públicos — por comunidade e consolidados.</span></li>
+      </ol>
+      <p class="umb"><strong>Associativismo na prática:</strong> as decisões são coletivas (assembleias e diretorias), os recursos são de cada comunidade e a governança é da associação como um todo.</p>
+    </section>
+
+    <!-- 3. TRANSPARÊNCIA E INSIGHTS DE TODAS -->
+    <section class="container" aria-labelledby="tr-title">
+      <div class="section-head"><h2 id="tr-title">Transparência e insights de todas as comunidades</h2><a href="/transparencia">Painel completo →</a></div>
+      <div class="card">
+        <div class="table-wrap"><table>
+          <caption class="hidden" style="display:none">Comparativo das comunidades integradas em 2026</caption>
+          <thead><tr><th scope="col">Comunidade</th><th scope="col" class="num">Atividades</th><th scope="col" class="num">Participações</th><th scope="col" class="num">Horas</th><th scope="col" class="num">Entradas</th><th scope="col" class="num">Saídas</th><th scope="col" class="num">Saldo</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><span class="dot" style="--cc:#2c6955"></span><a href="/comunidades/devparana/transparencia">DevParaná</a></th><td class="num">38</td><td class="num">2.140</td><td class="num">420</td><td class="num">R$ 8.400</td><td class="num">R$ 6.100</td><td class="num">R$ 2.300</td></tr>
+            <tr><th scope="row"><span class="dot" style="--cc:#9c27b0"></span><a href="/comunidades/elasnocodigo/transparencia">Elas no Código</a></th><td class="num">12</td><td class="num">386</td><td class="num">54</td><td class="num">R$ 3.200</td><td class="num">R$ 1.360</td><td class="num">R$ 1.840</td></tr>
+            <tr><th scope="row"><span class="dot" style="--cc:#378369"></span><a href="/comunidades/tisocial/transparencia">T.I. Social</a></th><td class="num">9</td><td class="num">150</td><td class="num">210</td><td class="num">R$ 2.100</td><td class="num">R$ 900</td><td class="num">R$ 1.200</td></tr>
+          </tbody>
+          <tfoot><tr><td>Total do ecossistema</td><td class="num">59</td><td class="num">2.676</td><td class="num">684</td><td class="num">R$ 13.700</td><td class="num">R$ 8.360</td><td class="num">R$ 5.340</td></tr></tfoot>
+        </table></div>
+      </div>
+      <div class="tlinks">
+        <a class="btn btn-outline btn-sm" href="/transparencia">Prestação de contas da Associação</a>
+        <a class="btn btn-outline btn-sm" href="/sobre/insights">Insights consolidados</a>
+        <a class="btn btn-outline btn-sm" href="/assembleias">Assembleias e atas</a>
+        <a class="btn btn-outline btn-sm" href="/desenvolvedores/api">Dados abertos (CSV/API)</a>
+      </div>
+    </section>
+
+    <!-- 4. ATIVIDADES -->
+    <section class="container" aria-labelledby="atv-title">
+      <div class="section-head"><h2 id="atv-title">O que as comunidades estão fazendo</h2><a href="/eventos">Agenda de todas →</a></div>
+      <div class="three">
+        <article class="card"><div class="thumb thumb-event-1" role="img" aria-label="DevPR Conf 2026">DevPR Conf 2026</div><div class="body"><p class="kicker">DevParaná · Evento</p><h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3><p class="meta">12 de dezembro de 2026 · Maringá, PR</p><p class="desc">Conferência com trilhas de frontend, backend, DevOps e comunidade.</p></div></article>
+        <article class="card"><div class="thumb thumb-blog-1" role="img" aria-label="C4P">C4P aberto</div><div class="body"><p class="kicker">DevParaná · C4P</p><h3><a href="/c4p/devpr-conf-2027/submeter">Chamada de trabalhos DevPR Conf 2027</a></h3><p class="meta">Até 15/12 · curadoria pública</p><p class="desc">Submeta sua palestra; critérios e resultado são abertos.</p></div></article>
+        <article class="card"><div class="thumb thumb-blog-2" role="img" aria-label="Elas no Código">Elas no Código</div><div class="body"><p class="kicker">Elas no Código · Roda de conversa</p><h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Maternidade e carreira em tecnologia</a></h3><p class="meta">12 de maio de 2026 · 64 participantes</p><p class="desc">Relatos e caminhos práticos de apoio entre mulheres em tech.</p></div></article>
+      </div>
+    </section>
+
+    <!-- 5. PARTICIPE (aprender/apoiar como formas de participação) -->
+    <section class="container" aria-labelledby="part-title">
+      <div class="section-head"><h2 id="part-title">Participe das comunidades</h2></div>
+      <ul class="paths" style="list-style:none">
+        <li><a href="/participe/estudar"><strong>📚 Aprender</strong><span class="d">Trilhas, cursos e mentorias oferecidos pelas comunidades.</span><span class="go">Estudar →</span></a></li>
+        <li><a href="/participe/apoiar"><strong>💚 Apoiar</strong><span class="d">Doe para a associação, para uma comunidade ou um projeto.</span><span class="go">Apoiar →</span></a></li>
+        <li><a href="/participe/voluntariado"><strong>🙋 Ser voluntária(o)</strong><span class="d">Horas registradas e certificadas em eventos e projetos.</span><span class="go">Participar →</span></a></li>
+        <li><a href="/patrocinadores"><strong>🏢 Patrocinar</strong><span class="d">Empresas apoiam com contrapartidas e prestação de contas.</span><span class="go">Patrocinar →</span></a></li>
+      </ul>
+    </section>
+
+    <p class="container legend"><strong>O que mudou nesta revisão:</strong> o hero deixa de ser “estude/apoie” e passa a posicionar a <em>Associação como guarda-chuva de comunidades</em>; “Comunidades integradas” e “Transparência e insights de todas” vêm antes de qualquer conteúdo individual; estudar e apoiar viram <em>formas de participar</em> das comunidades; cada comunidade tem cartão com métricas e atalho para sua própria transparência (mockup <code>comunidade-transparencia-proposta.html</code>); botão de nav “Integrar minha comunidade” em vez de “Apoiar”. Os números e a tabela comparativa são fictícios — viriam de snapshots agregados (eventos, horas, ledger por <code>projectKey</code>).</p>
   </main>
 
   <footer class="site">
     <div class="container footer-grid">
       <div>
-        <a class="logo" href="/" aria-label="Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
-        <p class="small">Associação sem fins lucrativos · CNPJ 44.593.429/0001-05</p>
+        <a class="logo" href="/" aria-label="Associação Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
+        <p class="small">Associação de comunidades de tecnologia · sem fins lucrativos · CNPJ 44.593.429/0001-05</p>
       </div>
-      <nav aria-label="Aprender">
-        <h3>Aprender</h3>
-        <ul><li><a href="/participe/estudar">Estudar</a></li><li><a href="/trilhas">Trilhas</a></li><li><a href="/participe/mentoria">Mentoria</a></li><li><a href="/eventos">Eventos</a></li></ul>
+      <nav aria-label="Comunidades">
+        <h3>Comunidades</h3>
+        <ul><li><a href="/comunidades">Todas as comunidades</a></li><li><a href="/sobre/ong">Integrar a minha</a></li><li><a href="/eventos">Agenda unificada</a></li><li><a href="/c4p">C4P</a></li></ul>
       </nav>
-      <nav aria-label="Comunidades e apoio">
-        <h3>Comunidades e apoio</h3>
-        <ul><li><a href="/comunidades">Comunidades</a></li><li><a href="/c4p">C4P</a></li><li><a href="/participe/apoiar">Apoiar</a></li><li><a href="/patrocinadores">Patrocinadores</a></li></ul>
+      <nav aria-label="Associação e transparência">
+        <h3>Associação e transparência</h3>
+        <ul><li><a href="/transparencia">Prestação de contas</a></li><li><a href="/assembleias">Assembleias</a></li><li><a href="/sobre/insights">Insights</a></li><li><a href="/desenvolvedores/api">Dados abertos</a></li></ul>
       </nav>
-      <nav aria-label="Transparência">
-        <h3>Transparência</h3>
-        <ul><li><a href="/transparencia">Prestação de contas</a></li><li><a href="/sobre/insights">Insights</a></li><li><a href="/desenvolvedores/api">API aberta</a></li><li><a href="/sobre/privacidade">Privacidade</a></li></ul>
+      <nav aria-label="Participar">
+        <h3>Participar</h3>
+        <ul><li><a href="/participe/estudar">Aprender</a></li><li><a href="/participe/mentoria">Mentoria</a></li><li><a href="/participe/apoiar">Apoiar</a></li><li><a href="/patrocinadores">Patrocinar</a></li></ul>
       </nav>
     </div>
     <div class="container small">© 2026 Associação Codaqui · contato@codaqui.dev</div>
@@ -453,7 +450,7 @@
     toggle.addEventListener("click", () => {
       const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
       document.documentElement.dataset.theme = next;
-      toggle.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
     });
   </script>
 </body>
