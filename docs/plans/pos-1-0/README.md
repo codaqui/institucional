@@ -39,11 +39,11 @@ Origem das demandas: **P1–P12** = os 12 pontos levantados pelo mantenedor em 1
 
 | Item | Diagnóstico (evidência) |
 |---|---|
-| P5 Texto estourando o card de evento | `EventCard.astro:85` renderiza `event.summary` cru: sem line-clamp, sem `overflow-wrap` (`truncateEventSummary` só serve SEO/JSON-LD); grid de 3 colunas estica a linha inteira. E a fonte **Discord** do sync é a única sem `stripMarkdown`+`truncateText` (`scripts/sync-events.mjs:200` vs `:99` das demais) — limite contratual ausente. |
+| P5 Texto estourando o card de evento | **Parcialmente corrigido em 2026-11-13:** `EventCard.astro` limita visualmente todos os resumos a 3 linhas e quebra URLs longas (`overflow-wrap:anywhere`); “Ver detalhes” mantém acesso ao conteúdo completo. **Pendente:** a fonte Discord continua sem `stripMarkdown`+`truncateText` no sync (`scripts/sync-events.mjs:200` vs `:99` das demais) — limite contratual ausente. |
 | P8 Prévia de post com imagem no blog | Card da listagem é texto-only por construção: `plainExcerpt` (`frontend/src/lib/blog-utils.ts:110-139`) remove `![alt](url)`/`<img>`; ~10 posts têm imagem antes do `<!-- truncate -->` e o `image:` do frontmatter (schema existe, `content.config.ts:21`) é ignorado na listagem. |
 | F7-review Menores C4P | Lista completa em `docs/adrs/012-c4p.md` (teste de votos de removido, hardening do accept, ILike escape, vitrine fora da janela, cap 100 da finalização, heurística do Alert, O(n²) do progresso). |
 
-**Escopo sugerido**: line-clamp + `overflow-wrap` no card; truncamento da fonte Discord no sync; card de blog com thumbnail (`image:` do frontmatter, fallback ao remover imagens do excerpt); menores C4P de baixo risco. **Esforço: P.** Sem dependências.
+**Escopo sugerido**: truncamento da fonte Discord no sync; card de blog com thumbnail (`image:` do frontmatter, fallback ao remover imagens do excerpt); menores C4P de baixo risco. O line-clamp + `overflow-wrap` visual do card de evento já foi aplicado. **Esforço: P.** Sem dependências.
 
 ---
 
