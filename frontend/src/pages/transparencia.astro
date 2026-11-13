@@ -6,7 +6,6 @@
 import PublicLayout from "../layouts/PublicLayout.astro";
 import PageHero from "../components/astro/PageHero.astro";
 import TransparencyApp from "../components/islands/TransparencyApp";
-import { API_URL } from "../lib/config";
 
 const OPEN_IN_NEW_PATH =
   "M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z";
@@ -80,9 +79,7 @@ const CODE_PATH =
 GET /ledger/accounts/:id/transactions
      ?page=1&limit=10</code></pre>
           <a
-            href={`${API_URL}/docs`}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/desenvolvedores/api"
             class="inline-flex items-center gap-1 font-bold"
           >
             Ver documentação completa
