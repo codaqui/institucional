@@ -176,6 +176,7 @@ npm run sync:badges              # /hours/public → static/badges/ (fora do agr
 npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
 npm run sync:mentors             # /mentorship/public → static/mentors/ (fora do agregador sync)
 npm run sync:company-badges      # /companies/badges/public → static/badges/empresas/ (fora do agregador sync)
+npm run sync:c4p                 # /c4p/public/snapshot → static/c4p/ (fora do agregador sync)
 ```
 
 > ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
@@ -203,6 +204,7 @@ institucional/
 │   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
 │   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
 │   │   ├── mentorship/          # ⭐ Fase 5/ADR 009: mentores, disponibilidade, sessões, horas e insights
+│   │   ├── c4p/                 # ⭐ Fase 7/ADR 012: campanhas de C4P, propostas, votos por critérios, curadoria, avaliadores por designation
 │   │   ├── announcements/       # ⭐ ADR 017: anúncios institucionais, CRUD admin e projeção pública
 │   │   ├── campaigns/           # ⭐ ADR 018: campanhas de e-mail E3, segmentos, supressões, fila persistente e descadastro
 │   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary, export CSV e crons)
@@ -216,7 +218,7 @@ institucional/
 │   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
 │   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
 │   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 048; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047; Campanhas E3: 048)
+│   │   └── migrations/          # TypeORM migrations (até 049; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047; Campanhas E3: 048; C4P: 049)
 │   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
 ├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
 │   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
@@ -551,6 +553,14 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - `BaseLayout` inclui uma ilha que lê o snapshot em runtime: região nomeada, artigos com severidade textual, texto escapado e links seguros. Vazio/erro não reserva espaço; tokens `--cq-*` nos dois temas. `/admin/announcements` usa Dialog com prévia, validação e confirmação.
 - Publicação exige backend/migration → sync inicial → frontend → aviso real com link para issues. Detalhes: [ADR 017](docs/adrs/017-announcements.md).
 
+### 33. Fase 7 — C4P integrado (ADR 012)
+
+- Migrations 049/backend 1.0.0 criam `c4p_calls`, `c4p_talks`, `c4p_votes` + índice único parcial `UQ_member_designations_c4p_evaluator` (1 avaliador active por campanha/membro — a unicidade NÃO existia na 026). Avaliador é designation `evaluator` @ `c4p_campaign` (`pending` no convite → `active` no aceite), sem tabela própria.
+- **Finalizar/reabrir campanha é somente `admin`** (rbac.md venceu o anexo c4p.md); gestão é `admin`/`event_organizer`/`diretor` + `responsible` @ community dona. Slug de campanha é imutável e reserva `public|manage|evaluator|avaliar` (colisão com rotas/proxy).
+- Submissão pública: `POST /c4p/public/calls/:slug/submissions` com `@TurnstileAction('c4p_submission')` (guard generalizado via decorator, default `guest_claim`) + throttle 5/min + `consent: true` obrigatório. Notas/comentários **nunca** públicos — snapshot, resultado e PDF expõem só `{title, speakerName, track, level}` das selecionadas.
+- Critérios configuráveis por campanha (1–10, pesos positivos); scoring `Σ(score×peso)/Σ(pesos)` só dos critérios votados; critérios congelam com o primeiro voto. Importação CSV do Google Forms é parseada no backend (`common/csv-tokenizer` + `c4p/csv.ts`); e-mails de resultado são fire-and-forget.
+- Snapshot `static/c4p/index.json` via `npm run sync:c4p` (workflow `sync-c4p.yml`, 33 * * * *) + exceção exata `/c4p/index.json` no proxy; páginas públicas geradas do snapshot, área do avaliador e gestão usam query params (`/c4p/avaliar/votar?call=`, `/admin/c4p/detalhe?id=`). Detalhes: [ADR 012](docs/adrs/012-c4p.md).
+
 ---
 
 ## Common Anti-Patterns
@@ -589,7 +599,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
 | `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
 
-### CI/CD (`.github/workflows/` — 14 workflows)
+### CI/CD (`.github/workflows/` — 15 workflows)
 
 | Workflow | Quando | O que faz |
 |----------|--------|-----------|
@@ -607,6 +617,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 | `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
 | `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
 | `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
+| `sync-c4p.yml` | horário (`33 * * * *`) + dispatch | Lê `/c4p/public/snapshot`, regera `static/c4p/index.json` e commita somente se mudou; sync inicial após backend/migration 049 e antes do frontend |
 
 ### Commit Convention
 
@@ -716,6 +727,7 @@ Codaqui is a **Brazilian non-profit association** (not a school or company) that
 | Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
 | Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
 | Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |
+| C4P snapshots sync | Automatic (hourly, minute 33) + dispatch; sync inicial após backend/migration 049 | `scripts/sync-c4p.mjs` → `static/c4p/` via `sync-c4p.yml`; backend publicado primeiro |
 | New tenant onboarding | As needed | `frontend/tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md) |
 | Dependencies | Quarterly | `frontend/package.json` → `npm update` |
 
