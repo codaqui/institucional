@@ -293,7 +293,7 @@ function DashboardTab({ callId }: Readonly<{ callId: string }>) {
         {dashboard.totals.votes}/{dashboard.totals.expected} votos ({dashboard.totals.completionPercent}%)
       </Typography>
       <Box>
-        <Typography fontWeight="bold">Progresso por avaliador</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>Progresso por avaliador</Typography>
         {dashboard.progressByEvaluator.map((row) => (
           <Box key={row.designationId} sx={{ mt: 1 }}>
             <Typography variant="body2">
@@ -307,7 +307,7 @@ function DashboardTab({ callId }: Readonly<{ callId: string }>) {
         ))}
       </Box>
       <Box>
-        <Typography fontWeight="bold">Ranking</Typography>
+        <Typography sx={{ fontWeight: "bold" }}>Ranking</Typography>
         <Table size="small">
           <TableHead>
             <TableRow>

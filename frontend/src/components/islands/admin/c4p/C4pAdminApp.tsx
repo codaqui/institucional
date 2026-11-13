@@ -29,7 +29,7 @@ const STATUS_LABEL: Record<ManageCall["status"], string> = {
 };
 
 function C4pAdminInner() {
-  const { ready, isLoggedIn, isAdmin, authFetch } = useAuth();
+  const { ready, isLoggedIn, authFetch } = useAuth();
   const [calls, setCalls] = useState<ManageCall[] | null>(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -129,7 +129,7 @@ function C4pAdminInner() {
                   }}
                 >
                   <Box>
-                    <Typography fontWeight="bold">{call.name}</Typography>
+                    <Typography sx={{ fontWeight: "bold" }}>{call.name}</Typography>
                     <Typography color="text.secondary" variant="body2">
                       /c4p/{call.slug}
                       {typeof call.talksCount === "number"
