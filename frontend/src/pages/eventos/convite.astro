@@ -6,7 +6,7 @@ const token = Astro.url.searchParams.get("token") ?? "";
 ---
 
 <PublicLayout title="Convite para evento | CODAQUI.dev" noindex>
-  <main class="mx-auto max-w-xl px-4 py-10">
+  <div class="mx-auto max-w-xl px-4 py-10">
     <p class="mb-2 text-sm font-bold uppercase tracking-wide text-primary-700">Convite para evento</p>
     <h1 class="mb-6 text-3xl font-extrabold text-text-primary">Inscrição de convidado</h1>
     <GuestClaimIsland client:only="react" token={token} />
@@ -15,5 +15,5 @@ const token = Astro.url.searchParams.get("token") ?? "";
         O formulário de inscrição requer JavaScript. Solicite ao organizador uma inscrição manual.
       </p>
     </noscript>
-  </main>
+  </div>
 </PublicLayout>
