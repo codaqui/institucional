@@ -109,7 +109,7 @@ export class C4pTalksService {
   ): Promise<void> {
     await this.calls.getManage(callId, actor);
     const talk = await this.talksRepo.findOneBy({ id: talkId });
-    if (!talk || talk.callId !== callId) {
+    if (talk?.callId !== callId) {
       throw new NotFoundException('Proposta não encontrada.');
     }
     await this.talksRepo.delete({ id: talkId });

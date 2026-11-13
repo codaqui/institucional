@@ -7,9 +7,9 @@
  * - Limite de linhas para evitar DoS via upload gigante.
  */
 
-import { tokenizeCsvRecords } from '../common/csv-tokenizer';
+import { CsvParseError, tokenizeCsvRecords } from '../common/csv-tokenizer';
 
-export { CsvParseError } from '../common/csv-tokenizer';
+export { CsvParseError };
 
 export interface ParsedCsvRow {
   line: number; // 1-based, contando o header como linha 1
@@ -22,8 +22,6 @@ export interface ParsedCsvRow {
   checkin?: boolean;
   certificate?: boolean;
 }
-
-import { CsvParseError } from '../common/csv-tokenizer';
 
 function parseOptionalBoolean(value: string | undefined): boolean | undefined {
   const normalized = value?.trim().toLowerCase();

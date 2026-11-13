@@ -30,11 +30,11 @@ import { C4pTalk } from './entities/c4p-talk.entity';
 import { C4pVote } from './entities/c4p-vote.entity';
 
 const CRITERION_KEY_PATTERN = /^[a-z][a-z0-9_]{0,30}$/;
-const MANAGE_ROLES: MemberRole[] = [
+const MANAGE_ROLES: ReadonlySet<MemberRole> = new Set([
   MemberRole.ADMIN,
   MemberRole.EVENT_ORGANIZER,
   MemberRole.DIRETOR,
-];
+]);
 
 export interface PublicCallSummary {
   slug: string;
@@ -84,7 +84,7 @@ export class C4pCallsService {
   }
 
   async assertCanManage(call: C4pCall, actor: JwtPayload): Promise<void> {
-    if (actor.roles.some((role) => MANAGE_ROLES.includes(role as MemberRole))) {
+    if (actor.roles.some((role) => MANAGE_ROLES.has(role as MemberRole))) {
       return;
     }
     if (call.communityId) {
@@ -154,37 +154,9 @@ export class C4pCallsService {
       await this.assertNoVotes(call.id);
       this.validateCriteria(dto.criteria);
     }
-    if (dto.status !== undefined && dto.status !== call.status) {
-      if (!(call.status === 'draft' && dto.status === 'open')) {
-        throw new BadRequestException(
-          'Transição de status inválida. Abertura: draft → open; fechamento e reabertura têm endpoints próprios.',
-        );
-      }
-    }
-    if (
-      dto.submissionOpenAt !== undefined ||
-      dto.submissionCloseAt !== undefined
-    ) {
-      const window = this.normalizeWindow(
-        dto.submissionOpenAt !== undefined
-          ? dto.submissionOpenAt
-          : call.submissionOpenAt,
-        dto.submissionCloseAt !== undefined
-          ? dto.submissionCloseAt
-          : call.submissionCloseAt,
-      );
-      call.submissionOpenAt = window.submissionOpenAt;
-      call.submissionCloseAt = window.submissionCloseAt;
-    }
-    if (dto.managedEventId !== undefined || dto.communityId !== undefined) {
-      await this.validateReferences(dto.managedEventId, dto.communityId);
-      if (dto.managedEventId !== undefined) {
-        call.managedEventId = dto.managedEventId;
-      }
-      if (dto.communityId !== undefined) {
-        call.communityId = dto.communityId;
-      }
-    }
+    this.assertValidStatusTransition(call.status, dto.status);
+    await this.applyWindowUpdate(call, dto);
+    await this.applyReferenceUpdate(call, dto);
     if (dto.name !== undefined) call.name = dto.name;
     if (dto.description !== undefined) call.description = dto.description;
     if (dto.criteria !== undefined) call.criteria = dto.criteria;
@@ -203,6 +175,55 @@ export class C4pCallsService {
       details: { before, after: { ...updated } },
     });
     return updated;
+  }
+
+  private assertValidStatusTransition(
+    current: C4pCall['status'],
+    target: C4pCall['status'] | undefined,
+  ): void {
+    if (target === undefined || target === current) return;
+    if (current === 'draft' && target === 'open') return;
+    throw new BadRequestException(
+      'Transição de status inválida. Abertura: draft → open; fechamento e reabertura têm endpoints próprios.',
+    );
+  }
+
+  private async applyWindowUpdate(
+    call: C4pCall,
+    dto: UpdateC4pCallDto,
+  ): Promise<void> {
+    if (
+      dto.submissionOpenAt === undefined &&
+      dto.submissionCloseAt === undefined
+    ) {
+      return;
+    }
+    const window = this.normalizeWindow(
+      dto.submissionOpenAt !== undefined
+        ? dto.submissionOpenAt
+        : call.submissionOpenAt,
+      dto.submissionCloseAt !== undefined
+        ? dto.submissionCloseAt
+        : call.submissionCloseAt,
+    );
+    call.submissionOpenAt = window.submissionOpenAt;
+    call.submissionCloseAt = window.submissionCloseAt;
+  }
+
+  private async applyReferenceUpdate(
+    call: C4pCall,
+    dto: UpdateC4pCallDto,
+  ): Promise<void> {
+    if (dto.managedEventId === undefined && dto.communityId === undefined) {
+      return;
+    }
+    await this.validateReferences(dto.managedEventId, dto.communityId);
+    if (dto.managedEventId !== undefined) {
+      call.managedEventId = dto.managedEventId;
+    }
+    if (dto.communityId !== undefined) {
+      call.communityId = dto.communityId;
+    }
   }
 
   async listManage(
@@ -402,24 +423,31 @@ export class C4pCallsService {
     const actionUrl = call.publicResults
       ? `${frontendUrl}/c4p/${call.slug}/resultado`
       : '';
-    for (const talk of talks) {
-      if (!talk.speakerEmail) continue;
-      await this.emailService.sendTemplate(
-        EMAIL_TEMPLATE_C4P_TALK_RESULT,
-        talk.speakerEmail,
-        {
-          attendeeName: talk.speakerName,
-          eventTitle: call.name,
-          eventStartAt: new Date(),
-          eventTimeZone: 'America/Sao_Paulo',
-          c4pCallName: call.name,
-          c4pTalkTitle: talk.title,
-          c4pResultStatus: selected.has(talk.id) ? 'aprovada' : 'não aprovada',
-          c4pActionUrl: actionUrl,
-        },
-        { eventId: null, registrationId: talk.id },
-      );
-    }
+    // Todos os envios entram na fila global serializada do EmailService; o
+    // Promise.all só agenda — a ordem e o espaçamento vêm da cadeia interna.
+    await Promise.all(
+      talks
+        .filter((talk) => Boolean(talk.speakerEmail))
+        .map((talk) =>
+          this.emailService.sendTemplate(
+            EMAIL_TEMPLATE_C4P_TALK_RESULT,
+            talk.speakerEmail as string,
+            {
+              attendeeName: talk.speakerName,
+              eventTitle: call.name,
+              eventStartAt: new Date(),
+              eventTimeZone: 'America/Sao_Paulo',
+              c4pCallName: call.name,
+              c4pTalkTitle: talk.title,
+              c4pResultStatus: selected.has(talk.id)
+                ? 'aprovada'
+                : 'não aprovada',
+              c4pActionUrl: actionUrl,
+            },
+            { eventId: null, registrationId: talk.id },
+          ),
+        ),
+    );
   }
 
   private validateSlug(slug: string): void {
@@ -510,7 +538,7 @@ export class C4pCallsService {
       const community = await this.communitiesRepo.findOneBy({
         id: communityId,
       });
-      if (!community || community.status !== 'active') {
+      if (community?.status !== 'active') {
         throw new BadRequestException(
           'Comunidade vinculada não encontrada ou inativa.',
         );

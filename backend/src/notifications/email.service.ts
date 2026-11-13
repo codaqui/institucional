@@ -35,9 +35,6 @@ import { renderProjectEmail, type ProjectEmailInput } from './project-email';
 import { EmailTemplateService } from './email-template.service';
 import {
   EMAIL_TEMPLATE_CERTIFICATE_PENDING,
-  EMAIL_TEMPLATE_C4P_EVALUATOR_INVITE,
-  EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION,
-  EMAIL_TEMPLATE_C4P_TALK_RESULT,
   EMAIL_TEMPLATE_POST_EVENT,
   EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,
@@ -48,12 +45,15 @@ import { EmailLog, EmailStatus } from './entities/email-log.entity';
 export type { RenderedEmail } from './email-template.service';
 
 // Re-exportados de default-templates (fonte canônica) para compatibilidade com
-// consumidores que importam os IDs de email.service.
+// consumidores que importam os IDs de email.service. Os de C4P não são usados
+// neste módulo, então vão em export-from puro (sem import local).
 export {
-  EMAIL_TEMPLATE_CERTIFICATE_PENDING,
   EMAIL_TEMPLATE_C4P_EVALUATOR_INVITE,
   EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION,
   EMAIL_TEMPLATE_C4P_TALK_RESULT,
+} from './default-templates';
+export {
+  EMAIL_TEMPLATE_CERTIFICATE_PENDING,
   EMAIL_TEMPLATE_POST_EVENT,
   EMAIL_TEMPLATE_REGISTRATION_CANCELLED,
   EMAIL_TEMPLATE_REGISTRATION_CONFIRMATION,

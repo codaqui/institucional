@@ -55,7 +55,7 @@ export class C4pVotesService {
     const call = await this.requireOpenCall(callId);
     const designation = await this.requireActiveDesignation(callId, actor.sub);
     const talk = await this.talksRepo.findOneBy({ id: talkId });
-    if (!talk || talk.callId !== callId) {
+    if (talk?.callId !== callId) {
       throw new NotFoundException('Proposta não encontrada.');
     }
     this.validateScores(call, dto);
@@ -170,7 +170,7 @@ export class C4pVotesService {
         status: 'active',
       },
     });
-    if (!designation || designation.status !== 'active') {
+    if (designation?.status !== 'active') {
       throw new ForbiddenException(
         'Você não é avaliador ativo desta campanha.',
       );

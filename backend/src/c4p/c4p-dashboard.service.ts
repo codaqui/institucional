@@ -8,8 +8,7 @@ import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { Member } from '../members/entities/member.entity';
 import { C4pCallsService } from './c4p-calls.service';
 import { computeTalkScore, rankTalks } from './c4p-scoring';
-import { Criterion } from './entities/c4p-call.entity';
-import { C4pCall } from './entities/c4p-call.entity';
+import { Criterion, C4pCall } from './entities/c4p-call.entity';
 import { C4pTalk } from './entities/c4p-talk.entity';
 import { C4pVote } from './entities/c4p-vote.entity';
 
@@ -212,7 +211,7 @@ export class C4pDashboardService {
     }>;
   }> {
     const call = await this.callsRepo.findOneBy({ slug });
-    if (!call || call.status !== 'closed' || !call.publicResults) {
+    if (call?.status !== 'closed' || !call.publicResults) {
       throw new NotFoundException('Resultado não publicado.');
     }
     const talks = call.selectedTalkIds?.length

@@ -104,7 +104,7 @@ export class C4pEvaluatorsService {
         { email: ILike(handleOrEmail) },
       ],
     });
-    if (!member || !member.isActive) {
+    if (!member?.isActive) {
       throw new NotFoundException(
         'Membro não encontrado com este handle ou e-mail.',
       );
@@ -222,8 +222,7 @@ export class C4pEvaluatorsService {
       id: designationId,
     });
     if (
-      !designation ||
-      designation.memberId !== actor.sub ||
+      designation?.memberId !== actor.sub ||
       designation.targetType !== 'c4p_campaign'
     ) {
       throw new NotFoundException('Convite não encontrado.');
@@ -247,8 +246,7 @@ export class C4pEvaluatorsService {
       id: designationId,
     });
     if (
-      !designation ||
-      designation.targetType !== 'c4p_campaign' ||
+      designation?.targetType !== 'c4p_campaign' ||
       designation.targetId !== callId
     ) {
       throw new NotFoundException('Avaliador não encontrado nesta campanha.');

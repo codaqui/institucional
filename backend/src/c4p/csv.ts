@@ -50,7 +50,15 @@ export const C4P_CSV_HEADERS: Record<keyof C4pCsvTalkRow, readonly string[]> = {
   ],
 };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+function isValidEmail(value: string): boolean {
+  const atIndex = value.indexOf('@');
+  if (atIndex <= 0) return false;
+  if (value.indexOf('@', atIndex + 1) !== -1) return false;
+  const domain = value.slice(atIndex + 1);
+  const dotIndex = domain.lastIndexOf('.');
+  if (dotIndex <= 0 || dotIndex === domain.length - 1) return false;
+  return !value.includes(' ') && !value.includes('\t');
+}
 
 function parseSpokeBefore(value: string): boolean | null {
   const normalized = value.trim().toLowerCase();
@@ -114,7 +122,7 @@ export function parseC4pCsv(
       return;
     }
     const speakerEmail = cell('speakerEmail');
-    if (speakerEmail && !EMAIL_PATTERN.test(speakerEmail)) {
+    if (speakerEmail && !isValidEmail(speakerEmail)) {
       skipped.push({ line, reason: 'E-mail inválido.' });
       return;
     }
