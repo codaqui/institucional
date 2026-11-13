@@ -28,6 +28,79 @@ const STATUS_LABEL: Record<ManageCall["status"], string> = {
   closed: "Fechada",
 };
 
+function statusColor(status: ManageCall["status"]): "success" | "default" | "warning" {
+  if (status === "open") return "success";
+  if (status === "closed") return "default";
+  return "warning";
+}
+
+function CallsList({
+  calls,
+  page,
+  totalPages,
+  total,
+  onPageChange,
+}: Readonly<{
+  calls: ManageCall[];
+  page: number;
+  totalPages: number;
+  total: number;
+  onPageChange: (next: number) => void;
+}>) {
+  if (calls.length === 0) {
+    return <Alert severity="info">Nenhuma campanha criada ainda.</Alert>;
+  }
+  return (
+    <>
+      <Stack spacing={2}>
+        {calls.map((call) => (
+          <Box
+            key={call.id}
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              flexWrap: "wrap",
+              border: "1px solid",
+              borderColor: "divider",
+              borderRadius: 2,
+              p: 2,
+            }}
+          >
+            <Box>
+              <Typography sx={{ fontWeight: "bold" }}>{call.name}</Typography>
+              <Typography color="text.secondary" variant="body2">
+                /c4p/{call.slug}
+                {typeof call.talksCount === "number"
+                  ? ` · ${call.talksCount} propostas · ${call.evaluatorsActiveCount ?? 0} avaliadores`
+                  : ""}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Chip
+                label={STATUS_LABEL[call.status]}
+                color={statusColor(call.status)}
+                size="small"
+              />
+              <Button
+                variant="outlined"
+                href={`/admin/c4p/detalhe?id=${encodeURIComponent(call.id)}`}
+              >
+                Gerenciar
+              </Button>
+            </Box>
+          </Box>
+        ))}
+      </Stack>
+      <Typography variant="body2" color="text.secondary">
+        {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
+      </Typography>
+      <PaginationControls page={page} totalPages={totalPages} onChange={onPageChange} itemLabel="campanhas" />
+    </>
+  );
+}
+
 function C4pAdminInner() {
   const { ready, isLoggedIn, authFetch } = useAuth();
   const [calls, setCalls] = useState<ManageCall[] | null>(null);
@@ -108,56 +181,14 @@ function C4pAdminInner() {
         {feedback ? <Alert severity={feedback.severity}>{feedback.text}</Alert> : null}
         {calls === null ? (
           <CircularProgress aria-label="Carregando campanhas" />
-        ) : calls.length === 0 ? (
-          <Alert severity="info">Nenhuma campanha criada ainda.</Alert>
         ) : (
-          <>
-            <Stack spacing={2}>
-              {calls.map((call) => (
-                <Box
-                  key={call.id}
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 2,
-                    flexWrap: "wrap",
-                    border: "1px solid",
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    p: 2,
-                  }}
-                >
-                  <Box>
-                    <Typography sx={{ fontWeight: "bold" }}>{call.name}</Typography>
-                    <Typography color="text.secondary" variant="body2">
-                      /c4p/{call.slug}
-                      {typeof call.talksCount === "number"
-                        ? ` · ${call.talksCount} propostas · ${call.evaluatorsActiveCount ?? 0} avaliadores`
-                        : ""}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                    <Chip
-                      label={STATUS_LABEL[call.status]}
-                      color={call.status === "open" ? "success" : call.status === "closed" ? "default" : "warning"}
-                      size="small"
-                    />
-                    <Button
-                      variant="outlined"
-                      href={`/admin/c4p/detalhe?id=${encodeURIComponent(call.id)}`}
-                    >
-                      Gerenciar
-                    </Button>
-                  </Box>
-                </Box>
-              ))}
-            </Stack>
-            <Typography variant="body2" color="text.secondary">
-              {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
-            </Typography>
-            <PaginationControls page={page} totalPages={totalPages} onChange={(next) => void load(next)} itemLabel="campanhas" />
-          </>
+          <CallsList
+            calls={calls}
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            onPageChange={(next) => void load(next)}
+          />
         )}
       </Stack>
 

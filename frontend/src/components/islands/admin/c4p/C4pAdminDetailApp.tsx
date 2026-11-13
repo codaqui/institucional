@@ -22,6 +22,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
+import PaginationControls from "../../ui/PaginationControls";
 import TabPanel from "../ui/TabPanel";
 import {
   extractErrorMessage,
@@ -43,6 +44,43 @@ const STATUS_LABEL: Record<ManageCall["status"], string> = {
   open: "Aberta",
   closed: "Fechada",
 };
+
+function TalksTable({
+  talks,
+  onRemove,
+}: Readonly<{ talks: ManageTalk[]; onRemove: (talkId: string) => void }>) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell>Título</TableCell>
+          <TableCell>Palestrante</TableCell>
+          <TableCell>Origem</TableCell>
+          <TableCell align="right">Ações</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {talks.map((talk) => (
+          <TableRow key={talk.id}>
+            <TableCell>{talk.title}</TableCell>
+            <TableCell>{talk.speakerName}</TableCell>
+            <TableCell>
+              <Chip
+                size="small"
+                label={talk.origin === "public_form" ? "Formulário" : "CSV"}
+              />
+            </TableCell>
+            <TableCell align="right">
+              <Button size="small" color="error" onClick={() => onRemove(talk.id)}>
+                Excluir
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
 
 function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: () => void }>) {
   const { authFetch } = useAuth();
@@ -87,8 +125,11 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
       return;
     }
     const result = (await response.json()) as { imported: number; skipped: Array<{ line: number; reason: string }> };
+    const skippedSuffix = result.skipped.length
+      ? `, ${result.skipped.length} linhas ignoradas`
+      : "";
     setImportFeedback(
-      `${result.imported} propostas importadas${result.skipped.length ? `, ${result.skipped.length} linhas ignoradas` : ""}.`,
+      `${result.imported} propostas importadas${skippedSuffix}.`,
     );
     setFile(null);
     onChanged();
@@ -113,7 +154,7 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
       {importFeedback ? <Alert severity={importFeedback.includes("Não") ? "error" : "success"}>{importFeedback}</Alert> : null}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
         <Button component="label" variant="outlined">
-          Escolher arquivo CSV
+          <span>Escolher arquivo CSV</span>
           <input
             aria-label="Arquivo CSV"
             hidden
@@ -135,41 +176,59 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
         <Alert severity="info">Nenhuma proposta ainda.</Alert>
       ) : (
         <>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Título</TableCell>
-                <TableCell>Palestrante</TableCell>
-                <TableCell>Origem</TableCell>
-                <TableCell align="right">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {talks.map((talk) => (
-                <TableRow key={talk.id}>
-                  <TableCell>{talk.title}</TableCell>
-                  <TableCell>{talk.speakerName}</TableCell>
-                  <TableCell>
-                    <Chip
-                      size="small"
-                      label={talk.origin === "public_form" ? "Formulário" : "CSV"}
-                    />
-                  </TableCell>
-                  <TableCell align="right">
-                    <Button size="small" color="error" onClick={() => void removeTalk(talk.id)}>
-                      Excluir
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <TalksTable talks={talks} onRemove={(talkId) => void removeTalk(talkId)} />
           <Typography variant="body2" color="text.secondary">
             {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
           </Typography>
+          <PaginationControls
+            page={page}
+            totalPages={totalPages}
+            onChange={(next) => void load(next)}
+            itemLabel="propostas"
+          />
         </>
       )}
     </Stack>
+  );
+}
+
+function EvaluatorsTable({
+  evaluators,
+  onRemove,
+}: Readonly<{
+  evaluators: EvaluatorSummary[];
+  onRemove: (designationId: string) => void;
+}>) {
+  return (
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell>Avaliador(a)</TableCell>
+          <TableCell>Status</TableCell>
+          <TableCell align="right">Ações</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {evaluators.map((evaluator) => (
+          <TableRow key={evaluator.designationId}>
+            <TableCell>
+              {evaluator.member.name} (@{evaluator.member.handle})
+            </TableCell>
+            <TableCell>{evaluator.status}</TableCell>
+            <TableCell align="right">
+              <Button
+                size="small"
+                color="error"
+                disabled={evaluator.status === "removed"}
+                onClick={() => onRemove(evaluator.designationId)}
+              >
+                Remover
+              </Button>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -237,35 +296,10 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       ) : evaluators.length === 0 ? (
         <Alert severity="info">Nenhum avaliador convidado ainda.</Alert>
       ) : (
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Avaliador(a)</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {evaluators.map((evaluator) => (
-              <TableRow key={evaluator.designationId}>
-                <TableCell>
-                  {evaluator.member.name} (@{evaluator.member.handle})
-                </TableCell>
-                <TableCell>{evaluator.status}</TableCell>
-                <TableCell align="right">
-                  <Button
-                    size="small"
-                    color="error"
-                    disabled={evaluator.status === "removed"}
-                    onClick={() => void remove(evaluator.designationId)}
-                  >
-                    Remover
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+        <EvaluatorsTable
+          evaluators={evaluators}
+          onRemove={(designationId) => void remove(designationId)}
+        />
       )}
     </Stack>
   );

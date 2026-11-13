@@ -10,7 +10,7 @@ const PUBLIC_STATUSES = new Set(["open", "closed"]);
 
 // Campos que nunca podem aparecer no snapshot público (notas, comentários e
 // contato dos palestrantes são restritos à curadoria).
-const FORBIDDEN_KEYS = [
+const FORBIDDEN_KEYS = new Set([
   "scores",
   "comment",
   "speakerEmail",
@@ -20,7 +20,7 @@ const FORBIDDEN_KEYS = [
   "linkedin",
   "photoUrl",
   "createdById",
-];
+]);
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -33,7 +33,7 @@ function assertNoForbiddenKeys(value, trail) {
   }
   if (!isObject(value)) return;
   for (const [key, nested] of Object.entries(value)) {
-    if (FORBIDDEN_KEYS.includes(key)) {
+    if (FORBIDDEN_KEYS.has(key)) {
       throw new TypeError(`Campo privado "${key}" em ${trail} não é público.`);
     }
     assertNoForbiddenKeys(nested, `${trail}.${key}`);

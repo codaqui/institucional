@@ -28,7 +28,7 @@ export interface C4pIndex {
 }
 
 // Campos restritos à curadoria: o snapshot público nunca deve carregá-los.
-const FORBIDDEN_KEYS = [
+const FORBIDDEN_KEYS: ReadonlySet<string> = new Set([
   "scores",
   "comment",
   "speakerEmail",
@@ -38,7 +38,7 @@ const FORBIDDEN_KEYS = [
   "linkedin",
   "photoUrl",
   "createdById",
-];
+]);
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -56,7 +56,7 @@ function containsForbiddenKeys(value: unknown): boolean {
   if (Array.isArray(value)) return value.some(containsForbiddenKeys);
   if (!isObject(value)) return false;
   return Object.entries(value).some(
-    ([key, nested]) => FORBIDDEN_KEYS.includes(key) || containsForbiddenKeys(nested),
+    ([key, nested]) => FORBIDDEN_KEYS.has(key) || containsForbiddenKeys(nested),
   );
 }
 
@@ -71,38 +71,46 @@ function isResultTalk(value: unknown): value is C4pResultTalk {
   );
 }
 
+function isCommunityRef(value: unknown): boolean {
+  return (
+    value === null ||
+    (isObject(value) &&
+      isNonEmptyString(value.slug) &&
+      isNonEmptyString(value.name))
+  );
+}
+
+function isEventRef(value: unknown): boolean {
+  return (
+    value === null ||
+    (isObject(value) &&
+      isNonEmptyString(value.slug) &&
+      isNonEmptyString(value.title))
+  );
+}
+
+function isResultsValue(value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (!isObject(value) || !Array.isArray(value.talks)) return false;
+  return value.talks.every(isResultTalk);
+}
+
 function isSnapshotCall(value: unknown): value is C4pSnapshotCall {
   if (!isObject(value) || containsForbiddenKeys(value)) return false;
-  if (!isNonEmptyString(value.slug) || !isNonEmptyString(value.name)) return false;
+  if (!isNonEmptyString(value.slug) || !isNonEmptyString(value.name)) {
+    return false;
+  }
   if (value.status !== "open" && value.status !== "closed") return false;
-  if (value.description !== null && typeof value.description !== "string") return false;
+  if (value.description !== null && typeof value.description !== "string") {
+    return false;
+  }
   if (!isNullableDateString(value.submissionOpenAt)) return false;
   if (!isNullableDateString(value.submissionCloseAt)) return false;
   if (typeof value.publicResults !== "boolean") return false;
   if (!isNullableDateString(value.finalizedAt)) return false;
-  if (value.community !== null) {
-    if (
-      !isObject(value.community) ||
-      !isNonEmptyString(value.community.slug) ||
-      !isNonEmptyString(value.community.name)
-    ) {
-      return false;
-    }
-  }
-  if (value.event !== null) {
-    if (
-      !isObject(value.event) ||
-      !isNonEmptyString(value.event.slug) ||
-      !isNonEmptyString(value.event.title)
-    ) {
-      return false;
-    }
-  }
-  if (value.results !== null && value.results !== undefined) {
-    if (!isObject(value.results) || !Array.isArray(value.results.talks)) return false;
-    if (!value.results.talks.every(isResultTalk)) return false;
-  }
-  return true;
+  if (!isCommunityRef(value.community)) return false;
+  if (!isEventRef(value.event)) return false;
+  return isResultsValue(value.results);
 }
 
 export function emptyC4pIndex(): C4pIndex {

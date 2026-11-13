@@ -41,6 +41,15 @@ interface EvaluatorTalk {
   } | null;
 }
 
+function resolveSelectedTalkId(
+  current: string | null,
+  talks: EvaluatorTalk[],
+): string | null {
+  if (talks.length === 0) return current;
+  const stillPresent = current !== null && talks.some((talk) => talk.id === current);
+  return stillPresent ? current : talks[0].id;
+}
+
 function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
   const callId =
     callIdProp ||
@@ -67,12 +76,8 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
     const nextTalks = await parseAuthJson<EvaluatorTalk[]>(talksResponse, setLoadError);
     setCallInfo(nextCall);
     setTalks(nextTalks);
-    if (nextTalks && nextTalks.length > 0) {
-      setSelectedTalkId((current) =>
-        current && nextTalks.some((talk) => talk.id === current)
-          ? current
-          : nextTalks[0].id,
-      );
+    if (nextTalks) {
+      setSelectedTalkId((current) => resolveSelectedTalkId(current, nextTalks));
     }
   }, [authFetch, callId]);
 
