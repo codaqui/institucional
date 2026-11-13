@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuditModule } from '../audit/audit.module';
 import { Community } from '../communities/entities/community.entity';
+import { TurnstileModule } from '../common/turnstile/turnstile.module';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { DesignationsModule } from '../designations/designations.module';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
@@ -32,6 +33,7 @@ import { C4pVote } from './entities/c4p-vote.entity';
     ]),
     AuditModule,
     DesignationsModule,
+    TurnstileModule,
   ],
   controllers: [C4pPublicController, C4pEvaluatorController, C4pManageController],
   providers: [
