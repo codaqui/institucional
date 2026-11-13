@@ -5,7 +5,7 @@ import {
 } from './default-templates';
 
 describe('default-templates', () => {
-  it('cataloga os templates de eventos, certificados e mentoria', () => {
+  it('cataloga os templates de eventos, certificados, mentoria e C4P', () => {
     expect(TEMPLATE_IDS).toEqual([
       'event-registration-confirmation',
       'event-registration-cancelled',
@@ -16,9 +16,38 @@ describe('default-templates', () => {
       'mentorship-confirmed',
       'mentorship-reminder-d1',
       'mentorship-cancelled',
+      'c4p-submission-confirmation',
+      'c4p-evaluator-invite',
+      'c4p-talk-result',
     ]);
     expect(isKnownTemplate('event-registration-cancelled')).toBe(true);
     expect(isKnownTemplate('template-inexistente')).toBe(false);
+  });
+
+  it('documenta as variáveis dos templates de C4P', () => {
+    expect(DEFAULT_TEMPLATES['c4p-submission-confirmation'].variables).toEqual(
+      expect.arrayContaining(['attendeeName', 'c4pCallName', 'c4pTalkTitle']),
+    );
+    expect(DEFAULT_TEMPLATES['c4p-evaluator-invite'].variables).toEqual(
+      expect.arrayContaining(['attendeeName', 'c4pCallName', 'c4pActionUrl']),
+    );
+    expect(DEFAULT_TEMPLATES['c4p-talk-result'].variables).toEqual(
+      expect.arrayContaining([
+        'attendeeName',
+        'c4pCallName',
+        'c4pTalkTitle',
+        'c4pResultStatus',
+        'c4pActionUrl',
+      ]),
+    );
+    for (const id of [
+      'c4p-submission-confirmation',
+      'c4p-evaluator-invite',
+      'c4p-talk-result',
+    ]) {
+      const sample = DEFAULT_TEMPLATES[id].sample();
+      expect(sample.c4pCallName).toBeTruthy();
+    }
   });
 
   it('documenta o contexto real do e-mail de cancelamento', () => {

@@ -7,6 +7,8 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { TURNSTILE_ACTION_KEY } from './turnstile-action.decorator';
 import { TurnstileService } from './turnstile.service';
 import { turnstileAllowedHostnames, turnstileSecret } from './turnstile-config';
 
@@ -25,7 +27,10 @@ type TurnstileRequest = {
 export class TurnstileGuard implements CanActivate {
   private readonly logger = new Logger(TurnstileGuard.name);
 
-  constructor(private readonly turnstileService: TurnstileService) {}
+  constructor(
+    private readonly turnstileService: TurnstileService,
+    private readonly reflector: Reflector,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (!turnstileSecret()) {
@@ -59,11 +64,17 @@ export class TurnstileGuard implements CanActivate {
       throw new ForbiddenException('Hostname não permitido para Turnstile.');
     }
 
+    const action =
+      this.reflector.getAllAndOverride<string>(TURNSTILE_ACTION_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]) ?? GUEST_CLAIM_ACTION;
+
     const verified = await this.turnstileService.verify(
       token,
       request.ip,
       hostname,
-      GUEST_CLAIM_ACTION,
+      action,
     );
     if (!verified) {
       throw new ForbiddenException('Verificação Turnstile recusada.');

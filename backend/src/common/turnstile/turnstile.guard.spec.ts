@@ -5,6 +5,8 @@ import {
   Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { TURNSTILE_ACTION_KEY, TurnstileAction } from './turnstile-action.decorator';
 import { TurnstileGuard } from './turnstile.guard';
 import { TurnstileService } from './turnstile.service';
 
@@ -21,7 +23,7 @@ describe('TurnstileGuard', () => {
     process.env.TURNSTILE_ALLOWED_HOSTNAMES =
       'codaqui.dev,www.codaqui.dev,tisocial.org.br';
     service = { verify: jest.fn().mockResolvedValue(true) };
-    guard = new TurnstileGuard(service as TurnstileService);
+    guard = new TurnstileGuard(service as TurnstileService, new Reflector());
   });
 
   afterEach(() => {
@@ -33,6 +35,7 @@ describe('TurnstileGuard', () => {
     body?: Record<string, unknown>;
     headers?: Record<string, string>;
     hostname?: string;
+    handler?: () => void;
   }): ExecutionContext {
     return {
       switchToHttp: () => ({
@@ -43,6 +46,8 @@ describe('TurnstileGuard', () => {
           ip: '192.0.2.1',
         }),
       }),
+      getHandler: () => options.handler ?? (() => {}),
+      getClass: () => class {},
     } as ExecutionContext;
   }
 
@@ -215,5 +220,41 @@ describe('TurnstileGuard', () => {
     await expect(guard.canActivate(context)).rejects.toThrow(
       ForbiddenException,
     );
+  });
+
+  it('verifies with the action declared by @TurnstileAction', async () => {
+    class SubmissionsController {
+      @TurnstileAction('c4p_submission')
+      submit() {}
+    }
+    const handler = Object.getOwnPropertyDescriptor(
+      SubmissionsController.prototype,
+      'submit',
+    )?.value as () => void;
+    const context = contextFor({
+      body: { turnstileToken: 'token' },
+      handler,
+    });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(service.verify).toHaveBeenCalledWith(
+      'token',
+      '192.0.2.1',
+      'codaqui.dev',
+      'c4p_submission',
+    );
+  });
+
+  it('falls back to guest_claim without @TurnstileAction metadata', async () => {
+    const context = contextFor({ body: { turnstileToken: 'token' } });
+
+    await expect(guard.canActivate(context)).resolves.toBe(true);
+    expect(service.verify).toHaveBeenCalledWith(
+      'token',
+      '192.0.2.1',
+      'codaqui.dev',
+      'guest_claim',
+    );
+    expect(TURNSTILE_ACTION_KEY).toBe('turnstileAction');
   });
 });

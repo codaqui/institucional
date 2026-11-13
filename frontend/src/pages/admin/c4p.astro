@@ -1,0 +1,8 @@
+---
+import AppLayout from "../../layouts/AppLayout.astro";
+import C4pAdminApp from "../../components/islands/admin/c4p/C4pAdminApp";
+---
+
+<AppLayout title="C4P" noindex>
+  <C4pAdminApp client:only="react" />
+</AppLayout>

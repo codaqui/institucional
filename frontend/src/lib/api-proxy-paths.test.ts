@@ -77,6 +77,15 @@ const apiPaths = [
   "/campaigns/abc-123/preview",
   "/campaigns/unsubscribe",
   "/campaigns/suppressions",
+  "/c4p/public/calls",
+  "/c4p/public/calls/devpr-conf-2026",
+  "/c4p/public/calls/devpr-conf-2026/submissions",
+  "/c4p/public/calls/devpr-conf-2026/results",
+  "/c4p/public/snapshot",
+  "/c4p/manage/calls",
+  "/c4p/manage/calls/abc-123/finalize",
+  "/c4p/evaluator/calls",
+  "/c4p/evaluator/calls/abc-123/talks/talk-1/vote",
 ] as const;
 
 const staticPaths = [
@@ -109,6 +118,12 @@ const staticPaths = [
   "/universities/index.json",
   "/mentors/index.json",
   "/announcements/index.json",
+  "/c4p/index.json",
+  "/c4p",
+  "/c4p/avaliar",
+  "/c4p/devpr-conf-2026/submeter",
+  "/c4p/devpr-conf-2026/resultado",
+  "/admin/c4p",
   "/admin/announcements",
   "/descadastro",
   "/mentoria",

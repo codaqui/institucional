@@ -22,7 +22,8 @@
     "sync:badges": "node scripts/sync-member-badges.mjs",
     "sync": "npm run sync:events && npm run sync:social && npm run sync:analytics",
     "sync:full": "npm run sync:events:full && npm run sync:social && npm run sync:analytics:full",
-    "test:scripts": "node --test scripts/*.test.mjs"
+    "test:scripts": "node --test scripts/*.test.mjs",
+    "sync:c4p": "node scripts/sync-c4p.mjs"
   },
   "devDependencies": {
     "playwright": "^1.60.0",

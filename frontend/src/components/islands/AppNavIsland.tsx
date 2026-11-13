@@ -24,6 +24,7 @@ import EmailIcon from "@mui/icons-material/Email";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import EventIcon from "@mui/icons-material/Event";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import SearchIcon from "@mui/icons-material/Search";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import SchoolIcon from "@mui/icons-material/School";
@@ -144,6 +145,7 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
       { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
       { label: "Overrides & externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
       { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
+      { label: "C4P", href: "/admin/c4p", icon: <HowToVoteIcon />, roles: ["admin", "event_organizer", "diretor"] },
     ],
   },
   {

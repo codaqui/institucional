@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import BusinessIcon from "@mui/icons-material/Business";
+import HowToVoteIcon from "@mui/icons-material/HowToVote";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonIcon from "@mui/icons-material/Person";
 import PrivacyTipIcon from "@mui/icons-material/PrivacyTip";
@@ -165,6 +166,20 @@ function NavbarAuthInner({ variant = "dropdown" }: NavbarAuthProps) {
     { key: "perfil", label: "Meu Perfil", href: "/membro", icon: <PersonIcon fontSize="small" /> },
     { key: "clube", label: "Meu Clube", href: "/clube", icon: <TokenIcon fontSize="small" /> },
     { key: "privacidade", label: "Privacidade e dados", href: "/sobre/privacidade", icon: <PrivacyTipIcon fontSize="small" /> },
+    ...(myDesignations.some(
+      (designation) =>
+        designation.targetType === "c4p_campaign" &&
+        designation.designation === "evaluator",
+    )
+      ? [
+          {
+            key: "c4p-avaliar",
+            label: "Avaliar propostas (C4P)",
+            href: "/c4p/avaliar",
+            icon: <HowToVoteIcon fontSize="small" />,
+          } satisfies AccountMenuEntry,
+        ]
+      : []),
     ...(hasCompany
       ? [
           {

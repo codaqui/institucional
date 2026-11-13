@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo do plano Codaqui 1.0.0 — integração do sistema de C4P (Call for Papers / Chamada de Trabalhos) como subsistema G, Fase 7, fechando o 1.0.0. Porte do sistema externo validado em produção (curadoria) + nova submissão pública de propostas.
 audience: Presidência, mantenedores, AI agents implementando a Fase 7.
-status: design aprovado em 2026-10-20 (Fase 7 do 1.0.0; escopo = curadoria portada + submissão pública; auth por roles de membros; frontend nasce no Astro). Origem: sistema externo "Kimi_Agent_C4P - Codaqui" analisado em 2026-10-20 — operou de fato o C4P do DevPR Conf 2026.
+status: implementada em develop (backend 1.0.0, migration 049, PR #639); release, sync inicial do snapshot e campanha piloto pendentes. Origem: sistema externo "Kimi_Agent_C4P - Codaqui" analisado em 2026-10-20 — operou de fato o C4P do DevPR Conf 2026. Spec e plano: docs/superpowers/specs|plans/2026-11-12-c4p*.
 sections:
   - Origem e análise do sistema externo
   - Decisões de design (2026-10-20)

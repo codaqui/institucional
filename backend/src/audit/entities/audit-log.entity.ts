@@ -137,6 +137,16 @@ export enum AuditAction {
   EMAIL_SUPPRESSION_CREATED = 'email_suppression.created',
   EMAIL_SUPPRESSION_DELETED = 'email_suppression.deleted',
 
+  // C4P
+  C4P_CALL_CREATED = 'c4p_call.created',
+  C4P_CALL_UPDATED = 'c4p_call.updated',
+  C4P_CALL_FINALIZED = 'c4p_call.finalized',
+  C4P_CALL_REOPENED = 'c4p_call.reopened',
+  C4P_TALK_IMPORTED = 'c4p_talk.imported',
+  C4P_TALK_DELETED = 'c4p_talk.deleted',
+  C4P_EVALUATOR_INVITED = 'c4p_evaluator.invited',
+  C4P_EVALUATOR_REMOVED = 'c4p_evaluator.removed',
+
   // Settings
   SETTINGS_AUDIT_RETENTION_UPDATED = 'settings.audit_retention_updated',
 }
