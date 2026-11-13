@@ -39,13 +39,23 @@ O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mocku
 | Visão | Quem | Objetivo | Rotas-chave | Lacunas atuais |
 |---|---|---|---|---|
 | **1. Aprender** | Pessoas querendo estudar | Cursos, mentoria, eventos, certificados | `/participe/estudar`, `/trilhas`, `/participe/mentoria`, `/eventos`, `/certificado/verificar` | Turmas "A confirmar"; mentoria com 1 mentor; fluxo sem noscript |
-| **2. Comunidades** | Donos/organizadores e comunidades | Integrar-se, ter agenda/site/C4P, receber apoio com prestação de contas | `/comunidades`, `/comunidades/<slug>/*`, `/eventos`, `/c4p`, `/desenvolvedores/api` | **Sem CTA "integrar minha comunidade"** (rota `/comunidades/participar` a criar); `/comunidades` órfã de nav; duas fontes de verdade |
+| **2. Comunidades** | Donos/organizadores e comunidades | Integrar-se, ter agenda/site/C4P, receber apoio com prestação de contas | `/comunidades`, `/comunidades/<slug>/*`, `/eventos`, `/c4p`, `/desenvolvedores/api` | **Sem CTA "integrar minha comunidade"** (rota `/comunidades/participar` a criar); `/comunidades` órfã de nav; duas fontes de verdade; transparência do tenant só financeira |
 | **3. Apoiar** | Pessoas e empresas | Doar, assinar o Clube, apoiar projeto, patrocinar | `/participe/apoiar`, `/clube`, `/projetos`, `/patrocinadores`, `/empresas` | `/empresas` órfã; apoio a **projeto específico** não tem fluxo; assinatura pessoal invisível (P7) |
-| **4. Acompanhar/auditar** | Sociedade pública | Verificar contas, atas, impacto, projetos, dados abertos | `/transparencia`, `/assembleias`, `/sobre/insights`, `/projetos`, `/sobre/ong`, `/desenvolvedores/api` | Transparência escondida no rodapé; **sem visão por comunidade** (contas/atividade por comunidade); `/assembleias` vazia; insights com números hardcoded divergentes |
+| **4. Acompanhar/auditar** | Sociedade pública | Verificar contas, atas, impacto, projetos, dados abertos | `/transparencia`, `/assembleias`, `/sobre/insights`, `/projetos`, `/sobre/ong`, `/desenvolvedores/api` | Transparência escondida no rodapé; visão por comunidade **só financeira** (sem atividades/atas/responsáveis); `/assembleias` vazia; insights com números hardcoded divergentes |
 
 **Home**: hero com h1 + 4 atalhos de visão → faixa de números (snapshots) → um bloco por visão (CTA primário + 4-6 caminhos) → vitrine viva (evento, C4P, blog).
 **Navegação proposta**: Aprender · Comunidades · Eventos · Apoiar · Transparência · Blog (+ botão Apoiar). C4P e Projetos ficam dentro das visões (Comunidades e Apoiar/Acompanhar) em vez de itens soltos — **substitui a decisão anterior de colocar C4P direto na nav; a ratificar**. **Rodapé**: 4 colunas = as 4 visões.
-**Novos itens de backlog derivados** (P1): CTA/landing "Integrar minha comunidade"; página de transparência por comunidade (`/comunidades/<slug>/transparencia`) reutilizando ledger/horas/eventos filtrados por comunidade; seletor "apoiar um projeto"; Transparência promovida à nav principal.
+**Novos itens de backlog derivados** (P1): CTA/landing "Integrar minha comunidade"; **ampliar** a transparência por comunidade — a página já existe (`TransparenciaPage.astro`, rota `/comunidades/<slug>/transparencia` ou `/transparencia` no tenant) mas mostra **só saldo e movimentações** (ledger por `projectKey`); falta atividades (eventos, horas, certificados), responsáveis (designations), atas e exportação — mockup: `docs/mockups/comunidade-transparencia-proposta.html`; seletor "apoiar um projeto"; Transparência promovida à nav principal.
+
+## Posicionamento: associativismo e atividades das comunidades
+
+**Diagnóstico (2026-11-13, código atual):** o site posiciona a Codaqui como **plataforma educacional**, não como **associação de comunidades**.
+- Home: `HeroBanner.astro` diz "Democratizando comunidades e projetos de tecnologia! 🇧🇷" com CTAs `#QueroEstudar`/`#QueroApoiar` — só as visões Aprender e Apoiar; donos de comunidade e quem audita não aparecem.
+- `FeaturesSection.astro`: 3 de 4 cards são sobre aprendizado individual (autonomia, projetos reais, computador/internet); "Comunidade de Comunidades" é o último e sem destaque.
+- Termos de associativismo (associada/o, assembleia, estatuto, diretoria, prestação de contas) não aparecem na Home; `/sobre/ong` se apresenta como "Programa de Apoio Institucional" (a Associação como prestadora de serviços), e a transparência só existe no rodapé/`/transparencia`.
+- Transparência por comunidade (tenant) é financeira apenas; não mostra o que a comunidade **fez**.
+
+**Direção proposta (a ratificar):** "Codaqui = associação **de** comunidades". (1) mensagem-mãe: comunidades fazem, a Associação dá estrutura (CNPJ, contabilidade, governança) e presta contas; (2) estudar passa a ser **uma** das atividades das comunidades, não a identidade do site; (3) Home com "Comunidades" e "Transparência" no mesmo nível de "Aprender" (ver mockup da home, ajustar hero); (4) cada tenant exibe faixa permanente "comunidade integrada à Associação Codaqui" + transparência com **atividades antes das finanças**; (5) vocabulário: associação, comunidades integradas, atas, assembleias, prestação de contas.
 
 ## Mapa de jornadas
 
