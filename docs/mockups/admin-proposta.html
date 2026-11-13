@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proposta visual — Admin por domínio (Codaqui)</title>
+  <meta name="description" content="Mockup estático do painel admin: nova taxonomia da sidebar por domínio, visibilidade por papel, painel de pendências e padrão de tabela (paginação, skeleton, aria-label, confirmação)." />
+  <style>
+    :root {
+      --cq-color-primary-500: #57B593; --cq-color-primary-700: #378369; --cq-color-primary-800: #2c6955; --cq-color-primary-50: #eef7f2;
+      --cq-color-action: #2c6955; --cq-color-on-action: #fff;
+      --cq-color-bg: #fafafa; --cq-color-surface: #fff; --cq-color-sunken: #f4f4f5;
+      --cq-color-text-primary: #18181b; --cq-color-text-secondary: #52525b; --cq-color-border: #e5e5e7;
+      --cq-color-danger: #b42318; --cq-color-warn-bg: #fff4e5; --cq-color-warn: #8a4b00;
+      --cq-radius: 12px; --cq-shadow: 0 1px 3px rgb(0 0 0 / .08); color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --cq-color-primary-50: #122a22; --cq-color-bg: #0c0c0d; --cq-color-surface: #18181b; --cq-color-sunken: #101012;
+      --cq-color-text-primary: #fafafa; --cq-color-text-secondary: #a1a1aa; --cq-color-border: #27272a;
+      --cq-color-danger: #ff8a80; --cq-color-warn-bg: #3a2a10; --cq-color-warn: #ffc27a; color-scheme: dark;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: var(--cq-color-bg); color: var(--cq-color-text-primary); line-height: 1.5; }
+    a { color: var(--cq-color-primary-800); } [data-theme="dark"] a { color: var(--cq-color-primary-500); }
+    a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--cq-color-primary-700); outline-offset: 2px; }
+    .skip-link { position: absolute; left: -9999px; background: var(--cq-color-primary-700); color: #fff; padding: 8px 14px; z-index: 100; }
+    .skip-link:focus { left: 8px; top: 8px; }
+
+    .shell { display: grid; grid-template-columns: 264px 1fr; min-height: 100vh; }
+    aside.side { background: var(--cq-color-surface); border-right: 1px solid var(--cq-color-border); padding: 16px 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; text-decoration: none; color: inherit; padding: 4px 8px 14px; }
+    .logo .mark { width: 30px; height: 30px; border-radius: 8px; background: var(--cq-color-primary-500); color: #fff; display: grid; place-items: center; font-size: 13px; }
+    .group { margin-top: 14px; }
+    .group > h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--cq-color-text-secondary); padding: 0 10px 6px; font-weight: 800; }
+    .group ul { list-style: none; display: grid; gap: 2px; }
+    .group a { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; text-decoration: none; color: var(--cq-color-text-primary); font-size: 14px; }
+    .group a:hover { background: var(--cq-color-sunken); }
+    .group a[aria-current="page"] { background: var(--cq-color-primary-50); font-weight: 700; color: var(--cq-color-primary-800); box-shadow: inset 3px 0 0 var(--cq-color-primary-700); }
+    [data-theme="dark"] .group a[aria-current="page"] { color: var(--cq-color-primary-500); }
+    .group .ic { width: 18px; text-align: center; }
+    .group .count { margin-left: auto; background: var(--cq-color-warn-bg); color: var(--cq-color-warn); border-radius: 999px; font-size: 11px; font-weight: 800; padding: 0 7px; }
+    .hidden { display: none !important; }
+
+    .topbar { display: flex; align-items: center; gap: 12px; padding: 12px 28px; background: var(--cq-color-surface); border-bottom: 1px solid var(--cq-color-border); flex-wrap: wrap; }
+    .crumbs { font-size: 13px; color: var(--cq-color-text-secondary); }
+    .topbar .sp { margin-left: auto; display: flex; gap: 10px; align-items: center; }
+    select, input[type=search] { font: inherit; font-size: 14px; padding: 7px 10px; border-radius: 8px; border: 1px solid var(--cq-color-border); background: var(--cq-color-surface); color: inherit; }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px; border: 1px solid transparent; font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .btn-primary { background: var(--cq-color-action); color: var(--cq-color-on-action); }
+    .btn-outline { background: transparent; color: var(--cq-color-primary-800); border-color: var(--cq-color-primary-700); }
+    [data-theme="dark"] .btn-outline { color: var(--cq-color-primary-500); }
+    .btn-danger { background: transparent; color: var(--cq-color-danger); border-color: var(--cq-color-danger); }
+    .btn-icon { padding: 6px 9px; background: var(--cq-color-sunken); border-color: var(--cq-color-border); color: inherit; }
+
+    main { padding: 24px 28px 48px; max-width: 1180px; }
+    h1 { font-size: 26px; font-weight: 800; }
+    .lead { color: var(--cq-color-text-secondary); font-size: 14px; margin: 4px 0 20px; }
+    h2.sec { font-size: 17px; font-weight: 800; margin: 26px 0 12px; }
+    .card { background: var(--cq-color-surface); border: 1px solid var(--cq-color-border); border-radius: var(--cq-radius); box-shadow: var(--cq-shadow); }
+
+    .todo { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+    .todo a { display: block; padding: 16px; text-decoration: none; color: inherit; }
+    .todo a:hover { border-color: var(--cq-color-primary-700); }
+    .todo .n { font-size: 28px; font-weight: 800; color: var(--cq-color-primary-800); }
+    [data-theme="dark"] .todo .n { color: var(--cq-color-primary-500); }
+    .todo .l { font-weight: 700; } .todo .d { font-size: 13px; color: var(--cq-color-text-secondary); }
+
+    .quick { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Padrão de tabela: toolbar + paginação + skeleton + aria-label */
+    .table-wrap { overflow-x: auto; }
+    .toolbar { display: flex; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--cq-color-border); flex-wrap: wrap; align-items: center; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--cq-color-border); }
+    th { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--cq-color-text-secondary); }
+    .pill { display: inline-block; padding: 1px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; border: 1px solid var(--cq-color-primary-500); background: var(--cq-color-primary-50); color: var(--cq-color-primary-800); }
+    [data-theme="dark"] .pill { color: var(--cq-color-primary-500); }
+    .pill.warn { background: var(--cq-color-warn-bg); color: var(--cq-color-warn); border-color: var(--cq-color-warn); }
+    .pager { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; font-size: 13px; color: var(--cq-color-text-secondary); flex-wrap: wrap; gap: 8px; }
+    .skeleton { display: inline-block; height: 12px; width: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--cq-color-sunken), var(--cq-color-border), var(--cq-color-sunken)); background-size: 200% 100%; animation: sh 1.2s infinite; }
+    @keyframes sh { to { background-position: -200% 0; } }
+    @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+    .row-actions { display: flex; gap: 6px; }
+
+    dialog { border: 1px solid var(--cq-color-border); border-radius: var(--cq-radius); padding: 22px; max-width: 420px; background: var(--cq-color-surface); color: inherit; margin: auto; }
+    dialog::backdrop { background: rgb(0 0 0 / .45); }
+    dialog h3 { margin-bottom: 8px; } dialog p { font-size: 14px; color: var(--cq-color-text-secondary); }
+    dialog .acts { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+
+    .legend { font-size: 13px; color: var(--cq-color-text-secondary); margin-top: 28px; padding: 14px 16px; border: 1px dashed var(--cq-color-border); border-radius: 10px; }
+    @media (max-width: 860px) { .shell { grid-template-columns: 1fr; } aside.side { position: static; height: auto; } main { padding: 18px; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div class="shell">
+    <aside class="side">
+      <a class="logo" href="/"><span class="mark" aria-hidden="true">CQ</span>Painel Codaqui</a>
+      <nav aria-label="Navegação do painel" id="nav">
+        <!-- data-roles: papéis/designations que enxergam o item. Grupos sem itens visíveis somem (sem grupos de 1 item). -->
+        <div class="group" data-group>
+          <h2>Início</h2>
+          <ul>
+            <li data-roles="*"><a href="/membro" aria-current="page"><span class="ic" aria-hidden="true">🏠</span>Painel e pendências</a></li>
+            <li data-roles="*"><a href="/membro/horas"><span class="ic" aria-hidden="true">⏱️</span>Minhas horas</a></li>
+          </ul>
+        </div>
+
+        <div class="group" data-group>
+          <h2>Comunidades e eventos</h2>
+          <ul>
+            <li data-roles="owner admin"><a href="/admin/comunidades"><span class="ic" aria-hidden="true">🌱</span>Minha comunidade</a></li>
+            <li data-roles="organizer admin"><a href="/admin/eventos"><span class="ic" aria-hidden="true">📅</span>Eventos</a></li>
+            <li data-roles="organizer checker admin"><a href="/admin/eventos-checkin"><span class="ic" aria-hidden="true">✅</span>Check-in</a></li>
+            <li data-roles="organizer admin"><a href="/admin/c4p"><span class="ic" aria-hidden="true">🎤</span>C4P<span class="count">3</span></a></li>
+            <li data-roles="organizer admin"><a href="/admin/overrides"><span class="ic" aria-hidden="true">✏️</span>Eventos externos</a></li>
+          </ul>
+        </div>
+
+        <div class="group" data-group>
+          <h2>Pessoas e aprendizado</h2>
+          <ul>
+            <li data-roles="admin"><a href="/admin"><span class="ic" aria-hidden="true">👥</span>Membros</a></li>
+            <li data-roles="admin finance"><a href="/admin/horas"><span class="ic" aria-hidden="true">🕒</span>Horas (aprovação)</a></li>
+            <li data-roles="mentor admin"><a href="/admin/mentoria"><span class="ic" aria-hidden="true">🧭</span>Mentoria</a></li>
+            <li data-roles="admin"><a href="/admin/universitario"><span class="ic" aria-hidden="true">🎓</span>Universitário</a></li>
+          </ul>
+        </div>
+
+        <div class="group" data-group>
+          <h2>Apoio e financeiro</h2>
+          <ul>
+            <li data-roles="admin finance"><a href="/admin/recebimentos"><span class="ic" aria-hidden="true">⬇️</span>Recebimentos</a></li>
+            <li data-roles="admin finance"><a href="/admin/pagamentos"><span class="ic" aria-hidden="true">⬆️</span>Pagamentos</a></li>
+            <li data-roles="admin finance"><a href="/admin/reembolsos"><span class="ic" aria-hidden="true">🧾</span>Reembolsos<span class="count">5</span></a></li>
+            <li data-roles="admin finance"><a href="/admin/fornecedores"><span class="ic" aria-hidden="true">🏪</span>Fornecedores</a></li>
+            <li data-roles="admin finance"><a href="/admin/lancamento"><span class="ic" aria-hidden="true">📒</span>Livro-razão</a></li>
+            <li data-roles="admin"><a href="/admin/empresas"><span class="ic" aria-hidden="true">🏢</span>Empresas apoiadoras</a></li>
+            <li data-roles="admin"><a href="/admin/sorteios"><span class="ic" aria-hidden="true">🎁</span>Clube: sorteios e VirtualCoins</a></li>
+          </ul>
+        </div>
+
+        <div class="group" data-group>
+          <h2>Governança e transparência</h2>
+          <ul>
+            <li data-roles="director admin"><a href="/admin/diretorias"><span class="ic" aria-hidden="true">🏛️</span>Diretorias</a></li>
+            <li data-roles="director admin"><a href="/admin/assembleias"><span class="ic" aria-hidden="true">🗳️</span>Assembleias</a></li>
+            <li data-roles="director admin"><a href="/admin/entidades"><span class="ic" aria-hidden="true">🤝</span>Entidades e parcerias</a></li>
+            <li data-roles="director admin"><a href="/admin/projetos"><span class="ic" aria-hidden="true">🧩</span>Projetos de extensão</a></li>
+            <li data-roles="director admin"><a href="/transparencia"><span class="ic" aria-hidden="true">🔍</span>Ver como o público vê ↗</a></li>
+          </ul>
+        </div>
+
+        <div class="group" data-group>
+          <h2>Sistema</h2>
+          <ul>
+            <li data-roles="admin"><a href="/admin/announcements"><span class="ic" aria-hidden="true">📢</span>Anúncios</a></li>
+            <li data-roles="admin"><a href="/admin/emails"><span class="ic" aria-hidden="true">✉️</span>E-mails e campanhas</a></li>
+            <li data-roles="admin"><a href="/admin/configuracoes"><span class="ic" aria-hidden="true">⚙️</span>Configurações</a></li>
+          </ul>
+        </div>
+      </nav>
+    </aside>
+
+    <div>
+      <div class="topbar">
+        <p class="crumbs">Painel › Início</p>
+        <div class="sp">
+          <label for="role" style="font-size:13px;color:var(--cq-color-text-secondary)">Simular papel:</label>
+          <select id="role">
+            <option value="admin">Admin (vê tudo)</option>
+            <option value="owner">Dono de comunidade</option>
+            <option value="organizer">Organizador de eventos</option>
+            <option value="finance">Analista financeiro</option>
+            <option value="mentor">Mentor</option>
+            <option value="director">Diretor</option>
+            <option value="member">Membro comum</option>
+          </select>
+          <button class="btn btn-icon" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">◐</button>
+        </div>
+      </div>
+
+      <main id="conteudo">
+        <h1 id="title">Olá, Maria 👋</h1>
+        <p class="lead" id="sub">O que precisa da sua atenção hoje, conforme seus papéis.</p>
+
+        <h2 class="sec">Pendências</h2>
+        <div class="todo" id="todo">
+          <div data-roles="finance admin"><a class="card" href="/admin/reembolsos"><span class="n">5</span><p class="l">Reembolsos aguardando</p><p class="d">O mais antigo tem 4 dias.</p></a></div>
+          <div data-roles="organizer admin"><a class="card" href="/admin/c4p"><span class="n">3</span><p class="l">Propostas de C4P sem avaliação</p><p class="d">DevPR Conf 2027 · fecha em 32 dias.</p></a></div>
+          <div data-roles="admin director"><a class="card" href="/admin/horas"><span class="n">12</span><p class="l">Horas para aprovar</p><p class="d">Mentoria e eventos.</p></a></div>
+          <div data-roles="owner admin"><a class="card" href="/admin/comunidades"><span class="n">2</span><p class="l">Eventos da sua comunidade sem divulgação</p><p class="d">Publique na agenda unificada.</p></a></div>
+          <div data-roles="mentor admin"><a class="card" href="/admin/mentoria"><span class="n">1</span><p class="l">Sessão de mentoria hoje</p><p class="d">Seg, 19h · vincular mentorando.</p></a></div>
+          <div data-roles="member"><a class="card" href="/membro"><span class="n">0</span><p class="l">Nada pendente</p><p class="d">Veja suas horas e certificados.</p></a></div>
+        </div>
+
+        <h2 class="sec">Ações rápidas</h2>
+        <div class="quick" id="quick">
+          <a class="btn btn-primary" data-roles="organizer admin" href="/admin/eventos">+ Novo evento</a>
+          <a class="btn btn-outline" data-roles="finance admin" href="/admin/lancamento">+ Lançamento</a>
+          <a class="btn btn-outline" data-roles="owner admin" href="/admin/comunidades">Editar minha comunidade</a>
+          <a class="btn btn-outline" data-roles="admin" href="/admin/announcements">Publicar aviso</a>
+          <a class="btn btn-outline" data-roles="*" href="/membro/editar">Editar perfil</a>
+        </div>
+
+        <h2 class="sec">Exemplo de padrão de tabela — Reembolsos</h2>
+        <div class="card">
+          <div class="toolbar">
+            <label for="q" class="hidden">Buscar reembolsos</label>
+            <input id="q" type="search" placeholder="Buscar por solicitante ou evento" />
+            <label for="st" class="hidden">Filtrar por status</label>
+            <select id="st"><option>Todos os status</option><option>Pendente</option><option>Aprovado</option></select>
+            <button class="btn btn-outline" style="margin-left:auto" type="button" id="reload">Recarregar (skeleton)</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <caption class="hidden">Reembolsos</caption>
+              <thead><tr><th scope="col">Solicitante</th><th scope="col">Evento</th><th scope="col">Valor</th><th scope="col">Status</th><th scope="col">Ações</th></tr></thead>
+              <tbody id="tbody">
+                <tr><td><a href="/@joana">Joana Lima</a></td><td>DevPR Conf 2026</td><td>R$ 180,00</td><td><span class="pill warn">Pendente</span></td>
+                  <td><div class="row-actions"><button class="btn btn-icon" type="button" aria-label="Aprovar reembolso de Joana Lima">✔</button><button class="btn btn-icon" type="button" aria-label="Rejeitar reembolso de Joana Lima" data-confirm="Rejeitar reembolso de Joana Lima?">✖</button></div></td></tr>
+                <tr><td><a href="/@pedro">Pedro Alves</a></td><td>Meetup DevParaná</td><td>R$ 45,00</td><td><span class="pill">Aprovado</span></td>
+                  <td><div class="row-actions"><button class="btn btn-icon" type="button" aria-label="Ver comprovante de Pedro Alves">🧾</button></div></td></tr>
+                <tr><td><a href="/@ana">Ana Souza</a></td><td>Cloud Native Maringá</td><td>R$ 90,00</td><td><span class="pill warn">Pendente</span></td>
+                  <td><div class="row-actions"><button class="btn btn-icon" type="button" aria-label="Aprovar reembolso de Ana Souza">✔</button><button class="btn btn-icon" type="button" aria-label="Rejeitar reembolso de Ana Souza" data-confirm="Rejeitar reembolso de Ana Souza?">✖</button></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pager"><span aria-live="polite">Mostrando 1–3 de 27</span>
+            <span><button class="btn btn-icon" type="button" aria-label="Página anterior" disabled>‹</button> <button class="btn btn-icon" type="button" aria-label="Próxima página">›</button></span>
+          </div>
+        </div>
+
+        <p class="legend"><strong>O que este mockup demonstra:</strong> (1) sidebar por domínio — 6 grupos (antes 9), nenhum com 1 item, “Mentoria” e “Universitário” consolidados em Pessoas e aprendizado, C4P junto das comunidades/eventos; (2) troque o papel no seletor: itens e grupos somem conforme o papel; (3) painel de pendências por papel; (4) padrão de tabela: busca/filtro com label, paginação, skeleton no carregamento, <code>aria-label</code> em todo botão-ícone e confirmação em ação destrutiva; (5) “Ver como o público vê” liga cada área administrativa à visão pública de transparência.</p>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="confirm" aria-labelledby="cTitle">
+    <h3 id="cTitle">Confirmar ação</h3>
+    <p id="cMsg">Esta ação não pode ser desfeita.</p>
+    <div class="acts"><button class="btn btn-outline" type="button" id="cNo">Cancelar</button><button class="btn btn-danger" type="button" id="cYes">Confirmar</button></div>
+  </dialog>
+
+  <script>
+    const roleSel = document.getElementById("role");
+    function applyRole() {
+      const role = roleSel.value;
+      document.querySelectorAll("[data-roles]").forEach((el) => {
+        const roles = el.dataset.roles.split(" ");
+        const show = roles.includes("*") || roles.includes(role) || (role === "admin");
+        el.classList.toggle("hidden", !show);
+      });
+      document.querySelectorAll("[data-group]").forEach((g) => {
+        const any = g.querySelector("li:not(.hidden)");
+        g.classList.toggle("hidden", !any);
+      });
+    }
+    roleSel.addEventListener("change", applyRole); applyRole();
+
+    const toggle = document.getElementById("themeToggle");
+    toggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+    });
+
+    const dlg = document.getElementById("confirm");
+    document.querySelectorAll("[data-confirm]").forEach((b) => b.addEventListener("click", () => {
+      document.getElementById("cMsg").textContent = b.dataset.confirm + " Esta ação não pode ser desfeita.";
+      dlg.showModal();
+    }));
+    document.getElementById("cNo").onclick = () => dlg.close();
+    document.getElementById("cYes").onclick = () => dlg.close();
+
+    const tbody = document.getElementById("tbody");
+    document.getElementById("reload").addEventListener("click", () => {
+      const saved = tbody.innerHTML;
+      tbody.innerHTML = Array.from({ length: 3 }, () => "<tr>" + "<td><span class='skeleton'></span></td>".repeat(5) + "</tr>").join("");
+      setTimeout(() => (tbody.innerHTML = saved), 1200);
+    });
+  </script>
+</body>
+</html>
+

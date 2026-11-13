@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proposta visual — Main (Codaqui)</title>
+  <meta name="description" content="Mockup estático da Main da Codaqui aplicando as melhorias da revisão de jornadas: nav com C4P, h1, contraste correto, cards com thumbnail e texto contido, footer ampliado." />
+  <style>
+    /* Tokens do Design System Codaqui (espelho dos --cq-* reais) */
+    :root {
+      --cq-color-primary-500: #57B593;
+      --cq-color-primary-700: #378369;
+      --cq-color-primary-800: #2c6955;
+      --cq-color-primary-50: #eef7f2;
+      --cq-color-neutral-50: #fafafa;
+      --cq-color-neutral-100: #f4f4f5;
+      --cq-color-neutral-200: #e5e5e7;
+      --cq-color-neutral-600: #52525b;
+      --cq-color-neutral-700: #3f3f46;
+      --cq-color-neutral-800: #27272a;
+      --cq-color-neutral-900: #18181b;
+      --cq-color-action: #2c6955;
+      --cq-color-on-action: #ffffff;
+      --cq-color-surface: #ffffff;
+      --cq-color-sunken: #f4f4f5;
+      --cq-color-text-primary: #18181b;
+      --cq-color-text-secondary: #52525b;
+      --cq-color-border: #e5e5e7;
+      --cq-radius: 12px;
+      --cq-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+      color-scheme: light;
+    }
+    [data-theme="dark"] {
+      --cq-color-primary-50: #122a22;
+      --cq-color-neutral-50: #0c0c0d;
+      --cq-color-neutral-100: #18181b;
+      --cq-color-neutral-200: #27272a;
+      --cq-color-neutral-600: #a1a1aa;
+      --cq-color-neutral-700: #d4d4d8;
+      --cq-color-neutral-800: #e5e5e7;
+      --cq-color-neutral-900: #fafafa;
+      --cq-color-surface: #18181b;
+      --cq-color-sunken: #101012;
+      --cq-color-text-primary: #fafafa;
+      --cq-color-text-secondary: #a1a1aa;
+      --cq-color-border: #27272a;
+      color-scheme: dark;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--cq-color-neutral-50);
+      color: var(--cq-color-text-primary);
+      line-height: 1.6;
+    }
+    .skip-link {
+      position: absolute; left: -9999px; top: 0;
+      background: var(--cq-color-primary-700); color: #fff; padding: 8px 16px; z-index: 100;
+    }
+    .skip-link:focus { left: 8px; top: 8px; }
+    a { color: var(--cq-color-primary-800); }
+    [data-theme="dark"] a { color: var(--cq-color-primary-500); }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--cq-color-primary-700); outline-offset: 2px;
+    }
+    .container { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+    /* Barra de anúncio (Announcements) */
+    .announcement {
+      background: var(--cq-color-primary-50);
+      border-bottom: 1px solid var(--cq-color-border);
+      font-size: 14px;
+    }
+    .announcement .container { display: flex; gap: 10px; align-items: center; padding-top: 8px; padding-bottom: 8px; }
+    .announcement strong { font-weight: 600; }
+    .announcement .badge {
+      background: var(--cq-color-primary-700); color: #fff; border-radius: 6px;
+      padding: 1px 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px;
+    }
+    .announcement a { text-decoration: underline; }
+
+    /* Header + nav (com C4P) */
+    header.site {
+      position: sticky; top: 0; z-index: 20;
+      background: var(--cq-color-surface);
+      border-bottom: 1px solid var(--cq-color-border);
+    }
+    .site .container { display: flex; align-items: center; gap: 20px; padding-top: 14px; padding-bottom: 14px; }
+    .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; text-decoration: none; }
+    .logo .mark {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: var(--cq-color-primary-500); color: #fff;
+      display: grid; place-items: center; font-size: 15px; font-weight: 800;
+    }
+    nav.main-nav { margin-left: auto; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+    nav.main-nav a {
+      padding: 7px 11px; border-radius: 8px; text-decoration: none;
+      color: var(--cq-color-text-secondary); font-size: 14px; font-weight: 500;
+    }
+    nav.main-nav a:hover { background: var(--cq-color-sunken); }
+    nav.main-nav a[aria-current="page"] {
+      color: var(--cq-color-primary-800); font-weight: 700;
+      border-bottom: 2px solid var(--cq-color-primary-700); border-radius: 0;
+    }
+    [data-theme="dark"] nav.main-nav a[aria-current="page"] { color: var(--cq-color-primary-500); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 10px 18px; border-radius: 9px; border: 0; cursor: pointer;
+      font: inherit; font-weight: 700; text-decoration: none;
+    }
+    .btn-primary { background: var(--cq-color-action); color: var(--cq-color-on-action); }
+    .btn-primary:hover { opacity: .92; }
+    .btn-outline { background: transparent; color: var(--cq-color-primary-800); border: 1.5px solid var(--cq-color-primary-700); }
+    [data-theme="dark"] .btn-outline { color: var(--cq-color-primary-500); }
+    .btn-ghost { background: var(--cq-color-sunken); color: var(--cq-color-text-primary); }
+    .btn-sm { padding: 7px 13px; font-size: 13px; }
+    .theme-toggle {
+      margin-left: 6px; background: var(--cq-color-sunken); border: 1px solid var(--cq-color-border);
+      color: var(--cq-color-text-primary); font-size: 13px; padding: 6px 10px; border-radius: 8px; cursor: pointer;
+    }
+
+    /* Hero com h1 */
+    .hero {
+      background: linear-gradient(135deg, var(--cq-color-primary-800), var(--cq-color-primary-700));
+      color: #fff; padding: 56px 0 44px;
+    }
+    .hero .eyebrow { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; opacity: .85; }
+    .hero h1 { font-size: clamp(28px, 4.5vw, 42px); line-height: 1.15; margin: 10px 0 14px; font-weight: 800; }
+    .hero p.sub { font-size: 17px; max-width: 640px; opacity: .95; }
+    .hero .actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+    .hero .btn-light { background: #fff; color: var(--cq-color-primary-800); }
+    .hero .btn-ghost-light { background: rgb(255 255 255 / 0.14); color: #fff; border: 1px solid rgb(255 255 255 / 0.4); }
+
+    section { padding: 40px 0 8px; }
+    .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
+    .section-head h2 { font-size: 24px; font-weight: 800; }
+    .section-head a { font-size: 14px; font-weight: 600; }
+
+    /* Cards (com thumbnail e texto contido) */
+    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    .card {
+      background: var(--cq-color-surface); border: 1px solid var(--cq-color-border);
+      border-radius: var(--cq-radius); overflow: hidden; box-shadow: var(--cq-shadow);
+      display: flex; flex-direction: column;
+    }
+    .card .thumb {
+      aspect-ratio: 16 / 7; display: flex; align-items: flex-end; padding: 12px;
+      color: #fff; font-weight: 700; font-size: 13px;
+    }
+    .thumb-event-1 { background: linear-gradient(120deg, #2c6955, #57b593); }
+    .thumb-event-2 { background: linear-gradient(120deg, #3f3f46, #71717a); }
+    .thumb-event-3 { background: linear-gradient(120deg, #2c6955, #378369); }
+    .thumb-blog-1 { background: linear-gradient(120deg, #378369, #57b593); }
+    .thumb-blog-2 { background: linear-gradient(120deg, #27272a, #52525b); }
+    .thumb-blog-3 { background: linear-gradient(120deg, #2c6955, #57b593); }
+    .card .body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+    .card .kicker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--cq-color-primary-800); }
+    [data-theme="dark"] .card .kicker { color: var(--cq-color-primary-500); }
+    .card h3 { font-size: 18px; font-weight: 800; line-height: 1.3; }
+    .card h3 a { text-decoration: none; color: inherit; }
+    .card .meta { font-size: 13px; color: var(--cq-color-text-secondary); }
+    .card .desc {
+      font-size: 14px; color: var(--cq-color-text-secondary);
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+      overflow-wrap: anywhere;
+    }
+    .card .foot { margin-top: auto; padding-top: 10px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .tag {
+      display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+      background: var(--cq-color-primary-50); color: var(--cq-color-primary-800); border: 1px solid var(--cq-color-primary-500);
+    }
+    [data-theme="dark"] .tag { color: var(--cq-color-primary-500); }
+
+    /* Bloco C4P em destaque */
+    .c4p-callout {
+      background: var(--cq-color-primary-50); border: 1px solid var(--cq-color-primary-500);
+      border-radius: var(--cq-radius); padding: 22px;
+      display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+    }
+    .c4p-callout h2 { font-size: 22px; font-weight: 800; }
+    .c4p-callout p { color: var(--cq-color-text-secondary); font-size: 14px; margin-top: 6px; max-width: 560px; }
+
+    /* Comunidades */
+    .community { display: flex; gap: 12px; align-items: center; }
+    .community .emoji { font-size: 30px; }
+
+    /* Footer ampliado */
+    footer.site { border-top: 1px solid var(--cq-color-border); margin-top: 44px; padding: 30px 0 40px; background: var(--cq-color-surface); }
+    .footer-grid { display: grid; gap: 24px; grid-template-columns: 2fr 1fr 1fr 1fr; }
+    footer h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--cq-color-text-secondary); margin-bottom: 10px; }
+    footer ul { list-style: none; display: grid; gap: 6px; font-size: 14px; }
+    footer a { text-decoration: none; }
+    footer .small { font-size: 12px; color: var(--cq-color-text-secondary); margin-top: 22px; }
+    @media (max-width: 720px) {
+      nav.main-nav { width: 100%; }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .hero { padding: 36px 0 30px; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <div class="announcement" role="region" aria-label="Anúncios institucionais">
+    <div class="container">
+      <span class="badge">Aviso</span>
+      <p><strong>C4P aberto:</strong> submeta sua palestra para a DevPR Conf 2027 até 15/12. <a href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a></p>
+    </div>
+  </div>
+
+  <header class="site">
+    <div class="container">
+      <a class="logo" href="/" aria-label="Codaqui — página inicial">
+        <span class="mark" aria-hidden="true">CQ</span>
+        <span>CODAQUI.dev</span>
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/eventos">Eventos</a>
+        <a href="/projetos">Projetos</a>
+        <a href="/patrocinadores">Patrocinadores</a>
+        <a href="/c4p" aria-current="page">C4P</a>
+        <a href="/blog">Blog</a>
+        <a href="/contato">Contato</a>
+        <a href="/participe/apoiar" class="btn btn-primary btn-sm">Apoiar</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">◐ Tema</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Associação Codaqui</p>
+        <h1>Democratizando a educação em tecnologia</h1>
+        <p class="sub">Uma associação sem fins lucrativos que conecta jovens, comunidades e empresas para aprender, criar e crescer juntos — de graça.</p>
+        <div class="actions">
+          <a class="btn btn-light" href="/participe/estudar">Quero estudar</a>
+          <a class="btn btn-ghost-light" href="/eventos">Ver próximos eventos</a>
+          <a class="btn btn-ghost-light" href="/participe/apoiar">Apoiar a Codaqui</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="eventos-title">
+      <div class="section-head">
+        <h2 id="eventos-title">Próximos eventos</h2>
+        <a href="/eventos">Ver todos os eventos →</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="thumb thumb-event-1" role="img" aria-label="DevPR Conf 2026 — Maringá, PR">DevPR Conf 2026</div>
+          <div class="body">
+            <p class="kicker">Conferência · Maringá, PR</p>
+            <h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3>
+            <p class="meta">12 de dezembro de 2026 · 09h00</p>
+            <p class="desc">A maior conferência de desenvolvedores do norte do Paraná: trilhas de frontend, backend, DevOps e comunidade, com C4P aberto para submissão de palestras e certificado de participação.</p>
+            <div class="foot"><span class="tag">Em breve</span><a class="btn btn-outline btn-sm" href="/eventos/doity/devpr/devpr-conf-26">Detalhes</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-event-2" role="img" aria-label="Meetup DevParaná — comunidade">Meetup DevParaná</div>
+          <div class="body">
+            <p class="kicker">Meetup · Online</p>
+            <h3><a href="/eventos/meetup/devparana/317102213">Meetup DevParaná — Carreiras em Tech</a></h3>
+            <p class="meta">18 de dezembro de 2026 · 19h00</p>
+            <p class="desc">Encontro mensal da comunidade DevParaná com duas talks rápidas, espaço para dúvidas e networking. Gratuito e aberto a iniciantes.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/eventos/meetup/devparana/317102213">Detalhes</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-event-3" role="img" aria-label="Cloud Native Maringá — Kubernetes">Cloud Native Maringá</div>
+          <div class="body">
+            <p class="kicker">Comunidade parceira · Maringá, PR</p>
+            <h3><a href="/eventos/ocgroups/cloud-native-maringa/">Cloud Native Maringá — K8s na prática</a></h3>
+            <p class="meta">09 de janeiro de 2027 · 19h30</p>
+            <p class="desc">Sessão prática de Kubernetes para quem está começando: preparação do ambiente, primeiros deploys e observabilidade. Traga seu notebook.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/eventos/ocgroups/cloud-native-maringa/">Detalhes</a></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="c4p-title">
+      <div class="c4p-callout">
+        <div>
+          <h2 id="c4p-title">C4P — Chamada de Trabalhos aberta</h2>
+          <p>DevPR Conf 2027 está com chamada de trabalhos aberta até 15/12. Submissão pública, curadoria por avaliadores e resultado publicado. Sua palestra pode estar no palco.</p>
+        </div>
+        <a class="btn btn-primary" href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="blog-title">
+      <div class="section-head">
+        <h2 id="blog-title">Do blog</h2>
+        <a href="/blog">Ler todos os posts →</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="thumb thumb-blog-1" role="img" aria-label="Curso de Lógica de Programação">Curso de Lógica</div>
+          <div class="body">
+            <p class="kicker">Aprender</p>
+            <h3><a href="/blog/2026/03/30/curso-introducao-python">Curso: Introdução à Lógica de Programação com Python</a></h3>
+            <p class="meta">30 de março de 2026 · 8 min de leitura</p>
+            <p class="desc">O primeiro passo para quem nunca programou: variáveis, tipos, condições e o primeiro script rodando na prática.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2026/03/30/curso-introducao-python">Ler post</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-blog-2" role="img" aria-label="Elas no Código — maternidade e carreira">Elas no Código</div>
+          <div class="body">
+            <p class="kicker">Comunidade</p>
+            <h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Elas no Código: maternidade e carreira em tecnologia</a></h3>
+            <p class="meta">12 de maio de 2026 · 6 min de leitura</p>
+            <p class="desc">Roda de conversa sobre como conciliar maternidade e carreira em tech, com relatos das participantes e caminhos práticos de apoio.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Ler post</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-blog-3" role="img" aria-label="DevParaná e Codaqui — comunidade">DevParaná × Codaqui</div>
+          <div class="body">
+            <p class="kicker">Comunidade</p>
+            <h3><a href="/blog/2024/07/22/devparana-e-codaqui">DevParaná e Codaqui: comunidades que se fortalecem juntas</a></h3>
+            <p class="meta">22 de julho de 2024 · 5 min de leitura</p>
+            <p class="desc">Como a parceria entre a Codaqui e o DevParaná abriu portas para mentorias, eventos e oportunidades para a comunidade do Paraná.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2024/07/22/devparana-e-codaqui">Ler post</a></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="comunidades-title">
+      <div class="section-head">
+        <h2 id="comunidades-title">Comunidades do ecossistema</h2>
+        <a href="/comunidades">Conhecer todas →</a>
+      </div>
+      <div class="grid">
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">🌵</span><div><h3>DevParaná</h3><p class="meta">Paraná · comunidade integrada</p><p class="desc">Encontros presenciais e online para devs de todo o estado.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">💜</span><div><h3>Elas no Código</h3><p class="meta">Maringá, PR · comunidade integrada</p><p class="desc">Espaço de acolhimento e desenvolvimento para mulheres em tech.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">🤝</span><div><h3>T.I. Social</h3><p class="meta">Comunidade integrada</p><p class="desc">Tecnologia a serviço de projetos sociais e impacto.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">☸️</span><div><h3>Cloud Native Maringá</h3><p class="meta">Maringá, PR · comunidade parceira</p><p class="desc">Kubernetes, cloud native e DevOps na prática.</p></div></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="container footer-grid">
+      <div>
+        <a class="logo" href="/" aria-label="Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
+        <p class="small">Associação sem fins lucrativos que democratiza educação em tecnologia para jovens.</p>
+      </div>
+      <nav aria-label="Participar">
+        <h3>Participar</h3>
+        <ul>
+          <li><a href="/participe/estudar">Quero estudar</a></li>
+          <li><a href="/participe/mentoria">Quero mentoria</a></li>
+          <li><a href="/participe/apoiar">Apoiar financeiramente</a></li>
+          <li><a href="/c4p">C4P — submeter palestra</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Explorar">
+        <h3>Explorar</h3>
+        <ul>
+          <li><a href="/eventos">Eventos</a></li>
+          <li><a href="/comunidades">Comunidades</a></li>
+          <li><a href="/projetos">Projetos</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/trilhas">Trilhas</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Transparência">
+        <h3>Transparência</h3>
+        <ul>
+          <li><a href="/transparencia">Prestação de contas</a></li>
+          <li><a href="/assembleias">Assembleias</a></li>
+          <li><a href="/sobre/insights">Insights</a></li>
+          <li><a href="/desenvolvedores/api">Documentação da API</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="container small">© 2026 Associação Codaqui · contato@codaqui.dev</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById("themeToggle");
+    toggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      toggle.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+    });
+  </script>
+</body>
+</html>

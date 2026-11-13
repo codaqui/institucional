@@ -4,6 +4,7 @@ audience: Presidência, mantenedores, AI agents executando melhorias de UX.
 status: Revisão concluída; ondas de melhoria propostas, **mantidas em especificação** (não implementar ainda — mantenedor em 2026-11-13). Decisão de nav ratificada: `/c4p` entra na nav pública agora; `/universitario` e `/assembleias` entram só com conteúdo real.
 sections:
   - Princípios e o que NÃO muda
+  - Visões do site (personas) — eixo organizador
   - Mapa de jornadas (público, membro, admin)
   - Backlog de melhorias por jornada (P0/P1/P2)
   - Ondas de execução propostas
@@ -30,6 +31,21 @@ Boas práticas aplicadas nesta revisão (guias `modern-web-guidance`, IDs oficia
 - **navbar**: navegação responsiva com indicação da página atual.
 - **accessibility**: estrutura/landmarks (h1, `main` único), nomes acessíveis (aria-label em botões-ícone), foco/teclado, formulários, regiões vivas, contraste.
 - **css-layout**: layouts responsivos intrínsecos (container queries quando cabível).
+
+## Visões do site (personas) — eixo organizador
+
+O site atende **4 visões**. Elas devem guiar Home, navegação e rodapé (mockup: `docs/mockups/home-jornadas.html`); as "jornadas" por rota abaixo são o inventário técnico que alimenta cada visão.
+
+| Visão | Quem | Objetivo | Rotas-chave | Lacunas atuais |
+|---|---|---|---|---|
+| **1. Aprender** | Pessoas querendo estudar | Cursos, mentoria, eventos, certificados | `/participe/estudar`, `/trilhas`, `/participe/mentoria`, `/eventos`, `/certificado/verificar` | Turmas "A confirmar"; mentoria com 1 mentor; fluxo sem noscript |
+| **2. Comunidades** | Donos/organizadores e comunidades | Integrar-se, ter agenda/site/C4P, receber apoio com prestação de contas | `/comunidades`, `/comunidades/<slug>/*`, `/eventos`, `/c4p`, `/desenvolvedores/api` | **Sem CTA "integrar minha comunidade"** (rota `/comunidades/participar` a criar); `/comunidades` órfã de nav; duas fontes de verdade |
+| **3. Apoiar** | Pessoas e empresas | Doar, assinar o Clube, apoiar projeto, patrocinar | `/participe/apoiar`, `/clube`, `/projetos`, `/patrocinadores`, `/empresas` | `/empresas` órfã; apoio a **projeto específico** não tem fluxo; assinatura pessoal invisível (P7) |
+| **4. Acompanhar/auditar** | Sociedade pública | Verificar contas, atas, impacto, projetos, dados abertos | `/transparencia`, `/assembleias`, `/sobre/insights`, `/projetos`, `/sobre/ong`, `/desenvolvedores/api` | Transparência escondida no rodapé; **sem visão por comunidade** (contas/atividade por comunidade); `/assembleias` vazia; insights com números hardcoded divergentes |
+
+**Home**: hero com h1 + 4 atalhos de visão → faixa de números (snapshots) → um bloco por visão (CTA primário + 4-6 caminhos) → vitrine viva (evento, C4P, blog).
+**Navegação proposta**: Aprender · Comunidades · Eventos · Apoiar · Transparência · Blog (+ botão Apoiar). C4P e Projetos ficam dentro das visões (Comunidades e Apoiar/Acompanhar) em vez de itens soltos — **substitui a decisão anterior de colocar C4P direto na nav; a ratificar**. **Rodapé**: 4 colunas = as 4 visões.
+**Novos itens de backlog derivados** (P1): CTA/landing "Integrar minha comunidade"; página de transparência por comunidade (`/comunidades/<slug>/transparencia`) reutilizando ledger/horas/eventos filtrados por comunidade; seletor "apoiar um projeto"; Transparência promovida à nav principal.
 
 ## Mapa de jornadas
 

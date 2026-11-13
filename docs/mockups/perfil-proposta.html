@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maria Souza (@mariasouza) — Codaqui · Proposta de perfil público</title>
+  <meta name="description" content="Mockup estático do perfil público /@handle: carteirinha verificável, papéis por designation, atividade pública, comunidades e CTA contextual (agendar mentoria)." />
+  <style>
+    :root{
+      --cq-color-primary-500:#57B593;--cq-color-primary-700:#378369;--cq-color-primary-800:#2c6955;--cq-color-primary-50:#eef7f2;
+      --cq-color-action:#2c6955;--cq-color-on-action:#fff;--cq-color-bg:#fafafa;--cq-color-surface:#fff;--cq-color-sunken:#f4f4f5;
+      --cq-color-text-primary:#18181b;--cq-color-text-secondary:#52525b;--cq-color-border:#e5e5e7;--cq-radius:12px;--cq-shadow:0 1px 3px rgb(0 0 0/.08);color-scheme:light}
+    [data-theme="dark"]{--cq-color-primary-50:#122a22;--cq-color-bg:#0c0c0d;--cq-color-surface:#18181b;--cq-color-sunken:#101012;--cq-color-text-primary:#fafafa;--cq-color-text-secondary:#a1a1aa;--cq-color-border:#27272a;color-scheme:dark}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--cq-color-bg);color:var(--cq-color-text-primary);line-height:1.55}
+    a{color:var(--cq-color-primary-800)}[data-theme="dark"] a{color:var(--cq-color-primary-500)}
+    a:focus-visible,button:focus-visible{outline:2px solid var(--cq-color-primary-700);outline-offset:2px}
+    .skip-link{position:absolute;left:-9999px;background:var(--cq-color-primary-700);color:#fff;padding:8px 14px;z-index:100}.skip-link:focus{left:8px;top:8px}
+    header.site{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border)}
+    .container{max-width:860px;margin:0 auto;padding:0 20px}
+    header.site .container{display:flex;align-items:center;padding-top:12px;padding-bottom:12px;gap:12px}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800;text-decoration:none;color:inherit}
+    .logo .mark{width:30px;height:30px;border-radius:8px;background:var(--cq-color-primary-500);color:#fff;display:grid;place-items:center;font-size:13px}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+    .btn-primary{background:var(--cq-color-action);color:var(--cq-color-on-action)}
+    .btn-outline{background:transparent;color:var(--cq-color-primary-800);border-color:var(--cq-color-primary-700)}[data-theme="dark"] .btn-outline{color:var(--cq-color-primary-500)}
+    .back{display:inline-block;font-size:14px;margin:22px 0 14px;text-decoration:none}
+
+    .badge-card{border:2px solid var(--cq-color-action);border-radius:18px;overflow:hidden;background:var(--cq-color-surface);box-shadow:var(--cq-shadow)}
+    .badge-card .top{display:flex;justify-content:space-between;background:var(--cq-color-action);color:var(--cq-color-on-action);padding:10px 24px;font-size:12px;font-weight:800;letter-spacing:.1em}
+    .badge-card .body{display:grid;grid-template-columns:1fr auto;gap:24px;padding:24px;align-items:center}
+    .id{display:flex;gap:18px;align-items:center}
+    .avatar{width:96px;height:96px;border-radius:50%;border:4px solid var(--cq-color-action);background:var(--cq-color-primary-700);color:#fff;display:grid;place-items:center;font-size:38px;font-weight:800;flex:none}
+    h1{font-size:26px;font-weight:800;line-height:1.2}.handle{font-size:14px;color:var(--cq-color-text-secondary)}
+    .bio{margin-top:8px;font-size:15px;color:var(--cq-color-text-secondary);max-width:46ch}
+    .roles{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;list-style:none}
+    .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--cq-color-primary-500);background:var(--cq-color-primary-50);color:var(--cq-color-primary-800)}
+    [data-theme="dark"] .pill{color:var(--cq-color-primary-500)}
+    .qr{text-align:center;font-size:11px;color:var(--cq-color-text-secondary)}
+    .qr .box{width:104px;height:104px;margin:0 auto 6px;border:1px solid var(--cq-color-border);border-radius:8px;background:repeating-conic-gradient(var(--cq-color-text-primary) 0 25%,var(--cq-color-surface) 0 50%) 0 0/16px 16px}
+    .badge-card .foot{display:flex;gap:18px;flex-wrap:wrap;padding:12px 24px;border-top:1px solid var(--cq-color-border);background:var(--cq-color-sunken);font-size:13px;color:var(--cq-color-text-secondary)}
+    .cta{display:flex;gap:10px;margin:18px 0 6px;flex-wrap:wrap}
+
+    section{margin-top:30px}
+    h2{font-size:18px;font-weight:800;margin-bottom:12px}
+    .card{background:var(--cq-color-surface);border:1px solid var(--cq-color-border);border-radius:var(--cq-radius);box-shadow:var(--cq-shadow)}
+    .stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+    .stats .card{padding:14px 16px}.stats strong{display:block;font-size:24px;font-weight:800;color:var(--cq-color-primary-800)}[data-theme="dark"] .stats strong{color:var(--cq-color-primary-500)}
+    .stats span{font-size:13px;color:var(--cq-color-text-secondary)}
+    .list{list-style:none}.list li{display:flex;gap:14px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--cq-color-border)}.list li:last-child{border-bottom:0}
+    .list .ic{font-size:22px}.list .t{font-weight:700}.list .d{font-size:13px;color:var(--cq-color-text-secondary)}.list .main{flex:1}
+    .comms{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .comms a{display:flex;gap:12px;align-items:center;padding:14px 16px;text-decoration:none;color:inherit}.comms a:hover{border-color:var(--cq-color-primary-700)}
+    .comms .e{font-size:28px}.comms .d{font-size:13px;color:var(--cq-color-text-secondary)}
+    .privacy{font-size:13px;color:var(--cq-color-text-secondary);margin-top:30px;padding:12px 16px;border:1px dashed var(--cq-color-border);border-radius:10px}
+    .legend{font-size:13px;color:var(--cq-color-text-secondary);padding:14px 16px;border:1px dashed var(--cq-color-border);border-radius:10px;margin:18px 0 48px}
+    footer.site{border-top:1px solid var(--cq-color-border);background:var(--cq-color-surface);padding:22px 0;font-size:13px;color:var(--cq-color-text-secondary);margin-top:30px}
+    @media(max-width:640px){.badge-card .body{grid-template-columns:1fr}.id{flex-direction:column;align-items:flex-start}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site"><div class="container"><a class="logo" href="/"><span class="mark" aria-hidden="true">CQ</span>CODAQUI.dev</a></div></header>
+
+  <main id="conteudo" class="container">
+    <article>
+      <a class="back" href="/membros">← Voltar para membros</a>
+
+      <!-- Carteirinha (HTML estático p/ SEO; QR hidrata via ilha) -->
+      <section class="badge-card" aria-labelledby="nome" style="margin-top:0">
+        <div class="top"><span>ASSOCIAÇÃO CODAQUI</span><span>CARTEIRINHA DE MEMBRO</span></div>
+        <div class="body">
+          <div class="id">
+            <span class="avatar" role="img" aria-label="Foto de Maria Souza">M</span>
+            <div>
+              <h1 id="nome">Maria Souza</h1>
+              <p class="handle">@mariasouza</p>
+              <!-- Papéis legíveis, derivados de designations (não só roles técnicas) -->
+              <ul class="roles" aria-label="Papéis na Codaqui">
+                <li class="pill">Mentora</li><li class="pill">Responsável · Elas no Código</li><li class="pill">Organizadora de eventos</li>
+              </ul>
+              <p class="bio">Engenheira de software em Maringá. Mentora em carreira e Python, organiza meetups e acredita em educação aberta.</p>
+            </div>
+          </div>
+          <div class="qr"><div class="box" role="img" aria-label="QR Code de verificação da carteirinha"></div>Escaneie para verificar</div>
+        </div>
+        <div class="foot"><span>Membro desde mar/2024</span><span>Nº A1B2C3D4</span><span>✔ Carteirinha verificável</span></div>
+      </section>
+
+      <!-- CTA contextual por papel -->
+      <div class="cta">
+        <a class="btn btn-primary" href="/participe/mentoria?mentor=mariasouza">Agendar mentoria</a>
+        <a class="btn btn-outline" href="https://github.com/mariasouza" rel="noopener">GitHub ↗</a>
+        <a class="btn btn-outline" href="/comunidades/elasnocodigo">Elas no Código</a>
+      </div>
+
+      <!-- Só aparece o que a pessoa autorizou (/membro → Conta e privacidade) -->
+      <section aria-labelledby="imp">
+        <h2 id="imp">Impacto</h2>
+        <div class="stats">
+          <div class="card"><strong>38h</strong><span>horas de voluntariado</span></div>
+          <div class="card"><strong>14</strong><span>eventos</span></div>
+          <div class="card"><strong>22</strong><span>mentorias concluídas</span></div>
+          <div class="card"><strong>2</strong><span>palestras</span></div>
+        </div>
+      </section>
+
+      <section aria-labelledby="ativ">
+        <h2 id="ativ">Atividade pública</h2>
+        <div class="card"><ul class="list">
+          <li><span class="ic" aria-hidden="true">🎤</span><div class="main"><p class="t">Palestra — “Carreira sem receita de bolo”</p><p class="d">DevPR Conf 2025 · aprovada via C4P</p></div></li>
+          <li><span class="ic" aria-hidden="true">🧭</span><div class="main"><p class="t">Mentora no programa de mentoria</p><p class="d">22 sessões concluídas · disponível para novas</p></div></li>
+          <li><span class="ic" aria-hidden="true">🧩</span><div class="main"><p class="t"><a href="/projetos/python-para-todos">Python para Todos</a></p><p class="d">Projeto de extensão · mentora · ver comprovante</p></div></li>
+          <li><span class="ic" aria-hidden="true">🏅</span><div class="main"><p class="t">Selo: Voluntária 30h+</p><p class="d">Badge verificável</p></div></li>
+        </ul></div>
+      </section>
+
+      <section aria-labelledby="com">
+        <h2 id="com">Comunidades</h2>
+        <div class="comms">
+          <a class="card" href="/comunidades/elasnocodigo"><span class="e" aria-hidden="true">💜</span><div><strong>Elas no Código</strong><p class="d">Responsável · integrada</p></div></a>
+          <a class="card" href="/comunidades/devparana"><span class="e" aria-hidden="true">🌵</span><div><strong>DevParaná</strong><p class="d">Membro</p></div></a>
+        </div>
+      </section>
+
+      <p class="privacy">🔒 Este perfil mostra apenas o que Maria autorizou. Valores de apoio financeiro nunca são exibidos. <a href="/sobre/privacidade">Como tratamos seus dados</a>.</p>
+    </article>
+
+    <p class="legend"><strong>O que este mockup demonstra:</strong> carteirinha preservada (identidade visual atual) com <em>papéis legíveis por designation</em> — hoje <code>getRoleLabel</code> não rotula “Mentor” nem “Responsável pela comunidade”; CTA contextual (“Agendar mentoria” só para mentores ativos, hoje desconectado do perfil — P1 do roadmap); estatísticas e atividade condicionadas ao consentimento do membro (espelha a tela “Conta e privacidade” do <code>/membro</code>); comunidades e projetos linkados para fechar o ciclo entre as visões Aprender, Comunidades e Acompanhar; QR e “verificável” reforçam a visão de auditoria.</p>
+  </main>
+
+  <footer class="site"><div class="container">© 2026 Associação Codaqui · CNPJ 44.593.429/0001-05</div></footer>
+</body>
+</html>
+

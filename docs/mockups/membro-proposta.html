@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proposta visual — Área do membro (Codaqui)</title>
+  <meta name="description" content="Mockup estático do /membro: 4 áreas com indicador não-cor, chips de filtro no lugar de tabs aninhadas, histórico financeiro unificado, privacidade com prévia do perfil público." />
+  <style>
+    :root {
+      --cq-color-primary-500:#57B593; --cq-color-primary-700:#378369; --cq-color-primary-800:#2c6955; --cq-color-primary-50:#eef7f2;
+      --cq-color-action:#2c6955; --cq-color-on-action:#fff; --cq-color-bg:#fafafa; --cq-color-surface:#fff; --cq-color-sunken:#f4f4f5;
+      --cq-color-text-primary:#18181b; --cq-color-text-secondary:#52525b; --cq-color-border:#e5e5e7;
+      --cq-color-warn-bg:#fff4e5; --cq-color-warn:#8a4b00; --cq-radius:12px; --cq-shadow:0 1px 3px rgb(0 0 0/.08); color-scheme:light;
+    }
+    [data-theme="dark"] {
+      --cq-color-primary-50:#122a22; --cq-color-bg:#0c0c0d; --cq-color-surface:#18181b; --cq-color-sunken:#101012;
+      --cq-color-text-primary:#fafafa; --cq-color-text-secondary:#a1a1aa; --cq-color-border:#27272a;
+      --cq-color-warn-bg:#3a2a10; --cq-color-warn:#ffc27a; color-scheme:dark;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--cq-color-bg);color:var(--cq-color-text-primary);line-height:1.55}
+    a{color:var(--cq-color-primary-800)} [data-theme="dark"] a{color:var(--cq-color-primary-500)}
+    a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--cq-color-primary-700);outline-offset:2px}
+    .skip-link{position:absolute;left:-9999px;background:var(--cq-color-primary-700);color:#fff;padding:8px 14px;z-index:100}.skip-link:focus{left:8px;top:8px}
+    .container{max-width:1000px;margin:0 auto;padding:0 20px}
+    header.site{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border)}
+    header.site .container{display:flex;align-items:center;gap:16px;padding-top:12px;padding-bottom:12px}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800;text-decoration:none;color:inherit}
+    .logo .mark{width:30px;height:30px;border-radius:8px;background:var(--cq-color-primary-500);color:#fff;display:grid;place-items:center;font-size:13px}
+    .sp{margin-left:auto;display:flex;gap:10px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+    .btn-primary{background:var(--cq-color-action);color:var(--cq-color-on-action)}
+    .btn-outline{background:transparent;color:var(--cq-color-primary-800);border-color:var(--cq-color-primary-700)}[data-theme="dark"] .btn-outline{color:var(--cq-color-primary-500)}
+    .btn-sm{padding:6px 12px;font-size:13px}
+    .avatar{width:34px;height:34px;border-radius:50%;background:var(--cq-color-primary-700);color:#fff;display:grid;place-items:center;font-weight:800;font-size:14px}
+
+    .welcome{padding:26px 0 8px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+    .welcome .avatar{width:56px;height:56px;font-size:22px}
+    h1{font-size:24px;font-weight:800}.sub{font-size:14px;color:var(--cq-color-text-secondary)}
+    .roles{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid var(--cq-color-primary-500);background:var(--cq-color-primary-50);color:var(--cq-color-primary-800)}
+    [data-theme="dark"] .pill{color:var(--cq-color-primary-500)}
+    .pill.warn{background:var(--cq-color-warn-bg);color:var(--cq-color-warn);border-color:var(--cq-color-warn)}
+    .welcome .go{margin-left:auto;display:flex;gap:8px}
+
+    /* Abas de 1º nível — indicador NÃO-cor: sublinhado por border */
+    .tabs{display:flex;gap:4px;border-bottom:1px solid var(--cq-color-border);margin-top:18px;overflow-x:auto}
+    .tabs button{background:none;border:0;font:inherit;font-size:15px;font-weight:600;padding:12px 16px;cursor:pointer;color:var(--cq-color-text-secondary);border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap}
+    .tabs button[aria-selected="true"]{color:var(--cq-color-text-primary);font-weight:800;border-bottom-color:var(--cq-color-primary-700)}
+    .panel{padding:22px 0 48px}.panel[hidden]{display:none}
+    h2.sec{font-size:17px;font-weight:800;margin:0 0 12px}
+    .card{background:var(--cq-color-surface);border:1px solid var(--cq-color-border);border-radius:var(--cq-radius);box-shadow:var(--cq-shadow)}
+    .next{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-bottom:26px}
+    .next .card{padding:16px;display:flex;flex-direction:column;gap:6px}
+    .next .k{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:var(--cq-color-primary-800)}[data-theme="dark"] .next .k{color:var(--cq-color-primary-500)}
+    .next strong{font-size:16px}.next .d{font-size:13px;color:var(--cq-color-text-secondary)}.next .btn{margin-top:auto;align-self:flex-start}
+    .stats{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+    .stats .card{padding:16px}.stats strong{display:block;font-size:26px;font-weight:800;color:var(--cq-color-primary-800)}[data-theme="dark"] .stats strong{color:var(--cq-color-primary-500)}
+    .stats span{font-size:13px;color:var(--cq-color-text-secondary)}
+
+    /* Chips de filtro (2º nível) — não são abas */
+    .chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;list-style:none}
+    .chips button{font:inherit;font-size:13px;font-weight:700;padding:6px 14px;border-radius:999px;border:1px solid var(--cq-color-border);background:var(--cq-color-surface);color:inherit;cursor:pointer}
+    .chips button[aria-pressed="true"]{background:var(--cq-color-primary-50);border-color:var(--cq-color-primary-700);color:var(--cq-color-primary-800)}
+    [data-theme="dark"] .chips button[aria-pressed="true"]{color:var(--cq-color-primary-500)}
+    .chips button[aria-pressed="true"]::before{content:"✓ "}
+    .list{list-style:none}
+    .list li{display:flex;gap:14px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--cq-color-border);flex-wrap:wrap}
+    .list li:last-child{border-bottom:0}.list .main{flex:1;min-width:200px}.list .t{font-weight:700}.list .d{font-size:13px;color:var(--cq-color-text-secondary)}
+    .list .amt{font-weight:800}
+    .toggle-row{display:flex;gap:14px;align-items:flex-start;padding:14px 16px;border-bottom:1px solid var(--cq-color-border)}
+    .toggle-row:last-child{border-bottom:0}.toggle-row label{flex:1}.toggle-row .t{font-weight:700;display:block}.toggle-row .d{font-size:13px;color:var(--cq-color-text-secondary)}
+    .toggle-row input{width:20px;height:20px;margin-top:3px;accent-color:var(--cq-color-primary-700)}
+    .two{display:grid;gap:20px;grid-template-columns:1.3fr 1fr}
+    .preview{padding:16px;text-align:center}.preview .avatar{margin:0 auto 8px;width:64px;height:64px;font-size:24px}
+    .preview ul{list-style:none;font-size:13px;color:var(--cq-color-text-secondary);margin-top:8px}
+    .legend{font-size:13px;color:var(--cq-color-text-secondary);padding:14px 16px;border:1px dashed var(--cq-color-border);border-radius:10px;margin-top:8px}
+    @media(max-width:760px){.two{grid-template-columns:1fr}.welcome .go{margin-left:0}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <header class="site"><div class="container">
+    <a class="logo" href="/"><span class="mark" aria-hidden="true">CQ</span>CODAQUI.dev</a>
+    <div class="sp"><a href="/admin" class="btn btn-outline btn-sm">Abrir painel de gestão</a><span class="avatar" aria-label="Maria Souza">M</span></div>
+  </div></header>
+
+  <main id="conteudo" class="container">
+    <div class="welcome">
+      <span class="avatar" aria-hidden="true">M</span>
+      <div>
+        <h1>Maria Souza</h1>
+        <p class="sub">@mariasouza · membro desde mar/2024</p>
+        <ul class="roles" aria-label="Seus papéis"><li class="pill">Mentora</li><li class="pill">Responsável · Elas no Código</li><li class="pill">Organizadora de eventos</li></ul>
+      </div>
+      <div class="go"><a class="btn btn-outline" href="/@mariasouza">Ver meu perfil público</a><a class="btn btn-outline" href="/membro/editar">Editar perfil</a></div>
+    </div>
+
+    <!-- 4 áreas, 1 nível de abas. Sub-filtros são chips, nunca abas aninhadas. -->
+    <div class="tabs" role="tablist" aria-label="Áreas da sua conta">
+      <button role="tab" id="t-inicio" aria-controls="p-inicio" aria-selected="true">Início</button>
+      <button role="tab" id="t-part" aria-controls="p-part" aria-selected="false" tabindex="-1">Participação</button>
+      <button role="tab" id="t-fin" aria-controls="p-fin" aria-selected="false" tabindex="-1">Apoio e financeiro</button>
+      <button role="tab" id="t-conta" aria-controls="p-conta" aria-selected="false" tabindex="-1">Conta e privacidade</button>
+    </div>
+
+    <!-- INÍCIO -->
+    <section class="panel" id="p-inicio" role="tabpanel" aria-labelledby="t-inicio">
+      <h2 class="sec">Próximos passos</h2>
+      <div class="next">
+        <article class="card"><span class="k">Evento</span><strong>DevPR Conf 2026</strong><span class="d">12/12 · 09h · Maringá — ingresso confirmado.</span><a class="btn btn-outline btn-sm" href="#">Ver ingresso</a></article>
+        <article class="card"><span class="k">Mentoria</span><strong>Sessão com Pedro, seg 19h</strong><span class="d">Vincule o mentorando ao cadastro dele.</span><a class="btn btn-outline btn-sm" href="/membro/mentoria">Abrir sessão</a></article>
+        <article class="card"><span class="k">Horas</span><strong>2 lançamentos aguardando aprovação</strong><span class="d">Total aprovado este ano: 38h.</span><a class="btn btn-outline btn-sm" href="/membro/horas">Ver horas</a></article>
+      </div>
+      <h2 class="sec">Seu impacto na Codaqui</h2>
+      <div class="stats">
+        <div class="card"><strong>38h</strong><span>horas aprovadas</span></div>
+        <div class="card"><strong>14</strong><span>eventos</span></div>
+        <div class="card"><strong>6</strong><span>certificados</span></div>
+        <div class="card"><strong>R$ 240</strong><span>apoio no ano</span></div>
+      </div>
+    </section>
+
+    <!-- PARTICIPAÇÃO -->
+    <section class="panel" id="p-part" role="tabpanel" aria-labelledby="t-part" hidden>
+      <h2 class="sec">Participação</h2>
+      <ul class="chips" aria-label="Filtrar participação">
+        <li><button type="button" aria-pressed="true">Tudo</button></li><li><button type="button" aria-pressed="false">Eventos</button></li><li><button type="button" aria-pressed="false">Certificados</button></li><li><button type="button" aria-pressed="false">Projetos</button></li>
+      </ul>
+      <div class="card"><ul class="list">
+        <li><div class="main"><p class="t">DevPR Conf 2026</p><p class="d">Evento · 12 de dezembro de 2026 · ingresso comprado</p></div><span class="pill warn">Futuro</span><a class="btn btn-outline btn-sm" href="#">Ingresso</a></li>
+        <li><div class="main"><p class="t">Meetup DevParaná — Carreiras em Tech</p><p class="d">Evento · 18 de setembro de 2026 · presença confirmada</p></div><span class="pill">Participou</span><a class="btn btn-outline btn-sm" href="#">Certificado</a></li>
+        <li><div class="main"><p class="t">Projeto de extensão: Python para Todos</p><p class="d">Projeto · mentora · 12h aprovadas</p></div><span class="pill">Ativo</span><a class="btn btn-outline btn-sm" href="#">Comprovante</a></li>
+      </ul></div>
+    </section>
+
+    <!-- FINANCEIRO UNIFICADO -->
+    <section class="panel" id="p-fin" role="tabpanel" aria-labelledby="t-fin" hidden>
+      <h2 class="sec">Histórico de apoio</h2>
+      <p class="sub" style="margin-bottom:12px">Doações, assinatura do Clube e reembolsos em uma única linha do tempo — antes apareciam em 3 lugares.</p>
+      <ul class="chips" aria-label="Filtrar histórico">
+        <li><button type="button" aria-pressed="true">Tudo</button></li><li><button type="button" aria-pressed="false">Doações</button></li><li><button type="button" aria-pressed="false">Assinatura</button></li><li><button type="button" aria-pressed="false">Reembolsos</button></li>
+      </ul>
+      <div class="card"><ul class="list">
+        <li><div class="main"><p class="t">Assinatura Clube Codaqui</p><p class="d">Recorrente · próxima cobrança 05/12</p></div><span class="amt">R$ 30,00/mês</span><a class="btn btn-outline btn-sm" href="#">Gerenciar</a></li>
+        <li><div class="main"><p class="t">Doação para Elas no Código</p><p class="d">11 de novembro de 2026 · recibo disponível</p></div><span class="amt">R$ 60,00</span><a class="btn btn-outline btn-sm" href="#">Recibo</a></li>
+        <li><div class="main"><p class="t">Reembolso — Cloud Native Maringá</p><p class="d">Solicitado em 02/11 · em análise</p></div><span class="pill warn">Pendente</span><span class="amt">R$ 90,00</span></li>
+      </ul></div>
+    </section>
+
+    <!-- CONTA E PRIVACIDADE -->
+    <section class="panel" id="p-conta" role="tabpanel" aria-labelledby="t-conta" hidden>
+      <div class="two">
+        <div>
+          <h2 class="sec">O que aparece no seu perfil público</h2>
+          <div class="card">
+            <div class="toggle-row"><input id="v1" type="checkbox" checked data-prev="Horas aprovadas" /><label for="v1"><span class="t">Horas de voluntariado</span><span class="d">Total aprovado, sem detalhar lançamentos.</span></label></div>
+            <div class="toggle-row"><input id="v2" type="checkbox" checked data-prev="Eventos e palestras" /><label for="v2"><span class="t">Eventos e palestras</span><span class="d">Onde participou ou palestrou.</span></label></div>
+            <div class="toggle-row"><input id="v3" type="checkbox" data-prev="Selo de apoiador(a)" /><label for="v3"><span class="t">Selo de apoiador(a)</span><span class="d">Nunca mostra valores.</span></label></div>
+            <div class="toggle-row"><input id="v4" type="checkbox" checked data-prev="Mentoria: agendar comigo" /><label for="v4"><span class="t">Aparecer como mentora</span><span class="d">Exibe o botão “Agendar mentoria”.</span></label></div>
+          </div>
+        </div>
+        <div>
+          <h2 class="sec">Prévia</h2>
+          <div class="card preview" aria-live="polite">
+            <span class="avatar" aria-hidden="true">M</span><strong>Maria Souza</strong><p class="sub">@mariasouza</p>
+            <ul id="prev"></ul>
+          </div>
+        </div>
+      </div>
+      <h2 class="sec" style="margin-top:26px">Conta</h2>
+      <div class="card"><ul class="list">
+        <li><div class="main"><p class="t">Exportar meus dados</p><p class="d">Arquivo com tudo o que guardamos sobre você (LGPD).</p></div><a class="btn btn-outline btn-sm" href="#">Exportar</a></li>
+        <li><div class="main"><p class="t">Preferências de e-mail</p><p class="d">Avisos de eventos, campanhas e comunicados.</p></div><a class="btn btn-outline btn-sm" href="#">Ajustar</a></li>
+        <li><div class="main"><p class="t">Excluir conta</p><p class="d">Ação irreversível — pede confirmação.</p></div><a class="btn btn-outline btn-sm" href="#">Excluir…</a></li>
+      </ul></div>
+    </section>
+
+    <p class="legend"><strong>O que este mockup demonstra:</strong> 4 áreas num único nível de abas (sublinhado = indicador não-cor, <code>aria-selected</code>, setas do teclado); filtros internos como <em>chips</em> com <code>aria-pressed</code> (nunca abas dentro de abas); “Próximos passos” no Início; financeiro unificado (resolve “SortCoins e reembolsos” só com reembolsos); papéis visíveis no topo com atalho para o painel de gestão; privacidade com <strong>prévia ao vivo</strong> do perfil público.</p>
+  </main>
+
+  <script>
+    const tabs=[...document.querySelectorAll('[role=tab]')];
+    function select(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on});t.focus();history.replaceState(null,'','#'+t.getAttribute('aria-controls').slice(2))}
+    tabs.forEach((t,i)=>{t.addEventListener('click',()=>select(t));t.addEventListener('keydown',e=>{if(e.key==='ArrowRight')select(tabs[(i+1)%tabs.length]);if(e.key==='ArrowLeft')select(tabs[(i-1+tabs.length)%tabs.length])})});
+    document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+    const prev=document.getElementById('prev');
+    function renderPrev(){prev.innerHTML=[...document.querySelectorAll('[data-prev]')].filter(i=>i.checked).map(i=>'<li>• '+i.dataset.prev+'</li>').join('')||'<li>Somente nome e handle</li>'}
+    document.querySelectorAll('[data-prev]').forEach(i=>i.addEventListener('change',renderPrev));renderPrev();
+  </script>
+</body>
+</html>
+
