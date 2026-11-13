@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-13T04:01:27.517Z",
+  "generatedAt": "2026-11-13T05:01:16.169Z",
   "source": {
     "source": "doity",
     "sourceId": "devpr",
@@ -10,7 +10,7 @@
     "ctaLabel": "Ver eventos na Doity",
     "ctaHref": "https://doity.com.br/organizador/devpr",
     "refreshStrategy": "Workflow periodico consulta a API da fonte, gera um indice leve para a UI e salva um arquivo por evento para detalhe e cache.",
-    "generatedAt": "2026-11-13T04:01:27.517Z",
+    "generatedAt": "2026-11-13T05:01:16.169Z",
     "sourceKey": "doity:devpr",
     "indexPath": "/events/doity/devpr/index.json",
     "itemCount": 2
@@ -61,17 +61,11 @@
       "featured": false,
       "status": "completed",
       "entityType": "external",
-      "workloadMinutes": 480,
-      "hasOverride": true,
-      "_override": {
-        "ownerHandle": "endersonmenezes",
-        "updatedAt": "2026-11-09T13:43:33.789Z",
-        "reason": "Adicionando carga horária do evento."
-      },
       "source": "doity",
       "sourceId": "devpr",
       "sourceKey": "doity:devpr",
-      "itemPath": "/events/doity/devpr/devpr-conf-26.json"
+      "itemPath": "/events/doity/devpr/devpr-conf-26.json",
+      "hasOverride": false
     }
   ]
 }
