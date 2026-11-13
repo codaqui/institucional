@@ -39,6 +39,7 @@ describe('C4pCallsService', () => {
   let repo: Record<string, jest.Mock>;
   let talksRepo: Record<string, jest.Mock>;
   let votesRepo: Record<string, jest.Mock>;
+  let memberDesignationsRepo: Record<string, jest.Mock>;
   let eventsRepo: Record<string, jest.Mock>;
   let communitiesRepo: Record<string, jest.Mock>;
   let designations: Record<string, jest.Mock>;
@@ -55,8 +56,15 @@ describe('C4pCallsService', () => {
     };
     talksRepo = {
       find: jest.fn().mockResolvedValue([{ id: 'talk-1' }]),
+      countBy: jest.fn().mockResolvedValue(0),
     };
-    votesRepo = { existsBy: jest.fn().mockResolvedValue(false) };
+    votesRepo = {
+      existsBy: jest.fn().mockResolvedValue(false),
+      count: jest.fn().mockResolvedValue(0),
+    };
+    memberDesignationsRepo = {
+      countBy: jest.fn().mockResolvedValue(0),
+    };
     eventsRepo = { findOneBy: jest.fn().mockResolvedValue({ id: 'event-1' }) };
     communitiesRepo = {
       findOneBy: jest.fn().mockResolvedValue({ id: 'community-1' }),
@@ -68,6 +76,7 @@ describe('C4pCallsService', () => {
       repo as never,
       talksRepo as never,
       votesRepo as never,
+      memberDesignationsRepo as never,
       eventsRepo as never,
       communitiesRepo as never,
       designations as never,
@@ -258,12 +267,34 @@ describe('C4pCallsService', () => {
       repo.findAndCount.mockResolvedValue([[makeCall()], 1]);
       const result = await service.listManage({ page: 1, limit: 50 }, actor());
       expect(result).toEqual({
-        data: [makeCall()],
+        data: [
+          expect.objectContaining({
+            id: 'call-1',
+            talksCount: 0,
+            evaluatorsActiveCount: 0,
+            votesCount: 0,
+          }),
+        ],
         total: 1,
         page: 1,
         totalPages: 1,
         limit: 50,
       });
+    });
+
+    it('inclui contagens de propostas, avaliadores ativos e votos por campanha', async () => {
+      repo.findAndCount.mockResolvedValue([[makeCall()], 1]);
+      talksRepo.countBy.mockResolvedValue(3);
+      memberDesignationsRepo.countBy.mockResolvedValue(2);
+      votesRepo.count.mockResolvedValue(4);
+      const result = await service.listManage({ page: 1, limit: 50 }, actor());
+      expect(result.data[0]).toEqual(
+        expect.objectContaining({
+          talksCount: 3,
+          evaluatorsActiveCount: 2,
+          votesCount: 4,
+        }),
+      );
     });
   });
 

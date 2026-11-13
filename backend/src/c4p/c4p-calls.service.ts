@@ -13,6 +13,7 @@ import { AuditAction } from '../audit/entities/audit-log.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { Community } from '../communities/entities/community.entity';
 import { DesignationsService } from '../designations/designations.service';
+import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { PaginatedResultDto } from '../ledger/dto/paginated-result.dto';
 import { MemberRole } from '../members/entities/member.entity';
@@ -46,6 +47,12 @@ export interface PublicCallSummary {
   event: { slug: string; title: string } | null;
 }
 
+export interface ManageCallCounts {
+  talksCount: number;
+  evaluatorsActiveCount: number;
+  votesCount: number;
+}
+
 @Injectable()
 export class C4pCallsService {
   private readonly logger = new Logger(C4pCallsService.name);
@@ -57,6 +64,8 @@ export class C4pCallsService {
     private readonly talksRepo: Repository<C4pTalk>,
     @InjectRepository(C4pVote)
     private readonly votesRepo: Repository<C4pVote>,
+    @InjectRepository(MemberDesignation)
+    private readonly memberDesignationsRepo: Repository<MemberDesignation>,
     @InjectRepository(ManagedEvent)
     private readonly eventsRepo: Repository<ManagedEvent>,
     @InjectRepository(Community)
@@ -199,7 +208,7 @@ export class C4pCallsService {
   async listManage(
     query: ListC4pCallsDto,
     actor: JwtPayload,
-  ): Promise<PaginatedResultDto<C4pCall>> {
+  ): Promise<PaginatedResultDto<C4pCall & ManageCallCounts>> {
     const page = Math.max(1, Math.floor(query.page ?? 1));
     const limit = Math.min(Math.max(1, Math.floor(query.limit ?? 50)), 100);
     const [data, total] = await this.repo.findAndCount({
@@ -208,7 +217,34 @@ export class C4pCallsService {
       skip: (page - 1) * limit,
       take: limit,
     });
-    return { data, total, page, totalPages: Math.ceil(total / limit), limit };
+    const withCounts = await Promise.all(
+      data.map(async (call) => {
+        const [talksCount, evaluatorsActiveCount, votesCount] =
+          await Promise.all([
+            this.talksRepo.countBy({ callId: call.id }),
+            this.memberDesignationsRepo.countBy({
+              targetType: 'c4p_campaign',
+              targetId: call.id,
+              designation: 'evaluator',
+              status: 'active',
+            }),
+            this.countVotes(call.id),
+          ]);
+        return {
+          ...call,
+          talksCount,
+          evaluatorsActiveCount,
+          votesCount,
+        };
+      }),
+    );
+    return {
+      data: withCounts,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    };
   }
 
   async getManage(id: string, actor: JwtPayload): Promise<C4pCall> {
@@ -480,6 +516,17 @@ export class C4pCallsService {
         );
       }
     }
+  }
+
+  private async countVotes(callId: string): Promise<number> {
+    const talks = await this.talksRepo.find({
+      where: { callId },
+      select: { id: true },
+    });
+    if (talks.length === 0) return 0;
+    return this.votesRepo.count({
+      where: { talkId: In(talks.map((talk) => talk.id)) },
+    });
   }
 
   private async assertNoVotes(callId: string): Promise<void> {
