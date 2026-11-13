@@ -148,6 +148,7 @@ export class C4pCallsService {
     const call = await this.repo.findOneBy({ id });
     if (!call) throw new NotFoundException('Campanha não encontrada.');
     await this.assertCanManage(call, actor);
+    const before = { ...call };
 
     if (dto.criteria) {
       await this.assertNoVotes(call.id);
@@ -192,7 +193,6 @@ export class C4pCallsService {
     }
     if (dto.status !== undefined) call.status = dto.status;
 
-    const before = { ...call };
     const updated = await this.repo.save(call);
     await this.audit.log({
       action: AuditAction.C4P_CALL_UPDATED,

@@ -229,6 +229,7 @@ describe('C4P (Fase 7) — jornada completa, permissões e migration 049 com Pos
           title: 'Palestra E2E',
           summary: 'Resumo da palestra.',
           consent: true,
+          turnstileToken: 'development',
         });
       expect(res.status).toBe(201);
       talkId = res.body.id;

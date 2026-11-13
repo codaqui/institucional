@@ -74,7 +74,11 @@ export class SubmitC4pTalkDto {
   })
   consent: true;
 
-  // turnstileToken NÃO é declarado aqui: o TurnstileGuard lê o body bruto
-  // (padrão do guest-claim de eventos), e o ValidationPipe global com
-  // forbidNonWhitelisted rejeitaria a propriedade sem decorator.
+  // Declarado (não só lido do body bruto pelo guard) porque o ValidationPipe
+  // global usa forbidNonWhitelisted — sem decorator o token é rejeitado com
+  // 400 "property turnstileToken should not exist" (padrão do guest-claim).
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  turnstileToken?: string;
 }

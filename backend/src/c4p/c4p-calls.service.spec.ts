@@ -212,6 +212,16 @@ describe('C4pCallsService', () => {
       ).rejects.toThrow(ConflictException);
     });
 
+    it('grava audit com before/after distintos ao editar campos', async () => {
+      repo.findOneBy.mockResolvedValue(makeCall({ name: 'Nome antigo' }));
+      await service.update('call-1', { name: 'Nome novo' }, actor());
+      const logCall = audit.log.mock.calls.find(
+        ([entry]) => entry.action === AuditAction.C4P_CALL_UPDATED,
+      )![0] as { details: { before: { name: string }; after: { name: string } } };
+      expect(logCall.details.before.name).toBe('Nome antigo');
+      expect(logCall.details.after.name).toBe('Nome novo');
+    });
+
     it('lança 404 para campanha inexistente', async () => {
       repo.findOneBy.mockResolvedValue(null);
       await expect(
