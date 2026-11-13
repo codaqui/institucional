@@ -155,7 +155,7 @@ export class C4pCallsService {
       this.validateCriteria(dto.criteria);
     }
     this.assertValidStatusTransition(call.status, dto.status);
-    await this.applyWindowUpdate(call, dto);
+    this.applyWindowUpdate(call, dto);
     await this.applyReferenceUpdate(call, dto);
     if (dto.name !== undefined) call.name = dto.name;
     if (dto.description !== undefined) call.description = dto.description;
@@ -188,10 +188,10 @@ export class C4pCallsService {
     );
   }
 
-  private async applyWindowUpdate(
+  private applyWindowUpdate(
     call: C4pCall,
     dto: UpdateC4pCallDto,
-  ): Promise<void> {
+  ): void {
     if (
       dto.submissionOpenAt === undefined &&
       dto.submissionCloseAt === undefined

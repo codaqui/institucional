@@ -50,12 +50,25 @@ function resolveSelectedTalkId(
   return stillPresent ? current : talks[0].id;
 }
 
+function resolveCallId(callIdProp: string | undefined): string {
+  if (callIdProp) return callIdProp;
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("call") || "";
+}
+
+function buildInitialScores(
+  talk: EvaluatorTalk,
+  criteria: Criterion[],
+): Record<string, number> {
+  const next: Record<string, number> = {};
+  for (const criterion of criteria) {
+    next[criterion.key] = talk.myVote?.scores[criterion.key] ?? 5;
+  }
+  return next;
+}
+
 function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
-  const callId =
-    callIdProp ||
-    (typeof window !== "undefined"
-      ? new URLSearchParams(window.location.search).get("call") || ""
-      : "");
+  const callId = resolveCallId(callIdProp);
   const { ready, isLoggedIn, authFetch } = useAuth();
   const [callInfo, setCallInfo] = useState<EvaluatorCall | null>(null);
   const [talks, setTalks] = useState<EvaluatorTalk[] | null>(null);
@@ -97,11 +110,7 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
 
   useEffect(() => {
     if (!selectedTalk) return;
-    const next: Record<string, number> = {};
-    for (const criterion of criteria) {
-      next[criterion.key] = selectedTalk.myVote?.scores[criterion.key] ?? 5;
-    }
-    setScores(next);
+    setScores(buildInitialScores(selectedTalk, criteria));
     setComment(selectedTalk.myVote?.comment ?? "");
   }, [selectedTalk, criteria]);
 

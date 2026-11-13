@@ -170,25 +170,52 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
           Importar
         </Button>
       </Box>
-      {talks === null ? (
-        <CircularProgress aria-label="Carregando propostas" />
-      ) : talks.length === 0 ? (
-        <Alert severity="info">Nenhuma proposta ainda.</Alert>
-      ) : (
-        <>
-          <TalksTable talks={talks} onRemove={(talkId) => void removeTalk(talkId)} />
-          <Typography variant="body2" color="text.secondary">
-            {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
-          </Typography>
-          <PaginationControls
-            page={page}
-            totalPages={totalPages}
-            onChange={(next) => void load(next)}
-            itemLabel="propostas"
-          />
-        </>
-      )}
+      <TalksBody
+        talks={talks}
+        page={page}
+        totalPages={totalPages}
+        total={total}
+        onPageChange={(next) => void load(next)}
+        onRemove={(talkId) => void removeTalk(talkId)}
+      />
     </Stack>
+  );
+}
+
+function TalksBody({
+  talks,
+  page,
+  totalPages,
+  total,
+  onPageChange,
+  onRemove,
+}: Readonly<{
+  talks: ManageTalk[] | null;
+  page: number;
+  totalPages: number;
+  total: number;
+  onPageChange: (next: number) => void;
+  onRemove: (talkId: string) => void;
+}>) {
+  if (talks === null) {
+    return <CircularProgress aria-label="Carregando propostas" />;
+  }
+  if (talks.length === 0) {
+    return <Alert severity="info">Nenhuma proposta ainda.</Alert>;
+  }
+  return (
+    <>
+      <TalksTable talks={talks} onRemove={onRemove} />
+      <Typography variant="body2" color="text.secondary">
+        {rangeLabel(page, DEFAULT_PAGE_SIZE, total)}
+      </Typography>
+      <PaginationControls
+        page={page}
+        totalPages={totalPages}
+        onChange={onPageChange}
+        itemLabel="propostas"
+      />
+    </>
   );
 }
 
@@ -291,18 +318,28 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
           Convidar avaliador
         </Button>
       </Box>
-      {evaluators === null ? (
-        <CircularProgress aria-label="Carregando avaliadores" />
-      ) : evaluators.length === 0 ? (
-        <Alert severity="info">Nenhum avaliador convidado ainda.</Alert>
-      ) : (
-        <EvaluatorsTable
-          evaluators={evaluators}
-          onRemove={(designationId) => void remove(designationId)}
-        />
-      )}
+      <EvaluatorsBody
+        evaluators={evaluators}
+        onRemove={(designationId) => void remove(designationId)}
+      />
     </Stack>
   );
+}
+
+function EvaluatorsBody({
+  evaluators,
+  onRemove,
+}: Readonly<{
+  evaluators: EvaluatorSummary[] | null;
+  onRemove: (designationId: string) => void;
+}>) {
+  if (evaluators === null) {
+    return <CircularProgress aria-label="Carregando avaliadores" />;
+  }
+  if (evaluators.length === 0) {
+    return <Alert severity="info">Nenhum avaliador convidado ainda.</Alert>;
+  }
+  return <EvaluatorsTable evaluators={evaluators} onRemove={onRemove} />;
 }
 
 function DashboardTab({ callId }: Readonly<{ callId: string }>) {
