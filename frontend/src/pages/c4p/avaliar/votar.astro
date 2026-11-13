@@ -13,12 +13,12 @@ const callId = Astro.url.searchParams.get("call") ?? "";
   description="Avalie as propostas da chamada de trabalhos."
   noindex
 >
-  <main id="conteudo" class="mx-auto max-w-3xl px-4 py-10">
+  <div class="mx-auto max-w-3xl px-4 py-10">
     <C4pVotingIsland client:only="react" callId={callId} />
     <noscript>
       <p class="rounded-lg border border-border bg-surface p-4 text-text-secondary">
         A votação requer JavaScript.
       </p>
     </noscript>
-  </main>
+  </div>
 </PublicLayout>
