@@ -67,6 +67,10 @@ function buildInitialScores(
   return next;
 }
 
+function toErrorMessage(reason: unknown, fallback: string): string {
+  return reason instanceof Error ? reason.message : fallback;
+}
+
 function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
   const callId = resolveCallId(callIdProp);
   const { ready, isLoggedIn, authFetch } = useAuth();
@@ -136,11 +140,7 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
       }
       await load();
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Não foi possível salvar a avaliação.",
-      );
+      setError(toErrorMessage(reason, "Não foi possível salvar a avaliação."));
     } finally {
       setSaving(false);
     }
@@ -154,7 +154,9 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
     );
   }
 
-  if (!ready || !isLoggedIn || callInfo === null || talks === null) {
+  const stillLoading =
+    !ready || !isLoggedIn || callInfo === null || talks === null;
+  if (stillLoading) {
     return loadError ? (
       <Alert severity="error">{loadError}</Alert>
     ) : (
@@ -165,9 +167,62 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
   const progress = callInfo.progress;
 
   return (
+    <VotingScreen
+      callName={callInfo.call.name}
+      progress={progress}
+      talks={talks}
+      selectedTalk={selectedTalk}
+      criteria={criteria}
+      scores={scores}
+      comment={comment}
+      saving={saving}
+      loadError={loadError}
+      error={error}
+      onSelectTalk={setSelectedTalkId}
+      onScoreChange={(key, value) =>
+        setScores((current) => ({ ...current, [key]: value }))
+      }
+      onCommentChange={setComment}
+      onSave={() => void save()}
+    />
+  );
+}
+
+function VotingScreen({
+  callName,
+  progress,
+  talks,
+  selectedTalk,
+  criteria,
+  scores,
+  comment,
+  saving,
+  loadError,
+  error,
+  onSelectTalk,
+  onScoreChange,
+  onCommentChange,
+  onSave,
+}: Readonly<{
+  callName: string;
+  progress: { voted: number; total: number };
+  talks: EvaluatorTalk[];
+  selectedTalk: EvaluatorTalk | null;
+  criteria: Criterion[];
+  scores: Record<string, number>;
+  comment: string;
+  saving: boolean;
+  loadError: string;
+  error: string;
+  onSelectTalk: (talkId: string) => void;
+  onScoreChange: (key: string, value: number) => void;
+  onCommentChange: (value: string) => void;
+  onSave: () => void;
+}>) {
+  return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h5" component="h2">{callInfo.call.name}</Typography>
+        <Typography variant="h5" component="h2">{callName}</Typography>
         <Typography color="text.secondary">
           {progress.voted} de {progress.total} avaliadas
         </Typography>
@@ -181,8 +236,8 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
           {talks.map((talk) => (
             <Button
               key={talk.id}
-              variant={talk.id === selectedTalkId ? "contained" : "outlined"}
-              onClick={() => setSelectedTalkId(talk.id)}
+              variant={talk.id === selectedTalk?.id ? "contained" : "outlined"}
+              onClick={() => onSelectTalk(talk.id)}
               sx={{ justifyContent: "flex-start", textAlign: "left" }}
             >
               {talk.myVote ? "✓ " : ""}
@@ -214,10 +269,7 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
                 step={1}
                 value={scores[criterion.key] ?? 5}
                 onChange={(_event, value) =>
-                  setScores((current) => ({
-                    ...current,
-                    [criterion.key]: value as number,
-                  }))
+                  onScoreChange(criterion.key, value as number)
                 }
                 aria-labelledby={`criterion-${criterion.key}`}
                 valueLabelDisplay="auto"
@@ -228,13 +280,13 @@ function C4pVotingInner({ callId: callIdProp }: Readonly<{ callId?: string }>) {
           <TextField
             label="Comentário para a curadoria (opcional)"
             value={comment}
-            onChange={(event) => setComment(event.target.value)}
+            onChange={(event) => onCommentChange(event.target.value)}
             multiline
             minRows={2}
           />
           <Button
             variant="contained"
-            onClick={() => void save()}
+            onClick={onSave}
             disabled={saving}
             sx={{ alignSelf: "flex-start" }}
           >
