@@ -1,4 +1,14 @@
 {
-  "generatedAt": "2026-11-11T00:00:00.000Z",
-  "announcements": []
+  "generatedAt": "2026-11-13T06:42:00.113Z",
+  "announcements": [
+    {
+      "id": "2f8e2779-9f58-4fe7-8da2-1695a8856528",
+      "text": "Nosso site está passando por diversas atualizações, se você encontrar qualquer dificuldade pode reportar a sua experiência.",
+      "severity": "warning",
+      "linkUrl": "https://github.com/codaqui/institucional/issues",
+      "linkLabel": "Reportar problema",
+      "startsAt": null,
+      "endsAt": null
+    }
+  ]
 }
