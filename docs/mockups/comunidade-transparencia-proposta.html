@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Transparência — Elas no Código · Proposta whitelabel</title>
+  <meta name="description" content="Mockup estático da transparência por comunidade (tenant Elas no Código): atividades, pessoas, atas e finanças — com a Associação Codaqui como estrutura associativa por trás." />
+  <style>
+    /* Tokens do DS + tema da comunidade (comunidades/elasnocodigo/community.config.ts) */
+    :root {
+      --cq-color-primary-500:#57B593; --cq-color-primary-700:#378369; --cq-color-primary-800:#2c6955;
+      --cq-color-bg:#fafafa; --cq-color-surface:#fff; --cq-color-sunken:#f4f4f5;
+      --cq-color-text-primary:#18181b; --cq-color-text-secondary:#52525b; --cq-color-border:#e5e5e7;
+      /* tema da comunidade (whitelabel) */
+      --c-primary:#9c27b0; --c-primary-dark:#2b0945; --c-primary-light:#ce93d8; --c-accent:#ffc107;
+      --c-link:#7b1fa2; --c-tint:#f6eaf8; --c-footer:#2b0945;
+      --cq-radius:12px; --cq-shadow:0 1px 3px rgb(0 0 0/.08); color-scheme:light;
+    }
+    [data-theme="dark"] {
+      --cq-color-bg:#0c0c0d; --cq-color-surface:#18181b; --cq-color-sunken:#101012;
+      --cq-color-text-primary:#fafafa; --cq-color-text-secondary:#a1a1aa; --cq-color-border:#27272a;
+      --c-link:#e1a6ec; --c-tint:#2a1530; color-scheme:dark;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--cq-color-bg);color:var(--cq-color-text-primary);line-height:1.55}
+    a{color:var(--c-link)}
+    a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
+    .skip-link{position:absolute;left:-9999px;background:var(--c-primary-dark);color:#fff;padding:8px 14px;z-index:100}.skip-link:focus{left:8px;top:8px}
+    .container{max-width:1100px;margin:0 auto;padding:0 20px}
+    .hidden{display:none!important}
+
+    /* Faixa institucional: a comunidade pertence a uma associação */
+    .assoc-bar{background:var(--c-primary-dark);color:#fff;font-size:13px}
+    .assoc-bar .container{display:flex;gap:12px;align-items:center;padding-top:7px;padding-bottom:7px;flex-wrap:wrap}
+    .assoc-bar a{color:#fff;text-decoration:underline}.assoc-bar .sp{margin-left:auto}
+
+    header.site{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border);position:sticky;top:0;z-index:20}
+    header.site .container{display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;text-decoration:none;color:var(--cq-color-text-primary)}
+    .logo .mark{width:34px;height:34px;border-radius:50%;background:var(--c-primary);color:#fff;display:grid;place-items:center;font-size:15px}
+    nav.main{margin-left:auto;display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+    nav.main a{padding:7px 11px;border-radius:8px;text-decoration:none;color:var(--cq-color-text-secondary);font-size:14px;font-weight:500}
+    nav.main a:hover{background:var(--cq-color-sunken)}
+    nav.main a[aria-current="page"]{color:var(--c-link);font-weight:800;border-bottom:3px solid var(--c-primary);border-radius:0}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:9px;border:1px solid transparent;font:inherit;font-size:14px;font-weight:700;cursor:pointer;text-decoration:none}
+    .btn-primary{background:var(--c-primary-dark);color:#fff}
+    [data-theme="dark"] .btn-primary{background:var(--c-primary);}
+    .btn-outline{background:transparent;color:var(--c-link);border-color:var(--c-primary)}
+    .btn-sm{padding:7px 12px;font-size:13px}
+    .btn-icon{padding:7px 10px;background:var(--cq-color-sunken);border-color:var(--cq-color-border);color:inherit}
+
+    .hero{background:linear-gradient(135deg,var(--c-primary-dark),color-mix(in srgb,var(--c-primary) 70%,black));color:#fff;padding:52px 0 44px}
+    .chip{display:inline-flex;gap:6px;align-items:center;background:rgb(255 255 255/.16);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
+    .hero h1{font-size:clamp(28px,4.4vw,42px);line-height:1.15;margin:12px 0}
+    .hero p{max-width:720px;font-size:17px;opacity:.95}
+    .hero .meta{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:14px}
+    .hero .meta span::before{content:"✔ ";color:var(--c-accent)}
+
+    section.blk{padding:34px 0 4px}
+    .head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+    h2{font-size:22px;font-weight:800}.head .sub{font-size:14px;color:var(--cq-color-text-secondary)}
+    .card{background:var(--cq-color-surface);border:1px solid var(--cq-color-border);border-radius:var(--cq-radius);box-shadow:var(--cq-shadow)}
+    .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .kpi{padding:16px 18px;border-top:4px solid var(--c-primary)}
+    .kpi strong{display:block;font-size:28px;font-weight:800;color:var(--c-primary-dark)}[data-theme="dark"] .kpi strong{color:var(--c-primary-light)}
+    .kpi span{font-size:13px;color:var(--cq-color-text-secondary)}
+    .kpi.money{border-top-color:var(--c-accent)}
+
+    .period{display:flex;gap:8px;align-items:center;font-size:14px}
+    select{font:inherit;font-size:14px;padding:7px 10px;border-radius:8px;border:1px solid var(--cq-color-border);background:var(--cq-color-surface);color:inherit}
+
+    .two{display:grid;gap:18px;grid-template-columns:1.2fr 1fr}
+    .list{list-style:none}.list li{display:flex;gap:14px;align-items:center;padding:13px 16px;border-bottom:1px solid var(--cq-color-border);flex-wrap:wrap}.list li:last-child{border-bottom:0}
+    .list .ic{font-size:22px}.list .main{flex:1;min-width:180px}.list .t{font-weight:700}.list .d{font-size:13px;color:var(--cq-color-text-secondary)}
+    .pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--c-tint);color:var(--c-primary-dark);border:1px solid var(--c-primary-light)}
+    [data-theme="dark"] .pill{color:var(--c-primary-light)}
+
+    .people{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+    .person{display:flex;gap:12px;align-items:center;padding:14px 16px;text-decoration:none;color:inherit}
+    .person:hover{border-color:var(--c-primary)}
+    .av{width:44px;height:44px;border-radius:50%;background:var(--c-primary);color:#fff;display:grid;place-items:center;font-weight:800}
+
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:11px 16px;border-bottom:1px solid var(--cq-color-border)}
+    th{font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:var(--cq-color-text-secondary)}
+    td.num{font-variant-numeric:tabular-nums;font-weight:700;text-align:right}th.num{text-align:right}
+    .in{color:#1b6e3c}.out{color:#b42318}[data-theme="dark"] .in{color:#6fd49a}[data-theme="dark"] .out{color:#ff8a80}
+    .toolbar{display:flex;gap:10px;padding:14px 16px;border-bottom:1px solid var(--cq-color-border);flex-wrap:wrap;align-items:center}
+    .pager{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;font-size:13px;color:var(--cq-color-text-secondary);flex-wrap:wrap;gap:8px}
+
+    .how{padding:20px;background:var(--c-tint);border:1px solid var(--c-primary-light);border-radius:var(--cq-radius)}
+    .how ol{margin:10px 0 0 20px;font-size:14px;display:grid;gap:6px}
+    .verify{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+    .cta{margin:34px 0 0;padding:24px;border-radius:var(--cq-radius);background:var(--c-primary-dark);color:#fff;display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .cta .btn-light{background:#fff;color:var(--c-primary-dark)}.cta .btn-ghost{border-color:rgb(255 255 255/.55);color:#fff}
+    footer.site{margin-top:44px;background:var(--c-footer);color:#e9d7ee;padding:28px 0 36px;font-size:14px}
+    footer a{color:#fff}
+    .foot-grid{display:grid;gap:22px;grid-template-columns:2fr 1fr 1fr}
+    .legend{font-size:13px;color:var(--cq-color-text-secondary);padding:14px 16px;border:1px dashed var(--cq-color-border);border-radius:10px;margin-top:30px}
+    @media(max-width:820px){.two{grid-template-columns:1fr}.foot-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <!-- Contexto associativo permanente em todo tenant -->
+  <div class="assoc-bar"><div class="container">
+    <span>🤝 <strong>Elas no Código</strong> é uma comunidade integrada à <a href="https://codaqui.dev">Associação Codaqui</a> — CNPJ 44.593.429/0001-05</span>
+    <span class="sp"><a href="https://codaqui.dev/comunidades">Todas as comunidades</a> · <a href="https://codaqui.dev/transparencia">Transparência da Associação</a></span>
+  </div></div>
+
+  <header class="site"><div class="container">
+    <a class="logo" href="/"><span class="mark" aria-hidden="true">E</span>Elas no Código</a>
+    <nav class="main" aria-label="Navegação da comunidade">
+      <a href="/">Início</a><a href="/sobre">Sobre</a><a href="/atividades">Atividades</a><a href="/apoiar">Apoiar</a>
+      <a href="/transparencia" aria-current="page">Transparência</a>
+      <a href="/apoiar" class="btn btn-primary btn-sm">Apoiar</a>
+      <button class="btn btn-icon" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">◐</button>
+    </nav>
+  </div></header>
+
+  <main id="conteudo">
+    <section class="hero"><div class="container">
+      <span class="chip">🔍 Transparência da comunidade</span>
+      <h1>O que a Elas no Código fez, com quem e com quais recursos</h1>
+      <p>Atividades, pessoas responsáveis, atas e finanças — tudo aberto. A Associação Codaqui fornece a estrutura jurídica e contábil; a comunidade decide e executa.</p>
+      <p class="meta" style="display:flex"><span>Conta contábil segregada</span><span>Atas publicadas</span><span>Dados exportáveis (CSV/API)</span></p>
+    </div></section>
+
+    <div class="container">
+      <!-- 1. ATIVIDADES (foco principal) -->
+      <section class="blk" aria-labelledby="atv">
+        <div class="head"><h2 id="atv">Atividades da comunidade</h2>
+          <div class="period"><label for="per">Período:</label><select id="per"><option>2026</option><option>2025</option><option>Desde o início</option></select></div>
+        </div>
+        <div class="grid">
+          <div class="card kpi"><strong>12</strong><span>encontros e lives realizados</span></div>
+          <div class="card kpi"><strong>386</strong><span>participações registradas</span></div>
+          <div class="card kpi"><strong>54h</strong><span>de voluntariado aprovadas</span></div>
+          <div class="card kpi"><strong>9</strong><span>pessoas voluntárias</span></div>
+          <div class="card kpi"><strong>140</strong><span>certificados emitidos e verificáveis</span></div>
+        </div>
+        <div class="two" style="margin-top:18px">
+          <div class="card"><ul class="list" aria-label="Últimas atividades">
+            <li><span class="ic" aria-hidden="true">📅</span><div class="main"><p class="t">Roda de conversa: maternidade e carreira</p><p class="d">12 de maio de 2026 · 64 participantes</p></div><a class="btn btn-outline btn-sm" href="#">Registro</a></li>
+            <li><span class="ic" aria-hidden="true">🎙️</span><div class="main"><p class="t">Live: primeiros passos em dados</p><p class="d">20 de abril de 2026 · 91 participantes</p></div><a class="btn btn-outline btn-sm" href="#">Registro</a></li>
+            <li><span class="ic" aria-hidden="true">🧭</span><div class="main"><p class="t">Ciclo de mentorias</p><p class="d">Mar–Jun/2026 · 18 sessões concluídas</p></div><span class="pill">Em andamento</span></li>
+          </ul></div>
+          <div class="card"><ul class="list" aria-label="Próximas atividades">
+            <li><span class="ic" aria-hidden="true">🗓️</span><div class="main"><p class="t">Meetup — Carreiras em Tech</p><p class="d">18 de dezembro de 2026 · online</p></div><span class="pill">Em breve</span></li>
+            <li><span class="ic" aria-hidden="true">🏛️</span><div class="main"><p class="t">Reunião de prestação de contas</p><p class="d">10 de janeiro de 2027 · aberta</p></div><span class="pill">Aberta</span></li>
+          </ul></div>
+        </div>
+      </section>
+
+      <!-- 2. PESSOAS E GOVERNANÇA -->
+      <section class="blk" aria-labelledby="pes">
+        <div class="head"><h2 id="pes">Quem responde pela comunidade</h2><a href="/equipe">Ver equipe completa →</a></div>
+        <div class="people">
+          <a class="card person" href="https://codaqui.dev/@mariasouza"><span class="av" aria-hidden="true">M</span><div><strong>Maria Souza</strong><p class="d" style="font-size:13px;color:var(--cq-color-text-secondary)">Responsável pela comunidade</p></div></a>
+          <a class="card person" href="https://codaqui.dev/@anaribeiro"><span class="av" aria-hidden="true">A</span><div><strong>Ana Ribeiro</strong><p style="font-size:13px;color:var(--cq-color-text-secondary)">Tesouraria da comunidade</p></div></a>
+          <a class="card person" href="https://codaqui.dev/@jolima"><span class="av" aria-hidden="true">J</span><div><strong>Joana Lima</strong><p style="font-size:13px;color:var(--cq-color-text-secondary)">Organização de eventos</p></div></a>
+        </div>
+      </section>
+
+      <!-- 3. ATAS E DECISÕES -->
+      <section class="blk" aria-labelledby="atas">
+        <div class="head"><h2 id="atas">Atas e decisões</h2><a href="https://codaqui.dev/assembleias">Assembleias da Associação →</a></div>
+        <div class="card"><ul class="list">
+          <li><span class="ic" aria-hidden="true">📄</span><div class="main"><p class="t">Reunião de planejamento 2026</p><p class="d">15 de fevereiro de 2026 · 11 presentes · plano de ações aprovado</p></div><a class="btn btn-outline btn-sm" href="#">Ler ata</a></li>
+          <li><span class="ic" aria-hidden="true">📄</span><div class="main"><p class="t">Reunião de prestação de contas 2025</p><p class="d">18 de janeiro de 2026 · 9 presentes</p></div><a class="btn btn-outline btn-sm" href="#">Ler ata</a></li>
+        </ul></div>
+      </section>
+
+      <!-- 4. FINANÇAS -->
+      <section class="blk" aria-labelledby="fin">
+        <div class="head"><h2 id="fin">Finanças da comunidade</h2><span class="sub">Ledger da Associação, conta “elasnocodigo”</span></div>
+        <div class="grid">
+          <div class="card kpi money"><strong>R$ 1.840,00</strong><span>saldo atual</span></div>
+          <div class="card kpi money"><strong class="in">+ R$ 3.200,00</strong><span>entradas em 2026</span></div>
+          <div class="card kpi money"><strong class="out">− R$ 1.360,00</strong><span>saídas em 2026</span></div>
+        </div>
+        <div class="card" style="margin-top:18px">
+          <div class="toolbar">
+            <label for="tipo" class="hidden">Tipo</label>
+            <select id="tipo"><option>Todas as movimentações</option><option>Entradas</option><option>Saídas</option></select>
+            <a class="btn btn-outline btn-sm" style="margin-left:auto" href="#">Exportar CSV</a>
+          </div>
+          <div class="table-wrap"><table>
+            <caption class="hidden">Movimentações da conta Elas no Código</caption>
+            <thead><tr><th scope="col">Data</th><th scope="col">Descrição</th><th scope="col">Categoria</th><th scope="col" class="num">Valor</th><th scope="col">Comprovante</th></tr></thead>
+            <tbody>
+              <tr><td>11/11/2026</td><td>Doação (pessoa física)</td><td><span class="pill">Doação</span></td><td class="num in">+ R$ 60,00</td><td>—</td></tr>
+              <tr><td>28/10/2026</td><td>Plataforma de transmissão — live outubro</td><td><span class="pill">Evento</span></td><td class="num out">− R$ 120,00</td><td><a href="#" aria-label="Ver comprovante da plataforma de transmissão">Ver</a></td></tr>
+              <tr><td>14/10/2026</td><td>Patrocínio — empresa apoiadora</td><td><span class="pill">Patrocínio</span></td><td class="num in">+ R$ 1.000,00</td><td>—</td></tr>
+              <tr><td>02/10/2026</td><td>Reembolso — material de divulgação</td><td><span class="pill">Reembolso</span></td><td class="num out">− R$ 90,00</td><td><a href="#" aria-label="Ver comprovante do reembolso de material de divulgação">Ver</a></td></tr>
+            </tbody>
+          </table></div>
+          <div class="pager"><span aria-live="polite">Mostrando 1–4 de 37</span><span><button class="btn btn-icon" type="button" aria-label="Página anterior" disabled>‹</button> <button class="btn btn-icon" type="button" aria-label="Próxima página">›</button></span></div>
+        </div>
+      </section>
+
+      <!-- 5. COMO FUNCIONA -->
+      <section class="blk" aria-labelledby="como">
+        <div class="how">
+          <h2 id="como" style="font-size:19px">Como funciona a estrutura associativa</h2>
+          <ol>
+            <li>A comunidade <strong>decide</strong> o que fazer e como usar os recursos.</li>
+            <li>A <strong>Associação Codaqui</strong> (CNPJ próprio) recebe as doações e registra tudo em conta contábil separada da comunidade.</li>
+            <li>Cada gasto exige <strong>comprovante</strong> e aprovação; as atas ficam públicas.</li>
+            <li>Qualquer pessoa pode <strong>conferir na fonte</strong> e exportar os dados.</li>
+          </ol>
+          <div class="verify">
+            <a class="btn btn-outline btn-sm" href="https://codaqui.dev/transparencia">Painel completo da Associação ↗</a>
+            <a class="btn btn-outline btn-sm" href="https://codaqui.dev/desenvolvedores/api">API de dados abertos ↗</a>
+            <a class="btn btn-outline btn-sm" href="https://codaqui.dev/sobre/ong">Como integrar uma comunidade ↗</a>
+          </div>
+        </div>
+      </section>
+
+      <div class="cta">
+        <div><h2 style="font-size:20px">Gostou do que viu?</h2><p style="opacity:.9;font-size:14px;margin-top:4px">Sua doação vai direto para a conta da comunidade — e você acompanha aqui.</p></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="btn btn-light" href="/apoiar">Apoiar a comunidade</a><a class="btn btn-ghost" href="/atividades" style="border:1px solid">Ver atividades</a></div>
+      </div>
+
+      <p class="legend"><strong>O que este mockup demonstra:</strong> (1) <strong>atividades antes do dinheiro</strong> — hoje <code>/transparencia</code> do tenant mostra só saldo e movimentações (<code>TransparenciaPage.astro</code>); aqui o foco é o que a comunidade <em>fez</em>, com finanças como suporte; (2) whitelabel real — cores/logo/tom da comunidade via <code>community.config.ts</code> (roxo, acento âmbar só decorativo, texto sobre claro usa <code>primaryDark</code>), tokens e componentes do DS intactos; (3) <strong>faixa associativa permanente</strong> + bloco “Como funciona” explicam o papel da Associação (estrutura, CNPJ, conta segregada) sem apagar a identidade da comunidade; (4) pessoas responsáveis vindas das designations; (5) atas e CSV/API para auditoria; (6) dados sempre filtrados por comunidade (ledger por <code>projectKey</code>, eventos, horas, certificados).</p>
+    </div>
+  </main>
+
+  <footer class="site"><div class="container foot-grid">
+    <div><strong>Elas no Código</strong><p style="margin-top:6px">Apoiamos e incentivamos mulheres na tecnologia.</p><p style="margin-top:10px;font-size:13px">Comunidade integrada à <a href="https://codaqui.dev">Associação Codaqui</a> · CNPJ 44.593.429/0001-05</p></div>
+    <div><strong>Comunidade</strong><p style="margin-top:6px"><a href="/sobre">Sobre</a><br><a href="/atividades">Atividades</a><br><a href="/equipe">Equipe</a></p></div>
+    <div><strong>Associação</strong><p style="margin-top:6px"><a href="https://codaqui.dev/transparencia">Transparência</a><br><a href="https://codaqui.dev/comunidades">Comunidades</a><br><a href="https://codaqui.dev/sobre/conduta">Código de conduta</a></p></div>
+  </div></footer>
+
+  <script>
+    const t=document.getElementById("themeToggle");
+    t.addEventListener("click",()=>{const n=document.documentElement.dataset.theme==="dark"?"light":"dark";document.documentElement.dataset.theme=n;t.setAttribute("aria-pressed",String(n==="dark"))});
+  </script>
+</body>
+</html>
+
