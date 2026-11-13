@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Revisão completa do frontend (público + admin) do portal Codaqui organizada em jornadas, com backlog de melhorias priorizado — inventário realizado em 2026-11-13 (3 varreduras independentes) SEM alterar o system-design (Astro 7 + ilhas React/MUI v9 + tokens Tailwind/--cq-* preservados).
 audience: Presidência, mantenedores, AI agents executando melhorias de UX.
-status: Revisão concluída; ondas de melhoria propostas, aguardando ratificação da prioridade.
+status: Revisão concluída; ondas de melhoria propostas, **mantidas em especificação** (não implementar ainda — mantenedor em 2026-11-13). Decisão de nav ratificada: `/c4p` entra na nav pública agora; `/universitario` e `/assembleias` entram só com conteúdo real.
 sections:
   - Princípios e o que NÃO muda
   - Mapa de jornadas (público, membro, admin)
@@ -143,7 +143,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 **Onda 1 — correções P0/P1 baratas (1-2 PRs):** P0-1 (link docs); h1 no PageHero; C4P dark variant + main id; contraste primary-500; filtro `/eventos?source=`; rótulo "Reembolsos" no /membro + indicador de tabs (guia tabs); aria-labels dos IconButtons; confirmações destrutivas + `window.confirm`; feedback estruturado C4P; guard C4pAdminApp; typos/chip bio/headings projetos; abas do Clube com estado na URL + `aria-labelledby`.
 **Onda 2 — robustez e dados (1-2 PRs):** tabelas financeiras com paginação real; paginação unificada; API_URL→resolveApiUrl; `<dialog>` nativo→MUI; error states com retry; Skeleton no lugar de CircularProgress nas tabelas; /eventos paginação real; números de mentoria do snapshot; atas/assembleias como fonte; estudar datas; /projetos/comprovante sem código; doação por comunidade com contexto; monólitos (extração dos 5 arquivos grandes).
 **Onda 3 — consolidação estrutural (1-2 PRs):** hooks compartilhados (`useRequireAccess`, `useFeedback`, `useAuthQuery`, `MemberAutocomplete`), DataTable ampliado, sidebar nova taxonomia, fonte única de comunidades, revisão de `client:only`→`client:visible`.
-**Decisões pendentes de ratificação:** (a) `/c4p` entra na nav agora e `/universitario` + `/assembleias` só com conteúdo real? (b) ordem das ondas 1→3 mantém?
+**Decisões ratificadas (2026-11-13):** (a) `/c4p` **entra na nav pública agora**; `/universitario` e `/assembleias` **entram só com conteúdo real**. (b) Ondas 1→3 **mantidas em especificação por ora** — execução fica para um momento posterior, quando a presidência liberar (prioridade atual é o rollout do C4P e as pendências operacionais).
 
 ## Conexão com o roadmap pós-1.0.0
 
