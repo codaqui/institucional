@@ -12,6 +12,7 @@ import {
   extractDoitySectionCards,
   mapDoityEvent,
   mapDoityEventStatus,
+  mapDiscordEvent,
   parseDoityCardDateTime,
   extractSymplaDateLine,
   mapMeetupStatus,
@@ -24,6 +25,49 @@ import {
 } from "./sync-events.mjs";
 
 const SYMPLA_BRAZIL_TZ = "-03:00";
+const DISCORD_CONFIG = {
+  ctaHref: "https://discord.com/invite/test",
+  defaultHost: "Comunidade Codaqui",
+  defaultLocation: "Servidor Discord",
+  defaultPlatform: "Discord",
+};
+
+test("mapDiscordEvent: remove Markdown e limita resumo ao tamanho usado pelas demais fontes", () => {
+  const originalDescription = `**Pauta:** [documentação](https://example.com)\n${"detalhes ".repeat(40)}`;
+  const event = mapDiscordEvent(
+    {
+      id: "discord-event",
+      name: "Reunião Geral da Associação",
+      description: originalDescription,
+      scheduled_start_time: "2026-11-20T18:00:00Z",
+      status: 1,
+    },
+    DISCORD_CONFIG,
+  );
+
+  assert.equal(event.summary.length, 220);
+  assert.ok(event.summary.startsWith("Pauta: documentação"));
+  assert.ok(!event.summary.includes("https://"));
+  assert.ok(!event.summary.includes("**"));
+  assert.ok(event.summary.endsWith("…"));
+  assert.equal(event.description, originalDescription);
+  assert.ok(event.description.length > 220);
+});
+
+test("mapDiscordEvent: usa resumo padrão quando a descrição fica vazia após limpar Markdown", () => {
+  const event = mapDiscordEvent(
+    {
+      id: "discord-event",
+      name: "Encontro comunitário",
+      description: " \n ",
+      scheduled_start_time: "2026-11-20T18:00:00Z",
+      status: 1,
+    },
+    DISCORD_CONFIG,
+  );
+
+  assert.equal(event.summary, "Evento publicado pela comunidade no Discord.");
+});
 
 // Reference date used to reproduce the 2026 sync bug where 2024 events were
 // incorrectly placed in the present year.

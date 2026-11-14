@@ -316,75 +316,10 @@ const OPEN_IN_NEW_PATH =
 
   <script type="application/json" id="events-stats" set:html={JSON.stringify(statsByFilter)} />
 
-  <script is:inline>
-    (() => {
-      const PAGE_SIZE = 12;
-      const statsEl = document.getElementById("events-stats");
-      const stats = statsEl ? JSON.parse(statsEl.textContent ?? "{}") : {};
-      const chips = [...document.querySelectorAll("[data-filter]")];
-      const cards = [...document.querySelectorAll("[data-event-card]")];
-      const featuredSection = document.getElementById("featured-section");
-      const upcomingEmpty = document.getElementById("upcoming-empty");
-      const pastEmpty = document.getElementById("past-empty");
-      const loadMoreWrap = document.getElementById("past-load-more");
-      const filterDesc = document.getElementById("filter-desc");
-      let current = "all";
-      let pastShown = PAGE_SIZE;
+  <script>
+    import { initEventFilters } from "../../lib/event-filter";
 
-      const matches = (card) =>
-        current === "all" || card.dataset.sourceKey === current;
-
-      function applyPagination() {
-        const visible = cards.filter(
-          (card) => card.dataset.section === "past" && matches(card),
-        );
-        visible.forEach((card, index) => {
-          card.classList.toggle("hidden-by-page", index >= pastShown);
-        });
-        if (pastEmpty) pastEmpty.hidden = visible.length > 0;
-        if (loadMoreWrap) loadMoreWrap.hidden = pastShown >= visible.length;
-      }
-
-      function applyFilter(key) {
-        current = key;
-        pastShown = PAGE_SIZE;
-        chips.forEach((chip) =>
-          chip.setAttribute("aria-pressed", String(chip.dataset.filter === key)),
-        );
-
-        const s = stats[key] ?? stats.all;
-        if (s) {
-          document.getElementById("stat-total").textContent = s.total;
-          document.getElementById("stat-recurring").textContent = s.recurring;
-          document.getElementById("stat-rsvps").textContent = s.rsvps;
-        }
-        if (filterDesc) {
-          filterDesc.textContent = s?.label
-            ? `Filtro ativo: ${s.label}.`
-            : "Você está vendo a visão geral com todas as comunidades integradas.";
-        }
-
-        let upcomingVisible = 0;
-        let featuredVisible = 0;
-        cards.forEach((card) => {
-          const show = matches(card);
-          card.classList.toggle("hidden-by-filter", !show);
-          if (show && card.dataset.section === "upcoming") upcomingVisible += 1;
-          if (show && card.dataset.section === "featured") featuredVisible += 1;
-        });
-        if (upcomingEmpty) upcomingEmpty.hidden = upcomingVisible > 0;
-        if (featuredSection) featuredSection.hidden = featuredVisible === 0;
-        applyPagination();
-      }
-
-      chips.forEach((chip) =>
-        chip.addEventListener("click", () => applyFilter(chip.dataset.filter)),
-      );
-      loadMoreWrap?.querySelector("button")?.addEventListener("click", () => {
-        pastShown += PAGE_SIZE;
-        applyPagination();
-      });
-    })();
+    initEventFilters();
   </script>
 </PublicLayout>
 

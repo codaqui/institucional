@@ -82,7 +82,7 @@ const OPEN_IN_NEW_PATH =
     }
 
     <h3 class="mb-2 text-xl font-bold text-text-primary">{event.title}</h3>
-    <p class="mb-4 text-sm text-text-secondary">{event.summary}</p>
+    <p class="event-summary mb-4 text-sm text-text-secondary">{event.summary}</p>
 
     <ul class="mb-4 flex list-none flex-col gap-1.5 p-0 text-sm text-text-primary">
       <li>
@@ -164,6 +164,14 @@ const OPEN_IN_NEW_PATH =
 </article>
 
 <style>
+  .event-summary {
+    display: -webkit-box;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
   .chip,
   .chip-outline {
     display: inline-flex;

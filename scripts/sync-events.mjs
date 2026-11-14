@@ -193,11 +193,13 @@ function mapDiscordEvent(event, config) {
   const url = config.ctaHref || config.widgetUrl || "https://discord.com/";
   const creatorName = event.creator?.global_name || event.creator?.username || config.defaultHost;
   const recurrenceRule = normalizeDiscordRecurrence(event.recurrence_rule);
+  const cleanDescription = stripMarkdown(event.description || "");
 
   return {
     id: event.id,
     title: event.name,
-    summary: event.description || "Evento publicado pela comunidade no Discord.",
+    summary: truncateText(cleanDescription || "Evento publicado pela comunidade no Discord."),
+    description: event.description ?? undefined,
     startAt: event.scheduled_start_time,
     endAt: event.scheduled_end_time || undefined,
     timezone: "America/Sao_Paulo",
@@ -2021,6 +2023,7 @@ export {
   extractDoitySectionCards,
   mapDoityEvent,
   mapDoityEventStatus,
+  mapDiscordEvent,
   parseDoityCardDateTime,
   extractSymplaDateLine,
   extractSymplaDescription,

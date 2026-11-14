@@ -118,7 +118,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 
 **Eventos**
 - **Peso do HTML** — os 415 eventos passados são renderizados no HTML (filtro só via CSS): página inicial pesada. **Onda 2 (paginação real/por fonte).**
-- **Filtro por fonte ignorado na query string** — `/eventos?source=<key>` (link "Ver todos" das comunidades) é ignorado pelo script inline. **Onda 1.**
+- **Filtro por fonte na query string — corrigido em 2026-11-13** — `/eventos?source=<key>` (link "Ver todos" das comunidades) seleciona o chip e filtra a agenda quando a fonte existe; parâmetros ausentes ou inválidos mantêm "Tudo". **Onda 1.**
 
 **Membro**
 - **"SortCoins e reembolsos" contém apenas reembolsos** — rótulo errado (`WalletTab.tsx:147`); doações/assinaturas/reembolsos aparecem em 3 lugares cada. **Onda 1 (rótulo) + Onda 2 (consolidação).**
