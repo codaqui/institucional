@@ -106,6 +106,19 @@ function buildEvent(overrides: Record<string, unknown> = {}) {
   };
 }
 
+const ticketType = {
+  id: "tt-1",
+  name: "Lote 1",
+  kind: "free",
+  priceCents: 0,
+  quantityTotal: 100,
+  quantitySold: 95,
+  salesStartAt: null,
+  salesEndAt: null,
+  maxPerOrder: 4,
+  isActive: true,
+};
+
 // ── Fixtures do hub (eventos externos via snapshot estático) ────────────────
 
 const externalEvent = {
@@ -659,78 +672,39 @@ describe("/admin/eventos", () => {
     });
   });
 
-  it("não remove membro da equipe sem confirmação", async () => {
+  it.each([
+    {
+      action: "remover membro da equipe",
+      button: "remover staff",
+      confirmation: "Remover este membro da equipe do evento “Evento Teste”?",
+      url: "/events/evt-1/staff/staff-1",
+      method: "DELETE",
+    },
+    {
+      action: "desativar tipo de ingresso",
+      button: "desativar Lote 1",
+      confirmation: "Desativar o tipo de ingresso “Lote 1”? Ele não poderá mais ser comprado.",
+      url: "/events/ticket-types/tt-1",
+      method: "PATCH",
+    },
+  ])("não deve $action sem confirmação", async ({ button, confirmation, url, method }) => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([
-          buildEvent({
-            staff: [{ id: "staff-1", memberId: "member-1", staffRole: "checker" }],
-          }),
-        ]);
-      }
-      if (url.endsWith("/admin/members")) {
-        return jsonResponse([{ id: "member-1", name: "Maria Silva", githubHandle: "maria" }]);
-      }
-      return jsonResponse(null, { status: 404 });
+    const authFetch = mockEventEditorFetch({
+      staff: [{ id: "staff-1", memberId: "member-1", staffRole: "checker" }],
+      ticketTypes: [ticketType],
     });
-    authState.authFetch = authFetch;
     mockAuth({ roles: ["admin"] });
 
     renderWithMui(<EventosAdminApp />);
     fireEvent.click(await screen.findByText("Evento Teste"));
-    fireEvent.click(screen.getByRole("button", { name: "remover staff" }));
+    fireEvent.click(screen.getByRole("button", { name: button }));
 
-    expect(confirmSpy).toHaveBeenCalledWith(
-      "Remover este membro da equipe do evento “Evento Teste”?",
-    );
+    expect(confirmSpy).toHaveBeenCalledWith(confirmation);
     expect(authFetch).not.toHaveBeenCalledWith(
-      "/events/evt-1/staff/staff-1",
-      expect.objectContaining({ method: "DELETE" }),
+      url,
+      expect.objectContaining({ method }),
     );
-  });
-
-  it("não desativa tipo de ingresso sem confirmação", async () => {
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
-    const ticket = {
-      id: "ticket-1",
-      name: "Lote 1",
-      kind: "free",
-      priceCents: 0,
-      quantityTotal: 100,
-      quantitySold: 0,
-      salesStartAt: null,
-      salesEndAt: null,
-      maxPerOrder: 4,
-      isActive: true,
-    };
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      return jsonResponse(null, { status: 404 });
-    });
-    authState.authFetch = authFetch;
-    mockAuth({ roles: ["admin"] });
-
-    renderWithMui(<EventosAdminApp />);
-    fireEvent.click(await screen.findByText("Evento Teste"));
-    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
-
-    expect(confirmSpy).toHaveBeenCalledWith(
-      "Desativar o tipo de ingresso “Lote 1”? Ele não poderá mais ser comprado.",
-    );
-    expect(authFetch).not.toHaveBeenCalledWith(
-      "/events/ticket-types/ticket-1",
-      expect.objectContaining({ method: "PATCH" }),
-    );
+    confirmSpy.mockRestore();
   });
 
   it("pré-visualização da descrição renderiza markdown", async () => {
@@ -749,24 +723,12 @@ describe("/admin/eventos", () => {
 
   it("recalcular vagas chama o endpoint e exibe os ajustes", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const ticket = {
-      id: "tt-1",
-      name: "Lote 1",
-      kind: "free",
-      priceCents: 0,
-      quantityTotal: 100,
-      quantitySold: 95,
-      salesStartAt: null,
-      salesEndAt: null,
-      maxPerOrder: 4,
-      isActive: true,
-    };
     const authFetch = createAuthFetchMock();
     authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
       if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
       if (url.endsWith("/events/external/activations")) return jsonResponse([]);
       if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
+        return jsonResponse([buildEvent({ ticketTypes: [ticketType] })]);
       }
       if (url.endsWith("/admin/members")) return jsonResponse([]);
       if (url.endsWith("/events/evt-1/reconcile-quota") && options?.method === "POST") {
