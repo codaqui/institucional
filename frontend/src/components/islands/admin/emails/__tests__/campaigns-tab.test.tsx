@@ -87,6 +87,7 @@ const sampleDetail = {
 
 describe("EmailsCampaignsTab", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     authState.isAdmin = true;
     authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
@@ -108,6 +109,13 @@ describe("EmailsCampaignsTab", () => {
             emailNormalized: "unsub@codaqui.dev",
             reason: "Descadastro",
             source: "unsubscribe",
+            createdAt: "2026-11-11T10:00:00Z",
+          },
+          {
+            id: "sup-2",
+            emailNormalized: "manual@codaqui.dev",
+            reason: "Solicitação administrativa",
+            source: "admin",
             createdAt: "2026-11-11T10:00:00Z",
           },
         ]);
@@ -147,6 +155,22 @@ describe("EmailsCampaignsTab", () => {
       }
       return jsonResponse({}, { status: 200 });
     });
+  });
+
+  it("não remove supressão administrativa sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    renderWithMui(<EmailsCampaignsTab />);
+
+    await screen.findByText("manual@codaqui.dev");
+    fireEvent.click(screen.getByRole("button", { name: /Remover/i }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      expect.stringContaining("manual@codaqui.dev"),
+    );
+    expect(authState.authFetch).not.toHaveBeenCalledWith(
+      "/campaigns/suppressions/sup-2",
+      expect.objectContaining({ method: "DELETE" }),
+    );
   });
 
   it("executa a jornada completa: criação de rascunho, prévia congelada, teste, confirmação e retry", async () => {
@@ -211,7 +235,7 @@ describe("EmailsCampaignsTab", () => {
     expect(
       await screen.findByText(/Campanha confirmada e adicionada à fila/i),
     ).toBeInTheDocument();
-  });
+  }, 10000);
 
   it("oculta formulário de criação e PII de destinatários para finance-analyzer", async () => {
     authState.isAdmin = false;

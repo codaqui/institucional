@@ -644,6 +644,14 @@ export default function EmailsCampaignsTab() {
   };
 
   const handleDeleteSuppression = async (id: string) => {
+    const suppression = suppressions.find((item) => item.id === id);
+    if (
+      !window.confirm(
+        `Remover a supressão de ${suppression?.emailNormalized ?? "este endereço"}? O endereço poderá voltar a receber campanhas.`,
+      )
+    ) {
+      return;
+    }
     setBusyAction(`del-sup-${id}`);
     setFeedback(null);
     try {

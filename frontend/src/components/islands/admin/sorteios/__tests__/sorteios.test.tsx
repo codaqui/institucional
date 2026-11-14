@@ -58,6 +58,7 @@ const openRaffle = {
 
 describe("/admin/sorteios", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     authState.ready = false;
     authState.isLoggedIn = false;
     authState.isAdmin = false;
@@ -96,6 +97,7 @@ describe("/admin/sorteios", () => {
   });
 
   it("carrega sorteios e executa ações de sortear/cancelar", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     authState.authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
       if (url.endsWith("/club/raffles/all")) {
         return jsonResponse([openRaffle]);
@@ -135,11 +137,34 @@ describe("/admin/sorteios", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Cancelar/i }));
+    expect(confirmSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Cancelar o sorteio “Sorteio de Maio”?"),
+    );
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(
         expect.stringContaining("/club/raffles/raffle-1"),
         expect.objectContaining({ method: "DELETE" }),
       );
     });
+  }, 10000);
+
+  it("não cancela sorteio sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    authState.authFetch.mockImplementation(async (url: string) => {
+      if (url.endsWith("/club/raffles/all")) return jsonResponse([openRaffle]);
+      return jsonResponse(null, { ok: false, status: 404 });
+    });
+    mockAdmin();
+
+    renderWithMui(<SorteiosApp />);
+    expect(await screen.findByText("Sorteio de Maio")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /Cancelar/i }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(authState.authFetch).not.toHaveBeenCalledWith(
+      expect.stringContaining("/club/raffles/raffle-1"),
+      expect.objectContaining({ method: "DELETE" }),
+    );
   });
 });

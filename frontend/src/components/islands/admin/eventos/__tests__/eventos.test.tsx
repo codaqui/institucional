@@ -659,6 +659,80 @@ describe("/admin/eventos", () => {
     });
   });
 
+  it("não remove membro da equipe sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([
+          buildEvent({
+            staff: [{ id: "staff-1", memberId: "member-1", staffRole: "checker" }],
+          }),
+        ]);
+      }
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse([{ id: "member-1", name: "Maria Silva", githubHandle: "maria" }]);
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "remover staff" }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Remover este membro da equipe do evento “Evento Teste”?",
+    );
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/evt-1/staff/staff-1",
+      expect.objectContaining({ method: "DELETE" }),
+    );
+  });
+
+  it("não desativa tipo de ingresso sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const ticket = {
+      id: "ticket-1",
+      name: "Lote 1",
+      kind: "free",
+      priceCents: 0,
+      quantityTotal: 100,
+      quantitySold: 0,
+      salesStartAt: null,
+      salesEndAt: null,
+      maxPerOrder: 4,
+      isActive: true,
+    };
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Desativar o tipo de ingresso “Lote 1”? Ele não poderá mais ser comprado.",
+    );
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/ticket-types/ticket-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+  });
+
   it("pré-visualização da descrição renderiza markdown", async () => {
     mockEventEditorFetch({ description: "Veja **isto** aqui" });
     mockAuth({ roles: ["admin"] });

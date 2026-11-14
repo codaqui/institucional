@@ -110,7 +110,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 ### P1 — por jornada
 
 **Global/transversal**
-- **Sem h1 na maioria das páginas públicas** — `PageHero.astro:48` renderiza o título como `<h2>` (afeta ~16 rotas: /sobre/*, /eventos, /transparencia, /comunidades, /projetos, /patrocinadores, /empresas, /membros, /clube, /participe/*, /universitario, /c4p, /sobre/titulos, /desenvolvedores/api, /contato). **Onda 1.**
+- **Sem h1 na maioria das páginas públicas — corrigido em 2026-11-13** — `PageHero.astro` agora renderiza o título como `<h1>`, cobrindo as páginas institucionais que usam esse componente. **Onda 1.**
 - **Páginas órfãs de navegação** — `/comunidades`, `/c4p`, `/universitario`, `/assembleias`, `/empresas`, `/regex` não constam no header (`SiteHeader.astro:5-33`) nem no footer. **Onda 1 (nav) + decisão de conteúdo (abaixo).**
 - **C4P: dark variant e main duplicado** — as 5 páginas C4P usam classes `dark:` sem `@custom-variant dark` no Tailwind v4 (responde a `prefers-color-scheme`, não a `data-theme`) e `<main id="conteudo">` aninhado ao do `PublicLayout` (skip-link/landmarks ambíguos). **Onda 1 (nosso próprio bug).**
 - **Dependência total de JS sem noscript** — só 4 páginas têm fallback; `/clube`, `/participe/mentoria`, `/desenvolvedores/api` e CTAs de evento renderizam vazio sem JS. **Onda 2 (fallbacks progressivos).**
@@ -126,9 +126,9 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 - **Deep link impossível nas abas do Clube** (sem estado na URL) e `tabpanel` sem `aria-labelledby` (`/participe/apoiar`, `/clube`). **Onda 1 (a11y).**
 
 **Admin**
-- **Ações destrutivas sem confirmação** — remover proposta C4P (`C4pAdminDetailApp.tsx:135`), remover avaliador (`:294`), supressão de campanha (`EmailsCampaignsTab.tsx:643`), cancelar sorteio (`SorteiosApp.tsx:230`), remover staff (`useEventosMutations.ts:312`) — todos DELETE direto no clique. **Onda 1 (ModalConfirm existente).**
-- **`window.confirm` nativo** fora do padrão (`AnnouncementsAdminApp.tsx:90`). **Onda 1.**
-- **21 dos 26 IconButtons sem `aria-label`** — eventos, overrides, orders, hub, pagamentos, carteiras, empresas, fornecedores. **Onda 1.**
+- **Ações destrutivas sem confirmação — corrigido em 2026-11-13** — propostas/avaliadores C4P, supressões de campanhas, cancelamento de sorteio, remoção de staff e desativação de tipo de ingresso agora pedem confirmação antes de alterar dados. A confirmação usa `window.confirm`; migrar para `ModalConfirm` permanece como melhoria de consistência visual.
+- **`window.confirm` nativo** fora do padrão visual (`AnnouncementsAdminApp.tsx:90` e ações acima). **Onda 1 (padronizar com ModalConfirm).**
+- **Nomes acessíveis de IconButtons — auditado em 2026-11-13** — a inspeção dos componentes React não encontrou `IconButton` sem `aria-label`; manter verificação em novas ações. **Onda 1 concluída para este achado.**
 - **Tabelas financeiras sem paginação** — reembolsos, fornecedores, pagamentos, recebimentos, sorteios, empresas. **Onda 2 (DataTable + PaginationControls).**
 - **Heurística de erro/sucesso por substring `"Não"`** — `C4pAdminDetailApp.tsx:154,309`. **Onda 1 (useFeedback estruturado).**
 - **`C4pAdminApp` sem guard client-side** — qualquer membro logado abre a tela e falha no fetch (o detail já faz certo). **Onda 1.**
@@ -166,7 +166,7 @@ Prioridades: **P0** = quebra usuário · **P1** = UX ruim, entra no próximo cic
 
 ## Ondas de execução propostas
 
-**Onda 1 — correções P0/P1 baratas (1-2 PRs):** P0-1 (link docs); h1 no PageHero; C4P dark variant + main id; contraste primary-500; filtro `/eventos?source=`; rótulo "Reembolsos" no /membro + indicador de tabs (guia tabs); aria-labels dos IconButtons; confirmações destrutivas + `window.confirm`; feedback estruturado C4P; guard C4pAdminApp; typos/chip bio/headings projetos; abas do Clube com estado na URL + `aria-labelledby`.
+**Onda 1 — correções P0/P1 baratas (1-2 PRs):** P0-1 (link docs); h1 no PageHero; C4P dark variant + main id; contraste primary-500; filtro `/eventos?source=`; rótulo "Reembolsos" no /membro + indicador de tabs (guia tabs); auditoria de aria-labels dos IconButtons (nenhum ausente encontrado); confirmações das ações destrutivas identificadas (com padronização visual para `ModalConfirm` pendente); feedback estruturado C4P; guard C4pAdminApp; typos/chip bio/headings projetos; abas do Clube com estado na URL + `aria-labelledby`.
 **Onda 2 — robustez e dados (1-2 PRs):** tabelas financeiras com paginação real; paginação unificada; API_URL→resolveApiUrl; `<dialog>` nativo→MUI; error states com retry; Skeleton no lugar de CircularProgress nas tabelas; /eventos paginação real; números de mentoria do snapshot; atas/assembleias como fonte; estudar datas; /projetos/comprovante sem código; doação por comunidade com contexto; monólitos (extração dos 5 arquivos grandes).
 **Onda 3 — consolidação estrutural (1-2 PRs):** hooks compartilhados (`useRequireAccess`, `useFeedback`, `useAuthQuery`, `MemberAutocomplete`), DataTable ampliado, sidebar nova taxonomia, fonte única de comunidades, revisão de `client:only`→`client:visible`.
 **Decisões ratificadas (2026-11-13):** (a) `/c4p` **entra na nav pública agora**; `/universitario` e `/assembleias` **entram só com conteúdo real**. (b) Ondas 1→3 **mantidas em especificação por ora** — execução fica para um momento posterior, quando a presidência liberar (prioridade atual é o rollout do C4P e as pendências operacionais).
