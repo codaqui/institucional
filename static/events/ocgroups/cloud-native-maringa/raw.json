@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-14T12:01:23.979Z",
+  "generatedAt": "2026-11-14T13:01:13.817Z",
   "events": [
     {
       "id": "ocgroups-319bd05d-78db-48e1-8aa4-6ecc228f63d5",
@@ -19,7 +19,7 @@
       ],
       "ctaLabel": "Ver no CNCF Open Community Groups",
       "featured": false,
-      "status": "scheduled",
+      "status": "active",
       "entityType": "external",
       "userCount": 29,
       "creatorName": "Isadora Marcondes",
