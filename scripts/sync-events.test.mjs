@@ -33,11 +33,12 @@ const DISCORD_CONFIG = {
 };
 
 test("mapDiscordEvent: remove Markdown e limita resumo ao tamanho usado pelas demais fontes", () => {
+  const originalDescription = `**Pauta:** [documentação](https://example.com)\n${"detalhes ".repeat(40)}`;
   const event = mapDiscordEvent(
     {
       id: "discord-event",
       name: "Reunião Geral da Associação",
-      description: `**Pauta:** [documentação](https://example.com)\n${"detalhes ".repeat(40)}`,
+      description: originalDescription,
       scheduled_start_time: "2026-11-20T18:00:00Z",
       status: 1,
     },
@@ -49,6 +50,8 @@ test("mapDiscordEvent: remove Markdown e limita resumo ao tamanho usado pelas de
   assert.ok(!event.summary.includes("https://"));
   assert.ok(!event.summary.includes("**"));
   assert.ok(event.summary.endsWith("…"));
+  assert.equal(event.description, originalDescription);
+  assert.ok(event.description.length > 220);
 });
 
 test("mapDiscordEvent: usa resumo padrão quando a descrição fica vazia após limpar Markdown", () => {

@@ -199,6 +199,7 @@ function mapDiscordEvent(event, config) {
     id: event.id,
     title: event.name,
     summary: truncateText(cleanDescription || "Evento publicado pela comunidade no Discord."),
+    description: event.description ?? undefined,
     startAt: event.scheduled_start_time,
     endAt: event.scheduled_end_time || undefined,
     timezone: "America/Sao_Paulo",
