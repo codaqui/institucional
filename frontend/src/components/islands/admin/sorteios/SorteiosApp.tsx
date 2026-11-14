@@ -228,6 +228,14 @@ function SorteiosInner() {
   };
 
   const cancelRaffle = async (raffleId: string) => {
+    const raffle = raffles.find((item) => item.id === raffleId);
+    if (
+      !window.confirm(
+        `Cancelar o sorteio “${raffle?.title ?? "selecionado"}”? As participações deixarão de valer e esta ação não pode ser desfeita.`,
+      )
+    ) {
+      return;
+    }
     setActionError("");
     try {
       const res = await authFetch(`/club/raffles/${raffleId}`, { method: "DELETE" });

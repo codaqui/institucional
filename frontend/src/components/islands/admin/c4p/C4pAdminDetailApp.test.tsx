@@ -48,8 +48,59 @@ const talksPage = {
 
 describe("C4pAdminDetailApp", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     mocks.authFetch.mockReset();
     mocks.state.roles = ["admin"];
+  });
+
+  it("não exclui uma proposta sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    mocks.authFetch.mockResolvedValue(jsonResponse(talksPage));
+    seedDetail();
+    renderWithMui(<C4pAdminDetailApp callId="call-1" />);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("tab", { name: /propostas/i }));
+    await user.click(await screen.findByRole("button", { name: /excluir/i }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Excluir esta proposta da campanha? Esta ação não pode ser desfeita.",
+    );
+    expect(mocks.authFetch).not.toHaveBeenCalledWith(
+      "/c4p/manage/calls/call-1/talks/talk-1",
+      expect.objectContaining({ method: "DELETE" }),
+    );
+  });
+
+  it("não remove avaliador sem confirmação", async () => {
+    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+    mocks.authFetch.mockImplementation(async (url: string) => {
+      if (url.endsWith("/evaluators")) {
+        return jsonResponse([
+          {
+            designationId: "designation-1",
+            status: "active",
+            member: { id: "member-1", name: "Maria", handle: "maria" },
+          },
+        ]);
+      }
+      if (url.includes("/talks?")) return jsonResponse(talksPage);
+      return jsonResponse(callDetail);
+    });
+    renderWithMui(<C4pAdminDetailApp callId="call-1" />);
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole("tab", { name: /avaliadores/i }));
+    await screen.findByText("Maria (@maria)");
+    await user.click(screen.getByRole("button", { name: /remover/i }));
+
+    expect(confirmSpy).toHaveBeenCalledWith(
+      "Remover este avaliador da campanha? O acesso à avaliação será revogado.",
+    );
+    expect(mocks.authFetch).not.toHaveBeenCalledWith(
+      "/c4p/manage/calls/call-1/evaluators/designation-1",
+      expect.objectContaining({ method: "DELETE" }),
+    );
   });
 
   it("finalizar envia os talkIds selecionados", async () => {

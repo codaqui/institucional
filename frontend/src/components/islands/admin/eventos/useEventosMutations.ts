@@ -259,6 +259,13 @@ export function useAdminEventosMutations(
 
   const handleDeactivateTicketType = useCallback(
     async (ticket: TicketType) => {
+      if (
+        !window.confirm(
+          `Desativar o tipo de ingresso “${ticket.name}”? Ele não poderá mais ser comprado.`,
+        )
+      ) {
+        return;
+      }
       setActionError("");
       try {
         const res = await authFetch(`/events/ticket-types/${ticket.id}`, {
@@ -311,6 +318,13 @@ export function useAdminEventosMutations(
   const handleRemoveStaff = useCallback(
     async (event: ManagedEvent, staff: EventStaff) => {
       if (staffRemovingId) return;
+      if (
+        !window.confirm(
+          `Remover este membro da equipe do evento “${event.title}”?`,
+        )
+      ) {
+        return;
+      }
       setStaffRemovingId(staff.id);
       setActionError("");
       try {

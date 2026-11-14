@@ -137,6 +137,9 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   };
 
   const removeTalk = async (talkId: string) => {
+    if (!window.confirm("Excluir esta proposta da campanha? Esta ação não pode ser desfeita.")) {
+      return;
+    }
     const response = await authFetch(`/c4p/manage/calls/${callId}/talks/${talkId}`, {
       method: "DELETE",
     });
@@ -292,6 +295,9 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   };
 
   const remove = async (designationId: string) => {
+    if (!window.confirm("Remover este avaliador da campanha? O acesso à avaliação será revogado.")) {
+      return;
+    }
     const response = await authFetch(`/c4p/manage/calls/${callId}/evaluators/${designationId}`, {
       method: "DELETE",
     });
