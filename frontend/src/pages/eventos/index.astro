@@ -384,6 +384,16 @@ const OPEN_IN_NEW_PATH =
         pastShown += PAGE_SIZE;
         applyPagination();
       });
+
+      // Filtro por fonte via query string (/eventos?source=<key>) — aplica o
+      // filtro somente se a fonte existir no mapa; senão cai na visão geral.
+      const querySource = new URLSearchParams(window.location.search).get("source");
+      const knownSources = new Set(Object.keys(stats).filter((key) => key !== "all"));
+      if (querySource && knownSources.has(querySource)) {
+        applyFilter(querySource);
+      } else {
+        applyFilter("all");
+      }
     })();
   </script>
 </PublicLayout>
