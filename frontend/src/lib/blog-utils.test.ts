@@ -7,6 +7,7 @@ import {
   readingTimeMinutes,
   plainExcerpt,
   contentAssetUrl,
+  resolvePostImage,
   sortPostsDesc,
   postCardProps,
   collectByTag,
@@ -108,6 +109,35 @@ describe("contentAssetUrl", () => {
   });
 });
 
+describe("resolvePostImage", () => {
+  it("prioriza a imagem do frontmatter e normaliza o caminho local", () => {
+    expect(
+      resolvePostImage({
+        body: "![Corpo](img/corpo.png)",
+        data: { image: "./img/frontmatter.png" },
+      }),
+    ).toEqual({ src: "/blog-assets/img/frontmatter.png", alt: "" });
+  });
+
+  it("usa a primeira imagem Markdown do corpo", () => {
+    expect(resolvePostImage({ body: "![Capa](img/post/capa.png)", data: {} })).toEqual({
+      src: "/blog-assets/img/post/capa.png",
+      alt: "",
+    });
+  });
+
+  it("aceita HTML com alt antes de src e aspas simples", () => {
+    expect(
+      resolvePostImage({ body: "<img alt=\"Capa\" src='https://example.com/capa.png'>", data: {} }),
+    ).toEqual({ src: "https://example.com/capa.png", alt: "" });
+  });
+
+  it("retorna null quando o post não tem imagem", () => {
+    expect(resolvePostImage({ body: "Somente texto", data: {} })).toBeNull();
+    expect(resolvePostImage({ data: {} })).toBeNull();
+  });
+});
+
 describe("postCardProps", () => {
   it("monta props do card", () => {
     const card = postCardProps({
@@ -118,6 +148,16 @@ describe("postCardProps", () => {
     expect(card.url).toBe("/blog/2024/07/22/x");
     expect(card.excerpt).toBe("Resumo.");
     expect(card.tags[0].url).toBe("/blog/category/historia");
+    expect(card.image).toBeNull();
+  });
+
+  it("expõe uma imagem remota decorativa", () => {
+    const card = postCardProps({
+      id: "2024-07-22-x",
+      body: "![Capa](https://example.com/capa.png)",
+      data: { slug: "2024/07/22/x", title: "Título", tags: [] },
+    });
+    expect(card.image).toEqual({ src: "https://example.com/capa.png", alt: "" });
   });
 });
 

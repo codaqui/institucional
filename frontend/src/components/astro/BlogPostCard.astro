@@ -7,14 +7,26 @@ interface Props {
   date: Date;
   excerpt: string;
   readingMinutes: number;
+  image: { src: string; alt: "" } | null;
   tags: { label: string; url: string }[];
 }
 
-const { url, title, date, excerpt, readingMinutes, tags } = Astro.props;
+const { url, title, date, excerpt, readingMinutes, image, tags } = Astro.props;
 const dateLabel = formatPostDate(date);
 ---
 
 <article class="rounded-lg border border-border bg-surface p-5 transition-shadow hover:shadow-md">
+  {image && (
+    <img
+      src={image.src}
+      alt=""
+      aria-hidden="true"
+      width="640"
+      height="360"
+      loading="lazy"
+      class="mb-4 aspect-video w-full rounded-md object-cover"
+    />
+  )}
   <h2 class="text-xl font-bold">
     <a href={url} class="text-text-primary hover:text-link">{title}</a>
   </h2>
