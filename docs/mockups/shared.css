@@ -63,6 +63,7 @@ a:focus-visible, button:focus-visible {
   background: var(--cq-color-primary-50);
   border-bottom: 1px solid var(--cq-color-border);
   font-size: 14px;
+  padding: 0;
 }
 .announcement .container { display: flex; gap: 10px; align-items: center; padding-top: 8px; padding-bottom: 8px; }
 .announcement strong { font-weight: 600; }
@@ -124,7 +125,7 @@ nav.main-nav a[aria-current="page"] {
 .hero p.sub { font-size: 17px; max-width: 640px; opacity: .95; }
 .hero .actions { display: flex; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
 .hero .btn-light { background: #fff; color: var(--cq-color-primary-800); }
-.hero .btn-ghost-light { background: rgb(255 255 255 / 0.14); color: #fff; border: 1px solid rgb(255 255 255 / 0.4); }
+.hero .btn-ghost-light { background: rgb(0 0 0 / 0.14); color: #fff; border: 1px solid rgb(255 255 255 / 0.4); }
 
 section { padding: 40px 0 8px; }
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 20px; }

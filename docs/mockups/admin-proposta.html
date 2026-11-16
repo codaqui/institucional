@@ -41,7 +41,7 @@
     [data-theme="dark"] .group a[aria-current="page"] { color: var(--cq-color-primary-500); }
     .group .ic { width: 18px; text-align: center; }
     .group .count { margin-left: auto; background: var(--cq-color-warn-bg); color: var(--cq-color-warn); border-radius: 999px; font-size: 11px; font-weight: 800; padding: 0 7px; }
-    .hidden { display: none !important; }
+    .hidden { display: none; }
 
     .topbar { display: flex; align-items: center; gap: 12px; padding: 12px 28px; background: var(--cq-color-surface); border-bottom: 1px solid var(--cq-color-border); flex-wrap: wrap; }
     .crumbs { font-size: 13px; color: var(--cq-color-text-secondary); }
@@ -252,8 +252,8 @@
     function applyRole() {
       const role = roleSel.value;
       document.querySelectorAll("[data-roles]").forEach((el) => {
-        const roles = el.dataset.roles.split(" ");
-        const show = roles.includes("*") || roles.includes(role) || (role === "admin");
+        const roles = new Set(el.dataset.roles.split(" "));
+        const show = roles.has("*") || roles.has(role) || (role === "admin");
         el.classList.toggle("hidden", !show);
       });
       document.querySelectorAll("[data-group]").forEach((g) => {

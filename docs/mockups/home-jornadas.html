@@ -12,7 +12,7 @@
     .hero .persona-pills { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; list-style: none; }
     .hero .persona-pills a {
       display: inline-flex; gap: 8px; align-items: center; padding: 10px 16px; border-radius: 999px;
-      background: rgb(255 255 255 / 0.14); border: 1px solid rgb(255 255 255 / 0.45);
+      background: rgb(0 0 0 / 0.14); border: 1px solid rgb(255 255 255 / 0.45);
       color: #fff; font-weight: 700; text-decoration: none; font-size: 15px;
     }
     .hero .persona-pills a:hover { background: #fff; color: var(--cq-color-primary-800); }
@@ -55,10 +55,6 @@
     /* ===== Revisão: Codaqui como guarda-chuva de comunidades ===== */
     .hero .cta-row{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap}
     .umbrella-tag{display:inline-flex;gap:8px;align-items:center;background:rgb(255 255 255/.16);border-radius:999px;padding:5px 14px;font-size:13px;font-weight:700}
-    .stats{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border);padding:0}
-    .stats ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;padding:16px 0;text-align:center}
-    .stats strong{display:block;font-size:24px;font-weight:800;color:var(--cq-color-primary-800)}[data-theme="dark"] .stats strong{color:var(--cq-color-primary-500)}
-    .stats span{font-size:13px;color:var(--cq-color-text-secondary)}
     .stats .note{font-size:12px;text-align:center;color:var(--cq-color-text-secondary);padding-bottom:10px}
 
     .comm-card{display:flex;flex-direction:column;gap:10px;padding:18px;border-top:5px solid var(--cc,var(--cq-color-primary-700))}
@@ -93,12 +89,12 @@
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-  <div class="announcement" role="region" aria-label="Anúncios institucionais">
+  <section class="announcement" aria-label="Anúncios institucionais">
     <div class="container">
       <span class="badge">Aviso</span>
       <p><strong>C4P aberto:</strong> DevPR Conf 2027 recebe propostas até 15/12. <a href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a></p>
     </div>
-  </div>
+  </section>
 
   <header class="site">
     <div class="container">
@@ -113,7 +109,7 @@
         <a href="/participe/estudar">Aprender</a>
         <a href="/participe/apoiar">Apoiar</a>
         <a href="/sobre/ong" class="btn btn-primary btn-sm">Integrar minha comunidade</a>
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema claro e escuro">◐ Tema</button>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Tema: alternar entre modo claro e escuro">◐ Tema</button>
       </nav>
     </div>
   </header>
@@ -216,9 +212,9 @@
     <section class="container" aria-labelledby="atv-title">
       <div class="section-head"><h2 id="atv-title">O que as comunidades estão fazendo</h2><a href="/eventos">Agenda de todas →</a></div>
       <div class="three">
-        <article class="card"><div class="thumb thumb-event-1" role="img" aria-label="DevPR Conf 2026">DevPR Conf 2026</div><div class="body"><p class="kicker">DevParaná · Evento</p><h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3><p class="meta">12 de dezembro de 2026 · Maringá, PR</p><p class="desc">Conferência com trilhas de frontend, backend, DevOps e comunidade.</p></div></article>
-        <article class="card"><div class="thumb thumb-blog-1" role="img" aria-label="C4P">C4P aberto</div><div class="body"><p class="kicker">DevParaná · C4P</p><h3><a href="/c4p/devpr-conf-2027/submeter">Chamada de trabalhos DevPR Conf 2027</a></h3><p class="meta">Até 15/12 · curadoria pública</p><p class="desc">Submeta sua palestra; critérios e resultado são abertos.</p></div></article>
-        <article class="card"><div class="thumb thumb-blog-2" role="img" aria-label="Elas no Código">Elas no Código</div><div class="body"><p class="kicker">Elas no Código · Roda de conversa</p><h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Maternidade e carreira em tecnologia</a></h3><p class="meta">12 de maio de 2026 · 64 participantes</p><p class="desc">Relatos e caminhos práticos de apoio entre mulheres em tech.</p></div></article>
+        <article class="card"><div class="thumb thumb-event-1">DevPR Conf 2026</div><div class="body"><p class="kicker">DevParaná · Evento</p><h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3><p class="meta">12 de dezembro de 2026 · Maringá, PR</p><p class="desc">Conferência com trilhas de frontend, backend, DevOps e comunidade.</p></div></article>
+        <article class="card"><div class="thumb thumb-blog-1">C4P aberto</div><div class="body"><p class="kicker">DevParaná · C4P</p><h3><a href="/c4p/devpr-conf-2027/submeter">Chamada de trabalhos DevPR Conf 2027</a></h3><p class="meta">Até 15/12 · curadoria pública</p><p class="desc">Submeta sua palestra; critérios e resultado são abertos.</p></div></article>
+        <article class="card"><div class="thumb thumb-blog-2">Elas no Código</div><div class="body"><p class="kicker">Elas no Código · Roda de conversa</p><h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Maternidade e carreira em tecnologia</a></h3><p class="meta">12 de maio de 2026 · 64 participantes</p><p class="desc">Relatos e caminhos práticos de apoio entre mulheres em tech.</p></div></article>
       </div>
     </section>
 

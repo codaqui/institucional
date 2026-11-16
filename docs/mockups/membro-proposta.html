@@ -188,8 +188,8 @@
   <script>
     const tabs=[...document.querySelectorAll('[role=tab]')];
     function select(t){tabs.forEach(x=>{const on=x===t;x.setAttribute('aria-selected',on);x.tabIndex=on?0:-1;document.getElementById(x.getAttribute('aria-controls')).hidden=!on});t.focus();history.replaceState(null,'','#'+t.getAttribute('aria-controls').slice(2))}
-    tabs.forEach((t,i)=>{t.addEventListener('click',()=>select(t));t.addEventListener('keydown',e=>{if(e.key==='ArrowRight')select(tabs[(i+1)%tabs.length]);if(e.key==='ArrowLeft')select(tabs[(i-1+tabs.length)%tabs.length])})});
-    document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
+    tabs.forEach((t,i)=>{t.addEventListener('click',()=>select(t));t.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){select(tabs[(i+1)%tabs.length])}if(e.key==='ArrowLeft'){select(tabs[(i-1+tabs.length)%tabs.length])}})});
+    document.querySelectorAll('.chips').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b){return}g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}));
     const prev=document.getElementById('prev');
     function renderPrev(){prev.innerHTML=[...document.querySelectorAll('[data-prev]')].filter(i=>i.checked).map(i=>'<li>• '+i.dataset.prev+'</li>').join('')||'<li>Somente nome e handle</li>'}
     document.querySelectorAll('[data-prev]').forEach(i=>i.addEventListener('change',renderPrev));renderPrev();

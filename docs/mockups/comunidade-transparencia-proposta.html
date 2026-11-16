@@ -27,7 +27,7 @@
     a:focus-visible,button:focus-visible,select:focus-visible{outline:2px solid var(--c-primary);outline-offset:2px}
     .skip-link{position:absolute;left:-9999px;background:var(--c-primary-dark);color:#fff;padding:8px 14px;z-index:100}.skip-link:focus{left:8px;top:8px}
     .container{max-width:1100px;margin:0 auto;padding:0 20px}
-    .hidden{display:none!important}
+    .hidden{display:none}
 
     /* Faixa institucional: a comunidade pertence a uma associação */
     .assoc-bar{background:var(--c-primary-dark);color:#fff;font-size:13px}
@@ -108,7 +108,7 @@
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-  <!-- Contexto associativo permanente em todo tenant -->
+  <!-- Contexto associativo permanente em cada tenant -->
   <div class="assoc-bar"><div class="container">
     <span><a class="brand" href="https://codaqui.dev" aria-label="Associação Codaqui">
       <img src="../../frontend/public/img/logo_principal.svg" alt="" class="brand-logo-light" />
