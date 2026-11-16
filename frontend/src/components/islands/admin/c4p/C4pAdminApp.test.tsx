@@ -7,14 +7,16 @@ import { jsonResponse } from "../../../../test/http-mock";
 
 const mocks = vi.hoisted(() => ({
   authFetch: vi.fn(),
+  state: { roles: ["admin"] as string[] },
 }));
 
 vi.mock("../../../../lib/use-auth", () => ({
   useAuth: () => ({
     ready: true,
     isLoggedIn: true,
-    isAdmin: true,
-    user: { sub: "admin-1", handle: "admin", roles: ["admin"] },
+    isAdmin: mocks.state.roles.includes("admin"),
+    isEventOrganizer: mocks.state.roles.includes("event_organizer"),
+    user: { sub: "user-1", handle: "user", roles: mocks.state.roles },
     authFetch: mocks.authFetch,
   }),
 }));
@@ -30,10 +32,29 @@ const call = {
   createdAt: "2026-11-01T00:00:00.000Z",
 };
 
-describe("C4pAdminApp", () => {
+describe("C4pAdminApp — guard de acesso", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.state.roles = ["admin"];
   });
+
+  it("membro sem papel vê acesso restrito e nenhum fetch", async () => {
+    mocks.authFetch.mockClear();
+    vi.doMock("../../../../lib/use-auth", () => ({
+      useAuth: () => ({
+        ready: true,
+        isLoggedIn: true,
+        isAdmin: false,
+        isEventOrganizer: false,
+        user: { sub: "user-1", handle: "user", roles: ["membro"] },
+        authFetch: mocks.authFetch,
+      }),
+    }));
+    renderWithMui(<C4pAdminApp />);
+    expect(await screen.findByText(/acesso restrito/i)).toBeTruthy();
+    expect(mocks.authFetch).not.toHaveBeenCalled();
+  });
+});
 
   it("lista campanhas paginadas", async () => {
     mocks.authFetch.mockResolvedValue(

@@ -168,6 +168,20 @@ function C4pAdminInner() {
     );
   }
 
+  const allowed =
+    isAdmin ||
+    isEventOrganizer ||
+    user?.roles.includes("diretor");
+  if (!allowed) {
+    return (
+      <PageContainer>
+        <Alert severity="warning">
+          Acesso restrito a admin, organizadores de eventos e diretores.
+        </Alert>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
       <Stack spacing={3}>

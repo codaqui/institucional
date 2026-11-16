@@ -90,7 +90,7 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [importFeedback, setImportFeedback] = useState("");
+  const [importFeedback, setImportFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [pendingDelete, setPendingDelete] = useState<ManageTalk | null>(null);
 
@@ -123,16 +123,20 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
       body: text,
     });
     if (!response.ok) {
-      setImportFeedback(await extractErrorMessage(response, "Não foi possível importar o CSV."));
+      setImportFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível importar o CSV."),
+      });
       return;
     }
     const result = (await response.json()) as { imported: number; skipped: Array<{ line: number; reason: string }> };
     const skippedSuffix = result.skipped.length
       ? `, ${result.skipped.length} linhas ignoradas`
       : "";
-    setImportFeedback(
-      `${result.imported} propostas importadas${skippedSuffix}.`,
-    );
+    setImportFeedback({
+      severity: "success",
+      text: `${result.imported} propostas importadas${skippedSuffix}.`,
+    });
     setFile(null);
     onChanged();
     await load(1);
@@ -153,7 +157,9 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   return (
     <Stack spacing={2}>
       {loadError ? <Alert severity="error">{loadError}</Alert> : null}
-      {importFeedback ? <Alert severity={importFeedback.includes("Não") ? "error" : "success"}>{importFeedback}</Alert> : null}
+      {importFeedback ? (
+        <Alert severity={importFeedback.severity}>{importFeedback.text}</Alert>
+      ) : null}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
         <Button component="label" variant="outlined">
           <span>Escolher arquivo CSV</span>
@@ -301,11 +307,14 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       body: JSON.stringify({ handleOrEmail: inviteValue.trim() }),
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível convidar."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível convidar."),
+      });
       return;
     }
     setInviteValue("");
-    setFeedback("Convite enviado.");
+    setFeedback({ severity: "success", text: "Convite enviado." });
     onChanged();
     await load();
   };
@@ -315,7 +324,10 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       method: "DELETE",
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível remover."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível remover."),
+      });
       return;
     }
     onChanged();
@@ -325,7 +337,7 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   return (
     <Stack spacing={2}>
       {loadError ? <Alert severity="error">{loadError}</Alert> : null}
-      {feedback ? <Alert severity={feedback.includes("Não") ? "error" : "success"}>{feedback}</Alert> : null}
+      {feedback ? <Alert severity={feedback.severity}>{feedback.text}</Alert> : null}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
         <TextField
           label="Handle ou e-mail do membro"
@@ -467,11 +479,14 @@ function FinalizeTab({
       body: JSON.stringify({ talkIds: [...selected] }),
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível finalizar."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível finalizar."),
+      });
       return;
     }
     setConfirmOpen(false);
-    setFeedback("Campanha finalizada. E-mails de resultado despachados.");
+    setFeedback({ severity: "success", text: "Campanha finalizada. E-mails de resultado despachados." });
     onChanged();
   };
 
@@ -483,7 +498,10 @@ function FinalizeTab({
       const report = (await response.json()) as C4pReport;
       await downloadC4pReportPdf(buildC4pReportModel(report));
     } catch (reason) {
-      setFeedback(reason instanceof Error ? reason.message : "Não foi possível gerar o PDF.");
+      setFeedback({
+        severity: "error",
+        text: reason instanceof Error ? reason.message : "Não foi possível gerar o PDF.",
+      });
     } finally {
       setPdfLoading(false);
     }
@@ -492,7 +510,7 @@ function FinalizeTab({
   return (
     <Stack spacing={2}>
       {feedback ? (
-        <Alert severity={feedback.startsWith("Não") ? "error" : "success"}>{feedback}</Alert>
+        <Alert severity={feedback.severity}>{feedback.text}</Alert>
       ) : null}
       {!isAdmin ? (
         <Alert severity="info">
