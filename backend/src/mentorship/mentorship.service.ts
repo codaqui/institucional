@@ -33,6 +33,15 @@ export class MentorshipService {
   ) {}
 
   async apply(dto: MentorApplicationDto, user: JwtPayload) {
+    const alreadyActive = await this.designations.hasDesignation(user.sub, {
+      targetType: 'program',
+      targetKey: 'mentoria',
+      designation: 'mentor',
+    });
+    if (alreadyActive) {
+      throw new ConflictException('Você já possui uma mentoria ativa neste programa.');
+    }
+
     const queryRunner = this.dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();

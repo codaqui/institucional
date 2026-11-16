@@ -39,7 +39,7 @@ describe('MentorshipService — applications and profile', () => {
     designations = {
       grant: jest.fn().mockImplementation((input) => Promise.resolve({ id: 'application-1', ...input })),
       confirm: jest.fn().mockImplementation((id) => Promise.resolve({ id, status: 'active' })),
-      hasDesignation: jest.fn().mockResolvedValue(true),
+      hasDesignation: jest.fn().mockResolvedValue(false),
       invalidateCache: jest.fn(),
     };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
@@ -208,6 +208,20 @@ describe('MentorshipService — applications and profile', () => {
 
     await expect(service.listInsights(adminActor)).resolves.toMatchObject({
       requested: 0, confirmed: 0, completed: 0, canceled: 0, noShow: 0,
+    });
+  });
+
+  it('rejects reapplication by an already active mentor without deactivating the profile', async () => {
+    designations.hasDesignation.mockResolvedValue(true);
+
+    await expect(service.apply({ areas: ['DevOps'] }, candidate)).rejects.toThrow(ConflictException);
+
+    expect(dataSource.createQueryRunner).not.toHaveBeenCalled();
+    expect(profileRepo.save).not.toHaveBeenCalled();
+    expect(designations.hasDesignation).toHaveBeenCalledWith(candidate.sub, {
+      targetType: 'program',
+      targetKey: 'mentoria',
+      designation: 'mentor',
     });
   });
 
