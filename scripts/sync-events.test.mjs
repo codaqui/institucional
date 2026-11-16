@@ -10,6 +10,7 @@ import {
   compareByStartAt,
   extractDoityMetaContent,
   extractDoitySectionCards,
+  mapDiscordEvent,
   mapDoityEvent,
   mapDoityEventStatus,
   parseDoityCardDateTime,
@@ -700,4 +701,33 @@ test("extractDoityMetaContent: lê meta tags e tolera ordem de atributos", () =>
   assert.equal(extractDoityMetaContent(html, "event:end_time"), "2026-11-07T18:00:00-03:00");
   assert.equal(extractDoityMetaContent(html, "description"), "Um palco. 7 palestras.");
   assert.equal(extractDoityMetaContent(html, "event:missing"), null);
+});
+
+
+test("mapDiscordEvent: strips markdown, truncates the summary and uses the empty fallback", () => {
+  const config = {
+    defaultHost: "Codaqui",
+    defaultLocation: "Online",
+    defaultPlatform: "Discord",
+  };
+  const event = {
+    id: "evt-1",
+    name: "Encontro",
+    description: `**Resumo** ${"x".repeat(230)}`,
+    scheduled_start_time: "2026-12-01T18:00:00Z",
+    entity_type: 3,
+    status: 1,
+    recurrence_rule: null,
+    entity_metadata: {},
+  };
+
+  const mapped = mapDiscordEvent(event, config);
+  assert.equal(mapped.summary.startsWith("Resumo "), true);
+  assert.equal(mapped.summary.endsWith("…"), true);
+  assert.equal(mapped.summary.length <= 220, true);
+  assert.equal(mapped.summary.includes("**"), false);
+  assert.equal(
+    mapDiscordEvent({ ...event, description: "" }, config).summary,
+    "Evento publicado pela comunidade no Discord.",
+  );
 });

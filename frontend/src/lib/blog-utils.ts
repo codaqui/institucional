@@ -165,10 +165,36 @@ export function collectByTag<T extends { data: { tags: string[] } }>(posts: T[])
   return byTag;
 }
 
+export interface PostImage {
+  src: string;
+  alt: "";
+}
+
+function htmlImageSrc(tag: string): string | null {
+  const match = /\bsrc\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s>]+))/i.exec(tag);
+  return match?.[1] ?? match?.[2] ?? match?.[3] ?? null;
+}
+
+function firstBodyImage(body: string): string | null {
+  const markdown = /!\[[^\]]*\]\(([^)\s]+)(?:\s+[^)]*)?\)/.exec(body);
+  const html = /<img\b[^>]*>/i.exec(body);
+  if (!markdown && !html) return null;
+  if (markdown && (!html || markdown.index < html.index)) return markdown[1];
+  return html ? htmlImageSrc(html[0]) : null;
+}
+
+export function resolvePostImage(post: {
+  body?: string;
+  data: { image?: string };
+}): PostImage | null {
+  const raw = post.data.image || firstBodyImage(post.body ?? "");
+  return raw ? { src: contentAssetUrl(raw), alt: "" } : null;
+}
+
 export function postCardProps(post: {
   id: string;
   body?: string;
-  data: { slug: string; title: string; date?: Date; tags: string[] };
+  data: { slug: string; title: string; date?: Date; tags: string[]; image?: string };
 }) {
   return {
     url: postUrl(post as { data: { slug: string } }),
@@ -176,6 +202,7 @@ export function postCardProps(post: {
     date: postDate(post),
     excerpt: plainExcerpt(post.body ?? ""),
     readingMinutes: readingTimeMinutes(post.body ?? ""),
+    image: resolvePostImage(post),
     tags: post.data.tags.map((label) => ({ label, url: `/blog/category/${slugifyTag(label)}` })),
   };
 }
