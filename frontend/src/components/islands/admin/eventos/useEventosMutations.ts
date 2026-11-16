@@ -67,9 +67,9 @@ export interface UseAdminEventosMutationsReturn {
   handleDeactivateTicketType: (ticket: TicketType) => Promise<void>;
   handleAddStaff: (event: ManagedEvent) => Promise<void>;
   handleRemoveStaff: (event: ManagedEvent, staff: EventStaff) => Promise<void>;
-  pendingStaffRemoval: EventStaff | null;
-  requestRemoveStaff: (staff: EventStaff) => void;
-  confirmRemoveStaff: (event: ManagedEvent) => Promise<void>;
+  pendingStaffRemoval: { event: ManagedEvent; staff: EventStaff } | null;
+  requestRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
+  confirmRemoveStaff: () => Promise<void>;
   cancelStaffRemoval: () => void;
   setCancelError: React.Dispatch<React.SetStateAction<string>>;
   setTicketError: React.Dispatch<React.SetStateAction<string>>;
@@ -335,21 +335,21 @@ export function useAdminEventosMutations(
     [authFetch, fetchEvents, staffRemovingId],
   );
 
-  const [pendingStaffRemoval, setPendingStaffRemoval] = useState<EventStaff | null>(null);
-  const requestRemoveStaff = useCallback((staff: EventStaff) => {
-    setPendingStaffRemoval(staff);
+  const [pendingStaffRemoval, setPendingStaffRemoval] = useState<{
+    event: ManagedEvent;
+    staff: EventStaff;
+  } | null>(null);
+  const requestRemoveStaff = useCallback((event: ManagedEvent, staff: EventStaff) => {
+    setPendingStaffRemoval({ event, staff });
   }, []);
   const cancelStaffRemoval = useCallback(() => {
     setPendingStaffRemoval(null);
   }, []);
-  const confirmRemoveStaff = useCallback(
-    async (event: ManagedEvent) => {
-      const staff = pendingStaffRemoval;
-      setPendingStaffRemoval(null);
-      if (staff) await handleRemoveStaff(event, staff);
-    },
-    [handleRemoveStaff, pendingStaffRemoval],
-  );
+  const confirmRemoveStaff = useCallback(async () => {
+    const pending = pendingStaffRemoval;
+    setPendingStaffRemoval(null);
+    if (pending) await handleRemoveStaff(pending.event, pending.staff);
+  }, [handleRemoveStaff, pendingStaffRemoval]);
 
   return {
     eventDialog,

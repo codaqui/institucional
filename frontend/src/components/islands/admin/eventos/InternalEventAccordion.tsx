@@ -12,7 +12,6 @@ import Alert from "@mui/material/Alert";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ModalConfirm from "../ui/ModalConfirm";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Divider from "@mui/material/Divider";
@@ -67,10 +66,7 @@ interface InternalEventAccordionProps {
   onEditTicket: (event: ManagedEvent, ticket: TicketType) => void;
   onDeactivateTicket: (ticket: TicketType) => void;
   onAddStaff: (event: ManagedEvent) => void;
-  onRequestRemoveStaff: (staff: EventStaff) => void;
-  pendingStaffRemoval: EventStaff | null;
-  onConfirmRemoveStaff: (event: ManagedEvent) => Promise<void>;
-  onCancelStaffRemoval: () => void;
+  onRequestRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
   onReconcileQuota: (event: ManagedEvent) => void;
   reconcileLoadingId: string | null;
   reconcileResult: ReconcileQuotaState | null;
@@ -99,9 +95,6 @@ export default function InternalEventAccordion({
   onDeactivateTicket,
   onAddStaff,
   onRequestRemoveStaff,
-  pendingStaffRemoval,
-  onConfirmRemoveStaff,
-  onCancelStaffRemoval,
   onReconcileQuota,
   reconcileLoadingId,
   reconcileResult,
@@ -393,7 +386,7 @@ export default function InternalEventAccordion({
                       size="small"
                       aria-label="remover staff"
                       disabled={staffRemovingId === staff.id}
-                      onClick={() => onRequestRemoveStaff(staff)}
+                      onClick={() => onRequestRemoveStaff(event, staff)}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -443,18 +436,6 @@ export default function InternalEventAccordion({
           </Button>
         </Stack>
       </AccordionDetails>
-      <ModalConfirm
-        open={pendingStaffRemoval !== null}
-        onClose={onCancelStaffRemoval}
-        title="Remover da equipe?"
-        description={
-          pendingStaffRemoval
-            ? `Remover ${pendingStaffRemoval.memberId} da equipe deste evento? A pessoa perde o acesso de ${pendingStaffRemoval.staffRole} ao evento.`
-            : undefined
-        }
-        variant="error"
-        onConfirm={() => void onConfirmRemoveStaff(row.event)}
-      />
     </Accordion>
   );
 }
