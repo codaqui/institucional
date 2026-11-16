@@ -42,7 +42,7 @@ describe('Migration050 — ciclo de vida de mentoria com PostgreSQL real', () =>
     await dataSource.query('DELETE FROM mentor_profiles WHERE "memberId" = ANY($1::uuid[])', [Object.values(ids)]);
     await dataSource.query('DELETE FROM members WHERE id = ANY($1::uuid[])', [Object.values(ids)]);
 
-    for (const [handle, id] of Object.entries(ids)) {
+    await Promise.all(Object.entries(ids).map(async ([handle, id]) => {
       await dataSource.query(
         `INSERT INTO members (id, "githubId", "githubHandle", name, email, roles)
          VALUES ($1, $2, $3, $4, $5, ARRAY['membro']::text[])`,
@@ -52,14 +52,14 @@ describe('Migration050 — ciclo de vida de mentoria com PostgreSQL real', () =>
         'INSERT INTO mentor_profiles ("memberId", areas, active, "approvedById") VALUES ($1, ARRAY[]::text[], $2, $3)',
         [id, id !== ids.inactive, id],
       );
-    }
-    for (const id of [ids.valid, ids.inactive]) {
+    }));
+    await Promise.all([ids.valid, ids.inactive].map(async (id) => {
       await dataSource.query(
         `INSERT INTO member_designations ("memberId", "targetType", "targetKey", designation, status, "appointedById")
          VALUES ($1, 'program', 'mentoria', 'mentor', 'active', $2)`,
         [id, id],
       );
-    }
+    }));
     await dataSource.query(
       `INSERT INTO member_designations ("memberId", "targetType", "targetKey", designation, status, "appointedById", "validUntil")
        VALUES ($1, 'program', 'mentoria', 'mentor', 'active', $2, NOW() - INTERVAL '1 day')`,
