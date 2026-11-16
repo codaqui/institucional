@@ -201,6 +201,18 @@ describe('C4pDashboardService', () => {
         { value: 'Não informado', count: 1 },
       ]);
     });
+
+    it('voto de avaliador removido continua contando na média (não entra no progresso)', async () => {
+      votesRepo.find.mockResolvedValue([
+        makeVote({ id: 'v-removido', talkId: 'talk-1', evaluatorDesignationId: 'des-3', scores: { relevancia: 10 } }),
+        makeVote({ id: 'v-ativo', talkId: 'talk-1', evaluatorDesignationId: 'des-1', scores: { relevancia: 6 } }),
+      ]);
+      const result = await service.dashboard('call-1', actor());
+      expect(result.ranking[0].avgTotal).toBeCloseTo(8);
+      expect(result.ranking[0].votesCount).toBe(2);
+      expect(result.totals.evaluators).toBe(2);
+      expect(result.progressByEvaluator.map((row) => row.designationId)).not.toContain('des-3');
+    });
   });
 
   describe('report', () => {
