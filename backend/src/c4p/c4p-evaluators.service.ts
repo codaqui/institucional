@@ -34,9 +34,14 @@ export interface MyEvaluationCall {
   call: { id: string; slug: string; name: string; status: C4pCallStatus };
 }
 
+const LIKE_ESCAPE = String.fromCharCode(92);
+
 /** Escape os coringas do LIKE/ILIKE do Postgres antes de interpolar a busca. */
 export function escapeLikeWildcards(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+  return value
+    .replaceAll(LIKE_ESCAPE, LIKE_ESCAPE.repeat(2))
+    .replaceAll('%', `${LIKE_ESCAPE}%`)
+    .replaceAll('_', `${LIKE_ESCAPE}_`);
 }
 
 @Injectable()
