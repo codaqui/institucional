@@ -209,6 +209,16 @@ describe('C4pEvaluatorsService', () => {
         service.accept('des-1', actor('actor-1')),
       ).rejects.toThrow(ConflictException);
     });
+
+    it('retorna 404 para designation de outro tipo (não evaluator)', async () => {
+      designationsRepo.findOneBy.mockResolvedValue(
+        makeDesignation({ memberId: 'actor-1', designation: 'mentor', status: 'pending' }),
+      );
+      await expect(
+        service.accept('des-1', actor('actor-1')),
+      ).rejects.toThrow(NotFoundException);
+      expect(designationsService.confirm).not.toHaveBeenCalled();
+    });
   });
 
   describe('remove', () => {

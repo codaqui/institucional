@@ -223,7 +223,8 @@ export class C4pEvaluatorsService {
     });
     if (
       designation?.memberId !== actor.sub ||
-      designation.targetType !== 'c4p_campaign'
+      designation.targetType !== 'c4p_campaign' ||
+      designation.designation !== 'evaluator'
     ) {
       throw new NotFoundException('Convite não encontrado.');
     }
