@@ -135,6 +135,11 @@ describe("/admin/sorteios", () => {
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Cancelar/i }));
+    expect(await screen.findByText("Cancelar sorteio?")).toBeInTheDocument();
+    expect(
+      authState.authFetch.mock.calls.some(([, options]) => options?.method === "DELETE"),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: /^Confirmar$/i }));
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(
         expect.stringContaining("/club/raffles/raffle-1"),

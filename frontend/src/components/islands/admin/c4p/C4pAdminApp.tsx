@@ -102,7 +102,8 @@ function CallsList({
 }
 
 function C4pAdminInner() {
-  const { ready, isLoggedIn, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isEventOrganizer, user, authFetch } = useAuth();
+  const allowed = isAdmin || isEventOrganizer || user?.roles.includes("diretor");
   const [calls, setCalls] = useState<ManageCall[] | null>(null);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -134,8 +135,8 @@ function C4pAdminInner() {
   );
 
   useEffect(() => {
-    if (ready && isLoggedIn) void load(1);
-  }, [ready, isLoggedIn, load]);
+    if (ready && isLoggedIn && allowed) void load(1);
+  }, [ready, isLoggedIn, allowed, load]);
 
   const create = async () => {
     setSaving(true);
@@ -168,10 +169,6 @@ function C4pAdminInner() {
     );
   }
 
-  const allowed =
-    isAdmin ||
-    isEventOrganizer ||
-    user?.roles.includes("diretor");
   if (!allowed) {
     return (
       <PageContainer>

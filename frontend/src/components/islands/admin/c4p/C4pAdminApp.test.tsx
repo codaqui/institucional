@@ -39,22 +39,11 @@ describe("C4pAdminApp — guard de acesso", () => {
   });
 
   it("membro sem papel vê acesso restrito e nenhum fetch", async () => {
-    mocks.authFetch.mockClear();
-    vi.doMock("../../../../lib/use-auth", () => ({
-      useAuth: () => ({
-        ready: true,
-        isLoggedIn: true,
-        isAdmin: false,
-        isEventOrganizer: false,
-        user: { sub: "user-1", handle: "user", roles: ["membro"] },
-        authFetch: mocks.authFetch,
-      }),
-    }));
+    mocks.state.roles = ["membro"];
     renderWithMui(<C4pAdminApp />);
     expect(await screen.findByText(/acesso restrito/i)).toBeTruthy();
     expect(mocks.authFetch).not.toHaveBeenCalled();
   });
-});
 
   it("lista campanhas paginadas", async () => {
     mocks.authFetch.mockResolvedValue(

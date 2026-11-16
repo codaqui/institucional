@@ -115,7 +115,7 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
 
   const importCsv = async () => {
     if (!file) return;
-    setImportFeedback("");
+    setImportFeedback(null);
     const text = await file.text();
     const response = await authFetch(`/c4p/manage/calls/${callId}/talks/import`, {
       method: "POST",
@@ -288,7 +288,7 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   const [evaluators, setEvaluators] = useState<EvaluatorSummary[] | null>(null);
   const [loadError, setLoadError] = useState("");
   const [inviteValue, setInviteValue] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
   const [pendingDeleteEvaluator, setPendingDeleteEvaluator] = useState<EvaluatorSummary | null>(null);
 
   const load = useCallback(async () => {
@@ -301,7 +301,7 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   }, [load]);
 
   const invite = async () => {
-    setFeedback("");
+    setFeedback(null);
     const response = await authFetch(`/c4p/manage/calls/${callId}/evaluators`, {
       method: "POST",
       body: JSON.stringify({ handleOrEmail: inviteValue.trim() }),
@@ -461,7 +461,7 @@ function FinalizeTab({
   const [talks, setTalks] = useState<ManageTalk[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
