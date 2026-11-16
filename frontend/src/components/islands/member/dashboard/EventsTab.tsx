@@ -343,7 +343,15 @@ export default function EventsTab({
           <Tabs
             value={eventsSubTab}
             onChange={(_, v) => setEventsSubTab(v as EventsSubTab)}
-            sx={{ mb: 2 }}
+            sx={{
+              mb: 2,
+              "& .MuiTab-root": {
+                fontSize: "0.8125rem",
+                minHeight: 40,
+                textTransform: "none",
+                color: "text.secondary",
+              },
+            }}
           >
             <Tab value="future" label="Futuros" />
             <Tab value="purchased" label="Comprei para outros" />

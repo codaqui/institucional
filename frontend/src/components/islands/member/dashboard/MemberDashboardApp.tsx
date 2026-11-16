@@ -567,11 +567,19 @@ function MemberDashboardInner() {
           onChange={(_, value: FinanceTab) => selectFinanceTab(value)}
           aria-label="Áreas financeiras"
           variant="scrollable"
-          sx={{ mb: 2 }}
+          sx={{
+            mb: 2,
+            "& .MuiTab-root": {
+              fontSize: "0.8125rem",
+              minHeight: 40,
+              textTransform: "none",
+              color: "text.secondary",
+            },
+          }}
         >
           <Tab value="donations" label="Doações" />
           <Tab value="subscriptions" label="Assinaturas" />
-          <Tab value="wallet" label="SortCoins e reembolsos" />
+          <Tab value="wallet" label="Reembolsos" />
         </Tabs>
         <TabPanel value={financeTab} index="donations">
           <DonationsTab
