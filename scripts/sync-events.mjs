@@ -197,7 +197,7 @@ function mapDiscordEvent(event, config) {
   return {
     id: event.id,
     title: event.name,
-    summary: event.description || "Evento publicado pela comunidade no Discord.",
+    summary: truncateText(stripMarkdown(event.description) || "Evento publicado pela comunidade no Discord."),
     startAt: event.scheduled_start_time,
     endAt: event.scheduled_end_time || undefined,
     timezone: "America/Sao_Paulo",
@@ -2019,6 +2019,7 @@ export {
   compareByStartAt,
   extractDoityMetaContent,
   extractDoitySectionCards,
+  mapDiscordEvent,
   mapDoityEvent,
   mapDoityEventStatus,
   parseDoityCardDateTime,
