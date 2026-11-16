@@ -88,6 +88,8 @@
     }
     .site .container { display: flex; align-items: center; gap: 20px; padding-top: 14px; padding-bottom: 14px; }
     .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; text-decoration: none; }
+    [data-theme="dark"] .brand-logo-light { display: none; }
+    [data-theme="dark"] .brand-logo-dark { display: block; }
     .logo .mark {
       width: 34px; height: 34px; border-radius: 9px;
       background: var(--cq-color-primary-500); color: #fff;
@@ -212,8 +214,8 @@
   <header class="site">
     <div class="container">
       <a class="logo" href="/" aria-label="Codaqui — página inicial">
-        <span class="mark" aria-hidden="true">CQ</span>
-        <span>CODAQUI.dev</span>
+        <img src="../../frontend/public/img/logo_principal.svg" alt="Codaqui" class="brand-logo-light" style="height:32px;width:auto" />
+        <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" style="height:32px;width:auto;display:none" />
       </a>
       <nav class="main-nav" aria-label="Navegação principal">
         <a href="/eventos">Eventos</a>
@@ -351,7 +353,10 @@
   <footer class="site">
     <div class="container footer-grid">
       <div>
-        <a class="logo" href="/" aria-label="Codaqui — página inicial"><span class="mark" aria-hidden="true">CQ</span><span>CODAQUI.dev</span></a>
+        <a class="logo" href="/" aria-label="Codaqui — página inicial">
+          <img src="../../frontend/public/img/logo_principal.svg" alt="Codaqui" class="brand-logo-light" style="height:32px;width:auto" />
+          <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" style="height:32px;width:auto;display:none" />
+        </a>
         <p class="small">Associação sem fins lucrativos que democratiza educação em tecnologia para jovens.</p>
       </div>
       <nav aria-label="Participar">
@@ -377,7 +382,6 @@
         <h3>Transparência</h3>
         <ul>
           <li><a href="/transparencia">Prestação de contas</a></li>
-          <li><a href="/assembleias">Assembleias</a></li>
           <li><a href="/sobre/insights">Insights</a></li>
           <li><a href="/desenvolvedores/api">Documentação da API</a></li>
         </ul>

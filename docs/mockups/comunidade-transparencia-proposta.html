@@ -33,6 +33,10 @@
     .assoc-bar{background:var(--c-primary-dark);color:#fff;font-size:13px}
     .assoc-bar .container{display:flex;gap:12px;align-items:center;padding-top:7px;padding-bottom:7px;flex-wrap:wrap}
     .assoc-bar a{color:#fff;text-decoration:underline}.assoc-bar .sp{margin-left:auto}
+    .assoc-bar .brand { display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:#fff }
+    .assoc-bar .brand img { height:20px; width:auto; display:block }
+    [data-theme="dark"] .assoc-bar .brand-logo-light{display:none}
+    [data-theme="dark"] .assoc-bar .brand-logo-dark{display:block}
 
     header.site{background:var(--cq-color-surface);border-bottom:1px solid var(--cq-color-border);position:sticky;top:0;z-index:20}
     header.site .container{display:flex;align-items:center;gap:18px;padding-top:12px;padding-bottom:12px;flex-wrap:wrap}
@@ -106,12 +110,17 @@
 
   <!-- Contexto associativo permanente em todo tenant -->
   <div class="assoc-bar"><div class="container">
-    <span>🤝 <strong>Elas no Código</strong> é uma comunidade integrada à <a href="https://codaqui.dev">Associação Codaqui</a> — CNPJ 44.593.429/0001-05</span>
+    <span><a class="brand" href="https://codaqui.dev" aria-label="Associação Codaqui">
+      <img src="../../frontend/public/img/logo_principal.svg" alt="" class="brand-logo-light" />
+      <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" />
+    </a><strong>Elas no Código</strong> é uma comunidade integrada à <a href="https://codaqui.dev">Associação Codaqui</a> — CNPJ 44.593.429/0001-05</span>
     <span class="sp"><a href="https://codaqui.dev/comunidades">Todas as comunidades</a> · <a href="https://codaqui.dev/transparencia">Transparência da Associação</a></span>
   </div></div>
 
   <header class="site"><div class="container">
-    <a class="logo" href="/"><span class="mark" aria-hidden="true">E</span>Elas no Código</a>
+    <a class="logo" href="/" aria-label="Elas no Código — página inicial">
+      <img src="../../frontend/public/img/elasnocodigo.svg" alt="Elas no Código" style="height:30px;width:auto" />
+    </a>
     <nav class="main" aria-label="Navegação da comunidade">
       <a href="/">Início</a><a href="/sobre">Sobre</a><a href="/atividades">Atividades</a><a href="/apoiar">Apoiar</a>
       <a href="/transparencia" aria-current="page">Transparência</a>

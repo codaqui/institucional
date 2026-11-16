@@ -29,6 +29,8 @@
     .shell { display: grid; grid-template-columns: 264px 1fr; min-height: 100vh; }
     aside.side { background: var(--cq-color-surface); border-right: 1px solid var(--cq-color-border); padding: 16px 12px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
     .logo { display: flex; align-items: center; gap: 10px; font-weight: 800; text-decoration: none; color: inherit; padding: 4px 8px 14px; }
+    [data-theme="dark"] .brand-logo-light { display: none; }
+    [data-theme="dark"] .brand-logo-dark { display: block; }
     .logo .mark { width: 30px; height: 30px; border-radius: 8px; background: var(--cq-color-primary-500); color: #fff; display: grid; place-items: center; font-size: 13px; }
     .group { margin-top: 14px; }
     .group > h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .7px; color: var(--cq-color-text-secondary); padding: 0 10px 6px; font-weight: 800; }
@@ -95,7 +97,10 @@
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
   <div class="shell">
     <aside class="side">
-      <a class="logo" href="/"><span class="mark" aria-hidden="true">CQ</span>Painel Codaqui</a>
+      <a class="logo" href="/" aria-label="Codaqui — painel">
+        <img src="../../frontend/public/img/logo_principal.svg" alt="Codaqui" class="brand-logo-light" style="height:30px;width:auto" />
+        <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" style="height:30px;width:auto;display:none" />
+      </a>
       <nav aria-label="Navegação do painel" id="nav">
         <!-- data-roles: papéis/designations que enxergam o item. Grupos sem itens visíveis somem (sem grupos de 1 item). -->
         <div class="group" data-group>
