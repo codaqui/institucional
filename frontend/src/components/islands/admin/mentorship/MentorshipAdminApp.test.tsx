@@ -3,6 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../../test/render-mui";
 import { jsonResponse } from "../../../../test/http-mock";
+import { completeMenteeLinkFlow } from "../../../../test/mentorship-session-fixtures";
 import MentorshipAdminApp from "./MentorshipAdminApp";
 
 const mocks = vi.hoisted(() => ({ authFetch: vi.fn() }));
@@ -133,11 +134,7 @@ describe("MentorshipAdminApp", () => {
     expect(screen.getByText(/16\/11\/2026/)).toBeInTheDocument();
     expect(screen.getByText("Não vinculado à plataforma")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Vincular participante" }));
-    const input = await screen.findByRole("combobox", { name: /membro da plataforma/i });
-    await user.type(input, "ana");
-    await user.click(await screen.findByRole("option", { name: /Ana \(@ana\)/i }));
-    await user.click(screen.getByRole("button", { name: "Vincular participante" }));
+    await completeMenteeLinkFlow(user);
 
     await waitFor(() => {
       expect(mocks.authFetch).toHaveBeenCalledWith(

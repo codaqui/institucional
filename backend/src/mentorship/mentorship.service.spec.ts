@@ -2,6 +2,7 @@ import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { MentorshipService } from './mentorship.service';
 import { MemberDesignation } from '../designations/entities/member-designation.entity';
 import { MentorProfile } from './entities/mentor-profile.entity';
+import { createQueryRunnerLifecycleMock } from '../test-utils/query-runner';
 import type { JwtPayload } from '../auth/jwt.strategy';
 
 const actor = (roles: string[]): JwtPayload => ({
@@ -58,11 +59,7 @@ describe('MentorshipService — applications and profile', () => {
     availabilityRepo = { find: jest.fn().mockResolvedValue([]) };
     sessionRepo = { find: jest.fn().mockResolvedValue([]) };
     queryRunner = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
-      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-      release: jest.fn().mockResolvedValue(undefined),
+      ...createQueryRunnerLifecycleMock(),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {
           if (entity === MemberDesignation) return designationRepo;

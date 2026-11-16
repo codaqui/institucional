@@ -6,6 +6,7 @@ import {
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member } from '../members/entities/member.entity';
 import { MentorProfile } from '../mentorship/entities/mentor-profile.entity';
+import { createQueryRunnerLifecycleMock } from '../test-utils/query-runner';
 import { MemberDesignation } from './entities/member-designation.entity';
 import { DesignationsService } from './designations.service';
 
@@ -53,11 +54,7 @@ describe('DesignationsService', () => {
       save: jest.fn().mockImplementation(async (value) => ({ id: 'profile-1', ...value })),
     };
     queryRunner = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
-      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-      release: jest.fn().mockResolvedValue(undefined),
+      ...createQueryRunnerLifecycleMock(),
       query: jest.fn().mockResolvedValue(undefined),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {

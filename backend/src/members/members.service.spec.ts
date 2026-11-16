@@ -9,6 +9,7 @@ import { resetTokenKeyCache } from '../common/crypto.util';
 import { EventRegistration, RegistrationStatus } from '../events/entities/event-registration.entity';
 import { AuditService } from '../audit/audit.service';
 import { MentorshipSession } from '../mentorship/entities/mentorship-session.entity';
+import { createQueryRunnerLifecycleMock } from '../test-utils/query-runner';
 
 const mockMember = (): Member => ({
   id: '11111111-1111-1111-1111-111111111111',
@@ -66,11 +67,7 @@ describe('MembersService', () => {
       update: jest.fn().mockResolvedValue({ affected: 1 }),
     };
     queryRunner = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
-      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-      release: jest.fn().mockResolvedValue(undefined),
+      ...createQueryRunnerLifecycleMock(),
       query: jest.fn().mockResolvedValue(undefined),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {
