@@ -58,8 +58,11 @@ describe('MentorshipService — applications and profile', () => {
     availabilityRepo = { find: jest.fn().mockResolvedValue([]) };
     sessionRepo = { find: jest.fn().mockResolvedValue([]) };
     queryRunner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
       commitTransaction: jest.fn().mockResolvedValue(undefined),
       rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {
           if (entity === MemberDesignation) return designationRepo;
@@ -69,16 +72,7 @@ describe('MentorshipService — applications and profile', () => {
       },
     };
     dataSource = {
-      transaction: jest.fn().mockImplementation(async (work) => {
-        try {
-          const result = await work(queryRunner);
-          await queryRunner.commitTransaction();
-          return result;
-        } catch (error) {
-          await queryRunner.rollbackTransaction();
-          throw error;
-        }
-      }),
+      createQueryRunner: jest.fn().mockReturnValue(queryRunner),
     };
     service = new MentorshipService(
       profileRepo as any, designationRepo as any, designations as any, audit as any,

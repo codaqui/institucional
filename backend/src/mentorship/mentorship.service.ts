@@ -33,7 +33,10 @@ export class MentorshipService {
   ) {}
 
   async apply(dto: MentorApplicationDto, user: JwtPayload) {
-    return this.dataSource.transaction(async (queryRunner) => {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
       const designationsRepo = queryRunner.manager.getRepository(MemberDesignation);
       const duplicate = await designationsRepo.findOneBy({
         memberId: user.sub,
@@ -63,8 +66,14 @@ export class MentorshipService {
       profile.focus = dto.focus?.trim() || null;
       profile.active = false;
       await profilesRepo.save(profile);
+      await queryRunner.commitTransaction();
       return application;
-    });
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   listMyApplications(user: JwtPayload) {
