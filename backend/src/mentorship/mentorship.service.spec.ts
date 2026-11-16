@@ -1,5 +1,7 @@
 import { ConflictException, ForbiddenException } from '@nestjs/common';
 import { MentorshipService } from './mentorship.service';
+import { MemberDesignation } from '../designations/entities/member-designation.entity';
+import { MentorProfile } from './entities/mentor-profile.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
 
 const actor = (roles: string[]): JwtPayload => ({
@@ -19,6 +21,8 @@ describe('MentorshipService — applications and profile', () => {
   let memberRepo: Record<string, jest.Mock>;
   let availabilityRepo: Record<string, jest.Mock>;
   let sessionRepo: Record<string, jest.Mock>;
+  let dataSource: Record<string, jest.Mock>;
+  let queryRunner: Record<string, jest.Mock>;
 
   beforeEach(() => {
     profileRepo = {
@@ -41,9 +45,32 @@ describe('MentorshipService — applications and profile', () => {
     memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
     availabilityRepo = { find: jest.fn().mockResolvedValue([]) };
     sessionRepo = { find: jest.fn().mockResolvedValue([]) };
+    queryRunner = {
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      manager: {
+        getRepository: jest.fn().mockImplementation((entity) => {
+          if (entity === MemberDesignation) return designationRepo;
+          if (entity === MentorProfile) return profileRepo;
+          throw new Error('Repositório inesperado');
+        }),
+      },
+    };
+    dataSource = {
+      transaction: jest.fn().mockImplementation(async (work) => {
+        try {
+          const result = await work(queryRunner);
+          await queryRunner.commitTransaction();
+          return result;
+        } catch (error) {
+          await queryRunner.rollbackTransaction();
+          throw error;
+        }
+      }),
+    };
     service = new MentorshipService(
       profileRepo as any, designationRepo as any, designations as any, audit as any,
-      memberRepo as any, availabilityRepo as any, sessionRepo as any,
+      memberRepo as any, availabilityRepo as any, sessionRepo as any, dataSource as any,
     );
   });
 
@@ -136,5 +163,59 @@ describe('MentorshipService — applications and profile', () => {
     await expect(service.listInsights(adminActor)).resolves.toMatchObject({
       requested: 0, confirmed: 0, completed: 0, canceled: 0, noShow: 0,
     });
+  });
+
+  it('reuses the existing profile on reapplication and keeps it inactive until confirmation', async () => {
+    profileRepo.findOneBy.mockResolvedValue({
+      id: 'profile-1',
+      memberId: candidate.sub,
+      active: true,
+      areas: ['Antiga'],
+      focus: 'Antigo',
+      approvedById: 'original-admin',
+    });
+
+    await service.apply({ areas: ['Backend', 'Carreira'], focus: 'Nova candidatura' }, candidate);
+
+    expect(profileRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'profile-1',
+        areas: ['Backend', 'Carreira'],
+        focus: 'Nova candidatura',
+        active: false,
+        approvedById: 'original-admin',
+      }),
+    );
+    expect(profileRepo.create).not.toHaveBeenCalled();
+    expect(designations.grant).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'pending' }),
+      expect.objectContaining({ actorId: candidate.sub }),
+      queryRunner,
+    );
+  });
+
+  it('rolls back both writes when saving the profile fails', async () => {
+    profileRepo.save.mockRejectedValue(new Error('unique violation'));
+
+    await expect(service.apply({ areas: ['DevOps'] }, candidate)).rejects.toThrow('unique violation');
+
+    expect(queryRunner.rollbackTransaction).toHaveBeenCalledTimes(1);
+    expect(queryRunner.commitTransaction).not.toHaveBeenCalled();
+    expect(designations.grant).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      queryRunner,
+    );
+  });
+
+  it('creates a new inactive profile when there is no previous one', async () => {
+    profileRepo.findOneBy.mockResolvedValue(null);
+
+    await service.apply({ areas: ['DevOps'], focus: 'Carreira' }, candidate);
+
+    expect(profileRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ memberId: candidate.sub, active: false, focus: 'Carreira' }),
+    );
+    expect(queryRunner.commitTransaction).toHaveBeenCalledTimes(1);
   });
 });

@@ -152,13 +152,14 @@ export class DesignationsService {
   async grant(
     input: GrantDesignationInput,
     actor: DesignationActor,
+    queryRunner?: QueryRunner,
   ): Promise<MemberDesignation> {
     const targetError = designationTargetError(input);
     if (targetError) throw new BadRequestException(targetError);
 
     let wrote = false;
-    const saved = await this.inTransaction(async (queryRunner) => {
-      const repo = this.designationRepo(queryRunner);
+    const work = async (runner: QueryRunner) => {
+      const repo = this.designationRepo(runner);
       const existing = await repo.findOne({
         where: this.activeIdentityWhere(input),
       });
@@ -176,9 +177,12 @@ export class DesignationsService {
       });
       const created = await repo.save(designation);
       wrote = true;
-      await this.syncMemberWithRunner(queryRunner, input.memberId, actor);
+      await this.syncMemberWithRunner(runner, input.memberId, actor);
       return created;
-    });
+    };
+    const saved = queryRunner
+      ? await work(queryRunner)
+      : await this.inTransaction(work);
 
     if (!wrote) return saved;
     this.cache.clear();

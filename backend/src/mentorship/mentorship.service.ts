@@ -1,6 +1,6 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
@@ -27,33 +27,42 @@ export class MentorshipService {
     private readonly availabilityRepo: Repository<MentorAvailability>,
     @InjectRepository(MentorshipSession)
     private readonly sessionRepo: Repository<MentorshipSession>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async apply(dto: MentorApplicationDto, user: JwtPayload) {
-    const duplicate = await this.designationRepo.findOneBy({
-      memberId: user.sub,
-      targetType: 'program',
-      targetKey: 'mentoria',
-      designation: 'mentor',
-      status: 'pending',
+    return this.dataSource.transaction(async (queryRunner) => {
+      const designationsRepo = queryRunner.manager.getRepository(MemberDesignation);
+      const duplicate = await designationsRepo.findOneBy({
+        memberId: user.sub,
+        targetType: 'program',
+        targetKey: 'mentoria',
+        designation: 'mentor',
+        status: 'pending',
+      });
+      if (duplicate) throw new ConflictException('Já existe uma candidatura de mentor pendente.');
+
+      const application = await this.designations.grant({
+        memberId: user.sub,
+        targetType: 'program',
+        targetKey: 'mentoria',
+        designation: 'mentor',
+        appointedById: user.sub,
+        status: 'pending',
+      }, { actorId: user.sub, actorHandle: user.handle }, queryRunner);
+
+      const profilesRepo = queryRunner.manager.getRepository(MentorProfile);
+      const existing = await profilesRepo.findOneBy({ memberId: user.sub });
+      const profile = existing ?? profilesRepo.create({
+        memberId: user.sub,
+        approvedById: user.sub,
+      });
+      profile.areas = dto.areas;
+      profile.focus = dto.focus?.trim() || null;
+      profile.active = false;
+      await profilesRepo.save(profile);
+      return application;
     });
-    if (duplicate) throw new ConflictException('Já existe uma candidatura de mentor pendente.');
-    const application = await this.designations.grant({
-      memberId: user.sub,
-      targetType: 'program',
-      targetKey: 'mentoria',
-      designation: 'mentor',
-      appointedById: user.sub,
-      status: 'pending',
-    }, { actorId: user.sub, actorHandle: user.handle });
-    await this.profileRepo.save(this.profileRepo.create({
-      memberId: user.sub,
-      areas: dto.areas,
-      focus: dto.focus?.trim() || null,
-      active: false,
-      approvedById: user.sub,
-    }));
-    return application;
   }
 
   listMyApplications(user: JwtPayload) {
