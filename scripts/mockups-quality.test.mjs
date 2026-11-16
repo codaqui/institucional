@@ -17,7 +17,7 @@ test('mockups use native landmarks and decorative media semantics', () => {
   }
   for (const html of [main, home]) {
     assert.match(html, /<section class="announcement" aria-label="Anúncios institucionais">/);
-    assert.match(html, /aria-label="Tema: alternar entre modo claro e escuro"/);
+    assert.match(html, /aria-label="◐ Tema: alternar entre modo claro e escuro"/);
   }
 });
 
