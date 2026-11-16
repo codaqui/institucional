@@ -34,7 +34,7 @@ export interface MyEvaluationCall {
   call: { id: string; slug: string; name: string; status: C4pCallStatus };
 }
 
-const LIKE_ESCAPE = String.fromCharCode(92);
+const LIKE_ESCAPE = String.fromCodePoint(92);
 
 /** Escape os coringas do LIKE/ILIKE do Postgres antes de interpolar a busca. */
 export function escapeLikeWildcards(value: string): string {
