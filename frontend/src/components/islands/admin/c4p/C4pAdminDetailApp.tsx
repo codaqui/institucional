@@ -466,10 +466,19 @@ function FinalizeTab({
 
   useEffect(() => {
     void (async () => {
-      const params = new URLSearchParams({ page: "1", limit: "100" });
-      const response = await authFetch(`/c4p/manage/calls/${call.id}/talks?${params}`);
-      const result = await parseAuthJson<PaginatedResponse<ManageTalk>>(response, () => {});
-      if (result) setTalks(result.data ?? []);
+      const all: ManageTalk[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+      do {
+        const params = new URLSearchParams({ page: String(currentPage), limit: "100" });
+        const response = await authFetch(`/c4p/manage/calls/${call.id}/talks?${params}`);
+        const result = await parseAuthJson<PaginatedResponse<ManageTalk>>(response, () => {});
+        if (!result) return;
+        all.push(...(result.data ?? []));
+        totalPages = result.totalPages;
+        currentPage += 1;
+      } while (currentPage <= totalPages);
+      setTalks(all);
     })();
   }, [authFetch, call.id]);
 
