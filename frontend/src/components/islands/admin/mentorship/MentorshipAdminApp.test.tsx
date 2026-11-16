@@ -97,4 +97,54 @@ describe("MentorshipAdminApp", () => {
     const patch = mocks.authFetch.mock.calls.find(([path, init]) => path === "/mentorship/admin/mentors/profile-1" && (init as RequestInit | undefined)?.method === "PATCH");
     expect(JSON.parse(String(patch?.[1]?.body))).toMatchObject({ memberId: "member-1", active: false });
   });
+
+  it("shows friendly session data and links a participant through the shared flow", async () => {
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/mentorship/applications") return jsonResponse([]);
+      if (path.startsWith("/mentorship/sessions/admin")) {
+        return jsonResponse({
+          data: [{
+            id: "session-1",
+            menteeName: "Bia",
+            menteeEmail: "bia@example.test",
+            scheduledAt: "2026-11-16T22:00:00.000Z",
+            timeZone: "America/Sao_Paulo",
+            status: "requested",
+            menteeMember: null,
+          }],
+          total: 1,
+          page: 1,
+          totalPages: 1,
+          limit: 50,
+        });
+      }
+      if (path.startsWith("/mentorship/member-options") || path === "/mentorship/sessions/session-1/mentee") {
+        return jsonResponse(init?.method === "POST"
+          ? { id: "session-1" }
+          : [{ id: "member-1", name: "Ana", githubHandle: "ana", avatarUrl: "avatar" }]);
+      }
+      if (path === "/mentorship/insights") return jsonResponse({ completed: 0, activeMentors: 0, areas: [], noShowRate: 0 });
+      return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+    });
+    const user = userEvent.setup();
+    renderWithMui(<MentorshipAdminApp />);
+
+    expect(await screen.findByText("Solicitada")).toBeInTheDocument();
+    expect(screen.getByText(/16\/11\/2026/)).toBeInTheDocument();
+    expect(screen.getByText("Não vinculado à plataforma")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Vincular participante" }));
+    const input = await screen.findByRole("combobox", { name: /membro da plataforma/i });
+    await user.type(input, "ana");
+    await user.click(await screen.findByRole("option", { name: /Ana \(@ana\)/i }));
+    await user.click(screen.getByRole("button", { name: "Vincular participante" }));
+
+    await waitFor(() => {
+      expect(mocks.authFetch).toHaveBeenCalledWith(
+        "/mentorship/sessions/session-1/mentee",
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(mocks.authFetch.mock.calls.filter(([path]) => String(path).startsWith("/mentorship/sessions/admin")).length).toBeGreaterThanOrEqual(2);
+    });
+  });
 });

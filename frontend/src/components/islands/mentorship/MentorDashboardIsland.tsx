@@ -3,22 +3,15 @@ import { Alert, Box, Button, Card, CardContent, Chip, MenuItem, Stack, TextField
 import MuiIslandProvider from "../MuiIslandProvider";
 import PageContainer from "../admin/ui/PageContainer";
 import PaginationControls from "../ui/PaginationControls";
+import MenteeLinkDialog from "./MenteeLinkDialog";
+import SessionParticipant from "./SessionParticipant";
+import { formatMentorshipDate, MENTORSHIP_STATUS_LABEL, type MentorshipSessionView } from "../../../lib/mentorship";
 import { useAuth } from "../../../lib/use-auth";
 import { extractErrorMessage, parseAuthJson } from "../../../lib/auth-fetch-helpers";
 import { DEFAULT_PAGE_SIZE } from "../../../lib/pagination";
 
 interface MentorProfile { id: string; areas: string[]; focus: string | null }
-interface MentorSession {
-  id: string;
-  menteeName: string;
-  menteeEmail: string;
-  topicTags: string[];
-  scheduledAt: string;
-  durationMin: number;
-  timeZone: string;
-  status: "requested" | "confirmed" | "completed" | "canceled" | "no_show";
-  meetLink: string | null;
-}
+type MentorSession = MentorshipSessionView;
 
 const WEEKDAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"];
 
@@ -37,6 +30,7 @@ function MentorDashboard() {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkingSession, setLinkingSession] = useState<MentorSession | null>(null);
 
   const load = useCallback(async () => {
     setError("");
@@ -129,9 +123,15 @@ function MentorDashboard() {
             {visibleSessions.length === 0 && <Typography color="text.secondary">Nenhuma sessão encontrada.</Typography>}
             {visibleSessions.map((session) => (
               <Card key={session.id} variant="outlined"><CardContent><Stack spacing={2}>
-                <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between" }}>
-                  <Box><Typography sx={{ fontWeight: 700 }}>{session.menteeName}</Typography><Typography variant="body2" color="text.secondary">{session.scheduledAt} · {session.timeZone}</Typography></Box>
-                  <Chip size="small" label={session.status} />
+                <Stack direction={{ xs: "column", sm: "row" }} sx={{ justifyContent: "space-between", alignItems: { sm: "center" } }} spacing={1}>
+                  <Box>
+                    <SessionParticipant name={session.menteeName} email={session.menteeEmail} member={session.menteeMember} />
+                    <Typography variant="body2" color="text.secondary">{formatMentorshipDate(session.scheduledAt, session.timeZone)} · {session.timeZone}</Typography>
+                  </Box>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
+                    <Chip size="small" label={MENTORSHIP_STATUS_LABEL[session.status]} />
+                    <Button size="small" variant="text" onClick={() => setLinkingSession(session)}>Vincular participante</Button>
+                  </Stack>
                 </Stack>
                 <Typography variant="body2">{session.topicTags.join(", ")}</Typography>
                 {session.status === "requested" && <TextField label="Link da sessão" type="url" required value={links[session.id] ?? ""} onChange={(event) => setLinks({ ...links, [session.id]: event.target.value })} slotProps={{ htmlInput: { pattern: "https://.*" } }} />}
@@ -151,6 +151,17 @@ function MentorDashboard() {
           </Stack>
           <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="sessões" />
         </Box>
+        {linkingSession && (
+          <MenteeLinkDialog
+            sessionId={linkingSession.id}
+            authFetch={authFetch}
+            onClose={() => setLinkingSession(null)}
+            onSaved={() => {
+              setFeedback("Participante vinculado.");
+              void load();
+            }}
+          />
+        )}
       </Stack>
     </PageContainer>
   );
