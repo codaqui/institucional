@@ -281,6 +281,36 @@ describe('C4pDashboardService', () => {
       expect(aberta?.results).toBeNull();
     });
 
+    it('filtra campanhas abertas pela janela sem ocultar resultados públicos fechados', async () => {
+      const now = Date.now();
+      callsRepo.find.mockResolvedValue([
+        makeCall({ id: 'expired', slug: 'expirada', submissionCloseAt: new Date(now - 1_000) }),
+        makeCall({ id: 'future', slug: 'futura', submissionOpenAt: new Date(now + 60_000) }),
+        makeCall({
+          id: 'current',
+          slug: 'vigente',
+          submissionOpenAt: new Date(now - 1_000),
+          submissionCloseAt: new Date(now + 60_000),
+        }),
+        makeCall({ id: 'unbounded', slug: 'sem-janela' }),
+        makeCall({
+          id: 'closed',
+          slug: 'fechada-publica',
+          status: 'closed',
+          publicResults: true,
+          submissionCloseAt: new Date(now - 1_000),
+        }),
+      ]);
+
+      const snapshot = await service.getSnapshot();
+
+      expect(snapshot.calls.map((call) => call.slug)).toEqual([
+        'vigente',
+        'sem-janela',
+        'fechada-publica',
+      ]);
+    });
+
     it('nunca expõe scores, comentários ou e-mails no payload', async () => {
       callsRepo.find.mockResolvedValue([
         makeCall({

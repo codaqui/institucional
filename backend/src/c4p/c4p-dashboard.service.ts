@@ -8,6 +8,7 @@ import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { Member } from '../members/entities/member.entity';
 import { C4pCallsService } from './c4p-calls.service';
 import { computeTalkScore, rankTalks } from './c4p-scoring';
+import { isWithinSubmissionWindow } from './c4p-submission-window';
 import { Criterion, C4pCall } from './entities/c4p-call.entity';
 import { C4pTalk } from './entities/c4p-talk.entity';
 import { C4pVote } from './entities/c4p-vote.entity';
@@ -235,10 +236,15 @@ export class C4pDashboardService {
   }
 
   async getSnapshot(): Promise<C4pSnapshotPayload> {
-    const calls = await this.callsRepo.find({
-      where: [{ status: 'open' }, { status: 'closed', publicResults: true }],
-      order: { createdAt: 'ASC' },
-    });
+    const now = Date.now();
+    const calls = (
+      await this.callsRepo.find({
+        where: [{ status: 'open' }, { status: 'closed', publicResults: true }],
+        order: { createdAt: 'ASC' },
+      })
+    ).filter(
+      (call) => call.status !== 'open' || isWithinSubmissionWindow(call, now),
+    );
 
     const communityIds = [
       ...new Set(
