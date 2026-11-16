@@ -68,7 +68,7 @@ O assédio inclui comentários verbais ofensivos relacionados a gênero, identid
 
 A fotografia é incentivada, mas os outros participantes devem ter uma chance razoável de não serem fotografados. Se eles se opuserem a tirar sua foto, cumpram com o pedido deles. É inadequado tirar fotografias em contextos em que as pessoas têm uma expectativa razoável de privacidade (nos banheiros ou onde os participantes estão dormindo, se aplicável).
 
-### 5. Consequências do Compartamento Inaceitável
+### 5. Consequências do Comportamento Inaceitável
 
 Comportamento inaceitável de qualquer membro da comunidade, incluindo patrocinadores e aqueles com autoridade decisória, não será tolerado.
 

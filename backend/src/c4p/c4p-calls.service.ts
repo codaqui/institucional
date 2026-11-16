@@ -20,6 +20,7 @@ import { MemberRole } from '../members/entities/member.entity';
 import { EmailService } from '../notifications/email.service';
 import { EMAIL_TEMPLATE_C4P_TALK_RESULT } from '../notifications/default-templates';
 import { DEFAULT_CRITERIA, RESERVED_C4P_SLUGS, C4P_SLUG_PATTERN } from './c4p.constants';
+import { isWithinSubmissionWindow } from './c4p-submission-window';
 import {
   CreateC4pCallDto,
   ListC4pCallsDto,
@@ -286,7 +287,10 @@ export class C4pCallsService {
       where: { status: 'open' },
       order: { submissionCloseAt: 'ASC', createdAt: 'ASC' },
     });
-    return this.toPublicSummaries(calls);
+    const now = Date.now();
+    return this.toPublicSummaries(
+      calls.filter((call) => isWithinSubmissionWindow(call, now)),
+    );
   }
 
   async getPublicBySlug(slug: string): Promise<PublicCallSummary> {

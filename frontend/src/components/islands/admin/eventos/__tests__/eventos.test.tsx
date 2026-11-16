@@ -659,6 +659,52 @@ describe("/admin/eventos", () => {
     });
   });
 
+  it("remove staff com um único diálogo e no evento selecionado", async () => {
+    const events = [
+      buildEvent({
+        id: "evt-1",
+        title: "Evento Um",
+        staff: [{ id: "staff-1", memberId: "m-1", staffRole: "host" }],
+      }),
+      buildEvent({
+        id: "evt-2",
+        title: "Evento Dois",
+        staff: [{ id: "staff-2", memberId: "m-2", staffRole: "checker" }],
+      }),
+    ];
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) return jsonResponse(events);
+      if (url.endsWith("/admin/members")) {
+        return jsonResponse([
+          { id: "m-1", name: "Maria Silva", githubHandle: "maria" },
+          { id: "m-2", name: "João Souza", githubHandle: "joao" },
+        ]);
+      }
+      if (options?.method === "DELETE") return jsonResponse({ ok: true });
+      return jsonResponse(null, { status: 404 });
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+
+    fireEvent.click(await screen.findByText("Evento Um"));
+    fireEvent.click((await screen.findAllByRole("button", { name: "remover staff" }))[0]);
+
+    expect(await screen.findAllByRole("dialog")).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: /^Confirmar$/i }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith(
+        "/events/evt-1/staff/staff-1",
+        expect.objectContaining({ method: "DELETE" }),
+      );
+    });
+  });
+
   it("pré-visualização da descrição renderiza markdown", async () => {
     mockEventEditorFetch({ description: "Veja **isto** aqui" });
     mockAuth({ roles: ["admin"] });

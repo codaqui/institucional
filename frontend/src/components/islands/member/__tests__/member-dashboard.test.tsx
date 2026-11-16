@@ -62,7 +62,7 @@ function stubFetch() {
   );
 }
 
-async function openFinanceTab(name: "Doações" | "Assinaturas" | "SortCoins e reembolsos") {
+async function openFinanceTab(name: "Doações" | "Assinaturas" | "Reembolsos") {
   fireEvent.click(await screen.findByRole("tab", { name: "Financeiro" }));
   fireEvent.click(await screen.findByRole("tab", { name }));
 }
@@ -470,7 +470,7 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     await screen.findByText("Mentoria Codaqui");
-    await openFinanceTab("SortCoins e reembolsos");
+    await openFinanceTab("Reembolsos");
 
     const button = screen.queryByRole("link", { name: /Painel de Reembolsos/i });
     if (visible) {

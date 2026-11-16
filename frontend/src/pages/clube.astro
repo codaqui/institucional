@@ -18,7 +18,7 @@ const TAB_STATE =
 const CARD = "h-full rounded-lg border border-border bg-surface p-6";
 const OVERLINE = "mb-1 text-xs font-bold uppercase tracking-wider text-link";
 const BTN_SOLID =
-  "inline-flex items-center rounded-lg bg-primary-500 px-4 py-2 text-sm font-semibold text-white no-underline transition-colors hover:bg-primary-600";
+  "inline-flex items-center rounded-lg bg-action px-4 py-2 text-sm font-semibold text-on-action no-underline transition-colors hover:bg-action-hover";
 const BTN_OUTLINE =
   "inline-flex items-center rounded-lg border border-current px-4 py-2 text-sm font-semibold text-link no-underline transition-colors hover:bg-primary-500/10";
 ---
@@ -44,6 +44,7 @@ const BTN_OUTLINE =
         <button
           type="button"
           role="tab"
+          id="clube-tab-0"
           data-clube-tab="0"
           aria-selected="true"
           aria-controls="clube-panel-0"
@@ -54,6 +55,7 @@ const BTN_OUTLINE =
         <button
           type="button"
           role="tab"
+          id="clube-tab-1"
           data-clube-tab="1"
           aria-selected="false"
           aria-controls="clube-panel-1"
@@ -64,6 +66,7 @@ const BTN_OUTLINE =
         <button
           type="button"
           role="tab"
+          id="clube-tab-2"
           data-clube-tab="2"
           aria-selected="false"
           aria-controls="clube-panel-2"
@@ -75,12 +78,12 @@ const BTN_OUTLINE =
     </div>
 
     {/* ── Sorteios (ilha pública) ── */}
-    <div id="clube-panel-0" role="tabpanel">
+    <div id="clube-panel-0" role="tabpanel" aria-labelledby="clube-tab-0">
       <ClubRafflesIsland client:visible />
     </div>
 
     {/* ── Moedas ── */}
-    <div id="clube-panel-1" role="tabpanel" hidden>
+    <div id="clube-panel-1" role="tabpanel" aria-labelledby="clube-tab-1" hidden>
       <div class="grid gap-6 md:grid-cols-2">
         <div class={CARD}>
           <h3 class="mb-2 text-lg font-bold">Moedas da sua carteira</h3>
@@ -115,7 +118,7 @@ const BTN_OUTLINE =
     </div>
 
     {/* ── Como funciona ── */}
-    <div id="clube-panel-2" role="tabpanel" hidden>
+    <div id="clube-panel-2" role="tabpanel" aria-labelledby="clube-tab-2" hidden>
       <h3 class="mb-2 text-2xl font-extrabold">Como funciona o Clube Codaqui?</h3>
       <p class="mb-6 max-w-2xl text-text-secondary">
         O Clube é um sistema de benefícios para quem apoia a Codaqui. Cada real doado se
@@ -167,6 +170,12 @@ const BTN_OUTLINE =
       const tabs = Array.from(document.querySelectorAll("[data-clube-tab]"));
       const panels = [0, 1, 2].map((i) => document.getElementById("clube-panel-" + i));
 
+      const modeFromUrl = () => {
+        const value = new URLSearchParams(location.search).get("tab");
+        const index = Number.parseInt(value ?? "", 10);
+        return Number.isInteger(index) && index >= 0 && index <= 2 ? index : 0;
+      };
+
       function apply(index) {
         tabs.forEach((tab) =>
           tab.setAttribute("aria-selected", String(Number(tab.dataset.clubeTab) === index)),
@@ -174,6 +183,11 @@ const BTN_OUTLINE =
         panels.forEach((panel, i) => {
           if (panel) panel.hidden = i !== index;
         });
+        const params = new URLSearchParams(location.search);
+        if (index > 0) params.set("tab", String(index));
+        else params.delete("tab");
+        const search = params.toString();
+        history.replaceState(null, "", location.pathname + (search ? `?${search}` : ""));
       }
 
       tabs.forEach((tab) =>
@@ -182,6 +196,8 @@ const BTN_OUTLINE =
       document.querySelectorAll("[data-clube-goto-tab]").forEach((el) =>
         el.addEventListener("click", () => apply(Number(el.dataset.clubeGotoTab))),
       );
+      window.addEventListener("popstate", () => apply(modeFromUrl()));
+      apply(modeFromUrl());
     })();
   </script>
 </PublicLayout>

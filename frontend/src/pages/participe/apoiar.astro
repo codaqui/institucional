@@ -39,6 +39,7 @@ const TAB_STATE =
         <button
           type="button"
           role="tab"
+          id="apoiar-tab-pf"
           data-apoiar-tab="pf"
           aria-selected="true"
           aria-controls="apoiar-panel-pf"
@@ -52,6 +53,7 @@ const TAB_STATE =
         <button
           type="button"
           role="tab"
+          id="apoiar-tab-pj"
           data-apoiar-tab="pj"
           aria-selected="false"
           aria-controls="apoiar-panel-pj"
@@ -65,7 +67,7 @@ const TAB_STATE =
       </div>
     </div>
 
-    <div id="apoiar-panel-pf" role="tabpanel">
+    <div id="apoiar-panel-pf" role="tabpanel" aria-labelledby="apoiar-tab-pf">
       <DonationFlowIsland
         client:load
         subtitle="Selecione a carteira à esquerda, o valor e a frequência. Doações anônimas aceitas até R$ 100 (única ou recorrente)."
@@ -73,7 +75,7 @@ const TAB_STATE =
       />
     </div>
 
-    <div id="apoiar-panel-pj" role="tabpanel" hidden>
+    <div id="apoiar-panel-pj" role="tabpanel" aria-labelledby="apoiar-tab-pj" hidden>
       <CompanyDonationIsland client:visible />
       <hr class="my-8 border-border" />
       <div class="text-center">

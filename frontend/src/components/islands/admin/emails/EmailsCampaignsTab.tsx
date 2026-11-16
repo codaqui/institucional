@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import ModalConfirm from "../ui/ModalConfirm";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
@@ -233,6 +234,7 @@ export default function EmailsCampaignsTab() {
 
   const [communities, setCommunities] = useState<CommunityOption[]>([]);
   const [suppressions, setSuppressions] = useState<SuppressionItem[]>([]);
+  const [pendingDeleteSuppression, setPendingDeleteSuppression] = useState<SuppressionItem | null>(null);
 
   // Detalhe e prévia da campanha selecionada
   const [selectedCampaign, setSelectedCampaign] =
@@ -1409,7 +1411,7 @@ export default function EmailsCampaignsTab() {
                               size="small"
                               color="error"
                               disabled={busyAction !== null}
-                              onClick={() => handleDeleteSuppression(sup.id)}
+                              onClick={() => setPendingDeleteSuppression(sup)}
                             >
                               Remover
                             </Button>
@@ -1424,6 +1426,22 @@ export default function EmailsCampaignsTab() {
           </CardContent>
         </Card>
       )}
+      <ModalConfirm
+        open={pendingDeleteSuppression !== null}
+        onClose={() => setPendingDeleteSuppression(null)}
+        title="Remover supressão?"
+        description={
+          pendingDeleteSuppression
+            ? `Remover a supressão de ${pendingDeleteSuppression.emailNormalized}? O titular volta a receber e-mails promocionais.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const sup = pendingDeleteSuppression;
+          setPendingDeleteSuppression(null);
+          if (sup) void handleDeleteSuppression(sup.id);
+        }}
+      />
     </Stack>
   );
 }

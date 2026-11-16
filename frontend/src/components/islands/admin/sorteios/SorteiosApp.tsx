@@ -88,6 +88,7 @@ function SorteiosInner() {
   const [raffles, setRaffles] = useState<Raffle[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [pendingCancelRaffle, setPendingCancelRaffle] = useState<Raffle | null>(null);
   const [actionError, setActionError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
@@ -364,7 +365,7 @@ function SorteiosInner() {
                         <Button size="small" variant="contained" disabled={drawing} onClick={() => { setDrawTarget(raffle); setActionError(""); }}>
                           Sortear
                         </Button>
-                        <Button size="small" variant="outlined" color="error" onClick={() => cancelRaffle(raffle.id)}>
+                        <Button size="small" variant="outlined" color="error" onClick={() => setPendingCancelRaffle(raffle)}>
                           Cancelar
                         </Button>
                       </>
@@ -438,6 +439,22 @@ function SorteiosInner() {
         onClose={() => { setDrawTarget(null); setActionError(""); }}
         loading={drawing}
         error={actionError}
+      />
+      <ModalConfirm
+        open={pendingCancelRaffle !== null}
+        onClose={() => setPendingCancelRaffle(null)}
+        title="Cancelar sorteio?"
+        description={
+          pendingCancelRaffle
+            ? `Cancelar o sorteio "${pendingCancelRaffle.title}"? Ele não poderá ser sorteado depois.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const raffle = pendingCancelRaffle;
+          setPendingCancelRaffle(null);
+          if (raffle) void cancelRaffle(raffle.id);
+        }}
       />
     </PageContainer>
   );

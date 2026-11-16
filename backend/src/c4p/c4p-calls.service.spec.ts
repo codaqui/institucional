@@ -50,6 +50,7 @@ describe('C4pCallsService', () => {
   beforeEach(() => {
     repo = {
       findOneBy: jest.fn().mockResolvedValue(null),
+      find: jest.fn().mockResolvedValue([]),
       findAndCount: jest.fn().mockResolvedValue([[], 0]),
       create: jest.fn((dto) => dto),
       save: jest.fn((call) => Promise.resolve({ ...makeCall(), ...call })),
@@ -65,9 +66,13 @@ describe('C4pCallsService', () => {
     memberDesignationsRepo = {
       countBy: jest.fn().mockResolvedValue(0),
     };
-    eventsRepo = { findOneBy: jest.fn().mockResolvedValue({ id: 'event-1' }) };
+    eventsRepo = {
+      findOneBy: jest.fn().mockResolvedValue({ id: 'event-1' }),
+      findBy: jest.fn().mockResolvedValue([]),
+    };
     communitiesRepo = {
       findOneBy: jest.fn().mockResolvedValue({ id: 'community-1' }),
+      findBy: jest.fn().mockResolvedValue([]),
     };
     designations = { hasDesignation: jest.fn().mockResolvedValue(false) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue(undefined) };
@@ -305,6 +310,28 @@ describe('C4pCallsService', () => {
           votesCount: 4,
         }),
       );
+    });
+  });
+
+  describe('listPublic', () => {
+    it('exibe somente campanhas dentro da janela ou sem janela configurada', async () => {
+      const now = Date.now();
+      repo.find.mockResolvedValue([
+        makeCall({ id: 'expired', slug: 'expirada', status: 'open', submissionCloseAt: new Date(now - 1_000) }),
+        makeCall({ id: 'future', slug: 'futura', status: 'open', submissionOpenAt: new Date(now + 60_000) }),
+        makeCall({
+          id: 'current',
+          slug: 'vigente',
+          status: 'open',
+          submissionOpenAt: new Date(now - 1_000),
+          submissionCloseAt: new Date(now + 60_000),
+        }),
+        makeCall({ id: 'unbounded', slug: 'sem-janela', status: 'open' }),
+      ]);
+
+      const result = await service.listPublic();
+
+      expect(result.map((call) => call.slug)).toEqual(['vigente', 'sem-janela']);
     });
   });
 

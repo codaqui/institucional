@@ -66,7 +66,7 @@ interface InternalEventAccordionProps {
   onEditTicket: (event: ManagedEvent, ticket: TicketType) => void;
   onDeactivateTicket: (ticket: TicketType) => void;
   onAddStaff: (event: ManagedEvent) => void;
-  onRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
+  onRequestRemoveStaff: (event: ManagedEvent, staff: EventStaff) => void;
   onReconcileQuota: (event: ManagedEvent) => void;
   reconcileLoadingId: string | null;
   reconcileResult: ReconcileQuotaState | null;
@@ -94,7 +94,7 @@ export default function InternalEventAccordion({
   onEditTicket,
   onDeactivateTicket,
   onAddStaff,
-  onRemoveStaff,
+  onRequestRemoveStaff,
   onReconcileQuota,
   reconcileLoadingId,
   reconcileResult,
@@ -386,7 +386,7 @@ export default function InternalEventAccordion({
                       size="small"
                       aria-label="remover staff"
                       disabled={staffRemovingId === staff.id}
-                      onClick={() => onRemoveStaff(event, staff)}
+                      onClick={() => onRequestRemoveStaff(event, staff)}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>

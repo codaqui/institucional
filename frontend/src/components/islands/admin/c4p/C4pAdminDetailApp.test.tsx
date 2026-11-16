@@ -94,6 +94,46 @@ describe("C4pAdminDetailApp", () => {
     expect(screen.getByText(/somente admin/i)).toBeTruthy();
   });
 
+  it("excluir proposta abre diálogo de confirmação antes do DELETE", async () => {
+    seedDetail();
+    mocks.authFetch
+      .mockResolvedValueOnce(jsonResponse(talksPage))
+      .mockResolvedValueOnce(jsonResponse({ affected: 1 }))
+      .mockResolvedValueOnce(jsonResponse(callDetail))
+      .mockResolvedValueOnce(jsonResponse(talksPage));
+    renderWithMui(<C4pAdminDetailApp callId="call-1" />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("tab", { name: /propostas/i }));
+    await user.click(await screen.findByRole("button", { name: /excluir/i }));
+
+    expect(
+      mocks.authFetch.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === "DELETE"),
+    ).toBe(false);
+
+    await user.click(await screen.findByRole("button", { name: /confirmar/i }));
+    await waitFor(() =>
+      expect(
+        mocks.authFetch.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === "DELETE"),
+      ).toBe(true),
+    );
+  });
+
+  it("finalizar carrega TODAS as propostas (paginação completa)", async () => {
+    seedDetail();
+    const pageFull = { ...talksPage, data: Array.from({ length: 100 }, (_, i) => ({ ...talksPage.data[0], id: `talk-${i}` })), totalPages: 2 };
+    const pageLast = { ...talksPage, data: [{ ...talksPage.data[0], id: "talk-100" }], totalPages: 2 };
+    mocks.authFetch
+      .mockResolvedValueOnce(jsonResponse(pageFull))
+      .mockResolvedValueOnce(jsonResponse(pageFull))
+      .mockResolvedValueOnce(jsonResponse(pageLast))
+      .mockResolvedValueOnce(jsonResponse({ ...callDetail, status: "closed", selectedTalkIds: ["talk-1"], finalizedAt: "2026-11-12T00:00:00.000Z" }))
+      .mockResolvedValueOnce(jsonResponse({ ...callDetail, status: "closed" }));
+    renderWithMui(<C4pAdminDetailApp callId="call-1" />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("tab", { name: /finalização/i }));
+    await waitFor(() => expect(screen.getAllByRole("checkbox")).toHaveLength(101));
+  });
+
   it("importa CSV como text/csv", async () => {
     seedDetail();
     mocks.authFetch

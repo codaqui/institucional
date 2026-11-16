@@ -134,6 +134,16 @@ describe('C4pEvaluatorsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
+    it('não casa por coringa quando o input tem %', async () => {
+      await service.invite('call-1', { handleOrEmail: 'maria%' }, actor());
+      expect(membersRepo.findOne).toHaveBeenCalledWith({
+        where: [
+          { githubHandle: expect.objectContaining({ _value: 'maria\\%' }) },
+          { email: expect.objectContaining({ _value: 'maria\\%' }) },
+        ],
+      });
+    });
+
     it('retorna 404 para membro inativo', async () => {
       membersRepo.findOne.mockResolvedValue({ ...member, isActive: false });
       await expect(
@@ -208,6 +218,16 @@ describe('C4pEvaluatorsService', () => {
       await expect(
         service.accept('des-1', actor('actor-1')),
       ).rejects.toThrow(ConflictException);
+    });
+
+    it('retorna 404 para designation de outro tipo (não evaluator)', async () => {
+      designationsRepo.findOneBy.mockResolvedValue(
+        makeDesignation({ memberId: 'actor-1', designation: 'mentor', status: 'pending' }),
+      );
+      await expect(
+        service.accept('des-1', actor('actor-1')),
+      ).rejects.toThrow(NotFoundException);
+      expect(designationsService.confirm).not.toHaveBeenCalled();
     });
   });
 

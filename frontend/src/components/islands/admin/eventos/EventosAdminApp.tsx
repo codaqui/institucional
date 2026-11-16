@@ -402,7 +402,7 @@ function EventosAdminInner(): React.JSX.Element {
                   onEditTicket={mutations.openEditTicketDialog}
                   onDeactivateTicket={mutations.handleDeactivateTicketType}
                   onAddStaff={mutations.handleAddStaff}
-                  onRemoveStaff={mutations.handleRemoveStaff}
+                  onRequestRemoveStaff={mutations.requestRemoveStaff}
                   onReconcileQuota={handleReconcileQuota}
                   reconcileLoadingId={reconcileLoadingId}
                   reconcileResult={reconcileResult}
@@ -483,6 +483,19 @@ function EventosAdminInner(): React.JSX.Element {
         onConfirm={() => {
           if (mutations.publishTarget) void mutations.handlePublish(mutations.publishTarget);
         }}
+      />
+
+      <ModalConfirm
+        open={mutations.pendingStaffRemoval !== null}
+        onClose={mutations.cancelStaffRemoval}
+        title="Remover da equipe?"
+        description={
+          mutations.pendingStaffRemoval
+            ? `Remover ${membersById.get(mutations.pendingStaffRemoval.staff.memberId)?.name ?? mutations.pendingStaffRemoval.staff.memberId} da equipe de "${mutations.pendingStaffRemoval.event.title}"? A pessoa perde o acesso de ${mutations.pendingStaffRemoval.staff.staffRole} ao evento.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => void mutations.confirmRemoveStaff()}
       />
 
       {/* ── Dialog: Criar / Editar tipo de ingresso ── */}

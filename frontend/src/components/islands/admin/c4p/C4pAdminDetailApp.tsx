@@ -22,6 +22,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
+import ModalConfirm from "../ui/ModalConfirm";
 import PaginationControls from "../../ui/PaginationControls";
 import TabPanel from "../ui/TabPanel";
 import {
@@ -48,7 +49,7 @@ const STATUS_LABEL: Record<ManageCall["status"], string> = {
 function TalksTable({
   talks,
   onRemove,
-}: Readonly<{ talks: ManageTalk[]; onRemove: (talkId: string) => void }>) {
+}: Readonly<{ talks: ManageTalk[]; onRemove: (talk: ManageTalk) => void }>) {
   return (
     <Table size="small">
       <TableHead>
@@ -71,7 +72,7 @@ function TalksTable({
               />
             </TableCell>
             <TableCell align="right">
-              <Button size="small" color="error" onClick={() => onRemove(talk.id)}>
+              <Button size="small" color="error" onClick={() => onRemove(talk)}>
                 Excluir
               </Button>
             </TableCell>
@@ -89,8 +90,9 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
-  const [importFeedback, setImportFeedback] = useState("");
+  const [importFeedback, setImportFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ManageTalk | null>(null);
 
   const load = useCallback(
     async (targetPage: number) => {
@@ -113,7 +115,7 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
 
   const importCsv = async () => {
     if (!file) return;
-    setImportFeedback("");
+    setImportFeedback(null);
     const text = await file.text();
     const response = await authFetch(`/c4p/manage/calls/${callId}/talks/import`, {
       method: "POST",
@@ -121,16 +123,20 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
       body: text,
     });
     if (!response.ok) {
-      setImportFeedback(await extractErrorMessage(response, "Não foi possível importar o CSV."));
+      setImportFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível importar o CSV."),
+      });
       return;
     }
     const result = (await response.json()) as { imported: number; skipped: Array<{ line: number; reason: string }> };
     const skippedSuffix = result.skipped.length
       ? `, ${result.skipped.length} linhas ignoradas`
       : "";
-    setImportFeedback(
-      `${result.imported} propostas importadas${skippedSuffix}.`,
-    );
+    setImportFeedback({
+      severity: "success",
+      text: `${result.imported} propostas importadas${skippedSuffix}.`,
+    });
     setFile(null);
     onChanged();
     await load(1);
@@ -151,7 +157,9 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   return (
     <Stack spacing={2}>
       {loadError ? <Alert severity="error">{loadError}</Alert> : null}
-      {importFeedback ? <Alert severity={importFeedback.includes("Não") ? "error" : "success"}>{importFeedback}</Alert> : null}
+      {importFeedback ? (
+        <Alert severity={importFeedback.severity}>{importFeedback.text}</Alert>
+      ) : null}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
         <Button component="label" variant="outlined">
           <span>Escolher arquivo CSV</span>
@@ -176,7 +184,23 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
         totalPages={totalPages}
         total={total}
         onPageChange={(next) => void load(next)}
-        onRemove={(talkId) => void removeTalk(talkId)}
+        onRemove={(talk) => setPendingDelete(talk)}
+      />
+      <ModalConfirm
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Remover proposta?"
+        description={
+          pendingDelete
+            ? `Remover a proposta "${pendingDelete.title}"? Esta ação não pode ser desfeita.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const talk = pendingDelete;
+          setPendingDelete(null);
+          if (talk) void removeTalk(talk.id);
+        }}
       />
     </Stack>
   );
@@ -195,7 +219,7 @@ function TalksBody({
   totalPages: number;
   total: number;
   onPageChange: (next: number) => void;
-  onRemove: (talkId: string) => void;
+  onRemove: (talk: ManageTalk) => void;
 }>) {
   if (talks === null) {
     return <CircularProgress aria-label="Carregando propostas" />;
@@ -224,7 +248,7 @@ function EvaluatorsTable({
   onRemove,
 }: Readonly<{
   evaluators: EvaluatorSummary[];
-  onRemove: (designationId: string) => void;
+  onRemove: (evaluator: EvaluatorSummary) => void;
 }>) {
   return (
     <Table size="small">
@@ -247,7 +271,7 @@ function EvaluatorsTable({
                 size="small"
                 color="error"
                 disabled={evaluator.status === "removed"}
-                onClick={() => onRemove(evaluator.designationId)}
+                onClick={() => onRemove(evaluator)}
               >
                 Remover
               </Button>
@@ -264,7 +288,8 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   const [evaluators, setEvaluators] = useState<EvaluatorSummary[] | null>(null);
   const [loadError, setLoadError] = useState("");
   const [inviteValue, setInviteValue] = useState("");
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
+  const [pendingDeleteEvaluator, setPendingDeleteEvaluator] = useState<EvaluatorSummary | null>(null);
 
   const load = useCallback(async () => {
     const response = await authFetch(`/c4p/manage/calls/${callId}/evaluators`);
@@ -276,17 +301,20 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   }, [load]);
 
   const invite = async () => {
-    setFeedback("");
+    setFeedback(null);
     const response = await authFetch(`/c4p/manage/calls/${callId}/evaluators`, {
       method: "POST",
       body: JSON.stringify({ handleOrEmail: inviteValue.trim() }),
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível convidar."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível convidar."),
+      });
       return;
     }
     setInviteValue("");
-    setFeedback("Convite enviado.");
+    setFeedback({ severity: "success", text: "Convite enviado." });
     onChanged();
     await load();
   };
@@ -296,7 +324,10 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       method: "DELETE",
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível remover."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível remover."),
+      });
       return;
     }
     onChanged();
@@ -306,7 +337,7 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   return (
     <Stack spacing={2}>
       {loadError ? <Alert severity="error">{loadError}</Alert> : null}
-      {feedback ? <Alert severity={feedback.includes("Não") ? "error" : "success"}>{feedback}</Alert> : null}
+      {feedback ? <Alert severity={feedback.severity}>{feedback.text}</Alert> : null}
       <Box sx={{ display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap" }}>
         <TextField
           label="Handle ou e-mail do membro"
@@ -320,7 +351,23 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       </Box>
       <EvaluatorsBody
         evaluators={evaluators}
-        onRemove={(designationId) => void remove(designationId)}
+        onRemove={(evaluator) => setPendingDeleteEvaluator(evaluator)}
+      />
+      <ModalConfirm
+        open={pendingDeleteEvaluator !== null}
+        onClose={() => setPendingDeleteEvaluator(null)}
+        title="Remover avaliador?"
+        description={
+          pendingDeleteEvaluator
+            ? `Remover ${pendingDeleteEvaluator.member.name} como avaliador desta campanha? Os votos já registrados permanecem contando nas médias.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const evaluator = pendingDeleteEvaluator;
+          setPendingDeleteEvaluator(null);
+          if (evaluator) void remove(evaluator.designationId);
+        }}
       />
     </Stack>
   );
@@ -331,7 +378,7 @@ function EvaluatorsBody({
   onRemove,
 }: Readonly<{
   evaluators: EvaluatorSummary[] | null;
-  onRemove: (designationId: string) => void;
+  onRemove: (evaluator: EvaluatorSummary) => void;
 }>) {
   if (evaluators === null) {
     return <CircularProgress aria-label="Carregando avaliadores" />;
@@ -414,15 +461,24 @@ function FinalizeTab({
   const [talks, setTalks] = useState<ManageTalk[] | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [feedback, setFeedback] = useState("");
+  const [feedback, setFeedback] = useState<{ severity: "success" | "error"; text: string } | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     void (async () => {
-      const params = new URLSearchParams({ page: "1", limit: "100" });
-      const response = await authFetch(`/c4p/manage/calls/${call.id}/talks?${params}`);
-      const result = await parseAuthJson<PaginatedResponse<ManageTalk>>(response, () => {});
-      if (result) setTalks(result.data ?? []);
+      const all: ManageTalk[] = [];
+      let currentPage = 1;
+      let totalPages = 1;
+      do {
+        const params = new URLSearchParams({ page: String(currentPage), limit: "100" });
+        const response = await authFetch(`/c4p/manage/calls/${call.id}/talks?${params}`);
+        const result = await parseAuthJson<PaginatedResponse<ManageTalk>>(response, () => {});
+        if (!result) return;
+        all.push(...(result.data ?? []));
+        totalPages = result.totalPages;
+        currentPage += 1;
+      } while (currentPage <= totalPages);
+      setTalks(all);
     })();
   }, [authFetch, call.id]);
 
@@ -432,11 +488,14 @@ function FinalizeTab({
       body: JSON.stringify({ talkIds: [...selected] }),
     });
     if (!response.ok) {
-      setFeedback(await extractErrorMessage(response, "Não foi possível finalizar."));
+      setFeedback({
+        severity: "error",
+        text: await extractErrorMessage(response, "Não foi possível finalizar."),
+      });
       return;
     }
     setConfirmOpen(false);
-    setFeedback("Campanha finalizada. E-mails de resultado despachados.");
+    setFeedback({ severity: "success", text: "Campanha finalizada. E-mails de resultado despachados." });
     onChanged();
   };
 
@@ -448,7 +507,10 @@ function FinalizeTab({
       const report = (await response.json()) as C4pReport;
       await downloadC4pReportPdf(buildC4pReportModel(report));
     } catch (reason) {
-      setFeedback(reason instanceof Error ? reason.message : "Não foi possível gerar o PDF.");
+      setFeedback({
+        severity: "error",
+        text: reason instanceof Error ? reason.message : "Não foi possível gerar o PDF.",
+      });
     } finally {
       setPdfLoading(false);
     }
@@ -457,7 +519,7 @@ function FinalizeTab({
   return (
     <Stack spacing={2}>
       {feedback ? (
-        <Alert severity={feedback.startsWith("Não") ? "error" : "success"}>{feedback}</Alert>
+        <Alert severity={feedback.severity}>{feedback.text}</Alert>
       ) : null}
       {!isAdmin ? (
         <Alert severity="info">

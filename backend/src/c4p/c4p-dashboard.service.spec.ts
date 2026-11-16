@@ -201,6 +201,18 @@ describe('C4pDashboardService', () => {
         { value: 'Não informado', count: 1 },
       ]);
     });
+
+    it('voto de avaliador removido continua contando na média (não entra no progresso)', async () => {
+      votesRepo.find.mockResolvedValue([
+        makeVote({ id: 'v-removido', talkId: 'talk-1', evaluatorDesignationId: 'des-3', scores: { relevancia: 10 } }),
+        makeVote({ id: 'v-ativo', talkId: 'talk-1', evaluatorDesignationId: 'des-1', scores: { relevancia: 6 } }),
+      ]);
+      const result = await service.dashboard('call-1', actor());
+      expect(result.ranking[0].avgTotal).toBeCloseTo(8);
+      expect(result.ranking[0].votesCount).toBe(2);
+      expect(result.totals.evaluators).toBe(2);
+      expect(result.progressByEvaluator.map((row) => row.designationId)).not.toContain('des-3');
+    });
   });
 
   describe('report', () => {
@@ -267,6 +279,36 @@ describe('C4pDashboardService', () => {
       });
       const aberta = snapshot.calls.find((c) => c.slug === 'devpr-conf-2026');
       expect(aberta?.results).toBeNull();
+    });
+
+    it('filtra campanhas abertas pela janela sem ocultar resultados públicos fechados', async () => {
+      const now = Date.now();
+      callsRepo.find.mockResolvedValue([
+        makeCall({ id: 'expired', slug: 'expirada', submissionCloseAt: new Date(now - 1_000) }),
+        makeCall({ id: 'future', slug: 'futura', submissionOpenAt: new Date(now + 60_000) }),
+        makeCall({
+          id: 'current',
+          slug: 'vigente',
+          submissionOpenAt: new Date(now - 1_000),
+          submissionCloseAt: new Date(now + 60_000),
+        }),
+        makeCall({ id: 'unbounded', slug: 'sem-janela' }),
+        makeCall({
+          id: 'closed',
+          slug: 'fechada-publica',
+          status: 'closed',
+          publicResults: true,
+          submissionCloseAt: new Date(now - 1_000),
+        }),
+      ]);
+
+      const snapshot = await service.getSnapshot();
+
+      expect(snapshot.calls.map((call) => call.slug)).toEqual([
+        'vigente',
+        'sem-janela',
+        'fechada-publica',
+      ]);
     });
 
     it('nunca expõe scores, comentários ou e-mails no payload', async () => {

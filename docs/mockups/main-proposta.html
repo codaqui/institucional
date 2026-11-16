@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Proposta visual — Main (Codaqui)</title>
+  <meta name="description" content="Mockup estático da Main da Codaqui aplicando as melhorias da revisão de jornadas: nav com C4P, h1, contraste correto, cards com thumbnail e texto contido, footer ampliado." />
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+
+  <section class="announcement" aria-label="Anúncios institucionais">
+    <div class="container">
+      <span class="badge">Aviso</span>
+      <p><strong>C4P aberto:</strong> submeta sua palestra para a DevPR Conf 2027 até 15/12. <a href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a></p>
+    </div>
+  </section>
+
+  <header class="site">
+    <div class="container">
+      <a class="logo" href="/" aria-label="Codaqui — página inicial">
+        <img src="../../frontend/public/img/logo_principal.svg" alt="Codaqui" class="brand-logo-light" style="height:32px;width:auto" />
+        <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" style="height:32px;width:auto;display:none" />
+      </a>
+      <nav class="main-nav" aria-label="Navegação principal">
+        <a href="/eventos">Eventos</a>
+        <a href="/projetos">Projetos</a>
+        <a href="/patrocinadores">Patrocinadores</a>
+        <a href="/c4p" aria-current="page">C4P</a>
+        <a href="/blog">Blog</a>
+        <a href="/contato">Contato</a>
+        <a href="/participe/apoiar" class="btn btn-primary btn-sm">Apoiar</a>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="◐ Tema: alternar entre modo claro e escuro">◐ Tema</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo">
+    <section class="hero">
+      <div class="container">
+        <p class="eyebrow">Associação Codaqui</p>
+        <h1>Democratizando a educação em tecnologia</h1>
+        <p class="sub">Uma associação sem fins lucrativos que conecta jovens, comunidades e empresas para aprender, criar e crescer juntos — de graça.</p>
+        <div class="actions">
+          <a class="btn btn-light" href="/participe/estudar">Quero estudar</a>
+          <a class="btn btn-ghost-light" href="/eventos">Ver próximos eventos</a>
+          <a class="btn btn-ghost-light" href="/participe/apoiar">Apoiar a Codaqui</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="eventos-title">
+      <div class="section-head">
+        <h2 id="eventos-title">Próximos eventos</h2>
+        <a href="/eventos">Ver todos os eventos →</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="thumb thumb-event-1">DevPR Conf 2026</div>
+          <div class="body">
+            <p class="kicker">Conferência · Maringá, PR</p>
+            <h3><a href="/eventos/doity/devpr/devpr-conf-26">DevPR Conf 2026</a></h3>
+            <p class="meta">12 de dezembro de 2026 · 09h00</p>
+            <p class="desc">A maior conferência de desenvolvedores do norte do Paraná: trilhas de frontend, backend, DevOps e comunidade, com C4P aberto para submissão de palestras e certificado de participação.</p>
+            <div class="foot"><span class="tag">Em breve</span><a class="btn btn-outline btn-sm" href="/eventos/doity/devpr/devpr-conf-26">Detalhes</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-event-2">Meetup DevParaná</div>
+          <div class="body">
+            <p class="kicker">Meetup · Online</p>
+            <h3><a href="/eventos/meetup/devparana/317102213">Meetup DevParaná — Carreiras em Tech</a></h3>
+            <p class="meta">18 de dezembro de 2026 · 19h00</p>
+            <p class="desc">Encontro mensal da comunidade DevParaná com duas talks rápidas, espaço para dúvidas e networking. Gratuito e aberto a iniciantes.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/eventos/meetup/devparana/317102213">Detalhes</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-event-3">Cloud Native Maringá</div>
+          <div class="body">
+            <p class="kicker">Comunidade parceira · Maringá, PR</p>
+            <h3><a href="/eventos/ocgroups/cloud-native-maringa/">Cloud Native Maringá — K8s na prática</a></h3>
+            <p class="meta">09 de janeiro de 2027 · 19h30</p>
+            <p class="desc">Sessão prática de Kubernetes para quem está começando: preparação do ambiente, primeiros deploys e observabilidade. Traga seu notebook.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/eventos/ocgroups/cloud-native-maringa/">Detalhes</a></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="c4p-title">
+      <div class="c4p-callout">
+        <div>
+          <h2 id="c4p-title">C4P — Chamada de Trabalhos aberta</h2>
+          <p>DevPR Conf 2027 está com chamada de trabalhos aberta até 15/12. Submissão pública, curadoria por avaliadores e resultado publicado. Sua palestra pode estar no palco.</p>
+        </div>
+        <a class="btn btn-primary" href="/c4p/devpr-conf-2027/submeter">Submeter proposta</a>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="blog-title">
+      <div class="section-head">
+        <h2 id="blog-title">Do blog</h2>
+        <a href="/blog">Ler todos os posts →</a>
+      </div>
+      <div class="grid">
+        <article class="card">
+          <div class="thumb thumb-blog-1">Curso de Lógica</div>
+          <div class="body">
+            <p class="kicker">Aprender</p>
+            <h3><a href="/blog/2026/03/30/curso-introducao-python">Curso: Introdução à Lógica de Programação com Python</a></h3>
+            <p class="meta">30 de março de 2026 · 8 min de leitura</p>
+            <p class="desc">O primeiro passo para quem nunca programou: variáveis, tipos, condições e o primeiro script rodando na prática.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2026/03/30/curso-introducao-python">Ler post</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-blog-2">Elas no Código</div>
+          <div class="body">
+            <p class="kicker">Comunidade</p>
+            <h3><a href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Elas no Código: maternidade e carreira em tecnologia</a></h3>
+            <p class="meta">12 de maio de 2026 · 6 min de leitura</p>
+            <p class="desc">Roda de conversa sobre como conciliar maternidade e carreira em tech, com relatos das participantes e caminhos práticos de apoio.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2026/05/12/elas-no-codigo-maternidade-e-carreira">Ler post</a></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="thumb thumb-blog-3">DevParaná × Codaqui</div>
+          <div class="body">
+            <p class="kicker">Comunidade</p>
+            <h3><a href="/blog/2024/07/22/devparana-e-codaqui">DevParaná e Codaqui: comunidades que se fortalecem juntas</a></h3>
+            <p class="meta">22 de julho de 2024 · 5 min de leitura</p>
+            <p class="desc">Como a parceria entre a Codaqui e o DevParaná abriu portas para mentorias, eventos e oportunidades para a comunidade do Paraná.</p>
+            <div class="foot"><a class="btn btn-outline btn-sm" href="/blog/2024/07/22/devparana-e-codaqui">Ler post</a></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="container" aria-labelledby="comunidades-title">
+      <div class="section-head">
+        <h2 id="comunidades-title">Comunidades do ecossistema</h2>
+        <a href="/comunidades">Conhecer todas →</a>
+      </div>
+      <div class="grid">
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">🌵</span><div><h3>DevParaná</h3><p class="meta">Paraná · comunidade integrada</p><p class="desc">Encontros presenciais e online para devs de todo o estado.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">💜</span><div><h3>Elas no Código</h3><p class="meta">Maringá, PR · comunidade integrada</p><p class="desc">Espaço de acolhimento e desenvolvimento para mulheres em tech.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">🤝</span><div><h3>T.I. Social</h3><p class="meta">Comunidade integrada</p><p class="desc">Tecnologia a serviço de projetos sociais e impacto.</p></div></div></article>
+        <article class="card"><div class="body community"><span class="emoji" aria-hidden="true">☸️</span><div><h3>Cloud Native Maringá</h3><p class="meta">Maringá, PR · comunidade parceira</p><p class="desc">Kubernetes, cloud native e DevOps na prática.</p></div></div></article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site">
+    <div class="container footer-grid">
+      <div>
+        <a class="logo" href="/" aria-label="Codaqui — página inicial">
+          <img src="../../frontend/public/img/logo_principal.svg" alt="Codaqui" class="brand-logo-light" style="height:32px;width:auto" />
+          <img src="../../frontend/public/img/logo_monocromatica.svg" alt="" aria-hidden="true" class="brand-logo-dark" style="height:32px;width:auto;display:none" />
+        </a>
+        <p class="small">Associação sem fins lucrativos que democratiza educação em tecnologia para jovens.</p>
+      </div>
+      <nav aria-label="Participar">
+        <h3>Participar</h3>
+        <ul>
+          <li><a href="/participe/estudar">Quero estudar</a></li>
+          <li><a href="/participe/mentoria">Quero mentoria</a></li>
+          <li><a href="/participe/apoiar">Apoiar financeiramente</a></li>
+          <li><a href="/c4p">C4P — submeter palestra</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Explorar">
+        <h3>Explorar</h3>
+        <ul>
+          <li><a href="/eventos">Eventos</a></li>
+          <li><a href="/comunidades">Comunidades</a></li>
+          <li><a href="/projetos">Projetos</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/trilhas">Trilhas</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Transparência">
+        <h3>Transparência</h3>
+        <ul>
+          <li><a href="/transparencia">Prestação de contas</a></li>
+          <li><a href="/sobre/insights">Insights</a></li>
+          <li><a href="/desenvolvedores/api">Documentação da API</a></li>
+        </ul>
+      </nav>
+    </div>
+    <div class="container small">© 2026 Associação Codaqui · contato@codaqui.dev</div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById("themeToggle");
+    toggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      toggle.setAttribute("aria-pressed", next === "dark" ? "true" : "false");
+    });
+  </script>
+</body>
+</html>

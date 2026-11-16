@@ -11,6 +11,7 @@ import Typography from "@mui/material/Typography";
 import AddIcon from "@mui/icons-material/Add";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
+import ModalConfirm from "../ui/ModalConfirm";
 import PaginationControls from "../../ui/PaginationControls";
 import { useAuth } from "../../../../lib/use-auth";
 import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
@@ -33,6 +34,7 @@ function AnnouncementsAdminInner() {
   const [editorError, setEditorError] = useState("");
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingDeactivate, setPendingDeactivate] = useState<Announcement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,7 +85,6 @@ function AnnouncementsAdminInner() {
   };
 
   const deactivate = async (announcement: Announcement) => {
-    if (!window.confirm(`Desativar o anúncio “${announcement.text}”?`)) return;
     setBusyId(announcement.id);
     setFeedback(null);
     try {
@@ -166,7 +167,7 @@ function AnnouncementsAdminInner() {
                     size="small"
                     color="warning"
                     disabled={busyId === announcement.id}
-                    onClick={() => void deactivate(announcement)}
+                    onClick={() => setPendingDeactivate(announcement)}
                   >
                     {busyId === announcement.id ? "Desativando…" : "Desativar"}
                   </Button>
@@ -189,6 +190,22 @@ function AnnouncementsAdminInner() {
         error={editorError}
         onClose={() => setEditorOpen(false)}
         onSave={save}
+      />
+      <ModalConfirm
+        open={pendingDeactivate !== null}
+        onClose={() => setPendingDeactivate(null)}
+        title="Desativar anúncio?"
+        description={
+          pendingDeactivate
+            ? `Desativar o anúncio "${pendingDeactivate.text}"? Ele deixa de aparecer para os visitantes, mas o histórico é preservado.`
+            : undefined
+        }
+        variant="warning"
+        onConfirm={() => {
+          const announcement = pendingDeactivate;
+          setPendingDeactivate(null);
+          if (announcement) void deactivate(announcement);
+        }}
       />
     </PageContainer>
   );

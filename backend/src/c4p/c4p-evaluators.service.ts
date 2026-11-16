@@ -34,6 +34,16 @@ export interface MyEvaluationCall {
   call: { id: string; slug: string; name: string; status: C4pCallStatus };
 }
 
+const LIKE_ESCAPE = String.fromCodePoint(92);
+
+/** Escape os coringas do LIKE/ILIKE do Postgres antes de interpolar a busca. */
+export function escapeLikeWildcards(value: string): string {
+  return value
+    .replaceAll(LIKE_ESCAPE, LIKE_ESCAPE.repeat(2))
+    .replaceAll('%', `${LIKE_ESCAPE}%`)
+    .replaceAll('_', `${LIKE_ESCAPE}_`);
+}
+
 @Injectable()
 export class C4pEvaluatorsService {
   private readonly logger = new Logger(C4pEvaluatorsService.name);
@@ -100,8 +110,8 @@ export class C4pEvaluatorsService {
     const handleOrEmail = dto.handleOrEmail.trim();
     const member = await this.membersRepo.findOne({
       where: [
-        { githubHandle: ILike(handleOrEmail) },
-        { email: ILike(handleOrEmail) },
+        { githubHandle: ILike(escapeLikeWildcards(handleOrEmail)) },
+        { email: ILike(escapeLikeWildcards(handleOrEmail)) },
       ],
     });
     if (!member?.isActive) {
@@ -223,7 +233,8 @@ export class C4pEvaluatorsService {
     });
     if (
       designation?.memberId !== actor.sub ||
-      designation.targetType !== 'c4p_campaign'
+      designation.targetType !== 'c4p_campaign' ||
+      designation.designation !== 'evaluator'
     ) {
       throw new NotFoundException('Convite não encontrado.');
     }

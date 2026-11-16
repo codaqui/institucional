@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { EmailService } from '../notifications/email.service';
 import { EMAIL_TEMPLATE_C4P_SUBMISSION_CONFIRMATION } from '../notifications/default-templates';
 import { C4pCallsService } from './c4p-calls.service';
+import { isWithinSubmissionWindow } from './c4p-submission-window';
 import { SubmitC4pTalkDto } from './dto/c4p-submission.dto';
 import { C4pCall } from './entities/c4p-call.entity';
 import { C4pTalk } from './entities/c4p-talk.entity';
@@ -84,11 +85,7 @@ export class C4pSubmissionsService {
   }
 
   private assertAccepting(call: C4pCall): void {
-    const now = Date.now();
-    const withinWindow =
-      (!call.submissionOpenAt || call.submissionOpenAt.getTime() <= now) &&
-      (!call.submissionCloseAt || call.submissionCloseAt.getTime() > now);
-    if (call.status !== 'open' || !withinWindow) {
+    if (call.status !== 'open' || !isWithinSubmissionWindow(call)) {
       throw new ConflictException(
         'Esta chamada não está aceitando submissões.',
       );

@@ -53,7 +53,6 @@ describe("AnnouncementsAdminApp", () => {
       }
       return jsonResponse({ ...announcement, active: false });
     });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
   it("blocks invalid text without making a create request", async () => {
@@ -127,7 +126,11 @@ describe("AnnouncementsAdminApp", () => {
 
     await user.click(await screen.findByRole("button", { name: "Desativar" }));
 
-    expect(window.confirm).toHaveBeenCalledWith(expect.stringMatching(/Desativar/));
+    expect(await screen.findByText("Desativar anúncio?")).toBeInTheDocument();
+    expect(mocks.authFetch.mock.calls.some(([, init]) => init?.method === "DELETE")).toBe(false);
+
+    await user.click(screen.getByRole("button", { name: "Confirmar" }));
+
     await waitFor(() => {
       expect(mocks.authFetch).toHaveBeenCalledWith(
         "/announcements/admin/announcement-1",

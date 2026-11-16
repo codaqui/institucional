@@ -38,7 +38,7 @@ const talks = call.results?.talks ?? [];
     }
   />
 
-  <main id="conteudo" class="mx-auto max-w-3xl px-4 py-12">
+  <div class="mx-auto max-w-3xl px-4 py-12">
     {talks.length === 0 ? (
       <p class="text-neutral-700 dark:text-neutral-300">
         O resultado desta chamada ainda não foi publicado.
@@ -58,5 +58,5 @@ const talks = call.results?.talks ?? [];
         ))}
       </ul>
     )}
-  </main>
+  </div>
 </PublicLayout>
