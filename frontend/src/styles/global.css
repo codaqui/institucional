@@ -235,3 +235,8 @@ body {
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* Variante dark: ativa `dark:` apenas quando html[data-theme="dark"] (o toggle
+   do BaseLayout seta o atributo antes do paint). Necessária porque o Tailwind
+   v4, por padrão, responde a `prefers-color-scheme`, não ao atributo do site. */
+@custom-variant dark (&:where([data-theme="dark"] *));
