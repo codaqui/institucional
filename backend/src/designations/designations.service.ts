@@ -9,6 +9,7 @@ import { DataSource, IsNull, QueryRunner, Raw, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { MentorProfile } from '../mentorship/entities/mentor-profile.entity';
 import { designationTargetError } from './designation-target';
 import {
   Designation,
@@ -299,11 +300,40 @@ export class DesignationsService {
       memberId,
     ]);
     const designations = await this.designationRepo(queryRunner).find({
-      where: { memberId, status: 'active' },
+      where: {
+        memberId,
+        status: 'active',
+        validUntil: Raw((alias) => `(${alias} IS NULL OR ${alias} > NOW())`),
+      },
     });
     const membersRepo = queryRunner.manager.getRepository(Member);
     const member = await membersRepo.findOne({ where: { id: memberId } });
     if (!member) throw new NotFoundException('Membro não encontrado.');
+
+    const isMentor = designations.some(
+      (designation) =>
+        designation.targetType === 'program' &&
+        designation.targetKey === 'mentoria' &&
+        designation.designation === 'mentor',
+    );
+    const mentorProfilesRepo = queryRunner.manager.getRepository(MentorProfile);
+    let mentorProfile = await mentorProfilesRepo.findOneBy({ memberId });
+    if (isMentor) {
+      if (!mentorProfile) {
+        mentorProfile = mentorProfilesRepo.create({
+          memberId,
+          areas: [],
+          focus: null,
+          active: true,
+          approvedById: actor?.actorId ?? memberId,
+        });
+      }
+      mentorProfile.active = true;
+      await mentorProfilesRepo.save(mentorProfile);
+    } else if (mentorProfile?.active) {
+      mentorProfile.active = false;
+      await mentorProfilesRepo.save(mentorProfile);
+    }
 
     const derivedRoles = DERIVED_ROLES.filter((role) =>
       DERIVED_ROLE_RULES[role].some((rule) =>
