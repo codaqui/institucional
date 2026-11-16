@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 5 — candidatura, disponibilidade, agendamento concorrente, sessões, horas e insights de mentoria.
 audience: AI agents, mantenedores, mentores e operadores de release.
-status: Fase 5 e Mentoria Operations publicadas em 0.19.0 e 0.22.0; vinculação manual dos placeholders é acompanhamento operacional.
+status: Fase 5 e Mentoria Operations publicadas em 0.19.0 e 0.22.0; Fase 7.2 implementada em develop (backend 1.1.0, migration 050) com ciclo de vida sincronizado e vínculo manual mentor/admin.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -88,6 +88,12 @@ O convidado agenda com consentimento e acompanha por token. No login posterior, 
 O frontend entrega `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` e `/mentoria/sessao/<token>`. Como o build é estático, a última rota usa rewrite 200 para `/mentoria/sessao/index.html`; o token é lido no cliente e a página é noindex/fora do sitemap. Formulários usam labels nativos, validação server-side, erros visíveis e controles de teclado.
 
 `GET /mentorship/public` projeta mentores ativos e insights agregados. O UUID exposto é o **perfil de mentoria**, necessário para consultar slots e reservar; `memberId`, aprovadores e IDs de sessões não são públicos. O sync diário 06:21 UTC grava `static/mentors/index.json` atomicamente, preserva o arquivo anterior em erro e mantém `generatedAt` quando nada muda. O snapshot contém perfil público, disponibilidade e agregados de conclusão/no-show, nunca PII de mentorandos ou sessões individuais.
+
+## Ciclo de vida e vínculo manual (1.1.0)
+
+`DesignationsService` conhece `MentorProfile` e sincroniza `profile.active` na mesma transação da designation, inclusive quando as roles derivadas não mudam. Somente `mentor @ program('mentoria')` ativo e vigente (`validUntil` nulo ou futuro) ativa o perfil. A recandidatura reutiliza o UUID e atualiza áreas/foco com perfil inativo; `grant()` aceita um `QueryRunner` opcional para que designation e perfil sejam gravados atomicamente. A migration 050 faz backup dos estados, reconcilia os perfis com designations vigentes e restaura os valores originais no down. O snapshot exige perfil/membro ativos e designation vigente em lote, sem cron adicional.
+
+`GET /mentorship/member-options?search=` retorna até 10 membros ativos com somente `{id,name,githubHandle,avatarUrl}`, com escape de coringas no ILIKE. `POST /mentorship/sessions/:id/mentee` permite admin ou mentor ativo dono da sessão alterar apenas `menteeMemberId`, sem tocar nome/e-mail/consentimento/status/horas. As listagens do mentor e do admin enriquecem `menteeMember` com uma consulta em lote, sem N+1. O frontend compartilha participante, data/fuso, status traduzidos e o Dialog de vínculo entre `/membro/mentoria` e `/admin/mentoria`; o perfil público usa o rótulo `Mentor(a)` para a role derivada.
 
 ## Privacidade e retenção
 
