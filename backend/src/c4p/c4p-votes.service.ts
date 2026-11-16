@@ -139,8 +139,9 @@ export class C4pVotesService {
       where: { evaluatorDesignationId: designation.id },
       select: { talkId: true },
     });
+    const talkIds = new Set(talks.map((talk) => talk.id));
     const votedTalkIds = new Set(
-      votes.filter((vote) => talks.some((talk) => talk.id === vote.talkId)).map((vote) => vote.talkId),
+      votes.filter((vote) => talkIds.has(vote.talkId)).map((vote) => vote.talkId),
     );
     return {
       call,
