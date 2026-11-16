@@ -316,22 +316,32 @@ const OPEN_IN_NEW_PATH =
 
   <script type="application/json" id="events-stats" set:html={JSON.stringify(statsByFilter)} />
 
-  <script is:inline>
+  <script>
+    import {
+      bindSourceFilterHistory,
+      resolveSourceFilter,
+      urlWithSourceFilter,
+    } from "../../lib/event-source-filter";
+
     (() => {
       const PAGE_SIZE = 12;
       const statsEl = document.getElementById("events-stats");
-      const stats = statsEl ? JSON.parse(statsEl.textContent ?? "{}") : {};
-      const chips = [...document.querySelectorAll("[data-filter]")];
-      const cards = [...document.querySelectorAll("[data-event-card]")];
+      const stats: Record<
+        string,
+        { total: number; recurring: number; rsvps: number; label: string | null }
+      > = statsEl ? JSON.parse(statsEl.textContent ?? "{}") : {};
+      const chips = [...document.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+      const cards = [...document.querySelectorAll<HTMLElement>("[data-event-card]")];
       const featuredSection = document.getElementById("featured-section");
       const upcomingEmpty = document.getElementById("upcoming-empty");
       const pastEmpty = document.getElementById("past-empty");
       const loadMoreWrap = document.getElementById("past-load-more");
       const filterDesc = document.getElementById("filter-desc");
+      const knownSources = new Set(Object.keys(stats).filter((key) => key !== "all"));
       let current = "all";
       let pastShown = PAGE_SIZE;
 
-      const matches = (card) =>
+      const matches = (card: HTMLElement) =>
         current === "all" || card.dataset.sourceKey === current;
 
       function applyPagination() {
@@ -345,7 +355,11 @@ const OPEN_IN_NEW_PATH =
         if (loadMoreWrap) loadMoreWrap.hidden = pastShown >= visible.length;
       }
 
-      function applyFilter(key) {
+      function applyFilter(key: string, updateHistory = true) {
+        if (updateHistory) {
+          const next = urlWithSourceFilter(new URL(window.location.href), key, knownSources);
+          window.history.pushState(null, "", `${next.pathname}${next.search}${next.hash}`);
+        }
         current = key;
         pastShown = PAGE_SIZE;
         chips.forEach((chip) =>
@@ -354,9 +368,9 @@ const OPEN_IN_NEW_PATH =
 
         const s = stats[key] ?? stats.all;
         if (s) {
-          document.getElementById("stat-total").textContent = s.total;
-          document.getElementById("stat-recurring").textContent = s.recurring;
-          document.getElementById("stat-rsvps").textContent = s.rsvps;
+          document.getElementById("stat-total")!.textContent = String(s.total);
+          document.getElementById("stat-recurring")!.textContent = String(s.recurring);
+          document.getElementById("stat-rsvps")!.textContent = String(s.rsvps);
         }
         if (filterDesc) {
           filterDesc.textContent = s?.label
@@ -378,22 +392,15 @@ const OPEN_IN_NEW_PATH =
       }
 
       chips.forEach((chip) =>
-        chip.addEventListener("click", () => applyFilter(chip.dataset.filter)),
+        chip.addEventListener("click", () => applyFilter(chip.dataset.filter ?? "all")),
       );
       loadMoreWrap?.querySelector("button")?.addEventListener("click", () => {
         pastShown += PAGE_SIZE;
         applyPagination();
       });
 
-      // Filtro por fonte via query string (/eventos?source=<key>) — aplica o
-      // filtro somente se a fonte existir no mapa; senão cai na visão geral.
-      const querySource = new URLSearchParams(window.location.search).get("source");
-      const knownSources = new Set(Object.keys(stats).filter((key) => key !== "all"));
-      if (querySource && knownSources.has(querySource)) {
-        applyFilter(querySource);
-      } else {
-        applyFilter("all");
-      }
+      bindSourceFilterHistory(knownSources, (key) => applyFilter(key, false), window);
+      applyFilter(resolveSourceFilter(window.location.search, knownSources), false);
     })();
   </script>
 </PublicLayout>

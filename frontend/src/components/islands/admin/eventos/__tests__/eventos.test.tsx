@@ -106,6 +106,21 @@ function buildEvent(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function buildActiveTicket() {
+  return {
+    id: "tt-1",
+    name: "Lote 1",
+    kind: "free",
+    priceCents: 0,
+    quantityTotal: 100,
+    quantitySold: 95,
+    salesStartAt: null,
+    salesEndAt: null,
+    maxPerOrder: 4,
+    isActive: true,
+  };
+}
+
 // ── Fixtures do hub (eventos externos via snapshot estático) ────────────────
 
 const externalEvent = {
@@ -719,20 +734,55 @@ describe("/admin/eventos", () => {
     expect(strong.tagName).toBe("STRONG");
   });
 
+  it("desativa tipo de ingresso somente após confirmação", async () => {
+    const ticket = buildActiveTicket();
+    const authFetch = createAuthFetchMock();
+    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
+      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
+      if (url.endsWith("/events") && !options) {
+        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
+      }
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.endsWith("/events/ticket-types/tt-1") && options?.method === "PATCH") {
+        return jsonResponse({ ...ticket, isActive: false });
+      }
+      return jsonResponse(null, { status: 404 });
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/ticket-types/tt-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/ticket-types/tt-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Desativar tipo" }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith("/events/ticket-types/tt-1", {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: false }),
+      });
+    });
+  });
+
   it("recalcular vagas chama o endpoint e exibe os ajustes", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const ticket = {
-      id: "tt-1",
-      name: "Lote 1",
-      kind: "free",
-      priceCents: 0,
-      quantityTotal: 100,
-      quantitySold: 95,
-      salesStartAt: null,
-      salesEndAt: null,
-      maxPerOrder: 4,
-      isActive: true,
-    };
+    const ticket = buildActiveTicket();
     const authFetch = createAuthFetchMock();
     authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
       if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);

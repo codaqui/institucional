@@ -53,6 +53,7 @@ import {
   type MemberOption,
   type ReconcileQuotaResponse,
   type ReconcileQuotaState,
+  type TicketType,
 } from "./types";
 
 function EventosAdminInner(): React.JSX.Element {
@@ -87,6 +88,7 @@ function EventosAdminInner(): React.JSX.Element {
   >(null);
 
   const [guestInviteEvent, setGuestInviteEvent] = useState<ManagedEvent | null>(null);
+  const [ticketDeactivationTarget, setTicketDeactivationTarget] = useState<TicketType | null>(null);
 
   const [reimbursementDialog, setReimbursementDialog] = useState<{
     eventId: string;
@@ -400,7 +402,7 @@ function EventosAdminInner(): React.JSX.Element {
                     mutations.setTicketDialog({ event, mode: "create" });
                   }}
                   onEditTicket={mutations.openEditTicketDialog}
-                  onDeactivateTicket={mutations.handleDeactivateTicketType}
+                  onDeactivateTicket={setTicketDeactivationTarget}
                   onAddStaff={mutations.handleAddStaff}
                   onRequestRemoveStaff={mutations.requestRemoveStaff}
                   onReconcileQuota={handleReconcileQuota}
@@ -496,6 +498,20 @@ function EventosAdminInner(): React.JSX.Element {
         }
         variant="error"
         onConfirm={() => void mutations.confirmRemoveStaff()}
+      />
+
+      <ModalConfirm
+        open={ticketDeactivationTarget !== null}
+        onClose={() => setTicketDeactivationTarget(null)}
+        title="Desativar tipo de ingresso?"
+        description={`O tipo "${ticketDeactivationTarget?.name ?? ""}" deixará de aceitar novas inscrições. O histórico de pedidos será preservado.`}
+        variant="error"
+        confirmLabel="Desativar tipo"
+        onConfirm={() => {
+          const ticket = ticketDeactivationTarget;
+          setTicketDeactivationTarget(null);
+          if (ticket) void mutations.handleDeactivateTicketType(ticket);
+        }}
       />
 
       {/* ── Dialog: Criar / Editar tipo de ingresso ── */}
