@@ -138,6 +138,13 @@ describe('MentorshipService — applications and profile', () => {
       { mentorId: 'profile-1', status: 'completed', menteeEmail: 'private@example.test' },
       { mentorId: 'profile-1', status: 'no_show', menteeEmail: 'private@example.test' },
     ]);
+    designationRepo.find.mockResolvedValue([{
+      memberId: candidate.sub,
+      targetType: 'program',
+      targetKey: 'mentoria',
+      designation: 'mentor',
+      status: 'active',
+    }]);
 
     const payload = await service.listPublic();
 
@@ -155,6 +162,27 @@ describe('MentorshipService — applications and profile', () => {
       noShowRate: 0.5,
     });
     expect(JSON.stringify(payload)).not.toContain('private@example.test');
+  });
+
+  it('omits active profiles without a valid mentor designation from the public snapshot', async () => {
+    profileRepo.find.mockResolvedValue([{
+      id: 'profile-1', memberId: candidate.sub, approvedById: adminActor.sub,
+      active: true, areas: ['DevOps'], focus: 'Carreira',
+    }]);
+    memberRepo.findBy.mockResolvedValue([{
+      id: candidate.sub, githubHandle: 'ana', name: 'Ana', avatarUrl: 'avatar', isActive: true,
+    }]);
+    designationRepo.find.mockResolvedValue([]);
+
+    const payload = await service.listPublic();
+
+    expect(payload.mentors).toEqual([]);
+    expect(payload.insights.activeMentors).toBe(0);
+    expect(designationRepo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ validUntil: expect.anything() }),
+      }),
+    );
   });
 
   it('allows only admins to read operational insights', async () => {

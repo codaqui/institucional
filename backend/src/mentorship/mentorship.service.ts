@@ -1,6 +1,6 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, In, Repository } from 'typeorm';
+import { DataSource, In, Raw, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
@@ -282,7 +282,20 @@ export class MentorshipService {
       isActive: true,
     });
     const membersById = new Map(members.map((member) => [member.id, member]));
-    const activeProfiles = profiles.filter((profile) => membersById.has(profile.memberId));
+    const validDesignations = await this.designationRepo.find({
+      where: {
+        memberId: In(profiles.map((profile) => profile.memberId)),
+        targetType: 'program',
+        targetKey: 'mentoria',
+        designation: 'mentor',
+        status: 'active',
+        validUntil: Raw((alias) => `(${alias} IS NULL OR ${alias} > NOW())`),
+      },
+    });
+    const validMemberIds = new Set(validDesignations.map((designation) => designation.memberId));
+    const activeProfiles = profiles.filter(
+      (profile) => membersById.has(profile.memberId) && validMemberIds.has(profile.memberId),
+    );
     const profileIds = activeProfiles.map((profile) => profile.id);
     if (profileIds.length === 0) {
       return {
