@@ -34,6 +34,11 @@ export interface MyEvaluationCall {
   call: { id: string; slug: string; name: string; status: C4pCallStatus };
 }
 
+/** Escape os coringas do LIKE/ILIKE do Postgres antes de interpolar a busca. */
+export function escapeLikeWildcards(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 @Injectable()
 export class C4pEvaluatorsService {
   private readonly logger = new Logger(C4pEvaluatorsService.name);
@@ -100,8 +105,8 @@ export class C4pEvaluatorsService {
     const handleOrEmail = dto.handleOrEmail.trim();
     const member = await this.membersRepo.findOne({
       where: [
-        { githubHandle: ILike(handleOrEmail) },
-        { email: ILike(handleOrEmail) },
+        { githubHandle: ILike(escapeLikeWildcards(handleOrEmail)) },
+        { email: ILike(escapeLikeWildcards(handleOrEmail)) },
       ],
     });
     if (!member?.isActive) {
