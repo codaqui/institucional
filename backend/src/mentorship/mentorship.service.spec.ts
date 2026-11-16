@@ -23,6 +23,7 @@ describe('MentorshipService — applications and profile', () => {
   let sessionRepo: Record<string, jest.Mock>;
   let dataSource: Record<string, jest.Mock>;
   let queryRunner: Record<string, jest.Mock>;
+  let memberOptionsQuery: Record<string, jest.Mock>;
 
   beforeEach(() => {
     profileRepo = {
@@ -42,7 +43,18 @@ describe('MentorshipService — applications and profile', () => {
       invalidateCache: jest.fn(),
     };
     audit = { log: jest.fn().mockResolvedValue(undefined) };
-    memberRepo = { findBy: jest.fn().mockResolvedValue([]) };
+    memberOptionsQuery = {
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([{ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', email: 'private@example.test' }]),
+    };
+    memberRepo = {
+      findBy: jest.fn().mockResolvedValue([]),
+      createQueryBuilder: jest.fn().mockReturnValue(memberOptionsQuery),
+    };
     availabilityRepo = { find: jest.fn().mockResolvedValue([]) };
     sessionRepo = { find: jest.fn().mockResolvedValue([]) };
     queryRunner = {
@@ -183,6 +195,18 @@ describe('MentorshipService — applications and profile', () => {
         where: expect.objectContaining({ validUntil: expect.anything() }),
       }),
     );
+  });
+
+  it('searches active member options with escaped wildcards and a public whitelist', async () => {
+    const result = await service.searchMemberOptions('A%_\\');
+
+    expect(memberOptionsQuery.andWhere).toHaveBeenCalledWith(
+      '(member.name ILIKE :term OR member.githubHandle ILIKE :term)',
+      { term: '%A\\%\\_\\\\%' },
+    );
+    expect(memberOptionsQuery.take).toHaveBeenCalledWith(10);
+    expect(result).toEqual([{ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar' }]);
+    expect(JSON.stringify(result)).not.toContain('private@example.test');
   });
 
   it('allows only admins to read operational insights', async () => {

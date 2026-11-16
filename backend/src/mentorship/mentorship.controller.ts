@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import type { JwtPayload } from '../auth/jwt.strategy';
-import { AvailabilityRuleDto, CancelSessionDto, ConfirmSessionDto, ListMentorsQueryDto, ListSessionsQueryDto, MentorApplicationDto, RateSessionDto, ReserveSlotDto, UpdateMentorAdminDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
+import { AvailabilityRuleDto, AssignMenteeDto, CancelSessionDto, ConfirmSessionDto, ListMentorsQueryDto, ListSessionsQueryDto, MemberOptionsQueryDto, MentorApplicationDto, RateSessionDto, ReserveSlotDto, UpdateMentorAdminDto, UpdateMentorProfileDto } from './dto/mentorship.dto';
 import { AvailabilityService } from './availability.service';
 import { MentorshipService } from './mentorship.service';
 import { SessionsService } from './sessions.service';
@@ -63,6 +63,24 @@ export class MentorshipController {
   @ApiBearerAuth('jwt')
   listMentorSessions(@Req() req: { user: JwtPayload }) {
     return this.sessions.listForMentor(req.user);
+  }
+
+  @Get('member-options')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  searchMemberOptions(@Query() query: MemberOptionsQueryDto) {
+    return this.mentorship.searchMemberOptions(query.search);
+  }
+
+  @Post('sessions/:id/mentee')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('jwt')
+  assignMentee(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AssignMenteeDto,
+    @Req() req: { user: JwtPayload },
+  ) {
+    return this.sessions.assignMentee(id, dto.memberId, req.user);
   }
 
   @Get('sessions/:token')

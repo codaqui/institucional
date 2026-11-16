@@ -12,6 +12,8 @@ import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorAvailability } from './entities/mentor-availability.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 
+const LIKE_ESCAPE = String.fromCodePoint(92);
+
 @Injectable()
 export class MentorshipService {
   constructor(
@@ -261,6 +263,29 @@ export class MentorshipService {
     profile.areas = dto.areas;
     profile.focus = dto.focus?.trim() || null;
     return this.profileRepo.save(profile);
+  }
+
+  async searchMemberOptions(search = '') {
+    const term = search.trim();
+    const query = this.memberRepo.createQueryBuilder('member')
+      .select(['member.id', 'member.name', 'member.githubHandle', 'member.avatarUrl'])
+      .where('member.isActive = true');
+    if (term) {
+      const escaped = term
+        .replaceAll(LIKE_ESCAPE, LIKE_ESCAPE.repeat(2))
+        .replaceAll('%', `${LIKE_ESCAPE}%`)
+        .replaceAll('_', `${LIKE_ESCAPE}_`);
+      query.andWhere('(member.name ILIKE :term OR member.githubHandle ILIKE :term)', {
+        term: `%${escaped}%`,
+      });
+    }
+    const members = await query.orderBy('member.name', 'ASC').take(10).getMany();
+    return members.map((member) => ({
+      id: member.id,
+      name: member.name,
+      githubHandle: member.githubHandle,
+      avatarUrl: member.avatarUrl,
+    }));
   }
 
   async listPublic() {
