@@ -1,15 +1,20 @@
 import { vi } from "vitest";
 import type { AuthUser } from "../lib/auth-client";
 
-// Mocks e helpers compartilhados entre os testes admin baseados em roles
-// (fornecedores/reembolsos). O vi.mock abaixo é registrado quando este
-// módulo é avaliado — importe-o ANTES do componente sob teste.
+// Mocks e helpers compartilhados entre os testes admin baseados em roles.
+// O vi.mock abaixo é registrado quando este módulo é avaliado — importe-o
+// ANTES do componente sob teste.
 const state = vi.hoisted(() => ({
   user: null as AuthUser | null,
   ready: false,
   isLoggedIn: false,
   isAdmin: false,
   isFinanceAnalyzer: false,
+  isEventOrganizer: false,
+  isEventFinance: false,
+  isEventHost: false,
+  isEventChecker: false,
+  designations: [] as Array<{ id: string; targetType: string; targetId: string | null; targetKey: string | null; designation: string }>,
   authFetch: vi.fn(),
 }));
 export const authState = state;
@@ -21,6 +26,13 @@ vi.mock("../lib/use-auth", () => ({
     isLoggedIn: authState.isLoggedIn,
     isAdmin: authState.isAdmin,
     isFinanceAnalyzer: authState.isFinanceAnalyzer,
+    isEventOrganizer: authState.isEventOrganizer,
+    isEventFinance: authState.isEventFinance,
+    isEventHost: authState.isEventHost,
+    isEventChecker: authState.isEventChecker,
+    login: vi.fn(),
+    logout: vi.fn(),
+    refreshUser: vi.fn(),
     authFetch: authState.authFetch,
   }),
 }));
@@ -50,6 +62,10 @@ export function mockLoggedIn(roles: string[]) {
   authState.isLoggedIn = true;
   authState.isAdmin = roles.includes("admin");
   authState.isFinanceAnalyzer = roles.includes("finance-analyzer");
+  authState.isEventOrganizer = roles.includes("event_organizer");
+  authState.isEventFinance = roles.includes("event_finance");
+  authState.isEventHost = roles.includes("event_host");
+  authState.isEventChecker = roles.includes("event_checker");
 }
 
 export function stubLocation() {
@@ -65,4 +81,9 @@ export function resetAuthState() {
   authState.isLoggedIn = false;
   authState.isAdmin = false;
   authState.isFinanceAnalyzer = false;
+  authState.isEventOrganizer = false;
+  authState.isEventFinance = false;
+  authState.isEventHost = false;
+  authState.isEventChecker = false;
+  authState.designations = [];
 }

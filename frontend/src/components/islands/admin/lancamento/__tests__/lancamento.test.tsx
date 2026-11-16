@@ -1,40 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { authState } from "../../../../../test/admin-auth-fixtures";
 import LancamentoApp from "../LancamentoApp";
 import { renderWithMui } from "../../../../../test/render-mui";
 import type { AuthUser } from "../../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta os
-// campos que precisa no beforeEach/corpo (mesmo padrão de AppNavIsland.test).
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  isAdmin: false,
-  isFinanceAnalyzer: false,
-  isEventOrganizer: false,
-  isEventFinance: false,
-  isEventHost: false,
-  isEventChecker: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.isAdmin,
-    isFinanceAnalyzer: authState.isFinanceAnalyzer,
-    isEventOrganizer: authState.isEventOrganizer,
-    isEventFinance: authState.isEventFinance,
-    isEventHost: authState.isEventHost,
-    isEventChecker: authState.isEventChecker,
-    login: vi.fn(),
-    logout: vi.fn(),
-    authFetch: authState.authFetch,
-  }),
-}));
 
 type MockResponse = Pick<Response, "ok" | "status" | "json">;
 
