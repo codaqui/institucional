@@ -94,6 +94,30 @@ describe("C4pAdminDetailApp", () => {
     expect(screen.getByText(/somente admin/i)).toBeTruthy();
   });
 
+  it("excluir proposta abre diálogo de confirmação antes do DELETE", async () => {
+    seedDetail();
+    mocks.authFetch
+      .mockResolvedValueOnce(jsonResponse(talksPage))
+      .mockResolvedValueOnce(jsonResponse({ affected: 1 }))
+      .mockResolvedValueOnce(jsonResponse(callDetail))
+      .mockResolvedValueOnce(jsonResponse(talksPage));
+    renderWithMui(<C4pAdminDetailApp callId="call-1" />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("tab", { name: /propostas/i }));
+    await user.click(await screen.findByRole("button", { name: /excluir/i }));
+
+    expect(
+      mocks.authFetch.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === "DELETE"),
+    ).toBe(false);
+
+    await user.click(await screen.findByRole("button", { name: /confirmar/i }));
+    await waitFor(() =>
+      expect(
+        mocks.authFetch.mock.calls.some(([, init]) => (init as RequestInit | undefined)?.method === "DELETE"),
+      ).toBe(true),
+    );
+  });
+
   it("importa CSV como text/csv", async () => {
     seedDetail();
     mocks.authFetch

@@ -67,6 +67,10 @@ export interface UseAdminEventosMutationsReturn {
   handleDeactivateTicketType: (ticket: TicketType) => Promise<void>;
   handleAddStaff: (event: ManagedEvent) => Promise<void>;
   handleRemoveStaff: (event: ManagedEvent, staff: EventStaff) => Promise<void>;
+  pendingStaffRemoval: EventStaff | null;
+  requestRemoveStaff: (staff: EventStaff) => void;
+  confirmRemoveStaff: (event: ManagedEvent) => Promise<void>;
+  cancelStaffRemoval: () => void;
   setCancelError: React.Dispatch<React.SetStateAction<string>>;
   setTicketError: React.Dispatch<React.SetStateAction<string>>;
 }
@@ -331,6 +335,22 @@ export function useAdminEventosMutations(
     [authFetch, fetchEvents, staffRemovingId],
   );
 
+  const [pendingStaffRemoval, setPendingStaffRemoval] = useState<EventStaff | null>(null);
+  const requestRemoveStaff = useCallback((staff: EventStaff) => {
+    setPendingStaffRemoval(staff);
+  }, []);
+  const cancelStaffRemoval = useCallback(() => {
+    setPendingStaffRemoval(null);
+  }, []);
+  const confirmRemoveStaff = useCallback(
+    async (event: ManagedEvent) => {
+      const staff = pendingStaffRemoval;
+      setPendingStaffRemoval(null);
+      if (staff) await handleRemoveStaff(event, staff);
+    },
+    [handleRemoveStaff, pendingStaffRemoval],
+  );
+
   return {
     eventDialog,
     setEventDialog,
@@ -373,6 +393,10 @@ export function useAdminEventosMutations(
     handleDeactivateTicketType,
     handleAddStaff,
     handleRemoveStaff,
+    pendingStaffRemoval,
+    requestRemoveStaff,
+    confirmRemoveStaff,
+    cancelStaffRemoval,
     setCancelError,
     setTicketError,
   };

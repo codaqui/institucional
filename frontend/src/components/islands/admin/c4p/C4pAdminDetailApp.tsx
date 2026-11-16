@@ -22,6 +22,7 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
+import ModalConfirm from "../ui/ModalConfirm";
 import PaginationControls from "../../ui/PaginationControls";
 import TabPanel from "../ui/TabPanel";
 import {
@@ -48,7 +49,7 @@ const STATUS_LABEL: Record<ManageCall["status"], string> = {
 function TalksTable({
   talks,
   onRemove,
-}: Readonly<{ talks: ManageTalk[]; onRemove: (talkId: string) => void }>) {
+}: Readonly<{ talks: ManageTalk[]; onRemove: (talk: ManageTalk) => void }>) {
   return (
     <Table size="small">
       <TableHead>
@@ -71,7 +72,7 @@ function TalksTable({
               />
             </TableCell>
             <TableCell align="right">
-              <Button size="small" color="error" onClick={() => onRemove(talk.id)}>
+              <Button size="small" color="error" onClick={() => onRemove(talk)}>
                 Excluir
               </Button>
             </TableCell>
@@ -91,6 +92,7 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
   const [page, setPage] = useState(1);
   const [importFeedback, setImportFeedback] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ManageTalk | null>(null);
 
   const load = useCallback(
     async (targetPage: number) => {
@@ -176,7 +178,23 @@ function TalksTab({ callId, onChanged }: Readonly<{ callId: string; onChanged: (
         totalPages={totalPages}
         total={total}
         onPageChange={(next) => void load(next)}
-        onRemove={(talkId) => void removeTalk(talkId)}
+        onRemove={(talk) => setPendingDelete(talk)}
+      />
+      <ModalConfirm
+        open={pendingDelete !== null}
+        onClose={() => setPendingDelete(null)}
+        title="Remover proposta?"
+        description={
+          pendingDelete
+            ? `Remover a proposta "${pendingDelete.title}"? Esta ação não pode ser desfeita.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const talk = pendingDelete;
+          setPendingDelete(null);
+          if (talk) void removeTalk(talk.id);
+        }}
       />
     </Stack>
   );
@@ -195,7 +213,7 @@ function TalksBody({
   totalPages: number;
   total: number;
   onPageChange: (next: number) => void;
-  onRemove: (talkId: string) => void;
+  onRemove: (talk: ManageTalk) => void;
 }>) {
   if (talks === null) {
     return <CircularProgress aria-label="Carregando propostas" />;
@@ -224,7 +242,7 @@ function EvaluatorsTable({
   onRemove,
 }: Readonly<{
   evaluators: EvaluatorSummary[];
-  onRemove: (designationId: string) => void;
+  onRemove: (evaluator: EvaluatorSummary) => void;
 }>) {
   return (
     <Table size="small">
@@ -247,7 +265,7 @@ function EvaluatorsTable({
                 size="small"
                 color="error"
                 disabled={evaluator.status === "removed"}
-                onClick={() => onRemove(evaluator.designationId)}
+                onClick={() => onRemove(evaluator)}
               >
                 Remover
               </Button>
@@ -265,6 +283,7 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
   const [loadError, setLoadError] = useState("");
   const [inviteValue, setInviteValue] = useState("");
   const [feedback, setFeedback] = useState("");
+  const [pendingDeleteEvaluator, setPendingDeleteEvaluator] = useState<EvaluatorSummary | null>(null);
 
   const load = useCallback(async () => {
     const response = await authFetch(`/c4p/manage/calls/${callId}/evaluators`);
@@ -320,7 +339,23 @@ function EvaluatorsTab({ callId, onChanged }: Readonly<{ callId: string; onChang
       </Box>
       <EvaluatorsBody
         evaluators={evaluators}
-        onRemove={(designationId) => void remove(designationId)}
+        onRemove={(evaluator) => setPendingDeleteEvaluator(evaluator)}
+      />
+      <ModalConfirm
+        open={pendingDeleteEvaluator !== null}
+        onClose={() => setPendingDeleteEvaluator(null)}
+        title="Remover avaliador?"
+        description={
+          pendingDeleteEvaluator
+            ? `Remover ${pendingDeleteEvaluator.member.name} como avaliador desta campanha? Os votos já registrados permanecem contando nas médias.`
+            : undefined
+        }
+        variant="error"
+        onConfirm={() => {
+          const evaluator = pendingDeleteEvaluator;
+          setPendingDeleteEvaluator(null);
+          if (evaluator) void remove(evaluator.designationId);
+        }}
       />
     </Stack>
   );
@@ -331,7 +366,7 @@ function EvaluatorsBody({
   onRemove,
 }: Readonly<{
   evaluators: EvaluatorSummary[] | null;
-  onRemove: (designationId: string) => void;
+  onRemove: (evaluator: EvaluatorSummary) => void;
 }>) {
   if (evaluators === null) {
     return <CircularProgress aria-label="Carregando avaliadores" />;

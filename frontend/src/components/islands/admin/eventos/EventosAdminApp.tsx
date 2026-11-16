@@ -402,7 +402,10 @@ function EventosAdminInner(): React.JSX.Element {
                   onEditTicket={mutations.openEditTicketDialog}
                   onDeactivateTicket={mutations.handleDeactivateTicketType}
                   onAddStaff={mutations.handleAddStaff}
-                  onRemoveStaff={mutations.handleRemoveStaff}
+                  onRequestRemoveStaff={mutations.requestRemoveStaff}
+                  pendingStaffRemoval={mutations.pendingStaffRemoval}
+                  onConfirmRemoveStaff={mutations.confirmRemoveStaff}
+                  onCancelStaffRemoval={mutations.cancelStaffRemoval}
                   onReconcileQuota={handleReconcileQuota}
                   reconcileLoadingId={reconcileLoadingId}
                   reconcileResult={reconcileResult}
