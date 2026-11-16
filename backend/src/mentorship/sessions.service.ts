@@ -1,11 +1,11 @@
 import { BadRequestException, ConflictException, ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, IsNull, LessThan, Like, Not, Repository } from 'typeorm';
+import { Between, In, IsNull, LessThan, Like, Not, Repository } from 'typeorm';
 import type { JwtPayload } from '../auth/jwt.strategy';
 import { HoursService } from '../hours/hours.service';
 import { EmailService } from '../notifications/email.service';
-import { MemberRole } from '../members/entities/member.entity';
+import { Member, MemberRole } from '../members/entities/member.entity';
 import { MentorProfile } from './entities/mentor-profile.entity';
 import { MentorshipSession, MentorshipSessionStatus } from './entities/mentorship-session.entity';
 
@@ -18,6 +18,8 @@ export class SessionsService {
     private readonly profileRepo: Repository<MentorProfile>,
     private readonly hours: HoursService,
     private readonly emailService: EmailService,
+    @InjectRepository(Member)
+    private readonly memberRepo: Repository<Member>,
   ) {}
 
   async getByToken(token: string) {
@@ -40,17 +42,30 @@ export class SessionsService {
 
   async listForMentor(actor: JwtPayload) {
     await this.requireMentor(actor);
-    return this.sessionRepo.find({ where: { mentorId: (await this.requireMentor(actor)).id }, order: { scheduledAt: 'DESC' } });
+    const sessions = await this.sessionRepo.find({ where: { mentorId: (await this.requireMentor(actor)).id }, order: { scheduledAt: 'DESC' } });
+    return this.withMenteeMembers(sessions);
   }
 
   async listForAdmin(actor: JwtPayload, page = 1, limit = 25) {
     if (!actor.roles?.includes(MemberRole.ADMIN)) throw new ForbiddenException('Somente admin pode listar todas as sessões.');
-    const [data, total] = await this.sessionRepo.findAndCount({
+    const [sessions, total] = await this.sessionRepo.findAndCount({
       order: { scheduledAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
+    const data = await this.withMenteeMembers(sessions);
     return { data, total, page, totalPages: Math.ceil(total / limit), limit };
+  }
+
+  async assignMentee(id: string, memberId: string, actor: JwtPayload) {
+    const session = await this.requireSession(id);
+    await this.assertMentor(session, actor);
+    const member = await this.memberRepo.findOneBy({ id: memberId, isActive: true });
+    if (!member) throw new NotFoundException('Membro ativo não encontrado.');
+    session.menteeMemberId = member.id;
+    const saved = await this.sessionRepo.save(session);
+    const [enriched] = await this.withMenteeMembers([saved]);
+    return enriched;
   }
 
   async confirm(id: string, meetLink: string, actor: JwtPayload) {
@@ -205,6 +220,36 @@ export class SessionsService {
     if (guests.length > 0) {
       Logger.log(`${guests.length} sessões de convidados anonimizadas após 12 meses.`, SessionsService.name);
     }
+  }
+
+  private async withMenteeMembers(sessions: MentorshipSession[]) {
+    const memberIds = [
+      ...new Set(
+        sessions
+          .map((session) => session.menteeMemberId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const members = memberIds.length
+      ? await this.memberRepo.findBy({ id: In(memberIds), isActive: true })
+      : [];
+    const membersById = new Map(members.map((member) => [member.id, member]));
+    return sessions.map((session) => {
+      const member = session.menteeMemberId
+        ? membersById.get(session.menteeMemberId)
+        : undefined;
+      return {
+        ...session,
+        menteeMember: member
+          ? {
+              id: member.id,
+              name: member.name,
+              githubHandle: member.githubHandle,
+              avatarUrl: member.avatarUrl,
+            }
+          : null,
+      };
+    });
   }
 
   private async requireSession(id: string): Promise<MentorshipSession> {

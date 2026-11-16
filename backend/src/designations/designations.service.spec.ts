@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member } from '../members/entities/member.entity';
+import { MentorProfile } from '../mentorship/entities/mentor-profile.entity';
+import { createQueryRunnerLifecycleMock } from '../test-utils/query-runner';
 import { MemberDesignation } from './entities/member-designation.entity';
 import { DesignationsService } from './designations.service';
 
@@ -12,6 +14,7 @@ describe('DesignationsService', () => {
   let service: DesignationsService;
   let repo: Record<string, jest.Mock>;
   let membersRepo: Record<string, jest.Mock>;
+  let mentorProfileRepo: Record<string, jest.Mock>;
   let dataSource: Record<string, jest.Mock>;
   let queryRunner: Record<string, jest.Mock>;
   let audit: Record<string, jest.Mock>;
@@ -45,17 +48,19 @@ describe('DesignationsService', () => {
       findOne: jest.fn().mockResolvedValue(member),
       save: jest.fn().mockImplementation(async (value) => value),
     };
+    mentorProfileRepo = {
+      findOneBy: jest.fn().mockResolvedValue(null),
+      create: jest.fn().mockImplementation((value) => ({ ...value })),
+      save: jest.fn().mockImplementation(async (value) => ({ id: 'profile-1', ...value })),
+    };
     queryRunner = {
-      connect: jest.fn().mockResolvedValue(undefined),
-      startTransaction: jest.fn().mockResolvedValue(undefined),
-      commitTransaction: jest.fn().mockResolvedValue(undefined),
-      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
-      release: jest.fn().mockResolvedValue(undefined),
+      ...createQueryRunnerLifecycleMock(),
       query: jest.fn().mockResolvedValue(undefined),
       manager: {
         getRepository: jest.fn().mockImplementation((entity) => {
           if (entity === MemberDesignation) return repo;
           if (entity === Member) return membersRepo;
+          if (entity === MentorProfile) return mentorProfileRepo;
           throw new Error('Repositório inesperado');
         }),
       },
@@ -432,4 +437,99 @@ describe('DesignationsService', () => {
 
     expect(repo.findOne).toHaveBeenCalledTimes(3);
   });
+
+describe('DesignationsService — mentor profile synchronization', () => {
+  const mentorInput = {
+    memberId: 'member-1',
+    targetType: 'program',
+    targetKey: 'mentoria',
+    designation: 'mentor',
+    appointedById: 'admin-1',
+  } as const;
+
+  it('creates an active empty profile when confirming a mentor without one', async () => {
+    repo.findOne.mockResolvedValue({ ...mentorInput, id: 'designation-1', status: 'pending' });
+    repo.find.mockResolvedValue([{ ...mentorInput, status: 'active' }]);
+
+    await service.confirm('designation-1', actor);
+
+    expect(mentorProfileRepo.create).toHaveBeenCalledWith({
+      memberId: 'member-1',
+      areas: [],
+      focus: null,
+      active: true,
+      approvedById: actor.actorId,
+    });
+    expect(mentorProfileRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ active: true, approvedById: actor.actorId }),
+    );
+  });
+
+  it('deactivates the profile on revoke and preserves approvedById', async () => {
+    repo.findOne.mockResolvedValue({ ...mentorInput, id: 'designation-1', status: 'active' });
+    repo.find.mockResolvedValue([]);
+    mentorProfileRepo.findOneBy.mockResolvedValue({
+      id: 'profile-1',
+      memberId: 'member-1',
+      active: true,
+      approvedById: 'original-admin',
+    });
+
+    await service.revoke('designation-1', actor);
+
+    expect(mentorProfileRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ active: false, approvedById: 'original-admin' }),
+    );
+  });
+
+  it('synchronizes the profile even when derived roles do not change', async () => {
+    member.roles = ['membro'];
+    repo.findOne.mockResolvedValue({ ...mentorInput, id: 'designation-1', status: 'active' });
+    repo.find.mockResolvedValue([]);
+    mentorProfileRepo.findOneBy.mockResolvedValue({
+      id: 'profile-1',
+      memberId: 'member-1',
+      active: true,
+      approvedById: 'original-admin',
+    });
+
+    await service.revoke('designation-1', actor);
+
+    expect(membersRepo.save).not.toHaveBeenCalled();
+    expect(mentorProfileRepo.save).toHaveBeenCalledWith(
+      expect.objectContaining({ active: false }),
+    );
+  });
+
+  it('does not activate the profile for an expired mentor designation', async () => {
+    const validUntil = new Date(Date.now() - 60_000);
+    repo.findOne.mockResolvedValue({ ...mentorInput, id: 'designation-1', status: 'pending', validUntil });
+    repo.find.mockImplementation(({ where }) =>
+      where.validUntil ? [] : [{ ...mentorInput, status: 'active', validUntil }],
+    );
+
+    await service.confirm('designation-1', actor);
+
+    expect(repo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ validUntil: expect.anything() }),
+      }),
+    );
+    expect(mentorProfileRepo.create).not.toHaveBeenCalled();
+    expect(mentorProfileRepo.save).not.toHaveBeenCalled();
+  });
+
+  it('activates the profile for a mentor designation valid in the future', async () => {
+    const validUntil = new Date(Date.now() + 60_000);
+    repo.findOne.mockResolvedValue({ ...mentorInput, id: 'designation-1', status: 'pending', validUntil });
+    repo.find.mockResolvedValue([{ ...mentorInput, status: 'active', validUntil }]);
+
+    await service.confirm('designation-1', actor);
+
+    expect(mentorProfileRepo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ active: true, approvedById: actor.actorId }),
+    );
+  });
+});
+
 });

@@ -1,42 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { authState } from "../../../../../test/admin-auth-fixtures";
 import EventosAdminApp from "../EventosAdminApp";
 import { renderWithMui } from "../../../../../test/render-mui";
 import type { AuthUser } from "../../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta os
-// campos que precisa no beforeEach/corpo (mesmo padrão dos testes admin).
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  isAdmin: false,
-  isFinanceAnalyzer: false,
-  isEventOrganizer: false,
-  isEventFinance: false,
-  isEventHost: false,
-  isEventChecker: false,
-  designations: [] as Array<{ id: string; targetType: string; targetId: string | null; targetKey: string | null; designation: string }>,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.isAdmin,
-    isFinanceAnalyzer: authState.isFinanceAnalyzer,
-    isEventOrganizer: authState.isEventOrganizer,
-    isEventFinance: authState.isEventFinance,
-    isEventHost: authState.isEventHost,
-    isEventChecker: authState.isEventChecker,
-    login: vi.fn(),
-    logout: vi.fn(),
-    refreshUser: vi.fn(),
-    authFetch: authState.authFetch,
-  }),
-}));
 
 vi.mock("../../../../../lib/use-designations", () => ({
   useMyDesignations: () => ({ data: authState.designations, loading: false, error: "" }),
@@ -106,6 +73,21 @@ function buildEvent(overrides: Record<string, unknown> = {}) {
   };
 }
 
+function buildActiveTicket() {
+  return {
+    id: "tt-1",
+    name: "Lote 1",
+    kind: "free",
+    priceCents: 0,
+    quantityTotal: 100,
+    quantitySold: 95,
+    salesStartAt: null,
+    salesEndAt: null,
+    maxPerOrder: 4,
+    isActive: true,
+  };
+}
+
 // ── Fixtures do hub (eventos externos via snapshot estático) ────────────────
 
 const externalEvent = {
@@ -154,12 +136,14 @@ function createAuthFetchMock(
   index: unknown = EMPTY_INDEX,
   organizers: unknown = EMPTY_ORGANIZERS,
   activations: unknown = [],
+  events: unknown = [],
+  members: unknown = [],
 ) {
   return vi.fn(async (url: string, options?: RequestInit) => {
     if (url.includes("/events/organizers")) return jsonResponse(organizers);
     if (url.includes("/events/external/activations")) return jsonResponse(activations);
-    if (url.endsWith("/events") && !options) return jsonResponse([]);
-    if (url.endsWith("/admin/members")) return jsonResponse([]);
+    if (url.endsWith("/events") && !options) return jsonResponse(events);
+    if (url.endsWith("/admin/members")) return jsonResponse(members);
     return jsonResponse(null, { status: 404 });
   });
 }
@@ -514,13 +498,6 @@ describe("/admin/eventos", () => {
       ],
     };
     const authFetch = createAuthFetchMock(index, organizers);
-    authFetch.mockImplementation(async (url: string) => {
-      if (url.includes("/events/organizers")) return jsonResponse(organizers);
-      if (url.endsWith("/events")) return jsonResponse([]);
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      return jsonResponse(null, { status: 404 });
-    });
     authState.authFetch = authFetch;
     mockAuth({
       user: makeUser({ sub: "org-1", handle: "org", roles: ["membro", "event_organizer"] }),
@@ -554,13 +531,6 @@ describe("/admin/eventos", () => {
       ],
     };
     const authFetch = createAuthFetchMock(index, organizers);
-    authFetch.mockImplementation(async (url: string) => {
-      if (url.includes("/events/organizers")) return jsonResponse(organizers);
-      if (url.endsWith("/events")) return jsonResponse([]);
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      return jsonResponse(null, { status: 404 });
-    });
     authState.authFetch = authFetch;
     mockAuth({ user: makeUser({ sub: "admin-1", handle: "admin", roles: ["admin"] }) });
 
@@ -571,16 +541,7 @@ describe("/admin/eventos", () => {
   });
 
   it("esconde botão Lançar despesa para organizador sem role financeira", async () => {
-    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent()]);
-      }
-      if (url.endsWith("/admin/members")) {
-        return jsonResponse([]);
-      }
-      return jsonResponse(null, { status: 404 });
-    });
+    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS, [], [buildEvent()]);
     authState.authFetch = authFetch;
     mockAuth({ roles: ["membro", "event_organizer"] });
 
@@ -719,28 +680,61 @@ describe("/admin/eventos", () => {
     expect(strong.tagName).toBe("STRONG");
   });
 
+  it("desativa tipo de ingresso somente após confirmação", async () => {
+    const ticket = buildActiveTicket();
+    const defaultFetch = createAuthFetchMock(
+      EMPTY_INDEX,
+      EMPTY_ORGANIZERS,
+      [],
+      [buildEvent({ ticketTypes: [ticket] })],
+    );
+    const authFetch = vi.fn(async (url: string, options?: RequestInit) => {
+      if (url.endsWith("/events/ticket-types/tt-1") && options?.method === "PATCH") {
+        return jsonResponse({ ...ticket, isActive: false });
+      }
+      return defaultFetch(url, options);
+    });
+    authState.authFetch = authFetch;
+    mockAuth({ roles: ["admin"] });
+
+    renderWithMui(<EventosAdminApp />);
+    fireEvent.click(await screen.findByText("Evento Teste"));
+    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/ticket-types/tt-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(authFetch).not.toHaveBeenCalledWith(
+      "/events/ticket-types/tt-1",
+      expect.objectContaining({ method: "PATCH" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "desativar Lote 1" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Desativar tipo" }));
+
+    await waitFor(() => {
+      expect(authFetch).toHaveBeenCalledWith("/events/ticket-types/tt-1", {
+        method: "PATCH",
+        body: JSON.stringify({ isActive: false }),
+      });
+    });
+  });
+
   it("recalcular vagas chama o endpoint e exibe os ajustes", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const ticket = {
-      id: "tt-1",
-      name: "Lote 1",
-      kind: "free",
-      priceCents: 0,
-      quantityTotal: 100,
-      quantitySold: 95,
-      salesStartAt: null,
-      salesEndAt: null,
-      maxPerOrder: 4,
-      isActive: true,
-    };
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent({ ticketTypes: [ticket] })]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
+    const ticket = buildActiveTicket();
+    const defaultFetch = createAuthFetchMock(
+      EMPTY_INDEX,
+      EMPTY_ORGANIZERS,
+      [],
+      [buildEvent({ ticketTypes: [ticket] })],
+    );
+    const authFetch = vi.fn(async (url: string, options?: RequestInit) => {
       if (url.endsWith("/events/evt-1/reconcile-quota") && options?.method === "POST") {
         return jsonResponse({
           eventId: "evt-1",
@@ -749,7 +743,7 @@ describe("/admin/eventos", () => {
           ],
         });
       }
-      return jsonResponse(null, { status: 404 });
+      return defaultFetch(url, options);
     });
     authState.authFetch = authFetch;
     mockAuth({ roles: ["admin"] });
@@ -766,18 +760,17 @@ describe("/admin/eventos", () => {
 
   it("recalcular vagas informa quando todos os lotes já estão consistentes", async () => {
     const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
-    const authFetch = createAuthFetchMock();
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.includes("/events/organizers")) return jsonResponse(EMPTY_ORGANIZERS);
-      if (url.endsWith("/events/external/activations")) return jsonResponse([]);
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent()]);
-      }
-      if (url.endsWith("/admin/members")) return jsonResponse([]);
+    const defaultFetch = createAuthFetchMock(
+      EMPTY_INDEX,
+      EMPTY_ORGANIZERS,
+      [],
+      [buildEvent()],
+    );
+    const authFetch = vi.fn(async (url: string, options?: RequestInit) => {
       if (url.endsWith("/events/evt-1/reconcile-quota") && options?.method === "POST") {
         return jsonResponse({ eventId: "evt-1", results: [] });
       }
-      return jsonResponse(null, { status: 404 });
+      return defaultFetch(url, options);
     });
     authState.authFetch = authFetch;
     mockAuth({ roles: ["admin"] });
@@ -794,16 +787,7 @@ describe("/admin/eventos", () => {
   });
 
   it("exibe botão Lançar despesa para admin", async () => {
-    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS);
-    authFetch.mockImplementation(async (url: string, options?: RequestInit) => {
-      if (url.endsWith("/events") && !options) {
-        return jsonResponse([buildEvent()]);
-      }
-      if (url.endsWith("/admin/members")) {
-        return jsonResponse([]);
-      }
-      return jsonResponse(null, { status: 404 });
-    });
+    const authFetch = createAuthFetchMock(EMPTY_INDEX, EMPTY_ORGANIZERS, [], [buildEvent()]);
     authState.authFetch = authFetch;
     mockAuth({ roles: ["admin"] });
 

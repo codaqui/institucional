@@ -9,6 +9,7 @@ import { DataSource, IsNull, QueryRunner, Raw, Repository } from 'typeorm';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { Member, MemberRole } from '../members/entities/member.entity';
+import { MentorProfile } from '../mentorship/entities/mentor-profile.entity';
 import { designationTargetError } from './designation-target';
 import {
   Designation,
@@ -151,13 +152,14 @@ export class DesignationsService {
   async grant(
     input: GrantDesignationInput,
     actor: DesignationActor,
+    queryRunner?: QueryRunner,
   ): Promise<MemberDesignation> {
     const targetError = designationTargetError(input);
     if (targetError) throw new BadRequestException(targetError);
 
     let wrote = false;
-    const saved = await this.inTransaction(async (queryRunner) => {
-      const repo = this.designationRepo(queryRunner);
+    const work = async (runner: QueryRunner) => {
+      const repo = this.designationRepo(runner);
       const existing = await repo.findOne({
         where: this.activeIdentityWhere(input),
       });
@@ -175,9 +177,12 @@ export class DesignationsService {
       });
       const created = await repo.save(designation);
       wrote = true;
-      await this.syncMemberWithRunner(queryRunner, input.memberId, actor);
+      await this.syncMemberWithRunner(runner, input.memberId, actor);
       return created;
-    });
+    };
+    const saved = queryRunner
+      ? await work(queryRunner)
+      : await this.inTransaction(work);
 
     if (!wrote) return saved;
     this.cache.clear();
@@ -299,11 +304,40 @@ export class DesignationsService {
       memberId,
     ]);
     const designations = await this.designationRepo(queryRunner).find({
-      where: { memberId, status: 'active' },
+      where: {
+        memberId,
+        status: 'active',
+        validUntil: Raw((alias) => `(${alias} IS NULL OR ${alias} > NOW())`),
+      },
     });
     const membersRepo = queryRunner.manager.getRepository(Member);
     const member = await membersRepo.findOne({ where: { id: memberId } });
     if (!member) throw new NotFoundException('Membro não encontrado.');
+
+    const isMentor = designations.some(
+      (designation) =>
+        designation.targetType === 'program' &&
+        designation.targetKey === 'mentoria' &&
+        designation.designation === 'mentor',
+    );
+    const mentorProfilesRepo = queryRunner.manager.getRepository(MentorProfile);
+    let mentorProfile = await mentorProfilesRepo.findOneBy({ memberId });
+    if (isMentor) {
+      if (!mentorProfile) {
+        mentorProfile = mentorProfilesRepo.create({
+          memberId,
+          areas: [],
+          focus: null,
+          active: true,
+          approvedById: actor?.actorId ?? memberId,
+        });
+      }
+      mentorProfile.active = true;
+      await mentorProfilesRepo.save(mentorProfile);
+    } else if (mentorProfile?.active) {
+      mentorProfile.active = false;
+      await mentorProfilesRepo.save(mentorProfile);
+    }
 
     const derivedRoles = DERIVED_ROLES.filter((role) =>
       DERIVED_ROLE_RULES[role].some((rule) =>

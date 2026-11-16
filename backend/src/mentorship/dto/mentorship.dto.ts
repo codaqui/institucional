@@ -123,3 +123,16 @@ export class UpdateMentorAdminDto extends UpdateMentorProfileDto {
   @IsBoolean()
   active: boolean;
 }
+
+
+export class MemberOptionsQueryDto {
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  search?: string;
+}
+
+export class AssignMenteeDto {
+  @IsUUID()
+  memberId: string;
+}

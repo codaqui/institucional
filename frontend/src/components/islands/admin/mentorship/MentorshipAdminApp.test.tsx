@@ -3,6 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithMui } from "../../../../test/render-mui";
 import { jsonResponse } from "../../../../test/http-mock";
+import { completeMenteeLinkFlow } from "../../../../test/mentorship-session-fixtures";
 import MentorshipAdminApp from "./MentorshipAdminApp";
 
 const mocks = vi.hoisted(() => ({ authFetch: vi.fn() }));
@@ -96,5 +97,51 @@ describe("MentorshipAdminApp", () => {
     await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/admin/mentors/profile-1", expect.objectContaining({ method: "PATCH" })));
     const patch = mocks.authFetch.mock.calls.find(([path, init]) => path === "/mentorship/admin/mentors/profile-1" && (init as RequestInit | undefined)?.method === "PATCH");
     expect(JSON.parse(String(patch?.[1]?.body))).toMatchObject({ memberId: "member-1", active: false });
+  });
+
+  it("shows friendly session data and links a participant through the shared flow", async () => {
+    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
+      if (path === "/mentorship/applications") return jsonResponse([]);
+      if (path.startsWith("/mentorship/sessions/admin")) {
+        return jsonResponse({
+          data: [{
+            id: "session-1",
+            menteeName: "Bia",
+            menteeEmail: "bia@example.test",
+            scheduledAt: "2026-11-16T22:00:00.000Z",
+            timeZone: "America/Sao_Paulo",
+            status: "requested",
+            menteeMember: null,
+          }],
+          total: 1,
+          page: 1,
+          totalPages: 1,
+          limit: 50,
+        });
+      }
+      if (path.startsWith("/mentorship/member-options") || path === "/mentorship/sessions/session-1/mentee") {
+        return jsonResponse(init?.method === "POST"
+          ? { id: "session-1" }
+          : [{ id: "member-1", name: "Ana", githubHandle: "ana", avatarUrl: "avatar" }]);
+      }
+      if (path === "/mentorship/insights") return jsonResponse({ completed: 0, activeMentors: 0, areas: [], noShowRate: 0 });
+      return jsonResponse({ data: [], total: 0, page: 1, totalPages: 1, limit: 50 });
+    });
+    const user = userEvent.setup();
+    renderWithMui(<MentorshipAdminApp />);
+
+    expect(await screen.findByText("Solicitada")).toBeInTheDocument();
+    expect(screen.getByText(/16\/11\/2026/)).toBeInTheDocument();
+    expect(screen.getByText("Não vinculado à plataforma")).toBeInTheDocument();
+
+    await completeMenteeLinkFlow(user);
+
+    await waitFor(() => {
+      expect(mocks.authFetch).toHaveBeenCalledWith(
+        "/mentorship/sessions/session-1/mentee",
+        expect.objectContaining({ method: "POST" }),
+      );
+      expect(mocks.authFetch.mock.calls.filter(([path]) => String(path).startsWith("/mentorship/sessions/admin")).length).toBeGreaterThanOrEqual(2);
+    });
   });
 });

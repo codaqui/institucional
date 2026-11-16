@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { MentorshipSessionStatus } from './entities/mentorship-session.entity';
 import type { JwtPayload } from '../auth/jwt.strategy';
@@ -15,6 +15,7 @@ describe('SessionsService', () => {
   let profileRepo: Record<string, jest.Mock>;
   let hours: Record<string, jest.Mock>;
   let emailService: Record<string, jest.Mock>;
+  let memberRepo: Record<string, jest.Mock>;
 
   const session = {
     id: 'session-1',
@@ -45,7 +46,11 @@ describe('SessionsService', () => {
     };
     hours = { recordMentorshipSession: jest.fn().mockResolvedValue({ id: 'hour-1' }) };
     emailService = { sendTemplate: jest.fn().mockResolvedValue({ status: 'sent' }) };
-    service = new SessionsService(sessionRepo as any, profileRepo as any, hours as any, emailService as any);
+    memberRepo = {
+      findOneBy: jest.fn().mockResolvedValue({ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true }),
+      findBy: jest.fn().mockResolvedValue([{ id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar', isActive: true }]),
+    };
+    service = new SessionsService(sessionRepo as any, profileRepo as any, hours as any, emailService as any, memberRepo as any);
   });
 
   it('confirms only with an HTTPS meet link and notifies', async () => {
@@ -167,5 +172,43 @@ describe('SessionsService', () => {
       menteeName: 'Participante anonimizado',
       menteeEmail: `anon-${session.id}@anon.invalid`,
     }));
+  });
+
+  it('links only the menteeMemberId and returns public member data', async () => {
+    const linked = await service.assignMentee(session.id, 'member-1', mentorActor);
+
+    expect(sessionRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      id: session.id,
+      menteeMemberId: 'member-1',
+      menteeName: session.menteeName,
+      menteeEmail: session.menteeEmail,
+    }));
+    expect(linked.menteeMember).toEqual({
+      id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar',
+    });
+    expect(linked.menteeEmail).toBe(session.menteeEmail);
+  });
+
+  it('rejects assignment by another mentor and to an inactive member', async () => {
+    await expect(service.assignMentee(session.id, 'member-1', otherMentor)).rejects.toThrow(ForbiddenException);
+
+    memberRepo.findOneBy.mockResolvedValue(null);
+    await expect(service.assignMentee(session.id, 'inactive-member', mentorActor)).rejects.toThrow(NotFoundException);
+  });
+
+  it('enriches mentor and admin session lists with one batched member query each', async () => {
+    sessionRepo.find.mockResolvedValue([{ ...session, menteeMemberId: 'member-1' }]);
+    sessionRepo.findAndCount.mockResolvedValue([[{ ...session, menteeMemberId: 'member-1' }], 1]);
+
+    const mentorSessions = await service.listForMentor(mentorActor);
+    const adminSessions = await service.listForAdmin({ ...mentorActor, roles: ['admin'] });
+
+    expect(mentorSessions[0].menteeMember).toEqual({
+      id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar',
+    });
+    expect(adminSessions.data[0].menteeMember).toEqual({
+      id: 'member-1', name: 'Ana', githubHandle: 'ana', avatarUrl: 'avatar',
+    });
+    expect(memberRepo.findBy).toHaveBeenCalledTimes(2);
   });
 });

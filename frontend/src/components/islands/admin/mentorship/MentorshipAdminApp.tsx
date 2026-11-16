@@ -4,6 +4,9 @@ import MuiIslandProvider from "../../MuiIslandProvider";
 import PageContainer from "../ui/PageContainer";
 import PaginationControls from "../../ui/PaginationControls";
 import MentorDirectory from "./MentorDirectory";
+import MenteeLinkDialog from "../../mentorship/MenteeLinkDialog";
+import SessionParticipant from "../../mentorship/SessionParticipant";
+import { formatMentorshipDate, MENTORSHIP_STATUS_LABEL, type MentorshipSessionView } from "../../../../lib/mentorship";
 import { useAuth } from "../../../../lib/use-auth";
 import { extractErrorMessage, parseAuthJson } from "../../../../lib/auth-fetch-helpers";
 import { DEFAULT_PAGE_SIZE, rangeLabel, type PaginatedResponse } from "../../../../lib/pagination";
@@ -18,7 +21,7 @@ interface Application {
   areas: string[];
   focus: string | null;
 }
-interface AdminSession { id: string; menteeName: string; scheduledAt: string; status: string }
+type AdminSession = MentorshipSessionView;
 interface Insights { completed: number; activeMentors: number; requested: number; confirmed: number; canceled: number; noShow: number; noShowRate: number }
 
 function MentorshipAdmin() {
@@ -32,6 +35,7 @@ function MentorshipAdmin() {
   const [error, setError] = useState("");
   const [feedback, setFeedback] = useState("");
   const [busy, setBusy] = useState(false);
+  const [linkingSession, setLinkingSession] = useState<AdminSession | null>(null);
 
   const loadApplications = useCallback(async () => {
     const response = await authFetch("/mentorship/applications");
@@ -124,13 +128,31 @@ function MentorshipAdmin() {
         <Box>
           <Typography variant="h5" component="h3" sx={{ mb: 2 }}>Sessões</Typography>
           <TableContainer component={Box} tabIndex={0} role="region" aria-label="Sessões de mentoria" sx={{ overflowX: "auto" }}>
-            <Table size="small"><TableHead><TableRow><TableCell>Participante</TableCell><TableCell>Data</TableCell><TableCell>Status</TableCell></TableRow></TableHead>
-              <TableBody>{sessions.map((session) => <TableRow key={session.id}><TableCell>{session.menteeName}</TableCell><TableCell>{session.scheduledAt}</TableCell><TableCell>{session.status}</TableCell></TableRow>)}</TableBody>
+            <Table size="small"><TableHead><TableRow><TableCell>Participante</TableCell><TableCell>Data</TableCell><TableCell>Status</TableCell><TableCell>Ações</TableCell></TableRow></TableHead>
+              <TableBody>{sessions.map((session) => (
+                <TableRow key={session.id}>
+                  <TableCell><SessionParticipant name={session.menteeName} email={session.menteeEmail} member={session.menteeMember} /></TableCell>
+                  <TableCell>{formatMentorshipDate(session.scheduledAt, session.timeZone)}</TableCell>
+                  <TableCell>{MENTORSHIP_STATUS_LABEL[session.status]}</TableCell>
+                  <TableCell><Button size="small" variant="text" onClick={() => setLinkingSession(session)}>Vincular participante</Button></TableCell>
+                </TableRow>
+              ))}</TableBody>
             </Table>
           </TableContainer>
           <Typography variant="body2" color="text.secondary" sx={{ textAlign: "center", my: 1 }}>{rangeLabel(page, DEFAULT_PAGE_SIZE, total)}</Typography>
           <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="sessões" />
         </Box>
+        {linkingSession && (
+          <MenteeLinkDialog
+            sessionId={linkingSession.id}
+            authFetch={authFetch}
+            onClose={() => setLinkingSession(null)}
+            onSaved={() => {
+              setFeedback("Participante vinculado.");
+              void loadSessions();
+            }}
+          />
+        )}
       </Stack>
     </PageContainer>
   );
