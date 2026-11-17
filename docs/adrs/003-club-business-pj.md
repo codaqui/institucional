@@ -56,6 +56,14 @@ Criar o módulo `companies` no backend para cadastro e gestão de empresas apoia
 - **Stripe:** `stripeCustomerId` e `stripeSubscriptionId` diretamente na entidade `Company` (sem tabela extra).
 - **Endpoints:** `/companies`, `/companies/:id`, `/companies/:id/receipt`, `/companies/me`, etc.
 
+## Conversão de assinatura pessoal e configuração pelo admin (Fase 8b.3)
+
+Admin pode revisar nome legal, nome fantasia, logo e website de uma empresa e salvar separadamente por `PATCH /companies/:id`, com update parcial e auditoria `company.profile_updated`. CNPJ não muda nessa edição; o responsável mantém seu acesso. Logo/website usam HTTPS por URL, sem upload.
+
+A conversão de assinatura pessoal exige admin, assinatura mensal ativa e membro correspondente. `GET /companies/admin/personal-subscriptions` lista candidatos sem PII e `POST /companies/admin/subscription-conversions` atualiza somente os metadados da **mesma assinatura**, sem checkout, cancelamento, refund, mudança de preço ou backfill. Migration 052 registra a conversão com unique/lock por assinatura e permite recuperação pós-Stripe.
+
+Empresa existente preserva status. Empresa nova permanece `pending` e não ganha vitrine, selo ou badge automaticamente. A wallet empresarial é criada sem transferir moedas pessoais; somente eventos futuros seguem os metadados empresariais. Repetição retorna `already_converted`.
+
 ## Consequências
 
 - **Positivas:** fonte de receita corporativa; visibilidade para patrocinadores; wallet separada evita confusão com saldo pessoal.

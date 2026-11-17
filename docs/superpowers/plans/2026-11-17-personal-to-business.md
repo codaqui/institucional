@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.3 — conversão recuperável de assinatura pessoal mensal em apoio empresarial sem nova cobrança.
 audience: Implementers e revisores
-status: Em execução em develop
+status: Tasks 1–5 concluídas; gates e revisão final em andamento
 sections:
   - Constraints e review focus
   - Tasks 1–5

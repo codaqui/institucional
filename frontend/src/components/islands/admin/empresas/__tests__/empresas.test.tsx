@@ -51,6 +51,15 @@ describe("/admin/empresas", () => {
     }
   });
 
+  it("abre a aba de conversão de assinatura", async () => {
+    authState.authFetch.mockImplementation(async () => jsonResponse({ items: [], total: 0 }));
+    mockLoggedIn(["admin"]);
+    renderWithMui(<EmpresasApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Converter assinatura" }));
+    expect(await screen.findByText("Converter assinatura pessoal em empresarial")).toBeInTheDocument();
+  });
+
   it("carrega listagem paginada e busca detalhes ao expandir card", async () => {
     authState.authFetch.mockImplementation(async (url: string) => {
       if (url.includes("/companies/admin/list?page=1&limit=10")) {

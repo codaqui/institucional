@@ -43,6 +43,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import BusinessIcon from "@mui/icons-material/Business";
@@ -56,6 +58,7 @@ import {
   formatSupportCurrency,
 } from "../../../../lib/company-support";
 import PageContainer from "../ui/PageContainer";
+import SubscriptionConversionPanel from "./SubscriptionConversionPanel";
 
 interface Company {
   id: string;
@@ -124,6 +127,7 @@ function EmpresasInner() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [detailCache, setDetailCache] = useState<Record<string, { members: CompanyMember[]; wallet: CompanyWallet | null }>>({});
   const [page, setPage] = useState(1);
+  const [tab, setTab] = useState(0);
   const [total, setTotal] = useState(0);
   const [limit] = useState(10);
   const [editingTier, setEditingTier] = useState<Company | null>(null);
@@ -266,7 +270,12 @@ function EmpresasInner() {
       {loadError && <Alert severity="error" sx={{ mb: 3 }}>{loadError}</Alert>}
       {tierFeedback && <Alert severity="success" sx={{ mb: 3 }} onClose={() => setTierFeedback("")}>{tierFeedback}</Alert>}
 
-      {loading ? (
+      <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ mb: 3 }}>
+        <Tab label="Empresas" />
+        <Tab label="Converter assinatura" />
+      </Tabs>
+
+      {tab === 1 ? <SubscriptionConversionPanel /> : loading ? (
         <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
           <CircularProgress />
         </Box>

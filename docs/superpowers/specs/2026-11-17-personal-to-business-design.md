@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho da Fase 8b.3 — conversão administrativa de assinatura pessoal em apoio empresarial sem nova cobrança ou perda de histórico.
 audience: AI agents, mantenedores, diretoria e revisores financeiros
-status: ratificada para implementação em develop
+status: implementada em develop; release/deploy e conversão real pendente
 sections:
   - Contexto e evidências
   - Objetivos e limites
