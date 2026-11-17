@@ -69,7 +69,7 @@ Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) 
 
 ## Candidatos posteriores
 
-### Fase 8b — Projetos de extensão e patrocínio PJ (P12/P6 implementados; P7 não aprovado)
+### Fase 8b — Projetos de extensão e patrocínio PJ (P12/P6 implementados; P7 planejado)
 
 P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [spec](../../superpowers/specs/2026-11-17-extension-project-assisted-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-extension-project-assisted.md) revisados por builder check. A implementação em `develop` inclui busca/preservação de mentores, sincronização por delta, ODS, parceiros, orçamento e anexos, com jornada real validada em banco isolado. P6 e P7 continuam sem aprovação e exigem specs próprias.
 
@@ -80,6 +80,8 @@ P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [s
 | P7 Assinatura pessoal → apoio empresarial | Fluxo administrativo auditado para vincular/criar empresa sem apagar histórico Stripe; revalidar o caso real em dump isolado antes da spec. |
 
 P6 foi recortado como **Fase 8b.2 — vitrine open source para extensão**, com [spec](../../superpowers/specs/2026-11-17-open-source-extension-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-open-source-extension.md) revisados por builder check sem lacunas. A implementação em `develop` usa seleção manual e o formulário existente, sem remover a origem ou converter automaticamente. P7 continua sem aprovação e exige spec financeira própria.
+
+P7 foi recortado como **Fase 8b.3 — assinatura pessoal para apoio empresarial**, com [spec](../../superpowers/specs/2026-11-17-personal-to-business-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-personal-to-business.md). O builder check levou a decisões explícitas: somente assinaturas mensais, empresa nova permanece pendente e admin pode configurar nome legal/fantasia, logo e website com salvamento separado e update parcial. A conversão preserva a mesma assinatura e aguarda ratificação antes da implementação.
 
 A divisão entre projetos e patrocínio pode virar specs/PRs independentes. Não usar dados reais do dump em fixtures ou documentação.
 
