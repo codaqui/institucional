@@ -26,7 +26,9 @@ export default function OpenSourceProjectPicker({
     const term = search.trim().toLocaleLowerCase("pt-BR");
     if (!term) return projects;
     return projects.filter((project) =>
-      `${project.title} ${project.description}`.toLocaleLowerCase("pt-BR").includes(term),
+      `${project.title} ${project.description}`
+        .toLocaleLowerCase("pt-BR")
+        .includes(term),
     );
   }, [search]);
 
@@ -41,14 +43,30 @@ export default function OpenSourceProjectPicker({
             onChange={(event) => setSearch(event.target.value)}
             helperText="A escolha só preenche o formulário; nada é criado antes de salvar."
           />
-          {filtered.length === 0 && <Typography color="text.secondary">Nenhum projeto encontrado.</Typography>}
+          {filtered.length === 0 && (
+            <Typography color="text.secondary">
+              Nenhum projeto encontrado.
+            </Typography>
+          )}
           {filtered.map((project) => (
             <Stack key={project.href} spacing={1}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{project.title}</Typography>
-              <Typography variant="body2" color="text.secondary">{project.description}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                {project.title}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {project.description}
+              </Typography>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                <Button variant="outlined" onClick={() => onSelect(project)}>Usar {project.title}</Button>
-                <Link href={project.href} target="_blank" rel="noopener noreferrer">Abrir repositório de {project.title}</Link>
+                <Button variant="outlined" onClick={() => onSelect(project)}>
+                  Usar {project.title}
+                </Button>
+                <Link
+                  href={project.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Abrir repositório de {project.title}
+                </Link>
               </Stack>
               <Divider />
             </Stack>

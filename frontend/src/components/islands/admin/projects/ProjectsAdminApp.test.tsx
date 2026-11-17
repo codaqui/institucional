@@ -153,12 +153,20 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     renderWithMui(<ProjectsAdminApp />);
     await screen.findByText("Projeto sintético");
 
-    await user.click(screen.getByRole("button", { name: "Importar da vitrine" }));
-    await user.click(screen.getByRole("button", { name: "Usar Backstage Lab" }));
+    await user.click(
+      screen.getByRole("button", { name: "Importar da vitrine" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Usar Backstage Lab" }),
+    );
 
     expect(await screen.findByLabelText(/^Nome/)).toHaveValue("Backstage Lab");
-    expect(screen.getByLabelText("Resumo")).toHaveValue("Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.");
-    expect(await screen.findByRole("link", { name: "Origem open source" })).toHaveAttribute("href", "https://github.com/codaqui/backstage");
+    expect(screen.getByLabelText("Resumo")).toHaveValue(
+      "Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.",
+    );
+    expect(
+      await screen.findByRole("link", { name: "Origem open source" }),
+    ).toHaveAttribute("href", "https://github.com/codaqui/backstage");
     expect(call("/projects", "POST")).toBeUndefined();
 
     await user.click(screen.getByRole("button", { name: "Salvar rascunho" }));
@@ -175,18 +183,30 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     renderWithMui(<ProjectsAdminApp />);
     await screen.findByText("Projeto sintético");
 
-    await user.click(screen.getByRole("button", { name: "Importar da vitrine" }));
-    await user.click(screen.getByRole("button", { name: "Usar Backstage Lab" }));
+    await user.click(
+      screen.getByRole("button", { name: "Importar da vitrine" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Usar Backstage Lab" }),
+    );
     await user.click(screen.getByRole("button", { name: "Salvar proposta" }));
-    expect(await screen.findByText(/Informe a carga horária total/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Informe a carga horária total/),
+    ).toBeInTheDocument();
     expect(call("/projects", "POST")).toBeUndefined();
 
     await user.click(screen.getByRole("button", { name: "Fechar" }));
     await user.click(await screen.findByRole("button", { name: "Editar" }));
-    expect(screen.queryByRole("link", { name: "Origem open source" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Origem open source" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Fechar" }));
-    await user.click(await screen.findByRole("button", { name: "Novo projeto" }));
-    expect(screen.queryByRole("link", { name: "Origem open source" })).not.toBeInTheDocument();
+    await user.click(
+      await screen.findByRole("button", { name: "Novo projeto" }),
+    );
+    expect(
+      screen.queryByRole("link", { name: "Origem open source" }),
+    ).not.toBeInTheDocument();
   });
 
   it("preserves mentors and resources when saving an existing project as proposed", async () => {

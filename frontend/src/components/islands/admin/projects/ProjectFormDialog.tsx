@@ -59,11 +59,16 @@ export default function ProjectFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setForm(project
-      ? createProjectFormFromProject(project, entities[0]?.id ?? "")
-      : sourceProject
-        ? createProjectFormFromOpenSource(sourceProject, entities[0]?.id ?? "")
-        : createProjectFormFromProject(null, entities[0]?.id ?? ""));
+    setForm(
+      project
+        ? createProjectFormFromProject(project, entities[0]?.id ?? "")
+        : sourceProject
+          ? createProjectFormFromOpenSource(
+              sourceProject,
+              entities[0]?.id ?? "",
+            )
+          : createProjectFormFromProject(null, entities[0]?.id ?? ""),
+    );
     setFormError("");
   }, [open, project, sourceProject, entities]);
 
@@ -127,8 +132,15 @@ export default function ProjectFormDialog({
             </Alert>
             {sourceProject && (
               <Alert severity="info">
-                A origem open source permanece na vitrine. Revise os dados antes de salvar.{" "}
-                <Link href={sourceProject.href} target="_blank" rel="noopener noreferrer">Origem open source</Link>
+                A origem open source permanece na vitrine. Revise os dados antes
+                de salvar.{" "}
+                <Link
+                  href={sourceProject.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Origem open source
+                </Link>
               </Alert>
             )}
             <TextField

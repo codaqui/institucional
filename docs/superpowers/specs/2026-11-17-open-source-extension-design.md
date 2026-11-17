@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho da Fase 8b.2 — conversão manual e assistida de projetos open source da vitrine em projetos de extensão.
 audience: AI agents, mantenedores, diretoria e revisores de produto
-status: ratificada para implementação em develop, incluindo diagnóstico de disponibilidade de mentoria
+status: implementada em develop/1.6.0; release/deploy pendente
 sections:
   - Contexto
   - Objetivos e limites

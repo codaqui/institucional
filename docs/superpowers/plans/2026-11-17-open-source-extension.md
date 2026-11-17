@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.2 — conversão manual e assistida da vitrine open source em extensão.
 audience: Implementers e revisores
-status: Em execução em develop, incluindo diagnóstico de disponibilidade de mentoria
+status: Concluída em develop/1.6.0 com testes, jornada real e gates; revisão final em andamento
 sections:
   - Constraints e review focus
   - Tasks 1–2
@@ -14,7 +14,7 @@ agent-protocol: Executar em develop somente após ratificação; sem conversão 
 
 # Open Source to Extension Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Permitir que admin/diretor crie manualmente um projeto de extensão a partir de um item da vitrine, sem remover a origem nem omitir obrigações institucionais.
 
@@ -54,24 +54,24 @@ agent-protocol: Executar em develop somente após ratificação; sem conversão 
 - Produces: `createProjectFormFromOpenSource(source: Project|null, defaultEntityId?: string): ProjectFormValues`.
 - Produces: `OpenSourceProjectPicker({open,onClose,onSelect})`, lendo `projects` de `src/data/projects.ts`.
 
-- [ ] **Step 1: Escrever testes falhos do helper**
+- [x] **Step 1: Escrever testes falhos do helper**
 
 Verificar defaults atuais, nome/resumo, entidade default, mentores/recursos vazios e que `buildProjectPayload(...,'draft')` não contém a URL de origem.
 
-- [ ] **Step 2: Escrever testes falhos do picker**
+- [x] **Step 2: Escrever testes falhos do picker**
 
 Verificar listagem, filtro local por título/descrição, links seguros e que `onSelect` retorna o item escolhido sem `authFetch` ou mutação.
 
-- [ ] **Step 3: Confirmar as falhas**
+- [x] **Step 3: Confirmar as falhas**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: FAIL porque helper/componente não existem.
 
-- [ ] **Step 4: Implementar helper e picker**
+- [x] **Step 4: Implementar helper e picker**
 
 Reutilizar `createEmptyProjectForm`, alterar somente nome/resumo e renderizar Dialog com busca local e links seguros.
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: PASS.
@@ -89,20 +89,20 @@ Expected: PASS.
 - Consumes: helper e picker da Task 1.
 - Produces: `sourceProject` opcional no diálogo e ação **Importar da vitrine** em `/admin/projetos`.
 
-- [ ] **Step 1: Escrever testes falhos da jornada**
+- [x] **Step 1: Escrever testes falhos da jornada**
 
 Cobrir selecionar origem → formulário preenchido → rascunho via `POST /projects`; proposta ainda bloqueada; erro de API visível; reset entre importar/editar/novo; origem não removida e nenhum request antes de salvar.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: FAIL porque a ação/estado não existem.
 
-- [ ] **Step 3: Implementar a integração**
+- [x] **Step 3: Implementar a integração**
 
 Adicionar `sourceProject` opcional ao diálogo, escolher o helper correto na inicialização, mostrar a origem como link e gerenciar picker/reset no app. Manter o contrato `POST /projects` e todas as ações existentes.
 
-- [ ] **Step 4: Verificar e documentar comportamento atual**
+- [x] **Step 4: Verificar e documentar comportamento atual**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: PASS. Atualizar ADR/roadmap sem antecipar release.
@@ -120,29 +120,29 @@ Expected: PASS. Atualizar ADR/roadmap sem antecipar release.
 - Consumes: `PublicMentor.availability` já existente e `/mentorship/availability`.
 - Produces: distinção visível entre regra não cadastrada e regras sem slots livres.
 
-- [ ] **Step 1: Escrever testes falhos das causas**
+- [x] **Step 1: Escrever testes falhos das causas**
 
 Cobrir mentor sem regras com mensagem de disponibilidade não cadastrada, mentor com regras e zero slots com mensagem de quatro semanas e orientação na área do mentor. Não alterar o fluxo de reserva existente.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/mentorship`
 Expected: FAIL porque as mensagens não existem.
 
-- [ ] **Step 3: Implementar estados de diagnóstico**
+- [x] **Step 3: Implementar estados de diagnóstico**
 
 Usar `mentor.availability.length` para diferenciar ausência de regra de indisponibilidade/cupos ocupados e orientar o mentor no dashboard. Não criar regra automaticamente.
 
-- [ ] **Step 4: Verificar e validar jornada real**
+- [x] **Step 4: Verificar e validar jornada real**
 
 Run: `cd frontend && npx vitest run src/components/islands/mentorship`
 Expected: PASS. Em banco isolado, validar regra sintética → slots → solicitação de sessão e documentar o diagnóstico na ADR 009.
 
 ### Gates e rollout
 
-- [ ] `cd frontend && npm run check && npm run test`
-- [ ] `make astro-verify`
-- [ ] `make astro-verify-tenants`
-- [ ] `cd backend && npm run build && npx jest --silent`
-- [ ] Jornada controlada após publicação da fase anterior: importar origem → salvar rascunho → completar proposta → ativar; confirmar que a origem continua na vitrine.
-- [ ] Atualizar changelog e versões compartilhadas com bump minor; PR para `develop` e revisão independente.
+- [x] `cd frontend && npm run check && npm run test`
+- [x] `make astro-verify`
+- [x] `make astro-verify-tenants`
+- [x] `cd backend && npm run build && npx jest --silent`
+- [x] Jornada controlada após publicação da fase anterior: importar origem → salvar rascunho → completar proposta → ativar; confirmar que a origem continua na vitrine.
+- [x] Atualizar changelog e versões compartilhadas com bump minor; PR para `develop` e revisão independente.

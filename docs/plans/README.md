@@ -28,7 +28,7 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 |---|---|---|
 | [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fase 8 integrada em main; Fase 8b.1 planejada e aguardando ratificação; P6/P7 não aprovados. | Revisar/ratificar a spec da Fase 8b.1 antes de implementar. |
 | [Fase 8b.1 — cadastro assistido de extensão](../superpowers/plans/2026-11-17-extension-project-assisted.md) | Implementada em develop/1.5.0 com TDD, revisão e jornada real; release/deploy pendente. | Publicar backend, frontend e validar jornada controlada. |
-| [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Spec e plano TDD com builder check; aguardando ratificação. | Ratificar antes de implementar; nenhuma conversão automática. |
+| [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Implementada em develop/1.6.0 com diagnóstico de mentoria, testes e jornada real; release/deploy pendente. | Publicar e validar importação e disponibilidade real. |
 | [Frontend em jornadas](frontend-jornadas/README.md) | Inventário vivo. Onda 1 e reorganização da Fase 9 publicadas; demais ondas exigem revalidação. | Extrair somente itens ainda reproduzíveis para specs próprias. |
 | [Roadmap 1.5](codaqui-1-5/README.md) | Proposta, não aprovada e sem data. | Desenhar agregações/backend antes de prometer painéis dinâmicos. |
 | [Sync de eventos — MAP](events-sync-improvements/MAP.md) | Camadas 1–2 concluídas; Camada 3 somente em design. | Revalidar a Camada 3 antes de remover o force-sync legado. |
@@ -73,7 +73,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
-| [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Planejada com builder check; aguardando ratificação antes da implementação. |
+| [Fase 8b.2 — vitrine open source para extensão](../superpowers/plans/2026-11-17-open-source-extension.md) | Implementada em develop/1.6.0 com diagnóstico de mentoria; release/deploy pendente. |
 | [Fase 8b.1 — cadastro assistido de extensão](../superpowers/plans/2026-11-17-extension-project-assisted.md) | Implementada em develop/1.5.0 com builder check, revisão e jornada real; release/deploy pendente. |
 | [Reconciliação de taxas Stripe](../superpowers/plans/2026-11-17-stripe-fee-reconciliation.md) | Implementada em develop com TDD, verificação integrada e gates; reconciliação em produção depende de deploy. |
 | [Fase 8 — páginas públicas](../superpowers/plans/2026-11-17-public-pages.md) | Concluída em develop/1.3.0 com TDD e gates; integração em main pendente. |

@@ -137,12 +137,15 @@ describe("validateProjectForm", () => {
 
 describe("createProjectFormFromOpenSource", () => {
   it("prefills only name and summary without importing the source URL", () => {
-    const form = createProjectFormFromOpenSource({
-      emoji: "🧪",
-      title: "Projeto aberto",
-      description: "Resumo da vitrine",
-      href: "https://github.com/example/open-source",
-    }, "entity-1");
+    const form = createProjectFormFromOpenSource(
+      {
+        emoji: "🧪",
+        title: "Projeto aberto",
+        description: "Resumo da vitrine",
+        href: "https://github.com/example/open-source",
+      },
+      "entity-1",
+    );
 
     expect(form).toMatchObject({
       name: "Projeto aberto",
@@ -156,7 +159,9 @@ describe("createProjectFormFromOpenSource", () => {
       budgetItems: [],
       attachments: [],
     });
-    expect(JSON.stringify(buildProjectPayload(form, "draft"))).not.toContain("https://github.com/example/open-source");
+    expect(JSON.stringify(buildProjectPayload(form, "draft"))).not.toContain(
+      "https://github.com/example/open-source",
+    );
   });
 });
 

@@ -9,22 +9,36 @@ describe("OpenSourceProjectPicker", () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();
     const fetchSpy = vi.spyOn(globalThis, "fetch");
-    renderWithMui(<OpenSourceProjectPicker open onClose={vi.fn()} onSelect={onSelect} />);
+    renderWithMui(
+      <OpenSourceProjectPicker open onClose={vi.fn()} onSelect={onSelect} />,
+    );
 
     expect(screen.getByText("Boletim Diário de Segurança")).toBeInTheDocument();
-    const sourceLink = screen.getByRole("link", { name: "Abrir repositório de Backstage Lab" });
-    expect(sourceLink).toHaveAttribute("href", "https://github.com/codaqui/backstage");
+    const sourceLink = screen.getByRole("link", {
+      name: "Abrir repositório de Backstage Lab",
+    });
+    expect(sourceLink).toHaveAttribute(
+      "href",
+      "https://github.com/codaqui/backstage",
+    );
     expect(sourceLink).toHaveAttribute("target", "_blank");
     expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
 
-    await user.type(screen.getByLabelText("Buscar projeto da vitrine"), "terraform");
+    await user.type(
+      screen.getByLabelText("Buscar projeto da vitrine"),
+      "terraform",
+    );
     expect(screen.queryByText("Backstage Lab")).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Usar Laboratório de Terraform" }));
+    await user.click(
+      screen.getByRole("button", { name: "Usar Laboratório de Terraform" }),
+    );
 
-    expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({
-      title: "Laboratório de Terraform",
-      href: "https://github.com/codaqui/terraform-organization",
-    }));
+    expect(onSelect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Laboratório de Terraform",
+        href: "https://github.com/codaqui/terraform-organization",
+      }),
+    );
     expect(fetchSpy).not.toHaveBeenCalled();
     fetchSpy.mockRestore();
   });
