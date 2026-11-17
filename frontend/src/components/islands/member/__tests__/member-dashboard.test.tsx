@@ -8,13 +8,7 @@ import { authState, resetAuthState } from "../../../../test/admin-auth-fixtures"
 import MemberDashboardApp from "../dashboard/MemberDashboardApp";
 import { renderWithMui } from "../../../../test/render-mui";
 import type { AuthUser } from "../../../../lib/auth-client";
-
-function jsonResponse(body: unknown, options: { status?: number } = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status: options.status ?? 200,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { jsonResponse } from "../../../../test/http-mock";
 
 function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   return {
@@ -28,24 +22,27 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   };
 }
 
-function buildRegistration(id: string, startAt: string, overrides: Record<string, unknown> = {}) {
+function buildRegistration(
+  id: string,
+  startAt: string,
+  overrides: { certificateGrantedAt?: string | null; checkinToken?: string; title?: string } = {},
+) {
   return {
     id,
     status: "confirmed",
     checkedInAt: null,
-    certificateGrantedAt: null,
-    checkinToken: `token-${id}`,
+    certificateGrantedAt: overrides.certificateGrantedAt ?? null,
+    checkinToken: overrides.checkinToken ?? `token-${id}`,
     attendeeName: "Mentoria Codaqui",
     memberId: "user-1",
     event: {
       id: `evt-${id}`,
-      title: "Evento",
+      title: overrides.title ?? "Evento",
       startAt,
       location: null,
       status: "completed",
     },
     ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
-    ...overrides,
   };
 }
 
@@ -298,13 +295,7 @@ describe("/membro", () => {
           buildRegistration("reg-2", pastStart, {
             certificateGrantedAt: grantedAt,
             checkinToken: "token-xyz",
-            event: {
-              id: "evt-2",
-              title: "Workshop GitHub",
-              startAt: pastStart,
-              location: null,
-              status: "completed",
-            },
+            title: "Workshop GitHub",
           }),
         ]);
       }
@@ -378,13 +369,7 @@ describe("/membro", () => {
           buildRegistration("reg-3", pastStart, {
             certificateGrantedAt: "2026-08-10T18:10:00.000Z",
             checkinToken: "token-403",
-            event: {
-              id: "evt-3",
-              title: "Workshop com erro",
-              startAt: pastStart,
-              location: null,
-              status: "completed",
-            },
+            title: "Workshop com erro",
           }),
         ]);
       }
