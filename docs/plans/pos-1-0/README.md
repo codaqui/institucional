@@ -35,6 +35,7 @@ agent-protocol:
 | 1.2.0 | Painéis e autosserviço de privacidade, migration 051 | PR #654 e `v1.2.0-backend`, 17/11. |
 | 1.3.0 | Fase 8 — páginas públicas conectadas às projeções | PR #655 em main; release/deploy pendente. |
 | 1.4.0 | Reconciliação idempotente de taxas Stripe e guia leve de agentes | PR #655 em main; reconciliação em produção após deploy. |
+| 1.5.0 | Fase 8b.1 — cadastro assistido de projetos de extensão | Implementada em develop; release/deploy pendente. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 

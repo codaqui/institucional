@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.1 — cadastro assistido de projetos de extensão com mentores pesquisáveis e sincronização idempotente.
 audience: Implementers e revisores
-status: Tasks 1–4 concluídas; revisão e gates finais em andamento
+status: Concluída em develop/1.5.0 com TDD, revisão independente, jornada real e gates; release/deploy pendente
 sections:
   - Constraints e review focus
   - Tasks 1–4
@@ -14,7 +14,7 @@ agent-protocol: Executar em ordem, em develop, com teste antes de cada mudança;
 
 # Extension Project Assisted Registration Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Tornar o cadastro/edição de projetos de extensão assistido, preservando mentores e prevenindo efeitos colaterais em edições sem mudança.
 
@@ -53,20 +53,20 @@ agent-protocol: Executar em ordem, em develop, com teste antes de cada mudança;
 - Produces: `ProjectMemberOption {id,name,githubHandle,avatarUrl}` e campos aditivos `mentor: ProjectMemberOption|null` e `coMentors: ProjectMemberOption[]` no envelope de `listManage`.
 - Consumes: designation ativa e participantes `role='mentor'`, `leftAt=null` já existentes.
 
-- [ ] **Step 1: Escrever testes falhos da projeção**
+- [x] **Step 1: Escrever testes falhos da projeção**
 
 Fixturar dois projetos, um principal e dois co-mentores, incluindo um membro histórico inativo. Verificar principal fora dos co-mentores, whitelist pública sem e-mail, projeto sem vínculos retornando `null/[]` e consultas em lote com `In(projectIds)`/`In(memberIds)`.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/projects/projects.service.spec.ts --runInBand`
 Expected: FAIL porque os campos não existem.
 
-- [ ] **Step 3: Implementar enriquecimento da página**
+- [x] **Step 3: Implementar enriquecimento da página**
 
 Após `findAndCount`, buscar designations/participantes/membros somente dos IDs da página e mapear opções sem alterar filtro, paginação ou projeção pública.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Run: `cd backend && npx jest src/projects/projects.service.spec.ts --runInBand`
 Expected: PASS.
@@ -81,20 +81,20 @@ Expected: PASS.
 - Produces: `syncMentorAndCoMentors(...) => Promise<{principalChanged:boolean,membershipChanged:boolean}>`.
 - Consumes: projeção da Task 1 para que a UI possa enviar o estado atual sem efeitos colaterais.
 
-- [ ] **Step 1: Escrever testes falhos de no-op e delta**
+- [x] **Step 1: Escrever testes falhos de no-op e delta**
 
 Cobrir: conjunto idêntico sem `grant`, update/save de participantes, auditoria `PROJECT_MENTOR_DESIGNATED` ou e-mail; mudança só de co-mentor preservando linha inalterada e sem e-mail ao principal; troca de principal com designation atualizada e uma notificação. Configurar repositórios do manager por entidade.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/projects/projects.service.spec.ts --runInBand`
 Expected: FAIL porque hoje todas as linhas são recriadas e `notifyMentor` é chamado.
 
-- [ ] **Step 3: Implementar comparação antes/depois**
+- [x] **Step 3: Implementar comparação antes/depois**
 
 Calcular o conjunto atual de principal + co-mentores, retornar imediatamente quando idêntico, encerrar apenas removidos e inserir apenas novos. Auditar somente `membershipChanged`; propagar `principalChanged` para o `update` notificar apenas novo/trocado principal.
 
-- [ ] **Step 4: Verificar backend completo do módulo**
+- [x] **Step 4: Verificar backend completo do módulo**
 
 Run: `cd backend && npx jest src/projects --runInBand`
 Expected: PASS.
@@ -112,24 +112,24 @@ Expected: PASS.
 - Produces: `ProjectMentorFields({mentor,coMentors,onChange,disabled})`.
 - Consumes: campos da Task 1 e `/mentorship/member-options`.
 
-- [ ] **Step 1: Escrever testes falhos dos helpers**
+- [x] **Step 1: Escrever testes falhos dos helpers**
 
 Fixtar ODS 4 e metodologia `PjBL`; testar 17 nomes, duplicidade ODS, datas, cronograma em centavos e payload mínimo de rascunho versus completo de proposta.
 
-- [ ] **Step 2: Escrever testes falhos da seleção**
+- [x] **Step 2: Escrever testes falhos da seleção**
 
 Mockar a busca; verificar debounce, seleção simples/múltipla, remoção do principal dos co-mentores e preservação das opções atuais/inativas quando o resultado muda.
 
-- [ ] **Step 3: Confirmar as falhas**
+- [x] **Step 3: Confirmar as falhas**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: FAIL porque helpers/componente não existem.
 
-- [ ] **Step 4: Implementar helpers e `ProjectMentorFields`**
+- [x] **Step 4: Implementar helpers e `ProjectMentorFields`**
 
 Manter constantes/conversões fora de React. Usar Autocomplete com busca de 300 ms, merge de opções selecionadas e conversão para IDs somente em `buildProjectPayload`.
 
-- [ ] **Step 5: Verificar**
+- [x] **Step 5: Verificar**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: PASS.
@@ -148,29 +148,29 @@ Expected: PASS.
 - Consumes: Tasks 1–3.
 - Produces: edição de `supportPartners`, `budget`, `attachments` e formulário integrado sem alterar demais ações do admin.
 
-- [ ] **Step 1: Escrever testes falhos de recursos e edição integrada**
+- [x] **Step 1: Escrever testes falhos de recursos e edição integrada**
 
 Verificar linhas opcionais vazias omitidas, totais derivados em centavos, HTTPS obrigatório, erro da allowlist visível e edição que preserva mentor/co-mentores sem exigir UUID. Testar rascunho mínimo e proposta com todos os campos.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: FAIL porque recursos/diálogo não existem.
 
-- [ ] **Step 3: Implementar recursos e extrair o diálogo**
+- [x] **Step 3: Implementar recursos e extrair o diálogo**
 
 Criar editores de parceiros/orçamento/anexos, derivar totais, integrar validação e mentores, e mover o formulário para `ProjectFormDialog`, deixando listagem/transições no app. Não alterar endpoints além da projeção da Task 1.
 
-- [ ] **Step 4: Verificar interface e atualizar documentação viva**
+- [x] **Step 4: Verificar interface e atualizar documentação viva**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/projects`
 Expected: PASS. Registrar comportamento atual na ADR 008 e a entrega no roadmap, sem antecipar release.
 
 ### Gates e rollout
 
-- [ ] `cd backend && npm run build && npx jest --silent`
-- [ ] `make astro-verify`
-- [ ] `make astro-verify-tenants`
-- [ ] Em banco isolado, executar jornada sintética: rascunho → proposta com mentores/recursos → edição idêntica sem e-mail/churn → mudança de co-mentor → ativação.
-- [ ] Atualizar changelog e versões compartilhadas com bump minor na entrega; PR para `develop` com revisão independente.
-- [ ] Publicar backend antes do frontend e validar uma jornada controlada sem usar dados reais em fixtures.
+- [x] `cd backend && npm run build && npx jest --silent`
+- [x] `make astro-verify`
+- [x] `make astro-verify-tenants`
+- [x] Em banco isolado, executar jornada sintética: rascunho → proposta com mentores/recursos → edição idêntica sem e-mail/churn → mudança de co-mentor → ativação.
+- [x] Atualizar changelog e versões compartilhadas com bump minor na entrega; PR para `develop` com revisão independente.
+- [x] Publicar backend antes do frontend e validar uma jornada controlada sem usar dados reais em fixtures.

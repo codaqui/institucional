@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Desenho da Fase 8b.1 — cadastro assistido de projetos de extensão, com mentores pesquisáveis, ODS nomeadas, campos já modelados e validação no admin.
 audience: AI agents, mantenedores, diretoria e revisores de produto
-status: ratificada para implementação em develop
+status: implementada em develop/1.5.0; release/deploy pendente
 sections:
   - Contexto e evidências
   - Objetivos e limites

@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.4.0 integrado em main pelo PR #655; propostas futuras não são releases.
+status: Atualizado até 1.5.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.5.0
   - 1.4.0
   - 1.3.0
   - 1.2.0
@@ -31,6 +32,25 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.5.0] — 2026-11-17
+
+**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+
+### Cadastro assistido de projetos de extensão
+
+- Enriquece `GET /projects` com mentor principal e co-mentores atuais em lote e sem dados privados, reutilizando a busca pública de membros no formulário.
+- Substitui UUIDs digitados por seleção por nome/handle, preservando vínculos e membros históricos na edição.
+- Nomeia as 17 ODS, inicia metodologia `PjBL`, adiciona parceiros de apoio, orçamento calculado em centavos e anexos HTTPS.
+- Valida campos obrigatórios, datas, ODS e cronograma no cliente antes do envio, preservando o rascunho mínimo.
+- Sincroniza mentores somente por delta, sem fechar/recriar vínculos ou reenviar e-mail em edições idênticas; somente novo/trocado principal é notificado.
+- Converte rejeição de anexo fora da allowlist em HTTP 400 com a mensagem do StorageService.
+
+### Verificação
+
+- Testes backend/frontend e `astro check` cobrem projeção, no-op, deltas, busca histórica, rascunho, centavos e erros de anexos.
+- Jornada real em banco isolado com fixtures sintéticas: rascunho → proposta → edição idêntica sem churn/e-mail → mudança de co-mentor → ativação.
+- Revisão independente concluída com correção do contrato HTTP da allowlist.
 
 ## [1.4.0] — 2026-11-17
 
