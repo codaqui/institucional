@@ -2,7 +2,11 @@ import {
   Injectable,
   Logger,
   BadRequestException,
+  BadGatewayException,
+  ConflictException,
   ForbiddenException,
+  InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
@@ -186,7 +190,12 @@ export class StripeService {
       originUrl || process.env.FRONTEND_URL || 'http://localhost:3000';
     const safePath = this.sanitizeReturnPath(returnPath);
     const returnUrl = this.buildReturnUrl(baseUrl, safePath, 'success', true);
-    const cancelUrl = this.buildReturnUrl(baseUrl, safePath, 'cancelled', false);
+    const cancelUrl = this.buildReturnUrl(
+      baseUrl,
+      safePath,
+      'cancelled',
+      false,
+    );
 
     const isSubscription = !!recurring;
     const mode: Stripe.Checkout.SessionCreateParams['mode'] = isSubscription
@@ -292,8 +301,18 @@ export class StripeService {
             return_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
           }
         : {
-            success_url: this.buildReturnUrl(baseUrl, safePath, 'success', true),
-            cancel_url: this.buildReturnUrl(baseUrl, safePath, 'cancelled', false),
+            success_url: this.buildReturnUrl(
+              baseUrl,
+              safePath,
+              'success',
+              true,
+            ),
+            cancel_url: this.buildReturnUrl(
+              baseUrl,
+              safePath,
+              'cancelled',
+              false,
+            ),
           }),
     };
 
@@ -381,7 +400,9 @@ export class StripeService {
         const session = event.data.object;
         this.logger.warn(
           `Pagamento assíncrono falhou: session ${session.id}${
-            session.metadata?.orderId ? ` | order ${session.metadata.orderId}` : ''
+            session.metadata?.orderId
+              ? ` | order ${session.metadata.orderId}`
+              : ''
           }`,
         );
         break;
@@ -844,7 +865,11 @@ export class StripeService {
       );
       await this.eventOrderRepo.update(
         { id: order.id, status: OrderStatus.PAID },
-        { status: OrderStatus.PENDING, stripePaymentIntentId: null, paidAt: null },
+        {
+          status: OrderStatus.PENDING,
+          stripePaymentIntentId: null,
+          paidAt: null,
+        },
       );
       throw error;
     }
@@ -977,8 +1002,7 @@ export class StripeService {
     order: EventOrder,
   ): Array<{ name: string; email: string }> {
     const raw =
-      session.metadata?.attendees ??
-      (order.attendees ? order.attendees : null);
+      session.metadata?.attendees ?? (order.attendees ? order.attendees : null);
     if (raw) {
       try {
         const parsed =
@@ -999,8 +1023,11 @@ export class StripeService {
           session.customer_details?.name ??
           session.customer_email ??
           'Participante',
-        email:
-          (session.customer_details?.email ?? session.customer_email ?? '').toLowerCase(),
+        email: (
+          session.customer_details?.email ??
+          session.customer_email ??
+          ''
+        ).toLowerCase(),
       },
     ];
   }
@@ -1035,7 +1062,10 @@ export class StripeService {
         : Promise.resolve(null),
     ]);
     const projectKey =
-      communityId ?? event?.communityProjectKey ?? activation?.communityProjectKey ?? 'tesouro-geral';
+      communityId ??
+      event?.communityProjectKey ??
+      activation?.communityProjectKey ??
+      'tesouro-geral';
     const stripeIncomeAccount =
       await this.ledgerService.getOrCreateCommunityAccount(
         'stripe_income',
@@ -1047,12 +1077,13 @@ export class StripeService {
       `Comunidade: ${projectKey}`,
     );
 
-    const eventTitle = event?.title ?? activation?.title ?? order.eventId ?? 'Evento externo';
+    const eventTitle =
+      event?.title ?? activation?.title ?? order.eventId ?? 'Evento externo';
     const eventKey = activation?.eventKey ?? null;
     const ticketName = ticketType?.name ?? 'Ingresso';
     const payerLabel = payer
       ? `${payer.name ?? payer.githubHandle} (@${payer.githubHandle ?? order.payerMemberId ?? 'comprador'})`
-      : order.payerMemberId ?? 'comprador';
+      : (order.payerMemberId ?? 'comprador');
     const description = `Ingresso: ${ticketName} — ${eventTitle} (comprador: ${payerLabel})`;
 
     await this.ledgerService.recordTransaction(
@@ -1296,7 +1327,10 @@ export class StripeService {
     chargeId: string,
     paymentIntentId: string,
     bt: Stripe.BalanceTransaction,
-  ) {
+  ): Promise<{
+    status: 'created' | 'already_exists' | 'not_recorded';
+    transaction?: Transaction;
+  }> {
     const feeReferenceId = `stripe-fee:${bt.id}`;
     const existingFee = await this.txRepo.findOneBy({
       referenceId: feeReferenceId,
@@ -1305,7 +1339,7 @@ export class StripeService {
       this.logger.debug(
         `Webhook idempotente: taxa ${feeReferenceId} já registrada, ignorando.`,
       );
-      return;
+      return { status: 'already_exists', transaction: existingFee };
     }
 
     const originalTx = await this.txRepo.findOne({
@@ -1317,7 +1351,7 @@ export class StripeService {
       this.logger.warn(
         `recordStripeFee: doação original não encontrada para ${paymentIntentId} (charge ${chargeId}) — ignorando taxa`,
       );
-      return;
+      return { status: 'not_recorded' };
     }
 
     const feeCents = bt.fee ?? 0;
@@ -1325,7 +1359,7 @@ export class StripeService {
       this.logger.debug(
         `recordStripeFee: charge ${chargeId} sem taxa (fee=${feeCents}) — ignorando`,
       );
-      return;
+      return { status: 'not_recorded' };
     }
 
     const feeReais = feeCents / 100;
@@ -1340,7 +1374,7 @@ export class StripeService {
     const description = `Taxa Stripe — Charge ${chargeId} (referente a ${paymentIntentId})`;
 
     try {
-      await this.ledgerService.recordTransaction(
+      const transaction = await this.ledgerService.recordTransaction(
         originalTx.destinationAccount.id,
         stripeFeesAccount.id,
         feeReais,
@@ -1350,13 +1384,114 @@ export class StripeService {
       this.logger.log(
         `💸 Taxa Stripe R$ ${feeReais.toFixed(2)} ← ${originalTx.destinationAccount.name} | bt: ${bt.id} | pi: ${paymentIntentId}`,
       );
+      return { status: 'created', transaction };
     } catch (error: unknown) {
+      try {
+        const concurrentFee = await this.txRepo.findOneBy({
+          referenceId: feeReferenceId,
+        });
+        if (concurrentFee) {
+          return { status: 'already_exists', transaction: concurrentFee };
+        }
+      } catch (lookupError: unknown) {
+        const lookupMessage =
+          lookupError instanceof Error
+            ? lookupError.message
+            : 'Erro desconhecido';
+        this.logger.error(
+          `Falha ao reler taxa Stripe ${feeReferenceId}: ${lookupMessage}`,
+        );
+      }
       const message =
         error instanceof Error ? error.message : 'Erro desconhecido';
       this.logger.error(
         `Falha ao registrar taxa Stripe ${feeReferenceId}: ${message}`,
       );
+      return { status: 'not_recorded' };
     }
+  }
+
+  async reconcileFee(paymentIntentId: string): Promise<{
+    status: 'created' | 'already_exists' | 'no_fee';
+    paymentIntentId: string;
+    chargeId: string;
+    balanceTransactionId: string;
+    feeReferenceId: string;
+    feeCents: number;
+    transactionId?: string;
+  }> {
+    if (!/^pi_[A-Za-z0-9]+$/.test(paymentIntentId)) {
+      throw new BadRequestException(
+        'paymentIntentId deve ter o formato pi_...',
+      );
+    }
+
+    let paymentIntent: Stripe.PaymentIntent;
+    try {
+      paymentIntent = await this.stripe.paymentIntents.retrieve(
+        paymentIntentId,
+        {
+          expand: ['latest_charge.balance_transaction'],
+        },
+      );
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Erro desconhecido';
+      this.logger.warn(
+        `reconcileFee: falha ao recuperar PI ${paymentIntentId}: ${message}`,
+      );
+      throw new BadGatewayException(
+        'Não foi possível consultar o PaymentIntent no Stripe. Tente novamente.',
+      );
+    }
+
+    const latestCharge = paymentIntent.latest_charge;
+    if (!latestCharge || typeof latestCharge === 'string') {
+      throw new ConflictException(
+        'A cobrança ainda não está disponível para reconciliação.',
+      );
+    }
+    const bt = latestCharge.balance_transaction;
+    if (!bt || typeof bt === 'string') {
+      throw new ConflictException(
+        'A balance transaction ainda não está disponível. Tente novamente.',
+      );
+    }
+
+    const result = await this.recordStripeFee(
+      latestCharge.id,
+      paymentIntentId,
+      bt,
+    );
+    const response = {
+      paymentIntentId,
+      chargeId: latestCharge.id,
+      balanceTransactionId: bt.id,
+      feeReferenceId: `stripe-fee:${bt.id}`,
+      feeCents: bt.fee ?? 0,
+    };
+    if (result.status !== 'not_recorded') {
+      return {
+        ...response,
+        status: result.status,
+        transactionId: result.transaction?.id,
+      };
+    }
+    if ((bt.fee ?? 0) <= 0) {
+      return { ...response, status: 'no_fee' };
+    }
+
+    const originalTx = await this.txRepo.findOneBy({
+      referenceId: paymentIntentId,
+    });
+    if (!originalTx) {
+      throw new NotFoundException(
+        'A doação original não está registrada no ledger; nenhuma taxa foi criada.',
+      );
+    }
+    throw new InternalServerErrorException(
+      'Não foi possível gravar a taxa no ledger. Nenhum lançamento foi confirmado.',
+    );
   }
 
   // ---------------------------------------------------------------------------

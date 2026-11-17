@@ -24,6 +24,10 @@ import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { JwtPayload } from '../auth/jwt.strategy';
 import { resolveOrigin } from '../common/allowed-origins';
 import { CommunitiesService } from '../communities/communities.service';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 
 /** Limite em centavos para doação anônima: R$ 100 */
 const ANONYMOUS_LIMIT_CENTS = 10_000;
@@ -34,6 +38,7 @@ export class StripeController {
   constructor(
     private readonly stripeService: StripeService,
     private readonly communities: CommunitiesService,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -220,6 +225,41 @@ export class StripeController {
       originUrl: resolveOrigin(undefined, originHeader, refererHeader),
       returnPath: body.returnPath,
     });
+  }
+
+  @Post('reconcile-fee')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth('jwt')
+  @ApiOperation({
+    summary: '🔒 Reconciliar taxa Stripe [admin]',
+    description:
+      'Consulta o PaymentIntent e cria somente a taxa ausente no ledger. ' +
+      'A referência stripe-fee:<balanceTransactionId> impede duplicidade.',
+  })
+  async reconcileFee(
+    @Req() req: { user: JwtPayload },
+    @Body() body: { paymentIntentId?: string },
+  ) {
+    const result = await this.stripeService.reconcileFee(
+      body.paymentIntentId ?? '',
+    );
+    if (result.status === 'created' && result.transactionId) {
+      void this.auditService.log({
+        action: AuditAction.STRIPE_FEE_RECONCILED,
+        actorId: req.user.sub,
+        actorHandle: req.user.handle,
+        targetId: result.transactionId,
+        targetType: 'transaction',
+        details: {
+          paymentIntentId: result.paymentIntentId,
+          chargeId: result.chargeId,
+          balanceTransactionId: result.balanceTransactionId,
+          feeCents: result.feeCents,
+        },
+      });
+    }
+    return result;
   }
 
   @Post('webhook')

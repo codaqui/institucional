@@ -70,6 +70,7 @@ export enum AuditAction {
 
   // Stripe
   SUBSCRIPTION_CANCELLED = 'stripe.subscription_cancelled',
+  STRIPE_FEE_RECONCILED = 'stripe.fee_reconciled',
 
   // Companies
   COMPANY_TIER_VALIDATED = 'company.tier_validated',

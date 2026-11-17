@@ -1,771 +1,123 @@
 <!-- AGENT-INDEX
-purpose: Master guide for AI agents and contributors working on this monorepo (site Astro + backend NestJS + tenants Cloudflare Pages).
-audience: AI agents, maintainers
+purpose: Ponto de entrada leve para agentes e contribuidores; aponta para os guias vivos sem duplicar seu conteúdo.
+audience: AI agents, maintainers, contributors
 read-first: true
 sections:
-  - Documentação do Projeto (docs/)
-  - Tech Stack (site Astro + multi-tenant Pages + backend NestJS)
-  - Commands (gates por build, frontend, backend, scripts de sync)
-  - Directory Structure
-  - Critical Architecture Decisions (design tokens, build matrix, proxy same-origin, conteúdo canônico, eventos, ledgers financeira e de horas, badges, blog SEO)
-  - Padrões de UI/Listagem pós-Fase 0 (paginação padronizada, admonitions, doc da API no site, header/menus, analytics com fallback, dados de comunidade enriquecidos)
-  - Common Anti-Patterns
-  - Git Workflow & Deployment (Cloudflare Pages, branch deployments)
-  - PR Checklist
-  - File Naming Conventions
-  - About Codaqui
-  - Regular Maintenance
-  - Multi-tenant communities (link)
-  - Insights & Social Stats (link)
+  - Navegação da documentação
+  - Mapa e stack do monorepo
+  - Comandos e gates
+  - Regras críticas
+  - Guia por assunto
+  - Fluxo de trabalho e releases
 related-docs:
-  - DEVELOPMENT.md — setup, env vars, migrations, deploy, runbook multi-tenant/secrets
-  - README.md — repo overview
-  - docs/README.md — índice central da documentação técnica
-  - docs/adrs/001-event-platform.md — plataforma de eventos
-  - docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md — presença em lote, concessão independente, CSV e convite guest
-  - docs/adrs/002-club-sortcoins.md — Clube Codaqui SortCoins
-  - docs/adrs/003-club-business-pj.md — Clube Codaqui Business (PJ)
-  - docs/adrs/004-multisite-communities.md — multi-tenant frontend
-  - docs/adrs/006-directorates-designations.md — diretorias, designations e roles derivadas
-  - docs/adrs/007-community-registry.md — registro, seed, snapshot, selo e doações de comunidades
-  - docs/adrs/008-entities-extension-projects.md — entidades, parcerias, projetos de extensão e comprovantes da Fase 4
-  - docs/adrs/013-hour-ledger.md — horas, ownership, guests, declarações e badges da Fase 2
-  - docs/adrs/014-assemblies.md — assembleias, Discussion manual, snapshot, Giscus e cartório da Fase 3
-  - docs/modules/events/CODE_MANUAL.md — manual prático de eventos, horas, ownership e guests
-  - docs/modules/events/ROLES.md — papéis manuais, derivados e staff de eventos
-  - docs/modules/community/COMMUNITY_SITES.md — registro e conteúdo whitelabel das comunidades
-  - docs/modules/insights/SOCIAL_STATS.md — estatísticas e presença digital
+  - DEVELOPMENT.md — setup, variáveis, migrations, deploy e runbooks
+  - docs/README.md — índice de ADRs, módulos e planos
+  - docs/modules/MONOREPO_OPERATIONS.md — convenções detalhadas de frontend, backend, UI, CI e manutenção
+  - CHANGELOG.md — histórico de releases
 agent-protocol:
-  - Always read this AGENT-INDEX block FIRST in any .md file before scanning content. It tells you what's inside and where else to look — saves tokens.
-  - Each .md in this repo (and in `backend/`) has its own AGENT-INDEX header. Trust it as the doc's TLDR.
+  - Leia primeiro o AGENT-INDEX de cada Markdown; depois abra somente a seção necessária.
+  - Não execute planos históricos sem revalidar seu status em docs/plans/README.md.
 -->
 
 # AGENTS.md — Codaqui Monorepo
 
-> Instructions for AI agents, contributors, and maintainers.
+Ponto de entrada para agentes e contribuidores. Este arquivo contém somente orientação de navegação, comandos e invariantes; o detalhamento vive nos documentos ligados.
 
-## 📑 Document index protocol (read first)
+## 1. Navegação da documentação
 
-Every `.md` in this repo (and in `backend/`) starts with an `<!-- AGENT-INDEX -->` HTML comment block. **Always read it before searching the body of the file** — it's a TLDR with:
+Todo Markdown do repositório começa com `<!-- AGENT-INDEX -->`. Leia esse bloco antes do corpo e preserve o formato ao criar documentos novos.
 
-- `purpose`, `audience`, `status` (when applicable)
-- `sections` — high-level outline so you can jump to the right part
-- `related-docs` — cross-references to avoid duplication
-- `agent-protocol` — explicit hints for AI agents
+| Necessidade | Fonte |
+|---|---|
+| Entender uma decisão ou módulo | [Índice da documentação](docs/README.md) |
+| Conhecer convenções de código, UI, CI e manutenção | [Guia operacional do monorepo](docs/modules/MONOREPO_OPERATIONS.md) |
+| Rodar localmente, configurar segredos, migrar ou publicar | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| Consultar roadmap e planos | [Índice de planos](docs/plans/README.md) |
+| Conferir o que já foi publicado | [CHANGELOG.md](CHANGELOG.md) |
 
-Use this protocol to save tokens: read the header, then `view_range` only the section you need. Do **not** dump the full file unless the header tells you everything is essential.
+Decisão implementada vira ADR; comportamento atual fica em `docs/modules/`; hipótese ou backlog fica em `docs/plans/`. Atualize a documentação viva quando mudar o comportamento correspondente.
 
-When creating new `.md` files in this repo, **always include an `<!-- AGENT-INDEX -->` header at the top** following the same shape (see `AGENTS.md`, `DEVELOPMENT.md`, `README.md` as templates).
+## 2. Mapa e stack
 
----
+| Caminho | Responsabilidade |
+|---|---|
+| `frontend/` | Site Astro 7 estático, ilhas React 19/MUI v9, Tailwind v4 e Pages Function |
+| `backend/` | API NestJS 11, TypeORM, PostgreSQL 18, Stripe e autenticação GitHub/JWT |
+| `blog/`, `trilhas/` | Conteúdo canônico copiado para o frontend no build |
+| `comunidades/` | Branding e conteúdo canônico dos tenants |
+| `static/` | Snapshots gerados por workflows; não editar manualmente |
+| `scripts/` | Syncs e validações executados na raiz |
+| `docs/` | ADRs, documentação viva e planos |
 
-## 📚 Documentação do Projeto
+- Node 24 ou superior; dependências de produto ficam em `frontend/package.json` e `backend/package.json`.
+- O portal usa `frontend/src/`; tenants usam `frontend/src-tenants/<slug>/` por `TENANT=<slug>` em build-time.
+- O deploy do site é Cloudflare Pages; o backend roda em container e seu redeploy de produção é manual no Coolify.
+- Site: https://codaqui.dev · API: https://api.codaqui.dev.
 
-A pasta `docs/` centraliza a documentação técnica. Sempre consulte [`docs/README.md`](docs/README.md) primeiro; ela organiza o conteúdo em três categorias:
-
-| Categoria | Onde | Conteúdo |
-|-----------|------|----------|
-| **ADRs** | `docs/adrs/` | Decisões arquiteturais já implementadas |
-| **Módulos** | `docs/modules/` | Documentação viva dos módulos em produção |
-| **Planos** | `docs/plans/` | RFCs, melhorias em andamento e planos futuros |
-
-Decisões arquiteturais principais:
-
-- [Plataforma de Gestão de Eventos](docs/adrs/001-event-platform.md)
-- [Clube Codaqui (SortCoins)](docs/adrs/002-club-sortcoins.md)
-- [Clube Codaqui Business (PJ)](docs/adrs/003-club-business-pj.md)
-- [Multi-tenant Frontend para Comunidades](docs/adrs/004-multisite-communities.md)
-- [Mentoria no sistema](docs/adrs/009-mentorship.md)
-- [Business tiers](docs/adrs/010-business-tiers.md)
-- [Entidades e Projetos de Extensão](docs/adrs/008-entities-extension-projects.md)
-- [Ledger de horas, ownership, guests e perfil público](docs/adrs/013-hour-ledger.md)
-- [Assembleias híbridas com Discussion manual e registro fino](docs/adrs/014-assemblies.md)
-
-Manuais de módulos:
-
-- [Manual do Código — Eventos](docs/modules/events/CODE_MANUAL.md)
-- [Mapa de Papéis — Eventos](docs/modules/events/ROLES.md)
-
-Planos e releases:
-
-- [Índice completo de planos ativos, históricos e superseded](docs/plans/README.md)
-- [Roadmap pós-1.0.0](docs/plans/pos-1-0/README.md) — Fase 8 concluída em develop/1.3.0; próxima candidata: Fase 8b, ainda não aprovada
-- [Roadmap proposto 1.5](docs/plans/codaqui-1-5/README.md) — painéis agregados não aprovados que exigem backend novo
-- [Changelog desde 1.0.0](CHANGELOG.md)
-- [Real Network / Matchmaking](docs/plans/real-network/README.md) — somente visão exploratória, fora do backlog operacional
-
-> Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes ou corrigir bugs recorrentes. Não execute planos históricos sem revalidar o status no índice.
-
----
-
-## Tech Stack
-
-### Site (Astro 7 — Cloudflare Pages)
-
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | Astro 7 (`astro` ^7.4, static output, `@astrojs/mdx`, `@astrojs/rss`, `@astrojs/sitemap`) |
-| **Multi-tenant** | Build matrix por tenant — `TENANT=<slug>` troca o `srcDir` em build-time (`frontend/astro.config.mjs` + `frontend/tenants.config.mjs`) |
-| **Edge** | Cloudflare Pages (direct upload via Wrangler) + **Pages Function** `frontend/functions/[[path]].ts` (proxy de API same-origin) |
-| **Ilhas React** | React 19 + MUI v9 (`@mui/material` ^9, `@mui/icons-material`) + Emotion — hidratação sob demanda (`client:load` / `client:visible` / `client:only`) |
-| **Styling** | Tailwind CSS v4 (`@tailwindcss/vite`) com tokens `--cq-*` do Design System (`frontend/src/styles/tokens.css`) |
-| **Language** | TypeScript ~5.6 |
-| **Comentários** | Giscus (`@giscus/react`, repo: `codaqui/institucional`; Blog por `og:title`, Assembleias por `pathname` na categoria Reuniões configurada por `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID`) |
-| **Pagamentos** | Stripe.js embutido (`@stripe/react-stripe-js`) no fluxo de doação |
-| **Node** | ≥24 (enforced em `package.json` engines, raiz e `frontend/`) |
-| **Hosting** | Cloudflare Pages — projetos `codaqui`, `tisocial`, `elasnocodigo`, `devparana` |
-
-### Backend (NestJS — local + produção ARM64)
-
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | NestJS 11 (`@nestjs/common`, `@nestjs/core`, `@nestjs/platform-express`) |
-| **Language** | TypeScript 5.7 |
-| **ORM** | TypeORM 0.3.28 + `@nestjs/typeorm` 11 |
-| **Database** | PostgreSQL 18 (`postgres:18-alpine`) |
-| **Autenticação** | GitHub OAuth + JWT (Passport.js — `passport-github2` + `passport-jwt`, `@nestjs/passport`, `@nestjs/jwt`), httpOnly cookie |
-| **Validação** | `class-validator` 0.14 + `class-transformer` (ValidationPipe global, whitelist + transform) |
-| **Rate Limiting** | `@nestjs/throttler` 6.5 |
-| **API Docs** | `@nestjs/swagger` 11.2 (Swagger UI) |
-| **Storage** | ⚠ **Sem upload pelo backend**: comprovantes/recibos são **links externos** que o time sobe manualmente em serviços confiáveis. O `StorageModule` valida URLs (`POST /storage/validate-receipt-url`) — exige HTTPS e hostname numa allowlist: Google Drive/Docs, Dropbox, OneDrive (`1drv.ms`), Imgur. **Não há S3/MinIO conectado**; o backend não escreve em disco local nem em bucket. |
-| **Pagamentos** | Stripe SDK 21 (Checkout Sessions + Webhooks com validação obrigatória de assinatura) |
-| **E-mail** | `nodemailer` 9 (SMTP Gmail — `SMTP_*` + `EMAIL_FROM` no `.env.example`; sem credenciais os envios são logados como `skipped` com `SMTP_NOT_CONFIGURED`, sem contar como falha) |
-| **GitHub-as-Database** | Token OAuth do próprio membro (scope `public_repo`, criptografado em repouso — `GITHUB_TOKEN_ENCRYPTION_KEY` + `GITHUB_REPO_*` no `.env.example`). ⚠️ **Legado:** hoje usado apenas pelo force-sync manual do snapshot interno (`POST /events/internal/snapshot`, abre PR em nome do membro — canônico se colaborador; fork flow senão; será removido, ver `docs/plans/events-sync-improvements/` Camada 3). Overrides e organizers migraram para o PostgreSQL (`event_overrides`, `event_organizer_ownership`) |
-| **Reverse Proxy (prod)** | Traefik (infra externa do servidor ARM64) |
-| **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
-| **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
-
-**Versionamento compartilhado:** `frontend/package.json` e `backend/package.json` usam sempre a mesma versão de produto, replicada nos dois lockfiles (não fixar o número nesta doc). Toda release exige bump semver (feat → minor, fix → patch) e entrada em `CHANGELOG.md`, mesmo quando somente uma camada mudou; o `package.json` da raiz é independente. O workflow `publish-backend.yml` (manual) usa o `version` do backend para a tag da imagem multi-arch (amd64 + arm64/v8) no GHCR e para a release `v<versão>-backend` — e o **redeploy em produção é manual no Coolify** (ver Commands).
-
-**Site**: https://codaqui.dev · **API**: https://api.codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
-
----
-
-## Commands
-
-> Setup completo, variáveis de ambiente, migrations e guia de deploy: **[DEVELOPMENT.md](./DEVELOPMENT.md)**. Não duplique aqui.
-
-Antes de submeter mudanças, rode os **gates por build**:
+## 3. Comandos e gates
 
 ```bash
-# Site codaqui (gate completo)
-make astro-verify          # build + astro check + vitest + tsc da Pages Function
-                           # + smoke do dist/ + gate de paridade de URLs (diff-urls)
+make astro-verify           # build codaqui + check + testes + Function + smoke + URLs
+make astro-verify-tenants   # codaqui e tenants + allow-list de URLs por tenant
 
-# Builds multi-tenant (codaqui + 3 tenants)
-make astro-verify-tenants  # 4 builds + allow-list de URLs por tenant (tenant-urls)
+cd frontend && npm run build
+cd frontend && npm run check
+cd frontend && npm run test
+
+cd backend && npm run build
+cd backend && npx jest --silent
+
+npm run test:scripts        # quando alterar scripts/*.mjs
 ```
 
-Comandos por camada:
-
-```bash
-# Frontend (frontend/ — app Astro)
-cd frontend && npm run build     # build estático em dist/ (copia snapshots + conteúdo antes)
-cd frontend && npm run check     # astro check (tipos de .astro — gate só no build codaqui, ver R7 abaixo)
-cd frontend && npm run test      # vitest (libs, contratos e ilhas)
-
-# Backend (se mexeu em backend/)
-cd backend && npm run build      # nest build
-cd backend && npx jest --silent  # testes unitários
-
-# Scripts de sync (raiz — leves, sem install pesado)
-npm run test:scripts             # node --test scripts/*.test.mjs
-npm run sync                     # eventos + social-stats + analytics → static/
-npm run sync:assemblies          # /assemblies/public → static/assemblies/ (fora do agregador sync)
-npm run sync:announcements       # /announcements/public → static/announcements/ (fora do agregador sync)
-npm run sync:badges              # /hours/public → static/badges/ (fora do agregador sync)
-npm run sync:projects            # /projects/public → static/projects/ (fora do agregador sync)
-npm run sync:mentors             # /mentorship/public → static/mentors/ (fora do agregador sync)
-npm run sync:company-badges      # /companies/badges/public → static/badges/empresas/ (fora do agregador sync)
-npm run sync:c4p                 # /c4p/public/snapshot → static/c4p/ (fora do agregador sync)
-```
-
-> ⚠️ **Toda release mantém `frontend/package.json` e `backend/package.json` na mesma versão**, inclusive nos lockfiles, e atualiza `CHANGELOG.md` (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa a versão do backend para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
-
-Demais comandos (dev server, lighthouse, syncs individuais, infra Podman Compose, migrations): **`make help`** ou a seção de comandos do [DEVELOPMENT.md](./DEVELOPMENT.md).
-
----
-
-## Directory Structure
-
-Este repositório é um **monorepo**: conteúdo canônico + scripts de sync na raiz, app do site em `frontend/`, API em `backend/`.
-
-```
-institucional/
-├── backend/                     # 🖥️ API REST NestJS
-│   ├── src/
-│   │   ├── auth/                # GitHub OAuth + JWT (GithubStrategy + JwtStrategy)
-│   │   ├── members/             # Membros da Codaqui (multi-role `roles: text[]`, autorização)
-│   │   ├── github-db/           # GitHubDBService — ⚠️ legado: só force-sync de snapshot interno
-│   │   ├── event-organizer/     # ⭐ Ownership de eventos externos (PostgreSQL) + validação de overrides
-│   │   ├── events/              # ⭐ Plataforma de eventos: managed_events, ticket_types, orders, registrations, staff, check-in, CSV, relatórios, 18+
-│   │   ├── hours/               # ⭐ Fase 2/ADR 013: hour_ledger separada, aprovações, declarações e totais públicos
-│   │   ├── assemblies/          # ⭐ Fase 3/ADR 014: registro fino, numeração, autorização, auditoria e cartório de assembleias
-│   │   ├── entities/            # ⭐ Fase 4/ADR 008: entidades jurídicas e parcerias
-│   │   ├── projects/            # ⭐ Fase 4/ADR 008: projetos de extensão, participantes, horas e comprovantes
-│   │   ├── universities/        # ⭐ Fase 4b/ADR 015: cidades, IES, candidaturas e projeções públicas
-│   │   ├── mentorship/          # ⭐ Fase 5/ADR 009: mentores, disponibilidade, sessões, horas e insights
-│   │   ├── c4p/                 # ⭐ Fase 7/ADR 012: campanhas de C4P, propostas, votos por critérios, curadoria, avaliadores por designation
-│   │   ├── announcements/       # ⭐ ADR 017: anúncios institucionais, CRUD admin e projeção pública
-│   │   ├── campaigns/           # ⭐ ADR 018: campanhas de e-mail E3, segmentos, supressões, fila persistente e descadastro
-│   │   ├── notifications/       # ⭐ E-mails (nodemailer + email_logs sent/failed/skipped, resend, summary, export CSV e crons)
-│   │   ├── designations/        # ⭐ member_designations: vínculos, guard e roles organizacionais derivadas
-│   │   ├── directorates/        # Diretorias; edição do diretor somente na própria diretoria
-│   │   ├── communities/         # ⭐ Registro/seed das 6 comunidades, selo e validação de destino de doação
-│   │   ├── settings/            # app_settings + retenção operacional de auditoria (7–365 dias)
-│   │   ├── common/turnstile/    # Infraestrutura Turnstile opt-in (nenhuma rota usa o guard na Fase 1a)
-│   │   ├── ledger/              # ⭐ Contabilidade dupla partida + exportação CSV server-side por range
-│   │   ├── stripe/              # Stripe Checkout + webhooks (donations, refunds)
-│   │   ├── expenses/ transfers/ reimbursements/ vendors/  # ⭐ Módulos financeiros (gravam no ledger)
-│   │   ├── audit/               # Logs governance (permanentes, sem IP) e operational (com retenção)
-│   │   ├── storage/             # Valida URLs de comprovante (allowlist HTTPS; ⚠ sem upload)
-│   │   └── migrations/          # TypeORM migrations (até 049; Fase 4: 037–041; Fase 4b: 042; Fase 5: 044; Mentoria Operations: 046; Announcements: 047; Campanhas E3: 048; C4P: 049)
-│   └── Dockerfile               # Multi-stage: builder → runner (alpine + curl)
-├── frontend/                    # 🚀 App Astro 7 — site codaqui + builds dos 3 tenants
-│   ├── astro.config.mjs         # srcDir switching por TENANT; sitemap (SITEMAP_EXCLUDE); SITE_URL
-│   ├── tenants.config.mjs       # ⭐ Fonte única dos tenants (slug, site, project Pages)
-│   ├── functions/[[path]].ts    # ⭐ Pages Function — proxy de API same-origin (allow-list estreita)
-│   ├── functions/tsconfig.json  # Type-check da Function é separado do astro check
-│   ├── src/                     # App do portal codaqui (srcDir padrão)
-│   │   ├── pages/               # Rotas .astro (blog/, trilhas/, eventos/, admin/, comunidades/, desenvolvedores/, …)
-│   │   ├── layouts/             # BaseLayout (SEO/OG/JSON-LD/noindex), PublicLayout, AppLayout, BlogPostLayout, TrilhaLayout
-│   │   ├── components/
-│   │   │   ├── astro/           # Componentes de servidor (SiteHeader, EventCard, PageHero, …)
-│   │   │   └── islands/         # ⭐ Ilhas React (admin/, events/, ui/PaginationControls, ApiDocsIsland, ThemeToggle, …)
-│   │   ├── content/             # Collections Astro (blog, trilhas, pages, community-blog)
-│   │   ├── content.config.ts    # Schemas + loaders (glob)
-│   │   ├── data/                # ⭐ Camada de dados (team, communities, projects, timeline, giscus, analytics, …)
-│   │   ├── lib/                 # ⭐ Lógica pura testada (events, pagination, header-menu, remark-admonitions, analytics, api-url, use-auth, mui-theme, …)
-│   │   ├── test/                # ⭐ Helpers vitest compartilhados (http-mock.ts: jsonResponse/useFetchMock; render-mui.tsx: renderWithMui)
-│   │   └── styles/              # tokens.css (--cq-*) + global.css (ponte @theme inline → Tailwind)
-│   ├── src-tenants/             # Apps dos tenants (tisocial, elasnocodigo, devparana) — thin, reutilizam src/
-│   ├── scripts/                 # ⭐ copy-content.mjs, copy-snapshots.mjs, build-tenant-redirects.mjs,
-│   │                            #    diff-urls.mjs, tenant-urls.mjs, archive-urls.mjs, url-reference.json
-│   └── public/                  # Assets estáticos + robots.txt (snapshots são copiados p/ cá no prebuild)
-├── blog/                        # ⭐ Conteúdo canônico do blog (Markdown/MDX) — copiado p/ o app no build
-│   ├── authors.yml              # Fonte canônica de autores
-│   └── YYYY-MM-DD-slug.md(x)    # Posts (slug legado no frontmatter — ver decisão 7)
-├── trilhas/                     # ⭐ Conteúdo canônico das trilhas (python/, github/)
-├── comunidades/                 # ⭐ Configs das comunidades parceiras (READ-ONLY no app — ver decisão 4)
-│   ├── index.ts                 # COMMUNITIES_CONFIG (fonte única)
-│   └── <slug>/                  # community.config.ts + blog/docs (symlinks no src-tenants)
-├── static/                      # ⭐ Snapshots gerados por workflows (events/, communities/, assemblies/, social-stats/, analytics/, badges/, img/)
-├── scripts/                     # Syncs/validação da raiz (rodam em workflows e local)
-│   └── *.mjs                    # sync-events / sync-communities / sync-assemblies / sync-social-stats / sync-analytics / sync-member-badges (+ testes .test.mjs)
-│                                #    (syncs legados leem data files; communities/assemblies/badges leem a API PostgreSQL)
-├── docs/                        # Documentação técnica (ADRs, módulos, planos)
-├── .github/workflows/           # 9 workflows (ver Git Workflow & Deployment)
-└── Makefile                     # Atalhos: astro-*, backend-*, db-*, migration-*, sync
-```
-
----
-
-## Critical Architecture Decisions
-
-### 1. Design tokens `--cq-*` — zero hex solto
-
-`frontend/src/styles/tokens.css` é a **fonte única** do Design System. Tailwind consome via `@theme inline` em `global.css` (utilitários `bg-action`, `text-primary-700`, …); o tema MUI (`src/lib/mui-theme.ts`) **espelha** os mesmos valores.
-
-- Nunca hardcode hex em componentes — use tokens CSS (`var(--cq-*)`) ou utilitários Tailwind; em ilhas MUI, use o tema (`color="primary.700"`, `sx` com tokens do tema).
-- ⚠️ Cor de marca `#57B593` (primary-500) tem contraste 2.49:1 sobre branco — **só decoração/grandes áreas**. Texto e ícones essenciais sobre claro: `--cq-color-primary-700` (`#378369`, 4.55:1) ou superior; links: primary-800.
-
-### 2. Multi-tenant por build matrix (Fase 0.5)
-
-- `TENANT=<slug>` em build-time troca o `srcDir` para `frontend/src-tenants/<slug>/` — rotas limpas (`/`, `/apoiar`, `/transparencia`, `/equipe`, `/blog`, `/docs`) com tema/nav da comunidade. **`frontend/tenants.config.mjs` é a fonte única** (slug, domínio `site`, projeto Pages).
-- **Build codaqui = sem `TENANT`** (srcDir padrão `./src`, portal completo). `TENANT=codaqui` quebraria o build (`TENANT_BY_NAME` não tem essa chave).
-- O matrix do workflow `.github/workflows/deploy-astro.yml` (e o job `astro-tenants` do `pr-check.yml`) **espelha** essa lista — ao onboarding um tenant novo, atualize os dois **e** `tenants.config.mjs` juntos.
-- og:url/canonical/sitemap saem corretos por build porque `SITE_URL` vem do tenant (build-time) — não há reescrita em runtime.
-- **R7 — `astro check` NÃO é gate em modo tenant:** páginas codaqui sob srcDir de tenant têm ~62 erros pré-existentes (limitação do `getCollection`). Gates: codaqui = `make astro-verify` completo; tenant = build + `tenant-urls`.
-
-### 3. API same-origin via Pages Function — allow-list ESTREITA (lição I-1)
-
-`frontend/functions/[[path]].ts` intercepta **somente** os paths da allow-list em `frontend/src/lib/api-proxy-paths.ts` e faz forward para `API_ORIGIN` (default `https://api.codaqui.dev`), com method/headers/cookies intactos. Todo o resto cai no asset estático via `next()`.
-
-- O prefixo admin é **deliberadamente estreito**: `/admin/members/` (com trailing slash de propósito). O prefixo antigo `/admin/` fazia a Function interceptar as 13 páginas do painel `/admin/*` — a Function roda **antes** dos assets e do `_redirects` no Pages, e o proxy respondia 404 do backend: o painel inteiro sumia no edge (achado I-1, fix `67ac9450f9e`).
-- **Nunca alargue a allow-list sem checar colisão com rotas estáticas do app.** Prefixo estreito + trailing slash; bare path casa por normalização, e `/admin/memberships` (falso positivo de `startsWith`) NÃO casa.
-- `/auth/callback` **não** é API — é a página do frontend que finaliza o OAuth (não confundir com `/auth/github/callback`, rota do backend).
-- No cliente, **sempre** resolva a base com `resolveApiUrl()` (`src/lib/api-url.ts`): em builds tenant o guard `PUBLIC_TENANT` força same-origin; `API_URL` cru cairia no fallback errado fora do workflow.
-
-### 4. Conteúdo canônico na raiz — `frontend/src/content/` é gerado
-
-- `blog/` e `trilhas/` na raiz são **canônicos**. `frontend/scripts/copy-content.mjs` (predev/prebuild) copia para `frontend/src/content/blog` e `frontend/src/content/trilhas`. **Nunca edite as cópias** — suas mudanças serão apagadas no próximo build.
-- A collection `pages` (páginas soltas .md) **não** é mais copiada: os canônicos moram versionados em `frontend/src/content/pages/`.
-- Assets de blog/trilhas (`blog/img/`, `trilhas/github/assets/`) são copiados para `frontend/public/blog-assets/` e `frontend/public/trilhas-assets/`.
-- Snapshots (`static/events|communities|assemblies|projects|universities|social-stats|analytics|announcements/index.json`, `static/badges/` + imagens selecionadas) são copiados para `frontend/public/` por `copy-snapshots.mjs` no prebuild. `/assemblies/index.json`, `/universities/index.json` e `/announcements/index.json` permanecem estáticos e são exceções aos prefixos de API correspondentes.
-- Autores do blog: fonte canônica `blog/authors.yml`; ao alterá-la, replique em `frontend/src/data/blog-authors.ts` (o topo do arquivo aponta para cá).
-- `comunidades/<slug>/` (community.config + blog/docs) é **READ-ONLY** no app — os tenants leem via symlink (`core.symlinks true` no clone). Edite o conteúdo da comunidade **na pasta `comunidades/`**, nunca no `src-tenants/`.
-
-### 5. Eventos — snapshot estático + páginas geradas no build
-
-> **Visão completa:** [docs/adrs/001-event-platform.md](docs/adrs/001-event-platform.md) · [Manual prático de código](docs/modules/events/CODE_MANUAL.md) · [Mapa de papéis/permissões](docs/modules/events/ROLES.md)
-
-- A listagem pública de eventos é **estática**: o workflow `sync-event-snapshots.yml` (horário) gera JSONs em `static/events/` a partir de fontes externas (Discord, Meetup, Sympla, OCGroups, Doity — configuradas em `events.config.json`) e da fonte própria `internal:codaqui` (backend `GET /events/public/managed`). O app lê o snapshot do **filesystem em build-time** (`loadEventsIndex()` em `src/lib/events.ts`) e o build estático emite `/eventos/<rota>` por evento (`src/pages/eventos/[...path].astro`, helpers em `src/lib/event-path.ts`) com OG/JSON-LD. O mesmo índice é servido em runtime em `/events/index.json`.
-- **Status:** `scheduled`, `active`, `completed`, `canceled`. Ordenação do índice: ASC por `startAt`.
-- **Overrides de metadados:** via API REST do backend (`/events/overrides`, persistidos no PostgreSQL); o sync aplica os metadados estendidos antes de gravar os snapshots.
-- **Eventos próprios (`internal:codaqui`):** a página de detalhe detecta a fonte e embute inscrição/checkout (`EventRegistrationIsland`).
-- **Perfis de membro:** `src/pages/[...handle].astro` gera a vanity URL `/@<handle>` em build time a partir da API pública (`loadPublicMembers()` — sem API retorna `[]` com warn e o build segue; o 404 faz fallback para `/membros/perfil?handle=`).
-- **Force-sync manual** (`POST /events/internal/snapshot`, botão no admin): abre PR usando o token do membro (GitHub-as-Database) — **fluxo legado**, será substituído (ver `docs/plans/events-sync-improvements/`, Camada 3).
-
-### 6. Backend financeiro — tudo passa pelo ledger
-
-Todo movimento financeiro passa pelo `ledger` (`Account` + `Transaction`, double-entry). Os módulos especializados gravam suas próprias entidades **e** registram a transação no ledger via `LedgerService.recordTransaction(source, destination, amount, description, referenceId)`.
-
-#### Convenção de `referenceId`
-
-| Módulo | Padrão | Reversal |
-|--------|--------|----------|
-| Stripe donation | `stripe-pi:<paymentIntentId>` | `stripe-refund:<paymentIntentId>:<refundId>` |
-| Reimbursement | `reimbursement:<id>` | `reimbursement-reversal:<id>:<ts>` |
-| Transfer | `transfer:<id>` | — |
-| Vendor payment | `vendor-payment:<id>` | `vendor-payment-reversal:<id>:<ts>` |
-| Vendor receipt | `vendor-receipt:<id>` | `vendor-receipt-reversal:<id>:<ts>` |
-| Expense (lançamento direto) | `expense:<id>` | `expense-reversal:<id>:<ts>` |
-| Event ticket | `event-ticket:<orderId>` | `event-ticket-refund:<orderId>:<ts>` |
-
-> ⚠️ A captura de taxa Stripe (`stripe-fee:*`) **não** se aplica a ingressos de eventos — o handler localiza a doação pelo `referenceId` com prefixo `stripe-pi:`. Fees de eventos ficam fora do ledger por ora (follow-up conhecido).
-
-> O frontend classifica a transação pelo **prefixo** do `referenceId` (`src/lib/transaction.ts`) e renderiza o cartão correto.
-
-#### Padrão `persistWithLedger`
-
-Para garantir atomicidade entre o save da entidade especializada e o registro no ledger:
-
-```ts
-const saved = await this.persistWithLedger(repo, entity, (s) => ({
-  sourceAccountId, destinationAccountId, amountBrl,
-  description, referenceId: `<prefix>:${s.id}`,  // ← s.id já existe (UUID gerado pelo PG)
-}));
-```
-
-> ⚠️ **Use a factory `(saved) => ledgerArgs`**, NÃO um objeto literal. O UUID só é gerado depois do save — usar `entity.id` antes resulta em `referenceId: "...:undefined"`.
-
-#### Papéis relevantes
-
-| Role | Escopo |
-|------|--------|
-| `membro` | Default de todo membro |
-| `admin` | Global |
-| `finance-analyzer` | Global (relatórios financeiros) |
-| `event_organizer` | Global + ownership por evento externo via `event_organizer_ownership` |
-| `event_finance` | Global (relatórios/reembolsos de eventos) |
-| `event_host` | Por evento (`event_staff`, `host`) |
-| `event_checker` | Por evento (`event_staff`, `checker`) |
-
-> Papéis de eventos detalhados em [docs/modules/events/ROLES.md](docs/modules/events/ROLES.md).
-
-### 7. Blog — convenção de URL (SEO crítico) + comentários
-
-Posts vivem em `blog/YYYY-MM-DD-slug.md(x)`. O frontmatter `slug` determina a URL final — preserva URLs indexadas pelo Google desde o site anterior:
-
-```yaml
----
-slug: 2024/07/22/meu-post
-title: "Título do Post"
-authors: [username]   # ou lista inline de objetos {name, title, url, image_url}
-tags: [tag1, tag2]
-date: 2024-07-22      # opcional — ausente, o app infere pela data do nome do arquivo
----
-```
-
-- `<!-- truncate -->` marca o fim do resumo na listagem (o build converte nas cópias).
-- **Nunca mude o `slug` de posts publicados** — quebra URLs indexadas e mapeamento de comentários.
-- Comentários Giscus usam mapping `og:title` (`frontend/src/data/giscus.ts`): o `og:title` dos posts precisa permanecer estável para o histórico de comentários sobreviver. Disable per-post com `enableComments: false` no frontmatter.
-
-### 8. Redirects legados em `dist/_redirects` + paridade de URLs versionada
-
-- Os redirects de URLs legadas (ex.: `/quero/apoiar`, `/team`, `/sobre/timeline`, `/conduta`, `/blog/archive/*`, … — 17 no total) vivem no **`dist/_redirects` gerado em build-time** por `frontend/scripts/build-tenant-redirects.mjs` (build codaqui). Os antigos stubs de página rediretora foram **deletados** — não recrie páginas-sombra; adicione a regra no script.
-- Builds tenant emitem `_redirects` com 301 de `/comunidades/<slug>[/*]` para `[/][:splat]` (links antigos do portal funcionam no domínio próprio) **e** um `robots.txt` com o Sitemap do domínio do tenant.
-- **Paridade pós-cutover:** `frontend/scripts/url-reference.json` é a referência versionada e **congelada** das URLs públicas do site anterior (gerada por `archive-urls.mjs` antes da remoção do stack antigo). `diff-urls.mjs` (dentro de `make astro-verify`) falha se qualquer URL da referência não for servida pelo build novo (página ou redirect). URLs válidas = páginas do dist ∪ sources ∪ targets do `_redirects`; redirect que aponta para o nada quebra o gate. **Não regenere a referência** — ela é o contrato do cutover.
-
-### 9. Rotas de app noindex + fora do sitemap
-
-Rotas de aplicativo (`/admin/*`, `/auth/*`, `/membro/*`, `/membros/empresa`, `/eventos/detalhe`, `/eventos/comprovante`, 404) passam `noindex` no layout e são excluídas do sitemap (`SITEMAP_EXCLUDE` em `astro.config.mjs`). O `robots.txt` do build codaqui aponta o Sitemap para `https://codaqui.dev/sitemap-index.xml`.
-
-### 10. Dark mode — `data-theme` com anti-FOUC
-
-`BaseLayout.astro` emite um script inline no `<head>` que lê a preferência salva/sistema e seta `document.documentElement.dataset.theme` **antes do paint** (sem flash). Ilhas MUI leem o mesmo atributo (`MuiIslandProvider`, `ThemeToggle`) — em ilhas, nunca assuma tema sem observar `data-theme` no `documentElement`.
-
-### 11. Padrão de tela admin
-
-Toda página em `frontend/src/pages/admin/*` é um `.astro` fino:
-
-```astro
----
-import AppLayout from "../../layouts/AppLayout.astro";
-import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
----
-
-<AppLayout title="Admin" noindex>
-  <AdminHubApp client:only="react" />
-</AppLayout>
-```
-
-1. A ilha React usa o hook `useAuth()` (`src/lib/use-auth.ts`): `authFetch` faz `setUser(null)` em 401 → redirect automático para login.
-2. Helpers em `src/lib/auth-fetch-helpers.ts`: `parseAuthJson<T>(res, onError)` para GETs (retorna `null` em erro, não throw) e `extractErrorMessage(res, fallback)` para POST/PATCH/DELETE.
-3. Estado de erro com `Alert`/`loadError` no header da página.
-4. Tabelas/cartões usam `<TransactionDetailDialog>` / `<WalletTransactionDetailDialog>` para detalhe rico ao clicar.
-5. A base da API na ilha vem de `resolveApiUrl(import.meta.env.SITE)` — nunca `API_URL` cru (ver decisão 3).
-
-### 12. Paginação padronizada (site + backend)
-
-- **Frontend:** `src/lib/pagination.ts` é a fonte única — constantes `MEMBERS_PAGE_SIZE` (100), `DEFAULT_PAGE_SIZE` (50), `MAX_PAGE_SIZE` (100), `PAGE_WINDOW_SIZE` (5); interface `PaginatedResponse<T>` (`{data, total, page, totalPages, limit?}`); `pageWindow()` (janela deslizante de páginas centrada na atual) e `rangeLabel()` ("Mostrando X–Y de Z"). Ilhas/tabelas **nunca hardcodam limites** — importam daqui.
-- **Componente:** `src/components/islands/ui/PaginationControls.tsx` (MUI acessível — `<nav>` com `aria-label`, `aria-current` na página ativa) **só renderiza quando há mais de uma página** (`totalPages <= 1` → `null`).
-- **Backend:** DTOs de query com `@Type(() => Number)` + `@IsInt()` + `@Min(1)` + `@Max(...)` — `GetMembersQueryDto` (cap 100, default 50) e o padrão de `GetTransactionsQueryDto` do ledger (cap 50, default 10). Envelope `PaginatedResultDto` (`backend/src/ledger/dto/paginated-result.dto.ts`): `{data, total, page, totalPages, limit}`.
-- **Novas listagens devem seguir esse padrão** (lib + componente + DTO + envelope) — ver também o anti-pattern correspondente.
-
-### 13. Admonitions em trilhas e blog
-
-- Sintaxe Docusaurus: `:::info[Título]`, `:::tip`, `:::warning`, `:::note`, fechamento `:::` em linha própria; título **sem colchetes** também vale (`:::tip Texto livre`).
-- Transformer mdast em `src/lib/remark-admonitions.ts`, plugado no `markdown.processor` do `astro.config.mjs` (depois de `remarkContentAssets` — ordem importa); saída `<div class="admonition admonition-{tipo}">` com CSS em `global.css` (`.prose-cq .admonition*`, cores por tokens `--cq-*`).
-- As fontes canônicas **não são reescritas** (dezenas de blocos em `trilhas/`, também usados no `blog/`) — continue editando em `trilhas/`/`blog/` na raiz (decisão 4).
-- Bloco **sem fechamento `:::` fica literal de propósito** — sinaliza erro de autoria em vez de engolir o documento.
-
-### 14. Documentação da API no site (`/desenvolvedores/api`)
-
-- Página pública e indexável (`src/pages/desenvolvedores/api.astro`) embute `ApiDocsIsland` (`client:only`): Swagger UI (`swagger-ui-dist`, ~1,7MB) via **dynamic import** — code-split, só é baixado nessa rota.
-- A ilha consome `GET /docs-json` **ao vivo** com `resolveApiUrl(import.meta.env.SITE)` (mesmo padrão das demais ilhas; em builds tenant o proxy same-origin entrega `/docs-json`).
-- O backend serve `/docs-json` **em produção incondicional** (fora do guard `SWAGGER_ENABLED` — `backend/src/main.ts`); a UI `/docs` continua dev-only (`SWAGGER_ENABLED=true` em prod).
-- `/docs-json` está na allow-list do proxy como path **exato** (`api-proxy-paths.ts`) — não colide com rotas estáticas.
-- Try-it ativo de propósito: o CORS do backend cobre codaqui.dev + domínios dos tenants; endpoints protegidos pedem JWT Bearer (botão Authorize).
-
-### 15. Header e menus (SiteHeader + NavbarAuth)
-
-- `src/lib/header-menu.ts`: menus desktop em `<details>` — **single-open** (abrir um fecha os demais), **ESC fecha**, **clique fora fecha** (`initHeaderDetailsNav`); **hover-intent** via `bindHover` (openDelay 200ms, closeDelay 300ms — tempo de atravessar o gap até o painel; só instala com hover fino, `pointer: fine` — touch/teclado seguem 100% nativos do `<details>`); drawer mobile com focus trap (Tab wrap) e light dismiss.
-- `NavbarAuth` (ilha, usada no header desktop e no drawer mobile): o avatar abre o menu do usuário — **Meu Perfil** (`/membro`), **Meu Clube** (`/clube`), **Minha Empresa** (`/membros/empresa`, só com `hasCompany`), **Painel Admin** por papel (href dinâmico: admin/finance → `/admin`, organizer → `/admin/eventos`, host/checker → `/admin/eventos-checkin`), **Fazer uma Doação** (`/participe/apoiar`), **Trocar conta**, **Sair**. No drawer mobile (`variant="inline"`) vira lista expandida, não dropdown.
-
-### 16. Analytics com fallback (`/sobre/insights`)
-
-- `src/lib/analytics.ts`: `loadAnalyticsWithFallback()` — primário `/analytics/index.json` (snapshot same-origin, `src/data/analytics.ts`); **failover** reconstrói o snapshot a partir do repo `codaqui/dados` (listing via `api.github.com` + arquivos em `raw.githubusercontent.com`, últimos 12 meses, parse defensivo — números vêm como string no formato raw).
-- Validação de host **sempre por URL parsing** (`isAllowedHost`: `new URL(...)`, protocolo `https:` + hostname **exato** na lista) — **nunca `startsWith`** (`https://api.github.com.evil.example` passaria; regra CodeQL `js/incomplete-url-substring-sanitization`).
-- Ilha `SiteAnalyticsIsland` com estados visíveis: skeleton CSS enquanto carrega, Alert com **Tentar novamente** em erro, seletor de período (3/6/12 meses/Todos) — falha visível em vez de seção sumindo.
-
-### 17. Dados de comunidade enriquecidos em build time
-
-- `comunidades/<slug>/src/data/*` é consumido em **build time** pelo app (ex.: `comunidades/devparana/src/data/ambassadors.json` → páginas `/embaixadores` do build tenant e do portal codaqui; `tisocial` tem `upcoming.json`/`campaigns.json`).
-- Enriquecimento: `EmbaixadoresPage.astro` cruza os dados locais com `loadPublicMembers()` (API pública) via `findMemberByAmbassador` (`src/lib/community-devparana.ts`, matching por `githubHandle`); quando encontra o membro, **prefere `member.name`** (e avatar/linkedin/bio) sobre o cadastro local — comportamento conhecido.
-- `/sobre/equipe` mantém Diretoria/Membros/Alumni como curadoria local e usa `src/lib/team.ts` para enriquecer somente por URL/handle GitHub válido, nunca por nome; mentores vêm exclusivamente do snapshot ativo/vigente e só recebem link `/@handle` quando o perfil público existe no mesmo build. `/sobre/ong` usa `loadCommunitiesIndex()`, selo efetivo e `listCommunityPortals()` (interseção snapshot ativo+`siteEnabled` com `TENANTS`, href=`tenant.site`). Não cria membros/placeholders nem contratos de backend.
-- Sem API disponível no build → fallback nos dados locais (build segue). O loader de mentores resolve o snapshot pelo módulo e por `process.cwd()` para continuar encontrando `public/mentors/index.json` após o bundling do Astro.
-
-### 18. Designations e diretorias (Fase 1a — ADR 006)
-
-- `member_designations` é a única fonte dos vínculos novos. Não criar `directorMemberId`, `responsibleMemberId`, `directorate_members` ou tabelas paralelas. `event_organizer_ownership` e `event_staff` continuam nos modelos próprios.
-- APIs reais: `GET /designations/me`; `POST /designations`, `POST /designations/:id/confirm`, `POST /designations/:id/revoke` (admin); `GET /directorates/public`, `GET /directorates/manage`, `POST /directorates` e `PATCH /directorates/:id`.
-- `director @ directorate` deriva `diretor` + `voluntario`; `volunteer` deriva `voluntario`. `mentor @ extension_project` está ativo na Fase 4/ADR 008; `manager @ program('universitario')` deriva `gestor_universitario` na Fase 4b/ADR 015; `mentor @ program('mentoria')` autoriza a Fase 5/ADR 009. Roles derivadas não são editáveis por `PATCH /admin/members/:id`.
-- Diretor edita somente a diretoria da sua designation ativa; guard e service verificam o escopo. Proxy: somente `/designations/` e `/directorates/`, nunca `/admin/`.
-- **Baseline histórico da Fase 1a:** naquele recorte não existia `hour_ledger`; horas, aprovações e declarações ficavam para fase futura. **A Fase 2 introduziu** `backend/src/hours/` e a migration 033 — ver decisão 24 e [ADR 013](docs/adrs/013-hour-ledger.md).
-
-### 19. Registro de comunidades (Fase 1a — ADR 007)
-
-- PostgreSQL guarda o registro; `static/communities/index.json` é o snapshot público consumido no build. Branding/conteúdo continuam em `comunidades/<slug>/`, e tenants continuam exigindo `tenants.config.mjs` + workflows + Pages/DNS.
-- Seis seeds: Integradas `devparana`, `elasnocodigo`, `tisocial`, `campostechpg`; Parceiras `cloudnativemaringa`, `cumbucadev`. As Integradas nascem sem responsible fabricado. Só os três tenants têm `siteEnabled=true`; CamposTech tem `siteEnabled=false`.
-- APIs reais: `GET /communities/public`, `GET /communities/manage`, `POST /communities`, `PATCH /communities/:id`, `POST /communities/:id/seal/request`, `POST /communities/:id/seal`. Selo admin exige `responsible @ community` ativo, `sealNotes` e validade futura/default anual.
-- Checkout direcionado aceita somente Integrada ativa; Parceira é recusada antes do Stripe. `tesouro-geral` e CamposTech continuam aceitos. Proxy: somente `/communities/`.
-- `npm run sync:communities` usa `COMMUNITIES_API_URL` (default local) e rename atômico. O workflow `sync-community-snapshots.yml` roda no minuto 7 de cada hora + dispatch; o agregador `npm run sync` não inclui comunidades.
-- Não declarar Autônoma, split/payout, platform fee ou mantenedores como implementados.
-
-### 20. E1 — e-mails skipped, resend e summary
-
-- SMTP ausente grava `email_logs.status=skipped` e `error=SMTP_NOT_CONFIGURED`, sem contar como falha nem desfazer a operação principal. Só `sent`/`failed` deduplicam crons.
-- `GET /notifications/status`, `GET /notifications/emails` e `POST /notifications/emails/:id/resend` sustentam a operação. Resend exige SMTP e registration vinculada, atualiza o mesmo log e retorna 409 sem SMTP. Summary separa `sent`, `failed`, `skipped` por template. Logs expiram em 365 dias.
-
-### 21. R1 — CSV por range e G6 — retenção de auditoria
-
-- `GET /ledger/accounts/:id/transactions/export` é público no conjunto da conta; `GET /ledger/transactions/export` exige admin/finance-analyzer. `from`/`to` são compartilhados com a listagem, `to` inclui o dia inteiro e o CSV exporta todas as linhas do range, com BOM e escape de formula injection.
-- `auditCategory()` separa `governance` (permanente, sem IP) de `operational` (expira). `GET/PUT /settings/audit-retention` configura 7–365 dias; setting vence `AUDIT_OPERATIONAL_RETENTION_DAYS` (default 30). `POST /audit/cleanup`, cron e startup usam a mesma política e nunca apagam governo.
-
-### 22. Turnstile no guest claim (G3)
-
-- `TurnstileService` valida resposta Cloudflare com `fetch`, timeout de 5 s, hostname exato, ação `guest_claim` e cache SHA-256 de 5 min. O guard lê `turnstileToken` ou `cf-turnstile-token` e resolve o hostname do frontend por `Origin`, `Referer`, `X-Forwarded-Host` e então `req.hostname`, restringindo o resultado exato por `TURNSTILE_HOSTNAMES`. Os nomes SPIN `TURNSTILE_SECRET`/`TURNSTILE_HOSTNAMES` são canônicos; `TURNSTILE_SECRET_KEY`/`TURNSTILE_ALLOWED_HOSTNAMES` permanecem como fallback legado.
-- Desde a Fase 2, `POST /events/public/guest-claim` usa `TurnstileGuard`. Sem secret, desenvolvimento faz warn/no-op e aceita o token `development`; produção falha fechada. `TurnstileField` só renderiza com `PUBLIC_TURNSTILE_SITE_KEY`, mapeada no build a partir de `vars.TURNSTILE_SITE_KEY` (ou do alias público) e resetada após uma recusa para permitir retry com token novo.
-
-### 23. ECA — eventos 18+ informativos
-
-- Migration 031: `managed_events.adultOnly` boolean default false + `venueType` (`bar`, `restaurante`, `auditorio`, `campus`, `online`, `outro`). Managed events serializam ambos; overrides externos aceitam `adultOnly` boolean.
-- Bar/restaurante a partir das 18h apenas sugere 18+ no formulário; ação humana marca. Badge `+18` e aviso estático não bloqueiam inscrição, não coletam idade/documento e não removem página do sitemap. Mudança pós-publicação grava auditoria de governo com antes/depois.
-
-### 24. Fase 2 — horas e badges (ADR 013)
-
-- `backend/src/hours/` implementa `hour_ledger` separada da ledger financeira, aprovação/rejeição com audit, crédito exactly-once no check-in, extrato/summary e declarações sem prazo de validade. `event_checkin` e `directorate_activity` começaram na Fase 2; `extension_project` e `mentorship_session` foram adicionados pelas fases 4 e 5. Não há backfill nem horas retroativas de guests. Decisões completas: [ADR 013](docs/adrs/013-hour-ledger.md).
-- `profileVisibility.hours`, `memberSince` e `badge` controlam independentemente totais/timeline, ano e selo. `scripts/sync-member-badges.mjs` lê `GET /hours/public`, valida a resposta completa e escreve `static/badges/<handle>.svg` atomicamente; falhas preservam/restauram arquivos anteriores.
-- O workflow `sync-member-badges.yml` roda diariamente às **06:17 UTC** e por dispatch, e `copy-snapshots.mjs` copia os SVGs no build. **Gate de release:** depois do backend publicado, o sync inicial deve concluir com sucesso **antes da publicação do frontend**; não gerar SVGs de membros reais no branch de implementação. Release `v0.14.0-backend` publicada, sync inicial concluído no run `42098199373` e frontend publicado no run `42098283935`. Reconcile em produção concluído com `{inserted: 0, alreadyPresent: 3, orphanedActivations: 0}`; claim real em produção permanece como acompanhamento operacional.
-
-### 25. Fase 3 — assembleias e Discussion manual (ADR 014)
-
-- Migration 036 e backend 0.15.0 implementam o registro fino `assemblies`; pauta detalhada, quórum, votos, ata narrativa e comentários ficam no GitHub Discussions, nunca no PostgreSQL ou snapshot. `createdById` é somente trilha e não aparece nas projeções. Decisões completas: [ADR 014](docs/adrs/014-assemblies.md).
-- `(type,number)` é único e o slug `<type>-<number>` é imutável. A criação usa advisory lock por tipo + `MAX(number)+1` transacional. O PATCH lê com `pessimistic_write`, valida e salva na mesma transação, capturando before/after sob o lock. Somente `scheduled` vira `held`/`canceled`; `heldAt >= scheduledAt`; oficial realizada exige PDF HTTPS pela allowlist e cartório completo. Não há upload nem automação de Discussion/cartório.
-- APIs: `GET /assemblies/public`, `GET /assemblies/public/:slug`, `GET /assemblies` paginado (default 50/cap 100), `POST /assemblies` e `PATCH /assemblies/:id`. Criar/editar exige admin ou qualquer designation `director @ directorate` ativa, sem `targetId/targetKey IS NULL`; PDF/cartório exige admin; mutações gravam audit de governo. Null só é aceito no PATCH em `heldAt`, `ataPdfUrl` e `notaryRegistry`; PDF fora da allowlist retorna 400. Proxy: `/assemblies/`, com exceção estática para `/assemblies/index.json`, nunca `/admin/`.
-- `npm run sync:assemblies` usa `ASSEMBLIES_API_URL`, valida toda a coleção, a Discussion exata e o PDF HTTPS pela allowlist, e grava `static/assemblies/index.json` atomicamente; falha preserva o arquivo anterior. O loader repete essas validações. `notaryRegistry.registeredAt` é exibido em UTC; datas do evento continuam em `America/Sao_Paulo`. O workflow diário é 06:23 UTC + dispatch; o agregador `npm run sync` não inclui assembleias. Publicação segue backend/migration → sync inicial → build/frontend.
-- A Discussion é criada manualmente na categoria **Reuniões**, com título `/assembleias/<type>-<number>`, e a coordenação do próximo número deve ser serializada pelo operador. Giscus usa `pathname` e `PUBLIC_GISCUS_ASSEMBLIES_CATEGORY_ID` (Variable pública, ID `DIC_kwDOG9s0Ns4CxJVR` já configurado no repositório); sem ID local há somente link/fallback. O blog continua em `og:title`/Blog. Comentários e reações permanecem no GitHub e não seguem a retenção do backend.
-- **Integração:** PR #613, release `v0.15.0-backend`, redeploy, sync inicial (`42336485122`) e frontend (`42336580942`) concluídos. PR #615 corrigiu a hidratação do Giscus. **Pendência externa:** criar assembleia/Discussion reais e validar o pathname. A Fase 4 amplia `assemblies.entityId`, numeração/URL por entidade jurídica e redirect legado na migration 040, ainda não publicada.
-
-### 26. Fase 4 — entidades e projetos de extensão (ADR 008)
-
-- Migrations 037–040 e backend 0.16.0 implementam entidades, parcerias, projetos, participantes e comprovantes. `draft → proposed → active → finished/canceled`; ativação/cancelamento exige admin ou diretor criador; finalização aceita também o mentor principal com relatório. Mentor principal é `mentor @ extension_project`, sem coluna própria no projeto. Decisões completas: [ADR 008](docs/adrs/008-entities-extension-projects.md).
-- Inscrição e horas são transacionais; mentor lista participantes/horas e edita somente pendências; finance-analyzer aprova. Comprovante é idempotente, com horas congeladas e impressão nativa. Orçamento nunca usa `LedgerService`; `extension_project` usa somente `hour_ledger`.
-- APIs administrativas não usam `/admin/`: `/entities/`, `/partnerships/`, `/projects/` e `/project-certificates/`. `/projects/my` mostra vínculos do membro; `/projects/:id/participants` e `/projects/:id/hours` restringem escopo ao mentor/admin. IDs internos, notas, aprovações e idempotency keys não são públicos.
-- `directorates.communityId=NULL` significa global; `assemblies.entityId` determina lock/número por entidade/tipo e a rota `/assembleias/<entitySlug>/<type>-<number>`. `/assembleias/*` redireciona para Codaqui; snapshots antigos têm fallback Codaqui e respostas novas exigem `entity: {slug,name}`.
-- O E2E PostgreSQL validou down/up com 174 membros e 6 comunidades, concorrência de vagas/horas/comprovantes/assembleias e a jornada completa. Integração/release 0.16.0, redeploy, sync inicial e validação pública continuam pendentes.
-
-### 27. Adendo — certificação desacoplada e presença em lote
-
-- Migration 041 adiciona `certificateGrantedAt`, `certificateGrantedByMemberId` e `certificateInvitedAt`. O backfill converte `checkedInByMemberId::uuid`; certificado e verificação exigem concessão + `confirmed`, não mais presença. Check-in concede automaticamente; `POST /events/registrations/:id/certificate/grant` usa update condicional para preservar a primeira concessão.
-- `POST /events/:id/checkin/batch` e `/events/external/:eventKey/checkin/batch` processam até 100 tokens com resultado parcial. CSV aceita `checkin` e `certificate`; presença gera horas somente com membro/carga válida, concessão isolada não gera horas e reupload não recredita.
-- `checkin` e `certificates` são features externas independentes. `/admin/eventos-checkin` tem abas Escanear/Participantes/Certificados, filtros, seleção em lote e feedback parcial; `/admin/overrides` documenta as flags e o relatório com `checkedIn/certificatesGranted`. Para corrigir importações, `DELETE /events/external/:eventKey/participants/:registrationId` remove somente participantes sem pedido/presença, decrementa `quantitySold` na transação e libera reimportação (backend 0.16.1).
-- `POST /events/certificate-invites/batch` usa o template `certificate-pending-registration`, `email_logs` por destinatário e o guest claim existente. `certificateInvitedAt` exige `sent`; não há campanha nem open tracking. O cron anual anonimiza guests sem conta de eventos próprios **e ativações externas**.
-- E2E real em dump isolado validou down/up com 265 inscrições/66 presenças, CSV, batch, concessão, `sent/failed/skipped`, aceite e verificação. Desenho/plano: `docs/superpowers/specs/2026-11-09-checkin-certificate-decoupling-design.md` e `docs/superpowers/plans/2026-11-09-checkin-certificate-decoupling.md`.
-
-### 28. Fase 4b — Codaqui Universitário (ADR 015)
-
-- Migration 042 e backend 0.17.0 adicionam `cities`, `entities.cityId`, `managed_events.institutionId`, `member_designations.validUntil` e `applicationNotes`. IES continua sendo `entities.type='instituicao_ensino'`; embaixador é `ambassador @ ies`; gestor é `manager @ program('universitario')`. Não criar tabelas paralelas.
-- Um embaixador ativo por IES e uma candidatura pendente por membro/IES são únicos no banco. Gestor cadastra e avalia; somente admin confirma. Posse expirada não autoriza nem aparece no snapshot. Confirmação/rejeição chama `DesignationsService.invalidateCache()` para liberar imediatamente o primeiro evento.
-- `POST /events` com `institutionId` valida IES ativa e escopo no service; o atalho `/admin/eventos?institutionId=<uuid>` preserva a IES fora dos controles editáveis e no payload. Inscrição, check-in, certificado e horas continuam no fluxo existente.
-- APIs em `/universities/`; `/universities/index.json` é exceção estática exata do proxy. `/universities/manage` inclui cidades e IES inativas com `isActive`, `contactEmail`, `city`/`cityId` para edição, sem alterar a projeção pública. IES são criadas somente pelo fluxo universitário; o CRUD genérico de entidades não cria IES nem muda tipos de/para IES. `npm run sync:universities` usa `UNIVERSITIES_API_URL`, valida a coleção e grava `static/universities/index.json` atomicamente; o workflow diário é 06:26 UTC + dispatch e o agregador `npm run sync` não o inclui. Motivação, e-mail, candidaturas e IDs de atores nunca são públicos.
-- Páginas `/universitario` e `/admin/universitario`; fila usa `PaginationControls`. O admin mostra e reativa registros inativos; novas IES exigem cidade ativa, enquanto a edição preserva uma cidade histórica inativa sem permitir novos vínculos a ela. O E2E PostgreSQL validou gestor → IES → posse → evento → inscrição → check-in → certificado/horas exactly-once e as proteções do CRUD genérico/manage com fixtures sintéticas; migration down/up preservou 1 entity, 1 evento e 3 designations. Publicação exige backend/migration → sync inicial → frontend. Detalhes: [ADR 015](docs/adrs/015-codaqui-universitario.md).
-
-### 29. Fila assíncrona de convites de certificado (ADR 016)
-
-- Migration 043/backend 0.18.0 criam `certificate_invite_jobs` por inscrição com `batchId`. `POST /events/certificate-invites/batch` responde **202**; o progresso fica em `GET /events/certificate-invites/batches/:batchId`, somente admin/solicitante. Não duplicar nome, e-mail, token ou template na fila.
-- `CertificateInviteQueueService` processa um job a cada 10 segundos com `FOR UPDATE SKIP LOCKED`, recarrega ator e recupera `processing` >2 min. Um índice parcial impede duas filas ativas por inscrição. `certificateInvitedAt` continua exigindo `sent`; não há reprocessamento automático dos 90 erros antigos.
-- `EmailService` serializa todas as chamadas SMTP entre admins, fluxos e réplicas com advisory lock de sessão PostgreSQL em `QueryRunner` dedicado, além da cadeia estática local. SMTP fica fora de transações de negócio; `pg_advisory_unlock` e `release()` ocorrem em `finally`, e `EMAIL_SEND_INTERVAL_MS` vale antes do unlock (default 2000 ms em produção, 0 em testes). O lock não cria FIFO persistente nem deduplica fluxos genéricos; SMTP travado retém conexão e bloqueia a fila. Convites de certificado continuam deduplicados pelo índice ativo e `FOR UPDATE SKIP LOCKED`. Retry usa 1/5 minutos; terceira falha é definitiva; 421/454 pausa pendentes por 15 minutos. Não prometer exactly-once absoluto após falha ambígua de conexão.
-- Listagens próprias/externas aceitam `page`, `limit`, `search`, `certificateFilter`; envelope somente com página+limite, array legado sem eles. A Central usa 25 por página, seleção só da página atual, `<progress>` acessível e polling a cada 5 segundos somente com a aba visível, sem rajada na retomada.
-- Publicação exige backend/migration → frontend → lote pequeno controlado. E2E no dump preservou 28 `sent`/90 `failed` e validou 202, retry 421 e conclusão. Detalhes: [ADR 016](docs/adrs/016-certificate-invite-queue.md).
-
-### 30. Fase 5 — mentoria no sistema (ADR 009)
-
-- Migration 044/backend 0.19.0 criam perfil, disponibilidade semanal e sessões. `mentor @ program('mentoria')` é a autorização; admin confirma a designation e ativa o perfil, sem papel paralelo. Admin pode operar, mas horas pertencem ao mentor da sessão.
-- Reserva usa lock da regra, validação SQL de sobreposição e unique `(mentorId,scheduledAt)`; conflito retorna 409 sem e-mail. Fuso IANA vale para weekday, slot e instante persistido. Confirmação exige HTTPS; conclusão/no-show só após o horário; remarcação é cancelar e reservar novamente.
-- `completed` cria uma única entrada `mentorship_session` pendente com `hours=durationMin/60`; canceled/no_show não geram horas. Templates e SMTP são os existentes; falha de e-mail não desfaz transição. Apenas e-mail verificado vincula `menteeMemberId` e o cron anual anonimiza somente convidados sem membro.
-- APIs ficam em `/mentorship/`; o UUID público é o perfil, nunca o membro. `static/mentors/index.json` usa `sync:mentors` e workflow diário 06:21 UTC, sem PII/sessões individuais. Páginas: `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` e `/mentoria/sessao/<token>` (rewrite 200 no build estático).
-- E2E PostgreSQL validou reserva concorrente 201/409, ciclo, hora única, avaliação e migration down/up. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → sessão controlada. Detalhes: [ADR 009](docs/adrs/009-mentorship.md).
-- Migration 046/backend 0.22.0 importa 173 sessões históricas deduplicadas com `legacy-import:` sem horas, consentimentos ou Meet retroativos. Enderson usa e-mail verificado; cinco placeholders inativos `@anon.invalid` preservam perfis e sessões. `GET /mentorship/admin/mentors` pagina sem e-mails; `PATCH /mentorship/admin/mentors/:id` edita/ativa/desativa/reatribui em transação com auditoria antes/depois e roles derivadas. Placeholders não são candidaturas reais: a fila mostra somente membros ativos com nome, handle, avatar, áreas e foco.
-- Fase 7.2/backend 1.1.0 (migration 050) sincroniza `mentor_profiles.active` com `mentor @ program('mentoria')` ativo e vigente na mesma transação; recandidatura reutiliza o perfil/UUID com `grant(..., queryRunner?)`, e snapshot exige designation vigente em lote. `GET /mentorship/member-options` retorna somente dados públicos de até 10 membros; `POST /mentorship/sessions/:id/mentee` altera somente `menteeMemberId` por admin/mentor dono, preservando nome/e-mail/horas. Dashboard do mentor e admin compartilham data/fuso, status e Dialog de vínculo.
-
-### 31. Fase 6 — Business tiers (ADR 010)
-
-- Migration 045/backend 0.20.0 adicionam `tier`, critério, evidência, notas e validade. Empresas existentes ficam `amiga`; Aliada exige `active`, critério e evidência HTTPS validada pelo `StorageService` e admin. Validação/retorno para Amiga grava auditoria.
-- Amiga tem selo com apoio ativo; Aliada somente com validade vigente. Aliada vencida fica como renovação pendente, fora do badge e sem downgrade automático. Stripe, assinatura, ativação manual, wallet e congelamento não mudam.
-- APIs: `PATCH /companies/:id/tier` e `GET /companies/badges/public`. Sponsors usa allowlist e inclui `tier`, `sealValidUntil`, `sealActive`; responsável, evidência, notas e IDs Stripe nunca são públicos.
-- `/empresas` é a hotpage; `/admin/empresas` faz due diligence; `/membros/empresa` mostra preview e snippets. `sync:company-badges` grava `static/badges/empresas/<uuid>.svg` atomicamente, restaura em erro e usa workflow diário 06:19 UTC, fora do agregador `npm run sync`.
-- E2E real validou Amiga → Aliada → badge → expiração → renovação e migration down/up preservando empresa/wallet. Rollout: merge autorizado → release/redeploy → sync inicial → frontend → validação controlada. Detalhes: [ADR 010](docs/adrs/010-business-tiers.md).
-
-### 32. Announcements (ADR 017)
-
-- Migration 047/backend 0.26.0 criam `announcements`: texto simples 3–280 sem HTML/Markdown, severidade, link interno ou HTTPS com rótulo, janela e ativação lógica. Somente admin gerencia, inclusive no service; DELETE faz `active=false` com auditoria antes/depois.
-- APIs em `/announcements/`: CRUD admin paginado e projeção pública somente com campos públicos, sem autores/membros. `/announcements/index.json` é asset estático fora do proxy; o restante do prefixo encaminha API.
-- `npm run sync:announcements` valida a coleção completa e grava `static/announcements/index.json` com temp + rename, preservando em erro e evitando escrita inalterada. Workflow diário 06:31 UTC + dispatch, fora do agregador `npm run sync`.
-- `BaseLayout` inclui uma ilha que lê o snapshot em runtime: região nomeada, artigos com severidade textual, texto escapado e links seguros. Vazio/erro não reserva espaço; tokens `--cq-*` nos dois temas. `/admin/announcements` usa Dialog com prévia, validação e confirmação.
-- Publicação exige backend/migration → sync inicial → frontend → aviso real com link para issues. Detalhes: [ADR 017](docs/adrs/017-announcements.md).
-
-### 33. Fase 7 — C4P integrado (ADR 012)
-
-- Migrations 049/backend 1.0.0 criam `c4p_calls`, `c4p_talks`, `c4p_votes` + índice único parcial `UQ_member_designations_c4p_evaluator` (1 avaliador active por campanha/membro — a unicidade NÃO existia na 026). Avaliador é designation `evaluator` @ `c4p_campaign` (`pending` no convite → `active` no aceite), sem tabela própria.
-- **Finalizar/reabrir campanha é somente `admin`** (rbac.md venceu o anexo c4p.md); gestão é `admin`/`event_organizer`/`diretor` + `responsible` @ community dona. Slug de campanha é imutável e reserva `public|manage|evaluator|avaliar` (colisão com rotas/proxy).
-- Submissão pública: `POST /c4p/public/calls/:slug/submissions` com `@TurnstileAction('c4p_submission')` (guard generalizado via decorator, default `guest_claim`) + throttle 5/min + `consent: true` obrigatório. Notas/comentários **nunca** públicos — snapshot, resultado e PDF expõem só `{title, speakerName, track, level}` das selecionadas.
-- Critérios configuráveis por campanha (1–10, pesos positivos); scoring `Σ(score×peso)/Σ(pesos)` só dos critérios votados; critérios congelam com o primeiro voto. Importação CSV do Google Forms é parseada no backend (`common/csv-tokenizer` + `c4p/csv.ts`); e-mails de resultado são fire-and-forget.
-- Snapshot `static/c4p/index.json` via `npm run sync:c4p` (workflow `sync-c4p.yml`, 33 * * * *) + exceção exata `/c4p/index.json` no proxy; páginas públicas geradas do snapshot, área do avaliador e gestão usam query params (`/c4p/avaliar/votar?call=`, `/admin/c4p/detalhe?id=`). Detalhes: [ADR 012](docs/adrs/012-c4p.md).
-
-### 34. Fase 9 — painéis e autosserviço de privacidade (ADR 019)
-
-- `/membro` mantém somente quatro tabs principais (Início, Participação, Apoio e financeiro, Conta e privacidade); filtros internos usam `FilterChipGroup` com `aria-pressed`, sem sub-abas. `tab=reimbursements` é canônico e `wallet` é alias legado; eventos usa `tab=events&event=future|purchased|history`.
-- Sidebar admin usa seis grupos: Início, Comunidades e eventos, Pessoas e aprendizado, Apoio e financeiro, Governança e transparência, Sistema. Não há contadores nem novas regras de role/designation.
-- Migration 051/backend 1.2.0 criam `account_deletion_requests` com unique parcial de uma pendência por membro. Solicitar/cancelar/concluir não altera `members`; exclusão é revisada pela diretoria, nunca imediata.
-- `GET /members/me/export` gera JSON síncrono do titular (schema 1), 3/hora, sem tokens/segredos/terceiros. Pedidos do membro ficam em `/members/me/deletion-request*`; fila admin em `/admin/members/deletion-requests*` dentro de `/admin`, paginada e auditada. Detalhes: [ADR 019](docs/adrs/019-privacy-self-service.md).
-- Release `v1.2.0-backend`/migration 051 e PR #654 estão publicadas; evidência de revisão jurídica/da diretoria não foi localizada na consolidação de 2026-11-17 e não deve ser presumida. Não há sync. Próximos passos dinâmicos, contadores e dashboard de pendências ficaram fora e dependem de backend/agregações novas: [roadmap proposto 1.5](docs/plans/codaqui-1-5/README.md), não aprovado.
-
----
-
-## Common Anti-Patterns
-
-| ❌ Don't | ✅ Do |
-|----------|-------|
-| `<Grid item xs={12}>` ou system props MUI (`bgcolor=`, `p=`) | MUI v9: `size={{ xs: 12 }}` no Grid; `slotProps` para slots; `sx` para estilo — nada de system props nas props do componente |
-| Hex solto em componentes (`#57B593`) | Tokens `--cq-*` (Tailwind) / tema Mui espelhado (`src/lib/mui-theme.ts`) — zero hex fora de `tokens.css` |
-| Editar `frontend/src/content/blog` ou `trilhas` | Editar `blog/` e `trilhas/` na raiz (copiados por `copy-content.mjs`) |
-| Editar conteúdo em `frontend/src-tenants/<slug>/` | Editar `comunidades/<slug>/` (READ-WRITE) — `src-tenants` lê por symlink |
-| `fetch(API_URL …)` / `API_URL` cru em ilha | `resolveApiUrl(import.meta.env.SITE)` + `authFetch` do `useAuth` |
-| Alargar a allow-list do proxy com prefixo largo (`/admin/`) | Prefixo **estreito** com trailing slash (`/admin/members/`); checar colisão com rotas estáticas antes (lição I-1) |
-| Criar página-sombra de redirect | Regra no `build-tenant-redirects.mjs` → `dist/_redirects` |
-| Regenerar `url-reference.json` sem justificativa | Referência congelada do cutover; gate `diff-urls` deve continuar verde |
-| Usar `astro check` como gate de build tenant | R7: tenant = build + `tenant-urls`; codaqui completo em `make astro-verify` |
-| `TENANT=codaqui` em build/script | Build codaqui = **sem** `TENANT` (env vazia) |
-| Cadastrar tenant só no workflow (ou só em `tenants.config.mjs`) | Os dois **juntos**: `tenants.config.mjs` + matrix em `deploy-astro.yml`/`pr-check.yml` |
-| `referenceId: \`prefix:${entity.id}\`` antes do `repo.save()` | Factory `persistWithLedger(repo, e, (s) => ({ referenceId: \`prefix:${s.id}\` }))` |
-| `import * from '@mui/material'` | Named imports: `import { Card, Grid } from '@mui/material'` |
-| Hardcode Discord/WhatsApp URLs | Import from `src/data/social.ts` |
-| Inline team arrays ou registros de comunidade em páginas | Team em `src/data/team.ts`; registro de comunidades no PostgreSQL + snapshot (`sync:communities`) |
-| `slug: meu-post` (blog) | `slug: 2024/07/22/meu-post` (preserves Google URLs) |
-| Use "alunos", "escola", "curso" | Use "participantes", "Associação", "programa" |
-| Nova listagem paginada hardcodando limit/page | `src/lib/pagination.ts` (constantes + `PaginatedResponse`) + `PaginationControls` (islands/ui) + DTO backend com envelope `{data,total,page,totalPages,limit}` (decisão 12) |
-| Validar host/URL com `startsWith("https://api.github.com")` | `isAllowedHost` (`src/lib/analytics.ts`) — parsing real (`new URL`), protocolo `https:` + hostname exato (CodeQL js/incomplete-url-substring-sanitization) |
-| Notas/avisos em HTML cru nas trilhas e blog | Admonitions `:::info[Título]` … `:::` (`src/lib/remark-admonitions.ts`, decisão 13) |
-
----
-
-## Git Workflow & Deployment
-
-### Branches
-
-| Branch | Deploys to | URL |
-|--------|-----------|-----|
-| `main` | Produção — 4 projetos Cloudflare Pages (`codaqui`, `tisocial`, `elasnocodigo`, `devparana`) | https://codaqui.dev (+ domínios dos tenants) |
-| `develop` | Branch deployment no Cloudflare Pages (preview `*.pages.dev`) | homologação |
-
-### CI/CD (`.github/workflows/` — 15 workflows)
-
-| Workflow | Quando | O que faz |
-|----------|--------|-----------|
-| `deploy-astro.yml` | push em `main`/`develop` + dispatch | Build matrix (codaqui + 3 tenants) + gate `tenant-urls` + direct upload Wrangler p/ cada projeto Pages |
-| `pr-check.yml` | PR → `develop`/`main` | Backend (build + jest coverage), Trivy (frontend + backend), builds Astro dos 4 projetos, `astro check` + vitest do codaqui |
-| `publish-backend.yml` | manual | Build + push da imagem Docker multi-arch (amd64 + arm64/v8) p/ GHCR + release `v<versão>-backend` (usa `version` do `backend/package.json`); redeploy em produção manual no Coolify |
-| `sync-event-snapshots.yml` | horário (`0 * * * *`) + dispatch | Regera `static/events/` e commita |
-| `sync-community-snapshots.yml` | horário (`7 * * * *`) + dispatch | Lê `/communities/public`, regera `static/communities/index.json` e commita somente se mudou |
-| `sync-assemblies.yml` | diário 06:23 UTC (`23 6 * * *`) + dispatch | Lê `/assemblies/public`, regera `static/assemblies/index.json` e commita somente se mudou |
-| `sync-announcements.yml` | diário 06:31 UTC (`31 6 * * *`) + dispatch | Lê `/announcements/public`, regera `static/announcements/index.json` e commita somente se mudou; sync inicial após backend/migration 047 e antes do frontend |
-| `sync-projects.yml` | diário 06:29 UTC (`29 6 * * *`) + dispatch | Lê `/projects/public`, regera `static/projects/index.json` e commita somente se mudou; sync inicial após backend/migrations e antes do frontend |
-| `sync-universities.yml` | diário 06:26 UTC (`26 6 * * *`) + dispatch | Lê `/universities/public`, regera `static/universities/index.json` e commita somente se mudou; sync inicial após backend/migration 042 e antes do frontend |
-| `sync-mentors.yml` | diário 06:21 UTC (`21 6 * * *`) + dispatch | Lê `/mentorship/public`, regera `static/mentors/index.json` sem PII e commita somente se mudou; sync inicial após backend/migration 044 e antes do frontend |
-| `sync-company-badges.yml` | diário 06:19 UTC (`19 6 * * *`) + dispatch | Lê `/companies/badges/public`, regera `static/badges/empresas/` sem evidência e commita somente se mudou; sync inicial após backend/migration 045 e antes do frontend |
-| `sync-social-stats.yml` | diário 06:00 + dispatch | Regera `static/social-stats/` |
-| `sync-analytics.yml` | diário 06:30 + dispatch | Regera `static/analytics/` |
-| `sync-member-badges.yml` | diário 06:17 UTC (`17 6 * * *`) + dispatch | Lê `/hours/public`, sincroniza `static/badges/` e commita somente se mudou; sync inicial é gate antes do frontend |
-| `sync-c4p.yml` | horário (`33 * * * *`) + dispatch | Lê `/c4p/public/snapshot`, regera `static/c4p/index.json` e commita somente se mudou; sync inicial após backend/migration 049 e antes do frontend |
-
-### Commit Convention
-
-```
-feat(fase-0.x): descreve a mudança
-fix(fase-0.x): corrige o bug
-docs(fase-0.x): atualiza documentação
-```
-
-(escopo opcional; semver de backend via `version` em `backend/package.json`)
-
-### Contribution Flow
-
-1. Create branch from `develop`: `feat/nome` or `fix/nome`
-2. Rode os gates (`make astro-verify` + `make astro-verify-tenants`; backend se aplicável)
-3. Open PR targeting `develop` → `pr-check.yml` valida
-4. Review → merge → branch deployment de homologação
-5. Após validação, merge `develop` → `main` → produção
-
----
-
-## PR Checklist
-
-Antes de submeter:
-
-- [ ] `make astro-verify` passa (build codaqui completo + paridade de URLs)
-- [ ] `make astro-verify-tenants` passa (se tocou em `tenants.config.mjs`, layouts, lib compartilhada ou conteúdo de comunidade)
-- [ ] `cd backend && npm run build && npx jest --silent` (se mexeu em `backend/`); em toda release, alinhar `version` e lockfiles de frontend/backend e atualizar `CHANGELOG.md`
-- [ ] `npm run test:scripts` (se mexeu em `scripts/*.mjs`)
-- [ ] Listagens novas seguem o padrão de paginação (`pagination.ts` + `PaginationControls` + DTO backend — decisão 12)
-- [ ] Blog posts novos usam `slug: YYYY/MM/DD/nome` no frontmatter
-- [ ] Mudanças em conteúdo canônico foram feitas em `blog/`/`trilhas/` (não nas cópias em `frontend/src/content/`)
-- [ ] Data changes em `frontend/src/data/*.ts`, não inline em páginas
-- [ ] Social URLs importados de `frontend/src/data/social.ts`
-- [ ] Zero hex solto — tokens `--cq-*` / tema MUI
-- [ ] MUI v9: `slotProps` + `sx` (sem system props); Grid com `size={{ xs, sm, md }}`
-- [ ] Redirect novo de URL legada vai no `build-tenant-redirects.mjs` (não em página-sombra)
-- [ ] Imagens otimizadas (máx ~500KB; SVG para logos, JPG/PNG para fotos)
-- [ ] Links externos com `target="_blank" rel="noopener noreferrer"`
-- [ ] Avatares/imagens com `alt`
-- [ ] IconButtons com `aria-label`
-- [ ] Hierarquia de headings correta (h1 → h2 → h3, sem pular)
-- [ ] Linguagem inclusiva: "participantes", "programa", "encontros", "Associação"
-- [ ] Nenhum segredo commitado (templates vivem em `.env.example`)
-- [ ] Tenant novo: `tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md)
-
----
-
-## File Naming Conventions
-
-| Type | Pattern | Example |
-|------|---------|---------|
-| Blog post | `blog/YYYY-MM-DD-slug.md` | `blog/2024-07-22-welcome.md` |
-| Blog image | `blog/img/YYYY-MM-DD-slug/` | `blog/img/2024-07-22-welcome/hero.png` |
-| Página Astro | `frontend/src/pages/nome.astro` ou `frontend/src/pages/<dir>/[...slug].astro` | `frontend/src/pages/sobre/equipe.astro` |
-| Layout Astro | `frontend/src/layouts/NomeLayout.astro` | `frontend/src/layouts/PublicLayout.astro` |
-| Componente de servidor | `frontend/src/components/astro/Nome.astro` | `frontend/src/components/astro/EventCard.astro` |
-| Ilha React | `frontend/src/components/islands/NomeIsland.tsx` | `frontend/src/components/islands/ThemeToggle.tsx` |
-| Lib (lógica pura) | `frontend/src/lib/nome.ts` (+ `nome.test.ts`) | `frontend/src/lib/event-path.ts` |
-| Data file | `frontend/src/data/nome.ts` | `frontend/src/data/team.ts` |
-| Script de build/sync | `frontend/scripts/nome.mjs` / `scripts/nome.mjs` | `frontend/scripts/copy-content.mjs` |
-| Static asset | `static/img/description.ext` | `static/img/og-codaqui.jpg` |
-
----
-
-## About Codaqui
-
-Codaqui is a **Brazilian non-profit association** (not a school or company) that democratizes technology education for youth. It serves as an umbrella for partner tech communities.
-
-- **Branding**: "Associação Codaqui" — never "escola" or "empresa"
-- **Language**: "participantes" (not "alunos"), "programa" (not "curso"), "encontros" (not "aulas")
-- **Values**: Transparency, inclusion, collaboration, collective growth
-- **License**: Creative Commons Attribution-ShareAlike
-- **Contact**: contato@codaqui.dev
-- **Communities**: DevParaná, Elas no Código, CamposTech, T.I. Social, Cloud Native Maringá
-
-### Social
-
-| Platform | Handle |
-|----------|--------|
-| GitHub | [@codaqui](https://github.com/codaqui) |
-| Discord | [Server](https://discord.com/invite/xuTtxqCPpz) |
-| WhatsApp | [Group](https://chat.whatsapp.com/IvzONDeglw55ySBD71F4Up) |
-| Instagram | [@codaqui.dev](https://instagram.com/codaqui.dev) |
-| LinkedIn | [codaqui](https://www.linkedin.com/company/codaqui) |
-| Twitter/X | [@codaquidev](https://twitter.com/codaquidev) |
-| YouTube | [@codaqui](https://youtube.com/@codaqui) |
-
----
-
-## Regular Maintenance
-
-| What | When | Where |
-|------|------|-------|
-| Team changes | As needed | `frontend/src/data/team.ts` |
-| New community partners | As needed | API `/communities` + responsible por designation + `npm run sync:communities`; social stats em `scripts/sync-social-stats.mjs` + `social-stats.config.json` |
-| Community registry changes | As needed | Admin/API → `npm run sync:communities` → novo build; não editar o snapshot |
-| Assembly Discussions e documentos | As needed, operação manual | Categoria Reuniões + título igual ao pathname; cadastro em `/admin/assembleias`; narrativa no GitHub; PDF/cartório por admin → `npm run sync:assemblies` → novo build |
-| Timeline events | Annually | `frontend/src/data/timeline.ts` |
-| Social links (WhatsApp expires) | When links change | `frontend/src/data/social.ts` (canônico — também lido pelo `sync-social-stats.mjs`) |
-| Manual follower counts (YouTube/Instagram) | When updated | `frontend/src/data/social.ts` + `frontend/src/data/communities.ts` (`baselineCount`) |
-| Event sources/fallbacks | As needed | `events.config.json` |
-| Event snapshots sync | Automatic (hourly workflow) | `static/events/` via `sync-event-snapshots.yml` |
-| Community snapshots sync | Automatic (hourly, minute 7) | `static/communities/` via `sync-community-snapshots.yml` |
-| Assembly snapshots sync | Automatic (06:23 UTC daily) + dispatch | `scripts/sync-assemblies.mjs` → `static/assemblies/` via `sync-assemblies.yml` |
-| Announcement snapshots sync | Automatic (06:31 UTC daily) + dispatch; sync inicial após backend/migration 047 | `scripts/sync-announcements.mjs` → `static/announcements/` via `sync-announcements.yml`; backend publicado primeiro |
-| Social stats sync (Discord/Meetup/GitHub) | Automatic (06:00 daily) | `static/social-stats/` via `sync-social-stats.yml` |
-| Analytics sync | Automatic (06:30 daily) | `static/analytics/` via `sync-analytics.yml` |
-| Member badges sync | Automatic (06:17 UTC daily) + dispatch; sync inicial obrigatório antes do frontend | `scripts/sync-member-badges.mjs` → `static/badges/` via `sync-member-badges.yml`; backend publicado primeiro, sem SVGs reais no branch |
-| C4P snapshots sync | Automatic (hourly, minute 33) + dispatch; sync inicial após backend/migration 049 | `scripts/sync-c4p.mjs` → `static/c4p/` via `sync-c4p.yml`; backend publicado primeiro |
-| New tenant onboarding | As needed | `frontend/tenants.config.mjs` + matrix dos workflows + runbook do [DEVELOPMENT.md](./DEVELOPMENT.md) |
-| Dependencies | Quarterly | `frontend/package.json` → `npm update` |
-
----
-
-## Multi-tenant communities
-
-Os sites whitelabel das comunidades parceiras são servidos por **build matrix no Cloudflare Pages** (Fase 0.5): um projeto Pages por tenant — fonte única em `frontend/tenants.config.mjs` (`tisocial`, `elasnocodigo`, `devparana`) — com rotas limpas em `/` via `TENANT=<slug>` trocando o `srcDir` do app Astro em build-time, e proxy de API/login via **Pages Function** (`frontend/functions/[[path]].ts`).
-
-> Operação, gates (R7), runbook de DNS/secrets e gaps conhecidos (`*.pages.dev`, symlinks no Windows): [DEVELOPMENT.md](./DEVELOPMENT.md) → "Multi-tenant (Fase 0.5)". Onde vive cada peça de conteúdo, checklist para nova comunidade e anti-patterns: [docs/modules/community/COMMUNITY_SITES.md](docs/modules/community/COMMUNITY_SITES.md).
-
----
-
-## Insights & Social Stats
-
-A página `/sobre/insights` agrega quatro módulos: **live stats bar**, **presença digital**, **comunidades parceiras** e a **linha do tempo** (timeline).
-
-> Detalhes completos — fontes de dados, schema do snapshot, atualização manual e workflow de sync — estão em [docs/modules/insights/SOCIAL_STATS.md](docs/modules/insights/SOCIAL_STATS.md).
-
----
-
-## References
-
-- [Astro docs](https://docs.astro.build/)
-- [MUI v9 Components](https://mui.com/material-ui/all-components/)
-- [Tailwind CSS v4](https://tailwindcss.com/docs)
-- [Cloudflare Pages](https://developers.cloudflare.com/pages/) · [Pages Functions](https://developers.cloudflare.com/pages/functions/)
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)
-- [Giscus](https://giscus.app/)
-- [GitHub Discussions](https://github.com/codaqui/institucional/discussions)
+Use `make help` e [DEVELOPMENT.md](DEVELOPMENT.md) para dev server, infra, migrations, syncs individuais e deploy. `astro check` é gate do build codaqui, não dos builds tenant (regra R7).
+
+## 4. Regras críticas
+
+1. **Conteúdo:** edite `blog/` e `trilhas/` na raiz, nunca as cópias em `frontend/src/content/`; edite comunidades em `comunidades/`, nunca nos symlinks de `src-tenants/`.
+2. **Tenants:** `frontend/tenants.config.mjs` e os matrices de `deploy-astro.yml`/`pr-check.yml` devem mudar juntos. Build codaqui não define `TENANT`; nunca use `TENANT=codaqui`.
+3. **Proxy:** mantenha a allow-list de `frontend/src/lib/api-proxy-paths.ts` estreita e cheque colisões com páginas estáticas. Nunca use o prefixo amplo `/admin/`.
+4. **API no cliente:** use `resolveApiUrl(import.meta.env.SITE)` e `authFetch`; não consuma `API_URL` cru.
+5. **Design:** cores vêm de `frontend/src/styles/tokens.css` ou do tema MUI; zero hex solto. MUI v9 usa `slotProps`, `sx` e Grid com `size`.
+6. **Listagens:** use `src/lib/pagination.ts`, `PaginationControls` e o envelope/DTO paginado do backend.
+7. **Financeiro:** todo movimento passa pelo ledger de dupla partida. Preserve `referenceId` único e use a factory de `persistWithLedger` para IDs gerados no save.
+8. **URLs:** não mude slugs de posts publicados; redirects legados pertencem a `build-tenant-redirects.mjs`; não regenere `url-reference.json`.
+9. **Rotas de app:** `/admin/*`, `/auth/*` e demais rotas privadas permanecem `noindex` e fora do sitemap.
+10. **Segredos e dados:** não commite segredos, não exponha PII em snapshots e valide hosts por `new URL`, protocolo HTTPS e hostname exato.
+11. **Acessibilidade e linguagem:** use hierarquia correta de headings, `alt`, `aria-label`, “participantes”, “programa”, “encontros” e “Associação”.
+12. **Escopo:** não trate planos, visões ou pendências como funcionalidades publicadas; consulte ADR/changelog antes de afirmar o estado atual.
+
+O detalhamento, exemplos e anti-patterns estão no [guia operacional](docs/modules/MONOREPO_OPERATIONS.md).
+
+## 5. Guia por assunto
+
+| Assunto | Documentação principal |
+|---|---|
+| Frontend Astro, tokens, build matrix e proxy | [ADR 011](docs/adrs/011-frontend-astro-multi-tenant-pages.md) · [guia operacional](docs/modules/MONOREPO_OPERATIONS.md) |
+| Setup e operação multi-tenant | [DEVELOPMENT.md](DEVELOPMENT.md) · [sites de comunidades](docs/modules/community/COMMUNITY_SITES.md) |
+| Eventos, inscrições, check-in e certificados | [Manual de eventos](docs/modules/events/CODE_MANUAL.md) · [ADR 001](docs/adrs/001-event-platform.md) |
+| Papéis e permissões | [Mapa de papéis](docs/modules/events/ROLES.md) |
+| Diretorias e designations | [ADR 006](docs/adrs/006-directorates-designations.md) |
+| Registro e selo de comunidades | [ADR 007](docs/adrs/007-community-registry.md) |
+| Entidades e projetos de extensão | [ADR 008](docs/adrs/008-entities-extension-projects.md) |
+| Horas, guests e badges | [ADR 013](docs/adrs/013-hour-ledger.md) |
+| Assembleias | [ADR 014](docs/adrs/014-assemblies.md) |
+| Codaqui Universitário | [ADR 015](docs/adrs/015-codaqui-universitario.md) |
+| Mentoria | [ADR 009](docs/adrs/009-mentorship.md) |
+| Clube PF/PJ e Business tiers | [ADR 002](docs/adrs/002-club-sortcoins.md) · [ADR 003](docs/adrs/003-club-business-pj.md) · [ADR 010](docs/adrs/010-business-tiers.md) |
+| Convites de certificado | [ADR 016](docs/adrs/016-certificate-invite-queue.md) |
+| Announcements e campanhas de e-mail | [ADR 017](docs/adrs/017-announcements.md) · [ADR 018](docs/adrs/018-email-campaigns.md) |
+| C4P | [ADR 012](docs/adrs/012-c4p.md) |
+| Privacidade e exclusão de conta | [ADR 019](docs/adrs/019-privacy-self-service.md) · [privacidade](docs/modules/privacy/README.md) |
+| Insights e estatísticas | [SOCIAL_STATS.md](docs/modules/insights/SOCIAL_STATS.md) |
+
+## 6. Fluxo de trabalho e releases
+
+1. Crie `feat/nome` ou `fix/nome` a partir de `develop`.
+2. Rode os gates das camadas alteradas e abra PR para `develop`.
+3. Homologue no branch deployment do Pages; somente depois promova `develop` para `main`.
+4. Use `feat(escopo): ...`, `fix(escopo): ...` ou `docs(escopo): ...`.
+
+Toda release mantém `frontend/package.json`, `backend/package.json` e seus lockfiles na mesma versão de produto e adiciona entrada ao [CHANGELOG.md](CHANGELOG.md): feature → minor, correção → patch. `publish-backend.yml` usa a versão do backend para imagem e release; sem bump, uma publicação sobrescreve a anterior.
+
+Antes de concluir, revise o checklist completo no [guia operacional](docs/modules/MONOREPO_OPERATIONS.md#8-checklist-de-pr) e o `git status` para não entregar artefatos de build ou dados temporários.

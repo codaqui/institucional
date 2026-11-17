@@ -3,6 +3,8 @@ import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { StripeController } from './stripe.controller';
 import { StripeService } from './stripe.service';
 import { CommunitiesService } from '../communities/communities.service';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 
 const uuid = (n: number) =>
   `${String(n).padStart(8, '0')}-0000-0000-0000-000000000000`;
@@ -11,6 +13,7 @@ describe('StripeController', () => {
   let controller: StripeController;
   let service: Record<string, jest.Mock>;
   let communities: { findActiveForDonations: jest.Mock };
+  let audit: { log: jest.Mock };
 
   beforeEach(async () => {
     service = {
@@ -21,7 +24,9 @@ describe('StripeController', () => {
       getBusinessMembers: jest.fn(),
       getMySubscriptions: jest.fn(),
       cancelSubscription: jest.fn(),
+      reconcileFee: jest.fn(),
     };
+    audit = { log: jest.fn().mockResolvedValue(undefined) };
     communities = {
       findActiveForDonations: jest.fn().mockResolvedValue({
         slug: 'devparana',
@@ -35,6 +40,7 @@ describe('StripeController', () => {
       providers: [
         { provide: StripeService, useValue: service },
         { provide: CommunitiesService, useValue: communities },
+        { provide: AuditService, useValue: audit },
       ],
     }).compile();
 
@@ -270,6 +276,55 @@ describe('StripeController', () => {
       expect(service.createCheckoutSession).toHaveBeenCalledWith(
         expect.objectContaining({ memberId: uuid(5), githubHandle: 'donor' }),
       );
+    });
+  });
+
+  describe('reconcileFee', () => {
+    const reconciliation = {
+      status: 'created',
+      paymentIntentId: 'pi_reconcile',
+      chargeId: 'ch_reconcile',
+      balanceTransactionId: 'txn_reconcile',
+      feeReferenceId: 'stripe-fee:txn_reconcile',
+      feeCents: 837,
+      transactionId: uuid(99),
+    };
+
+    it('reconciles and audits a newly created fee', async () => {
+      service.reconcileFee.mockResolvedValue(reconciliation);
+
+      const result = await controller.reconcileFee(authedReq, {
+        paymentIntentId: 'pi_reconcile',
+      });
+
+      expect(result).toEqual(reconciliation);
+      expect(service.reconcileFee).toHaveBeenCalledWith('pi_reconcile');
+      expect(audit.log).toHaveBeenCalledWith({
+        action: AuditAction.STRIPE_FEE_RECONCILED,
+        actorId: uuid(5),
+        actorHandle: 'donor',
+        targetId: uuid(99),
+        targetType: 'transaction',
+        details: {
+          paymentIntentId: 'pi_reconcile',
+          chargeId: 'ch_reconcile',
+          balanceTransactionId: 'txn_reconcile',
+          feeCents: 837,
+        },
+      });
+    });
+
+    it('does not audit an existing fee as a new reconciliation', async () => {
+      service.reconcileFee.mockResolvedValue({
+        ...reconciliation,
+        status: 'already_exists',
+      });
+
+      await controller.reconcileFee(authedReq, {
+        paymentIntentId: 'pi_reconcile',
+      });
+
+      expect(audit.log).not.toHaveBeenCalled();
     });
   });
 

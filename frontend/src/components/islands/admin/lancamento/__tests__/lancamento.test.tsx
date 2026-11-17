@@ -173,7 +173,9 @@ describe("/admin/lancamento", () => {
     mockAdminAccess();
     await renderAndWaitForInitialRequests();
 
-    fireEvent.click(screen.getByRole("button", { name: /Revisar lançamento/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /Revisar lançamento/i }),
+    );
 
     expect(
       await screen.findByText(/Preencha os campos obrigatórios/i),
@@ -185,8 +187,18 @@ describe("/admin/lancamento", () => {
       async (url: string, options?: RequestInit) => {
         if (url.endsWith("/ledger/accounts") && !options) {
           return jsonResponse([
-            { id: "a-1", name: "Conta A", type: "INTERNAL", projectKey: "tesouro" },
-            { id: "a-2", name: "Conta B", type: "INTERNAL", projectKey: "devparana" },
+            {
+              id: "a-1",
+              name: "Conta A",
+              type: "INTERNAL",
+              projectKey: "tesouro",
+            },
+            {
+              id: "a-2",
+              name: "Conta B",
+              type: "INTERNAL",
+              projectKey: "devparana",
+            },
           ]);
         }
         if (url.endsWith("/account-transfers") && !options) {
@@ -270,9 +282,7 @@ describe("/admin/lancamento", () => {
       screen.getByRole("tab", { name: /Transferências \(1 pendente\)/i }),
     );
     fireEvent.click(screen.getByRole("button", { name: /Aprovar/i }));
-    fireEvent.click(
-      await screen.findByRole("button", { name: /^Aprovar$/i }),
-    );
+    fireEvent.click(await screen.findByRole("button", { name: /^Aprovar$/i }));
 
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(
@@ -280,5 +290,42 @@ describe("/admin/lancamento", () => {
         expect.objectContaining({ method: "PATCH" }),
       );
     });
+  });
+
+  it("opens Stripe reconciliation for admin through the tab query param", async () => {
+    window.history.pushState({}, "", "/admin/lancamento?tab=stripe");
+    mockEmptyData();
+    mockAdminAccess();
+
+    renderWithMui(<LancamentoApp />);
+
+    expect(
+      await screen.findByRole("tab", { name: "Taxas Stripe", selected: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/PaymentIntent/i)).toBeInTheDocument();
+  });
+
+  it("does not expose Stripe reconciliation to finance-analyzer", async () => {
+    mockEmptyData();
+    authState.user = {
+      sub: "finance-1",
+      githubId: "github-1",
+      handle: "finance",
+      name: "Finance",
+      avatarUrl: "",
+      roles: ["membro", "finance-analyzer"],
+    };
+    authState.ready = true;
+    authState.isLoggedIn = true;
+    authState.isFinanceAnalyzer = true;
+
+    renderWithMui(<LancamentoApp />);
+    await waitFor(() => {
+      expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+    });
+
+    expect(
+      screen.queryByRole("tab", { name: "Taxas Stripe" }),
+    ).not.toBeInTheDocument();
   });
 });

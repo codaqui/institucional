@@ -53,6 +53,7 @@ Esta pasta centraliza a documentação técnica do monorepo. A organização seg
 
 | Módulo | Documentos |
 |--------|-----------|
+| Monorepo e contribuição | [Guia operacional](modules/MONOREPO_OPERATIONS.md) · [Ponto de entrada para agentes](../AGENTS.md) |
 | Eventos, horas e guests | [Manual do Código](modules/events/CODE_MANUAL.md) · [Mapa de Papéis](modules/events/ROLES.md) · [ADR 013](adrs/013-hour-ledger.md) |
 | Comunidades | [Registro, snapshot e sites whitelabel](modules/community/COMMUNITY_SITES.md) · [Mapa de papéis](modules/events/ROLES.md) |
 | Diretorias e designations | [ADR 006](adrs/006-directorates-designations.md) · [Mapa de papéis](modules/events/ROLES.md) |

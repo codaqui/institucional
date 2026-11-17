@@ -19,12 +19,14 @@ import PageContainer from "../ui/PageContainer";
 import TabPanel from "../ui/TabPanel";
 import DirectExpenseForm from "./DirectExpenseForm";
 import TransfersPanel from "./TransfersPanel";
+import StripeFeeReconciliationPanel from "./StripeFeeReconciliationPanel";
 import { useAuth } from "../../../../lib/use-auth";
 import { parseAuthJson } from "../../../../lib/auth-fetch-helpers";
 import type { Account, TransferRequest } from "./types";
 
 function LancamentoInner(): React.JSX.Element | null {
-  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } = useAuth();
+  const { ready, isLoggedIn, isAdmin, isFinanceAnalyzer, authFetch } =
+    useAuth();
 
   const canAccess = isAdmin || isFinanceAnalyzer;
 
@@ -48,7 +50,10 @@ function LancamentoInner(): React.JSX.Element | null {
         authFetch("/account-transfers"),
       ]);
 
-      const accountsData = await parseAuthJson<Account[]>(accountsRes, setError);
+      const accountsData = await parseAuthJson<Account[]>(
+        accountsRes,
+        setError,
+      );
       const transfersData = await parseAuthJson<{ data?: TransferRequest[] }>(
         transfersRes,
         setError,
@@ -81,8 +86,10 @@ function LancamentoInner(): React.JSX.Element | null {
     const tabParam = new URLSearchParams(window.location.search).get("tab");
     if (tabParam === "transferencias") {
       setTab(1);
+    } else if (tabParam === "stripe" && isAdmin) {
+      setTab(2);
     }
-  }, []);
+  }, [isAdmin]);
 
   if (!ready || !isLoggedIn || !canAccess) {
     return null;
@@ -95,7 +102,12 @@ function LancamentoInner(): React.JSX.Element | null {
           variant="h4"
           component="h2"
           gutterBottom
-          sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 800 }}
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            fontWeight: 800,
+          }}
         >
           <PostAddIcon color="primary" fontSize="large" />
           Lançamento e Transferências
@@ -128,6 +140,7 @@ function LancamentoInner(): React.JSX.Element | null {
                 pendingTransfers.length === 1 ? "" : "s"
               })`}
             />
+            {isAdmin && <Tab label="Taxas Stripe" />}
           </Tabs>
 
           <TabPanel index={0} value={tab}>
@@ -140,6 +153,11 @@ function LancamentoInner(): React.JSX.Element | null {
               onChanged={fetchData}
             />
           </TabPanel>
+          {isAdmin && (
+            <TabPanel index={2} value={tab}>
+              <StripeFeeReconciliationPanel />
+            </TabPanel>
+          )}
         </>
       )}
     </PageContainer>

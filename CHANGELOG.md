@@ -1,9 +1,11 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até a release v1.2.0-backend de 2026-11-17; propostas futuras não são releases.
+status: Atualizado até 1.4.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.4.0
+  - 1.3.0
   - 1.2.0
   - 1.1.0
   - 1.0.2
@@ -29,6 +31,26 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.4.0] — 2026-11-17
+
+**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+
+### Reconciliação financeira
+
+- Adiciona `POST /stripe/reconcile-fee`, restrito a administradores, para consultar um PaymentIntent e criar somente a taxa Stripe ausente no ledger.
+- Mantém idempotência por `stripe-fee:<balanceTransactionId>`, inclusive em chamadas repetidas ou concorrentes, e distingue `created`, `already_exists` e `no_fee`.
+- Adiciona a aba **Taxas Stripe** em `/admin/lancamento`, com feedback de criação, taxa existente, ausência de taxa e falhas sem falso sucesso.
+- Registra auditoria de governo `stripe.fee_reconciled` somente quando uma taxa é efetivamente criada.
+
+### Documentação para agentes
+
+- Reduz `AGENTS.md` a um ponto de entrada com comandos, invariantes e links, movendo as convenções detalhadas para `docs/modules/MONOREPO_OPERATIONS.md`.
+- Atualiza os índices técnico e de planos e alinha a documentação das doações ao `referenceId` real com PaymentIntent puro (`pi_...`).
+
+### Acompanhamento
+
+- A doação live investigada possui taxa de R$ 8,37 confirmada no Stripe e ausente no dump. A correção do ledger de produção depende de deploy e execução manual da reconciliação; não foi realizada no branch.
 
 ## [1.3.0] — 2026-11-17
 

@@ -71,6 +71,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
+| [Reconciliação de taxas Stripe](../superpowers/plans/2026-11-17-stripe-fee-reconciliation.md) | Implementada em develop com TDD, verificação integrada e gates; reconciliação em produção depende de deploy. |
 | [Fase 8 — páginas públicas](../superpowers/plans/2026-11-17-public-pages.md) | Concluída em develop/1.3.0 com TDD e gates; integração em main pendente. |
 | [Fase 9 — painéis e privacidade](../superpowers/plans/2026-11-16-fase-9-paineis.md) | Publicado em 1.2.0, migration 051, PR #654; revisão jurídica não presumida. |
 | [Fase 7.2 — ciclo de mentoria](../superpowers/plans/2026-11-16-mentorship-lifecycle.md) | Publicado em 1.1.0, migration 050, PR #652. |
