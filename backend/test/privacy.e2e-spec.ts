@@ -97,4 +97,17 @@ describe('Privacidade — solicitação de exclusão com PostgreSQL real', () =>
     const member = await dataSource.query('SELECT name, email, "isActive" FROM members WHERE id = $1', [actors.member.sub]);
     expect(member[0]).toMatchObject({ name: 'Ator privacy member', email: 'member@e2e.invalid', isActive: true });
   });
+
+  it('exporta JSON do titular com attachment e limita a três por hora', async () => {
+    const first = await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member');
+    expect(first.status).toBe(200);
+    expect(first.headers['content-type']).toContain('application/json');
+    expect(first.headers['content-disposition']).toContain('attachment; filename="codaqui-dados-e2e-privacy-member-');
+    expect(first.body).toMatchObject({ schemaVersion: 1, subject: { id: actors.member.sub } });
+    expect(JSON.stringify(first.body)).not.toContain('githubAccessToken');
+
+    await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(200);
+    await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(200);
+    await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(429);
+  });
 });
