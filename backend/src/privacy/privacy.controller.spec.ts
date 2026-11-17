@@ -1,13 +1,21 @@
 import { PrivacyController } from './privacy.controller';
 
-describe('PrivacyController — membro', () => {
+describe('PrivacyController', () => {
+  const deletion = {
+    latestForMember: jest.fn(),
+    request: jest.fn(),
+    cancel: jest.fn(),
+    list: jest.fn(),
+    complete: jest.fn(),
+  };
+  let controller: PrivacyController;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    controller = new PrivacyController(deletion as any);
+  });
+
   it('usa somente o membro autenticado no ciclo da solicitação', async () => {
-    const deletion = {
-      latestForMember: jest.fn().mockResolvedValue(null),
-      request: jest.fn().mockResolvedValue({ id: 'request-1' }),
-      cancel: jest.fn().mockResolvedValue({ id: 'request-1', status: 'canceled' }),
-    };
-    const controller = new PrivacyController(deletion as any);
     const req = { user: { sub: 'member-1', handle: 'octocat' } } as any;
 
     await controller.getMyDeletionRequest(req);
@@ -17,5 +25,15 @@ describe('PrivacyController — membro', () => {
     expect(deletion.latestForMember).toHaveBeenCalledWith('member-1');
     expect(deletion.request).toHaveBeenCalledWith('member-1', 'octocat');
     expect(deletion.cancel).toHaveBeenCalledWith('member-1', 'octocat');
+  });
+
+  it('encaminha filtros admin e o revisor autenticado', async () => {
+    const query = { status: 'pending' as const, page: 2, limit: 25 };
+    await controller.listDeletionRequests(query);
+    expect(deletion.list).toHaveBeenCalledWith(query);
+
+    const req = { user: { sub: 'admin-1', handle: 'admin' } } as any;
+    await controller.completeDeletionRequest('request-1', req, { reviewNote: 'Offboarding concluído' });
+    expect(deletion.complete).toHaveBeenCalledWith('request-1', 'admin-1', 'admin', 'Offboarding concluído');
   });
 });

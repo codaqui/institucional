@@ -9,6 +9,7 @@ if (!testDatabase.endsWith('_test')) throw new Error('O E2E de privacidade exige
 
 const actors = {
   member: { sub: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', handle: 'e2e-privacy-member', roles: ['membro'] },
+  admin: { sub: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', handle: 'e2e-privacy-admin', roles: ['admin'] },
 } satisfies Record<string, JwtPayload>;
 
 const actorIds = Object.values(actors).map((actor) => actor.sub);
@@ -69,5 +70,31 @@ describe('Privacidade — solicitação de exclusão com PostgreSQL real', () =>
     expect(member[0]).toMatchObject({ name: 'Ator privacy member', email: 'member@e2e.invalid', isActive: true });
     const auditRows = await dataSource.query('SELECT "actorHandle" FROM audit_logs WHERE action = \'member.deletion_request_canceled\' AND "actorId" = $1', [actors.member.sub]);
     expect(auditRows).toEqual([{ actorHandle: 'e2e-privacy-member' }]);
+  });
+
+  it('restringe a fila a admin e conclui sem alterar o membro', async () => {
+    const created = await request(app.getHttpServer()).post('/members/me/deletion-request').set('x-test-actor', 'member');
+    expect(created.status).toBe(201);
+
+    const forbidden = await request(app.getHttpServer()).get('/admin/members/deletion-requests').set('x-test-actor', 'member');
+    expect(forbidden.status).toBe(403);
+
+    const list = await request(app.getHttpServer()).get('/admin/members/deletion-requests?status=pending&page=1&limit=10').set('x-test-actor', 'admin');
+    expect(list.status).toBe(200);
+    expect(list.body).toMatchObject({ total: 1, page: 1, limit: 10, totalPages: 1 });
+    expect(list.body.data[0].id).toBe(created.body.id);
+
+    const invalid = await request(app.getHttpServer()).get('/admin/members/deletion-requests?page=0').set('x-test-actor', 'admin');
+    expect(invalid.status).toBe(400);
+
+    const completed = await request(app.getHttpServer()).post(`/admin/members/deletion-requests/${created.body.id}/complete`).set('x-test-actor', 'admin').send({ reviewNote: 'Offboarding manual concluído' });
+    expect(completed.status).toBe(201);
+    expect(completed.body).toMatchObject({ status: 'completed', reviewedByMemberId: actors.admin.sub });
+
+    const repeated = await request(app.getHttpServer()).post(`/admin/members/deletion-requests/${created.body.id}/complete`).set('x-test-actor', 'admin').send({});
+    expect(repeated.status).toBe(409);
+
+    const member = await dataSource.query('SELECT name, email, "isActive" FROM members WHERE id = $1', [actors.member.sub]);
+    expect(member[0]).toMatchObject({ name: 'Ator privacy member', email: 'member@e2e.invalid', isActive: true });
   });
 });

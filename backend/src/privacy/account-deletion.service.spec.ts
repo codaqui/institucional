@@ -18,15 +18,17 @@ function pendingRequest(): AccountDeletionRequest {
   } as AccountDeletionRequest;
 }
 
+const repo = {
+  findOne: jest.fn(),
+  findOneOrFail: jest.fn(),
+  findAndCount: jest.fn(),
+  create: jest.fn(),
+  save: jest.fn(),
+  update: jest.fn(),
+};
+const audit = { log: jest.fn().mockResolvedValue(undefined) };
+
 describe('AccountDeletionService — membro', () => {
-  const repo = {
-    findOne: jest.fn(),
-    findOneOrFail: jest.fn(),
-    create: jest.fn(),
-    save: jest.fn(),
-    update: jest.fn(),
-  };
-  const audit = { log: jest.fn().mockResolvedValue(undefined) };
   let service: AccountDeletionService;
 
   beforeEach(() => {
@@ -97,5 +99,62 @@ describe('AccountDeletionService — membro', () => {
     repo.findOne.mockResolvedValue(pendingRequest());
     repo.update.mockResolvedValue({ affected: 0 });
     await expect(service.cancel(memberId, 'e2e-privacy-member')).rejects.toBeInstanceOf(ConflictException);
+  });
+});
+
+describe('AccountDeletionService — admin', () => {
+  let service: AccountDeletionService;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    service = new AccountDeletionService(repo as any, audit as any);
+  });
+
+  it('pagina com default 50, cap 100 e filtro de status', async () => {
+    repo.findAndCount.mockResolvedValue([[pendingRequest()], 1]);
+
+    await service.list({ page: 1, limit: 50 });
+    expect(repo.findAndCount).toHaveBeenLastCalledWith(expect.objectContaining({ skip: 0, take: 50 }));
+
+    await service.list({ status: 'completed', page: 2, limit: 1000 });
+    expect(repo.findAndCount).toHaveBeenLastCalledWith(expect.objectContaining({
+      where: { status: 'completed' },
+      skip: 100,
+      take: 100,
+    }));
+  });
+
+  it('conclui uma pendência com revisor e auditoria', async () => {
+    const pending = pendingRequest();
+    repo.findOne.mockResolvedValue(pending);
+    repo.update.mockResolvedValue({ affected: 1 });
+    repo.findOneOrFail.mockResolvedValue({ ...pending, status: 'completed' });
+
+    const result = await service.complete(pending.id, 'admin-1', 'admin', 'Offboarding concluído');
+    expect(result.status).toBe('completed');
+    expect(repo.update).toHaveBeenCalledWith(
+      { id: pending.id, status: 'pending' },
+      expect.objectContaining({
+        status: 'completed',
+        reviewedByMemberId: 'admin-1',
+        reviewNote: 'Offboarding concluído',
+      }),
+    );
+    expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({
+      action: 'member.deletion_request_completed',
+      actorId: 'admin-1',
+      actorHandle: 'admin',
+      targetId: memberId,
+    }));
+  });
+
+  it('retorna 404 para pedido inexistente', async () => {
+    repo.findOne.mockResolvedValue(null);
+    await expect(service.complete('missing', 'admin-1', 'admin')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('retorna 409 quando a transição não é mais pendente', async () => {
+    repo.findOne.mockResolvedValue(pendingRequest());
+    repo.update.mockResolvedValue({ affected: 0 });
+    await expect(service.complete('request-1', 'admin-1', 'admin')).rejects.toBeInstanceOf(ConflictException);
   });
 });
