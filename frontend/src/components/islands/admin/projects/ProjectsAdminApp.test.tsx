@@ -148,6 +148,47 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     });
   });
 
+  it("imports a showcase item only after saving a new draft", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+    await screen.findByText("Projeto sintético");
+
+    await user.click(screen.getByRole("button", { name: "Importar da vitrine" }));
+    await user.click(screen.getByRole("button", { name: "Usar Backstage Lab" }));
+
+    expect(await screen.findByLabelText(/^Nome/)).toHaveValue("Backstage Lab");
+    expect(screen.getByLabelText("Resumo")).toHaveValue("Projeto para explorar o Backstage, a plataforma open source de developer portal da Spotify.");
+    expect(await screen.findByRole("link", { name: "Origem open source" })).toHaveAttribute("href", "https://github.com/codaqui/backstage");
+    expect(call("/projects", "POST")).toBeUndefined();
+
+    await user.click(screen.getByRole("button", { name: "Salvar rascunho" }));
+    await waitFor(() => expect(call("/projects", "POST")).toBeDefined());
+    expect(JSON.parse(String(call("/projects", "POST")?.[1]?.body))).toEqual({
+      name: "Backstage Lab",
+      entityId: entity.id,
+      status: "draft",
+    });
+  });
+
+  it("keeps proposal validation and clears source state between forms", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+    await screen.findByText("Projeto sintético");
+
+    await user.click(screen.getByRole("button", { name: "Importar da vitrine" }));
+    await user.click(screen.getByRole("button", { name: "Usar Backstage Lab" }));
+    await user.click(screen.getByRole("button", { name: "Salvar proposta" }));
+    expect(await screen.findByText(/Informe a carga horária total/)).toBeInTheDocument();
+    expect(call("/projects", "POST")).toBeUndefined();
+
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    expect(screen.queryByRole("link", { name: "Origem open source" })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Fechar" }));
+    await user.click(await screen.findByRole("button", { name: "Novo projeto" }));
+    expect(screen.queryByRole("link", { name: "Origem open source" })).not.toBeInTheDocument();
+  });
+
   it("preserves mentors and resources when saving an existing project as proposed", async () => {
     const user = userEvent.setup();
     renderWithMui(<ProjectsAdminApp />);

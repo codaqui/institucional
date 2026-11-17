@@ -7,11 +7,13 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Link from "@mui/material/Link";
 import MenuItem from "@mui/material/MenuItem";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { useAuth } from "../../../../lib/use-auth";
+import type { Project } from "../../../../data/projects";
 import { extractErrorMessage } from "../../../../lib/auth-fetch-helpers";
 import ProjectMentorFields from "./ProjectMentorFields";
 import ProjectResourcesFields from "./ProjectResourcesFields";
@@ -19,6 +21,7 @@ import {
   ODS_OPTIONS,
   buildProjectPayload,
   createFormRowId,
+  createProjectFormFromOpenSource,
   createProjectFormFromProject,
   validateProjectForm,
   type ManagedProject,
@@ -33,6 +36,7 @@ interface EntityOption {
 interface ProjectFormDialogProps {
   readonly open: boolean;
   readonly project: ManagedProject | null;
+  readonly sourceProject?: Project | null;
   readonly entities: EntityOption[];
   readonly onClose: () => void;
   readonly onSaved: (status: "draft" | "proposed") => Promise<void>;
@@ -41,6 +45,7 @@ interface ProjectFormDialogProps {
 export default function ProjectFormDialog({
   open,
   project,
+  sourceProject = null,
   entities,
   onClose,
   onSaved,
@@ -54,9 +59,13 @@ export default function ProjectFormDialog({
 
   useEffect(() => {
     if (!open) return;
-    setForm(createProjectFormFromProject(project, entities[0]?.id ?? ""));
+    setForm(project
+      ? createProjectFormFromProject(project, entities[0]?.id ?? "")
+      : sourceProject
+        ? createProjectFormFromOpenSource(sourceProject, entities[0]?.id ?? "")
+        : createProjectFormFromProject(null, entities[0]?.id ?? ""));
     setFormError("");
-  }, [open, project, entities]);
+  }, [open, project, sourceProject, entities]);
 
   const updateField = <K extends keyof ProjectFormValues>(
     key: K,
@@ -116,6 +125,12 @@ export default function ProjectFormDialog({
               Salve o rascunho com nome e entidade. Para propor, preencha todos
               os campos obrigatórios e designe o mentor principal.
             </Alert>
+            {sourceProject && (
+              <Alert severity="info">
+                A origem open source permanece na vitrine. Revise os dados antes de salvar.{" "}
+                <Link href={sourceProject.href} target="_blank" rel="noopener noreferrer">Origem open source</Link>
+              </Alert>
+            )}
             <TextField
               label="Nome"
               required
