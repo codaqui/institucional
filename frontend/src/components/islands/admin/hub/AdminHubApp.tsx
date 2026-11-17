@@ -14,6 +14,7 @@ import {
 import PageContainer from "../ui/PageContainer";
 import DataTable from "../ui/DataTable";
 import ModalConfirm from "../ui/ModalConfirm";
+import AccountDeletionRequests from "./AccountDeletionRequests";
 import Alert from "@mui/material/Alert";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
@@ -495,6 +496,8 @@ function AdminHubInner(): React.JSX.Element {
       </Typography>
 
       {membersSection}
+
+      {isAdmin && <AccountDeletionRequests members={members} />}
 
       {/* ── Modal: Alterar Roles ── */}
       <ModalConfirm

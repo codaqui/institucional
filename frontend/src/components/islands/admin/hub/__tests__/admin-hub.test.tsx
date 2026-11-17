@@ -223,6 +223,69 @@ describe("/admin (hub)", () => {
     const chips = screen.getAllByRole("button", { name: /Admin/i });
     expect(chips.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("button", { name: /Credenciador/i })).toBeInTheDocument();
-    expect(screen.getByRole("combobox")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Alterar roles" })).toBeInTheDocument();
+  });
+
+  it("filtra e pagina solicitações de exclusão e conclui sem alterar o membro", async () => {
+    const calls: Array<{ url: string; options?: RequestInit }> = [];
+    authState.authFetch = vi.fn(async (url: string, options?: RequestInit) => {
+      calls.push({ url, options });
+      if (url.endsWith("/admin/members") && !options) return jsonResponse([buildMember(1)]);
+      if (url.startsWith("/admin/members/deletion-requests?") && !options) {
+        return jsonResponse({
+          data: [{ id: "request-1", memberId: "m-1", status: "pending", requestedAt: "2026-11-16T12:00:00.000Z" }],
+          total: 2,
+          page: 1,
+          limit: 10,
+          totalPages: 2,
+        });
+      }
+      if (url.endsWith("/admin/members/deletion-requests/request-1/complete") && options?.method === "POST") {
+        return jsonResponse({ id: "request-1", status: "completed" });
+      }
+      return jsonResponse({}, { status: 404 });
+    });
+    mockLoggedIn(["membro", "admin"], "admin-1");
+
+    renderWithMui(<AdminHubApp />);
+    expect(await screen.findByText("Solicitações de exclusão")).toBeInTheDocument();
+    expect((await screen.findAllByText("Member 1")).length).toBeGreaterThanOrEqual(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Próxima página" }));
+    await waitFor(() => expect(calls.some(({ url }) => url.includes("page=2"))).toBe(true));
+
+    fireEvent.mouseDown(screen.getByRole("combobox", { name: "Status" }));
+    fireEvent.click(await screen.findByRole("option", { name: "Concluídas" }));
+    await waitFor(() => expect(calls.some(({ url }) => url.includes("status=completed"))).toBe(true));
+
+    fireEvent.click(screen.getByRole("button", { name: "Concluir solicitação" }));
+    expect(await screen.findByText(/offboarding manual foi concluído/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar conclusão" }));
+
+    await waitFor(() => expect(calls.some(({ url, options }) =>
+      url.endsWith("/admin/members/deletion-requests/request-1/complete") && options?.method === "POST",
+    )).toBe(true));
+    expect(calls.some(({ options }) => options?.method === "PATCH")).toBe(false);
+  });
+
+  it("oferece retry quando a fila de exclusões falha", async () => {
+    let attempts = 0;
+    authState.authFetch = vi.fn(async (url: string) => {
+      if (url.endsWith("/admin/members")) return jsonResponse([]);
+      if (url.startsWith("/admin/members/deletion-requests")) {
+        attempts += 1;
+        if (attempts === 1) return jsonResponse({ message: "Falha temporária" }, { status: 500 });
+        return jsonResponse({ data: [], total: 0, page: 1, limit: 10, totalPages: 0 });
+      }
+      return jsonResponse({}, { status: 404 });
+    });
+    mockLoggedIn(["membro", "admin"], "admin-1");
+
+    renderWithMui(<AdminHubApp />);
+    expect(await screen.findByText("Erro ao carregar dados (HTTP 500).")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Tentar novamente" }));
+
+    await waitFor(() => expect(attempts).toBe(2));
+    expect(await screen.findByText(/Nenhuma solicitação encontrada/i)).toBeInTheDocument();
   });
 });

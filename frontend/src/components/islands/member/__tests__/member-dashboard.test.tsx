@@ -4,37 +4,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { authState, resetAuthState } from "../../../../test/admin-auth-fixtures";
 import MemberDashboardApp from "../dashboard/MemberDashboardApp";
 import { renderWithMui } from "../../../../test/render-mui";
 import type { AuthUser } from "../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta
-// os campos que precisa no beforeEach/corpo (mesmo padrão do AppNavIsland).
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.user?.roles.includes("admin") ?? false,
-    isFinanceAnalyzer: authState.user?.roles.includes("finance-analyzer") ?? false,
-    logout: vi.fn(),
-    authFetch: authState.authFetch,
-  }),
-}));
-
-function jsonResponse(body: unknown, options: { status?: number } = {}): Response {
-  return new Response(JSON.stringify(body), {
-    status: options.status ?? 200,
-    headers: { "Content-Type": "application/json" },
-  });
-}
+import { jsonResponse } from "../../../../test/http-mock";
 
 function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   return {
@@ -48,10 +22,36 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   };
 }
 
+function buildRegistration(
+  id: string,
+  startAt: string,
+  overrides: { certificateGrantedAt?: string | null; checkinToken?: string; title?: string } = {},
+) {
+  return {
+    id,
+    status: "confirmed",
+    checkedInAt: null,
+    certificateGrantedAt: overrides.certificateGrantedAt ?? null,
+    checkinToken: overrides.checkinToken ?? `token-${id}`,
+    attendeeName: "Mentoria Codaqui",
+    memberId: "user-1",
+    event: {
+      id: `evt-${id}`,
+      title: overrides.title ?? "Evento",
+      startAt,
+      location: null,
+      status: "completed",
+    },
+    ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+  };
+}
+
 function mockLoggedIn(user: AuthUser, authFetch: ReturnType<typeof vi.fn>) {
   authState.user = user;
   authState.ready = true;
   authState.isLoggedIn = true;
+  authState.isAdmin = user.roles.includes("admin");
+  authState.isFinanceAnalyzer = user.roles.includes("finance-analyzer");
   authState.authFetch = authFetch;
 }
 
@@ -63,16 +63,14 @@ function stubFetch() {
 }
 
 async function openFinanceTab(name: "Doações" | "Assinaturas" | "Reembolsos") {
-  fireEvent.click(await screen.findByRole("tab", { name: "Financeiro" }));
-  fireEvent.click(await screen.findByRole("tab", { name }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Apoio e financeiro" }));
+  fireEvent.click(await screen.findByRole("button", { name }));
 }
 
 describe("/membro", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/membro");
-    authState.user = null;
-    authState.ready = false;
-    authState.isLoggedIn = false;
+    resetAuthState();
     authState.authFetch = vi.fn();
     vi.clearAllMocks();
     stubFetch();
@@ -99,7 +97,7 @@ describe("/membro", () => {
     });
   });
 
-  it("exibe distinção pessoal x business em doações e assinaturas em abas separadas", async () => {
+  it("exibe distinção pessoal x business nos históricos filtrados", async () => {
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations?page=1&limit=10")) {
         return jsonResponse({
@@ -167,7 +165,6 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    expect(await screen.findByText(/1 pessoal · 1 business/i)).toBeInTheDocument();
     await openFinanceTab("Doações");
 
     expect(await screen.findAllByText("Pessoal")).toHaveLength(1);
@@ -259,7 +256,7 @@ describe("/membro", () => {
     ).length;
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
 
     expect(await screen.findByText("Encontro DevParaná")).toBeInTheDocument();
     expect(
@@ -295,23 +292,11 @@ describe("/membro", () => {
       }
       if (url.includes("/events/my-registrations")) {
         return jsonResponse([
-          {
-            id: "reg-2",
-            status: "confirmed",
-            checkedInAt: null,
+          buildRegistration("reg-2", pastStart, {
             certificateGrantedAt: grantedAt,
             checkinToken: "token-xyz",
-            attendeeName: "Mentoria Codaqui",
-            memberId: "user-1",
-            event: {
-              id: "evt-2",
-              title: "Workshop GitHub",
-              startAt: pastStart,
-              location: null,
-              status: "completed",
-            },
-            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
-          },
+            title: "Workshop GitHub",
+          }),
         ]);
       }
       return jsonResponse(null, { status: 404 });
@@ -322,14 +307,14 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
     expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
     });
 
-    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Histórico$/i }));
     expect(await screen.findByText("Workshop GitHub")).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
@@ -358,14 +343,14 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Certificados" }));
-    fireEvent.click(screen.getByRole("tab", { name: "Financeiro" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Certificados" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Apoio e financeiro" }));
     fireEvent.click(screen.getByRole("tab", { name: "Participação" }));
 
     expect(window.location.search).toContain("section=participation");
     expect(window.location.search).toContain("tab=certificates");
-    expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute(
-      "aria-selected",
+    expect(screen.getByRole("button", { name: "Certificados" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
   });
@@ -381,23 +366,11 @@ describe("/membro", () => {
       }
       if (url.includes("/events/my-registrations")) {
         return jsonResponse([
-          {
-            id: "reg-3",
-            status: "confirmed",
-            checkedInAt: null,
+          buildRegistration("reg-3", pastStart, {
             certificateGrantedAt: "2026-08-10T18:10:00.000Z",
             checkinToken: "token-403",
-            attendeeName: "Mentoria Codaqui",
-            memberId: "user-1",
-            event: {
-              id: "evt-3",
-              title: "Workshop com erro",
-              startAt: pastStart,
-              location: null,
-              status: "completed",
-            },
-            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
-          },
+            title: "Workshop com erro",
+          }),
         ]);
       }
       return jsonResponse(null, { status: 404 });
@@ -407,8 +380,8 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
-    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Histórico$/i }));
     fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
 
     expect(await screen.findByText("Certificado indisponível para esta inscrição.")).toBeInTheDocument();
@@ -493,9 +466,9 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    expect(await screen.findByRole("tab", { name: "Visão geral" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Início" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Participação" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Financeiro" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Apoio e financeiro" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Conta e privacidade" })).toBeInTheDocument();
     expect(screen.getAllByRole("tab")).toHaveLength(4);
   });
@@ -538,12 +511,41 @@ describe("/membro", () => {
       "aria-selected",
       "true",
     );
-    expect(await screen.findByRole("tab", { name: "Futuros" })).toHaveAttribute(
-      "aria-selected",
+    expect(await screen.findByRole("button", { name: "Futuros" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
     expect(window.location.search).toContain("section=participation");
-    expect(window.location.search).toContain("tab=future");
+    expect(window.location.search).toContain("tab=events");
+    expect(window.location.search).toContain("event=future");
     expect(window.location.search).not.toContain("purchase=success");
+  });
+
+  it("agrega participação em Tudo e isola cada tipo sem sub-abas", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/my-registrations")) return jsonResponse([]);
+      if (url === "/projects/my" || url === "/hours/me") return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+    renderWithMui(<MemberDashboardApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    expect(await screen.findByRole("button", { name: "Tudo" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
+    expect(await screen.findByText(/Nenhuma participação com certificado/)).toBeInTheDocument();
+    expect(await screen.findByText(/Você ainda não participa de projetos/)).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+
+    fireEvent.click(screen.getByRole("button", { name: "Certificados" }));
+    expect(screen.queryByText("Meus eventos")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Você ainda não participa de projetos/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Projetos" }));
+    expect(await screen.findByText(/Você ainda não participa de projetos/)).toBeInTheDocument();
+    expect(screen.queryByText(/Nenhuma participação com certificado/)).not.toBeInTheDocument();
   });
 });

@@ -4,13 +4,13 @@
  */
 import type { ReactNode } from "react";
 import Alert from "@mui/material/Alert";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import Typography from "@mui/material/Typography";
 
 export type ModalConfirmVariant = "warning" | "error" | "success" | "info";
 
@@ -83,9 +83,9 @@ export default function ModalConfirm({
       {(description || error) && (
         <DialogContent sx={{ pt: 0 }}>
           {description && (
-            <Typography variant="body2" color="text.secondary">
+            <Box component="div" sx={{ color: "text.secondary", typography: "body2" }}>
               {description}
-            </Typography>
+            </Box>
           )}
           {error && (
             <Alert severity="error" sx={{ mt: description ? 2 : 0 }}>

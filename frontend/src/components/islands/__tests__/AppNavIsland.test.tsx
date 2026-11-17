@@ -142,9 +142,9 @@ describe("AppNavIsland", () => {
     expect(screen.queryByText("Membro")).not.toBeInTheDocument();
     expect(screen.getByText("responsible @ devparana")).toBeInTheDocument();
 
-    const visaoGeral = screen.getByRole("link", { name: /visão geral/i });
-    expect(visaoGeral).toHaveAttribute("href", "/admin/eventos");
-    expect(visaoGeral).toHaveAttribute("aria-current", "page");
+    const eventos = screen.getByRole("link", { name: /^eventos$/i });
+    expect(eventos).toHaveAttribute("href", "/admin/eventos");
+    expect(eventos).toHaveAttribute("aria-current", "page");
     // o hub /admin NÃO é ativado por prefixo quando um filho está ativo
     expect(
       screen.getByRole("link", { name: /^membros$/i }),
@@ -153,7 +153,7 @@ describe("AppNavIsland", () => {
     // admin enxerga os itens restritos
     expect(screen.getByRole("link", { name: /e-mails/i })).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /virtualcoins/i }),
+      screen.getByRole("link", { name: /clube: sortcoins/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Diretorias" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Configurações" })).toBeInTheDocument();
@@ -166,12 +166,12 @@ describe("AppNavIsland", () => {
     expect(
       screen.getByRole("link", { name: /check-in/i }),
     ).toHaveAttribute("aria-current", "page");
-    // event_checker não enxerga os demais itens do grupo Eventos
+    // event_checker não enxerga os demais itens de Comunidades e eventos
     expect(
-      screen.queryByRole("link", { name: /visão geral/i }),
+      screen.queryByRole("link", { name: /^eventos$/i }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("link", { name: /overrides & externos/i }),
+      screen.queryByRole("link", { name: /eventos externos/i }),
     ).not.toBeInTheDocument();
   });
 
@@ -179,7 +179,7 @@ describe("AppNavIsland", () => {
     mockLoggedIn(makeUser({ roles: ["membro", "finance-analyzer"] }));
     renderWithMui(<AppNavIsland currentPath="/admin/reembolsos" />);
 
-    expect(screen.getByText("Financeiro")).toBeInTheDocument();
+    expect(screen.getByText("Apoio e financeiro")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /reembolsos/i }),
     ).toHaveAttribute("aria-current", "page");
@@ -189,22 +189,22 @@ describe("AppNavIsland", () => {
     expect(
       screen.queryByRole("link", { name: /e-mails/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Pessoas")).toBeInTheDocument();
+    expect(screen.getByText("Pessoas e aprendizado")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Horas" })).toHaveAttribute(
       "href",
       "/admin/horas",
     );
-    // sem itens de eventos visíveis, o subgrupo some por completo
-    expect(screen.queryByText("Eventos")).not.toBeInTheDocument();
+    // sem itens de comunidades/eventos visíveis, o subgrupo some por completo
+    expect(screen.queryByText("Comunidades e eventos")).not.toBeInTheDocument();
   });
 
-  it("membro sem papéis especiais vê apenas o grupo Conta", () => {
+  it("membro sem papéis especiais vê apenas o grupo Início", () => {
     mockLoggedIn(makeUser({ roles: ["membro"] }));
     renderWithMui(<AppNavIsland currentPath="/membro" />);
 
-    expect(screen.queryByText("Gestão")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pessoas e aprendizado")).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Horas" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /^início$/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^painel e pendências$/i })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -225,7 +225,7 @@ describe("AppNavIsland", () => {
       screen.getByRole("link", { name: /editar perfil/i }),
     ).toHaveAttribute("aria-current", "page");
     expect(
-      screen.getByRole("link", { name: /^início$/i }),
+      screen.getByRole("link", { name: /^painel e pendências$/i }),
     ).not.toHaveAttribute("aria-current");
   });
 
@@ -264,19 +264,19 @@ describe("AppNavIsland", () => {
       "href",
       "/admin/diretorias",
     );
-    expect(screen.getByRole("link", { name: "Entidades" })).toHaveAttribute("href", "/admin/entidades");
+    expect(screen.getByRole("link", { name: "Entidades e parcerias" })).toHaveAttribute("href", "/admin/entidades");
     expect(screen.getByRole("link", { name: "Projetos de extensão" })).toHaveAttribute("href", "/admin/projetos");
     expect(screen.queryByText("Minha comunidade")).not.toBeInTheDocument();
     expect(screen.queryByText("Configurações")).not.toBeInTheDocument();
   });
 
-  it("shows Assembleias in Governança to directors and admins only", () => {
+  it("shows Assembleias in Governança e transparência to directors and admins only", () => {
     mockLoggedIn(makeUser({ roles: ["membro", "diretor"] }));
     const { unmount } = renderWithMui(
       <AppNavIsland currentPath="/admin/assembleias" />,
     );
 
-    expect(screen.getByText("Governança")).toBeInTheDocument();
+    expect(screen.getByText("Governança e transparência")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Assembleias" })).toHaveAttribute(
       "href",
       "/admin/assembleias",
@@ -297,9 +297,9 @@ describe("AppNavIsland", () => {
     mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
     renderWithMui(<AppNavIsland currentPath="/admin" />);
 
-    expect(screen.getByText("Financeiro (R$)")).toBeInTheDocument();
-    expect(screen.getByText("Governança")).toBeInTheDocument();
-    expect(screen.getByText("Comunicação")).toBeInTheDocument();
+    expect(screen.getByText("Apoio e financeiro")).toBeInTheDocument();
+    expect(screen.getByText("Governança e transparência")).toBeInTheDocument();
+    expect(screen.getByText("Sistema")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Buscar no painel"), {
       target: { value: "fornec" },
     });
@@ -312,7 +312,7 @@ describe("AppNavIsland", () => {
     mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
     renderWithMui(<AppNavIsland currentPath="/admin" />);
 
-    const financeiro = screen.getByRole("button", { name: "Financeiro (R$)" });
+    const financeiro = screen.getByRole("button", { name: "Apoio e financeiro" });
     expect(financeiro).toHaveAttribute("aria-expanded", "true");
     await userEvent.click(financeiro);
 
@@ -320,7 +320,7 @@ describe("AppNavIsland", () => {
     await waitFor(() =>
       expect(screen.queryByRole("link", { name: "Fornecedores" })).not.toBeInTheDocument(),
     );
-    expect(screen.getByText("Governança")).toBeVisible();
+    expect(screen.getByText("Governança e transparência")).toBeVisible();
   });
 
   it("shows Universitário to program managers and IES ambassadors", () => {
@@ -335,20 +335,46 @@ describe("AppNavIsland", () => {
     expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("aria-current", "page");
   });
 
-  it("shows Mentoria only with an active program mentor designation", () => {
+  it("shows Minha mentoria only with an active program mentor designation", () => {
     designationsState.data = [
       { id: "mentor-1", targetType: "program", targetId: null, targetKey: "mentoria", designation: "mentor" },
     ];
     mockLoggedIn(makeUser());
     const { unmount } = renderWithMui(<AppNavIsland currentPath="/membro/mentoria" />);
 
-    expect(screen.getByRole("link", { name: "Mentoria" })).toHaveAttribute("href", "/membro/mentoria");
-    expect(screen.getByRole("link", { name: "Mentoria" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Minha mentoria" })).toHaveAttribute("href", "/membro/mentoria");
+    expect(screen.getByRole("link", { name: "Minha mentoria" })).toHaveAttribute("aria-current", "page");
 
     unmount();
     designationsState.data = [];
     renderWithMui(<AppNavIsland currentPath="/membro" />);
-    expect(screen.queryByRole("link", { name: "Mentoria" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Minha mentoria" })).not.toBeInTheDocument();
+  });
+
+  it("organiza a visão admin completa em seis grupos por domínio", () => {
+    mockLoggedIn(makeUser({ roles: ["membro", "admin"] }), true);
+    renderWithMui(<AppNavIsland currentPath="/admin" />);
+
+    for (const group of [
+      "Início",
+      "Comunidades e eventos",
+      "Pessoas e aprendizado",
+      "Apoio e financeiro",
+      "Governança e transparência",
+      "Sistema",
+    ]) {
+      expect(screen.getByText(group)).toBeInTheDocument();
+    }
+
+    expect(screen.getByRole("link", { name: "Painel e pendências" })).toHaveAttribute("href", "/membro");
+    expect(screen.getByRole("link", { name: "C4P" })).toHaveAttribute("href", "/admin/c4p");
+    expect(screen.getByRole("link", { name: "Gestão de mentoria" })).toHaveAttribute("href", "/admin/mentoria");
+    expect(screen.getByRole("link", { name: "Universitário" })).toHaveAttribute("href", "/admin/universitario");
+    expect(screen.getByRole("link", { name: "Livro-razão" })).toHaveAttribute("href", "/admin/lancamento");
+    expect(screen.getByRole("link", { name: "Clube: SortCoins" })).toHaveAttribute("href", "/admin/carteiras");
+    expect(screen.getByRole("link", { name: "Ver como o público vê" })).toHaveAttribute("href", "/transparencia");
+    expect(screen.getByRole("link", { name: "E-mails e campanhas" })).toHaveAttribute("href", "/admin/emails");
+    expect(screen.queryByText("VirtualCoins")).not.toBeInTheDocument();
   });
 
   it("dispara o logout do useAuth ao clicar em Sair (startLogout no fluxo real)", async () => {

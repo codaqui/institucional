@@ -24,6 +24,9 @@ agent-protocol:
 - Inventário: `docs/modules/privacy/treatments.md`
 - Autosserviço: `frontend/src/components/islands/member/privacy/MyDataTab.tsx`
 - API de visibilidade: `GET/PATCH /members/me/visibility`
+- Exportação: `GET /members/me/export` (JSON síncrono, schema 1, 3/hora)
+- Exclusão revisada: `GET/POST /members/me/deletion-request`, `POST /members/me/deletion-request/cancel`; fila admin em `/admin/members/deletion-requests`
+- ADR: `docs/adrs/019-privacy-self-service.md`
 
 ## Quando atualizar
 
