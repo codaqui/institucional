@@ -10,7 +10,7 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,6 +21,7 @@ import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/entities/audit-log.entity';
 import { AccountDeletionService } from './account-deletion.service';
 import { PrivacyExportService } from './privacy-export.service';
+import { MemberExportThrottleGuard } from './member-export-throttle.guard';
 import { GetAccountDeletionRequestsQueryDto } from './dto/get-account-deletion-requests-query.dto';
 import { ReviewAccountDeletionRequestDto } from './dto/review-account-deletion-request.dto';
 
@@ -52,8 +53,8 @@ export class PrivacyController {
   }
 
   @Get('members/me/export')
-  @UseGuards(JwtAuthGuard)
-  @Throttle({ default: { limit: 3, ttl: 3_600_000 } })
+  @SkipThrottle()
+  @UseGuards(JwtAuthGuard, MemberExportThrottleGuard)
   async exportMyData(
     @Req() req: { user: JwtPayload },
     @Res() res: Response,

@@ -39,7 +39,7 @@ Decisões:
 
 ## Exportação do titular
 
-`GET /members/me/export` exige JWT e tem limite de três exportações por hora. O backend retorna `application/json; charset=utf-8` e attachment `codaqui-dados-<handle>-<AAAA-MM-DD>.json`.
+`GET /members/me/export` exige JWT e tem limite de três exportações por hora **por membro**. `MemberExportThrottleGuard` executa após `JwtAuthGuard` e usa `req.user.sub` como tracker, evitando cota global por IP atrás do proxy. O backend retorna `application/json; charset=utf-8` e attachment `codaqui-dados-<handle>-<AAAA-MM-DD>.json`.
 
 O schema `1` contém `generatedAt`, `subject`, `account`, `designations`, `events`, `mentorship`, `hours`, `projects`, `finance`, `c4p`, `communications`, `coverage` e `exclusions`.
 

@@ -10,6 +10,7 @@ if (!testDatabase.endsWith('_test')) throw new Error('O E2E de privacidade exige
 const actors = {
   member: { sub: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', handle: 'e2e-privacy-member', roles: ['membro'] },
   admin: { sub: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd', handle: 'e2e-privacy-admin', roles: ['admin'] },
+  other: { sub: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', handle: 'e2e-privacy-other', roles: ['membro'] },
 } satisfies Record<string, JwtPayload>;
 
 const actorIds = Object.values(actors).map((actor) => actor.sub);
@@ -109,5 +110,6 @@ describe('Privacidade — solicitação de exclusão com PostgreSQL real', () =>
     await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(200);
     await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(200);
     await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'member').expect(429);
+    await request(app.getHttpServer()).get('/members/me/export').set('x-test-actor', 'other').expect(200);
   });
 });
