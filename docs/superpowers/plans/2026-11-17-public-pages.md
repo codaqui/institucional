@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8 para enriquecer equipe/mentores e conectar /sobre/ong aos snapshots e tenants existentes.
 audience: Implementadores e revisores; leitura obrigatória junto da spec.
-status: Proposta em 2026-11-17; aguarda revisão/aprovação e não está em execução.
+status: Concluído em develop em 2026-11-17, versão compartilhada 1.3.0; tasks 1–4 executadas com TDD, gates completos e smoke do dist; integração em main pendente.
 sections:
   - Constraints e Review Focus
   - Enriquecimento da equipe
@@ -11,7 +11,7 @@ sections:
 related-docs:
   - ../specs/2026-11-17-public-pages-design.md — spec e contratos completos.
 agent-protocol:
-  - Não executar antes da aprovação; ao executar, usar TDD e commits por task.
+  - Plano concluído; não reexecutar tasks/checkboxes. A implementação usou TDD e commits por task.
   - Não criar backend, migration, membros/placeholders ou novas dependências.
 -->
 

@@ -30,6 +30,18 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
 
+## [1.3.0] — 2026-11-17
+
+**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+
+### Páginas públicas
+
+- `/sobre/equipe` mantém a curadoria institucional e enriquece perfis somente por URL/handle GitHub válido, sem associação por nome ou criação de placeholders no banco.
+- A seção de mentores passa a usar o snapshot público ativo/vigente, com perfil `/@handle` somente quando disponível no mesmo build e empty state sem lista histórica.
+- `/sobre/ong` consome o snapshot público de comunidades, exibe nível/selo efetivo e data de geração, e deriva portais da interseção entre comunidades elegíveis e `TENANTS`.
+- As atas atuais apontam para `/assembleias`; o Drive permanece identificado como arquivo histórico.
+- O loader de mentores passa a localizar o snapshot também pelo diretório de trabalho do build, corrigindo o empty state causado pelo bundling do Astro.
+
 ## [1.2.0] — 2026-11-17
 
 **Release:** [v1.2.0-backend](https://github.com/codaqui/institucional/releases/tag/v1.2.0-backend) · **Integração:** [PR #654](https://github.com/codaqui/institucional/pull/654) · **Migration:** 051.
@@ -97,10 +109,12 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 - A release [v1.0.0 do site Astro](https://github.com/codaqui/institucional/releases/tag/v1.0.0), publicada em 2026-10-29, é a baseline anterior ao C4P; ela não é a mesma tag que `v1.0.0-backend`.
 - **Fase 8 — páginas públicas conectadas ao banco:** próxima fase preparada em spec/plano, ainda não implementada.
+- **Fase 8 — páginas públicas conectadas ao banco:** implementada em develop/1.3.0; integração em main pendente.
 - **Fase 8b — projetos de extensão e patrocínio PJ:** candidata posterior, sem escopo aprovado.
 - **Roadmap 1.5:** documento de propostas, não uma versão comprometida; reúne agregações de painéis que exigem novos contratos de backend.
 - **Real Network:** visão exploratória de longo prazo, fora do backlog operacional e sem revisão nesta consolidação.
 
+[1.3.0]: https://github.com/codaqui/institucional/tree/develop
 [1.2.0]: https://github.com/codaqui/institucional/releases/tag/v1.2.0-backend
 [1.1.0]: https://github.com/codaqui/institucional/releases/tag/v1.1.0-backend
 [1.0.2]: https://github.com/codaqui/institucional/releases/tag/v1.0.2-backend

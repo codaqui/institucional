@@ -6,11 +6,30 @@ import PublicLayout from "../../layouts/PublicLayout.astro";
 import PageHero from "../../components/astro/PageHero.astro";
 import CommunityPresenceCard from "../../components/astro/CommunityPresenceCard.astro";
 import MembersWallIsland from "../../components/islands/MembersWallIsland";
-import { communities } from "../../data/communities";
-import { communityPortals } from "../../data/community-portals";
+import { listCommunityPortals } from "../../lib/community-portals";
+import {
+  communityEffectiveSealLabel,
+  communityLevelLabel,
+  loadCommunitiesIndex,
+  type CommunityIndexEntry,
+} from "../../lib/communities";
 import { loadSocialStats, profilesFor } from "../../lib/social-stats";
 
-const snapshot = loadSocialStats();
+const socialSnapshot = loadSocialStats();
+const { generatedAt, communities } = loadCommunitiesIndex();
+const communityPortals = listCommunityPortals(communities);
+const updatedAt = new Intl.DateTimeFormat("pt-BR", {
+  dateStyle: "long",
+  timeZone: "UTC",
+}).format(new Date(generatedAt));
+
+function presentationTags(community: CommunityIndexEntry): string[] {
+  return [
+    communityLevelLabel(community.level),
+    communityEffectiveSealLabel(community),
+    ...community.tags,
+  ].filter((tag): tag is string => tag !== null);
+}
 
 const helpItems = [
   {
@@ -48,20 +67,23 @@ const helpItems = [
   />
 
   <div class="mx-auto max-w-6xl px-4 py-12 md:py-16">
-    <h2 class="mb-8 text-2xl font-bold md:text-3xl">Comunidades apoiadas</h2>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-3">
+      <h2 class="text-2xl font-bold md:text-3xl">Comunidades apoiadas</h2>
+      <p class="text-sm text-text-secondary">Registro público atualizado em {updatedAt}.</p>
+    </div>
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
       {
         communities.map((community) => (
           <CommunityPresenceCard
-            entityId={community.id}
+            entityId={community.slug}
             name={`${community.emoji} ${community.name}`}
             logo={community.logo}
             description={community.description}
-            profiles={profilesFor(snapshot, community.id)}
-            location={community.location}
-            tags={community.tags}
-            links={community.links.map((l) => ({ label: l.label, url: l.url }))}
+            profiles={profilesFor(socialSnapshot, community.slug)}
+            location={community.location ?? undefined}
+            tags={presentationTags(community)}
+            links={community.links.map((link) => ({ label: link.label, url: link.url }))}
           />
         ))
       }
@@ -82,7 +104,7 @@ const helpItems = [
             <div class="grow p-4">
               <img
                 src={portal.logoUrl}
-                alt={portal.name}
+                alt={`Logo da ${portal.name}`}
                 height="64"
                 loading="lazy"
                 class:list={[
@@ -101,12 +123,15 @@ const helpItems = [
                 />
               )}
               <h3 class="mb-1 text-lg font-bold">{portal.name}</h3>
-              <p class="mb-1 text-sm text-text-secondary">{portal.tagline}</p>
+              {portal.tagline && <p class="mb-1 text-sm text-text-secondary">{portal.tagline}</p>}
               <p class="text-sm text-text-secondary">{portal.description}</p>
             </div>
-            <div class="p-4 pt-0">
+            <footer class="p-4 pt-0">
               <a
-                href={portal.basePath}
+                href={portal.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Acessar portal da ${portal.name}`}
                 class="inline-flex items-center gap-1 text-sm font-semibold text-link hover:text-link-hover"
               >
                 Acessar portal
@@ -120,7 +145,7 @@ const helpItems = [
                   <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z" />
                 </svg>
               </a>
-            </div>
+            </footer>
           </article>
         ))
       }
@@ -213,15 +238,16 @@ const helpItems = [
         <a href="/transparencia">Portal de Transparência</a>.
       </p>
       <p>
-        <strong>📄 Atas de Reuniões</strong>: Todas as atas estão disponíveis
-        publicamente no{" "}
+        <strong>📄 Atas e assembleias</strong>: Consulte os registros atuais na{" "}
+        <a href="/assembleias">página de assembleias</a>. O{" "}
         <a
           href="https://drive.google.com/drive/folders/1-5VqXGS_UaRTdrRJLbawT8FUSpKxaKSU?usp=sharing"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Google Drive</a
-        >.
+          Google Drive
+        </a>{" "}
+        permanece como arquivo histórico.
       </p>
     </div>
   </div>

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice central da documentação técnica do monorepo Codaqui. Aponta para ADRs, documentação viva de módulos, planos classificados e changelog.
 audience: AI agents, mantenedores, contribuidores
-status: Revisado em 2026-11-17 até a release 1.2.0.
+status: Revisado em 2026-11-17 até 1.2.0 publicado e Fase 8/1.3.0 implementada em develop.
 sections:
   - Estrutura de pastas
   - Índice por tipo de documento
@@ -70,9 +70,9 @@ Consulte **[plans/README.md](plans/README.md)** para todos os planos de `docs/pl
 
 Atalhos atuais:
 
-- [Roadmap pós-1.0.0](plans/pos-1-0/README.md) — Fases 7.1/7.2/9 concluídas; Fase 8 preparada.
+- [Roadmap pós-1.0.0](plans/pos-1-0/README.md) — Fases 7.1/7.2/9 publicadas; Fase 8 concluída em develop/1.3.0.
 - [Roadmap proposto 1.5](plans/codaqui-1-5/README.md) — painéis agregados que exigem backend novo; não aprovado.
-- [Spec da Fase 8](superpowers/specs/2026-11-17-public-pages-design.md) · [Plano TDD proposto](superpowers/plans/2026-11-17-public-pages.md).
+- [Spec da Fase 8](superpowers/specs/2026-11-17-public-pages-design.md) · [Plano TDD concluído](superpowers/plans/2026-11-17-public-pages.md).
 
 ## Convenções
 

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Índice completo dos planos do monorepo, separando trabalho ativo, histórico implementado/superseded, planos executáveis Superpowers e visões fora do backlog.
 audience: Mantenedores, presidência e AI agents escolhendo ou executando trabalho.
-status: Revisado em 2026-11-17 até a release 1.2.0; Real Network deliberadamente fora da revisão operacional.
+status: Revisado em 2026-11-17 até 1.2.0 publicado e Fase 8/1.3.0 concluída em develop; Real Network fora da revisão operacional.
 sections:
   - Como ler
   - Planos ativos e propostas
@@ -26,7 +26,7 @@ Este índice cobre todos os documentos em `docs/plans/` e todos os planos execut
 
 | Documento | Estado em 2026-11-17 | Próxima ação |
 |---|---|---|
-| [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fases 7.1, 7.2 e 9 publicadas; Fase 8 preparada; Fase 8b e candidatos não aprovados. | Revisar e ratificar a Fase 8 antes de implementar. |
+| [Pós-1.0.0](pos-1-0/README.md) | Roadmap vivo. Fases 7.1, 7.2 e 9 publicadas; Fase 8 implementada em develop/1.3.0; Fase 8b e candidatos não aprovados. | Revisar a Fase 8b ou outro candidato antes de implementar. |
 | [Frontend em jornadas](frontend-jornadas/README.md) | Inventário vivo. Onda 1 e reorganização da Fase 9 publicadas; demais ondas exigem revalidação. | Extrair somente itens ainda reproduzíveis para specs próprias. |
 | [Roadmap 1.5](codaqui-1-5/README.md) | Proposta, não aprovada e sem data. | Desenhar agregações/backend antes de prometer painéis dinâmicos. |
 | [Sync de eventos — MAP](events-sync-improvements/MAP.md) | Camadas 1–2 concluídas; Camada 3 somente em design. | Revalidar a Camada 3 antes de remover o force-sync legado. |
@@ -71,7 +71,7 @@ Os documentos abaixo são registros de implementação. Seu texto pode conter co
 
 | Plano | Estado |
 |---|---|
-| [Fase 8 — páginas públicas](../superpowers/plans/2026-11-17-public-pages.md) | Proposta com spec, aguardando revisão/aprovação; não implementada. |
+| [Fase 8 — páginas públicas](../superpowers/plans/2026-11-17-public-pages.md) | Concluída em develop/1.3.0 com TDD e gates; integração em main pendente. |
 | [Fase 9 — painéis e privacidade](../superpowers/plans/2026-11-16-fase-9-paineis.md) | Publicado em 1.2.0, migration 051, PR #654; revisão jurídica não presumida. |
 | [Fase 7.2 — ciclo de mentoria](../superpowers/plans/2026-11-16-mentorship-lifecycle.md) | Publicado em 1.1.0, migration 050, PR #652. |
 | [Fase 7.1 — eventos e blog](../superpowers/plans/2026-11-16-fase-7-1-eventos-blog.md) | Integrado pela PR #652 e presente na linha publicada após 1.0.2. |

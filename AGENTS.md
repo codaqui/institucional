@@ -89,7 +89,7 @@ Manuais de módulos:
 Planos e releases:
 
 - [Índice completo de planos ativos, históricos e superseded](docs/plans/README.md)
-- [Roadmap pós-1.0.0](docs/plans/pos-1-0/README.md) — próxima fase preparada: Fase 8, páginas públicas conectadas ao banco
+- [Roadmap pós-1.0.0](docs/plans/pos-1-0/README.md) — Fase 8 concluída em develop/1.3.0; próxima candidata: Fase 8b, ainda não aprovada
 - [Roadmap proposto 1.5](docs/plans/codaqui-1-5/README.md) — painéis agregados não aprovados que exigem backend novo
 - [Changelog desde 1.0.0](CHANGELOG.md)
 - [Real Network / Matchmaking](docs/plans/real-network/README.md) — somente visão exploratória, fora do backlog operacional
@@ -443,7 +443,8 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 
 - `comunidades/<slug>/src/data/*` é consumido em **build time** pelo app (ex.: `comunidades/devparana/src/data/ambassadors.json` → páginas `/embaixadores` do build tenant e do portal codaqui; `tisocial` tem `upcoming.json`/`campaigns.json`).
 - Enriquecimento: `EmbaixadoresPage.astro` cruza os dados locais com `loadPublicMembers()` (API pública) via `findMemberByAmbassador` (`src/lib/community-devparana.ts`, matching por `githubHandle`); quando encontra o membro, **prefere `member.name`** (e avatar/linkedin/bio) sobre o cadastro local — comportamento conhecido.
-- Sem API disponível no build → fallback nos dados locais (build segue).
+- `/sobre/equipe` mantém Diretoria/Membros/Alumni como curadoria local e usa `src/lib/team.ts` para enriquecer somente por URL/handle GitHub válido, nunca por nome; mentores vêm exclusivamente do snapshot ativo/vigente e só recebem link `/@handle` quando o perfil público existe no mesmo build. `/sobre/ong` usa `loadCommunitiesIndex()`, selo efetivo e `listCommunityPortals()` (interseção snapshot ativo+`siteEnabled` com `TENANTS`, href=`tenant.site`). Não cria membros/placeholders nem contratos de backend.
+- Sem API disponível no build → fallback nos dados locais (build segue). O loader de mentores resolve o snapshot pelo módulo e por `process.cwd()` para continuar encontrando `public/mentors/index.json` após o bundling do Astro.
 
 ### 18. Designations e diretorias (Fase 1a — ADR 006)
 

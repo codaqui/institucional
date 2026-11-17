@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design da Fase 8 — conectar /sobre/equipe e /sobre/ong às projeções públicas existentes, preservando curadoria institucional, fallbacks e arquitetura estática.
 audience: Presidência, mantenedores, implementadores e revisores.
-status: Proposta para revisão em 2026-11-17; não aprovada e não implementada. Nenhum backend ou migration é necessário.
+status: Aprovada pelo mantenedor e implementada em develop em 2026-11-17; versão compartilhada 1.3.0, sem backend ou migration. Integração em main pendente.
 sections:
   - Intenção e evidências
   - Objetivos, não objetivos e restrições
@@ -19,7 +19,7 @@ related-docs:
 agent-protocol:
   - Não criar membros/placeholders no PostgreSQL nem associação por nome; match somente por GitHub handle.
   - Não alterar APIs, migrations, tokens, layouts, rotas ou Design System.
-  - Implementar somente após revisão/aprovação desta spec e do plano TDD correspondente.
+  - Spec aprovada e implementada; mudanças posteriores exigem nova revisão de escopo.
 -->
 
 # Fase 8 — Páginas públicas conectadas às projeções existentes

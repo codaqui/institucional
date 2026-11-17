@@ -1,23 +1,23 @@
 <!-- AGENT-INDEX
 purpose: Roadmap pós-1.0.0 do monorepo Codaqui — releases concluídas, próxima fase preparada, candidatos não aprovados e pendências operacionais.
 audience: Presidência, mantenedores e AI agents planejando o pós-1.0.0.
-status: Revisado em 2026-11-17 até 1.2.0; Fases 7.1, 7.2 e 9 publicadas; Fase 8 com spec/plano propostos; Fase 8b e demais candidatos sem aprovação.
+status: Revisado em 2026-11-17 até 1.2.0 publicado; Fase 8 concluída em develop/1.3.0; Fase 8b e demais candidatos sem aprovação.
 sections:
   - Estado das releases
   - Fases concluídas
-  - Próxima fase preparada
+  - Fase 8 concluída
   - Candidatos posteriores
   - Painéis adiados
   - Pendências operacionais
   - Como propor uma nova fase
 related-docs:
-  - ../../../CHANGELOG.md — ordenação completa das releases 1.0.0–1.2.0.
+  - ../../../CHANGELOG.md — ordenação completa das releases 1.0.0 em diante.
   - ../README.md — classificação de todos os planos.
   - ../codaqui-1-5/README.md — painéis que exigem agregações/backend novo.
-  - ../../superpowers/specs/2026-11-17-public-pages-design.md — proposta da Fase 8.
-  - ../../superpowers/plans/2026-11-17-public-pages.md — plano TDD proposto da Fase 8.
+  - ../../superpowers/specs/2026-11-17-public-pages-design.md — design da Fase 8.
+  - ../../superpowers/plans/2026-11-17-public-pages.md — plano TDD concluído da Fase 8.
 agent-protocol:
-  - Apenas a Fase 8 está preparada; ela ainda exige revisão/aprovação antes da implementação.
+  - A Fase 8 está concluída em develop; qualquer trabalho novo exige revisão/aprovação de outra proposta.
   - Fases e “1.5” são rótulos de organização, não versões garantidas; revalidar código e escopo antes de executar.
   - Real Network é visão exploratória e não integra este backlog.
 -->
@@ -52,15 +52,16 @@ O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend
 
 A evidência de revisão jurídica/da diretoria não foi localizada nesta consolidação e não deve ser presumida.
 
-## Próxima fase preparada — Fase 8: páginas públicas conectadas ao banco
+## Fase 8 concluída — páginas públicas conectadas ao banco
 
-**Status: spec e plano propostos, aguardando revisão/aprovação; não implementada.**
+**Implementada em `develop` com versão compartilhada 1.3.0; integração em `main` ainda pendente.**
 
-- **P3 — `/sobre/equipe`:** manter curadoria local de Diretoria/Membros/Alumni e enriquecer por GitHub handle com `loadPublicMembers()`; sem match, preservar fallback local sem criar conta. Mentores vêm somente do snapshot público ativo/vigente.
-- **P4 — `/sobre/ong`:** comunidades vêm de `loadCommunitiesIndex()`, com nível/selo efetivo e data do snapshot; portais são a interseção do registro elegível com `TENANTS`, usando o domínio configurado.
-- **Limites:** sem migration, backend, membership automático, alteração de APIs ou consolidação global de `data/communities.ts` nesta fase.
+- **P3 — `/sobre/equipe`:** Diretoria/Membros/Alumni mantêm curadoria local e enriquecimento por GitHub handle com `loadPublicMembers()`; sem match, preservam fallback local sem criar conta. Mentores vêm somente do snapshot público ativo/vigente.
+- **P4 — `/sobre/ong`:** comunidades usam `loadCommunitiesIndex()`, com nível/selo efetivo e data do snapshot; portais são a interseção do registro elegível com `TENANTS`, usando o domínio configurado.
+- **Correção associada:** o loader de mentores agora encontra o snapshot após o bundling do Astro, com teste de regressão; o smoke do `dist/` confirmou o mentor real renderizado.
+- **Limites preservados:** sem migration, backend, membership automático, alteração de APIs ou consolidação global de `data/communities.ts`.
 
-Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-public-pages.md). Release proposta, se aprovada: 1.3.0 compartilhada.
+Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-public-pages.md). A próxima candidata é a Fase 8b, ainda não aprovada.
 
 ## Candidatos posteriores
 

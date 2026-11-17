@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export interface MentorAvailabilityRule {
@@ -81,11 +82,22 @@ function emptyIndex(): MentorsIndex {
   };
 }
 
-export function loadMentorsIndex(
-  filePath = fileURLToPath(new URL("../../public/mentors/index.json", import.meta.url)),
-): MentorsIndex {
+export function resolveMentorsSnapshotPath(
+  moduleUrl = import.meta.url,
+  cwd = process.cwd(),
+): string {
+  const candidates = [
+    fileURLToPath(new URL("../../public/mentors/index.json", moduleUrl)),
+    join(cwd, "public", "mentors", "index.json"),
+    join(cwd, "frontend", "public", "mentors", "index.json"),
+  ];
+  return candidates.find((candidate) => existsSync(candidate)) ?? candidates[0];
+}
+
+export function loadMentorsIndex(filePath?: string): MentorsIndex {
   try {
-    const snapshot: unknown = JSON.parse(readFileSync(filePath, "utf8"));
+    const snapshotPath = filePath ?? resolveMentorsSnapshotPath();
+    const snapshot: unknown = JSON.parse(readFileSync(snapshotPath, "utf8"));
     if (!isObject(snapshot) || Object.hasOwn(snapshot, "sessions") || !Array.isArray(snapshot.mentors)
       || !snapshot.mentors.every(isMentor) || !isInsights(snapshot.insights)
       || (snapshot.generatedAt !== null && (!isNonEmptyString(snapshot.generatedAt) || Number.isNaN(Date.parse(snapshot.generatedAt))))) {
