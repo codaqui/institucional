@@ -40,6 +40,12 @@ describe("MentorDashboardIsland", () => {
 
   afterEach(() => vi.unstubAllGlobals());
 
+  it("guides the mentor to publish weekly availability", async () => {
+    renderWithMui(<MentorDashboardIsland />);
+
+    expect(await screen.findByText("Cadastre ao menos um horário semanal para oferecer sessões na página pública.")).toBeInTheDocument();
+  });
+
   it("confirms a request with an HTTPS meet link", async () => {
     const user = userEvent.setup();
     renderWithMui(<MentorDashboardIsland />);

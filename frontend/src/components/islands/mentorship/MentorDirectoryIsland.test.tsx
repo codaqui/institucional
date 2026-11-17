@@ -15,7 +15,7 @@ vi.mock("../../../lib/use-auth", () => ({
 
 const mentor = {
   id: "mentor-1", handle: "ana", name: "Ana", avatarUrl: "avatar",
-  areas: ["DevOps"], focus: "Carreira", availability: [],
+  areas: ["DevOps"], focus: "Carreira", availability: [{ weekday: 1, startTime: "19:00", endTime: "20:00", timeZone: "America/Sao_Paulo" }],
 };
 
 describe("MentorDirectoryIsland", () => {
@@ -29,6 +29,25 @@ describe("MentorDirectoryIsland", () => {
       }
       return jsonResponse({ message: "not found" }, { status: 404 });
     });
+  });
+
+  it("distinguishes a mentor without weekly rules from unavailable slots", async () => {
+    const user = userEvent.setup();
+    mocks.authFetch.mockResolvedValue(jsonResponse([]));
+    renderWithMui(<MentorDirectoryIsland mentors={[{ ...mentor, availability: [] }]} />);
+
+    expect(screen.getByText("Disponibilidade não cadastrada")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Ver horários de Ana" }));
+    expect(await screen.findByText("O mentor ainda não cadastrou disponibilidade semanal. Não há horários para solicitar.")).toBeInTheDocument();
+  });
+
+  it("keeps the four-week message when rules exist but no slot is free", async () => {
+    const user = userEvent.setup();
+    mocks.authFetch.mockResolvedValue(jsonResponse([]));
+    renderWithMui(<MentorDirectoryIsland mentors={[mentor]} />);
+
+    await user.click(screen.getByRole("button", { name: "Ver horários de Ana" }));
+    expect(await screen.findByText("Nenhum horário disponível nas próximas quatro semanas.")).toBeInTheDocument();
   });
 
   it("books an available slot with accessible fields and guest consent", async () => {

@@ -89,6 +89,10 @@ O frontend entrega `/participe/mentoria`, `/membro/mentoria`, `/admin/mentoria` 
 
 `GET /mentorship/public` projeta mentores ativos e insights agregados. O UUID exposto é o **perfil de mentoria**, necessário para consultar slots e reservar; `memberId`, aprovadores e IDs de sessões não são públicos. O sync diário 06:21 UTC grava `static/mentors/index.json` atomicamente, preserva o arquivo anterior em erro e mantém `generatedAt` quando nada muda. O snapshot contém perfil público, disponibilidade e agregados de conclusão/no-show, nunca PII de mentorandos ou sessões individuais.
 
+### Diagnóstico de disponibilidade (Fase 8b.2)
+
+A página pública distingue `availability=[]` (regra semanal ainda não cadastrada) de regras existentes sem slots livres nas quatro semanas. A área do mentor orienta que ao menos um horário semanal é necessário para oferecer sessões. O código não cria disponibilidade automaticamente: configurar a agenda real permanece ação operacional do mentor. Uma jornada isolada com fixtures sintéticas validou regra → slot → solicitação `requested` → slot ocupado.
+
 ## Ciclo de vida e vínculo manual (1.1.0)
 
 `DesignationsService` conhece `MentorProfile` e sincroniza `profile.active` na mesma transação da designation, inclusive quando as roles derivadas não mudam. Somente `mentor @ program('mentoria')` ativo e vigente (`validUntil` nulo ou futuro) ativa o perfil. A recandidatura reutiliza o UUID e atualiza áreas/foco com perfil inativo; `grant()` aceita um `QueryRunner` opcional para que designation e perfil sejam gravados atomicamente. A migration 050 faz backup dos estados, reconcilia os perfis com designations vigentes e restaura os valores originais no down. O snapshot exige perfil/membro ativos e designation vigente em lote, sem cron adicional.

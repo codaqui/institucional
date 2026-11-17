@@ -83,6 +83,7 @@ function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
                 </Stack>
                 <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", mb: 1 }}>{mentor.areas.map((area) => <Chip key={area} size="small" label={area} />)}</Stack>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{mentor.focus}</Typography>
+                {mentor.availability.length === 0 && <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1 }}>Disponibilidade não cadastrada</Typography>}
                 <Button variant="outlined" onClick={() => void loadSlots(mentor)}>Ver horários de {mentor.name}</Button>
               </CardContent>
             </Card>
@@ -95,7 +96,7 @@ function MentorDirectory({ mentors }: Readonly<{ mentors: PublicMentor[] }>) {
       {selectedMentor && !loading && !selectedSlot && !token && (
         <Box>
           <Typography variant="h5" component="h3" sx={{ mb: 2 }}>Horários de {selectedMentor.name}</Typography>
-          {slots.length === 0 ? <Typography color="text.secondary">Nenhum horário disponível nas próximas quatro semanas.</Typography> : (
+          {slots.length === 0 ? <Typography color="text.secondary">{selectedMentor.availability.length === 0 ? "O mentor ainda não cadastrou disponibilidade semanal. Não há horários para solicitar." : "Nenhum horário disponível nas próximas quatro semanas."}</Typography> : (
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
               {slots.map((slot) => <Button key={`${slot.scheduledAt}-${slot.durationMin}`} variant="outlined" onClick={() => { setSelectedSlot(slot); setToken(""); }}>Agendar {slot.scheduledAt.slice(11, 16)}</Button>)}
             </Stack>

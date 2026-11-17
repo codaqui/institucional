@@ -114,6 +114,7 @@ function MentorDashboard() {
             <TextField fullWidth label="Fim" type="time" value={endTime} onChange={(event) => setEndTime(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
           </Stack>
           <Button variant="outlined" disabled={busy} onClick={() => void mutate(`/mentorship/availability/${weekday}`, [{ startTime, endTime, timeZone: "America/Sao_Paulo" }], "Disponibilidade atualizada.", "PUT")}>Substituir horários do dia</Button>
+          <Typography variant="body2" color="text.secondary">Cadastre ao menos um horário semanal para oferecer sessões na página pública.</Typography>
           <Typography variant="body2" color="text.secondary">A alteração vale para o dia escolhido e não altera sessões já reservadas.</Typography>
         </Stack></CardContent></Card>
 
