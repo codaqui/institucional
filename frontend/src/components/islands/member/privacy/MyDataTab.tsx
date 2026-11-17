@@ -12,6 +12,8 @@ import Switch from "@mui/material/Switch";
 import Typography from "@mui/material/Typography";
 import SaveIcon from "@mui/icons-material/Save";
 import { useAuth } from "../../../../lib/use-auth";
+import ProfileVisibilityPreview from "./ProfileVisibilityPreview";
+import AccountPrivacyActions from "./AccountPrivacyActions";
 
 interface VisibilityField {
   key: string;
@@ -133,47 +135,53 @@ export default function MyDataTab() {
         </CardContent>
       </Card>
 
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }} gutterBottom>
-            Visibilidade por campo
-          </Typography>
-          <Grid container spacing={2}>
-            {fields.map((field) => (
-              <Grid key={field.key} size={{ xs: 12, sm: 6 }}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={visibility[field.key] ?? false}
-                      onChange={(_, checked) =>
-                        setVisibility((current) => ({ ...current, [field.key]: checked }))
+      <Grid container spacing={2} sx={{ alignItems: "stretch" }}>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Card variant="outlined" sx={{ height: "100%" }}>
+            <CardContent>
+              <Typography variant="h6" component="h3" sx={{ fontWeight: 700 }} gutterBottom>
+                Visibilidade por campo
+              </Typography>
+              <Grid container spacing={2}>
+                {fields.map((field) => (
+                  <Grid key={field.key} size={{ xs: 12, sm: 6 }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={visibility[field.key] ?? false}
+                          onChange={(_, checked) =>
+                            setVisibility((current) => ({ ...current, [field.key]: checked }))
+                          }
+                        />
                       }
+                      label={field.label}
+                      labelPlacement="end"
                     />
-                  }
-                  label={field.label}
-                  labelPlacement="end"
-                />
-                <Typography variant="caption" color="text.secondary" sx={{ display: "block", ml: 5 }}>
-                  {field.source} · {field.purpose}
-                </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block", ml: 5 }}>
+                      {field.source} · {field.purpose}
+                    </Typography>
+                  </Grid>
+                ))}
               </Grid>
-            ))}
-          </Grid>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+          <Box sx={{ mt: 2 }}>
+            <Button
+              variant="contained"
+              startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
+              disabled={saving}
+              onClick={save}
+            >
+              {saving ? "Salvando…" : "Salvar visibilidade"}
+            </Button>
+          </Box>
+        </Grid>
+        <Grid size={{ xs: 12, md: 6 }}>
+          <ProfileVisibilityPreview user={user!} visibility={visibility} fields={fields} />
+        </Grid>
+      </Grid>
 
-      <Box>
-        <Button
-          variant="contained"
-          startIcon={saving ? <CircularProgress size={16} color="inherit" /> : <SaveIcon />}
-          disabled={saving}
-          onClick={save}
-        >
-          {saving ? "Salvando…" : "Salvar visibilidade"}
-        </Button>
-      </Box>
-
-      <Card variant="outlined">
+      <Card variant="outlined" id="preferencias-email">
         <CardContent>
           <Stack spacing={2}>
             <Box>
@@ -249,6 +257,8 @@ export default function MyDataTab() {
           </Stack>
         </CardContent>
       </Card>
+
+      <AccountPrivacyActions />
     </Stack>
   );
 }
