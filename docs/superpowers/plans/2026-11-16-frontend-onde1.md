@@ -1,3 +1,12 @@
+<!-- AGENT-INDEX
+purpose: Plano TDD da Onda 1 de correções P0/P1 de frontend e hardening do C4P.
+audience: Implementadores, revisores e futuros agentes consultando o histórico.
+status: Concluído e publicado em v1.0.2-backend pela PR #650.
+sections: [Semântica e contraste, Acessibilidade e ações destrutivas, Guards e C4P, Gates]
+related-docs: [../specs/2026-11-16-frontend-onde1-design.md]
+agent-protocol: Registro histórico concluído; revalidar o backlog restante em vez de reexecutar tasks.
+-->
+
 # Onda 1 (Fase 9a) — Correções P0/P1 de UX no frontend Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

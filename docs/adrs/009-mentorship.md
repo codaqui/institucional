@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 5 — candidatura, disponibilidade, agendamento concorrente, sessões, horas e insights de mentoria.
 audience: AI agents, mantenedores, mentores e operadores de release.
-status: Fase 5 e Mentoria Operations publicadas em 0.19.0 e 0.22.0; Fase 7.2 implementada em develop (backend 1.1.0, migration 050) com ciclo de vida sincronizado e vínculo manual mentor/admin.
+status: Fase 5 e Mentoria Operations publicadas em 0.19.0/0.22.0; Fase 7.2 publicada em v1.1.0-backend/migration 050 (PR #652) com ciclo de vida sincronizado e vínculo manual mentor/admin.
 sections:
   - Contexto e decisão
   - Modelo e autorização
@@ -25,7 +25,7 @@ agent-protocol:
 # ADR 009 — Mentoria no sistema
 
 - **Data da decisão:** 2026-11-09
-- **Status:** Fase 5 publicada em `v0.19.0-backend`; Mentoria Operations publicada em `v0.22.0-backend`
+- **Status:** Fase 5 publicada em `v0.19.0-backend`; Mentoria Operations em `v0.22.0-backend`; ciclo de vida e vínculo de participantes publicados em `v1.1.0-backend`/migration 050
 - **Escopo:** Backend 0.19.0 e 0.22.0, migrations 044 e 046, disponibilidade, sessões, notificações, horas, histórico, gestão de mentores, páginas e snapshot
 
 ## Contexto e decisão

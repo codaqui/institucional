@@ -86,14 +86,15 @@ Manuais de módulos:
 - [Manual do Código — Eventos](docs/modules/events/CODE_MANUAL.md)
 - [Mapa de Papéis — Eventos](docs/modules/events/ROLES.md)
 
-Planos futuros:
+Planos e releases:
 
-- [Multi-tenant — Fases Pendentes](docs/plans/multisite/README.md)
-- [Real Network / Matchmaking](docs/plans/real-network/README.md)
-- [UI/UX de Eventos](docs/plans/event-uiux-improvements/README.md)
-- [Plano de Atualização de Dependências](docs/plans/update/README.md)
+- [Índice completo de planos ativos, históricos e superseded](docs/plans/README.md)
+- [Roadmap pós-1.0.0](docs/plans/pos-1-0/README.md) — próxima fase preparada: Fase 8, páginas públicas conectadas ao banco
+- [Roadmap proposto 1.5](docs/plans/codaqui-1-5/README.md) — painéis agregados não aprovados que exigem backend novo
+- [Changelog desde 1.0.0](CHANGELOG.md)
+- [Real Network / Matchmaking](docs/plans/real-network/README.md) — somente visão exploratória, fora do backlog operacional
 
-> Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes ou corrigir bugs recorrentes.
+> Mantenha esses arquivos atualizados quando alterar roles, fluxos de eventos, adicionar fontes ou corrigir bugs recorrentes. Não execute planos históricos sem revalidar o status no índice.
 
 ---
 
@@ -134,7 +135,7 @@ Planos futuros:
 | **Container** | Podman Compose (`compose.yaml` dev, `compose.prod.yaml` ARM64) |
 | **Image (prod)** | `ghcr.io/codaqui/institucional-backend:latest-arm64-v8` |
 
-**Versionamento do backend:** ver `backend/package.json` (não fixar a versão nesta doc). Toda mudança em `backend/` exige **bump semver** (feat → minor, fix → patch): o workflow `publish-backend.yml` (manual) usa o `version` para a tag da imagem multi-arch (amd64 + arm64/v8) no GHCR e para a release `v<versão>-backend` — e o **redeploy em produção é manual no Coolify** (ver Commands).
+**Versionamento compartilhado:** `frontend/package.json` e `backend/package.json` usam sempre a mesma versão de produto, replicada nos dois lockfiles (não fixar o número nesta doc). Toda release exige bump semver (feat → minor, fix → patch) e entrada em `CHANGELOG.md`, mesmo quando somente uma camada mudou; o `package.json` da raiz é independente. O workflow `publish-backend.yml` (manual) usa o `version` do backend para a tag da imagem multi-arch (amd64 + arm64/v8) no GHCR e para a release `v<versão>-backend` — e o **redeploy em produção é manual no Coolify** (ver Commands).
 
 **Site**: https://codaqui.dev · **API**: https://api.codaqui.dev · **Repo**: https://github.com/codaqui/institucional · **CNPJ**: 44.593.429/0001-05
 
@@ -179,7 +180,7 @@ npm run sync:company-badges      # /companies/badges/public → static/badges/em
 npm run sync:c4p                 # /c4p/public/snapshot → static/c4p/ (fora do agregador sync)
 ```
 
-> ⚠️ **Mudança em `backend/` exige bump de `version` em `backend/package.json`** (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa essa versão para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
+> ⚠️ **Toda release mantém `frontend/package.json` e `backend/package.json` na mesma versão**, inclusive nos lockfiles, e atualiza `CHANGELOG.md` (semver: feat → minor, fix → patch). O workflow `publish-backend.yml` (manual) usa a versão do backend para a tag da imagem Docker no GHCR e para a release `v<versão>-backend` — sem bump, o deploy publica por cima da versão anterior.
 
 Demais comandos (dev server, lighthouse, syncs individuais, infra Podman Compose, migrations): **`make help`** ou a seção de comandos do [DEVELOPMENT.md](./DEVELOPMENT.md).
 
@@ -568,7 +569,7 @@ import AdminHubApp from "../../components/islands/admin/hub/AdminHubApp";
 - Sidebar admin usa seis grupos: Início, Comunidades e eventos, Pessoas e aprendizado, Apoio e financeiro, Governança e transparência, Sistema. Não há contadores nem novas regras de role/designation.
 - Migration 051/backend 1.2.0 criam `account_deletion_requests` com unique parcial de uma pendência por membro. Solicitar/cancelar/concluir não altera `members`; exclusão é revisada pela diretoria, nunca imediata.
 - `GET /members/me/export` gera JSON síncrono do titular (schema 1), 3/hora, sem tokens/segredos/terceiros. Pedidos do membro ficam em `/members/me/deletion-request*`; fila admin em `/admin/members/deletion-requests*` dentro de `/admin`, paginada e auditada. Detalhes: [ADR 019](docs/adrs/019-privacy-self-service.md).
-- Publicação exige revisão jurídica/da diretoria → release/redeploy + migration 051 → validação controlada → frontend. Não há sync.
+- Release `v1.2.0-backend`/migration 051 e PR #654 estão publicadas; evidência de revisão jurídica/da diretoria não foi localizada na consolidação de 2026-11-17 e não deve ser presumida. Não há sync. Próximos passos dinâmicos, contadores e dashboard de pendências ficaram fora e dependem de backend/agregações novas: [roadmap proposto 1.5](docs/plans/codaqui-1-5/README.md), não aprovado.
 
 ---
 
@@ -654,7 +655,7 @@ Antes de submeter:
 
 - [ ] `make astro-verify` passa (build codaqui completo + paridade de URLs)
 - [ ] `make astro-verify-tenants` passa (se tocou em `tenants.config.mjs`, layouts, lib compartilhada ou conteúdo de comunidade)
-- [ ] `cd backend && npm run build && npx jest --silent` (se mexeu em `backend/`) + **bump de `version`** em `backend/package.json`
+- [ ] `cd backend && npm run build && npx jest --silent` (se mexeu em `backend/`); em toda release, alinhar `version` e lockfiles de frontend/backend e atualizar `CHANGELOG.md`
 - [ ] `npm run test:scripts` (se mexeu em `scripts/*.mjs`)
 - [ ] Listagens novas seguem o padrão de paginação (`pagination.ts` + `PaginationControls` + DTO backend — decisão 12)
 - [ ] Blog posts novos usam `slug: YYYY/MM/DD/nome` no frontmatter

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Anexo do plano Codaqui 1.0.0 — itens transversais G3–G6 decididos pela presidência em 2026-10-29 (anti-captcha Cloudflare Turnstile, busca do site, certificados sem validade, retenção de auditoria). Mapeamento por fase (1a–7) com arquitetura proposta.
 audience: Presidência, mantenedores, AI agents implementando as fases 1a em diante.
-status: design registrado em 2026-10-29 (decisões G3–G6 da presidência); Turnstile = candidata aprovada Cloudflare Turnstile gratuita (site já está no Cloudflare); busca = recomendação Pagefind (site pós-Fase 0 não tem busca); certificados = decisão sem mudança de código; auditoria = retenção operacional 30 dias **configurável por painel admin** (ratificado) + governo permanente.
+status: histórico implementado — Turnstile, Pagefind, decisão de certificados sem validade e retenção operacional configurável/governo permanente foram entregues nas fases correspondentes; consultar AGENTS.md e ADRs para o comportamento atual.
 sections:
   - G3 — Anti-captcha (Cloudflare Turnstile): mapeamento, arquitetura, fallbacks, fase
   - G4 — Busca do site: comparativo, recomendação Pagefind, pontos de instalação, o que não busca, fase

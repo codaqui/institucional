@@ -1,3 +1,12 @@
+<!-- AGENT-INDEX
+purpose: Plano TDD da Fase 7.1 para contenção de eventos e thumbnails do blog.
+audience: Implementadores, revisores e futuros agentes consultando o histórico.
+status: Concluído; commits integrados pela PR #652 e publicados na linha 1.1.0, após 1.0.2.
+sections: [Resumo de Discord, Contenção visual de eventos, Thumbnails do blog, Gates]
+related-docs: [../specs/2026-11-16-fase-7-1-eventos-blog-design.md]
+agent-protocol: Registro histórico concluído; não reexecutar tasks nem checkboxes.
+-->
+
 # Fase 7.1 — Eventos e prévia do blog Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

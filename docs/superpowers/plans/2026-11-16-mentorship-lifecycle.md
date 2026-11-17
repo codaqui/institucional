@@ -1,3 +1,12 @@
+<!-- AGENT-INDEX
+purpose: Plano TDD da Fase 7.2 para ciclo de vida, atomicidade e vínculo de sessões de mentoria.
+audience: Implementadores, revisores e futuros agentes consultando o histórico.
+status: Concluído e publicado em v1.1.0-backend/migration 050 pela PR #652.
+sections: [Sincronização, Candidatura atômica, Reconciliação, Vínculo e UI, Gates]
+related-docs: [../specs/2026-11-16-mentorship-lifecycle-design.md]
+agent-protocol: Registro histórico concluído; não reexecutar tasks nem checkboxes.
+-->
+
 # Fase 7.2 — Ciclo de vida e sessões de mentoria Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
