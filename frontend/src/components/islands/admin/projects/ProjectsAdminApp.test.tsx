@@ -13,18 +13,29 @@ vi.mock("../../../../lib/use-auth", () => ({
     isLoggedIn: true,
     isAdmin: false,
     user: {
-      sub: "director-1", githubId: "gh-1", handle: "director", name: "Diretor",
-      avatarUrl: "", roles: ["diretor"],
+      sub: "director-1",
+      githubId: "gh-1",
+      handle: "director",
+      name: "Diretor",
+      avatarUrl: "",
+      roles: ["diretor"],
     },
     authFetch: mocks.authFetch,
   }),
 }));
 
 const entity = {
-  id: "2a4a38de-eacf-49f1-a67f-a8162ec0f631", slug: "codaqui", name: "Associação Codaqui",
-  type: "ong", cnpj: null, website: "https://codaqui.dev", contactEmail: null,
-  isActive: true, registeredById: "director-1",
-  createdAt: "2026-11-01T12:00:00.000Z", updatedAt: "2026-11-01T12:00:00.000Z",
+  id: "2a4a38de-eacf-49f1-a67f-a8162ec0f631",
+  slug: "codaqui",
+  name: "Associação Codaqui",
+  type: "ong",
+  cnpj: null,
+  website: "https://codaqui.dev",
+  contactEmail: null,
+  isActive: true,
+  registeredById: "director-1",
+  createdAt: "2026-11-01T12:00:00.000Z",
+  updatedAt: "2026-11-01T12:00:00.000Z",
 };
 
 const project = {
@@ -53,9 +64,29 @@ const project = {
   totalHours: 4,
   schedule: [{ numero: 1, descricao: "Encontro inicial", carga: 4 }],
   maxParticipants: 8,
-  supportPartners: [],
-  budget: null,
-  attachments: [],
+  supportPartners: [{ nome: "Parceiro", cnpj: "12.345.678/0001-90" }],
+  budget: {
+    itens: [
+      {
+        descricao: "Material",
+        quantidade: 2,
+        unidadeMedida: "pacote",
+        valorUnitario: 10.5,
+        valorTotalItem: 21,
+      },
+    ],
+    totalGeral: 21,
+  },
+  attachments: ["https://drive.google.com/file/d/abc"],
+  mentor: {
+    id: "70c0d1d0-8fd6-477d-b59c-eb48f37a1f18",
+    name: "Ana",
+    githubHandle: "ana",
+    avatarUrl: "ana.png",
+  },
+  coMentors: [
+    { id: "co-1", name: "Bruno", githubHandle: "bruno", avatarUrl: null },
+  ],
   internalNotes: null,
   reportDiscussionUrl: null,
   createdAt: "2026-11-01T12:00:00.000Z",
@@ -70,15 +101,31 @@ function call(path: string, method = "GET") {
 
 describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
   beforeEach(() => {
-    mocks.authFetch.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/projects?")) {
-        return jsonResponse({ data: [project], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      if (path.startsWith("/entities?")) {
-        return jsonResponse({ data: [entity], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      return jsonResponse(project, { status: init?.method === "POST" ? 201 : 200 });
-    });
+    mocks.authFetch
+      .mockReset()
+      .mockImplementation(async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/projects?")) {
+          return jsonResponse({
+            data: [project],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        if (path.startsWith("/entities?")) {
+          return jsonResponse({
+            data: [entity],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        return jsonResponse(project, {
+          status: init?.method === "POST" ? 201 : 200,
+        });
+      });
     vi.spyOn(window, "confirm").mockReturnValue(true);
   });
 
@@ -101,68 +148,203 @@ describe("ProjectsAdminApp", { timeout: 20_000 }, () => {
     });
   });
 
-  it("saves the complete project as proposed with schedule and mentor", async () => {
+  it("preserves mentors and resources when saving an existing project as proposed", async () => {
     const user = userEvent.setup();
     renderWithMui(<ProjectsAdminApp />);
 
     await user.click(await screen.findByRole("button", { name: "Editar" }));
     expect(screen.getByLabelText("Justificativa")).toHaveValue("Justificativa");
-    await user.type(screen.getByLabelText("ID do mentor principal"), "70c0d1d0-8fd6-477d-b59c-eb48f37a1f18");
+    expect(screen.getByLabelText("Mentor principal")).toHaveValue("Ana (@ana)");
+    expect(screen.getByText("Bruno (@bruno)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nome do parceiro 1")).toHaveValue("Parceiro");
+    expect(
+      (
+        screen.getByLabelText("Total do item 1") as HTMLInputElement
+      ).value.replace(/\s/g, " "),
+    ).toBe("R$ 21,00");
     await user.click(screen.getByRole("button", { name: "Salvar proposta" }));
 
-    await waitFor(() => expect(call(`/projects/${project.id}`, "PATCH")).toBeDefined());
-    expect(JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body))).toMatchObject({
+    await waitFor(() =>
+      expect(call(`/projects/${project.id}`, "PATCH")).toBeDefined(),
+    );
+    expect(
+      JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body)),
+    ).toMatchObject({
       status: "proposed",
       name: project.name,
       entityId: entity.id,
       totalHours: 4,
       schedule: [{ numero: 1, descricao: "Encontro inicial", carga: 4 }],
       mentorMemberId: "70c0d1d0-8fd6-477d-b59c-eb48f37a1f18",
+      coMentors: ["co-1"],
+      supportPartners: [{ nome: "Parceiro", cnpj: "12.345.678/0001-90" }],
+      budget: {
+        itens: [
+          {
+            descricao: "Material",
+            quantidade: 2,
+            unidadeMedida: "pacote",
+            valorUnitario: 10.5,
+            valorTotalItem: 21,
+          },
+        ],
+        totalGeral: 21,
+      },
+      attachments: ["https://drive.google.com/file/d/abc"],
     });
   });
 
+  it("blocks a non-HTTPS attachment before calling the API", async () => {
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    const attachment = screen.getByLabelText("URL do anexo 1");
+    await user.clear(attachment);
+    await user.type(attachment, "http://drive.google.com/file/d/abc");
+    await user.click(screen.getByRole("button", { name: "Salvar proposta" }));
+
+    expect(
+      await screen.findByText("Os anexos devem usar URLs HTTPS válidas."),
+    ).toBeInTheDocument();
+    expect(call(`/projects/${project.id}`, "PATCH")).toBeUndefined();
+  });
+
+  it("keeps the dialog open with the storage allowlist error", async () => {
+    mocks.authFetch.mockImplementation(
+      async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/projects?")) {
+          return jsonResponse({
+            data: [project],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        if (path.startsWith("/entities?")) {
+          return jsonResponse({
+            data: [entity],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        if (path === `/projects/${project.id}` && init?.method === "PATCH") {
+          return jsonResponse(
+            { message: "URL de comprovante fora da allowlist." },
+            { status: 400 },
+          );
+        }
+        return jsonResponse(project);
+      },
+    );
+    const user = userEvent.setup();
+    renderWithMui(<ProjectsAdminApp />);
+
+    await user.click(await screen.findByRole("button", { name: "Editar" }));
+    await user.click(screen.getByRole("button", { name: "Salvar proposta" }));
+
+    expect(
+      await screen.findByText("URL de comprovante fora da allowlist."),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("URL do anexo 1")).toBeInTheDocument();
+  });
+
   it("shows the owner-transition error returned to a non-owner director", async () => {
-    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/projects?")) {
-        return jsonResponse({ data: [project], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      if (path.startsWith("/entities?")) {
-        return jsonResponse({ data: [entity], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      return jsonResponse({ message: "A transição exige admin ou o diretor criador do projeto." }, { status: 403 });
-    });
+    mocks.authFetch.mockImplementation(
+      async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/projects?")) {
+          return jsonResponse({
+            data: [project],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        if (path.startsWith("/entities?")) {
+          return jsonResponse({
+            data: [entity],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        return jsonResponse(
+          {
+            message: "A transição exige admin ou o diretor criador do projeto.",
+          },
+          { status: 403 },
+        );
+      },
+    );
     const user = userEvent.setup();
     renderWithMui(<ProjectsAdminApp />);
 
     await user.click(await screen.findByRole("button", { name: "Ativar" }));
 
-    expect(await screen.findByRole("alert")).toHaveTextContent("A transição exige admin ou o diretor criador do projeto.");
-    expect(JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body))).toEqual({ status: "active" });
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "A transição exige admin ou o diretor criador do projeto.",
+    );
+    expect(
+      JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body)),
+    ).toEqual({ status: "active" });
   });
 
   it("finalizes an active project with a report instead of offering an invalid edit", async () => {
-    mocks.authFetch.mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/projects?")) {
-        return jsonResponse({ data: [{ ...project, status: "active" }], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      if (path.startsWith("/entities?")) {
-        return jsonResponse({ data: [entity], total: 1, page: 1, totalPages: 1, limit: 50 });
-      }
-      return jsonResponse({ ...project, status: "finished" });
-    });
+    mocks.authFetch.mockImplementation(
+      async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/projects?")) {
+          return jsonResponse({
+            data: [{ ...project, status: "active" }],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        if (path.startsWith("/entities?")) {
+          return jsonResponse({
+            data: [entity],
+            total: 1,
+            page: 1,
+            totalPages: 1,
+            limit: 50,
+          });
+        }
+        return jsonResponse({ ...project, status: "finished" });
+      },
+    );
     const user = userEvent.setup();
     renderWithMui(<ProjectsAdminApp />);
 
-    expect(await screen.findByRole("button", { name: "Finalizar" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Editar" })).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Finalizar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Editar" }),
+    ).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Finalizar" }));
-    await user.type(screen.getByLabelText(/URL do relatório/), "https://github.com/codaqui/institucional/discussions/42");
-    await user.click(screen.getByRole("button", { name: "Confirmar finalização" }));
+    await user.type(
+      screen.getByLabelText(/URL do relatório/),
+      "https://github.com/codaqui/institucional/discussions/42",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Confirmar finalização" }),
+    );
 
-    await waitFor(() => expect(call(`/projects/${project.id}`, "PATCH")).toBeDefined());
-    expect(JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body))).toEqual({
+    await waitFor(() =>
+      expect(call(`/projects/${project.id}`, "PATCH")).toBeDefined(),
+    );
+    expect(
+      JSON.parse(String(call(`/projects/${project.id}`, "PATCH")?.[1]?.body)),
+    ).toEqual({
       status: "finished",
-      reportDiscussionUrl: "https://github.com/codaqui/institucional/discussions/42",
+      reportDiscussionUrl:
+        "https://github.com/codaqui/institucional/discussions/42",
     });
   });
 });

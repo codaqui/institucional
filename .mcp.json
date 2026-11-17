@@ -2,6 +2,10 @@
 	"mcpServers": {
 		"cloudflare-api": {
 			"url": "https://mcp.cloudflare.com/mcp"
+		},
+		"stripe": {
+			"url": "https://mcp.stripe.com",
+			"bearerTokenEnvVar": "AGENT_API_KEY"
 		}
 	}
 }
