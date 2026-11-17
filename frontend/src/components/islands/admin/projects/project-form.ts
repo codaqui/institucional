@@ -133,31 +133,46 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
     if (!value) errors.push(message);
   }
   if (!values.mentor) errors.push("Selecione o mentor principal.");
-  if (!Number.isInteger(values.odsPrimary) || values.odsPrimary < 1 || values.odsPrimary > 17) {
+  if (
+    !Number.isInteger(values.odsPrimary) ||
+    values.odsPrimary < 1 ||
+    values.odsPrimary > 17
+  ) {
     errors.push("A ODS principal deve estar entre 1 e 17.");
   }
   if (
-    values.odsSecondary.some((value) => !Number.isInteger(value) || value < 1 || value > 17) ||
+    values.odsSecondary.some(
+      (value) => !Number.isInteger(value) || value < 1 || value > 17,
+    ) ||
     new Set(values.odsSecondary).size !== values.odsSecondary.length ||
     values.odsSecondary.includes(values.odsPrimary)
   ) {
-    errors.push("As ODS secundárias devem ser únicas e diferentes da principal.");
+    errors.push(
+      "As ODS secundárias devem ser únicas e diferentes da principal.",
+    );
   }
 
   const start = Date.parse(values.startsAt);
   const end = Date.parse(values.endsAt);
   const registrationStart = Date.parse(values.registrationStartsAt);
   const registrationEnd = Date.parse(values.registrationEndsAt);
-  if (start >= end) errors.push("O início do projeto deve ser anterior ao fim.");
+  if (start >= end)
+    errors.push("O início do projeto deve ser anterior ao fim.");
   if (registrationStart >= registrationEnd) {
     errors.push("A janela de inscrição deve ter início anterior ao fim.");
   }
   if (registrationEnd > start) {
-    errors.push("A janela de inscrição deve terminar antes do início da execução ou no mesmo dia.");
+    errors.push(
+      "A janela de inscrição deve terminar antes do início da execução ou no mesmo dia.",
+    );
   }
 
-  if (!(Number(values.totalHours) > 0)) errors.push("A carga horária total deve ser positiva.");
-  if (!Number.isInteger(Number(values.maxParticipants)) || Number(values.maxParticipants) < 0) {
+  if (!(Number(values.totalHours) > 0))
+    errors.push("A carga horária total deve ser positiva.");
+  if (
+    !Number.isInteger(Number(values.maxParticipants)) ||
+    Number(values.maxParticipants) < 0
+  ) {
     errors.push("O número de vagas deve ser um inteiro não negativo.");
   }
   if (values.schedule.length === 0) {
@@ -169,7 +184,10 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
       break;
     }
   }
-  const scheduleTotal = values.schedule.reduce((sum, item) => sum + cents(Number(item.carga) || 0), 0);
+  const scheduleTotal = values.schedule.reduce(
+    (sum, item) => sum + cents(Number(item.carga) || 0),
+    0,
+  );
   if (scheduleTotal !== cents(Number(values.totalHours) || 0)) {
     errors.push("A soma dos encontros deve ser igual à carga horária total.");
   }
@@ -185,15 +203,23 @@ export function validateProjectForm(values: ProjectFormValues): string[] {
       errors.push("Informe a descrição de cada item do orçamento.");
       break;
     }
-    if (!(Number(item.quantidade) > 0) || !hasText(item.unidadeMedida) || Number(item.valorUnitario) < 0 || !hasText(item.valorUnitario)) {
-      errors.push("Cada item do orçamento precisa de quantidade, unidade e valor unitário válidos.");
+    if (
+      !(Number(item.quantidade) > 0) ||
+      !hasText(item.unidadeMedida) ||
+      Number(item.valorUnitario) < 0 ||
+      !hasText(item.valorUnitario)
+    ) {
+      errors.push(
+        "Cada item do orçamento precisa de quantidade, unidade e valor unitário válidos.",
+      );
       break;
     }
   }
   for (const attachment of values.attachments) {
     if (!hasText(attachment)) continue;
     try {
-      if (new URL(attachment).protocol !== "https:") errors.push("Os anexos devem usar URLs HTTPS válidas.");
+      if (new URL(attachment).protocol !== "https:")
+        errors.push("Os anexos devem usar URLs HTTPS válidas.");
     } catch {
       errors.push("Os anexos devem usar URLs HTTPS válidas.");
       break;
@@ -213,13 +239,16 @@ export function buildProjectPayload(
   };
   if (status === "draft" || !values.mentor) return base;
 
-  const budgetItems = values.budgetItems.filter((item) => hasText(item.descricao)).map((item) => ({
-    descricao: item.descricao.trim(),
-    quantidade: Number(item.quantidade),
-    unidadeMedida: item.unidadeMedida.trim(),
-    valorUnitario: Number(item.valorUnitario),
-    valorTotalItem: cents(Number(item.quantidade) * Number(item.valorUnitario)) / 100,
-  }));
+  const budgetItems = values.budgetItems
+    .filter((item) => hasText(item.descricao))
+    .map((item) => ({
+      descricao: item.descricao.trim(),
+      quantidade: Number(item.quantidade),
+      unidadeMedida: item.unidadeMedida.trim(),
+      valorUnitario: Number(item.valorUnitario),
+      valorTotalItem:
+        cents(Number(item.quantidade) * Number(item.valorUnitario)) / 100,
+    }));
   return {
     ...base,
     kind: values.kind,
@@ -244,18 +273,121 @@ export function buildProjectPayload(
     })),
     maxParticipants: Number(values.maxParticipants),
     mentorMemberId: values.mentor.id,
-    coMentors: values.coMentors.map((member) => member.id).filter((id) => id !== values.mentor?.id),
-    supportPartners: values.supportPartners.filter((partner) => hasText(partner.nome)).map((partner) => ({
-      nome: partner.nome.trim(),
-      ...(hasText(partner.cnpj) ? { cnpj: partner.cnpj.trim() } : {}),
+    coMentors: values.coMentors
+      .map((member) => member.id)
+      .filter((id) => id !== values.mentor?.id),
+    supportPartners: values.supportPartners
+      .filter((partner) => hasText(partner.nome))
+      .map((partner) => ({
+        nome: partner.nome.trim(),
+        ...(hasText(partner.cnpj) ? { cnpj: partner.cnpj.trim() } : {}),
+      })),
+    ...(budgetItems.length > 0
+      ? {
+          budget: {
+            itens: budgetItems,
+            totalGeral:
+              budgetItems.reduce(
+                (sum, item) => sum + cents(item.valorTotalItem),
+                0,
+              ) / 100,
+          },
+        }
+      : {}),
+    attachments: values.attachments
+      .map((value) => value.trim())
+      .filter(Boolean),
+    ...(hasText(values.internalNotes)
+      ? { internalNotes: values.internalNotes.trim() }
+      : {}),
+  };
+}
+
+export interface ManagedProject {
+  id: string;
+  kind: ProjectFormValues["kind"] | null;
+  name: string;
+  entityId: string;
+  partnershipId: string | null;
+  summary: string | null;
+  isPublic: boolean;
+  status: "draft" | "proposed" | "active" | "finished" | "canceled";
+  startsAt: string | null;
+  endsAt: string | null;
+  registrationStartsAt: string | null;
+  registrationEndsAt: string | null;
+  odsPrimary: number | null;
+  odsSecondary: number[];
+  targetCommunity: string | null;
+  justification: string | null;
+  objective: string | null;
+  skillsDeveloped: string | null;
+  methodology: string | null;
+  totalHours: number | null;
+  schedule: Array<{ numero: number; descricao: string; carga: number }> | null;
+  maxParticipants: number | null;
+  supportPartners: Array<{ nome: string; cnpj?: string }>;
+  budget: {
+    itens: Array<{
+      descricao: string;
+      quantidade: number;
+      unidadeMedida: string;
+      valorUnitario: number;
+      valorTotalItem: number;
+    }>;
+    totalGeral: number;
+  } | null;
+  attachments: string[];
+  internalNotes: string | null;
+  mentor: ProjectMemberOption | null;
+  coMentors: ProjectMemberOption[];
+}
+
+export function createProjectFormFromProject(
+  project: ManagedProject | null,
+  defaultEntityId = "",
+): ProjectFormValues {
+  if (!project) {
+    return { ...createEmptyProjectForm(), entityId: defaultEntityId };
+  }
+  return {
+    name: project.name,
+    entityId: project.entityId,
+    kind: project.kind ?? "projeto",
+    summary: project.summary ?? "",
+    isPublic: project.isPublic,
+    startsAt: project.startsAt ?? "",
+    endsAt: project.endsAt ?? "",
+    registrationStartsAt: project.registrationStartsAt ?? "",
+    registrationEndsAt: project.registrationEndsAt ?? "",
+    odsPrimary: project.odsPrimary ?? 4,
+    odsSecondary: project.odsSecondary,
+    targetCommunity: project.targetCommunity ?? "",
+    justification: project.justification ?? "",
+    objective: project.objective ?? "",
+    skillsDeveloped: project.skillsDeveloped ?? "",
+    methodology: project.methodology ?? "PjBL",
+    totalHours: project.totalHours?.toString() ?? "",
+    maxParticipants: project.maxParticipants?.toString() ?? "",
+    schedule: project.schedule?.map((item) => ({
+      numero: String(item.numero),
+      descricao: item.descricao,
+      carga: String(item.carga),
+    })) ?? [{ numero: "1", descricao: "", carga: "" }],
+    mentor: project.mentor,
+    coMentors: project.coMentors,
+    supportPartners: project.supportPartners.map((partner) => ({
+      nome: partner.nome,
+      cnpj: partner.cnpj ?? "",
     })),
-    ...(budgetItems.length > 0 ? {
-      budget: {
-        itens: budgetItems,
-        totalGeral: budgetItems.reduce((sum, item) => sum + cents(item.valorTotalItem), 0) / 100,
-      },
-    } : {}),
-    attachments: values.attachments.map((value) => value.trim()).filter(Boolean),
-    ...(hasText(values.internalNotes) ? { internalNotes: values.internalNotes.trim() } : {}),
+    budgetItems:
+      project.budget?.itens.map((item) => ({
+        descricao: item.descricao,
+        quantidade: String(item.quantidade),
+        unidadeMedida: item.unidadeMedida,
+        valorUnitario: String(item.valorUnitario),
+      })) ?? [],
+    attachments: project.attachments,
+    internalNotes: project.internalNotes ?? "",
   };
 }

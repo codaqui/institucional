@@ -8,11 +8,15 @@ import type { ProjectMemberOption } from "./project-form";
 interface ProjectMentorFieldsProps {
   readonly mentor: ProjectMemberOption | null;
   readonly coMentors: ProjectMemberOption[];
-  readonly onChange: (mentor: ProjectMemberOption | null, coMentors: ProjectMemberOption[]) => void;
+  readonly onChange: (
+    mentor: ProjectMemberOption | null,
+    coMentors: ProjectMemberOption[],
+  ) => void;
   readonly disabled?: boolean;
 }
 
-const memberLabel = (member: ProjectMemberOption) => `${member.name} (@${member.githubHandle})`;
+const memberLabel = (member: ProjectMemberOption) =>
+  `${member.name} (@${member.githubHandle})`;
 
 export default function ProjectMentorFields({
   mentor,
@@ -32,7 +36,9 @@ export default function ProjectMentorFields({
       setLoading(true);
       setSearchError("");
       try {
-        const response = await authFetch(`/mentorship/member-options?search=${encodeURIComponent(query.trim())}`);
+        const response = await authFetch(
+          `/mentorship/member-options?search=${encodeURIComponent(query.trim())}`,
+        );
         if (!response.ok) throw new Error("search failed");
         const data = (await response.json()) as ProjectMemberOption[];
         if (active) setResults(Array.isArray(data) ? data : []);
@@ -50,7 +56,11 @@ export default function ProjectMentorFields({
 
   const options = useMemo(() => {
     const byId = new Map<string, ProjectMemberOption>();
-    for (const member of [...results, ...coMentors, ...(mentor ? [mentor] : [])]) {
+    for (const member of [
+      ...results,
+      ...coMentors,
+      ...(mentor ? [mentor] : []),
+    ]) {
       byId.set(member.id, member);
     }
     return [...byId.values()];
@@ -65,7 +75,12 @@ export default function ProjectMentorFields({
         getOptionLabel={memberLabel}
         filterOptions={(currentOptions) => currentOptions}
         isOptionEqualToValue={(option, value) => option.id === value.id}
-        onChange={(_, value) => onChange(value, coMentors.filter((member) => member.id !== value?.id))}
+        onChange={(_, value) =>
+          onChange(
+            value,
+            coMentors.filter((member) => member.id !== value?.id),
+          )
+        }
         onInputChange={(_, value) => setQuery(value)}
         loading={loading}
         disabled={disabled}
@@ -86,7 +101,12 @@ export default function ProjectMentorFields({
         getOptionLabel={memberLabel}
         filterOptions={(currentOptions) => currentOptions}
         isOptionEqualToValue={(option, value) => option.id === value.id}
-        onChange={(_, value) => onChange(mentor, value.filter((member) => member.id !== mentor?.id))}
+        onChange={(_, value) =>
+          onChange(
+            mentor,
+            value.filter((member) => member.id !== mentor?.id),
+          )
+        }
         onInputChange={(_, value) => setQuery(value)}
         loading={loading}
         disabled={disabled}

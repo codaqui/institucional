@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Roadmap pós-1.0.0 do monorepo Codaqui — releases concluídas, próxima fase preparada, candidatos não aprovados e pendências operacionais.
 audience: Presidência, mantenedores e AI agents planejando o pós-1.0.0.
-status: Revisado em 2026-11-17 até 1.4.0 integrado em main; Fase 8b.1 planejada aguardando ratificação; P6/P7 não aprovados.
+status: Revisado em 2026-11-17 até 1.4.0 integrado em main; Fase 8b.1 implementada em develop, release pendente; P6/P7 não aprovados.
 sections:
   - Estado das releases
   - Fases concluídas
@@ -17,7 +17,7 @@ related-docs:
   - ../../superpowers/specs/2026-11-17-public-pages-design.md — design da Fase 8.
   - ../../superpowers/plans/2026-11-17-public-pages.md — plano TDD concluído da Fase 8.
 agent-protocol:
-  - A Fase 8 está integrada em main; a Fase 8b.1 exige ratificação antes da implementação e P6/P7 continuam não aprovados.
+  - A Fase 8 está integrada em main e a Fase 8b.1 implementada em develop; P6/P7 continuam não aprovados e exigem specs próprias.
   - Fases e “1.5” são rótulos de organização, não versões garantidas; revalidar código e escopo antes de executar.
   - Real Network é visão exploratória e não integra este backlog.
 -->
@@ -69,7 +69,7 @@ Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) 
 
 ### Fase 8b — Projetos de extensão e patrocínio PJ (P12 planejado; P6/P7 não aprovados)
 
-P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [spec](../../superpowers/specs/2026-11-17-extension-project-assisted-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-extension-project-assisted.md) revisados por builder check. Está aguardando ratificação e não deve ser implementada antes disso. P6 e P7 continuam sem aprovação e exigem specs próprias.
+P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [spec](../../superpowers/specs/2026-11-17-extension-project-assisted-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-extension-project-assisted.md) revisados por builder check. A implementação em `develop` inclui busca/preservação de mentores, sincronização por delta, ODS, parceiros, orçamento e anexos, com jornada real validada em banco isolado. P6 e P7 continuam sem aprovação e exigem specs próprias.
 
 | Item | Escopo a revalidar |
 |---|---|

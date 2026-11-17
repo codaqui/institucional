@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.1 — cadastro assistido de projetos de extensão com mentores pesquisáveis e sincronização idempotente.
 audience: Implementers e revisores
-status: Em execução em develop
+status: Tasks 1–4 concluídas; revisão e gates finais em andamento
 sections:
   - Constraints e review focus
   - Tasks 1–4

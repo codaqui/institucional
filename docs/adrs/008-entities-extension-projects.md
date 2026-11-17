@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR da Fase 4 — entidades jurídicas, parcerias, projetos de extensão, participantes, horas, comprovantes e escopos organizacionais.
 audience: AI agents, mantenedores, diretoria e operadores de release.
-status: Implementado e publicado em v0.16.0-backend; patches administrativos de IES incluídos em 0.24.0.
+status: Implementado e publicado em v0.16.0-backend; patches administrativos de IES incluídos em 0.24.0; Fase 8b.1 implementada em develop, release pendente.
 sections:
   - Contexto
   - Decisão
@@ -27,7 +27,7 @@ agent-protocol:
 
 - **Data da decisão:** 2026-11-06
 - **Revisão:** 2026-11-09 — escopos de diretorias e assembleias
-- **Status:** Implementado e publicado em `v0.16.0-backend`; patches administrativos de IES incluídos em 0.24.0
+- **Status:** Implementado e publicado em `v0.16.0-backend`; patches administrativos de IES incluídos em 0.24.0; Fase 8b.1 implementada em `develop`, release pendente
 - **Escopo:** Fase 4, migrations 037–040, backend 0.16.0, API NestJS, snapshots e interfaces Astro/React
 
 ## Contexto
@@ -83,6 +83,12 @@ Projeções públicas omitem `createdById`, `registeredById`, contatos, notas in
 `/projects/my` inclui nome/slug, papel, status e relatório dos projetos do próprio membro. Listagens administrativas usam o envelope compartilhado. O proxy aceita `/entities/`, `/partnerships/`, `/projects/`, `/project-certificates/` e `/hours/`, sem novo prefixo `/admin/`.
 
 `/projetos` preserva open source e acrescenta extensão; detalhes aceitam inscrição e `/projetos/comprovante` verifica códigos. Admin recebe `/admin/entidades` e `/admin/projetos`; `/membro` recebe horas/declarações e a área do mentor. Assembleias ganham seletor/filtro de entidade e diretorias seletor/filtro de comunidade.
+
+### Fase 8b.1 — cadastro assistido
+
+`GET /projects` mantém o envelope administrativo e adiciona `mentor`/`coMentors` como opções públicas `{id,name,githubHandle,avatarUrl}`, consultadas em lote. O formulário reutiliza `/mentorship/member-options`, exibe vínculos atuais, nomeia as 17 ODS, inicia metodologia `PjBL` e expõe parceiros, orçamento e anexos. Rascunho continua mínimo; proposta valida datas, ODS, cronograma e HTTPS antes do envio, com orçamento derivado em centavos.
+
+A sincronização de mentores aplica somente deltas: conjunto idêntico não regrava vínculos nem envia e-mail; mudança de co-mentor preserva linhas inalteradas e não notifica o principal; somente novo/trocado principal recebe notificação. Não houve migration nem alteração de autorização, snapshot público ou lifecycle.
 
 ## Escopos organizacionais
 
