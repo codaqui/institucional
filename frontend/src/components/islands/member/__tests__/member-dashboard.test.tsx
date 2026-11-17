@@ -99,7 +99,7 @@ describe("/membro", () => {
     });
   });
 
-  it("exibe distinção pessoal x business em doações e assinaturas em abas separadas", async () => {
+  it("exibe distinção pessoal x business nos históricos filtrados", async () => {
     const authFetch = vi.fn(async (url: string) => {
       if (url.includes("/stripe/my-donations?page=1&limit=10")) {
         return jsonResponse({
@@ -167,7 +167,6 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    expect(await screen.findByText(/1 pessoal · 1 business/i)).toBeInTheDocument();
     await openFinanceTab("Doações");
 
     expect(await screen.findAllByText("Pessoal")).toHaveLength(1);

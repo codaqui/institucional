@@ -481,21 +481,13 @@ function MemberDashboardInner() {
 
       <TabPanel value={SECTION_INDEX[activeSection]} index={0}>
         <OverviewTab
-          donations={donations}
-          txLoading={txLoading}
-          subscriptions={subscriptions}
-          subsLoading={subsLoading}
           reimbursements={reimbursements}
           reimbLoading={reimbLoading}
           registrations={registrations}
           regsLoading={regsLoading}
-          onOpenDonationsTab={() => {
+          onOpenFinance={() => {
             selectSection("finance");
-            selectFinanceTab("donations");
-          }}
-          onOpenSubscriptionsTab={() => {
-            selectSection("finance");
-            selectFinanceTab("subscriptions");
+            selectFinanceTab("all");
           }}
           onOpenWalletTab={() => {
             selectSection("finance");

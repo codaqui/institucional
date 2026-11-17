@@ -10,45 +10,27 @@ import Typography from "@mui/material/Typography";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import { buildMemberHref } from "../../../../lib/member-navigation";
-import { formatBRL } from "../../../../lib/transaction";
+import type { EventRegistration, ReimbursementRequest } from "./types";
+import { isUpcomingEvent } from "./types";
 import { certificateAvailability } from "./MemberCertificatesTab";
-import type { Donation, EventRegistration, ReimbursementRequest, Subscription } from "./types";
-import { getSubscriptionOwnerLabel, isUpcomingEvent } from "./types";
 
 interface OverviewTabProps {
-  readonly donations: Donation[];
-  readonly txLoading: boolean;
-  readonly subscriptions: Subscription[];
-  readonly subsLoading: boolean;
   readonly reimbursements: ReimbursementRequest[];
   readonly reimbLoading: boolean;
   readonly registrations: EventRegistration[];
   readonly regsLoading: boolean;
-  readonly onOpenDonationsTab: () => void;
-  readonly onOpenSubscriptionsTab: () => void;
+  readonly onOpenFinance: () => void;
   readonly onOpenWalletTab: () => void;
 }
 
 export default function OverviewTab({
-  donations,
-  txLoading,
-  subscriptions,
-  subsLoading,
   reimbursements,
   reimbLoading,
   registrations,
   regsLoading,
-  onOpenDonationsTab,
-  onOpenSubscriptionsTab,
+  onOpenFinance,
   onOpenWalletTab,
 }: Readonly<OverviewTabProps>): React.JSX.Element {
-  const activeSubscriptions = subscriptions.filter((s) => !s.cancelAtPeriodEnd);
-  const activePersonalSubscriptions = activeSubscriptions.filter(
-    (s) => getSubscriptionOwnerLabel(s) === "Pessoal",
-  ).length;
-  const activeBusinessSubscriptions = activeSubscriptions.filter(
-    (s) => getSubscriptionOwnerLabel(s) === "Business",
-  ).length;
   const upcoming = registrations.filter(
     (registration) =>
       registration.status === "confirmed" &&
@@ -61,13 +43,14 @@ export default function OverviewTab({
   const pendingCertificates = registrations.filter(
     (registration) => certificateAvailability(registration) === "pending_account",
   ).length;
+  const pendingReimbursements = reimbursements.filter((item) => item.status === "pending").length;
 
   return (
     <Box>
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 4 }}>
           <Card variant="outlined">
-            <CardActionArea href={buildMemberHref("participation", "future")}>
+            <CardActionArea href={buildMemberHref("participation", "events", "future")}>
               <CardContent>
                 <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
                   Próximos eventos
@@ -126,71 +109,25 @@ export default function OverviewTab({
         </Grid>
       </Grid>
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Card variant="outlined">
-            <CardContent sx={{ py: 1.5 }}>
-              <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                Doações nesta página
-              </Typography>
-              {txLoading ? (
-                <CircularProgress size={18} sx={{ mt: 0.5 }} />
-              ) : (
-                <Typography variant="h5" color="success.main" sx={{ fontWeight: 800 }}>
-                  {formatBRL(donations.reduce((s, d) => s + d.amount, 0))}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Card variant="outlined">
-            <CardContent sx={{ py: 1.5 }}>
-              <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                Assinaturas ativas nesta página
-              </Typography>
-              {subsLoading ? (
-                <CircularProgress size={18} sx={{ mt: 0.5 }} />
-              ) : (
-                <>
-                  <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                    {activeSubscriptions.length}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {activePersonalSubscriptions} pessoal · {activeBusinessSubscriptions} business
-                  </Typography>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <Card variant="outlined">
-            <CardContent sx={{ py: 1.5 }}>
-              <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
-                Reembolsos pendentes
-              </Typography>
-              {reimbLoading ? (
-                <CircularProgress size={18} sx={{ mt: 0.5 }} />
-              ) : (
-                <Typography variant="h5" sx={{ fontWeight: 800 }}>
-                  {reimbursements.filter((r) => r.status === "pending").length}
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {!reimbLoading && pendingReimbursements > 0 && (
+        <Card variant="outlined" sx={{ mb: 3 }}>
+          <CardContent sx={{ py: 1.5 }}>
+            <Typography variant="overline" color="text.secondary" sx={{ display: "block" }}>
+              Reembolsos pendentes
+            </Typography>
+            <Typography variant="h5" sx={{ fontWeight: 800 }}>
+              {pendingReimbursements}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
       <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
         <Button variant="outlined" size="small" href="/clube">
           Minha carteira de moedas
         </Button>
-        <Button variant="outlined" size="small" onClick={onOpenDonationsTab}>
-          Ver histórico de doações
-        </Button>
-        <Button variant="outlined" size="small" onClick={onOpenSubscriptionsTab}>
-          Ver assinaturas recorrentes
+        <Button variant="outlined" size="small" onClick={onOpenFinance}>
+          Abrir apoio e financeiro
         </Button>
         <Button
           variant="outlined"
