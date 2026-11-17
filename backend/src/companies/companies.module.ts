@@ -6,6 +6,7 @@ import { CompanyWallet } from './entities/company-wallet.entity';
 import { CompanyWalletTransaction } from './entities/company-wallet-transaction.entity';
 import { CompanyMember } from './entities/company-member.entity';
 import { CompanySubscriptionTracking } from './entities/company-subscription-tracking.entity';
+import { CompanySubscriptionConversion } from './entities/company-subscription-conversion.entity';
 import { Member } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
 import { CompaniesController } from './companies.controller';
@@ -21,6 +22,7 @@ import { AuditModule } from '../audit/audit.module';
       CompanyWalletTransaction,
       CompanyMember,
       CompanySubscriptionTracking,
+      CompanySubscriptionConversion,
       Member,
     ]),
     ScheduleModule.forRoot(),

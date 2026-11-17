@@ -74,6 +74,7 @@ const GOVERNANCE_ACTIONS = new Set<AuditAction>([
   AuditAction.C4P_EVALUATOR_REMOVED,
   AuditAction.SETTINGS_AUDIT_RETENTION_UPDATED,
   AuditAction.STRIPE_FEE_RECONCILED,
+  AuditAction.COMPANY_SUBSCRIPTION_CONVERTED,
 ]);
 
 export function auditCategory(action: AuditAction): AuditCategory {

@@ -47,7 +47,7 @@ agent-protocol: Executar em develop após ratificação; nenhuma conversão real
 ### Task 1: Migration, entidade e ação de auditoria
 
 **Files:**
-- Create: `backend/src/migrations/1794900000000-CompanySubscriptionConversion052.ts`
+- Create: `backend/src/migrations/1795500000000-CompanySubscriptionConversion052.ts`
 - Create: `backend/src/companies/entities/company-subscription-conversion.entity.ts`
 - Create: `backend/src/companies/company-subscription-conversion.migration.spec.ts`
 - Modify: `backend/src/audit/entities/audit-log.entity.ts`
