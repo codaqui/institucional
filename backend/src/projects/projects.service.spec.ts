@@ -1,4 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
+import { AuditAction } from '../audit/entities/audit-log.entity';
 import { ProjectsService } from './projects.service';
 
 const director = { sub: 'director-1', handle: 'director', roles: ['diretor'] } as any;
@@ -56,6 +57,29 @@ describe('ProjectsService', () => {
       participantsRepo,
     );
   });
+
+  function mockMentorUpdate(
+    project: Record<string, unknown>,
+    activeMentor: Record<string, unknown>,
+    currentParticipants: Array<Record<string, unknown>>,
+  ) {
+    repo.findOne.mockResolvedValue(project);
+    designationRepo.findOne = jest.fn().mockResolvedValue(activeMentor);
+    designationRepo.save = jest.fn(async (value) => value);
+    participantsRepo.find.mockResolvedValue(currentParticipants);
+    membersRepo.findOneBy.mockImplementation(async ({ id }: { id: string }) => ({
+      id, name: id, email: `${id}@example.test`, isActive: true,
+    }));
+    const repositories = {
+      ExtensionProject: repo,
+      MemberDesignation: designationRepo,
+      ProjectParticipant: participantsRepo,
+    } as const;
+    dataSource.transaction.mockImplementation(async (work: (manager: unknown) => unknown) => work({
+      getRepository: jest.fn((entity: { name: keyof typeof repositories }) => repositories[entity.name]),
+      query: jest.fn(),
+    }));
+  }
 
   it('creates a minimal draft with normalized name and slug', async () => {
     const created = await service.create({ name: '  Ação   Extensão ', entityId: 'entity-1' } as any, director);
@@ -115,6 +139,77 @@ describe('ProjectsService', () => {
 
     await expect(service.update('project-1', { summary: 'Alteração indevida' } as any, mentor))
       .rejects.toThrow('Gestão de projetos requer admin ou diretor ativo.');
+  });
+
+  it('does not rewrite mentors or notify when an edit keeps the same set', async () => {
+    mockMentorUpdate(
+      { id: 'project-1', status: 'proposed', createdById: director.sub, name: 'Projeto', summary: 'Antigo' },
+      { memberId: 'mentor-1', status: 'active' },
+      [
+        { id: 'row-principal', memberId: 'mentor-1', role: 'mentor', leftAt: null },
+        { id: 'row-co', memberId: 'co-1', role: 'mentor', leftAt: null },
+      ],
+    );
+
+    await service.update('project-1', {
+      summary: 'Novo resumo', mentorMemberId: 'mentor-1', coMentors: ['co-1'],
+    } as any, director);
+
+    expect(designations.grant).not.toHaveBeenCalled();
+    expect(designationRepo.save).not.toHaveBeenCalled();
+    expect(participantsRepo.update).not.toHaveBeenCalled();
+    expect(participantsRepo.save).not.toHaveBeenCalled();
+    expect(email.sendProjectEmail).not.toHaveBeenCalled();
+    expect(audit.log).not.toHaveBeenCalledWith(expect.objectContaining({
+      action: AuditAction.PROJECT_MENTOR_DESIGNATED,
+    }));
+  });
+
+  it('changes only removed and added co-mentors without notifying the principal', async () => {
+    mockMentorUpdate(
+      { id: 'project-1', status: 'proposed', createdById: director.sub, name: 'Projeto' },
+      { memberId: 'mentor-1', status: 'active' },
+      [
+        { id: 'row-principal', memberId: 'mentor-1', role: 'mentor', leftAt: null },
+        { id: 'row-keep', memberId: 'co-keep', role: 'mentor', leftAt: null },
+        { id: 'row-remove', memberId: 'co-remove', role: 'mentor', leftAt: null },
+      ],
+    );
+
+    await service.update('project-1', {
+      summary: 'Novo resumo', mentorMemberId: 'mentor-1', coMentors: ['co-keep', 'co-new'],
+    } as any, director);
+
+    expect(participantsRepo.update).toHaveBeenCalledTimes(1);
+    expect(participantsRepo.update).toHaveBeenCalledWith('row-remove', { leftAt: expect.any(Date) });
+    expect(participantsRepo.save).toHaveBeenCalledTimes(1);
+    expect(participantsRepo.save).toHaveBeenCalledWith(expect.objectContaining({ memberId: 'co-new' }));
+    expect(email.sendProjectEmail).not.toHaveBeenCalled();
+  });
+
+  it('replaces the principal with one notification and preserves unchanged co-mentors', async () => {
+    mockMentorUpdate(
+      { id: 'project-1', status: 'proposed', createdById: director.sub, name: 'Projeto' },
+      { memberId: 'mentor-old', status: 'active' },
+      [
+        { id: 'row-old', memberId: 'mentor-old', role: 'mentor', leftAt: null },
+        { id: 'row-keep', memberId: 'co-keep', role: 'mentor', leftAt: null },
+      ],
+    );
+
+    await service.update('project-1', {
+      summary: 'Novo resumo', mentorMemberId: 'mentor-new', coMentors: ['co-keep'],
+    } as any, director);
+
+    expect(designationRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      memberId: 'mentor-old', status: 'ended', endedAt: expect.any(Date),
+    }));
+    expect(designations.grant).toHaveBeenCalledWith(expect.objectContaining({ memberId: 'mentor-new' }), expect.anything());
+    expect(participantsRepo.update).toHaveBeenCalledWith('row-old', { leftAt: expect.any(Date) });
+    expect(participantsRepo.save).toHaveBeenCalledTimes(1);
+    expect(participantsRepo.save).toHaveBeenCalledWith(expect.objectContaining({ memberId: 'mentor-new' }));
+    expect(email.sendProjectEmail).toHaveBeenCalledTimes(1);
+    expect(email.sendProjectEmail).toHaveBeenCalledWith(expect.objectContaining({ memberName: 'mentor-new' }));
   });
 
   it('enriches the manage page with current mentors in batch', async () => {

@@ -125,10 +125,17 @@ export class ProjectsService {
         project.slug = projectSlug(dto.name);
       }
       const saved = await manager.getRepository(ExtensionProject).save(project);
+      let principalChanged = false;
       if (mentorMemberId !== undefined) {
-        await this.syncMentorAndCoMentors(manager, saved, mentorMemberId, coMentors ?? [], actor);
+        ({ principalChanged } = await this.syncMentorAndCoMentors(
+          manager,
+          saved,
+          mentorMemberId,
+          coMentors ?? [],
+          actor,
+        ));
       }
-      return { before, saved };
+      return { before, saved, principalChanged };
     });
     await this.audit.log({
       action: dto.status && dto.status !== updated.before.status
@@ -140,7 +147,9 @@ export class ProjectsService {
       targetType: 'extension_project',
       details: { before: updated.before, after: { ...updated.saved } },
     });
-    if (dto.mentorMemberId) await this.notifyMentor(dto.mentorMemberId, updated.saved);
+    if (dto.mentorMemberId && updated.principalChanged) {
+      await this.notifyMentor(dto.mentorMemberId, updated.saved);
+    }
     if (updated.saved.status === 'finished' && updated.before.status !== 'finished') {
       await this.notifyProjectFinished(updated.saved);
     }
@@ -317,17 +326,34 @@ export class ProjectsService {
     mentorMemberId: string,
     coMentors: string[],
     actor: JwtPayload,
-  ): Promise<void> {
+  ): Promise<{ principalChanged: boolean; membershipChanged: boolean }> {
     const designationRepo = manager.getRepository(MemberDesignation);
-    const existing = await designationRepo.findOne({
-      where: { targetType: 'extension_project', targetId: project.id, designation: 'mentor', status: 'active' },
-    });
-    if (existing && existing.memberId !== mentorMemberId) {
+    const participantRepo = manager.getRepository(ProjectParticipant);
+    const [existing, currentParticipants] = await Promise.all([
+      designationRepo.findOne({
+        where: { targetType: 'extension_project', targetId: project.id, designation: 'mentor', status: 'active' },
+      }),
+      participantRepo.find({
+        where: { projectId: project.id, role: 'mentor', leftAt: null },
+      }),
+    ]);
+
+    const principalChanged = existing?.memberId !== mentorMemberId;
+    const currentMemberIds = new Set(currentParticipants.map((participant) => participant.memberId));
+    const desiredMemberIds = new Set([mentorMemberId, ...coMentors]);
+    const participantsChanged = currentMemberIds.size !== desiredMemberIds.size ||
+      [...desiredMemberIds].some((memberId) => !currentMemberIds.has(memberId));
+    const membershipChanged = principalChanged || participantsChanged;
+    if (!membershipChanged) {
+      return { principalChanged: false, membershipChanged: false };
+    }
+
+    if (existing && principalChanged) {
       existing.status = 'ended';
       existing.endedAt = new Date();
       await designationRepo.save(existing);
     }
-    if (existing?.memberId !== mentorMemberId) {
+    if (principalChanged) {
       await this.designations.grant({
         memberId: mentorMemberId,
         targetType: 'extension_project',
@@ -337,12 +363,14 @@ export class ProjectsService {
       }, { actorId: actor.sub, actorHandle: actor.handle });
     }
 
-    const participantRepo = manager.getRepository(ProjectParticipant);
-    await participantRepo.update(
-      { projectId: project.id, role: 'mentor', leftAt: null },
-      { leftAt: new Date() },
-    );
-    await Promise.all([...new Set([mentorMemberId, ...coMentors])].map((memberId) =>
+    const now = new Date();
+    for (const participant of currentParticipants) {
+      if (!desiredMemberIds.has(participant.memberId)) {
+        await participantRepo.update(participant.id, { leftAt: now });
+      }
+    }
+    const addedMemberIds = [...desiredMemberIds].filter((memberId) => !currentMemberIds.has(memberId));
+    await Promise.all(addedMemberIds.map((memberId) =>
       participantRepo.save(participantRepo.create({
         projectId: project.id,
         memberId,
@@ -356,8 +384,13 @@ export class ProjectsService {
       actorHandle: actor.handle,
       targetId: project.id,
       targetType: 'extension_project',
-      details: { mentorMemberId },
+      details: {
+        mentorMemberId,
+        beforeMemberIds: [...currentMemberIds],
+        afterMemberIds: [...desiredMemberIds],
+      },
     });
+    return { principalChanged, membershipChanged };
   }
 
   private async notifyMentor(memberId: string, project: ExtensionProject): Promise<void> {
