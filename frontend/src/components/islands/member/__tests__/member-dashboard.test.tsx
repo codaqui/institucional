@@ -63,8 +63,8 @@ function stubFetch() {
 }
 
 async function openFinanceTab(name: "Doações" | "Assinaturas" | "Reembolsos") {
-  fireEvent.click(await screen.findByRole("tab", { name: "Financeiro" }));
-  fireEvent.click(await screen.findByRole("tab", { name }));
+  fireEvent.click(await screen.findByRole("tab", { name: "Apoio e financeiro" }));
+  fireEvent.click(await screen.findByRole("button", { name }));
 }
 
 describe("/membro", () => {
@@ -259,7 +259,7 @@ describe("/membro", () => {
     ).length;
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
 
     expect(await screen.findByText("Encontro DevParaná")).toBeInTheDocument();
     expect(
@@ -322,14 +322,14 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
     expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
 
     await waitFor(() => {
       expect(authFetch).toHaveBeenCalledWith(expect.stringContaining("/events/my-registrations"));
     });
 
-    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Histórico$/i }));
     expect(await screen.findByText("Workshop GitHub")).toBeInTheDocument();
 
     fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
@@ -358,14 +358,14 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Certificados" }));
-    fireEvent.click(screen.getByRole("tab", { name: "Financeiro" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Certificados" }));
+    fireEvent.click(screen.getByRole("tab", { name: "Apoio e financeiro" }));
     fireEvent.click(screen.getByRole("tab", { name: "Participação" }));
 
     expect(window.location.search).toContain("section=participation");
     expect(window.location.search).toContain("tab=certificates");
-    expect(screen.getByRole("tab", { name: "Certificados" })).toHaveAttribute(
-      "aria-selected",
+    expect(screen.getByRole("button", { name: "Certificados" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
   });
@@ -407,8 +407,8 @@ describe("/membro", () => {
     renderWithMui(<MemberDashboardApp />);
 
     fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
-    fireEvent.click(await screen.findByRole("tab", { name: "Eventos" }));
-    fireEvent.click(await screen.findByRole("tab", { name: /^Histórico$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: "Eventos" }));
+    fireEvent.click(await screen.findByRole("button", { name: /^Histórico$/i }));
     fireEvent.click(await screen.findByRole("button", { name: "Ver certificado" }));
 
     expect(await screen.findByText("Certificado indisponível para esta inscrição.")).toBeInTheDocument();
@@ -493,9 +493,9 @@ describe("/membro", () => {
 
     renderWithMui(<MemberDashboardApp />);
 
-    expect(await screen.findByRole("tab", { name: "Visão geral" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Início" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Participação" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Financeiro" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Apoio e financeiro" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Conta e privacidade" })).toBeInTheDocument();
     expect(screen.getAllByRole("tab")).toHaveLength(4);
   });
@@ -538,12 +538,41 @@ describe("/membro", () => {
       "aria-selected",
       "true",
     );
-    expect(await screen.findByRole("tab", { name: "Futuros" })).toHaveAttribute(
-      "aria-selected",
+    expect(await screen.findByRole("button", { name: "Futuros" })).toHaveAttribute(
+      "aria-pressed",
       "true",
     );
     expect(window.location.search).toContain("section=participation");
-    expect(window.location.search).toContain("tab=future");
+    expect(window.location.search).toContain("tab=events");
+    expect(window.location.search).toContain("event=future");
     expect(window.location.search).not.toContain("purchase=success");
+  });
+
+  it("agrega participação em Tudo e isola cada tipo sem sub-abas", async () => {
+    const authFetch = vi.fn(async (url: string) => {
+      if (url.includes("/stripe/my-donations")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/stripe/my-subscriptions")) return jsonResponse({ items: [], total: 0 });
+      if (url.includes("/reimbursements/my")) return jsonResponse([]);
+      if (url.includes("/events/my-registrations")) return jsonResponse([]);
+      if (url === "/projects/my" || url === "/hours/me") return jsonResponse([]);
+      return jsonResponse(null, { status: 404 });
+    });
+    mockLoggedIn(makeUser(), authFetch);
+    renderWithMui(<MemberDashboardApp />);
+
+    fireEvent.click(await screen.findByRole("tab", { name: "Participação" }));
+    expect(await screen.findByRole("button", { name: "Tudo" })).toHaveAttribute("aria-pressed", "true");
+    expect(await screen.findByText("Meus eventos")).toBeInTheDocument();
+    expect(await screen.findByText(/Nenhuma participação com certificado/)).toBeInTheDocument();
+    expect(await screen.findByText(/Você ainda não participa de projetos/)).toBeInTheDocument();
+    expect(screen.getAllByRole("tab")).toHaveLength(4);
+
+    fireEvent.click(screen.getByRole("button", { name: "Certificados" }));
+    expect(screen.queryByText("Meus eventos")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Você ainda não participa de projetos/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Projetos" }));
+    expect(await screen.findByText(/Você ainda não participa de projetos/)).toBeInTheDocument();
+    expect(screen.queryByText(/Nenhuma participação com certificado/)).not.toBeInTheDocument();
   });
 });

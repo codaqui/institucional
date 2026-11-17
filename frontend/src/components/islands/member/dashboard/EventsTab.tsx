@@ -1,6 +1,6 @@
 /**
- * Aba "Eventos" do dashboard: inscrições do membro com sub-abas
- * Próximos ingressos / Comprei para outros / Histórico, QR de check-in,
+ * Bloco "Eventos" do dashboard: inscrições do membro com filtros
+ * Futuros / Comprei para outros / Histórico, QR de check-in,
  * cancelamento e emissão de certificado.
  * Port de `EventsTabPanel`/`EventRegistrationsList`/`EventTitleLink` em
  * `src/pages/membro/index.tsx`.
@@ -12,9 +12,8 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
 import Typography from "@mui/material/Typography";
+import FilterChipGroup from "../../ui/FilterChipGroup";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import EventIcon from "@mui/icons-material/Event";
@@ -340,23 +339,16 @@ export default function EventsTab({
 
       {!regsLoading && registrations.length > 0 && (
         <>
-          <Tabs
+          <FilterChipGroup
+            label="Filtrar eventos"
             value={eventsSubTab}
-            onChange={(_, v) => setEventsSubTab(v as EventsSubTab)}
-            sx={{
-              mb: 2,
-              "& .MuiTab-root": {
-                fontSize: "0.8125rem",
-                minHeight: 40,
-                textTransform: "none",
-                color: "text.secondary",
-              },
-            }}
-          >
-            <Tab value="future" label="Futuros" />
-            <Tab value="purchased" label="Comprei para outros" />
-            <Tab value="history" label="Histórico" />
-          </Tabs>
+            options={[
+              { value: "future", label: "Futuros" },
+              { value: "purchased", label: "Comprei para outros" },
+              { value: "history", label: "Histórico" },
+            ]}
+            onChange={setEventsSubTab}
+          />
           <EventRegistrationsList
             registrations={groupedRegistrations[eventsSubTab]}
             expandedQrId={expandedQrId}
