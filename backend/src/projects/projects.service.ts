@@ -18,6 +18,13 @@ import { ProjectParticipant } from './entities/project-participant.entity';
 import { assertProjectTransition } from './project-lifecycle';
 import { assertProjectComplete, normalizeProjectName, projectSlug } from './project.rules';
 
+export interface ProjectMemberOption {
+  id: string;
+  name: string;
+  githubHandle: string;
+  avatarUrl: string | null;
+}
+
 @Injectable()
 export class ProjectsService {
   constructor(
@@ -140,11 +147,14 @@ export class ProjectsService {
     return updated.saved;
   }
 
-  async listManage(query: ProjectQueryDto, actor: JwtPayload): Promise<PaginatedResultDto<ExtensionProject>> {
+  async listManage(query: ProjectQueryDto, actor: JwtPayload): Promise<PaginatedResultDto<ExtensionProject & {
+    mentor: ProjectMemberOption | null;
+    coMentors: ProjectMemberOption[];
+  }>> {
     await this.assertDirector(actor);
     const page = Math.max(1, Math.floor(query.page ?? 1));
     const limit = Math.min(Math.max(1, Math.floor(query.limit ?? 50)), 100);
-    const [data, total] = await this.repo.findAndCount({
+    const [projects, total] = await this.repo.findAndCount({
       where: {
         ...(query.status ? { status: query.status } : {}),
         ...(query.entityId ? { entityId: query.entityId } : {}),
@@ -152,6 +162,59 @@ export class ProjectsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
+    });
+    if (projects.length === 0) {
+      return { data: [], total, page, totalPages: Math.ceil(total / limit), limit };
+    }
+
+    const projectIds = projects.map((project) => project.id);
+    const [mentorDesignations, mentorParticipants] = await Promise.all([
+      this.designationRepo.find({
+        where: {
+          targetType: 'extension_project',
+          targetId: In(projectIds),
+          designation: 'mentor',
+          status: 'active',
+        },
+      }),
+      this.participantsRepo?.find({
+        where: { projectId: In(projectIds), role: 'mentor', leftAt: null },
+      }) ?? Promise.resolve([]),
+    ]);
+    const principalByProject = new Map(
+      mentorDesignations.map((designation) => [designation.targetId, designation.memberId]),
+    );
+    const memberIds = [...new Set([
+      ...mentorDesignations.map((designation) => designation.memberId),
+      ...mentorParticipants.map((participant) => participant.memberId),
+    ])];
+    const members = memberIds.length > 0
+      ? await this.membersRepo.findBy({ id: In(memberIds) })
+      : [];
+    const memberMap = new Map(members.map((member) => [member.id, member]));
+    const toOption = (memberId: string): ProjectMemberOption | null => {
+      const member = memberMap.get(memberId);
+      return member ? {
+        id: member.id,
+        name: member.name,
+        githubHandle: member.githubHandle,
+        avatarUrl: member.avatarUrl,
+      } : null;
+    };
+
+    const data = projects.map((project) => {
+      const principalId = principalByProject.get(project.id) ?? null;
+      return {
+        ...project,
+        mentor: principalId ? toOption(principalId) : null,
+        coMentors: mentorParticipants.flatMap((participant) => {
+          if (participant.projectId !== project.id || participant.memberId === principalId) {
+            return [];
+          }
+          const option = toOption(participant.memberId);
+          return option ? [option] : [];
+        }),
+      };
     });
     return { data, total, page, totalPages: Math.ceil(total / limit), limit };
   }

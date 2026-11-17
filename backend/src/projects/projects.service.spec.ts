@@ -13,6 +13,9 @@ describe('ProjectsService', () => {
   let dataSource: any;
   let audit: any;
   let email: any;
+  let designationRepo: any;
+  let participantsRepo: any;
+  let membersRepo: any;
 
   beforeEach(() => {
     repo = {
@@ -35,11 +38,22 @@ describe('ProjectsService', () => {
     })) };
     audit = { log: jest.fn() };
     email = { sendProjectEmail: jest.fn() };
-    const designationRepo = { find: jest.fn().mockResolvedValue([]) };
-    const membersRepo = { find: jest.fn().mockResolvedValue([]), findOneBy: jest.fn() };
+    designationRepo = { find: jest.fn().mockResolvedValue([]) };
+    participantsRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      update: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn((value) => value),
+    };
+    membersRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      findBy: jest.fn().mockResolvedValue([]),
+      findOneBy: jest.fn(),
+    };
     service = new ProjectsService(
       repo, entities, partnerships, designationRepo, membersRepo, dataSource,
       designations, audit, email, { validateReceiptUrl: jest.fn((url) => url) } as any,
+      participantsRepo,
     );
   });
 
@@ -101,5 +115,55 @@ describe('ProjectsService', () => {
 
     await expect(service.update('project-1', { summary: 'Alteração indevida' } as any, mentor))
       .rejects.toThrow('Gestão de projetos requer admin ou diretor ativo.');
+  });
+
+  it('enriches the manage page with current mentors in batch', async () => {
+    repo.findAndCount.mockResolvedValue([
+      [
+        { id: 'project-1', name: 'Com mentores' },
+        { id: 'project-2', name: 'Sem mentores' },
+      ],
+      2,
+    ]);
+    designationRepo.find.mockResolvedValue([
+      { targetId: 'project-1', memberId: 'mentor-1' },
+    ]);
+    participantsRepo.find.mockResolvedValue([
+      { projectId: 'project-1', memberId: 'mentor-1', role: 'mentor', leftAt: null },
+      { projectId: 'project-1', memberId: 'co-1', role: 'mentor', leftAt: null },
+      { projectId: 'project-1', memberId: 'co-2', role: 'mentor', leftAt: null },
+    ]);
+    membersRepo.findBy.mockResolvedValue([
+      { id: 'mentor-1', name: 'Principal', githubHandle: 'principal', avatarUrl: 'principal.png', email: 'private@example.test', isActive: false },
+      { id: 'co-1', name: 'Co Um', githubHandle: 'co-um', avatarUrl: 'co-um.png', isActive: true },
+      { id: 'co-2', name: 'Co Dois', githubHandle: 'co-dois', avatarUrl: null, isActive: true },
+    ]);
+
+    const result = await service.listManage({ page: 1, limit: 50 }, director);
+
+    expect(result.data[0].mentor).toEqual({
+      id: 'mentor-1', name: 'Principal', githubHandle: 'principal', avatarUrl: 'principal.png',
+    });
+    expect(result.data[0].coMentors).toEqual([
+      { id: 'co-1', name: 'Co Um', githubHandle: 'co-um', avatarUrl: 'co-um.png' },
+      { id: 'co-2', name: 'Co Dois', githubHandle: 'co-dois', avatarUrl: null },
+    ]);
+    expect(result.data[1].mentor).toBeNull();
+    expect(result.data[1].coMentors).toEqual([]);
+    expect(JSON.stringify(result)).not.toContain('private@example.test');
+
+    const designationWhere = designationRepo.find.mock.calls[0][0].where;
+    expect(designationWhere).toMatchObject({
+      targetType: 'extension_project', designation: 'mentor', status: 'active',
+    });
+    expect(designationWhere.targetId.value).toEqual(['project-1', 'project-2']);
+    const participantsWhere = participantsRepo.find.mock.calls[0][0].where;
+    expect(participantsWhere).toMatchObject({ role: 'mentor', leftAt: null });
+    expect(participantsWhere.projectId.value).toEqual(['project-1', 'project-2']);
+    const membersWhere = membersRepo.findBy.mock.calls[0][0];
+    expect(membersWhere.id.value).toEqual(['mentor-1', 'co-1', 'co-2']);
+    expect(designationRepo.find).toHaveBeenCalledTimes(1);
+    expect(participantsRepo.find).toHaveBeenCalledTimes(1);
+    expect(membersRepo.findBy).toHaveBeenCalledTimes(1);
   });
 });
