@@ -184,7 +184,10 @@ describe('CompanySubscriptionConversionService conversion', () => {
         status: 'completed',
       },
     });
-    const result = await service.convert({ ...dto, companyId }, actor);
+    const result = await service.convert(
+      { memberId, subscriptionId: dto.subscriptionId, companyId },
+      actor,
+    );
 
     expect(result.status).toBe('already_converted');
     expect(stripe.subscriptions.retrieve).not.toHaveBeenCalled();
@@ -216,7 +219,10 @@ describe('CompanySubscriptionConversionService conversion', () => {
         },
       },
     });
-    const result = await service.convert({ ...dto, companyId }, actor);
+    const result = await service.convert(
+      { memberId, subscriptionId: dto.subscriptionId, companyId },
+      actor,
+    );
 
     expect(stripe.subscriptions.update).not.toHaveBeenCalled();
     expect(companyRepo.update).toHaveBeenCalledWith(
@@ -255,6 +261,15 @@ describe('CompanySubscriptionConversionService conversion', () => {
     },
   );
 
+  it('rejects a request that mixes an existing company with new-company fields', async () => {
+    const { service, stripe, conversionRepo } = setup();
+    await expect(service.convert({ ...dto, companyId }, actor)).rejects.toThrow(
+      'companyId ou os dados',
+    );
+    expect(stripe.subscriptions.update).not.toHaveBeenCalled();
+    expect(conversionRepo.save).not.toHaveBeenCalled();
+  });
+
   it('rejects a company owned by another member before writing', async () => {
     const { service, stripe, conversionRepo } = setup({
       company: {
@@ -263,9 +278,12 @@ describe('CompanySubscriptionConversionService conversion', () => {
         stripeSubscriptionId: null,
       },
     });
-    await expect(service.convert({ ...dto, companyId }, actor)).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(
+      service.convert(
+        { memberId, subscriptionId: dto.subscriptionId, companyId },
+        actor,
+      ),
+    ).rejects.toThrow(ConflictException);
     expect(stripe.subscriptions.update).not.toHaveBeenCalled();
     expect(conversionRepo.save).not.toHaveBeenCalled();
   });

@@ -169,10 +169,16 @@ export default function SubscriptionConversionPanel(): React.JSX.Element {
       const response = await authFetch(`/companies/${companyId}`, {
         method: "PATCH",
         body: JSON.stringify({
-          name: profile.name,
-          tradeName: profile.tradeName,
-          logoUrl: profile.logoUrl,
-          websiteUrl: profile.websiteUrl,
+          name: profile.name.trim(),
+          ...(profile.tradeName.trim()
+            ? { tradeName: profile.tradeName.trim() }
+            : {}),
+          ...(profile.logoUrl.trim()
+            ? { logoUrl: profile.logoUrl.trim() }
+            : {}),
+          ...(profile.websiteUrl.trim()
+            ? { websiteUrl: profile.websiteUrl.trim() }
+            : {}),
         }),
       });
       if (!response.ok) {

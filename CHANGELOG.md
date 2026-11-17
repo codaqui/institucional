@@ -60,6 +60,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - Testes cobrem migration, candidatos, validações, empresa nova/existente, recuperação pós-Stripe, concorrência, UI e repetição idempotente.
 - Jornada real em dump isolado: migration down/up, `converted` → `already_converted`, mesma assinatura, wallet criada, empresa pendente e somente uma atualização Stripe.
 - Gates completos e revisão independente acompanham a entrega; conversão real depende de autorização e deploy.
+- A revisão levou à omissão de campos opcionais vazios no PATCH de perfil e à rejeição explícita de requisições que misturam empresa existente e dados de empresa nova.
 
 ## [1.6.0] — 2026-11-17
 

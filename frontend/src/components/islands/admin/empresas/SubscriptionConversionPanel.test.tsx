@@ -117,6 +117,54 @@ describe("SubscriptionConversionPanel", () => {
     ).toHaveLength(1);
   });
 
+  it("omits empty optional fields when saving the company profile", async () => {
+    const minimalCompany = {
+      ...company,
+      tradeName: "",
+      logoUrl: "",
+      websiteUrl: "",
+    };
+    mocks.authFetch.mockImplementation(
+      async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/mentorship/member-options"))
+          return jsonResponse([member]);
+        if (
+          path === "/companies/admin/personal-subscriptions?memberId=member-1"
+        )
+          return jsonResponse([subscription]);
+        if (path === "/companies/admin/list?page=1&limit=100")
+          return jsonResponse({ items: [minimalCompany], total: 1 });
+        if (path === "/companies/company-1" && init?.method === "PATCH")
+          return jsonResponse(minimalCompany);
+        return jsonResponse({ message: "not found" }, { status: 404 });
+      },
+    );
+    const user = userEvent.setup();
+    renderWithMui(<SubscriptionConversionPanel />);
+
+    await user.type(screen.getByLabelText("Membro"), "Ana");
+    await user.click(await screen.findByRole("option", { name: "Ana (@ana)" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Usar esta assinatura" }),
+    );
+    await user.clear(await screen.findByLabelText(/^Nome legal/));
+    await user.type(screen.getByLabelText(/^Nome legal/), "Nome mínimo");
+    await user.click(
+      screen.getByRole("button", { name: "Salvar dados da empresa" }),
+    );
+
+    await waitFor(() => {
+      const call = mocks.authFetch.mock.calls.find(
+        ([path, init]) =>
+          path === "/companies/company-1" && init?.method === "PATCH",
+      );
+      expect(call).toBeDefined();
+      expect(JSON.parse(String(call?.[1]?.body))).toEqual({
+        name: "Nome mínimo",
+      });
+    });
+  });
+
   it("saves an existing company profile separately before conversion", async () => {
     mocks.authFetch.mockImplementation(
       async (path: string, init?: RequestInit) => {

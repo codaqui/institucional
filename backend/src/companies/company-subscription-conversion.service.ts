@@ -87,6 +87,18 @@ export class CompanySubscriptionConversionService {
     if (!actor.roles?.includes(MemberRole.ADMIN)) {
       throw new ForbiddenException('Conversão de assinatura requer admin.');
     }
+    const hasNewCompanyFields = [
+      dto.name,
+      dto.cnpj,
+      dto.tradeName,
+      dto.logoUrl,
+      dto.websiteUrl,
+    ].some((value) => value !== undefined);
+    if (dto.companyId && hasNewCompanyFields) {
+      throw new BadRequestException(
+        'Use companyId ou os dados de uma nova empresa, não ambos.',
+      );
+    }
     const existing = await this.conversionRepo.findOneBy({
       stripeSubscriptionId: dto.subscriptionId,
     });
