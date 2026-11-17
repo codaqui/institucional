@@ -75,88 +75,43 @@ interface NavGroup {
 
 const MANAGEMENT_GROUPS: readonly NavGroup[] = [
   {
-    id: "gestao",
-    label: "Gestão",
+    id: "inicio",
+    label: "Início",
     items: [
-      { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+      { label: "Painel e pendências", href: "/membro", icon: <HomeIcon /> },
+      { label: "Minhas horas", href: "/membro/horas", icon: <ScheduleIcon /> },
+      { label: "Editar perfil", href: "/membro/editar", icon: <EditIcon /> },
     ],
   },
   {
-    id: "pessoas",
-    label: "Pessoas",
-    items: [
-      {
-        label: "Horas",
-        href: "/admin/horas",
-        icon: <ScheduleIcon />,
-        roles: ["admin", "finance-analyzer"],
-      },
-      {
-        label: "Gestão de mentoria",
-        href: "/admin/mentoria",
-        icon: <SchoolIcon />,
-        roles: ["admin"],
-      },
-    ],
-  },
-  {
-    id: "programas",
-    label: "Programas",
-    items: [
-      {
-        label: "Mentoria",
-        href: "/membro/mentoria",
-        icon: <SchoolIcon />,
-        designations: [{ targetType: "program", designation: "mentor" }],
-      },
-    ],
-  },
-  {
-    id: "financeiro",
-    label: "Financeiro (R$)",
-    items: [
-      { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
-      { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
-      { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
-      { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon />, roles: ["admin", "finance-analyzer"] },
-      { label: "Carteira", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
-    ],
-  },
-  {
-    id: "clube",
-    label: "Clube & SortCoins",
-    items: [
-      { label: "Sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon />, roles: ["admin"] },
-      { label: "VirtualCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
-    ],
-  },
-  {
-    id: "empresas",
-    label: "Empresas",
-    items: [
-      { label: "Empresas", href: "/admin/empresas", icon: <BusinessIcon />, roles: ["admin"] },
-    ],
-  },
-  {
-    id: "eventos",
-    label: "Eventos",
+    id: "comunidades-eventos",
+    label: "Comunidades e eventos",
     icon: <EventIcon fontSize="inherit" />,
-    items: [
-      { label: "Visão geral", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
-      { label: "Overrides & externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
-      { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
-      { label: "C4P", href: "/admin/c4p", icon: <HowToVoteIcon />, roles: ["admin", "event_organizer", "diretor"] },
-    ],
-  },
-  {
-    id: "governanca",
-    label: "Governança",
     items: [
       {
         label: "Minha comunidade",
         href: "/admin/comunidades",
         icon: <BusinessIcon />,
         designations: [{ targetType: "community", designation: "responsible" }],
+      },
+      { label: "Eventos", href: "/admin/eventos", icon: <HubIcon />, roles: ["event_organizer", "event_host"] },
+      { label: "Eventos externos", href: "/admin/overrides", icon: <EditCalendarIcon />, roles: ["event_organizer"] },
+      { label: "Check-in", href: "/admin/eventos-checkin", icon: <HowToRegIcon />, roles: ["event_organizer", "event_checker", "event_host"] },
+      { label: "C4P", href: "/admin/c4p", icon: <HowToVoteIcon />, roles: ["admin", "event_organizer", "diretor"] },
+    ],
+  },
+  {
+    id: "pessoas-aprendizado",
+    label: "Pessoas e aprendizado",
+    items: [
+      { label: "Membros", href: "/admin", icon: <DashboardIcon />, roles: ["admin"] },
+      { label: "Horas", href: "/admin/horas", icon: <ScheduleIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Gestão de mentoria", href: "/admin/mentoria", icon: <SchoolIcon />, roles: ["admin"] },
+      {
+        label: "Minha mentoria",
+        href: "/membro/mentoria",
+        icon: <SchoolIcon />,
+        designations: [{ targetType: "program", designation: "mentor" }],
       },
       {
         label: "Universitário",
@@ -167,20 +122,35 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
           { targetType: "ies", designation: "ambassador" },
         ],
       },
+    ],
+  },
+  {
+    id: "apoio-financeiro",
+    label: "Apoio e financeiro",
+    items: [
+      { label: "Recebimentos", href: "/admin/recebimentos", icon: <CallReceivedIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Pagamentos", href: "/admin/pagamentos", icon: <PaymentIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Reembolsos", href: "/admin/reembolsos", icon: <ReceiptLongIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Fornecedores", href: "/admin/fornecedores", icon: <StorefrontIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Livro-razão", href: "/admin/lancamento", icon: <AccountBalanceWalletIcon />, roles: ["admin", "finance-analyzer"] },
+      { label: "Empresas apoiadoras", href: "/admin/empresas", icon: <BusinessIcon />, roles: ["admin"] },
+      { label: "Clube: sorteios", href: "/admin/sorteios", icon: <EmojiEventsIcon />, roles: ["admin"] },
+      { label: "Clube: SortCoins", href: "/admin/carteiras", icon: <TokenIcon />, roles: ["admin"] },
+    ],
+  },
+  {
+    id: "governanca-transparencia",
+    label: "Governança e transparência",
+    items: [
       {
         label: "Diretorias",
         href: "/admin/diretorias",
         icon: <HubIcon />,
         designations: [{ targetType: "directorate", designation: "director" }],
       },
+      { label: "Assembleias", href: "/admin/assembleias", icon: <HubIcon />, roles: ["diretor"] },
       {
-        label: "Assembleias",
-        href: "/admin/assembleias",
-        icon: <HubIcon />,
-        roles: ["diretor"],
-      },
-      {
-        label: "Entidades",
+        label: "Entidades e parcerias",
         href: "/admin/entidades",
         icon: <BusinessIcon />,
         designations: [{ targetType: "directorate", designation: "director" }],
@@ -191,23 +161,18 @@ const MANAGEMENT_GROUPS: readonly NavGroup[] = [
         icon: <HubIcon />,
         designations: [{ targetType: "directorate", designation: "director" }],
       },
-      { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
+      { label: "Ver como o público vê", href: "/transparencia", icon: <HubIcon />, roles: ["diretor"] },
     ],
   },
   {
-    id: "comunicacao",
-    label: "Comunicação",
+    id: "sistema",
+    label: "Sistema",
     items: [
-      { label: "E-mails", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
       { label: "Anúncios", href: "/admin/announcements", icon: <EmailIcon />, roles: ["admin"] },
+      { label: "E-mails e campanhas", href: "/admin/emails", icon: <EmailIcon />, roles: ["admin"] },
+      { label: "Configurações", href: "/admin/configuracoes", icon: <SettingsIcon />, roles: ["admin"] },
     ],
   },
-];
-
-const CONTA_ITEMS: readonly NavItem[] = [
-  { label: "Início", href: "/membro", icon: <HomeIcon /> },
-  { label: "Minhas horas", href: "/membro/horas", icon: <ScheduleIcon /> },
-  { label: "Editar perfil", href: "/membro/editar", icon: <EditIcon /> },
 ];
 
 /** Hubs ativam só no match exato — senão /admin/eventos ativaria "Membros". */
@@ -480,12 +445,6 @@ export function AppNavContent({ currentPath }: AppNavIslandProps) {
             }
           />
         ))}
-        <NavGroupLabel>Conta</NavGroupLabel>
-        <List dense sx={{ py: 0 }}>
-          {CONTA_ITEMS.map((item) => (
-            <NavLink key={item.href} item={item} currentPath={currentPath} />
-          ))}
-        </List>
       </Box>
       <Divider />
       <Box sx={{ p: 1.5 }}>
