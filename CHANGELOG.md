@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.4.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.4.0 integrado em main pelo PR #655; propostas futuras não são releases.
 sections:
   - Política de versão
   - 1.4.0
@@ -34,7 +34,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.4.0] — 2026-11-17
 
-**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+**Estado:** integrada em `main` pelo PR #655; release e deploy ainda pendentes. **Migration:** nenhuma.
 
 ### Reconciliação financeira
 
@@ -54,7 +54,7 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 
 ## [1.3.0] — 2026-11-17
 
-**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+**Estado:** integrada em `main` pelo PR #655; release e deploy ainda pendentes. **Migration:** nenhuma.
 
 ### Páginas públicas
 

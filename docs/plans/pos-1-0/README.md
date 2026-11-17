@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Roadmap pós-1.0.0 do monorepo Codaqui — releases concluídas, próxima fase preparada, candidatos não aprovados e pendências operacionais.
 audience: Presidência, mantenedores e AI agents planejando o pós-1.0.0.
-status: Revisado em 2026-11-17 até 1.2.0 publicado; Fase 8 concluída em develop/1.3.0; Fase 8b e demais candidatos sem aprovação.
+status: Revisado em 2026-11-17 até 1.4.0 integrado em main; Fase 8b.1 planejada aguardando ratificação; P6/P7 não aprovados.
 sections:
   - Estado das releases
   - Fases concluídas
@@ -17,7 +17,7 @@ related-docs:
   - ../../superpowers/specs/2026-11-17-public-pages-design.md — design da Fase 8.
   - ../../superpowers/plans/2026-11-17-public-pages.md — plano TDD concluído da Fase 8.
 agent-protocol:
-  - A Fase 8 está concluída em develop; qualquer trabalho novo exige revisão/aprovação de outra proposta.
+  - A Fase 8 está integrada em main; a Fase 8b.1 exige ratificação antes da implementação e P6/P7 continuam não aprovados.
   - Fases e “1.5” são rótulos de organização, não versões garantidas; revalidar código e escopo antes de executar.
   - Real Network é visão exploratória e não integra este backlog.
 -->
@@ -33,6 +33,8 @@ agent-protocol:
 | 1.0.2 | Onda 1 de UX e hardening do C4P | PR #650 e `v1.0.2-backend`, 16/11. |
 | 1.1.0 | Ciclo de mentoria, migration 050; inclui também correções de eventos/blog | PR #652 e `v1.1.0-backend`, 16/11. |
 | 1.2.0 | Painéis e autosserviço de privacidade, migration 051 | PR #654 e `v1.2.0-backend`, 17/11. |
+| 1.3.0 | Fase 8 — páginas públicas conectadas às projeções | PR #655 em main; release/deploy pendente. |
+| 1.4.0 | Reconciliação idempotente de taxas Stripe e guia leve de agentes | PR #655 em main; reconciliação em produção após deploy. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 
@@ -54,7 +56,7 @@ A evidência de revisão jurídica/da diretoria não foi localizada nesta consol
 
 ## Fase 8 concluída — páginas públicas conectadas ao banco
 
-**Implementada em `develop` com versão compartilhada 1.3.0; integração em `main` ainda pendente.**
+**Implementada com versão compartilhada 1.3.0 e integrada em `main` pelo PR #655; release/deploy ainda pendente.**
 
 - **P3 — `/sobre/equipe`:** Diretoria/Membros/Alumni mantêm curadoria local e enriquecimento por GitHub handle com `loadPublicMembers()`; sem match, preservam fallback local sem criar conta. Mentores vêm somente do snapshot público ativo/vigente.
 - **P4 — `/sobre/ong`:** comunidades usam `loadCommunitiesIndex()`, com nível/selo efetivo e data do snapshot; portais são a interseção do registro elegível com `TENANTS`, usando o domínio configurado.
@@ -65,7 +67,9 @@ Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) 
 
 ## Candidatos posteriores
 
-### Fase 8b — Projetos de extensão e patrocínio PJ (não aprovada)
+### Fase 8b — Projetos de extensão e patrocínio PJ (P12 planejado; P6/P7 não aprovados)
+
+P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [spec](../../superpowers/specs/2026-11-17-extension-project-assisted-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-extension-project-assisted.md) revisados por builder check. Está aguardando ratificação e não deve ser implementada antes disso. P6 e P7 continuam sem aprovação e exigem specs próprias.
 
 | Item | Escopo a revalidar |
 |---|---|
