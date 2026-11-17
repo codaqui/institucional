@@ -220,7 +220,7 @@ function validateSchedule(values: ProjectFormValues): string[] {
   return errors;
 }
 
-function validateResources(values: ProjectFormValues): string[] {
+function validateSupportPartners(values: ProjectFormValues): string[] {
   const errors: string[] = [];
   for (const partner of values.supportPartners) {
     if (!hasText(partner.nome) && hasText(partner.cnpj)) {
@@ -228,6 +228,11 @@ function validateResources(values: ProjectFormValues): string[] {
       break;
     }
   }
+  return errors;
+}
+
+function validateBudget(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
   for (const item of values.budgetItems) {
     if (!hasText(item.descricao)) {
       errors.push("Informe a descrição de cada item do orçamento.");
@@ -245,6 +250,11 @@ function validateResources(values: ProjectFormValues): string[] {
       break;
     }
   }
+  return errors;
+}
+
+function validateAttachments(values: ProjectFormValues): string[] {
+  const errors: string[] = [];
   for (const attachment of values.attachments) {
     if (!hasText(attachment.url)) continue;
     try {
@@ -257,6 +267,14 @@ function validateResources(values: ProjectFormValues): string[] {
     }
   }
   return errors;
+}
+
+function validateResources(values: ProjectFormValues): string[] {
+  return [
+    ...validateSupportPartners(values),
+    ...validateBudget(values),
+    ...validateAttachments(values),
+  ];
 }
 
 export function validateProjectForm(values: ProjectFormValues): string[] {
