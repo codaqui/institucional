@@ -4,30 +4,10 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { authState, resetAuthState } from "../../../../test/admin-auth-fixtures";
 import MemberDashboardApp from "../dashboard/MemberDashboardApp";
 import { renderWithMui } from "../../../../test/render-mui";
 import type { AuthUser } from "../../../../lib/auth-client";
-
-// Estado mutável compartilhado com a fábrica do mock — cada teste ajusta
-// os campos que precisa no beforeEach/corpo (mesmo padrão do AppNavIsland).
-const authState = vi.hoisted(() => ({
-  user: null as AuthUser | null,
-  ready: false,
-  isLoggedIn: false,
-  authFetch: vi.fn(),
-}));
-
-vi.mock("../../../../lib/use-auth", () => ({
-  useAuth: () => ({
-    user: authState.user,
-    ready: authState.ready,
-    isLoggedIn: authState.isLoggedIn,
-    isAdmin: authState.user?.roles.includes("admin") ?? false,
-    isFinanceAnalyzer: authState.user?.roles.includes("finance-analyzer") ?? false,
-    logout: vi.fn(),
-    authFetch: authState.authFetch,
-  }),
-}));
 
 function jsonResponse(body: unknown, options: { status?: number } = {}): Response {
   return new Response(JSON.stringify(body), {
@@ -48,10 +28,33 @@ function makeUser(overrides: Partial<AuthUser> = {}): AuthUser {
   };
 }
 
+function buildRegistration(id: string, startAt: string, overrides: Record<string, unknown> = {}) {
+  return {
+    id,
+    status: "confirmed",
+    checkedInAt: null,
+    certificateGrantedAt: null,
+    checkinToken: `token-${id}`,
+    attendeeName: "Mentoria Codaqui",
+    memberId: "user-1",
+    event: {
+      id: `evt-${id}`,
+      title: "Evento",
+      startAt,
+      location: null,
+      status: "completed",
+    },
+    ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
+    ...overrides,
+  };
+}
+
 function mockLoggedIn(user: AuthUser, authFetch: ReturnType<typeof vi.fn>) {
   authState.user = user;
   authState.ready = true;
   authState.isLoggedIn = true;
+  authState.isAdmin = user.roles.includes("admin");
+  authState.isFinanceAnalyzer = user.roles.includes("finance-analyzer");
   authState.authFetch = authFetch;
 }
 
@@ -70,9 +73,7 @@ async function openFinanceTab(name: "Doações" | "Assinaturas" | "Reembolsos") 
 describe("/membro", () => {
   beforeEach(() => {
     window.history.replaceState({}, "", "/membro");
-    authState.user = null;
-    authState.ready = false;
-    authState.isLoggedIn = false;
+    resetAuthState();
     authState.authFetch = vi.fn();
     vi.clearAllMocks();
     stubFetch();
@@ -294,14 +295,9 @@ describe("/membro", () => {
       }
       if (url.includes("/events/my-registrations")) {
         return jsonResponse([
-          {
-            id: "reg-2",
-            status: "confirmed",
-            checkedInAt: null,
+          buildRegistration("reg-2", pastStart, {
             certificateGrantedAt: grantedAt,
             checkinToken: "token-xyz",
-            attendeeName: "Mentoria Codaqui",
-            memberId: "user-1",
             event: {
               id: "evt-2",
               title: "Workshop GitHub",
@@ -309,8 +305,7 @@ describe("/membro", () => {
               location: null,
               status: "completed",
             },
-            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
-          },
+          }),
         ]);
       }
       return jsonResponse(null, { status: 404 });
@@ -380,14 +375,9 @@ describe("/membro", () => {
       }
       if (url.includes("/events/my-registrations")) {
         return jsonResponse([
-          {
-            id: "reg-3",
-            status: "confirmed",
-            checkedInAt: null,
+          buildRegistration("reg-3", pastStart, {
             certificateGrantedAt: "2026-08-10T18:10:00.000Z",
             checkinToken: "token-403",
-            attendeeName: "Mentoria Codaqui",
-            memberId: "user-1",
             event: {
               id: "evt-3",
               title: "Workshop com erro",
@@ -395,8 +385,7 @@ describe("/membro", () => {
               location: null,
               status: "completed",
             },
-            ticketType: { name: "Gratuito", kind: "free", priceCents: 0 },
-          },
+          }),
         ]);
       }
       return jsonResponse(null, { status: 404 });

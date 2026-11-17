@@ -90,6 +90,50 @@ export default function AccountDeletionRequests({ members }: { readonly members:
     }
   };
 
+  function renderRequestsContent(): React.JSX.Element {
+    if (loading) {
+      return (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+          <CircularProgress aria-label="Carregando solicitações de exclusão" />
+        </Box>
+      );
+    }
+    if (data.length === 0) {
+      return (
+        <Typography variant="body2" color="text.secondary">
+          Nenhuma solicitação encontrada para o filtro atual.
+        </Typography>
+      );
+    }
+    return (
+      <Stack spacing={1}>
+        {data.map((item) => {
+          const member = members.find((candidate) => candidate.id === item.memberId);
+          return (
+            <Box key={item.id} sx={{ display: "flex", gap: 1, alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", sm: "row" }, border: 1, borderColor: "divider", borderRadius: 1, p: 1.5 }}>
+              <Box>
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {member ? `${member.name} (@${member.githubHandle})` : item.memberId}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(item.requestedAt).toLocaleString("pt-BR")}
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Chip size="small" variant="outlined" label={STATUS_LABEL[item.status]} />
+                {item.status === "pending" && (
+                  <Button size="small" variant="outlined" onClick={() => { setTarget(item); setReviewNote(""); setCompleteError(""); }}>
+                    Concluir solicitação
+                  </Button>
+                )}
+              </Stack>
+            </Box>
+          );
+        })}
+      </Stack>
+    );
+  }
+
   return (
     <Card variant="outlined" sx={{ mt: 4 }}>
       <CardContent>
@@ -123,41 +167,7 @@ export default function AccountDeletionRequests({ members }: { readonly members:
               {error}
             </Alert>
           )}
-          {loading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
-              <CircularProgress aria-label="Carregando solicitações de exclusão" />
-            </Box>
-          ) : data.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">
-              Nenhuma solicitação encontrada para o filtro atual.
-            </Typography>
-          ) : (
-            <Stack spacing={1}>
-              {data.map((item) => {
-                const member = members.find((candidate) => candidate.id === item.memberId);
-                return (
-                  <Box key={item.id} sx={{ display: "flex", gap: 1, alignItems: { xs: "flex-start", sm: "center" }, justifyContent: "space-between", flexDirection: { xs: "column", sm: "row" }, border: 1, borderColor: "divider", borderRadius: 1, p: 1.5 }}>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {member ? `${member.name} (@${member.githubHandle})` : item.memberId}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(item.requestedAt).toLocaleString("pt-BR")}
-                      </Typography>
-                    </Box>
-                    <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                      <Chip size="small" variant="outlined" label={STATUS_LABEL[item.status]} />
-                      {item.status === "pending" && (
-                        <Button size="small" variant="outlined" onClick={() => { setTarget(item); setReviewNote(""); setCompleteError(""); }}>
-                          Concluir solicitação
-                        </Button>
-                      )}
-                    </Stack>
-                  </Box>
-                );
-              })}
-            </Stack>
-          )}
+          {renderRequestsContent()}
           <PaginationControls page={page} totalPages={totalPages} onChange={setPage} itemLabel="solicitações de exclusão" />
         </Stack>
       </CardContent>

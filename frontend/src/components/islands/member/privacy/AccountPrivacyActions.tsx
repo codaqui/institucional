@@ -96,6 +96,27 @@ export default function AccountPrivacyActions(): React.JSX.Element {
     }
   };
 
+  function renderDeletionContent(): React.JSX.Element {
+    if (loadingRequest) {
+      return <CircularProgress size={20} aria-label="Carregando solicitação de exclusão" />;
+    }
+    if (deletionRequest?.status === "pending") {
+      return (
+        <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
+          <Alert severity="info">Solicitação pendente de revisão pela diretoria.</Alert>
+          <Button color="error" variant="outlined" onClick={() => setConfirmAction("cancel")}>
+            Cancelar solicitação
+          </Button>
+        </Stack>
+      );
+    }
+    return (
+      <Button color="error" variant="outlined" onClick={() => setConfirmAction("request")}>
+        Solicitar exclusão
+      </Button>
+    );
+  }
+
   return (
     <Card variant="outlined">
       <CardContent>
@@ -109,20 +130,7 @@ export default function AccountPrivacyActions(): React.JSX.Element {
             </Button>
             <Button variant="outlined" href="#preferencias-email">Preferências de e-mail</Button>
           </Stack>
-          {loadingRequest ? (
-            <CircularProgress size={20} aria-label="Carregando solicitação de exclusão" />
-          ) : deletionRequest?.status === "pending" ? (
-            <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-              <Alert severity="info">Solicitação pendente de revisão pela diretoria.</Alert>
-              <Button color="error" variant="outlined" onClick={() => setConfirmAction("cancel")}>
-                Cancelar solicitação
-              </Button>
-            </Stack>
-          ) : (
-            <Button color="error" variant="outlined" onClick={() => setConfirmAction("request")}>
-              Solicitar exclusão
-            </Button>
-          )}
+          {renderDeletionContent()}
         </Stack>
       </CardContent>
       <ModalConfirm
