@@ -210,4 +210,11 @@ describe('CompaniesController', () => {
     await controller.listPersonalSubscriptions(memberId);
     expect(conversionService.listPersonalSubscriptions).toHaveBeenCalledWith(memberId);
   });
+
+  it('delegates subscription conversion with the authenticated admin actor', async () => {
+    const adminReq = req({ sub: 'admin-1', roles: [MemberRole.ADMIN] });
+    const dto = { memberId: 'member-1', subscriptionId: 'sub-1' };
+    await controller.convertSubscription(dto as any, adminReq);
+    expect(conversionService.convert).toHaveBeenCalledWith(dto, adminReq.user);
+  });
 });

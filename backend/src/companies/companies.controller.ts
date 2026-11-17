@@ -20,6 +20,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { MemberRole } from '../members/entities/member.entity';
 import { CompaniesService } from './companies.service';
 import { CompanySubscriptionConversionService } from './company-subscription-conversion.service';
+import { ConvertSubscriptionDto } from './dto/subscription-conversion.dto';
 import {
   CreateCompanyDto,
   UpdateCompanyStatusDto,
@@ -107,6 +108,14 @@ export class CompaniesController {
   @ApiBearerAuth()
   listPersonalSubscriptions(@Query('memberId') memberId: string) {
     return this.conversionService.listPersonalSubscriptions(memberId);
+  }
+
+  @Post('admin/subscription-conversions')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  @ApiBearerAuth()
+  convertSubscription(@Body() dto: ConvertSubscriptionDto, @Req() req: Request) {
+    return this.conversionService.convert(dto, req.user as JwtPayload);
   }
 
   @Get(':id/public')

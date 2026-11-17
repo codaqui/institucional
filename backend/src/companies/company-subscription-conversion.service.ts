@@ -1,10 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import Stripe from 'stripe';
 import { AuditService } from '../audit/audit.service';
-import { Member } from '../members/entities/member.entity';
-import { Company } from './entities/company.entity';
+import { AuditAction } from '../audit/entities/audit-log.entity';
+import type { JwtPayload } from '../auth/jwt.strategy';
+import { validateCnpj } from './companies.service';
+import { validateCompanyProfileUrls } from './company-profile';
+import { Member, MemberRole } from '../members/entities/member.entity';
+import { Company, CompanyStatus } from './entities/company.entity';
 import { CompanyWallet } from './entities/company-wallet.entity';
 import { CompanySubscriptionConversion } from './entities/company-subscription-conversion.entity';
 
@@ -57,4 +61,183 @@ export class CompanySubscriptionConversionService {
       }];
     });
   }
+
+  async convert(dto: ConvertCompanySubscriptionInput, actor: JwtPayload): Promise<ConversionResult> {
+    if (!actor.roles?.includes(MemberRole.ADMIN)) {
+      throw new ForbiddenException('Conversão de assinatura requer admin.');
+    }
+    const existing = await this.conversionRepo.findOneBy({ stripeSubscriptionId: dto.subscriptionId });
+    if (existing?.status === 'completed') {
+      return {
+        conversionId: existing.id,
+        companyId: existing.companyId,
+        subscriptionId: existing.stripeSubscriptionId,
+        status: 'already_converted',
+      };
+    }
+
+    const subscription = await this.stripe.subscriptions.retrieve(dto.subscriptionId);
+    const item = subscription.items.data[0];
+    if (
+      subscription.status !== 'active' ||
+      item?.price?.recurring?.interval !== 'month' ||
+      subscription.metadata?.memberId !== dto.memberId
+    ) {
+      throw new ConflictException('A assinatura não é pessoal, mensal, ativa e pertencente ao membro.');
+    }
+    if (
+      subscription.metadata?.entityType === 'business' &&
+      (!existing || subscription.metadata?.companyId !== existing.companyId)
+    ) {
+      throw new ConflictException('A assinatura já pertence a uma empresa.');
+    }
+    const amountCents = item.price.unit_amount ?? 0;
+    const customerId = typeof subscription.customer === 'string' ? subscription.customer : subscription.customer?.id;
+    if (!customerId) throw new ConflictException('Assinatura sem customer vinculado.');
+
+    const prepared = await this.dataSource.transaction(async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock(hashtext($1))', [dto.subscriptionId]);
+      const conversions = manager.getRepository(CompanySubscriptionConversion);
+      let conversion = await conversions.findOneBy({ stripeSubscriptionId: dto.subscriptionId });
+      if (conversion?.status === 'completed') {
+        return { already: true as const, conversion, companyId: conversion.companyId };
+      }
+
+      const member = await manager.getRepository(Member).findOneBy({ id: dto.memberId, isActive: true });
+      if (!member) throw new NotFoundException('Membro ativo não encontrado.');
+      const companies = manager.getRepository(Company);
+      const companyId = conversion?.companyId ?? dto.companyId;
+      let company: Company;
+      if (companyId) {
+        const found = await companies.findOne({ where: { id: companyId }, lock: { mode: 'pessimistic_write' } });
+        if (!found) throw new NotFoundException('Empresa não encontrada.');
+        if (found.responsibleMemberId !== dto.memberId) {
+          throw new ConflictException('A empresa deve pertencer ao membro selecionado.');
+        }
+        if (found.stripeSubscriptionId && found.stripeSubscriptionId !== dto.subscriptionId) {
+          throw new ConflictException('A empresa já possui outra assinatura.');
+        }
+        company = found;
+      } else {
+        if (!dto.name || !dto.cnpj) {
+          throw new BadRequestException('Nome e CNPJ são obrigatórios para criar a empresa.');
+        }
+        validateCnpj(dto.cnpj);
+        validateCompanyProfileUrls(dto);
+        if (await companies.findOneBy({ cnpj: dto.cnpj })) {
+          throw new ConflictException('CNPJ já cadastrado.');
+        }
+        if (await companies.findOneBy({ responsibleMemberId: dto.memberId })) {
+          throw new ConflictException('O membro já é responsável por uma empresa; selecione-a.');
+        }
+        company = await companies.save(companies.create({
+          cnpj: dto.cnpj,
+          name: dto.name,
+          tradeName: dto.tradeName ?? null,
+          logoUrl: dto.logoUrl ?? null,
+          websiteUrl: dto.websiteUrl ?? null,
+          responsibleMemberId: dto.memberId,
+          status: CompanyStatus.PENDING,
+          subscriptionAmountCents: amountCents,
+        }));
+      }
+
+      if (!conversion) {
+        conversion = conversions.create({
+          stripeSubscriptionId: dto.subscriptionId,
+          memberId: dto.memberId,
+          companyId: company.id,
+          requestedById: actor.sub,
+          status: 'pending',
+          completedAt: null,
+        });
+      }
+      conversion = await conversions.save(conversion);
+      return { already: false as const, conversion, company };
+    });
+    if (prepared.already) {
+      return {
+        conversionId: prepared.conversion.id,
+        companyId: prepared.companyId,
+        subscriptionId: dto.subscriptionId,
+        status: 'already_converted',
+      };
+    }
+
+    if (subscription.metadata?.entityType !== 'business') {
+      await this.stripe.subscriptions.update(dto.subscriptionId, {
+        metadata: {
+          entityType: 'business',
+          companyId: prepared.company.id,
+          memberId: dto.memberId,
+          isSubscription: 'true',
+        },
+      });
+    }
+
+    const completed = await this.dataSource.transaction(async (manager) => {
+      const conversions = manager.getRepository(CompanySubscriptionConversion);
+      const conversion = await conversions.findOneBy({ stripeSubscriptionId: dto.subscriptionId });
+      if (!conversion) throw new NotFoundException('Conversão não encontrada.');
+      if (conversion.status === 'completed') return { conversion, company: prepared.company, already: true as const };
+      const companies = manager.getRepository(Company);
+      const company = await companies.findOne({
+        where: { id: conversion.companyId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (!company) throw new NotFoundException('Empresa não encontrada.');
+      await companies.update(company.id, {
+        stripeCustomerId: customerId,
+        stripeSubscriptionId: dto.subscriptionId,
+        subscriptionAmountCents: amountCents,
+      });
+      const wallets = manager.getRepository(CompanyWallet);
+      if (!await wallets.findOneBy({ companyId: company.id })) {
+        await wallets.save(wallets.create({ companyId: company.id, balances: {}, frozenTypes: [] }));
+      }
+      conversion.status = 'completed';
+      conversion.completedAt = new Date();
+      await conversions.save(conversion);
+      return { conversion, company, already: false as const };
+    });
+    if (!completed.already) {
+      await this.audit.log({
+        action: AuditAction.COMPANY_SUBSCRIPTION_CONVERTED,
+        actorId: actor.sub,
+        actorHandle: actor.handle,
+        targetId: completed.company.id,
+        targetType: 'company',
+        details: {
+          conversionId: completed.conversion.id,
+          subscriptionId: dto.subscriptionId,
+          memberId: dto.memberId,
+        },
+      });
+    }
+    return {
+      conversionId: completed.conversion.id,
+      companyId: completed.company.id,
+      subscriptionId: dto.subscriptionId,
+      status: completed.already ? 'already_converted' : 'converted',
+    };
+  }
 }
+
+export interface ConvertCompanySubscriptionInput {
+  memberId: string;
+  subscriptionId: string;
+  companyId?: string;
+  name?: string;
+  cnpj?: string;
+  tradeName?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
+}
+
+export interface ConversionResult {
+  conversionId: string;
+  companyId: string;
+  subscriptionId: string;
+  status: 'converted' | 'already_converted';
+}
+
