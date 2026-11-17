@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.3 — conversão recuperável de assinatura pessoal mensal em apoio empresarial sem nova cobrança.
 audience: Implementers e revisores
-status: Tasks 1–5 concluídas; gates e revisão final em andamento
+status: Código concluído em develop/1.7.0 com testes, jornada real e gates; conversão real pendente de deploy/autorização
 sections:
   - Constraints e review focus
   - Tasks 1–5
@@ -14,7 +14,7 @@ agent-protocol: Executar em develop após ratificação; nenhuma conversão real
 
 # Personal to Business Subscription Conversion Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Permitir que admin configure o perfil da empresa e converta uma assinatura pessoal mensal ativa em apoio empresarial preservando a mesma assinatura, histórico e wallets.
 
@@ -59,16 +59,16 @@ agent-protocol: Executar em develop após ratificação; nenhuma conversão real
 - Produces: entidade com `id`, `stripeSubscriptionId` único, `memberId`, `companyId`, `requestedById`, `status`, `createdAt`, `updatedAt`, `completedAt`.
 - Produces: `AuditAction.COMPANY_SUBSCRIPTION_CONVERTED = 'company.subscription_converted'` como governo.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
 
 Verificar tabela, campos mínimos, unique da assinatura, down/up e classificação de governo. Atualizar a contagem de ações pelo valor atual +1.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/companies/company-subscription-conversion.migration.spec.ts src/audit/audit-category.spec.ts --runInBand`
 Expected: FAIL porque migration/entidade/ação não existem.
 
-- [ ] **Step 3: Implementar e verificar**
+- [x] **Step 3: Implementar e verificar**
 
 Criar migration reversível, entidade e registro no módulo/auditoria. Repetir o comando até PASS.
 
@@ -85,20 +85,20 @@ Criar migration reversível, entidade e registro no módulo/auditoria. Repetir o
 - Produces: `listPersonalSubscriptions(memberId)` retornando `{id,amountCents,interval,currentPeriodEnd}`.
 - Produces: `GET /companies/admin/personal-subscriptions?memberId=<uuid>` com JWT + admin.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
 
 Verificar busca por status/memberId, filtro de business/anuais, projeção sem customer/PII, período no formato atual do item e rejeição de UUID inválido/não admin.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/companies/company-subscription-conversion.service.spec.ts src/companies/companies.controller.spec.ts --runInBand`
 Expected: FAIL porque o service/rota não existem.
 
-- [ ] **Step 3: Implementar busca e rota**
+- [x] **Step 3: Implementar busca e rota**
 
 Usar Stripe search com UUID validado, status ativo e memberId, derivar preço/intervalo/período do item atual e registrar provider no módulo.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Repetir o comando até PASS.
 
@@ -120,16 +120,16 @@ Repetir o comando até PASS.
 - Produces: `AuditAction.COMPANY_PROFILE_UPDATED = 'company.profile_updated'` como governo.
 - Preserves: acesso do responsável atual por `PATCH /companies/:id`.
 
-- [ ] **Step 1: Escrever testes falhos**
+- [x] **Step 1: Escrever testes falhos**
 
 Cobrir admin editando nome legal, nome fantasia, logo e website; responsável mantém acesso; CNPJ/assinatura/status/tier/selo inalterados; update parcial não apaga vínculo Stripe; URLs inválidas falham; auditoria contém antes/depois.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/companies/companies.service.spec.ts src/companies/companies.controller.spec.ts src/audit/audit-category.spec.ts --runInBand`
 Expected: FAIL porque o método/ação não existem.
 
-- [ ] **Step 3: Implementar edição e verificar**
+- [x] **Step 3: Implementar edição e verificar**
 
 Usar lock da empresa, permitir admin sem remover o caminho do responsável e fazer update parcial somente das colunas presentes no DTO. Criar helper HTTPS com `new URL`, sem allowlist de comprovantes, compartilhado por cadastro/edição/conversão. Auditar sem dados desnecessários. Repetir o comando até PASS.
 
@@ -146,20 +146,20 @@ Usar lock da empresa, permitir admin sem remover o caminho do responsável e faz
 - Produces: `convert(dto, actor)` e `POST /companies/admin/subscription-conversions` retornando `{conversionId,companyId,subscriptionId,status:'converted'|'already_converted'}`.
 - Consumes: migration/entidade da Task 1 e Stripe da Task 2.
 
-- [ ] **Step 1: Escrever testes falhos da matriz de conversão**
+- [x] **Step 1: Escrever testes falhos da matriz de conversão**
 
 Cobrir status/recorrência/membro inválidos, empresa de outro responsável, CNPJ duplicado, empresa nova `pending`, empresa existente preservada, mesma assinatura/metadados, idempotência, concorrência, falha antes/depois de Stripe e ausência de ledger/backfill.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd backend && npx jest src/companies/company-subscription-conversion.service.spec.ts src/companies/companies.controller.spec.ts --runInBand`
 Expected: FAIL porque `convert` não existe.
 
-- [ ] **Step 3: Implementar fluxo recuperável**
+- [x] **Step 3: Implementar fluxo recuperável**
 
 Criar/reutilizar conversão com unique + lock, validar estado atual, aplicar o helper HTTPS da Task 3 à empresa nova, atualizar somente quatro metadados, vincular empresa/wallet e marcar conclusão. Em retry após sucesso externo, completar somente o que falta. Auditar e responder sem segredos.
 
-- [ ] **Step 4: Verificar módulo completo**
+- [x] **Step 4: Verificar módulo completo**
 
 Run: `cd backend && npx jest src/companies src/stripe --runInBand`
 Expected: PASS.
@@ -179,28 +179,28 @@ Expected: PASS.
 - Consumes: endpoints das Tasks 2 e 4, edição da Task 3 e `/mentorship/member-options`.
 - Produces: aba **Converter assinatura** somente admin.
 
-- [ ] **Step 1: Escrever testes falhos da UI**
+- [x] **Step 1: Escrever testes falhos da UI**
 
 Cobrir busca de membro, candidatos mensais, empresa existente/nova, CNPJ, nome legal/fantasia, logo/website, salvamento separado do perfil, confirmação da mesma assinatura, empresa nova pendente, erro e repetição `already_converted` sem nova conversão.
 
-- [ ] **Step 2: Confirmar a falha**
+- [x] **Step 2: Confirmar a falha**
 
 Run: `cd frontend && npx vitest run src/components/islands/admin/empresas`
 Expected: FAIL porque painel/aba não existem.
 
-- [ ] **Step 3: Implementar painel e documentar**
+- [x] **Step 3: Implementar painel e documentar**
 
 Integrar busca, seleção, empresa e confirmação com `authFetch`; atualizar ADRs/roadmap sem antecipar release.
 
-- [ ] **Step 4: Verificar**
+- [x] **Step 4: Verificar**
 
 Repetir o comando até PASS.
 
 ### Gates e rollout
 
-- [ ] Migration 052 down/up em dump isolado, preservando empresas/vínculos existentes.
-- [ ] Jornada sintética: empresa nova permanece pendente; mesma assinatura; repetição `already_converted`; invoice futura segue metadados empresariais; histórico/wallet pessoal preservados.
-- [ ] `cd backend && npm run build && npx jest --silent`
-- [ ] `make astro-verify` e `make astro-verify-tenants`
-- [ ] Atualizar changelog/versões com bump minor; revisão independente e PR para `develop`.
+- [x] Migration 052 down/up em dump isolado, preservando empresas/vínculos existentes.
+- [x] Jornada sintética: empresa nova permanece pendente; mesma assinatura; repetição `already_converted`; invoice futura segue metadados empresariais; histórico/wallet pessoal preservados.
+- [x] `cd backend && npm run build && npx jest --silent`
+- [x] `make astro-verify` e `make astro-verify-tenants`
+- [x] Atualizar changelog/versões com bump minor; revisão independente e PR para `develop`.
 - [ ] Publicar migration/backend/frontend; somente depois executar uma conversão real expressamente autorizada e conferir a próxima invoice.

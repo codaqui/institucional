@@ -37,6 +37,7 @@ agent-protocol:
 | 1.4.0 | Reconciliação idempotente de taxas Stripe e guia leve de agentes | PR #655 em main; reconciliação em produção após deploy. |
 | 1.5.0 | Fase 8b.1 — cadastro assistido de projetos de extensão | Implementada em develop; release/deploy pendente. |
 | 1.6.0 | Fase 8b.2 — importação manual da vitrine e diagnóstico de disponibilidade de mentoria | Implementada em develop; release/deploy pendente. |
+| 1.7.0 | Fase 8b.3 — conversão de assinatura pessoal e configuração de empresas pelo admin | Implementada em develop com migration 052; release/deploy e conversão real pendente. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 

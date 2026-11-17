@@ -45,12 +45,18 @@ describe('CompaniesController', () => {
       manualAdjust: jest.fn(),
     };
 
-    conversionService = { listPersonalSubscriptions: jest.fn(), convert: jest.fn() };
+    conversionService = {
+      listPersonalSubscriptions: jest.fn(),
+      convert: jest.fn(),
+    };
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CompaniesController],
       providers: [
         { provide: CompaniesService, useValue: service },
-        { provide: CompanySubscriptionConversionService, useValue: conversionService },
+        {
+          provide: CompanySubscriptionConversionService,
+          useValue: conversionService,
+        },
       ],
     }).compile();
 
@@ -58,7 +64,10 @@ describe('CompaniesController', () => {
   });
 
   it('registers company with authenticated user id', async () => {
-    await controller.register({ cnpj: '11222333000181', name: 'Acme' } as any, req());
+    await controller.register(
+      { cnpj: '11222333000181', name: 'Acme' } as any,
+      req(),
+    );
     expect(service.register).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'Acme' }),
       'member-1',
@@ -82,7 +91,9 @@ describe('CompaniesController', () => {
   it('gets company public info', async () => {
     await controller.getPublicAffiliationByHandle('octocat');
     await controller.getCompanyPublicInfo('company-1');
-    expect(service.findPublicAffiliationByHandle).toHaveBeenCalledWith('octocat');
+    expect(service.findPublicAffiliationByHandle).toHaveBeenCalledWith(
+      'octocat',
+    );
     expect(service.findPublicInfo).toHaveBeenCalledWith('company-1');
   });
 
@@ -94,7 +105,10 @@ describe('CompaniesController', () => {
   });
 
   it('allows admin to access company without membership check', async () => {
-    await controller.getCompany('company-1', req({ roles: [MemberRole.ADMIN] }));
+    await controller.getCompany(
+      'company-1',
+      req({ roles: [MemberRole.ADMIN] }),
+    );
     expect(service.isMemberOfCompany).not.toHaveBeenCalled();
     expect(service.findById).toHaveBeenCalledWith('company-1');
   });
@@ -105,7 +119,12 @@ describe('CompaniesController', () => {
   });
 
   it('delegates wallet transaction pagination defaults', async () => {
-    await controller.getTransactions('company-1', req(), undefined as any, undefined as any);
+    await controller.getTransactions(
+      'company-1',
+      req(),
+      undefined as any,
+      undefined as any,
+    );
     expect(service.getTransactions).toHaveBeenCalledWith('company-1', 1, 20);
   });
 
@@ -120,7 +139,11 @@ describe('CompaniesController', () => {
     const adminReq = req({ sub: 'admin-1', roles: [MemberRole.ADMIN] });
     await controller.update('company-1', dto as any, adminReq);
 
-    expect(service.updateManagedProfile).toHaveBeenCalledWith('company-1', dto, adminReq.user);
+    expect(service.updateManagedProfile).toHaveBeenCalledWith(
+      'company-1',
+      dto,
+      adminReq.user,
+    );
     expect(service.update).not.toHaveBeenCalled();
   });
 
@@ -191,11 +214,19 @@ describe('CompaniesController', () => {
 
   it('delegates tier validation with the authenticated admin actor', async () => {
     const actor = req({ sub: 'admin-1', roles: [MemberRole.ADMIN] });
-    const dto = { tier: 'aliada', engagementCriterion: 'workshop', evidenceUrl: 'https://drive.google.com/evidence' };
+    const dto = {
+      tier: 'aliada',
+      engagementCriterion: 'workshop',
+      evidenceUrl: 'https://drive.google.com/evidence',
+    };
 
     await controller.adminUpdateTier('company-1', dto as any, actor);
 
-    expect(service.updateTier).toHaveBeenCalledWith('company-1', dto, actor.user);
+    expect(service.updateTier).toHaveBeenCalledWith(
+      'company-1',
+      dto,
+      actor.user,
+    );
   });
 
   it('lists only active public badges', async () => {
@@ -208,7 +239,9 @@ describe('CompaniesController', () => {
     const memberId = '00000000-0000-4000-8000-000000000001';
     conversionService.listPersonalSubscriptions.mockResolvedValue([]);
     await controller.listPersonalSubscriptions(memberId);
-    expect(conversionService.listPersonalSubscriptions).toHaveBeenCalledWith(memberId);
+    expect(conversionService.listPersonalSubscriptions).toHaveBeenCalledWith(
+      memberId,
+    );
   });
 
   it('delegates subscription conversion with the authenticated admin actor', async () => {

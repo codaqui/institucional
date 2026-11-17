@@ -52,12 +52,18 @@ describe("/admin/empresas", () => {
   });
 
   it("abre a aba de conversão de assinatura", async () => {
-    authState.authFetch.mockImplementation(async () => jsonResponse({ items: [], total: 0 }));
+    authState.authFetch.mockImplementation(async () =>
+      jsonResponse({ items: [], total: 0 }),
+    );
     mockLoggedIn(["admin"]);
     renderWithMui(<EmpresasApp />);
 
-    fireEvent.click(await screen.findByRole("tab", { name: "Converter assinatura" }));
-    expect(await screen.findByText("Converter assinatura pessoal em empresarial")).toBeInTheDocument();
+    fireEvent.click(
+      await screen.findByRole("tab", { name: "Converter assinatura" }),
+    );
+    expect(
+      await screen.findByText("Converter assinatura pessoal em empresarial"),
+    ).toBeInTheDocument();
   });
 
   it("carrega listagem paginada e busca detalhes ao expandir card", async () => {
@@ -71,7 +77,13 @@ describe("/admin/empresas", () => {
         });
       }
       if (url.includes(`/companies/${company.id}/members`)) {
-        return jsonResponse([{ id: "m-1", memberId: "colab1", addedAt: "2026-05-18T10:00:00.000Z" }]);
+        return jsonResponse([
+          {
+            id: "m-1",
+            memberId: "colab1",
+            addedAt: "2026-05-18T10:00:00.000Z",
+          },
+        ]);
       }
       if (url.includes(`/companies/${company.id}/wallet`)) {
         return jsonResponse({ balances: { sort_coin: 300 }, frozenTypes: [] });
@@ -96,7 +108,12 @@ describe("/admin/empresas", () => {
   it("solicita próxima página ao trocar paginação", async () => {
     authState.authFetch.mockImplementation(async (url: string) => {
       if (url.includes("/companies/admin/list?page=1&limit=10")) {
-        return jsonResponse({ items: [company], total: 20, page: 1, limit: 10 });
+        return jsonResponse({
+          items: [company],
+          total: 20,
+          page: 1,
+          limit: 10,
+        });
       }
       if (url.includes("/companies/admin/list?page=2&limit=10")) {
         return jsonResponse({ items: [], total: 20, page: 2, limit: 10 });
@@ -118,15 +135,25 @@ describe("/admin/empresas", () => {
   });
 
   it("atualiza status via PATCH ao trocar o Select", async () => {
-    authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.includes("/companies/admin/list?page=1&limit=10")) {
-        return jsonResponse({ items: [company], total: 1, page: 1, limit: 10 });
-      }
-      if (url.includes(`/companies/${company.id}/status`) && init?.method === "PATCH") {
-        return jsonResponse({ ok: true });
-      }
-      return jsonResponse(null, { status: 404 });
-    });
+    authState.authFetch.mockImplementation(
+      async (url: string, init?: RequestInit) => {
+        if (url.includes("/companies/admin/list?page=1&limit=10")) {
+          return jsonResponse({
+            items: [company],
+            total: 1,
+            page: 1,
+            limit: 10,
+          });
+        }
+        if (
+          url.includes(`/companies/${company.id}/status`) &&
+          init?.method === "PATCH"
+        ) {
+          return jsonResponse({ ok: true });
+        }
+        return jsonResponse(null, { status: 404 });
+      },
+    );
     mockLoggedIn(["admin"]);
 
     renderWithMui(<EmpresasApp />);
@@ -149,23 +176,45 @@ describe("/admin/empresas", () => {
 
   it("valida Aliada com evidência e permite voltar para Amiga", async () => {
     let currentTier = "amiga";
-    authState.authFetch.mockImplementation(async (url: string, init?: RequestInit) => {
-      if (url.includes("/companies/admin/list?page=1&limit=10")) {
-        return jsonResponse({ items: [{ ...company, tier: currentTier }], total: 1, page: 1, limit: 10 });
-      }
-      if (url.includes(`/companies/${company.id}/tier`) && init?.method === "PATCH") {
-        currentTier = JSON.parse(String(init.body)).tier;
-        return jsonResponse({ ...company, tier: currentTier, sealActive: true });
-      }
-      return jsonResponse(null, { status: 404 });
-    });
+    authState.authFetch.mockImplementation(
+      async (url: string, init?: RequestInit) => {
+        if (url.includes("/companies/admin/list?page=1&limit=10")) {
+          return jsonResponse({
+            items: [{ ...company, tier: currentTier }],
+            total: 1,
+            page: 1,
+            limit: 10,
+          });
+        }
+        if (
+          url.includes(`/companies/${company.id}/tier`) &&
+          init?.method === "PATCH"
+        ) {
+          currentTier = JSON.parse(String(init.body)).tier;
+          return jsonResponse({
+            ...company,
+            tier: currentTier,
+            sealActive: true,
+          });
+        }
+        return jsonResponse(null, { status: 404 });
+      },
+    );
     mockLoggedIn(["admin"]);
     renderWithMui(<EmpresasApp />);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Validar como Aliada" }));
-    fireEvent.change(screen.getByLabelText(/^Critério/), { target: { value: "workshop" } });
-    fireEvent.change(screen.getByLabelText(/^URL da evidência/), { target: { value: "https://drive.google.com/evidence" } });
-    fireEvent.click(screen.getByRole("button", { name: "Confirmar validação" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Validar como Aliada" }),
+    );
+    fireEvent.change(screen.getByLabelText(/^Critério/), {
+      target: { value: "workshop" },
+    });
+    fireEvent.change(screen.getByLabelText(/^URL da evidência/), {
+      target: { value: "https://drive.google.com/evidence" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "Confirmar validação" }),
+    );
 
     await waitFor(() => {
       expect(authState.authFetch).toHaveBeenCalledWith(
@@ -173,21 +222,35 @@ describe("/admin/empresas", () => {
         expect.objectContaining({ method: "PATCH" }),
       );
     });
-    const validationCall = authState.authFetch.mock.calls.find(([url]) => url.includes(`/companies/${company.id}/tier`));
+    const validationCall = authState.authFetch.mock.calls.find(([url]) =>
+      url.includes(`/companies/${company.id}/tier`),
+    );
     expect(JSON.parse(String(validationCall?.[1]?.body))).toMatchObject({
       tier: "aliada",
       engagementCriterion: "workshop",
       evidenceUrl: "https://drive.google.com/evidence",
     });
-    expect(await screen.findByText(/empresa validada como Aliada/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/empresa validada como Aliada/i),
+    ).toBeInTheDocument();
 
-    fireEvent.click(await screen.findByRole("button", { name: "Definir como Amiga" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Confirmar mudança" }));
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Definir como Amiga" }),
+    );
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Confirmar mudança" }),
+    );
     await waitFor(() => {
-      const calls = authState.authFetch.mock.calls.filter(([url]) => url.includes(`/companies/${company.id}/tier`));
+      const calls = authState.authFetch.mock.calls.filter(([url]) =>
+        url.includes(`/companies/${company.id}/tier`),
+      );
       expect(calls.length).toBeGreaterThanOrEqual(2);
     });
-    const downgradeCall = authState.authFetch.mock.calls.filter(([url]) => url.includes(`/companies/${company.id}/tier`)).at(-1);
-    expect(JSON.parse(String(downgradeCall?.[1]?.body))).toEqual({ tier: "amiga" });
+    const downgradeCall = authState.authFetch.mock.calls
+      .filter(([url]) => url.includes(`/companies/${company.id}/tier`))
+      .at(-1);
+    expect(JSON.parse(String(downgradeCall?.[1]?.body))).toEqual({
+      tier: "amiga",
+    });
   });
 });
