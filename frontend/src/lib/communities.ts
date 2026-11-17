@@ -78,3 +78,13 @@ export function communitySealLabel(status: CommunitySealStatus): string | null {
   if (status === "applied") return "Selo em avaliação";
   return null;
 }
+
+export function communityEffectiveSealLabel(
+  community: Pick<CommunityIndexEntry, "sealStatus" | "sealEffective">,
+): string | null {
+  if (community.sealStatus === "applied") return "Selo em avaliação";
+  if (community.sealStatus === "sealed" && community.sealEffective === true) {
+    return "Selo Codaqui";
+  }
+  return null;
+}

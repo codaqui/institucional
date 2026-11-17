@@ -13,10 +13,12 @@ import { ManagedEvent } from '../events/entities/managed-event.entity';
 import { ExternalEventActivation } from '../events/entities/external-event-activation.entity';
 import { Member } from '../members/entities/member.entity';
 import { CommunitiesModule } from '../communities/communities.module';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
   imports: [
     CommunitiesModule,
+    AuditModule,
     LedgerModule,
     TypeOrmModule.forFeature([
       Transaction,

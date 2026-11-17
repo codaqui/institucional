@@ -27,7 +27,7 @@ agent-protocol:
 
 - **Data da decisão:** 2026-11-06
 - **Revisão:** 2026-11-09 — escopos de diretorias e assembleias
-- **Status:** Implementado; integração e release pendentes
+- **Status:** Implementado e publicado em `v0.16.0-backend`; patches administrativos de IES incluídos em 0.24.0
 - **Escopo:** Fase 4, migrations 037–040, backend 0.16.0, API NestJS, snapshots e interfaces Astro/React
 
 ## Contexto

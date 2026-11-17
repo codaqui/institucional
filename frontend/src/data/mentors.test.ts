@@ -1,8 +1,9 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { loadMentorsIndex } from "./mentors";
+import { loadMentorsIndex, resolveMentorsSnapshotPath } from "./mentors";
 
 const mentor = {
   id: "d0b899a1-50b4-4f4f-a153-f0b07aa12ad3",
@@ -45,5 +46,27 @@ describe("loadMentorsIndex", () => {
     writeFileSync(snapshotPath, JSON.stringify({ generatedAt: "2026-11-09T12:00:00.000Z", mentors: [value], insights }));
     expect(loadMentorsIndex(snapshotPath).mentors).toEqual([]);
     expect(loadMentorsIndex(snapshotPath).generatedAt).toBeNull();
+  });
+});
+
+
+describe("resolveMentorsSnapshotPath", () => {
+  it("falls back to the frontend working directory after Astro bundles the loader", () => {
+    const testDirectory = mkdtempSync(join(tmpdir(), "codaqui-mentors-bundle-"));
+    try {
+      const frontendDirectory = join(testDirectory, "frontend");
+      const publicSnapshot = join(frontendDirectory, "public", "mentors", "index.json");
+      mkdirSync(join(frontendDirectory, "public", "mentors"), { recursive: true });
+      writeFileSync(publicSnapshot, "{}");
+      const bundledModule = pathToFileURL(
+        join(frontendDirectory, "dist", ".prerender", "chunks", "mentors.js"),
+      ).href;
+
+      expect(resolveMentorsSnapshotPath(bundledModule, frontendDirectory)).toBe(
+        publicSnapshot,
+      );
+    } finally {
+      rmSync(testDirectory, { recursive: true, force: true });
+    }
   });
 });

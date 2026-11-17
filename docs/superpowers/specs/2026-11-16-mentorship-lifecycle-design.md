@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 7.2 — sincronizar designation/perfil de mentoria, tornar candidaturas atômicas e melhorar a apresentação e o vínculo de sessões.
 audience: Mantenedores, revisor de arquitetura e AI agents implementando a fase.
-status: Aprovado pelo mantenedor em 2026-11-16, incluindo recandidatura, vigência e vínculo no mentor/admin; pronto para plano TDD.
+status: Concluído e publicado em v1.1.0-backend/migration 050 (PR #652, 2026-11-16), incluindo recandidatura, vigência e vínculo no mentor/admin.
 sections:
   - Intenção e escopo
   - Abordagens consideradas

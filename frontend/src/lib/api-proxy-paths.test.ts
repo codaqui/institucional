@@ -10,6 +10,7 @@ const apiPaths = [
   "/api/health",
   "/auth/github/callback",
   "/stripe/checkout-session",
+  "/stripe/reconcile-fee",
   "/ledger/community-balances",
   "/events/public/managed",
   "/events/organizers/reconcile",
@@ -163,7 +164,11 @@ describe("isApiProxyPath — allow-list de proxy", () => {
   });
 
   it("usa somente o pathname, ignorando a query string", () => {
-    expect(isApiProxyPath(new URL("http://localhost:8787/auth/github?x=1").pathname)).toBe(true);
-    expect(isApiProxyPath(new URL("http://localhost:8787/health?ts=1").pathname)).toBe(true);
+    expect(
+      isApiProxyPath(new URL("http://localhost:8787/auth/github?x=1").pathname),
+    ).toBe(true);
+    expect(
+      isApiProxyPath(new URL("http://localhost:8787/health?ts=1").pathname),
+    ).toBe(true);
   });
 });

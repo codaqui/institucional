@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR das campanhas de e-mail (E3), com segmentação, consentimento promocional independente, supressões, fila persistente e descadastro sem login.
 audience: AI agents, mantenedores e operadores de release.
-status: Implementado e integrado em develop pela PR #637 (backend 0.27.0 / migration 048); PR #638 aberta para main e publicação pendente.
+status: Implementado e publicado em v0.27.0-backend/migration 048 (PRs #637/#638); não tratar a PR #638 como aberta.
 sections:
   - Contexto e decisão
   - Consentimento, segmentos e supressões
@@ -22,7 +22,7 @@ agent-protocol:
 # ADR 018 — Campanhas de E-mail (E3)
 
 - **Data da decisão:** 2026-11-11
-- **Status:** Implementado e integrado em develop pela PR #637; PR #638 aberta para main (release v0.27.0-backend)
+- **Status:** Implementado e publicado em `v0.27.0-backend`/migration 048 (PRs #637/#638)
 - **Escopo:** Backend 0.27.0, migration 048, módulo `campaigns`, consentimento promocional, descadastro público, fila persistente e aba Campanhas em `/admin/emails`
 
 ## Contexto e decisão
@@ -66,4 +66,4 @@ Não há open/click tracking, pixels, anexos, construtor drag-and-drop ou automa
 
 - Backend: testes unitários cobrindo migration 048, segmentos, supressões, preview/test/confirm/cancel/retry, worker, backoff 421/454, descadastro público, anonimização 365d, filtros de logs e exportação CSV; E2E em PostgreSQL real cobrindo concorrência `SKIP LOCKED`, advisory lock compartilhado, descadastro imune a reativação indevida por admin, retenção e migration 048 `down`/`up`.
 - Frontend: testes Vitest para `UnsubscribeIsland`, `MyDataTab`, `EmailsCampaignsTab`, `EmailsApp`, `api-proxy-paths` e `sitemap-filter`, mais `astro check`, `make astro-verify` e `make astro-verify-tenants`.
-- Rollout: publicar backend `0.27.0` e executar migration `048`, validar campanha sintética em preview/teste e descadastro antes de autorizar o primeiro envio real.
+- Rollout: backend `0.27.0`/migration `048` publicados pelas PRs #637/#638. A validação de campanha sintética em preview/teste e descadastro continua necessária antes de autorizar o primeiro envio real.

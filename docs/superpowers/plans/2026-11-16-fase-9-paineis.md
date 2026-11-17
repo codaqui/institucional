@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD executável da Fase 9 — UX de /membro/admin e autosserviço de privacidade com exportação e solicitação revisada de exclusão.
 audience: Implementadores e revisores; leitura obrigatória junto da spec aprovada.
-status: Em execução — tasks 1–9 concluídas; documentação, revisão independente e gates finais na task 10.
+status: Concluído e publicado em v1.2.0-backend/migration 051 (PR #654, 2026-11-17); tasks 1–10 encerradas, com revisão jurídica/da diretoria não presumida.
 sections:
   - Constraints e Review Focus
   - Frente A: navegação e históricos (tasks 1–4)

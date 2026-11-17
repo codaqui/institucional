@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Design aprovado da Fase 7.1 — conter resumos dos cards de evento e exibir thumbnails nos cards do blog sem alterar o Design System.
 audience: Mantenedores e AI agents implementando a fase.
-status: Aprovado pelo mantenedor em 2026-11-16.
+status: Concluído; integrado pela PR #652 e publicado na linha 1.1.0, após 1.0.2.
 sections:
   - Intenção e escopo
   - Abordagens consideradas

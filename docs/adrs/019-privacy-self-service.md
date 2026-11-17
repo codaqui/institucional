@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: ADR do autosserviço de privacidade — prévia de visibilidade, exportação JSON do titular e solicitação revisada de exclusão de conta.
 audience: Diretoria/canal de privacidade, mantenedores, AI agents e operadores de release.
-status: Implementado em develop na Fase 9; revisão jurídica/da diretoria e release v1.2.0-backend pendentes.
+status: Implementado e publicado em v1.2.0-backend/migration 051 (PR #654); evidência de revisão jurídica/da diretoria não localizada nesta consolidação.
 sections:
   - Contexto e decisões
   - Exportação do titular
@@ -22,7 +22,7 @@ agent-protocol:
 # ADR 019 — Autosserviço de privacidade, exportação e solicitação de exclusão
 
 - **Data da decisão:** 2026-11-16
-- **Status:** Implementado em develop; revisão jurídica/da diretoria e release pendentes
+- **Status:** Implementado e publicado em `v1.2.0-backend`/migration 051 (PR #654); evidência de revisão jurídica/da diretoria não localizada nesta consolidação
 - **Escopo:** Backend 1.2.0, migration 051, `/membro?section=account` e fila na página admin de Membros
 
 ## Contexto e decisões
@@ -72,4 +72,4 @@ A fila fica em `/admin`, sem rota nova. A conclusão usa confirmação explícit
 
 A implementação possui testes unitários de service/controller/migration/export, testes frontend de download e ciclo, e E2E PostgreSQL de concorrência, autorização, conclusão, attachment e rate limit. Os gates completos e a revisão independente são registrados no plano/PR da Fase 9.
 
-Publicação: revisão jurídica/da diretoria → PR para `main` → release `v1.2.0-backend` e migration 051 → validação controlada de exportação e solicitação → frontend. Não há sync ou novo workflow.
+Publicação técnica: PR #654, release `v1.2.0-backend` e migration 051 concluídas. A evidência de revisão jurídica/da diretoria não foi localizada nesta consolidação; validação controlada de exportação e solicitação permanece acompanhamento operacional. Não há sync ou novo workflow.

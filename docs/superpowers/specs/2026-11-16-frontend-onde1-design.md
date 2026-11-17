@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Spec da Onda 1 (Fase 9a) do pacote pós-1.0.0 de frontend — correções P0/P1 de UX em páginas públicas, membro e admin, mais os menores deferidos de baixo risco do C4P. Sem mudança de system-design (Astro 7 + MUI v9 + tokens --cq-* preservados).
 audience: Mantenedores, implementers e revisores da Onda 1.
-status: Aprovada para implementação em 2026-11-16 (estrutura por onda e spec ratificadas pelo mantenedor: filtro de janela na vitrine C4P aprovado com nota na ADR 012).
+status: Concluída e publicada em v1.0.2-backend pela PR #650; o filtro de janela da vitrine C4P está registrado na ADR 012.
 sections:
   - Contexto e objetivo
   - Abordagens e por que esta onda

@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano detalhado (sem código) do Cadastro de Projeto de Extensão + comprovantes — formulário adaptado do modelo de "Atividade Extensionista" (AdminLTE) ao contexto da Codaqui, com restrições de negócio, máquina de estados, horas no ledger e declarações verificáveis.
 audience: Presidência, diretoria, mantenedores, AI agents implementando a Fase 4.
-status: spec aprovada para a Fase 4, ainda sem plano executável próprio. Revisada para o RBAC consolidado: mentor principal é designation; múltiplos lançamentos manuais de horas são permitidos com idempotencyKey; versão backend será fixada no plano da fase.
+status: base implementada e publicada na Fase 4 (ADR 008 e plano 2026-11-07-entities-extension); melhorias assistidas de cadastro são candidatas da Fase 8b, sem aprovação. Mentor principal é designation e lançamentos manuais usam idempotencyKey.
 sections:
   - Contexto e vínculo com o 1.0.0
   - Papéis e permissões

@@ -705,7 +705,7 @@ Na publicação do guest claim, configure também `TURNSTILE_SECRET` e `TURNSTIL
 
 ### Backend → Produção ARM64 (manual)
 
-1. **Publicar a imagem:** rode o workflow manual [`.github/workflows/publish-backend.yml`](.github/workflows/publish-backend.yml) (*Actions → CD: Publish Backend & Push GHCR → Run workflow*). A tag da imagem e da release vêm do `version` de `backend/package.json` — **bump de versão obrigatório** a cada mudança no backend (feat → minor, fix → patch), senão o deploy sobrescreve a imagem anterior.
+1. **Publicar a imagem:** rode o workflow manual [`.github/workflows/publish-backend.yml`](.github/workflows/publish-backend.yml) (*Actions → CD: Publish Backend & Push GHCR → Run workflow*). A tag da imagem e da release vêm do `version` de `backend/package.json`. Frontend e backend usam a **mesma versão de produto**: atualize `frontend/package.json`, `backend/package.json`, os dois lockfiles e o [`CHANGELOG.md`](CHANGELOG.md) em toda release (feat → minor, fix → patch), mesmo quando somente uma camada mudou. Sem bump, o deploy sobrescreve a imagem anterior.
 2. **Subir no servidor:**
 
    ```bash
