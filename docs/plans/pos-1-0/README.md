@@ -36,6 +36,7 @@ agent-protocol:
 | 1.3.0 | Fase 8 — páginas públicas conectadas às projeções | PR #655 em main; release/deploy pendente. |
 | 1.4.0 | Reconciliação idempotente de taxas Stripe e guia leve de agentes | PR #655 em main; reconciliação em produção após deploy. |
 | 1.5.0 | Fase 8b.1 — cadastro assistido de projetos de extensão | Implementada em develop; release/deploy pendente. |
+| 1.6.0 | Fase 8b.2 — importação manual da vitrine e diagnóstico de disponibilidade de mentoria | Implementada em develop; release/deploy pendente. |
 
 O [changelog](../../../CHANGELOG.md) é a fonte ordenada das mudanças. Frontend e backend passam a compartilhar a versão de produto; a tag histórica `-backend` não implica versionamento independente do frontend.
 
@@ -68,7 +69,7 @@ Documentos: [design](../../superpowers/specs/2026-11-17-public-pages-design.md) 
 
 ## Candidatos posteriores
 
-### Fase 8b — Projetos de extensão e patrocínio PJ (P12 planejado; P6/P7 não aprovados)
+### Fase 8b — Projetos de extensão e patrocínio PJ (P12/P6 implementados; P7 não aprovado)
 
 P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [spec](../../superpowers/specs/2026-11-17-extension-project-assisted-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-extension-project-assisted.md) revisados por builder check. A implementação em `develop` inclui busca/preservação de mentores, sincronização por delta, ODS, parceiros, orçamento e anexos, com jornada real validada em banco isolado. P6 e P7 continuam sem aprovação e exigem specs próprias.
 
@@ -77,6 +78,8 @@ P12 foi recortado como **Fase 8b.1 — cadastro assistido de extensão**, com [s
 | P12 Cadastro assistido de extensão | Busca de mentores/coMentores sem UUID digitado, ODS com nomes, metodologia pré-preenchida, validações no formulário e campos já modelados que não aparecem na UI. Área CNPq exige decisão de produto/backend antes de promessa. |
 | P6 Projetos atuais → extensão | Repositórios open source permanecem vitrine separada, salvo se receberem entidade jurídica, ODS, datas, mentor e demais dados obrigatórios; não converter automaticamente. |
 | P7 Assinatura pessoal → apoio empresarial | Fluxo administrativo auditado para vincular/criar empresa sem apagar histórico Stripe; revalidar o caso real em dump isolado antes da spec. |
+
+P6 foi recortado como **Fase 8b.2 — vitrine open source para extensão**, com [spec](../../superpowers/specs/2026-11-17-open-source-extension-design.md) e [plano TDD](../../superpowers/plans/2026-11-17-open-source-extension.md) revisados por builder check sem lacunas. A implementação em `develop` usa seleção manual e o formulário existente, sem remover a origem ou converter automaticamente. P7 continua sem aprovação e exige spec financeira própria.
 
 A divisão entre projetos e patrocínio pode virar specs/PRs independentes. Não usar dados reais do dump em fixtures ou documentação.
 

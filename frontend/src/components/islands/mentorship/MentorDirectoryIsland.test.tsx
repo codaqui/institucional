@@ -8,45 +8,129 @@ import MentorDirectoryIsland from "./MentorDirectoryIsland";
 const mocks = vi.hoisted(() => ({ authFetch: vi.fn() }));
 vi.mock("../../../lib/use-auth", () => ({
   useAuth: () => ({
-    ready: true, isLoggedIn: false, isAdmin: false, user: null,
-    login: vi.fn(), authFetch: mocks.authFetch,
+    ready: true,
+    isLoggedIn: false,
+    isAdmin: false,
+    user: null,
+    login: vi.fn(),
+    authFetch: mocks.authFetch,
   }),
 }));
 
 const mentor = {
-  id: "mentor-1", handle: "ana", name: "Ana", avatarUrl: "avatar",
-  areas: ["DevOps"], focus: "Carreira", availability: [],
+  id: "mentor-1",
+  handle: "ana",
+  name: "Ana",
+  avatarUrl: "avatar",
+  areas: ["DevOps"],
+  focus: "Carreira",
+  availability: [
+    {
+      weekday: 1,
+      startTime: "19:00",
+      endTime: "20:00",
+      timeZone: "America/Sao_Paulo",
+    },
+  ],
 };
 
 describe("MentorDirectoryIsland", () => {
   beforeEach(() => {
-    mocks.authFetch.mockReset().mockImplementation(async (path: string, init?: RequestInit) => {
-      if (path.startsWith("/mentorship/availability")) {
-        return jsonResponse([{ scheduledAt: "2026-11-16T19:00", durationMin: 60, timeZone: "America/Sao_Paulo" }]);
-      }
-      if (path === "/mentorship/sessions" && init?.method === "POST") {
-        return jsonResponse({ token: "token-1", status: "requested" }, { status: 201 });
-      }
-      return jsonResponse({ message: "not found" }, { status: 404 });
-    });
+    mocks.authFetch
+      .mockReset()
+      .mockImplementation(async (path: string, init?: RequestInit) => {
+        if (path.startsWith("/mentorship/availability")) {
+          return jsonResponse([
+            {
+              scheduledAt: "2026-11-16T19:00",
+              durationMin: 60,
+              timeZone: "America/Sao_Paulo",
+            },
+          ]);
+        }
+        if (path === "/mentorship/sessions" && init?.method === "POST") {
+          return jsonResponse(
+            { token: "token-1", status: "requested" },
+            { status: 201 },
+          );
+        }
+        return jsonResponse({ message: "not found" }, { status: 404 });
+      });
+  });
+
+  it("distinguishes a mentor without weekly rules from unavailable slots", async () => {
+    const user = userEvent.setup();
+    mocks.authFetch.mockResolvedValue(jsonResponse([]));
+    renderWithMui(
+      <MentorDirectoryIsland mentors={[{ ...mentor, availability: [] }]} />,
+    );
+
+    expect(
+      screen.getByText("Disponibilidade não cadastrada"),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Ver horários de Ana" }),
+    );
+    expect(
+      await screen.findByText(
+        "O mentor ainda não cadastrou disponibilidade semanal. Não há horários para solicitar.",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the four-week message when rules exist but no slot is free", async () => {
+    const user = userEvent.setup();
+    mocks.authFetch.mockResolvedValue(jsonResponse([]));
+    renderWithMui(<MentorDirectoryIsland mentors={[mentor]} />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Ver horários de Ana" }),
+    );
+    expect(
+      await screen.findByText(
+        "Nenhum horário disponível nas próximas quatro semanas.",
+      ),
+    ).toBeInTheDocument();
   });
 
   it("books an available slot with accessible fields and guest consent", async () => {
     const user = userEvent.setup();
     renderWithMui(<MentorDirectoryIsland mentors={[mentor]} />);
 
-    await user.click(screen.getByRole("button", { name: "Ver horários de Ana" }));
-    await user.click(await screen.findByRole("button", { name: "Agendar 19:00" }));
+    await user.click(
+      screen.getByRole("button", { name: "Ver horários de Ana" }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Agendar 19:00" }),
+    );
     await user.type(screen.getByLabelText(/^Nome/), "Ana");
     await user.type(screen.getByLabelText(/^E-mail/), "ana@x.dev");
     await user.type(screen.getByLabelText(/^Temas/), "DevOps");
     await user.click(screen.getByRole("checkbox", { name: /consentimento/i }));
     await user.click(screen.getByRole("button", { name: "Solicitar sessão" }));
 
-    await waitFor(() => expect(mocks.authFetch).toHaveBeenCalledWith("/mentorship/sessions", expect.objectContaining({ method: "POST" })));
-    const body = JSON.parse(String(mocks.authFetch.mock.calls.find(([path]) => path === "/mentorship/sessions")?.[1]?.body));
-    expect(body).toMatchObject({ mentorId: "mentor-1", menteeName: "Ana", menteeEmail: "ana@x.dev", topicTags: ["DevOps"] });
+    await waitFor(() =>
+      expect(mocks.authFetch).toHaveBeenCalledWith(
+        "/mentorship/sessions",
+        expect.objectContaining({ method: "POST" }),
+      ),
+    );
+    const body = JSON.parse(
+      String(
+        mocks.authFetch.mock.calls.find(
+          ([path]) => path === "/mentorship/sessions",
+        )?.[1]?.body,
+      ),
+    );
+    expect(body).toMatchObject({
+      mentorId: "mentor-1",
+      menteeName: "Ana",
+      menteeEmail: "ana@x.dev",
+      topicTags: ["DevOps"],
+    });
     expect(await screen.findByText(/sessão solicitada/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Acompanhar sessão" })).toHaveAttribute("href", "/mentoria/sessao/token-1");
+    expect(
+      screen.getByRole("link", { name: "Acompanhar sessão" }),
+    ).toHaveAttribute("href", "/mentoria/sessao/token-1");
   });
 });

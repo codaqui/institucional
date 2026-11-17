@@ -1,9 +1,10 @@
 <!-- AGENT-INDEX
 purpose: Changelog consolidado do produto Codaqui desde o marco 1.0.0, com releases, PRs, migrations e pendências operacionais verificáveis.
 audience: Mantenedores, presidência, AI agents e operadores de release.
-status: Atualizado até 1.5.0 em develop; propostas futuras não são releases.
+status: Atualizado até 1.6.0 em develop; propostas futuras não são releases.
 sections:
   - Política de versão
+  - 1.6.0
   - 1.5.0
   - 1.4.0
   - 1.3.0
@@ -32,6 +33,29 @@ As mudanças são ordenadas da mais recente para a mais antiga. Até 1.2.0, as t
 - O `package.json` da raiz coordena scripts e não participa dessa regra.
 - Toda release exige entrada neste changelog; features usam bump minor e correções usam bump patch.
 - As tags e releases históricas não são reescritas para remover o sufixo `-backend`.
+
+## [1.6.0] — 2026-11-17
+
+**Estado:** implementada em `develop`; integração em `main` e release ainda pendentes. **Migration:** nenhuma.
+
+### Importação manual da vitrine open source
+
+- `/admin/projetos` permite escolher um item de `frontend/src/data/projects.ts` e abrir o formulário com nome/resumo e link de origem.
+- A importação usa o `POST /projects` existente, sem backend ou migration nova; nenhum request ocorre antes de salvar.
+- A URL GitHub é somente referência visual, nunca anexo. Entidade, ODS, datas, mentor e demais obrigações institucionais permanecem obrigatórios.
+- A origem open source não é removida nem alterada; a extensão só se torna pública após ativação.
+
+### Diagnóstico de disponibilidade de mentoria
+
+- A página pública distingue mentor sem regra semanal de regras sem slots livres nas próximas quatro semanas.
+- A área do mentor orienta que ao menos um horário semanal é necessário para oferecer sessões.
+- Nenhuma regra é criada automaticamente; configurar a agenda real continua sendo ação operacional do mentor.
+- Jornada isolada com fixtures sintéticas validou regra → slot → solicitação `requested` → slot ocupado.
+
+### Verificação
+
+- Testes cobrem helper, picker, importação manual, reset de estado, validação de proposta e diagnóstico de disponibilidade.
+- Revisão e gates completos acompanham esta entrega.
 
 ## [1.5.0] — 2026-11-17
 

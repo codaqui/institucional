@@ -90,6 +90,10 @@ Projeções públicas omitem `createdById`, `registeredById`, contatos, notas in
 
 A sincronização de mentores aplica somente deltas: conjunto idêntico não regrava vínculos nem envia e-mail; mudança de co-mentor preserva linhas inalteradas e não notifica o principal; somente novo/trocado principal recebe notificação. Não houve migration nem alteração de autorização, snapshot público ou lifecycle.
 
+### Fase 8b.2 — importação manual da vitrine open source
+
+`/admin/projetos` oferece **Importar da vitrine**, lendo o conteúdo local de `frontend/src/data/projects.ts`. A escolha abre o formulário com nome/resumo e link de origem, sem request ou mutação antes de salvar. A URL GitHub não entra em anexos nem no payload; entidade, ODS, datas, mentor e demais obrigações continuam válidos. Salvar cria um registro novo por `POST /projects`, enquanto a origem permanece na vitrine e a extensão só se torna pública após ativação.
+
 ## Escopos organizacionais
 
 A migration 040 adiciona `directorates.communityId` opcional (`NULL` = global) e `assemblies.entityId` obrigatório após backfill da entidade `codaqui`. Numeração e advisory lock passam a ser por `entityId + type`.
