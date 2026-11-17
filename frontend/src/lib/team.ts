@@ -1,3 +1,4 @@
+import type { PublicMentor } from "../data/mentors";
 import type { Member } from "../data/team";
 import type { PublicMemberProfile } from "./member-path";
 
@@ -64,4 +65,28 @@ export function enrichTeamMember(
     github: `https://github.com/${publicMember.githubHandle}`,
     profilePath: `/@${publicMember.githubHandle}`,
   };
+}
+
+
+export interface MentorTeamMember {
+  name: string;
+  handle: string;
+  avatar: string;
+  areas: string[];
+  focus: string | null;
+  profilePath?: string;
+}
+
+export function toMentorTeamMembers(
+  mentors: PublicMentor[],
+  publicMembers: PublicMemberProfile[],
+): MentorTeamMember[] {
+  return mentors.map((mentor) => ({
+    name: mentor.name,
+    handle: mentor.handle,
+    avatar: mentor.avatarUrl,
+    areas: mentor.areas,
+    focus: mentor.focus,
+    profilePath: publicProfilePathForHandle(mentor.handle, publicMembers),
+  }));
 }

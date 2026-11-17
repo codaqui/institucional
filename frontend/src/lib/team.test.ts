@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import type { PublicMentor } from "../data/mentors";
 import type { Member } from "../data/team";
 import type { PublicMemberProfile } from "./member-path";
 import {
   enrichTeamMember,
   githubHandleFromUrl,
   publicProfilePathForHandle,
+  toMentorTeamMembers,
 } from "./team";
 
 const local: Member = {
@@ -92,5 +94,49 @@ describe("publicProfilePathForHandle", () => {
       publicProfilePathForHandle("EndersonMenezes", [publicMember]),
     ).toBe("/@endersonmenezes");
     expect(publicProfilePathForHandle("missing", [publicMember])).toBeUndefined();
+  });
+});
+
+
+describe("toMentorTeamMembers", () => {
+  const mentor: PublicMentor = {
+    id: "mentor-1",
+    handle: "endersonmenezes",
+    name: "Enderson Menezes",
+    avatarUrl: "https://example.com/mentor.png",
+    areas: ["DevOps", "Eventos"],
+    focus: "Comunidades e DevOps",
+    availability: [],
+  };
+
+  it("maps the public mentor snapshot without inventing historical entries", () => {
+    expect(toMentorTeamMembers([mentor], [publicMember])).toEqual([
+      {
+        name: "Enderson Menezes",
+        handle: "endersonmenezes",
+        avatar: "https://example.com/mentor.png",
+        areas: ["DevOps", "Eventos"],
+        focus: "Comunidades e DevOps",
+        profilePath: "/@endersonmenezes",
+      },
+    ]);
+    expect(toMentorTeamMembers([], [publicMember])).toEqual([]);
+  });
+
+  it("omits the vanity link when the mentor has no public member page in this build", () => {
+    expect(toMentorTeamMembers([mentor], [])[0].profilePath).toBeUndefined();
+  });
+
+  it("preserves snapshot order", () => {
+    const second: PublicMentor = {
+      ...mentor,
+      id: "mentor-2",
+      handle: "second",
+      name: "Second Mentor",
+    };
+
+    expect(
+      toMentorTeamMembers([second, mentor], []).map((item) => item.handle),
+    ).toEqual(["second", "endersonmenezes"]);
   });
 });
