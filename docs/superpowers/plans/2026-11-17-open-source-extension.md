@@ -1,7 +1,7 @@
 <!-- AGENT-INDEX
 purpose: Plano TDD da Fase 8b.2 — conversão manual e assistida da vitrine open source em extensão.
 audience: Implementers e revisores
-status: Concluída em develop/1.6.0 com testes, jornada real e gates; revisão final em andamento
+status: Código concluído e revisado em develop/1.6.0; jornada operacional de importação e release/deploy pendentes
 sections:
   - Constraints e review focus
   - Tasks 1–2
@@ -144,5 +144,5 @@ Expected: PASS. Em banco isolado, validar regra sintética → slots → solicit
 - [x] `make astro-verify`
 - [x] `make astro-verify-tenants`
 - [x] `cd backend && npm run build && npx jest --silent`
-- [x] Jornada controlada após publicação da fase anterior: importar origem → salvar rascunho → completar proposta → ativar; confirmar que a origem continua na vitrine.
+- [ ] Jornada controlada após publicação da fase anterior: importar origem → salvar rascunho → completar proposta → ativar; confirmar que a origem continua na vitrine.
 - [x] Atualizar changelog e versões compartilhadas com bump minor; PR para `develop` e revisão independente.
